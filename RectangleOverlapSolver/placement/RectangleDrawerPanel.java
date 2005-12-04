@@ -218,30 +218,36 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 		// create the hardware accelerated image.
 		createBackBuffer();
 
-		// Main rendering loop. Volatile images may lose their contents. 
-		// This loop will continually render to (and produce if neccessary) volatile images
+		// Main rendering loop. Volatile images may lose their contents.
+		// This loop will continually render to (and produce if neccessary)
+		// volatile images
 		// until the rendering was completed successfully.
 		do {
 
-			// Validate the volatile image for the graphics configuration of this 
-			// component. If the volatile image doesn't apply for this graphics configuration 
-			// (in other words, the hardware acceleration doesn't apply for the new device)
+			// Validate the volatile image for the graphics configuration of
+			// this
+			// component. If the volatile image doesn't apply for this graphics
+			// configuration
+			// (in other words, the hardware acceleration doesn't apply for the
+			// new device)
 			// then we need to re-create it.
 			GraphicsConfiguration gc = this.getGraphicsConfiguration();
 			int valCode = volatileImg.validate(gc);
 
-			// This means the device doesn't match up to this hardware accelerated image.
+			// This means the device doesn't match up to this hardware
+			// accelerated image.
 			if (valCode == VolatileImage.IMAGE_INCOMPATIBLE) {
 				createBackBuffer(); // recreate the hardware accelerated image.
 			}
 
 			Graphics2D offscreenGraphics = (Graphics2D) volatileImg
 					.getGraphics();
-			render(getWidth(), getHeight(), offscreenGraphics); // call core paint method.
+			render(getWidth(), getHeight(), offscreenGraphics); // call core
+			// paint method.
 
 			// paint back buffer to main graphics
 			g.drawImage(volatileImg, 0, 0, this);
-			// Test if content is lost   
+			// Test if content is lost
 		} while (volatileImg.contentsLost());
 	}
 
@@ -343,7 +349,8 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 		dragging = false;
 		g.dispose();
 		g = null;
-		rectangles.add(rect);
+		if (rect != null)
+			rectangles.add(rect);
 		rect = null;
 	}
 
@@ -355,15 +362,17 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 		int y = Math.min(evt.getY(), getSize().height - 1);
 		y = Math.max(y, 0);
 		paintComponent(g);
-		Rectangle r = new Rectangle(Math.min(prevX, x), Math.min(prevY, y),
-				Math.abs(x - prevX), Math.abs(y - prevY));
-		g.drawRect(r.x, r.y, r.width, r.height);
-		Color c = new Color(228, 228, 205);
-		g.setPaint(c);
-		g.fill(r);
-		g.setPaint(Color.BLACK);
-		g.draw(r);
-		rect = r;
+		if (prevX != x && prevY != y) {
+			Rectangle r = new Rectangle(Math.min(prevX, x), Math.min(prevY, y),
+					Math.abs(x - prevX), Math.abs(y - prevY));
+			g.drawRect(r.x, r.y, r.width, r.height);
+			Color c = new Color(228, 228, 205);
+			g.setPaint(c);
+			g.fill(r);
+			g.setPaint(Color.BLACK);
+			g.draw(r);
+			rect = r;
+		}
 	}
 
 	public void mouseEntered(MouseEvent evt) {
@@ -384,7 +393,8 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 	 * @see java.util.Observer#update(java.util.Observable, java.lang.Object)
 	 */
 	public void update(Observable p, Object arg1) {
-		constraints = ((QPRectanglePlacement) p).constraintGenerator.getConstraints();
+		constraints = ((QPRectanglePlacement) p).constraintGenerator
+				.getConstraints();
 		paintComponent(getGraphics());
 	}
 
