@@ -40,7 +40,13 @@ public class ConstraintGenerator {
 		Arrays.sort(chunks, Chunk.comparator);
 		for (int i = 0; i < chunks.length; i++) {
 			Chunk r = chunks[i];
-			r.v = new Variable("r" + i, r.getMin(), 1.0);
+			String id = null;
+			if(r.id!=null) {
+				id=r.id;
+			} else {
+				id="r" + i;
+			}
+			r.v = new Variable(id, r.getMin(), 1.0);
 			r.v.data.put(Chunk.class, r);
 			r.v.data.put(Rectangle2D.class, r.rect);
 		}
@@ -98,7 +104,14 @@ public class ConstraintGenerator {
 		ChunkEdge[] edges = new ChunkEdge[chunks.length * 2];
 		for (int i = 0; i < chunks.length; i++) {
 			Chunk c = chunks[i];
-			c.v = new Variable("r" + i, c.getMin(), 1.0/* c.getLength() */);
+
+			String id = null;
+			if(c.id!=null) {
+				id=c.id;
+			} else {
+				id="r" + i;
+			}
+			c.v = new Variable(id, c.getMin(), 1.0);
 			c.v.data.put(Chunk.class, c);
 			c.v.data.put(Rectangle2D.class, c.rect);
 			Chunk conj = c.conj;
@@ -148,7 +161,13 @@ public class ConstraintGenerator {
 		ChunkEdge[] edges = new ChunkEdge[chunks.length * 2];
 		for (int i = 0; i < chunks.length; i++) {
 			Chunk c = chunks[i];
-			c.v = new Variable("r" + i, c.getMin(), 1/* c.getLength() */);
+			String id = null;
+			if(c.id!=null) {
+				id=c.id;
+			} else {
+				id="r" + i;
+			}
+			c.v = new Variable(id, c.getMin(), 1.0);
 			c.v.data.put(Chunk.class, c);
 			c.v.data.put(Rectangle2D.class, c.rect);
 			Chunk conj = c.conj;
@@ -259,6 +278,7 @@ abstract class Chunk<T extends Chunk> {
 	Rectangle2D rect;
 
 	Variable v;
+	String id;
 
 	Chunk leftNeighbour;
 
@@ -281,7 +301,7 @@ abstract class Chunk<T extends Chunk> {
 	}
 
 	Chunk(Rectangle2D r, T conjugate) {
-		this.rect = r;
+		this(r);
 		this.conj = conjugate;
 	}
 

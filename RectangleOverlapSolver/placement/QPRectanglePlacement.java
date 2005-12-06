@@ -97,7 +97,7 @@ public class QPRectanglePlacement extends Observable implements
 		}
 	}
 
-	void placeX(ArrayList<Rectangle2D> rectangles,
+	void placeX(ArrayList<Rectangle2D> rectangles,Hashtable<Rectangle2D, String> idMap,
 			Hashtable<Rectangle2D, Color> colourMap) {
 
 		rectangleColourMap = colourMap;
@@ -108,6 +108,9 @@ public class QPRectanglePlacement extends Observable implements
 		for (int i = 0; i < rectangles.size(); i++) {
 			Rectangle2D r = rectangles.get(i);
 			xs[i] = new XChunk(r, new YChunk(r));
+			if(idMap!=null) {
+				xs[i].id=idMap.get(r);
+			}
 		}
 		constraintGenerator.initVarsAndConstraints(xs,false);
 		setChanged();
@@ -119,7 +122,7 @@ public class QPRectanglePlacement extends Observable implements
 		System.out.println("Place hor.: cost=" + cost + " time=" + (t3 - t2));
 	}
 
-	void place(ArrayList<Rectangle2D> rectangles,
+	void place(ArrayList<Rectangle2D> rectangles,Hashtable<Rectangle2D, String> idMap,
 			Hashtable<Rectangle2D, Color> colourMap) {
 		long t1 = System.currentTimeMillis();
 		if (algorithm == Algorithm.CACTIVESET) {
@@ -127,9 +130,9 @@ public class QPRectanglePlacement extends Observable implements
 		} else {
 			rectangleColourMap = colourMap;
 			XChunk.g += 0.01;
-			placeX(rectangles, colourMap);
+			placeX(rectangles, idMap, colourMap);
 			XChunk.g -= 0.01;
-			placeY(rectangles, colourMap);
+			placeY(rectangles, idMap, colourMap);
 		}
 		long t2 = System.currentTimeMillis();
 		System.out.println("Total time=" + (t2 - t1));
@@ -145,7 +148,7 @@ public class QPRectanglePlacement extends Observable implements
 		System.out.println("Total time=" + (t2 - t1));
 	}
 
-	void placeY(ArrayList<Rectangle2D> rectangles,
+	void placeY(ArrayList<Rectangle2D> rectangles,Hashtable<Rectangle2D, String> idMap,
 			Hashtable<Rectangle2D, Color> colourMap) {
 		long t1 = System.currentTimeMillis();
 		YChunk[] ys = new YChunk[rectangles.size()];
@@ -153,6 +156,9 @@ public class QPRectanglePlacement extends Observable implements
 		for (int i = 0; i < rectangles.size(); i++) {
 			Rectangle2D r = rectangles.get(i);
 			ys[i] = new YChunk(r, new XChunk(r));
+			if(idMap!=null) {
+				ys[i].id=idMap.get(r);
+			}
 		}
 		constraintGenerator.initVarsAndConstraints(ys,true);
 		setChanged();
@@ -225,7 +231,7 @@ public class QPRectanglePlacement extends Observable implements
 	}
 
 	public void place(ArrayList<Rectangle2D> rectangles) {
-		place(rectangles, null);
+		place(rectangles, null, null);
 	}
 
 }

@@ -1,0 +1,11 @@
+graph G {
+	node [label="\N", shape=box, fontsize=10];
+	graph [overlap=true,splines=true,bb="0,0,478,731"];
+	A [label="A", height="4", width="1", pos="100,100"];
+	B [label="B", height="0.8", width="2", pos="220,-150"];
+	C [label="C", height="0.8", width="0.9", pos="100,200"];
+	D [label="D", height="2", width="2", pos="230,150"];
+	E [label="E", height="2.5", width="1", pos="300,50"];
+	F [label="F", height="1", width="2", pos="300,-180"];
+	G [label="G", height="1", width="2", pos="350,100"];
+}

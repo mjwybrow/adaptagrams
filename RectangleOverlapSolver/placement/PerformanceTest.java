@@ -179,8 +179,8 @@ public class PerformanceTest {
 		ArrayList<Rectangle2D> rs = copyRects(orig);
 		ArrayList<Rectangle2D> xrs = copyRects(xplaced);
 		long t0 = System.currentTimeMillis();
-		((QPRectanglePlacement)p).placeX(rs,null);
-		((QPRectanglePlacement)p).placeY(xrs,null);
+		((QPRectanglePlacement)p).placeX(rs,null,null);
+		((QPRectanglePlacement)p).placeY(xrs,null,null);
 		c.time = System.currentTimeMillis() - t0;
 		c.xDisplacement = 0;
 		c.yDisplacement = 0;

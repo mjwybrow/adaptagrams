@@ -1,7 +1,10 @@
 package placement;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
@@ -59,9 +62,9 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 
 	private Rectangle2D rect;
 
-	private ArrayList<Rectangle2D> rectangles = new ArrayList<Rectangle2D>();
+	public ArrayList<Rectangle2D> rectangles = new ArrayList<Rectangle2D>();
 
-	private Graph graph = null;
+	public Graph graph = null;
 
 	private ArrayList<Rectangle2D> undoRectangles = new ArrayList<Rectangle2D>();;
 
@@ -74,7 +77,7 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 	protected void generateRandom() {
 		clear();
 		Dimension dim = getSize();
-		int n = 50;
+		int n = 500;
 		Random rand = new Random();
 		double w = dim.width / 3.0;
 		double h = dim.height / 3.0;
@@ -186,7 +189,11 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 	}
 
 	protected void undo() {
-		rectangles = new ArrayList<Rectangle2D>(undoRectangles);
+		if (graph != null) {
+			rectangles = graph.getRectangles();
+		} else {
+			rectangles = new ArrayList<Rectangle2D>(undoRectangles);
+		}
 	}
 
 	/**
@@ -275,7 +282,7 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 			}
 		}
 		for (Rectangle2D r : getRectangles()) {
-			Color c = new Color(228, 228, 205);
+			Color c = new Color(228, 228, 205, 200);
 			if (rectangleColourMap.containsKey(r)) {
 				c = rectangleColourMap.get(r);
 			}
@@ -283,9 +290,27 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 			g.fill(r);
 			g.setPaint(Color.BLACK);
 			g.draw(r);
+			if (graph != null) {
+				drawStringInRectangle(this, g, r, graph.getRectangleLabel(r));
+			}
 		}
 		drawConstraints(g);
 
+	}
+
+	public static void drawStringInRectangle(Component component, Graphics2D g, Rectangle2D r, String s) {
+		Font f = new Font("Times New Roman", Font.PLAIN, 24);
+		FontMetrics fm = component.getFontMetrics(f);
+		int h = fm.getHeight();
+		int w = fm.stringWidth(s);
+		int d = fm.getMaxDescent();
+		double fsize = 0.9*24.0 * Math.min(r.getWidth()/(double)w,r.getHeight()/(double)h);
+		f = new Font("Times New Roman", Font.PLAIN, (int) fsize);
+		g.setFont(f);
+		fm = component.getFontMetrics(f);
+		h = fm.getHeight();
+		w = fm.stringWidth(s);
+		g.drawString(s, (int) r.getMinX(), (int) (r.getMinY() + h / 1.3));
 	}
 
 	ArrayList<Rectangle2D> getRectangles() {
@@ -366,7 +391,7 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 			Rectangle r = new Rectangle(Math.min(prevX, x), Math.min(prevY, y),
 					Math.abs(x - prevX), Math.abs(y - prevY));
 			g.drawRect(r.x, r.y, r.width, r.height);
-			Color c = new Color(228, 228, 205);
+			Color c = new Color(228, 228, 205, 200);
 			g.setPaint(c);
 			g.fill(r);
 			g.setPaint(Color.BLACK);

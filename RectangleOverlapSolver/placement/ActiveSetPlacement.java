@@ -49,6 +49,7 @@ public class ActiveSetPlacement extends Observable implements Placement {
 			logger.fine("block order: " + blocks);
 		}
 		for (Variable v : vs) {
+			System.out.println("Processing "+v.name);
 			blocks.mergeLeft(v.container, this);
 		}
 	}

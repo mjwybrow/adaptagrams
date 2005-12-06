@@ -5,8 +5,10 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.geom.GeneralPath;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.VolatileImage;
 import java.util.Hashtable;
@@ -89,7 +91,8 @@ public class DebugPanel extends JPanel {
 		for (Block b : blocks) {
 			Color c = Color.WHITE;
 			if (b.variables.size() > 1) {
-				c = Color.getHSBColor(h, 0.5f, 1f);
+				Color hsb = Color.getHSBColor(h, 0.5f, 1f);
+				c=new Color(hsb.getRed(),hsb.getGreen(),hsb.getBlue(),200);
 				h += hstep;
 			}
 			for (Variable v : b.variables) {
@@ -108,7 +111,7 @@ public class DebugPanel extends JPanel {
 				g.fill(r);
 				g.setPaint(Color.BLACK);
 				g.draw(r);
-				g.drawString(v.name, x, y + 10);
+				RectangleDrawerPanel.drawStringInRectangle(this, g, r, v.name);
 				y += ystep;
 				vcounter++;
 			}
@@ -123,10 +126,50 @@ public class DebugPanel extends JPanel {
 			} else if (c.isTight()) {
 				c.colour = Color.GREEN;
 			}
-			g.setPaint(c.colour);
-			g.drawLine(xl, yLookup.get(l), xr, yLookup.get(r));
-			g.drawOval(xr - 5, yLookup.get(r) - 5, 10, 10);
+			g.setPaint(new Color(c.colour.getRed(),c.colour.getGreen(),c.colour.getBlue(),160));
+			drawArrow(g, xl, yLookup.get(l), xr, yLookup.get(r), 5);
 		}
+	}
+
+	/**
+	 * Draws an arrow head from (x,y) to (X,Y).
+	 * The arrow has a triangular head of size given by the parameter
+	 * 
+	 * @param g
+	 * @param x start point is (x,y)
+	 * @param y start point is (x,y)
+	 * @param X end point is (X,Y)
+	 * @param Y end point is (X,Y)
+	 * @param size of arrow base in pixels
+	 */
+	private void drawArrow(Graphics2D g, int x, int y, int X, int Y, int size) {
+		g.drawLine(x,y,X,Y);
+		double s=(double)size;
+		double dx=X-x;
+		double dy=Y-y;
+		double len=Math.sqrt((double)(dx*dx+dy*dy));
+		// u is unit vector from (x,y) to (X,Y)
+		double ux=dx/len;
+		double uy=dy/len;
+		// a is beginning of arrow triangle
+		double ax=X-s*ux;
+		double ay=Y-s*uy;
+		// v is vector from start to end of arrow triangle
+		double vx = X - ax;
+		double vy = Y - ay;
+		// w is perpendicular to v and half the length
+		double wx = -vy / 2;
+		double wy = vx / 2;
+		// a and b are corners of arrow head
+		Point p1 = new Point((int) (ax - wx), (int) (ay - wy));
+		Point p2 = new Point((int) (ax + wx), (int) (ay + wy));
+		GeneralPath path = new GeneralPath(GeneralPath.WIND_EVEN_ODD, 5);
+		path.moveTo(p1.x, p1.y);
+		path.lineTo(p2.x, p2.y);
+		path.lineTo(X, Y);
+		path.lineTo(p1.x, p1.y);
+		path.closePath();
+		g.fill(path);
 	}
 
 	public void updateDrawing() {
