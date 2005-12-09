@@ -26,18 +26,12 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
+import javax.swing.JToggleButton;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import placement.QPRectanglePlacement.Algorithm;
-
-class QuickRect {
-	Rectangle r;
-
-	QuickRect(double x, double X, double y, double Y) {
-		r = new Rectangle((int)x, (int)y, (int)(X - x), (int)(Y - y));
-	}
-}
+import placement.RectangleDrawerPanel.InteractionMode;
 
 public class RectangleDrawerFrame extends JFrame {
 
@@ -63,13 +57,24 @@ public class RectangleDrawerFrame extends JFrame {
 
 	public static int DefaultYGap = 5;
 
+	public RectangleDrawerPanel d;
+
 	public static void main(String args[]) {
 		final RectangleDrawerFrame f = new RectangleDrawerFrame(
 				"Rectangle Drawer");
+		f.init();
+		if (args.length > 0) {
+			System.out.println("Arg " + args[0]);
+			f.d.load(new File(args[0]));
+			//f.cleanup(DefaultXGap,DefaultYGap);
+		}
+	}
+
+	public void init() {
 		Box hBox1 = Box.createHorizontalBox();
 		Box hBox2 = Box.createHorizontalBox();
 		Box vBox = Box.createVerticalBox();
-		final RectangleDrawerPanel d = new RectangleDrawerPanel();
+		d = new RectangleDrawerPanel();
 		d.setSize(new Dimension(800, 600));
 		d.setBackground(Color.WHITE);
 		JButton cleanupButton = new JButton("Remove Overlaps");
@@ -80,6 +85,7 @@ public class RectangleDrawerFrame extends JFrame {
 		JButton randomButton = new JButton("Random");
 		JButton printButton = new JButton("Print");
 		JButton dumpButton = new JButton("screenDump");
+		final JToggleButton moveButton = new JToggleButton("Move Rectangle");
 		final JTextField xGapField = new JTextField("" + DefaultXGap);
 		xGapField.setMaximumSize(new Dimension(100, 30));
 		final JTextField yGapField = new JTextField("" + DefaultYGap);
@@ -92,7 +98,7 @@ public class RectangleDrawerFrame extends JFrame {
 		activeSetRB.addActionListener(new ActionListener() {
 
 			public void actionPerformed(ActionEvent arg0) {
-				f.algorithm = Algorithm.ACTIVESET;
+				algorithm = Algorithm.ACTIVESET;
 				splitCB.setEnabled(true);
 				animateCB.setEnabled(true);
 				orthogonalConstraintsCB.setEnabled(true);
@@ -104,7 +110,7 @@ public class RectangleDrawerFrame extends JFrame {
 		nativeActiveSetRB.addActionListener(new ActionListener() {
 
 			public void actionPerformed(ActionEvent arg0) {
-				f.algorithm = Algorithm.NATIVE_ACTIVESET;
+				algorithm = Algorithm.NATIVE_ACTIVESET;
 				splitCB.setEnabled(true);
 				animateCB.setEnabled(false);
 				orthogonalConstraintsCB.setEnabled(true);
@@ -116,7 +122,7 @@ public class RectangleDrawerFrame extends JFrame {
 		mosekRB.addActionListener(new ActionListener() {
 
 			public void actionPerformed(ActionEvent arg0) {
-				f.algorithm = Algorithm.MOSEK;
+				algorithm = Algorithm.MOSEK;
 				splitCB.setEnabled(false);
 				animateCB.setEnabled(false);
 				orthogonalConstraintsCB.setEnabled(true);
@@ -128,7 +134,7 @@ public class RectangleDrawerFrame extends JFrame {
 		fsaRB.addActionListener(new ActionListener() {
 
 			public void actionPerformed(ActionEvent arg0) {
-				f.algorithm = Algorithm.FSA;
+				algorithm = Algorithm.FSA;
 				splitCB.setEnabled(false);
 				animateCB.setEnabled(false);
 				orthogonalConstraintsCB.setEnabled(false);
@@ -140,7 +146,7 @@ public class RectangleDrawerFrame extends JFrame {
 		bg.add(nativeActiveSetRB);
 		bg.add(mosekRB);
 		bg.add(fsaRB);
-		switch (f.algorithm) {
+		switch (algorithm) {
 		case ACTIVESET:
 			activeSetRB.setSelected(true);
 			break;
@@ -154,10 +160,10 @@ public class RectangleDrawerFrame extends JFrame {
 			fsaRB.setSelected(true);
 			break;
 		}
-		completeConstraintsCB.setSelected(f.completeConstraints);
-		orthogonalConstraintsCB.setSelected(f.orthogonalOrderingConstraints);
-		animateCB.setSelected(f.animate);
-		splitCB.setSelected(f.split);
+		completeConstraintsCB.setSelected(completeConstraints);
+		orthogonalConstraintsCB.setSelected(orthogonalOrderingConstraints);
+		animateCB.setSelected(animate);
+		splitCB.setSelected(split);
 		hBox2.add(cleanupButton);
 		hBox2.add(xGapField);
 		hBox2.add(yGapField);
@@ -168,6 +174,7 @@ public class RectangleDrawerFrame extends JFrame {
 		hBox1.add(saveButton);
 		hBox1.add(printButton);
 		hBox1.add(dumpButton);
+		hBox1.add(moveButton);
 		// hBox.add(completeConstraintsCB);
 		hBox2.add(orthogonalConstraintsCB);
 		hBox2.add(animateCB);
@@ -179,50 +186,14 @@ public class RectangleDrawerFrame extends JFrame {
 		vBox.add(d);
 		vBox.add(hBox1);
 		vBox.add(hBox2);
-		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		f.add(vBox);
-		f.setSize(700, 700);
-		f.setVisible(true);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		add(vBox);
+		setSize(700, 700);
+		setVisible(true);
 		cleanupButton.addActionListener(new ActionListener() {
 
 			public void actionPerformed(ActionEvent arg0) {
-				d.backup();
-				int xGap = Integer.parseInt(xGapField.getText());
-				int yGap = Integer.parseInt(yGapField.getText());
-				if (f.algorithm == Algorithm.FSA) {
-					FSA r = new FSA(xGap, yGap);
-					r.place(d.getRectangles());
-				} else {
-					QPRectanglePlacement.Algorithm qalg = null;
-					switch (f.algorithm) {
-					case NATIVE_ACTIVESET:
-						qalg = QPRectanglePlacement.Algorithm.CACTIVESET;
-						break;
-					case MOSEK:
-						qalg = QPRectanglePlacement.Algorithm.MOSEK;
-						break;
-					default:
-						qalg = QPRectanglePlacement.Algorithm.ACTIVESET;
-					}
-					QPRectanglePlacement r = new QPRectanglePlacement(f.split,
-							f.completeConstraints,
-							f.orthogonalOrderingConstraints, qalg, xGap, yGap,
-							f.animate);
-					if (f.animate) {
-						r.addObserver(d);
-					}
-					d.rectangleColourMap = new Hashtable<Rectangle2D, Color>();
-					Hashtable<Rectangle2D, String> idMap = null;
-					if (d.graph != null) {
-						idMap = new Hashtable<Rectangle2D, String>();
-						for (Rectangle2D rect : d.getRectangles()) {
-							idMap.put(rect, d.graph.getRectangleLabel(rect));
-						}
-					}
-					r.place(d.getRectangles(), idMap, d.rectangleColourMap);
-				}
-				d.fitToScreen();
-				d.repaint();
+				cleanup(Integer.parseInt(xGapField.getText()),Integer.parseInt(yGapField.getText()));
 			}
 
 		});
@@ -242,6 +213,7 @@ public class RectangleDrawerFrame extends JFrame {
 			}
 
 		});
+		final RectangleDrawerFrame f = this;
 		loadButton.addActionListener(new ActionListener() {
 
 			public void actionPerformed(ActionEvent arg0) {
@@ -285,6 +257,15 @@ public class RectangleDrawerFrame extends JFrame {
 				d.saveAsJPEG("C:/Temp/Test.jpg");
 			}
 		});
+		moveButton.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent ce) {
+				if(moveButton.isSelected()) {
+					d.setInteractionMode(RectangleDrawerPanel.InteractionMode.Select);
+				} else {
+					d.setInteractionMode(RectangleDrawerPanel.InteractionMode.Create);
+				}
+			}
+		});
 		saveButton.addActionListener(new ActionListener() {
 
 			public void actionPerformed(ActionEvent arg0) {
@@ -307,7 +288,7 @@ public class RectangleDrawerFrame extends JFrame {
 						OutputStream buffer = new BufferedOutputStream(
 								new FileOutputStream(file));
 						output = new ObjectOutputStream(buffer);
-						output.writeObject(d.getRectangles());
+						output.writeObject(d.rectangles);
 					} catch (IOException ex) {
 						ex.printStackTrace();
 					} finally {
@@ -328,14 +309,14 @@ public class RectangleDrawerFrame extends JFrame {
 		completeConstraintsCB.addChangeListener(new ChangeListener() {
 
 			public void stateChanged(ChangeEvent arg0) {
-				f.completeConstraints = f.completeConstraints ? false : true;
+				completeConstraints = completeConstraints ? false : true;
 			}
 
 		});
 		orthogonalConstraintsCB.addChangeListener(new ChangeListener() {
 
 			public void stateChanged(ChangeEvent arg0) {
-				f.orthogonalOrderingConstraints = f.orthogonalOrderingConstraints ? false
+				orthogonalOrderingConstraints = orthogonalOrderingConstraints ? false
 						: true;
 			}
 
@@ -343,22 +324,47 @@ public class RectangleDrawerFrame extends JFrame {
 		animateCB.addChangeListener(new ChangeListener() {
 
 			public void stateChanged(ChangeEvent arg0) {
-				f.animate = f.animate ? false : true;
+				animate = animate ? false : true;
 			}
 
 		});
 		splitCB.addChangeListener(new ChangeListener() {
 
 			public void stateChanged(ChangeEvent arg0) {
-				f.split = f.split ? false : true;
+				split = split ? false : true;
 			}
 
 		});
-		if (args.length > 0) {
-			System.out.println("Arg " + args[0]);
-			d.load(new File(args[0]));
-			cleanupButton.getActionListeners()[0].actionPerformed(null);
-		}
 
+		d.updateUI();
+	}
+
+	protected void cleanup(int xGap, int yGap) {
+		d.backup();
+		if (algorithm == Algorithm.FSA) {
+			FSA r = new FSA(xGap, yGap);
+			r.place(d.rectangles);
+		} else {
+			QPRectanglePlacement.Algorithm qalg = null;
+			switch (algorithm) {
+			case NATIVE_ACTIVESET:
+				qalg = QPRectanglePlacement.Algorithm.CACTIVESET;
+				break;
+			case MOSEK:
+				qalg = QPRectanglePlacement.Algorithm.MOSEK;
+				break;
+			default:
+				qalg = QPRectanglePlacement.Algorithm.ACTIVESET;
+			}
+			QPRectanglePlacement r = new QPRectanglePlacement(split,
+					completeConstraints, orthogonalOrderingConstraints, qalg,
+					xGap, yGap, animate);
+			if (animate) {
+				r.addObserver(d);
+			}
+			r.place(d.rectangles);
+		}
+		d.fitToScreen();
+		d.repaint();
 	}
 }

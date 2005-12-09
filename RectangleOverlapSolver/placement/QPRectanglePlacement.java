@@ -1,16 +1,11 @@
-
 package placement;
 
 import java.awt.Color;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.TreeSet;
 import java.util.logging.Logger;
 
 public class QPRectanglePlacement extends Observable implements
@@ -40,14 +35,15 @@ public class QPRectanglePlacement extends Observable implements
 			boolean orthogonalOrdering, Algorithm algorithm, double xgap,
 			double ygap, boolean animate) {
 		this.splitRefinement = split;
-		this.constraintGenerator = new ConstraintGenerator(completeConstraints,true,orthogonalOrdering);
+		this.constraintGenerator = new ConstraintGenerator(completeConstraints,
+				true, orthogonalOrdering);
 		this.algorithm = algorithm;
 		this.animate = animate;
 		XChunk.g = xgap;
 		YChunk.g = ygap;
 	}
 
-	void placeXNative(ArrayList<Rectangle2D> rectangles) {
+	void placeXNative(ArrayList<PRect> rectangles) {
 		SolveVPSC svpsc = new SolveVPSC(rectangles);
 		double weights[] = new double[rectangles.size()];
 		for (int i = 0; i < weights.length; i++) {
@@ -58,7 +54,7 @@ public class QPRectanglePlacement extends Observable implements
 			svpsc.solve();
 			Variables vs = svpsc.getVariables();
 			for (int i = 0; i < vs.size(); i++) {
-				Rectangle2D rect = rectangles.get(i);
+				Rectangle2D rect = rectangles.get(i).r;
 				double min = vs.get(i).getPosition();
 				if (rect instanceof java.awt.Rectangle) {
 					// because awt Rectangles have int coords!
@@ -72,7 +68,7 @@ public class QPRectanglePlacement extends Observable implements
 		}
 	}
 
-	void placeYNative(ArrayList<Rectangle2D> rectangles) {
+	void placeYNative(ArrayList<PRect> rectangles) {
 		SolveVPSC svpsc = new SolveVPSC(rectangles);
 		double weights[] = new double[rectangles.size()];
 		for (int i = 0; i < weights.length; i++) {
@@ -83,7 +79,7 @@ public class QPRectanglePlacement extends Observable implements
 			svpsc.solve();
 			Variables vs = svpsc.getVariables();
 			for (int i = 0; i < vs.size(); i++) {
-				Rectangle2D rect = rectangles.get(i);
+				Rectangle2D rect = rectangles.get(i).r;
 				double min = vs.get(i).getPosition();
 				if (rect instanceof java.awt.Rectangle) {
 					// because awt Rectangles have int coords!
@@ -97,22 +93,18 @@ public class QPRectanglePlacement extends Observable implements
 		}
 	}
 
-	void placeX(ArrayList<Rectangle2D> rectangles,Hashtable<Rectangle2D, String> idMap,
-			Hashtable<Rectangle2D, Color> colourMap) {
+	void placeX(ArrayList<PRect> rectangles) {
 
-		rectangleColourMap = colourMap;
 		double cost;
 		long t1 = System.currentTimeMillis();
 		XChunk[] xs = new XChunk[rectangles.size()];
 		logger.fine("*****************Placing X");
 		for (int i = 0; i < rectangles.size(); i++) {
-			Rectangle2D r = rectangles.get(i);
-			xs[i] = new XChunk(r, new YChunk(r));
-			if(idMap!=null) {
-				xs[i].id=idMap.get(r);
-			}
+			PRect r = rectangles.get(i);
+			xs[i] = new XChunk(r.r, new YChunk(r.r));
+			xs[i].id = r.label;
 		}
-		constraintGenerator.initVarsAndConstraints(xs,false);
+		constraintGenerator.initVarsAndConstraints(xs, false);
 		setChanged();
 		notifyObservers();
 		long t2 = System.currentTimeMillis();
@@ -122,49 +114,45 @@ public class QPRectanglePlacement extends Observable implements
 		System.out.println("Place hor.: cost=" + cost + " time=" + (t3 - t2));
 	}
 
-	void place(ArrayList<Rectangle2D> rectangles,Hashtable<Rectangle2D, String> idMap,
-			Hashtable<Rectangle2D, Color> colourMap) {
+	public void place(ArrayList<PRect> rectangles) {
 		long t1 = System.currentTimeMillis();
 		if (algorithm == Algorithm.CACTIVESET) {
 			placeNative(rectangles);
 		} else {
-			rectangleColourMap = colourMap;
 			XChunk.g += 0.01;
-			placeX(rectangles, idMap, colourMap);
+			placeX(rectangles);
 			XChunk.g -= 0.01;
-			placeY(rectangles, idMap, colourMap);
+			placeY(rectangles);
 		}
 		long t2 = System.currentTimeMillis();
 		System.out.println("Total time=" + (t2 - t1));
 	}
 
-	void placeNative(ArrayList<Rectangle2D> rectangles) {
+	void placeNative(ArrayList<PRect> rectangles) {
 		long t1 = System.currentTimeMillis();
-//		placeXNative(rectangles);
-//		placeYNative(rectangles);
-		SolveVPSC s=new SolveVPSC(rectangles);
+		// placeXNative(rectangles);
+		// placeYNative(rectangles);
+		SolveVPSC s = new SolveVPSC(rectangles);
 		s.removeOverlaps();
 		long t2 = System.currentTimeMillis();
 		System.out.println("Total time=" + (t2 - t1));
 	}
 
-	void placeY(ArrayList<Rectangle2D> rectangles,Hashtable<Rectangle2D, String> idMap,
-			Hashtable<Rectangle2D, Color> colourMap) {
+	void placeY(ArrayList<PRect> rectangles) {
 		long t1 = System.currentTimeMillis();
 		YChunk[] ys = new YChunk[rectangles.size()];
 		logger.fine("*****************Placing Y");
 		for (int i = 0; i < rectangles.size(); i++) {
-			Rectangle2D r = rectangles.get(i);
-			ys[i] = new YChunk(r, new XChunk(r));
-			if(idMap!=null) {
-				ys[i].id=idMap.get(r);
-			}
+			PRect r = rectangles.get(i);
+			ys[i] = new YChunk(r.r, new XChunk(r.r));
+			ys[i].id = r.label;
 		}
-		constraintGenerator.initVarsAndConstraints(ys,true);
+		constraintGenerator.initVarsAndConstraints(ys, true);
 		setChanged();
 		notifyObservers();
 		long t2 = System.currentTimeMillis();
 		System.out.println("Gen ver. cs: time=" + (t2 - t1));
+
 		double cost = placement();
 		long t3 = System.currentTimeMillis();
 		System.out.println("Place ver.: cost=" + cost + " time=" + (t3 - t1));
@@ -172,9 +160,10 @@ public class QPRectanglePlacement extends Observable implements
 
 	double placement() {
 		double cost = 0;
-		Chunk[] chunks=constraintGenerator.getChunks();
+		Chunk[] chunks = constraintGenerator.getChunks();
 		Variable[] vs = new Variable[chunks.length];
-		for(int i=0;i<chunks.length;i++) vs[i]=chunks[i].v;
+		for (int i = 0; i < chunks.length; i++)
+			vs[i] = chunks[i].v;
 		Placement p = null;
 		switch (algorithm) {
 		case MOSEK:
@@ -211,7 +200,7 @@ public class QPRectanglePlacement extends Observable implements
 			e.printStackTrace();
 		}
 		for (Chunk c : chunks) {
-			c.setMin(c.v.getPosition());
+			c.setCentre(c.v.getPosition());
 		}
 		return cost;
 	}
@@ -228,10 +217,6 @@ public class QPRectanglePlacement extends Observable implements
 		}
 		setChanged();
 		notifyObservers();
-	}
-
-	public void place(ArrayList<Rectangle2D> rectangles) {
-		place(rectangles, null, null);
 	}
 
 }

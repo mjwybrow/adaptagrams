@@ -303,12 +303,15 @@ public class FSA implements RectanglePlacement {
 
 	boolean ntve = true;
 
-	public void place(ArrayList<Rectangle2D> rectangles) {
-		this.rectangles = rectangles;
+	public void place(ArrayList<PRect> rs) {
 		if (ntve) {
 			NativeFSA nfsa = new NativeFSA(xgap, ygap);
-			nfsa.place(rectangles);
+			nfsa.place(rs);
 		} else {
+			rectangles = new ArrayList<Rectangle2D>();
+			for(PRect r:rs) {
+				rectangles.add(r.r);
+			}
 			// the following is a hack but it's the easiest way to get the gaps
 			// working
 			for (Rectangle2D r : rectangles) {
@@ -333,4 +336,5 @@ public class FSA implements RectanglePlacement {
 			}
 		}
 	}
+
 }

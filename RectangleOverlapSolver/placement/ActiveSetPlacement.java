@@ -23,7 +23,7 @@ public class ActiveSetPlacement extends Observable implements Placement {
 
 	private DebugFrame debugFrame;
 
-	private long sleepTime = 50;
+	private long sleepTime = 500;
 
 	public boolean split = true;
 
@@ -49,12 +49,13 @@ public class ActiveSetPlacement extends Observable implements Placement {
 			logger.fine("block order: " + blocks);
 		}
 		for (Variable v : vs) {
-			System.out.println("Processing "+v.name);
+			System.out.println("Processing "+v.desiredPosition);
 			blocks.mergeLeft(v.container, this);
 		}
 	}
 
 	public ActiveSetPlacement(Variable[] vs) {
+		this.vs=vs;
 		for (Variable v : vs) {
 			v.inConstraints = new Constraints();
 			v.outConstraints = new Constraints();
@@ -64,7 +65,7 @@ public class ActiveSetPlacement extends Observable implements Placement {
 			vlookup.put(v.name, v);
 		}
 	}
-
+	Variable[] vs;
 	/**
 	 * Calculate the optimal solution. After using satisfy() to produce a
 	 * feasible solution, solve() examines each block to see if further
@@ -81,6 +82,7 @@ public class ActiveSetPlacement extends Observable implements Placement {
 		}
 		animate();
 		satisfyConstraints();
+		System.out.println("Constraints "+constraints);
 		assert constraints.violated().isEmpty() : "Violated constraints not resolved";
 		if (logger.isLoggable(Level.FINER))
 			logger.finer("merged->" + blocks);

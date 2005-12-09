@@ -52,95 +52,140 @@ class BlocksFileFilter extends FileFilter {
 	}
 }
 
+class PRect {
+	public static double scale, xmin, ymin;
+
+	Rectangle2D r;
+
+	String label;
+
+	Color colour = defaultRectColour;
+
+	static final Color defaultRectColour = new Color(228, 228, 205, 200);
+
+	PRect(String label, double x, double y, double w, double h) {
+		this.label = label;
+		r = new Rectangle2D.Double(x, y, w, h);
+	}
+
+	public PRect(String rectangleLabel, Rectangle2D rect) {
+		label = rectangleLabel;
+		r = rect;
+	}
+
+	public PRect(PRect r2) {
+		r = (Rectangle2D) r2.r.clone();
+		label = new String(r2.label);
+		colour = r2.colour;
+	}
+
+	public void draw(Graphics2D g) {
+		double x = r.getMinX();
+		double y = r.getMinY();
+		double w = r.getWidth();
+		double h = r.getHeight();
+		x -= xmin < 0 ? xmin : 0;
+		y -= ymin < 0 ? ymin : 0;
+		x *= scale;
+		w *= scale;
+		y *= scale;
+		h *= scale;
+		Rectangle2D vr = new Rectangle2D.Double(Math.floor(x), Math.floor(y),
+				Math.floor(w), Math.floor(h));
+
+		g.setPaint(colour);
+		g.fill(vr);
+		g.setPaint(Color.BLACK);
+		g.draw(vr);
+		Font f = new Font("Times New Roman", Font.PLAIN, 24);
+		FontMetrics fm = g.getFontMetrics(f);
+		int fh = fm.getHeight();
+		int fw = fm.stringWidth(label);
+		int d = fm.getMaxDescent();
+		double fsize = 0.9 * 24.0 * Math.min(w / (double) fw, h / (double) fh);
+		f = new Font("Times New Roman", Font.PLAIN, (int) fsize);
+		g.setFont(f);
+		fm = g.getFontMetrics(f);
+		fh = fm.getHeight();
+		fw = fm.stringWidth(label);
+		g.drawString(label, (int) x, (int) (y + fh / 1.3));
+	}
+}
+
 public class RectangleDrawerPanel extends JPanel implements Printable,
 		MouseInputListener, Observer {
+	enum InteractionMode {
+		Create, Select
+	};
+
+	InteractionMode interactionMode = InteractionMode.Create;
+
 	private int prevX, prevY;
 
 	private boolean dragging;
 
 	private Graphics2D g;
 
-	private Rectangle2D rect;
+	private PRect rect;
 
-	public ArrayList<Rectangle2D> rectangles = new ArrayList<Rectangle2D>();
+	public ArrayList<PRect> rectangles = new ArrayList<PRect>();
 
 	public Graph graph = null;
 
-	private ArrayList<Rectangle2D> undoRectangles = new ArrayList<Rectangle2D>();;
+	private ArrayList<PRect> undoRectangles = new ArrayList<PRect>();
 
 	private Constraints constraints;
 
 	BlocksFileFilter fileFilter = new BlocksFileFilter();
 
-	protected Hashtable<Rectangle2D, Color> rectangleColourMap = new Hashtable<Rectangle2D, Color>();
-
 	protected void generateRandom() {
 		clear();
 		Dimension dim = getSize();
-		int n = 500;
+		int n = 50;
 		Random rand = new Random();
 		double w = dim.width / 3.0;
 		double h = dim.height / 3.0;
 		for (int i = 0; i < n; i++) {
-			Rectangle2D r = new Rectangle2D.Double(w + rand.nextDouble() * w, h
+			PRect r = new PRect("" + i, w + rand.nextDouble() * w, h
 					+ rand.nextDouble() * h, rand.nextDouble() * (w / 3.0),
 					rand.nextDouble() * (h / 3.0));
 			rectangles.add(r);
 		}
 		int overlapCount = 0;
 		for (int i = 0; i < rectangles.size(); i++) {
-			Rectangle2D u = rectangles.get(i);
+			Rectangle2D u = rectangles.get(i).r;
 			for (int j = i + 1; j < rectangles.size(); j++) {
-				Rectangle2D v = rectangles.get(j);
+				Rectangle2D v = rectangles.get(j).r;
 				if (u.intersects(v))
 					overlapCount++;
 			}
 		}
 		System.out.println("Random graph has " + overlapCount + " overlaps.");
-		fitToScreen();
 		repaint();
 	}
 
 	void fitToScreen() {
-		ArrayList<Rectangle2D> rectangles = getRectangles();
 		double xmax = 0;
 		double xmin = Double.MAX_VALUE;
 		double ymax = 0;
 		double ymin = Double.MAX_VALUE;
-		for (Rectangle2D r : rectangles) {
-			xmin = Math.min(xmin, r.getMinX());
-			xmax = Math.max(xmax, (r.getMinX() + r.getWidth()));
-			ymin = Math.min(ymin, r.getMinY());
-			ymax = Math.max(ymax, (r.getMinY() + r.getHeight()));
+		for (PRect r : rectangles) {
+			xmin = Math.min(xmin, r.r.getMinX());
+			xmax = Math.max(xmax, (r.r.getMinX() + r.r.getWidth()));
+			ymin = Math.min(ymin, r.r.getMinY());
+			ymax = Math.max(ymax, (r.r.getMinY() + r.r.getHeight()));
 		}
-		double currentWidth = xmax - xmin;
-		double currentHeight = ymax - ymin;
+		double currentWidth = Math.max(xmax, xmax - xmin);
+		double currentHeight = Math.max(ymax, ymax - ymin);
 		double targetWidth = getSize().width;
 		double targetHeight = getSize().height;
 		double xscale = targetWidth / currentWidth;
 		double yscale = targetHeight / currentHeight;
-		double scale = 1;
-		if (xscale < yscale && xscale * currentHeight <= targetHeight) {
-			scale = xscale;
-		} else {
-			scale = yscale;
-		}
-		for (Rectangle2D r : rectangles) {
-			double x = r.getMinX();
-			double y = r.getMinY();
-			double w = r.getWidth();
-			double h = r.getHeight();
-			x -= xmin < 0 ? xmin : 0;
-			y -= ymin < 0 ? ymin : 0;
-			if (scale < 1) {
-				x *= scale;
-				w *= scale;
-				y *= yscale;
-				h *= yscale;
-			}
-			r.setRect(Math.floor(x), Math.floor(y), Math.floor(w), Math
-					.floor(h));
-		}
+
+		PRect.scale=Math.min(xscale,yscale);
+		PRect.scale = Math.min(PRect.scale,1);
+		PRect.xmin = xmin;
+		PRect.ymin = ymin;
 	}
 
 	protected void load(File f) {
@@ -149,6 +194,15 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 		if (f.getPath().endsWith(".dot")) {
 			GraphParser g = new GraphParser(f.getPath());
 			graph = g.getGraph();
+			if (graph != null) {
+				for (Rectangle2D rect : graph.getRectangles()) {
+					rectangles.add(new PRect(graph.getRectangleLabel(rect),
+							rect));
+				}
+			}
+			for (Rectangle2D l : idMap.keySet()) {
+				System.out.println("in load: " + idMap.get(l));
+			}
 			fileFilter.lastSelectedFile = f;
 		} else {
 			try {
@@ -157,7 +211,7 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 				InputStream buffer = new BufferedInputStream(file);
 				input = new ObjectInputStream(buffer);
 				// deserialize the List
-				rectangles = (ArrayList<Rectangle2D>) input.readObject();
+				rectangles = (ArrayList<PRect>) input.readObject();
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			} finally {
@@ -180,20 +234,15 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 	 * 
 	 */
 	protected void backup() {
-		undoRectangles = new ArrayList<Rectangle2D>();
-		for (Rectangle2D r : getRectangles()) {
-			Rectangle2D nr = new Rectangle2D.Double();
-			nr.setRect(r.getMinX(), r.getMinY(), r.getWidth(), r.getHeight());
+		undoRectangles = new ArrayList<PRect>();
+		for (PRect r : rectangles) {
+			PRect nr = new PRect(r);
 			undoRectangles.add(nr);
 		}
 	}
 
 	protected void undo() {
-		if (graph != null) {
-			rectangles = graph.getRectangles();
-		} else {
-			rectangles = new ArrayList<Rectangle2D>(undoRectangles);
-		}
+		rectangles = undoRectangles;
 	}
 
 	/**
@@ -213,7 +262,7 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 	}
 
 	public void clear() {
-		rectangles = new ArrayList<Rectangle2D>();
+		rectangles = new ArrayList<PRect>();
 		constraints = null;
 		graph = null;
 		repaint();
@@ -265,6 +314,8 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 	}
 
 	public void render(int width, int height, Graphics2D g) {
+
+		fitToScreen();
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
 				RenderingHints.VALUE_ANTIALIAS_ON);
 		Color original = g.getColor();
@@ -281,43 +332,12 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 				g.drawLine(x1, y1, x2, y2);
 			}
 		}
-		for (Rectangle2D r : getRectangles()) {
-			Color c = new Color(228, 228, 205, 200);
-			if (rectangleColourMap.containsKey(r)) {
-				c = rectangleColourMap.get(r);
-			}
-			g.setPaint(c);
-			g.fill(r);
-			g.setPaint(Color.BLACK);
-			g.draw(r);
-			if (graph != null) {
-				drawStringInRectangle(this, g, r, graph.getRectangleLabel(r));
-			}
+		for (PRect r : rectangles) {
+			r.draw(g);
+			String label = idMap.get(r);
 		}
 		drawConstraints(g);
 
-	}
-
-	public static void drawStringInRectangle(Component component, Graphics2D g, Rectangle2D r, String s) {
-		Font f = new Font("Times New Roman", Font.PLAIN, 24);
-		FontMetrics fm = component.getFontMetrics(f);
-		int h = fm.getHeight();
-		int w = fm.stringWidth(s);
-		int d = fm.getMaxDescent();
-		double fsize = 0.9*24.0 * Math.min(r.getWidth()/(double)w,r.getHeight()/(double)h);
-		f = new Font("Times New Roman", Font.PLAIN, (int) fsize);
-		g.setFont(f);
-		fm = component.getFontMetrics(f);
-		h = fm.getHeight();
-		w = fm.stringWidth(s);
-		g.drawString(s, (int) r.getMinX(), (int) (r.getMinY() + h / 1.3));
-	}
-
-	ArrayList<Rectangle2D> getRectangles() {
-		if (graph != null) {
-			return graph.getRectangles();
-		}
-		return rectangles;
 	}
 
 	private void setUpDrawingGraphics() {
@@ -325,19 +345,39 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 		g.setColor(Color.black);
 	}
 
+	double selectOffsetX = 0;
+
+	double selectOffsetY = 0;
+
+	public Hashtable<Rectangle2D, String> idMap = new Hashtable<Rectangle2D, String>();
+
 	public void mousePressed(MouseEvent evt) {
 		int x = evt.getX();
 		int y = evt.getY();
 		constraints = null;
 		if (dragging == true)
 			return;
+
 		if (x > 0 && x < getWidth() && y > 0 && y < getHeight()) {
 			prevX = x;
 			prevY = y;
 			dragging = true;
 			setUpDrawingGraphics();
 		}
-
+		if (interactionMode == InteractionMode.Select) {
+			rect = null;
+			for (PRect r : rectangles) {
+				if (r.r.contains(x, y)) {
+					rect = r;
+				}
+			}
+			if(rect!=null) {
+				selectOffsetX = x - rect.r.getMinX();
+				selectOffsetY = y - rect.r.getMinY();
+				rect.colour = Color.PINK;
+			}
+			paintComponent(g);
+		}
 	}
 
 	public void drawConstraints(Graphics2D g) {
@@ -369,14 +409,25 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 	}
 
 	public void mouseReleased(MouseEvent evt) {
-		if (dragging == false)
-			return;
+		switch (interactionMode) {
+		case Create:
+			if (dragging == false)
+				return;
+			g.dispose();
+			g = null;
+			if (rect != null)
+				rectangles.add(rect);
+			rect = null;
+			break;
+		case Select:
+			if (rect != null) {
+				rect.colour = PRect.defaultRectColour;
+				paintComponent(g);
+				rect = null;
+			}
+			break;
+		}
 		dragging = false;
-		g.dispose();
-		g = null;
-		if (rect != null)
-			rectangles.add(rect);
-		rect = null;
 	}
 
 	public void mouseDragged(MouseEvent evt) {
@@ -388,15 +439,21 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 		y = Math.max(y, 0);
 		paintComponent(g);
 		if (prevX != x && prevY != y) {
-			Rectangle r = new Rectangle(Math.min(prevX, x), Math.min(prevY, y),
-					Math.abs(x - prevX), Math.abs(y - prevY));
-			g.drawRect(r.x, r.y, r.width, r.height);
-			Color c = new Color(228, 228, 205, 200);
-			g.setPaint(c);
-			g.fill(r);
-			g.setPaint(Color.BLACK);
-			g.draw(r);
-			rect = r;
+			switch (interactionMode) {
+			case Create:
+				PRect r = new PRect("r"+rectangles.size(), Math.min(prevX, x), Math
+						.min(prevY, y), Math.abs(x - prevX), Math
+						.abs(y - prevY));
+				r.draw(g);
+				rect = r;
+				break;
+			case Select:
+				if (rect != null) {
+					rect.r.setRect(x - selectOffsetX, y - selectOffsetY, rect.r
+							.getWidth(), rect.r.getHeight());
+				}
+				break;
+			}
 		}
 	}
 
@@ -431,9 +488,9 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 		g2d.translate(pf.getImageableX(), pf.getImageableY());
 		g2d.translate(pf.getImageableWidth() / 2, pf.getImageableHeight() / 2);
 		Dimension d = new Dimension();
-		for (Rectangle2D r : getRectangles()) {
-			d.height = Math.max((int) r.getMaxY(), d.height);
-			d.width = Math.max((int) r.getMaxX(), d.width);
+		for (PRect r : rectangles) {
+			d.height = Math.max((int) r.r.getMaxY(), d.height);
+			d.width = Math.max((int) r.r.getMaxX(), d.width);
 		}
 		double scale = Math.min(pf.getImageableWidth() / d.width, pf
 				.getImageableHeight()
@@ -460,5 +517,21 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public void setInteractionMode(InteractionMode interactionMode) {
+		this.interactionMode = interactionMode;
+	}
+
+	public InteractionMode getInteractionMode() {
+		return interactionMode;
+	}
+
+	public ArrayList<Rectangle2D> getRectangles() {
+		ArrayList<Rectangle2D> rs = new ArrayList<Rectangle2D>();
+		for (PRect r : rectangles) {
+			rs.add(r.r);
+		}
+		return rs;
 	}
 }

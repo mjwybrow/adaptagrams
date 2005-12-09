@@ -46,7 +46,7 @@ public class ConstraintGenerator {
 			} else {
 				id="r" + i;
 			}
-			r.v = new Variable(id, r.getMin(), 1.0);
+			r.v = new Variable(id, r.getCentre(), 1.0);
 			r.v.data.put(Chunk.class, r);
 			r.v.data.put(Rectangle2D.class, r.rect);
 		}
@@ -58,7 +58,8 @@ public class ConstraintGenerator {
 				if (needConstraint(l, r, allOverlaps)) {
 					Variable vl = l.v;
 					Variable vr = r.v;
-					constraints.add(new Constraint(vl, vr, l.getLength()));
+					double cLength = (l.getLength()+r.getLength())/2.0;
+					constraints.add(new Constraint(vl, vr, cLength));
 				}
 			}
 		}
@@ -111,7 +112,7 @@ public class ConstraintGenerator {
 			} else {
 				id="r" + i;
 			}
-			c.v = new Variable(id, c.getMin(), 1.0);
+			c.v = new Variable(id, c.getCentre(), 1.0);
 			c.v.data.put(Chunk.class, c);
 			c.v.data.put(Rectangle2D.class, c.rect);
 			Chunk conj = c.conj;
@@ -131,13 +132,15 @@ public class ConstraintGenerator {
 				for (Iterator<Chunk> i = v.leftNeighbours.iterator(); i
 						.hasNext();) {
 					Chunk u = i.next();
-					constraints.add(new Constraint(u.v, v.v, u.getLength()));
+					double cLength = (u.getLength()+v.getLength())/2.0;
+					constraints.add(new Constraint(u.v, v.v, cLength));
 					u.rightNeighbours.remove(v);
 				}
 				for (Iterator<Chunk> i = v.rightNeighbours.iterator(); i
 						.hasNext();) {
 					Chunk u = i.next();
-					constraints.add(new Constraint(v.v, u.v, v.getLength()));
+					double cLength = (u.getLength()+v.getLength())/2.0;
+					constraints.add(new Constraint(v.v, u.v, cLength));
 					u.leftNeighbours.remove(v);
 				}
 				open.remove(v);
@@ -167,7 +170,7 @@ public class ConstraintGenerator {
 			} else {
 				id="r" + i;
 			}
-			c.v = new Variable(id, c.getMin(), 1.0);
+			c.v = new Variable(id, c.getCentre(), 1.0);
 			c.v.data.put(Chunk.class, c);
 			c.v.data.put(Rectangle2D.class, c.rect);
 			Chunk conj = c.conj;
@@ -203,11 +206,13 @@ public class ConstraintGenerator {
 			} else {
 				open.remove(x);
 				if ((l = x.leftNeighbour) != null) {
-					constraints.add(new Constraint(l.v, x.v, l.getLength()));
+					double cLength = (l.getLength()+x.getLength())/2.0;
+					constraints.add(new Constraint(l.v, x.v, cLength));
 					l.rightNeighbour = null;
 				}
 				if ((r = x.rightNeighbour) != null) {
-					constraints.add(new Constraint(x.v, r.v, x.getLength()));
+					double cLength = (r.getLength()+x.getLength())/2.0;
+					constraints.add(new Constraint(x.v, r.v, cLength));
 					r.leftNeighbour = null;
 				}
 			}
@@ -293,7 +298,12 @@ abstract class Chunk<T extends Chunk> {
 	abstract double getMin();
 
 	abstract void setMin(double d);
-
+	void setCentre(double d) {
+		setMin(d-getLength()/2.0);
+	}
+	double getCentre() {
+		return getMin() + getLength()/2.0;
+	}
 	abstract double getLength();
 
 	Chunk(Rectangle2D r) {
@@ -330,9 +340,9 @@ abstract class Chunk<T extends Chunk> {
 
 	double overlap(Chunk b) {
 		assert (b.getClass() == this.getClass());
-		if (getMin() < b.getMin() && b.getMin() < getMax())
+		if (getCentre() <= b.getCentre() && b.getMin() < getMax())
 			return getMax() - b.getMin();
-		if (b.getMin() < getMin() && getMin() < b.getMax())
+		if (b.getCentre() <= getCentre() && getMin() < b.getMax())
 			return b.getMax() - getMin();
 		return 0;
 	}
@@ -341,24 +351,24 @@ abstract class Chunk<T extends Chunk> {
 		T a = conj;
 		T b = (T) c.conj;
 		assert (c.getClass() == this.getClass());
-		if (a.getMin() <= b.getMin() && b.getMin() < a.getMax())
+		if (a.getCentre() <= b.getCentre() && b.getMin() < a.getMax())
 			return a.getMax() - b.getMin();
-		if (b.getMin() <= a.getMin() && a.getMin() < b.getMax())
+		if (b.getCentre() <= a.getCentre() && a.getMin() < b.getMax())
 			return b.getMax() - a.getMin();
 		return 0;
 	}
 
 	static Comparator<Chunk> comparator = new Comparator<Chunk>() {
 		public int compare(Chunk a, Chunk b) {
-			if (a.getMin() > b.getMin())
+			if (a.getCentre() > b.getCentre())
 				return 1;
-			if (a.getMin() < b.getMin())
+			if (a.getCentre() < b.getCentre())
 				return -1;
 			Chunk ac = a.conj;
 			Chunk bc = b.conj;
-			if (ac.getMin() > bc.getMin())
+			if (ac.getCentre() > bc.getCentre())
 				return 1;
-			if (ac.getMin() < bc.getMin())
+			if (ac.getCentre() < bc.getCentre())
 				return -1;
 			if (a == b && ac == bc)
 				return 0;
@@ -374,13 +384,13 @@ abstract class Chunk<T extends Chunk> {
 		public int compare(Chunk a, Chunk b) {
 			Chunk ac = a.conj;
 			Chunk bc = b.conj;
-			if (ac.getMin() > bc.getMin())
+			if (ac.getCentre() > bc.getCentre())
 				return 1;
-			if (ac.getMin() < bc.getMin())
+			if (ac.getCentre() < bc.getCentre())
 				return -1;
-			if (a.getMin() > b.getMin())
+			if (a.getCentre() > b.getCentre())
 				return 1;
-			if (a.getMin() < b.getMin())
+			if (a.getCentre() < b.getCentre())
 				return -1;
 			if (a == b && ac == bc)
 				return 0;

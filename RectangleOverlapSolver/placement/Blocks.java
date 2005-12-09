@@ -87,6 +87,7 @@ class Blocks extends HashSet<Block> {
 			int prevBlockCount = size();
 			c = b.inConstraintsPriorityQueue.deleteMax();
 			Block l = c.left.container;
+			//l.inConstraintsPriorityQueue=null;
 			assert (l != b);
 
 			double distToL = c.left.offset + c.separation - c.right.offset;
@@ -119,6 +120,7 @@ class Blocks extends HashSet<Block> {
 			int prevBlockCount = size();
 			c = b.outConstraintsPriorityQueue.deleteMax();
 			Block r = c.right.container;
+			r.outConstraintsPriorityQueue=null;
 			double distToR = c.left.offset + c.separation - c.right.offset;
 			if (b.variables.size() > r.variables.size()) {
 				b.merge(r, c, distToR);

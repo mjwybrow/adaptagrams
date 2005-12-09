@@ -4,7 +4,6 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
-import sun.security.krb5.internal.crypto.c;
 
 public class SolveVPSC implements Placement {
 	public native double solve(String vName[], double vWeight[],
@@ -50,8 +49,11 @@ public class SolveVPSC implements Placement {
 		return c;
 	}
 
-	public SolveVPSC(ArrayList<Rectangle2D> rectangles) {
-		this.rectangles=rectangles;
+	public SolveVPSC(ArrayList<PRect> rectangles) {
+		this.rectangles=new ArrayList<Rectangle2D>();
+		for(PRect r:rectangles) {
+			this.rectangles.add(r.r);
+		}
 	}
 	public SolveVPSC(Variable[] vs) {
 		new Blocks(vs);

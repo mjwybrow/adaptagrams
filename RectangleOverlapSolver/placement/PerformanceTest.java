@@ -154,7 +154,7 @@ public class PerformanceTest {
 		Cost c = new Cost();
 		ArrayList<Rectangle2D> rs = copyRects(orig);
 		long t0 = System.currentTimeMillis();
-		p.place(rs);
+		// TODO p.place(rects);
 		c.time = System.currentTimeMillis() - t0;
 		c.xDisplacement = 0;
 		c.yDisplacement = 0;
@@ -173,14 +173,21 @@ public class PerformanceTest {
 		}
 		return c;
 	}
+	@Override
+	protected void finalize() throws Throwable {
+		// TODO Auto-generated method stub
+		super.finalize();
+	}
+
 	private Cost run(RectanglePlacement p, ArrayList<Rectangle2D> orig, ArrayList<Rectangle2D> xplaced, String alg) {
 		System.gc();
 		Cost c = new Cost();
 		ArrayList<Rectangle2D> rs = copyRects(orig);
 		ArrayList<Rectangle2D> xrs = copyRects(xplaced);
 		long t0 = System.currentTimeMillis();
-		((QPRectanglePlacement)p).placeX(rs,null,null);
-		((QPRectanglePlacement)p).placeY(xrs,null,null);
+		// TODO
+		//((QPRectanglePlacement)p).placeX(rs,null,null);
+		//((QPRectanglePlacement)p).placeY(xrs,null,null);
 		c.time = System.currentTimeMillis() - t0;
 		c.xDisplacement = 0;
 		c.yDisplacement = 0;

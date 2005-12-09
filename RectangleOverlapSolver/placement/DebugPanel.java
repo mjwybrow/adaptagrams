@@ -111,7 +111,7 @@ public class DebugPanel extends JPanel {
 				g.fill(r);
 				g.setPaint(Color.BLACK);
 				g.draw(r);
-				RectangleDrawerPanel.drawStringInRectangle(this, g, r, v.name);
+				//RectangleDrawerPanel.drawStringInRectangle(this, g, r, v.name);
 				y += ystep;
 				vcounter++;
 			}
