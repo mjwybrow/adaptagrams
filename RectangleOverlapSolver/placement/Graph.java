@@ -19,14 +19,14 @@ class Edge {
 }
 
 class Node {
-	Rectangle rectangle;
+	Rectangle2D.Double rectangle;
 
 	String id;
 
 	ArrayList<Edge> edges;
 
 	Node(String id, int x, int y, int w, int h) {
-		rectangle = new Rectangle(x - w / 2, y - w / 2, w, h);
+		rectangle = new Rectangle2D.Double(x - w / 2, y - w / 2, w, h);
 		this.id = id;
 		edges = new ArrayList<Edge>();
 	}
@@ -35,11 +35,10 @@ class Node {
 		edges.add(e);
 	}
 
-	public Point2D getPos() {
-		Point2D p = rectangle.getLocation();
+	public Point2D.Double getPos() {
 		double x = rectangle.width / 2.0;
 		double y = rectangle.height / 2.0;
-		return new Point2D.Double(p.getX() + x, p.getY() + y);
+		return new Point2D.Double(rectangle.getMinX() + x, rectangle.getMinY() + y);
 	}
 }
 
@@ -50,8 +49,8 @@ public class Graph {
 
 	Hashtable<Rectangle2D, Node> rectangleNodeLookup = new Hashtable<Rectangle2D, Node>();
 
-	public ArrayList<Rectangle2D> getRectangles() {
-		ArrayList<Rectangle2D> rectangles = new ArrayList<Rectangle2D>();
+	public ArrayList<Rectangle2D.Double> getRectangles() {
+		ArrayList<Rectangle2D.Double> rectangles = new ArrayList<Rectangle2D.Double>();
 		for (Node n : nodes.values()) {
 			rectangles.add(n.rectangle);
 			rectangleNodeLookup.put(n.rectangle, n);

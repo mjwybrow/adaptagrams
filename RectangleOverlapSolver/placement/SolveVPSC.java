@@ -49,9 +49,9 @@ public class SolveVPSC implements Placement {
 		return c;
 	}
 
-	public SolveVPSC(ArrayList<PRect> rectangles) {
+	public SolveVPSC(ArrayList<RectangleView> rectangles) {
 		this.rectangles=new ArrayList<Rectangle2D>();
-		for(PRect r:rectangles) {
+		for(RectangleView r:rectangles) {
 			this.rectangles.add(r.r);
 		}
 	}

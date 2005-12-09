@@ -18,6 +18,12 @@ import javax.swing.JPanel;
 public class DebugPanel extends JPanel {
 	private Constraints constraints;
 
+	public enum Direction {
+		Horizontal, Vertical
+	};
+
+	public static Direction direction = Direction.Horizontal;
+
 	private Blocks blocks;
 
 	public DebugPanel(Blocks blocks, Constraints constraints) {
@@ -80,38 +86,42 @@ public class DebugPanel extends JPanel {
 		g.fillRect(0, 0, size.width, size.height);
 		g.setColor(original);
 		super.paintChildren(g);
-		yLookup.clear();
 		Variables allVars = blocks.getAllVariables();
+		if (direction == Direction.Horizontal) {
+			hRender(g, allVars);
+		} else {
+			vRender(g, allVars);
+		}
+	}
+
+	private void hRender(Graphics2D g, Variables allVars) {
+		posLookup.clear();
 		int y = 0, ystep = getSize().height / (allVars.size());
 		float h = 0, hstep = 1f / 7f;
-		double xMin = allVars.getMinPos(), xMax = allVars.getMaxPos();
+		RectangleView firstRect = (RectangleView) allVars.min().data
+				.get(RectangleView.class);
+		RectangleView lastRect = (RectangleView) allVars.max().data
+				.get(RectangleView.class);
+		double xMin = firstRect.r.getMinX(), xMax = lastRect.r.getMaxX();
 		double xRange = xMax - xMin;
-		double xScale = (getSize().width - 20) / xRange;
+		double xScale = getSize().width / xRange;
 		int vcounter = 0;
 		for (Block b : blocks) {
-			Color c = Color.WHITE;
+			Color c = RectangleView.defaultRectColour;
 			if (b.variables.size() > 1) {
 				Color hsb = Color.getHSBColor(h, 0.5f, 1f);
-				c=new Color(hsb.getRed(),hsb.getGreen(),hsb.getBlue(),200);
+				c = new Color(hsb.getRed(), hsb.getGreen(), hsb.getBlue(), 200);
 				h += hstep;
 			}
 			for (Variable v : b.variables) {
-				int x = (int) ((v.getPosition() - xMin) * xScale);
-				int w = 20;
-				try {
-					w = (int) (((Rectangle2D) v.data.get(Rectangle2D.class))
-							.getWidth() * xScale);
-				} catch (NullPointerException e) {
-					// variable is not associated with a Rectangle
-				}
-				Rectangle r = new Rectangle(x, y, w, ystep);
-				yLookup.put(v, y);
-				v.colour = c;
-				g.setPaint(c);
-				g.fill(r);
-				g.setPaint(Color.BLACK);
-				g.draw(r);
-				//RectangleDrawerPanel.drawStringInRectangle(this, g, r, v.name);
+				RectangleView rv = (RectangleView) v.data
+						.get(RectangleView.class);
+				int w = (int) (rv.r.getWidth() * xScale);
+				int x = (int) ((rv.r.getMinX() - xMin) * xScale);
+				// assert(x+w<getSize().width);
+				posLookup.put(v, y);
+				rv.colour = c;
+				rv.draw(g, x, y, w, ystep);
 				y += ystep;
 				vcounter++;
 			}
@@ -126,34 +136,88 @@ public class DebugPanel extends JPanel {
 			} else if (c.isTight()) {
 				c.colour = Color.GREEN;
 			}
-			g.setPaint(new Color(c.colour.getRed(),c.colour.getGreen(),c.colour.getBlue(),160));
-			drawArrow(g, xl, yLookup.get(l), xr, yLookup.get(r), 5);
+			g.setPaint(new Color(c.colour.getRed(), c.colour.getGreen(),
+					c.colour.getBlue(), 100));
+			drawArrow(g, xl, posLookup.get(l), xr, posLookup.get(r), 5);
+		}
+	}
+
+	private void vRender(Graphics2D g, Variables allVars) {
+		posLookup.clear();
+		int x = 0, xstep = getSize().width / (allVars.size());
+		float hue = 0, hstep = 1f / 7f;
+		RectangleView firstRect = (RectangleView) allVars.min().data
+				.get(RectangleView.class);
+		RectangleView lastRect = (RectangleView) allVars.max().data
+				.get(RectangleView.class);
+		double yMin = firstRect.r.getMinY(), yMax = lastRect.r.getMaxY();
+		double yRange = yMax - yMin;
+		double yScale = getSize().height / yRange;
+		int vcounter = 0;
+		for (Block b : blocks) {
+			Color c = RectangleView.defaultRectColour;
+			if (b.variables.size() > 1) {
+				Color hsb = Color.getHSBColor(hue, 0.5f, 1f);
+				c = new Color(hsb.getRed(), hsb.getGreen(), hsb.getBlue(), 200);
+				hue += hstep;
+			}
+			for (Variable v : b.variables) {
+				RectangleView rv = (RectangleView) v.data
+						.get(RectangleView.class);
+				int h = (int) (rv.r.getHeight() * yScale);
+				int y = (int) ((rv.r.getMinY() - yMin) * yScale);
+				// assert(x+w<getSize().width);
+				posLookup.put(v, x);
+				rv.colour = c;
+				rv.draw(g, x, y, xstep, h);
+				x += xstep;
+				vcounter++;
+			}
+		}
+		for (Constraint c : constraints) {
+			Variable l = c.left, r = c.right;
+			int yl = (int) ((l.getPosition() - yMin) * yScale);
+			int yr = (int) ((r.getPosition() - yMin) * yScale);
+			c.colour = Color.BLUE;
+			if (c.isViolated()) {
+				c.colour = Color.RED;
+			} else if (c.isTight()) {
+				c.colour = Color.GREEN;
+			}
+			g.setPaint(new Color(c.colour.getRed(), c.colour.getGreen(),
+					c.colour.getBlue(), 100));
+			drawArrow(g, posLookup.get(l), yl, posLookup.get(r), yr, 5);
 		}
 	}
 
 	/**
-	 * Draws an arrow head from (x,y) to (X,Y).
-	 * The arrow has a triangular head of size given by the parameter
+	 * Draws an arrow head from (x,y) to (X,Y). The arrow has a triangular head
+	 * of size given by the parameter
 	 * 
 	 * @param g
-	 * @param x start point is (x,y)
-	 * @param y start point is (x,y)
-	 * @param X end point is (X,Y)
-	 * @param Y end point is (X,Y)
-	 * @param size of arrow base in pixels
+	 * @param x
+	 *            start point is (x,y)
+	 * @param y
+	 *            start point is (x,y)
+	 * @param X
+	 *            end point is (X,Y)
+	 * @param Y
+	 *            end point is (X,Y)
+	 * @param size
+	 *            of arrow base in pixels
 	 */
 	private void drawArrow(Graphics2D g, int x, int y, int X, int Y, int size) {
-		g.drawLine(x,y,X,Y);
-		double s=(double)size;
-		double dx=X-x;
-		double dy=Y-y;
-		double len=Math.sqrt((double)(dx*dx+dy*dy));
+		g.drawLine(x, y, X, Y);
+		double s = (double) size;
+		double dx = X - x;
+		double dy = Y - y;
+		double len = Math.sqrt((double) (dx * dx + dy * dy));
 		// u is unit vector from (x,y) to (X,Y)
-		double ux=dx/len;
-		double uy=dy/len;
+		double ux = dx / len;
+		double uy = dy / len;
 		// a is beginning of arrow triangle
-		double ax=X-s*ux;
-		double ay=Y-s*uy;
+		double ax = X - s * ux;
+		double ay = Y - s * uy;
 		// v is vector from start to end of arrow triangle
 		double vx = X - ax;
 		double vy = Y - ay;
@@ -176,6 +240,6 @@ public class DebugPanel extends JPanel {
 		paintComponent(getGraphics());
 	}
 
-	Hashtable<Variable, Integer> yLookup = new Hashtable<Variable, Integer>();
+	Hashtable<Variable, Integer> posLookup = new Hashtable<Variable, Integer>();
 
 }

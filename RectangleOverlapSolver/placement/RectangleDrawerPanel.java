@@ -1,14 +1,10 @@
 package placement;
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
-import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Line2D;
@@ -52,66 +48,6 @@ class BlocksFileFilter extends FileFilter {
 	}
 }
 
-class PRect {
-	public static double scale, xmin, ymin;
-
-	Rectangle2D r;
-
-	String label;
-
-	Color colour = defaultRectColour;
-
-	static final Color defaultRectColour = new Color(228, 228, 205, 200);
-
-	PRect(String label, double x, double y, double w, double h) {
-		this.label = label;
-		r = new Rectangle2D.Double(x, y, w, h);
-	}
-
-	public PRect(String rectangleLabel, Rectangle2D rect) {
-		label = rectangleLabel;
-		r = rect;
-	}
-
-	public PRect(PRect r2) {
-		r = (Rectangle2D) r2.r.clone();
-		label = new String(r2.label);
-		colour = r2.colour;
-	}
-
-	public void draw(Graphics2D g) {
-		double x = r.getMinX();
-		double y = r.getMinY();
-		double w = r.getWidth();
-		double h = r.getHeight();
-		x -= xmin < 0 ? xmin : 0;
-		y -= ymin < 0 ? ymin : 0;
-		x *= scale;
-		w *= scale;
-		y *= scale;
-		h *= scale;
-		Rectangle2D vr = new Rectangle2D.Double(Math.floor(x), Math.floor(y),
-				Math.floor(w), Math.floor(h));
-
-		g.setPaint(colour);
-		g.fill(vr);
-		g.setPaint(Color.BLACK);
-		g.draw(vr);
-		Font f = new Font("Times New Roman", Font.PLAIN, 24);
-		FontMetrics fm = g.getFontMetrics(f);
-		int fh = fm.getHeight();
-		int fw = fm.stringWidth(label);
-		int d = fm.getMaxDescent();
-		double fsize = 0.9 * 24.0 * Math.min(w / (double) fw, h / (double) fh);
-		f = new Font("Times New Roman", Font.PLAIN, (int) fsize);
-		g.setFont(f);
-		fm = g.getFontMetrics(f);
-		fh = fm.getHeight();
-		fw = fm.stringWidth(label);
-		g.drawString(label, (int) x, (int) (y + fh / 1.3));
-	}
-}
-
 public class RectangleDrawerPanel extends JPanel implements Printable,
 		MouseInputListener, Observer {
 	enum InteractionMode {
@@ -126,13 +62,13 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 
 	private Graphics2D g;
 
-	private PRect rect;
+	private RectangleView rect;
 
-	public ArrayList<PRect> rectangles = new ArrayList<PRect>();
+	public ArrayList<RectangleView> rectangles = new ArrayList<RectangleView>();
 
 	public Graph graph = null;
 
-	private ArrayList<PRect> undoRectangles = new ArrayList<PRect>();
+	private ArrayList<RectangleView> undoRectangles = new ArrayList<RectangleView>();
 
 	private Constraints constraints;
 
@@ -146,9 +82,9 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 		double w = dim.width / 3.0;
 		double h = dim.height / 3.0;
 		for (int i = 0; i < n; i++) {
-			PRect r = new PRect("" + i, w + rand.nextDouble() * w, h
-					+ rand.nextDouble() * h, rand.nextDouble() * (w / 3.0),
-					rand.nextDouble() * (h / 3.0));
+			RectangleView r = new RectangleView("" + i, w + rand.nextDouble()
+					* w, h + rand.nextDouble() * h, rand.nextDouble()
+					* (w / 3.0), rand.nextDouble() * (h / 3.0));
 			rectangles.add(r);
 		}
 		int overlapCount = 0;
@@ -164,12 +100,12 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 		repaint();
 	}
 
-	void fitToScreen() {
+	DrawingDimensions fitToScreen() {
 		double xmax = 0;
 		double xmin = Double.MAX_VALUE;
 		double ymax = 0;
 		double ymin = Double.MAX_VALUE;
-		for (PRect r : rectangles) {
+		for (RectangleView r : rectangles) {
 			xmin = Math.min(xmin, r.r.getMinX());
 			xmax = Math.max(xmax, (r.r.getMinX() + r.r.getWidth()));
 			ymin = Math.min(ymin, r.r.getMinY());
@@ -181,11 +117,8 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 		double targetHeight = getSize().height;
 		double xscale = targetWidth / currentWidth;
 		double yscale = targetHeight / currentHeight;
-
-		PRect.scale=Math.min(xscale,yscale);
-		PRect.scale = Math.min(PRect.scale,1);
-		PRect.xmin = xmin;
-		PRect.ymin = ymin;
+		return new DrawingDimensions(Math.min(Math.min(xscale, yscale), 1),
+				xmin, ymin);
 	}
 
 	protected void load(File f) {
@@ -195,9 +128,9 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 			GraphParser g = new GraphParser(f.getPath());
 			graph = g.getGraph();
 			if (graph != null) {
-				for (Rectangle2D rect : graph.getRectangles()) {
-					rectangles.add(new PRect(graph.getRectangleLabel(rect),
-							rect));
+				for (Rectangle2D.Double rect : graph.getRectangles()) {
+					rectangles.add(new RectangleView(graph
+							.getRectangleLabel(rect), rect));
 				}
 			}
 			for (Rectangle2D l : idMap.keySet()) {
@@ -211,7 +144,7 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 				InputStream buffer = new BufferedInputStream(file);
 				input = new ObjectInputStream(buffer);
 				// deserialize the List
-				rectangles = (ArrayList<PRect>) input.readObject();
+				rectangles = (ArrayList<RectangleView>) input.readObject();
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			} finally {
@@ -226,7 +159,6 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 				}
 			}
 		}
-		fitToScreen();
 		repaint();
 	}
 
@@ -234,9 +166,9 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 	 * 
 	 */
 	protected void backup() {
-		undoRectangles = new ArrayList<PRect>();
-		for (PRect r : rectangles) {
-			PRect nr = new PRect(r);
+		undoRectangles = new ArrayList<RectangleView>();
+		for (RectangleView r : rectangles) {
+			RectangleView nr = new RectangleView(r);
 			undoRectangles.add(nr);
 		}
 	}
@@ -262,7 +194,7 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 	}
 
 	public void clear() {
-		rectangles = new ArrayList<PRect>();
+		rectangles = new ArrayList<RectangleView>();
 		constraints = null;
 		graph = null;
 		repaint();
@@ -314,8 +246,7 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 	}
 
 	public void render(int width, int height, Graphics2D g) {
-
-		fitToScreen();
+		DrawingDimensions dim = fitToScreen();
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
 				RenderingHints.VALUE_ANTIALIAS_ON);
 		Color original = g.getColor();
@@ -325,15 +256,12 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 		super.paintChildren(g);
 		if (graph != null) {
 			for (Line2D l : graph.getLines()) {
-				int x1 = (int) l.getP1().getX();
-				int y1 = (int) l.getP1().getY();
-				int x2 = (int) l.getP2().getX();
-				int y2 = (int) l.getP2().getY();
-				g.drawLine(x1, y1, x2, y2);
+				l.setLine(dim.toScreen(l.getP1()), dim.toScreen(l.getP2()));
+				g.draw(l);
 			}
 		}
-		for (PRect r : rectangles) {
-			r.draw(g);
+		for (RectangleView r : rectangles) {
+			r.draw(g, dim);
 			String label = idMap.get(r);
 		}
 		drawConstraints(g);
@@ -366,12 +294,12 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 		}
 		if (interactionMode == InteractionMode.Select) {
 			rect = null;
-			for (PRect r : rectangles) {
+			for (RectangleView r : rectangles) {
 				if (r.r.contains(x, y)) {
 					rect = r;
 				}
 			}
-			if(rect!=null) {
+			if (rect != null) {
 				selectOffsetX = x - rect.r.getMinX();
 				selectOffsetY = y - rect.r.getMinY();
 				rect.colour = Color.PINK;
@@ -392,13 +320,13 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 				if (c.isViolated()) {
 					c.colour = Color.RED;
 					g.setColor(c.colour);
-					Rectangle2D r1 = (Rectangle2D) c.left.data
-							.get(Rectangle2D.class);
-					Rectangle2D r2 = (Rectangle2D) c.right.data
-							.get(Rectangle2D.class);
+					RectangleView r1 = (RectangleView) c.left.data
+							.get(RectangleView.class);
+					RectangleView r2 = (RectangleView) c.right.data
+							.get(RectangleView.class);
 					// Chunk chunk = (Chunk)c.left.data.get(Chunk.class);
-					g.drawLine((int) r1.getMinX(), (int) r1.getMinY(), (int) r2
-							.getMinX(), (int) r2.getMinY());
+					g.drawLine((int) r1.r.getMinX(), (int) r1.r.getMinY(), (int) r2.r
+							.getMinX(), (int) r2.r.getMinY());
 				} else if (c.isTight()) {
 					c.colour = Color.GREEN;
 				}
@@ -421,7 +349,7 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 			break;
 		case Select:
 			if (rect != null) {
-				rect.colour = PRect.defaultRectColour;
+				rect.colour = RectangleView.defaultRectColour;
 				paintComponent(g);
 				rect = null;
 			}
@@ -441,10 +369,10 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 		if (prevX != x && prevY != y) {
 			switch (interactionMode) {
 			case Create:
-				PRect r = new PRect("r"+rectangles.size(), Math.min(prevX, x), Math
-						.min(prevY, y), Math.abs(x - prevX), Math
-						.abs(y - prevY));
-				r.draw(g);
+				RectangleView r = new RectangleView("r" + rectangles.size(),
+						Math.min(prevX, x), Math.min(prevY, y), Math.abs(x
+								- prevX), Math.abs(y - prevY));
+				r.draw(g, fitToScreen());
 				rect = r;
 				break;
 			case Select:
@@ -488,7 +416,7 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 		g2d.translate(pf.getImageableX(), pf.getImageableY());
 		g2d.translate(pf.getImageableWidth() / 2, pf.getImageableHeight() / 2);
 		Dimension d = new Dimension();
-		for (PRect r : rectangles) {
+		for (RectangleView r : rectangles) {
 			d.height = Math.max((int) r.r.getMaxY(), d.height);
 			d.width = Math.max((int) r.r.getMaxX(), d.width);
 		}
@@ -529,7 +457,7 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 
 	public ArrayList<Rectangle2D> getRectangles() {
 		ArrayList<Rectangle2D> rs = new ArrayList<Rectangle2D>();
-		for (PRect r : rectangles) {
+		for (RectangleView r : rectangles) {
 			rs.add(r.r);
 		}
 		return rs;

@@ -17,9 +17,9 @@ public class NativeFSA implements RectanglePlacement {
 		System.loadLibrary("placement_NativeFSA");
 	}
 
-	public void place(ArrayList<PRect> rs) {
+	public void place(ArrayList<RectangleView> rs) {
 		ArrayList<Rectangle2D> rectangles = new ArrayList<Rectangle2D>();
-		for(PRect r:rs) {
+		for(RectangleView r:rs) {
 			rectangles.add(r.r);
 		}
 		int n=rectangles.size();

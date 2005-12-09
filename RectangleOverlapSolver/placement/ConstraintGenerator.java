@@ -1,6 +1,5 @@
 package placement;
 
-import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -48,7 +47,7 @@ public class ConstraintGenerator {
 			}
 			r.v = new Variable(id, r.getCentre(), 1.0);
 			r.v.data.put(Chunk.class, r);
-			r.v.data.put(Rectangle2D.class, r.rect);
+			r.v.data.put(RectangleView.class, r);
 		}
 		constraints = new Constraints();
 		for (int i = 0; i < chunks.length - 1; i++) {
@@ -114,7 +113,7 @@ public class ConstraintGenerator {
 			}
 			c.v = new Variable(id, c.getCentre(), 1.0);
 			c.v.data.put(Chunk.class, c);
-			c.v.data.put(Rectangle2D.class, c.rect);
+			c.v.data.put(RectangleView.class, c.rect);
 			Chunk conj = c.conj;
 			edges[i * 2] = new ChunkEdge(c, true, conj.getMin());
 			edges[i * 2 + 1] = new ChunkEdge(c, false, conj.getMax());
@@ -172,7 +171,7 @@ public class ConstraintGenerator {
 			}
 			c.v = new Variable(id, c.getCentre(), 1.0);
 			c.v.data.put(Chunk.class, c);
-			c.v.data.put(Rectangle2D.class, c.rect);
+			c.v.data.put(RectangleView.class, c.rect);
 			Chunk conj = c.conj;
 			edges[i * 2] = new ChunkEdge(c, true, conj.getMin());
 			edges[i * 2 + 1] = new ChunkEdge(c, false, conj.getMax());
@@ -280,7 +279,7 @@ public class ConstraintGenerator {
 abstract class Chunk<T extends Chunk> {
 	T conj;
 
-	Rectangle2D rect;
+	RectangleView rect;
 
 	Variable v;
 	String id;
@@ -306,11 +305,11 @@ abstract class Chunk<T extends Chunk> {
 	}
 	abstract double getLength();
 
-	Chunk(Rectangle2D r) {
+	Chunk(RectangleView r) {
 		this.rect = r;
 	}
 
-	Chunk(Rectangle2D r, T conjugate) {
+	Chunk(RectangleView r, T conjugate) {
 		this(r);
 		this.conj = conjugate;
 	}
@@ -410,63 +409,56 @@ abstract class Chunk<T extends Chunk> {
 class YChunk extends Chunk<XChunk> {
 	static double g = 0;
 
-	YChunk(Rectangle2D r, XChunk conjugate) {
+	YChunk(RectangleView r, XChunk conjugate) {
 		super(r, conjugate);
 	}
 
-	YChunk(Rectangle2D r) {
+	YChunk(RectangleView r) {
 		super(r);
 	}
 
 	public double getMax() {
-		return rect.getMaxY() + g;
+		return rect.r.getMaxY() + g;
 	}
 
 	public double getMin() {
-		return rect.getMinY();
+		return rect.r.getMinY();
 	}
 
 	public double getLength() {
-		return rect.getHeight() + g;
+		return rect.r.getHeight() + g;
 	}
 
 	void setMin(double min) {
-		if (rect instanceof java.awt.Rectangle) {
-			min = Math.ceil(min);
-		}
-		rect.setRect(rect.getMinX(), min, rect.getWidth(), rect.getHeight());
+		rect.moveTo(rect.r.getMinX(), min);
 	}
 }
 
 class XChunk extends Chunk<YChunk> {
 	static double g = 0;
 
-	XChunk(Rectangle2D r, YChunk conjugate) {
+	XChunk(RectangleView r, YChunk conjugate) {
 		super(r, conjugate);
 	}
 
-	XChunk(Rectangle2D r) {
+	XChunk(RectangleView r) {
 		super(r);
 	}
 
 	public double getMax() {
-		return rect.getMaxX() + g;
+		return rect.r.getMaxX() + g;
 	}
 
 	public double getMin() {
-		return rect.getMinX();
+		return rect.r.getMinX();
 	}
 
 	public double getLength() {
-		return rect.getWidth() + g;
+		return rect.r.getWidth() + g;
 	}
 
 	void setMin(double min) {
-		if (rect instanceof java.awt.Rectangle) {
-			// because awt Rectangles have int coords!
-			min = Math.ceil(min);
-		}
-		rect.setRect(min, rect.getMinY(), rect.getWidth(), rect.getHeight());
+		rect.moveTo(min,rect.r.getMinY());
 	}
 
 }

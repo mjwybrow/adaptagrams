@@ -1,9 +1,6 @@
 package placement;
 
-import java.awt.Color;
-import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.logging.Logger;
@@ -20,8 +17,6 @@ public class QPRectanglePlacement extends Observable implements
 	private Algorithm algorithm = Algorithm.ACTIVESET;
 
 	private boolean animate;
-
-	private Hashtable<Rectangle2D, Color> rectangleColourMap;
 
 	private boolean splitRefinement;
 
@@ -43,7 +38,7 @@ public class QPRectanglePlacement extends Observable implements
 		YChunk.g = ygap;
 	}
 
-	void placeXNative(ArrayList<PRect> rectangles) {
+	void placeXNative(ArrayList<RectangleView> rectangles) {
 		SolveVPSC svpsc = new SolveVPSC(rectangles);
 		double weights[] = new double[rectangles.size()];
 		for (int i = 0; i < weights.length; i++) {
@@ -54,21 +49,16 @@ public class QPRectanglePlacement extends Observable implements
 			svpsc.solve();
 			Variables vs = svpsc.getVariables();
 			for (int i = 0; i < vs.size(); i++) {
-				Rectangle2D rect = rectangles.get(i).r;
+				RectangleView rect = rectangles.get(i);
 				double min = vs.get(i).getPosition();
-				if (rect instanceof java.awt.Rectangle) {
-					// because awt Rectangles have int coords!
-					min = Math.ceil(min);
-				}
-				rect.setRect(min, rect.getMinY(), rect.getWidth(), rect
-						.getHeight());
+				rect.moveTo(min, rect.r.getMinY());
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	void placeYNative(ArrayList<PRect> rectangles) {
+	void placeYNative(ArrayList<RectangleView> rectangles) {
 		SolveVPSC svpsc = new SolveVPSC(rectangles);
 		double weights[] = new double[rectangles.size()];
 		for (int i = 0; i < weights.length; i++) {
@@ -79,29 +69,24 @@ public class QPRectanglePlacement extends Observable implements
 			svpsc.solve();
 			Variables vs = svpsc.getVariables();
 			for (int i = 0; i < vs.size(); i++) {
-				Rectangle2D rect = rectangles.get(i).r;
+				RectangleView rect = rectangles.get(i);
 				double min = vs.get(i).getPosition();
-				if (rect instanceof java.awt.Rectangle) {
-					// because awt Rectangles have int coords!
-					min = Math.ceil(min);
-				}
-				rect.setRect(rect.getMinX(), min, rect.getWidth(), rect
-						.getHeight());
+				rect.moveTo(rect.r.getMinX(), min);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
-	void placeX(ArrayList<PRect> rectangles) {
+	void placeX(ArrayList<RectangleView> rectangles) {
 
 		double cost;
 		long t1 = System.currentTimeMillis();
 		XChunk[] xs = new XChunk[rectangles.size()];
 		logger.fine("*****************Placing X");
 		for (int i = 0; i < rectangles.size(); i++) {
-			PRect r = rectangles.get(i);
-			xs[i] = new XChunk(r.r, new YChunk(r.r));
+			RectangleView r = rectangles.get(i);
+			xs[i] = new XChunk(r, new YChunk(r));
 			xs[i].id = r.label;
 		}
 		constraintGenerator.initVarsAndConstraints(xs, false);
@@ -114,21 +99,23 @@ public class QPRectanglePlacement extends Observable implements
 		System.out.println("Place hor.: cost=" + cost + " time=" + (t3 - t2));
 	}
 
-	public void place(ArrayList<PRect> rectangles) {
+	public void place(ArrayList<RectangleView> rectangles) {
 		long t1 = System.currentTimeMillis();
 		if (algorithm == Algorithm.CACTIVESET) {
 			placeNative(rectangles);
 		} else {
 			XChunk.g += 0.01;
+			DebugPanel.direction=DebugPanel.Direction.Horizontal;
 			placeX(rectangles);
 			XChunk.g -= 0.01;
+			DebugPanel.direction=DebugPanel.Direction.Vertical;
 			placeY(rectangles);
 		}
 		long t2 = System.currentTimeMillis();
 		System.out.println("Total time=" + (t2 - t1));
 	}
 
-	void placeNative(ArrayList<PRect> rectangles) {
+	void placeNative(ArrayList<RectangleView> rectangles) {
 		long t1 = System.currentTimeMillis();
 		// placeXNative(rectangles);
 		// placeYNative(rectangles);
@@ -138,13 +125,13 @@ public class QPRectanglePlacement extends Observable implements
 		System.out.println("Total time=" + (t2 - t1));
 	}
 
-	void placeY(ArrayList<PRect> rectangles) {
+	void placeY(ArrayList<RectangleView> rectangles) {
 		long t1 = System.currentTimeMillis();
 		YChunk[] ys = new YChunk[rectangles.size()];
 		logger.fine("*****************Placing Y");
 		for (int i = 0; i < rectangles.size(); i++) {
-			PRect r = rectangles.get(i);
-			ys[i] = new YChunk(r.r, new XChunk(r.r));
+			RectangleView r = rectangles.get(i);
+			ys[i] = new YChunk(r, new XChunk(r));
 			ys[i].id = r.label;
 		}
 		constraintGenerator.initVarsAndConstraints(ys, true);
@@ -211,9 +198,7 @@ public class QPRectanglePlacement extends Observable implements
 
 	public void update(Observable arg0, Object arg1) {
 		for (Chunk c : constraintGenerator.getChunks()) {
-			c.setMin(c.v.getPosition());
-			if (c.v.colour != null)
-				rectangleColourMap.put(c.rect, c.v.colour);
+			c.setCentre(c.v.getPosition());
 		}
 		setChanged();
 		notifyObservers();
