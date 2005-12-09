@@ -19,25 +19,21 @@ public class NativeFSA implements RectanglePlacement {
 
 	public void place(ArrayList<RectangleView> rs) {
 		ArrayList<Rectangle2D> rectangles = new ArrayList<Rectangle2D>();
-		for(RectangleView r:rs) {
-			rectangles.add(r.r);
-		}
 		int n=rectangles.size();
 		double[] x=new double[n];
 		double[] y=new double[n];
 		double[] w=new double[n];
 		double[] h=new double[n];
 		for(int i=0;i<n;i++) {
-			Rectangle2D r=rectangles.get(i);
-			x[i]=r.getMinX();
-			y[i]=r.getMinY();
-			w[i]=r.getWidth()+xgap;
-			h[i]=r.getHeight()+ygap;
+			RectangleView r=rs.get(i);
+			x[i]=r.x;
+			y[i]=r.y;
+			w[i]=r.width+xgap;
+			h[i]=r.height+ygap;
 		}
 		place(x,y,w,h);
 		for(int i=0;i<n;i++) {
-			Rectangle2D r=rectangles.get(i);
-			r.setRect(x[i],y[i],r.getWidth(),r.getHeight());
+			rs.get(i).moveTo(x[i],y[i]);
 		}
 	}
 }

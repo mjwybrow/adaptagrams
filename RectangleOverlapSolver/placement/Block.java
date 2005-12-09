@@ -37,7 +37,6 @@ public class Block {
 
 	MaxPriorityQueue<Constraint> outConstraintsPriorityQueue = null;
 
-
 	/**
 	 * empty block constructor used for split.
 	 */
@@ -82,11 +81,10 @@ public class Block {
 	}
 
 	/**
-	 * Computes lagrange multipliers across active constraints.
-	 * Traverses the active set of constraints in this block with a depth first
-	 * traversal, computing the lagrangian multipliers associated with each
-	 * constraint from the derivative of the cost function (dfdv) for each
-	 * variable
+	 * Computes lagrange multipliers across active constraints. Traverses the
+	 * active set of constraints in this block with a depth first traversal,
+	 * computing the lagrangian multipliers associated with each constraint from
+	 * the derivative of the cost function (dfdv) for each variable
 	 */
 	void computeLagrangeMultipliers() {
 		for (Constraint c : activeConstraints) {
@@ -94,6 +92,7 @@ public class Block {
 		}
 		compute_dfdv(variables.get(0), null);
 	}
+
 	private double compute_dfdv(Variable v, Variable u) {
 		// how much v wants to go right (negative if v wants to go left)
 		double dfdv = v.weight * (v.getPosition() - v.desiredPosition);
@@ -169,11 +168,13 @@ public class Block {
 	}
 
 	public void setUpInConstraints() {
-		inConstraintsPriorityQueue = new MaxPairingHeap<Constraint>();
-		for (Variable v : variables) {
-			for (Constraint c : v.inConstraints) {
-				if (c.left.container != this) {
-					inConstraintsPriorityQueue.add(c);
+		if (inConstraintsPriorityQueue == null) {
+			inConstraintsPriorityQueue = new MaxPairingHeap<Constraint>();
+			for (Variable v : variables) {
+				for (Constraint c : v.inConstraints) {
+					if (c.left.container != this) {
+						inConstraintsPriorityQueue.add(c);
+					}
 				}
 			}
 		}

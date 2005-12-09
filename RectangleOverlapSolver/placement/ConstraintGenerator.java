@@ -418,19 +418,19 @@ class YChunk extends Chunk<XChunk> {
 	}
 
 	public double getMax() {
-		return rect.r.getMaxY() + g;
+		return rect.getMaxY() + g;
 	}
 
 	public double getMin() {
-		return rect.r.getMinY();
+		return rect.y;
 	}
 
 	public double getLength() {
-		return rect.r.getHeight() + g;
+		return rect.height + g;
 	}
 
 	void setMin(double min) {
-		rect.moveTo(rect.r.getMinX(), min);
+		rect.moveTo(rect.x, min);
 	}
 }
 
@@ -446,19 +446,19 @@ class XChunk extends Chunk<YChunk> {
 	}
 
 	public double getMax() {
-		return rect.r.getMaxX() + g;
+		return rect.getMaxX() + g;
 	}
 
 	public double getMin() {
-		return rect.r.getMinX();
+		return rect.x;
 	}
 
 	public double getLength() {
-		return rect.r.getWidth() + g;
+		return rect.width + g;
 	}
 
 	void setMin(double min) {
-		rect.moveTo(min,rect.r.getMinY());
+		rect.moveTo(min,rect.y);
 	}
 
 }

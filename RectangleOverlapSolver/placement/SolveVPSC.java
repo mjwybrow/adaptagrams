@@ -1,9 +1,7 @@
 package placement;
 
-import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Hashtable;
-
 
 public class SolveVPSC implements Placement {
 	public native double solve(String vName[], double vWeight[],
@@ -31,7 +29,7 @@ public class SolveVPSC implements Placement {
 	Variables vs;
 
 	Constraints cs;
-	ArrayList<Rectangle2D> rectangles;
+	ArrayList<RectangleView> rectangles;
 	Hashtable<String, Integer> varLookup = new Hashtable<String, Integer>();
 
 	int varCounter = 0;
@@ -50,10 +48,7 @@ public class SolveVPSC implements Placement {
 	}
 
 	public SolveVPSC(ArrayList<RectangleView> rectangles) {
-		this.rectangles=new ArrayList<Rectangle2D>();
-		for(RectangleView r:rectangles) {
-			this.rectangles.add(r.r);
-		}
+		this.rectangles=rectangles;
 	}
 	public SolveVPSC(Variable[] vs) {
 		new Blocks(vs);
@@ -113,9 +108,9 @@ public class SolveVPSC implements Placement {
 		double[] rectMinX = new double[n], rectMaxX = new double[n], rectMinY = new double[n], rectMaxY = new double[n];
 		vs=new Variables();
 		for(int i=0;i<n;i++) {
-			rectMinX[i]=rectangles.get(i).getMinX();
+			rectMinX[i]=rectangles.get(i).x;
 			rectMaxX[i]=rectangles.get(i).getMaxX();
-			rectMinY[i]=rectangles.get(i).getMinY();
+			rectMinY[i]=rectangles.get(i).y;
 			rectMaxY[i]=rectangles.get(i).getMaxY();
 			vs.add(new Variable("r"+i,rectMinX[i],1));
 		}
@@ -136,9 +131,9 @@ public class SolveVPSC implements Placement {
 		double[] rectMinX = new double[n], rectMaxX = new double[n], rectMinY = new double[n], rectMaxY = new double[n];
 		vs=new Variables();
 		for(int i=0;i<n;i++) {
-			rectMinX[i]=rectangles.get(i).getMinX();
+			rectMinX[i]=rectangles.get(i).x;
 			rectMaxX[i]=rectangles.get(i).getMaxX();
-			rectMinY[i]=rectangles.get(i).getMinY();
+			rectMinY[i]=rectangles.get(i).y;
 			rectMaxY[i]=rectangles.get(i).getMaxY();
 			vs.add(new Variable("r"+i,rectMinY[i],1));
 		}
@@ -166,15 +161,15 @@ public class SolveVPSC implements Placement {
 		int n= rectangles.size();
 		double[] rectMinX = new double[n], rectMaxX = new double[n], rectMinY = new double[n], rectMaxY = new double[n];
 		for(int i=0;i<n;i++) {
-			rectMinX[i]=rectangles.get(i).getMinX();
+			rectMinX[i]=rectangles.get(i).x;
 			rectMaxX[i]=rectangles.get(i).getMaxX();
-			rectMinY[i]=rectangles.get(i).getMinY();
+			rectMinY[i]=rectangles.get(i).y;
 			rectMaxY[i]=rectangles.get(i).getMaxY();
 		}
 		removeOverlaps(rectMinX,rectMaxX,rectMinY,rectMaxY);
 		for(int i=0;i<n;i++) {
-			Rectangle2D r=rectangles.get(i);
-			r.setRect(rectMinX[i],rectMinY[i],r.getWidth(),r.getHeight());
+			RectangleView r=rectangles.get(i);
+			r.moveTo(rectMinX[i],rectMinY[i]);
 		}
 	}
 

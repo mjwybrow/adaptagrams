@@ -89,10 +89,12 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 		}
 		int overlapCount = 0;
 		for (int i = 0; i < rectangles.size(); i++) {
-			Rectangle2D u = rectangles.get(i).r;
+			RectangleView u = rectangles.get(i);
+			Rectangle2D r1 = new Rectangle2D.Double(u.x,u.y,u.width,u.height);
 			for (int j = i + 1; j < rectangles.size(); j++) {
-				Rectangle2D v = rectangles.get(j).r;
-				if (u.intersects(v))
+				RectangleView v = rectangles.get(j);
+				Rectangle2D r2 = new Rectangle2D.Double(v.x,v.y,v.width,v.height);
+				if (r1.intersects(r2))
 					overlapCount++;
 			}
 		}
@@ -106,10 +108,10 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 		double ymax = 0;
 		double ymin = Double.MAX_VALUE;
 		for (RectangleView r : rectangles) {
-			xmin = Math.min(xmin, r.r.getMinX());
-			xmax = Math.max(xmax, (r.r.getMinX() + r.r.getWidth()));
-			ymin = Math.min(ymin, r.r.getMinY());
-			ymax = Math.max(ymax, (r.r.getMinY() + r.r.getHeight()));
+			xmin = Math.min(xmin, r.x);
+			xmax = Math.max(xmax, (r.getMaxX()));
+			ymin = Math.min(ymin, r.y);
+			ymax = Math.max(ymax, (r.getMaxY()));
 		}
 		double currentWidth = Math.max(xmax, xmax - xmin);
 		double currentHeight = Math.max(ymax, ymax - ymin);
@@ -128,9 +130,9 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 			GraphParser g = new GraphParser(f.getPath());
 			graph = g.getGraph();
 			if (graph != null) {
-				for (Rectangle2D.Double rect : graph.getRectangles()) {
+				for (Rectangle2D.Double r : graph.getRectangles()) {
 					rectangles.add(new RectangleView(graph
-							.getRectangleLabel(rect), rect));
+							.getRectangleLabel(r), r.x, r.y, r.width, r.height));
 				}
 			}
 			for (Rectangle2D l : idMap.keySet()) {
@@ -295,13 +297,14 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 		if (interactionMode == InteractionMode.Select) {
 			rect = null;
 			for (RectangleView r : rectangles) {
-				if (r.r.contains(x, y)) {
+				Rectangle2D r2d = new Rectangle2D.Double(r.x,r.y,r.width,r.height);
+				if (r2d.contains(x, y)) {
 					rect = r;
 				}
 			}
 			if (rect != null) {
-				selectOffsetX = x - rect.r.getMinX();
-				selectOffsetY = y - rect.r.getMinY();
+				selectOffsetX = x - rect.x;
+				selectOffsetY = y - rect.y;
 				rect.colour = Color.PINK;
 			}
 			paintComponent(g);
@@ -325,8 +328,7 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 					RectangleView r2 = (RectangleView) c.right.data
 							.get(RectangleView.class);
 					// Chunk chunk = (Chunk)c.left.data.get(Chunk.class);
-					g.drawLine((int) r1.r.getMinX(), (int) r1.r.getMinY(), (int) r2.r
-							.getMinX(), (int) r2.r.getMinY());
+					g.drawLine((int) r1.x, (int) r1.y, (int) r2.x, (int) r2.y);
 				} else if (c.isTight()) {
 					c.colour = Color.GREEN;
 				}
@@ -377,8 +379,7 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 				break;
 			case Select:
 				if (rect != null) {
-					rect.r.setRect(x - selectOffsetX, y - selectOffsetY, rect.r
-							.getWidth(), rect.r.getHeight());
+					rect.moveTo(x - selectOffsetX, y - selectOffsetY);
 				}
 				break;
 			}
@@ -417,8 +418,8 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 		g2d.translate(pf.getImageableWidth() / 2, pf.getImageableHeight() / 2);
 		Dimension d = new Dimension();
 		for (RectangleView r : rectangles) {
-			d.height = Math.max((int) r.r.getMaxY(), d.height);
-			d.width = Math.max((int) r.r.getMaxX(), d.width);
+			d.height = Math.max((int) r.getMaxY(), d.height);
+			d.width = Math.max((int) r.getMaxX(), d.width);
 		}
 		double scale = Math.min(pf.getImageableWidth() / d.width, pf
 				.getImageableHeight()
@@ -453,13 +454,5 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 
 	public InteractionMode getInteractionMode() {
 		return interactionMode;
-	}
-
-	public ArrayList<Rectangle2D> getRectangles() {
-		ArrayList<Rectangle2D> rs = new ArrayList<Rectangle2D>();
-		for (RectangleView r : rectangles) {
-			rs.add(r.r);
-		}
-		return rs;
 	}
 }

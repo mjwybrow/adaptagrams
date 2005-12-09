@@ -51,7 +51,7 @@ public class QPRectanglePlacement extends Observable implements
 			for (int i = 0; i < vs.size(); i++) {
 				RectangleView rect = rectangles.get(i);
 				double min = vs.get(i).getPosition();
-				rect.moveTo(min, rect.r.getMinY());
+				rect.moveTo(min, rect.y);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -71,7 +71,7 @@ public class QPRectanglePlacement extends Observable implements
 			for (int i = 0; i < vs.size(); i++) {
 				RectangleView rect = rectangles.get(i);
 				double min = vs.get(i).getPosition();
-				rect.moveTo(rect.r.getMinX(), min);
+				rect.moveTo(rect.x, min);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

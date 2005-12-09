@@ -310,8 +310,9 @@ public class FSA implements RectanglePlacement {
 		} else {
 			rectangles = new ArrayList<Rectangle2D>();
 			for(RectangleView r:rs) {
-				rectangles.add(r.r);
+				rectangles.add(new Rectangle2D.Double(r.x,r.y,r.width,r.height));
 			}
+			// TODO This isn't going to work... need to operate directly on RectangleView
 			// the following is a hack but it's the easiest way to get the gaps
 			// working
 			for (Rectangle2D r : rectangles) {

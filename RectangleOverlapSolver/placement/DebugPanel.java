@@ -102,7 +102,7 @@ public class DebugPanel extends JPanel {
 				.get(RectangleView.class);
 		RectangleView lastRect = (RectangleView) allVars.max().data
 				.get(RectangleView.class);
-		double xMin = firstRect.r.getMinX(), xMax = lastRect.r.getMaxX();
+		double xMin = firstRect.x, xMax = lastRect.getMaxX();
 		double xRange = xMax - xMin;
 		double xScale = getSize().width / xRange;
 		int vcounter = 0;
@@ -116,8 +116,8 @@ public class DebugPanel extends JPanel {
 			for (Variable v : b.variables) {
 				RectangleView rv = (RectangleView) v.data
 						.get(RectangleView.class);
-				int w = (int) (rv.r.getWidth() * xScale);
-				int x = (int) ((rv.r.getMinX() - xMin) * xScale);
+				int w = (int) (rv.width * xScale);
+				int x = (int) ((rv.x - xMin) * xScale);
 				// assert(x+w<getSize().width);
 				posLookup.put(v, y);
 				rv.colour = c;
@@ -150,7 +150,7 @@ public class DebugPanel extends JPanel {
 				.get(RectangleView.class);
 		RectangleView lastRect = (RectangleView) allVars.max().data
 				.get(RectangleView.class);
-		double yMin = firstRect.r.getMinY(), yMax = lastRect.r.getMaxY();
+		double yMin = firstRect.y, yMax = lastRect.getMaxY();
 		double yRange = yMax - yMin;
 		double yScale = getSize().height / yRange;
 		int vcounter = 0;
@@ -164,8 +164,8 @@ public class DebugPanel extends JPanel {
 			for (Variable v : b.variables) {
 				RectangleView rv = (RectangleView) v.data
 						.get(RectangleView.class);
-				int h = (int) (rv.r.getHeight() * yScale);
-				int y = (int) ((rv.r.getMinY() - yMin) * yScale);
+				int h = (int) (rv.height * yScale);
+				int y = (int) ((rv.y - yMin) * yScale);
 				// assert(x+w<getSize().width);
 				posLookup.put(v, x);
 				rv.colour = c;

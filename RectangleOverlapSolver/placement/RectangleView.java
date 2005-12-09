@@ -6,11 +6,13 @@ import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.geom.Rectangle2D;
+import java.io.Serializable;
 
-class RectangleView {
-	Rectangle2D.Double r;
-	double width, height;
+public class RectangleView implements Serializable {
+	private static final long serialVersionUID = 3617292346069431353L;
+
+	double x, y, width, height;
+
 	String label;
 
 	Color colour = defaultRectColour;
@@ -18,31 +20,29 @@ class RectangleView {
 	static final Color defaultRectColour = new Color(228, 228, 205, 200);
 
 	RectangleView(String label, double x, double y, double w, double h) {
-		this(label,new Rectangle2D.Double(x, y, w, h));
+		this.label = label;
+		this.x = x;
+		this.y = y;
+		width = w;
+		height = h;
 	}
 
-	public RectangleView(String rectangleLabel, Rectangle2D.Double rect) {
-		label = rectangleLabel;
-		r = rect;
-		width=r.getWidth(); height=r.getHeight();
-	}
-
-	public RectangleView(RectangleView r2) {
-		this(new String(r2.label),(Rectangle2D.Double) r2.r.clone());
-		colour = r2.colour;
+	public RectangleView(RectangleView r) {
+		this(new String(r.label), r.x, r.y, r.width, r.height);
+		colour = r.colour;
 	}
 
 	public void draw(Graphics2D g, DrawingDimensions dim) {
-		Point p = dim.toScreen(r.getMinX(), r.getMinY());
+		Point p = dim.toScreen(x, y);
 		double w = width * dim.scale;
 		double h = height * dim.scale;
 		draw(g, p, w, h);
 	}
 
 	public void draw(Graphics2D g, int x, int y, int w, int h) {
-		draw(g, new Point(x,y), w, h);
+		draw(g, new Point(x, y), w, h);
 	}
-	
+
 	private void draw(Graphics2D g, Point p, double w, double h) {
 		Rectangle vr = new Rectangle(p.x, p.y, (int) w, (int) h);
 		g.setPaint(colour);
@@ -62,8 +62,18 @@ class RectangleView {
 		fw = fm.stringWidth(label);
 		g.drawString(label, p.x, p.y + (int) (fh / 1.3));
 	}
+
 	public void moveTo(double x, double y) {
-		r.setRect(x, y, width, height);
+		this.x = x;
+		this.y = y;
+	}
+
+	public double getMaxY() {
+		return y+height;
+	}
+
+	public double getMaxX() {
+		return x+width;
 	}
 
 }
