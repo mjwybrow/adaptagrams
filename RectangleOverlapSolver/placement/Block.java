@@ -19,6 +19,10 @@ import java.util.logging.Logger;
 public class Block {
 	static Logger logger = ActiveSetPlacement.logger;
 
+	static long timeStampCtr = 0;
+
+	long timeStamp = 0;
+
 	double position = 0;
 
 	double weight = 0;
@@ -36,6 +40,10 @@ public class Block {
 	MaxPriorityQueue<Constraint> inConstraintsPriorityQueue = null;
 
 	MaxPriorityQueue<Constraint> outConstraintsPriorityQueue = null;
+
+	private boolean incomingChanged=false;
+
+	private boolean merged=false;
 
 	/**
 	 * empty block constructor used for split.
@@ -67,10 +75,6 @@ public class Block {
 			v.container = this;
 			v.offset += distance;
 		}
-		if (inConstraintsPriorityQueue == null)
-			setUpInConstraints();
-		if (b.inConstraintsPriorityQueue == null)
-			b.setUpInConstraints();
 		inConstraintsPriorityQueue.merge(b.inConstraintsPriorityQueue);
 		if (outConstraintsPriorityQueue == null)
 			setUpOutConstraints();
@@ -78,6 +82,7 @@ public class Block {
 			b.setUpOutConstraints();
 		outConstraintsPriorityQueue.merge(b.outConstraintsPriorityQueue);
 		variables.addAll(b.variables);
+		merged=true;
 	}
 
 	/**
@@ -168,13 +173,11 @@ public class Block {
 	}
 
 	public void setUpInConstraints() {
-		if (inConstraintsPriorityQueue == null) {
-			inConstraintsPriorityQueue = new MaxPairingHeap<Constraint>();
-			for (Variable v : variables) {
-				for (Constraint c : v.inConstraints) {
-					if (c.left.container != this) {
-						inConstraintsPriorityQueue.add(c);
-					}
+		inConstraintsPriorityQueue = new MaxPairingHeap<Constraint>();
+		for (Variable v : variables) {
+			for (Constraint c : v.inConstraints) {
+				if (c.left.container != this) {
+					inConstraintsPriorityQueue.add(c);
 				}
 			}
 		}
@@ -208,21 +211,41 @@ public class Block {
 		return c;
 	}
 
-	Constraint findMaxInConstraint() {
+Constraint findMaxInConstraint() {
 		Constraint v = inConstraintsPriorityQueue.findMax();
-		while (v != null && v.left.container == v.right.container) {
-			v = inConstraintsPriorityQueue.deleteMax();
-			v = inConstraintsPriorityQueue.findMax();
+		while (v != null) {
+			Block lb = v.left.container;
+			Block rb = v.right.container;
+			if (lb == rb) {
+				// constraint has been merged into the same block
+				inConstraintsPriorityQueue.deleteMax();
+				v = inConstraintsPriorityQueue.findMax();
+			} else if (lb.timeStamp > rb.timeStamp && v.timeStamp < lb.timeStamp) {
+				// block at other end of constraint has been moved since this
+				inConstraintsPriorityQueue.deleteMax();
+				v.timeStamp = ++Block.timeStampCtr;
+				inConstraintsPriorityQueue.add(v);
+				v = inConstraintsPriorityQueue.findMax();
+				incomingChanged=true;
+			} else {
+				break;
+			}
 		}
 		return v;
-	}
-
-	Constraint findMaxOutConstraint() {
+	}	Constraint findMaxOutConstraint() {
 		Constraint v = outConstraintsPriorityQueue.findMax();
 		while (v != null && v.left.container == v.right.container) {
 			v = outConstraintsPriorityQueue.deleteMax();
 			v = outConstraintsPriorityQueue.findMax();
 		}
 		return v;
+	}
+
+	public void updateTimeStamp() {
+		//if(merged||incomingChanged) {
+			timeStamp = ++timeStampCtr;
+		//}
+		incomingChanged=false;
+		merged=false;
 	}
 }

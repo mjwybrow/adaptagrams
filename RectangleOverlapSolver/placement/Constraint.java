@@ -19,6 +19,7 @@ import java.util.Queue;
  *         go to Window - Preferences - Java - Code Style - Code Templates
  */
 public class Constraint implements Comparable<Constraint> {
+	long timeStamp=0;
 	Variable left;
 
 	Variable right;

@@ -136,14 +136,7 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 			GraphParser g = new GraphParser(f.getPath());
 			graph = g.getGraph();
 			if (graph != null) {
-				for (Rectangle2D.Double r : graph.getRectangles()) {
-					rectangles.add(new RectangleView(
-							graph.getRectangleLabel(r), r.x, r.y, r.width,
-							r.height));
-				}
-			}
-			for (Rectangle2D l : idMap.keySet()) {
-				System.out.println("in load: " + idMap.get(l));
+				rectangles=graph.getRectangles();
 			}
 			fileFilter.lastSelectedFile = f;
 		} else {
@@ -299,10 +292,8 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 		}
 		for (RectangleView r : rectangles) {
 			r.draw(g, dim);
-			String label = idMap.get(r);
 		}
 		drawConstraints(g);
-
 	}
 
 	private void setUpDrawingGraphics() {
@@ -313,8 +304,6 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 	double selectOffsetX = 0;
 
 	double selectOffsetY = 0;
-
-	public Hashtable<Rectangle2D, String> idMap = new Hashtable<Rectangle2D, String>();
 
 	public void mousePressed(MouseEvent evt) {
 		int x = evt.getX();
