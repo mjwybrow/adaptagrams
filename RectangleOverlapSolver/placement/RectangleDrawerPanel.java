@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInput;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -74,26 +76,30 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 
 	BlocksFileFilter fileFilter = new BlocksFileFilter();
 
-	protected void generateRandom() {
+	protected void generateRandom(int n) {
 		clear();
 		Dimension dim = getSize();
-		int n = 50;
 		Random rand = new Random();
 		double w = dim.width / 3.0;
 		double h = dim.height / 3.0;
+		generateRandom(n, rand, w, h);
+	}
+
+	protected void generateRandom(int n, Random rand, double w, double h) {
 		for (int i = 0; i < n; i++) {
 			RectangleView r = new RectangleView("" + i, w + rand.nextDouble()
 					* w, h + rand.nextDouble() * h, rand.nextDouble()
-					* (w / 3.0), rand.nextDouble() * (h / 3.0));
+					* w, rand.nextDouble() * h);
 			rectangles.add(r);
 		}
 		int overlapCount = 0;
 		for (int i = 0; i < rectangles.size(); i++) {
 			RectangleView u = rectangles.get(i);
-			Rectangle2D r1 = new Rectangle2D.Double(u.x,u.y,u.width,u.height);
+			Rectangle2D r1 = new Rectangle2D.Double(u.x, u.y, u.width, u.height);
 			for (int j = i + 1; j < rectangles.size(); j++) {
 				RectangleView v = rectangles.get(j);
-				Rectangle2D r2 = new Rectangle2D.Double(v.x,v.y,v.width,v.height);
+				Rectangle2D r2 = new Rectangle2D.Double(v.x, v.y, v.width,
+						v.height);
 				if (r1.intersects(r2))
 					overlapCount++;
 			}
@@ -131,8 +137,9 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 			graph = g.getGraph();
 			if (graph != null) {
 				for (Rectangle2D.Double r : graph.getRectangles()) {
-					rectangles.add(new RectangleView(graph
-							.getRectangleLabel(r), r.x, r.y, r.width, r.height));
+					rectangles.add(new RectangleView(
+							graph.getRectangleLabel(r), r.x, r.y, r.width,
+							r.height));
 				}
 			}
 			for (Rectangle2D l : idMap.keySet()) {
@@ -162,6 +169,34 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 			}
 		}
 		repaint();
+	}
+
+	protected File save(String path) {
+		ObjectOutput output = null;
+		if (!path.endsWith(".blocks")) {
+			path = path + ".blocks";
+		}
+		File file = new File(path);
+		try {
+			// use buffering
+			OutputStream buffer = new BufferedOutputStream(
+					new FileOutputStream(file));
+			output = new ObjectOutputStream(buffer);
+			output.writeObject(rectangles);
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		} finally {
+			try {
+				if (output != null) {
+					// flush and close "output" and its underlying
+					// streams
+					output.close();
+				}
+			} catch (IOException ex) {
+				ex.printStackTrace();
+			}
+		}
+		return file;
 	}
 
 	/**
@@ -297,7 +332,8 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 		if (interactionMode == InteractionMode.Select) {
 			rect = null;
 			for (RectangleView r : rectangles) {
-				Rectangle2D r2d = new Rectangle2D.Double(r.x,r.y,r.width,r.height);
+				Rectangle2D r2d = new Rectangle2D.Double(r.x, r.y, r.width,
+						r.height);
 				if (r2d.contains(x, y)) {
 					rect = r;
 				}

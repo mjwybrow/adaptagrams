@@ -234,7 +234,7 @@ public class RectangleDrawerFrame extends JFrame {
 		randomButton.addActionListener(new ActionListener() {
 
 			public void actionPerformed(ActionEvent arg0) {
-				d.generateRandom();
+				d.generateRandom(5);
 			}
 		});
 		printButton.addActionListener(new ActionListener() {
@@ -277,32 +277,7 @@ public class RectangleDrawerFrame extends JFrame {
 				}
 				int returnVal = chooser.showSaveDialog(f);
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
-					ObjectOutput output = null;
-					String path = chooser.getSelectedFile().getPath();
-					if (!path.endsWith(".blocks")) {
-						path = path + ".blocks";
-					}
-					File file = new File(path);
-					try {
-						// use buffering
-						OutputStream buffer = new BufferedOutputStream(
-								new FileOutputStream(file));
-						output = new ObjectOutputStream(buffer);
-						output.writeObject(d.rectangles);
-					} catch (IOException ex) {
-						ex.printStackTrace();
-					} finally {
-						try {
-							if (output != null) {
-								// flush and close "output" and its underlying
-								// streams
-								output.close();
-								ff.lastSelectedFile = file;
-							}
-						} catch (IOException ex) {
-							ex.printStackTrace();
-						}
-					}
+					ff.lastSelectedFile = d.save(chooser.getSelectedFile().getPath());
 				}
 			}
 		});
