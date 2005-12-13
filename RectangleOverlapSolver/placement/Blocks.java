@@ -78,7 +78,7 @@ class Blocks extends HashSet<Block> {
 	synchronized void mergeLeft(Block b, ActiveSetPlacement debug) {
 		if (logger.isLoggable(Level.FINER))
 			logger.finer("arg block=" + b);
-		//b.setUpInConstraints();
+		b.setUpInConstraints();
 		Constraint c = b.findMaxInConstraint();
 		while (c != null && c.isViolated()) {
 			if (logger.isLoggable(Level.FINER))
@@ -87,7 +87,7 @@ class Blocks extends HashSet<Block> {
 			int prevBlockCount = size();
 			c = b.inConstraintsPriorityQueue.deleteMax();
 			Block l = c.left.container;
-			//l.inConstraintsPriorityQueue=null;
+			l.setUpInConstraints();
 			assert (l != b);
 
 			double distToL = c.left.offset + c.separation - c.right.offset;
@@ -105,7 +105,6 @@ class Blocks extends HashSet<Block> {
 			assert (b.activeConstraints.violated().isEmpty());
 			c = b.findMaxInConstraint();
 		}
-		b.updateTimeStamp();
 		if (logger.isLoggable(Level.FINER))
 			logger.finer("Merged block=" + b);
 	}
@@ -142,7 +141,6 @@ class Blocks extends HashSet<Block> {
 	}
 
 	Blocks(Variable[] vars) {
-		Block.timeStampCtr=0;
 		for (Variable v : vars) {
 			add(new Block(v));
 		}

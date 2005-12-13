@@ -19,8 +19,6 @@ import java.util.logging.Logger;
 public class Block {
 	static Logger logger = ActiveSetPlacement.logger;
 
-	static long timeStampCtr = 0;
-
 	long timeStamp = 0;
 
 	double position = 0;
@@ -40,10 +38,6 @@ public class Block {
 	MaxPriorityQueue<Constraint> inConstraintsPriorityQueue = null;
 
 	MaxPriorityQueue<Constraint> outConstraintsPriorityQueue = null;
-
-	private boolean incomingChanged=false;
-
-	private boolean merged=false;
 
 	/**
 	 * empty block constructor used for split.
@@ -82,7 +76,6 @@ public class Block {
 			b.setUpOutConstraints();
 		outConstraintsPriorityQueue.merge(b.outConstraintsPriorityQueue);
 		variables.addAll(b.variables);
-		merged=true;
 	}
 
 	/**
@@ -223,10 +216,8 @@ Constraint findMaxInConstraint() {
 			} else if (lb.timeStamp > rb.timeStamp && v.timeStamp < lb.timeStamp) {
 				// block at other end of constraint has been moved since this
 				inConstraintsPriorityQueue.deleteMax();
-				v.timeStamp = ++Block.timeStampCtr;
 				inConstraintsPriorityQueue.add(v);
 				v = inConstraintsPriorityQueue.findMax();
-				incomingChanged=true;
 			} else {
 				break;
 			}
@@ -241,11 +232,4 @@ Constraint findMaxInConstraint() {
 		return v;
 	}
 
-	public void updateTimeStamp() {
-		//if(merged||incomingChanged) {
-			timeStamp = ++timeStampCtr;
-		//}
-		incomingChanged=false;
-		merged=false;
-	}
 }

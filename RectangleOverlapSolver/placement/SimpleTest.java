@@ -15,8 +15,8 @@ public class SimpleTest {
 		if(!(new File(dir)).mkdirs()) throw new Error("Couldn't make directory!");
 		RectangleDrawerPanel d = new RectangleDrawerPanel();
 		Random rand = new Random();
-		for (int i = 0; i < 10000; i++) {
-			d.generateRandom(4,rand,200,200);
+		for (int i = 0; i < 1000; i++) {
+			d.generateRandom(10,rand,200,200);
 			try {
 				QPRectanglePlacement r = new QPRectanglePlacement(false, false,
 						false, QPRectanglePlacement.Algorithm.ACTIVESET, 0, 0,
