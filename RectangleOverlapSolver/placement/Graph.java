@@ -57,6 +57,16 @@ public class Graph {
 		}
 		return rectangles;
 	}
+	
+	public void restoreRectangles(ArrayList<RectangleView> rs) {
+		rectangleNodeLookup.clear();
+		int i=0;
+		for (Node n : nodes.values()) {
+			RectangleView r=rs.get(i++);
+			n.rectangle=r;
+			rectangleNodeLookup.put(r, n);
+		}
+	}
 
 	public String getRectangleLabel(Rectangle2D r) {
 		Node n = rectangleNodeLookup.get(r);

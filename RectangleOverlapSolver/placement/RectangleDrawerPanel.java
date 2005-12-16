@@ -76,7 +76,7 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 
 	BlocksFileFilter fileFilter = new BlocksFileFilter();
 
-	protected void generateRandom(int n) {
+	public void generateRandom(int n) {
 		clear();
 		Dimension dim = getSize();
 		Random rand = new Random();
@@ -205,6 +205,9 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 
 	protected void undo() {
 		rectangles = undoRectangles;
+		if(graph!=null){
+			graph.restoreRectangles(rectangles);
+		}
 	}
 
 	/**

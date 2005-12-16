@@ -18,6 +18,8 @@ import java.util.logging.Logger;
 
 public class Block {
 	static Logger logger = ActiveSetPlacement.logger;
+	
+	static long timeCtr = 0;
 
 	long timeStamp = 0;
 
@@ -69,12 +71,6 @@ public class Block {
 			v.container = this;
 			v.offset += distance;
 		}
-		inConstraintsPriorityQueue.merge(b.inConstraintsPriorityQueue);
-		if (outConstraintsPriorityQueue == null)
-			setUpOutConstraints();
-		if (b.outConstraintsPriorityQueue == null)
-			b.setUpOutConstraints();
-		outConstraintsPriorityQueue.merge(b.outConstraintsPriorityQueue);
 		variables.addAll(b.variables);
 	}
 
@@ -216,6 +212,7 @@ Constraint findMaxInConstraint() {
 			} else if (lb.timeStamp > rb.timeStamp && v.timeStamp < lb.timeStamp) {
 				// block at other end of constraint has been moved since this
 				inConstraintsPriorityQueue.deleteMax();
+				v.timeStamp=++Block.timeCtr;
 				inConstraintsPriorityQueue.add(v);
 				v = inConstraintsPriorityQueue.findMax();
 			} else {

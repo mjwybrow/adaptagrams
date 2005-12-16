@@ -11,7 +11,7 @@ public class SimpleTest {
 	 */
 	public static void main(String[] args) {  
 		Calendar c=Calendar.getInstance();
-		String dir = "Test"+c.get(Calendar.YEAR)+c.get(Calendar.MONTH)+c.get(Calendar.DATE)+c.get(Calendar.HOUR_OF_DAY)+c.get(Calendar.MINUTE)+c.get(Calendar.SECOND);
+		String dir = "Test"+String.format("_%1$tF_%1$tH-%1$tM-%1$tS", c);
 		if(!(new File(dir)).mkdirs()) throw new Error("Couldn't make directory!");
 		RectangleDrawerPanel d = new RectangleDrawerPanel();
 		Random rand = new Random();

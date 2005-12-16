@@ -39,7 +39,7 @@ public class RectangleDrawerFrame extends JFrame {
 		ACTIVESET, NATIVE_ACTIVESET, MOSEK, FSA
 	}
 
-	RectangleDrawerFrame(String title) {
+	public RectangleDrawerFrame(String title) {
 		super(title);
 	}
 
@@ -314,7 +314,7 @@ public class RectangleDrawerFrame extends JFrame {
 		d.updateUI();
 	}
 
-	protected void cleanup(int xGap, int yGap) {
+	public void cleanup(int xGap, int yGap) {
 		d.backup();
 		if (algorithm == Algorithm.FSA) {
 			FSA r = new FSA(xGap, yGap);

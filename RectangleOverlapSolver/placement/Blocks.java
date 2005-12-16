@@ -74,11 +74,11 @@ class Blocks extends HashSet<Block> {
 		}
 		return null;
 	}
-
 	synchronized void mergeLeft(Block b, ActiveSetPlacement debug) {
 		if (logger.isLoggable(Level.FINER))
 			logger.finer("arg block=" + b);
 		b.setUpInConstraints();
+		b.timeStamp=++Block.timeCtr;
 		Constraint c = b.findMaxInConstraint();
 		while (c != null && c.isViolated()) {
 			if (logger.isLoggable(Level.FINER))
@@ -87,18 +87,21 @@ class Blocks extends HashSet<Block> {
 			int prevBlockCount = size();
 			c = b.inConstraintsPriorityQueue.deleteMax();
 			Block l = c.left.container;
-			l.setUpInConstraints();
+			if(l.inConstraintsPriorityQueue==null) {
+				l.setUpInConstraints();
+			}
 			assert (l != b);
 
-			double distToL = c.left.offset + c.separation - c.right.offset;
-			if (b.variables.size() > l.variables.size()) {
-				b.merge(l, c, -distToL);
-			} else {
-				l.merge(b, c, distToL);
+			double distToL = c.right.offset - c.left.offset - c.separation;
+			if (b.variables.size() < l.variables.size()) {
+				distToL = -distToL;
 				Block tmp = b;
 				b = l;
 				l = tmp;
 			}
+			b.merge(l, c, distToL);
+			b.inConstraintsPriorityQueue.merge(l.inConstraintsPriorityQueue);
+			b.timeStamp=++Block.timeCtr;
 			remove(l);
 			debug.animate();
 			assert (prevBlockCount == size() + 1);
@@ -120,20 +123,19 @@ class Blocks extends HashSet<Block> {
 			int prevBlockCount = size();
 			c = b.outConstraintsPriorityQueue.deleteMax();
 			Block r = c.right.container;
-			r.outConstraintsPriorityQueue=null;
+			r.setUpOutConstraints();
 			double distToR = c.left.offset + c.separation - c.right.offset;
-			if (b.variables.size() > r.variables.size()) {
-				b.merge(r, c, distToR);
-			} else {
-				r.merge(b, c, -distToR);
+			if (b.variables.size() < r.variables.size()) {
+				distToR=-distToR;
 				Block tmp = b;
 				b = r;
 				r = tmp;
 			}
+			b.merge(r, c, distToR);
+			b.outConstraintsPriorityQueue.merge(r.outConstraintsPriorityQueue);
 			remove(r);
 			debug.animate();
 			assert (prevBlockCount == size() + 1);
-			// b.setUpOutConstraints();
 			c = b.findMaxOutConstraint();
 		}
 		if (logger.isLoggable(Level.FINER))
