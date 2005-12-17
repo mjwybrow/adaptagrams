@@ -11,7 +11,7 @@ import java.io.Serializable;
 public class RectangleView implements Serializable {
 	private static final long serialVersionUID = 3617292346069431353L;
 
-	double x, y, width, height;
+	double x, y, width, height, oldX;
 
 	String label;
 

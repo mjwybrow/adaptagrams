@@ -38,46 +38,6 @@ public class QPRectanglePlacement extends Observable implements
 		YChunk.g = ygap;
 	}
 
-	void placeXNative(ArrayList<RectangleView> rectangles) {
-		SolveVPSC svpsc = new SolveVPSC(rectangles);
-		double weights[] = new double[rectangles.size()];
-		for (int i = 0; i < weights.length; i++) {
-			weights[i] = 1.0;
-		}
-		svpsc.generateXConstraints(weights);
-		try {
-			svpsc.solve();
-			Variables vs = svpsc.getVariables();
-			for (int i = 0; i < vs.size(); i++) {
-				RectangleView rect = rectangles.get(i);
-				double min = vs.get(i).getPosition();
-				rect.moveTo(min, rect.y);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	void placeYNative(ArrayList<RectangleView> rectangles) {
-		SolveVPSC svpsc = new SolveVPSC(rectangles);
-		double weights[] = new double[rectangles.size()];
-		for (int i = 0; i < weights.length; i++) {
-			weights[i] = 1.0;
-		}
-		svpsc.generateYConstraints(weights);
-		try {
-			svpsc.solve();
-			Variables vs = svpsc.getVariables();
-			for (int i = 0; i < vs.size(); i++) {
-				RectangleView rect = rectangles.get(i);
-				double min = vs.get(i).getPosition();
-				rect.moveTo(rect.x, min);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
 	void placeX(ArrayList<RectangleView> rectangles) {
 
 		double cost;
@@ -86,6 +46,7 @@ public class QPRectanglePlacement extends Observable implements
 		logger.fine("*****************Placing X");
 		for (int i = 0; i < rectangles.size(); i++) {
 			RectangleView r = rectangles.get(i);
+			r.oldX = r.x;
 			xs[i] = new XChunk(r, new YChunk(r));
 			xs[i].id = r.label;
 		}
@@ -99,6 +60,27 @@ public class QPRectanglePlacement extends Observable implements
 		System.out.println("Place hor.: cost=" + cost + " time=" + (t3 - t2));
 	}
 
+	void replaceX(ArrayList<RectangleView> rectangles) {
+
+		double cost;
+		long t1 = System.currentTimeMillis();
+		XChunk[] xs = new XChunk[rectangles.size()];
+		logger.fine("*****************Placing X");
+		for (int i = 0; i < rectangles.size(); i++) {
+			RectangleView r = rectangles.get(i);
+			r.moveTo(r.oldX, r.y);
+			xs[i] = new XChunk(r, new YChunk(r));
+			xs[i].id = r.label;
+		}
+		constraintGenerator.initVarsAndConstraints(xs, true);
+		setChanged();
+		notifyObservers();
+		long t2 = System.currentTimeMillis();
+		System.out.println("Gen hor. cs: time=" + (t2 - t1));
+		cost = placement();
+		long t3 = System.currentTimeMillis();
+		System.out.println("Place hor.: cost=" + cost + " time=" + (t3 - t2));
+	}
 	public void place(ArrayList<RectangleView> rectangles) {
 		long t1 = System.currentTimeMillis();
 		if (algorithm == Algorithm.CACTIVESET) {
@@ -110,6 +92,8 @@ public class QPRectanglePlacement extends Observable implements
 			XChunk.g -= 0.01;
 			DebugPanel.direction=DebugPanel.Direction.Vertical;
 			placeY(rectangles);
+			DebugPanel.direction=DebugPanel.Direction.Horizontal;
+			replaceX(rectangles);
 		}
 		long t2 = System.currentTimeMillis();
 		System.out.println("Total time=" + (t2 - t1));
