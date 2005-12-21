@@ -7,6 +7,8 @@ import java.util.logging.Logger;
 
 public class QPRectanglePlacement extends Observable implements
 		RectanglePlacement, Observer {
+	private static final double EXTRA_GAP = 0.0001;
+
 	static Logger logger = Logger.getLogger(QPRectanglePlacement.class
 			.getName());
 
@@ -86,13 +88,15 @@ public class QPRectanglePlacement extends Observable implements
 		if (algorithm == Algorithm.CACTIVESET) {
 			placeNative(rectangles);
 		} else {
-			XChunk.g += 0.01;
+			XChunk.g += EXTRA_GAP;
+			YChunk.g += EXTRA_GAP;
 			DebugPanel.direction=DebugPanel.Direction.Horizontal;
 			placeX(rectangles);
-			XChunk.g -= 0.01;
+			XChunk.g -= EXTRA_GAP;
 			DebugPanel.direction=DebugPanel.Direction.Vertical;
 			placeY(rectangles);
 			DebugPanel.direction=DebugPanel.Direction.Horizontal;
+			YChunk.g -= EXTRA_GAP;
 			replaceX(rectangles);
 		}
 		long t2 = System.currentTimeMillis();

@@ -36,16 +36,8 @@ class Blocks extends HashSet<Block> {
 			b.outConstraintsPriorityQueue = null;
 		}
 		for (Block b : this) {
-			b.computeLagrangeMultipliers();
-			Constraint c = null;
-			double minLM = Double.MAX_VALUE;
-			for (Constraint a : b.activeConstraints) {
-				if (a.lagrangeMultiplier < minLM) {
-					minLM = a.lagrangeMultiplier;
-					c = a;
-				}
-			}
-			if (c != null && c.lagrangeMultiplier < 0) {
+			Constraint c = b.findMinLM();
+			if (c != null && c.lm < 0) {
 				int prevBlockCount = size();
 				Block l = new Block(), r = new Block();
 				b.setUpInConstraints();
@@ -99,13 +91,14 @@ class Blocks extends HashSet<Block> {
 				b = l;
 				l = tmp;
 			}
+			l.findMaxInConstraint();
+			b.findMaxInConstraint();
 			b.merge(l, c, distToL);
-			b.inConstraintsPriorityQueue.merge(l.inConstraintsPriorityQueue);
+			b.mergeInConstraints(l);
 			b.timeStamp=++Block.timeCtr;
 			remove(l);
 			debug.animate();
 			assert (prevBlockCount == size() + 1);
-			assert (b.activeConstraints.violated().isEmpty());
 			c = b.findMaxInConstraint();
 		}
 		if (logger.isLoggable(Level.FINER))

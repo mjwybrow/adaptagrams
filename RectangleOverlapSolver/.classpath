@@ -2,7 +2,7 @@
 <classpath>
 	<classpathentry kind="src" path=""/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="/media/winxp/mosek/3/tools/platform/win/bin/mosek.jar"/>
-	<classpathentry kind="lib" path="/usr/local/eclipse/plugins/org.junit_3.8.1/junit.jar"/>
+	<classpathentry kind="lib" path="C:/mosek/3/tools/platform/win/bin/mosek.jar"/>
+	<classpathentry kind="lib" path="C:/Program Files/eclipse/plugins/org.junit_3.8.1/junit.jar"/>
 	<classpathentry kind="output" path=""/>
 </classpath>

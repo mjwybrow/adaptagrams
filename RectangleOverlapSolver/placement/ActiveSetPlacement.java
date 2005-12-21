@@ -23,7 +23,7 @@ public class ActiveSetPlacement extends Observable implements Placement {
 
 	private DebugFrame debugFrame;
 
-	private long sleepTime = 1000;
+	private long sleepTime = 0;
 
 	public boolean split = true;
 
@@ -45,16 +45,10 @@ public class ActiveSetPlacement extends Observable implements Placement {
 	 */
 	void satisfyConstraints() {
 		List<Variable> vs = blocks.totalOrder();
-		if (logger.isLoggable(Level.FINE)) {
+		//if (logger.isLoggable(Level.FINE)) {
 			logger.fine("block order: " + blocks);
-		}
-		/*
-		for (Block b:blocks){
-			b.setUpInConstraints();
-		}
-		*/
+		//}
 		for (Variable v : vs) {
-//			System.out.println("Processing "+v.name+" with "+v.container.inConstraintsPriorityQueue.size()+" in constraints...");
 			blocks.mergeLeft(v.container, this);
 		}
 	}

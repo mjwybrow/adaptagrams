@@ -18,7 +18,7 @@ import java.util.logging.Logger;
 
 public class Block {
 	static Logger logger = ActiveSetPlacement.logger;
-	
+
 	static long timeCtr = 0;
 
 	long timeStamp = 0;
@@ -28,8 +28,6 @@ public class Block {
 	double weight = 0;
 
 	double weightedPosition;
-
-	Constraints activeConstraints = new Constraints();
 
 	Variables variables = new Variables();
 
@@ -60,12 +58,17 @@ public class Block {
 		v.offset = 0;
 	}
 
+	/**
+	 * Merges b into this block across c.  Can be either a
+	 * right merge or a left merge
+	 * @param b block to merge into this
+	 * @param c constraint being merged
+	 * @param distance separation required to satisfy c
+	 */
 	void merge(Block b, Constraint c, double distance) {
 		weightedPosition += b.weightedPosition - distance * b.weight;
 		weight += b.weight;
 		position = weightedPosition / weight;
-		activeConstraints.addAll(b.activeConstraints);
-		activeConstraints.add(c);
 		c.active = true;
 		for (Variable v : b.variables) {
 			v.container = this;
@@ -80,30 +83,67 @@ public class Block {
 	 * computing the lagrangian multipliers associated with each constraint from
 	 * the derivative of the cost function (dfdv) for each variable
 	 */
-	void computeLagrangeMultipliers() {
-		for (Constraint c : activeConstraints) {
-			c.lagrangeMultiplier = 0;
-		}
-		compute_dfdv(variables.get(0), null);
+	Constraint findMinLM() {
+		Variable f = variables.get(0);
+		resetActiveLM(f, null);
+		minLM = null;
+		compute_dfdv(f, null);
+		return minLM;
 	}
 
+	private Constraint minLM;
+
+	private boolean canFollowLeft(Constraint c, Variable last) {
+		return c.left.container == this && c.active && last != c.left;
+	}
+	private boolean canFollowRight(Constraint c, Variable last) {
+		return c.right.container == this && c.active && last != c.right;
+	}
+
+	// resets LMs for all active constraints to 0 by
+	// traversing active constraint tree starting from v,
+	// not back tracking over u
+	private void resetActiveLM(Variable v, Variable u) {
+		for (Constraint c : v.outConstraints) {
+			if (canFollowRight(c, u)) {
+				c.lm = 0;
+				resetActiveLM(c.right, v);
+			}
+		}
+		for (Constraint c : v.inConstraints) {
+			if (canFollowLeft(c, u)) {
+				c.lm = 0;
+				resetActiveLM(c.left, v);
+			}
+		}
+	}
+
+	// computes the derivative of v and the lagrange multipliers
+	// of v's out constraints (as the recursive sum of those below.
+	// Does not backtrack over u.
+	// also records the constraint with minimum lagrange multiplier
+	// in minLM
 	private double compute_dfdv(Variable v, Variable u) {
 		// how much v wants to go right (negative if v wants to go left)
 		double dfdv = v.weight * (v.getPosition() - v.desiredPosition);
 		for (Constraint c : v.outConstraints) {
-			if (c.right.container == this && c.active && u != c.right) {
+			if (canFollowRight(c, u)) {
 				// if the following call returns a negative then it means the
 				// stuff to the right of v wants to go left
-				c.lagrangeMultiplier = compute_dfdv(c.right, v);
-				dfdv += c.lagrangeMultiplier;
+				c.lm = compute_dfdv(c.right, v);
+				dfdv += c.lm;
+				if (minLM == null || c.lm < minLM.lm)
+					minLM = c;
 			}
 		}
 		for (Constraint c : v.inConstraints) {
-			if (c.left.container == this && c.active && u != c.left) {
+			if (canFollowLeft(c, u)) {
 				// if the following call returns a negative then it means the
 				// stuff to the left of v wants to go left
-				c.lagrangeMultiplier = -compute_dfdv(c.left, v);
-				dfdv -= c.lagrangeMultiplier;
+				c.lm = -compute_dfdv(c.left, v);
+				dfdv -= c.lm;
+				if (minLM == null || c.lm < minLM.lm)
+					minLM = c;
 			}
 		}
 		return dfdv;
@@ -137,17 +177,18 @@ public class Block {
 			logger.finer("Splitting on: " + this + splitConstraint);
 	}
 
-	void populateSplitBlock(Block b, Variable v, Variable u) {
+	// populates block b by traversing the active constraint tree adding
+	// variables as they're visited.
+	// Starts from variable v and does not backtrack over variable u.
+	private void populateSplitBlock(Block b, Variable v, Variable u) {
 		b.addVariable(v);
 		for (Constraint c : v.inConstraints) {
-			if (c.left.container == this && c.active && u != c.left) {
-				b.activeConstraints.add(c);
+			if (canFollowLeft(c, u)) {
 				populateSplitBlock(b, c.left, v);
 			}
 		}
 		for (Constraint c : v.outConstraints) {
-			if (c.right.container == this && c.active && u != c.right) {
-				b.activeConstraints.add(c);
+			if (canFollowRight(c, u)) {
 				populateSplitBlock(b, c.right, v);
 			}
 		}
@@ -200,7 +241,7 @@ public class Block {
 		return c;
 	}
 
-Constraint findMaxInConstraint() {
+	Constraint findMaxInConstraint() {
 		Constraint v = inConstraintsPriorityQueue.findMax();
 		while (v != null) {
 			Block lb = v.left.container;
@@ -209,10 +250,11 @@ Constraint findMaxInConstraint() {
 				// constraint has been merged into the same block
 				inConstraintsPriorityQueue.deleteMax();
 				v = inConstraintsPriorityQueue.findMax();
-			} else if (lb.timeStamp > rb.timeStamp && v.timeStamp < lb.timeStamp) {
+			} else if (lb.timeStamp > rb.timeStamp
+					&& v.timeStamp < lb.timeStamp) {
 				// block at other end of constraint has been moved since this
 				inConstraintsPriorityQueue.deleteMax();
-				v.timeStamp=++Block.timeCtr;
+				v.timeStamp = ++Block.timeCtr;
 				inConstraintsPriorityQueue.add(v);
 				v = inConstraintsPriorityQueue.findMax();
 			} else {
@@ -220,13 +262,21 @@ Constraint findMaxInConstraint() {
 			}
 		}
 		return v;
-	}	Constraint findMaxOutConstraint() {
+	}
+
+	Constraint findMaxOutConstraint() {
 		Constraint v = outConstraintsPriorityQueue.findMax();
 		while (v != null && v.left.container == v.right.container) {
 			v = outConstraintsPriorityQueue.deleteMax();
 			v = outConstraintsPriorityQueue.findMax();
 		}
 		return v;
+	}
+
+	public void mergeInConstraints(Block b) {
+		findMaxInConstraint();
+		b.findMaxInConstraint();
+		inConstraintsPriorityQueue.merge(b.inConstraintsPriorityQueue);
 	}
 
 }

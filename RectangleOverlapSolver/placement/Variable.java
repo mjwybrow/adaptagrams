@@ -17,7 +17,7 @@ import java.util.HashMap;
  */
 public class Variable {
 	String name;
-
+	
 	double desiredPosition;
 
 	double weight;

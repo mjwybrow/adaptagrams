@@ -30,7 +30,7 @@ public class Constraint implements Comparable<Constraint> {
 
 	public Color colour = Color.WHITE;
 
-	public double lagrangeMultiplier;
+	public double lm;
 
 	Constraint(Variable left, Variable right, double separation) {
 		this.left = left;
