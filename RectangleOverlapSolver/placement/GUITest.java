@@ -271,7 +271,8 @@ public class GUITest extends TestCase {
 	}
 
 	private void runOverlapRemover() {
-		rdFrame.algorithm = RectangleDrawerFrame.Algorithm.NATIVE_ACTIVESET;
+		//rdFrame.algorithm = RectangleDrawerFrame.Algorithm.NATIVE_ACTIVESET;
+		rdFrame.split=true;
 		rdFrame.cleanup(0, 0);
 		try {
 			Thread.sleep(VIEWTIME);
