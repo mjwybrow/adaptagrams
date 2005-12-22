@@ -91,8 +91,6 @@ class Blocks extends HashSet<Block> {
 				b = l;
 				l = tmp;
 			}
-			l.findMaxInConstraint();
-			b.findMaxInConstraint();
 			b.merge(l, c, distToL);
 			b.mergeInConstraints(l);
 			b.timeStamp=++Block.timeCtr;
@@ -125,7 +123,7 @@ class Blocks extends HashSet<Block> {
 				r = tmp;
 			}
 			b.merge(r, c, distToR);
-			b.outConstraintsPriorityQueue.merge(r.outConstraintsPriorityQueue);
+			b.mergeOutConstraints(r);
 			remove(r);
 			debug.animate();
 			assert (prevBlockCount == size() + 1);

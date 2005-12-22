@@ -100,17 +100,14 @@ public class QPRectanglePlacement extends Observable implements
 			replaceX(rectangles);
 		}
 		long t2 = System.currentTimeMillis();
-		System.out.println("Total time=" + (t2 - t1));
+		//System.out.println("Total time=" + (t2 - t1));
 	}
 
 	void placeNative(ArrayList<RectangleView> rectangles) {
-		long t1 = System.currentTimeMillis();
 		// placeXNative(rectangles);
 		// placeYNative(rectangles);
 		SolveVPSC s = new SolveVPSC(rectangles);
 		s.removeOverlaps();
-		long t2 = System.currentTimeMillis();
-		System.out.println("Total time=" + (t2 - t1));
 	}
 
 	void placeY(ArrayList<RectangleView> rectangles) {

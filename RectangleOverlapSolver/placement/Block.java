@@ -6,6 +6,7 @@
  */
 package placement;
 
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -59,11 +60,15 @@ public class Block {
 	}
 
 	/**
-	 * Merges b into this block across c.  Can be either a
-	 * right merge or a left merge
-	 * @param b block to merge into this
-	 * @param c constraint being merged
-	 * @param distance separation required to satisfy c
+	 * Merges b into this block across c. Can be either a right merge or a left
+	 * merge
+	 * 
+	 * @param b
+	 *            block to merge into this
+	 * @param c
+	 *            constraint being merged
+	 * @param distance
+	 *            separation required to satisfy c
 	 */
 	void merge(Block b, Constraint c, double distance) {
 		weightedPosition += b.weightedPosition - distance * b.weight;
@@ -96,6 +101,7 @@ public class Block {
 	private boolean canFollowLeft(Constraint c, Variable last) {
 		return c.left.container == this && c.active && last != c.left;
 	}
+
 	private boolean canFollowRight(Constraint c, Variable last) {
 		return c.right.container == this && c.active && last != c.right;
 	}
@@ -206,6 +212,7 @@ public class Block {
 		inConstraintsPriorityQueue = new MaxPairingHeap<Constraint>();
 		for (Variable v : variables) {
 			for (Constraint c : v.inConstraints) {
+				c.timeStamp = timeCtr;
 				if (c.left.container != this) {
 					inConstraintsPriorityQueue.add(c);
 				}
@@ -242,25 +249,38 @@ public class Block {
 	}
 
 	Constraint findMaxInConstraint() {
+		logger.fine("Constraint heap: " + inConstraintsPriorityQueue);
 		Constraint v = inConstraintsPriorityQueue.findMax();
+		ArrayList<Constraint> outOfDate = new ArrayList<Constraint>();
 		while (v != null) {
 			Block lb = v.left.container;
 			Block rb = v.right.container;
+			logger.finer("Examining constraint v=" + v + "\n  timestamps: lb="
+					+ lb.timeStamp + " rb=" + rb.timeStamp + " v="
+					+ v.timeStamp);
 			if (lb == rb) {
 				// constraint has been merged into the same block
 				inConstraintsPriorityQueue.deleteMax();
 				v = inConstraintsPriorityQueue.findMax();
+				logger.finer("  Skipping internal!");
 			} else if (lb.timeStamp > rb.timeStamp
-					&& v.timeStamp < lb.timeStamp) {
+					&& v.timeStamp < lb.timeStamp 
+					|| v.timeStamp < rb.timeStamp) {
 				// block at other end of constraint has been moved since this
 				inConstraintsPriorityQueue.deleteMax();
-				v.timeStamp = ++Block.timeCtr;
-				inConstraintsPriorityQueue.add(v);
+				outOfDate.add(v);
+				logger.finer("  Skipping out of date!");
 				v = inConstraintsPriorityQueue.findMax();
 			} else {
 				break;
 			}
 		}
+		++Block.timeCtr;
+		for(Constraint c : outOfDate) {
+			c.timeStamp = Block.timeCtr;
+			inConstraintsPriorityQueue.add(c);
+		}
+		v = inConstraintsPriorityQueue.findMax();
 		return v;
 	}
 
@@ -274,9 +294,19 @@ public class Block {
 	}
 
 	public void mergeInConstraints(Block b) {
+		// We check the top of the heaps to remove possible internal constraints
 		findMaxInConstraint();
 		b.findMaxInConstraint();
 		inConstraintsPriorityQueue.merge(b.inConstraintsPriorityQueue);
+		logger.fine("Constraint heaps merged: " + inConstraintsPriorityQueue);
+	}
+
+	public void mergeOutConstraints(Block b) {
+		// We check the top of the heaps to remove possible internal constraints
+		findMaxOutConstraint();
+		b.findMaxOutConstraint();
+		inConstraintsPriorityQueue.merge(b.inConstraintsPriorityQueue);
+		logger.fine("Constraint heaps merged: " + inConstraintsPriorityQueue);
 	}
 
 }

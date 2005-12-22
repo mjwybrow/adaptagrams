@@ -16,10 +16,11 @@ public class SimpleTest {
 		RectangleDrawerPanel d = new RectangleDrawerPanel();
 		Random rand = new Random();
 		for (int i = 0; i < 100000; i++) {
-			d.generateRandom(10,rand,200,200);
+			if(i%1000==0) System.out.println("Test no: "+i);
+			d.generateRandom(100,rand,200,200);
 			try {
 				QPRectanglePlacement r = new QPRectanglePlacement(false, false,
-						false, QPRectanglePlacement.Algorithm.ACTIVESET, 0, 0,
+						false, QPRectanglePlacement.Algorithm.CACTIVESET, 0, 0,
 						false);
 				r.place(d.rectangles);
 			} catch (AssertionError e) {

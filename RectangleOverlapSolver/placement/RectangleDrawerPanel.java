@@ -96,6 +96,7 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 		for (int i = 0; i < rectangles.size(); i++) {
 			RectangleView u = rectangles.get(i);
 			Rectangle2D r1 = new Rectangle2D.Double(u.x, u.y, u.width, u.height);
+			/*
 			for (int j = i + 1; j < rectangles.size(); j++) {
 				RectangleView v = rectangles.get(j);
 				Rectangle2D r2 = new Rectangle2D.Double(v.x, v.y, v.width,
@@ -103,8 +104,9 @@ public class RectangleDrawerPanel extends JPanel implements Printable,
 				if (r1.intersects(r2))
 					overlapCount++;
 			}
+			*/
 		}
-		System.out.println("Random graph has " + overlapCount + " overlaps.");
+		//System.out.println("Random graph has " + overlapCount + " overlaps.");
 		repaint();
 	}
 
