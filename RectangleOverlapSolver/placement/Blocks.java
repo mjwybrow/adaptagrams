@@ -8,6 +8,7 @@ package placement;
 
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Queue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -69,8 +70,8 @@ class Blocks extends HashSet<Block> {
 	synchronized void mergeLeft(Block b, ActiveSetPlacement debug) {
 		if (logger.isLoggable(Level.FINER))
 			logger.finer("arg block=" + b);
-		b.setUpInConstraints();
 		b.timeStamp=++Block.timeCtr;
+		b.setUpInConstraints();
 		Constraint c = b.findMaxInConstraint();
 		while (c != null && c.isViolated()) {
 			if (logger.isLoggable(Level.FINER))
@@ -79,11 +80,11 @@ class Blocks extends HashSet<Block> {
 			int prevBlockCount = size();
 			c = b.inConstraintsPriorityQueue.deleteMax();
 			Block l = c.left.container;
+			assert(l.inConstraintsPriorityQueue!=null);
 			if(l.inConstraintsPriorityQueue==null) {
 				l.setUpInConstraints();
 			}
 			assert (l != b);
-
 			double distToL = c.right.offset - c.left.offset - c.separation;
 			if (b.variables.size() < l.variables.size()) {
 				distToL = -distToL;
@@ -91,9 +92,10 @@ class Blocks extends HashSet<Block> {
 				b = l;
 				l = tmp;
 			}
+			b.timeCtr++;
 			b.merge(l, c, distToL);
 			b.mergeInConstraints(l);
-			b.timeStamp=++Block.timeCtr;
+			b.timeStamp=b.timeCtr;
 			remove(l);
 			debug.animate();
 			assert (prevBlockCount == size() + 1);
@@ -114,7 +116,7 @@ class Blocks extends HashSet<Block> {
 			int prevBlockCount = size();
 			c = b.outConstraintsPriorityQueue.deleteMax();
 			Block r = c.right.container;
-			r.setUpOutConstraints();
+			//r.setUpOutConstraints();
 			double distToR = c.left.offset + c.separation - c.right.offset;
 			if (b.variables.size() < r.variables.size()) {
 				distToR=-distToR;
@@ -123,10 +125,11 @@ class Blocks extends HashSet<Block> {
 				r = tmp;
 			}
 			b.merge(r, c, distToR);
-			b.mergeOutConstraints(r);
+			//b.mergeOutConstraints(r);
 			remove(r);
 			debug.animate();
 			assert (prevBlockCount == size() + 1);
+			b.setUpOutConstraints();
 			c = b.findMaxOutConstraint();
 		}
 		if (logger.isLoggable(Level.FINER))
@@ -134,6 +137,7 @@ class Blocks extends HashSet<Block> {
 	}
 
 	Blocks(Variable[] vars) {
+		Block.timeCtr=0;
 		for (Variable v : vars) {
 			add(new Block(v));
 		}
@@ -185,12 +189,15 @@ class Blocks extends HashSet<Block> {
 		order.addFirst(v);
 	}
 
+	public LinkedList<Variable> totalOrder() {
+		return totalOrderDFS();
+	}
 	/**
 	 * Computes a total ordering of constraints by depth-first search of the
 	 * directed acyclic graph where nodes are variables and constraints b>=a+1
 	 * are edges directed from a to b. Assumes no merging has yet been done.
 	 */
-	public LinkedList<Variable> totalOrder() {
+	private LinkedList<Variable> totalOrderDFS() {
 		Variables vars = getAllVariables();
 		LinkedList<Variable> order = new LinkedList<Variable>();
 		for (Variable v : vars) {
@@ -198,6 +205,35 @@ class Blocks extends HashSet<Block> {
 		}
 		for (Variable v : vars.getSources()) {
 			dfsVisit(v, order);
+		}
+		return order;
+	}	
+	/**
+	 * Computes a total ordering of constraints by breadth-first search of the
+	 * directed acyclic graph where nodes are variables and constraints b>=a+g
+	 * are edges directed from a to b. Assumes no merging has yet been done.
+	 */	
+	private LinkedList<Variable> totalOrderBFS() {
+		Variables vars = getAllVariables();
+		LinkedList<Variable> order = new LinkedList<Variable>();
+		Queue<Variable> q=new LinkedList<Variable>();
+		for (Variable v : vars) {
+			v.visited = false;
+			if(v.inConstraints.isEmpty()) {
+				q.add(v);
+				v.visited = true;
+			}
+		}
+		while(!q.isEmpty()) {
+			Variable u = q.poll();
+			for(Constraint c:u.outConstraints) {
+				Variable v = c.right;
+				if(!v.visited) {
+					v.visited=true;
+					q.add(v);
+				}
+			}
+			order.add(u);
 		}
 		return order;
 	}

@@ -17,7 +17,7 @@ public class GUITest extends TestCase {
 	private static final RectangleDrawerFrame rdFrame = new RectangleDrawerFrame(
 			"Rectangle Drawer");
 
-	private static final int VIEWTIME = 1000;
+	private static final int VIEWTIME = 0;
 
 	double iScale = 3;
 
@@ -262,6 +262,7 @@ public class GUITest extends TestCase {
 			rdFrame.d.rectangles.add(makeRect("r" + ctr++, r[0], r[1], r[2],
 					r[3]));
 		}
+
 		runOverlapRemover();
 	}
 
@@ -272,14 +273,10 @@ public class GUITest extends TestCase {
 
 	private void runOverlapRemover() {
 		//rdFrame.algorithm = RectangleDrawerFrame.Algorithm.NATIVE_ACTIVESET;
-		rdFrame.split=true;
-		rdFrame.cleanup(0, 0);
+		rdFrame.split=false;
 		try {
+			rdFrame.cleanup(0, 0);
 			Thread.sleep(VIEWTIME);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		try {
 			for (RectangleView r1 : rdFrame.d.rectangles) {
 				Rectangle2D u = new Rectangle2D.Double(r1.x, r1.y,
 						r1.width - 0.001, r1.height - 0.001);
@@ -297,6 +294,13 @@ public class GUITest extends TestCase {
 			rdFrame.d.undo();
 			rdFrame.d.save("before_" + getName() + runID++);
 			throw e;
+		} catch (AssertionError e) {
+			rdFrame.d.save("after_" + getName() + runID);
+			rdFrame.d.undo();
+			rdFrame.d.save("before_" + getName() + runID++);
+			throw e;
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 		rdFrame.d.clear();
 	}

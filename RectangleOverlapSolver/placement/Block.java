@@ -263,9 +263,7 @@ public class Block {
 				inConstraintsPriorityQueue.deleteMax();
 				v = inConstraintsPriorityQueue.findMax();
 				logger.finer("  Skipping internal!");
-			} else if (lb.timeStamp > rb.timeStamp
-					&& v.timeStamp < lb.timeStamp 
-					|| v.timeStamp < rb.timeStamp) {
+			} else if (v.timeStamp < lb.timeStamp) {
 				// block at other end of constraint has been moved since this
 				inConstraintsPriorityQueue.deleteMax();
 				outOfDate.add(v);
@@ -275,9 +273,8 @@ public class Block {
 				break;
 			}
 		}
-		++Block.timeCtr;
 		for(Constraint c : outOfDate) {
-			c.timeStamp = Block.timeCtr;
+			c.timeStamp = timeCtr;
 			inConstraintsPriorityQueue.add(c);
 		}
 		v = inConstraintsPriorityQueue.findMax();

@@ -7,6 +7,7 @@
 package placement;
 
 import java.awt.Color;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -56,7 +57,8 @@ public class Constraint implements Comparable<Constraint> {
 	}
 
 	public String toString() {
-		return left + "+" + separation + "<=" + right + "(" + violatedAmount()
+		DecimalFormat nf = new DecimalFormat("#.##");
+		return left + "+" + nf.format(separation) + "<=" + right + "(" + nf.format(slack())
 				+ ")";
 	}
 

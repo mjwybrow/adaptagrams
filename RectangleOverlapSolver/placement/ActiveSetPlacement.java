@@ -45,9 +45,10 @@ public class ActiveSetPlacement extends Observable implements Placement {
 	 */
 	void satisfyConstraints() {
 		List<Variable> vs = blocks.totalOrder();
-		//if (logger.isLoggable(Level.FINE)) {
-			logger.fine("block order: " + blocks);
-		//}
+		logger.fine("block order: ");
+		for (Variable v : vs) {
+			logger.fine("  "+v);
+		}
 		for (Variable v : vs) {
 			blocks.mergeLeft(v.container, this);
 		}
@@ -65,6 +66,25 @@ public class ActiveSetPlacement extends Observable implements Placement {
 		}
 	}
 	Variable[] vs;
+	protected double refine() {
+		while (split) {
+			animate();
+			Constraint splitConstraint = blocks.splitOnce(this);
+			if (splitConstraint == null)
+				break;
+			animate();
+			assert constraints.violated().isEmpty() : "Violated constraints not resolved";
+			activeConstraints.add(splitConstraint);
+			logger.finer("split->" + blocks);
+			logger.finer("Cost:" + blocks.cost());
+		}
+
+		animate();
+		assert constraints.violated().isEmpty() : "Violated constraints not resolved";
+		logger.finer("Final->" + blocks);
+		logger.fine("Cost:" + blocks.cost());
+		return blocks.cost();		
+	}
 	/**
 	 * Calculate the optimal solution. After using satisfy() to produce a
 	 * feasible solution, solve() examines each block to see if further
@@ -75,40 +95,18 @@ public class ActiveSetPlacement extends Observable implements Placement {
 		if (debugAnimation)
 			debugFrame = new DebugFrame(blocks, constraints);
 		// activeConstraints = blocks.getAllConstraints();
-		if (logger.isLoggable(Level.FINE)) {
-			logger.fine("variables: " + blocks.getAllVariables());
-			logger.fine("sorted constraints: " + activeConstraints);
-		}
+		logger.fine("variables: " + blocks.getAllVariables());
+		logger.fine("constraints: " + constraints);
+		
 		animate();
 		satisfyConstraints();
-		System.out.println("Constraints "+constraints);
-		assert constraints.violated().isEmpty() : "Violated constraints not resolved";
-		if (logger.isLoggable(Level.FINER))
-			logger.finer("merged->" + blocks);
-		if (logger.isLoggable(Level.FINER))
-			logger.finer("Cost:" + blocks.cost());
-
-		while (split) {
-			animate();
-			Constraint splitConstraint = blocks.splitOnce(this);
-			if (splitConstraint == null)
-				break;
-			animate();
-			assert constraints.violated().isEmpty() : "Violated constraints not resolved";
-			activeConstraints.add(splitConstraint);
-			if (logger.isLoggable(Level.FINER))
-				logger.finer("split->" + blocks);
-			if (logger.isLoggable(Level.FINER))
-				logger.finer("Cost:" + blocks.cost());
+		if(!constraints.violated().isEmpty()) {
+			logger.severe("Violated constraints not resolved: "+constraints.violated());
 		}
-
-		animate();
 		assert constraints.violated().isEmpty() : "Violated constraints not resolved";
-		if (logger.isLoggable(Level.FINER))
-			logger.finer("Final->" + blocks);
-		if (logger.isLoggable(Level.FINE))
-			logger.fine("Cost:" + blocks.cost());
-		return blocks.cost();
+		logger.finer("merged->" + blocks);
+		logger.finer("Cost:" + blocks.cost());
+		return refine();
 	}
 
 	void animate() {

@@ -7,6 +7,7 @@
 package placement;
 
 import java.awt.Color;
+import java.text.DecimalFormat;
 import java.util.HashMap;
 
 /**
@@ -48,7 +49,8 @@ public class Variable {
 	}
 
 	public String toString() {
-		return "(" + name + "=" + getPosition() + ")";
+		DecimalFormat nf = new DecimalFormat("#.##");
+		return "(" + name + "=" + nf.format(getPosition()) + ")";
 	}
 
 	public void addInConstraint(Constraint c) {
