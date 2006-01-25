@@ -11,8 +11,9 @@ import java.util.Queue;
  * Prentice Hall 1999
  */
 
-public class MaxPairingHeap<T extends Comparable> implements MaxPriorityQueue<T>{
-	int counter=0;
+public class MaxPairingHeap<T extends Comparable> implements
+		MaxPriorityQueue<T> {
+	int counter = 0;
 
 	/**
 	 * Construct the pairing heap.
@@ -29,7 +30,7 @@ public class MaxPairingHeap<T extends Comparable> implements MaxPriorityQueue<T>
 			root = null;
 		} else {
 			root = compareAndLink(h1.root, h2.root);
-			counter=h1.counter+h2.counter;
+			counter = h1.counter + h2.counter;
 		}
 	}
 
@@ -45,7 +46,7 @@ public class MaxPairingHeap<T extends Comparable> implements MaxPriorityQueue<T>
 		PNode<T> newPNode = new PNode<T>(x);
 		add(newPNode);
 	}
-	
+
 	public void add(PNode<T> p) {
 		if (root == null)
 			root = p;
@@ -125,7 +126,7 @@ public class MaxPairingHeap<T extends Comparable> implements MaxPriorityQueue<T>
 	 */
 	public void makeEmpty() {
 		root = null;
-		counter=0;
+		counter = 0;
 	}
 
 	private PNode<T> root;
@@ -225,7 +226,7 @@ public class MaxPairingHeap<T extends Comparable> implements MaxPriorityQueue<T>
 
 	public ArrayList<T> getAll() {
 		ArrayList<T> l = new ArrayList<T>();
-		if(root==null) {
+		if (root == null) {
 			return l;
 		}
 		PNode<T> r = root;
@@ -242,23 +243,27 @@ public class MaxPairingHeap<T extends Comparable> implements MaxPriorityQueue<T>
 		}
 		return l;
 	}
+
 	public String toString() {
-		if(root==null) {
+		if (root == null) {
 			return "";
 		}
 		PNode<T> r = root;
 		Queue<PNode<T>> q = new LinkedList<PNode<T>>();
-		String s = "" + r.element;
+		String s = "";
 		q.add(r);
 		while (!q.isEmpty()) {
 			r = q.remove();
-			PNode<T> c = r.leftChild;
-			while (c != null) {
-				q.add(c);
-				s = s + "," + c.element;
-				c = c.nextSibling;
+			if (r.leftChild != null) {
+				s = s + r.element + ">";
+				PNode<T> c = r.leftChild;
+				while (c != null) {
+					q.add(c);
+					s = s + "," + c.element;
+					c = c.nextSibling;
+				}
+				s = s + "|";
 			}
-			s = s + "|";
 		}
 		return s;
 	}
@@ -271,6 +276,7 @@ public class MaxPairingHeap<T extends Comparable> implements MaxPriorityQueue<T>
 		h.add(2);
 		System.out.println(h);
 	}
+
 	/*
 	 * public static void main(String args[]) { MaxPairingHeap<Integer> h = new
 	 * MaxPairingHeap(); int numItems = 100; int i = 37; int j; boolean pass =
@@ -289,18 +295,17 @@ public class MaxPairingHeap<T extends Comparable> implements MaxPriorityQueue<T>
 	 */
 
 	public void merge(MaxPriorityQueue<T> b) {
-		PNode<T> broot=((MaxPairingHeap<T>)b).root;
+		PNode<T> broot = ((MaxPairingHeap<T>) b).root;
 		if (root == null && broot == null) {
 			root = null;
 		} else {
 			root = compareAndLink(root, broot);
-			counter+=((MaxPairingHeap<T>)b).counter;
+			counter += ((MaxPairingHeap<T>) b).counter;
 		}
 	}
 
 	public int size() {
 		return counter;
 	}
-
 
 }

@@ -4,6 +4,7 @@
  */
 package placement;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 
@@ -35,10 +36,10 @@ public class PlacementTest extends TestCase {
 	private void run(Placement p, double expected) throws Exception {
 		double acost = p.solve();
 		System.out.println("COST=" + acost);
-		//assertTrue(acceptableCost(acost, expected));
-		//p = new MosekPlacement(p.getVariables(), p.getConstraints());
-		//assertTrue(acceptableCost(p.solve(), acost));
-		p = new SolveVPSC(p.getVariables(), p.getConstraints());
+		// assertTrue(acceptableCost(acost, expected));
+		// p = new MosekPlacement(p.getVariables(), p.getConstraints());
+		// assertTrue(acceptableCost(p.solve(), acost));
+		// p = new SolveVPSC(p.getVariables(), p.getConstraints());
 		assertTrue(acceptableCost(p.solve(), acost));
 	}
 
@@ -51,25 +52,26 @@ public class PlacementTest extends TestCase {
 
 	public void testPairingHeap() throws Exception {
 		{
-			long startTime=System.currentTimeMillis();
+			long startTime = System.currentTimeMillis();
 			Random r = new Random();
 			MaxPairingHeap<Double> h1 = new MaxPairingHeap<Double>();
 			MaxPairingHeap<Double> h2 = new MaxPairingHeap<Double>();
-			for(int i=0;i<10000;i++) {
+			for (int i = 0; i < 10000; i++) {
 				h1.add(r.nextDouble());
 				h2.add(r.nextDouble());
 			}
-			long time=System.currentTimeMillis()-startTime;
-			System.out.println("Inserts completed in "+time+"ms.");
+			long time = System.currentTimeMillis() - startTime;
+			System.out.println("Inserts completed in " + time + "ms.");
 			h1.merge(h2);
-			double last=Double.MAX_VALUE;
-			for(int i=0;i<20000;i++) {
-				double d=h1.deleteMax();
-				assertTrue(d<last);
+			double last = Double.MAX_VALUE;
+			for (int i = 0; i < 20000; i++) {
+				double d = h1.deleteMax();
+				assertTrue(d < last);
 				last = d;
 			}
-			time=System.currentTimeMillis()-startTime;
-			System.out.println("1st Pairing heap test completed in "+time+"ms.");
+			time = System.currentTimeMillis() - startTime;
+			System.out.println("1st Pairing heap test completed in " + time
+					+ "ms.");
 		}
 		{
 			MinPairingHeap<Integer> h = new MinPairingHeap<Integer>();
@@ -115,7 +117,7 @@ public class PlacementTest extends TestCase {
 			PNode<Integer>[] p = new PNode[numItems];
 			for (i = 0, j = numItems / 2; i < numItems; i++, j = (j + 71)
 					% numItems) {
-				p[j] = new PNode<Integer>(j+numItems);
+				p[j] = new PNode<Integer>(j + numItems);
 				h.add(p[j]);
 			}
 			for (i = 0, j = numItems / 2; i < numItems; i++, j = (j + 53)
@@ -128,6 +130,119 @@ public class PlacementTest extends TestCase {
 					assertTrue(v == i);
 				}
 			}
+		}
+	}
+
+	class HeapNode implements Comparable<HeapNode> {
+		int key;
+
+		boolean dirty = false;
+
+		HeapNode(int k) {
+			key = k;
+		}
+		public String toString() {
+			return ""+key;
+		}
+		public int compareTo(HeapNode o) {
+			// Dirty entries have to bubble up and be dealt with
+			if(dirty&&!o.dirty) {
+				return 1;
+			} else if (!dirty&&o.dirty) {
+				return -1;
+			} else
+			if (key > o.key) {
+				return 1;
+			} else if (key < o.key) {
+				return -1;
+			}
+			return 0;
+		}
+	}
+
+	public void testPairingHeap2() throws Exception {
+		int n = 50, d = 0, od = 0, nd=0;
+		Random r = new Random(System.currentTimeMillis());
+		HeapNode[] ns = new HeapNode[n];
+		try {
+			for (int repeat = 100000; repeat > 0; repeat--) {
+				MaxPairingHeap<HeapNode> h = new MaxPairingHeap<HeapNode>();
+				for (int i = 0; i < n; i++) {
+					ns[i] = new HeapNode(r.nextInt(50));
+					h.add(ns[i]);
+				}
+				for (int j = 0; j < 5; j++) {
+					d = r.nextInt(n);
+					od = ns[d].key;
+					int sub=r.nextInt(50);
+					ns[d].key -= sub;
+					nd = ns[d].key;
+					ns[d].dirty = true;
+				}
+				int last = Integer.MAX_VALUE;
+				while (!h.isEmpty()) {
+					HeapNode i = h.findMax();
+					ArrayList<HeapNode> outOfDate = new ArrayList<HeapNode>();
+					while (i!=null&&i.dirty) {
+						h.deleteMax();
+						i.dirty = false;
+						outOfDate.add(i);
+						i = h.findMax();
+					}
+					for (HeapNode v : outOfDate) {
+						h.add(v);
+					}
+					i = h.findMax();
+					assertTrue(i.key <= last);
+					last = i.key;
+					h.deleteMax();
+				}
+			}
+		} catch (junit.framework.AssertionFailedError e) {
+			ns[d].key=od;
+			System.err.print("int[] orig = {" + ns[0].key);
+			for (int i = 1; i < n; i++) {
+				System.err.print("," + ns[i].key);
+			}
+			System.err.println("};");
+			System.err.println("int d=" + d + ", nd=" + nd+";");
+			throw e;
+		}
+	}
+
+	public void testPairingHeap3() throws Exception {
+		MaxPairingHeap<HeapNode> h = new MaxPairingHeap<HeapNode>();
+		int[] orig = {19,8,2,24,12,7,19,37,32,48};
+		int d=9, nd=42;
+		int n = orig.length;
+		HeapNode[] ns = new HeapNode[n];
+		for (int i = 0; i < n; i++) {
+			ns[i] = new HeapNode(orig[i]);
+			h.add(ns[i]);
+		}
+		System.out.println("Original heap: "+h);
+		ns[d].key = nd;
+		ns[d].dirty = true;
+		int last = 100;
+		while (!h.isEmpty()) {
+			System.out.println(""+h);
+			HeapNode i = h.findMax();
+			ArrayList<HeapNode> outOfDate = new ArrayList<HeapNode>();
+			while (i!=null&&i.dirty) {
+				System.out.println("Skipping: "+i.key);
+				h.deleteMax();
+				i.dirty = false;
+				outOfDate.add(i);
+				i = h.findMax();
+			}
+			for (HeapNode v : outOfDate) {
+				h.add(v);
+			}
+			i = h.findMax();
+			System.out.println(i.key+"<="+last);
+			assertTrue(i.key <= last);
+			last = i.key;
+			h.deleteMax();
 		}
 	}
 
