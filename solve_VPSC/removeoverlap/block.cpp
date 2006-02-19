@@ -21,6 +21,8 @@ using std::endl;
 #endif
 using std::vector;
 
+typedef vector<Constraint*>::iterator Cit;
+
 void Block::addVariable(Variable *v) {
 	v->block=this;
 	vars->push_back(v);
@@ -75,6 +77,14 @@ void Block::setUpConstraintHeap(PairingHeap<Constraint*>* &h,bool in) {
 		}
 	}
 }	
+void Block::merge(Block* b, Constraint* c) {
+	double dist = c->right->offset - c->left->offset - c->gap;
+	if (vars->size() < b->vars->size()) {
+		b->merge(this,c,-dist);
+	} else {
+	       	merge(b,c,dist);
+	}
+}
 /**
  * Merges b into this block across c.  Can be either a
  * right merge or a left merge
@@ -93,6 +103,7 @@ void Block::merge(Block *b, Constraint *c, double dist) {
 		v->offset+=dist;
 		vars->push_back(v);
 	}
+	b->deleted=true;
 }
 
 void Block::mergeIn(Block *b) {
@@ -214,6 +225,50 @@ double Block::compute_dfdv(Variable *v, Variable *u, Constraint *&min_lm) {
 	return dfdv;
 }
 
+typedef pair<double, Constraint*> Pair;
+// computes dfdv for each variable and uses the sum of dfdv on either side of
+// the constraint to compute the lagrangian multiplier for that constraint.
+// The top level v and r are variables between which we want to find the
+// constraint with the smallest lm.  
+// When we find r we pass NULL to subsequent recursive calls, 
+// thus r=NULL indicates constraints are not on the shortest path.
+// Similarly, m is initially NULL and is only assigned a value if the next
+// variable to be visited is r or if a possible min constraint is returned from
+// a nested call (rather than NULL).
+// Then, the search for the m with minimum lm occurs as we return from
+// the recursion.
+// For a given constraint to be on the shortest path between the bounding
+// vars rv and m must be true.
+Pair Block::compute_dfdv_between(Variable* r, Variable* v, Variable *u) {
+	double dfdv=v->weight*(v->position() - v->desiredPosition);
+	Constraint *m=NULL;
+	for(Cit it(v->in.begin());it!=v->in.end();it++) {
+		Constraint *c=*it;
+		if(canFollowLeft(c,u)) {
+			if(c->left==r) {
+				r=NULL;
+				m=c;
+			}
+			Pair p=compute_dfdv_between(r,c->left,v);
+			dfdv-=c->lm=-p.first;
+			if(r && p.second && c->lm < p.second->lm) m=c;
+		}
+	}
+	for(Cit it(v->out.begin());it!=v->out.end();it++) {
+		Constraint *c=*it;
+		if(canFollowRight(c,u)) {
+			if(c->right==r) {
+				r=NULL;
+				m=c;
+			}
+			Pair p=compute_dfdv_between(r,c->right,v);
+			dfdv+=c->lm=p.first;
+			if(r && p.second && c->lm < p.second->lm) m=c;
+		}
+	}
+	return Pair(dfdv,m);
+}
+
 // resets LMs for all active constraints to 0 by
 // traversing active constraint tree starting from v,
 // not back tracking over u
@@ -243,6 +298,12 @@ Constraint *Block::findMinLM() {
 	compute_dfdv(vars->front(),NULL,min_lm);
 	return min_lm;
 }
+Constraint *Block::findMinLMBetween(Variable* lv, Variable* rv) {
+	Constraint *min_lm=NULL;
+	reset_active_lm(vars->front(),NULL);
+	min_lm=compute_dfdv_between(rv,lv,NULL).second;
+	return min_lm;
+}
 
 // populates block b by traversing the active constraint tree adding variables as they're 
 // visited.  Starts from variable v and does not backtrack over variable u.
@@ -258,11 +319,20 @@ void Block::populateSplitBlock(Block *b, Variable *v, Variable *u) {
 	}
 }
 /**
+ * Block needs to be split because of a violated constraint between vl and vr.
+ * We need to search the active constraint tree between l and r and find the constraint
+ * with min lagrangrian multiplier and split at that point.
+ */
+void Block::splitBetween(Variable* vl, Variable* vr, Block* &lb, Block* &rb) {
+	Constraint *c=findMinLMBetween(vl, vr);
+	split(lb,rb,c);
+}
+/**
  * Creates two new blocks, l and r, and splits this block across constraint c,
  * placing the left subtree of constraints (and associated variables) into l
  * and the right into r 
  */
-void Block::split(Block *&l, Block *&r, Constraint *c) {
+void Block::split(Block* &l, Block* &r, Constraint* c) {
 	c->active=false;
 	l=new Block();
 	populateSplitBlock(l,c->left,c->right);

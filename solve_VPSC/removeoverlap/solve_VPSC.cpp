@@ -132,23 +132,50 @@ void VPSC::solve() {
 /**
  * incremental version of solve that should allow refinement after blocks are
  * moved.  Work in progress.
+ *
+ * move blocks to new positions
+ * 
  */
 void VPSC::move_and_split() {
-	//assert(!blockGraphIsCyclic());
-	for(set<Block*>::const_iterator i=bs->begin();i!=bs->end();i++) {
-		Block *b=*i;
-		if(!b->deleted) {
-			b->wposn = b->desiredWeightedPosition();
-			b->posn = b->wposn / b->weight;
-			Variable *v=b->vars->front();
-			bs->mergeLeft(b);
-			// b may be merged away, so get any new block from one of its members
-			bs->mergeRight(v->block);
+	for(set<Block*>::const_iterator i(bs->begin());i!=bs->end();i++) {
+		Block *b = *i;
+		b->wposn = b->desiredWeightedPosition();
+		b->posn = b->wposn / b->weight;
+	}
+	Constraint* v = NULL;
+	while(mostViolated(v)>0) {
+		Block *lb = v->left->block, *rb = v->right->block;
+		if(lb != rb) {
+			lb->merge(rb,v);
+		} else {
+			// constraint is within block, need to split first
+			lb->splitBetween(v->left,v->right,lb,rb);
+			lb->merge(rb,v);
+		}
+	}
+	for(int i=0;i<m;i++) {
+		if(cs[i]->slack()<-0.0000001) {
+			assert(cs[i]->slack()>-0.0000001);
+			throw "Unsatisfied constraint";
 		}
 	}
 	bs->cleanup();
-	// assert(!blockGraphIsCyclic());
-	refine();
+}
+
+/**
+ * Scan constraint list for the most violated constraint
+ */
+double VPSC::mostViolated(Constraint* &v) {
+	double minSlack = DBL_MAX;
+	for(int i = 0; i < m; i++) {
+		Constraint *c=cs[i];
+		double slack = c->slack();
+		if(slack < minSlack) {
+			minSlack=slack;	
+			v=c;
+		}
+	}
+	return minSlack;
 }
 
 #include <map>

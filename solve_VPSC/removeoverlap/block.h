@@ -29,16 +29,19 @@ public:
 	double wposn;
 	Block(Variable *v=NULL);
 	~Block(void);
-	Constraint *findMinLM();
-	Constraint *findMinInConstraint();
-	Constraint *findMinOutConstraint();
+	Constraint* findMinLM();
+	Constraint* findMinLMBetween(Variable* lv, Variable* rv);
+	Constraint* findMinInConstraint();
+	Constraint* findMinOutConstraint();
 	void deleteMinInConstraint();
 	void deleteMinOutConstraint();
 	double desiredWeightedPosition();
 	void merge(Block *b, Constraint *c, double dist);
+	void merge(Block *b, Constraint *c);
 	void mergeIn(Block *b);
 	void mergeOut(Block *b);
 	void split(Block *&l, Block *&r, Constraint *c);
+	void splitBetween(Variable* vl, Variable* vr, Block* &lb, Block* &rb);
 	void setUpInConstraints();
 	void setUpOutConstraints();
 	double cost();
@@ -49,6 +52,8 @@ public:
 private:
 	void reset_active_lm(Variable *v, Variable *u);
 	double compute_dfdv(Variable *v, Variable *u, Constraint *&min_lm);
+	std::pair<double, Constraint*> Block::compute_dfdv_between(
+			Variable* r, Variable* v, Variable *u);
 	bool canFollowLeft(Constraint *c, Variable *last);
 	bool canFollowRight(Constraint *c, Variable *last);
 	void populateSplitBlock(Block *b, Variable *v, Variable *u);

@@ -31,6 +31,7 @@ protected:
 	Blocks *bs;
 	void refine();
 private:
+	double mostViolated(Constraint* &v);
 	void printBlocks();
 	bool constraintGraphIsCyclic(Variable *vs[], const int n);
 	bool blockGraphIsCyclic();
