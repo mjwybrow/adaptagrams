@@ -80,9 +80,9 @@ void Block::setUpConstraintHeap(PairingHeap<Constraint*>* &h,bool in) {
 void Block::merge(Block* b, Constraint* c) {
 	double dist = c->right->offset - c->left->offset - c->gap;
 	if (vars->size() < b->vars->size()) {
-		b->merge(this,c,-dist);
+		b->merge(this,c,dist);
 	} else {
-	       	merge(b,c,dist);
+	       	merge(b,c,-dist);
 	}
 }
 /**
