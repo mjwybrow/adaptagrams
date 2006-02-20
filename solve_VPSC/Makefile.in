@@ -129,108 +129,26 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-INCLUDES = -I$(top_srcdir)/removeoverlap
-check_PROGRAMS = test_rectangleoverlap test_csolve_VPSC
-test_rectangleoverlap_SOURCES = test_rectangleoverlap.cpp
-test_rectangleoverlap_LDADD = libsolve_VPSC.la
-test_csolve_VPSC_SOURCES = test_csolve_VPSC.c
-test_csolve_VPSC_LDADD = libsolve_VPSC.la
-
-TESTS = $(check_PROGRAMS)
-
-lib_LTLIBRARIES = libsolve_VPSC.la
-
-libsolve_VPSC_la_SOURCES = removeoverlap/block.cpp\
-	removeoverlap/blocks.cpp\
-	removeoverlap/constraint.cpp\
-	removeoverlap/generate-constraints.cpp\
-	removeoverlap/pairingheap/PairingHeap.cpp\
-	removeoverlap/remove_rectangle_overlap.cpp\
-	removeoverlap/solve_VPSC.cpp\
-	removeoverlap/csolve_VPSC.cpp\
-	removeoverlap/variable.cpp\
-	removeoverlap/isnan.h\
-	removeoverlap/block.h\
-	removeoverlap/blocks.h\
-	removeoverlap/constraint.h\
-	removeoverlap/generate-constraints.h\
-	removeoverlap/pairingheap/PairingHeap.h\
-	removeoverlap/pairingheap/dsexceptions.h\
-	removeoverlap/remove_rectangle_overlap.h\
-	removeoverlap/solve_VPSC.h\
-	removeoverlap/csolve_VPSC.h\
-	removeoverlap/variable.h
-
-
-include_HEADERS = removeoverlap/solve_VPSC.h \
-	removeoverlap/variable.h
-
+SUBDIRS = removeoverlap tests
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_CLEAN_FILES =
-LTLIBRARIES = $(lib_LTLIBRARIES)
+DIST_SOURCES =
 
-libsolve_VPSC_la_LDFLAGS =
-libsolve_VPSC_la_LIBADD =
-am_libsolve_VPSC_la_OBJECTS = block.lo blocks.lo constraint.lo \
-	generate-constraints.lo PairingHeap.lo \
-	remove_rectangle_overlap.lo solve_VPSC.lo csolve_VPSC.lo \
-	variable.lo
-libsolve_VPSC_la_OBJECTS = $(am_libsolve_VPSC_la_OBJECTS)
-check_PROGRAMS = test_rectangleoverlap$(EXEEXT) \
-	test_csolve_VPSC$(EXEEXT)
-am_test_csolve_VPSC_OBJECTS = test_csolve_VPSC.$(OBJEXT)
-test_csolve_VPSC_OBJECTS = $(am_test_csolve_VPSC_OBJECTS)
-test_csolve_VPSC_DEPENDENCIES = libsolve_VPSC.la
-test_csolve_VPSC_LDFLAGS =
-am_test_rectangleoverlap_OBJECTS = test_rectangleoverlap.$(OBJEXT)
-test_rectangleoverlap_OBJECTS = $(am_test_rectangleoverlap_OBJECTS)
-test_rectangleoverlap_DEPENDENCIES = libsolve_VPSC.la
-test_rectangleoverlap_LDFLAGS =
-
-DEFAULT_INCLUDES =  -I. -I$(srcdir)
-depcomp = $(SHELL) $(top_srcdir)/depcomp
-am__depfiles_maybe = depfiles
-@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/PairingHeap.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/block.Plo ./$(DEPDIR)/blocks.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/constraint.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/csolve_VPSC.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/generate-constraints.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/remove_rectangle_overlap.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/solve_VPSC.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/test_csolve_VPSC.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/test_rectangleoverlap.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/variable.Plo
-COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
-	$(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-CCLD = $(CC)
-LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
-	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
-LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) \
-	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
-	$(AM_CXXFLAGS) $(CXXFLAGS)
-CXXLD = $(CXX)
-CXXLINK = $(LIBTOOL) --mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) \
-	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-DIST_SOURCES = $(libsolve_VPSC_la_SOURCES) $(test_csolve_VPSC_SOURCES) \
-	$(test_rectangleoverlap_SOURCES)
-HEADERS = $(include_HEADERS)
-
-DIST_COMMON = README $(include_HEADERS) $(srcdir)/Makefile.in \
-	$(srcdir)/configure AUTHORS COPYING ChangeLog INSTALL \
-	Makefile.am NEWS aclocal.m4 config.guess config.sub configure \
-	configure.in depcomp install-sh ltmain.sh missing mkinstalldirs
-SOURCES = $(libsolve_VPSC_la_SOURCES) $(test_csolve_VPSC_SOURCES) $(test_rectangleoverlap_SOURCES)
-
-all: all-am
+RECURSIVE_TARGETS = info-recursive dvi-recursive pdf-recursive \
+	ps-recursive install-info-recursive uninstall-info-recursive \
+	all-recursive install-data-recursive install-exec-recursive \
+	installdirs-recursive install-recursive uninstall-recursive \
+	check-recursive installcheck-recursive
+DIST_COMMON = README $(srcdir)/Makefile.in $(srcdir)/configure AUTHORS \
+	COPYING ChangeLog INSTALL Makefile.am NEWS aclocal.m4 \
+	config.guess config.sub configure configure.in depcomp \
+	install-sh ltmain.sh missing mkinstalldirs
+DIST_SUBDIRS = $(SUBDIRS)
+all: all-recursive
 
 .SUFFIXES:
-.SUFFIXES: .c .cpp .lo .o .obj
 
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno
@@ -247,430 +165,6 @@ $(srcdir)/configure:  $(srcdir)/configure.in $(ACLOCAL_M4) $(CONFIGURE_DEPENDENC
 
 $(ACLOCAL_M4):  configure.in 
 	cd $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
-libLTLIBRARIES_INSTALL = $(INSTALL)
-install-libLTLIBRARIES: $(lib_LTLIBRARIES)
-	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(DESTDIR)$(libdir)
-	@list='$(lib_LTLIBRARIES)'; for p in $$list; do \
-	  if test -f $$p; then \
-	    f="`echo $$p | sed -e 's|^.*/||'`"; \
-	    echo " $(LIBTOOL) --mode=install $(libLTLIBRARIES_INSTALL) $(INSTALL_STRIP_FLAG) $$p $(DESTDIR)$(libdir)/$$f"; \
-	    $(LIBTOOL) --mode=install $(libLTLIBRARIES_INSTALL) $(INSTALL_STRIP_FLAG) $$p $(DESTDIR)$(libdir)/$$f; \
-	  else :; fi; \
-	done
-
-uninstall-libLTLIBRARIES:
-	@$(NORMAL_UNINSTALL)
-	@list='$(lib_LTLIBRARIES)'; for p in $$list; do \
-	    p="`echo $$p | sed -e 's|^.*/||'`"; \
-	  echo " $(LIBTOOL) --mode=uninstall rm -f $(DESTDIR)$(libdir)/$$p"; \
-	  $(LIBTOOL) --mode=uninstall rm -f $(DESTDIR)$(libdir)/$$p; \
-	done
-
-clean-libLTLIBRARIES:
-	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
-	@list='$(lib_LTLIBRARIES)'; for p in $$list; do \
-	  dir="`echo $$p | sed -e 's|/[^/]*$$||'`"; \
-	  test "$$dir" = "$$p" && dir=.; \
-	  echo "rm -f \"$${dir}/so_locations\""; \
-	  rm -f "$${dir}/so_locations"; \
-	done
-libsolve_VPSC.la: $(libsolve_VPSC_la_OBJECTS) $(libsolve_VPSC_la_DEPENDENCIES) 
-	$(CXXLINK) -rpath $(libdir) $(libsolve_VPSC_la_LDFLAGS) $(libsolve_VPSC_la_OBJECTS) $(libsolve_VPSC_la_LIBADD) $(LIBS)
-
-clean-checkPROGRAMS:
-	@list='$(check_PROGRAMS)'; for p in $$list; do \
-	  f=`echo $$p|sed 's/$(EXEEXT)$$//'`; \
-	  echo " rm -f $$p $$f"; \
-	  rm -f $$p $$f ; \
-	done
-test_csolve_VPSC$(EXEEXT): $(test_csolve_VPSC_OBJECTS) $(test_csolve_VPSC_DEPENDENCIES) 
-	@rm -f test_csolve_VPSC$(EXEEXT)
-	$(LINK) $(test_csolve_VPSC_LDFLAGS) $(test_csolve_VPSC_OBJECTS) $(test_csolve_VPSC_LDADD) $(LIBS)
-test_rectangleoverlap$(EXEEXT): $(test_rectangleoverlap_OBJECTS) $(test_rectangleoverlap_DEPENDENCIES) 
-	@rm -f test_rectangleoverlap$(EXEEXT)
-	$(CXXLINK) $(test_rectangleoverlap_LDFLAGS) $(test_rectangleoverlap_OBJECTS) $(test_rectangleoverlap_LDADD) $(LIBS)
-
-mostlyclean-compile:
-	-rm -f *.$(OBJEXT) core *.core
-
-distclean-compile:
-	-rm -f *.tab.c
-
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PairingHeap.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/block.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/blocks.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/constraint.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/csolve_VPSC.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/generate-constraints.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/remove_rectangle_overlap.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/solve_VPSC.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_csolve_VPSC.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_rectangleoverlap.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/variable.Plo@am__quote@
-
-.c.o:
-@am__fastdepCC_TRUE@	if $(COMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" \
-@am__fastdepCC_TRUE@	  -c -o $@ `test -f '$<' || echo '$(srcdir)/'`$<; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Po"; \
-@am__fastdepCC_TRUE@	else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; \
-@am__fastdepCC_TRUE@	fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	depfile='$(DEPDIR)/$*.Po' tmpdepfile='$(DEPDIR)/$*.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(COMPILE) -c `test -f '$<' || echo '$(srcdir)/'`$<
-
-.c.obj:
-@am__fastdepCC_TRUE@	if $(COMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" \
-@am__fastdepCC_TRUE@	  -c -o $@ `if test -f '$<'; then $(CYGPATH_W) '$<'; else $(CYGPATH_W) '$(srcdir)/$<'; fi`; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Po"; \
-@am__fastdepCC_TRUE@	else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; \
-@am__fastdepCC_TRUE@	fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	depfile='$(DEPDIR)/$*.Po' tmpdepfile='$(DEPDIR)/$*.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(COMPILE) -c `if test -f '$<'; then $(CYGPATH_W) '$<'; else $(CYGPATH_W) '$(srcdir)/$<'; fi`
-
-.c.lo:
-@am__fastdepCC_TRUE@	if $(LTCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" \
-@am__fastdepCC_TRUE@	  -c -o $@ `test -f '$<' || echo '$(srcdir)/'`$<; \
-@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Plo"; \
-@am__fastdepCC_TRUE@	else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; \
-@am__fastdepCC_TRUE@	fi
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	depfile='$(DEPDIR)/$*.Plo' tmpdepfile='$(DEPDIR)/$*.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ `test -f '$<' || echo '$(srcdir)/'`$<
-
-.cpp.o:
-@am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" \
-@am__fastdepCXX_TRUE@	  -c -o $@ `test -f '$<' || echo '$(srcdir)/'`$<; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Po"; \
-@am__fastdepCXX_TRUE@	else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; \
-@am__fastdepCXX_TRUE@	fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	depfile='$(DEPDIR)/$*.Po' tmpdepfile='$(DEPDIR)/$*.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ `test -f '$<' || echo '$(srcdir)/'`$<
-
-.cpp.obj:
-@am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" \
-@am__fastdepCXX_TRUE@	  -c -o $@ `if test -f '$<'; then $(CYGPATH_W) '$<'; else $(CYGPATH_W) '$(srcdir)/$<'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Po"; \
-@am__fastdepCXX_TRUE@	else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; \
-@am__fastdepCXX_TRUE@	fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	depfile='$(DEPDIR)/$*.Po' tmpdepfile='$(DEPDIR)/$*.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXXCOMPILE) -c -o $@ `if test -f '$<'; then $(CYGPATH_W) '$<'; else $(CYGPATH_W) '$(srcdir)/$<'; fi`
-
-.cpp.lo:
-@am__fastdepCXX_TRUE@	if $(LTCXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" \
-@am__fastdepCXX_TRUE@	  -c -o $@ `test -f '$<' || echo '$(srcdir)/'`$<; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Plo"; \
-@am__fastdepCXX_TRUE@	else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; \
-@am__fastdepCXX_TRUE@	fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	depfile='$(DEPDIR)/$*.Plo' tmpdepfile='$(DEPDIR)/$*.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) -c -o $@ `test -f '$<' || echo '$(srcdir)/'`$<
-
-block.o: removeoverlap/block.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT block.o -MD -MP -MF "$(DEPDIR)/block.Tpo" \
-@am__fastdepCXX_TRUE@	  -c -o block.o `test -f 'removeoverlap/block.cpp' || echo '$(srcdir)/'`removeoverlap/block.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/block.Tpo" "$(DEPDIR)/block.Po"; \
-@am__fastdepCXX_TRUE@	else rm -f "$(DEPDIR)/block.Tpo"; exit 1; \
-@am__fastdepCXX_TRUE@	fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='removeoverlap/block.cpp' object='block.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	depfile='$(DEPDIR)/block.Po' tmpdepfile='$(DEPDIR)/block.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o block.o `test -f 'removeoverlap/block.cpp' || echo '$(srcdir)/'`removeoverlap/block.cpp
-
-block.obj: removeoverlap/block.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT block.obj -MD -MP -MF "$(DEPDIR)/block.Tpo" \
-@am__fastdepCXX_TRUE@	  -c -o block.obj `if test -f 'removeoverlap/block.cpp'; then $(CYGPATH_W) 'removeoverlap/block.cpp'; else $(CYGPATH_W) '$(srcdir)/removeoverlap/block.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/block.Tpo" "$(DEPDIR)/block.Po"; \
-@am__fastdepCXX_TRUE@	else rm -f "$(DEPDIR)/block.Tpo"; exit 1; \
-@am__fastdepCXX_TRUE@	fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='removeoverlap/block.cpp' object='block.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	depfile='$(DEPDIR)/block.Po' tmpdepfile='$(DEPDIR)/block.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o block.obj `if test -f 'removeoverlap/block.cpp'; then $(CYGPATH_W) 'removeoverlap/block.cpp'; else $(CYGPATH_W) '$(srcdir)/removeoverlap/block.cpp'; fi`
-
-block.lo: removeoverlap/block.cpp
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT block.lo -MD -MP -MF "$(DEPDIR)/block.Tpo" \
-@am__fastdepCXX_TRUE@	  -c -o block.lo `test -f 'removeoverlap/block.cpp' || echo '$(srcdir)/'`removeoverlap/block.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/block.Tpo" "$(DEPDIR)/block.Plo"; \
-@am__fastdepCXX_TRUE@	else rm -f "$(DEPDIR)/block.Tpo"; exit 1; \
-@am__fastdepCXX_TRUE@	fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='removeoverlap/block.cpp' object='block.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	depfile='$(DEPDIR)/block.Plo' tmpdepfile='$(DEPDIR)/block.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o block.lo `test -f 'removeoverlap/block.cpp' || echo '$(srcdir)/'`removeoverlap/block.cpp
-
-blocks.o: removeoverlap/blocks.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT blocks.o -MD -MP -MF "$(DEPDIR)/blocks.Tpo" \
-@am__fastdepCXX_TRUE@	  -c -o blocks.o `test -f 'removeoverlap/blocks.cpp' || echo '$(srcdir)/'`removeoverlap/blocks.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/blocks.Tpo" "$(DEPDIR)/blocks.Po"; \
-@am__fastdepCXX_TRUE@	else rm -f "$(DEPDIR)/blocks.Tpo"; exit 1; \
-@am__fastdepCXX_TRUE@	fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='removeoverlap/blocks.cpp' object='blocks.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	depfile='$(DEPDIR)/blocks.Po' tmpdepfile='$(DEPDIR)/blocks.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o blocks.o `test -f 'removeoverlap/blocks.cpp' || echo '$(srcdir)/'`removeoverlap/blocks.cpp
-
-blocks.obj: removeoverlap/blocks.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT blocks.obj -MD -MP -MF "$(DEPDIR)/blocks.Tpo" \
-@am__fastdepCXX_TRUE@	  -c -o blocks.obj `if test -f 'removeoverlap/blocks.cpp'; then $(CYGPATH_W) 'removeoverlap/blocks.cpp'; else $(CYGPATH_W) '$(srcdir)/removeoverlap/blocks.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/blocks.Tpo" "$(DEPDIR)/blocks.Po"; \
-@am__fastdepCXX_TRUE@	else rm -f "$(DEPDIR)/blocks.Tpo"; exit 1; \
-@am__fastdepCXX_TRUE@	fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='removeoverlap/blocks.cpp' object='blocks.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	depfile='$(DEPDIR)/blocks.Po' tmpdepfile='$(DEPDIR)/blocks.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o blocks.obj `if test -f 'removeoverlap/blocks.cpp'; then $(CYGPATH_W) 'removeoverlap/blocks.cpp'; else $(CYGPATH_W) '$(srcdir)/removeoverlap/blocks.cpp'; fi`
-
-blocks.lo: removeoverlap/blocks.cpp
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT blocks.lo -MD -MP -MF "$(DEPDIR)/blocks.Tpo" \
-@am__fastdepCXX_TRUE@	  -c -o blocks.lo `test -f 'removeoverlap/blocks.cpp' || echo '$(srcdir)/'`removeoverlap/blocks.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/blocks.Tpo" "$(DEPDIR)/blocks.Plo"; \
-@am__fastdepCXX_TRUE@	else rm -f "$(DEPDIR)/blocks.Tpo"; exit 1; \
-@am__fastdepCXX_TRUE@	fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='removeoverlap/blocks.cpp' object='blocks.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	depfile='$(DEPDIR)/blocks.Plo' tmpdepfile='$(DEPDIR)/blocks.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o blocks.lo `test -f 'removeoverlap/blocks.cpp' || echo '$(srcdir)/'`removeoverlap/blocks.cpp
-
-constraint.o: removeoverlap/constraint.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT constraint.o -MD -MP -MF "$(DEPDIR)/constraint.Tpo" \
-@am__fastdepCXX_TRUE@	  -c -o constraint.o `test -f 'removeoverlap/constraint.cpp' || echo '$(srcdir)/'`removeoverlap/constraint.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/constraint.Tpo" "$(DEPDIR)/constraint.Po"; \
-@am__fastdepCXX_TRUE@	else rm -f "$(DEPDIR)/constraint.Tpo"; exit 1; \
-@am__fastdepCXX_TRUE@	fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='removeoverlap/constraint.cpp' object='constraint.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	depfile='$(DEPDIR)/constraint.Po' tmpdepfile='$(DEPDIR)/constraint.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o constraint.o `test -f 'removeoverlap/constraint.cpp' || echo '$(srcdir)/'`removeoverlap/constraint.cpp
-
-constraint.obj: removeoverlap/constraint.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT constraint.obj -MD -MP -MF "$(DEPDIR)/constraint.Tpo" \
-@am__fastdepCXX_TRUE@	  -c -o constraint.obj `if test -f 'removeoverlap/constraint.cpp'; then $(CYGPATH_W) 'removeoverlap/constraint.cpp'; else $(CYGPATH_W) '$(srcdir)/removeoverlap/constraint.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/constraint.Tpo" "$(DEPDIR)/constraint.Po"; \
-@am__fastdepCXX_TRUE@	else rm -f "$(DEPDIR)/constraint.Tpo"; exit 1; \
-@am__fastdepCXX_TRUE@	fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='removeoverlap/constraint.cpp' object='constraint.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	depfile='$(DEPDIR)/constraint.Po' tmpdepfile='$(DEPDIR)/constraint.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o constraint.obj `if test -f 'removeoverlap/constraint.cpp'; then $(CYGPATH_W) 'removeoverlap/constraint.cpp'; else $(CYGPATH_W) '$(srcdir)/removeoverlap/constraint.cpp'; fi`
-
-constraint.lo: removeoverlap/constraint.cpp
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT constraint.lo -MD -MP -MF "$(DEPDIR)/constraint.Tpo" \
-@am__fastdepCXX_TRUE@	  -c -o constraint.lo `test -f 'removeoverlap/constraint.cpp' || echo '$(srcdir)/'`removeoverlap/constraint.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/constraint.Tpo" "$(DEPDIR)/constraint.Plo"; \
-@am__fastdepCXX_TRUE@	else rm -f "$(DEPDIR)/constraint.Tpo"; exit 1; \
-@am__fastdepCXX_TRUE@	fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='removeoverlap/constraint.cpp' object='constraint.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	depfile='$(DEPDIR)/constraint.Plo' tmpdepfile='$(DEPDIR)/constraint.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o constraint.lo `test -f 'removeoverlap/constraint.cpp' || echo '$(srcdir)/'`removeoverlap/constraint.cpp
-
-generate-constraints.o: removeoverlap/generate-constraints.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT generate-constraints.o -MD -MP -MF "$(DEPDIR)/generate-constraints.Tpo" \
-@am__fastdepCXX_TRUE@	  -c -o generate-constraints.o `test -f 'removeoverlap/generate-constraints.cpp' || echo '$(srcdir)/'`removeoverlap/generate-constraints.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/generate-constraints.Tpo" "$(DEPDIR)/generate-constraints.Po"; \
-@am__fastdepCXX_TRUE@	else rm -f "$(DEPDIR)/generate-constraints.Tpo"; exit 1; \
-@am__fastdepCXX_TRUE@	fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='removeoverlap/generate-constraints.cpp' object='generate-constraints.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	depfile='$(DEPDIR)/generate-constraints.Po' tmpdepfile='$(DEPDIR)/generate-constraints.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o generate-constraints.o `test -f 'removeoverlap/generate-constraints.cpp' || echo '$(srcdir)/'`removeoverlap/generate-constraints.cpp
-
-generate-constraints.obj: removeoverlap/generate-constraints.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT generate-constraints.obj -MD -MP -MF "$(DEPDIR)/generate-constraints.Tpo" \
-@am__fastdepCXX_TRUE@	  -c -o generate-constraints.obj `if test -f 'removeoverlap/generate-constraints.cpp'; then $(CYGPATH_W) 'removeoverlap/generate-constraints.cpp'; else $(CYGPATH_W) '$(srcdir)/removeoverlap/generate-constraints.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/generate-constraints.Tpo" "$(DEPDIR)/generate-constraints.Po"; \
-@am__fastdepCXX_TRUE@	else rm -f "$(DEPDIR)/generate-constraints.Tpo"; exit 1; \
-@am__fastdepCXX_TRUE@	fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='removeoverlap/generate-constraints.cpp' object='generate-constraints.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	depfile='$(DEPDIR)/generate-constraints.Po' tmpdepfile='$(DEPDIR)/generate-constraints.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o generate-constraints.obj `if test -f 'removeoverlap/generate-constraints.cpp'; then $(CYGPATH_W) 'removeoverlap/generate-constraints.cpp'; else $(CYGPATH_W) '$(srcdir)/removeoverlap/generate-constraints.cpp'; fi`
-
-generate-constraints.lo: removeoverlap/generate-constraints.cpp
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT generate-constraints.lo -MD -MP -MF "$(DEPDIR)/generate-constraints.Tpo" \
-@am__fastdepCXX_TRUE@	  -c -o generate-constraints.lo `test -f 'removeoverlap/generate-constraints.cpp' || echo '$(srcdir)/'`removeoverlap/generate-constraints.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/generate-constraints.Tpo" "$(DEPDIR)/generate-constraints.Plo"; \
-@am__fastdepCXX_TRUE@	else rm -f "$(DEPDIR)/generate-constraints.Tpo"; exit 1; \
-@am__fastdepCXX_TRUE@	fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='removeoverlap/generate-constraints.cpp' object='generate-constraints.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	depfile='$(DEPDIR)/generate-constraints.Plo' tmpdepfile='$(DEPDIR)/generate-constraints.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o generate-constraints.lo `test -f 'removeoverlap/generate-constraints.cpp' || echo '$(srcdir)/'`removeoverlap/generate-constraints.cpp
-
-PairingHeap.o: removeoverlap/pairingheap/PairingHeap.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT PairingHeap.o -MD -MP -MF "$(DEPDIR)/PairingHeap.Tpo" \
-@am__fastdepCXX_TRUE@	  -c -o PairingHeap.o `test -f 'removeoverlap/pairingheap/PairingHeap.cpp' || echo '$(srcdir)/'`removeoverlap/pairingheap/PairingHeap.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/PairingHeap.Tpo" "$(DEPDIR)/PairingHeap.Po"; \
-@am__fastdepCXX_TRUE@	else rm -f "$(DEPDIR)/PairingHeap.Tpo"; exit 1; \
-@am__fastdepCXX_TRUE@	fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='removeoverlap/pairingheap/PairingHeap.cpp' object='PairingHeap.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	depfile='$(DEPDIR)/PairingHeap.Po' tmpdepfile='$(DEPDIR)/PairingHeap.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o PairingHeap.o `test -f 'removeoverlap/pairingheap/PairingHeap.cpp' || echo '$(srcdir)/'`removeoverlap/pairingheap/PairingHeap.cpp
-
-PairingHeap.obj: removeoverlap/pairingheap/PairingHeap.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT PairingHeap.obj -MD -MP -MF "$(DEPDIR)/PairingHeap.Tpo" \
-@am__fastdepCXX_TRUE@	  -c -o PairingHeap.obj `if test -f 'removeoverlap/pairingheap/PairingHeap.cpp'; then $(CYGPATH_W) 'removeoverlap/pairingheap/PairingHeap.cpp'; else $(CYGPATH_W) '$(srcdir)/removeoverlap/pairingheap/PairingHeap.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/PairingHeap.Tpo" "$(DEPDIR)/PairingHeap.Po"; \
-@am__fastdepCXX_TRUE@	else rm -f "$(DEPDIR)/PairingHeap.Tpo"; exit 1; \
-@am__fastdepCXX_TRUE@	fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='removeoverlap/pairingheap/PairingHeap.cpp' object='PairingHeap.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	depfile='$(DEPDIR)/PairingHeap.Po' tmpdepfile='$(DEPDIR)/PairingHeap.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o PairingHeap.obj `if test -f 'removeoverlap/pairingheap/PairingHeap.cpp'; then $(CYGPATH_W) 'removeoverlap/pairingheap/PairingHeap.cpp'; else $(CYGPATH_W) '$(srcdir)/removeoverlap/pairingheap/PairingHeap.cpp'; fi`
-
-PairingHeap.lo: removeoverlap/pairingheap/PairingHeap.cpp
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT PairingHeap.lo -MD -MP -MF "$(DEPDIR)/PairingHeap.Tpo" \
-@am__fastdepCXX_TRUE@	  -c -o PairingHeap.lo `test -f 'removeoverlap/pairingheap/PairingHeap.cpp' || echo '$(srcdir)/'`removeoverlap/pairingheap/PairingHeap.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/PairingHeap.Tpo" "$(DEPDIR)/PairingHeap.Plo"; \
-@am__fastdepCXX_TRUE@	else rm -f "$(DEPDIR)/PairingHeap.Tpo"; exit 1; \
-@am__fastdepCXX_TRUE@	fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='removeoverlap/pairingheap/PairingHeap.cpp' object='PairingHeap.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	depfile='$(DEPDIR)/PairingHeap.Plo' tmpdepfile='$(DEPDIR)/PairingHeap.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o PairingHeap.lo `test -f 'removeoverlap/pairingheap/PairingHeap.cpp' || echo '$(srcdir)/'`removeoverlap/pairingheap/PairingHeap.cpp
-
-remove_rectangle_overlap.o: removeoverlap/remove_rectangle_overlap.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT remove_rectangle_overlap.o -MD -MP -MF "$(DEPDIR)/remove_rectangle_overlap.Tpo" \
-@am__fastdepCXX_TRUE@	  -c -o remove_rectangle_overlap.o `test -f 'removeoverlap/remove_rectangle_overlap.cpp' || echo '$(srcdir)/'`removeoverlap/remove_rectangle_overlap.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/remove_rectangle_overlap.Tpo" "$(DEPDIR)/remove_rectangle_overlap.Po"; \
-@am__fastdepCXX_TRUE@	else rm -f "$(DEPDIR)/remove_rectangle_overlap.Tpo"; exit 1; \
-@am__fastdepCXX_TRUE@	fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='removeoverlap/remove_rectangle_overlap.cpp' object='remove_rectangle_overlap.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	depfile='$(DEPDIR)/remove_rectangle_overlap.Po' tmpdepfile='$(DEPDIR)/remove_rectangle_overlap.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o remove_rectangle_overlap.o `test -f 'removeoverlap/remove_rectangle_overlap.cpp' || echo '$(srcdir)/'`removeoverlap/remove_rectangle_overlap.cpp
-
-remove_rectangle_overlap.obj: removeoverlap/remove_rectangle_overlap.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT remove_rectangle_overlap.obj -MD -MP -MF "$(DEPDIR)/remove_rectangle_overlap.Tpo" \
-@am__fastdepCXX_TRUE@	  -c -o remove_rectangle_overlap.obj `if test -f 'removeoverlap/remove_rectangle_overlap.cpp'; then $(CYGPATH_W) 'removeoverlap/remove_rectangle_overlap.cpp'; else $(CYGPATH_W) '$(srcdir)/removeoverlap/remove_rectangle_overlap.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/remove_rectangle_overlap.Tpo" "$(DEPDIR)/remove_rectangle_overlap.Po"; \
-@am__fastdepCXX_TRUE@	else rm -f "$(DEPDIR)/remove_rectangle_overlap.Tpo"; exit 1; \
-@am__fastdepCXX_TRUE@	fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='removeoverlap/remove_rectangle_overlap.cpp' object='remove_rectangle_overlap.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	depfile='$(DEPDIR)/remove_rectangle_overlap.Po' tmpdepfile='$(DEPDIR)/remove_rectangle_overlap.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o remove_rectangle_overlap.obj `if test -f 'removeoverlap/remove_rectangle_overlap.cpp'; then $(CYGPATH_W) 'removeoverlap/remove_rectangle_overlap.cpp'; else $(CYGPATH_W) '$(srcdir)/removeoverlap/remove_rectangle_overlap.cpp'; fi`
-
-remove_rectangle_overlap.lo: removeoverlap/remove_rectangle_overlap.cpp
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT remove_rectangle_overlap.lo -MD -MP -MF "$(DEPDIR)/remove_rectangle_overlap.Tpo" \
-@am__fastdepCXX_TRUE@	  -c -o remove_rectangle_overlap.lo `test -f 'removeoverlap/remove_rectangle_overlap.cpp' || echo '$(srcdir)/'`removeoverlap/remove_rectangle_overlap.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/remove_rectangle_overlap.Tpo" "$(DEPDIR)/remove_rectangle_overlap.Plo"; \
-@am__fastdepCXX_TRUE@	else rm -f "$(DEPDIR)/remove_rectangle_overlap.Tpo"; exit 1; \
-@am__fastdepCXX_TRUE@	fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='removeoverlap/remove_rectangle_overlap.cpp' object='remove_rectangle_overlap.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	depfile='$(DEPDIR)/remove_rectangle_overlap.Plo' tmpdepfile='$(DEPDIR)/remove_rectangle_overlap.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o remove_rectangle_overlap.lo `test -f 'removeoverlap/remove_rectangle_overlap.cpp' || echo '$(srcdir)/'`removeoverlap/remove_rectangle_overlap.cpp
-
-solve_VPSC.o: removeoverlap/solve_VPSC.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT solve_VPSC.o -MD -MP -MF "$(DEPDIR)/solve_VPSC.Tpo" \
-@am__fastdepCXX_TRUE@	  -c -o solve_VPSC.o `test -f 'removeoverlap/solve_VPSC.cpp' || echo '$(srcdir)/'`removeoverlap/solve_VPSC.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/solve_VPSC.Tpo" "$(DEPDIR)/solve_VPSC.Po"; \
-@am__fastdepCXX_TRUE@	else rm -f "$(DEPDIR)/solve_VPSC.Tpo"; exit 1; \
-@am__fastdepCXX_TRUE@	fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='removeoverlap/solve_VPSC.cpp' object='solve_VPSC.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	depfile='$(DEPDIR)/solve_VPSC.Po' tmpdepfile='$(DEPDIR)/solve_VPSC.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o solve_VPSC.o `test -f 'removeoverlap/solve_VPSC.cpp' || echo '$(srcdir)/'`removeoverlap/solve_VPSC.cpp
-
-solve_VPSC.obj: removeoverlap/solve_VPSC.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT solve_VPSC.obj -MD -MP -MF "$(DEPDIR)/solve_VPSC.Tpo" \
-@am__fastdepCXX_TRUE@	  -c -o solve_VPSC.obj `if test -f 'removeoverlap/solve_VPSC.cpp'; then $(CYGPATH_W) 'removeoverlap/solve_VPSC.cpp'; else $(CYGPATH_W) '$(srcdir)/removeoverlap/solve_VPSC.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/solve_VPSC.Tpo" "$(DEPDIR)/solve_VPSC.Po"; \
-@am__fastdepCXX_TRUE@	else rm -f "$(DEPDIR)/solve_VPSC.Tpo"; exit 1; \
-@am__fastdepCXX_TRUE@	fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='removeoverlap/solve_VPSC.cpp' object='solve_VPSC.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	depfile='$(DEPDIR)/solve_VPSC.Po' tmpdepfile='$(DEPDIR)/solve_VPSC.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o solve_VPSC.obj `if test -f 'removeoverlap/solve_VPSC.cpp'; then $(CYGPATH_W) 'removeoverlap/solve_VPSC.cpp'; else $(CYGPATH_W) '$(srcdir)/removeoverlap/solve_VPSC.cpp'; fi`
-
-solve_VPSC.lo: removeoverlap/solve_VPSC.cpp
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT solve_VPSC.lo -MD -MP -MF "$(DEPDIR)/solve_VPSC.Tpo" \
-@am__fastdepCXX_TRUE@	  -c -o solve_VPSC.lo `test -f 'removeoverlap/solve_VPSC.cpp' || echo '$(srcdir)/'`removeoverlap/solve_VPSC.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/solve_VPSC.Tpo" "$(DEPDIR)/solve_VPSC.Plo"; \
-@am__fastdepCXX_TRUE@	else rm -f "$(DEPDIR)/solve_VPSC.Tpo"; exit 1; \
-@am__fastdepCXX_TRUE@	fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='removeoverlap/solve_VPSC.cpp' object='solve_VPSC.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	depfile='$(DEPDIR)/solve_VPSC.Plo' tmpdepfile='$(DEPDIR)/solve_VPSC.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o solve_VPSC.lo `test -f 'removeoverlap/solve_VPSC.cpp' || echo '$(srcdir)/'`removeoverlap/solve_VPSC.cpp
-
-csolve_VPSC.o: removeoverlap/csolve_VPSC.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT csolve_VPSC.o -MD -MP -MF "$(DEPDIR)/csolve_VPSC.Tpo" \
-@am__fastdepCXX_TRUE@	  -c -o csolve_VPSC.o `test -f 'removeoverlap/csolve_VPSC.cpp' || echo '$(srcdir)/'`removeoverlap/csolve_VPSC.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/csolve_VPSC.Tpo" "$(DEPDIR)/csolve_VPSC.Po"; \
-@am__fastdepCXX_TRUE@	else rm -f "$(DEPDIR)/csolve_VPSC.Tpo"; exit 1; \
-@am__fastdepCXX_TRUE@	fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='removeoverlap/csolve_VPSC.cpp' object='csolve_VPSC.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	depfile='$(DEPDIR)/csolve_VPSC.Po' tmpdepfile='$(DEPDIR)/csolve_VPSC.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o csolve_VPSC.o `test -f 'removeoverlap/csolve_VPSC.cpp' || echo '$(srcdir)/'`removeoverlap/csolve_VPSC.cpp
-
-csolve_VPSC.obj: removeoverlap/csolve_VPSC.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT csolve_VPSC.obj -MD -MP -MF "$(DEPDIR)/csolve_VPSC.Tpo" \
-@am__fastdepCXX_TRUE@	  -c -o csolve_VPSC.obj `if test -f 'removeoverlap/csolve_VPSC.cpp'; then $(CYGPATH_W) 'removeoverlap/csolve_VPSC.cpp'; else $(CYGPATH_W) '$(srcdir)/removeoverlap/csolve_VPSC.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/csolve_VPSC.Tpo" "$(DEPDIR)/csolve_VPSC.Po"; \
-@am__fastdepCXX_TRUE@	else rm -f "$(DEPDIR)/csolve_VPSC.Tpo"; exit 1; \
-@am__fastdepCXX_TRUE@	fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='removeoverlap/csolve_VPSC.cpp' object='csolve_VPSC.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	depfile='$(DEPDIR)/csolve_VPSC.Po' tmpdepfile='$(DEPDIR)/csolve_VPSC.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o csolve_VPSC.obj `if test -f 'removeoverlap/csolve_VPSC.cpp'; then $(CYGPATH_W) 'removeoverlap/csolve_VPSC.cpp'; else $(CYGPATH_W) '$(srcdir)/removeoverlap/csolve_VPSC.cpp'; fi`
-
-csolve_VPSC.lo: removeoverlap/csolve_VPSC.cpp
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT csolve_VPSC.lo -MD -MP -MF "$(DEPDIR)/csolve_VPSC.Tpo" \
-@am__fastdepCXX_TRUE@	  -c -o csolve_VPSC.lo `test -f 'removeoverlap/csolve_VPSC.cpp' || echo '$(srcdir)/'`removeoverlap/csolve_VPSC.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/csolve_VPSC.Tpo" "$(DEPDIR)/csolve_VPSC.Plo"; \
-@am__fastdepCXX_TRUE@	else rm -f "$(DEPDIR)/csolve_VPSC.Tpo"; exit 1; \
-@am__fastdepCXX_TRUE@	fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='removeoverlap/csolve_VPSC.cpp' object='csolve_VPSC.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	depfile='$(DEPDIR)/csolve_VPSC.Plo' tmpdepfile='$(DEPDIR)/csolve_VPSC.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o csolve_VPSC.lo `test -f 'removeoverlap/csolve_VPSC.cpp' || echo '$(srcdir)/'`removeoverlap/csolve_VPSC.cpp
-
-variable.o: removeoverlap/variable.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT variable.o -MD -MP -MF "$(DEPDIR)/variable.Tpo" \
-@am__fastdepCXX_TRUE@	  -c -o variable.o `test -f 'removeoverlap/variable.cpp' || echo '$(srcdir)/'`removeoverlap/variable.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/variable.Tpo" "$(DEPDIR)/variable.Po"; \
-@am__fastdepCXX_TRUE@	else rm -f "$(DEPDIR)/variable.Tpo"; exit 1; \
-@am__fastdepCXX_TRUE@	fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='removeoverlap/variable.cpp' object='variable.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	depfile='$(DEPDIR)/variable.Po' tmpdepfile='$(DEPDIR)/variable.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o variable.o `test -f 'removeoverlap/variable.cpp' || echo '$(srcdir)/'`removeoverlap/variable.cpp
-
-variable.obj: removeoverlap/variable.cpp
-@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT variable.obj -MD -MP -MF "$(DEPDIR)/variable.Tpo" \
-@am__fastdepCXX_TRUE@	  -c -o variable.obj `if test -f 'removeoverlap/variable.cpp'; then $(CYGPATH_W) 'removeoverlap/variable.cpp'; else $(CYGPATH_W) '$(srcdir)/removeoverlap/variable.cpp'; fi`; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/variable.Tpo" "$(DEPDIR)/variable.Po"; \
-@am__fastdepCXX_TRUE@	else rm -f "$(DEPDIR)/variable.Tpo"; exit 1; \
-@am__fastdepCXX_TRUE@	fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='removeoverlap/variable.cpp' object='variable.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	depfile='$(DEPDIR)/variable.Po' tmpdepfile='$(DEPDIR)/variable.TPo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o variable.obj `if test -f 'removeoverlap/variable.cpp'; then $(CYGPATH_W) 'removeoverlap/variable.cpp'; else $(CYGPATH_W) '$(srcdir)/removeoverlap/variable.cpp'; fi`
-
-variable.lo: removeoverlap/variable.cpp
-@am__fastdepCXX_TRUE@	if $(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT variable.lo -MD -MP -MF "$(DEPDIR)/variable.Tpo" \
-@am__fastdepCXX_TRUE@	  -c -o variable.lo `test -f 'removeoverlap/variable.cpp' || echo '$(srcdir)/'`removeoverlap/variable.cpp; \
-@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/variable.Tpo" "$(DEPDIR)/variable.Plo"; \
-@am__fastdepCXX_TRUE@	else rm -f "$(DEPDIR)/variable.Tpo"; exit 1; \
-@am__fastdepCXX_TRUE@	fi
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='removeoverlap/variable.cpp' object='variable.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	depfile='$(DEPDIR)/variable.Plo' tmpdepfile='$(DEPDIR)/variable.TPlo' @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o variable.lo `test -f 'removeoverlap/variable.cpp' || echo '$(srcdir)/'`removeoverlap/variable.cpp
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -681,23 +175,64 @@ clean-libtool:
 distclean-libtool:
 	-rm -f libtool
 uninstall-info-am:
-includeHEADERS_INSTALL = $(INSTALL_HEADER)
-install-includeHEADERS: $(include_HEADERS)
-	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(DESTDIR)$(includedir)
-	@list='$(include_HEADERS)'; for p in $$list; do \
-	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  f="`echo $$p | sed -e 's|^.*/||'`"; \
-	  echo " $(includeHEADERS_INSTALL) $$d$$p $(DESTDIR)$(includedir)/$$f"; \
-	  $(includeHEADERS_INSTALL) $$d$$p $(DESTDIR)$(includedir)/$$f; \
-	done
 
-uninstall-includeHEADERS:
-	@$(NORMAL_UNINSTALL)
-	@list='$(include_HEADERS)'; for p in $$list; do \
-	  f="`echo $$p | sed -e 's|^.*/||'`"; \
-	  echo " rm -f $(DESTDIR)$(includedir)/$$f"; \
-	  rm -f $(DESTDIR)$(includedir)/$$f; \
+# This directory's subdirectories are mostly independent; you can cd
+# into them and run `make' without going through this Makefile.
+# To change the values of `make' variables: instead of editing Makefiles,
+# (1) if the variable is set in `config.status', edit `config.status'
+#     (which will cause the Makefiles to be regenerated when you run `make');
+# (2) otherwise, pass the desired values on the `make' command line.
+$(RECURSIVE_TARGETS):
+	@set fnord $$MAKEFLAGS; amf=$$2; \
+	dot_seen=no; \
+	target=`echo $@ | sed s/-recursive//`; \
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+	  echo "Making $$target in $$subdir"; \
+	  if test "$$subdir" = "."; then \
+	    dot_seen=yes; \
+	    local_target="$$target-am"; \
+	  else \
+	    local_target="$$target"; \
+	  fi; \
+	  (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
+	   || case "$$amf" in *=*) exit 1;; *k*) fail=yes;; *) exit 1;; esac; \
+	done; \
+	if test "$$dot_seen" = "no"; then \
+	  $(MAKE) $(AM_MAKEFLAGS) "$$target-am" || exit 1; \
+	fi; test -z "$$fail"
+
+mostlyclean-recursive clean-recursive distclean-recursive \
+maintainer-clean-recursive:
+	@set fnord $$MAKEFLAGS; amf=$$2; \
+	dot_seen=no; \
+	case "$@" in \
+	  distclean-* | maintainer-clean-*) list='$(DIST_SUBDIRS)' ;; \
+	  *) list='$(SUBDIRS)' ;; \
+	esac; \
+	rev=''; for subdir in $$list; do \
+	  if test "$$subdir" = "."; then :; else \
+	    rev="$$subdir $$rev"; \
+	  fi; \
+	done; \
+	rev="$$rev ."; \
+	target=`echo $@ | sed s/-recursive//`; \
+	for subdir in $$rev; do \
+	  echo "Making $$target in $$subdir"; \
+	  if test "$$subdir" = "."; then \
+	    local_target="$$target-am"; \
+	  else \
+	    local_target="$$target"; \
+	  fi; \
+	  (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
+	   || case "$$amf" in *=*) exit 1;; *k*) fail=yes;; *) exit 1;; esac; \
+	done && test -z "$$fail"
+tags-recursive:
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+	  test "$$subdir" = . || (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) tags); \
+	done
+ctags-recursive:
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+	  test "$$subdir" = . || (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) ctags); \
 	done
 
 ETAGS = etags
@@ -717,10 +252,21 @@ ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	       END { for (i in files) print i; }'`; \
 	mkid -fID $$unique
 
-TAGS:  $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
+TAGS: tags-recursive $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
 		$(TAGS_FILES) $(LISP)
 	tags=; \
 	here=`pwd`; \
+	if (etags --etags-include --version) >/dev/null 2>&1; then \
+	  include_option=--etags-include; \
+	else \
+	  include_option=--include; \
+	fi; \
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+	  if test "$$subdir" = .; then :; else \
+	    test -f $$subdir/TAGS && \
+	      tags="$$tags $$include_option=$$here/$$subdir/TAGS"; \
+	  fi; \
+	done; \
 	list='$(SOURCES) $(HEADERS)  $(LISP) $(TAGS_FILES)'; \
 	unique=`for i in $$list; do \
 	    if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
@@ -732,7 +278,7 @@ TAGS:  $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
 	     $$tags $$unique
 
 ctags: CTAGS
-CTAGS:  $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
+CTAGS: ctags-recursive $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) \
 		$(TAGS_FILES) $(LISP)
 	tags=; \
 	here=`pwd`; \
@@ -753,79 +299,6 @@ GTAGS:
 
 distclean-tags:
 	-rm -f TAGS ID GTAGS GRTAGS GSYMS GPATH tags
-
-check-TESTS: $(TESTS)
-	@failed=0; all=0; xfail=0; xpass=0; skip=0; \
-	srcdir=$(srcdir); export srcdir; \
-	list='$(TESTS)'; \
-	if test -n "$$list"; then \
-	  for tst in $$list; do \
-	    if test -f ./$$tst; then dir=./; \
-	    elif test -f $$tst; then dir=; \
-	    else dir="$(srcdir)/"; fi; \
-	    if $(TESTS_ENVIRONMENT) $${dir}$$tst; then \
-	      all=`expr $$all + 1`; \
-	      case " $(XFAIL_TESTS) " in \
-	      *" $$tst "*) \
-	        xpass=`expr $$xpass + 1`; \
-	        failed=`expr $$failed + 1`; \
-	        echo "XPASS: $$tst"; \
-	      ;; \
-	      *) \
-	        echo "PASS: $$tst"; \
-	      ;; \
-	      esac; \
-	    elif test $$? -ne 77; then \
-	      all=`expr $$all + 1`; \
-	      case " $(XFAIL_TESTS) " in \
-	      *" $$tst "*) \
-	        xfail=`expr $$xfail + 1`; \
-	        echo "XFAIL: $$tst"; \
-	      ;; \
-	      *) \
-	        failed=`expr $$failed + 1`; \
-	        echo "FAIL: $$tst"; \
-	      ;; \
-	      esac; \
-	    else \
-	      skip=`expr $$skip + 1`; \
-	      echo "SKIP: $$tst"; \
-	    fi; \
-	  done; \
-	  if test "$$failed" -eq 0; then \
-	    if test "$$xfail" -eq 0; then \
-	      banner="All $$all tests passed"; \
-	    else \
-	      banner="All $$all tests behaved as expected ($$xfail expected failures)"; \
-	    fi; \
-	  else \
-	    if test "$$xpass" -eq 0; then \
-	      banner="$$failed of $$all tests failed"; \
-	    else \
-	      banner="$$failed of $$all tests did not behave as expected ($$xpass unexpected passes)"; \
-	    fi; \
-	  fi; \
-	  dashes="$$banner"; \
-	  skipped=""; \
-	  if test "$$skip" -ne 0; then \
-	    skipped="($$skip tests were not run)"; \
-	    test `echo "$$skipped" | wc -c` -gt `echo "$$banner" | wc -c` && \
-	      dashes="$$skipped"; \
-	  fi; \
-	  report=""; \
-	  if test "$$failed" -ne 0 && test -n "$(PACKAGE_BUGREPORT)"; then \
-	    report="Please report to $(PACKAGE_BUGREPORT)"; \
-	    test `echo "$$report" | wc -c` -gt `echo "$$banner" | wc -c` && \
-	      dashes="$$report"; \
-	  fi; \
-	  dashes=`echo "$$dashes" | sed s/./=/g`; \
-	  echo "$$dashes"; \
-	  echo "$$banner"; \
-	  test -n "$$skipped" && echo "$$skipped"; \
-	  test -n "$$report" && echo "$$report"; \
-	  echo "$$dashes"; \
-	  test "$$failed" -eq 0; \
-	else :; fi
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 
 top_distdir = .
@@ -843,7 +316,6 @@ distcleancheck_listfiles = find . -type f -print
 distdir: $(DISTFILES)
 	$(am__remove_distdir)
 	mkdir $(distdir)
-	$(mkinstalldirs) $(distdir)/removeoverlap
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \
@@ -868,6 +340,19 @@ distdir: $(DISTFILES)
 	    test -f $(distdir)/$$file \
 	    || cp -p $$d/$$file $(distdir)/$$file \
 	    || exit 1; \
+	  fi; \
+	done
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+	  if test "$$subdir" = .; then :; else \
+	    test -d $(distdir)/$$subdir \
+	    || mkdir $(distdir)/$$subdir \
+	    || exit 1; \
+	    (cd $$subdir && \
+	      $(MAKE) $(AM_MAKEFLAGS) \
+	        top_distdir="$(top_distdir)" \
+	        distdir=../$(distdir)/$$subdir \
+	        distdir) \
+	      || exit 1; \
 	  fi; \
 	done
 	-find $(distdir) -type d ! -perm -777 -exec chmod a+rwx {} \; -o \
@@ -940,22 +425,20 @@ distcleancheck: distclean
 	       $(distcleancheck_listfiles) ; \
 	       exit 1; } >&2
 check-am: all-am
-	$(MAKE) $(AM_MAKEFLAGS) $(check_PROGRAMS)
-	$(MAKE) $(AM_MAKEFLAGS) check-TESTS
-check: check-am
-all-am: Makefile $(LTLIBRARIES) $(HEADERS)
+check: check-recursive
+all-am: Makefile
+installdirs: installdirs-recursive
+installdirs-am:
 
-installdirs:
-	$(mkinstalldirs) $(DESTDIR)$(libdir) $(DESTDIR)$(includedir)
-install: install-am
-install-exec: install-exec-am
-install-data: install-data-am
-uninstall: uninstall-am
+install: install-recursive
+install-exec: install-exec-recursive
+install-data: install-data-recursive
+uninstall: uninstall-recursive
 
 install-am: all-am
 	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
 
-installcheck: installcheck-am
+installcheck: installcheck-recursive
 install-strip:
 	$(MAKE) $(AM_MAKEFLAGS) INSTALL_PROGRAM="$(INSTALL_STRIP_PROGRAM)" \
 	  install_sh_PROGRAM="$(INSTALL_STRIP_PROGRAM)" INSTALL_STRIP_FLAG=-s \
@@ -971,78 +454,74 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-clean: clean-am
+clean: clean-recursive
 
-clean-am: clean-checkPROGRAMS clean-generic clean-libLTLIBRARIES \
-	clean-libtool mostlyclean-am
+clean-am: clean-generic clean-libtool mostlyclean-am
 
-distclean: distclean-am
+distclean: distclean-recursive
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
-	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
-distclean-am: clean-am distclean-compile distclean-generic \
-	distclean-libtool distclean-tags
+distclean-am: clean-am distclean-generic distclean-libtool \
+	distclean-tags
 
-dvi: dvi-am
+dvi: dvi-recursive
 
 dvi-am:
 
-info: info-am
+info: info-recursive
 
 info-am:
 
-install-data-am: install-includeHEADERS
+install-data-am:
 
-install-exec-am: install-libLTLIBRARIES
+install-exec-am:
 
-install-info: install-info-am
+install-info: install-info-recursive
 
 install-man:
 
 installcheck-am:
 
-maintainer-clean: maintainer-clean-am
+maintainer-clean: maintainer-clean-recursive
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
 	-rm -rf $(top_srcdir)/autom4te.cache
-	-rm -rf ./$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
-mostlyclean: mostlyclean-am
+mostlyclean: mostlyclean-recursive
 
-mostlyclean-am: mostlyclean-compile mostlyclean-generic \
-	mostlyclean-libtool
+mostlyclean-am: mostlyclean-generic mostlyclean-libtool
 
-pdf: pdf-am
+pdf: pdf-recursive
 
 pdf-am:
 
-ps: ps-am
+ps: ps-recursive
 
 ps-am:
 
-uninstall-am: uninstall-includeHEADERS uninstall-info-am \
-	uninstall-libLTLIBRARIES
+uninstall-am: uninstall-info-am
 
-.PHONY: CTAGS GTAGS all all-am check check-TESTS check-am clean \
-	clean-checkPROGRAMS clean-generic clean-libLTLIBRARIES \
-	clean-libtool ctags dist dist-all dist-gzip distcheck distclean \
-	distclean-compile distclean-generic distclean-libtool \
+uninstall-info: uninstall-info-recursive
+
+.PHONY: $(RECURSIVE_TARGETS) CTAGS GTAGS all all-am check check-am clean \
+	clean-generic clean-libtool clean-recursive ctags \
+	ctags-recursive dist dist-all dist-gzip distcheck distclean \
+	distclean-generic distclean-libtool distclean-recursive \
 	distclean-tags distcleancheck distdir distuninstallcheck dvi \
-	dvi-am info info-am install install-am install-data \
-	install-data-am install-exec install-exec-am \
-	install-includeHEADERS install-info install-info-am \
-	install-libLTLIBRARIES install-man install-strip installcheck \
-	installcheck-am installdirs maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-compile \
-	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	tags uninstall uninstall-am uninstall-includeHEADERS \
-	uninstall-info-am uninstall-libLTLIBRARIES
+	dvi-am dvi-recursive info info-am info-recursive install \
+	install-am install-data install-data-am install-data-recursive \
+	install-exec install-exec-am install-exec-recursive \
+	install-info install-info-am install-info-recursive install-man \
+	install-recursive install-strip installcheck installcheck-am \
+	installdirs installdirs-am installdirs-recursive \
+	maintainer-clean maintainer-clean-generic \
+	maintainer-clean-recursive mostlyclean mostlyclean-generic \
+	mostlyclean-libtool mostlyclean-recursive pdf pdf-am \
+	pdf-recursive ps ps-am ps-recursive tags tags-recursive \
+	uninstall uninstall-am uninstall-info-am \
+	uninstall-info-recursive uninstall-recursive
 
-	removeoverlap/constraint.h\
-	removeoverlap/generate-constraints.h\
-	removeoverlap/remove_rectangle_overlap.h\
-	removeoverlap/csolve_VPSC.h
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
