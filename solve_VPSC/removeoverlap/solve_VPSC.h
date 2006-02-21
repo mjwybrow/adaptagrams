@@ -24,7 +24,7 @@ public:
 	void satisfy();
 	void solve();
 
-	void move_and_split();
+	void satisfy_inc();
 	VPSC(Variable *vs[], const int n, Constraint *cs[], const int m);
 	~VPSC();
 protected:

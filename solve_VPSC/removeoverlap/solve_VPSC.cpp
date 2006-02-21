@@ -130,20 +130,27 @@ void VPSC::solve() {
 }
 
 /**
- * incremental version of solve that should allow refinement after blocks are
+ * incremental version of satisfy that should allow refinement after blocks are
  * moved.  Work in progress.
  *
- * move blocks to new positions
- * 
+ *  - move blocks to new positions
+ *  - repeatedly merge across most violated constraint until no more
+ *    violated constraints exist
+ *
+ * Note: there is a special case to handle when the most violated constraint
+ * is between two variables in the same block.  Then, we must split the block
+ * over an active constraint between the two variables.  We choose the 
+ * constraint with the most negative lagrangian multiplier. 
  */
-void VPSC::move_and_split() {
+void VPSC::satisfy_inc() {
 	for(set<Block*>::const_iterator i(bs->begin());i!=bs->end();i++) {
 		Block *b = *i;
 		b->wposn = b->desiredWeightedPosition();
 		b->posn = b->wposn / b->weight;
 	}
 	Constraint* v = NULL;
-	while(mostViolated(v)>0) {
+	while(mostViolated(v)<0) {
+		assert(!v->active);
 		Block *lb = v->left->block, *rb = v->right->block;
 		if(lb != rb) {
 			lb->merge(rb,v);
@@ -167,9 +174,16 @@ void VPSC::move_and_split() {
  */
 double VPSC::mostViolated(Constraint* &v) {
 	double minSlack = DBL_MAX;
+#ifdef RECTANGLE_OVERLAP_LOGGING
+	ofstream f(LOGFILE,ios::app);
+	f<<"Looking for most violated..."<<endl;
+#endif
 	for(int i = 0; i < m; i++) {
 		Constraint *c=cs[i];
 		double slack = c->slack();
+#ifdef RECTANGLE_OVERLAP_LOGGING
+		f<<"  "<<*c<<endl;
+#endif
 		if(slack < minSlack) {
 			minSlack=slack;	
 			v=c;

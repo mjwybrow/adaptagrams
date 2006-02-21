@@ -78,12 +78,21 @@ void Block::setUpConstraintHeap(PairingHeap<Constraint*>* &h,bool in) {
 	}
 }	
 void Block::merge(Block* b, Constraint* c) {
+#ifdef RECTANGLE_OVERLAP_LOGGING
+	ofstream f(LOGFILE,ios::app);
+	f<<"  merging on: "<<*c<<",c->left->offset="<<c->left->offset<<",c->right->offset="<<c->right->offset<<endl;
+#endif
 	double dist = c->right->offset - c->left->offset - c->gap;
+	Block *l=c->left->block;
+	Block *r=c->right->block;
 	if (vars->size() < b->vars->size()) {
-		b->merge(this,c,dist);
+		r->merge(l,c,dist);
 	} else {
-	       	merge(b,c,-dist);
+	       	l->merge(r,c,-dist);
 	}
+#ifdef RECTANGLE_OVERLAP_LOGGING
+	f<<"  merged block="<<(b->deleted?*this:*b)<<endl;
+#endif
 }
 /**
  * Merges b into this block across c.  Can be either a
@@ -93,6 +102,10 @@ void Block::merge(Block* b, Constraint* c) {
  * @param distance separation required to satisfy c
  */
 void Block::merge(Block *b, Constraint *c, double dist) {
+#ifdef RECTANGLE_OVERLAP_LOGGING
+	ofstream f(LOGFILE,ios::app);
+	f<<"    merging: "<<*b<<"dist="<<dist<<endl;
+#endif
 	c->active=true;
 	wposn+=b->wposn-dist*b->weight;
 	weight+=b->weight;
@@ -320,7 +333,14 @@ void Block::populateSplitBlock(Block *b, Variable *v, Variable *u) {
  * with min lagrangrian multiplier and split at that point.
  */
 void Block::splitBetween(Variable* vl, Variable* vr, Block* &lb, Block* &rb) {
+#ifdef RECTANGLE_OVERLAP_LOGGING
+	ofstream f(LOGFILE,ios::app);
+	f<<"  need to split between: "<<*vl<<" and "<<*vr<<endl;
+#endif
 	Constraint *c=findMinLMBetween(vl, vr);
+#ifdef RECTANGLE_OVERLAP_LOGGING
+	f<<"  going to split on: "<<*c<<endl;
+#endif
 	split(lb,rb,c);
 }
 /**
@@ -334,6 +354,10 @@ void Block::split(Block* &l, Block* &r, Constraint* c) {
 	populateSplitBlock(l,c->left,c->right);
 	r=new Block();
 	populateSplitBlock(r,c->right,c->left);
+#ifdef RECTANGLE_OVERLAP_LOGGING
+	ofstream f(LOGFILE,ios::app);
+	f<<"  new blocks: "<<*l<<" and "<<*r<<endl;
+#endif
 }
 
 /**

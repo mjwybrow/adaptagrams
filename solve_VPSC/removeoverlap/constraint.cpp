@@ -27,7 +27,7 @@ std::ostream& operator <<(std::ostream &os, const Constraint &c)
 	if(&c==NULL) {
 		os<<"NULL";
 	} else {
-		os<<*c.left<<"+"<<c.gap<<"<="<<*c.right<<"("<<c.slack()<<"):lts="<<c.left->block->timeStamp<<",cts="<<c.timeStamp;
+		os<<*c.left<<"+"<<c.gap<<"<="<<*c.right<<"("<<c.slack()<<")"<<(c.active?"-active":"");
 	}
 	return os;
 }
