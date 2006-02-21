@@ -245,25 +245,21 @@ Pair Block::compute_dfdv_between(Variable* r, Variable* v, Variable *u) {
 	for(Cit it(v->in.begin());it!=v->in.end();it++) {
 		Constraint *c=*it;
 		if(canFollowLeft(c,u)) {
-			if(c->left==r) {
-				r=NULL;
-				m=c;
-			}
+			if(c->left==r) { r=NULL; m=c; }
 			Pair p=compute_dfdv_between(r,c->left,v);
-			dfdv-=c->lm=-p.first;
-			if(r && p.second && c->lm < p.second->lm) m=c;
+			dfdv -= c->lm = -p.first;
+			if(r && p.second) 
+				m = c->lm < p.second->lm ? c : p.second;
 		}
 	}
 	for(Cit it(v->out.begin());it!=v->out.end();it++) {
 		Constraint *c=*it;
 		if(canFollowRight(c,u)) {
-			if(c->right==r) {
-				r=NULL;
-				m=c;
-			}
+			if(c->right==r) { r=NULL; m=c; }
 			Pair p=compute_dfdv_between(r,c->right,v);
-			dfdv+=c->lm=p.first;
-			if(r && p.second && c->lm < p.second->lm) m=c;
+			dfdv += c->lm = p.first;
+			if(r && p.second) 
+				m = c->lm < p.second->lm ? c : p.second;
 		}
 	}
 	return Pair(dfdv,m);

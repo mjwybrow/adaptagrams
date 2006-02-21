@@ -23,11 +23,12 @@ void test1() {
 }
 
 /*
- * Contraint tree:
+ * Constraint tree:
  *    \_/
  *    / \
  */
 void test2() {
+	cout << "Block test 2..." << endl;
 	Variable *a[]={
 		new Variable(0,0,1),
 		new Variable(1,0,1),
@@ -51,12 +52,13 @@ void test2() {
 	Block *b=a[0]->block;
 	cout << "Block: " << *b << endl;
 	for(int i=0;i<6;i++) {
-			a[i]->desiredPosition = i<3?-2:5;
+			a[i]->desiredPosition = i!=4?-2:5;
 	}
 	cout << "calc min lm:" << endl;
-	Constraint *m = b->findMinLMBetween(a[0],a[5]);
+	Constraint *m = b->findMinLMBetween(a[0],a[4]);
 	cout << "Min lm constraint: " << *m << endl;
-	assert(m==c[2]);
+	assert(m==c[3]);
+	cout << "Block test 2... Success!" << endl;
 }
 int main() {
 	test1();
