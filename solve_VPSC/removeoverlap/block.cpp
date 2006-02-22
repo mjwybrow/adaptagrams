@@ -238,7 +238,7 @@ double Block::compute_dfdv(Variable *v, Variable *u, Constraint *&min_lm) {
 	return dfdv;
 }
 
-typedef pair<double, Constraint*> Pair;
+
 // computes dfdv for each variable and uses the sum of dfdv on either side of
 // the constraint to compute the lagrangian multiplier for that constraint.
 // The top level v and r are variables between which we want to find the
@@ -250,29 +250,45 @@ typedef pair<double, Constraint*> Pair;
 // a nested call (rather than NULL).
 // Then, the search for the m with minimum lm occurs as we return from
 // the recursion.
-// For a given constraint to be on the shortest path between the bounding
-// vars rv and m must be true.
-Pair Block::compute_dfdv_between(Variable* r, Variable* v, Variable *u) {
+//
+Block::Pair Block::compute_dfdv_between(Variable* r, Variable* v, Variable* u, 
+		Direction dir = NONE, bool changedDirection = false) {
 	double dfdv=v->weight*(v->position() - v->desiredPosition);
 	Constraint *m=NULL;
 	for(Cit it(v->in.begin());it!=v->in.end();it++) {
 		Constraint *c=*it;
 		if(canFollowLeft(c,u)) {
-			if(c->left==r) { r=NULL; m=c; }
-			Pair p=compute_dfdv_between(r,c->left,v);
+			if(dir==RIGHT) { 
+				changedDirection = true; 
+			}
+			if(c->left==r) {
+			       	r=NULL; m=c; 
+			}
+			Pair p=compute_dfdv_between(r,c->left,v,
+					LEFT,changedDirection);
 			dfdv -= c->lm = -p.first;
 			if(r && p.second) 
-				m = c->lm < p.second->lm ? c : p.second;
+				m = changedDirection && c->lm < p.second->lm 
+					? c 
+					: p.second;
 		}
 	}
 	for(Cit it(v->out.begin());it!=v->out.end();it++) {
 		Constraint *c=*it;
 		if(canFollowRight(c,u)) {
-			if(c->right==r) { r=NULL; m=c; }
-			Pair p=compute_dfdv_between(r,c->right,v);
+			if(dir==LEFT) { 
+				changedDirection = true; 
+			}
+			if(c->right==r) {
+			       	r=NULL; m=c; 
+			}
+			Pair p=compute_dfdv_between(r,c->right,v,
+					RIGHT,changedDirection);
 			dfdv += c->lm = p.first;
 			if(r && p.second) 
-				m = c->lm < p.second->lm ? c : p.second;
+				m = changedDirection && c->lm < p.second->lm 
+					? c 
+					: p.second;
 		}
 	}
 	return Pair(dfdv,m);

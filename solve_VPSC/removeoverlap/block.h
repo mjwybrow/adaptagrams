@@ -50,10 +50,12 @@ public:
 	PairingHeap<Constraint*> *in;
 	PairingHeap<Constraint*> *out;
 private:
+	typedef enum {NONE, LEFT, RIGHT} Direction;
+	typedef std::pair<double, Constraint*> Pair;
 	void reset_active_lm(Variable *v, Variable *u);
 	double compute_dfdv(Variable *v, Variable *u, Constraint *&min_lm);
-	std::pair<double, Constraint*> Block::compute_dfdv_between(
-			Variable* r, Variable* v, Variable *u);
+	Pair compute_dfdv_between(
+			Variable*, Variable*, Variable*, Direction, bool);
 	bool canFollowLeft(Constraint *c, Variable *last);
 	bool canFollowRight(Constraint *c, Variable *last);
 	void populateSplitBlock(Block *b, Variable *v, Variable *u);

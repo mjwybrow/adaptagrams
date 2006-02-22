@@ -149,7 +149,7 @@ void VPSC::satisfy_inc() {
 		b->posn = b->wposn / b->weight;
 	}
 	Constraint* v = NULL;
-	while(mostViolated(v)<0) {
+	while(mostViolated(v)<-0.0000001) {
 		assert(!v->active);
 		Block *lb = v->left->block, *rb = v->right->block;
 		if(lb != rb) {
@@ -181,14 +181,14 @@ double VPSC::mostViolated(Constraint* &v) {
 	for(int i = 0; i < m; i++) {
 		Constraint *c=cs[i];
 		double slack = c->slack();
-#ifdef RECTANGLE_OVERLAP_LOGGING
-		f<<"  "<<*c<<endl;
-#endif
 		if(slack < minSlack) {
 			minSlack=slack;	
 			v=c;
 		}
 	}
+#ifdef RECTANGLE_OVERLAP_LOGGING
+	f<<"  "<<*v<<endl;
+#endif
 	return minSlack;
 }
 
