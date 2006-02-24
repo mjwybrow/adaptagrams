@@ -148,44 +148,60 @@ void VPSC::satisfy_inc() {
 		b->wposn = b->desiredWeightedPosition();
 		b->posn = b->wposn / b->weight;
 	}
+	ConstraintList unprocessed(cs,cs+m);
+	long splitCtr = 0;
 	Constraint* v = NULL;
-	while(mostViolated(v)<-0.0000001) {
+	while(splitCtr < 10000 && mostViolated(unprocessed,v)<-0.0000001) {
 		assert(!v->active);
 		Block *lb = v->left->block, *rb = v->right->block;
 		if(lb != rb) {
 			lb->merge(rb,v);
 		} else {
+			splitCtr++;
 			// constraint is within block, need to split first
 			lb->splitBetween(v->left,v->right,lb,rb);
 			lb->merge(rb,v);
 		}
 	}
+	if(splitCtr == 10000) {
+		throw "Cycle Error!";
+	}
+	for(set<Block*>::const_iterator i(bs->begin());i!=bs->end();i++) {
+		Block *b = *i;
+		//if(b->deleted) delete b;
+	}
+	bs->cleanup();
+	// todo: compute all lm
 	for(int i=0;i<m;i++) {
+		// todo: if lm < 0 then split(lm)
 		if(cs[i]->slack()<-0.0000001) {
-			assert(cs[i]->slack()>-0.0000001);
+			//assert(cs[i]->slack()>-0.0000001);
 			throw "Unsatisfied constraint";
 		}
 	}
-	bs->cleanup();
 }
 
 /**
  * Scan constraint list for the most violated constraint
  */
-double VPSC::mostViolated(Constraint* &v) {
+double VPSC::mostViolated(ConstraintList &l, Constraint* &v) {
 	double minSlack = DBL_MAX;
 #ifdef RECTANGLE_OVERLAP_LOGGING
 	ofstream f(LOGFILE,ios::app);
 	f<<"Looking for most violated..."<<endl;
 #endif
-	for(int i = 0; i < m; i++) {
-		Constraint *c=cs[i];
+	ConstraintList::iterator deletePoint=NULL;
+	for(ConstraintList::iterator i=l.begin();i!=l.end();i++) {
+		Constraint *c=*i;
 		double slack = c->slack();
 		if(slack < minSlack) {
 			minSlack=slack;	
 			v=c;
+			deletePoint=i;
 		}
 	}
+	if(deletePoint!=NULL)
+		l.erase(deletePoint);
 #ifdef RECTANGLE_OVERLAP_LOGGING
 	f<<"  "<<*v<<endl;
 #endif

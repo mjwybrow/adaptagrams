@@ -137,17 +137,34 @@ void rand_test(int n, int m) {
 	cout<<"}"<<endl;
 	*/
 	VPSC vpsc(a,n,acs,cs.size());
-	vpsc.satisfy_inc();
+	try {
+		vpsc.satisfy_inc();
+	} catch (char const *msg) {
+		cout << msg << endl;
+		for(int i=0;i<n;i++) {
+			cout << "new Variable("<<i<<","<<a[i]->position()<<
+				",1)," << endl;
+			cout << "a[i]->Pos="<<a[i]->position() << endl;
+		}
+		for(CS::iterator i(cs.begin());i!=cs.end();i++) {
+			Constraint *c=*i;
+			cout << c->left->id << "->" << c->right->id << ";" << endl;
+			cout << "cs.push_back(new Constraint(a[" <<  c->left->id << "],a[" <<  c->left->id << "],3));" << endl;
+		}
+		throw "test failed!";
+	}
 }
 int main() {
 	srand(time(NULL));
-	//test1();
-	//test2();
-	//test3();
+	test1();
+	test2();
+	test3();
 	test4();
-	//for(int i=0;i<100000;i++) {
-		//if(i%10==0) cout << "i=" << i << endl;
-		//rand_test(5,2);
-	//}
+	/*
+	for(int i=0;i<100000;i++) {
+		if(i%10==0) cout << "i=" << i << endl;
+		rand_test(100,3);
+	}
+	*/
 	return 0;
 }

@@ -12,6 +12,7 @@
 #ifndef SEEN_REMOVEOVERLAP_SOLVE_VPSC_H
 #define SEEN_REMOVEOVERLAP_SOLVE_VPSC_H
 
+#include <list>
 class Variable;
 class Constraint;
 class Blocks;
@@ -31,7 +32,8 @@ protected:
 	Blocks *bs;
 	void refine();
 private:
-	double mostViolated(Constraint* &v);
+	typedef std::list<Constraint*> ConstraintList;
+	double mostViolated(ConstraintList &l,Constraint* &v);
 	void printBlocks();
 	bool constraintGraphIsCyclic(Variable *vs[], const int n);
 	bool blockGraphIsCyclic();

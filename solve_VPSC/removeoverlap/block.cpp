@@ -240,7 +240,7 @@ double Block::compute_dfdv(Variable *v, Variable *u, Constraint *&min_lm) {
 
 
 // computes dfdv for each variable and uses the sum of dfdv on either side of
-// the constraint to compute the lagrangian multiplier for that constraint.
+// the constraint c to compute the lagrangian multiplier lm_c.
 // The top level v and r are variables between which we want to find the
 // constraint with the smallest lm.  
 // When we find r we pass NULL to subsequent recursive calls, 
@@ -249,8 +249,8 @@ double Block::compute_dfdv(Variable *v, Variable *u, Constraint *&min_lm) {
 // variable to be visited is r or if a possible min constraint is returned from
 // a nested call (rather than NULL).
 // Then, the search for the m with minimum lm occurs as we return from
-// the recursion.
-//
+// the recursion (checking only constraints traversed left-to-right 
+// in order to avoid creating any new violations).
 Block::Pair Block::compute_dfdv_between(Variable* r, Variable* v, Variable* u, 
 		Direction dir = NONE, bool changedDirection = false) {
 	double dfdv=v->weight*(v->position() - v->desiredPosition);
@@ -268,9 +268,7 @@ Block::Pair Block::compute_dfdv_between(Variable* r, Variable* v, Variable* u,
 					LEFT,changedDirection);
 			dfdv -= c->lm = -p.first;
 			if(r && p.second) 
-				m = changedDirection && c->lm < p.second->lm 
-					? c 
-					: p.second;
+				m = p.second;
 		}
 	}
 	for(Cit it(v->out.begin());it!=v->out.end();it++) {
@@ -358,6 +356,7 @@ void Block::splitBetween(Variable* vl, Variable* vr, Block* &lb, Block* &rb) {
 	f<<"  going to split on: "<<*c<<endl;
 #endif
 	split(lb,rb,c);
+	deleted = true;
 }
 /**
  * Creates two new blocks, l and r, and splits this block across constraint c,
