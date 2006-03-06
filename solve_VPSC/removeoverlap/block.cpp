@@ -345,8 +345,9 @@ void Block::populateSplitBlock(Block *b, Variable *v, Variable *u) {
  * Block needs to be split because of a violated constraint between vl and vr.
  * We need to search the active constraint tree between l and r and find the constraint
  * with min lagrangrian multiplier and split at that point.
+ * Returns the split constraint
  */
-void Block::splitBetween(Variable* vl, Variable* vr, Block* &lb, Block* &rb) {
+Constraint* Block::splitBetween(Variable* vl, Variable* vr, Block* &lb, Block* &rb) {
 #ifdef RECTANGLE_OVERLAP_LOGGING
 	ofstream f(LOGFILE,ios::app);
 	f<<"  need to split between: "<<*vl<<" and "<<*vr<<endl;
@@ -357,6 +358,7 @@ void Block::splitBetween(Variable* vl, Variable* vr, Block* &lb, Block* &rb) {
 #endif
 	split(lb,rb,c);
 	deleted = true;
+	return c;
 }
 /**
  * Creates two new blocks, l and r, and splits this block across constraint c,
@@ -392,6 +394,9 @@ ostream& operator <<(ostream &os, const Block &b)
 	os<<"Block:";
 	for(vector<Variable*>::iterator v=b.vars->begin();v!=b.vars->end();v++) {
 		os<<" "<<**v;
+	}
+	if(b.deleted) {
+		os<<" Deleted!";
 	}
     return os;
 }

@@ -41,7 +41,7 @@ public:
 	void mergeIn(Block *b);
 	void mergeOut(Block *b);
 	void split(Block *&l, Block *&r, Constraint *c);
-	void splitBetween(Variable* vl, Variable* vr, Block* &lb, Block* &rb);
+	Constraint* splitBetween(Variable* vl, Variable* vr, Block* &lb, Block* &rb);
 	void setUpInConstraints();
 	void setUpOutConstraints();
 	double cost();

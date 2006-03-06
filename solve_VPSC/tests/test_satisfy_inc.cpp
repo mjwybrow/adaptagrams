@@ -101,8 +101,14 @@ void test4() {
 	double expected[]={5,0.5,3.5,6.5,9.5};
 	unsigned int n = sizeof(a)/sizeof(Variable*);
 	unsigned int m = sizeof(c)/sizeof(Constraint*);
-	VPSC vpsc(a,n,c,m);
-	vpsc.satisfy_inc();
+	try {
+		VPSC vpsc(a,n,c,m);
+		vpsc.solve_inc();
+	} catch (char const *msg) {
+		cerr << msg << endl;
+		exit(1);
+	}
+
 	/*
 	for(int i=0;i<n;i++) {
 		assert(approxEquals(a[i]->position(),expected[i]));
@@ -110,6 +116,45 @@ void test4() {
 	*/
 	cout << "Test 4... done." << endl;
 }
+void test5() {
+	cout << "Test 5..." << endl;
+	Variable *a[] = {
+		new Variable(0,6,1), new Variable(1,3,1), new
+			Variable(2,8,1), new Variable(3,8,1), new
+			Variable(4,4,1), new Variable(5,4,1), new
+			Variable(6,3,1), new Variable(7,3,1), new
+			Variable(8,9,1), new Variable(9,8,1) };
+	Constraint *c[] = {
+		new Constraint(a[0],a[5],3), new Constraint(a[1],a[8],3),
+		new Constraint(a[1],a[5],3), new Constraint(a[2],a[6],3),
+		new Constraint(a[2],a[6],3), new Constraint(a[2],a[5],3),
+		new Constraint(a[3],a[6],3), new Constraint(a[4],a[8],3),
+		new Constraint(a[4],a[7],3), new Constraint(a[5],a[7],3),
+		new Constraint(a[5],a[6],3), new Constraint(a[6],a[9],3),
+		new Constraint(a[6],a[7],3), new Constraint(a[7],a[8],3),
+		new Constraint(a[7],a[8],3), new Constraint(a[7],a[9],3),
+		new Constraint(a[8],a[9],3), new Constraint(a[8],a[9],3),
+		new Constraint(a[8],a[9],3)
+		};
+	//double expected[]={5,0.5,3.5,6.5,9.5};
+	unsigned int n = sizeof(a)/sizeof(Variable*);
+	unsigned int m = sizeof(c)/sizeof(Constraint*);
+	try {
+		VPSC vpsc(a,n,c,m);
+		vpsc.satisfy_inc();
+	} catch (char const *msg) {
+		cerr << msg << endl;
+		exit(1);
+	}
+
+	/*
+	for(int i=0;i<n;i++) {
+		assert(approxEquals(a[i]->position(),expected[i]));
+	}
+	*/
+	cout << "Test 5... done." << endl;
+}
+
 // n=number vars
 // m=max constraints per var
 void rand_test(int n, int m) {
@@ -138,32 +183,32 @@ void rand_test(int n, int m) {
 	*/
 	VPSC vpsc(a,n,acs,cs.size());
 	try {
-		vpsc.satisfy_inc();
+		vpsc.solve_inc();
 	} catch (char const *msg) {
 		cout << msg << endl;
 		for(int i=0;i<n;i++) {
-			cout << "new Variable("<<i<<","<<a[i]->position()<<
-				",1)," << endl;
-			cout << "a[i]->Pos="<<a[i]->position() << endl;
+			cout << "new Variable("<<i<<","<<a[i]->desiredPosition<< ",1)," << endl;
+			//cout << "a[i]->Pos="<<a[i]->position() << endl;
 		}
 		for(CS::iterator i(cs.begin());i!=cs.end();i++) {
 			Constraint *c=*i;
-			cout << c->left->id << "->" << c->right->id << ";" << endl;
-			cout << "cs.push_back(new Constraint(a[" <<  c->left->id << "],a[" <<  c->left->id << "],3));" << endl;
+			//cout << c->left->id << "->" << c->right->id << ";" << endl;
+			cout << "new Constraint(a[" <<  c->left->id << "],a[" <<  c->right->id << "],3)," << endl;
 		}
 		throw "test failed!";
 	}
 }
 int main() {
 	srand(time(NULL));
-	test1();
-	test2();
-	test3();
-	test4();
+	//test1();
+	//test2();
+	//test3();
+	//test4();
+	test5();
 	/*
-	for(int i=0;i<100000;i++) {
+	for(int i=0;i<100;i++) {
 		if(i%10==0) cout << "i=" << i << endl;
-		rand_test(100,3);
+		rand_test(10,3);
 	}
 	*/
 	return 0;

@@ -19918,7 +19918,10 @@ test -z "$INSTALL_SCRIPT" && INSTALL_SCRIPT='${INSTALL}'
 
 test -z "$INSTALL_DATA" && INSTALL_DATA='${INSTALL} -m 644'
 
-#AC_DEFINE(RECTANGLE_OVERLAP_LOGGING)
+cat >>confdefs.h <<\_ACEOF
+#define RECTANGLE_OVERLAP_LOGGING 1
+_ACEOF
+
                               ac_config_files="$ac_config_files Makefile removeoverlap/Makefile tests/Makefile"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure

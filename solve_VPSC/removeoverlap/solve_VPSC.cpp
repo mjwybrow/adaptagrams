@@ -14,10 +14,13 @@
 #include "block.h"
 #include "blocks.h"
 #include "solve_VPSC.h"
+#include <math.h>
 #ifdef RECTANGLE_OVERLAP_LOGGING
 #include <fstream>
+#include <sstream>
 using std::ios;
 using std::ofstream;
+using std::ostringstream;
 using std::endl;
 #endif
 
@@ -129,6 +132,21 @@ void VPSC::solve() {
 	refine();
 }
 
+void VPSC::solve_inc() {
+#ifdef RECTANGLE_OVERLAP_LOGGING
+	ofstream f(LOGFILE,ios::app);
+	f<<"solve_inc()..."<<endl;
+#endif
+	double lastcost,cost = bs->cost();
+	do {
+		lastcost=cost;
+		satisfy_inc();
+		cost = bs->cost();
+#ifdef RECTANGLE_OVERLAP_LOGGING
+	f<<"  cost="<<cost<<endl;
+#endif
+	} while(fabs(lastcost-cost)>0.0001);
+}
 /**
  * incremental version of satisfy that should allow refinement after blocks are
  * moved.  Work in progress.
@@ -143,40 +161,69 @@ void VPSC::solve() {
  * constraint with the most negative lagrangian multiplier. 
  */
 void VPSC::satisfy_inc() {
+#ifdef RECTANGLE_OVERLAP_LOGGING
+	ofstream f(LOGFILE,ios::app);
+	f<<"satisfy_inc()..."<<endl;
+#endif
 	for(set<Block*>::const_iterator i(bs->begin());i!=bs->end();i++) {
 		Block *b = *i;
 		b->wposn = b->desiredWeightedPosition();
 		b->posn = b->wposn / b->weight;
 	}
+#ifdef RECTANGLE_OVERLAP_LOGGING
+	f<<"  moved blocks."<<endl;
+#endif
 	ConstraintList unprocessed(cs,cs+m);
 	long splitCtr = 0;
 	Constraint* v = NULL;
-	while(splitCtr < 10000 && mostViolated(unprocessed,v)<-0.0000001) {
+	while(mostViolated(unprocessed,v)<-0.0000001) {
 		assert(!v->active);
 		Block *lb = v->left->block, *rb = v->right->block;
 		if(lb != rb) {
 			lb->merge(rb,v);
 		} else {
-			splitCtr++;
+			if(splitCtr++>10000) {
+				throw "Cycle Error!";
+			}
 			// constraint is within block, need to split first
-			lb->splitBetween(v->left,v->right,lb,rb);
+			unprocessed.push_back(lb->splitBetween(v->left,v->right,lb,rb));
 			lb->merge(rb,v);
+			bs->insert(lb);
 		}
 	}
-	if(splitCtr == 10000) {
-		throw "Cycle Error!";
-	}
+#ifdef RECTANGLE_OVERLAP_LOGGING
+	f<<"  finished merges."<<endl;
+#endif
+	bs->cleanup();
+#ifdef RECTANGLE_OVERLAP_LOGGING
+	f<<"  finished cleanup."<<endl;
+	printBlocks();
+#endif
+	// Split each block if necessary on min LM
 	for(set<Block*>::const_iterator i(bs->begin());i!=bs->end();i++) {
 		Block *b = *i;
-		//if(b->deleted) delete b;
+		v=b->findMinLM();
+		if(v!=NULL && v->lm < -0.0000001) {
+#ifdef RECTANGLE_OVERLAP_LOGGING
+			f<<"    found split point: "<<*v<<endl;
+#endif
+			Block *b = v->left->block, *l=NULL, *r=NULL;
+			assert(v->left->block == v->right->block);
+			b->split(l,r,v);
+			b->deleted=true;
+		}
 	}
+#ifdef RECTANGLE_OVERLAP_LOGGING
+	f<<"  finished splits."<<endl;
+#endif
 	bs->cleanup();
-	// todo: compute all lm
 	for(int i=0;i<m;i++) {
-		// todo: if lm < 0 then split(lm)
-		if(cs[i]->slack()<-0.0000001) {
+		v=cs[i];
+		if(v->slack()<-0.0000001) {
 			//assert(cs[i]->slack()>-0.0000001);
-			throw "Unsatisfied constraint";
+			ostringstream s;
+			s<<"Unsatisfied constraint: "<<*v;
+			throw s.str().c_str();
 		}
 	}
 }
@@ -203,7 +250,7 @@ double VPSC::mostViolated(ConstraintList &l, Constraint* &v) {
 	if(deletePoint!=NULL)
 		l.erase(deletePoint);
 #ifdef RECTANGLE_OVERLAP_LOGGING
-	f<<"  "<<*v<<endl;
+	f<<"  most violated is: "<<*v<<endl;
 #endif
 	return minSlack;
 }

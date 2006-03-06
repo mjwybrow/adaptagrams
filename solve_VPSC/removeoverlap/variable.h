@@ -21,7 +21,6 @@ class Variable
 {
 	friend std::ostream& operator <<(std::ostream &os, const Variable &v);
 public:
-	static const unsigned int _TOSTRINGBUFFSIZE=20;
 	const int id; // useful in log files
 	double desiredPosition;
 	const double weight;
