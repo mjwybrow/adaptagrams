@@ -11,7 +11,7 @@ inline int getRand(const int range) {
 	return (double)range*rand()/(RAND_MAX+1.0);
 }
 inline bool approxEquals(const double a, const double b) {
-	return fabs((double)a-b)<0.000001;
+	return fabs((double)a-b)<0.0001;
 }
 typedef vector<Constraint*> CS;
 
@@ -119,24 +119,22 @@ void test4() {
 void test5() {
 	cout << "Test 5..." << endl;
 	Variable *a[] = {
-		new Variable(0,6,1), new Variable(1,3,1), new
-			Variable(2,8,1), new Variable(3,8,1), new
-			Variable(4,4,1), new Variable(5,4,1), new
-			Variable(6,3,1), new Variable(7,3,1), new
-			Variable(8,9,1), new Variable(9,8,1) };
+		new Variable(0,0,1), new Variable(1,9,1), new
+			Variable(2,1,1), new Variable(3,9,1), new
+			Variable(4,5,1), new Variable(5,1,1), new
+			Variable(6,2,1), new Variable(7,1,1), new
+			Variable(8,6,1), new Variable(9,3,1)};
 	Constraint *c[] = {
-		new Constraint(a[0],a[5],3), new Constraint(a[1],a[8],3),
-		new Constraint(a[1],a[5],3), new Constraint(a[2],a[6],3),
-		new Constraint(a[2],a[6],3), new Constraint(a[2],a[5],3),
-		new Constraint(a[3],a[6],3), new Constraint(a[4],a[8],3),
-		new Constraint(a[4],a[7],3), new Constraint(a[5],a[7],3),
-		new Constraint(a[5],a[6],3), new Constraint(a[6],a[9],3),
-		new Constraint(a[6],a[7],3), new Constraint(a[7],a[8],3),
-		new Constraint(a[7],a[8],3), new Constraint(a[7],a[9],3),
-		new Constraint(a[8],a[9],3), new Constraint(a[8],a[9],3),
-		new Constraint(a[8],a[9],3)
-		};
-	//double expected[]={5,0.5,3.5,6.5,9.5};
+		new Constraint(a[0],a[3],3), new Constraint(a[1],a[8],3),
+		new Constraint(a[1],a[6],3), new Constraint(a[2],a[6],3),
+		new Constraint(a[3],a[5],3), new Constraint(a[3],a[6],3),
+		new Constraint(a[3],a[7],3), new Constraint(a[4],a[8],3),
+		new Constraint(a[4],a[7],3), new Constraint(a[5],a[8],3),
+		new Constraint(a[5],a[7],3), new Constraint(a[5],a[8],3),
+		new Constraint(a[6],a[9],3), new Constraint(a[7],a[8],3),
+		new Constraint(a[7],a[9],3), new Constraint(a[8],a[9],3)
+	};
+	double expected[]={-3.71429,4,1,-0.714286,2.28571,2.28571,7,5.28571,8.28571,11.2857};
 	unsigned int n = sizeof(a)/sizeof(Variable*);
 	unsigned int m = sizeof(c)/sizeof(Constraint*);
 	try {
@@ -147,11 +145,10 @@ void test5() {
 		exit(1);
 	}
 
-	/*
 	for(int i=0;i<n;i++) {
+		cout << a[i]->position() << "=" << expected[i] << endl;
 		assert(approxEquals(a[i]->position(),expected[i]));
 	}
-	*/
 	cout << "Test 5... done." << endl;
 }
 

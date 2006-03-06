@@ -205,11 +205,13 @@ void VPSC::satisfy_inc() {
 		v=b->findMinLM();
 		if(v!=NULL && v->lm < -0.0000001) {
 #ifdef RECTANGLE_OVERLAP_LOGGING
-			f<<"    found split point: "<<*v<<endl;
+			f<<"    found split point: "<<*v<<" lm="<<v->lm<<endl;
 #endif
 			Block *b = v->left->block, *l=NULL, *r=NULL;
 			assert(v->left->block == v->right->block);
 			b->split(l,r,v);
+			bs->insert(l);
+			bs->insert(r);
 			b->deleted=true;
 		}
 	}
