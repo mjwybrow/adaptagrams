@@ -209,10 +209,17 @@ void VPSC::satisfy_inc() {
 #endif
 			Block *b = v->left->block, *l=NULL, *r=NULL;
 			assert(v->left->block == v->right->block);
+			double pos = b->posn;
 			b->split(l,r,v);
+			l->posn=r->posn=pos;
+			l->wposn = l->posn * l->weight;
+			r->wposn = r->posn * r->weight;
 			bs->insert(l);
 			bs->insert(r);
 			b->deleted=true;
+#ifdef RECTANGLE_OVERLAP_LOGGING
+			f<<"  new blocks: "<<*l<<" and "<<*r<<endl;
+#endif
 		}
 	}
 #ifdef RECTANGLE_OVERLAP_LOGGING

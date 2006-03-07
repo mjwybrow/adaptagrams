@@ -363,7 +363,7 @@ Constraint* Block::splitBetween(Variable* vl, Variable* vr, Block* &lb, Block* &
 /**
  * Creates two new blocks, l and r, and splits this block across constraint c,
  * placing the left subtree of constraints (and associated variables) into l
- * and the right into r 
+ * and the right into r.
  */
 void Block::split(Block* &l, Block* &r, Constraint* c) {
 	c->active=false;
@@ -371,10 +371,6 @@ void Block::split(Block* &l, Block* &r, Constraint* c) {
 	populateSplitBlock(l,c->left,c->right);
 	r=new Block();
 	populateSplitBlock(r,c->right,c->left);
-#ifdef RECTANGLE_OVERLAP_LOGGING
-	ofstream f(LOGFILE,ios::app);
-	f<<"  new blocks: "<<*l<<" and "<<*r<<endl;
-#endif
 }
 
 /**

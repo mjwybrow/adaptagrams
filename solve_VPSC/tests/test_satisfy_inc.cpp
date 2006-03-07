@@ -139,7 +139,7 @@ void test5() {
 	unsigned int m = sizeof(c)/sizeof(Constraint*);
 	try {
 		VPSC vpsc(a,n,c,m);
-		vpsc.satisfy_inc();
+		vpsc.solve_inc();
 	} catch (char const *msg) {
 		cerr << msg << endl;
 		exit(1);
