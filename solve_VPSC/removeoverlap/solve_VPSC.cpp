@@ -15,15 +15,15 @@
 #include "blocks.h"
 #include "solve_VPSC.h"
 #include <math.h>
+#include <sstream>
 #ifdef RECTANGLE_OVERLAP_LOGGING
 #include <fstream>
-#include <sstream>
 using std::ios;
 using std::ofstream;
-using std::ostringstream;
 using std::endl;
 #endif
 
+using std::ostringstream;
 using std::list;
 using std::set;
 

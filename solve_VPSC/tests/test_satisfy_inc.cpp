@@ -146,7 +146,6 @@ void test5() {
 	}
 
 	for(int i=0;i<n;i++) {
-		cout << a[i]->position() << "=" << expected[i] << endl;
 		assert(approxEquals(a[i]->position(),expected[i]));
 	}
 	cout << "Test 5... done." << endl;
@@ -201,12 +200,10 @@ int main() {
 	//test2();
 	//test3();
 	//test4();
-	test5();
-	/*
-	for(int i=0;i<100;i++) {
+	//test5();
+	for(int i=0;i<10000;i++) {
 		if(i%10==0) cout << "i=" << i << endl;
-		rand_test(10,3);
+		rand_test(70,3);
 	}
-	*/
 	return 0;
 }
