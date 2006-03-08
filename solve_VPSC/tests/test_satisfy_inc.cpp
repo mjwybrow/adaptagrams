@@ -23,8 +23,8 @@ void test1() {
 		new Variable(0,5,1)};
 	Constraint *c[] = {
 		new Constraint(a[0],a[1],2)};
-	VPSC vpsc(a,2,c,1);
-	vpsc.satisfy_inc();
+	IncVPSC vpsc(a,2,c,1);
+	vpsc.satisfy();
 	assert(approxEquals(a[0]->position(),4.5));
 	assert(approxEquals(a[1]->position(),6.5));
 	cout << "Test 1... done." << endl;
@@ -49,8 +49,8 @@ void test2() {
 	double expected[]={0.5,6,3.5,6.5,9.5};
 	unsigned int n = sizeof(a)/sizeof(Variable*);
 	unsigned int m = sizeof(c)/sizeof(Constraint*);
-	VPSC vpsc(a,n,c,m);
-	vpsc.satisfy_inc();
+	IncVPSC vpsc(a,n,c,m);
+	vpsc.satisfy();
 	for(int i=0;i<n;i++) {
 		assert(approxEquals(a[i]->position(),expected[i]));
 	}
@@ -75,8 +75,8 @@ void test3() {
 	double expected[]={5,0.5,3.5,6.5,9.5};
 	unsigned int n = sizeof(a)/sizeof(Variable*);
 	unsigned int m = sizeof(c)/sizeof(Constraint*);
-	VPSC vpsc(a,n,c,m);
-	vpsc.satisfy_inc();
+	IncVPSC vpsc(a,n,c,m);
+	vpsc.satisfy();
 	for(int i=0;i<n;i++) {
 		assert(approxEquals(a[i]->position(),expected[i]));
 	}
@@ -102,8 +102,8 @@ void test4() {
 	unsigned int n = sizeof(a)/sizeof(Variable*);
 	unsigned int m = sizeof(c)/sizeof(Constraint*);
 	try {
-		VPSC vpsc(a,n,c,m);
-		vpsc.solve_inc();
+		IncVPSC vpsc(a,n,c,m);
+		vpsc.solve();
 	} catch (char const *msg) {
 		cerr << msg << endl;
 		exit(1);
@@ -138,8 +138,8 @@ void test5() {
 	unsigned int n = sizeof(a)/sizeof(Variable*);
 	unsigned int m = sizeof(c)/sizeof(Constraint*);
 	try {
-		VPSC vpsc(a,n,c,m);
-		vpsc.solve_inc();
+		IncVPSC vpsc(a,n,c,m);
+		vpsc.solve();
 	} catch (char const *msg) {
 		cerr << msg << endl;
 		exit(1);
@@ -177,9 +177,9 @@ void rand_test(int n, int m) {
 	}
 	cout<<"}"<<endl;
 	*/
-	VPSC vpsc(a,n,acs,cs.size());
+	IncVPSC vpsc(a,n,acs,cs.size());
 	try {
-		vpsc.solve_inc();
+		vpsc.solve();
 	} catch (char const *msg) {
 		cout << msg << endl;
 		for(int i=0;i<n;i++) {
@@ -201,9 +201,9 @@ int main() {
 	//test3();
 	//test4();
 	//test5();
-	for(int i=0;i<10000;i++) {
+	for(int i=0;i<100;i++) {
 		if(i%10==0) cout << "i=" << i << endl;
-		rand_test(70,3);
+		rand_test(100,3);
 	}
 	return 0;
 }

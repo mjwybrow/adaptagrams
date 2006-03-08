@@ -27,6 +27,10 @@ using std::ostringstream;
 using std::list;
 using std::set;
 
+IncVPSC::IncVPSC(Variable *vs[], const int n, Constraint *cs[], const int m) 
+	: VPSC(vs,n,cs,m) {
+	inactive.assign(cs,cs+m);
+}
 VPSC::VPSC(Variable *vs[], const int n, Constraint *cs[], const int m) : cs(cs), m(m) {
 	//assert(!constraintGraphIsCyclic(vs,n));
 	bs=new Blocks(vs,n);
@@ -132,7 +136,7 @@ void VPSC::solve() {
 	refine();
 }
 
-void VPSC::solve_inc() {
+void IncVPSC::solve() {
 #ifdef RECTANGLE_OVERLAP_LOGGING
 	ofstream f(LOGFILE,ios::app);
 	f<<"solve_inc()..."<<endl;
@@ -140,7 +144,7 @@ void VPSC::solve_inc() {
 	double lastcost,cost = bs->cost();
 	do {
 		lastcost=cost;
-		satisfy_inc();
+		satisfy();
 		cost = bs->cost();
 #ifdef RECTANGLE_OVERLAP_LOGGING
 	f<<"  cost="<<cost<<endl;
@@ -160,7 +164,7 @@ void VPSC::solve_inc() {
  * over an active constraint between the two variables.  We choose the 
  * constraint with the most negative lagrangian multiplier. 
  */
-void VPSC::satisfy_inc() {
+void IncVPSC::satisfy() {
 #ifdef RECTANGLE_OVERLAP_LOGGING
 	ofstream f(LOGFILE,ios::app);
 	f<<"satisfy_inc()..."<<endl;
@@ -173,10 +177,9 @@ void VPSC::satisfy_inc() {
 #ifdef RECTANGLE_OVERLAP_LOGGING
 	f<<"  moved blocks."<<endl;
 #endif
-	ConstraintList unprocessed(cs,cs+m);
 	long splitCtr = 0;
 	Constraint* v = NULL;
-	while(mostViolated(unprocessed,v)<-0.0000001) {
+	while(mostViolated(inactive,v)<-0.0000001) {
 		assert(!v->active);
 		Block *lb = v->left->block, *rb = v->right->block;
 		if(lb != rb) {
@@ -186,7 +189,7 @@ void VPSC::satisfy_inc() {
 				throw "Cycle Error!";
 			}
 			// constraint is within block, need to split first
-			unprocessed.push_back(lb->splitBetween(v->left,v->right,lb,rb));
+			inactive.push_back(lb->splitBetween(v->left,v->right,lb,rb));
 			lb->merge(rb,v);
 			bs->insert(lb);
 		}
@@ -217,6 +220,7 @@ void VPSC::satisfy_inc() {
 			bs->insert(l);
 			bs->insert(r);
 			b->deleted=true;
+			inactive.push_back(v);
 #ifdef RECTANGLE_OVERLAP_LOGGING
 			f<<"  new blocks: "<<*l<<" and "<<*r<<endl;
 #endif
@@ -240,7 +244,7 @@ void VPSC::satisfy_inc() {
 /**
  * Scan constraint list for the most violated constraint
  */
-double VPSC::mostViolated(ConstraintList &l, Constraint* &v) {
+double IncVPSC::mostViolated(ConstraintList &l, Constraint* &v) {
 	double minSlack = DBL_MAX;
 #ifdef RECTANGLE_OVERLAP_LOGGING
 	ofstream f(LOGFILE,ios::app);
@@ -256,7 +260,7 @@ double VPSC::mostViolated(ConstraintList &l, Constraint* &v) {
 			deletePoint=i;
 		}
 	}
-	if(deletePoint!=NULL)
+	if(deletePoint!=NULL && minSlack<-0.0000001)
 		l.erase(deletePoint);
 #ifdef RECTANGLE_OVERLAP_LOGGING
 	f<<"  most violated is: "<<*v<<endl;

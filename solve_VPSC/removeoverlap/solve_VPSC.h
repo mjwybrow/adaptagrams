@@ -25,21 +25,27 @@ public:
 	void satisfy();
 	void solve();
 
-	void solve_inc();
-	void satisfy_inc();
 	VPSC(Variable *vs[], const int n, Constraint *cs[], const int m);
 	~VPSC();
 protected:
 	Blocks *bs;
-	void refine();
+	Constraint **cs;
+	int m;
 private:
-	typedef std::list<Constraint*> ConstraintList;
-	double mostViolated(ConstraintList &l,Constraint* &v);
+	void refine();
 	void printBlocks();
 	bool constraintGraphIsCyclic(Variable *vs[], const int n);
 	bool blockGraphIsCyclic();
-	Constraint **cs;
-	int m;
 };
 
+class IncVPSC : VPSC {
+public:
+	void satisfy();
+	void solve();
+	IncVPSC(Variable *vs[], const int n, Constraint *cs[], const int m);
+private:
+	typedef std::list<Constraint*> ConstraintList;
+	ConstraintList inactive;
+	double mostViolated(ConstraintList &l,Constraint* &v);
+};
 #endif // SEEN_REMOVEOVERLAP_SOLVE_VPSC_H
