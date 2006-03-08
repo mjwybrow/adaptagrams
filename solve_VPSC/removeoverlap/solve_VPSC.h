@@ -22,8 +22,8 @@ class Blocks;
  */
 class VPSC {
 public:
-	void satisfy();
-	void solve();
+	virtual void satisfy();
+	virtual void solve();
 
 	VPSC(Variable *vs[], const int n, Constraint *cs[], const int m);
 	~VPSC();

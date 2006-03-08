@@ -16,6 +16,9 @@ Constraint* newConstraint(Variable* left, Variable* right, double gap) {
 VPSC* newVPSC(Variable* vs[], int n, Constraint* cs[], int m) {
 	return new VPSC(vs,n,cs,m);
 }
+IncVPSC* newIncVPSC(Variable* vs[], int n, Constraint* cs[], int m) {
+	return new IncVPSC(vs,n,cs,m);
+}
 void deleteVPSC(VPSC *vpsc) {
 	assert(vpsc!=NULL);
 	delete vpsc;

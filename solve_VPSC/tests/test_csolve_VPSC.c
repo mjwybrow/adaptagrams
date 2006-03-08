@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
 	vs[0]=v1;
 	vs[1]=v2;
 	cs[0]=c;
-	VPSC* vpsc = newVPSC(vs,n,cs,m);
+	VPSC* vpsc = newIncVPSC(vs,n,cs,m);
 	satisfyVPSC(vpsc);
 	printf("v=%f,%f\n",getVariablePos(v1),getVariablePos(v2));
 	for(i=0;i<n;i++) {
