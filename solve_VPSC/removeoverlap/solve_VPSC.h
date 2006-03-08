@@ -42,6 +42,8 @@ class IncVPSC : VPSC {
 public:
 	void satisfy();
 	void solve();
+	void moveBlocks();
+	void splitBlocks();
 	IncVPSC(Variable *vs[], const int n, Constraint *cs[], const int m);
 private:
 	typedef std::list<Constraint*> ConstraintList;

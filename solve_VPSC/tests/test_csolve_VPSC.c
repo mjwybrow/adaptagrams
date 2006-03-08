@@ -14,6 +14,7 @@ int main(int argc, char **argv) {
 	cs[0]=c;
 	VPSC* vpsc = newIncVPSC(vs,n,cs,m);
 	satisfyVPSC(vpsc);
+	splitIncVPSC(vpsc);
 	printf("v=%f,%f\n",getVariablePos(v1),getVariablePos(v2));
 	for(i=0;i<n;i++) {
 		free(vs[i]);

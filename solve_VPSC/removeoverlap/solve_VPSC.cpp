@@ -145,6 +145,7 @@ void IncVPSC::solve() {
 	do {
 		lastcost=cost;
 		satisfy();
+		splitBlocks();
 		cost = bs->cost();
 #ifdef RECTANGLE_OVERLAP_LOGGING
 	f<<"  cost="<<cost<<endl;
@@ -152,8 +153,8 @@ void IncVPSC::solve() {
 	} while(fabs(lastcost-cost)>0.0001);
 }
 /**
- * incremental version of satisfy that should allow refinement after blocks are
- * moved.  Work in progress.
+ * incremental version of satisfy that allows refinement after blocks are
+ * moved.
  *
  *  - move blocks to new positions
  *  - repeatedly merge across most violated constraint until no more
@@ -169,14 +170,7 @@ void IncVPSC::satisfy() {
 	ofstream f(LOGFILE,ios::app);
 	f<<"satisfy_inc()..."<<endl;
 #endif
-	for(set<Block*>::const_iterator i(bs->begin());i!=bs->end();i++) {
-		Block *b = *i;
-		b->wposn = b->desiredWeightedPosition();
-		b->posn = b->wposn / b->weight;
-	}
-#ifdef RECTANGLE_OVERLAP_LOGGING
-	f<<"  moved blocks."<<endl;
-#endif
+	splitBlocks();
 	long splitCtr = 0;
 	Constraint* v = NULL;
 	while(mostViolated(inactive,v)<-0.0000001) {
@@ -198,14 +192,40 @@ void IncVPSC::satisfy() {
 	f<<"  finished merges."<<endl;
 #endif
 	bs->cleanup();
+	for(int i=0;i<m;i++) {
+		v=cs[i];
+		if(v->slack()<-0.0000001) {
+			//assert(cs[i]->slack()>-0.0000001);
+			ostringstream s;
+			s<<"Unsatisfied constraint: "<<*v;
+			throw s.str().c_str();
+		}
+	}
 #ifdef RECTANGLE_OVERLAP_LOGGING
 	f<<"  finished cleanup."<<endl;
 	printBlocks();
 #endif
-	// Split each block if necessary on min LM
+}
+void IncVPSC::moveBlocks() {
+#ifdef RECTANGLE_OVERLAP_LOGGING
+	ofstream f(LOGFILE,ios::app);
+	f<<"moveBlocks()..."<<endl;
+#endif
 	for(set<Block*>::const_iterator i(bs->begin());i!=bs->end();i++) {
 		Block *b = *i;
-		v=b->findMinLM();
+		b->wposn = b->desiredWeightedPosition();
+		b->posn = b->wposn / b->weight;
+	}
+#ifdef RECTANGLE_OVERLAP_LOGGING
+	f<<"  moved blocks."<<endl;
+#endif
+}
+void IncVPSC::splitBlocks() {
+	moveBlocks();
+	// Split each block if necessary on min LM
+	for(set<Block*>::const_iterator i(bs->begin());i!=bs->end();i++) {
+		Block* b = *i;
+		Constraint* v=b->findMinLM();
 		if(v!=NULL && v->lm < -0.0000001) {
 #ifdef RECTANGLE_OVERLAP_LOGGING
 			f<<"    found split point: "<<*v<<" lm="<<v->lm<<endl;
@@ -230,15 +250,6 @@ void IncVPSC::satisfy() {
 	f<<"  finished splits."<<endl;
 #endif
 	bs->cleanup();
-	for(int i=0;i<m;i++) {
-		v=cs[i];
-		if(v->slack()<-0.0000001) {
-			//assert(cs[i]->slack()>-0.0000001);
-			ostringstream s;
-			s<<"Unsatisfied constraint: "<<*v;
-			throw s.str().c_str();
-		}
-	}
 }
 
 /**

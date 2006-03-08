@@ -35,6 +35,9 @@ void satisfyVPSC(VPSC* vpsc) {
 void solveVPSC(VPSC* vpsc) {
 	vpsc->solve();
 }
+void splitIncVPSC(IncVPSC* vpsc) {
+	vpsc->splitBlocks();
+}
 void setVariableDesiredPos(Variable *v, double desiredPos) {
 	v->desiredPosition = desiredPos;
 }

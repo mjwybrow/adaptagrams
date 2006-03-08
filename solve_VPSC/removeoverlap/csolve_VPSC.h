@@ -17,6 +17,8 @@ void deleteVPSC(VPSC*);
 
 void satisfyVPSC(VPSC*);
 void solveVPSC(VPSC*);
+typedef struct IncVPSC IncVPSC;
+void splitIncVPSC(IncVPSC*);
 #ifdef __cplusplus
 }
 #endif
