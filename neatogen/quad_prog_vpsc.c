@@ -44,12 +44,14 @@ constrained_majorization_vpsc(CMajEnvVPSC *e, float * b, float **coords,
 	float *old_place = e->fArray2;
 	float *d = e->fArray4;
     fprintf(stderr,"Entered: constrained_majorization_vpsc\n");
-	for (i=0;i<e->n;i++) {
-		setVariableDesiredPos(e->vs[i],place[i]);
-	}
-    fprintf(stderr,"  calling satisfyVPSC...\n");
-	satisfyVPSC(e->vpsc);	
-    fprintf(stderr,"    done.\n");
+    if(e->m>0) {
+	    for (i=0;i<e->n;i++) {
+		    setVariableDesiredPos(e->vs[i],place[i]);
+	    }
+        fprintf(stderr,"  calling satisfyVPSC...\n");
+        satisfyVPSC(e->vpsc);	
+        fprintf(stderr,"    done.\n");
+    }
     /*
 	for (i=0;i<e->n;i++) {
 		place[i]=getVariablePos(e->vs[i]);
@@ -93,15 +95,16 @@ constrained_majorization_vpsc(CMajEnvVPSC *e, float * b, float **coords,
 		for (i=0; i<e->n; i++) {
 			place[i]-=alpha*g[i];
 		}
-		//project to constraint boundary
-		for (i=0;i<e->n;i++) {
-			setVariableDesiredPos(e->vs[i],place[i]);
-		}
-		//splitIncVPSC(e->vpsc);
-		satisfyVPSC(e->vpsc);
-		for (i=0;i<e->n;i++) {
-			place[i]=getVariablePos(e->vs[i]);
-		}
+        if(e->m>0) {
+            //project to constraint boundary
+            for (i=0;i<e->n;i++) {
+                setVariableDesiredPos(e->vs[i],place[i]);
+            }
+            satisfyVPSC(e->vpsc);
+            for (i=0;i<e->n;i++) {
+                place[i]=getVariablePos(e->vs[i]);
+            }
+        }
 		// set place to the intersection of old_place-g and boundary and compute d, the vector from intersection pnt to projection pnt
 		for (i=0; i<e->n; i++) {
 			d[i]=place[i]-old_place[i];
@@ -125,7 +128,6 @@ constrained_majorization_vpsc(CMajEnvVPSC *e, float * b, float **coords,
 			if(beta>0&&beta<1.0) {
 				place[i]=old_place[i]+beta*d[i];
 			}
-			//setVariableDesiredPos(e->vs[i],place[i]);
 			test+= fabs(place[i]-old_place[i]);
 		}
 		//splitIncVPSC(e->vpsc);
@@ -185,11 +187,13 @@ initCMajVPSC(float* packedMat, Variable** vs, int n, Constraint** cs, int m)
 	CMajEnvVPSC *e = GNEW(CMajEnvVPSC);
 	e->A=NULL;
 	e->n=n;
-	e->cs=cs;
     e->m=m;
-    e->vs=vs;
 
-    e->vpsc = newIncVPSC(vs,n,cs,m);
+    if(m>0) {
+	    e->cs=cs;
+        e->vs=vs;
+        e->vpsc = newIncVPSC(vs,n,cs,m);
+    }
     
 	e->A = unpackMatrix(packedMat,n);
 

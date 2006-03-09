@@ -32,7 +32,7 @@
 #define localConstrMajorIterations 100
 
 int 
-stress_majorization_diredges(
+stress_majorization_vsep(
     vtx_data* graph,    /* Input graph in sparse representation	 */
     int n,              /* Number of nodes */
     int nedges_graph,   /* Number of edges */
@@ -41,6 +41,7 @@ stress_majorization_diredges(
     int smart_ini,      /* smart initialization */
     int model,          /* difference model */
     int maxi,           /* max iterations */
+    int diredges,       /* 1=generate directed edge constraints */
     double edge_gap     /* amount to force vertical separation of start/end nodes */
 )
 {
@@ -125,28 +126,30 @@ stress_majorization_diredges(
 	** First, generate separation constraints for edges in largest acyclic subgraph
 	*******************************************************************************/
 
-    fprintf(stderr,"  generate constraints...\n");
     m=0;
-    for(i=0;i<n;i++) {
-        vs[i]=newVariable(i,1.0,1.0);
-        for(j=1;j<graph[i].nedges;j++) {
-            if(graph[i].edists[j]>0) {
-                m++;
+    if(diredges) {
+        fprintf(stderr,"  generate edge constraints...\n");
+        for(i=0;i<n;i++) {
+            vs[i]=newVariable(i,1.0,1.0);
+            for(j=1;j<graph[i].nedges;j++) {
+                if(graph[i].edists[j]>0) {
+                    m++;
+                }
             }
         }
-    }
-    cs=N_GNEW(m, Constraint*);
-    m=0;
-    for(i=0;i<n;i++) {
-        for(j=1;j<graph[i].nedges;j++) {
-            int u=i,v=graph[i].edges[j];
-            if(graph[i].edists[j]>0) {
-                cs[m]=newConstraint(vs[u],vs[v],edge_gap);
-                m++;
+        cs=N_GNEW(m, Constraint*);
+        m=0;
+        for(i=0;i<n;i++) {
+            for(j=1;j<graph[i].nedges;j++) {
+                int u=i,v=graph[i].edges[j];
+                if(graph[i].edists[j]>0) {
+                    cs[m]=newConstraint(vs[u],vs[v],edge_gap);
+                    m++;
+                }
             }
         }
+        fprintf(stderr,"  generate constraints... done: n=%d,m=%d\n",n,m);
     }
-    fprintf(stderr,"  generate constraints... done: n=%d,m=%d\n",n,m);
 
 
 	/****************************************************

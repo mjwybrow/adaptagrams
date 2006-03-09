@@ -638,6 +638,8 @@ static int neatoMode(graph_t * g)
 #ifdef DIGCOLA
 	else if (streq(str, "hier"))
 	    mode = MODE_HIER;
+	else if (streq(str, "vsep"))
+	    mode = MODE_VSEP;
 #endif
 	else
 	    agerr(AGWARN,
@@ -670,7 +672,7 @@ static int checkEdge(PointMap * pm, edge_t * ep, int idx)
  * dfs for breaking cycles in vtxdata
  */
 static void
-dfsCycle (vtx_data* graph, int i)
+dfsCycle (vtx_data* graph, int i,int mode)
 {
     node_t *np, *hp;
     int j, e, f;
@@ -683,12 +685,14 @@ dfsCycle (vtx_data* graph, int i)
 	j = graph[i].edges[e];
 	hp = graph[j].np;
 	if (ND_onstack(hp)) {  /* back edge: reverse it */
-	    graph[i].edists[e] = 1.0;
+	    // if mode is VSEP make it an in-edge 
+	    // at both ends, so that an edge constraint won't be generated!
+	    graph[i].edists[e] = mode==MODE_VSEP?-1.0:1.0;
 	    for (f = 1; (f < graph[j].nedges) &&(graph[j].edges[f] != i); f++) ;
 	    assert (f < graph[j].nedges);
 	    graph[j].edists[f] = -1.0;
         }
-	else if (ND_mark(hp) == FALSE) dfsCycle(graph, j);
+	else if (ND_mark(hp) == FALSE) dfsCycle(graph, j,mode);
 
     }
     ND_onstack(np) = FALSE;
@@ -698,7 +702,7 @@ dfsCycle (vtx_data* graph, int i)
  * Do a dfs of the vtx_data, looking for cycles, reversing edges.
  */
 static void
-acyclic (vtx_data* graph, int nv)
+acyclic (vtx_data* graph, int nv, int mode)
 {
     int i;
     node_t* np;
@@ -710,7 +714,7 @@ acyclic (vtx_data* graph, int nv)
     }
     for (i = 0; i < nv; i++) {
 	if (ND_mark(graph[i].np)) continue;
-	dfsCycle (graph, i);	
+	dfsCycle (graph, i, mode);	
     }
 
 }
@@ -760,7 +764,7 @@ static vtx_data *makeGraphData(graph_t * g, int nv, int *nedges, int mode, int m
 	haveLen = (agindex(g->root->proto->e, "len") >= 0);
 	haveWt = (E_weight != 0);
     }
-    if (mode == MODE_HIER)
+    if (mode == MODE_HIER || mode == MODE_VSEP)
 	haveDir = TRUE;
     else
 	haveDir = FALSE;
@@ -843,7 +847,7 @@ static vtx_data *makeGraphData(graph_t * g, int nv, int *nedges, int mode, int m
 #ifdef DIGCOLA
     if (haveDir) {
     /* Make graph acyclic */
-	acyclic (graph, nv);
+	acyclic (graph, nv, mode);
     }
 #endif
 
@@ -1037,13 +1041,21 @@ majorization(graph_t * g, int nv, int mode, int model, int dim, int steps)
     }
 
 #ifdef DIGCOLA
-    if (mode == MODE_HIER) {
+    if (mode == MODE_HIER || mode == MODE_VSEP) {
 	double lgap = late_double(g, agfindattr(g, "levelsgap"), 0.0, -MAXDOUBLE);
-	/*
-	stress_majorization_with_hierarchy(gp, nv, ne, coords, Ndim,
+	if (mode == MODE_HIER) {	
+		stress_majorization_with_hierarchy(gp, nv, ne, coords, Ndim,
 				   (init == INIT_SELF), model, MaxIter, lgap);
-				   */
-	stress_majorization_diredges(gp, nv, ne, coords, Ndim, init==INIT_SELF, model, MaxIter, lgap);
+	} else {
+    		char* str = agget(g, "diredgeconstraints");
+		int diredges = 0;
+		if(str && !strncmp(str,"true",4)) {
+		    diredges = 1;
+    		fprintf(stderr,"Generating Edge Constraints...\n");
+		}
+
+		stress_majorization_vsep(gp, nv, ne, coords, Ndim, init==INIT_SELF, model, MaxIter, diredges, lgap);
+	}
     }
     else
 #endif

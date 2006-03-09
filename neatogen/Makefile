@@ -86,7 +86,7 @@ AUTOCONF = ${SHELL} /home/dwyer/devel/graphviz-2.9.20060213.0540/config/missing 
 AUTOHEADER = ${SHELL} /home/dwyer/devel/graphviz-2.9.20060213.0540/config/missing --run autoheader
 AUTOMAKE = ${SHELL} /home/dwyer/devel/graphviz-2.9.20060213.0540/config/missing --run automake-1.9
 AWK = mawk
-BUILDDATE = Thu Mar  9 01:18:59 UTC 2006
+BUILDDATE = Thu Mar  9 03:23:22 UTC 2006
 BUILD_DIR = /home/dwyer/devel/graphviz-2.9.20060213.0540
 CC = gcc
 CCDEPMODE = depmode=gcc3
