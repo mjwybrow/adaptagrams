@@ -24,6 +24,6 @@ libneatogen_la_SOURCES = adjust.c circuit.c edges.c find_ints.c geometry.c \
 	conjgrad.c pca.c closest.c bfs.c constraint.c quad_prog_solve.c \
 	smart_ini_x.c constrained_majorization.c opt_arrangement.c \
 	compute_hierarchy.c \
-	quad_prog_vpsc.c constrained_majorization_diredges.c
+	quad_prog_vpsc.c constrained_majorization_vsep.c
 
 EXTRA_DIST = Makefile.old

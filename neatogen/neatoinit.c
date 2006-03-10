@@ -1042,20 +1042,36 @@ majorization(graph_t * g, int nv, int mode, int model, int dim, int steps)
 
 #ifdef DIGCOLA
     if (mode == MODE_HIER || mode == MODE_VSEP) {
-	double lgap = late_double(g, agfindattr(g, "levelsgap"), 0.0, -MAXDOUBLE);
-	if (mode == MODE_HIER) {	
-		stress_majorization_with_hierarchy(gp, nv, ne, coords, Ndim,
-				   (init == INIT_SELF), model, MaxIter, lgap);
-	} else {
-    		char* str = agget(g, "diredgeconstraints");
-		int diredges = 0;
-		if(str && !strncmp(str,"true",4)) {
-		    diredges = 1;
-    		fprintf(stderr,"Generating Edge Constraints...\n");
-		}
+        double lgap = late_double(g, agfindattr(g, "levelsgap"), 0.0, -MAXDOUBLE);
+        if (mode == MODE_HIER) {	
+            stress_majorization_with_hierarchy(gp, nv, ne, coords, Ndim,
+                       (init == INIT_SELF), model, MaxIter, lgap);
+        } else {
+            char* str = agget(g, "diredgeconstraints");
+            int diredges = 0, noverlap = 0;
+            double width[nv], height[nv], xgap, ygap;
+            if(str && !strncmp(str,"true",4)) {
+                diredges = 1;
+                fprintf(stderr,"Generating Edge Constraints...\n");
+            }
+            str = agget(g, "overlapconstraints");
+            if(str && !strncmp(str,"true",4)) {
+                noverlap = 1;
+                fprintf(stderr,"Generating Non-overlap Constraints...\n");
+            } else if(str && !strncmp(str,"post",4)) {
+                noverlap = 2;
+                fprintf(stderr,"Removing overlaps as postprocess...\n");
+            }  
+            if ((str = agget(g, "sep"))) {
+	            xgap = ygap = atof(str);
+            }
+            for (i=0, v = agfstnode(g); v; v = agnxtnode(g, v),i++) {
+                width[i]=ND_width(v);
+                height[i]=ND_height(v);
+            }
 
-		stress_majorization_vsep(gp, nv, ne, coords, Ndim, init==INIT_SELF, model, MaxIter, diredges, lgap);
-	}
+            stress_majorization_vsep(gp, nv, ne, coords, Ndim, init==INIT_SELF, model, MaxIter, diredges, lgap, noverlap, xgap, ygap, &width, &height);
+        }
     }
     else
 #endif

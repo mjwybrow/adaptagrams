@@ -159,15 +159,17 @@ deleteCMajEnvVPSC(CMajEnvVPSC *e)
     int i;
 	free (e->A[0]); 
     free (e->A);
-    deleteVPSC(e->vpsc);
-    for(i=0;i<e->m;i++) {
-        deleteConstraint(e->cs[i]);
+    if(e->m>0) {
+        deleteVPSC(e->vpsc);
+        for(i=0;i<e->m;i++) {
+            deleteConstraint(e->cs[i]);
+        }
+        free (e->cs);
+        for(i=0;i<e->n;i++) {
+            deleteVariable(e->vs[i]);
+        }
+        free (e->vs);
     }
-    free (e->cs);
-    for(i=0;i<e->n;i++) {
-        deleteVariable(e->vs[i]);
-    }
-    free (e->vs);
 	free (e->fArray1);
 	free (e->fArray2);
 	free (e->fArray3);
@@ -177,6 +179,51 @@ deleteCMajEnvVPSC(CMajEnvVPSC *e)
 	free (e->iArray3);
 	free (e->iArray4);
 	free (e);
+}
+
+void generateNonoverlapConstraints(
+        CMajEnvVPSC* e,
+        double* nwidth,
+        double* nheight,
+        double nsizeScale,
+        float** coords,
+        int k
+) {
+    Variable** vsol;
+    Constraint** csol;
+    int i,mol;
+    double xmin[e->n],xmax[e->n],ymin[e->n],ymax[e->n];
+    if(k==0) {
+        // grow a bit in the x dimension, so that if overlap is resolved
+        // horizontally then it won't be considered overlapping vertically
+        nsizeScale*=1.0001;
+    }
+    for(i=0;i<e->n;i++) {
+        xmin[i]=coords[0][i]-nsizeScale*nwidth[i]/2.0; 
+        xmax[i]=coords[0][i]+nsizeScale*nwidth[i]/2.0; 
+        ymin[i]=coords[1][i]-nsizeScale*nheight[i]/2.0; 
+        ymax[i]=coords[1][i]+nsizeScale*nheight[i]/2.0; 
+    }
+    if(k==1) {
+        mol = genYConstraints(xmin,xmax,ymin,ymax,e->n,&vsol,&csol);
+    } else {
+        mol = genXConstraints(xmin,xmax,ymin,ymax,e->n,&vsol,&csol);
+    }
+    if(e->m>0) {
+        deleteVPSC(e->vpsc);
+        for(i=0;i<e->m;i++) {
+            deleteConstraint(e->cs[i]);
+        }
+        free (e->cs);
+        for(i=0;i<e->n;i++) {
+            deleteVariable(e->vs[i]);
+        }
+        free (e->vs);
+    }
+    e->m = mol;
+    e->vs = vsol;
+    e->cs = csol;
+    e->vpsc = newIncVPSC(vsol,e->n,csol,mol);
 }
 
 CMajEnvVPSC*
@@ -189,6 +236,7 @@ initCMajVPSC(float* packedMat, Variable** vs, int n, Constraint** cs, int m)
 	e->n=n;
     e->m=m;
 
+    e->vpsc=NULL;
     if(m>0) {
 	    e->cs=cs;
         e->vs=vs;

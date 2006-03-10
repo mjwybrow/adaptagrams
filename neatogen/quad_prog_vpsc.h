@@ -43,6 +43,14 @@ extern int constrained_majorization_vpsc(CMajEnvVPSC*, float*, float**,
                                         int, int, int);
 
 extern void deleteCMajEnvVPSC(CMajEnvVPSC *e);
+void generateNonoverlapConstraints(
+        CMajEnvVPSC* e,
+        double* nwidth,
+        double* nheight,
+        double nsizeScale,
+        float** coords,
+        int k
+);
 
 #endif 
 

@@ -42,8 +42,14 @@ stress_majorization_vsep(
     int model,          /* difference model */
     int maxi,           /* max iterations */
     int diredges,       /* 1=generate directed edge constraints */
-    double edge_gap,    /* amount to force vertical separation of start/end nodes */
-    int noverlap        /* generate non-overlap constraints */
+    double edge_gap,    /* amount to force vertical separation of */
+                        /* start/end nodes */
+    int noverlap,       /* 1=generate non-overlap constraints */
+                        /* 2=remove overlaps after layout */
+    double xgap,        /* horizontal gap to enforce when removing overlap*/
+    double ygap,        /* vertical    "       "      "      "       "    */
+    double* nwidth,     /* node widths */
+    double* nheight     /* node heights */
 )
 {
     int iterations = 0;    /* Output: number of iteration of the process */
@@ -84,6 +90,7 @@ stress_majorization_vsep(
 	double old_stress, new_stress;
 	bool converged;
 	int len;
+    double nsizeScale=0;
     Constraint** cs;
     Variable** vs = N_GNEW(n, Variable*);
     int m;
@@ -192,6 +199,7 @@ stress_majorization_vsep(
 	if (!smart_ini) {
 		/* for numerical stability, scale down layout		 */
 		/* No Jiggling, might conflict with constraints			 */
+        fprintf(stderr,"SCALING!!!\n");
 		double max=1;		
 		for (i=0; i<dim; i++) {	
 			for (j=0; j<n; j++) {
@@ -423,6 +431,13 @@ stress_majorization_vsep(
              * might result ny imposing constraints
              */
 		old_stress = new_stress;
+
+        // in determining non-overlap constraints we gradually scale up the
+        // size of nodes to avoid local minima
+        if(converged&&noverlap==1&&nsizeScale<0.99) {
+            nsizeScale= 1.0;
+            converged = false;
+        }
 		
 		for (k=0; k<dim; k++) {
 			/* now we find the optimizer of trace(X'LX)+X'B by solving 'dim' 
@@ -438,14 +453,18 @@ stress_majorization_vsep(
              */
 			
 			if (k==1) {
-				/* use quad solver in the y-dimension */
-                fprintf(stderr,"  calling constrained_majorization_vpsc, k=%d...\n",k);
+				/* always use quad solver in the y-dimension */
+                if(noverlap==1 && nsizeScale > 0.001) {
+                    generateNonoverlapConstraints(cMajEnv,nwidth,nheight,nsizeScale,coords,k);
+                }
 				constrained_majorization_vpsc(cMajEnv, b[k], coords, k, dim, localConstrMajorIterations);
 	
 			}
 			else {
-				/* use conjugate gradient for all dimensions except y */
-				conjugate_gradient_mkernel(lap2, coords[k], b[k], n, conj_tol, n);	
+                if(noverlap==1 && nsizeScale > 0.001) {
+                    generateNonoverlapConstraints(cMajEnv,nwidth,nheight,nsizeScale,coords,k);
+                }
+				constrained_majorization_vpsc(cMajEnv, b[k], coords, k, dim, localConstrMajorIterations);
 			}
 		}
 	}
