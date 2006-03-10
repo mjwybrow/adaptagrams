@@ -15,6 +15,9 @@ typedef struct VPSC VPSC;
 VPSC* newVPSC(Variable* vs[], int n, Constraint* cs[], int m);
 void deleteVPSC(VPSC*);
 
+int genXConstraints(double minX[], double maxX[], double minY[], double maxY[], int n, Variable*** vs, Constraint*** cs);
+int genYConstraints(double minX[], double maxX[], double minY[], double maxY[], int n, Variable*** vs, Constraint*** cs);
+
 void satisfyVPSC(VPSC*);
 void solveVPSC(VPSC*);
 typedef struct IncVPSC IncVPSC;
