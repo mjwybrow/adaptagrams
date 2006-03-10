@@ -42,7 +42,8 @@ stress_majorization_vsep(
     int model,          /* difference model */
     int maxi,           /* max iterations */
     int diredges,       /* 1=generate directed edge constraints */
-    double edge_gap     /* amount to force vertical separation of start/end nodes */
+    double edge_gap,    /* amount to force vertical separation of start/end nodes */
+    int noverlap        /* generate non-overlap constraints */
 )
 {
     int iterations = 0;    /* Output: number of iteration of the process */
