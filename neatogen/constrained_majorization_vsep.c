@@ -75,7 +75,7 @@ stress_majorization_vsep(
 	float * f_storage=NULL;
 	float ** coords=NULL;
 
-	double conj_tol=tolerance_cg;        /* tolerance of Conjugate Gradient */
+	//double conj_tol=tolerance_cg;        /* tolerance of Conjugate Gradient */
 	CMajEnvVPSC *cMajEnv = NULL;
 	clock_t start_time;
 	double y_0;
@@ -91,7 +91,7 @@ stress_majorization_vsep(
 	bool converged;
 	int len;
     double nsizeScale=0;
-    Constraint** cs;
+    Constraint** cs=NULL;
     Variable** vs = N_GNEW(n, Variable*);
     int m;
     fprintf(stderr,"Entered: stress_majorization_diredges\n");
@@ -332,7 +332,7 @@ stress_majorization_vsep(
 
 	start_time = clock();
 
-	cMajEnv=initCMajVPSC(lap2, vs, n, cs, m);
+	cMajEnv=initCMajVPSC(n,lap2, vs, m, cs);
 
     fprintf(stderr,"Entering main loop...\n");
 	for (converged=false,iterations=0; iterations<maxi && !converged; iterations++) {
@@ -452,25 +452,20 @@ stress_majorization_vsep(
              * laplacian is -'lap2')
              */
 			
-			if (k==1) {
-				/* always use quad solver in the y-dimension */
-                if(noverlap==1 && nsizeScale > 0.001) {
-                    generateNonoverlapConstraints(cMajEnv,nwidth,nheight,nsizeScale,coords,k);
-                }
-				constrained_majorization_vpsc(cMajEnv, b[k], coords, k, dim, localConstrMajorIterations);
-	
-			}
-			else {
-                if(noverlap==1 && nsizeScale > 0.001) {
-                    generateNonoverlapConstraints(cMajEnv,nwidth,nheight,nsizeScale,coords,k);
-                }
-				constrained_majorization_vpsc(cMajEnv, b[k], coords, k, dim, localConstrMajorIterations);
-			}
+            if(noverlap==1 && nsizeScale > 0.001) {
+                generateNonoverlapConstraints(cMajEnv,nwidth,nheight,nsizeScale,coords,k);
+                constrained_majorization_vpsc(cMajEnv, b[k], coords, k, dim, localConstrMajorIterations);
+                cleanupNonoverlapConstraints(cMajEnv,k);
+            } else {
+                cMajEnv->m=cMajEnv->em;
+                cMajEnv->cs=cMajEnv->edge_cs;
+                constrained_majorization_vpsc(cMajEnv, b[k], coords, k, dim, localConstrMajorIterations);
+            }
 		}
 	}
-    fprintf(stderr,"Finished majorization!\n",k);
-	deleteCMajEnvVPSC(cMajEnv);
-    fprintf(stderr,"  freed cMajEnv!\n",k);
+    fprintf(stderr,"Finished majorization!\n");
+	//deleteCMajEnvVPSC(cMajEnv);
+    fprintf(stderr,"  freed cMajEnv!\n");
 	
 	if (coords!=NULL) {
 		for (i=0; i<dim; i++) {

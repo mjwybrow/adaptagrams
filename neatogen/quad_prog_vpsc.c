@@ -130,7 +130,6 @@ constrained_majorization_vpsc(CMajEnvVPSC *e, float * b, float **coords,
 			}
 			test+= fabs(place[i]-old_place[i]);
 		}
-		//splitIncVPSC(e->vpsc);
 #ifdef CONMAJ_LOGGING
 		double stress=0;
 		for (i=0; i<e->n; i++) {
@@ -164,7 +163,8 @@ deleteCMajEnvVPSC(CMajEnvVPSC *e)
         for(i=0;i<e->m;i++) {
             deleteConstraint(e->cs[i]);
         }
-        free (e->cs);
+        //free (e->cs);
+        //free (e->edge_cs);
         for(i=0;i<e->n;i++) {
             deleteVariable(e->vs[i]);
         }
@@ -189,7 +189,6 @@ void generateNonoverlapConstraints(
         float** coords,
         int k
 ) {
-    Variable** vsol;
     Constraint** csol;
     int i,mol;
     double xmin[e->n],xmax[e->n],ymin[e->n],ymax[e->n];
@@ -205,42 +204,59 @@ void generateNonoverlapConstraints(
         ymax[i]=coords[1][i]+nsizeScale*nheight[i]/2.0; 
     }
     if(k==1) {
-        mol = genYConstraints(xmin,xmax,ymin,ymax,e->n,&vsol,&csol);
+        mol = genYConstraints(e->n,xmin,xmax,ymin,ymax,e->vs,&csol);
     } else {
-        mol = genXConstraints(xmin,xmax,ymin,ymax,e->n,&vsol,&csol);
+        mol = genXConstraints(e->n,xmin,xmax,ymin,ymax,e->vs,&csol);
     }
-    if(e->m>0) {
-        deleteVPSC(e->vpsc);
+    if(k==0) {
+        e->m = mol;
+        e->cs = csol;
+    } else {
+        e->m = mol + e->em;
+        e->cs = N_GNEW(e->m,Constraint*);
         for(i=0;i<e->m;i++) {
+            if(i<e->em) {
+                e->cs[i]=e->edge_cs[i];
+            } else {
+                e->cs[i]=csol[i-e->em];
+            }
+        }
+    }
+    e->vpsc = newIncVPSC(e->n,e->vs,e->m,e->cs);
+}
+void cleanupNonoverlapConstraints(CMajEnvVPSC* e,int k) {
+    int begin, i;
+    if(e->m>0) {
+        // can't reuse instance of VPSC when constraints change!
+        deleteVPSC(e->vpsc);
+        if(k==0) {
+            begin=0;
+        } else {
+            begin=e->em;
+        }
+        for(i=begin;i<e->m;i++) {
+            // delete previous overlap constraints
             deleteConstraint(e->cs[i]);
         }
-        free (e->cs);
-        for(i=0;i<e->n;i++) {
-            deleteVariable(e->vs[i]);
-        }
-        free (e->vs);
+        //free (e->cs);
     }
-    e->m = mol;
-    e->vs = vsol;
-    e->cs = csol;
-    e->vpsc = newIncVPSC(vsol,e->n,csol,mol);
 }
+        
 
 CMajEnvVPSC*
-initCMajVPSC(float* packedMat, Variable** vs, int n, Constraint** cs, int m)
+initCMajVPSC(int n, float* packedMat, Variable** vs, int m, Constraint** cs)
 {
-    int i,j;
     fprintf(stderr,"Entered initCMajVPSC\n");
 	CMajEnvVPSC *e = GNEW(CMajEnvVPSC);
 	e->A=NULL;
 	e->n=n;
-    e->m=m;
+    e->em=m;
 
     e->vpsc=NULL;
     if(m>0) {
-	    e->cs=cs;
+	    e->edge_cs=cs;
         e->vs=vs;
-        e->vpsc = newIncVPSC(vs,n,cs,m);
+        e->vpsc = newIncVPSC(n,vs,m,cs);
     }
     
 	e->A = unpackMatrix(packedMat,n);

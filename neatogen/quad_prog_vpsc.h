@@ -25,7 +25,10 @@ typedef struct {
 	int n; /* number of vars */
 	Variable **vs;
 	int m; /* number of constraints */
+	int em; /* number of diredge constraints in edge_cs */
 	Constraint **cs;
+	/* dir edge constraints are persistant throughout optimisation process */
+	Constraint **edge_cs;
 	VPSC *vpsc;
 	int *iArray1; /* utility arrays */
 	int *iArray2;
@@ -37,13 +40,13 @@ typedef struct {
 	float *fArray4;
 } CMajEnvVPSC;
 
-extern CMajEnvVPSC* initCMajVPSC(float *, Variable** vs, int n, Constraint** cs, int m);
+extern CMajEnvVPSC* initCMajVPSC(int n, float *, Variable** vs, int m, Constraint** cs);
 
 extern int constrained_majorization_vpsc(CMajEnvVPSC*, float*, float**, 
                                         int, int, int);
 
 extern void deleteCMajEnvVPSC(CMajEnvVPSC *e);
-void generateNonoverlapConstraints(
+extern void generateNonoverlapConstraints(
         CMajEnvVPSC* e,
         double* nwidth,
         double* nheight,
@@ -51,6 +54,7 @@ void generateNonoverlapConstraints(
         float** coords,
         int k
 );
+extern void cleanupNonoverlapConstraints(CMajEnvVPSC *e,int k);
 
 #endif 
 
