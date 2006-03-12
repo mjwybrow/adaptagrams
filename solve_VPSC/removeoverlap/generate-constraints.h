@@ -71,8 +71,8 @@ class Variable;
 class Constraint;
 
 // returns number of constraints generated
-int generateXConstraints(Rectangle *rs[], double weights[], const int n, Variable **&vs, Constraint **&cs,bool useNeighbourLists);
+int generateXConstraints(const int n, Rectangle** rs, Variable** vars, Constraint** &cs, const bool useNeighbourLists);
+int generateYConstraints(const int n, Rectangle** rs, Variable** vars, Constraint** &cs);
 
-int generateYConstraints(Rectangle *rs[], double weights[], const int n, Variable **&vs, Constraint **&cs);
 
 #endif // SEEN_REMOVEOVERLAP_GENERATE_CONSTRAINTS_H

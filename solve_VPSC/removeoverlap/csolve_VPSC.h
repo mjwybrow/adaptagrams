@@ -12,11 +12,11 @@ typedef struct Constraint Constraint;
 Constraint* newConstraint(Variable* left, Variable* right, double gap);
 
 typedef struct VPSC VPSC;
-VPSC* newVPSC(Variable* vs[], int n, Constraint* cs[], int m);
+VPSC* newVPSC(int n, Variable* vs[], int m, Constraint* cs[]);
 void deleteVPSC(VPSC*);
 
-int genXConstraints(double minX[], double maxX[], double minY[], double maxY[], int n, Variable*** vs, Constraint*** cs);
-int genYConstraints(double minX[], double maxX[], double minY[], double maxY[], int n, Variable*** vs, Constraint*** cs);
+int genXConstraints(int n, double minX[], double maxX[], double minY[], double maxY[], Variable** vs, Constraint*** cs);
+int genYConstraints(int n, double minX[], double maxX[], double minY[], double maxY[], Variable** vs, Constraint*** cs);
 
 void satisfyVPSC(VPSC*);
 void solveVPSC(VPSC*);

@@ -30,7 +30,7 @@ class Constraint;
 class Blocks : public std::set<Block*>
 {
 public:
-	Blocks(Variable *vs[], const int n);
+	Blocks(const int n, Variable *vs[]);
 	~Blocks(void);
 	void mergeLeft(Block *r);
 	void mergeRight(Block *l);

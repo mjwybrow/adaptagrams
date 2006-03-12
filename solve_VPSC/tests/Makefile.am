@@ -9,5 +9,5 @@ test_rectangleoverlap_LDADD = $(top_srcdir)/removeoverlap/libsolve_VPSC.la
 test_csolve_VPSC_SOURCES = test_csolve_VPSC.c
 test_csolve_VPSC_LDADD = $(top_srcdir)/removeoverlap/libsolve_VPSC.la
 
-TESTS = test_csolve_VPSC #$(check_PROGRAMS)
+TESTS = $(check_PROGRAMS)
 

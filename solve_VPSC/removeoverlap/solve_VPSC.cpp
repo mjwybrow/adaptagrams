@@ -27,13 +27,16 @@ using std::ostringstream;
 using std::list;
 using std::set;
 
-IncVPSC::IncVPSC(Variable *vs[], const int n, Constraint *cs[], const int m) 
-	: VPSC(vs,n,cs,m) {
+IncVPSC::IncVPSC(const int n, Variable *vs[], const int m, Constraint *cs[]) 
+	: VPSC(n,vs,m,cs) {
 	inactive.assign(cs,cs+m);
+	for(ConstraintList::iterator i=inactive.begin();i!=inactive.end();i++) {
+		(*i)->active=false;
+	}
 }
-VPSC::VPSC(Variable *vs[], const int n, Constraint *cs[], const int m) : cs(cs), m(m) {
+VPSC::VPSC(const int n, Variable *vs[], const int m, Constraint *cs[]) : cs(cs), m(m) {
 	//assert(!constraintGraphIsCyclic(vs,n));
-	bs=new Blocks(vs,n);
+	bs=new Blocks(n, vs);
 #ifdef RECTANGLE_OVERLAP_LOGGING
 	printBlocks();
 #endif
@@ -288,7 +291,7 @@ struct node {
 };
 /*
 // useful in debugging - cycles would be BAD
-bool VPSC::constraintGraphIsCyclic(Variable *vs[], const int n) {
+bool VPSC::constraintGraphIsCyclic(const int n, Variable *vs[]) {
 	map<Variable*, node*> varmap;
 	vector<node*> graph;
 	for(int i=0;i<n;i++) {

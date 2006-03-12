@@ -8,31 +8,28 @@
 #include <solve_VPSC.h>
 #define EXTRA_GAP 0.0001
 using namespace std;
-void removeoverlaps(Rectangle **rs, int n) {
+void removeoverlaps(int n, Rectangle **rs) {
 	double xBorder=0, yBorder=0;
 	assert(0 <= n);
 	try {
 		// The extra gap avoids numerical imprecision problems
 		Rectangle::setXBorder(xBorder+EXTRA_GAP);
 		Rectangle::setYBorder(yBorder+EXTRA_GAP);
-		double *ws=new double[n];
+		Variable **vs=new Variable*[n];
 		for(int i=0;i<n;i++) {
-			ws[i]=1;
+			vs[i]=new Variable(i,0,1);
 		}
-		Variable **vs;
 		Constraint **cs;
 		double *oldX = new double[n];
-		int m=generateXConstraints(rs,ws,n,vs,cs,true);
+		int m=generateXConstraints(n,rs,vs,cs,true);
 		for(int i=0;i<n;i++) {
 			oldX[i]=vs[i]->desiredPosition;
 		}
-		VPSC vpsc_x(vs,n,cs,m);
+		VPSC vpsc_x(n,vs,m,cs);
 		vpsc_x.satisfy();
 		for(int i=0;i<n;i++) {
 			rs[i]->moveCentreX(vs[i]->position());
-			delete vs[i];
 		}
-		delete [] vs;
 		for(int i = 0; i < m; ++i) {
 			delete cs[i];
 		}
@@ -40,34 +37,31 @@ void removeoverlaps(Rectangle **rs, int n) {
 		// Removing the extra gap here ensures things that were moved to be adjacent to
 		// one another above are not considered overlapping
 		Rectangle::setXBorder(Rectangle::xBorder-EXTRA_GAP);
-		m=generateYConstraints(rs,ws,n,vs,cs);
-		VPSC vpsc_y(vs,n,cs,m);
+		m=generateYConstraints(n,rs,vs,cs);
+		VPSC vpsc_y(n,vs,m,cs);
 		vpsc_y.satisfy();
 		for(int i=0;i<n;i++) {
 			rs[i]->moveCentreY(vs[i]->position());
 			rs[i]->moveCentreX(oldX[i]);
-			delete vs[i];
 		}
-		delete [] vs;
 		delete [] oldX;
 		for(int i = 0; i < m; ++i) {
 			delete cs[i];
 		}
 		delete [] cs;
 		Rectangle::setYBorder(Rectangle::yBorder-EXTRA_GAP);
-		m=generateXConstraints(rs,ws,n,vs,cs,false);
-		VPSC vpsc_x2(vs,n,cs,m);
+		m=generateXConstraints(n,rs,vs,cs,false);
+		VPSC vpsc_x2(n,vs,m,cs);
 		vpsc_x2.satisfy();
+		for(int i = 0; i < m; ++i) {
+			delete cs[i];
+		}
+		delete [] cs;
 		for(int i=0;i<n;i++) {
 			rs[i]->moveCentreX(vs[i]->position());
 			delete vs[i];
 		}
 		delete [] vs;
-		for(int i = 0; i < m; ++i) {
-			delete cs[i];
-		}
-		delete [] cs;
-		delete [] ws;
 	} catch (char *str) {
 		std::cerr<<str<<std::endl;
 		for(int i=0;i<n;i++) {
@@ -133,7 +127,7 @@ void test(Rectangle **rs, unsigned n, double &cost, double &duration) {
 	}
 
 	clock_t starttime = clock();
-	removeoverlaps(rs,n);
+	removeoverlaps(n,rs);
 	duration = (double)(clock() - starttime)/CLOCKS_PER_SEC;
 	/*
 	if(countOverlaps(rs,n)!=0){

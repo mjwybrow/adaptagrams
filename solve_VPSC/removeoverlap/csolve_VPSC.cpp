@@ -14,34 +14,30 @@ Variable* newVariable(int id, double desiredPos, double weight) {
 Constraint* newConstraint(Variable* left, Variable* right, double gap) {
 	return new Constraint(left,right,gap);
 }
-VPSC* newVPSC(Variable* vs[], int n, Constraint* cs[], int m) {
-	return new VPSC(vs,n,cs,m);
+VPSC* newVPSC(int n, Variable* vs[], int m, Constraint* cs[]) {
+	return new VPSC(n,vs,m,cs);
 }
-IncVPSC* newIncVPSC(Variable* vs[], int n, Constraint* cs[], int m) {
-	return new IncVPSC(vs,n,cs,m);
+IncVPSC* newIncVPSC(int n, Variable* vs[], int m, Constraint* cs[]) {
+	return new IncVPSC(n,vs,m,cs);
 }
 
-int genXConstraints(double minX[], double maxX[], double minY[], double maxY[], int n, Variable*** vs, Constraint*** cs) {
+int genXConstraints(int n, double minX[], double maxX[], double minY[], double maxY[], Variable** vs, Constraint*** cs) {
 	Rectangle* rs[n];
-	double weights[n]; 
 	for(int i=0;i<n;i++) {
 		rs[i]=new Rectangle(minX[i],maxX[i],minY[i],maxY[i]);
-		weights[i]=1;
 	}
-	int m = generateXConstraints(rs,weights,n,*vs,*cs,true);
+	int m = generateXConstraints(n,rs,vs,*cs,true);
 	for(int i=0;i<n;i++) {
 		delete rs[i];
 	}
 	return m;
 }
-int genYConstraints(double minX[], double maxX[], double minY[], double maxY[], int n, Variable*** vs, Constraint*** cs) {
+int genYConstraints(int n, double minX[], double maxX[], double minY[], double maxY[], Variable** vs, Constraint*** cs) {
 	Rectangle* rs[n];
-	double weights[n]; 
 	for(int i=0;i<n;i++) {
 		rs[i]=new Rectangle(minX[i],maxX[i],minY[i],maxY[i]);
-		weights[i]=1;
 	}
-	int m = generateYConstraints(rs,weights,n,*vs,*cs);
+	int m = generateYConstraints(n,rs,vs,*cs);
 	for(int i=0;i<n;i++) {
 		delete rs[i];
 	}

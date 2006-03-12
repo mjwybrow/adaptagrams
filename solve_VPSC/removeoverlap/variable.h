@@ -17,6 +17,7 @@
 class Block;
 class Constraint;
 
+typedef std::vector<Constraint*> Constraints;
 class Variable
 {
 	friend std::ostream& operator <<(std::ostream &os, const Variable &v);
@@ -27,8 +28,8 @@ public:
 	double offset;
 	Block *block;
 	bool visited;
-	std::vector<Constraint*> in;
-	std::vector<Constraint*> out;
+	Constraints in;
+	Constraints out;
 	char *toString();
 	inline Variable(const int id, const double desiredPos, const double weight)
 		: id(id)

@@ -159,17 +159,15 @@ int compare_events(const void *a, const void *b) {
 }
 
 /**
- * Prepares variables and constraints in order to apply VPSC horizontally.
+ * Prepares constraints in order to apply VPSC horizontally.  Assumes variables have already been created.
  * useNeighbourLists determines whether or not a heuristic is used to deciding whether to resolve
  * all overlap in the x pass, or leave some overlaps for the y pass.
  */
-int generateXConstraints(Rectangle *rs[], double weights[], const int n, Variable **&vars, Constraint **&cs, bool useNeighbourLists) {
+int generateXConstraints(const int n, Rectangle** rs, Variable** vars, Constraint** &cs, const bool useNeighbourLists) {
 	events=new Event*[2*n];
 	int i,m,ctr=0;
-	vector<Constraint*> constraints;
-	vars=new Variable*[n];
 	for(i=0;i<n;i++) {
-		vars[i]=new Variable(i,rs[i]->getCentreX(),weights[i]);
+		vars[i]->desiredPosition=rs[i]->getCentreX();
 		Node *v = new Node(vars[i],rs[i],rs[i]->getCentreX());
 		events[ctr++]=new Event(Open,v,rs[i]->getMinY());
 		events[ctr++]=new Event(Close,v,rs[i]->getMaxY());
@@ -177,6 +175,7 @@ int generateXConstraints(Rectangle *rs[], double weights[], const int n, Variabl
 	qsort((Event*)events, (size_t)2*n, sizeof(Event*), compare_events );
 
 	NodeSet scanline;
+	vector<Constraint*> constraints;
 	for(i=0;i<2*n;i++) {
 		Event *e=events[i];
 		Node *v=e->v;
@@ -247,21 +246,20 @@ int generateXConstraints(Rectangle *rs[], double weights[], const int n, Variabl
 }
 
 /**
- * Prepares variables and constraints in order to apply VPSC vertically to remove ALL overlap.
+ * Prepares constraints in order to apply VPSC vertically to remove ALL overlap.
  */
-int generateYConstraints(Rectangle *rs[], double weights[], const int n, Variable **&vars, Constraint **&cs) {
+int generateYConstraints(const int n, Rectangle** rs, Variable** vars, Constraint** &cs) {
 	events=new Event*[2*n];
 	int ctr=0,i,m;
-	vector<Constraint*> constraints;
-	vars=new Variable*[n];
 	for(i=0;i<n;i++) {
-		vars[i]=new Variable(i,rs[i]->getCentreY(),weights[i]);
+		vars[i]->desiredPosition=rs[i]->getCentreY();
 		Node *v = new Node(vars[i],rs[i],rs[i]->getCentreY());
 		events[ctr++]=new Event(Open,v,rs[i]->getMinX());
 		events[ctr++]=new Event(Close,v,rs[i]->getMaxX());
 	}
 	qsort((Event*)events, (size_t)2*n, sizeof(Event*), compare_events );
 	NodeSet scanline;
+	vector<Constraint*> constraints;
 	for(i=0;i<2*n;i++) {
 		Event *e=events[i];
 		Node *v=e->v;

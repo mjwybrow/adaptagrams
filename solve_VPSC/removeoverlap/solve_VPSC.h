@@ -25,7 +25,7 @@ public:
 	virtual void satisfy();
 	virtual void solve();
 
-	VPSC(Variable *vs[], const int n, Constraint *cs[], const int m);
+	VPSC(const int n, Variable *vs[], const int m, Constraint *cs[]);
 	~VPSC();
 protected:
 	Blocks *bs;
@@ -34,7 +34,7 @@ protected:
 private:
 	void refine();
 	void printBlocks();
-	bool constraintGraphIsCyclic(Variable *vs[], const int n);
+	bool constraintGraphIsCyclic(const int n, Variable *vs[]);
 	bool blockGraphIsCyclic();
 };
 
@@ -44,7 +44,7 @@ public:
 	void solve();
 	void moveBlocks();
 	void splitBlocks();
-	IncVPSC(Variable *vs[], const int n, Constraint *cs[], const int m);
+	IncVPSC(const int n, Variable *vs[], const int m, Constraint *cs[]);
 private:
 	typedef std::list<Constraint*> ConstraintList;
 	ConstraintList inactive;
