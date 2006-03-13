@@ -26,7 +26,7 @@ extern double compute_hierarchy(vtx_data*, int, double, double,
 extern void IMDS_given_dim(vtx_data*, int, double*, double*, double);
 extern int stress_majorization_with_hierarchy(vtx_data*, int, int, double**, 
                                               int, int, int, int, double);
-extern int stress_majorization_vsep(vtx_data*, int, int, double**, int, int, int, int, int, double, int, double, double, double*, double*);
+extern int stress_majorization_vsep(vtx_data*, int, int, double**, int, int, int, int, int, double, int, float, float, float*, float*);
 #endif
 #endif
 

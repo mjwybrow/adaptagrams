@@ -24,11 +24,11 @@ typedef struct {
 	float **A;
 	int n; /* number of vars */
 	Variable **vs;
-	int m; /* number of constraints */
-	int em; /* number of diredge constraints in edge_cs */
+	int m; /* total number of constraints for next iteration */
+	int gm; /* number of global constraints */
 	Constraint **cs;
-	/* dir edge constraints are persistant throughout optimisation process */
-	Constraint **edge_cs;
+	/* global constraints are persistant throughout optimisation process */
+	Constraint **gcs;
 	VPSC *vpsc;
 	int *iArray1; /* utility arrays */
 	int *iArray2;
@@ -40,21 +40,23 @@ typedef struct {
 	float *fArray4;
 } CMajEnvVPSC;
 
-extern CMajEnvVPSC* initCMajVPSC(int n, float *, Variable** vs, int m, Constraint** cs);
+extern CMajEnvVPSC* initCMajVPSC(int n, float *, vtx_data*, int, float);
 
-extern int constrained_majorization_vpsc(CMajEnvVPSC*, float*, float**, 
-                                        int, int, int);
+extern int constrained_majorization_vpsc(CMajEnvVPSC*, float*, float*, int);
 
 extern void deleteCMajEnvVPSC(CMajEnvVPSC *e);
 extern void generateNonoverlapConstraints(
         CMajEnvVPSC* e,
-        double* nwidth,
-        double* nheight,
-        double nsizeScale,
+        float* nwidth,
+        float* nheight,
+	float xgap,
+	float ygap,
+        float nsizeScale,
         float** coords,
         int k
 );
-extern void cleanupNonoverlapConstraints(CMajEnvVPSC *e,int k);
+
+extern void removeoverlaps(int,float**,float*,float*,float,float);
 
 #endif 
 

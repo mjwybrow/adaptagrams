@@ -46,10 +46,10 @@ stress_majorization_vsep(
                         /* start/end nodes */
     int noverlap,       /* 1=generate non-overlap constraints */
                         /* 2=remove overlaps after layout */
-    double xgap,        /* horizontal gap to enforce when removing overlap*/
-    double ygap,        /* vertical    "       "      "      "       "    */
-    double* nwidth,     /* node widths */
-    double* nheight     /* node heights */
+    float xgap,        /* horizontal gap to enforce when removing overlap*/
+    float ygap,        /* vertical    "       "      "      "       "    */
+    float* nwidth,     /* node widths */
+    float* nheight     /* node heights */
 )
 {
     int iterations = 0;    /* Output: number of iteration of the process */
@@ -76,7 +76,8 @@ stress_majorization_vsep(
 	float ** coords=NULL;
 
 	//double conj_tol=tolerance_cg;        /* tolerance of Conjugate Gradient */
-	CMajEnvVPSC *cMajEnv = NULL;
+	CMajEnvVPSC *cMajEnvHor = NULL;
+	CMajEnvVPSC *cMajEnvVrt = NULL;
 	clock_t start_time;
 	double y_0;
 	int length;
@@ -91,9 +92,6 @@ stress_majorization_vsep(
 	bool converged;
 	int len;
     double nsizeScale=0;
-    Constraint** cs=NULL;
-    Variable** vs = N_GNEW(n, Variable*);
-    int m;
     fprintf(stderr,"Entered: stress_majorization_diredges\n");
 
 	if (graph[0].edists!=NULL) {
@@ -129,36 +127,6 @@ stress_majorization_vsep(
         initLayout(graph, n, dim, d_coords);
 	}
     if (n == 1) return 0;
-
-	/******************************************************************************
-	** First, generate separation constraints for edges in largest acyclic subgraph
-	*******************************************************************************/
-
-    m=0;
-    if(diredges) {
-        fprintf(stderr,"  generate edge constraints...\n");
-        for(i=0;i<n;i++) {
-            vs[i]=newVariable(i,1.0,1.0);
-            for(j=1;j<graph[i].nedges;j++) {
-                if(graph[i].edists[j]>0) {
-                    m++;
-                }
-            }
-        }
-        cs=N_GNEW(m, Constraint*);
-        m=0;
-        for(i=0;i<n;i++) {
-            for(j=1;j<graph[i].nedges;j++) {
-                int u=i,v=graph[i].edges[j];
-                if(graph[i].edists[j]>0) {
-                    cs[m]=newConstraint(vs[u],vs[v],edge_gap);
-                    m++;
-                }
-            }
-        }
-        fprintf(stderr,"  generate constraints... done: n=%d,m=%d\n",n,m);
-    }
-
 
 	/****************************************************
 	** Compute the all-pairs-shortest-distances matrix **
@@ -332,7 +300,8 @@ stress_majorization_vsep(
 
 	start_time = clock();
 
-	cMajEnv=initCMajVPSC(n,lap2, vs, m, cs);
+	cMajEnvHor=initCMajVPSC(n,lap2,graph, 0, 0);
+	cMajEnvVrt=initCMajVPSC(n,lap2,graph, diredges, edge_gap);
 
     fprintf(stderr,"Entering main loop...\n");
 	for (converged=false,iterations=0; iterations<maxi && !converged; iterations++) {
@@ -439,33 +408,47 @@ stress_majorization_vsep(
             converged = false;
         }
 		
-		for (k=0; k<dim; k++) {
-			/* now we find the optimizer of trace(X'LX)+X'B by solving 'dim' 
-             * system of equations, thereby obtaining the new coordinates.
-			 * If we use the constraints (given by the var's: 'ordering', 
-             * 'levels' and 'num_levels'), we cannot optimize 
-             * trace(X'LX)+X'B by simply solving equations, but we have
-			 * to use a quadratic programming solver
-			 * note: 'lap2' is a packed symmetric matrix, that is its 
-             * upper-triangular part is arranged in a vector row-wise
-			 * also note: 'lap2' is really the negated laplacian (the 
-             * laplacian is -'lap2')
-             */
-			
-            if(noverlap==1 && nsizeScale > 0.001) {
-                generateNonoverlapConstraints(cMajEnv,nwidth,nheight,nsizeScale,coords,k);
-                constrained_majorization_vpsc(cMajEnv, b[k], coords, k, dim, localConstrMajorIterations);
-                cleanupNonoverlapConstraints(cMajEnv,k);
-            } else {
-                cMajEnv->m=cMajEnv->em;
-                cMajEnv->cs=cMajEnv->edge_cs;
-                constrained_majorization_vpsc(cMajEnv, b[k], coords, k, dim, localConstrMajorIterations);
-            }
-		}
+
+        /* now we find the optimizer of trace(X'LX)+X'B by solving 'dim' 
+         * system of equations, thereby obtaining the new coordinates.
+         * If we use the constraints (given by the var's: 'ordering', 
+         * 'levels' and 'num_levels'), we cannot optimize 
+         * trace(X'LX)+X'B by simply solving equations, but we have
+         * to use a quadratic programming solver
+         * note: 'lap2' is a packed symmetric matrix, that is its 
+         * upper-triangular part is arranged in a vector row-wise
+         * also note: 'lap2' is really the negated laplacian (the 
+         * laplacian is -'lap2')
+         */
+        
+        if(noverlap==1 && nsizeScale > 0.001) {
+            generateNonoverlapConstraints(cMajEnvHor,nwidth,nheight,xgap,ygap,nsizeScale,coords,0);
+        }
+        if(cMajEnvHor->m > 0) {
+            constrained_majorization_vpsc(cMajEnvHor, b[0], coords[0], localConstrMajorIterations);
+        } else {
+            // if there are no constraints then use conjugate gradient
+            // optimisation which should be considerably faster
+			conjugate_gradient_mkernel(lap2, coords[0], b[0], n, tolerance_cg, n);	
+        }
+        if(noverlap==1 && nsizeScale > 0.001) {
+            generateNonoverlapConstraints(cMajEnvVrt,nwidth,nheight,xgap,ygap,nsizeScale,coords,1);
+        }
+        if(cMajEnvVrt->m > 0) {
+            constrained_majorization_vpsc(cMajEnvVrt, b[1], coords[1], localConstrMajorIterations);
+        } else {
+			conjugate_gradient_mkernel(lap2, coords[1], b[1], n, tolerance_cg, n);	
+        }
 	}
     fprintf(stderr,"Finished majorization!\n");
-	//deleteCMajEnvVPSC(cMajEnv);
+	deleteCMajEnvVPSC(cMajEnvHor);
+	deleteCMajEnvVPSC(cMajEnvVrt);
     fprintf(stderr,"  freed cMajEnv!\n");
+
+    if (noverlap==2) {
+        fprintf(stderr,"Removing overlaps as post-process...\n");
+        removeoverlaps(n,coords,nwidth,nheight,xgap,ygap);
+    }
 	
 	if (coords!=NULL) {
 		for (i=0; i<dim; i++) {

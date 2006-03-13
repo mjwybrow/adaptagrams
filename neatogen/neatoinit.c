@@ -1049,7 +1049,7 @@ majorization(graph_t * g, int nv, int mode, int model, int dim, int steps)
         } else {
             char* str = agget(g, "diredgeconstraints");
             int diredges = 0, noverlap = 0;
-            double width[nv], height[nv], xgap, ygap;
+            float width[nv], height[nv], xgap, ygap;
             if(str && !strncmp(str,"true",4)) {
                 diredges = 1;
                 fprintf(stderr,"Generating Edge Constraints...\n");
