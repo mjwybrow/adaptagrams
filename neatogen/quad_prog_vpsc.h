@@ -20,6 +20,8 @@ extern "C" {
 
 #ifdef DIGCOLA
 
+#include "defs.h"
+
 typedef struct {
 	float **A;
 	int n; /* number of vars */
@@ -40,7 +42,7 @@ typedef struct {
 	float *fArray4;
 } CMajEnvVPSC;
 
-extern CMajEnvVPSC* initCMajVPSC(int n, float *, vtx_data*, int, float);
+extern CMajEnvVPSC* initCMajVPSC(int n, float *, vtx_data*, int, float, cluster_data*);
 
 extern int constrained_majorization_vpsc(CMajEnvVPSC*, float*, float*, int);
 
@@ -56,7 +58,7 @@ extern void generateNonoverlapConstraints(
         int k
 );
 
-extern void removeoverlaps(int,float**,float*,float*,float,float);
+extern void removeoverlaps(int,float**,float*,float*,float,float,cluster_data*);
 
 #endif 
 

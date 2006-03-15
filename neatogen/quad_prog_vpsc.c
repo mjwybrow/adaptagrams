@@ -151,7 +151,7 @@ constrained_majorization_vpsc(CMajEnvVPSC *e, float * b, float *place,
 
 CMajEnvVPSC*
 initCMajVPSC(int n, float* packedMat, vtx_data* graph,
-        int diredges, float edge_gap)
+        int diredges, float edge_gap, cluster_data *clusters)
 {
     int i,j;
     fprintf(stderr,"Entered initCMajVPSC\n");
@@ -172,12 +172,13 @@ initCMajVPSC(int n, float* packedMat, vtx_data* graph,
         fprintf(stderr,"  generate edge constraints...\n");
         for(i=0;i<n;i++) {
             for(j=1;j<graph[i].nedges;j++) {
-                if(graph[i].edists[j]>0) {
+                //fprintf(stderr,"edist=%f\n",graph[i].edists[j]);
+                if(graph[i].edists[j]>0.01) {
                     e->gm++;
                 }
             }
         }
-        e->gcs=N_GNEW(e->gm, Constraint*);
+        e->gcs=newConstraints(e->gm);
         e->gm=0;
         for(i=0;i<n;i++) {
             for(j=1;j<graph[i].nedges;j++) {
@@ -232,11 +233,8 @@ deleteCMajEnvVPSC(CMajEnvVPSC *e)
     }
     if(e->m>0) {
         deleteVPSC(e->vpsc);
-        for(i=0;i<e->m;i++) {
-            deleteConstraint(e->cs[i]);
-        }
-        if(e->cs!=e->gcs && e->gcs!=NULL) free (e->gcs);
-        free (e->cs);
+        if(e->cs!=e->gcs && e->gcs!=NULL) deleteConstraints(0,e->gcs);
+        deleteConstraints(e->m,e->cs);
         for(i=0;i<e->n;i++) {
             deleteVariable(e->vs[i]);
         }
@@ -293,7 +291,8 @@ void generateNonoverlapConstraints(
             // delete previous overlap constraints
             deleteConstraint(e->cs[i]);
         }
-        if(e->cs!=e->gcs) free (e->cs);
+        // just delete the array, not the elements
+        if(e->cs!=e->gcs) deleteConstraints(0,e->cs);
     }
     if(e->gm==0) {
         e->m = mol;
@@ -308,15 +307,16 @@ void generateNonoverlapConstraints(
                 e->cs[i]=csol[i-e->gm];
             }
         }
-        free(csol);
+        // just delete the array, not the elements
+        deleteConstraints(0,csol);
     }
     e->vpsc = newIncVPSC(e->n,e->vs,e->m,e->cs);
 }
 
 void removeoverlaps(int n,float **coords,float *nwidth, float *nheight,
-        float xgap, float ygap) {
+        float xgap, float ygap, cluster_data *clusters) {
     int i;
-	CMajEnvVPSC *e = initCMajVPSC(n,NULL,NULL,0,0);
+	CMajEnvVPSC *e = initCMajVPSC(n,NULL,NULL,0,0, clusters);
     generateNonoverlapConstraints(e,nwidth,nheight,xgap,ygap,1.0,coords,0);
     solveVPSC(e->vpsc);
     for(i=0;i<n;i++) {

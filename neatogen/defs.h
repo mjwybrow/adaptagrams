@@ -33,6 +33,12 @@ extern "C" {
 	float *edists; /* directed dist reflecting the direction of the edge */
     };
 
+    struct cluster_data {
+        int nclusters;
+        int *clustersizes;
+        int **clusters;
+    };
+
     typedef int DistType;	/* must be signed!! */
 
     inline double max(double x, double y) {
@@ -92,6 +98,13 @@ extern "C" {
 	float *edists; /* directed dist reflecting the direction of the edge */
 #endif
     } vtx_data;
+
+    typedef struct cluster_data {
+        int nclusters;
+        int *clustersizes;
+        int **clusters;
+    } cluster_data;
+
 
     typedef int DistType;	/* must be signed!! */
 

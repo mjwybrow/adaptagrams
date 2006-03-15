@@ -38,7 +38,6 @@ stress_majorization_vsep(
     int nedges_graph,   /* Number of edges */
     double** d_coords,  /* Coordinates of nodes (output layout)  */
     int dim,            /* Dimemsionality of layout */
-    int smart_ini,      /* smart initialization */
     int model,          /* difference model */
     int maxi,           /* max iterations */
     int diredges,       /* 1=generate directed edge constraints */
@@ -49,7 +48,9 @@ stress_majorization_vsep(
     float xgap,        /* horizontal gap to enforce when removing overlap*/
     float ygap,        /* vertical    "       "      "      "       "    */
     float* nwidth,     /* node widths */
-    float* nheight     /* node heights */
+    float* nheight,     /* node heights */
+    cluster_data* clusters
+                        /* list of node indices for each cluster */
 )
 {
     int iterations = 0;    /* Output: number of iteration of the process */
@@ -61,19 +62,16 @@ stress_majorization_vsep(
 	*************************************************/
 
 	int i,j,k;
-	bool directionalityExist = FALSE;
 	float * lap1 = NULL;
 	float * dist_accumulator = NULL;
 	float * tmp_coords = NULL;
 	float ** b = NULL;
-#ifdef NONCORE
-	FILE * fp=NULL;
-#endif
 	double * degrees = NULL;
 	float * lap2=NULL;
 	int lap_length;
 	float * f_storage=NULL;
 	float ** coords=NULL;
+    int orig_n=n;
 
 	//double conj_tol=tolerance_cg;        /* tolerance of Conjugate Gradient */
 	CMajEnvVPSC *cMajEnvHor = NULL;
@@ -94,38 +92,7 @@ stress_majorization_vsep(
     double nsizeScale=0;
     fprintf(stderr,"Entered: stress_majorization_diredges\n");
 
-	if (graph[0].edists!=NULL) {
-		for (i=0; i<n; i++) {
-			for (j=1; j<graph[i].nedges; j++) {
-				 directionalityExist = directionalityExist || (graph[i].edists[j]!=0);
-			}
-		}
-	}
-	if (!directionalityExist) {
-		return stress_majorization_kD_mkernel(graph, n, nedges_graph, d_coords, dim, smart_ini, model, maxi);
-	}
-
-	if (0/*smart_ini*/) {
-		double* x;
-		double* y;
-		if (dim>2) {
-			/* the dim==2 case is handled below			 */
-			stress_majorization_kD_mkernel(graph, n, nedges_graph, d_coords+1, dim-1, smart_ini, model, 15);
-			/* now copy the y-axis into the (dim-1)-axis */
-			for (i=0; i<n; i++) {
-				d_coords[dim-1][i] = d_coords[1][i];
-			}
-		}
-
-		x = d_coords[0]; y = d_coords[1];
-
-		if (dim==2) {
-			IMDS_given_dim(graph, n, y, x, Epsilon);
-		}
-	}
-	else {
-        initLayout(graph, n, dim, d_coords);
-	}
+    initLayout(graph, n, dim, d_coords);
     if (n == 1) return 0;
 
 	/****************************************************
@@ -164,47 +131,22 @@ stress_majorization_vsep(
 		}
 	}
 
-	if (!smart_ini) {
-		/* for numerical stability, scale down layout		 */
-		/* No Jiggling, might conflict with constraints			 */
-        fprintf(stderr,"SCALING!!!\n");
-		double max=1;		
-		for (i=0; i<dim; i++) {	
-			for (j=0; j<n; j++) {
-				if (fabs(d_coords[i][j])>max) {
-					max=fabs(d_coords[i][j]);
-				}
-			}	
-		}
-		for (i=0; i<dim; i++) {	
-			for (j=0; j<n; j++) {
-				d_coords[i][j]*=10/max;
-			}	
-		}
-	}		
-
-	if (edge_gap>50) {
-		for (i=0; i<length; i++) {
-            fprintf(stderr,"Dij[%d]=%f ",i,Dij[i]);
-		}
-		int length = n+n*(n-1)/2;
-		double sum1, sum2, scale_ratio;
-		int count;
-		sum1=(float)(n*(n-1)/2);
-		sum2=0;
-		for (count=0, i=0; i<n-1; i++) {
-			count++; // skip self distance
-			for (j=i+1; j<n; j++,count++) {
-				sum2+=distance_kD(d_coords, dim, i, j)/Dij[count];
-			}
-		}
-		scale_ratio=sum2/sum1;
-		/* double scale_ratio=10; */
-		for (i=0; i<length; i++) {
-			Dij[i]*=(float)scale_ratio;
-            fprintf(stderr,"Dij[%d]=%f ",i,Dij[i]);
-		}
-	}
+    /* for numerical stability, scale down layout		 */
+    /* No Jiggling, might conflict with constraints			 */
+    fprintf(stderr,"SCALING!!!\n");
+    double max=1;		
+    for (i=0; i<dim; i++) {	
+        for (j=0; j<n; j++) {
+            if (fabs(d_coords[i][j])>max) {
+                max=fabs(d_coords[i][j]);
+            }
+        }	
+    }
+    for (i=0; i<dim; i++) {	
+        for (j=0; j<n; j++) {
+            d_coords[i][j]*=10/max;
+        }	
+    }
 
 	/**************************
 	** Layout initialization **
@@ -220,12 +162,67 @@ stress_majorization_vsep(
 		d_coords[1][i] -= y_0;
 	}
 
+	/**************************
+	** Laplacian computation **
+	**************************/
+			
+    lap2 = Dij;
+    lap_length = n+n*(n-1)/2;
+    square_vec(lap_length, lap2);
+    /* compute off-diagonal entries */
+    invert_vec(lap_length, lap2);
+    
+    if(clusters->nclusters>0) {
+        int nn = n+clusters->nclusters*2;
+        fprintf(stderr,"computing clap... n=%d,nn=%d\n",n,nn);
+        int clap_length = nn+nn*(nn-1)/2;
+        float *clap = N_GNEW(clap_length, float);
+        float *cdegrees = N_GNEW(nn, float);
+        int c0,c1;
+        float v;
+        c0=c1=0;
+        for(i=0;i<nn;i++) {
+            for(j=0;j<nn-i;j++) {
+                if(i<n && j<n-i) {
+                    v=lap2[c0++];
+                } else {
+                    if(j==0) v=1;
+                    else if(j==1) v=i%2;
+                    else v=0;
+                }
+                fprintf(stderr,"%f ",v);
+                clap[c1++]=v;
+            }
+            fprintf(stderr,"\n");
+        }
+        free(lap2);
+        lap2=clap;
+        n=nn;
+        lap_length=clap_length;
+    }
+    /* compute diagonal entries */
+    count=0;
+    degrees = N_GNEW(n, double);
+    set_vector_val(n, 0, degrees);
+    for (i=0; i<n-1; i++) {
+        degree=0;
+        count++; // skip main diag entry
+        for (j=1; j<n-i; j++,count++) {
+            val = lap2[count];
+            degree+=val; degrees[i+j]-=val;
+        }
+        degrees[i]-=degree;
+    }
+    for (step=n,count=0,i=0; i<n; i++,count+=step,step--) {
+        lap2[count]=(float)degrees[i];
+    }
+
 	coords = N_GNEW(dim, float*);
 	f_storage = N_GNEW(dim*n, float);
 	for (i=0; i<dim; i++) {
 		coords[i] = f_storage+i*n;
 		for (j=0; j<n; j++) {
-			coords[i][j] = (float)(d_coords[i][j]);
+			coords[i][j] = j<orig_n?(float)(d_coords[i][j]):0;
 		}
 	}
 
@@ -234,43 +231,6 @@ stress_majorization_vsep(
      */
 	constant_term=(float)(n*(n-1)/2);
 	
-	/**************************
-	** Laplacian computation **
-	**************************/
-			
-	lap2 = Dij;
-	lap_length = n+n*(n-1)/2;
-	square_vec(lap_length, lap2);
-	/* compute off-diagonal entries */
-	invert_vec(lap_length, lap2);
-	
-	/* compute diagonal entries */
-	count=0;
-	degrees = N_GNEW(n, double);
-	set_vector_val(n, 0, degrees);
-	for (i=0; i<n-1; i++) {
-		degree=0;
-		count++; // skip main diag entry
-		for (j=1; j<n-i; j++,count++) {
-			val = lap2[count];
-			degree+=val; degrees[i+j]-=val;
-		}
-		degrees[i]-=degree;
-	}
-	for (step=n,count=0,i=0; i<n; i++,count+=step,step--) {
-		lap2[count]=(float)degrees[i];
-	}
-
-#ifdef NONCORE
-	fpos_t pos;
-	if (n>max_nodes_in_mem) {
-		#define FILENAME "tmp_Dij$$$.bin"
-		fp = fopen(FILENAME, "wb");
-		fwrite(lap2, sizeof(float), lap_length, fp);
-		fclose(fp);
-	}
-#endif
-		
 	/*************************
 	** Layout optimization  **
 	*************************/
@@ -283,41 +243,22 @@ stress_majorization_vsep(
 
 	tmp_coords = N_GNEW(n, float);
 	dist_accumulator = N_GNEW(n, float);
-#ifdef NONCORE
-	if (n<=max_nodes_in_mem) {
-#endif
-		lap1 = N_GNEW(lap_length, float);
-#ifdef NONCORE
-	}
-	else {
-		lap1=lap2;
-		fp = fopen(FILENAME, "rb");
-		fgetpos(fp, &pos);
-	}
-#endif
 	
 	old_stress=DBL_MAX; /* at least one iteration */
 
 	start_time = clock();
 
-	cMajEnvHor=initCMajVPSC(n,lap2,graph, 0, 0);
-	cMajEnvVrt=initCMajVPSC(n,lap2,graph, diredges, edge_gap);
+	cMajEnvHor=initCMajVPSC(n,lap2,graph, 0, 0, clusters);
+	cMajEnvVrt=initCMajVPSC(n,lap2,graph, diredges, edge_gap, clusters);
+
+	lap1 = N_GNEW(lap_length, float);
 
     fprintf(stderr,"Entering main loop...\n");
 	for (converged=false,iterations=0; iterations<maxi && !converged; iterations++) {
 
 		/* First, construct Laplacian of 1/(d_ij*|p_i-p_j|)  */
 		set_vector_val(n, 0, degrees);
-#ifdef NONCORE
-		if (n<=max_nodes_in_mem) {
-#endif
-			sqrt_vecf(lap_length, lap2, lap1);
-#ifdef NONCORE
-		}
-		else {
-			sqrt_vec(lap_length, lap1);
-		}
-#endif
+		sqrt_vecf(lap_length, lap2, lap1);
 		for (count=0,i=0; i<n-1; i++) {
 			len = n-i-1;
 			/* init 'dist_accumulator' with zeros */
@@ -370,13 +311,6 @@ stress_majorization_vsep(
 		}
 		new_stress*=2;
 		new_stress+=constant_term; // only after mult by 2		
-#ifdef NONCORE
-		if (n>max_nodes_in_mem) {
-			/* restore lap2 from disk */
-			fsetpos(fp, &pos);
-			fread(lap2, sizeof(float), lap_length, fp);
-		}
-#endif
 		for (k=0; k<dim; k++) {	
 			right_mult_with_vector_ff(lap2, n, coords[k], tmp_coords);
 			new_stress-=vectors_inner_productf(n, coords[k], tmp_coords);
@@ -447,12 +381,12 @@ stress_majorization_vsep(
 
     if (noverlap==2) {
         fprintf(stderr,"Removing overlaps as post-process...\n");
-        removeoverlaps(n,coords,nwidth,nheight,xgap,ygap);
+        removeoverlaps(orig_n,coords,nwidth,nheight,xgap,ygap,clusters);
     }
 	
 	if (coords!=NULL) {
 		for (i=0; i<dim; i++) {
-			for (j=0; j<n; j++) {
+			for (j=0; j<orig_n; j++) {
 				d_coords[i][j] = coords[i][j];
 			}
 		}
@@ -466,15 +400,7 @@ stress_majorization_vsep(
 	free (dist_accumulator);
 	free (degrees);
 	free (lap2);
-	
-
-#ifdef NONCORE
-	if (n<=max_nodes_in_mem) {
-#endif
-		free (lap1); 
-#ifdef NONCORE
-	}
-#endif
+	free (lap1); 
 
     return iterations;
 }
