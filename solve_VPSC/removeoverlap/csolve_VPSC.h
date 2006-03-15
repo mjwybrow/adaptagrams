@@ -14,6 +14,10 @@ Constraint* newConstraint(Variable* left, Variable* right, double gap);
 typedef struct VPSC VPSC;
 VPSC* newVPSC(int n, Variable* vs[], int m, Constraint* cs[]);
 void deleteVPSC(VPSC*);
+void deleteConstraint(Constraint*);
+void deleteVariable(Variable*);
+Constraint** newConstraints(int m);
+void deleteConstraints(int m,Constraint**);
 
 int genXConstraints(int n, double minX[], double maxX[], double minY[], double maxY[], Variable** vs, Constraint*** cs);
 int genYConstraints(int n, double minX[], double maxX[], double minY[], double maxY[], Variable** vs, Constraint*** cs);

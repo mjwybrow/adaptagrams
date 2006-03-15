@@ -44,6 +44,15 @@ int genYConstraints(int n, double minX[], double maxX[], double minY[], double m
 	return m;
 }
 
+Constraint** newConstraints(int m) {
+	return new Constraint*[m];
+}
+void deleteConstraints(int m, Constraint **cs) {
+	for(int i=0;i<m;i++) {
+		delete cs[i];
+	}
+	delete [] cs;
+}
 void deleteConstraint(Constraint* c) {
 	delete c;
 }
