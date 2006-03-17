@@ -34,9 +34,16 @@ extern "C" {
     };
 
     struct cluster_data {
-        int nclusters;
-        int *clustersizes;
-        int **clusters;
+	int nvars;         /* total count of vars in clusters */
+        int nclusters;     /* number of clusters */
+        int *clustersizes; /* number of vars in each cluster */
+        int **clusters;    /* list of var indices for constituents of each c */
+	int ntoplevel;     /* number of nodes not in any cluster */
+	int *toplevel;     /* array of nodes not in any cluster */
+	float *bbllx;      /* these 4 arrays */
+	float *bblly;      /*   define the */
+	float *bburx;      /*   cluster */
+	float *bbury;      /*   bounding boxes */
     };
 
     typedef int DistType;	/* must be signed!! */
@@ -100,9 +107,16 @@ extern "C" {
     } vtx_data;
 
     typedef struct cluster_data {
-        int nclusters;
-        int *clustersizes;
-        int **clusters;
+	int nvars;         /* total count of vars in clusters */
+        int nclusters;     /* number of clusters */
+        int *clustersizes; /* number of vars in each cluster */
+        int **clusters;    /* list of var indices for constituents of each c */
+	int ntoplevel;     /* number of nodes not in any cluster */
+	int *toplevel;     /* array of nodes not in any cluster */
+	float *bbllx;      /* these 4 arrays */
+	float *bblly;      /*   define the */
+	float *bburx;      /*   cluster */
+	float *bbury;      /*   bounding boxes */
     } cluster_data;
 
 

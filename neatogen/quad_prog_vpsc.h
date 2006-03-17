@@ -55,7 +55,8 @@ extern void generateNonoverlapConstraints(
 	float ygap,
         float nsizeScale,
         float** coords,
-        int k
+        int k,
+	cluster_data* clusters
 );
 
 extern void removeoverlaps(int,float**,float*,float*,float,float,cluster_data*);

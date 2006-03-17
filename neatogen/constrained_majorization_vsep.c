@@ -90,10 +90,18 @@ stress_majorization_vsep(
 	bool converged;
 	int len;
     double nsizeScale=0;
-    fprintf(stderr,"Entered: stress_majorization_diredges\n");
+    float maxEdgeLen=0;
 
     initLayout(graph, n, dim, d_coords);
     if (n == 1) return 0;
+
+    for(i=0;i<n;i++) {
+        for(j=1;j<graph[i].nedges;j++) {
+            maxEdgeLen=MAX(graph[i].ewgts[j],maxEdgeLen);
+        }
+    }
+
+    fprintf(stderr,"Entered: stress_majorization_vsep, maxEdgeLen=%f\n",maxEdgeLen);
 
 	/****************************************************
 	** Compute the all-pairs-shortest-distances matrix **
@@ -186,14 +194,20 @@ stress_majorization_vsep(
                 if(i<n && j<n-i) {
                     v=lap2[c0++];
                 } else {
-                    if(j==0) v=1;
-                    else if(j==1) v=i%2;
+                    //v=j==1?i%2:0;
+                    if(j==1&&i%2==1) {
+                        v=maxEdgeLen;
+                        v*=v;
+                        if(v>0.01) {
+                            v=1.0/v;
+                        }
+                    }
                     else v=0;
                 }
-                fprintf(stderr,"%f ",v);
+                //fprintf(stderr," %f",v);
                 clap[c1++]=v;
             }
-            fprintf(stderr,"\n");
+            //fprintf(stderr,"\n");
         }
         free(lap2);
         lap2=clap;
@@ -356,7 +370,7 @@ stress_majorization_vsep(
          */
         
         if(noverlap==1 && nsizeScale > 0.001) {
-            generateNonoverlapConstraints(cMajEnvHor,nwidth,nheight,xgap,ygap,nsizeScale,coords,0);
+            generateNonoverlapConstraints(cMajEnvHor,nwidth,nheight,xgap,ygap,nsizeScale,coords,0,clusters);
         }
         if(cMajEnvHor->m > 0) {
             constrained_majorization_vpsc(cMajEnvHor, b[0], coords[0], localConstrMajorIterations);
@@ -366,7 +380,7 @@ stress_majorization_vsep(
 			conjugate_gradient_mkernel(lap2, coords[0], b[0], n, tolerance_cg, n);	
         }
         if(noverlap==1 && nsizeScale > 0.001) {
-            generateNonoverlapConstraints(cMajEnvVrt,nwidth,nheight,xgap,ygap,nsizeScale,coords,1);
+            generateNonoverlapConstraints(cMajEnvVrt,nwidth,nheight,xgap,ygap,nsizeScale,coords,1,clusters);
         }
         if(cMajEnvVrt->m > 0) {
             constrained_majorization_vpsc(cMajEnvVrt, b[1], coords[1], localConstrMajorIterations);

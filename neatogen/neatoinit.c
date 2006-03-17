@@ -232,8 +232,13 @@ static cluster_data* cluster_map(graph_t *mastergraph, graph_t *g) {
     edge_t *me;
     // array of arrays of node indices in each cluster
     int **cs,*cn;
-    int nclusters=0;
+    int i,j,nclusters=0;
+    bool assigned[agnnodes(g)];
+    for(i=0;i<agnnodes(g);i++) {
+        assigned[i]=false;
+    }
     cluster_data *cdata = GNEW(cluster_data);
+    cdata->ntoplevel=agnnodes(g);
     mm = mastergraph->meta_node;
     mg = mm->graph;
     for (me = agfstout(mg, mm); me; me = agnxtout(mg, me)) {
@@ -243,6 +248,7 @@ static cluster_data* cluster_map(graph_t *mastergraph, graph_t *g) {
             nclusters++;
         }
     }
+    cdata->nvars=0;
     cdata->nclusters=nclusters;
     cs=cdata->clusters=N_GNEW(nclusters,int*);
     cn=cdata->clustersizes=N_GNEW(nclusters,int);
@@ -253,6 +259,7 @@ static cluster_data* cluster_map(graph_t *mastergraph, graph_t *g) {
         /* clusters are processed by separate calls to ordered_edges */
         if (!strncmp(subg->name, "cluster", 7)) {
             *cn=agnnodes(subg);
+            cdata->nvars+=*cn;
             int *c=*cs++=N_GNEW(*cn++,int);
             node_t *n;
             fprintf(stderr,"Cluster with %d nodes...\n",agnnodes(subg));
@@ -265,9 +272,22 @@ static cluster_data* cluster_map(graph_t *mastergraph, graph_t *g) {
                 }
                 fprintf(stderr,"  node=%s, id=%d, ind=%d\n",n->name,n->id,ind);
                 *c++=ind;
+                assigned[ind]=true;
+                cdata->ntoplevel--;
             }
         }
     }
+    cdata->bbllx=N_GNEW(cdata->nclusters,float);
+    cdata->bblly=N_GNEW(cdata->nclusters,float);
+    cdata->bburx=N_GNEW(cdata->nclusters,float);
+    cdata->bbury=N_GNEW(cdata->nclusters,float);
+    cdata->toplevel=N_GNEW(cdata->ntoplevel,int);
+    for(i=j=0;i<agnnodes(g);i++) {
+        if(!assigned[i]) {
+            cdata->toplevel[j++]=i;
+        }
+    }
+    assert(cdata->ntoplevel==agnnodes(g)-cdata->nvars);
     return cdata;
 }
 static void freeClusterData(cluster_data *c) {
@@ -275,6 +295,11 @@ static void freeClusterData(cluster_data *c) {
         free(c->clusters[0]);
         free(c->clusters);
         free(c->clustersizes);
+        free(c->toplevel);
+        free(c->bbllx);
+        free(c->bblly);
+        free(c->bburx);
+        free(c->bbury);
     }
     free(c);
 }
@@ -1125,7 +1150,7 @@ majorization(graph_t *mg, graph_t * g, int nv, int mode, int model, int dim, int
         } else {
             char* str = agget(g, "diredgeconstraints");
             int diredges = 0, noverlap = 0;
-            float width[nv], height[nv], xgap, ygap;
+            float width[nv], height[nv], xgap=0, ygap=0;
             if(str && !strncmp(str,"true",4)) {
                 diredges = 1;
                 fprintf(stderr,"Generating Edge Constraints...\n");
@@ -1337,6 +1362,21 @@ void neato_layout(Agraph_t * g)
                 gc = cc[i];
                 free_scan_graph(gc);
                 agdelete(g, gc);
+            }
+            {
+                graph_t *mg, *subg;
+                node_t *mm, *mn;
+                edge_t *me;
+                mm = g->meta_node;
+                mg = mm->graph;
+                for (me = agfstout(mg, mm); me; me = agnxtout(mg, me)) {
+                    mn = me->head;
+                    subg = agusergraph(mn);
+                    if (!strncmp(subg->name, "cluster", 7)) {
+                        add_cluster(g,subg);
+                        compute_bb(subg);
+                    }
+                }
             }
         } else {
             neatoLayout(g, g, layoutMode, model);
