@@ -224,6 +224,9 @@ void IncVPSC::moveBlocks() {
 #endif
 }
 void IncVPSC::splitBlocks() {
+#ifdef RECTANGLE_OVERLAP_LOGGING
+	ofstream f(LOGFILE,ios::app);
+#endif
 	moveBlocks();
 	// Split each block if necessary on min LM
 	for(set<Block*>::const_iterator i(bs->begin());i!=bs->end();i++) {

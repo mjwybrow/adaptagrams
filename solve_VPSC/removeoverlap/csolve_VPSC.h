@@ -18,6 +18,8 @@ void deleteConstraint(Constraint*);
 void deleteVariable(Variable*);
 Constraint** newConstraints(int m);
 void deleteConstraints(int m,Constraint**);
+void remapInConstraints(Variable *u, Variable *v, double dgap);
+void remapOutConstraints(Variable *u, Variable *v, double dgap);
 
 int genXConstraints(int n, double minX[], double maxX[], double minY[], double maxY[], Variable** vs, Constraint*** cs);
 int genYConstraints(int n, double minX[], double maxX[], double minY[], double maxY[], Variable** vs, Constraint*** cs);

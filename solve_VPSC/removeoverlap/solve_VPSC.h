@@ -31,9 +31,9 @@ protected:
 	Blocks *bs;
 	Constraint **cs;
 	int m;
+	void printBlocks();
 private:
 	void refine();
-	void printBlocks();
 	bool constraintGraphIsCyclic(const int n, Variable *vs[]);
 	bool blockGraphIsCyclic();
 };
