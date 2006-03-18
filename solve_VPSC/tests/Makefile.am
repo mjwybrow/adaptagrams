@@ -1,13 +1,13 @@
-INCLUDES = -I$(top_srcdir)/removeoverlap
-check_PROGRAMS = test_rectangleoverlap test_csolve_VPSC test_block test_satisfy_inc
-test_satisfy_inc_SOURCES = test_satisfy_inc.cpp
-test_satisfy_inc_LDADD = $(top_srcdir)/removeoverlap/libsolve_VPSC.la
-test_block_SOURCES = test_block.cpp
-test_block_LDADD = $(top_srcdir)/removeoverlap/libsolve_VPSC.la
-test_rectangleoverlap_SOURCES = test_rectangleoverlap.cpp
-test_rectangleoverlap_LDADD = $(top_srcdir)/removeoverlap/libsolve_VPSC.la
-test_csolve_VPSC_SOURCES = test_csolve_VPSC.c
-test_csolve_VPSC_LDADD = $(top_srcdir)/removeoverlap/libsolve_VPSC.la
+INCLUDES = -I$(top_srcdir)/libvpsc
+check_PROGRAMS = rectangleoverlap csolve_VPSC block satisfy_inc
+satisfy_inc_SOURCES = satisfy_inc.cpp
+satisfy_inc_LDADD = $(top_srcdir)/libvpsc/libvpsc.la
+block_SOURCES = block.cpp
+block_LDADD = $(top_srcdir)/libvpsc/libvpsc.la
+rectangleoverlap_SOURCES = rectangleoverlap.cpp
+rectangleoverlap_LDADD = $(top_srcdir)/libvpsc/libvpsc.la
+csolve_VPSC_SOURCES = csolve_VPSC.c
+csolve_VPSC_LDADD = $(top_srcdir)/libvpsc/libvpsc.la
 
-TESTS = $(check_PROGRAMS)
+TESTS = csolve_VPSC $(check_PROGRAMS)
 
