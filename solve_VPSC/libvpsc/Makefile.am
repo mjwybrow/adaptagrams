@@ -1,8 +1,8 @@
-INCLUDES = -I$(top_srcdir)/removeoverlap
+INCLUDES = -I$(top_srcdir)/libvpsc
 
-lib_LTLIBRARIES = libsolve_VPSC.la
+lib_LTLIBRARIES = libvpsc.la
 
-libsolve_VPSC_la_SOURCES = block.cpp\
+libvpsc_la_SOURCES = block.cpp\
 	blocks.cpp\
 	constraint.cpp\
 	generate-constraints.cpp\

@@ -1,3 +1,3 @@
 AUTOMAKE_OPTIONS = gnu
-SUBDIRS = removeoverlap tests
+SUBDIRS = libvpsc tests
 
