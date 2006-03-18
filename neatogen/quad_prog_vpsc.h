@@ -32,14 +32,9 @@ typedef struct {
 	/* global constraints are persistant throughout optimisation process */
 	Constraint **gcs;
 	VPSC *vpsc;
-	int *iArray1; /* utility arrays */
-	int *iArray2;
-	int *iArray3;
-	int *iArray4;
-	float *fArray1;
+	float *fArray1; /* utility arrays - reusable memory */
 	float *fArray2;
 	float *fArray3;
-	float *fArray4;
 } CMajEnvVPSC;
 
 extern CMajEnvVPSC* initCMajVPSC(int n, float *, vtx_data*, int, float, cluster_data*);
@@ -49,17 +44,15 @@ extern int constrained_majorization_vpsc(CMajEnvVPSC*, float*, float*, int);
 extern void deleteCMajEnvVPSC(CMajEnvVPSC *e);
 extern void generateNonoverlapConstraints(
         CMajEnvVPSC* e,
-        float* nwidth,
-        float* nheight,
-	float xgap,
-	float ygap,
+	pointf* nsize,
+	pointf gap,
         float nsizeScale,
         float** coords,
         int k,
 	cluster_data* clusters
 );
 
-extern void removeoverlaps(int,float**,float*,float*,float,float,cluster_data*);
+extern void removeoverlaps(int,float**,pointf*,pointf,cluster_data*);
 
 #endif 
 

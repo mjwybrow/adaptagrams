@@ -41,7 +41,7 @@ constrained_majorization_vpsc(CMajEnvVPSC *e, float * b, float *place,
 #endif
 	float *g = e->fArray1;
 	float *old_place = e->fArray2;
-	float *d = e->fArray4;
+	float *d = e->fArray3;
     //fprintf(stderr,"Entered: constrained_majorization_vpsc, #constraints=%d\n",e->m);
     if(e->m>0) {
 	    for (i=0;i<e->n;i++) {
@@ -215,7 +215,7 @@ initCMajVPSC(int n, float* packedMat, vtx_data* graph,
     e->m=0;
     e->cs=NULL;
     if(e->gm>0) {
-        e->vpsc = (IncVPSC*)newIncVPSC(e->n,e->vs,e->gm,e->gcs);
+        e->vpsc = newIncVPSC(e->n,e->vs,e->gm,e->gcs);
         e->m=e->gm;
         e->cs=e->gcs;
     }
@@ -235,11 +235,6 @@ initCMajVPSC(int n, float* packedMat, vtx_data* graph,
 	e->fArray1 = N_GNEW(n,float);
 	e->fArray2 = N_GNEW(n,float);
 	e->fArray3 = N_GNEW(n,float);
-	e->fArray4 = N_GNEW(n,float);
-	e->iArray1 = N_GNEW(n,int);
-	e->iArray2 = N_GNEW(n,int);
-	e->iArray3 = N_GNEW(n,int);
-	e->iArray4 = N_GNEW(n,int);
     //fprintf(stderr,"  done.\n");
 	return e;
 }
@@ -263,30 +258,11 @@ deleteCMajEnvVPSC(CMajEnvVPSC *e)
 	free (e->fArray1);
 	free (e->fArray2);
 	free (e->fArray3);
-	free (e->fArray4);
-	free (e->iArray1);
-	free (e->iArray2);
-	free (e->iArray3);
-	free (e->iArray4);
 	free (e);
 }
 
-// todo: for clusters we need special behaviour:
-// for each cluster with dummy nodes c0,c1:
-//   l=min coords[0][i] - nwidth[i]/2 - xgap/2 (for all nodes i in cluster)
-//   r=max coords[0][i] + nwidth[i]/2 + xgap/2
-//   b=min coords[1][i] - nwidth[i]/2 - xgap/2
-//   t=max coords[1][i] + nwidth[i]/2 + xgap/2
-//   w=r-l, h=t-b
-//   if k==0:
-//     nheight[cl]=nheight[cr]=h
-//     nwidth=0.00001    
-//     coords[0][cl]=l 
-//     coords[0][cr]=r 
-//     genXConstraints(nodes in cluster and l and r)
-//   if k==1:
-//     similar
-//
+// generate non-overlap constraints inside each cluster, including dummy
+// nodes at bounds of cluster
 // generate constraints again for top level nodes and clusters treating
 // clusters as rectangles of dim (l,r,b,t)
 // for each cluster map in-constraints to l out-constraints to r 
@@ -297,18 +273,16 @@ deleteCMajEnvVPSC(CMajEnvVPSC *e)
 // clusters that we'll map back to the dummy vars as above.
 void generateNonoverlapConstraints(
         CMajEnvVPSC* e,
-        float* nwidth,
-        float* nheight,
-        float xgap,
-        float ygap,
+        pointf* nsize,
+        pointf gap,
         float nsizeScale,
         float** coords,
         int k,
         cluster_data* clusters
 ) {
     Constraint **csol, **csolptr;
-    int i,j,mol=0,mcl;
-    double xmin[e->n],xmax[e->n],ymin[e->n],ymax[e->n];
+    int i,j,mol=0;
+    boxf bb[e->n];
     int n=e->n;
     bool genclusters=clusters->nclusters>0;
     if(genclusters) {
@@ -321,103 +295,65 @@ void generateNonoverlapConstraints(
         nsizeScale*=1.0001;
     }
     for(i=0;i<n;i++) {
-        xmin[i]=coords[0][i]-nsizeScale*nwidth[i]/2.0-xgap/2.0; 
-        xmax[i]=coords[0][i]+nsizeScale*nwidth[i]/2.0+xgap/2.0; 
-        ymin[i]=coords[1][i]-nsizeScale*nheight[i]/2.0-ygap/2.0; 
-        ymax[i]=coords[1][i]+nsizeScale*nheight[i]/2.0+ygap/2.0; 
+        bb[i].LL.x=coords[0][i]-nsizeScale*nsize[i].x/2.0-gap.x/2.0; 
+        bb[i].UR.x=coords[0][i]+nsizeScale*nsize[i].x/2.0+gap.x/2.0; 
+        bb[i].LL.y=coords[1][i]-nsizeScale*nsize[i].y/2.0-gap.y/2.0; 
+        bb[i].UR.y=coords[1][i]+nsizeScale*nsize[i].y/2.0+gap.y/2.0; 
     }
     if(genclusters) {
-        Constraint ***cscl = N_GNEW(clusters->nclusters+1,Constraint**);
-        int *cm = N_GNEW(clusters->nclusters+1,int);
+        Constraint **cscl[clusters->nclusters+1];
+        int cm[clusters->nclusters+1];
         for(i=0;i<clusters->nclusters;i++) {
             int cn=clusters->clustersizes[i];
-            Variable** cvs = N_GNEW(cn+2,Variable*);
-            double *cxmin = N_GNEW(cn+2,double);
-            double *cymin = N_GNEW(cn+2,double);
-            double *cxmax = N_GNEW(cn+2,double);
-            double *cymax = N_GNEW(cn+2,double);
-            // compute cluster bounding boxes
-            double cxm=100000000;
-            double cym=100000000;
-            double cxM=-100000000;
-            double cyM=-100000000;
+            Variable* cvs[cn+2];
+            boxf cbb[cn+2];
+            // compute cluster bounding bb
+            boxf container;
+            container.LL.x=container.LL.y=DBL_MAX;
+            container.UR.x=container.UR.y=-DBL_MAX;
             for(j=0;j<cn;j++) {
                 int iv=clusters->clusters[i][j];
                 cvs[j]=e->vs[iv];
-                cxmin[j]=xmin[iv];
-                cymin[j]=ymin[iv];
-                cxmax[j]=xmax[iv];
-                cymax[j]=ymax[iv];
-                cxm=MIN(cxm,xmin[iv]);
-                cym=MIN(cym,ymin[iv]);
-                cxM=MAX(cxM,xmax[iv]);
-                cyM=MAX(cyM,ymax[iv]);
+                B2BF(bb[iv],cbb[j]);
+                EXPANDBB(container,bb[iv]);
             }
-            clusters->bbllx[i]=cxm;
-            clusters->bblly[i]=cym;
-            clusters->bburx[i]=cxM;
-            clusters->bbury[i]=cyM;
+            B2BF(container,clusters->bb[i]);
             cvs[cn]=e->vs[n+2*i];
             cvs[cn+1]=e->vs[n+2*i+1];
+            B2BF(container,cbb[cn]);
+            B2BF(container,cbb[cn+1]);
             if(k==0) {
-                cxmin[cn]=cxm;
-                cymin[cn]=cym;
-                cxmax[cn]=cxm+0.0001;
-                cymax[cn]=cyM;
-                cxmin[cn+1]=cxM-0.0001;
-                cymin[cn+1]=cym;
-                cxmax[cn+1]=cxM;
-                cymax[cn+1]=cyM;
-                cm[i] = genXConstraints(cn+2,cxmin,cxmax,cymin,cymax,cvs,&cscl[i]);
+                cbb[cn].UR.x=container.LL.x+0.0001;
+                cbb[cn+1].LL.x=container.UR.x-0.0001;
+                cm[i] = genXConstraints(cn+2,cbb,cvs,&cscl[i]);
             } else {
-                cxmin[cn]=cxm;
-                cymin[cn]=cym;
-                cxmax[cn]=cxM;
-                cymax[cn]=cym+0.0001;
-                cxmin[cn+1]=cxm;
-                cymin[cn+1]=cyM-0.0001;
-                cxmax[cn+1]=cxM;
-                cymax[cn+1]=cyM;
-                cm[i] = genYConstraints(cn+2,cxmin,cxmax,cymin,cymax,cvs,&cscl[i]);
+                cbb[cn].UR.y=container.LL.y+0.0001;
+                cbb[cn+1].LL.y=container.UR.y-0.0001;
+                cm[i] = genYConstraints(cn+2,cbb,cvs,&cscl[i]);
             }
             mol+=cm[i];
-            free(cvs);
-            free(cxmin);
-            free(cymin);
-            free(cxmax);
-            free(cymax);
         }
         // generate top level constraints
         {
             int cn=clusters->ntoplevel+clusters->nclusters;
-            int cmtl;
-            Variable** cvs = N_GNEW(cn,Variable*);
-            double *cxmin = N_GNEW(cn,double);
-            double *cymin = N_GNEW(cn,double);
-            double *cxmax = N_GNEW(cn,double);
-            double *cymax = N_GNEW(cn,double);
+            Variable* cvs[cn];
+            boxf cbb[cn];
             for(i=0;i<clusters->ntoplevel;i++) {
                 int iv=clusters->toplevel[i];
                 cvs[i]=e->vs[iv];
-                cxmin[i]=xmin[iv];
-                cymin[i]=ymin[iv];
-                cxmax[i]=xmax[iv];
-                cymax[i]=ymax[iv];
+                B2BF(bb[iv],cbb[i]);
             }
             // make dummy variables for clusters
             for(i=clusters->ntoplevel;i<cn;i++) {
                 cvs[i]=newVariable(123+i,1,1);
                 j=i-clusters->ntoplevel;
-                cxmin[i]=clusters->bbllx[j];
-                cymin[i]=clusters->bblly[j];
-                cxmax[i]=clusters->bburx[j];
-                cymax[i]=clusters->bbury[j];
+                B2BF(clusters->bb[j],cbb[i]);
             }
             i=clusters->nclusters;
             if(k==0) {
-                cm[i] = genXConstraints(cn,cxmin,cxmax,cymin,cymax,cvs,&cscl[i]);
+                cm[i] = genXConstraints(cn,cbb,cvs,&cscl[i]);
             } else {
-                cm[i] = genYConstraints(cn,cxmin,cxmax,cymin,cymax,cvs,&cscl[i]);
+                cm[i] = genYConstraints(cn,cbb,cvs,&cscl[i]);
             }
             // remap constraints from tmp dummy vars to cluster l and r vars
             for(i=clusters->ntoplevel;i<cn;i++) {
@@ -429,20 +365,15 @@ void generateNonoverlapConstraints(
                 // half the bb width.
                 double dgap;
                 if(k==0) {
-                    dgap=-(cxmax[i]-cxmin[i])/2.0;
+                    dgap=-(cbb[i].UR.x-cbb[i].LL.x)/2.0;
                 } else {
-                    dgap=-(cymax[i]-cymin[i])/2.0;
+                    dgap=-(cbb[i].UR.y-cbb[i].LL.y)/2.0;
                 }
                 remapInConstraints(cvs[i],e->vs[n+2*j],dgap);
                 remapOutConstraints(cvs[i],e->vs[n+2*j+1],dgap);
                 deleteVariable(cvs[i]);
             }
             mol+=cm[clusters->nclusters];
-            free(cvs);
-            free(cxmin);
-            free(cymin);
-            free(cxmax);
-            free(cymax);
         }
         csolptr=csol=newConstraints(mol);
         for(i=0;i<clusters->nclusters+1;i++) {
@@ -452,12 +383,11 @@ void generateNonoverlapConstraints(
             }
             deleteConstraints(0,cscl[i]);
         }
-        free(cscl);
     } else {
         if(k==0) {
-            mol = genXConstraints(n,xmin,xmax,ymin,ymax,e->vs,&csol);
+            mol = genXConstraints(n,bb,e->vs,&csol);
         } else {
-            mol = genYConstraints(n,xmin,xmax,ymin,ymax,e->vs,&csol);
+            mol = genYConstraints(n,bb,e->vs,&csol);
         }
     }
     // remove constraints from previous iteration
@@ -494,16 +424,16 @@ void generateNonoverlapConstraints(
     e->vpsc = newIncVPSC(e->n,e->vs,e->m,e->cs);
 }
 
-void removeoverlaps(int n,float **coords,float *nwidth, float *nheight,
-        float xgap, float ygap, cluster_data *clusters) {
+void removeoverlaps(int n,float** coords, pointf* nsize,
+        pointf gap, cluster_data *clusters) {
     int i;
 	CMajEnvVPSC *e = initCMajVPSC(n,NULL,NULL,0,0, clusters);
-    generateNonoverlapConstraints(e,nwidth,nheight,xgap,ygap,1.0,coords,0,clusters);
+    generateNonoverlapConstraints(e,nsize,gap,1.0,coords,0,clusters);
     solveVPSC(e->vpsc);
     for(i=0;i<n;i++) {
         coords[0][i]=getVariablePos(e->vs[i]);
     }
-    generateNonoverlapConstraints(e,nwidth,nheight,xgap,ygap,1.0,coords,1,clusters);
+    generateNonoverlapConstraints(e,nsize,gap,1.0,coords,1,clusters);
     solveVPSC(e->vpsc);
     for(i=0;i<n;i++) {
         coords[1][i]=getVariablePos(e->vs[i]);

@@ -45,10 +45,8 @@ stress_majorization_vsep(
                         /* start/end nodes */
     int noverlap,       /* 1=generate non-overlap constraints */
                         /* 2=remove overlaps after layout */
-    float xgap,        /* horizontal gap to enforce when removing overlap*/
-    float ygap,        /* vertical    "       "      "      "       "    */
-    float* nwidth,     /* node widths */
-    float* nheight,     /* node heights */
+    pointf gap,        /* hor and vert gap to enforce when removing overlap*/
+    pointf* nsize,     /* node widths and heights */
     cluster_data* clusters
                         /* list of node indices for each cluster */
 )
@@ -370,7 +368,7 @@ stress_majorization_vsep(
          */
         
         if(noverlap==1 && nsizeScale > 0.001) {
-            generateNonoverlapConstraints(cMajEnvHor,nwidth,nheight,xgap,ygap,nsizeScale,coords,0,clusters);
+            generateNonoverlapConstraints(cMajEnvHor,nsize,gap,nsizeScale,coords,0,clusters);
         }
         if(cMajEnvHor->m > 0) {
             constrained_majorization_vpsc(cMajEnvHor, b[0], coords[0], localConstrMajorIterations);
@@ -380,7 +378,7 @@ stress_majorization_vsep(
 			conjugate_gradient_mkernel(lap2, coords[0], b[0], n, tolerance_cg, n);	
         }
         if(noverlap==1 && nsizeScale > 0.001) {
-            generateNonoverlapConstraints(cMajEnvVrt,nwidth,nheight,xgap,ygap,nsizeScale,coords,1,clusters);
+            generateNonoverlapConstraints(cMajEnvVrt,nsize,gap,nsizeScale,coords,1,clusters);
         }
         if(cMajEnvVrt->m > 0) {
             constrained_majorization_vpsc(cMajEnvVrt, b[1], coords[1], localConstrMajorIterations);
@@ -395,7 +393,7 @@ stress_majorization_vsep(
 
     if (noverlap==2) {
         fprintf(stderr,"Removing overlaps as post-process...\n");
-        removeoverlaps(orig_n,coords,nwidth,nheight,xgap,ygap,clusters);
+        removeoverlaps(orig_n,coords,nsize,gap,clusters);
     }
 	
 	if (coords!=NULL) {

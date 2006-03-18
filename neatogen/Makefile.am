@@ -8,7 +8,7 @@ AM_CPPFLAGS = \
         -I$(top_srcdir)/lib/pathplan \
         -I$(top_srcdir)/lib/graph \
         -I$(top_srcdir)/lib/cdt \
-	-I/home/dwyer/devel/solve_VPSC/removeoverlap
+	-I$(top_srcdir)/lib/libvpsc
 
 noinst_HEADERS = adjust.h edges.h geometry.h heap.h hedges.h info.h mem.h \
 	neato.h poly.h neatoprocs.h simple.h site.h voronoi.h \

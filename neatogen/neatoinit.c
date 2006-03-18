@@ -277,10 +277,7 @@ static cluster_data* cluster_map(graph_t *mastergraph, graph_t *g) {
             }
         }
     }
-    cdata->bbllx=N_GNEW(cdata->nclusters,float);
-    cdata->bblly=N_GNEW(cdata->nclusters,float);
-    cdata->bburx=N_GNEW(cdata->nclusters,float);
-    cdata->bbury=N_GNEW(cdata->nclusters,float);
+    cdata->bb=N_GNEW(cdata->nclusters,boxf);
     cdata->toplevel=N_GNEW(cdata->ntoplevel,int);
     for(i=j=0;i<agnnodes(g);i++) {
         if(!assigned[i]) {
@@ -296,10 +293,7 @@ static void freeClusterData(cluster_data *c) {
         free(c->clusters);
         free(c->clustersizes);
         free(c->toplevel);
-        free(c->bbllx);
-        free(c->bblly);
-        free(c->bburx);
-        free(c->bbury);
+        free(c->bb);
     }
     free(c);
 }
@@ -1150,7 +1144,8 @@ majorization(graph_t *mg, graph_t * g, int nv, int mode, int model, int dim, int
         } else {
             char* str = agget(g, "diredgeconstraints");
             int diredges = 0, noverlap = 0;
-            float width[nv], height[nv], xgap=0, ygap=0;
+            pointf nsize[nv], gap;
+            gap.x=gap.y=0;
             if(str && !strncmp(str,"true",4)) {
                 diredges = 1;
                 fprintf(stderr,"Generating Edge Constraints...\n");
@@ -1164,14 +1159,14 @@ majorization(graph_t *mg, graph_t * g, int nv, int mode, int model, int dim, int
                 fprintf(stderr,"Removing overlaps as postprocess...\n");
             }  
             if ((str = agget(g, "sep"))) {
-                    xgap = ygap = atof(str);
+                    gap.x = gap.y = atof(str);
             }
             for (i=0, v = agfstnode(g); v; v = agnxtnode(g, v),i++) {
-                width[i]=ND_width(v);
-                height[i]=ND_height(v);
+                nsize[i].x=ND_width(v);
+                nsize[i].y=ND_height(v);
             }
 
-            stress_majorization_vsep(gp, nv, ne, coords, Ndim, model, MaxIter, diredges, lgap, noverlap, xgap, ygap, width, height, cs);
+            stress_majorization_vsep(gp, nv, ne, coords, Ndim, model, MaxIter, diredges, lgap, noverlap, gap, nsize, cs);
         }
     }
     else

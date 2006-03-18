@@ -40,10 +40,7 @@ extern "C" {
         int **clusters;    /* list of var indices for constituents of each c */
 	int ntoplevel;     /* number of nodes not in any cluster */
 	int *toplevel;     /* array of nodes not in any cluster */
-	float *bbllx;      /* these 4 arrays */
-	float *bblly;      /*   define the */
-	float *bburx;      /*   cluster */
-	float *bbury;      /*   bounding boxes */
+	boxf *bb;	   /* bounding box of each cluster */
     };
 
     typedef int DistType;	/* must be signed!! */
@@ -113,10 +110,7 @@ extern "C" {
         int **clusters;    /* list of var indices for constituents of each c */
 	int ntoplevel;     /* number of nodes not in any cluster */
 	int *toplevel;     /* array of nodes not in any cluster */
-	float *bbllx;      /* these 4 arrays */
-	float *bblly;      /*   define the */
-	float *bburx;      /*   cluster */
-	float *bbury;      /*   bounding boxes */
+	boxf *bb;	   /* bounding box of each cluster */
     } cluster_data;
 
 
