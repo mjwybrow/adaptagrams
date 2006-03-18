@@ -21,12 +21,17 @@ void deleteConstraints(int m,Constraint**);
 void remapInConstraints(Variable *u, Variable *v, double dgap);
 void remapOutConstraints(Variable *u, Variable *v, double dgap);
 
-int genXConstraints(int n, double minX[], double maxX[], double minY[], double maxY[], Variable** vs, Constraint*** cs);
-int genYConstraints(int n, double minX[], double maxX[], double minY[], double maxY[], Variable** vs, Constraint*** cs);
+#ifndef HAVE_POINTF_S
+typedef struct pointf_s { double x, y; } pointf;
+typedef struct { pointf LL, UR; } boxf;
+#endif
+int genXConstraints(int n, boxf[], Variable** vs, Constraint*** cs);
+int genYConstraints(int n, boxf[], Variable** vs, Constraint*** cs);
 
 void satisfyVPSC(VPSC*);
 void solveVPSC(VPSC*);
 typedef struct IncVPSC IncVPSC;
+VPSC* newIncVPSC(int n, Variable* vs[], int m, Constraint* cs[]);
 void splitIncVPSC(IncVPSC*);
 #ifdef __cplusplus
 }
