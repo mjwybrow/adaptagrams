@@ -1,15 +1,17 @@
 /**********************************************************
-*      This software is part of the graphviz package      *
-*                http://www.graphviz.org/                 *
-*                                                         *
-*            Copyright (c) 1994-2004 AT&T Corp.           *
-*                and is licensed under the                *
-*            Common Public License, Version 1.0           *
-*                      by AT&T Corp.                      *
-*                                                         *
-*        Information and Software Systems Research        *
-*              AT&T Research, Florham Park NJ             *
-**********************************************************/
+ * Based on constrained_majorization.c
+ *
+ * Perform stress majorization subject
+ * to separation constraints.
+ *
+ * Available separation constraints so far are:
+ *  o Directed edge constraints
+ *  o Node non-overlap constraints
+ *  o Cluster containment constraints
+ *  o Cluster/node non-overlap constraints
+ *
+ * Tim Dwyer, 2006
+ **********************************************************/
 
 #include "digcola.h"
 #ifdef DIGCOLA
