@@ -371,6 +371,27 @@ void generateNonoverlapConstraints(
                 }
                 remapInConstraints(cvs[i],e->vs[n+2*j],dgap);
                 remapOutConstraints(cvs[i],e->vs[n+2*j+1],dgap);
+                // there may be problems with cycles between
+                // cluster non-overlap and diredge constraints,
+                // to resolve:
+                // 
+                // for each constraint c:v->cvs[i]:
+                //   if exists diredge constraint u->v where u in c:
+                //     remap v->cl to cr->v (gap = height(v)/2)
+                //
+                // in=getInConstraints(cvs[i])
+                // for(c : in) {
+                //   assert(c.right==cvs[i]);
+                //   vin=getOutConstraints(v=c.left)
+                //   for(d : vin) {
+                //     if(d.left.cluster==i):
+                //       tmp=d.left
+                //       d.left=d.right
+                //       d.right=tmp
+                //       d.gap==height(d.right)/2
+                //   }
+                // }
+                //       
                 deleteVariable(cvs[i]);
             }
             mol+=cm[clusters->nclusters];
