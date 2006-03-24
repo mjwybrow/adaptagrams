@@ -20,12 +20,16 @@ Constraint** newConstraints(int m);
 void deleteConstraints(int m,Constraint**);
 void remapInConstraints(Variable *u, Variable *v, double dgap);
 void remapOutConstraints(Variable *u, Variable *v, double dgap);
+int getLeftVarID(Constraint *c);
+int getRightVarID(Constraint *c);
+double getSeparation(Constraint *c);
 
 #ifndef HAVE_POINTF_S
 typedef struct pointf_s { double x, y; } pointf;
 typedef struct { pointf LL, UR; } boxf;
 #endif
-int genXConstraints(int n, boxf[], Variable** vs, Constraint*** cs);
+int genXConstraints(int n, boxf[], Variable** vs, Constraint*** cs,
+		bool transitiveClosure);
 int genYConstraints(int n, boxf[], Variable** vs, Constraint*** cs);
 
 void satisfyVPSC(VPSC*);

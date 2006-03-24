@@ -35,10 +35,10 @@ IncVPSC::IncVPSC(const int n, Variable *vs[], const int m, Constraint *cs[])
 	}
 }
 VPSC::VPSC(const int n, Variable *vs[], const int m, Constraint *cs[]) : cs(cs), m(m) {
-	//assert(!constraintGraphIsCyclic(vs,n));
 	bs=new Blocks(n, vs);
 #ifdef RECTANGLE_OVERLAP_LOGGING
 	printBlocks();
+	assert(!constraintGraphIsCyclic(n,vs));
 #endif
 }
 VPSC::~VPSC() {
@@ -292,7 +292,6 @@ struct node {
 	set<node*> in;
 	set<node*> out;
 };
-/*
 // useful in debugging - cycles would be BAD
 bool VPSC::constraintGraphIsCyclic(const int n, Variable *vs[]) {
 	map<Variable*, node*> varmap;
@@ -396,5 +395,4 @@ bool VPSC::blockGraphIsCyclic() {
 	}
 	return false;
 }
-*/
 

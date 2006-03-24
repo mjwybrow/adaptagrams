@@ -21,12 +21,12 @@ VPSC* newIncVPSC(int n, Variable* vs[], int m, Constraint* cs[]) {
 	return (VPSC*)new IncVPSC(n,vs,m,cs);
 }
 
-int genXConstraints(int n, boxf* bb, Variable** vs, Constraint*** cs) {
+int genXConstraints(int n, boxf* bb, Variable** vs, Constraint*** cs,bool transitiveClosure) {
 	Rectangle* rs[n];
 	for(int i=0;i<n;i++) {
 		rs[i]=new Rectangle(bb[i].LL.x,bb[i].UR.x,bb[i].LL.y,bb[i].UR.y);
 	}
-	int m = generateXConstraints(n,rs,vs,*cs,true);
+	int m = generateXConstraints(n,rs,vs,*cs,transitiveClosure);
 	for(int i=0;i<n;i++) {
 		delete rs[i];
 	}
@@ -60,7 +60,12 @@ void deleteVariable(Variable* v) {
 	delete v;
 }
 void satisfyVPSC(VPSC* vpsc) {
-	vpsc->satisfy();
+	try {
+		vpsc->satisfy();
+	} catch(const char *e) {
+		std::cerr << e << std::endl;
+		exit(1);
+	}
 }
 void deleteVPSC(VPSC *vpsc) {
 	assert(vpsc!=NULL);
@@ -95,5 +100,14 @@ void remapOutConstraints(Variable *u, Variable *v, double dgap) {
 		v->out.push_back(c);
 	}
 	u->out.clear();
+}
+int getLeftVarID(Constraint *c) {
+	return c->left->id;
+}
+int getRightVarID(Constraint *c){
+	return c->right->id;
+}
+double getSeparation(Constraint *c){
+	return c->gap;
 }
 }
