@@ -32,13 +32,14 @@ int
 constrained_majorization_vpsc(CMajEnvVPSC *e, float * b, float *place, 
                              int max_iterations)
 {
+#ifndef MOSEK
 	int i,j,counter;
 	if(max_iterations==0) return 0;
 
 	bool converged=false;
 #ifdef CONMAJ_LOGGING
 	static int call_no=0;
-#endif
+#endif // CONMAJ_LOGGING
 	float *g = e->fArray1;
 	float *old_place = e->fArray2;
 	float *d = e->fArray3;
@@ -147,6 +148,10 @@ constrained_majorization_vpsc(CMajEnvVPSC *e, float * b, float *place,
 	fclose(logfile);
 #endif
 	return counter;
+#else
+    mosek_quad_solve_sep(e->mosekEnv,b,place);
+    return 0;
+#endif // MOSEK
 }
 
 CMajEnvVPSC*
@@ -161,9 +166,6 @@ initCMajVPSC(int n, float* packedMat, vtx_data* graph,
 	CMajEnvVPSC *e = GNEW(CMajEnvVPSC);
 	e->A=NULL;
 	e->n=n;
-	/******************************************************************************
-	** First, generate separation constraints for edges in largest acyclic subgraph
-	*******************************************************************************/
 
     /* if we have clusters then we'll need two constraints for each var in
      * a cluster */
@@ -222,16 +224,10 @@ initCMajVPSC(int n, float* packedMat, vtx_data* graph,
     if(packedMat!=NULL) {
 	    e->A = unpackMatrix(packedMat,n);
     }
+#ifdef MOSEK
+    e->mosekEnv = mosek_init_sep(packedMat,n,e->gcs,e->gm);
+#endif
 
-    /*
-    fprintf(stderr,"e->A\n");
-    for(i=0;i<e->n;i++) {
-        for(j=0;j<e->n;j++) {
-            fprintf(stderr,"%f ",e->A[i][j]);
-        }
-        fprintf(stderr,"\n");
-    }
-    */
 	e->fArray1 = N_GNEW(n,float);
 	e->fArray2 = N_GNEW(n,float);
 	e->fArray3 = N_GNEW(n,float);
@@ -278,7 +274,8 @@ void generateNonoverlapConstraints(
         float nsizeScale,
         float** coords,
         int k,
-        cluster_data* clusters
+        cluster_data* clusters,
+        bool transitiveClosure
 ) {
     Constraint **csol, **csolptr;
     int i,j,mol=0;
@@ -325,7 +322,7 @@ void generateNonoverlapConstraints(
             if(k==0) {
                 cbb[cn].UR.x=container.LL.x+0.0001;
                 cbb[cn+1].LL.x=container.UR.x-0.0001;
-                cm[i] = genXConstraints(cn+2,cbb,cvs,&cscl[i]);
+                cm[i] = genXConstraints(cn+2,cbb,cvs,&cscl[i],transitiveClosure);
             } else {
                 cbb[cn].UR.y=container.LL.y+0.0001;
                 cbb[cn+1].LL.y=container.UR.y-0.0001;
@@ -351,7 +348,7 @@ void generateNonoverlapConstraints(
             }
             i=clusters->nclusters;
             if(k==0) {
-                cm[i] = genXConstraints(cn,cbb,cvs,&cscl[i]);
+                cm[i] = genXConstraints(cn,cbb,cvs,&cscl[i],transitiveClosure);
             } else {
                 cm[i] = genYConstraints(cn,cbb,cvs,&cscl[i]);
             }
@@ -406,7 +403,7 @@ void generateNonoverlapConstraints(
         }
     } else {
         if(k==0) {
-            mol = genXConstraints(n,bb,e->vs,&csol);
+            mol = genXConstraints(n,bb,e->vs,&csol,transitiveClosure);
         } else {
             mol = genYConstraints(n,bb,e->vs,&csol);
         }
@@ -442,6 +439,7 @@ void generateNonoverlapConstraints(
         // just delete the array, not the elements
         deleteConstraints(0,csol);
     }
+    fprintf(stderr,"  generated %d constraints\n",e->m);
     e->vpsc = newIncVPSC(e->n,e->vs,e->m,e->cs);
 }
 
@@ -449,12 +447,12 @@ void removeoverlaps(int n,float** coords, pointf* nsize,
         pointf gap, cluster_data *clusters) {
     int i;
 	CMajEnvVPSC *e = initCMajVPSC(n,NULL,NULL,0,0, clusters);
-    generateNonoverlapConstraints(e,nsize,gap,1.0,coords,0,clusters);
+    generateNonoverlapConstraints(e,nsize,gap,1.0,coords,0,clusters,true);
     solveVPSC(e->vpsc);
     for(i=0;i<n;i++) {
         coords[0][i]=getVariablePos(e->vs[i]);
     }
-    generateNonoverlapConstraints(e,nsize,gap,1.0,coords,1,clusters);
+    generateNonoverlapConstraints(e,nsize,gap,1.0,coords,1,clusters,false);
     solveVPSC(e->vpsc);
     for(i=0;i<n;i++) {
         coords[1][i]=getVariablePos(e->vs[i]);

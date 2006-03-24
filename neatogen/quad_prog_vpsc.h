@@ -21,6 +21,9 @@ extern "C" {
 #ifdef DIGCOLA
 
 #include "defs.h"
+#ifdef MOSEK
+#include "mosek_quad_solve.h"
+#endif //MOSEK
 
 typedef struct {
 	float **A;
@@ -35,6 +38,9 @@ typedef struct {
 	float *fArray1; /* utility arrays - reusable memory */
 	float *fArray2;
 	float *fArray3;
+#ifdef MOSEK
+	MosekEnv *mosekEnv;
+#endif // MOSEK
 } CMajEnvVPSC;
 
 extern CMajEnvVPSC* initCMajVPSC(int n, float *, vtx_data*, int, float, cluster_data*);
@@ -49,7 +55,8 @@ extern void generateNonoverlapConstraints(
         float nsizeScale,
         float** coords,
         int k,
-	cluster_data* clusters
+	cluster_data* clusters,
+	bool transitiveClosure
 );
 
 extern void removeoverlaps(int,float**,pointf*,pointf,cluster_data*);

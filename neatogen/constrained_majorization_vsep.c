@@ -343,7 +343,7 @@ stress_majorization_vsep(
 		/* check for convergence */
         fprintf(stderr,"stress=%f\n",new_stress);
 		converged = fabs(new_stress-old_stress)/fabs(old_stress+1e-10) < Epsilon;
-		converged = converged || (iterations>1 && new_stress>old_stress); 
+		//converged = converged || (iterations>1 && new_stress>old_stress); 
 			/* in first iteration we allowed stress increase, which 
              * might result ny imposing constraints
              */
@@ -351,8 +351,10 @@ stress_majorization_vsep(
 
         // in determining non-overlap constraints we gradually scale up the
         // size of nodes to avoid local minima
-        if(converged&&noverlap==1&&nsizeScale<0.99) {
-            nsizeScale= 1.0;
+        if((iterations>=maxi-1||converged)&&noverlap==1&&nsizeScale<0.999) {
+            nsizeScale+=0.01;
+            fprintf(stderr,"nsizescale=%f,iterations=%d\n",nsizeScale,iterations);
+            iterations=0;
             converged = false;
         }
 		
@@ -370,7 +372,7 @@ stress_majorization_vsep(
          */
         
         if(noverlap==1 && nsizeScale > 0.001) {
-            generateNonoverlapConstraints(cMajEnvHor,nsize,gap,nsizeScale,coords,0,clusters);
+            generateNonoverlapConstraints(cMajEnvHor,nsize,gap,nsizeScale,coords,0,clusters,nsizeScale<0.5?false:true);
         }
         if(cMajEnvHor->m > 0) {
             constrained_majorization_vpsc(cMajEnvHor, b[0], coords[0], localConstrMajorIterations);
@@ -380,7 +382,7 @@ stress_majorization_vsep(
 			conjugate_gradient_mkernel(lap2, coords[0], b[0], n, tolerance_cg, n);	
         }
         if(noverlap==1 && nsizeScale > 0.001) {
-            generateNonoverlapConstraints(cMajEnvVrt,nsize,gap,nsizeScale,coords,1,clusters);
+            generateNonoverlapConstraints(cMajEnvVrt,nsize,gap,nsizeScale,coords,1,clusters,false);
         }
         if(cMajEnvVrt->m > 0) {
             constrained_majorization_vpsc(cMajEnvVrt, b[1], coords[1], localConstrMajorIterations);

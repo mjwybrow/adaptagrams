@@ -27,6 +27,10 @@
 #include "quad_prog_solver.h"
 #include "matrix_ops.h"
 
+#ifdef MOSEK
+#include "mosek_quad_solve.h"
+#endif
+
 #define localConstrMajorIterations 15
 #define levels_sep_tol 1e-1
 
@@ -68,7 +72,11 @@ stress_majorization_with_hierarchy(
 
 	double conj_tol=tolerance_cg;        /* tolerance of Conjugate Gradient */
 	float ** unpackedLap = NULL;
+#ifdef MOSEK
+	MosekEnv *mskEnv = NULL;
+#else
 	CMajEnv *cMajEnv = NULL;
+#endif
 	clock_t start_time;
 	double y_0;
 	int length;
@@ -318,7 +326,11 @@ stress_majorization_with_hierarchy(
 	start_time = clock();
 
 	unpackedLap = unpackMatrix(lap2, n);
+#ifdef MOSEK
+	mskEnv = mosek_init_hier(lap2,n,ordering,levels,num_levels,levels_gap);
+#else
 	cMajEnv=initConstrainedMajorization(lap2, n, ordering, levels, num_levels);
+#endif
 
 	for (converged=false,iterations=0; iterations<maxi && !converged; iterations++) {
 
@@ -431,7 +443,11 @@ stress_majorization_with_hierarchy(
 			
 			if (k==1) {
 				/* use quad solver in the y-dimension */
+#ifdef MOSEK
+				mosek_quad_solve_hier(mskEnv,b[k],n,coords[k],hierarchy_boundaries);
+#else
 				constrained_majorization_new_with_gaps(cMajEnv, b[k], coords, dim, k, localConstrMajorIterations, hierarchy_boundaries, levels_gap);
+#endif
 	
 			}
 			else {
@@ -441,7 +457,11 @@ stress_majorization_with_hierarchy(
 		}
 	}
 	free (hierarchy_boundaries);
+#ifdef MOSEK
+	mosek_delete(mskEnv);
+#else
 	deleteCMajEnv(cMajEnv);
+#endif
 	
 	if (coords!=NULL) {
 		for (i=0; i<dim; i++) {
