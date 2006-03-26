@@ -1,14 +1,7 @@
 /**********************************************************
-*      This software is part of the graphviz package      *
+*      Written by Tim Dwyer for the graphviz package      *
 *                http://www.graphviz.org/                 *
 *                                                         *
-*            Copyright (c) 1994-2004 AT&T Corp.           *
-*                and is licensed under the                *
-*            Common Public License, Version 1.0           *
-*                      by AT&T Corp.                      *
-*                                                         *
-*        Information and Software Systems Research        *
-*              AT&T Research, Florham Park NJ             *
 **********************************************************/
 
 #ifdef __cplusplus
@@ -21,13 +14,16 @@ extern "C" {
 #ifdef DIGCOLA
 
 #include "defs.h"
+#include "digcola.h"
 #ifdef MOSEK
 #include "mosek_quad_solve.h"
 #endif //MOSEK
 
-typedef struct {
+typedef struct CMajEnvVPSC {
 	float **A;
-	int n; /* number of vars */
+	int nv;   // number of actual vars
+	int nldv; // number of dummy nodes included in lap matrix
+	int ndv;  // number of dummy nodes not included in lap matrix
 	Variable **vs;
 	int m; /* total number of constraints for next iteration */
 	int gm; /* number of global constraints */
@@ -43,24 +39,34 @@ typedef struct {
 #endif // MOSEK
 } CMajEnvVPSC;
 
-extern CMajEnvVPSC* initCMajVPSC(int n, float *, vtx_data*, int, float, cluster_data*);
+extern CMajEnvVPSC* initCMajVPSC(int n, float *packedMat, vtx_data* graph, vsep_options *opt, int diredges);
 
 extern int constrained_majorization_vpsc(CMajEnvVPSC*, float*, float*, int);
 
 extern void deleteCMajEnvVPSC(CMajEnvVPSC *e);
 extern void generateNonoverlapConstraints(
         CMajEnvVPSC* e,
-	pointf* nsize,
-	pointf gap,
         float nsizeScale,
         float** coords,
         int k,
-	cluster_data* clusters,
-	bool transitiveClosure
+	bool transitiveClosure,
+	vsep_options* opt
 );
 
-extern void removeoverlaps(int,float**,pointf*,pointf,cluster_data*);
+extern void removeoverlaps(int,float**,vsep_options*);
 
+typedef struct {
+	int *nodes;
+	int num_nodes;
+} DigColaLevel;
+
+/*
+ unpack the "ordering" array into an array of DigColaLevel (as defined above)
+*/
+extern DigColaLevel* assign_digcola_levels(int *ordering, int n, int *level_inds, int num_divisions);
+extern void delete_digcola_levels(DigColaLevel *l, int num_levels);
+extern void print_digcola_levels(FILE* logfile, DigColaLevel *levels, int num_levels);
+int get_num_digcola_constraints(DigColaLevel *levels, int num_levels);
 #endif 
 
 #endif /* _QUAD_PROG_VPSC_H_ */

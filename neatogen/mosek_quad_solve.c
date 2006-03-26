@@ -3,8 +3,9 @@
 #ifdef MOSEK
 #include <stdio.h>
 #include <assert.h>
-#include "mosek_quad_solve.h"
 #include "defs.h"
+#include "mosek_quad_solve.h"
+#include "quad_prog_vpsc.h"
 
 //#define DUMP_CONSTRAINTS
 //#define EQUAL_WIDTH_LEVELS
@@ -14,72 +15,6 @@ static void MSKAPI printstr(void *handle, char str[])
 {
 	fprintf(logfile,"%s",str);
 } /* printstr */
-
-typedef struct {
-	int *nodes;
-	int num_nodes;
-} Level;
-
-/*
- unpack the "ordering" array into an array of Level (as defined above)
-*/
-static Level* assign_levels(int *ordering, int n, int *level_inds, int num_divisions) {
-	int i,j;
-	Level *l=N_GNEW(num_divisions+1,Level);
-	// first level
-	l[0].num_nodes=level_inds[0];
-	l[0].nodes=N_GNEW(l[0].num_nodes,int);
-	for(i=0;i<l[0].num_nodes;i++) {
-		l[0].nodes[i]=ordering[i];
-	}
-	// second through second last level
-	for(i=1;i<num_divisions;i++) {
-		l[i].num_nodes=level_inds[i]-level_inds[i-1];
-		l[i].nodes=N_GNEW(l[i].num_nodes,int);
-		for(j=0;j<l[i].num_nodes;j++) {
-			l[i].nodes[j]=ordering[level_inds[i-1]+j];
-		}
-	}
-	// last level
-	if (num_divisions>0) {
-		l[num_divisions].num_nodes=n-level_inds[num_divisions-1];
-		l[num_divisions].nodes=N_GNEW(l[num_divisions].num_nodes,int);
-		for(i=0;i<l[num_divisions].num_nodes;i++) {
-			l[num_divisions].nodes[i]=ordering[level_inds[num_divisions-1]+i];
-		}
-	}
-	return l;
-}
-static void delete_levels(Level *l, int num_levels) {
-	int i;
-	for(i=0;i<num_levels;i++) {
-		free(l[i].nodes);
-	}
-	free(l);
-}
-static void print_levels(Level *levels, int num_levels) {
-	fprintf(logfile,"levels:\n");
-	int i,j;
-	for(i=0;i<num_levels;i++) {
-		fprintf(logfile,"  l[%d]:",i);
-		for(j=0;j<levels[i].num_nodes;j++) {
-			fprintf(logfile,"%d ",levels[i].nodes[j]);
-		}
-		fprintf(logfile,"\n");
-	}
-}
-/*********************
-get number of separation constraints based on the number of nodes in each level
-ie, num_sep_constraints = sum_i^{num_levels-1} (|L[i]|+|L[i+1]|)
-**********************/
-static int get_num_sep_constraints(Level *levels, int num_levels) {
-	int i,nc=0;
-	for(i=1;i<num_levels;i++) {
-		nc+=levels[i].num_nodes+levels[i-1].num_nodes;
-	}
-	nc+=levels[0].num_nodes+levels[num_levels-1].num_nodes;
-	return nc;
-}
 
 /**********************
 lap: the upper RHS of the symmetric graph laplacian matrix which will be transformed
@@ -106,9 +41,9 @@ MosekEnv* mosek_init_hier(
 	mskEnv->num_variables=n+num_divisions+1;
 
 	logfile = fopen("quad_solve_log","w");
-	Level *levels=assign_levels(ordering,n,level_indexes,num_divisions);
+	DigColaLevel *levels=assign_digcola_levels(ordering,n,level_indexes,num_divisions);
 #ifdef DUMP_CONSTRAINTS
-	print_levels(levels,num_levels);
+	print_digcola_levels(logfile,levels,num_levels);
 #endif
 
 	/* nonlinear coefficients matrix of objective function */
@@ -123,7 +58,7 @@ MosekEnv* mosek_init_hier(
 
 	/* constraint matrix */
 	separation/=2.0; // separation between each node and it's adjacent constraint
-	int num_constraints = get_num_sep_constraints(levels, num_levels)+num_divisions+1;
+	int num_constraints = get_num_digcola_constraints(levels, num_levels)+num_divisions+1;
 	// constraints of the form x_i - x_j >= sep so 2 non-zero entries per constraint in LHS matrix
 	// except x_0 (fixed at 0) constraints which have 1 nz val each.
 #ifdef EQUAL_WIDTH_LEVELS
@@ -182,8 +117,8 @@ MosekEnv* mosek_init_hier(
 			if ( mskEnv->r==MSK_RES_OK )
 				mskEnv->r = MSK_resizetask(mskEnv->task,num_constraints,mskEnv->num_variables,
 				0, // no cones!!
-				/////////////////////////////////////////
-				2*num_constraints+num_divisions, // each constraint applies to 2 vars
+				// each constraint applies to 2 vars
+				2*num_constraints+num_divisions, 
 				nonzero_lapsize);
 
 			/* Append the constraints. */
@@ -303,7 +238,7 @@ MosekEnv* mosek_init_hier(
 			}
 		}
 	}
-	delete_levels(levels,num_levels);
+	delete_digcola_levels(levels,num_levels);
 	return mskEnv;
 }
 /*
@@ -365,16 +300,18 @@ void mosek_quad_solve_hier(MosekEnv *mskEnv, float *b,int n,float* coords, float
 /**********************
 lap: the upper RHS of the symmetric graph laplacian matrix which will be transformed
 	to the hessian of the non-linear part of the optimisation function
+	has dimensions num_variables, dummy vars do not have entries in lap
 cs: array of pointers to separation constraints
 ***********************/
 MosekEnv* mosek_init_sep(
-	float* lap, int num_variables, Constraint **cs, int num_constraints)
+	float* lap, int num_variables, int num_dummy_vars, Constraint **cs, int num_constraints)
 {
 	int i,j;
 	MosekEnv *mskEnv = GNEW(MosekEnv);
     // fix var 0
-	mskEnv->num_variables=num_variables-1;
+	mskEnv->num_variables=num_variables+num_dummy_vars-1;
 
+	fprintf(stderr,"MOSEK!\n");
 	logfile = fopen("quad_solve_log","w");
 
 	/* nonlinear coefficients matrix of objective function */
@@ -400,14 +337,14 @@ MosekEnv* mosek_init_sep(
 	}
 #ifdef DUMP_CONSTRAINTS
 	fprintf(logfile,"Q=[");
-	int lapcntr=0;
-	for(i=0;i<mskEnv->num_variables;i++) {
+	count=0;
+	for(i=0;i<num_variables-1;i++) {
 		if(i!=0) fprintf(logfile,";");
-		for(j=0;j<mskEnv->num_variables;j++) {
+		for(j=0;j<num_variables-1;j++) {
 			if(j<i) {
 				fprintf(logfile,"0 ");
 			} else {
-				fprintf(logfile,"%f ",-2*lap[lapcntr++]);
+				fprintf(logfile,"%f ",-2*lap[num_variables+count++]);
 			}
 		}
 	}
@@ -487,13 +424,16 @@ MosekEnv* mosek_init_sep(
 	return mskEnv;
 }
 /*
+n: size of b and coords, may be smaller than mskEnv->num_variables if we
+have dummy vars
 b: coefficients of linear part of optimisation function
 coords: optimal y* vector, coord[i] is coordinate of node[i]
 */
-void mosek_quad_solve_sep(MosekEnv *mskEnv,float *b,float* coords) {
+void mosek_quad_solve_sep(MosekEnv *mskEnv,int n, float *b,float* coords) {
 	int i,j;
-	for(i=1;i<=mskEnv->num_variables && mskEnv->r==MSK_RES_OK;i++) {
-		mskEnv->r = MSK_putcj(mskEnv->task,i-1,-2*b[i]);
+	assert(n<=mskEnv->num_variables+1);
+	for(i=0;i<n-1 && mskEnv->r==MSK_RES_OK;i++) {
+		mskEnv->r = MSK_putcj(mskEnv->task,i,-2*b[i+1]);
 	}
 	if ( mskEnv->r==MSK_RES_OK )
 		mskEnv->r = MSK_optimize(mskEnv->task);
@@ -511,7 +451,7 @@ void mosek_quad_solve_sep(MosekEnv *mskEnv,float *b,float* coords) {
 		fprintf(logfile,"Primal solution\n");
 #endif
 		coords[0]=0;
-		for(j=1; j<=mskEnv->num_variables; j++) {
+		for(j=1; j<=n; j++) {
 #ifdef DUMP_CONSTRAINTS
 			fprintf(logfile,"x[%d]: %.2f\n",j,mskEnv->xx[j-1]);
 #endif
@@ -527,7 +467,10 @@ void mosek_delete(MosekEnv *mskEnv) {
 	MSK_deletetask(&mskEnv->task);
 	MSK_deleteenv(&mskEnv->env);
 
-	fclose(logfile);
+	if(logfile) {
+		fclose(logfile);
+		logfile=NULL;
+	}
 	free(mskEnv->qval);
 	free(mskEnv->qsubi);
 	free(mskEnv->qsubj);

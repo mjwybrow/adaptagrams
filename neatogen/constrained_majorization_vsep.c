@@ -42,15 +42,7 @@ stress_majorization_vsep(
     int dim,            /* Dimemsionality of layout */
     int model,          /* difference model */
     int maxi,           /* max iterations */
-    int diredges,       /* 1=generate directed edge constraints */
-    double edge_gap,    /* amount to force vertical separation of */
-                        /* start/end nodes */
-    int noverlap,       /* 1=generate non-overlap constraints */
-                        /* 2=remove overlaps after layout */
-    pointf gap,        /* hor and vert gap to enforce when removing overlap*/
-    pointf* nsize,     /* node widths and heights */
-    cluster_data* clusters
-                        /* list of node indices for each cluster */
+    vsep_options* opt
 )
 {
     int iterations = 0;    /* Output: number of iteration of the process */
@@ -180,8 +172,8 @@ stress_majorization_vsep(
     /* compute off-diagonal entries */
     invert_vec(lap_length, lap2);
     
-    if(clusters->nclusters>0) {
-        int nn = n+clusters->nclusters*2;
+    if(opt->clusters->nclusters>0) {
+        int nn = n+opt->clusters->nclusters*2;
         fprintf(stderr,"computing clap... n=%d,nn=%d\n",n,nn);
         int clap_length = nn+nn*(nn-1)/2;
         float *clap = N_GNEW(clap_length, float);
@@ -262,8 +254,8 @@ stress_majorization_vsep(
 
 	start_time = clock();
 
-	cMajEnvHor=initCMajVPSC(n,lap2,graph, 0, 0, clusters);
-	cMajEnvVrt=initCMajVPSC(n,lap2,graph, diredges, edge_gap, clusters);
+	cMajEnvHor=initCMajVPSC(n,lap2,graph,opt,0);
+	cMajEnvVrt=initCMajVPSC(n,lap2,graph,opt,opt->diredges);
 
 	lap1 = N_GNEW(lap_length, float);
 
@@ -351,7 +343,7 @@ stress_majorization_vsep(
 
         // in determining non-overlap constraints we gradually scale up the
         // size of nodes to avoid local minima
-        if((iterations>=maxi-1||converged)&&noverlap==1&&nsizeScale<0.999) {
+        if((iterations>=maxi-1||converged)&&opt->noverlap==1&&nsizeScale<0.999) {
             nsizeScale+=0.01;
             fprintf(stderr,"nsizescale=%f,iterations=%d\n",nsizeScale,iterations);
             iterations=0;
@@ -371,23 +363,33 @@ stress_majorization_vsep(
          * laplacian is -'lap2')
          */
         
-        if(noverlap==1 && nsizeScale > 0.001) {
-            generateNonoverlapConstraints(cMajEnvHor,nsize,gap,nsizeScale,coords,0,clusters,nsizeScale<0.5?false:true);
+        if(opt->noverlap==1 && nsizeScale > 0.001) {
+            generateNonoverlapConstraints(cMajEnvHor,nsizeScale,coords,0,nsizeScale<0.5?false:true,opt);
         }
         if(cMajEnvHor->m > 0) {
-            constrained_majorization_vpsc(cMajEnvHor, b[0], coords[0], localConstrMajorIterations);
+#ifdef MOSEK
+            if(opt->mosek) {
+                mosek_quad_solve_sep(cMajEnvHor->mosekEnv,n,b[0],coords[0]);
+            } else
+#endif // MOSEK
+            constrained_majorization_vpsc(cMajEnvHor,b[0],coords[0],localConstrMajorIterations);
         } else {
             // if there are no constraints then use conjugate gradient
             // optimisation which should be considerably faster
 			conjugate_gradient_mkernel(lap2, coords[0], b[0], n, tolerance_cg, n);	
         }
-        if(noverlap==1 && nsizeScale > 0.001) {
-            generateNonoverlapConstraints(cMajEnvVrt,nsize,gap,nsizeScale,coords,1,clusters,false);
+        if(opt->noverlap==1 && nsizeScale > 0.001) {
+            generateNonoverlapConstraints(cMajEnvVrt,nsizeScale,coords,1,false,opt);
         }
         if(cMajEnvVrt->m > 0) {
-            constrained_majorization_vpsc(cMajEnvVrt, b[1], coords[1], localConstrMajorIterations);
+#ifdef MOSEK
+            if(opt->mosek) {
+                mosek_quad_solve_sep(cMajEnvVrt->mosekEnv,n,b[1],coords[1]);
+            } else
+#endif // MOSEK
+            constrained_majorization_vpsc(cMajEnvVrt,b[1],coords[1],localConstrMajorIterations);
         } else {
-			conjugate_gradient_mkernel(lap2, coords[1], b[1], n, tolerance_cg, n);	
+			conjugate_gradient_mkernel(lap2,coords[1],b[1],n,tolerance_cg,n);	
         }
 	}
     fprintf(stderr,"Finished majorization!\n");
@@ -395,9 +397,9 @@ stress_majorization_vsep(
 	deleteCMajEnvVPSC(cMajEnvVrt);
     fprintf(stderr,"  freed cMajEnv!\n");
 
-    if (noverlap==2) {
+    if (opt->noverlap==2) {
         fprintf(stderr,"Removing overlaps as post-process...\n");
-        removeoverlaps(orig_n,coords,nsize,gap,clusters);
+        removeoverlaps(orig_n,coords,opt);
     }
 	
 	if (coords!=NULL) {

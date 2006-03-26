@@ -1142,31 +1142,49 @@ majorization(graph_t *mg, graph_t * g, int nv, int mode, int model, int dim, int
             stress_majorization_with_hierarchy(gp, nv, ne, coords, Ndim,
                        (init == INIT_SELF), model, MaxIter, lgap);
         } else {
-            char* str = agget(g, "diredgeconstraints");
-            int diredges = 0, noverlap = 0;
+            char* str;
+            vsep_options opt;
             pointf nsize[nv], gap;
-            gap.x=gap.y=0;
+            opt.edge_gap=lgap;
+#ifdef MOSEK
+            opt.mosek=0;
+#endif;
+            opt.noverlap=opt.diredges=0;
+            opt.gap.x=opt.gap.y=0;
+            opt.nsize=nsize;
+            opt.clusters=cs;
+            str = agget(g, "diredgeconstraints");
             if(str && !strncmp(str,"true",4)) {
-                diredges = 1;
+                opt.diredges = 1;
                 fprintf(stderr,"Generating Edge Constraints...\n");
+            } else if(str && !strncmp(str,"hier",4)) {
+                opt.diredges = 2;
+                fprintf(stderr,"Generating DiG-CoLa Edge Constraints...\n");
             }
             str = agget(g, "overlapconstraints");
             if(str && !strncmp(str,"true",4)) {
-                noverlap = 1;
+                opt.noverlap = 1;
                 fprintf(stderr,"Generating Non-overlap Constraints...\n");
             } else if(str && !strncmp(str,"post",4)) {
-                noverlap = 2;
+                opt.noverlap = 2;
                 fprintf(stderr,"Removing overlaps as postprocess...\n");
             }  
+#ifdef MOSEK
+            str = agget(g, "mosek");
+            if(str && !strncmp(str,"true",4)) {
+                opt.mosek = 1;
+                fprintf(stderr,"Using Mosek for constraint optimization...\n");
+            }
+#endif // MOSEK
             if ((str = agget(g, "sep"))) {
-                    gap.x = gap.y = atof(str);
+                opt.gap.x =opt.gap.y = atof(str);
             }
             for (i=0, v = agfstnode(g); v; v = agnxtnode(g, v),i++) {
                 nsize[i].x=ND_width(v);
                 nsize[i].y=ND_height(v);
             }
 
-            stress_majorization_vsep(gp, nv, ne, coords, Ndim, model, MaxIter, diredges, lgap, noverlap, gap, nsize, cs);
+            stress_majorization_vsep(gp, nv, ne, coords, Ndim, model, MaxIter, &opt);
         }
     }
     else

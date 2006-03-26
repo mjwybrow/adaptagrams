@@ -151,7 +151,7 @@ stress_majorization_with_hierarchy(
 		}
 	}
 	else {
-        initLayout(graph, n, dim, d_coords);
+		initLayout(graph, n, dim, d_coords);
 		hierarchy_spread = compute_hierarchy(graph, n, abs_tol, relative_tol, NULL, &ordering, &levels, &num_levels);		
 	}
     if (n == 1) return 0;
