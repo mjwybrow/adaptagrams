@@ -31,7 +31,7 @@
 #include "quad_prog_solver.h"
 #include "matrix_ops.h"
 
-#define localConstrMajorIterations 100
+#define localConstrMajorIterations 1000
 
 int 
 stress_majorization_vsep(
@@ -93,8 +93,6 @@ stress_majorization_vsep(
         }
     }
 
-    fprintf(stderr,"Entered: stress_majorization_vsep, maxEdgeLen=%f\n",maxEdgeLen);
-
 	/****************************************************
 	** Compute the all-pairs-shortest-distances matrix **
 	****************************************************/
@@ -119,7 +117,7 @@ stress_majorization_vsep(
     }
     if (!Dij) {
         if (Verbose)
-            fprintf(stderr, "Calculating shortest paths ");
+            fprintf(stderr, "Calculating shortest paths\n ");
         Dij = compute_apsp_packed(graph, n);
     }
 
@@ -133,7 +131,6 @@ stress_majorization_vsep(
 
     /* for numerical stability, scale down layout		 */
     /* No Jiggling, might conflict with constraints			 */
-    fprintf(stderr,"SCALING!!!\n");
     double max=1;		
     for (i=0; i<dim; i++) {	
         for (j=0; j<n; j++) {
@@ -174,7 +171,6 @@ stress_majorization_vsep(
     
     if(opt->clusters->nclusters>0) {
         int nn = n+opt->clusters->nclusters*2;
-        fprintf(stderr,"computing clap... n=%d,nn=%d\n",n,nn);
         int clap_length = nn+nn*(nn-1)/2;
         float *clap = N_GNEW(clap_length, float);
         float *cdegrees = N_GNEW(nn, float);
@@ -196,10 +192,8 @@ stress_majorization_vsep(
                     }
                     else v=0;
                 }
-                //fprintf(stderr," %f",v);
                 clap[c1++]=v;
             }
-            //fprintf(stderr,"\n");
         }
         free(lap2);
         lap2=clap;
@@ -259,7 +253,6 @@ stress_majorization_vsep(
 
 	lap1 = N_GNEW(lap_length, float);
 
-    fprintf(stderr,"Entering main loop...\n");
 	for (converged=false,iterations=0; iterations<maxi && !converged; iterations++) {
 
 		/* First, construct Laplacian of 1/(d_ij*|p_i-p_j|)  */
@@ -333,7 +326,11 @@ stress_majorization_vsep(
 		}
 #endif
 		/* check for convergence */
-        fprintf(stderr,"stress=%f\n",new_stress);
+	    if (Verbose && (iterations % 1 == 0)) {
+            fprintf(stderr, "%.3f ", new_stress);
+            if (iterations % 10 == 0)
+                fprintf(stderr, "\n");
+	    }
 		converged = fabs(new_stress-old_stress)/fabs(old_stress+1e-10) < Epsilon;
 		//converged = converged || (iterations>1 && new_stress>old_stress); 
 			/* in first iteration we allowed stress increase, which 
@@ -392,10 +389,12 @@ stress_majorization_vsep(
 			conjugate_gradient_mkernel(lap2,coords[1],b[1],n,tolerance_cg,n);	
         }
 	}
-    fprintf(stderr,"Finished majorization!\n");
+    if (Verbose) {
+        fprintf(stderr, "\nfinal e = %f %d iterations %.2f sec\n",
+            new_stress, iterations, elapsed_sec());
+    }
 	deleteCMajEnvVPSC(cMajEnvHor);
 	deleteCMajEnvVPSC(cMajEnvVrt);
-    fprintf(stderr,"  freed cMajEnv!\n");
 
     if (opt->noverlap==2) {
         fprintf(stderr,"Removing overlaps as post-process...\n");

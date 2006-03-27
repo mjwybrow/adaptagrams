@@ -214,17 +214,18 @@ initCMajVPSC(int n, float* packedMat, vtx_data* graph,
         for(i=0;i<e->ndv;i++) {
             //  dummy vars should have 0 weight
             cvar=n+i;
-            e->vs[cvar]=newVariable(cvar,1.0,0.0001);
+            e->vs[cvar]=newVariable(cvar,1.0,0.000001);
         }
+        double halfgap=opt->edge_gap;
         for(i=0;i<e->ndv;i++) {
             cvar=n+i;
             // outgoing constraints for each var in level below boundary
             for(j=0;j<levels[i].num_nodes;j++) {
-                e->gcs[e->gm++]=newConstraint(e->vs[levels[i].nodes[j]],e->vs[cvar],opt->edge_gap);
+                e->gcs[e->gm++]=newConstraint(e->vs[levels[i].nodes[j]],e->vs[cvar],halfgap);
             }
             // incoming constraints for each var in level above boundary
             for(j=0;j<levels[i+1].num_nodes;j++) {
-                e->gcs[e->gm++]=newConstraint(e->vs[cvar],e->vs[levels[i+1].nodes[j]],opt->edge_gap);
+                e->gcs[e->gm++]=newConstraint(e->vs[cvar],e->vs[levels[i+1].nodes[j]],halfgap);
             }
         }
         // constraints between adjacent boundary dummy vars

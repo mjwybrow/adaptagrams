@@ -27,11 +27,12 @@
 #include "quad_prog_solver.h"
 #include "matrix_ops.h"
 
+#undef MOSEK
 #ifdef MOSEK
 #include "mosek_quad_solve.h"
 #endif
 
-#define localConstrMajorIterations 15
+#define localConstrMajorIterations 1000
 #define levels_sep_tol 1e-1
 
 int 
@@ -151,7 +152,9 @@ stress_majorization_with_hierarchy(
 		}
 	}
 	else {
-		initLayout(graph, n, dim, d_coords);
+		if(initLayout(graph, n, dim, d_coords) && Verbose) {
+			fprintf(stderr,"Using coords from file as starting arrangement\n");
+		}
 		hierarchy_spread = compute_hierarchy(graph, n, abs_tol, relative_tol, NULL, &ordering, &levels, &num_levels);		
 	}
     if (n == 1) return 0;
@@ -212,6 +215,7 @@ stress_majorization_with_hierarchy(
 		}
 	}		
 
+	/*
 	if (levels_gap>0) {
 		int length = n+n*(n-1)/2;
 		double sum1, sum2, scale_ratio;
@@ -225,11 +229,12 @@ stress_majorization_with_hierarchy(
 			}
 		}
 		scale_ratio=sum2/sum1;
-		/* double scale_ratio=10; */
+		// double scale_ratio=10; 
 		for (i=0; i<length; i++) {
 			Dij[i]*=(float)scale_ratio;
 		}
 	}
+	*/
 
 	/**************************
 	** Layout initialization **
@@ -421,6 +426,11 @@ stress_majorization_with_hierarchy(
 		}
 #endif
 		/* check for convergence */
+	    if (Verbose && (iterations % 1 == 0)) {
+            fprintf(stderr, "%.3f ", new_stress);
+            if (iterations % 10 == 0)
+                fprintf(stderr, "\n");
+        }
 		converged = fabs(new_stress-old_stress)/fabs(old_stress+1e-10) < Epsilon;
 		converged = converged || (iterations>1 && new_stress>old_stress); 
 			/* in first iteration we allowed stress increase, which 
@@ -446,7 +456,8 @@ stress_majorization_with_hierarchy(
 #ifdef MOSEK
 				mosek_quad_solve_hier(mskEnv,b[k],n,coords[k],hierarchy_boundaries);
 #else
-				constrained_majorization_new_with_gaps(cMajEnv, b[k], coords, dim, k, localConstrMajorIterations, hierarchy_boundaries, levels_gap);
+				constrained_majorization_gradient_projection(cMajEnv, b[k], coords, dim, k, localConstrMajorIterations, hierarchy_boundaries, levels_gap);
+				//constrained_majorization_new_with_gaps(cMajEnv, b[k], coords, dim, k, localConstrMajorIterations, hierarchy_boundaries, levels_gap);
 #endif
 	
 			}
@@ -456,6 +467,10 @@ stress_majorization_with_hierarchy(
 			}
 		}
 	}
+    if (Verbose) {
+        fprintf(stderr, "\nfinal e = %f %d iterations %.2f sec\n",
+            new_stress, iterations, elapsed_sec());
+    }
 	free (hierarchy_boundaries);
 #ifdef MOSEK
 	mosek_delete(mskEnv);
