@@ -329,7 +329,7 @@ MosekEnv* mosek_init_sep(
 	for(i=0;i<num_variables-1;i++) {
 		for(j=i;j<num_variables-1;j++) {
 			mskEnv->qval[count]=-2*lap[count+num_variables];
-			assert(mskEnv->qval[count]!=0);
+			//assert(mskEnv->qval[count]!=0);
 			mskEnv->qsubi[count]=j;
 			mskEnv->qsubj[count]=i;
 			count++;

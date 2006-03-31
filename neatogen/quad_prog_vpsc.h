@@ -21,6 +21,7 @@ extern "C" {
 
 typedef struct CMajEnvVPSC {
 	float **A;
+	float *packedMat;
 	int nv;   // number of actual vars
 	int nldv; // number of dummy nodes included in lap matrix
 	int ndv;  // number of dummy nodes not included in lap matrix

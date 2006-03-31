@@ -1177,7 +1177,20 @@ majorization(graph_t *mg, graph_t * g, int nv, int mode, int model, int dim, int
             }
 #endif // MOSEK
             if ((str = agget(g, "sep"))) {
-                opt.gap.x =opt.gap.y = atof(str);
+                char* c;
+                if (c=strchr(str,',')) {
+                    i=c-str;
+                    fprintf(stderr,"gap=%s,%d\n",str,i);
+                    char s[strlen(str)];
+                    strncpy(s,str,i);
+                    s[i]=0;
+                    opt.gap.x=atof(s);
+                    strcpy(s,c+1);
+                    opt.gap.y=atof(s);
+                    fprintf(stderr,"gap=%f,%f\n",opt.gap.x,opt.gap.y);
+                } else {
+                    opt.gap.x =opt.gap.y = atof(str);
+                }
             }
             for (i=0, v = agfstnode(g); v; v = agnxtnode(g, v),i++) {
                 nsize[i].x=ND_width(v);

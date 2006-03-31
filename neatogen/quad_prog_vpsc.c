@@ -25,8 +25,8 @@
 #include "quad_prog_vpsc.h"
 #include "quad_prog_solver.h"
 
-#define CONMAJ_LOGGING 1
-#define quad_prog_tol 1e-2
+//#define CONMAJ_LOGGING 1
+#define quad_prog_tol 1e-4
 
 int 
 constrained_majorization_vpsc(CMajEnvVPSC *e, float * b, float *place, 
@@ -162,6 +162,7 @@ initCMajVPSC(int n, float* packedMat, vtx_data* graph,
     //fprintf(stderr,"Entered initCMajVPSC\n");
 	CMajEnvVPSC *e = GNEW(CMajEnvVPSC);
 	e->A=NULL;
+    e->packedMat=packedMat;
     /* if we have clusters then we'll need two constraints for each var in
      * a cluster */
     e->nldv = 2*opt->clusters->nclusters;
@@ -242,7 +243,7 @@ initCMajVPSC(int n, float* packedMat, vtx_data* graph,
         for(i=0;i<e->gm;i++) {
             e->gcs[i]=ecs[i];
         }
-        deleteConstraints(0,e->gcs);
+        if(ecs!=NULL) deleteConstraints(0,ecs);
         for(i=0;i<opt->clusters->nclusters;i++) {
             for(j=0;j<opt->clusters->clustersizes[i];j++) {
                 Variable* v=e->vs[opt->clusters->clusters[i][j]];
@@ -268,7 +269,7 @@ initCMajVPSC(int n, float* packedMat, vtx_data* graph,
 #ifdef MOSEK
     e->mosekEnv=NULL;
     if(opt->mosek) {
-        e->mosekEnv = mosek_init_sep(packedMat,n,e->ndv,e->gcs,e->gm);
+        e->mosekEnv = mosek_init_sep(e->packedMat,n,e->ndv,e->gcs,e->gm);
     }
 #endif
 
@@ -488,6 +489,14 @@ void generateNonoverlapConstraints(
     }
     fprintf(stderr,"  generated %d constraints\n",e->m);
     e->vpsc = newIncVPSC(e->nv+e->nldv+e->ndv,e->vs,e->m,e->cs);
+#ifdef MOSEK
+    if(opt->mosek) {
+        if(e->mosekEnv!=NULL) {
+            mosek_delete(e->mosekEnv);
+        }
+        e->mosekEnv = mosek_init_sep(e->packedMat,e->nv+e->nldv,e->ndv,e->cs,e->m);
+    }
+#endif
 }
 
 void removeoverlaps(int n,float** coords, vsep_options* opt) {
