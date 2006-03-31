@@ -331,7 +331,7 @@ stress_majorization_vsep(
             if (iterations % 10 == 0)
                 fprintf(stderr, "\n");
 	    }
-		converged = fabs(new_stress-old_stress)/fabs(old_stress+1e-10) < Epsilon;
+		converged = new_stress < old_stress && fabs(new_stress-old_stress)/fabs(old_stress+1e-10) < Epsilon;
 		//converged = converged || (iterations>1 && new_stress>old_stress); 
 			/* in first iteration we allowed stress increase, which 
              * might result ny imposing constraints
@@ -341,7 +341,7 @@ stress_majorization_vsep(
         // in determining non-overlap constraints we gradually scale up the
         // size of nodes to avoid local minima
         if((iterations>=maxi-1||converged)&&opt->noverlap==1&&nsizeScale<0.999) {
-            nsizeScale+=0.01;
+            nsizeScale+=0.05;
             fprintf(stderr,"nsizescale=%f,iterations=%d\n",nsizeScale,iterations);
             iterations=0;
             converged = false;
