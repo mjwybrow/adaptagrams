@@ -228,6 +228,7 @@ void IncVPSC::splitBlocks() {
 	ofstream f(LOGFILE,ios::app);
 #endif
 	moveBlocks();
+	splitCnt=0;
 	// Split each block if necessary on min LM
 	for(set<Block*>::const_iterator i(bs->begin());i!=bs->end();i++) {
 		Block* b = *i;
@@ -236,6 +237,7 @@ void IncVPSC::splitBlocks() {
 #ifdef RECTANGLE_OVERLAP_LOGGING
 			f<<"    found split point: "<<*v<<" lm="<<v->lm<<endl;
 #endif
+			splitCnt++;
 			Block *b = v->left->block, *l=NULL, *r=NULL;
 			assert(v->left->block == v->right->block);
 			double pos = b->posn;

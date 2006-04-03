@@ -25,8 +25,8 @@ void removeoverlaps(int n, Rectangle **rs) {
 		for(int i=0;i<n;i++) {
 			oldX[i]=vs[i]->desiredPosition;
 		}
-		VPSC vpsc_x(n,vs,m,cs);
-		vpsc_x.satisfy();
+		IncVPSC vpsc_x(n,vs,m,cs);
+		vpsc_x.solve();
 		for(int i=0;i<n;i++) {
 			rs[i]->moveCentreX(vs[i]->position());
 		}
@@ -38,8 +38,8 @@ void removeoverlaps(int n, Rectangle **rs) {
 		// one another above are not considered overlapping
 		Rectangle::setXBorder(Rectangle::xBorder-EXTRA_GAP);
 		m=generateYConstraints(n,rs,vs,cs);
-		VPSC vpsc_y(n,vs,m,cs);
-		vpsc_y.satisfy();
+		IncVPSC vpsc_y(n,vs,m,cs);
+		vpsc_y.solve();
 		for(int i=0;i<n;i++) {
 			rs[i]->moveCentreY(vs[i]->position());
 			rs[i]->moveCentreX(oldX[i]);
@@ -51,8 +51,8 @@ void removeoverlaps(int n, Rectangle **rs) {
 		delete [] cs;
 		Rectangle::setYBorder(Rectangle::yBorder-EXTRA_GAP);
 		m=generateXConstraints(n,rs,vs,cs,false);
-		VPSC vpsc_x2(n,vs,m,cs);
-		vpsc_x2.satisfy();
+		IncVPSC vpsc_x2(n,vs,m,cs);
+		vpsc_x2.solve();
 		for(int i = 0; i < m; ++i) {
 			delete cs[i];
 		}
@@ -688,7 +688,7 @@ int main() {
 	*/
 	//*/
 	int max_size=400, repeats=100,step=10; 
-	srand(time(NULL));
+	//srand(time(NULL));
 	for(int i=10;i<=max_size;i+=step) {
 		//if(i%5==0) cout << i << endl;
 		double disp=0, time=0;

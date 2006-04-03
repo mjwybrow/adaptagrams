@@ -29,7 +29,7 @@ typedef struct pointf_s { double x, y; } pointf;
 typedef struct { pointf LL, UR; } boxf;
 #endif
 int genXConstraints(int n, boxf[], Variable** vs, Constraint*** cs,
-		bool transitiveClosure);
+		int transitiveClosure);
 int genYConstraints(int n, boxf[], Variable** vs, Constraint*** cs);
 
 void satisfyVPSC(VPSC*);
@@ -37,6 +37,7 @@ void solveVPSC(VPSC*);
 typedef struct IncVPSC IncVPSC;
 VPSC* newIncVPSC(int n, Variable* vs[], int m, Constraint* cs[]);
 void splitIncVPSC(IncVPSC*);
+int getSplitCnt(IncVPSC *vpsc);
 #ifdef __cplusplus
 }
 #endif

@@ -21,7 +21,7 @@ VPSC* newIncVPSC(int n, Variable* vs[], int m, Constraint* cs[]) {
 	return (VPSC*)new IncVPSC(n,vs,m,cs);
 }
 
-int genXConstraints(int n, boxf* bb, Variable** vs, Constraint*** cs,bool transitiveClosure) {
+int genXConstraints(int n, boxf* bb, Variable** vs, Constraint*** cs,int transitiveClosure) {
 	Rectangle* rs[n];
 	for(int i=0;i<n;i++) {
 		rs[i]=new Rectangle(bb[i].LL.x,bb[i].UR.x,bb[i].LL.y,bb[i].UR.y);
@@ -66,6 +66,9 @@ void satisfyVPSC(VPSC* vpsc) {
 		std::cerr << e << std::endl;
 		exit(1);
 	}
+}
+int getSplitCnt(IncVPSC *vpsc) {
+	return vpsc->splitCnt;
 }
 void deleteVPSC(VPSC *vpsc) {
 	assert(vpsc!=NULL);

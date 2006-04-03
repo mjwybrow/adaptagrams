@@ -40,6 +40,7 @@ private:
 
 class IncVPSC : VPSC {
 public:
+	int splitCnt;
 	void satisfy();
 	void solve();
 	void moveBlocks();
