@@ -10,7 +10,7 @@
  *
  * Copyright (C) 2005 Authors
  *
- * Released under GNU GPL.  Read the file 'COPYING' for more information.
+ * Released under GNU LGPL.  Read the file 'COPYING' for more information.
  */
 
 class Rectangle;
