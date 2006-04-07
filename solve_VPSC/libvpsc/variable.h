@@ -16,6 +16,7 @@
 #include <iostream>
 class Block;
 class Constraint;
+#include "block.h"
 
 typedef std::vector<Constraint*> Constraints;
 class Variable
@@ -39,7 +40,10 @@ public:
 		, visited(false)
 	{
 	}
-	double position() const;
+	inline double Variable::position() const {
+		return block->posn+offset;
+	}
+	//double position() const;
 	~Variable(void){
 		in.clear();
 		out.clear();

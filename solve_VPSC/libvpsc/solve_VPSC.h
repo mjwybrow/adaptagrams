@@ -12,7 +12,7 @@
 #ifndef SEEN_REMOVEOVERLAP_SOLVE_VPSC_H
 #define SEEN_REMOVEOVERLAP_SOLVE_VPSC_H
 
-#include <list>
+#include <vector>
 class Variable;
 class Constraint;
 class Blocks;
@@ -26,7 +26,7 @@ public:
 	virtual void solve();
 
 	VPSC(const int n, Variable *vs[], const int m, Constraint *cs[]);
-	~VPSC();
+	virtual ~VPSC();
 protected:
 	Blocks *bs;
 	Constraint **cs;
@@ -46,8 +46,9 @@ public:
 	void moveBlocks();
 	void splitBlocks();
 	IncVPSC(const int n, Variable *vs[], const int m, Constraint *cs[]);
+	virtual ~IncVPSC();
 private:
-	typedef std::list<Constraint*> ConstraintList;
+	typedef std::vector<Constraint*> ConstraintList;
 	ConstraintList inactive;
 	double mostViolated(ConstraintList &l,Constraint* &v);
 };

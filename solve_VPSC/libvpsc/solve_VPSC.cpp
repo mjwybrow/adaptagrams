@@ -271,8 +271,9 @@ double IncVPSC::mostViolated(ConstraintList &l, Constraint* &v) {
 	ofstream f(LOGFILE,ios::app);
 	f<<"Looking for most violated..."<<endl;
 #endif
-	ConstraintList::iterator deletePoint=NULL;
-	for(ConstraintList::iterator i=l.begin();i!=l.end();i++) {
+	ConstraintList::iterator end = l.end();
+	ConstraintList::iterator deletePoint = end;
+	for(ConstraintList::iterator i=l.begin();i!=end;i++) {
 		Constraint *c=*i;
 		double slack = c->slack();
 		if(slack < minSlack) {
@@ -281,8 +282,15 @@ double IncVPSC::mostViolated(ConstraintList &l, Constraint* &v) {
 			deletePoint=i;
 		}
 	}
-	if(deletePoint!=NULL && minSlack<-0.0000001)
-		l.erase(deletePoint);
+	// Because the constraint list is not order dependent we just
+	// move the last element over the deletePoint and resize
+	// downwards.  There is always at least 1 element in the
+	// vector because of search.
+	if(deletePoint != end && minSlack<-0.0000001) {
+		*deletePoint = l[l.size()-1];
+		l.resize(l.size()-1);
+		//l.erase(deletePoint);
+	}
 #ifdef RECTANGLE_OVERLAP_LOGGING
 	f<<"  most violated is: "<<*v<<endl;
 #endif

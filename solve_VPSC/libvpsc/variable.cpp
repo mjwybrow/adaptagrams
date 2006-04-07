@@ -14,7 +14,3 @@ std::ostream& operator <<(std::ostream &os, const Variable &v) {
 	return os;
 }
 
-#include "block.h"
-double Variable::position() const {
-	return block->posn+offset;
-}
