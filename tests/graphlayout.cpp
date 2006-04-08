@@ -32,7 +32,7 @@ using namespace std;
 */
 bool check (double delta_p, Vertex p, const Graph& g, bool global) {
 	static layout_tolerance<double> t;
-	std::cout << "*";
+	cout << "*";
 	return t(delta_p,p,g,global);
 }
 int main() {
@@ -56,25 +56,52 @@ int main() {
 	weightmap[e]=1.0;
 	double width=100;
 	double height=100;
-	std::cout<<"Graph has |V|="<<num_vertices(g)<<" Width="<<width<<" Height="<<height<<std::endl;
+	cout<<"Graph has |V|="<<num_vertices(g)<<" Width="<<width<<" Height="<<height<<endl;
 	Position<>::Vec position_vec(num_vertices(g));
-	Position<>::Map position(position_vec.begin(), get(vertex_index, g));
-  	write_graphviz(std::cout, g);
-	constrained_majorization_layout(g, position,weightmap);
+	IndexMap index = get(vertex_index, g);
+	Position<>::Map position(position_vec.begin(), index);
+  	write_graphviz(cout, g);
 	circle_graph_layout(g, position, width/2.0);
-	kamada_kawai_spring_layout(g, position, weightmap, side_length(width),check );
+	constrained_majorization_layout(g, position,weightmap,side_length(width));
+	//kamada_kawai_spring_layout(g, position, weightmap, side_length(width),check );
 
-	graph_traits<Graph>::vertex_iterator vi, vi_end, next;
-	tie(vi, vi_end) = vertices(g);
-	std::ofstream f("blah.svg");
+	ofstream f("blah.svg");
 	f.setf(ios::fixed);
-	int r=10;
-	f<<"<svg width=\""<<width<<"\" height=\""<<height<<"\" viewBox = \""<<(-width/2-r)<<" "<<(-height/2-r)<<" "<<(width+2*r)<<" "<<(height+2*r)<<"\">"<<std::endl;
-	for (next = vi; vi != vi_end; vi = next) {
-    		++next;
-		f<<"<g id=\"node"<<*vi<<"\" class=\"node\"><title>"<<*vi<<"</title>"<<std::endl;
-		f<<"<ellipse cx=\""<<position[*vi].x<<"\" cy=\""<<position[*vi].y<<"\" rx=\"10\" ry=\"10\" style=\"fill:none;stroke:black;\"/>"<<std::endl<<"</g>"<<std::endl;
+	int r=5;
+	graph_traits<Graph>::vertex_iterator vi, vi_end;
+	double xmin=numeric_limits<double>::max(), ymin=xmin;
+	double xmax=-numeric_limits<double>::max(), ymax=xmax;
+	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi) {
+		double x=position[*vi].x, y=position[*vi].y;
+		xmin=min(xmin,x);
+		ymin=min(ymin,y);
+		xmax=max(xmax,x);
+		ymax=max(ymax,y);
+	}
+	xmax+=2*r;
+	ymax+=2*r;
+	xmin-=2*r;
+	ymin-=2*r;
+	width=xmax-xmin;
+	height=ymax-ymin;
+	f<<"<svg width=\""<<width<<"\" height=\""<<height<<"\" viewBox = \""
+	 <<xmin<<" "<<ymin<<" "<<width<<" "<<height<<"\">"<<endl;
+	graph_traits<Graph>::edge_iterator ei, ei_end;
+    	for (tie(ei, ei_end) = edges(g); ei != ei_end; ++ei) {
+		Vertex u = index[source(*ei, g)];
+		Vertex v = index[target(*ei, g)];
+		f<<"<line x1=\""<<position[u].x
+		 <<"\" y1=\""<<position[u].y
+		 <<"\" x2=\""<<position[v].x
+		 <<"\" y2=\""<<position[v].y
+		 <<"\" style=\"stroke:rgb(99,99,99);stroke-width:2\"/>"<<endl;
+	}
+	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi) {
+		f<<"<g id=\"node"<<*vi<<"\" class=\"node\"><title>"<<*vi<<"</title>"<<endl;
+		f<<"<ellipse cx=\""<<position[*vi].x<<"\" cy=\""<<position[*vi].y
+		 <<"\" rx=\""<<r<<"\" ry=\""<<r<<"\" style=\"fill:black;stroke:black;\"/>"
+		 <<endl<<"</g>"<<endl;
 
 	}
-	f<<"</svg>"<<std::endl;
+	f<<"</svg>"<<endl;
 }
