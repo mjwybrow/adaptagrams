@@ -25,12 +25,7 @@ static inline double compute_stress(unsigned n, double **coords, double **Dij)
 }
 
 void majlayout(unsigned n, double** lap2, double** Dij, double** coords) {
-	/*************************************************
-	 Layout optimization
-	*************************************************/
-	
     bool Verbose = true, converged;
-
     double b[n];
     double L_ij,dist_ij,degree,old_stress,new_stress, conj_tol,Epsilon;
     conj_tol=Epsilon=0.0001;
