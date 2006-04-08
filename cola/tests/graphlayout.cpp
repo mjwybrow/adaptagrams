@@ -37,26 +37,16 @@ bool check (double delta_p, Vertex p, const Graph& g, bool global) {
 }
 int main() {
 
-	Graph g;
-
+	const int V = 4;
+	typedef std::pair < int, int >Edge;
+	Edge edge_array[] = { Edge(0, 1), Edge(1, 2), Edge(2, 3), Edge(1, 3) };
+	const std::size_t E = sizeof(edge_array) / sizeof(Edge);
+	Graph g(edge_array, edge_array + E, V);
 	WeightMap weightmap=get(edge_weight, g);
-
-	Vertex a = add_vertex(g);
-	Vertex b = add_vertex(g);
-	Vertex c = add_vertex(g);
-	Vertex d = add_vertex(g);
-	Graph::edge_descriptor e; bool inserted;
-	tie(e, inserted)=add_edge(a,b,g);
-	weightmap[e]=1.0;
-	tie(e, inserted)=add_edge(b,c,g);
-	weightmap[e]=1.0;
-	tie(e, inserted)=add_edge(c,d,g);
-	weightmap[e]=1.0;
-	tie(e, inserted)=add_edge(b,d,g);
-	weightmap[e]=1.0;
+	graph_traits < Graph >::edge_iterator ei, ei_end;
+	for (boost::tie(ei, ei_end) = edges(g); ei != ei_end; ++ei) weightmap[*ei] = 1.0;
 	double width=100;
 	double height=100;
-	cout<<"Graph has |V|="<<num_vertices(g)<<" Width="<<width<<" Height="<<height<<endl;
 	Position<>::Vec position_vec(num_vertices(g));
 	IndexMap index = get(vertex_index, g);
 	Position<>::Map position(position_vec.begin(), index);
@@ -86,7 +76,6 @@ int main() {
 	height=ymax-ymin;
 	f<<"<svg width=\""<<width<<"\" height=\""<<height<<"\" viewBox = \""
 	 <<xmin<<" "<<ymin<<" "<<width<<" "<<height<<"\">"<<endl;
-	graph_traits<Graph>::edge_iterator ei, ei_end;
     	for (tie(ei, ei_end) = edges(g); ei != ei_end; ++ei) {
 		Vertex u = index[source(*ei, g)];
 		Vertex v = index[target(*ei, g)];

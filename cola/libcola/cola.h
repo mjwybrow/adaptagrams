@@ -79,8 +79,8 @@ namespace cola {
 		bool run() {
 			typedef typename property_traits<WeightMap>::value_type weight_type;
 			typename graph_traits<Graph>::vertices_size_type n = num_vertices(g);
-			typedef std::vector<weight_type> weight_vec;
 			vec_adj_list_vertex_id_map<no_property, unsigned int> index = get(vertex_index,g);
+			typedef std::vector<weight_type> weight_vec;
 			std::vector<weight_vec> distance(n,weight_vec(n));
 
 			if (!johnson_all_pairs_shortest_paths(g, distance, index, weight, weight_type(0)))
@@ -114,8 +114,14 @@ namespace cola {
 			for(unsigned i = 0; i<n; i++) {
 				position[i].x=coords[0][i];
 				position[i].y=coords[1][i];
-			}
-			return false;
+                delete [] lap2[i];
+                delete [] Dij[i];
+            }
+            delete [] lap2;
+            delete [] Dij;
+            delete [] coords[0];
+            delete [] coords[1];
+			return true;
 		}
 		const Graph& g;
 		PositionMap position;
