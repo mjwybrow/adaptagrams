@@ -1,3 +1,4 @@
+# the following sequence builds from scratch, or just do: bash README
 aclocal
 libtoolize
 automake -a
