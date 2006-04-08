@@ -1,0 +1,7 @@
+aclocal
+libtoolize
+automake -a
+autoconf
+./configure
+make
+make check

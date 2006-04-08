@@ -1,0 +1,9 @@
+AC_INIT(libcola,0.1)
+AC_CONFIG_SRCDIR(libcola/cola.cpp)
+AM_INIT_AUTOMAKE
+AC_PROG_LIBTOOL
+AC_PROG_CXX
+#AC_PROG_CC
+#AC_PROG_INSTALL
+#AC_DEFINE(TRACE_LOGGING)
+AC_OUTPUT(Makefile libcola/Makefile tests/Makefile)
