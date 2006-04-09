@@ -29,28 +29,6 @@ namespace cola {
 	    T y;
 	};
 
-	template <typename T>
-	struct layout_tolerance {
-		layout_tolerance(const T& tolerance = T(0.001))
-			: tolerance(tolerance), last_energy((std::numeric_limits<T>::max)()),
-		last_local_energy((std::numeric_limits<T>::max)()) { }
-
-		bool operator()(T delta_p, const Graph& g) {
-			if (last_energy == (std::numeric_limits<T>::max)()) {
-				last_energy = delta_p;
-          			return false;
-			}
-			T diff = last_energy - delta_p;
-			if (diff < T(0)) diff = -diff;
-			bool done = (delta_p == T(0) || diff / last_energy < tolerance);
-			last_energy = delta_p;
-			return done;
-		}
-  	private:
-    		T tolerance;
-    		T last_energy;
-    		T last_local_energy;
-  	};
 }
 
 template <typename Point = cola::Point<double> >
@@ -59,11 +37,35 @@ struct Position {
 	typedef iterator_property_map< typename Vec::iterator, IndexMap> Map;
 };
 
-//template <typename Mat, typename PositionMap>
-//void majlayout(Mat lap2, PositionMap position);
-void majlayout(unsigned n, double** lap2, double** Dij, double** coords);
-
+#include "conjugate_gradient.h"
 namespace cola {
+	
+	template <typename T>
+	struct layout_tolerance {
+		layout_tolerance(const T& tolerance = T(0.001), const unsigned maxiterations = 100)
+			: tolerance(tolerance),
+              maxiterations(maxiterations),
+              old_stress((std::numeric_limits<T>::max)()),
+              iterations(0) { }
+
+		bool operator()(T new_stress, const Graph& g) {
+            std::cout<<"iteration="<<iterations<<", new_stress="<<new_stress<<std::endl;
+			if (old_stress == (std::numeric_limits<T>::max)()) {
+				old_stress = new_stress;
+          			return false;
+			}
+            bool converged = 
+                fabs(new_stress - old_stress) / (new_stress + 1e-10) < tolerance
+                || ++iterations >= maxiterations;
+            old_stress = new_stress;
+			return converged;
+		}
+  	private:
+    		T tolerance;
+            unsigned maxiterations;
+    		T old_stress;
+            unsigned iterations;
+  	};
 	template <typename PositionMap, typename EdgeOrSideLength, typename Done >
 	struct constrained_majorization_layout_impl {
 		constrained_majorization_layout_impl(
@@ -74,8 +76,61 @@ namespace cola {
 				Done done) 
 			: g(g), position(position), 
 			  weight(weight), 
-			  edge_or_side_length(edge_or_side_length), 
-			  done(done) {}
+			  edge_or_side_length(edge_or_side_length), done(done) {}
+
+        static inline double euclidean_distance(double **coords, int i, int j)
+        {
+            double sum = 
+                (coords[0][i] - coords[0][j]) * (coords[0][i] - coords[0][j]) +
+                (coords[1][i] - coords[1][j]) * (coords[1][i] - coords[1][j]);
+            return sqrt(sum);
+        }
+
+        static inline double compute_stress(unsigned n, double **coords, double **Dij)
+        {
+            /* compute the overall stress */
+            double sum = 0, d, diff;
+            for (int i = 1; i < n; i++) {
+                for (int j = 0; j < i; j++) {
+                    d = Dij[i][j];
+                    diff = d - euclidean_distance(coords,i,j);
+                    sum += diff*diff / (d*d);
+                }
+            }
+            return sum;
+        }
+
+        void majlayout(unsigned n, double** lap2, double** Dij, double** coords){
+            bool Verbose = true;
+            double b[n];
+            double L_ij,dist_ij,degree,conj_tol=0.0001;
+            while(!done(compute_stress(n, coords, Dij),g)) {
+                /* Axis-by-axis optimization: */
+                for (int k = 0; k < 2; k++) {
+                    /* compute the vector b */
+                    /* multiply on-the-fly with distance-based laplacian */
+                    /* (for saving storage we don't construct this Laplacian explicitly) */
+                    for (int i = 0; i < n; i++) {
+                        degree = 0;
+                        b[i] = 0;
+                        for (int j = 0; j < n; j++) {
+                            if (j == i) continue;
+                            dist_ij = euclidean_distance(coords, i, j);
+                            if (dist_ij > 1e-30) {	/* skip zero distances */
+                                /* calculate L_ij := w_{ij}*d_{ij}/dist_{ij} */
+                                L_ij = -1.0 / (dist_ij * Dij[i][j]);
+                                degree -= L_ij;
+                                b[i] += L_ij * coords[k][j];
+                            }
+                        }
+                        b[i] += degree * coords[k][i];
+                    }
+                    conjugate_gradient(lap2, coords[k], b, n, conj_tol, n, true);
+                }
+            }
+            if (Verbose) fprintf(stderr, "\nfinal e = %f\n", compute_stress(n, coords, Dij));
+
+        }	  
 		bool run() {
 			typedef typename property_traits<WeightMap>::value_type weight_type;
 			typename graph_traits<Graph>::vertices_size_type n = num_vertices(g);
