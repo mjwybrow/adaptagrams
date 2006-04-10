@@ -150,4 +150,7 @@ void conjugate_gradient
             vectors_addition(n, r, p, p);
         }
     }
+    for(i=0;i<n;i++) {
+        x[i]=-x[i];
+    }
 }
