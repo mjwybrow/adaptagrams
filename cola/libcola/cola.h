@@ -90,8 +90,8 @@ namespace cola {
         {
             /* compute the overall stress */
             double sum = 0, d, diff;
-            for (int i = 1; i < n; i++) {
-                for (int j = 0; j < i; j++) {
+            for (unsigned i = 1; i < n; i++) {
+                for (unsigned j = 0; j < i; j++) {
                     d = Dij[i][j];
                     diff = d - euclidean_distance(coords,i,j);
                     sum += diff*diff / (d*d);
@@ -106,14 +106,14 @@ namespace cola {
             double L_ij,dist_ij,degree,conj_tol=0.0001;
             while(!done(compute_stress(n, coords, Dij),g)) {
                 /* Axis-by-axis optimization: */
-                for (int k = 0; k < 2; k++) {
+                for (unsigned k = 0; k < 2; k++) {
                     /* compute the vector b */
                     /* multiply on-the-fly with distance-based laplacian */
                     /* (for saving storage we don't construct this Laplacian explicitly) */
-                    for (int i = 0; i < n; i++) {
+                    for (unsigned i = 0; i < n; i++) {
                         degree = 0;
                         b[i] = 0;
-                        for (int j = 0; j < n; j++) {
+                        for (unsigned j = 0; j < n; j++) {
                             if (j == i) continue;
                             dist_ij = euclidean_distance(coords, i, j);
                             if (dist_ij > 1e-30) {	/* skip zero distances */
@@ -132,8 +132,15 @@ namespace cola {
 
         }	  
 		bool run() {
+			double** coords;
+            typename graph_traits<Graph>::vertices_size_type n = num_vertices(g);
+			coords = new double*[2];
+			coords[0] = new double[n];
+			coords[1] = new double[n];
+			return run(n,coords);
+		}
+		bool run(unsigned n, double** coords) {
 			typedef typename property_traits<WeightMap>::value_type weight_type;
-			typename graph_traits<Graph>::vertices_size_type n = num_vertices(g);
 			vec_adj_list_vertex_id_map<no_property, unsigned int> index = get(vertex_index,g);
 			typedef std::vector<weight_type> weight_vec;
 			std::vector<weight_vec> distance(n,weight_vec(n));
@@ -146,9 +153,6 @@ namespace cola {
 			//
 			double** lap2 = new double*[n];
 			double** Dij = new double*[n];
-			double** coords = new double*[2];
-			coords[0] = new double[n];
-			coords[1] = new double[n];
 			for(unsigned i = 0; i<n; i++) {
 				coords[0][i]=position[i].x;
 				coords[1][i]=position[i].y;
@@ -194,7 +198,19 @@ bool constrained_majorization_layout(
 	Done done) {
 	cola::constrained_majorization_layout_impl<PositionMap,detail::graph::edge_or_side<EdgeOrSideLength, T>,Done> 
 		alg(g,position,weight,edge_or_side_length,done);
-	alg.run();
+	return alg.run();
+}
+template <typename PositionMap, typename T, bool EdgeOrSideLength, typename Done >
+bool constrained_majorization_layout(
+	const Graph& g,
+	PositionMap position,
+	WeightMap weight,
+	detail::graph::edge_or_side<EdgeOrSideLength, T> edge_or_side_length,
+	Done done,
+    double** coords) {
+	cola::constrained_majorization_layout_impl<PositionMap,detail::graph::edge_or_side<EdgeOrSideLength, T>,Done> 
+		alg(g,position,weight,edge_or_side_length,done);
+	return alg.run(num_vertices(g),coords);
 }
 template <typename PositionMap, typename T, bool EdgeOrSideLength >
 bool constrained_majorization_layout(
@@ -202,6 +218,7 @@ bool constrained_majorization_layout(
 	PositionMap position,
 	WeightMap weight,
 	detail::graph::edge_or_side<EdgeOrSideLength, T> edge_or_side_length) {
-	constrained_majorization_layout(g,position,weight,edge_or_side_length,cola::layout_tolerance<double>());
+	return constrained_majorization_layout(g,position,weight,edge_or_side_length,cola::layout_tolerance<double>());
 }
 #endif				// STRESSMAJORIZATION_H
+// vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4

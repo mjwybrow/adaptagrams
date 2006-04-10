@@ -1,5 +1,5 @@
 AC_INIT(libcola,0.1)
-AC_CONFIG_SRCDIR(libcola/cola.cpp)
+AC_CONFIG_SRCDIR(libcola/cola.h)
 AM_INIT_AUTOMAKE
 AC_PROG_RANLIB
 #AC_PROG_LIBTOOL
