@@ -25,28 +25,27 @@ public:
 	virtual void satisfy();
 	virtual void solve();
 
-	VPSC(const int n, Variable *vs[], const int m, Constraint *cs[]);
+	VPSC(const unsigned n, Variable *vs[], const unsigned m, Constraint *cs[]);
 	virtual ~VPSC();
 protected:
 	Blocks *bs;
 	Constraint **cs;
-	int m;
+	unsigned m;
 	void printBlocks();
 private:
 	void refine();
-	bool constraintGraphIsCyclic(const int n, Variable *vs[]);
+	bool constraintGraphIsCyclic(const unsigned n, Variable *vs[]);
 	bool blockGraphIsCyclic();
 };
 
 class IncVPSC : VPSC {
 public:
-	int splitCnt;
+	unsigned splitCnt;
 	void satisfy();
 	void solve();
 	void moveBlocks();
 	void splitBlocks();
-	IncVPSC(const int n, Variable *vs[], const int m, Constraint *cs[]);
-	virtual ~IncVPSC();
+	IncVPSC(const unsigned n, Variable *vs[], const unsigned m, Constraint *cs[]);
 private:
 	typedef std::vector<Constraint*> ConstraintList;
 	ConstraintList inactive;

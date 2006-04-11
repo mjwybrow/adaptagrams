@@ -27,16 +27,14 @@ using std::ostringstream;
 using std::list;
 using std::set;
 
-IncVPSC::IncVPSC(const int n, Variable *vs[], const int m, Constraint *cs[]) 
+IncVPSC::IncVPSC(const unsigned n, Variable *vs[], const unsigned m, Constraint *cs[]) 
 	: VPSC(n,vs,m,cs) {
 	inactive.assign(cs,cs+m);
 	for(ConstraintList::iterator i=inactive.begin();i!=inactive.end();i++) {
 		(*i)->active=false;
 	}
 }
-IncVPSC::~IncVPSC() {}
-
-VPSC::VPSC(const int n, Variable *vs[], const int m, Constraint *cs[]) : cs(cs), m(m) {
+VPSC::VPSC(const unsigned n, Variable *vs[], const unsigned m, Constraint *cs[]) : cs(cs), m(m) {
 	bs=new Blocks(n, vs);
 #ifdef RECTANGLE_OVERLAP_LOGGING
 	printBlocks();
@@ -55,7 +53,7 @@ void VPSC::printBlocks() {
 		Block *b=*i;
 		f<<"  "<<*b<<endl;
 	}
-	for(int i=0;i<m;i++) {
+	for(unsigned i=0;i<m;i++) {
 		f<<"  "<<*cs[i]<<endl;
 	}
 #endif
@@ -79,7 +77,7 @@ void VPSC::satisfy() {
 		}
 	}
 	bs->cleanup();
-	for(int i=0;i<m;i++) {
+	for(unsigned i=0;i<m;i++) {
 		if(cs[i]->slack()<-0.0000001) {
 #ifdef RECTANGLE_OVERLAP_LOGGING
 			ofstream f(LOGFILE,ios::app);
@@ -96,7 +94,7 @@ void VPSC::refine() {
 	bool solved=false;
 	// Solve shouldn't loop indefinately
 	// ... but just to make sure we limit the number of iterations
-	int maxtries=100;
+	unsigned maxtries=100;
 	while(!solved&&maxtries>=0) {
 		solved=true;
 		maxtries--;
@@ -123,7 +121,7 @@ void VPSC::refine() {
 			}
 		}
 	}
-	for(int i=0;i<m;i++) {
+	for(unsigned i=0;i<m;i++) {
 		if(cs[i]->slack()<-0.0000001) {
 			assert(cs[i]->slack()>-0.0000001);
 			throw "Unsatisfied constraint";
@@ -197,7 +195,7 @@ void IncVPSC::satisfy() {
 	f<<"  finished merges."<<endl;
 #endif
 	bs->cleanup();
-	for(int i=0;i<m;i++) {
+	for(unsigned i=0;i<m;i++) {
 		v=cs[i];
 		if(v->slack()<-0.0000001) {
 			//assert(cs[i]->slack()>-0.0000001);
@@ -305,15 +303,15 @@ struct node {
 	set<node*> out;
 };
 // useful in debugging - cycles would be BAD
-bool VPSC::constraintGraphIsCyclic(const int n, Variable *vs[]) {
+bool VPSC::constraintGraphIsCyclic(const unsigned n, Variable *vs[]) {
 	map<Variable*, node*> varmap;
 	vector<node*> graph;
-	for(int i=0;i<n;i++) {
+	for(unsigned i=0;i<n;i++) {
 		node *u=new node;
 		graph.push_back(u);
 		varmap[vs[i]]=u;
 	}
-	for(int i=0;i<n;i++) {
+	for(unsigned i=0;i<n;i++) {
 		for(vector<Constraint*>::iterator c=vs[i]->in.begin();c!=vs[i]->in.end();c++) {
 			Variable *l=(*c)->left;
 			varmap[vs[i]]->in.insert(varmap[l]);

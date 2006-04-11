@@ -85,9 +85,6 @@ unsigned countOverlaps(Rectangle **rs, unsigned n) {
 	}
 	return overlaps;
 }
-inline int getRand(int range) {
-	return (double)(range*rand()/(RAND_MAX+1.0));
-}
 inline double getRand(double range) {
 	return range*rand()/RAND_MAX;
 }

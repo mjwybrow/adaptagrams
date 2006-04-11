@@ -2,7 +2,7 @@
  * \brief Pairing heap datastructure implementation
  *
  * Based on example code in "Data structures and Algorithm Analysis in C++"
- * by Mark Allen Weiss, used and released under the GPL by permission
+ * by Mark Allen Weiss, used and released under the LGPL by permission
  * of the author.
  *
  * No promises about correctness.  Use at your own risk!
@@ -13,7 +13,7 @@
  *
  * Copyright (C) 2005 Authors
  *
- * Released under GNU GPL.  Read the file 'COPYING' for more information.
+ * Released under GNU LGPL.  Read the file 'COPYING' for more information.
  */
 #ifndef PAIRING_HEAP_H_
 #define PAIRING_HEAP_H_
