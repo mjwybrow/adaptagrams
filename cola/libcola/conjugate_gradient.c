@@ -1,3 +1,6 @@
+#include <math.h>
+#include <stdlib.h>
+
 #include "conjugate_gradient.h"
 /**********************************
  * This code is adapted from
@@ -149,8 +152,5 @@ void conjugate_gradient
             vectors_scalar_mult(n, p, beta, p);
             vectors_addition(n, r, p, p);
         }
-    }
-    for(i=0;i<n;i++) {
-        x[i]=-x[i];
     }
 }
