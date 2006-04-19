@@ -1,5 +1,4 @@
 /**
- * \brief Remove overlaps function
  *
  * Authors:
  *   Tim Dwyer <tgdwyer@gmail.com>
@@ -8,7 +7,6 @@
  *
  * Released under GNU LGPL.  Read the file 'COPYING' for more information.
  */
-
 #ifndef SEEN_REMOVEOVERLAP_VARIABLE_H
 #define SEEN_REMOVEOVERLAP_VARIABLE_H
 

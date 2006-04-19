@@ -1,5 +1,6 @@
 /**
- * \brief Remove overlaps function
+ * \brief Functions to automatically generate constraints for the
+ * rectangular node overlap removal problem.
  *
  * Authors:
  *   Tim Dwyer <tgdwyer@gmail.com>
@@ -8,7 +9,6 @@
  *
  * Released under GNU LGPL.  Read the file 'COPYING' for more information.
  */
-
 #ifndef SEEN_REMOVEOVERLAP_GENERATE_CONSTRAINTS_H
 #define SEEN_REMOVEOVERLAP_GENERATE_CONSTRAINTS_H
 #include <iostream>

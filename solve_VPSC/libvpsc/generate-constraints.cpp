@@ -1,5 +1,6 @@
 /**
- * \brief Remove overlaps function
+ * \brief Functions to automatically generate constraints for the
+ * rectangular node overlap removal problem.
  *
  * Authors:
  *   Tim Dwyer <tgdwyer@gmail.com>

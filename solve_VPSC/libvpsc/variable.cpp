@@ -1,5 +1,4 @@
 /**
- * \brief Remove overlaps function
  *
  * Authors:
  *   Tim Dwyer <tgdwyer@gmail.com>

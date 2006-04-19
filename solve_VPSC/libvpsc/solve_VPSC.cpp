@@ -1,5 +1,6 @@
 /**
- * \brief Remove overlaps function
+ * \brief Solve an instance of the "Variable Placement with Separation
+ * Constraints" problem.
  *
  * Authors:
  *   Tim Dwyer <tgdwyer@gmail.com>
@@ -261,7 +262,8 @@ void IncVPSC::splitBlocks() {
 }
 
 /**
- * Scan constraint list for the most violated constraint
+ * Scan constraint list for the most violated constraint, or the first equality
+ * constraint
  */
 double IncVPSC::mostViolated(ConstraintList &l, Constraint* &v) {
 	double minSlack = DBL_MAX;
@@ -274,10 +276,11 @@ double IncVPSC::mostViolated(ConstraintList &l, Constraint* &v) {
 	for(ConstraintList::iterator i=l.begin();i!=end;i++) {
 		Constraint *c=*i;
 		double slack = c->slack();
-		if(slack < minSlack) {
+		if(c->equality || slack < minSlack) {
 			minSlack=slack;	
 			v=c;
 			deletePoint=i;
+			if(c->equality) break;
 		}
 	}
 	// Because the constraint list is not order dependent we just
@@ -287,7 +290,6 @@ double IncVPSC::mostViolated(ConstraintList &l, Constraint* &v) {
 	if(deletePoint != end && minSlack<-0.0000001) {
 		*deletePoint = l[l.size()-1];
 		l.resize(l.size()-1);
-		//l.erase(deletePoint);
 	}
 #ifdef RECTANGLE_OVERLAP_LOGGING
 	f<<"  most violated is: "<<*v<<endl;

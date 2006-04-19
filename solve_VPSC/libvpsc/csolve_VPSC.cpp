@@ -1,5 +1,12 @@
-/*
- * Bridge for C programs to access solve_VPSC (which is in C++)
+/**
+ * \brief Bridge for C programs to access solve_VPSC (which is in C++)
+ *
+ * Authors:
+ *   Tim Dwyer <tgdwyer@gmail.com>
+ *
+ * Copyright (C) 2005 Authors
+ *
+ * Released under GNU LGPL.  Read the file 'COPYING' for more information.
  */
 #include <iostream>
 #include <variable.h>

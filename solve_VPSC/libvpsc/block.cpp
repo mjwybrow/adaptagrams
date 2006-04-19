@@ -1,5 +1,7 @@
 /**
- * \brief Remove overlaps function
+ * \brief A block is a group of variables that must be moved together to improve
+ * the goal function without violating already active constraints.
+ * The variables in a block are spanned by a tree of active constraints.
  *
  * Authors:
  *   Tim Dwyer <tgdwyer@gmail.com>

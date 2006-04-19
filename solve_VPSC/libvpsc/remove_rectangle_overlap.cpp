@@ -1,3 +1,14 @@
+/**
+ * \brief remove overlaps between a set of rectangles.
+ *
+ * Authors:
+ *   Tim Dwyer <tgdwyer@gmail.com>
+ *
+ * Copyright (C) 2005 Authors
+ *
+ * Released under GNU LGPL.  Read the file 'COPYING' for more information.
+ */
+
 #include <iostream>
 #include <cassert>
 #include "generate-constraints.h"

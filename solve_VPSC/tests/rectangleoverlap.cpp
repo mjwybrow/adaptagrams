@@ -684,7 +684,7 @@ int main() {
 	test(generateRects(test11,n11),n11,c,t);
 	*/
 	//*/
-	int max_size=400, repeats=100,step=10; 
+	int max_size=100, repeats=100,step=10; 
 	//srand(time(NULL));
 	for(int i=10;i<=max_size;i+=step) {
 		//if(i%5==0) cout << i << endl;

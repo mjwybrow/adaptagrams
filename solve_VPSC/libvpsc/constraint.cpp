@@ -1,5 +1,6 @@
 /**
- * \brief Remove overlaps function
+ * \brief A constraint determines a minimum or exact spacing required between
+ * two variables.
  *
  * Authors:
  *   Tim Dwyer <tgdwyer@gmail.com>
@@ -11,13 +12,14 @@
 
 #include "constraint.h"
 #include <cassert>
-Constraint::Constraint(Variable *left, Variable *right, double gap)
+Constraint::Constraint(Variable *left, Variable *right, double gap, bool equality)
 : left(left),
   right(right),
   gap(gap),
   timeStamp(0),
   active(false),
-  visited(false)
+  visited(false),
+  equality(equality)
 {
 	left->out.push_back(this);
 	right->in.push_back(this);
