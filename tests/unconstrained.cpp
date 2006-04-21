@@ -52,7 +52,7 @@ int main() {
 	Position<>::Map position(position_vec.begin(), index);
   	write_graphviz(cout, g);
 	circle_graph_layout(g, position, width/2.0);
-	constrained_majorization_layout(g, position,weightmap,side_length(width));
+	constrained_majorization_layout(g,position,weightmap,side_length(width));
 	//kamada_kawai_spring_layout(g, position, weightmap, side_length(width),check );
 
 	ofstream f("blah.svg");

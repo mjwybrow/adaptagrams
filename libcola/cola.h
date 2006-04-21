@@ -24,6 +24,7 @@ typedef adjacency_list<vecS, vecS, undirectedS, no_property,
 typedef property_map<Graph, edge_weight_t>::type WeightMap;
 typedef graph_traits<Graph>::vertex_descriptor Vertex;
 typedef property_map<Graph, vertex_index_t>::type IndexMap;
+
 namespace cola {
 	// we expect points to have an x and a y member of float type
 	template <typename T>
@@ -76,12 +77,26 @@ namespace cola {
 				PositionMap position,
 				WeightMap weight,
 				EdgeOrSideLength edge_or_side_length,
-				Done done) 
+				Done done,
+                double** coords = NULL) 
 			: g(g), n(num_vertices(g)), position(position), 
+              lap2(new double*[n]),
+              tol(0.0001),
 			  weight(weight), 
 			  edge_or_side_length(edge_or_side_length), 
               done(done),
-              boundingBoxes(NULL) {}
+              boundingBoxes(NULL),
+              coords(coords),
+              globalConstraints(NULL),
+              constrainedLayout(false)
+        {
+            if(coords==NULL) {
+                std::cerr << "assigning coords " << n << std::endl;
+                this->coords = new double*[2];
+                this->coords[0] = new double[n];
+                this->coords[1] = new double[n];
+            }
+        }
 
         void moveBoundingBoxes() {
             for(unsigned i=0;i<n;i++) {
@@ -90,14 +105,9 @@ namespace cola {
             }
         }
 
-		void setDimensions(PositionMap dim) {
-            boundingBoxes = new Rectangle*[n]; 
-            for(unsigned i = 0; i < n; i++) {
-                double x=position[i].x, y=position[i].y, 
-                       w=dim[i].x/2.0, h=dim[i].y/2.0;
-                boundingBoxes[i] = new Rectangle(x-w,x+w,y-h,y+h);
-            }
-        }
+        void setupConstraints(PositionMap dim, 
+                AlignmentConstraints* acsx, AlignmentConstraints* acsy);
+
         ~constrained_majorization_layout_impl() {
             if(boundingBoxes) {
                 for(unsigned i = 0; i < n; i++) {
@@ -105,27 +115,34 @@ namespace cola {
                 }
                 delete [] boundingBoxes;
             }
+            if(constrainedLayout) {
+                delete gp[0];
+                delete gp[1];
+            }
         }
 		bool run();
-		bool run(double** coords);
         bool avoidOverlaps;
+        bool constrainedLayout;
     private:
-        double euclidean_distance(double **coords, int i, int j) {
+        double euclidean_distance(unsigned i, unsigned j) {
             return sqrt(
                 (coords[0][i] - coords[0][j]) * (coords[0][i] - coords[0][j]) +
                 (coords[1][i] - coords[1][j]) * (coords[1][i] - coords[1][j]));
         }
         double compute_stress(double **Dij);
-        void majlayout(double** lap2, double** Dij);
-
+        void majlayout(double** Dij);
+        GradientProjection* gp[2];
 		const Graph& g;
         unsigned n;
 		PositionMap position;
+        double** lap2; 
+        double tol;
 		WeightMap weight;
 		EdgeOrSideLength edge_or_side_length;
 		Done done;
         Rectangle** boundingBoxes;
         double** coords;
+        Constraints* globalConstraints;
 	};
 }
 template <typename PositionMap, typename T, bool EdgeOrSideLength, typename Done >
@@ -148,12 +165,14 @@ bool constrained_majorization_layout(
 	Done done,
     bool avoidOverlaps,
     double** coords,
-    PositionMap dim) {
+    PositionMap dim,
+    AlignmentConstraints* acsx,
+    AlignmentConstraints* acsy) {
 	cola::constrained_majorization_layout_impl<PositionMap,detail::graph::edge_or_side<EdgeOrSideLength, T>,Done> 
-		alg(g,position,weight,edge_or_side_length,done);
-    alg.setDimensions(dim);
+		alg(g,position,weight,edge_or_side_length,done,coords);
     alg.avoidOverlaps=avoidOverlaps;
-	return alg.run(coords);
+    alg.setupConstraints(dim,acsx,acsy);
+	return alg.run();
 }
 template <typename PositionMap, typename T, bool EdgeOrSideLength >
 bool constrained_majorization_layout(
