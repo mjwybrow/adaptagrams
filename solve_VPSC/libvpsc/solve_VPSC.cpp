@@ -177,7 +177,7 @@ void IncVPSC::satisfy() {
 	splitBlocks();
 	long splitCtr = 0;
 	Constraint* v = NULL;
-	while(mostViolated(inactive,v)<-0.0000001) {
+	while(mostViolated(inactive,v)<-0.0000001||v->equality) {
 		assert(!v->active);
 		Block *lb = v->left->block, *rb = v->right->block;
 		if(lb != rb) {
@@ -287,7 +287,7 @@ double IncVPSC::mostViolated(ConstraintList &l, Constraint* &v) {
 	// move the last element over the deletePoint and resize
 	// downwards.  There is always at least 1 element in the
 	// vector because of search.
-	if(deletePoint != end && minSlack<-0.0000001) {
+	if(deletePoint != end && (minSlack<-0.0000001||v->equality)) {
 		*deletePoint = l[l.size()-1];
 		l.resize(l.size()-1);
 	}

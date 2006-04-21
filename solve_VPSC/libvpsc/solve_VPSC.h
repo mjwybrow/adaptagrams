@@ -27,6 +27,7 @@ public:
 
 	VPSC(const unsigned n, Variable *vs[], const unsigned m, Constraint *cs[]);
 	virtual ~VPSC();
+	Constraint** getConstraints() { return cs; }
 protected:
 	Blocks *bs;
 	Constraint **cs;
@@ -38,7 +39,7 @@ private:
 	bool blockGraphIsCyclic();
 };
 
-class IncVPSC : VPSC {
+class IncVPSC : public VPSC {
 public:
 	unsigned splitCnt;
 	void satisfy();
