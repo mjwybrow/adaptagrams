@@ -1,8 +1,7 @@
-INCLUDES = -I$(top_srcdir)/libcola -I$(top_srcdir)/libvpsc
-check_PROGRAMS = graphlayout
-graphlayout_SOURCES = graphlayout.cpp
-graphlayout_LDADD = $(top_srcdir)/libcola/libcola.a\
-	$(top_srcdir)/libvpsc/libvpsc.la
+INCLUDES = -I$(top_srcdir)/libcola -I/home/dwyer/devel/solve_VPSC/libvpsc
+check_PROGRAMS = unconstrained
+unconstrained_SOURCES = unconstrained.cpp
+unconstrained_LDADD = $(top_srcdir)/libcola/libcola.a /home/dwyer/devel/solve_VPSC/libvpsc/libvpsc.la
 
 TESTS = $(check_PROGRAMS)
 
