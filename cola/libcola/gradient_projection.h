@@ -19,7 +19,7 @@ struct AlignmentConstraint {
     AlignmentConstraint(double pos) : position(pos) {}
     ~AlignmentConstraint() {
         for(OffsetList::iterator i=offsets.begin();i!=offsets.end();i++) {
-            delete *i;
+            //delete *i;
         }
     }
     OffsetList offsets;
@@ -48,7 +48,6 @@ public:
               tolerance(tol), max_iterations(max_iterations),
               g(new double[n]), d(new double[n]), old_place(new double[n])
     {
-        cerr << "Entered GradientProjection constructor" << endl;
         vector<Variable*> vars;
         for(unsigned i=0;i<n;i++) {
             vars.push_back(new Variable(i,1,1));
@@ -69,7 +68,7 @@ public:
                     Offset* o = *io;
                     cerr << " create constraint " << v->id << "=" << o->v << endl;
                     assert(vars[o->v]->id==o->v);
-                    gcs->push_back(new Constraint(v,vars[o->v],o->offset));
+                    gcs->push_back(new Constraint(v,vars[o->v],o->offset,true));
                 }
             }
         }
@@ -77,7 +76,6 @@ public:
         for(unsigned i=0;i<vars.size();i++) {
             vs[i]=vars[i];
         }
-        cerr << "Leaving GradientProjection constructor" << endl;
 	}
     ~GradientProjection() {
         delete [] g;

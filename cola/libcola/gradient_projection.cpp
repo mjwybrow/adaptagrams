@@ -27,7 +27,6 @@ using namespace std;
  * the Variable Placement with Separation Constraints problem.
  */
 unsigned GradientProjection::solve (double * b) {
-    cerr << "Entered GradientProjection::solve" << endl;
 	unsigned i,j,counter;
 	if(max_iterations==0) return 0;
 
@@ -42,9 +41,7 @@ unsigned GradientProjection::solve (double * b) {
 	    for (i=0;i<n;i++) {
 		    vs[i]->desiredPosition=place[i];
 	    }
-        cerr << "  calling vpsc->satisfy()..." << endl;
         vpsc->satisfy();
-        cerr << "  done." << endl;
         for (i=0;i<n;i++) {
             place[i]=vs[i]->position();
         }
@@ -78,9 +75,7 @@ unsigned GradientProjection::solve (double * b) {
             for (i=0;i<n;i++) {
                 vs[i]->desiredPosition=place[i];
             }
-            cerr << "  calling vpsc->satisfy()..." << endl;
             vpsc->satisfy();
-            cerr << "  done." << endl;
             for (i=0;i<n;i++) {
                 place[i]=vs[i]->position();
             }
@@ -124,8 +119,7 @@ unsigned GradientProjection::solve (double * b) {
 // global constraint list (including alignment constraints,
 // dir-edge constraints, containment constraints, etc).
 std::pair<IncVPSC*, Constraint**> GradientProjection::setupVPSC() {
-    cerr << "Entered GradientProjection::setupVPSC " << k << endl;
-    Constraint **cs, **lcs;
+    Constraint **cs, **lcs=NULL;
     unsigned m=0;
     if(nonOverlapConstraints) {
         if(k==HORIZONTAL) {
@@ -145,19 +139,19 @@ std::pair<IncVPSC*, Constraint**> GradientProjection::setupVPSC() {
     if(gcs) for(Constraints::iterator ci = gcs->begin();ci!=gcs->end();ci++) {
         cs[m++] = *ci;
     }
-    cerr << "  " << gm << " global constraints" << endl;
-    cerr << "Leaving GradientProjection::setupVPSC" << endl;
-    return std::make_pair(new IncVPSC(n,vs,m,cs), lcs);
+    return std::make_pair(new IncVPSC(n+n_dummy,vs,m,cs), lcs);
 }
 void GradientProjection::destroyVPSC(IncVPSC *vpsc, Constraint **lcs) {
     Constraint** cs = vpsc->getConstraints();
     delete vpsc;
     delete [] cs;
-    unsigned m = sizeof(lcs)/sizeof(Constraint*);
-    for(unsigned i=0;i<m;i++) {
-        delete lcs[i];
+    if(lcs) {
+        unsigned m = sizeof(lcs)/sizeof(Constraint*);
+        for(unsigned i=0;i<m;i++) {
+            //delete lcs[i];
+        }
+        delete [] lcs;
     }
-    delete [] lcs;
 }
 
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4 :
