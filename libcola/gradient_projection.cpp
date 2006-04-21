@@ -17,7 +17,9 @@
 #include <constraint.h>
 #include "gradient_projection.h"
 #include <iostream>
+#include "boost/tuple/tuple.hpp"
 
+using namespace std;
 //#define CONMAJ_LOGGING 1
 
 /*
@@ -25,15 +27,24 @@
  * the Variable Placement with Separation Constraints problem.
  */
 unsigned GradientProjection::solve (double * b) {
+    cerr << "Entered GradientProjection::solve" << endl;
 	unsigned i,j,counter;
 	if(max_iterations==0) return 0;
 
 	bool converged=false;
-    if(m>0) {
+    bool constrained = gcs || nonOverlapConstraints;
+
+    IncVPSC* vpsc=NULL;
+    Constraint** lcs=NULL;
+
+    if(constrained) {
+        boost::tie(vpsc,lcs) = setupVPSC();
 	    for (i=0;i<n;i++) {
 		    vs[i]->desiredPosition=place[i];
 	    }
+        cerr << "  calling vpsc->satisfy()..." << endl;
         vpsc->satisfy();
+        cerr << "  done." << endl;
         for (i=0;i<n;i++) {
             place[i]=vs[i]->position();
         }
@@ -62,12 +73,14 @@ unsigned GradientProjection::solve (double * b) {
 		for (i=0; i<n; i++) {
 			place[i]-=alpha*g[i];
 		}
-        if(m>0) {
+        if(constrained) {
             //project to constraint boundary
             for (i=0;i<n;i++) {
                 vs[i]->desiredPosition=place[i];
             }
+            cerr << "  calling vpsc->satisfy()..." << endl;
             vpsc->satisfy();
+            cerr << "  done." << endl;
             for (i=0;i<n;i++) {
                 place[i]=vs[i]->position();
             }
@@ -101,25 +114,50 @@ unsigned GradientProjection::solve (double * b) {
 			converged=false;
 		}
 	}
+    if(constrained) destroyVPSC(vpsc,lcs);
 	return counter;
 }
-void GradientProjection::generateNonOverlapConstraints(
-        unsigned k, Rectangle** rs) {
-    delete vpsc;
-    if(cs) {
-        for(unsigned i=0;i<m;i++) {
-            delete cs[i];
+// Setup an instance of the Variable Placement with Separation Constraints
+// for one iteration.
+// Generate transient local constraints --- such as non-overlap constraints 
+// --- that are only relevant to one iteration, and merge these with the
+// global constraint list (including alignment constraints,
+// dir-edge constraints, containment constraints, etc).
+std::pair<IncVPSC*, Constraint**> GradientProjection::setupVPSC() {
+    cerr << "Entered GradientProjection::setupVPSC " << k << endl;
+    Constraint **cs, **lcs;
+    unsigned m=0;
+    if(nonOverlapConstraints) {
+        if(k==HORIZONTAL) {
+            Rectangle::setXBorder(0.0001);
+            m=generateXConstraints(n,rs,vs,lcs,true); 
+            Rectangle::setXBorder(0);
+        } else {
+            m=generateYConstraints(n,rs,vs,lcs); 
         }
-        delete [] cs;
     }
-    if(k==0) {
-        Rectangle::setXBorder(0.0001);
-        m=generateXConstraints(n,rs,vs,cs,true); 
-        Rectangle::setXBorder(0);
-    } else {
-        m=generateYConstraints(n,rs,vs,cs); 
+    unsigned gm = 0;
+    if(gcs) gm=gcs->size();
+    cs = new Constraint*[m + gm];
+    for(unsigned i = 0 ; i<m; i++) {
+        cs[i] = lcs[i];
     }
-    vpsc = new IncVPSC(n,vs,m,cs);
+    if(gcs) for(Constraints::iterator ci = gcs->begin();ci!=gcs->end();ci++) {
+        cs[m++] = *ci;
+    }
+    cerr << "  " << gm << " global constraints" << endl;
+    cerr << "Leaving GradientProjection::setupVPSC" << endl;
+    return std::make_pair(new IncVPSC(n,vs,m,cs), lcs);
+}
+void GradientProjection::destroyVPSC(IncVPSC *vpsc, Constraint **lcs) {
+    Constraint** cs = vpsc->getConstraints();
+    delete vpsc;
+    delete [] cs;
+    unsigned m = sizeof(lcs)/sizeof(Constraint*);
+    for(unsigned i=0;i<m;i++) {
+        delete lcs[i];
+    }
+    delete [] lcs;
 }
 
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4 :
