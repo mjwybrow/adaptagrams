@@ -1,18 +1,14 @@
-#include "cola.h"
 #include "conjugate_gradient.h"
+#include "generate-constraints.h"
 
 namespace cola {
 
 template <typename PositionMap, typename EdgeOrSideLength, typename Done >
 void constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
-::majlayout(double** lap2, double** Dij) {
+::majlayout(double** Dij) {
     bool Verbose = false;
     double b[n];
-    double L_ij,dist_ij,degree,tol=0.0001;
-    GradientProjection gp[]={
-	GradientProjection(n,lap2,coords[0],tol,100),
-	GradientProjection(n,lap2,coords[1],tol,100)
-    };
+    double L_ij,dist_ij,degree;
     while(!done(compute_stress(Dij),g)) {
         /* Axis-by-axis optimization: */
         for (unsigned k = 0; k < 2; k++) {
@@ -24,7 +20,7 @@ void constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
             b[i] = 0;
             for (unsigned j = 0; j < n; j++) {
                 if (j == i) continue;
-                dist_ij = euclidean_distance(coords, i, j);
+                dist_ij = euclidean_distance(i, j);
                 if (dist_ij > 1e-30) {	/* skip zero distances */
                 /* calculate L_ij := w_{ij}*d_{ij}/dist_{ij} */
                 L_ij = 1.0 / (dist_ij * Dij[i][j]);
@@ -34,9 +30,8 @@ void constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
             }
             b[i] += degree * coords[k][i];
             }
-            if(avoidOverlaps) {
-                if(boundingBoxes) gp[k].generateNonOverlapConstraints(k,boundingBoxes);
-                gp[k].solve(b);
+            if(constrainedLayout) {
+                gp[k]->solve(b);
                 if(boundingBoxes) moveBoundingBoxes();
             } else {
                 conjugate_gradient(lap2, coords[k], b, n, tol, n, true);
@@ -52,7 +47,7 @@ inline double constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength
     for (unsigned i = 1; i < n; i++) {
         for (unsigned j = 0; j < i; j++) {
             d = Dij[i][j];
-            diff = d - euclidean_distance(coords,i,j);
+            diff = d - euclidean_distance(i,j);
             sum += diff*diff / (d*d);
         }
     }
@@ -60,8 +55,7 @@ inline double constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength
 }
 template <typename PositionMap, typename EdgeOrSideLength, typename Done >
 bool constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
-::run(double** coords) {
-    this->coords=coords;
+::run() {
     typedef typename property_traits<WeightMap>::value_type weight_type;
     vec_adj_list_vertex_id_map<no_property, unsigned int> index = get(vertex_index,g);
     typedef std::vector<weight_type> weight_vec;
@@ -73,11 +67,15 @@ bool constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
                                      edge_or_side_length);
     // Lij_{i!=j}=1/(Dij^2)
     //
-    double** lap2 = new double*[n];
     double** Dij = new double*[n];
     for(unsigned i = 0; i<n; i++) {
-        coords[0][i]=position[i].x+boundingBoxes[i]->width()/2.0;
-        coords[1][i]=position[i].y+boundingBoxes[i]->height()/2.0;
+        double xoffset=0, yoffset=0;
+        if(boundingBoxes) {
+            xoffset=boundingBoxes[i]->width()/2.0;
+            yoffset=boundingBoxes[i]->height()/2.0;
+        }
+        coords[0][i]=position[i].x+xoffset;
+        coords[1][i]=position[i].y+yoffset;
     }
     for(unsigned i = 0; i<n; i++) {
         weight_type degree = weight_type(0);
@@ -91,7 +89,7 @@ bool constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
         }
         lap2[i][i]=-degree;
     }
-    majlayout(lap2, Dij);	
+    majlayout(Dij);	
     for(unsigned i = 0; i<n; i++) {
         position[i].x=coords[0][i];
         position[i].y=coords[1][i];
@@ -106,13 +104,21 @@ bool constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
     return true;
 }
 template <typename PositionMap, typename EdgeOrSideLength, typename Done >
-bool constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
-::run() {
-    double** coords;
-    coords = new double*[2];
-    coords[0] = new double[n];
-    coords[1] = new double[n];
-    return run(coords);
+void constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
+::setupConstraints(PositionMap dim, 
+        AlignmentConstraints* acsx, AlignmentConstraints* acsy) {
+    constrainedLayout = true;
+    boundingBoxes = new Rectangle*[n]; 
+    for(unsigned i = 0; i < n; i++) {
+        double x=position[i].x, y=position[i].y, 
+               w=dim[i].x/2.0, h=dim[i].y/2.0;
+        boundingBoxes[i] = new Rectangle(x-w,x+w,y-h,y+h);
+    }
+    Dim x = HORIZONTAL, y = VERTICAL;
+	gp[x]=new GradientProjection(
+            x,n,lap2,coords[x],tol,100,acsx,avoidOverlaps,boundingBoxes);
+	gp[y]=new GradientProjection(
+            y,n,lap2,coords[y],tol,100,acsy,avoidOverlaps,boundingBoxes);
 }
 } // namespace cola
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4
