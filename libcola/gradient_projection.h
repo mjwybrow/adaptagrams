@@ -5,71 +5,114 @@
 #include <variable.h>
 #include <constraint.h>
 #include <generate-constraints.h>
+#include <vector>
+#include <iostream>
+
+using namespace std;
+struct Offset {
+    Offset(unsigned v, double o) : v(v), offset(o) {}
+    unsigned v;
+    double offset;
+};
+typedef vector<Offset*> OffsetList;
+struct AlignmentConstraint {
+    AlignmentConstraint(double pos) : position(pos) {}
+    ~AlignmentConstraint() {
+        for(OffsetList::iterator i=offsets.begin();i!=offsets.end();i++) {
+            delete *i;
+        }
+    }
+    OffsetList offsets;
+    double position;
+};
+typedef vector<AlignmentConstraint*> AlignmentConstraints;
+
+typedef vector<Constraint*> Constraints;
+enum Dim { HORIZONTAL, VERTICAL };
 
 class GradientProjection {
 public:
 	GradientProjection(
-		unsigned n, 
-		double** A,
-		double* x,
-		Variable** vs,
-        unsigned m,
-	    Constraint** cs,
-		double tol,
-		unsigned max_iterations) 
-            : n(n), A(A), place(x), 
-              vs(vs), m(m), cs(cs),
-              tolerance(tol), max_iterations(max_iterations),
-              g(new double[n]), d(new double[n]), old_place(new double[n]),
-              vpsc(new IncVPSC(n,vs,m,cs))
-             { }
-	GradientProjection(
+        const Dim k,
 		unsigned n, 
 		double** A,
 		double* x,
 		double tol,
-		unsigned max_iterations) 
-            : n(n), A(A), place(x), 
-              vs(new Variable*[n]), m(0), cs(NULL),
+		unsigned max_iterations,
+        AlignmentConstraints* acs=NULL,
+        bool nonOverlapConstraints=false,
+        Rectangle** rs=NULL)
+            : k(k), n(n), n_dummy(0), A(A), place(x), 
+              vs(NULL), gcs(NULL), rs(rs),
+              nonOverlapConstraints(nonOverlapConstraints),
               tolerance(tol), max_iterations(max_iterations),
               g(new double[n]), d(new double[n]), old_place(new double[n])
     {
+        cerr << "Entered GradientProjection constructor" << endl;
+        vector<Variable*> vars;
         for(unsigned i=0;i<n;i++) {
-            vs[i]=new Variable(i,1,1);
+            vars.push_back(new Variable(i,1,1));
         }
-        vpsc=new IncVPSC(n,vs,m,cs);
+        if(acs) {
+            gcs=new Constraints;
+            n_dummy+=acs->size();
+            cerr << "  " << n_dummy << " alignment constraints" << endl;
+            unsigned i=n;
+            for(AlignmentConstraints::iterator iac=acs->begin();
+                    iac!=acs->end();iac++,i++) {
+                AlignmentConstraint* ac=*iac;
+                Variable *v=new Variable(i,ac->position,0.0001);
+                vars.push_back(v);
+                for(OffsetList::iterator io=ac->offsets.begin();
+                        io!=ac->offsets.end();
+                        io++) {
+                    Offset* o = *io;
+                    cerr << " create constraint " << v->id << "=" << o->v << endl;
+                    assert(vars[o->v]->id==o->v);
+                    gcs->push_back(new Constraint(v,vars[o->v],o->offset));
+                }
+            }
+        }
+        vs = new Variable*[vars.size()];
+        for(unsigned i=0;i<vars.size();i++) {
+            vs[i]=vars[i];
+        }
+        cerr << "Leaving GradientProjection constructor" << endl;
 	}
     ~GradientProjection() {
         delete [] g;
         delete [] d;
         delete [] old_place;
-        delete vpsc;
-        if(cs) {
-            for(unsigned i=0;i<m;i++) {
-                delete cs[i];
+        if(gcs) {
+            for(Constraints::iterator i(gcs->begin()); i!=gcs->end(); i++) {
+                delete *i;
             }
-            delete [] cs;
+            delete gcs;
         }
         for(unsigned i=0;i<n;i++) {
             delete vs[i];
         }
         delete [] vs;
     }
-    void generateNonOverlapConstraints(unsigned k, Rectangle** rs);
 	unsigned solve(double* b);
 private:
-	unsigned n;   // number of actual vars
+    pair<IncVPSC*, Constraint**> setupVPSC();
+    void destroyVPSC(IncVPSC *vpsc, Constraint **lcs);
+    Dim k;
+	unsigned n; // number of actual vars
+    unsigned n_dummy; // number of dummy vars
 	double** A; // Graph laplacian matrix
     double* place;
 	Variable** vs;
-	unsigned m; /* total number of constraints for next iteration */
-	Constraint** cs;
+    Constraints* gcs; /* global constraints - persist throughout all
+                                iterations */
+    Rectangle** rs;
+    bool nonOverlapConstraints;
     double tolerance;
     unsigned max_iterations;
 	double* g; /* gradient */
 	double* d;
 	double* old_place;
-    IncVPSC* vpsc;
 };
 
 #endif /* _GRADIENT_PROJECTION_H */
