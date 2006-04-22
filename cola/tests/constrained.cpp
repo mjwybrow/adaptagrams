@@ -63,7 +63,7 @@ int main() {
 	constrained_majorization_layout(g,position,weightmap,
 			side_length(width),&acsx,NULL);
 
-	ofstream f("blah.svg");
+	ofstream f("constrained.svg");
 	f.setf(ios::fixed);
 	int r=5;
 	graph_traits<Graph>::vertex_iterator vi, vi_end;
