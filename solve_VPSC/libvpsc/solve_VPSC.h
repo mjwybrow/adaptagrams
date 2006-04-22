@@ -50,6 +50,6 @@ public:
 private:
 	typedef std::vector<Constraint*> ConstraintList;
 	ConstraintList inactive;
-	double mostViolated(ConstraintList &l,Constraint* &v);
+	Constraint* mostViolated(ConstraintList &l);
 };
 #endif // SEEN_REMOVEOVERLAP_SOLVE_VPSC_H

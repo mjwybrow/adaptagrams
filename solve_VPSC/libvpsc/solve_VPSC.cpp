@@ -177,7 +177,7 @@ void IncVPSC::satisfy() {
 	splitBlocks();
 	long splitCtr = 0;
 	Constraint* v = NULL;
-	while(mostViolated(inactive,v)<-0.0000001||v->equality) {
+	while((v=mostViolated(inactive))) {
 		assert(!v->active);
 		Block *lb = v->left->block, *rb = v->right->block;
 		if(lb != rb) {
@@ -265,8 +265,9 @@ void IncVPSC::splitBlocks() {
  * Scan constraint list for the most violated constraint, or the first equality
  * constraint
  */
-double IncVPSC::mostViolated(ConstraintList &l, Constraint* &v) {
+Constraint* IncVPSC::mostViolated(ConstraintList &l) {
 	double minSlack = DBL_MAX;
+	Constraint* v=NULL;
 #ifdef RECTANGLE_OVERLAP_LOGGING
 	ofstream f(LOGFILE,ios::app);
 	f<<"Looking for most violated..."<<endl;
@@ -294,7 +295,7 @@ double IncVPSC::mostViolated(ConstraintList &l, Constraint* &v) {
 #ifdef RECTANGLE_OVERLAP_LOGGING
 	f<<"  most violated is: "<<*v<<endl;
 #endif
-	return minSlack;
+	return v;
 }
 
 #include <map>
