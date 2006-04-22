@@ -177,7 +177,7 @@ void IncVPSC::satisfy() {
 	splitBlocks();
 	long splitCtr = 0;
 	Constraint* v = NULL;
-	while((v=mostViolated(inactive))) {
+	while((v=mostViolated(inactive))&&(v->equality || v->slack()<-0.000001)) {
 		assert(!v->active);
 		Block *lb = v->left->block, *rb = v->right->block;
 		if(lb != rb) {
