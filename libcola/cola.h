@@ -105,8 +105,9 @@ namespace cola {
             }
         }
 
-        void setupConstraints(PositionMap dim, 
-                AlignmentConstraints* acsx, AlignmentConstraints* acsy);
+        void setupConstraints(
+                AlignmentConstraints* acsx, AlignmentConstraints* acsy,
+                bool avoidOverlaps, PositionMap* dim = NULL);
 
         ~constrained_majorization_layout_impl() {
             if(boundingBoxes) {
@@ -165,13 +166,12 @@ bool constrained_majorization_layout(
 	Done done,
     bool avoidOverlaps,
     double** coords,
-    PositionMap dim,
+    PositionMap* dim,
     AlignmentConstraints* acsx,
     AlignmentConstraints* acsy) {
 	cola::constrained_majorization_layout_impl<PositionMap,detail::graph::edge_or_side<EdgeOrSideLength, T>,Done> 
 		alg(g,position,weight,edge_or_side_length,done,coords);
-    alg.avoidOverlaps=avoidOverlaps;
-    alg.setupConstraints(dim,acsx,acsy);
+    alg.setupConstraints(acsx,acsy,avoidOverlaps,dim);
 	return alg.run();
 }
 template <typename PositionMap, typename T, bool EdgeOrSideLength >
@@ -181,6 +181,20 @@ bool constrained_majorization_layout(
 	WeightMap weight,
 	detail::graph::edge_or_side<EdgeOrSideLength, T> edge_or_side_length) {
 	return constrained_majorization_layout(g,position,weight,edge_or_side_length,cola::layout_tolerance<double>());
+}
+template <typename PositionMap, typename T, bool EdgeOrSideLength >
+bool constrained_majorization_layout(
+	const Graph& g,
+	PositionMap position,
+	WeightMap weight,
+	detail::graph::edge_or_side<EdgeOrSideLength, T> edge_or_side_length,
+    AlignmentConstraints* acsx,
+    AlignmentConstraints* acsy) {
+	return constrained_majorization_layout(
+            g, position, weight, edge_or_side_length,
+            cola::layout_tolerance<double>(),
+            false, (double**)NULL, (PositionMap*)NULL,
+            acsx, acsy);
 }
 #include "cola.cpp"
 #endif				// STRESSMAJORIZATION_H

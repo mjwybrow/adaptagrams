@@ -105,14 +105,19 @@ bool constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
 }
 template <typename PositionMap, typename EdgeOrSideLength, typename Done >
 void constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
-::setupConstraints(PositionMap dim, 
-        AlignmentConstraints* acsx, AlignmentConstraints* acsy) {
+::setupConstraints(
+        AlignmentConstraints* acsx, AlignmentConstraints* acsy,
+        bool avoidOverlaps, PositionMap* dim) {
     constrainedLayout = true;
-    boundingBoxes = new Rectangle*[n]; 
-    for(unsigned i = 0; i < n; i++) {
-        double x=position[i].x, y=position[i].y, 
-               w=dim[i].x/2.0, h=dim[i].y/2.0;
-        boundingBoxes[i] = new Rectangle(x-w,x+w,y-h,y+h);
+    this->avoidOverlaps = avoidOverlaps;
+    if(avoidOverlaps) {
+        assert(dim!=NULL);
+        boundingBoxes = new Rectangle*[n]; 
+        for(unsigned i = 0; i < n; i++) {
+            double x=position[i].x, y=position[i].y, 
+                w=(*dim)[i].x/2.0, h=(*dim)[i].y/2.0;
+            boundingBoxes[i] = new Rectangle(x-w,x+w,y-h,y+h);
+        }
     }
     Dim x = HORIZONTAL, y = VERTICAL;
 	gp[x]=new GradientProjection(
