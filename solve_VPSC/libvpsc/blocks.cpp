@@ -39,7 +39,7 @@ Blocks::Blocks(const int n, Variable *vs[]) : vs(vs),nvs(n) {
 Blocks::~Blocks(void)
 {
 	blockTimeCtr=0;
-	for(set<Block*>::iterator i=begin();i!=end();i++) {
+	for(set<Block*>::iterator i=begin();i!=end();++i) {
 		delete *i;
 	}
 	clear();
@@ -66,7 +66,7 @@ list<Variable*> *Blocks::totalOrder() {
 void Blocks::dfsVisit(Variable *v, list<Variable*> *order) {
 	v->visited=true;
 	vector<Constraint*>::iterator it=v->out.begin();
-	for(;it!=v->out.end();it++) {
+	for(;it!=v->out.end();++it) {
 		Constraint *c=*it;
 		if(!c->right->visited) {
 			dfsVisit(c->right, order);
@@ -150,7 +150,7 @@ void Blocks::removeBlock(Block *doomed) {
 }
 void Blocks::cleanup() {
 	vector<Block*> bcopy(begin(),end());
-	for(vector<Block*>::iterator i=bcopy.begin();i!=bcopy.end();i++) {
+	for(vector<Block*>::iterator i=bcopy.begin();i!=bcopy.end();++i) {
 		Block *b=*i;
 		if(b->deleted) {
 			erase(b);
@@ -188,7 +188,7 @@ void Blocks::split(Block *b, Block *&l, Block *&r, Constraint *c) {
  */
 double Blocks::cost() {
 	double c = 0;
-	for(set<Block*>::iterator i=begin();i!=end();i++) {
+	for(set<Block*>::iterator i=begin();i!=end();++i) {
 		c += (*i)->cost();
 	}
 	return c;

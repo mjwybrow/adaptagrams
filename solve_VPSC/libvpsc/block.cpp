@@ -47,7 +47,7 @@ Block::Block(Variable *v) {
 
 double Block::desiredWeightedPosition() {
 	double wp = 0;
-	for (vector<Variable*>::iterator v=vars->begin();v!=vars->end();v++) {
+	for (vector<Variable*>::iterator v=vars->begin();v!=vars->end();++v) {
 		wp += ((*v)->desiredPosition - (*v)->offset) * (*v)->weight;
 	}
 	return wp;
@@ -67,10 +67,10 @@ void Block::setUpOutConstraints() {
 void Block::setUpConstraintHeap(PairingHeap<Constraint*>* &h,bool in) {
 	delete h;
 	h = new PairingHeap<Constraint*>(&compareConstraints);
-	for (vector<Variable*>::iterator i=vars->begin();i!=vars->end();i++) {
+	for (vector<Variable*>::iterator i=vars->begin();i!=vars->end();++i) {
 		Variable *v=*i;
 		vector<Constraint*> *cs=in?&(v->in):&(v->out);
-		for (vector<Constraint*>::iterator j=cs->begin();j!=cs->end();j++) {
+		for (Cit j=cs->begin();j!=cs->end();++j) {
 			Constraint *c=*j;
 			c->timeStamp=blockTimeCtr;
 			if (c->left->block != this && in || c->right->block != this && !in) {
@@ -112,7 +112,7 @@ void Block::merge(Block *b, Constraint *c, double dist) {
 	wposn+=b->wposn-dist*b->weight;
 	weight+=b->weight;
 	posn=wposn/weight;
-	for(vector<Variable*>::iterator i=b->vars->begin();i!=b->vars->end();i++) {
+	for(vector<Variable*>::iterator i=b->vars->begin();i!=b->vars->end();++i) {
 		Variable *v=*i;
 		v->block=this;
 		v->offset+=dist;
@@ -176,7 +176,7 @@ Constraint *Block::findMinInConstraint() {
 			break;
 		}
 	}
-	for(vector<Constraint*>::iterator i=outOfDate.begin();i!=outOfDate.end();i++) {
+	for(Cit i=outOfDate.begin();i!=outOfDate.end();++i) {
 		v=*i;
 		v->timeStamp=blockTimeCtr;
 		in->insert(v);
@@ -223,18 +223,18 @@ inline bool Block::canFollowRight(Constraint *c, Variable *last) {
 // in min_lm
 double Block::compute_dfdv(Variable *v, Variable *u, Constraint *&min_lm) {
 	double dfdv=v->weight*(v->position() - v->desiredPosition);
-	for(vector<Constraint*>::iterator it=v->out.begin();it!=v->out.end();it++) {
+	for(Cit it=v->out.begin();it!=v->out.end();++it) {
 		Constraint *c=*it;
 		if(canFollowRight(c,u)) {
 			dfdv+=c->lm=compute_dfdv(c->right,v,min_lm);
-			if(min_lm==NULL||c->lm<min_lm->lm) min_lm=c;
+			if(!c->equality&&(min_lm==NULL||c->lm<min_lm->lm)) min_lm=c;
 		}
 	}
-	for(vector<Constraint*>::iterator it=v->in.begin();it!=v->in.end();it++) {
+	for(Cit it=v->in.begin();it!=v->in.end();++it) {
 		Constraint *c=*it;
 		if(canFollowLeft(c,u)) {
 			dfdv-=c->lm=-compute_dfdv(c->left,v,min_lm);
-			if(min_lm==NULL||c->lm<min_lm->lm) min_lm=c;
+			if(!c->equality&&(min_lm==NULL||c->lm<min_lm->lm)) min_lm=c;
 		}
 	}
 	return dfdv;
@@ -253,18 +253,20 @@ double Block::compute_dfdv(Variable *v, Variable *u, Constraint *&min_lm) {
 // Then, the search for the m with minimum lm occurs as we return from
 // the recursion (checking only constraints traversed left-to-right 
 // in order to avoid creating any new violations).
+// We also do not consider equality constraints as potential split points
 Block::Pair Block::compute_dfdv_between(Variable* r, Variable* v, Variable* u, 
 		Direction dir = NONE, bool changedDirection = false) {
 	double dfdv=v->weight*(v->position() - v->desiredPosition);
 	Constraint *m=NULL;
-	for(Cit it(v->in.begin());it!=v->in.end();it++) {
+	for(Cit it(v->in.begin());it!=v->in.end();++it) {
 		Constraint *c=*it;
 		if(canFollowLeft(c,u)) {
 			if(dir==RIGHT) { 
 				changedDirection = true; 
 			}
 			if(c->left==r) {
-			       	r=NULL; m=c; 
+			       	r=NULL;
+			        if(!c->equality) m=c; 
 			}
 			Pair p=compute_dfdv_between(r,c->left,v,
 					LEFT,changedDirection);
@@ -273,20 +275,21 @@ Block::Pair Block::compute_dfdv_between(Variable* r, Variable* v, Variable* u,
 				m = p.second;
 		}
 	}
-	for(Cit it(v->out.begin());it!=v->out.end();it++) {
+	for(Cit it(v->out.begin());it!=v->out.end();++it) {
 		Constraint *c=*it;
 		if(canFollowRight(c,u)) {
 			if(dir==LEFT) { 
 				changedDirection = true; 
 			}
 			if(c->right==r) {
-			       	r=NULL; m=c; 
+			       	r=NULL; 
+			        if(!c->equality) m=c; 
 			}
 			Pair p=compute_dfdv_between(r,c->right,v,
 					RIGHT,changedDirection);
 			dfdv += c->lm = p.first;
 			if(r && p.second) 
-				m = changedDirection && c->lm < p.second->lm 
+				m = changedDirection && !c->equality && c->lm < p.second->lm 
 					? c 
 					: p.second;
 		}
@@ -298,14 +301,14 @@ Block::Pair Block::compute_dfdv_between(Variable* r, Variable* v, Variable* u,
 // traversing active constraint tree starting from v,
 // not back tracking over u
 void Block::reset_active_lm(Variable *v, Variable *u) {
-	for(vector<Constraint*>::iterator it=v->out.begin();it!=v->out.end();it++) {
+	for(Cit it=v->out.begin();it!=v->out.end();++it) {
 		Constraint *c=*it;
 		if(canFollowRight(c,u)) {
 			c->lm=0;
 			reset_active_lm(c->right,v);
 		}
 	}
-	for(vector<Constraint*>::iterator it=v->in.begin();it!=v->in.end();it++) {
+	for(Cit it=v->in.begin();it!=v->in.end();++it) {
 		Constraint *c=*it;
 		if(canFollowLeft(c,u)) {
 			c->lm=0;
@@ -334,11 +337,11 @@ Constraint *Block::findMinLMBetween(Variable* lv, Variable* rv) {
 // visited.  Starts from variable v and does not backtrack over variable u.
 void Block::populateSplitBlock(Block *b, Variable *v, Variable *u) {
 	b->addVariable(v);
-	for (vector<Constraint*>::iterator c=v->in.begin();c!=v->in.end();c++) {
+	for (Cit c=v->in.begin();c!=v->in.end();++c) {
 		if (canFollowLeft(*c,u))
 			populateSplitBlock(b, (*c)->left, v);
 	}
-	for (vector<Constraint*>::iterator c=v->out.begin();c!=v->out.end();c++) {
+	for (Cit c=v->out.begin();c!=v->out.end();++c) {
 		if (canFollowRight(*c,u)) 
 			populateSplitBlock(b, (*c)->right, v);
 	}
@@ -381,7 +384,7 @@ void Block::split(Block* &l, Block* &r, Constraint* c) {
  */
 double Block::cost() {
 	double c = 0;
-	for (vector<Variable*>::iterator v=vars->begin();v!=vars->end();v++) {
+	for (vector<Variable*>::iterator v=vars->begin();v!=vars->end();++v) {
 		double diff = (*v)->position() - (*v)->desiredPosition;
 		c += (*v)->weight * diff * diff;
 	}
@@ -390,7 +393,7 @@ double Block::cost() {
 ostream& operator <<(ostream &os, const Block &b)
 {
 	os<<"Block:";
-	for(vector<Variable*>::iterator v=b.vars->begin();v!=b.vars->end();v++) {
+	for(vector<Variable*>::iterator v=b.vars->begin();v!=b.vars->end();++v) {
 		os<<" "<<**v;
 	}
 	if(b.deleted) {

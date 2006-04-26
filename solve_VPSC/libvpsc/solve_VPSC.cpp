@@ -31,7 +31,7 @@ using std::set;
 IncVPSC::IncVPSC(const unsigned n, Variable *vs[], const unsigned m, Constraint *cs[]) 
 	: VPSC(n,vs,m,cs) {
 	inactive.assign(cs,cs+m);
-	for(ConstraintList::iterator i=inactive.begin();i!=inactive.end();i++) {
+	for(ConstraintList::iterator i=inactive.begin();i!=inactive.end();++i) {
 		(*i)->active=false;
 	}
 }
@@ -50,7 +50,7 @@ VPSC::~VPSC() {
 void VPSC::printBlocks() {
 #ifdef RECTANGLE_OVERLAP_LOGGING
 	ofstream f(LOGFILE,ios::app);
-	for(set<Block*>::iterator i=bs->begin();i!=bs->end();i++) {
+	for(set<Block*>::iterator i=bs->begin();i!=bs->end();++i) {
 		Block *b=*i;
 		f<<"  "<<*b<<endl;
 	}
@@ -71,7 +71,7 @@ void VPSC::printBlocks() {
 */
 void VPSC::satisfy() {
 	list<Variable*> *vs=bs->totalOrder();
-	for(list<Variable*>::iterator i=vs->begin();i!=vs->end();i++) {
+	for(list<Variable*>::iterator i=vs->begin();i!=vs->end();++i) {
 		Variable *v=*i;
 		if(!v->block->deleted) {
 			bs->mergeLeft(v->block);
@@ -99,12 +99,12 @@ void VPSC::refine() {
 	while(!solved&&maxtries>=0) {
 		solved=true;
 		maxtries--;
-		for(set<Block*>::const_iterator i=bs->begin();i!=bs->end();i++) {
+		for(set<Block*>::const_iterator i=bs->begin();i!=bs->end();++i) {
 			Block *b=*i;
 			b->setUpInConstraints();
 			b->setUpOutConstraints();
 		}
-		for(set<Block*>::const_iterator i=bs->begin();i!=bs->end();i++) {
+		for(set<Block*>::const_iterator i=bs->begin();i!=bs->end();++i) {
 			Block *b=*i;
 			Constraint *c=b->findMinLM();
 			if(c!=NULL && c->lm<0) {
@@ -215,7 +215,7 @@ void IncVPSC::moveBlocks() {
 	ofstream f(LOGFILE,ios::app);
 	f<<"moveBlocks()..."<<endl;
 #endif
-	for(set<Block*>::const_iterator i(bs->begin());i!=bs->end();i++) {
+	for(set<Block*>::const_iterator i(bs->begin());i!=bs->end();++i) {
 		Block *b = *i;
 		b->wposn = b->desiredWeightedPosition();
 		b->posn = b->wposn / b->weight;
@@ -231,10 +231,11 @@ void IncVPSC::splitBlocks() {
 	moveBlocks();
 	splitCnt=0;
 	// Split each block if necessary on min LM
-	for(set<Block*>::const_iterator i(bs->begin());i!=bs->end();i++) {
+	for(set<Block*>::const_iterator i(bs->begin());i!=bs->end();++i) {
 		Block* b = *i;
 		Constraint* v=b->findMinLM();
 		if(v!=NULL && v->lm < -0.0000001) {
+			assert(!v->equality);
 #ifdef RECTANGLE_OVERLAP_LOGGING
 			f<<"    found split point: "<<*v<<" lm="<<v->lm<<endl;
 #endif
@@ -274,7 +275,7 @@ Constraint* IncVPSC::mostViolated(ConstraintList &l) {
 #endif
 	ConstraintList::iterator end = l.end();
 	ConstraintList::iterator deletePoint = end;
-	for(ConstraintList::iterator i=l.begin();i!=end;i++) {
+	for(ConstraintList::iterator i=l.begin();i!=end;++i) {
 		Constraint *c=*i;
 		double slack = c->slack();
 		if(c->equality || slack < minSlack) {
@@ -315,12 +316,12 @@ bool VPSC::constraintGraphIsCyclic(const unsigned n, Variable *vs[]) {
 		varmap[vs[i]]=u;
 	}
 	for(unsigned i=0;i<n;i++) {
-		for(vector<Constraint*>::iterator c=vs[i]->in.begin();c!=vs[i]->in.end();c++) {
+		for(vector<Constraint*>::iterator c=vs[i]->in.begin();c!=vs[i]->in.end();++c) {
 			Variable *l=(*c)->left;
 			varmap[vs[i]]->in.insert(varmap[l]);
 		}
 
-		for(vector<Constraint*>::iterator c=vs[i]->out.begin();c!=vs[i]->out.end();c++) {
+		for(vector<Constraint*>::iterator c=vs[i]->out.begin();c!=vs[i]->out.end();++c) {
 			Variable *r=(*c)->right;
 			varmap[vs[i]]->out.insert(varmap[r]);
 		}
@@ -328,7 +329,7 @@ bool VPSC::constraintGraphIsCyclic(const unsigned n, Variable *vs[]) {
 	while(graph.size()>0) {
 		node *u=NULL;
 		vector<node*>::iterator i=graph.begin();
-		for(;i!=graph.end();i++) {
+		for(;i!=graph.end();++i) {
 			u=*i;
 			if(u->in.size()==0) {
 				break;
@@ -339,14 +340,14 @@ bool VPSC::constraintGraphIsCyclic(const unsigned n, Variable *vs[]) {
 			return true;
 		} else {
 			graph.erase(i);
-			for(set<node*>::iterator j=u->out.begin();j!=u->out.end();j++) {
+			for(set<node*>::iterator j=u->out.begin();j!=u->out.end();++j) {
 				node *v=*j;
 				v->in.erase(u);
 			}
 			delete u;
 		}
 	}
-	for(unsigned i=0; i<graph.size(); i++) {
+	for(unsigned i=0; i<graph.size(); ++i) {
 		delete graph[i];
 	}
 	return false;
@@ -356,13 +357,13 @@ bool VPSC::constraintGraphIsCyclic(const unsigned n, Variable *vs[]) {
 bool VPSC::blockGraphIsCyclic() {
 	map<Block*, node*> bmap;
 	vector<node*> graph;
-	for(set<Block*>::const_iterator i=bs->begin();i!=bs->end();i++) {
+	for(set<Block*>::const_iterator i=bs->begin();i!=bs->end();++i) {
 		Block *b=*i;
 		node *u=new node;
 		graph.push_back(u);
 		bmap[b]=u;
 	}
-	for(set<Block*>::const_iterator i=bs->begin();i!=bs->end();i++) {
+	for(set<Block*>::const_iterator i=bs->begin();i!=bs->end();++i) {
 		Block *b=*i;
 		b->setUpInConstraints();
 		Constraint *c=b->findMinInConstraint();
@@ -385,7 +386,7 @@ bool VPSC::blockGraphIsCyclic() {
 	while(graph.size()>0) {
 		node *u=NULL;
 		vector<node*>::iterator i=graph.begin();
-		for(;i!=graph.end();i++) {
+		for(;i!=graph.end();++i) {
 			u=*i;
 			if(u->in.size()==0) {
 				break;
@@ -396,7 +397,7 @@ bool VPSC::blockGraphIsCyclic() {
 			return true;
 		} else {
 			graph.erase(i);
-			for(set<node*>::iterator j=u->out.begin();j!=u->out.end();j++) {
+			for(set<node*>::iterator j=u->out.begin();j!=u->out.end();++j) {
 				node *v=*j;
 				v->in.erase(u);
 			}

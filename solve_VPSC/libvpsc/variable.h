@@ -35,6 +35,7 @@ public:
 		, desiredPosition(desiredPos)
 		, weight(weight)
 		, offset(0)
+		, block(NULL)
 		, visited(false)
 	{
 	}

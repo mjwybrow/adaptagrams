@@ -59,11 +59,11 @@ struct Node {
 	void setNeighbours(NodeSet *left, NodeSet *right) {
 		leftNeighbours=left;
 		rightNeighbours=right;
-		for(NodeSet::iterator i=left->begin();i!=left->end();i++) {
+		for(NodeSet::iterator i=left->begin();i!=left->end();++i) {
 			Node *v=*(i);
 			v->addRightNeighbour(this);
 		}
-		for(NodeSet::iterator i=right->begin();i!=right->end();i++) {
+		for(NodeSet::iterator i=right->begin();i!=right->end();++i) {
 			Node *v=*(i);
 			v->addLeftNeighbour(this);
 		}
@@ -117,7 +117,7 @@ NodeSet* getLeftNeighbours(NodeSet &scanline,Node *v) {
 NodeSet* getRightNeighbours(NodeSet &scanline,Node *v) {
 	NodeSet *rightv = new NodeSet;
 	NodeSet::iterator i=scanline.find(v);
-	for(i++;i!=scanline.end(); i++) {
+	for(++i;i!=scanline.end(); ++i) {
 		Node *u=*(i);
 		if(u->r->overlapX(v->r)<=0) {
 			rightv->insert(u);
