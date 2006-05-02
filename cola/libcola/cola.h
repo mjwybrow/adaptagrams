@@ -193,8 +193,6 @@ bool constrained_majorization_layout(
 }
 // additional args over the above:
 //   avoidOverlaps - if true, generate constraints to prevent rectangular node boundaries from overlapping 
-//   coords - coordinates array of size n, to be used in layout.  Necessary if you want examine up-to-date coords
-//            in your Done functor.
 //   dim - dimensions of node boundaries to be used in non-overlap constraints
 template <typename PositionMap, typename T, bool EdgeOrSideLength, typename Done >
 bool constrained_majorization_layout(
