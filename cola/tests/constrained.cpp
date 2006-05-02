@@ -56,9 +56,9 @@ int main() {
 	AlignmentConstraints acsx;
 	AlignmentConstraint ac(1);
 	acsx.push_back(&ac);
-	Offset o1(0,0), o2(3,0);
-	ac.offsets.push_back(&o1);
-	ac.offsets.push_back(&o2);
+	Offset *o1 = new Offset(0,0), *o2 = new Offset(3,0);
+	ac.offsets.push_back(o1);
+	ac.offsets.push_back(o2);
 
 	constrained_majorization_layout(g,position,weightmap,
 			side_length(width),&acsx,NULL);

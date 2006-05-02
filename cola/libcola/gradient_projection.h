@@ -15,15 +15,23 @@ struct Offset {
     double offset;
 };
 typedef vector<Offset*> OffsetList;
-struct AlignmentConstraint {
-    AlignmentConstraint(double pos) : position(pos) {}
+class AlignmentConstraint {
+    friend class GradientProjection;
+public:
+    AlignmentConstraint(double pos) : position(pos), variable(NULL) {}
     ~AlignmentConstraint() {
         for(OffsetList::iterator i=offsets.begin();i!=offsets.end();i++) {
-            //delete *i;
+            delete *i;
         }
     }
+    void updatePosition() {
+        position = variable->position();
+    }
     OffsetList offsets;
+    void* guide;
     double position;
+private:
+    Variable* variable;
 };
 typedef vector<AlignmentConstraint*> AlignmentConstraints;
 
@@ -45,7 +53,7 @@ public:
             : k(k), n(n), n_dummy(0), A(A), place(x), 
               vs(NULL), gcs(NULL), rs(rs),
               nonOverlapConstraints(nonOverlapConstraints),
-              tolerance(tol), max_iterations(max_iterations),
+              tolerance(tol), acs(acs), max_iterations(max_iterations),
               g(new double[n]), d(new double[n]), old_place(new double[n])
     {
         vector<Variable*> vars;
@@ -60,14 +68,13 @@ public:
             for(AlignmentConstraints::iterator iac=acs->begin();
                     iac!=acs->end();iac++,i++) {
                 AlignmentConstraint* ac=*iac;
-                Variable *v=new Variable(i,ac->position,0.0001);
+                Variable *v=ac->variable=new Variable(i,ac->position,0.0001);
                 vars.push_back(v);
                 for(OffsetList::iterator io=ac->offsets.begin();
                         io!=ac->offsets.end();
                         io++) {
                     Offset* o = *io;
                     cerr << " create constraint " << v->id << "=" << o->v << endl;
-                    assert(vars[o->v]->id==o->v);
                     gcs->push_back(new Constraint(v,vars[o->v],o->offset,true));
                 }
             }
@@ -107,6 +114,7 @@ private:
     Rectangle** rs;
     bool nonOverlapConstraints;
     double tolerance;
+    AlignmentConstraints* acs;
     unsigned max_iterations;
 	double* g; /* gradient */
 	double* d;

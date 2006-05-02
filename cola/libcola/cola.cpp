@@ -9,7 +9,9 @@ void constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
     bool Verbose = false;
     double b[n];
     double L_ij,dist_ij,degree;
-    while(!done(compute_stress(Dij),g)) {
+    double* coords[2]={X,Y};
+    GradientProjection* gp[2]={gpX,gpY};
+    do {
         /* Axis-by-axis optimization: */
         for (unsigned k = 0; k < 2; k++) {
             /* compute the vector b */
@@ -37,7 +39,7 @@ void constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
                 conjugate_gradient(lap2, coords[k], b, n, tol, n, true);
             }
         }
-    }
+    } while(!done(compute_stress(Dij),g,X,Y));
     if (Verbose) fprintf(stderr, "\nfinal e = %f\n", compute_stress(Dij));
 }	  
 template <typename PositionMap, typename EdgeOrSideLength, typename Done >
@@ -69,13 +71,8 @@ bool constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
     //
     double** Dij = new double*[n];
     for(unsigned i = 0; i<n; i++) {
-        double xoffset=0, yoffset=0;
-        if(boundingBoxes) {
-            xoffset=boundingBoxes[i]->width()/2.0;
-            yoffset=boundingBoxes[i]->height()/2.0;
-        }
-        coords[0][i]=position[i].x+xoffset;
-        coords[1][i]=position[i].y+yoffset;
+        X[i]=position[i].x;
+        Y[i]=position[i].y;
     }
     for(unsigned i = 0; i<n; i++) {
         weight_type degree = weight_type(0);
@@ -91,16 +88,12 @@ bool constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
     }
     majlayout(Dij);	
     for(unsigned i = 0; i<n; i++) {
-        position[i].x=coords[0][i];
-        position[i].y=coords[1][i];
+        position[i].x=X[i];
+        position[i].y=Y[i];
         delete [] lap2[i];
         delete [] Dij[i];
     }
-    delete [] lap2;
     delete [] Dij;
-    delete [] coords[0];
-    delete [] coords[1];
-    delete [] coords;
     return true;
 }
 template <typename PositionMap, typename EdgeOrSideLength, typename Done >
@@ -110,8 +103,7 @@ void constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
         bool avoidOverlaps, PositionMap* dim) {
     constrainedLayout = true;
     this->avoidOverlaps = avoidOverlaps;
-    if(avoidOverlaps) {
-        assert(dim!=NULL);
+    if(dim) {
         boundingBoxes = new Rectangle*[n]; 
         for(unsigned i = 0; i < n; i++) {
             double x=position[i].x, y=position[i].y, 
@@ -119,11 +111,10 @@ void constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
             boundingBoxes[i] = new Rectangle(x-w,x+w,y-h,y+h);
         }
     }
-    Dim x = HORIZONTAL, y = VERTICAL;
-	gp[x]=new GradientProjection(
-            x,n,lap2,coords[x],tol,100,acsx,avoidOverlaps,boundingBoxes);
-	gp[y]=new GradientProjection(
-            y,n,lap2,coords[y],tol,100,acsy,avoidOverlaps,boundingBoxes);
+	gpX=new GradientProjection(
+            HORIZONTAL,n,lap2,X,tol,100,acsx,avoidOverlaps,boundingBoxes);
+	gpY=new GradientProjection(
+            VERTICAL,n,lap2,Y,tol,100,acsy,avoidOverlaps,boundingBoxes);
 }
 } // namespace cola
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4
