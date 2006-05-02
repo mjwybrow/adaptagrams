@@ -136,12 +136,17 @@ std::pair<IncVPSC*, Constraint**> GradientProjection::setupVPSC() {
     for(unsigned i = 0 ; i<m; i++) {
         cs[i] = lcs[i];
     }
-    if(gcs) for(Constraints::iterator ci = gcs->begin();ci!=gcs->end();ci++) {
+    if(gcs) for(Constraints::iterator ci = gcs->begin();ci!=gcs->end();++ci) {
         cs[m++] = *ci;
     }
     return std::make_pair(new IncVPSC(n+n_dummy,vs,m,cs), lcs);
 }
 void GradientProjection::destroyVPSC(IncVPSC *vpsc, Constraint **lcs) {
+    if(acs) {
+        for(AlignmentConstraints::iterator ac=acs->begin(); ac!=acs->end();++ac) {
+            (*ac)->updatePosition();
+        }
+    }
     Constraint** cs = vpsc->getConstraints();
     delete vpsc;
     delete [] cs;
