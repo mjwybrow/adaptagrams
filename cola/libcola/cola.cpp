@@ -16,21 +16,20 @@ void constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
         for (unsigned k = 0; k < 2; k++) {
             /* compute the vector b */
             /* multiply on-the-fly with distance-based laplacian */
-            /* (for saving storage we don't construct this Laplacian explicitly) */
             for (unsigned i = 0; i < n; i++) {
-            degree = 0;
-            b[i] = 0;
-            for (unsigned j = 0; j < n; j++) {
-                if (j == i) continue;
-                dist_ij = euclidean_distance(i, j);
-                if (dist_ij > 1e-30) {	/* skip zero distances */
-                /* calculate L_ij := w_{ij}*d_{ij}/dist_{ij} */
-                L_ij = 1.0 / (dist_ij * Dij[i][j]);
-                degree -= L_ij;
-                b[i] += L_ij * coords[k][j];
+                degree = 0;
+                b[i] = 0;
+                for (unsigned j = 0; j < n; j++) {
+                    if (j == i) continue;
+                    dist_ij = euclidean_distance(i, j);
+                    if (dist_ij > 1e-30) {	/* skip zero distances */
+                        /* calculate L_ij := w_{ij}*d_{ij}/dist_{ij} */
+                        L_ij = 1.0 / (dist_ij * Dij[i][j]);
+                        degree -= L_ij;
+                        b[i] += L_ij * coords[k][j];
+                    }
                 }
-            }
-            b[i] += degree * coords[k][i];
+                b[i] += degree * coords[k][i];
             }
             if(constrainedLayout) {
                 gp[k]->solve(b);
