@@ -3,6 +3,55 @@
 
 namespace cola {
 
+inline double dummy_var_euclidean_dist(GradientProjection* gp[2], unsigned i) {
+    double dx = gp[0]->dummy_vars[i]->place_r - gp[0]->dummy_vars[i]->place_l,
+        dy = gp[1]->dummy_vars[i]->place_r - gp[1]->dummy_vars[i]->place_l;
+    return sqrt(dx*dx + dy*dy);
+}
+
+template <typename PositionMap, typename EdgeOrSideLength, typename Done >
+void 
+constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
+::setupDummyVars(GradientProjection* gp[2],double* coords[2]) {
+    for(unsigned k=0;k<2;k++) {
+        gp[k]->dummy_vars.clear();
+        if(clusters) {
+            for(Clusters::iterator cit=clusters->begin();
+                    cit!=clusters->end(); ++cit) {
+                Cluster *c = *cit;
+                DummyVarPair* p = new DummyVarPair;
+                gp[k]->dummy_vars.push_back(p);
+                double minPos=DBL_MAX, maxPos=-DBL_MAX;
+                for(Cluster::iterator vit=c->begin();
+                        vit!=c->end(); ++vit) {
+                    double pos = coords[k][*vit];
+                    minPos=min(pos,minPos);
+                    maxPos=max(pos,maxPos);
+                    p->leftof.push_back(make_pair(*vit,0)); 
+                    p->rightof.push_back(make_pair(*vit,0)); 
+                }
+                p->place_l = minPos;
+                p->place_r = maxPos;
+                p->weight = edge_length;
+                p->lap2 = 1.0/(p->weight*p->weight);
+            }
+        }
+    }
+    for(unsigned k=0;k<2;k++) {
+        unsigned n_d = gp[k]->dummy_vars.size();
+        if(n_d > 0) {
+            double d;
+            for(unsigned i=0; i<n_d; i++) {
+                DummyVarPair *p = gp[k]->dummy_vars[i];
+                d = dummy_var_euclidean_dist(gp,i);
+                if(d > 1e-30) {
+                    p->b=p->place_r-p->place_l;
+                    p->b /= d * p->weight;
+                }
+            }
+        }
+    }
+}
 template <typename PositionMap, typename EdgeOrSideLength, typename Done >
 void constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
 ::majlayout(double** Dij) {
@@ -10,6 +59,12 @@ void constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
     double b[n];
     double L_ij,dist_ij,degree;
     double* coords[2]={X,Y};
+    for(unsigned i=0; i<n;i++) {
+        for(unsigned j=0; j<n;j++) {
+            cout << " " << Dij[i][j];
+        }
+        cout << endl;
+    }
     GradientProjection* gp[2]={gpX,gpY};
     do {
         /* Axis-by-axis optimization: */
@@ -30,8 +85,10 @@ void constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
                     }
                 }
                 b[i] += degree * coords[k][i];
+                cout << "b["<< i << "]=" << b[i] << endl;
             }
             if(constrainedLayout) {
+                setupDummyVars(gp,coords);
                 gp[k]->solve(b);
                 if(boundingBoxes) moveBoundingBoxes();
             } else {
@@ -64,7 +121,7 @@ bool constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
 
     if (!johnson_all_pairs_shortest_paths(g, distance, index, weight, weight_type(0)))
         return false;
-    weight_type edge_length = detail::graph::compute_edge_length(g, distance, index,
+    edge_length = detail::graph::compute_edge_length(g, distance, index,
                                      edge_or_side_length);
     // Lij_{i!=j}=1/(Dij^2)
     //
@@ -99,7 +156,8 @@ template <typename PositionMap, typename EdgeOrSideLength, typename Done >
 void constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
 ::setupConstraints(
         AlignmentConstraints* acsx, AlignmentConstraints* acsy,
-        bool avoidOverlaps, PositionMap* dim) {
+        bool avoidOverlaps, PositionMap* dim,
+        Clusters* cs) {
     constrainedLayout = true;
     this->avoidOverlaps = avoidOverlaps;
     if(dim) {
@@ -109,6 +167,9 @@ void constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
                 w=(*dim)[i].x/2.0, h=(*dim)[i].y/2.0;
             boundingBoxes[i] = new Rectangle(x-w,x+w,y-h,y+h);
         }
+    }
+    if(cs) {
+        clusters=cs;
     }
 	gpX=new GradientProjection(
             HORIZONTAL,n,lap2,X,tol,100,acsx,avoidOverlaps,boundingBoxes);

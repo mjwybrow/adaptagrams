@@ -25,6 +25,9 @@ typedef property_map<Graph, edge_weight_t>::type WeightMap;
 typedef graph_traits<Graph>::vertex_descriptor Vertex;
 typedef property_map<Graph, vertex_index_t>::type IndexMap;
 
+typedef vector<unsigned> Cluster;
+typedef vector<Cluster*> Clusters;
+
 namespace cola {
 	// we expect points to have an x and a y member of float type
 	template <typename T>
@@ -88,7 +91,7 @@ namespace cola {
               boundingBoxes(NULL),
               X(new double[n]),
               Y(new double[n]),
-              globalConstraints(NULL) { }
+              clusters(NULL) { }
 
         void moveBoundingBoxes() {
             for(unsigned i=0;i<n;i++) {
@@ -99,7 +102,10 @@ namespace cola {
 
         void setupConstraints(
                 AlignmentConstraints* acsx, AlignmentConstraints* acsy,
-                bool avoidOverlaps, PositionMap* dim = NULL);
+                bool avoidOverlaps, PositionMap* dim = NULL,
+                Clusters* cs = NULL);
+
+        void setupDummyVars(GradientProjection* gp[2], double* coords[2]);
 
         ~constrained_majorization_layout_impl() {
             if(boundingBoxes) {
@@ -138,7 +144,8 @@ namespace cola {
 		Done done;
         Rectangle** boundingBoxes;
         double *X, *Y;
-        Constraints* globalConstraints;
+        Clusters* clusters;
+        double edge_length;
 	};
 }
 // the following overloaded functions provide wrappers to setup for the most common
@@ -189,7 +196,22 @@ bool constrained_majorization_layout(
             g, position, weight, edge_or_side_length,
             cola::layout_tolerance<double>(),
             false, (PositionMap*)NULL,
-            acsx, acsy);
+            acsx, acsy, (Clusters*)NULL);
+}
+// additional args over the above:
+//   clusters - vector of vectors of nodes grouped into clusters
+template <typename PositionMap, typename T, bool EdgeOrSideLength >
+bool constrained_majorization_layout(
+	const Graph& g,
+	PositionMap position,
+	WeightMap weight,
+	detail::graph::edge_or_side<EdgeOrSideLength, T> edge_or_side_length,
+    Clusters* cs) {
+	return constrained_majorization_layout(
+            g, position, weight, edge_or_side_length,
+            cola::layout_tolerance<double>(),
+            false, (PositionMap*)NULL,
+            (AlignmentConstraints*)NULL,(AlignmentConstraints*)NULL,cs);
 }
 // additional args over the above:
 //   avoidOverlaps - if true, generate constraints to prevent rectangular node boundaries from overlapping 
@@ -204,10 +226,11 @@ bool constrained_majorization_layout(
     bool avoidOverlaps,
     PositionMap* dim,
     AlignmentConstraints* acsx,
-    AlignmentConstraints* acsy) {
+    AlignmentConstraints* acsy,
+    Clusters* cs) {
 	cola::constrained_majorization_layout_impl<PositionMap,detail::graph::edge_or_side<EdgeOrSideLength, T>,Done> 
 		alg(g,position,weight,edge_or_side_length,done);
-    alg.setupConstraints(acsx,acsy,avoidOverlaps,dim);
+    alg.setupConstraints(acsx,acsy,avoidOverlaps,dim,cs);
 	return alg.run();
 }
 #include "cola.cpp"
