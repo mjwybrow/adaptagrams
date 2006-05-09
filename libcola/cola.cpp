@@ -3,23 +3,28 @@
 
 namespace cola {
 
-inline double dummy_var_euclidean_dist(GradientProjection* gp[2], unsigned i) {
-    double dx = gp[0]->dummy_vars[i]->place_r - gp[0]->dummy_vars[i]->place_l,
-        dy = gp[1]->dummy_vars[i]->place_r - gp[1]->dummy_vars[i]->place_l;
+/**
+ * Find the euclidean distance between a pair of dummy variables
+ */
+inline double dummy_var_euclidean_dist(GradientProjection* gpx, GradientProjection* gpy, unsigned i) {
+    double dx = gpx->dummy_vars[i]->place_r - gpx->dummy_vars[i]->place_l,
+        dy = gpy->dummy_vars[i]->place_r - gpy->dummy_vars[i]->place_l;
     return sqrt(dx*dx + dy*dy);
 }
 
 template <typename PositionMap, typename EdgeOrSideLength, typename Done >
 void 
 constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
-::setupDummyVars(GradientProjection* gp[2],double* coords[2]) {
+::setupDummyVars() {
+    double* coords[2]={X,Y};
+    GradientProjection* gp[2]={gpX,gpY};
     for(unsigned k=0;k<2;k++) {
-        gp[k]->dummy_vars.clear();
+        gp[k]->clearDummyVars();
         if(clusters) {
             for(Clusters::iterator cit=clusters->begin();
                     cit!=clusters->end(); ++cit) {
                 Cluster *c = *cit;
-                DummyVarPair* p = new DummyVarPair;
+                DummyVarPair* p = new DummyVarPair(edge_length);
                 gp[k]->dummy_vars.push_back(p);
                 double minPos=DBL_MAX, maxPos=-DBL_MAX;
                 for(Cluster::iterator vit=c->begin();
@@ -32,8 +37,6 @@ constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
                 }
                 p->place_l = minPos;
                 p->place_r = maxPos;
-                p->weight = edge_length;
-                p->lap2 = 1.0/(p->weight*p->weight);
             }
         }
     }
@@ -43,10 +46,10 @@ constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
             double d;
             for(unsigned i=0; i<n_d; i++) {
                 DummyVarPair *p = gp[k]->dummy_vars[i];
-                d = dummy_var_euclidean_dist(gp,i);
+                d = dummy_var_euclidean_dist(gpX, gpY, i);
                 if(d > 1e-30) {
                     p->b=p->place_r-p->place_l;
-                    p->b /= d * p->weight;
+                    p->b /= d * p->dist;
                 }
             }
         }
@@ -55,16 +58,9 @@ constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
 template <typename PositionMap, typename EdgeOrSideLength, typename Done >
 void constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
 ::majlayout(double** Dij) {
-    bool Verbose = false;
     double b[n];
     double L_ij,dist_ij,degree;
     double* coords[2]={X,Y};
-    for(unsigned i=0; i<n;i++) {
-        for(unsigned j=0; j<n;j++) {
-            cout << " " << Dij[i][j];
-        }
-        cout << endl;
-    }
     GradientProjection* gp[2]={gpX,gpY};
     do {
         /* Axis-by-axis optimization: */
@@ -85,10 +81,9 @@ void constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
                     }
                 }
                 b[i] += degree * coords[k][i];
-                cout << "b["<< i << "]=" << b[i] << endl;
             }
             if(constrainedLayout) {
-                setupDummyVars(gp,coords);
+                setupDummyVars();
                 gp[k]->solve(b);
                 if(boundingBoxes) moveBoundingBoxes();
             } else {
@@ -96,7 +91,6 @@ void constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
             }
         }
     } while(!done(compute_stress(Dij),g,X,Y));
-    if (Verbose) fprintf(stderr, "\nfinal e = %f\n", compute_stress(Dij));
 }	  
 template <typename PositionMap, typename EdgeOrSideLength, typename Done >
 inline double constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
@@ -107,6 +101,17 @@ inline double constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength
             d = Dij[i][j];
             diff = d - euclidean_distance(i,j);
             sum += diff*diff / (d*d);
+        }
+    }
+    if(constrainedLayout) {
+        unsigned n_d = gpX->dummy_vars.size();
+        if(n_d > 0) {
+            for(unsigned i=0; i<n_d; i++) {
+                DummyVarPair *p = gpX->dummy_vars[i];
+                d = p->dist;
+                diff = d - dummy_var_euclidean_dist(gpX, gpY, i);
+                sum += diff*diff / (d*d);
+            }
         }
     }
     return sum;

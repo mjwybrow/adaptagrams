@@ -49,14 +49,14 @@ namespace cola {
 	class layout_tolerance {
     public:
         T old_stress;
-		layout_tolerance(const T& tolerance = T(0.001), const unsigned maxiterations = 100)
+		layout_tolerance(const T& tolerance = T(0.001), const unsigned maxiterations = 1000)
 			: old_stress((std::numeric_limits<T>::max)()),
               tolerance(tolerance),
               maxiterations(maxiterations),
               iterations(0) { }
 
 		bool operator()(T new_stress, const Graph& g, double* X, double* Y) {
-            //std::cout<<"iteration="<<iterations<<", new_stress="<<new_stress<<std::endl;
+            std::cout<<"iteration="<<iterations<<", new_stress="<<new_stress<<std::endl;
 			if (old_stress == (std::numeric_limits<T>::max)()) {
 				old_stress = new_stress;
           			return false;
@@ -105,7 +105,7 @@ namespace cola {
                 bool avoidOverlaps, PositionMap* dim = NULL,
                 Clusters* cs = NULL);
 
-        void setupDummyVars(GradientProjection* gp[2], double* coords[2]);
+        void setupDummyVars();
 
         ~constrained_majorization_layout_impl() {
             if(boundingBoxes) {
