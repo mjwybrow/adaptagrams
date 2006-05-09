@@ -6,5 +6,5 @@ constrained_SOURCES = constrained.cpp graphlayouttest.cpp
 constrained_LDADD = $(top_srcdir)/libcola/libcola.a /home/dwyer/devel/solve_VPSC/libvpsc/libvpsc.la
 containment_SOURCES = containment.cpp graphlayouttest.cpp
 containment_LDADD = $(top_srcdir)/libcola/libcola.a /home/dwyer/devel/solve_VPSC/libvpsc/libvpsc.la
-TESTS = containment #$(check_PROGRAMS)
+TESTS = $(check_PROGRAMS)
 

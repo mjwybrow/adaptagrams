@@ -25,124 +25,14 @@ using namespace std;
 /*
  * Use gradient-projection to solve an instance of
  * the Variable Placement with Separation Constraints problem.
- */
-unsigned GradientProjection::solve (double * b) {
-	unsigned i,j,counter;
-	if(max_iterations==0) return 0;
-    if(!dummy_vars.empty()) {
-        solve_dummy(b);
-    }
-
-	bool converged=false;
-
-    IncVPSC* vpsc=NULL;
-
-    if(constrained) {
-    // find initial placement with all constraints satisfied
-        vpsc = setupVPSC();
-	    for (i=0;i<n;i++) {
-		    vars[i]->desiredPosition=place[i];
-	    }
-        vpsc->satisfy();
-        for (i=0;i<n;i++) {
-            place[i]=vars[i]->position();
-        }
-    }
-    cout << "X=";
-    for (i=0;i<n;i++) {
-        cout <<" "<<place[i];
-    }
-    cout << endl;
-	
-	for (counter=0; counter<max_iterations&&!converged; counter++) {
-		converged=true;		
-		// find steepest descent direction
-        //  g = 2 ( b - Ax )
-    cout << "g=";
-		for (i=0; i<n; i++) {
-			old_place[i]=place[i];
-			g[i] = 2*b[i];
-			for (j=0; j<n; j++) {
-				g[i] -= 2*A[i][j]*place[j];
-			}
-        cout <<" "<<g[i];
-		}		
-    cout << endl;
-        // compute step size: alpha = ( g' g ) / ( 2 g' A g )
-		double numerator = 0, denominator = 0, r;
-		for (i=0; i<n; i++) {
-			numerator += g[i]*g[i];
-			r=0;
-			for (j=0; j<n; j++) {
-				r += 2*A[i][j]*g[j];
-			}
-			denominator -= r*g[i];
-		}
-		double alpha = numerator/denominator;
-        if(fabs(numerator)+fabs(denominator) < tolerance) {
-            alpha=1;
-        }
-        cout << "numerator=" << numerator << " denominator=" << denominator << " alpha=" << alpha << endl;
-
-        // move to new unconstrained position
-		for (i=0; i<n; i++) {
-			place[i]-=alpha*g[i];
-		}
-        if(constrained) {
-            //project to constraint boundary
-            for (i=0;i<n;i++) {
-                vars[i]->desiredPosition=place[i];
-            }
-            vpsc->satisfy();
-            for (i=0;i<n;i++) {
-                place[i]=vars[i]->position();
-            }
-        }
-        // compute d, the vector from last pnt to projection pnt
-		for (i=0; i<n; i++) {
-			d[i]=place[i]-old_place[i];
-		}	
-		// now compute beta, optimal step size from last pnt to projection pnt
-        //   beta = ( g' d ) / ( 2 d' A d )
-		numerator = 0, denominator = 0;
-		for (i=0; i<n; i++) {
-			numerator += g[i]*d[i];
-			r=0;
-			for (j=0; j<n; j++) {
-				r += 2*A[i][j]*d[j];
-			}
-			denominator += r*d[i];
-		}
-		double beta = numerator/denominator;
-
-		double test=0;
-		for (i=0; i<n; i++) {
-			// beta > 1.0 takes us back outside the feasible region
-			// beta < 0 clearly not useful and may happen due to numerical imp.
-			if(beta>0&&beta<1.0) {
-				place[i]=old_place[i]+beta*d[i];
-			}
-			test+= fabs(place[i]-old_place[i]);
-		}
-		if(test>tolerance) {
-			converged=false;
-		}
-	}
-    if(constrained) destroyVPSC(vpsc);
-	return counter;
-}
-/*
- * Use gradient-projection to solve an instance of
- * the Variable Placement with Separation Constraints problem.
- * Uses messy sparse matrix techniques to handle pairs of dummy
+ * Uses sparse matrix techniques to handle pairs of dummy
  * vars.
  */
-unsigned GradientProjection::solve_dummy (double * b) {
+unsigned GradientProjection::solve(double * b) {
 	unsigned i,j,counter;
 	if(max_iterations==0) return 0;
 
     unsigned n_d = dummy_vars.size();
-    cout << "In solve_DUMMY_vars, n_d=" << n_d << endl;
 
 	bool converged=false;
 
@@ -165,9 +55,7 @@ unsigned GradientProjection::solve_dummy (double * b) {
         place[i]=vars[i]->position();
     }
     for (DummyVars::iterator it=dummy_vars.begin();it!=dummy_vars.end();++it){
-        DummyVarPair* p = *it;
-        p->place_l=p->left->position();
-        p->place_r=p->right->position();
+        (*it)->updatePosition();
     }
 	
 	for (counter=0; counter<max_iterations&&!converged; counter++) {
@@ -183,10 +71,7 @@ unsigned GradientProjection::solve_dummy (double * b) {
             g[i] *= 2.0;
 		}		
         for (DummyVars::iterator it=dummy_vars.begin();it!=dummy_vars.end();++it){
-            DummyVarPair* p = *it;
-            p->old_place_l=p->place_l;
-            p->old_place_r=p->place_r;
-            p->g = 2.0 * ( p->b + p->lap2 * ( p->place_l - p->place_r ) );
+            (*it)->computeDescentVector();
         }
         // compute step size: alpha = ( g' g ) / ( 2 g' A g )
         //   g terms for dummy vars cancel out so don't consider
@@ -207,11 +92,7 @@ unsigned GradientProjection::solve_dummy (double * b) {
             vars[i]->desiredPosition=place[i];
 		}
         for (DummyVars::iterator it=dummy_vars.begin();it!=dummy_vars.end();++it){
-            DummyVarPair* p = *it;
-            p->place_l -= alpha*p->g;
-            p->place_r += alpha*p->g;
-            p->left->desiredPosition=p->place_l;
-            p->right->desiredPosition=p->place_r;
+            (*it)->steepestDescent(alpha);
         }
 
         //project to constraint boundary
@@ -227,9 +108,7 @@ unsigned GradientProjection::solve_dummy (double * b) {
             place[i]=vars[i]->position();
         }
         for (DummyVars::iterator it=dummy_vars.begin();it!=dummy_vars.end();++it){
-            DummyVarPair* p = *it;
-            p->place_l=p->left->position();
-            p->place_r=p->right->position();
+            (*it)->updatePosition();
         }
         // compute d, the vector from last pnt to projection pnt
 		for (i=0; i<n; i++) {
@@ -247,12 +126,7 @@ unsigned GradientProjection::solve_dummy (double * b) {
 			denominator += 2.0 * r * d[i];
 		}
         for (DummyVars::iterator it=dummy_vars.begin();it!=dummy_vars.end();++it){
-            DummyVarPair* p = *it;
-            double pdl = p->place_l-p->old_place_l;
-            double pdr = p->place_r-p->old_place_r;
-            numerator += p->g * ( pdl - pdr );
-            r = 2 * p->lap2 * ( pdr - pdl );
-            denominator += r*pdl - r * pdr;
+            (*it)->betaCalc(numerator,denominator);
         }
 		double beta = numerator/denominator;
 
@@ -263,9 +137,7 @@ unsigned GradientProjection::solve_dummy (double * b) {
                 place[i]=old_place[i]+beta*d[i];
             }
             for (DummyVars::iterator it=dummy_vars.begin();it!=dummy_vars.end();++it){
-                DummyVarPair* p = *it;
-                p->left->desiredPosition += beta*(p->left->position() - p->left->desiredPosition);
-                p->right->desiredPosition += beta*(p->right->position() - p->right->desiredPosition);
+                (*it)->feasibleDescent(beta);
             }
         }
 		double test=0;
@@ -273,9 +145,7 @@ unsigned GradientProjection::solve_dummy (double * b) {
 			test += fabs(place[i]-old_place[i]);
 		}
         for (DummyVars::iterator it=dummy_vars.begin();it!=dummy_vars.end();++it){
-            DummyVarPair* p = *it;
-            test += fabs(p->place_l-p->old_place_l) 
-                + fabs(p->place_r-p->old_place_r);
+            test += (*it)->absoluteDisplacement();
         }
 		if(test>tolerance) {
 			converged=false;
@@ -296,21 +166,7 @@ IncVPSC* GradientProjection::setupVPSC() {
     
     for(DummyVars::iterator dit=dummy_vars.begin();
             dit!=dummy_vars.end(); ++dit) {
-        DummyVarPair* p = *dit;
-        p->left = new Variable(vars.size(),p->place_l,1/*weight*/);
-        vars.push_back(p->left);
-        p->right = new Variable(vars.size(),p->place_r,1/*weight*/);
-        vars.push_back(p->right);
-        for(CList::iterator cit=p->leftof.begin();
-                cit!=p->leftof.end(); ++cit) {
-            Variable* v = vars[(*cit).first];
-            lcs.push_back(new Constraint(p->left,v,(*cit).second)); 
-        }
-        for(CList::iterator cit=p->rightof.begin();
-                cit!=p->rightof.end(); ++cit) {
-            Variable* v = vars[(*cit).first];
-            lcs.push_back(new Constraint(v,p->right,(*cit).second)); 
-        }
+        (*dit)->setupVPSC(vars,lcs);
     }
     Variable** vs = new Variable*[vars.size()];
     for(unsigned i=0;i<vars.size();i++) {
@@ -340,6 +196,12 @@ IncVPSC* GradientProjection::setupVPSC() {
     }
     return new IncVPSC(vars.size(),vs,m,cs);
 }
+void GradientProjection::clearDummyVars() {
+    for(DummyVars::iterator i=dummy_vars.begin();i!=dummy_vars.end();++i) {
+        delete *i;
+    }
+    dummy_vars.clear();
+}
 void GradientProjection::destroyVPSC(IncVPSC *vpsc) {
     if(acs) {
         for(AlignmentConstraints::iterator ac=acs->begin(); ac!=acs->end();++ac) {
@@ -355,7 +217,7 @@ void GradientProjection::destroyVPSC(IncVPSC *vpsc) {
             delete *i;
     }
     lcs.clear();
-    cout << " Vars count = " << vars.size() << " Dummy vars cnt=" << dummy_vars.size() << endl;
+    //cout << " Vars count = " << vars.size() << " Dummy vars cnt=" << dummy_vars.size() << endl;
     vars.resize(vars.size()-dummy_vars.size()*2);
     for(DummyVars::iterator i=dummy_vars.begin();i!=dummy_vars.end();++i) {
         DummyVarPair* p = *i;
