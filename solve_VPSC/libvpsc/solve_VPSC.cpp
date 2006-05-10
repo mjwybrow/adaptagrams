@@ -35,7 +35,7 @@ IncVPSC::IncVPSC(const unsigned n, Variable *vs[], const unsigned m, Constraint 
 		(*i)->active=false;
 	}
 }
-VPSC::VPSC(const unsigned n, Variable *vs[], const unsigned m, Constraint *cs[]) : cs(cs), m(m) {
+VPSC::VPSC(const unsigned n, Variable *vs[], const unsigned m, Constraint *cs[]) : cs(cs), m(m), vs(vs) {
 	bs=new Blocks(n, vs);
 #ifdef RECTANGLE_OVERLAP_LOGGING
 	printBlocks();
