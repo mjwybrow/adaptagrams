@@ -103,6 +103,7 @@ namespace cola {
         void setupConstraints(
                 AlignmentConstraints* acsx, AlignmentConstraints* acsy,
                 bool avoidOverlaps, PositionMap* dim = NULL,
+                PageBoundaryConstraints *pbcx = NULL, PageBoundaryConstraints *pbcy = NULL,
                 Clusters* cs = NULL);
 
         void setupDummyVars();
@@ -196,7 +197,9 @@ bool constrained_majorization_layout(
             g, position, weight, edge_or_side_length,
             cola::layout_tolerance<double>(),
             false, (PositionMap*)NULL,
-            acsx, acsy, (Clusters*)NULL);
+            acsx, acsy, 
+            (PageBoundaryConstraints*)NULL, (PageBoundaryConstraints*)NULL,
+            (Clusters*)NULL);
 }
 // additional args over the above:
 //   clusters - vector of vectors of nodes grouped into clusters
@@ -211,7 +214,9 @@ bool constrained_majorization_layout(
             g, position, weight, edge_or_side_length,
             cola::layout_tolerance<double>(),
             false, (PositionMap*)NULL,
-            (AlignmentConstraints*)NULL,(AlignmentConstraints*)NULL,cs);
+            (AlignmentConstraints*)NULL,(AlignmentConstraints*)NULL,
+            (PageBoundaryConstraints*)NULL, (PageBoundaryConstraints*)NULL,
+            cs);
 }
 // additional args over the above:
 //   avoidOverlaps - if true, generate constraints to prevent rectangular node boundaries from overlapping 
@@ -227,10 +232,12 @@ bool constrained_majorization_layout(
     PositionMap* dim,
     AlignmentConstraints* acsx,
     AlignmentConstraints* acsy,
+    PageBoundaryConstraints *pbcx,
+    PageBoundaryConstraints *pbcy,
     Clusters* cs) {
 	cola::constrained_majorization_layout_impl<PositionMap,detail::graph::edge_or_side<EdgeOrSideLength, T>,Done> 
 		alg(g,position,weight,edge_or_side_length,done);
-    alg.setupConstraints(acsx,acsy,avoidOverlaps,dim,cs);
+    alg.setupConstraints(acsx,acsy,avoidOverlaps,dim,pbcx,pbcy,cs);
 	return alg.run();
 }
 #include "cola.cpp"

@@ -32,8 +32,6 @@ unsigned GradientProjection::solve(double * b) {
 	unsigned i,j,counter;
 	if(max_iterations==0) return 0;
 
-    unsigned n_d = dummy_vars.size();
-
 	bool converged=false;
 
     IncVPSC* vpsc=NULL;
@@ -46,7 +44,7 @@ unsigned GradientProjection::solve(double * b) {
         vpsc->satisfy();
     } catch (char const *str) {
 		std::cerr<<str<<std::endl;
-		for(int i=0;i<n;i++) {
+		for(i=0;i<n;i++) {
 			std::cerr << *rs[i]<<std::endl;
 		}
 	}
@@ -100,7 +98,7 @@ unsigned GradientProjection::solve(double * b) {
             vpsc->satisfy();
         } catch (char const *str) {
             std::cerr<<str<<std::endl;
-            for(int i=0;i<n;i++) {
+            for(i=0;i<n;i++) {
                 std::cerr << *rs[i]<<std::endl;
             }
         }
