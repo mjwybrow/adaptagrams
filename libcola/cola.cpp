@@ -43,14 +43,8 @@ constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
     for(unsigned k=0;k<2;k++) {
         unsigned n_d = gp[k]->dummy_vars.size();
         if(n_d > 0) {
-            double d;
             for(unsigned i=0; i<n_d; i++) {
-                DummyVarPair *p = gp[k]->dummy_vars[i];
-                d = dummy_var_euclidean_dist(gpX, gpY, i);
-                if(d > 1e-30) {
-                    p->b=p->place_r-p->place_l;
-                    p->b /= d * p->dist;
-                }
+                gp[k]->dummy_vars[i]->computeLinearTerm(dummy_var_euclidean_dist(gpX, gpY, i));
             }
         }
     }
@@ -104,14 +98,8 @@ inline double constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength
         }
     }
     if(constrainedLayout) {
-        unsigned n_d = gpX->dummy_vars.size();
-        if(n_d > 0) {
-            for(unsigned i=0; i<n_d; i++) {
-                DummyVarPair *p = gpX->dummy_vars[i];
-                d = p->dist;
-                diff = d - dummy_var_euclidean_dist(gpX, gpY, i);
-                sum += diff*diff / (d*d);
-            }
+        for(unsigned i=0; i<gpX->dummy_vars.size(); i++) {
+            sum += gpX->dummy_vars[i]->stress(dummy_var_euclidean_dist(gpX, gpY, i));
         }
     }
     return sum;
@@ -162,6 +150,7 @@ void constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
 ::setupConstraints(
         AlignmentConstraints* acsx, AlignmentConstraints* acsy,
         bool avoidOverlaps, PositionMap* dim,
+        PageBoundaryConstraints *pbcx, PageBoundaryConstraints *pbcy,
         Clusters* cs) {
     constrainedLayout = true;
     this->avoidOverlaps = avoidOverlaps;
@@ -177,9 +166,9 @@ void constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
         clusters=cs;
     }
 	gpX=new GradientProjection(
-            HORIZONTAL,n,lap2,X,tol,100,acsx,avoidOverlaps,boundingBoxes);
+            HORIZONTAL,n,lap2,X,tol,100,acsx,avoidOverlaps,boundingBoxes,pbcx);
 	gpY=new GradientProjection(
-            VERTICAL,n,lap2,Y,tol,100,acsy,avoidOverlaps,boundingBoxes);
+            VERTICAL,n,lap2,Y,tol,100,acsy,avoidOverlaps,boundingBoxes,pbcy);
 }
 } // namespace cola
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4

@@ -18,6 +18,9 @@ struct Offset {
 
 typedef vector<Offset*> OffsetList;
 
+typedef vector<Constraint*> Constraints;
+typedef vector<Variable*> Variables;
+
 class AlignmentConstraint {
 friend class GradientProjection;
 public:
@@ -38,8 +41,29 @@ private:
 };
 typedef vector<AlignmentConstraint*> AlignmentConstraints;
 
-typedef vector<Constraint*> Constraints;
-typedef vector<Variable*> Variables;
+class PageBoundaryConstraints {
+public:
+    PageBoundaryConstraints(double lm, double rm, double w)
+        : leftMargin(lm), rightMargin(rm), weight(w) { }
+    void createVarsAndConstraints(Variables &vs, Constraints &cs) {
+        Variable* vl, * vr;
+        // create 2 dummy vars, based on the dimension we are in
+        vs.push_back(vl=new Variable(vs.size(), leftMargin, weight));
+        vs.push_back(vr=new Variable(vs.size(), rightMargin, weight));
+
+        // for each of the "real" variables, create a constraint that puts that var
+        // between our two new dummy vars, depending on the dimension.
+        for(vector<Offset*>::iterator oi = offsets.begin(); oi != offsets.end(); ++oi)  {
+            cs.push_back(new Constraint(vl, vs[(*oi)->v], (*oi)->offset));
+            cs.push_back(new Constraint(vs[(*oi)->v], vr, (*oi)->offset));
+        }
+    }
+    vector<Offset*> offsets;
+private:
+    double leftMargin;
+    double rightMargin;
+    double weight;
+};
 
 typedef vector<pair<unsigned,double> > CList;
 /**
@@ -59,8 +83,16 @@ public:
     CList rightof; // variables to which right must be to the right of
     double place_l;
     double place_r;
-    double dist; // ideal distance between vars
-    double b; // linear coefficient in quad form for left (b_right = -b)
+    void computeLinearTerm(double euclideanDistance) {   
+        if(euclideanDistance > 1e-30) {
+            b = place_r - place_l;
+            b /= euclideanDistance * dist;
+        } else { b=0; }
+    }
+    double stress(double euclideanDistance) {
+        double diff = dist - euclideanDistance;
+        return diff*diff / (dist*dist);
+    }
 private:
 friend class GradientProjection; 
     /**
@@ -84,6 +116,9 @@ friend class GradientProjection;
             cs.push_back(new Constraint(v,right,(*cit).second)); 
         }
     }
+    /**
+     * Extract the result of a VPSC solution to the variable positions
+     */
     void updatePosition() {
         place_l=left->position();
         place_r=right->position();
@@ -128,6 +163,8 @@ friend class GradientProjection;
     double absoluteDisplacement() {
         return fabs(place_l - old_place_l) + fabs(place_r - old_place_r);
     }
+    double dist; // ideal distance between vars
+    double b; // linear coefficient in quad form for left (b_right = -b)
     Variable* left; // Variables used in constraints
     Variable* right;
     double lap2; // laplacian entry
@@ -150,7 +187,8 @@ public:
 		unsigned max_iterations,
         AlignmentConstraints* acs=NULL,
         bool nonOverlapConstraints=false,
-        Rectangle** rs=NULL)
+        Rectangle** rs=NULL,
+        PageBoundaryConstraints *pbc = NULL)
             : k(k), n(n), A(A), place(x), rs(rs),
               nonOverlapConstraints(nonOverlapConstraints),
               tolerance(tol), acs(acs), max_iterations(max_iterations),
@@ -161,11 +199,10 @@ public:
             vars.push_back(new Variable(i,1,1));
         }
         if(acs) {
-            unsigned i=n;
             for(AlignmentConstraints::iterator iac=acs->begin();
                     iac!=acs->end();++iac) {
                 AlignmentConstraint* ac=*iac;
-                Variable *v=ac->variable=new Variable(i++,ac->position,0.0001);
+                Variable *v=ac->variable=new Variable(vars.size(),ac->position,0.0001);
                 vars.push_back(v);
                 for(OffsetList::iterator io=ac->offsets.begin();
                         io!=ac->offsets.end();
@@ -175,6 +212,9 @@ public:
                     gcs.push_back(new Constraint(v,vars[o->v],o->offset,true));
                 }
             }
+        }
+        if (pbc)  {          
+            pbc->createVarsAndConstraints(vars,gcs);
         }
         if(!gcs.empty() || nonOverlapConstraints) {
             constrained=true;
