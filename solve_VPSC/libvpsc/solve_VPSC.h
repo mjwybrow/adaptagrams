@@ -27,12 +27,13 @@ public:
 
 	VPSC(const unsigned n, Variable *vs[], const unsigned m, Constraint *cs[]);
 	virtual ~VPSC();
-	Constraint** getConstraints() { return cs; }
-	Variable** getVariables() { return vs; }
+	Constraint** getConstraints(unsigned &m) { m=this->m; return cs; }
+	Variable** getVariables(unsigned &n) { n=this->n; return vs; }
 protected:
 	Blocks *bs;
-	Constraint **cs;
 	unsigned m;
+	Constraint **cs;
+	unsigned n;
 	Variable **vs;
 	void printBlocks();
 private:
