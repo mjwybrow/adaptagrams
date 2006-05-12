@@ -22,6 +22,14 @@
 using namespace std;
 //#define CONMAJ_LOGGING 1
 
+static void dumpVPSCException(char const *str, IncVPSC* vpsc) {
+    cerr<<str<<endl;
+    unsigned m;
+    Constraint** cs = vpsc->getConstraints(m);
+    for(unsigned i=0;i<m;i++) {
+        cerr << *cs[i] << endl;
+    }
+}
 /*
  * Use gradient-projection to solve an instance of
  * the Variable Placement with Separation Constraints problem.
@@ -43,10 +51,7 @@ unsigned GradientProjection::solve(double * b) {
     try {
         vpsc->satisfy();
     } catch (char const *str) {
-		std::cerr<<str<<std::endl;
-		for(i=0;i<n;i++) {
-			std::cerr << *rs[i]<<std::endl;
-		}
+        dumpVPSCException(str,vpsc);
 	}
 
     for (i=0;i<n;i++) {
@@ -97,10 +102,7 @@ unsigned GradientProjection::solve(double * b) {
         try {
             vpsc->satisfy();
         } catch (char const *str) {
-            std::cerr<<str<<std::endl;
-            for(i=0;i<n;i++) {
-                std::cerr << *rs[i]<<std::endl;
-            }
+            dumpVPSCException(str,vpsc);
         }
         for (i=0;i<n;i++) {
             place[i]=vars[i]->position();
@@ -206,8 +208,9 @@ void GradientProjection::destroyVPSC(IncVPSC *vpsc) {
             (*ac)->updatePosition();
         }
     }
-    Constraint** cs = vpsc->getConstraints();
-    Variable** vs = vpsc->getVariables();
+    unsigned m,n;
+    Constraint** cs = vpsc->getConstraints(m);
+    Variable** vs = vpsc->getVariables(n);
     delete vpsc;
     delete [] cs;
     delete [] vs;
