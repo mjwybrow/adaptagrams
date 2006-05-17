@@ -25,16 +25,16 @@ public:
 	virtual void satisfy();
 	virtual void solve();
 
-	VPSC(const unsigned n, Variable *vs[], const unsigned m, Constraint *cs[]);
+	VPSC(const unsigned n, Variable* const vs[], const unsigned m, Constraint *cs[]);
 	virtual ~VPSC();
 	Constraint** getConstraints(unsigned &m) { m=this->m; return cs; }
-	Variable** getVariables(unsigned &n) { n=this->n; return vs; }
+	const Variable* const * getVariables(unsigned &n) { n=this->n; return vs; }
 protected:
 	Blocks *bs;
 	unsigned m;
 	Constraint **cs;
 	unsigned n;
-	Variable **vs;
+	const Variable* const *vs;
 	void printBlocks();
 private:
 	void refine();
@@ -49,7 +49,7 @@ public:
 	void solve();
 	void moveBlocks();
 	void splitBlocks();
-	IncVPSC(const unsigned n, Variable *vs[], const unsigned m, Constraint *cs[]);
+	IncVPSC(const unsigned n, Variable* const vs[], const unsigned m, Constraint *cs[]);
 private:
 	typedef std::vector<Constraint*> ConstraintList;
 	ConstraintList inactive;
