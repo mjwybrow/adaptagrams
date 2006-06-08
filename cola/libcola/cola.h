@@ -18,12 +18,21 @@
 
 using namespace boost;
 
+namespace cola {
+struct route {
+	double *xs;
+	double *ys;
+	unsigned n;
+};
+}
 // create a typedef for the Graph type
 typedef adjacency_list<vecS, vecS, undirectedS, no_property, 
-	property<edge_weight_t, double> > Graph;
+	property<edge_weight_t, double,
+      property<edge_index_t, cola::route* > > > Graph;
 typedef property_map<Graph, edge_weight_t>::type WeightMap;
 typedef graph_traits<Graph>::vertex_descriptor Vertex;
 typedef property_map<Graph, vertex_index_t>::type IndexMap;
+typedef property_map<Graph, edge_index_t>::type EdgeRouteMap;
 
 typedef vector<unsigned> Cluster;
 typedef vector<Cluster*> Clusters;
