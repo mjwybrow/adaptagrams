@@ -43,20 +43,24 @@ int main() {
 	for (boost::tie(ei, ei_end) = edges(g); ei != ei_end; ++ei) weightmap[*ei] = 1.0;
 	double width=100;
 	double height=100;
-	Position<>::Vec position_vec(num_vertices(g));
-	IndexMap index = get(vertex_index, g);
-	Position<>::Map position(position_vec.begin(), index);
+	vector<Rectangle*> rs;
+	for(unsigned i=0;i<num_vertices(g);i++) {
+		double x=getRand(width), y=getRand(height);
+		rs.push_back(new Rectangle(x,x+5,y,y+5));
+	}
   	write_graphviz(cout, g);
-	circle_graph_layout(g, position, width/2.0);
 
 	AlignmentConstraints acsx;
 	AlignmentConstraint ac(1);
 	acsx.push_back(&ac);
-	Offset *o1 = new Offset(0,0), *o2 = new Offset(3,0);
-	ac.offsets.push_back(o1);
-	ac.offsets.push_back(o2);
+	ac.offsets.push_back(make_pair((unsigned)0,(double)0));
+	ac.offsets.push_back(make_pair((unsigned)3,(double)0));
 
-	constrained_majorization_layout(g,position,weightmap,
-			side_length(width),&acsx,NULL);
-	output_svg(g,position,"constrained.svg");
+	ConstrainedMajLayout alg(g,rs,weightmap,side_length(width),cola::layout_tolerance<double>(0.0001,100));
+	alg.setupConstraints(&acsx,NULL,false);
+	alg.run();
+	output_svg(g,rs,"constrained.svg");
+	for(unsigned i=0;i<num_vertices(g);i++) {
+		delete rs[i];
+	}
 }

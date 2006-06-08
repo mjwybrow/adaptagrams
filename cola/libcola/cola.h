@@ -1,5 +1,5 @@
-#ifndef STRESSMAJORIZATION_H
-#define STRESSMAJORIZATION_H
+#ifndef COLA_H
+#define COLA_H
 
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/johnson_all_pairs_shortest.hpp>
@@ -8,6 +8,7 @@
 #include <utility>
 #include <iterator>
 #include <vector>
+#include <algorithm>
 #include <boost/limits.hpp>
 #include <cmath>
 #include <iostream>
@@ -16,7 +17,6 @@
 #include <generate-constraints.h>
 
 using namespace boost;
-
 
 // create a typedef for the Graph type
 typedef adjacency_list<vecS, vecS, undirectedS, no_property, 
@@ -29,21 +29,45 @@ typedef vector<unsigned> Cluster;
 typedef vector<Cluster*> Clusters;
 
 namespace cola {
-	// we expect points to have an x and a y member of float type
-	template <typename T>
-	struct Point {
-	    T x;
-	    T y;
-	};
-}
-
-template <typename Point = cola::Point<double> >
-struct Position {
-	typedef std::vector<Point> Vec;
-	typedef iterator_property_map< typename Vec::iterator, IndexMap> Map;
-};
-
-namespace cola {
+    // defines references to three variables for which the goal function
+    // will be altered to prefer points u-b-v are in a linear arrangement
+    // such that b is placed at u+t(v-u).
+    struct LinearConstraint {
+        LinearConstraint(unsigned u, unsigned v, unsigned b, double w, double* X, double* Y) : u(u),v(v),b(b),w(w) {
+            double numerator=X[b]-X[u];
+            double denominator=X[v]-X[u];
+            if(fabs(denominator)<0.001) {
+                // if line is close to vertical then use Y coords to compute T
+                numerator=Y[b]-Y[u];
+                denominator=Y[v]-Y[u];
+            }
+            if(fabs(denominator)<0.0001) {
+                denominator=1;
+            }
+            t=numerator/denominator;
+            duu=(1-t)*(1-t);
+            duv=t*(1-t);
+            dub=t-1;
+            dvv=t*t;
+            dvb=-t;
+            dbb=1;
+             //printf("New LC: t=%f\n",t); 
+        }
+        unsigned u;
+        unsigned v;
+        unsigned b;
+        double w; // weight
+        double t;
+        // 2nd partial derivatives of the goal function
+        //   (X[b] - (1-t) X[u] - t X[v])^2
+        double duu;
+        double duv;
+        double dub;
+        double dvv;
+        double dvb;
+        double dbb;
+    };
+    typedef vector<LinearConstraint*> LinearConstraints;
 	
 	template <typename T>
 	class layout_tolerance {
@@ -56,14 +80,18 @@ namespace cola {
               iterations(0) { }
 
 		bool operator()(T new_stress, const Graph& g, double* X, double* Y) {
-            std::cout<<"iteration="<<iterations<<", new_stress="<<new_stress<<std::endl;
+            //std::cout<<"iteration="<<iterations<<", new_stress="<<new_stress<<std::endl;
 			if (old_stress == (std::numeric_limits<T>::max)()) {
 				old_stress = new_stress;
+                if(++iterations>=maxiterations) {;
+                    return true;
+                } else {
           			return false;
+                }
 			}
             bool converged = 
                 fabs(new_stress - old_stress) / (new_stress + 1e-10) < tolerance
-                || ++iterations >= maxiterations;
+                || ++iterations > maxiterations;
             old_stress = new_stress;
 			return converged;
 		}
@@ -72,26 +100,75 @@ namespace cola {
         unsigned maxiterations;
         unsigned iterations;
   	};
-	template <typename PositionMap, typename EdgeOrSideLength, typename Done >
+	template <typename EdgeOrSideLength, typename Done >
 	class constrained_majorization_layout_impl {
     public:
 		constrained_majorization_layout_impl(
 				const Graph& g, 
-				PositionMap position,
-				WeightMap weight,
+                vector<Rectangle*>& rs,
+				WeightMap& weight,
 				EdgeOrSideLength edge_or_side_length,
-				Done done) 
+				Done done)
 			: constrainedLayout(false),
-              g(g), n(num_vertices(g)), position(position), 
-              lap2(new double*[n]),
+              g(g), n(num_vertices(g)),
+              lapSize(n), lap2(new double*[lapSize]), Q(lap2), Dij(new double*[lapSize]),
               tol(0.0001),
 			  weight(weight), 
 			  edge_or_side_length(edge_or_side_length), 
               done(done),
-              boundingBoxes(NULL),
               X(new double[n]),
               Y(new double[n]),
-              clusters(NULL) { }
+              clusters(NULL),
+              layoutXAxis(true),
+              layoutYAxis(true),
+              linearConstraints(NULL),
+              gpX(NULL),
+              gpY(NULL)
+        {
+            typedef typename property_traits<WeightMap>::value_type weight_type;
+            vec_adj_list_vertex_id_map<no_property, unsigned int> index = get(vertex_index,g);
+            typedef std::vector<weight_type> weight_vec;
+            std::vector<weight_vec> distance(n,weight_vec(n));
+            assert(rs.size()==n);
+            boundingBoxes = new Rectangle*[rs.size()];
+            copy(rs.begin(),rs.end(),boundingBoxes);
+
+            if (!johnson_all_pairs_shortest_paths(g, distance, index, weight, weight_type(0))) {
+                cerr << "All pairs shortest paths computation returned false!" << endl;
+                return;
+            }
+            edge_length = detail::graph::compute_edge_length(g, distance, index,
+                                             edge_or_side_length);
+            // Lij_{i!=j}=1/(Dij^2)
+            //
+            for(unsigned i = 0; i<n; i++) {
+                X[i]=rs[i]->getCentreX();
+                Y[i]=rs[i]->getCentreY();
+                weight_type degree = weight_type(0);
+                lap2[i]=new double[n];
+                Dij[i]=new double[n];
+                for(unsigned j=0;j<n;j++) {
+                    weight_type w = edge_length * distance[i][j];
+                    Dij[i][j]=w;
+                    if(i==j) continue;
+                    degree+=lap2[i][j]=w>1e-30?weight_type(1)/(w*w):0;
+                }
+                lap2[i][i]=-degree;
+            }
+        }
+		~constrained_majorization_layout_impl() {
+            for(unsigned i=0;i<n;i++) {
+                delete [] lap2[i];
+                delete [] Dij[i];
+            }
+            delete [] lap2;
+            delete [] Dij;
+            delete [] boundingBoxes;
+            if(gpX!=NULL) delete gpX;
+            if(gpY!=NULL) delete gpY;
+            delete [] X;
+            delete [] Y;
+        }
 
         void moveBoundingBoxes() {
             for(unsigned i=0;i<n;i++) {
@@ -102,9 +179,14 @@ namespace cola {
 
         void setupConstraints(
                 AlignmentConstraints* acsx, AlignmentConstraints* acsy,
-                bool avoidOverlaps, PositionMap* dim = NULL,
-                PageBoundaryConstraints *pbcx = NULL, PageBoundaryConstraints *pbcy = NULL,
+                bool avoidOverlaps, 
+                PageBoundaryConstraints* pbcx = NULL,
+                PageBoundaryConstraints* pbcy = NULL,
+                SimpleConstraints* scx = NULL,
+                SimpleConstraints* scy = NULL,
                 Clusters* cs = NULL);
+
+        void addLinearConstraints(LinearConstraints* linearConstraints, vector<Rectangle*>& dim = NULL);
 
         void setupDummyVars();
 
@@ -126,6 +208,10 @@ namespace cola {
 		bool run();
         bool avoidOverlaps;
         bool constrainedLayout;
+        void setLayoutAxes(bool xAxis, bool yAxis) {
+            layoutXAxis=xAxis;
+            layoutYAxis=yAxis;
+        }
     private:
         double euclidean_distance(unsigned i, unsigned j) {
             return sqrt(
@@ -133,12 +219,13 @@ namespace cola {
                 (Y[i] - Y[j]) * (Y[i] - Y[j]));
         }
         double compute_stress(double **Dij);
-        void majlayout(double** Dij);
-        GradientProjection *gpX, *gpY;
+        void majlayout(double** Dij,GradientProjection* gp, double* coords);
 		const Graph& g;
-        unsigned n;
-		PositionMap position;
-        double** lap2; 
+        unsigned n; // is lapSize + dummyVars
+        unsigned lapSize; // lapSize is the number of variables for actual nodes
+        double** lap2; // graph laplacian
+        double** Q; // quadratic terms matrix used in computations
+        double** Dij;
         double tol;
 		WeightMap weight;
 		EdgeOrSideLength edge_or_side_length;
@@ -147,99 +234,12 @@ namespace cola {
         double *X, *Y;
         Clusters* clusters;
         double edge_length;
+        bool layoutXAxis;
+        bool layoutYAxis;
+        LinearConstraints *linearConstraints;
+        GradientProjection *gpX, *gpY;
 	};
 }
-// the following overloaded functions provide wrappers to setup for the most common
-// usages of the constrained_majorization_layout_impl
-
-// this is probably the simplest type of layout:
-//   args are:
-//   g - the graph definition
-//   position map - for starting positions and resultant layout
-//   weight map - set to all 1 if you've got nothing better
-//   edge_length(value) or side_length(value) 
-//     - where value is either the ideal edge length or an upper bound on the total width/height of the graph.
-template <typename PositionMap, typename T, bool EdgeOrSideLength >
-bool constrained_majorization_layout(
-	const Graph& g,
-	PositionMap position,
-	WeightMap weight,
-	detail::graph::edge_or_side<EdgeOrSideLength, T> edge_or_side_length) {
-	return constrained_majorization_layout(g,position,weight,edge_or_side_length,cola::layout_tolerance<double>());
-}
-
-// additional args over the above:
-//   done - is a functor which will be called every iteration to check convergence (and whatever else you like)
-//     either duplicate the functionality of cola::layout_tolerance or call layout_tolerance from your functor
-template <typename PositionMap, typename T, bool EdgeOrSideLength, typename Done >
-bool constrained_majorization_layout(
-	const Graph& g,
-	PositionMap position,
-	WeightMap weight,
-	detail::graph::edge_or_side<EdgeOrSideLength, T> edge_or_side_length,
-	Done done) {
-	cola::constrained_majorization_layout_impl<PositionMap,detail::graph::edge_or_side<EdgeOrSideLength, T>,Done> 
-		alg(g,position,weight,edge_or_side_length,done);
-	return alg.run();
-}
-// additional args over the above:
-//   acsx - horizontal alignment constraints
-//   acsy - vertical alignment constraints
-template <typename PositionMap, typename T, bool EdgeOrSideLength >
-bool constrained_majorization_layout(
-	const Graph& g,
-	PositionMap position,
-	WeightMap weight,
-	detail::graph::edge_or_side<EdgeOrSideLength, T> edge_or_side_length,
-    AlignmentConstraints* acsx,
-    AlignmentConstraints* acsy) {
-	return constrained_majorization_layout(
-            g, position, weight, edge_or_side_length,
-            cola::layout_tolerance<double>(),
-            false, (PositionMap*)NULL,
-            acsx, acsy, 
-            (PageBoundaryConstraints*)NULL, (PageBoundaryConstraints*)NULL,
-            (Clusters*)NULL);
-}
-// additional args over the above:
-//   clusters - vector of vectors of nodes grouped into clusters
-template <typename PositionMap, typename T, bool EdgeOrSideLength >
-bool constrained_majorization_layout(
-	const Graph& g,
-	PositionMap position,
-	WeightMap weight,
-	detail::graph::edge_or_side<EdgeOrSideLength, T> edge_or_side_length,
-    Clusters* cs) {
-	return constrained_majorization_layout(
-            g, position, weight, edge_or_side_length,
-            cola::layout_tolerance<double>(),
-            false, (PositionMap*)NULL,
-            (AlignmentConstraints*)NULL,(AlignmentConstraints*)NULL,
-            (PageBoundaryConstraints*)NULL, (PageBoundaryConstraints*)NULL,
-            cs);
-}
-// additional args over the above:
-//   avoidOverlaps - if true, generate constraints to prevent rectangular node boundaries from overlapping 
-//   dim - dimensions of node boundaries to be used in non-overlap constraints
-template <typename PositionMap, typename T, bool EdgeOrSideLength, typename Done >
-bool constrained_majorization_layout(
-	const Graph& g,
-	PositionMap position,
-	WeightMap weight,
-	detail::graph::edge_or_side<EdgeOrSideLength, T> edge_or_side_length,
-	Done done,
-    bool avoidOverlaps,
-    PositionMap* dim,
-    AlignmentConstraints* acsx,
-    AlignmentConstraints* acsy,
-    PageBoundaryConstraints *pbcx,
-    PageBoundaryConstraints *pbcy,
-    Clusters* cs) {
-	cola::constrained_majorization_layout_impl<PositionMap,detail::graph::edge_or_side<EdgeOrSideLength, T>,Done> 
-		alg(g,position,weight,edge_or_side_length,done);
-    alg.setupConstraints(acsx,acsy,avoidOverlaps,dim,pbcx,pbcy,cs);
-	return alg.run();
-}
 #include "cola.cpp"
-#endif				// STRESSMAJORIZATION_H
+#endif				// COLA_H
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4

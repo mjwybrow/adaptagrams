@@ -12,9 +12,9 @@ inline double dummy_var_euclidean_dist(GradientProjection* gpx, GradientProjecti
     return sqrt(dx*dx + dy*dy);
 }
 
-template <typename PositionMap, typename EdgeOrSideLength, typename Done >
+template <typename EdgeOrSideLength, typename Done >
 void 
-constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
+constrained_majorization_layout_impl<EdgeOrSideLength, Done >
 ::setupDummyVars() {
     double* coords[2]={X,Y};
     GradientProjection* gp[2]={gpX,gpY};
@@ -49,48 +49,47 @@ constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
         }
     }
 }
-template <typename PositionMap, typename EdgeOrSideLength, typename Done >
-void constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
-::majlayout(double** Dij) {
+template <typename EdgeOrSideLength, typename Done >
+void constrained_majorization_layout_impl<
+ EdgeOrSideLength, Done >
+::majlayout(
+        double** Dij, GradientProjection* gp, double* coords) 
+{
     double b[n];
     double L_ij,dist_ij,degree;
-    double* coords[2]={X,Y};
-    GradientProjection* gp[2]={gpX,gpY};
-    do {
-        /* Axis-by-axis optimization: */
-        for (unsigned k = 0; k < 2; k++) {
-            /* compute the vector b */
-            /* multiply on-the-fly with distance-based laplacian */
-            for (unsigned i = 0; i < n; i++) {
-                degree = 0;
-                b[i] = 0;
-                for (unsigned j = 0; j < n; j++) {
-                    if (j == i) continue;
-                    dist_ij = euclidean_distance(i, j);
-                    if (dist_ij > 1e-30) {	/* skip zero distances */
-                        /* calculate L_ij := w_{ij}*d_{ij}/dist_{ij} */
-                        L_ij = 1.0 / (dist_ij * Dij[i][j]);
-                        degree -= L_ij;
-                        b[i] += L_ij * coords[k][j];
-                    }
+    /* compute the vector b */
+    /* multiply on-the-fly with distance-based laplacian */
+    for (unsigned i = 0; i < n; i++) {
+        degree = 0;
+        b[i] = 0;
+        if(i<lapSize) {
+            for (unsigned j = 0; j < lapSize; j++) {
+                if (j == i) continue;
+                dist_ij = euclidean_distance(i, j);
+                if (dist_ij > 1e-30 && Dij[i][j] > 1e-30) {	/* skip zero distances */
+                    /* calculate L_ij := w_{ij}*d_{ij}/dist_{ij} */
+                    L_ij = 1.0 / (dist_ij * Dij[i][j]);
+                    degree -= L_ij;
+                    b[i] += L_ij * coords[j];
                 }
-                b[i] += degree * coords[k][i];
             }
-            if(constrainedLayout) {
-                setupDummyVars();
-                gp[k]->solve(b);
-                if(boundingBoxes) moveBoundingBoxes();
-            } else {
-                conjugate_gradient(lap2, coords[k], b, n, tol, n, true);
-            }
+            b[i] += degree * coords[i];
         }
-    } while(!done(compute_stress(Dij),g,X,Y));
-}	  
-template <typename PositionMap, typename EdgeOrSideLength, typename Done >
-inline double constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
+        assert(!isnan(b[i]));
+    }
+    if(constrainedLayout) {
+        setupDummyVars();
+        gp->solve(b);
+        moveBoundingBoxes();
+    } else {
+        conjugate_gradient(lap2, coords, b, n, tol, n, true);
+    }
+}
+template <typename EdgeOrSideLength, typename Done >
+inline double constrained_majorization_layout_impl<EdgeOrSideLength, Done >
 ::compute_stress(double **Dij) {
     double sum = 0, d, diff;
-    for (unsigned i = 1; i < n; i++) {
+    for (unsigned i = 1; i < lapSize; i++) {
         for (unsigned j = 0; j < i; j++) {
             d = Dij[i][j];
             diff = d - euclidean_distance(i,j);
@@ -104,71 +103,80 @@ inline double constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength
     }
     return sum;
 }
-template <typename PositionMap, typename EdgeOrSideLength, typename Done >
-bool constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
-::run() {
-    typedef typename property_traits<WeightMap>::value_type weight_type;
-    vec_adj_list_vertex_id_map<no_property, unsigned int> index = get(vertex_index,g);
-    typedef std::vector<weight_type> weight_vec;
-    std::vector<weight_vec> distance(n,weight_vec(n));
-
-    if (!johnson_all_pairs_shortest_paths(g, distance, index, weight, weight_type(0)))
-        return false;
-    edge_length = detail::graph::compute_edge_length(g, distance, index,
-                                     edge_or_side_length);
-    // Lij_{i!=j}=1/(Dij^2)
-    //
-    double** Dij = new double*[n];
+template <typename EdgeOrSideLength, typename Done >
+void constrained_majorization_layout_impl<EdgeOrSideLength, Done >
+::addLinearConstraints(LinearConstraints* linearConstraints, vector<Rectangle*>& rs) {
+    n=lapSize+linearConstraints->size();
+    Q=new double*[n];
+    X=new double[n];
+    Y=new double[n];
+    boundingBoxes = new Rectangle*[n];
+    copy(rs.begin(),rs.end(),boundingBoxes);
     for(unsigned i = 0; i<n; i++) {
-        X[i]=position[i].x;
-        Y[i]=position[i].y;
-    }
-    for(unsigned i = 0; i<n; i++) {
-        weight_type degree = weight_type(0);
-        lap2[i]=new double[n];
-        Dij[i]=new double[n];
-        for(unsigned j=0;j<n;j++) {
-            weight_type w = edge_length * distance[i][j];
-            Dij[i][j]=w;
-            if(i==j) continue;
-            degree+=lap2[i][j]=weight_type(1)/(w*w);
+        X[i]=rs[i]->getCentreX();
+        Y[i]=rs[i]->getCentreY();
+        Q[i]=new double[n];
+        for(unsigned j=0; j<n; j++) {
+            if(i<lapSize&&j<lapSize) {
+                Q[i][j]=lap2[i][j];
+            } else {
+                Q[i][j]=0;
+            }
         }
-        lap2[i][i]=-degree;
     }
-    majlayout(Dij);	
+    for(LinearConstraints::iterator i=linearConstraints->begin();
+           i!= linearConstraints->end();i++) {
+        LinearConstraint* c=*i;
+        Q[c->u][c->u]+=c->w*c->duu;
+        Q[c->u][c->v]+=c->w*c->duv;
+        Q[c->u][c->b]+=c->w*c->dub;
+        Q[c->v][c->u]+=c->w*c->duv;
+        Q[c->v][c->v]+=c->w*c->dvv;
+        Q[c->v][c->b]+=c->w*c->dvb;
+        Q[c->b][c->b]+=c->w*c->dbb;
+        Q[c->b][c->u]+=c->w*c->dub;
+        Q[c->b][c->v]+=c->w*c->dvb;
+    }
+}
+
+template <typename EdgeOrSideLength, typename Done >
+bool constrained_majorization_layout_impl<EdgeOrSideLength, Done >
+::run() {
+    /*
+    for(unsigned i=0;i<n;i++) {
+        for(unsigned j=0;j<n;j++) {
+            cout << lap2[i][j] << " ";
+        }
+        cout << endl;
+    }
+    */
+    do {
+        /* Axis-by-axis optimization: */
+        if(layoutXAxis) majlayout(Dij,gpX,X);
+        if(layoutYAxis) majlayout(Dij,gpY,Y);
+    } while(!done(compute_stress(Dij),g,X,Y));
     for(unsigned i = 0; i<n; i++) {
-        position[i].x=X[i];
-        position[i].y=Y[i];
-        delete [] lap2[i];
-        delete [] Dij[i];
+        moveBoundingBoxes();
     }
-    delete [] Dij;
     return true;
 }
-template <typename PositionMap, typename EdgeOrSideLength, typename Done >
-void constrained_majorization_layout_impl<PositionMap, EdgeOrSideLength, Done >
+template <typename EdgeOrSideLength, typename Done >
+void constrained_majorization_layout_impl<EdgeOrSideLength, Done >
 ::setupConstraints(
         AlignmentConstraints* acsx, AlignmentConstraints* acsy,
-        bool avoidOverlaps, PositionMap* dim,
-        PageBoundaryConstraints *pbcx, PageBoundaryConstraints *pbcy,
+        bool avoidOverlaps, 
+        PageBoundaryConstraints* pbcx, PageBoundaryConstraints* pbcy,
+        SimpleConstraints* scx, SimpleConstraints* scy,
         Clusters* cs) {
     constrainedLayout = true;
     this->avoidOverlaps = avoidOverlaps;
-    if(dim) {
-        boundingBoxes = new Rectangle*[n]; 
-        for(unsigned i = 0; i < n; i++) {
-            double x=position[i].x, y=position[i].y, 
-                w=(*dim)[i].x/2.0, h=(*dim)[i].y/2.0;
-            boundingBoxes[i] = new Rectangle(x-w,x+w,y-h,y+h);
-        }
-    }
     if(cs) {
         clusters=cs;
     }
 	gpX=new GradientProjection(
-            HORIZONTAL,n,lap2,X,tol,100,acsx,avoidOverlaps,boundingBoxes,pbcx);
+            HORIZONTAL,n,Q,X,tol,100,acsx,avoidOverlaps,boundingBoxes,pbcx,scx);
 	gpY=new GradientProjection(
-            VERTICAL,n,lap2,Y,tol,100,acsy,avoidOverlaps,boundingBoxes,pbcy);
+            VERTICAL,n,Q,Y,tol,100,acsy,avoidOverlaps,boundingBoxes,pbcy,scy);
 }
 } // namespace cola
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4
