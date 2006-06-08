@@ -59,7 +59,8 @@ int main() {
 	ConstrainedMajLayout alg(g,rs,weightmap,side_length(width),cola::layout_tolerance<double>(0.0001,100));
 	alg.setupConstraints(&acsx,NULL,false);
 	alg.run();
-	assert((rs[0]->getCentreX()-rs[3]->getCentreX())<0.001);
+	assert(fabs(rs[0]->getCentreX()-rs[3]->getCentreX())<0.001);
+	cout<<rs[0]->getCentreX()<<","<<rs[3]->getCentreX()<<endl;
 	output_svg(g,rs,"constrained.svg");
 	for(unsigned i=0;i<num_vertices(g);i++) {
 		delete rs[i];
