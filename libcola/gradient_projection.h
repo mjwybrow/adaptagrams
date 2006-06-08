@@ -7,29 +7,27 @@
 #include <generate-constraints.h>
 #include <vector>
 #include <iostream>
+#include <math.h>
 
 using namespace std;
 
-struct Offset {
-    Offset(unsigned v, double o) : v(v), offset(o) {}
-    unsigned v;
-    double offset;
-};
-
-typedef vector<Offset*> OffsetList;
-
 typedef vector<Constraint*> Constraints;
 typedef vector<Variable*> Variables;
+typedef vector<pair<unsigned,double> > OffsetList;
 
+class SimpleConstraint {
+public:
+    SimpleConstraint(unsigned l, unsigned r, double g) 
+        : left(l), right(r), gap(g)  {}
+    unsigned left;
+    unsigned right;
+    double gap;
+};
+typedef vector<SimpleConstraint*> SimpleConstraints;
 class AlignmentConstraint {
 friend class GradientProjection;
 public:
     AlignmentConstraint(double pos) : position(pos), variable(NULL) {}
-    ~AlignmentConstraint() {
-        for(OffsetList::iterator i=offsets.begin();i!=offsets.end();i++) {
-            delete *i;
-        }
-    }
     void updatePosition() {
         position = variable->position();
     }
@@ -53,12 +51,12 @@ public:
 
         // for each of the "real" variables, create a constraint that puts that var
         // between our two new dummy vars, depending on the dimension.
-        for(vector<Offset*>::iterator oi = offsets.begin(); oi != offsets.end(); ++oi)  {
-            cs.push_back(new Constraint(vl, vs[(*oi)->v], (*oi)->offset));
-            cs.push_back(new Constraint(vs[(*oi)->v], vr, (*oi)->offset));
+        for(OffsetList::iterator o=offsets.begin(); o!=offsets.end(); ++o)  {
+            cs.push_back(new Constraint(vl, vs[o->first], o->second));
+            cs.push_back(new Constraint(vs[o->first], vr, o->second));
         }
     }
-    vector<Offset*> offsets;
+    OffsetList offsets;
 private:
     double leftMargin;
     double rightMargin;
@@ -79,8 +77,8 @@ typedef vector<pair<unsigned,double> > CList;
 class DummyVarPair {
 public:
     DummyVarPair(double desiredDist) : dist(desiredDist), lap2(1.0/(desiredDist*desiredDist)) { }
-    CList leftof; // variables to which left must be to the left of
-    CList rightof; // variables to which right must be to the right of
+    CList leftof; // variables to which left dummy var must be to the left of
+    CList rightof; // variables to which right dummy var must be to the right of
     double place_l;
     double place_r;
     void computeLinearTerm(double euclideanDistance) {   
@@ -97,7 +95,7 @@ private:
 friend class GradientProjection; 
     /**
      * Setup vars and constraints for an instance of the VPSC problem.
-     * Adds generate vars and constraints to the argument vectors.
+     * Adds generated vars and constraints to the argument vectors.
      */
     void setupVPSC(Variables &vars, Constraints &cs) {
         double weight=1;
@@ -188,7 +186,8 @@ public:
         AlignmentConstraints* acs=NULL,
         bool nonOverlapConstraints=false,
         Rectangle** rs=NULL,
-        PageBoundaryConstraints *pbc = NULL)
+        PageBoundaryConstraints *pbc = NULL,
+        SimpleConstraints *sc = NULL)
             : k(k), n(n), A(A), place(x), rs(rs),
               nonOverlapConstraints(nonOverlapConstraints),
               tolerance(tol), acs(acs), max_iterations(max_iterations),
@@ -204,17 +203,21 @@ public:
                 AlignmentConstraint* ac=*iac;
                 Variable *v=ac->variable=new Variable(vars.size(),ac->position,0.0001);
                 vars.push_back(v);
-                for(OffsetList::iterator io=ac->offsets.begin();
-                        io!=ac->offsets.end();
-                        io++) {
-                    Offset* o = *io;
-                    cerr << " create constraint " << v->id << "=" << o->v << endl;
-                    gcs.push_back(new Constraint(v,vars[o->v],o->offset,true));
+                for(OffsetList::iterator o=ac->offsets.begin();
+                        o!=ac->offsets.end();
+                        o++) {
+                    gcs.push_back(new Constraint(v,vars[o->first],o->second,true));
                 }
             }
         }
         if (pbc)  {          
             pbc->createVarsAndConstraints(vars,gcs);
+        }
+        if (sc) {
+            for(SimpleConstraints::iterator c=sc->begin(); c!=sc->end();++c) {
+                gcs.push_back(new Constraint(
+                        vars[(*c)->left],vars[(*c)->right],(*c)->gap));
+            }
         }
         if(!gcs.empty() || nonOverlapConstraints) {
             constrained=true;
@@ -228,7 +231,7 @@ public:
             delete *i;
         }
         gcs.clear();
-        for(unsigned i=0;i<n;i++) {
+        for(unsigned i=0;i<vars.size();i++) {
             delete vars[i];
         }
     }

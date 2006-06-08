@@ -45,7 +45,10 @@ unsigned GradientProjection::solve(double * b) {
     IncVPSC* vpsc=NULL;
 
     vpsc = setupVPSC();
+    cerr << "in gradient projection: n=" << n << endl;
     for (i=0;i<n;i++) {
+        assert(!isnan(place[i]));
+        assert(!isinf(place[i]));
         vars[i]->desiredPosition=place[i];
     }
     try {
@@ -60,7 +63,7 @@ unsigned GradientProjection::solve(double * b) {
     for (DummyVars::iterator it=dummy_vars.begin();it!=dummy_vars.end();++it){
         (*it)->updatePosition();
     }
-	
+    	
 	for (counter=0; counter<max_iterations&&!converged; counter++) {
 		converged=true;		
 		// find steepest descent direction
@@ -92,6 +95,8 @@ unsigned GradientProjection::solve(double * b) {
         // move to new unconstrained position
 		for (i=0; i<n; i++) {
 			place[i]-=alpha*g[i];
+            assert(!isnan(place[i]));
+            assert(!isinf(place[i]));
             vars[i]->desiredPosition=place[i];
 		}
         for (DummyVars::iterator it=dummy_vars.begin();it!=dummy_vars.end();++it){
@@ -210,10 +215,10 @@ void GradientProjection::destroyVPSC(IncVPSC *vpsc) {
     }
     unsigned m,n;
     Constraint** cs = vpsc->getConstraints(m);
-    Variable** vs = vpsc->getVariables(n);
-    delete vpsc;
-    delete [] cs;
-    delete [] vs;
+    const Variable* const* vs = vpsc->getVariables(n);
+    //delete vpsc;
+    //delete [] cs;
+    //delete [] vs;
     for(Constraints::iterator i=lcs.begin();i!=lcs.end();i++) {
             delete *i;
     }
