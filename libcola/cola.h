@@ -93,6 +93,7 @@ namespace cola {
         unsigned maxiterations;
         unsigned iterations;
   	};
+    static TestConvergence defaultTest(0.0001,100);
 	class ConstrainedMajorizationLayout {
     public:
 		ConstrainedMajorizationLayout(
@@ -100,7 +101,7 @@ namespace cola {
                 vector<Edge>& es,
 				double* eweights,
                 double maxLength,
-				TestConvergence& done)
+				TestConvergence& done=defaultTest)
 			: constrainedLayout(false),
               n(rs.size()),
               lapSize(n), lap2(new double*[lapSize]), Q(lap2), Dij(new double*[lapSize]),
