@@ -6,8 +6,11 @@ libcola_a_SOURCES = cola.h\
 	conjugate_gradient.c\
 	conjugate_gradient.h\
 	gradient_projection.cpp\
-	gradient_projection.h
+	gradient_projection.h\
+	shortest_paths.cpp\
+	shortest_paths.h
 
 include_HEADERS = cola.h
 	conjugate_gradient.h\
-	gradient_projection.h	
+	gradient_projection.h\
+	shortest_paths.h
