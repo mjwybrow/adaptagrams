@@ -3,6 +3,7 @@ INCLUDES = -I$(top_srcdir)/libcola -I/home/dwyer/devel/solve_VPSC/libvpsc
 lib_LIBRARIES = libcola.a
 
 libcola_a_SOURCES = cola.h\
+	cola.cpp\
 	conjugate_gradient.c\
 	conjugate_gradient.h\
 	gradient_projection.cpp\

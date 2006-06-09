@@ -3,20 +3,18 @@
 #include "graphlayouttest.h"
 #include <generate-constraints.h>
 #include <fstream>
+using namespace cola;
 
-void output_svg(Graph g, vector<Rectangle*>& rs, char *fname, bool rects) {
+void output_svg(vector<Rectangle*>& rs, vector<Edge>& es, char *fname, bool rects) {
 	double width, height;
 	ofstream f(fname);
 	f.setf(ios::fixed);
 	double r=5;
 	if(rects) r=rs[0]->width()/2;
-	graph_traits<Graph>::vertex_iterator vi, vi_end;
-	graph_traits<Graph>::edge_iterator ei, ei_end;
-	IndexMap index = get(vertex_index, g);
-	double xmin=numeric_limits<double>::max(), ymin=xmin;
-	double xmax=-numeric_limits<double>::max(), ymax=xmax;
-	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi) {
-		double x=rs[*vi]->getCentreX(), y=rs[*vi]->getCentreY();
+	double xmin=DBL_MAX, ymin=xmin;
+	double xmax=-DBL_MAX, ymax=xmax;
+	for (unsigned i=0;i<rs.size();i++) {
+		double x=rs[i]->getCentreX(), y=rs[i]->getCentreY();
 		xmin=min(xmin,x);
 		ymin=min(ymin,y);
 		xmax=max(xmax,x);
@@ -30,31 +28,32 @@ void output_svg(Graph g, vector<Rectangle*>& rs, char *fname, bool rects) {
 	height=ymax-ymin;
 	f<<"<svg xmlns=\"http://www.w3.org/2000/svg\" width=\""<<width<<"\" height=\""<<height<<"\" viewBox = \""
 	 <<xmin<<" "<<ymin<<" "<<width<<" "<<height<<"\">"<<endl;
-    	for (tie(ei, ei_end) = edges(g); ei != ei_end; ++ei) {
-		Vertex u = index[source(*ei, g)];
-		Vertex v = index[target(*ei, g)];
+    	for (unsigned i=0;i<es.size();i++) {
+		unsigned u = es[i].first;
+		unsigned v = es[i].second;
 		f<<"<line x1=\""<<rs[u]->getCentreX()
 		 <<"\" y1=\""<<rs[u]->getCentreY()
 		 <<"\" x2=\""<<rs[v]->getCentreX()
 		 <<"\" y2=\""<<rs[v]->getCentreY()
 		 <<"\" style=\"stroke:rgb(99,99,99);stroke-width:2\"/>"<<endl;
 	}
-	for (tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi) {
-		f<<"<g id=\"node"<<*vi<<"\" class=\"node\"><title>"<<*vi<<"</title>"<<endl;
+	for (unsigned i=0;i<rs.size();i++) {
+		f<<"<g id=\"node"<<i
+		 <<"\" class=\"node\"><title>"<<i<<"</title>"<<endl;
 		if(!rects) {
-			f<<"<ellipse cx=\""<<rs[*vi]->getCentreX()
-			 <<"\" cy=\""<<rs[*vi]->getCentreY()
+			f<<"<ellipse cx=\""<<rs[i]->getCentreX()
+			 <<"\" cy=\""<<rs[i]->getCentreY()
 			 <<"\" rx=\""<<r<<"\" ry=\""<<r
 			 <<"\" style=\"fill:black;stroke:black;\"/>";
 		} else {
-			f<<"<rect x=\""<<rs[*vi]->getMinX()
-			 <<"\" y=\""<<rs[*vi]->getMinY()
-			 <<"\" width=\""<<rs[*vi]->width()
-			 <<"\" height=\""<<rs[*vi]->height()
+			f<<"<rect x=\""<<rs[i]->getMinX()
+			 <<"\" y=\""<<rs[i]->getMinY()
+			 <<"\" width=\""<<rs[i]->width()
+			 <<"\" height=\""<<rs[i]->height()
 			 <<"\" style=\"fill:white;stroke:black;\"/>";
-			f<<"<text x=\""<<(rs[*vi]->getCentreX()-3)
-			 <<"\" y=\""<<(rs[*vi]->getCentreY()+5)
-			 <<"\">"<<*vi
+			f<<"<text x=\""<<(rs[i]->getCentreX()-3)
+			 <<"\" y=\""<<(rs[i]->getCentreY()+5)
+			 <<"\">"<<i
 			 <<"</text>"<<endl;
 
 		}

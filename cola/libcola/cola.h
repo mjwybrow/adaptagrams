@@ -1,43 +1,28 @@
 #ifndef COLA_H
 #define COLA_H
 
-#include <boost/graph/graph_traits.hpp>
-#include <boost/graph/johnson_all_pairs_shortest.hpp>
-#include <boost/graph/kamada_kawai_spring_layout.hpp>
-#include <boost/type_traits/is_convertible.hpp>
 #include <utility>
 #include <iterator>
 #include <vector>
 #include <algorithm>
-#include <boost/limits.hpp>
 #include <cmath>
 #include <iostream>
-//#include "conjugate_gradient.h"
+#include "shortest_paths.h"
 #include "gradient_projection.h"
 #include <generate-constraints.h>
 
-using namespace boost;
-
-namespace cola {
-struct route {
-	double *xs;
-	double *ys;
-	unsigned n;
-};
-}
-// create a typedef for the Graph type
-typedef adjacency_list<vecS, vecS, undirectedS, no_property, 
-	property<edge_weight_t, double,
-      property<edge_index_t, cola::route* > > > Graph;
-typedef property_map<Graph, edge_weight_t>::type WeightMap;
-typedef graph_traits<Graph>::vertex_descriptor Vertex;
-typedef property_map<Graph, vertex_index_t>::type IndexMap;
-typedef property_map<Graph, edge_index_t>::type EdgeRouteMap;
 
 typedef vector<unsigned> Cluster;
 typedef vector<Cluster*> Clusters;
 
 namespace cola {
+    typedef pair<unsigned, unsigned> Edge;
+
+    struct route {
+        double *xs;
+        double *ys;
+        unsigned n;
+    };
     // defines references to three variables for which the goal function
     // will be altered to prefer points u-b-v are in a linear arrangement
     // such that b is placed at u+t(v-u).
@@ -78,19 +63,18 @@ namespace cola {
     };
     typedef vector<LinearConstraint*> LinearConstraints;
 	
-	template <typename T>
-	class layout_tolerance {
+	class TestConvergence {
     public:
-        T old_stress;
-		layout_tolerance(const T& tolerance = T(0.001), const unsigned maxiterations = 1000)
-			: old_stress((std::numeric_limits<T>::max)()),
+        double old_stress;
+		TestConvergence(const double& tolerance = 0.001, const unsigned maxiterations = 1000)
+			: old_stress(DBL_MAX),
               tolerance(tolerance),
               maxiterations(maxiterations),
               iterations(0) { }
 
-		bool operator()(T new_stress, const Graph& g, double* X, double* Y) {
+		virtual bool operator()(double new_stress, double* X, double* Y) {
             //std::cout<<"iteration="<<iterations<<", new_stress="<<new_stress<<std::endl;
-			if (old_stress == (std::numeric_limits<T>::max)()) {
+			if (old_stress == DBL_MAX) {
 				old_stress = new_stress;
                 if(++iterations>=maxiterations) {;
                     return true;
@@ -105,25 +89,22 @@ namespace cola {
 			return converged;
 		}
   	private:
-        T tolerance;
+        double tolerance;
         unsigned maxiterations;
         unsigned iterations;
   	};
-	template <typename EdgeOrSideLength, typename Done >
-	class constrained_majorization_layout_impl {
+	class ConstrainedMajorizationLayout {
     public:
-		constrained_majorization_layout_impl(
-				const Graph& g, 
+		ConstrainedMajorizationLayout(
                 vector<Rectangle*>& rs,
-				WeightMap& weight,
-				EdgeOrSideLength edge_or_side_length,
-				Done done)
+                vector<Edge>& es,
+				double* eweights,
+                double maxLength,
+				TestConvergence& done)
 			: constrainedLayout(false),
-              g(g), n(num_vertices(g)),
+              n(rs.size()),
               lapSize(n), lap2(new double*[lapSize]), Q(lap2), Dij(new double*[lapSize]),
               tol(0.0001),
-			  weight(weight), 
-			  edge_or_side_length(edge_or_side_length), 
               done(done),
               X(new double[n]),
               Y(new double[n]),
@@ -134,49 +115,34 @@ namespace cola {
               gpX(NULL),
               gpY(NULL)
         {
-            typedef typename property_traits<WeightMap>::value_type weight_type;
-            vec_adj_list_vertex_id_map<no_property, unsigned int> index = get(vertex_index,g);
-            typedef std::vector<weight_type> weight_vec;
-            std::vector<weight_vec> distance(n,weight_vec(n));
             assert(rs.size()==n);
             boundingBoxes = new Rectangle*[rs.size()];
             copy(rs.begin(),rs.end(),boundingBoxes);
 
-            if (!johnson_all_pairs_shortest_paths(g, distance, index, weight, weight_type(0))) {
-                cerr << "All pairs shortest paths computation returned false!" << endl;
-                return;
+            double** D=new double*[n];
+            for(unsigned i=0;i<n;i++) {
+                D[i]=new double[n];
             }
-            edge_length = detail::graph::compute_edge_length(g, distance, index,
-                                             edge_or_side_length);
+            shortest_paths::johnsons(n,D,es,eweights);
+            edge_length = maxLength;
             // Lij_{i!=j}=1/(Dij^2)
             //
             for(unsigned i = 0; i<n; i++) {
                 X[i]=rs[i]->getCentreX();
                 Y[i]=rs[i]->getCentreY();
-                weight_type degree = weight_type(0);
+                double degree = 0;
                 lap2[i]=new double[n];
                 Dij[i]=new double[n];
                 for(unsigned j=0;j<n;j++) {
-                    weight_type w = edge_length * distance[i][j];
+                    double w = edge_length * D[i][j];
                     Dij[i][j]=w;
                     if(i==j) continue;
-                    degree+=lap2[i][j]=w>1e-30?weight_type(1)/(w*w):0;
+                    degree+=lap2[i][j]=w>1e-30?1.f/(w*w):0;
                 }
                 lap2[i][i]=-degree;
+                delete D[i];
             }
-        }
-		~constrained_majorization_layout_impl() {
-            for(unsigned i=0;i<n;i++) {
-                delete [] lap2[i];
-                delete [] Dij[i];
-            }
-            delete [] lap2;
-            delete [] Dij;
-            delete [] boundingBoxes;
-            if(gpX!=NULL) delete gpX;
-            if(gpY!=NULL) delete gpY;
-            delete [] X;
-            delete [] Y;
+            delete [] D;
         }
 
         void moveBoundingBoxes() {
@@ -195,11 +161,12 @@ namespace cola {
                 SimpleConstraints* scy = NULL,
                 Clusters* cs = NULL);
 
-        void addLinearConstraints(LinearConstraints* linearConstraints, vector<Rectangle*>& dim = NULL);
+        void addLinearConstraints(LinearConstraints* linearConstraints,
+               vector<Rectangle*>& rs);
 
         void setupDummyVars();
 
-        ~constrained_majorization_layout_impl() {
+        ~ConstrainedMajorizationLayout() {
             if(boundingBoxes) {
                 for(unsigned i = 0; i < n; i++) {
                     delete boundingBoxes[i];
@@ -210,7 +177,12 @@ namespace cola {
                 delete gpX;
                 delete gpY;
             }
+            for(unsigned i=0;i<n;i++) {
+                delete [] lap2[i];
+                delete [] Dij[i];
+            }
             delete [] lap2;
+            delete [] Dij;
             delete [] X;
             delete [] Y;
         }
@@ -229,16 +201,13 @@ namespace cola {
         }
         double compute_stress(double **Dij);
         void majlayout(double** Dij,GradientProjection* gp, double* coords);
-		const Graph& g;
         unsigned n; // is lapSize + dummyVars
         unsigned lapSize; // lapSize is the number of variables for actual nodes
         double** lap2; // graph laplacian
         double** Q; // quadratic terms matrix used in computations
         double** Dij;
         double tol;
-		WeightMap weight;
-		EdgeOrSideLength edge_or_side_length;
-		Done done;
+		TestConvergence& done;
         Rectangle** boundingBoxes;
         double *X, *Y;
         Clusters* clusters;
@@ -249,6 +218,5 @@ namespace cola {
         GradientProjection *gpX, *gpY;
 	};
 }
-#include "cola.cpp"
 #endif				// COLA_H
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4

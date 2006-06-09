@@ -51,7 +51,7 @@ main()
       property< edge_weight_t, double, property< edge_weight2_t, double > > > Graph;
     Graph g;
 #endif
-    unsigned V = 400;
+    unsigned V = 100;
     vector<shortest_paths::Edge> es = random_graph(V);
     unsigned E=es.size();
     cout << "  Test graph |V|="<<V<<",|E|="<<E<<endl;
