@@ -9,6 +9,14 @@
  *
  * Released under GNU LGPL.  Read the file 'COPYING' for more information.
  */
+
+//
+// TODO: Really, we should have three classes: VPSC, IncrementalVPSC and
+// StaticVPSC, where the latter two inherit from VPSC.  StaticVPSC would be
+// the equivalent of what is currently VPSC.
+// Also, a lot of the code specific to one or other of these concrete
+// implementations should be moved from Block and Blocks: e.g. mergeLeft etc.
+//
 #ifndef SEEN_REMOVEOVERLAP_SOLVE_VPSC_H
 #define SEEN_REMOVEOVERLAP_SOLVE_VPSC_H
 

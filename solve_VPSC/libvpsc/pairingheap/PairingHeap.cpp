@@ -180,7 +180,7 @@ template <class T>
 void PairingHeap<T>::decreaseKey( PairNode<T> *p,
 										  const T & newVal )
 {
-	if( p->element < newVal )
+	if( lessThan(p->element,newVal) )
 		return;    // newVal cannot be bigger
 	p->element = newVal;
 	if( p != root )

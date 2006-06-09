@@ -83,6 +83,11 @@ public:
 	PairNode<T> *insert( const T & x );
 	const T & findMin( ) const;
 	void deleteMin( );
+	const T extractMin( ) {
+		T v = findMin();
+		deleteMin();
+		return v;
+	}
 	void makeEmpty( );
 	void decreaseKey( PairNode<T> *p, const T & newVal );
 	void merge( PairingHeap<T> *rhs )
