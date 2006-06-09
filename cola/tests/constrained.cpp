@@ -10,59 +10,49 @@
 * Released under GNU GPL.  Read the file 'COPYING' for more information.
 */
 #include <iostream>
-#include <fstream>
 
 #include <cola.h>
-#include <boost/graph/circle_layout.hpp>
-#include <boost/graph/kamada_kawai_spring_layout.hpp>
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/graphviz.hpp>
-#include <map>
 #include <vector>
 #include <algorithm>
 #include <float.h>
-#include <iomanip>
 #include "graphlayouttest.h"
 
-using namespace boost;
 using namespace std;
-
+using namespace cola;
 /** 
 * \brief Determines when to terminate layout of a particular graph based
 * on a given relative tolerance. 
 */
 int main() {
 
-	const int V = 2;
-	typedef std::pair < int, int >Edge;
+	const int V = 4;
+	typedef pair < unsigned, unsigned >Edge;
 	Edge edge_array[] = { Edge(0, 1), Edge(1, 2), Edge(2, 3), Edge(1, 3) };
-	const std::size_t E = sizeof(edge_array) / sizeof(Edge);
-	Graph g(edge_array, edge_array + E, V);
-	WeightMap weightmap=get(edge_weight, g);
-	graph_traits < Graph >::edge_iterator ei, ei_end;
-	for (boost::tie(ei, ei_end) = edges(g); ei != ei_end; ++ei) weightmap[*ei] = 1.0;
+	unsigned E = sizeof(edge_array) / sizeof(Edge);
+	double eweights[E];
+	fill(eweights,eweights+E,1);
+	vector<Edge> es(E);
+	copy(edge_array,edge_array+E,es.begin());
 	double width=100;
 	double height=100;
 	vector<Rectangle*> rs;
-	for(unsigned i=0;i<num_vertices(g);i++) {
+	for(unsigned i=0;i<V;i++) {
 		double x=getRand(width), y=getRand(height);
 		rs.push_back(new Rectangle(x,x+5,y,y+5));
 	}
-  	write_graphviz(cout, g);
-
+	ConstrainedMajorizationLayout alg(rs,es,eweights,width/2);
 	AlignmentConstraints acsx;
 	AlignmentConstraint ac(1);
 	acsx.push_back(&ac);
 	ac.offsets.push_back(make_pair((unsigned)0,(double)0));
 	ac.offsets.push_back(make_pair((unsigned)3,(double)0));
 
-	ConstrainedMajLayout alg(g,rs,weightmap,side_length(width),cola::layout_tolerance<double>(0.0001,100));
 	alg.setupConstraints(&acsx,NULL,false);
 	alg.run();
 	assert(fabs(rs[0]->getCentreX()-rs[3]->getCentreX())<0.001);
 	cout<<rs[0]->getCentreX()<<","<<rs[3]->getCentreX()<<endl;
-	output_svg(g,rs,"constrained.svg");
-	for(unsigned i=0;i<num_vertices(g);i++) {
+	output_svg(rs,es,"constrained.svg");
+	for(unsigned i=0;i<V;i++) {
 		delete rs[i];
 	}
 }
