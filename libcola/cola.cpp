@@ -1,5 +1,5 @@
+#include "cola.h"
 #include "conjugate_gradient.h"
-#include "generate-constraints.h"
 
 namespace cola {
 
@@ -12,9 +12,8 @@ inline double dummy_var_euclidean_dist(GradientProjection* gpx, GradientProjecti
     return sqrt(dx*dx + dy*dy);
 }
 
-template <typename EdgeOrSideLength, typename Done >
 void 
-constrained_majorization_layout_impl<EdgeOrSideLength, Done >
+ConstrainedMajorizationLayout
 ::setupDummyVars() {
     double* coords[2]={X,Y};
     GradientProjection* gp[2]={gpX,gpY};
@@ -49,10 +48,7 @@ constrained_majorization_layout_impl<EdgeOrSideLength, Done >
         }
     }
 }
-template <typename EdgeOrSideLength, typename Done >
-void constrained_majorization_layout_impl<
- EdgeOrSideLength, Done >
-::majlayout(
+void ConstrainedMajorizationLayout::majlayout(
         double** Dij, GradientProjection* gp, double* coords) 
 {
     double b[n];
@@ -85,8 +81,7 @@ void constrained_majorization_layout_impl<
         conjugate_gradient(lap2, coords, b, n, tol, n, true);
     }
 }
-template <typename EdgeOrSideLength, typename Done >
-inline double constrained_majorization_layout_impl<EdgeOrSideLength, Done >
+inline double ConstrainedMajorizationLayout
 ::compute_stress(double **Dij) {
     double sum = 0, d, diff;
     for (unsigned i = 1; i < lapSize; i++) {
@@ -103,8 +98,7 @@ inline double constrained_majorization_layout_impl<EdgeOrSideLength, Done >
     }
     return sum;
 }
-template <typename EdgeOrSideLength, typename Done >
-void constrained_majorization_layout_impl<EdgeOrSideLength, Done >
+void ConstrainedMajorizationLayout
 ::addLinearConstraints(LinearConstraints* linearConstraints, vector<Rectangle*>& rs) {
     n=lapSize+linearConstraints->size();
     Q=new double*[n];
@@ -139,9 +133,7 @@ void constrained_majorization_layout_impl<EdgeOrSideLength, Done >
     }
 }
 
-template <typename EdgeOrSideLength, typename Done >
-bool constrained_majorization_layout_impl<EdgeOrSideLength, Done >
-::run() {
+bool ConstrainedMajorizationLayout ::run() {
     /*
     for(unsigned i=0;i<n;i++) {
         for(unsigned j=0;j<n;j++) {
@@ -154,14 +146,13 @@ bool constrained_majorization_layout_impl<EdgeOrSideLength, Done >
         /* Axis-by-axis optimization: */
         if(layoutXAxis) majlayout(Dij,gpX,X);
         if(layoutYAxis) majlayout(Dij,gpY,Y);
-    } while(!done(compute_stress(Dij),g,X,Y));
+    } while(!done(compute_stress(Dij),X,Y));
     for(unsigned i = 0; i<n; i++) {
         moveBoundingBoxes();
     }
     return true;
 }
-template <typename EdgeOrSideLength, typename Done >
-void constrained_majorization_layout_impl<EdgeOrSideLength, Done >
+void ConstrainedMajorizationLayout
 ::setupConstraints(
         AlignmentConstraints* acsx, AlignmentConstraints* acsy,
         bool avoidOverlaps, 
