@@ -45,7 +45,7 @@ unsigned GradientProjection::solve(double * b) {
     IncVPSC* vpsc=NULL;
 
     vpsc = setupVPSC();
-    cerr << "in gradient projection: n=" << n << endl;
+    //cerr << "in gradient projection: n=" << n << endl;
     for (i=0;i<n;i++) {
         assert(!isnan(place[i]));
         assert(!isinf(place[i]));
