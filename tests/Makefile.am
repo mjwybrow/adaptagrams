@@ -1,6 +1,5 @@
 INCLUDES = -I$(top_srcdir)/libcola -I/home/dwyer/devel/solve_VPSC/libvpsc
-#check_PROGRAMS = unconstrained constrained containment straightener shortest_paths
-check_PROGRAMS = unconstrained constrained
+check_PROGRAMS = unconstrained constrained containment straightener shortest_paths
 shortest_paths_SOURCES = shortest_paths.cpp
 shortest_paths_LDADD = $(top_srcdir)/libcola/libcola.a
 unconstrained_SOURCES = unconstrained.cpp graphlayouttest.cpp
