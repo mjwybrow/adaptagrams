@@ -1,5 +1,6 @@
 #include "cola.h"
 #include "conjugate_gradient.h"
+#include "straightener.h"
 
 namespace cola {
 
@@ -152,8 +153,24 @@ bool ConstrainedMajorizationLayout ::run() {
     }
     return true;
 }
-void ConstrainedMajorizationLayout
-::setupConstraints(
+void ConstrainedMajorizationLayout::setRoutes(vector<Edge>& es,vector<Route*>& routes) {
+    vector<straightener::Node*> nodes;
+    for (unsigned i=0;i<n;i++) {
+        nodes.push_back(new straightener::Node(i,boundingBoxes[i]));
+    }
+    vector<straightener::Edge*> edges;
+    for( unsigned i=0;i<routes.size();i++) {
+        edges.push_back(new straightener::Edge(i,es[i].first,es[i].second,
+                    routes[i]->n,routes[i]->xs,routes[i]->ys));
+    }
+    SimpleConstraints cs;
+    straightener::generateConstraints(nodes,edges,cs,true);
+    cout << "Constraints: " << endl;
+    for(unsigned i=0;i<cs.size();i++) {
+        cout << "  v" << cs[i]->left << " + " << cs[i]->gap << " <= v" << cs[i]->right << endl; 
+    }
+}
+void ConstrainedMajorizationLayout::setupConstraints(
         AlignmentConstraints* acsx, AlignmentConstraints* acsy,
         bool avoidOverlaps, 
         PageBoundaryConstraints* pbcx, PageBoundaryConstraints* pbcy,
