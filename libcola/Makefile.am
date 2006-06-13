@@ -9,9 +9,12 @@ libcola_a_SOURCES = cola.h\
 	gradient_projection.cpp\
 	gradient_projection.h\
 	shortest_paths.cpp\
-	shortest_paths.h
+	shortest_paths.h\
+	straightener.h\
+	straightener.cpp
 
 include_HEADERS = cola.h
 	conjugate_gradient.h\
 	gradient_projection.h\
-	shortest_paths.h
+	shortest_paths.h\
+	straightener.h

@@ -18,7 +18,8 @@ typedef vector<Cluster*> Clusters;
 namespace cola {
     typedef pair<unsigned, unsigned> Edge;
 
-    struct route {
+    struct Route {
+        Route(unsigned n) : n(n), xs(new double[n]), ys(new double[n]) {}
         double *xs;
         double *ys;
         unsigned n;
@@ -152,6 +153,8 @@ namespace cola {
                 boundingBoxes[i]->moveCentreY(Y[i]);
             }
         }
+
+        void setRoutes(vector<Edge>& edges, vector<Route*>& routes);
 
         void setupConstraints(
                 AlignmentConstraints* acsx, AlignmentConstraints* acsy,
