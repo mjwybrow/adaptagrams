@@ -7,18 +7,27 @@
 #include <set>
 #include <generate-constraints.h>
 #include "gradient_projection.h"
-#include <cola.h>
 namespace straightener {
+    struct Route {
+        Route(unsigned n) : n(n), xs(new double[n]), ys(new double[n]) {}
+        ~Route() {
+            delete [] xs;
+            delete [] ys;
+        }
+        double *xs;
+        double *ys;
+        unsigned n;
+    };
     class Node;
     struct Edge {
         unsigned id;
         unsigned openInd; // position in openEdges
         unsigned startNode, endNode;
-        cola::Route* route;
+        Route* route;
         double xmin, xmax, ymin, ymax;
         vector<unsigned> dummyNodes;
         vector<unsigned> path;
-        Edge(unsigned id, unsigned start, unsigned end, unsigned pts, Route* route)
+        Edge(unsigned id, unsigned start, unsigned end, Route* route)
         : id(id), startNode(start), endNode(end), route(route),
           xmin(DBL_MAX), xmax(-DBL_MAX), ymin(DBL_MAX), ymax(-DBL_MAX) 
         {
@@ -30,8 +39,11 @@ namespace straightener {
             }	
         }
         ~Edge() {
-            delete [] xroute;
-            delete [] yroute;
+            delete route;
+        }
+        void setRoute(Route* r) {
+            delete route;
+            route=r;
         }
         bool isEnd(unsigned n) {
             if(startNode==n||endNode==n) return true;

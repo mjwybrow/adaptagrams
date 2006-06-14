@@ -7,21 +7,21 @@ using namespace cola;
 
 void output_svg(vector<Rectangle*>& rs, vector<Edge>& es, char *fname, bool rects) {
 	unsigned E=es.size();
-	vector<Route*> routes(E);
+	vector<straightener::Edge*> routes(E);
 	for(unsigned i=0;i<E;i++) {
-		Route* r=new Route(2);
+		straightener::Route* r=new straightener::Route(2);
 		r->xs[0]=rs[es[i].first]->getCentreX();
 		r->ys[0]=rs[es[i].first]->getCentreY();
 		r->xs[1]=rs[es[i].second]->getCentreX();
 		r->ys[1]=rs[es[i].second]->getCentreY();
-		routes[i]=r;
+		routes[i]=new straightener::Edge(i,es[i].first,es[i].second,r);
 	}
 	output_svg(rs,routes,fname,rects);
 	for(unsigned i=0;i<E;i++) {
 		delete routes[i];
 	}
 }
-void output_svg(vector<Rectangle*>& rs, vector<Route*>& es, char *fname, bool rects) {
+void output_svg(vector<Rectangle*>& rs, vector<straightener::Edge*>& es, char *fname, bool rects) {
 	double width, height;
 	ofstream f(fname);
 	f.setf(ios::fixed);
@@ -45,11 +45,11 @@ void output_svg(vector<Rectangle*>& rs, vector<Route*>& es, char *fname, bool re
 	f<<"<svg xmlns=\"http://www.w3.org/2000/svg\" width=\""<<width<<"\" height=\""<<height<<"\" viewBox = \""
 	 <<xmin<<" "<<ymin<<" "<<width<<" "<<height<<"\">"<<endl;
     	for (unsigned i=0;i<es.size();i++) {
-		for (unsigned j=1;j<es[i]->n;j++) {
-			f<<"<line x1=\""<<es[i]->xs[j-1]
-			 <<"\" y1=\""<<es[i]->ys[j-1]
-			 <<"\" x2=\""<<es[i]->xs[j]
-			 <<"\" y2=\""<<es[i]->ys[j]
+		for (unsigned j=1;j<es[i]->route->n;j++) {
+			f<<"<line x1=\""<<es[i]->route->xs[j-1]
+			 <<"\" y1=\""<<es[i]->route->ys[j-1]
+			 <<"\" x2=\""<<es[i]->route->xs[j]
+			 <<"\" y2=\""<<es[i]->route->ys[j]
 			 <<"\" style=\"stroke:rgb(99,99,99);stroke-width:2\"/>"<<endl;
 		}
 	}
