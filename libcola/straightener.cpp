@@ -229,7 +229,7 @@ namespace straightener {
             Node *v=e->v;
             if(v!=NULL) {
                 v->open = true;
-                //printf("NEvent@%f,nid=%d,(%f,%f),w=%f,h=%f,openn=%d,opene=%d\n",e->pos,v->id,v->x,v->y,v->width,v->height,openNodes.size(),openEdges.size());
+                printf("NEvent@%f,nid=%d,(%f,%f),w=%f,h=%f,openn=%d,opene=%d\n",e->pos,v->id,v->x,v->y,v->width,v->height,openNodes.size(),openEdges.size());
                 Node *l=NULL, *r=NULL;
                 if(!openNodes.empty()) {
                     // it points to the first node to the right of v
@@ -246,12 +246,12 @@ namespace straightener {
                 }
                 vector<Node*> L;
                 sortNeighbours(v,l,r,e->pos,openEdges,L,nodes,horizontal);
-                /*printf("L=[");
+                printf("L=[");
                 for(unsigned i=0;i<L.size();i++) {
                     printf("%d ",L[i]->id);
                 }
                 printf("]\n");
-                */
+                
                 // Case A: create constraints between adjacent edges skipping edges joined
                 // to l,v or r.
                 Node* lastNode=NULL;
@@ -260,9 +260,10 @@ namespace straightener {
                         // node is on an edge
                         Edge *edge=(*i)->edge;
                         if(!edge->isEnd(v->id)
-                                &&l!=NULL&&!edge->isEnd(l->id)
-                                &&r!=NULL&&!edge->isEnd(r->id)) {
+                                &&(l!=NULL&&!edge->isEnd(l->id)||l==NULL)
+                                &&(r!=NULL&&!edge->isEnd(r->id)||r==NULL)) {
                             if(lastNode!=NULL) {
+                                printf("  Rule A: Constraint: v%d +g <= v%d\n",lastNode->id,(*i)->id);
                                 cs.push_back(createConstraint(lastNode,*i,horizontal));
                             }
                             lastNode=*i;
@@ -285,6 +286,7 @@ namespace straightener {
                             } else {
                                 for(vector<Node*>::iterator j=skipList.begin();
                                         j!=skipList.end();j++) {
+                                    printf("  Rule B: Constraint: v%d +g <= v%d\n",(*j)->id,(*i)->id);
                                     cs.push_back(createConstraint(*j,*i,horizontal));
                                 }
                                 skipList.clear();
@@ -309,6 +311,7 @@ namespace straightener {
                             } else {
                                 for(vector<Node*>::iterator j=skipList.begin();
                                         j!=skipList.end();j++) {
+                                    printf("  Rule C: Constraint: v%d +g <= v%d\n",(*i)->id,(*j)->id);
                                     cs.push_back(createConstraint(*i,*j,horizontal));
                                 }
                                 skipList.clear();
@@ -330,7 +333,7 @@ namespace straightener {
                 if(v!=NULL) {
                     openNodes.insert(v);
                 } else {
-                    //printf("EdgeOpen@%f,eid=%d,(u,v)=(%d,%d)\n", e->pos,e->e->id,e->e->startNode,e->e->endNode);
+                    printf("EdgeOpen@%f,eid=%d,(u,v)=(%d,%d)\n", e->pos,e->e->id,e->e->startNode,e->e->endNode);
                     e->e->openInd=openEdges.size();
                     openEdges.push_back(e->e);
                 }
