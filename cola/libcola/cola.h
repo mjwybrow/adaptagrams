@@ -19,16 +19,6 @@ typedef vector<Cluster*> Clusters;
 namespace cola {
     typedef pair<unsigned, unsigned> Edge;
 
-    struct Route {
-        Route(unsigned n) : n(n), xs(new double[n]), ys(new double[n]) {}
-        ~Route() {
-            delete [] xs;
-            delete [] ys;
-        }
-        double *xs;
-        double *ys;
-        unsigned n;
-    };
     // defines references to three variables for which the goal function
     // will be altered to prefer points u-b-v are in a linear arrangement
     // such that b is placed at u+t(v-u).

@@ -66,16 +66,16 @@ namespace straightener {
         //printf("Edge::nodePath: (%d,%d) dummyNodes:%d\n",startNode,endNode,ds.size());
         path.clear();
         path.push_back(startNode);
-        for(unsigned i=1;i<pts;i++) {
+        for(unsigned i=1;i<route->n;i++) {
             //printf("  checking segment %d-%d\n",i-1,i);
             set<pair<double,unsigned> > pntsOnLineSegment;
             for(list<unsigned>::iterator j=ds.begin();j!=ds.end();) {
                 double px=nodes[*j]->x;
                 double py=nodes[*j]->y;
-                double ax=xroute[i-1];
-                double ay=yroute[i-1];
-                double bx=xroute[i];
-                double by=yroute[i];
+                double ax=route->xs[i-1];
+                double ay=route->ys[i-1];
+                double bx=route->xs[i];
+                double by=route->ys[i];
                 double t;
                 list<unsigned>::iterator copyit=j++;
                 //printf("     px=%f, py=%f, ax=%f, ay=%f, bx=%f, by=%f\n",px,py,ax,ay,bx,by);

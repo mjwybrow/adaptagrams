@@ -34,7 +34,6 @@ void addRect(vector<Rectangle*>& rs, double x, double y) {
 int main() {
 	// Define K5 graph
 	const int V = 5;
-	typedef pair<unsigned,unsigned> Edge;
 	Edge edge_array[] = { Edge(0, 1), Edge(0, 2), Edge(0, 3), Edge(0, 4),
 		Edge(1, 2), Edge(1, 3), Edge(1, 4),
 		Edge(2, 3), Edge(2, 4),
@@ -53,16 +52,17 @@ int main() {
 	addRect(rs,77,248);
 	addRect(rs,125,200);
 
-	vector<Route*> routes(E);
+	vector<straightener::Edge*> routes(E);
 	for(unsigned i=0;i<E;i++) {
-		Route* r=new Route(2);
+		straightener::Route* r=new straightener::Route(2);
 		r->xs[0]=rs[es[i].first]->getCentreX();
 		r->ys[0]=rs[es[i].first]->getCentreY();
 		r->xs[1]=rs[es[i].second]->getCentreX();
 		r->ys[1]=rs[es[i].second]->getCentreY();
-		routes[i]=r;
+		routes[i]=new straightener::Edge(i,es[i].first,es[i].second,
+			    r);
 	}
-	Route *r=new Route(4);
+	straightener::Route *r=new straightener::Route(4);
 	r->xs[0]=rs[2]->getCentreX();
 	r->ys[0]=rs[2]->getCentreY();
 	r->xs[1]=rs[4]->getMaxX();
@@ -71,46 +71,31 @@ int main() {
 	r->ys[2]=rs[4]->getMaxY();
 	r->xs[3]=rs[3]->getCentreX();
 	r->ys[3]=rs[3]->getCentreY();
-	delete routes[7];
-	routes[7]=r;
-	r=new Route(3);
+	routes[7]->setRoute(r);
+	r=new straightener::Route(3);
 	r->xs[0]=rs[1]->getCentreX();
 	r->ys[0]=rs[1]->getCentreY();
 	r->xs[1]=rs[0]->getMinX();
 	r->ys[1]=rs[0]->getMaxY();
 	r->xs[2]=rs[3]->getCentreX();
 	r->ys[2]=rs[3]->getCentreY();
-	delete routes[5];
-	routes[5]=r;
-	r=new Route(3);
+	routes[5]->setRoute(r);
+	r=new straightener::Route(3);
 	r->xs[0]=rs[1]->getCentreX();
 	r->ys[0]=rs[1]->getCentreY();
 	r->xs[1]=rs[0]->getMaxX();
 	r->ys[1]=rs[0]->getMinY();
 	r->xs[2]=rs[4]->getCentreX();
 	r->ys[2]=rs[4]->getCentreY();
-	delete routes[6];
-	routes[6]=r;
+	routes[6]->setRoute(r);
 
 	vector<straightener::Node*> snodes;
-	vector<straightener::Edge*> sedges;
 	for (unsigned i=0;i<V;i++) {
 		snodes.push_back(new straightener::Node(i,rs[i]));
 	}
-	for( unsigned i=0;i<routes.size();i++) {
-		sedges.push_back(new straightener::Edge(i,es[i].first,es[i].second,
-			    routes[i]->n,routes[i]->xs,routes[i]->ys));
-	}
 	ConstrainedMajorizationLayout alg(rs,es,eweights,200);
 	//alg.setupConstraints(&acsx,NULL,false);
-	alg.straightenX(snodes,sedges);
-	for( unsigned i=0;i<routes.size();i++) {
-		routes[i]->n=sedges[i]->pts;
-		//delete [] routes[i]->xs;
-		//delete [] routes[i]->ys;
-		routes[i]->xs=sedges[i]->xroute;
-		routes[i]->ys=sedges[i]->yroute;
-	}
+	alg.straightenX(snodes,routes);
 	output_svg(rs,routes,"straightener.svg",true);
 	for(unsigned i=0;i<V;i++) {
 		delete rs[i];
