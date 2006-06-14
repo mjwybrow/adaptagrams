@@ -17,7 +17,6 @@
 #include <constraint.h>
 #include "gradient_projection.h"
 #include <iostream>
-#include "boost/tuple/tuple.hpp"
 
 using namespace std;
 //#define CONMAJ_LOGGING 1

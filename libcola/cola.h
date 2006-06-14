@@ -10,6 +10,7 @@
 #include "shortest_paths.h"
 #include "gradient_projection.h"
 #include <generate-constraints.h>
+#include <straightener.h>
 
 
 typedef vector<unsigned> Cluster;
@@ -20,6 +21,10 @@ namespace cola {
 
     struct Route {
         Route(unsigned n) : n(n), xs(new double[n]), ys(new double[n]) {}
+        ~Route() {
+            delete [] xs;
+            delete [] ys;
+        }
         double *xs;
         double *ys;
         unsigned n;
@@ -111,8 +116,6 @@ namespace cola {
               X(new double[n]),
               Y(new double[n]),
               clusters(NULL),
-              layoutXAxis(true),
-              layoutYAxis(true),
               linearConstraints(NULL),
               gpX(NULL),
               gpY(NULL)
@@ -142,19 +145,17 @@ namespace cola {
                     degree+=lap2[i][j]=w>1e-30?1.f/(w*w):0;
                 }
                 lap2[i][i]=-degree;
-                delete D[i];
+                delete [] D[i];
             }
             delete [] D;
         }
 
         void moveBoundingBoxes() {
-            for(unsigned i=0;i<n;i++) {
+            for(unsigned i=0;i<lapSize;i++) {
                 boundingBoxes[i]->moveCentreX(X[i]);
                 boundingBoxes[i]->moveCentreY(Y[i]);
             }
         }
-
-        void setRoutes(vector<Edge>& edges, vector<Route*>& routes);
 
         void setupConstraints(
                 AlignmentConstraints* acsx, AlignmentConstraints* acsy,
@@ -165,23 +166,19 @@ namespace cola {
                 SimpleConstraints* scy = NULL,
                 Clusters* cs = NULL);
 
-        void addLinearConstraints(LinearConstraints* linearConstraints,
-               vector<Rectangle*>& rs);
+        void addLinearConstraints(LinearConstraints* linearConstraints);
 
         void setupDummyVars();
 
         ~ConstrainedMajorizationLayout() {
             if(boundingBoxes) {
-                for(unsigned i = 0; i < n; i++) {
-                    delete boundingBoxes[i];
-                }
                 delete [] boundingBoxes;
             }
             if(constrainedLayout) {
                 delete gpX;
                 delete gpY;
             }
-            for(unsigned i=0;i<n;i++) {
+            for(unsigned i=0;i<lapSize;i++) {
                 delete [] lap2[i];
                 delete [] Dij[i];
             }
@@ -191,12 +188,9 @@ namespace cola {
             delete [] Y;
         }
 		bool run();
+        void straightenX(vector<straightener::Node*>&, vector<straightener::Edge*>&);
         bool avoidOverlaps;
         bool constrainedLayout;
-        void setLayoutAxes(bool xAxis, bool yAxis) {
-            layoutXAxis=xAxis;
-            layoutYAxis=yAxis;
-        }
     private:
         double euclidean_distance(unsigned i, unsigned j) {
             return sqrt(
@@ -216,10 +210,10 @@ namespace cola {
         double *X, *Y;
         Clusters* clusters;
         double edge_length;
-        bool layoutXAxis;
-        bool layoutYAxis;
         LinearConstraints *linearConstraints;
         GradientProjection *gpX, *gpY;
+        vector<straightener::Node*> snodes;
+        vector<straightener::Edge*> sedges;
 	};
 }
 #endif				// COLA_H
