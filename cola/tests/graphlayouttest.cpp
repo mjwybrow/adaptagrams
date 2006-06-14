@@ -6,6 +6,22 @@
 using namespace cola;
 
 void output_svg(vector<Rectangle*>& rs, vector<Edge>& es, char *fname, bool rects) {
+	unsigned E=es.size();
+	vector<Route*> routes(E);
+	for(unsigned i=0;i<E;i++) {
+		Route* r=new Route(2);
+		r->xs[0]=rs[es[i].first]->getCentreX();
+		r->ys[0]=rs[es[i].first]->getCentreY();
+		r->xs[1]=rs[es[i].second]->getCentreX();
+		r->ys[1]=rs[es[i].second]->getCentreY();
+		routes[i]=r;
+	}
+	output_svg(rs,routes,fname,rects);
+	for(unsigned i=0;i<E;i++) {
+		delete routes[i];
+	}
+}
+void output_svg(vector<Rectangle*>& rs, vector<Route*>& es, char *fname, bool rects) {
 	double width, height;
 	ofstream f(fname);
 	f.setf(ios::fixed);
@@ -29,13 +45,13 @@ void output_svg(vector<Rectangle*>& rs, vector<Edge>& es, char *fname, bool rect
 	f<<"<svg xmlns=\"http://www.w3.org/2000/svg\" width=\""<<width<<"\" height=\""<<height<<"\" viewBox = \""
 	 <<xmin<<" "<<ymin<<" "<<width<<" "<<height<<"\">"<<endl;
     	for (unsigned i=0;i<es.size();i++) {
-		unsigned u = es[i].first;
-		unsigned v = es[i].second;
-		f<<"<line x1=\""<<rs[u]->getCentreX()
-		 <<"\" y1=\""<<rs[u]->getCentreY()
-		 <<"\" x2=\""<<rs[v]->getCentreX()
-		 <<"\" y2=\""<<rs[v]->getCentreY()
-		 <<"\" style=\"stroke:rgb(99,99,99);stroke-width:2\"/>"<<endl;
+		for (unsigned j=1;j<es[i]->n;j++) {
+			f<<"<line x1=\""<<es[i]->xs[j-1]
+			 <<"\" y1=\""<<es[i]->ys[j-1]
+			 <<"\" x2=\""<<es[i]->xs[j]
+			 <<"\" y2=\""<<es[i]->ys[j]
+			 <<"\" style=\"stroke:rgb(99,99,99);stroke-width:2\"/>"<<endl;
+		}
 	}
 	for (unsigned i=0;i<rs.size();i++) {
 		f<<"<g id=\"node"<<i

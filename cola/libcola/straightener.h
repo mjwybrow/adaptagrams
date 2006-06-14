@@ -7,27 +7,26 @@
 #include <set>
 #include <generate-constraints.h>
 #include "gradient_projection.h"
+#include <cola.h>
 namespace straightener {
-
     class Node;
     struct Edge {
         unsigned id;
         unsigned openInd; // position in openEdges
         unsigned startNode, endNode;
-        unsigned pts;
-        double* xroute, * yroute;
+        cola::Route* route;
         double xmin, xmax, ymin, ymax;
         vector<unsigned> dummyNodes;
         vector<unsigned> path;
-        Edge(unsigned id, unsigned start, unsigned end, unsigned pts, double* xroute, double* yroute)
-        : id(id), startNode(start), endNode(end), pts(pts), xroute(xroute), yroute(yroute),
+        Edge(unsigned id, unsigned start, unsigned end, unsigned pts, Route* route)
+        : id(id), startNode(start), endNode(end), route(route),
           xmin(DBL_MAX), xmax(-DBL_MAX), ymin(DBL_MAX), ymax(-DBL_MAX) 
         {
-            for(unsigned i=0;i<pts;i++) {
-                xmin=min(xmin,xroute[i]);
-                xmax=max(xmax,xroute[i]);
-                ymin=min(ymin,yroute[i]);
-                ymax=max(ymax,yroute[i]);
+            for(unsigned i=0;i<route->n;i++) {
+                xmin=min(xmin,route->xs[i]);
+                xmax=max(xmax,route->ys[i]);
+                ymin=min(ymin,route->xs[i]);
+                ymax=max(ymax,route->ys[i]);
             }	
         }
         ~Edge() {
@@ -39,10 +38,18 @@ namespace straightener {
             return false;
         }
         void nodePath(vector<Node*>& nodes);
+        void createRouteFromPath(double* X, double* Y) {
+            delete route;
+            route=new Route(path.size());
+            for(unsigned i=0;i<path.size();i++) {
+                route->xs[i]=X[path[i]];
+                route->ys[i]=Y[path[i]];
+            }
+        }
         void xpos(double y, vector<double>& xs) {
             // search line segments for intersection points with y pos
-            for(unsigned i=1;i<pts;i++) {
-                double ax=xroute[i-1], bx=xroute[i], ay=yroute[i-1], by=yroute[i];
+            for(unsigned i=1;i<route->n;i++) {
+                double ax=route->xs[i-1], bx=route->xs[i], ay=route->ys[i-1], by=route->ys[i];
                 double r=(y-ay)/(by-ay);
                 // as long as y is between ay and by then r>0
                 if(r>0&&r<=1) {
@@ -52,8 +59,8 @@ namespace straightener {
         }
         void ypos(double x, vector<double>& ys) {
             // search line segments for intersection points with x pos
-            for(unsigned i=1;i<pts;i++) {
-                double ax=xroute[i-1], bx=xroute[i], ay=yroute[i-1], by=yroute[i];
+            for(unsigned i=1;i<route->n;i++) {
+                double ax=route->xs[i-1], bx=route->xs[i], ay=route->ys[i-1], by=route->ys[i];
                 double r=(x-ax)/(bx-ax);
                 // as long as y is between ax and bx then r>0
                 if(r>0&&r<=1) {
