@@ -151,11 +151,17 @@ bool ConstrainedMajorizationLayout ::run() {
     } while(!done(compute_stress(Dij),X,Y));
     return true;
 }
-void ConstrainedMajorizationLayout::straightenX(vector<straightener::Node*>& snodes, vector<straightener::Edge*>& sedges) {
+void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedges, Dim dim) {
+	vector<straightener::Node*> snodes;
+	for (unsigned i=0;i<lapSize;i++) {
+		snodes.push_back(new straightener::Node(i,boundingBoxes[i]));
+	}
     SimpleConstraints cs;
-    straightener::generateConstraints(snodes,sedges,cs,true);
+    straightener::generateConstraints(snodes,sedges,cs,dim);
     n=snodes.size();
     Q=new double*[n];
+    delete [] X;
+    delete [] Y;
     X=new double[n];
     Y=new double[n];
     for(unsigned i = 0; i<n; i++) {
@@ -174,14 +180,19 @@ void ConstrainedMajorizationLayout::straightenX(vector<straightener::Node*>& sno
     for(unsigned i=0;i<sedges.size();i++) {
         sedges[i]->nodePath(snodes);
         vector<unsigned>& path=sedges[i]->path;
+        // take u and v as the ends of the line
+        //unsigned u=path[0];
+        //unsigned v=path[path.size()-1];
         for(unsigned j=1;j<path.size()-1;j++) {
+            // find new u and v for each line segment
             unsigned u=path[j-1];
             unsigned v=path[j+1];
             unsigned b=path[j];
-            double weight=-0.01;
-            linearConstraints.push_back(new cola::LinearConstraint(u,v,b,weight,Y,X)); 
+            double weight=0.01;
+            linearConstraints.push_back(new cola::LinearConstraint(u,v,b,weight,X,Y));
         }
     }
+    cout << "Generated "<<linearConstraints.size()<< " linear constraints"<<endl;
     assert(snodes.size()==lapSize+linearConstraints.size());
     for(LinearConstraints::iterator i=linearConstraints.begin();
            i!= linearConstraints.end();i++) {
@@ -196,17 +207,28 @@ void ConstrainedMajorizationLayout::straightenX(vector<straightener::Node*>& sno
         Q[c->b][c->u]+=c->w*c->dub;
         Q[c->b][c->v]+=c->w*c->dvb;
     }
-    if(gpX) delete gpX;
-	gpX=new GradientProjection(HORIZONTAL,n,Q,X,tol,100,
+	GradientProjection gp(dim,n,Q,dim==HORIZONTAL?X:Y,tol,100,
             (AlignmentConstraints*)NULL,false,(Rectangle**)NULL,(PageBoundaryConstraints*)NULL,&cs);
     constrainedLayout = true;
-    majlayout(Dij,gpX,X);
+    majlayout(Dij,&gp,dim==HORIZONTAL?X:Y);
     for(unsigned i=0;i<sedges.size();i++) {
         sedges[i]->createRouteFromPath(X,Y);
+        sedges[i]->dummyNodes.clear();
+        sedges[i]->path.clear();
     }
-    for(unsigned i=lapSize;i<snodes.size();i++) {
+    for(unsigned i=0;i<cs.size();i++) {
+        delete cs[i];
+    }
+    for(unsigned i=0;i<linearConstraints.size();i++) {
+        delete linearConstraints[i];
+    }
+    for(unsigned i=0;i<snodes.size();i++) {
         delete snodes[i];
     }
+    for(unsigned i = 0; i<n; i++) {
+        delete [] Q[i];
+    }
+    delete [] Q;
     snodes.resize(lapSize);
 }
 

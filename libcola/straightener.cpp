@@ -122,7 +122,7 @@ namespace straightener {
 
     void sortNeighbours(Node* v, Node* l, Node* r, 
             double conjpos, vector<Edge*>& openEdges, 
-            vector<Node*>& L,vector<Node*>& nodes, bool horizontal) {
+            vector<Node*>& L,vector<Node*>& nodes, Dim dim) {
         double minpos=-DBL_MAX, maxpos=DBL_MAX;
         if(l!=NULL) {
             L.push_back(l);
@@ -133,7 +133,7 @@ namespace straightener {
         for(unsigned i=0;i<openEdges.size();i++) {
             Edge *e=openEdges[i];
             vector<double> bs;
-            if(horizontal) {
+            if(dim==HORIZONTAL) {
                 e->xpos(conjpos,bs);
             } else {
                 e->ypos(conjpos,bs);
@@ -147,13 +147,13 @@ namespace straightener {
             double pos=i->first;
             if(pos < minpos) continue;
             if(pos > v->scanpos) break;
-            // if edge is connected to start or end of v or l then skip
+            // if edge is connected (start or end) to v then skip
             // need to record start and end positions of edge segment!
             Edge* e=i->second; 
             if(e->startNode==v->id||e->endNode==v->id) continue;
             //if(l!=NULL&&(e->startNode==l->id||e->endNode==l->id)) continue;
             //cerr << "edge("<<e->startNode<<","<<e->endNode<<",pts="<<e->pts<<")"<<endl;
-            Node* d=horizontal?
+            Node* d=dim==HORIZONTAL?
                 new Node(nodes.size(),pos,conjpos,e):
                 new Node(nodes.size(),conjpos,pos,e);
             L.push_back(d);
@@ -168,13 +168,13 @@ namespace straightener {
             if(i->first < v->scanpos) continue;
             if(i->first > maxpos) break;
             double pos=i->first;
-            // if edge is connected to start or end of v or l then skip
+            // if edge is connected (start or end) to v then skip
             // need to record start and end positions of edge segment!
             Edge* e=i->second; 
             if(e->startNode==v->id||e->endNode==v->id) continue;
             //if(r!=NULL&&(e->startNode==r->id||e->endNode==r->id)) continue;
             //cerr << "edge("<<e->startNode<<","<<e->endNode<<",pts="<<e->pts<<")"<<endl;
-            Node* d=horizontal?
+            Node* d=dim==HORIZONTAL?
                 new Node(nodes.size(),pos,conjpos,e):
                 new Node(nodes.size(),conjpos,pos,e);
             L.push_back(d);
@@ -184,18 +184,19 @@ namespace straightener {
             L.push_back(r);
         }
     }
-    static SimpleConstraint* createConstraint(Node* u, Node* v, bool horizontal) {
-        double g=horizontal?(u->width+v->width):(u->height+v->height);
+    static SimpleConstraint* createConstraint(Node* u, Node* v, Dim dim) {
+        double g=dim==HORIZONTAL?(u->width+v->width):(u->height+v->height);
         g/=2;
         //cerr << "Constraint: "<< u->id << "+"<<g<<"<="<<v->id<<endl;
         return new SimpleConstraint(u->id,v->id,g);
     }
 
-    void generateConstraints(vector<Node*>& nodes, vector<Edge*>& edges,vector<SimpleConstraint*>& cs,bool horizontal) {
+    void generateConstraints(vector<Node*>& nodes, vector<Edge*>& edges,vector<SimpleConstraint*>& cs,Dim dim) {
         unsigned nevents=2*nodes.size()+2*edges.size();
         events=new Event*[nevents];
         unsigned ctr=0;
-        if(horizontal) {
+        if(dim==HORIZONTAL) {
+            cout << "Scanning top to bottom..." << endl;
             for(unsigned i=0;i<nodes.size();i++) {
                 Node *v=nodes[i];
                 v->scanpos=v->x;
@@ -208,6 +209,7 @@ namespace straightener {
                 events[ctr++]=new Event(Close,e,e->ymax+1);
             }
         } else {
+            cout << "Scanning left to right..." << endl;
             for(unsigned i=0;i<nodes.size();i++) {
                 Node *v=nodes[i];
                 v->scanpos=v->y;
@@ -245,7 +247,7 @@ namespace straightener {
                     }
                 }
                 vector<Node*> L;
-                sortNeighbours(v,l,r,e->pos,openEdges,L,nodes,horizontal);
+                sortNeighbours(v,l,r,e->pos,openEdges,L,nodes,dim);
                 printf("L=[");
                 for(unsigned i=0;i<L.size();i++) {
                     printf("%d ",L[i]->id);
@@ -264,7 +266,7 @@ namespace straightener {
                                 &&(r!=NULL&&!edge->isEnd(r->id)||r==NULL)) {
                             if(lastNode!=NULL) {
                                 printf("  Rule A: Constraint: v%d +g <= v%d\n",lastNode->id,(*i)->id);
-                                cs.push_back(createConstraint(lastNode,*i,horizontal));
+                                cs.push_back(createConstraint(lastNode,*i,dim));
                             }
                             lastNode=*i;
                         }
@@ -287,7 +289,7 @@ namespace straightener {
                                 for(vector<Node*>::iterator j=skipList.begin();
                                         j!=skipList.end();j++) {
                                     printf("  Rule B: Constraint: v%d +g <= v%d\n",(*j)->id,(*i)->id);
-                                    cs.push_back(createConstraint(*j,*i,horizontal));
+                                    cs.push_back(createConstraint(*j,*i,dim));
                                 }
                                 skipList.clear();
                             }
@@ -312,7 +314,7 @@ namespace straightener {
                                 for(vector<Node*>::iterator j=skipList.begin();
                                         j!=skipList.end();j++) {
                                     printf("  Rule C: Constraint: v%d +g <= v%d\n",(*i)->id,(*j)->id);
-                                    cs.push_back(createConstraint(*i,*j,horizontal));
+                                    cs.push_back(createConstraint(*i,*j,dim));
                                 }
                                 skipList.clear();
                             }
@@ -325,8 +327,8 @@ namespace straightener {
                     }
                 }
                 if(e->type==Close) {
-                    if(l!=NULL) cs.push_back(createConstraint(l,v,horizontal));
-                    if(r!=NULL) cs.push_back(createConstraint(v,r,horizontal));
+                    if(l!=NULL) cs.push_back(createConstraint(l,v,dim));
+                    if(r!=NULL) cs.push_back(createConstraint(v,r,dim));
                 }
             }
             if(e->type==Open) {

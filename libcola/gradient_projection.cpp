@@ -215,9 +215,9 @@ void GradientProjection::destroyVPSC(IncVPSC *vpsc) {
     unsigned m,n;
     Constraint** cs = vpsc->getConstraints(m);
     const Variable* const* vs = vpsc->getVariables(n);
-    //delete vpsc;
-    //delete [] cs;
-    //delete [] vs;
+    delete vpsc;
+    delete [] cs;
+    delete [] vs;
     for(Constraints::iterator i=lcs.begin();i!=lcs.end();i++) {
             delete *i;
     }

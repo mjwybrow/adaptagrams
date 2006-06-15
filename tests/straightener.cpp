@@ -59,9 +59,9 @@ int main() {
 		r->ys[0]=rs[es[i].first]->getCentreY();
 		r->xs[1]=rs[es[i].second]->getCentreX();
 		r->ys[1]=rs[es[i].second]->getCentreY();
-		routes[i]=new straightener::Edge(i,es[i].first,es[i].second,
-			    r);
+		routes[i]=new straightener::Edge(i,es[i].first,es[i].second,r);
 	}
+	// route edges in a crossing-minimal way
 	straightener::Route *r=new straightener::Route(4);
 	r->xs[0]=rs[2]->getCentreX();
 	r->ys[0]=rs[2]->getCentreY();
@@ -88,16 +88,16 @@ int main() {
 	r->xs[2]=rs[4]->getCentreX();
 	r->ys[2]=rs[4]->getCentreY();
 	routes[6]->setRoute(r);
-
-	vector<straightener::Node*> snodes;
-	for (unsigned i=0;i<V;i++) {
-		snodes.push_back(new straightener::Node(i,rs[i]));
-	}
+	// now straighten the edges
 	ConstrainedMajorizationLayout alg(rs,es,eweights,200);
-	//alg.setupConstraints(&acsx,NULL,false);
-	alg.straightenX(snodes,routes);
-	output_svg(rs,routes,"straightener.svg",true);
+	alg.straighten(routes,HORIZONTAL);
+	output_svg(rs,routes,"straightener-x.svg",true);
+	alg.straighten(routes,VERTICAL);
+	output_svg(rs,routes,"straightener-xy.svg",true);
 	for(unsigned i=0;i<V;i++) {
 		delete rs[i];
+	}
+	for(unsigned i=0;i<E;i++) {
+		delete routes[i];
 	}
 }
