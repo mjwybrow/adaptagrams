@@ -76,7 +76,7 @@ namespace straightener {
                 double ay=route->ys[i-1];
                 double bx=route->xs[i];
                 double by=route->ys[i];
-                double t;
+                double t=0;
                 list<unsigned>::iterator copyit=j++;
                 //printf("     px=%f, py=%f, ax=%f, ay=%f, bx=%f, by=%f\n",px,py,ax,ay,bx,by);
                 if(pointOnLine(px,py,ax,ay,bx,by,t)) {

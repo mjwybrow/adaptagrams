@@ -14,9 +14,9 @@ namespace straightener {
             delete [] xs;
             delete [] ys;
         }
+        unsigned n;
         double *xs;
         double *ys;
-        unsigned n;
     };
     class Node;
     struct Edge {
