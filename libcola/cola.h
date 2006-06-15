@@ -81,6 +81,7 @@ namespace cola {
               tolerance(tolerance),
               maxiterations(maxiterations),
               iterations(0) { }
+        virtual ~TestConvergence() {}
 
 		virtual bool operator()(double new_stress, double* X, double* Y) {
             //std::cout<<"iteration="<<iterations<<", new_stress="<<new_stress<<std::endl;

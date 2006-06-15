@@ -92,7 +92,7 @@ void johnsons(
 {
     Node vs[n];
     dijkstra_init(vs,es,eweights);
-    for(int k=0;k<n;k++) {
+    for(unsigned k=0;k<n;k++) {
         dijkstra(k,n,vs,D[k]);
     }
 }
