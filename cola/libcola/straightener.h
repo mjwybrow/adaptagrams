@@ -51,12 +51,12 @@ namespace straightener {
         }
         void nodePath(vector<Node*>& nodes);
         void createRouteFromPath(double* X, double* Y) {
-            delete route;
-            route=new Route(path.size());
+            Route* r=new Route(path.size());
             for(unsigned i=0;i<path.size();i++) {
-                route->xs[i]=X[path[i]];
-                route->ys[i]=Y[path[i]];
+                r->xs[i]=X[path[i]];
+                r->ys[i]=Y[path[i]];
             }
+            setRoute(r);
         }
         void xpos(double y, vector<double>& xs) {
             // search line segments for intersection points with y pos
@@ -100,7 +100,7 @@ namespace straightener {
     private:
         friend void sortNeighbours(Node* v, Node* l, Node* r, 
             double conjpos, vector<Edge*>& openEdges, 
-            vector<Node*>& L,vector<Node*>& nodes, bool horizontal);
+            vector<Node*>& L,vector<Node*>& nodes, Dim dim);
         Node(unsigned id, double x, double y, Edge* e) : 
             id(id),x(x),y(y), width(4), height(width),
             xmin(x-width/2),xmax(x+width/2),
@@ -121,7 +121,7 @@ namespace straightener {
         }
     };
     typedef std::set<Node*,CmpNodePos> NodeSet;
-    void generateConstraints(vector<Node*>& nodes, vector<Edge*>& edges,vector<SimpleConstraint*>& cs, bool horizontal);
+    void generateConstraints(vector<Node*>& nodes, vector<Edge*>& edges,vector<SimpleConstraint*>& cs, Dim dim);
     void nodePath(Edge& e,vector<Node*>& nodes, vector<unsigned>& path);
 }
 

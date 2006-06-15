@@ -23,18 +23,31 @@ namespace cola {
     // will be altered to prefer points u-b-v are in a linear arrangement
     // such that b is placed at u+t(v-u).
     struct LinearConstraint {
-        LinearConstraint(unsigned u, unsigned v, unsigned b, double w, double* X, double* Y) : u(u),v(v),b(b),w(w) {
-            double numerator=X[b]-X[u];
-            double denominator=X[v]-X[u];
-            if(fabs(denominator)<0.001) {
-                // if line is close to vertical then use Y coords to compute T
-                numerator=Y[b]-Y[u];
-                denominator=Y[v]-Y[u];
+        LinearConstraint(unsigned u, unsigned v, unsigned b, double w, double* X, double* Y) : u(u),v(v),b(b),w(w),tAtProjection(true) {
+            if(tAtProjection) {
+                double uvx = X[v] - X[u],
+                       uvy = Y[v] - Y[u],
+                       vbx = X[b] - X[u],
+                       vby = Y[b] - Y[u];
+                t = uvx * vbx + uvy * vby;
+                t/= uvx * uvx + uvy * uvy;
+                // p is the projection point of b on line uv
+                //double px = scalarProj * uvx + X[u];
+                //double py = scalarProj * uvy + Y[u];
+                // take t=|up|/|uv|
+            } else {
+                double numerator=X[b]-X[u];
+                double denominator=X[v]-X[u];
+                if(fabs(denominator)<0.001) {
+                    // if line is close to vertical then use Y coords to compute T
+                    numerator=Y[b]-Y[u];
+                    denominator=Y[v]-Y[u];
+                }
+                if(fabs(denominator)<0.0001) {
+                    denominator=1;
+                }
+                t=numerator/denominator;
             }
-            if(fabs(denominator)<0.0001) {
-                denominator=1;
-            }
-            t=numerator/denominator;
             duu=(1-t)*(1-t);
             duv=t*(1-t);
             dub=t-1;
@@ -56,6 +69,7 @@ namespace cola {
         double dvv;
         double dvb;
         double dbb;
+        bool tAtProjection;
     };
     typedef vector<LinearConstraint*> LinearConstraints;
 	
@@ -178,7 +192,7 @@ namespace cola {
             delete [] Y;
         }
 		bool run();
-        void straightenX(vector<straightener::Node*>&, vector<straightener::Edge*>&);
+        void straighten(vector<straightener::Edge*>&, Dim);
         bool avoidOverlaps;
         bool constrainedLayout;
     private:
@@ -202,8 +216,6 @@ namespace cola {
         double edge_length;
         LinearConstraints *linearConstraints;
         GradientProjection *gpX, *gpY;
-        vector<straightener::Node*> snodes;
-        vector<straightener::Edge*> sedges;
 	};
 }
 #endif				// COLA_H
