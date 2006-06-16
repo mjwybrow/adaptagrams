@@ -9,6 +9,7 @@
  * Released under GNU LGPL.  Read the file 'COPYING' for more information.
  */
 #include <iostream>
+#include <cassert>
 #include <variable.h>
 #include <constraint.h>
 #include <generate-constraints.h>
