@@ -170,7 +170,8 @@ namespace cola {
                 PageBoundaryConstraints* pbcy = NULL,
                 SimpleConstraints* scx = NULL,
                 SimpleConstraints* scy = NULL,
-                Clusters* cs = NULL);
+                Clusters* cs = NULL,
+                vector<straightener::Edge*>* straightenEdges = NULL);
 
         void addLinearConstraints(LinearConstraints* linearConstraints);
 
@@ -218,6 +219,7 @@ namespace cola {
         double edge_length;
         LinearConstraints *linearConstraints;
         GradientProjection *gpX, *gpY;
+        vector<straightener::Edge*>* straightenEdges;
 	};
 }
 #endif				// COLA_H

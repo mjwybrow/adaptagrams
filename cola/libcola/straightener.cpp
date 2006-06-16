@@ -231,7 +231,7 @@ namespace straightener {
             Node *v=e->v;
             if(v!=NULL) {
                 v->open = true;
-                printf("NEvent@%f,nid=%d,(%f,%f),w=%f,h=%f,openn=%d,opene=%d\n",e->pos,v->id,v->x,v->y,v->width,v->height,openNodes.size(),openEdges.size());
+                printf("NEvent@%f,nid=%d,(%f,%f),w=%f,h=%f,openn=%d,opene=%d\n",e->pos,v->id,v->x,v->y,v->width,v->height,(int)openNodes.size(),(int)openEdges.size());
                 Node *l=NULL, *r=NULL;
                 if(!openNodes.empty()) {
                     // it points to the first node to the right of v
