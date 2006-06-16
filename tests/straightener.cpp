@@ -89,10 +89,13 @@ int main() {
 	r->ys[2]=rs[4]->getCentreY();
 	routes[6]->setRoute(r);
 	// now straighten the edges
-	ConstrainedMajorizationLayout alg(rs,es,eweights,200);
-	alg.straighten(routes,HORIZONTAL);
-	output_svg(rs,routes,"straightener-x.svg",true);
-	alg.straighten(routes,VERTICAL);
+	TestConvergence test(0.0001,1);
+	ConstrainedMajorizationLayout alg(rs,es,eweights,200,test);
+	alg.setupConstraints(NULL,NULL,false,NULL,NULL,NULL,NULL,NULL,&routes);
+	alg.run();
+	//alg.straighten(routes,HORIZONTAL);
+	//output_svg(rs,routes,"straightener-x.svg",true);
+	//alg.straighten(routes,VERTICAL);
 	output_svg(rs,routes,"straightener-xy.svg",true);
 	for(unsigned i=0;i<V;i++) {
 		delete rs[i];

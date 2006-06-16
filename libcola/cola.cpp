@@ -146,8 +146,13 @@ bool ConstrainedMajorizationLayout ::run() {
     */
     do {
         /* Axis-by-axis optimization: */
-        majlayout(Dij,gpX,X);
-        majlayout(Dij,gpY,Y);
+        if(straightenEdges==NULL) {
+            majlayout(Dij,gpX,X);
+            majlayout(Dij,gpY,Y);
+        } else {
+            straighten(*straightenEdges,HORIZONTAL);
+            straighten(*straightenEdges,VERTICAL);
+        }
     } while(!done(compute_stress(Dij),X,Y));
     return true;
 }
@@ -237,7 +242,8 @@ void ConstrainedMajorizationLayout::setupConstraints(
         bool avoidOverlaps, 
         PageBoundaryConstraints* pbcx, PageBoundaryConstraints* pbcy,
         SimpleConstraints* scx, SimpleConstraints* scy,
-        Clusters* cs) {
+        Clusters* cs,
+        vector<straightener::Edge*>* straightenEdges) {
     constrainedLayout = true;
     this->avoidOverlaps = avoidOverlaps;
     if(cs) {
@@ -247,6 +253,7 @@ void ConstrainedMajorizationLayout::setupConstraints(
             HORIZONTAL,n,Q,X,tol,100,acsx,avoidOverlaps,boundingBoxes,pbcx,scx);
 	gpY=new GradientProjection(
             VERTICAL,n,Q,Y,tol,100,acsy,avoidOverlaps,boundingBoxes,pbcy,scy);
+    this->straightenEdges = straightenEdges;
 }
 } // namespace cola
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4
