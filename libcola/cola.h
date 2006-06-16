@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <cassert>
 #include "shortest_paths.h"
 #include "gradient_projection.h"
 #include <generate-constraints.h>
