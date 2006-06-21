@@ -193,11 +193,11 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
             unsigned u=path[j-1];
             unsigned v=path[j+1];
             unsigned b=path[j];
-            double weight=0.01;
+            double weight=-0.01;
             linearConstraints.push_back(new cola::LinearConstraint(u,v,b,weight,X,Y));
         }
     }
-    cout << "Generated "<<linearConstraints.size()<< " linear constraints"<<endl;
+    //cout << "Generated "<<linearConstraints.size()<< " linear constraints"<<endl;
     assert(snodes.size()==lapSize+linearConstraints.size());
     for(LinearConstraints::iterator i=linearConstraints.begin();
            i!= linearConstraints.end();i++) {

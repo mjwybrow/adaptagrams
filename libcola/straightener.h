@@ -33,8 +33,8 @@ namespace straightener {
         {
             for(unsigned i=0;i<route->n;i++) {
                 xmin=min(xmin,route->xs[i]);
-                xmax=max(xmax,route->ys[i]);
-                ymin=min(ymin,route->xs[i]);
+                xmax=max(xmax,route->xs[i]);
+                ymin=min(ymin,route->ys[i]);
                 ymax=max(ymax,route->ys[i]);
             }	
         }
