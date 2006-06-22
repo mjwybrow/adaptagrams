@@ -345,6 +345,7 @@ namespace straightener {
                     openNodes.erase(v);
                     v->open=false;
                 } else {
+                    //printf("EdgeClose@%f,eid=%d,(u,v)=(%d,%d)\n", e->pos,e->e->id,e->e->startNode,e->e->endNode);
                     unsigned i=e->e->openInd;
                     openEdges[i]=openEdges[openEdges.size()-1];
                     openEdges[i]->openInd=i;

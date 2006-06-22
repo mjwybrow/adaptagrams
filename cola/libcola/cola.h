@@ -24,7 +24,16 @@ namespace cola {
     // will be altered to prefer points u-b-v are in a linear arrangement
     // such that b is placed at u+t(v-u).
     struct LinearConstraint {
-        LinearConstraint(unsigned u, unsigned v, unsigned b, double w, double* X, double* Y) : u(u),v(v),b(b),w(w),tAtProjection(true) {
+        LinearConstraint(unsigned u, unsigned v, unsigned b, double w, 
+                double frac_ub, double frac_bv,
+                double* X, double* Y) 
+            : u(u),v(v),b(b),w(w),frac_ub(frac_ub),frac_bv(frac_bv),
+              tAtProjection(true) 
+        {
+            assert(frac_ub<=1.0);
+            assert(frac_bv<=1.0);
+            assert(frac_ub>=0);
+            assert(frac_bv>=0);
             if(tAtProjection) {
                 double uvx = X[v] - X[u],
                        uvy = Y[v] - Y[u],
@@ -70,6 +79,9 @@ namespace cola {
         double dvv;
         double dvb;
         double dbb;
+        // Length of each segment as a fraction of the total edge length
+        double frac_ub;
+        double frac_bv;
         bool tAtProjection;
     };
     typedef vector<LinearConstraint*> LinearConstraints;
@@ -112,11 +124,12 @@ namespace cola {
                 vector<Rectangle*>& rs,
                 vector<Edge>& es,
 				double* eweights,
-                double maxLength,
+                double idealLength,
 				TestConvergence& done=defaultTest)
 			: constrainedLayout(false),
               n(rs.size()),
-              lapSize(n), lap2(new double*[lapSize]), Q(lap2), Dij(new double*[lapSize]),
+              lapSize(n), lap2(new double*[lapSize]), 
+              Q(lap2), Dij(new double*[lapSize]),
               tol(0.0001),
               done(done),
               X(new double[n]),
@@ -135,7 +148,7 @@ namespace cola {
                 D[i]=new double[n];
             }
             shortest_paths::johnsons(n,D,es,eweights);
-            edge_length = maxLength;
+            edge_length = idealLength;
             // Lij_{i!=j}=1/(Dij^2)
             //
             for(unsigned i = 0; i<n; i++) {
@@ -206,6 +219,8 @@ namespace cola {
         }
         double compute_stress(double **Dij);
         void majlayout(double** Dij,GradientProjection* gp, double* coords);
+        void majlayout(double** Dij,GradientProjection* gp, double* coords, 
+                double* b);
         unsigned n; // is lapSize + dummyVars
         unsigned lapSize; // lapSize is the number of variables for actual nodes
         double** lap2; // graph laplacian
