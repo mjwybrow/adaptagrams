@@ -54,12 +54,17 @@ void ConstrainedMajorizationLayout::majlayout(
         double** Dij, GradientProjection* gp, double* coords) 
 {
     double b[n];
+    fill(b,b+n,0);
+    majlayout(Dij,gp,coords,b);
+}
+void ConstrainedMajorizationLayout::majlayout(
+        double** Dij, GradientProjection* gp, double* coords, double* b) 
+{
     double L_ij,dist_ij,degree;
     /* compute the vector b */
     /* multiply on-the-fly with distance-based laplacian */
     for (unsigned i = 0; i < n; i++) {
         degree = 0;
-        b[i] = 0;
         if(i<lapSize) {
             for (unsigned j = 0; j < lapSize; j++) {
                 if (j == i) continue;
@@ -156,6 +161,7 @@ bool ConstrainedMajorizationLayout ::run() {
     } while(!done(compute_stress(Dij),X,Y));
     return true;
 }
+static bool straightenToProjection=true;
 void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedges, Dim dim) {
 	vector<straightener::Node*> snodes;
 	for (unsigned i=0;i<lapSize;i++) {
@@ -188,34 +194,68 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
         // take u and v as the ends of the line
         //unsigned u=path[0];
         //unsigned v=path[path.size()-1];
+        double total_length=0;
+        for(unsigned j=1;j<path.size();j++) {
+            unsigned u=path[j-1], v=path[j];
+            total_length+=euclidean_distance(u,v);
+        }
         for(unsigned j=1;j<path.size()-1;j++) {
             // find new u and v for each line segment
             unsigned u=path[j-1];
-            unsigned v=path[j+1];
             unsigned b=path[j];
+            unsigned v=path[j+1];
             double weight=-0.01;
-            linearConstraints.push_back(new cola::LinearConstraint(u,v,b,weight,X,Y));
+            double wub=euclidean_distance(u,b)/total_length;
+            double wbv=euclidean_distance(b,v)/total_length;
+            linearConstraints.push_back(new cola::LinearConstraint(u,v,b,weight,wub,wbv,X,Y));
         }
     }
     //cout << "Generated "<<linearConstraints.size()<< " linear constraints"<<endl;
     assert(snodes.size()==lapSize+linearConstraints.size());
+    double b[n],*coords=dim==HORIZONTAL?X:Y,dist_ub,dist_bv;
+    fill(b,b+n,0);
     for(LinearConstraints::iterator i=linearConstraints.begin();
            i!= linearConstraints.end();i++) {
         LinearConstraint* c=*i;
-        Q[c->u][c->u]+=c->w*c->duu;
-        Q[c->u][c->v]+=c->w*c->duv;
-        Q[c->u][c->b]+=c->w*c->dub;
-        Q[c->v][c->u]+=c->w*c->duv;
-        Q[c->v][c->v]+=c->w*c->dvv;
-        Q[c->v][c->b]+=c->w*c->dvb;
-        Q[c->b][c->b]+=c->w*c->dbb;
-        Q[c->b][c->u]+=c->w*c->dub;
-        Q[c->b][c->v]+=c->w*c->dvb;
+        if(straightenToProjection) {
+            Q[c->u][c->u]+=c->w*c->duu;
+            Q[c->u][c->v]+=c->w*c->duv;
+            Q[c->u][c->b]+=c->w*c->dub;
+            Q[c->v][c->u]+=c->w*c->duv;
+            Q[c->v][c->v]+=c->w*c->dvv;
+            Q[c->v][c->b]+=c->w*c->dvb;
+            Q[c->b][c->b]+=c->w*c->dbb;
+            Q[c->b][c->u]+=c->w*c->dub;
+            Q[c->b][c->v]+=c->w*c->dvb;
+        } else {
+            double wub=edge_length*c->frac_ub;
+            double wbv=edge_length*c->frac_bv;
+            dist_ub=euclidean_distance(c->u,c->b)*wub;
+            dist_bv=euclidean_distance(c->b,c->v)*wbv;
+            wub=max(wub,0.00001);
+            wbv=max(wbv,0.00001);
+            dist_ub=max(dist_ub,0.00001);
+            dist_bv=max(dist_bv,0.00001);
+            wub=1/(wub*wub);
+            wbv=1/(wbv*wbv);
+            Q[c->u][c->u]-=wub;
+            Q[c->u][c->b]+=wub;
+            Q[c->v][c->v]-=wbv;
+            Q[c->v][c->b]+=wbv;
+            Q[c->b][c->b]-=wbv+wub;
+            Q[c->b][c->u]+=wub;
+            Q[c->b][c->v]+=wbv;
+
+            b[c->u]+=(coords[c->b]-coords[c->u]) / dist_ub;
+            b[c->v]+=(coords[c->b]-coords[c->v]) / dist_bv;
+            b[c->b]+=coords[c->u] / dist_ub + coords[c->v] / dist_bv
+                   - coords[c->b] / dist_ub - coords[c->b] / dist_bv;
+        }
     }
-	GradientProjection gp(dim,n,Q,dim==HORIZONTAL?X:Y,tol,100,
+	GradientProjection gp(dim,n,Q,coords,tol,100,
             (AlignmentConstraints*)NULL,false,(Rectangle**)NULL,(PageBoundaryConstraints*)NULL,&cs);
     constrainedLayout = true;
-    majlayout(Dij,&gp,dim==HORIZONTAL?X:Y);
+    majlayout(Dij,&gp,coords,b);
     for(unsigned i=0;i<sedges.size();i++) {
         sedges[i]->createRouteFromPath(X,Y);
         sedges[i]->dummyNodes.clear();

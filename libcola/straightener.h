@@ -14,6 +14,16 @@ namespace straightener {
             delete [] xs;
             delete [] ys;
         }
+        void boundingBox(double &xmin,double &ymin,double &xmax,double &ymax) {
+            xmin=ymin=DBL_MAX;
+            xmax=ymax=-DBL_MAX;
+            for(unsigned i=0;i<n;i++) {
+                xmin=min(xmin,xs[i]);
+                xmax=max(xmax,xs[i]);
+                ymin=min(ymin,ys[i]);
+                ymax=max(ymax,ys[i]);
+            } 
+        }
         unsigned n;
         double *xs;
         double *ys;
@@ -28,15 +38,9 @@ namespace straightener {
         vector<unsigned> dummyNodes;
         vector<unsigned> path;
         Edge(unsigned id, unsigned start, unsigned end, Route* route)
-        : id(id), startNode(start), endNode(end), route(route),
-          xmin(DBL_MAX), xmax(-DBL_MAX), ymin(DBL_MAX), ymax(-DBL_MAX) 
+        : id(id), startNode(start), endNode(end), route(route)
         {
-            for(unsigned i=0;i<route->n;i++) {
-                xmin=min(xmin,route->xs[i]);
-                xmax=max(xmax,route->xs[i]);
-                ymin=min(ymin,route->ys[i]);
-                ymax=max(ymax,route->ys[i]);
-            }	
+            route->boundingBox(xmin,ymin,xmax,ymax);
         }
         ~Edge() {
             delete route;
@@ -44,6 +48,7 @@ namespace straightener {
         void setRoute(Route* r) {
             delete route;
             route=r;
+            route->boundingBox(xmin,ymin,xmax,ymax);
         }
         bool isEnd(unsigned n) {
             if(startNode==n||endNode==n) return true;
