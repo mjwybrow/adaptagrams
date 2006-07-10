@@ -1,5 +1,5 @@
 #include "cola.h"
-#include "gv_conjugate_gradient.h"
+#include "conjugate_gradient.h"
 #include "straightener.h"
 
 namespace cola {
@@ -83,11 +83,10 @@ void ConstrainedMajorizationLayout::majlayout(
     if(constrainedLayout) {
         setupDummyVars();
         gp->solve(b);
-        moveBoundingBoxes();
     } else {
-        conjugate_gradient(lap2, coords, b, n, tol, n, true);
-        moveBoundingBoxes();
+        conjugate_gradient(lap2, coords, b, n, tol, n, false);
     }
+    moveBoundingBoxes();
 }
 inline double ConstrainedMajorizationLayout
 ::compute_stress(double **Dij) {

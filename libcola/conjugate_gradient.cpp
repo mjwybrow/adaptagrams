@@ -1,6 +1,5 @@
 #include <math.h>
 #include <stdlib.h>
-
 #include <valarray>
 #include "conjugate_gradient.h"
 
@@ -44,12 +43,14 @@ conjugate_gradient(double **A,
 		   double *b, 
 		   int n, 
 		   double tol,
-     		   int max_iterations, 
+           int max_iterations, 
 		   bool ortho1) {
 	valarray<double> vA(n*n);
-	valarray<double> vx(x,n);
-	valarray<double> vb(b,n);
+	valarray<double> vx(n);
+	valarray<double> vb(n);
 	for(unsigned i=0;i<n;i++) {
+		vx[i]=x[i];
+		vb[i]=b[i];
 		for(unsigned j=0;j<n;j++) {
 			vA[i*n+j]=A[i][j];
 		}
@@ -65,7 +66,9 @@ conjugate_gradient(valarray<double> const &A,
 		   valarray<double> const &b, 
 		   unsigned n, double tol,
 		   unsigned max_iterations, bool ortho1) {
-	valarray<double> Ap(n), p(n), r = b;
+    valarray<double> Ax(n), Ap(n), p(n), r(n);
+    matrix_times_vector(A,x,Ax);
+    r=b-Ax; 
 	double r_r = inner(r,r);
 	unsigned k = 0;
 	tol *= tol;
@@ -84,7 +87,8 @@ conjugate_gradient(valarray<double> const &A,
 		r -= alpha_k*Ap;
 		r_r = r_r_new;
 	}
-	printf("njh: %d iters, Linfty = %g L2 = %g\n", k, 
-	       std::max(-r.min(), r.max()), sqrt(r_r));
+	//printf("njh: %d iters, Linfty = %g L2 = %g\n", k, 
+	       //std::max(-r.min(), r.max()), sqrt(r_r));
 	// x is solution
 }
+// vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4

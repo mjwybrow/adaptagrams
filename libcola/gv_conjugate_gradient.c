@@ -1,4 +1,5 @@
 #include "gv_conjugate_gradient.h"
+#include <stdio.h>
 /**********************************
  * This code is adapted from
  * graphviz matrix_ops code,
@@ -103,7 +104,7 @@ void conjugate_gradient
     /* Solves Ax=b using Conjugate-Gradients method */
     /* 'x' and 'b' are orthogonalized against 1 if 'ortho1=true' */
 
-    int i;
+    int i,j;
 
     double alpha, beta, r_r, r_r_new, p_Ap;
     double r[n];
@@ -118,10 +119,20 @@ void conjugate_gradient
         orthog1(n, orth_b);
         orthog1(n, x);
     }
+    /*
+    for(i=0;i<n;i++) {
+        for(j=0;j<n;j++) {
+            printf("%f ",A[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+    */
     right_mult_with_vector_d(A, n, n, x, Ax);
     vectors_subtraction(n, orth_b, Ax, r);
     copy_vector(n, r, p);
     r_r = vectors_inner_product(n, r, r);
+    printf("r_r=%f\n",r_r);
 
     for (i = 0; i < max_iterations && max_abs(n, r) > tol; i++) {
         right_mult_with_vector_d(A, n, n, p, Ap);
