@@ -1,14 +1,24 @@
 #ifndef _CONJUGATE_GRADIENT_H
 #define _CONJUGATE_GRADIENT_H
-#ifdef __cplusplus
-extern "C" {
-#else
-#define bool int
-#endif
-extern void conjugate_gradient
-    (double **A, double *x, double *b, int n, double tol,
-     int max_iterations, bool ortho1);
-#ifdef __cplusplus
-}
-#endif
+
+#include <valarray>
+
+double
+inner(std::valarray<double> const &x, 
+      std::valarray<double> const &y);
+
+void 
+conjugate_gradient(double **A, 
+		   double *x, 
+		   double *b, 
+		   int n, 
+		   double tol,
+     		   int max_iterations, 
+		   bool ortho1);
+void 
+conjugate_gradient(std::valarray<double> const &A, 
+		   std::valarray<double> &x, 
+		   std::valarray<double> const &b, 
+		   unsigned n, double tol,
+		   unsigned max_iterations, bool ortho1);
 #endif // _CONJUGATE_GRADIENT_H
