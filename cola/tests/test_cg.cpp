@@ -21,6 +21,7 @@ double uniform() {
 int
 main (void)
 {
+	double tolerance = 1e-6;
 	for(int iters = 0; iters < 10; iters++) {
 		double A_data[4*4] = {1, 0.2, 0, 0.5,
 				      0.2, 1, 0, 0,
@@ -39,8 +40,8 @@ main (void)
 		std::valarray<double> b(b_data, 4), xx(0.0, 4);
 		std::valarray<double> A(A_data, 16);
 
-	
-		conjugate_gradient(A, xx, b, 4, 1e-6, 10, false);
+		
+		conjugate_gradient(A, xx, b, 4, tolerance, 10, false);
 	
 		gsl_matrix_view m 
 			= gsl_matrix_view_array (A_data, 4, 4);
@@ -57,12 +58,17 @@ main (void)
      
 		gsl_linalg_LU_solve (&m.matrix, p, &bgsl.vector, xgsl);
 
-		printf ("\nxx = ");
-		for(unsigned i = 0; i < xx.size(); i++)
-			printf("%g ", xx[i]);
-		printf ("\nxgsl = ");
-		gsl_vector_fprintf (stdout, xgsl, "%g");
-		printf("\n");
+		double err = 0;
+		for(unsigned i = 0; i < xx.size(); i++) {
+			double tr = xx[i]-gsl_vector_get(xgsl, i);
+			err += tr*tr;
+		}
+		err = sqrt(err);
+		printf ("sqrt((xx-nxgsl)^2) = %g\n", err);
+		if(err > tolerance) {
+			printf("FAILED!!!!!!!!!!!!!!!!!!!!!!!!\n");
+			exit(1);
+		}
 	}
 	return 0;
 }
