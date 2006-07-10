@@ -39,12 +39,11 @@ inner(valarray<double> const &x,
 
 void 
 conjugate_gradient(double **A, 
-		   double *x, 
-		   double *b, 
-		   int n, 
-		   double tol,
-                   int max_iterations, 
-		   bool ortho1) {
+                   double *x, 
+                   double *b, 
+                   unsigned n, 
+                   double tol,
+                   unsigned max_iterations) {
     valarray<double> vA(n*n);
     valarray<double> vx(n);
     valarray<double> vb(n);
@@ -55,7 +54,7 @@ conjugate_gradient(double **A,
             vA[i*n+j]=A[i][j];
         }
     }
-    conjugate_gradient(vA,vx,vb,n,tol,max_iterations,ortho1);
+    conjugate_gradient(vA,vx,vb,n,tol,max_iterations);
     for(unsigned i=0;i<n;i++) {
         x[i]=vx[i];
     }
@@ -65,7 +64,7 @@ conjugate_gradient(valarray<double> const &A,
 		   valarray<double> &x, 
 		   valarray<double> const &b, 
 		   unsigned n, double tol,
-		   unsigned max_iterations, bool ortho1) {
+		   unsigned max_iterations) {
     valarray<double> Ap(n), p(n), r(n);
     matrix_times_vector(A,x,Ap);
     r=b-Ap; 

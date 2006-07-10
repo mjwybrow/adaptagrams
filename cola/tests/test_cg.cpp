@@ -42,7 +42,7 @@ main (void)
         std::valarray<double> b(b_data, N), xx(0.0, N);
         std::valarray<double> A(A_data, N*N);
 		
-        conjugate_gradient(A, xx, b, N, tolerance, 2*N, false);
+        conjugate_gradient(A, xx, b, N, tolerance, 2*N);
 	
         gsl_matrix_view m 
             = gsl_matrix_view_array (A_data, N, N);
