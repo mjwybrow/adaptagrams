@@ -1,7 +1,4 @@
-#include <math.h>
-#include <stdlib.h>
-
-#include "conjugate_gradient.h"
+#include "gv_conjugate_gradient.h"
 /**********************************
  * This code is adapted from
  * graphviz matrix_ops code,
