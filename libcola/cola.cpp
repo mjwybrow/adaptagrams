@@ -1,5 +1,5 @@
 #include "cola.h"
-#include "conjugate_gradient.h"
+#include "gv_conjugate_gradient.h"
 #include "straightener.h"
 
 namespace cola {
