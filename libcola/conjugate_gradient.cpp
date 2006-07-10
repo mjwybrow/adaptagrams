@@ -55,6 +55,9 @@ conjugate_gradient(double **A,
 		}
 	}
 	conjugate_gradient(vA,vx,vb,n,tol,max_iterations,ortho1);
+	for(unsigned i=0;i<n;i++) {
+		x[i]=vx[i];
+	}
 }
 void 
 conjugate_gradient(valarray<double> const &A, 

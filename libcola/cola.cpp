@@ -86,6 +86,7 @@ void ConstrainedMajorizationLayout::majlayout(
         moveBoundingBoxes();
     } else {
         conjugate_gradient(lap2, coords, b, n, tol, n, true);
+        moveBoundingBoxes();
     }
 }
 inline double ConstrainedMajorizationLayout
@@ -140,7 +141,7 @@ void ConstrainedMajorizationLayout
 }
 */
 
-bool ConstrainedMajorizationLayout ::run() {
+bool ConstrainedMajorizationLayout::run() {
     /*
     for(unsigned i=0;i<n;i++) {
         for(unsigned j=0;j<n;j++) {
@@ -151,12 +152,12 @@ bool ConstrainedMajorizationLayout ::run() {
     */
     do {
         /* Axis-by-axis optimization: */
-        if(straightenEdges==NULL) {
-            majlayout(Dij,gpX,X);
-            majlayout(Dij,gpY,Y);
-        } else {
+        if(straightenEdges) {
             straighten(*straightenEdges,HORIZONTAL);
             straighten(*straightenEdges,VERTICAL);
+        } else {
+            majlayout(Dij,gpX,X);
+            majlayout(Dij,gpY,Y);
         }
     } while(!done(compute_stress(Dij),X,Y));
     return true;
