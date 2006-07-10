@@ -64,8 +64,7 @@ main (void)
             double tr = xx[i]-gsl_vector_get(xgsl, i);
             err += tr*tr;
         }
-        err = sqrt(err);
-        printf ("sqrt((xx-nxgsl)^2) = %g\n", err);
+        printf ("(xx-nxgsl)^2 = %g\n", err);
         if(err > tolerance) {
             for(int r = 0; r < N; r++) {
                 for(int c = 0; c < N; c++) {
