@@ -22,7 +22,7 @@ using namespace cola;
 struct CheckProgress : TestConvergence {
 	CheckProgress(double d,unsigned i) : TestConvergence(d,i) {}
 	bool operator()(double new_stress, double* X, double* Y) {
-		cout << "*";
+		cout << "stress="<<new_stress<<endl;
 		return TestConvergence::operator()(new_stress,X,Y);
 	}
 };
