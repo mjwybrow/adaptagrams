@@ -4,7 +4,8 @@
 
 using std::valarray;
 
-valarray<double> outer_prod(valarray<double> x, valarray<double> y) {
+static valarray<double> 
+outer_prod(valarray<double> x, valarray<double> y) {
     valarray<double> result(x.size()*y.size());
     for(int j = 0; j < x.size(); j++) {
         for(int i = 0; i < y.size(); i++) {
@@ -14,8 +15,31 @@ valarray<double> outer_prod(valarray<double> x, valarray<double> y) {
     return result;
 }
 
-double uniform() {
+static double 
+uniform() {
     return double(rand())/ RAND_MAX;
+}
+
+static void 
+matrix_times_vector(valarray<double> const &matrix, /* m * n */
+		    valarray<double> const &vec,  /* n */
+		    valarray<double> &result) /* m */
+{
+    unsigned n = vec.size();
+    unsigned m = result.size();
+    assert(m*n == matrix.size());
+    const double* mp = &matrix[0];
+    for (unsigned i = 0; i < m; i++) {
+        double res = 0;
+        for (unsigned j = 0; j < n; j++)
+            res += *mp++ * vec[j];
+        result[i] = res;
+    }
+}
+
+static double 
+Linfty(valarray<double> const &vec) {
+    return std::max(vec.max(), -vec.min());
 }
 
 int
@@ -58,27 +82,44 @@ main (void)
         gsl_linalg_LU_decomp (&m.matrix, p, &s);
      
         gsl_linalg_LU_solve (&m.matrix, p, &bgsl.vector, xgsl);
-
-        double err = 0;
+        
+        std::valarray<double> gsl_xx(0.0, N);
         for(unsigned i = 0; i < xx.size(); i++) {
-            double tr = xx[i]-gsl_vector_get(xgsl, i);
-            err += tr*tr;
+            gsl_xx[i] = gsl_vector_get(xgsl, i);
         }
-        printf ("(xx-nxgsl)^2 = %g\n", err);
-        if(err > tolerance*tolerance) {
+
+        double err = Linfty(xx - gsl_xx);
+        printf ("|xx-nxgsl|_infty = %g\n", err);
+        if(err > tolerance) {
+#if 0 //dubious value
             for(int r = 0; r < N; r++) {
                 for(int c = 0; c < N; c++) {
                     printf("%g ", A_data[r*N + c]);
                 }
                 printf("\n");
             }
+#endif
             printf("\nx njh-cg = \n");
             for(unsigned i = 0; i < xx.size(); i++)
                 printf("%g ", xx[i]);
             printf("\nxgsl = ");
             for(unsigned i = 0; i < xx.size(); i++)
-                printf("%g ", gsl_vector_get(xgsl, i));
+                printf("%g ", gsl_xx[i]);
             printf("\n");
+            valarray<double> result(0.0,N);
+            matrix_times_vector(A, xx, result);
+            result -= b;
+            printf("\nA xx -b = ");
+            for(unsigned i = 0; i < xx.size(); i++)
+                printf("%g ", result[i]);
+            printf("\n");
+            matrix_times_vector(A, gsl_xx, result);
+            result -= b;
+            printf("\nA gsl_xx -b = ");
+            for(unsigned i = 0; i < xx.size(); i++)
+                printf("%g ", result[i]);
+            printf("\n");
+            
             printf("FAILED!!!!!!!!!!!!!!!!!!!!!!!!\n");
             exit(1);
         }
