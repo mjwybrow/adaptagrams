@@ -84,7 +84,7 @@ void ConstrainedMajorizationLayout::majlayout(
         setupDummyVars();
         gp->solve(b);
     } else {
-        conjugate_gradient(lap2, coords, b, n, tol, n, false);
+        conjugate_gradient(lap2, coords, b, n, tol, n);
     }
     moveBoundingBoxes();
 }
