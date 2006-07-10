@@ -137,7 +137,8 @@ namespace cola {
               clusters(NULL),
               linearConstraints(NULL),
               gpX(NULL),
-              gpY(NULL)
+              gpY(NULL),
+              straightenEdges(NULL)
         {
             assert(rs.size()==n);
             boundingBoxes = new Rectangle*[rs.size()];
