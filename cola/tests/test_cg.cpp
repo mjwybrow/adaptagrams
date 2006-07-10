@@ -65,7 +65,7 @@ main (void)
             err += tr*tr;
         }
         printf ("(xx-nxgsl)^2 = %g\n", err);
-        if(err > tolerance) {
+        if(err > tolerance*tolerance) {
             for(int r = 0; r < N; r++) {
                 for(int c = 0; c < N; c++) {
                     printf("%g ", A_data[r*N + c]);
