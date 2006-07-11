@@ -1,7 +1,5 @@
-#include <boost/graph/adjacency_list.hpp>
-#include <cola.h>
 #include "graphlayouttest.h"
-#include <generate-constraints.h>
+#include <libvpsc/generate-constraints.h>
 #include <fstream>
 
 #define ARROW_HEAD_BUFFER 3

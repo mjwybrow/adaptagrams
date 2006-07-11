@@ -1,6 +1,6 @@
-INCLUDES = -I$(top_srcdir)/libcola -I$(top_srcdir)/libvpsc 
+INCLUDES = -I$(top_srcdir)
 #check_PROGRAMS = unconstrained constrained containment straightener shortest_paths
-check_PROGRAMS = cycle_detector
+check_PROGRAMS = unconstrained test_cg cycle_detector
 shortest_paths_SOURCES = shortest_paths.cpp
 shortest_paths_LDADD = $(top_srcdir)/libcola/libcola.a
 unconstrained_SOURCES = unconstrained.cpp graphlayouttest.cpp
