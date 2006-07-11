@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "conjugate_gradient.h"
 #include <gsl/gsl_linalg.h>
+// test of conjugate gradient algorithm
 
 using std::valarray;
 
