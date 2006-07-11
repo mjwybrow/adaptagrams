@@ -1,6 +1,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <valarray>
+#include <cassert>
 #include "conjugate_gradient.h"
 
 /* lifted wholely from wikipedia. */
