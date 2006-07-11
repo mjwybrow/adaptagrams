@@ -1,4 +1,4 @@
-#include <cola.h>
+#include <libcola/cola.h>
 void output_svg(vector<Rectangle*> &rs, vector<cola::Edge>& es, char* fname,bool rects=false);
 void output_svg(vector<Rectangle*> &rs, vector<straightener::Edge*>& es, char* fname,bool rects=false);
 void output_svg(vector<Rectangle*> &rs, vector<cola::Edge>& es, char* fname,bool rects, bool directedEdges, vector<bool> * cyclicEdges);

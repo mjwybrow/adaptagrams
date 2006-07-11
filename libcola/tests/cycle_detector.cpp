@@ -1,8 +1,8 @@
 #include <iostream>
 #include <vector>
 #include <assert.h>
-#include <cola.h>
-#include <cycle_detector.h>
+#include <libcola/cola.h>
+#include <libcola/cycle_detector.h>
 #include "graphlayouttest.h"
 
 using namespace std;
