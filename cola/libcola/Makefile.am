@@ -1,4 +1,4 @@
-INCLUDES = -I$(top_srcdir)/libcola -I../../solve_VPSC/libvpsc
+INCLUDES = -I$(top_srcdir)/libcola -I$(top_srcdir)/libvpsc
 
 lib_LIBRARIES = libcola.a
 
