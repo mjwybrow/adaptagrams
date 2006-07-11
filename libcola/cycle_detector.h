@@ -3,21 +3,19 @@
 
 #include <map>
 #include <vector>
+#include <stack>
 #include <cola.h>
 
-using namespace std;
-using namespace cola;
-
 typedef unsigned TimeStamp;
-typedef vector<cola::Edge> Edges;
-typedef vector<bool> CyclicEdges;
+typedef std::vector<cola::Edge> Edges;
+typedef std::vector<bool> CyclicEdges;
 class Node;
 
 class CycleDetector  {
   public:
     CycleDetector(unsigned numVertices, Edges *edges);
     ~CycleDetector();
-    vector<bool> *detect_cycles();
+    std::vector<bool> *detect_cycles();
     void mod_graph(unsigned numVertices, Edges *edges);
     unsigned getV()  { return this->V; }
     Edges *getEdges()  { return this->edges; }
@@ -28,9 +26,10 @@ class CycleDetector  {
     Edges *edges;
 
     // internally used variables.
-    map<unsigned, Node *> nodes; // the nodes in the graph
-    map<cola::Edge, bool> cyclicEdges; // the cyclic edges in the graph.
-    map<unsigned, bool> traverse; // nodes still left to visit in the graph
+    std::map<unsigned, Node *> nodes; // the nodes in the graph
+    std::map<cola::Edge, bool> cyclicEdges; // the cyclic edges in the graph.
+    std::map<unsigned, bool> traverse; // nodes still left to visit in the graph
+    std::stack<unsigned> seenInRun; // nodes visited in a single pass.
 
     // internally used methods
     void make_matrix();

@@ -9,7 +9,10 @@
 #include <cassert>
 #include <cycle_detector.h>
 
+#define RUN_DEBUG
+
 using namespace std;
+using namespace cola;
 
 // a global var representing time
 TimeStamp Time;
@@ -47,21 +50,28 @@ void CycleDetector::make_matrix()  {
     // the second vertex of the edge is pushed onto another
     // vector of all vertices connected to the first vertex
     // with a directed edge
-    cout << "vertex1: " << anEdge.first << ", vertex2: " << anEdge.second << endl;
-    if (nodes.find(anEdge.first) == nodes.end())  { 
-      cerr << "Making a new vector indexed at: " << anEdge.first << endl;
+    #ifdef ADJMAKE_DEBUG
+      cout << "vertex1: " << anEdge.first << ", vertex2: " << anEdge.second << endl;
+    #endif
+    if (nodes.find(anEdge.first) == nodes.end())  {
+      #ifdef ADJMAKE_DEBUG
+        cout << "Making a new vector indexed at: " << anEdge.first << endl;
+      #endif
+
       newNode = new Node(anEdge.first);
       newNode->dests.push_back(anEdge.second);
       nodes[anEdge.first] = newNode;
     }
     else  {
-      //cerr << "Pushing: " << anEdge.second << endl;
       nodes[anEdge.first]->dests.push_back(anEdge.second);
     }
 
     // check if the destination vertex exists in the nodes map
     if (nodes.find(anEdge.second) == nodes.end())  {
-      cerr << "Making a new vector indexed at: " << anEdge.second << endl;
+      #ifdef ADJMAKE_DEBUG
+        cerr << "Making a new vector indexed at: " << anEdge.second << endl;
+      #endif
+
       newNode = new Node(anEdge.second);
       nodes[anEdge.second] = newNode;
     }
@@ -71,16 +81,18 @@ void CycleDetector::make_matrix()  {
 
   // the following block is code to print out
   // the adjacency matrix.
-  for (map<unsigned, Node *>::iterator ni = nodes.begin(); ni != nodes.end(); ni++)  {
-    Node *node = ni->second;
-    cout << "nodes[" << node->id << "]: ";
+  #ifdef ADJMAKE_DEBUG
+    for (map<unsigned, Node *>::iterator ni = nodes.begin(); ni != nodes.end(); ni++)  {
+      Node *node = ni->second;
+      cout << "nodes[" << node->id << "]: ";
       
-    if (isSink(node))  { cout << "SINK"; }
-    else  {
-      for (unsigned j = 0; j < node->dests.size(); j++)  { cout << node->dests[j] << " "; }
+      if (isSink(node))  { cout << "SINK"; }
+      else  {
+        for (unsigned j = 0; j < node->dests.size(); j++)  { cout << node->dests[j] << " "; }
+      }
+      cout << endl;
     }
-    cout << endl;
-  }
+  #endif
 }
 
 vector<bool> *CycleDetector::detect_cycles()  {
@@ -93,9 +105,11 @@ vector<bool> *CycleDetector::detect_cycles()  {
   // vertices
   traverse.clear(); assert(traverse.empty());
   for (unsigned i = 0; i < V; i++)  { traverse[i] = false; }
-  for (map<unsigned, bool>::iterator ivi = traverse.begin(); ivi != traverse.end(); ivi++)  {
-    cout << "traverse{" << ivi->first << "}: " << ivi->second << endl;
-  }
+  #ifdef SETUP_DEBUG
+    for (map<unsigned, bool>::iterator ivi = traverse.begin(); ivi != traverse.end(); ivi++)  {
+      cout << "traverse{" << ivi->first << "}: " << ivi->second << endl;
+    }
+  #endif
 
   // set up the mapping between the edges and their cyclic truth
   for(unsigned i = 0; i < edges->size(); i++)  { cyclicEdges[(*edges)[i]] = false; }
@@ -105,11 +119,31 @@ vector<bool> *CycleDetector::detect_cycles()  {
 
   // while we still have vertices to visit, visit.
   while (!traverse.empty())  {
-    cout << "begining search at vertex(" << traverse.begin()->first << ")" << endl;
+    // mark any vertices seen in a previous run as closed
+    while (!seenInRun.empty())  {
+      unsigned v = seenInRun.top();
+      seenInRun.pop();
+      #ifdef RUN_DEBUG
+        cout << "Marking vertex(" << v << ") as CLOSED" << endl;
+      #endif
+      nodes[v]->status = Node::DoneVisiting;
+    }
+
+    assert(seenInRun.empty());
+
+    #ifdef VISIT_DEBUG
+      cout << "begining search at vertex(" << traverse.begin()->first << ")" << endl;
+    #endif
+
     Time = 0;
+
+    // go go go
     visit(traverse.begin()->first);
   }
 
+  // clean up
+  while (!seenInRun.empty())  { seenInRun.pop(); }
+  assert(seenInRun.empty());
   assert(traverse.empty());
 
   cyclicEdgesMapping = new vector<bool>(edges->size(), false);
@@ -117,7 +151,9 @@ vector<bool> *CycleDetector::detect_cycles()  {
   for (unsigned i = 0; i < edges->size(); i++)  {
     if (cyclicEdges[(*edges)[i]])  { 
       (*cyclicEdgesMapping)[i] = true;
-      cout << "Setting cyclicEdgesMapping[" << i << "] to true" << endl;
+      #ifdef OUTPUT_DEBUG
+        cout << "Setting cyclicEdgesMapping[" << i << "] to true" << endl;
+      #endif
     }
   }
 
@@ -137,9 +173,13 @@ void CycleDetector::visit(unsigned k)  {
 
   // state that we have seen this vertex
   if (traverse.find(k) != traverse.end())  {
-    cout << "Visiting vertex(" << k << ") for the first time" << endl;
+    #ifdef VISIT_DEBUG
+      cout << "Visiting vertex(" << k << ") for the first time" << endl;
+    #endif
     traverse.erase(k);
   }
+
+  seenInRun.push(k);
 
   // set up this node as being visited.
   nodes[k]->stamp = ++Time;
@@ -152,7 +192,9 @@ void CycleDetector::visit(unsigned k)  {
     if (nodes[v]->status != Node::DoneVisiting)  {
       if (nodes[v]->status == Node::NotVisited)  {  
         // visit this node
-        cout << "traversing from vertex(" << k << ") to vertex(" << v << ")" << endl;
+	#ifdef VISIT_DEBUG
+          cout << "traversing from vertex(" << k << ") to vertex(" << v << ")" << endl;
+	#endif
         visit(v);
       }
 
@@ -174,8 +216,6 @@ void CycleDetector::visit(unsigned k)  {
       }
     }
   }
-
-  nodes[k]->status = Node::DoneVisiting;
 }
 
 
