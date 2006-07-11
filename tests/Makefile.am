@@ -1,4 +1,4 @@
-INCLUDES = -I$(top_srcdir)/libcola -I../../solve_VPSC/libvpsc 
+INCLUDES = -I$(top_srcdir)/libcola -I$(top_srcdir)/libvpsc 
 #check_PROGRAMS = unconstrained constrained containment straightener shortest_paths
 check_PROGRAMS = unconstrained test_cg
 shortest_paths_SOURCES = shortest_paths.cpp

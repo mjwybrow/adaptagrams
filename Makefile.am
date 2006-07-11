@@ -1,3 +1,3 @@
 AUTOMAKE_OPTIONS = gnu
-SUBDIRS = libcola tests 
+SUBDIRS = libcola libvpsc tests 
 
