@@ -7,4 +7,4 @@ AC_PROG_CXX
 AC_PROG_CC
 #AC_PROG_INSTALL
 #AC_DEFINE(TRACE_LOGGING)
-AC_OUTPUT(Makefile libcola/Makefile libvpsc/Makefile tests/Makefile)
+AC_OUTPUT(Makefile libcola/Makefile libcola/tests/Makefile libvpsc/Makefile libvpsc/tests/Makefile)
