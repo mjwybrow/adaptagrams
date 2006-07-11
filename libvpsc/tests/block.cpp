@@ -1,3 +1,4 @@
+#include <cassert>
 #include <variable.h>
 #include <constraint.h>
 #include <block.h>

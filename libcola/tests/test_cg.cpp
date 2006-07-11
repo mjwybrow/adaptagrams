@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <cassert>
 #include "conjugate_gradient.h"
 #include <gsl/gsl_linalg.h>
 

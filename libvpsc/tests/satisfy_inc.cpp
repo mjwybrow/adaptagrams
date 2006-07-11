@@ -5,6 +5,7 @@
 #include <iostream>
 #include <time.h>
 #include <math.h>
+#include <cassert>
 using namespace std;
 
 inline int getRand(const int range) {
