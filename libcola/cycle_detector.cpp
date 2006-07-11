@@ -132,7 +132,7 @@ void CycleDetector::mod_graph(unsigned numVertices, Edges *edges)  {
   assert(nodes.size() == this->V);
 }
 
-unsigned CycleDetector::visit(unsigned k)  {
+void CycleDetector::visit(unsigned k)  {
   unsigned cycleOpen;
 
   // state that we have seen this vertex

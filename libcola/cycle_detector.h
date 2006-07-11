@@ -34,7 +34,7 @@ class CycleDetector  {
 
     // internally used methods
     void make_matrix();
-    unsigned visit(unsigned k);
+    void visit(unsigned k);
     bool isSink(Node *node);
 };
 
