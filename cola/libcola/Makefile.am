@@ -18,3 +18,5 @@ include_HEADERS = cola.h
 	gradient_projection.h\
 	shortest_paths.h\
 	straightener.h
+
+SUBDIRS = tests

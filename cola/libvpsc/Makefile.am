@@ -30,4 +30,4 @@ include_HEADERS = solve_VPSC.h \
 	remove_rectangle_overlap.h\
 	csolve_VPSC.h
 	
-
+SUBDIRS = tests
