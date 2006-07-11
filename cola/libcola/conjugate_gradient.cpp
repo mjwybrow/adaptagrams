@@ -4,7 +4,17 @@
 #include <cassert>
 #include "conjugate_gradient.h"
 
-/* lifted wholely from wikipedia. */
+/*
+* Authors:
+*   Nathan Hurst <njh@njhurst.com>
+*   Tim Dwyer <tgdwyer@gmail.com>
+*
+* Copyright (C) 2006 Authors
+*
+* Released under GNU LGPL.
+*/
+
+/* lifted wholely from wikipedia.  Well, apart from the bug in the wikipedia version. */
 
 using std::valarray;
 
