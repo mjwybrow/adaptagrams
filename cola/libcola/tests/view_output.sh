@@ -8,7 +8,7 @@ else
   shift
 fi
 
-cd /home/kierans/libcola2/tests
+cd /home/kierans/libcola3/libcola/tests
  
 if [ $CASE == 'a' -o $CASE == 'all' ] ; then
   inkview cycle_detector_case_a.svg
