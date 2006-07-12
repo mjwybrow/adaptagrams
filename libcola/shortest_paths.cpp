@@ -4,7 +4,7 @@
 #include <float.h>
 #include <cassert>
 #include <iostream>
-#include <pairingheap/PairingHeap.h>
+#include <libvpsc/pairingheap/PairingHeap.h>
 using namespace std;
 namespace shortest_paths {
 // O(n^3) time.  Slow, but fool proof.  Use for testing.

@@ -39,7 +39,7 @@ double Rectangle::yBorder=0;
  *    x-positions - this corrects the case where rectangles were moved 
  *    too much in the first pass.
  */
-void removeRectangleOverlap(int n, Rectangle *rs[], double xBorder, double yBorder) {
+void removeRectangleOverlap(unsigned n, Rectangle *rs[], double xBorder, double yBorder) {
 	assert(0 <= n);
 	try {
 	// The extra gap avoids numerical imprecision problems
@@ -98,15 +98,15 @@ void removeRectangleOverlap(int n, Rectangle *rs[], double xBorder, double yBord
 	f.close();
 #endif
 	vpsc_x2.solve();
+	for(int i = 0; i < m; ++i) {
+		delete cs[i];
+	}
+	delete [] cs;
 	for(int i=0;i<n;i++) {
 		rs[i]->moveCentreX(vs[i]->position());
 		delete vs[i];
 	}
 	delete [] vs;
-	for(int i = 0; i < m; ++i) {
-		delete cs[i];
-	}
-	delete [] cs;
 	} catch (char const *str) {
 		std::cerr<<str<<std::endl;
 		for(int i=0;i<n;i++) {

@@ -10,8 +10,8 @@
 #include <cassert>
 #include "shortest_paths.h"
 #include "gradient_projection.h"
-#include <generate-constraints.h>
-#include <straightener.h>
+#include <libvpsc/generate-constraints.h>
+#include "straightener.h"
 
 
 typedef vector<unsigned> Cluster;

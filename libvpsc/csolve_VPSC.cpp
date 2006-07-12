@@ -10,10 +10,10 @@
  */
 #include <iostream>
 #include <cassert>
-#include <variable.h>
-#include <constraint.h>
-#include <generate-constraints.h>
-#include <solve_VPSC.h>
+#include "variable.h"
+#include "constraint.h"
+#include "generate-constraints.h"
+#include "solve_VPSC.h"
 #include "csolve_VPSC.h"
 extern "C" {
 Variable* newVariable(int id, double desiredPos, double weight) {
