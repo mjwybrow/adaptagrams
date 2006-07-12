@@ -5,7 +5,7 @@
 #ifndef STRAIGHTENER_H
 #define STRAIGHTENER_H
 #include <set>
-#include <generate-constraints.h>
+#include <libvpsc/generate-constraints.h>
 #include "gradient_projection.h"
 namespace straightener {
     struct Route {

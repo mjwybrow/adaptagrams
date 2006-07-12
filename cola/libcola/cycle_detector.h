@@ -4,7 +4,7 @@
 #include <map>
 #include <vector>
 #include <stack>
-#include <cola.h>
+#include "cola.h"
 
 typedef unsigned TimeStamp;
 typedef std::vector<cola::Edge> Edges;

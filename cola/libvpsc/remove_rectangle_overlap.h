@@ -15,7 +15,7 @@
 
 class Rectangle;
 
-void removeRectangleOverlap(Rectangle *rs[], int n, double xBorder, double yBorder);
+void removeRectangleOverlap(unsigned n, Rectangle *rs[], double xBorder, double yBorder);
 
 
 #endif /* !REMOVE_RECTANGLE_OVERLAP_H_SEEN */

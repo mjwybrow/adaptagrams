@@ -11,10 +11,10 @@
 #include <time.h>
 #include <stdio.h>
 #include <float.h>
-#include <assert.h>
-#include <solve_VPSC.h>
-#include <variable.h>
-#include <constraint.h>
+#include <cassert>
+#include <libvpsc/solve_VPSC.h>
+#include <libvpsc/variable.h>
+#include <libvpsc/constraint.h>
 #include "gradient_projection.h"
 #include <iostream>
 

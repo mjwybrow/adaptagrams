@@ -1,4 +1,4 @@
-INCLUDES = -I$(top_srcdir)/libvpsc
+#INCLUDES = -I$(top_srcdir)
 
 lib_LTLIBRARIES = libvpsc.la
 

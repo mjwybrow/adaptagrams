@@ -1,10 +1,10 @@
 #ifndef _GRADIENT_PROJECTION_H
 #define _GRADIENT_PROJECTION_H
 
-#include <solve_VPSC.h>
-#include <variable.h>
-#include <constraint.h>
-#include <generate-constraints.h>
+#include <libvpsc/solve_VPSC.h>
+#include <libvpsc/variable.h>
+#include <libvpsc/constraint.h>
+#include <libvpsc/generate-constraints.h>
 #include <vector>
 #include <iostream>
 #include <math.h>

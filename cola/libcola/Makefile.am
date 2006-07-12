@@ -1,4 +1,4 @@
-INCLUDES = -I$(top_srcdir)/libcola -I$(top_srcdir)/libvpsc
+INCLUDES = -I$(top_srcdir)
 
 lib_LIBRARIES = libcola.a
 
@@ -16,10 +16,5 @@ libcola_a_SOURCES = cola.h\
         cycle_detector.cpp
 
 include_HEADERS = cola.h
-	conjugate_gradient.h\
-	gradient_projection.h\
-	shortest_paths.h\
-	straightener.h\
-        cycle_detector.h
 
 SUBDIRS = tests
