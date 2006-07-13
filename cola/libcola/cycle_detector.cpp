@@ -9,6 +9,7 @@
 #include <cassert>
 #include <cycle_detector.h>
 
+#define VISIT_DEBUG
 #define RUN_DEBUG
 
 using namespace std;
@@ -61,7 +62,7 @@ void CycleDetector::make_matrix()  {
     #ifdef ADJMAKE_DEBUG
       cout << "vertex1: " << anEdge.first << ", vertex2: " << anEdge.second << endl;
     #endif
-    if (!find_node(anEdge.first))  {
+    if (!find_node(nodes, anEdge.first))  {
       #ifdef ADJMAKE_DEBUG
         cout << "Making a new vector indexed at: " << anEdge.first << endl;
       #endif
@@ -75,7 +76,7 @@ void CycleDetector::make_matrix()  {
     }
 
     // check if the destination vertex exists in the nodes map
-    if (!find_node(anEdge.second))  {
+    if (!find_node(nodes, anEdge.second))  {
       #ifdef ADJMAKE_DEBUG
         cerr << "Making a new vector indexed at: " << anEdge.second << endl;
       #endif
@@ -112,10 +113,10 @@ vector<bool> *CycleDetector::detect_cycles()  {
   // make a copy of the graph to ensure that we have visited all
   // vertices
   traverse.clear(); assert(traverse.empty());
-  for (unsigned i = 0; i < V; i++)  { traverse[i] = false; }
+  for (unsigned i = 0; i < V; i++)  { traverse.push_back(i); }
   #ifdef SETUP_DEBUG
-    for (map<unsigned, bool>::iterator ivi = traverse.begin(); ivi != traverse.end(); ivi++)  {
-      cout << "traverse{" << ivi->first << "}: " << ivi->second << endl;
+    for (unsigned i = 0; i < traverse.size(); i++)  {
+      cout << "traverse{" << i << "}: " << traverse[i] << endl;
     }
   #endif
 
@@ -137,13 +138,13 @@ vector<bool> *CycleDetector::detect_cycles()  {
     assert(seenInRun.empty());
 
     #ifdef VISIT_DEBUG
-      cout << "begining search at vertex(" << traverse.begin()->first << ")" << endl;
+      cout << "begining search at vertex(" << traverse[0] << ")" << endl;
     #endif
 
     Time = 0;
 
     // go go go
-    visit(traverse.begin()->first);
+    visit(traverse[0]);
   }
 
   // clean up
@@ -167,11 +168,12 @@ void CycleDetector::visit(unsigned k)  {
   Node *thisNode = (*nodes)[k];
 
   // state that we have seen this vertex
-  if (traverse.find(k) != traverse.end())  {
+  pair< bool, vector<unsigned>::iterator > haveSeen = find_node(traverse, k);
+  if (haveSeen.first)  {
     #ifdef VISIT_DEBUG
       cout << "Visiting vertex(" << k << ") for the first time" << endl;
     #endif
-    traverse.erase(k);
+    traverse.erase(haveSeen.second);
   }
 
   seenInRun.push(k);
@@ -228,12 +230,20 @@ bool CycleDetector::isSink(Node *node)  {
   else  { return false; }
 }
 
-bool CycleDetector::find_node(unsigned k)  {
+bool CycleDetector::find_node(std::vector<Node *> *& list, unsigned k)  {
   for (unsigned i = 0; i < this->V; i++)  {
-    if ((*nodes)[i] != NULL)  {
-      if ((*nodes)[i]->id == k)  { return true; }
+    if ((*list)[i] != NULL)  {
+      if ((*list)[i]->id == k)  { return true; }
     }
   }
 
   return false;
+}
+
+pair< bool, vector<unsigned>::iterator > CycleDetector::find_node(std::vector<unsigned>& list, unsigned k)  {
+  for (vector<unsigned>::iterator ti = traverse.begin(); ti != traverse.end(); ti++)  {
+    if (*ti == k)  { return pair< bool, vector<unsigned>::iterator >(true, ti); }
+  }
+
+  return pair< bool, vector<unsigned>::iterator >(false, traverse.end()); 
 }
