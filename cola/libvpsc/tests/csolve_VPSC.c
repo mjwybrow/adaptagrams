@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
 	vs[0]=v1;
 	vs[1]=v2;
 	cs[0]=c;
-	VPSC* vpsc = newIncVPSC(n,vs,m,cs);
+	Solver* vpsc = newIncSolver(n,vs,m,cs);
 	satisfyVPSC(vpsc);
 	splitIncVPSC(vpsc);
 	printf("v=%f,%f\n",getVariablePos(v1),getVariablePos(v2));

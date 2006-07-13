@@ -16,10 +16,10 @@
 
 #include <vector>
 #include <iostream>
+template <class T> class PairingHeap;
+namespace vpsc {
 class Variable;
 class Constraint;
-template <class T> class PairingHeap;
-class StupidPriorityQueue;
 
 class Block
 {
@@ -71,4 +71,5 @@ private:
 	void setUpConstraintHeap(PairingHeap<Constraint*>* &h,bool in);
 };
 
+}
 #endif // SEEN_REMOVEOVERLAP_BLOCK_H

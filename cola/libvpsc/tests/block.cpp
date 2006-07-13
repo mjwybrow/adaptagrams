@@ -4,6 +4,7 @@
 #include <block.h>
 #include <iostream>
 using namespace std;
+using namespace vpsc;
 
 void test1() {
 	cout << "Block test 1..." << endl;

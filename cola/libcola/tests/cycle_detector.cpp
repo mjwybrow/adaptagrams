@@ -7,6 +7,7 @@
 
 using namespace std;
 using namespace cola;
+using vpsc::Rectangle;
 
 int main()  {
   CycleDetector *cd;
