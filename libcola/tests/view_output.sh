@@ -1,7 +1,7 @@
 #! /bin/bash
 
 if [ $# -lt 1 ] ; then
-  echo "Need case letter (eg: A) or ALL for all cases"
+  echo "Need case letter (eg: A) or ALL for all cases (CLEAN to delete)"
   exit
 else
   CASE=$1
@@ -32,4 +32,8 @@ fi
 
 if [ $CASE == 'f' -o $CASE == 'all' ] ; then
   inkview cycle_detector_case_f.svg
+fi
+
+if [ $CASE == 'clean' ] ; then
+  rm cycle_detector_case* -fv
 fi
