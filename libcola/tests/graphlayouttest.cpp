@@ -5,6 +5,7 @@
 #define ARROW_HEAD_BUFFER 3
 
 using namespace cola;
+using vpsc::Rectangle;
 
 void output_svg(vector<Rectangle*>& rs, vector<Edge>& es, char *fname, bool rects) {
 	unsigned E=es.size();

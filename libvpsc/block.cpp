@@ -23,6 +23,7 @@ using std::endl;
 #endif
 using std::vector;
 
+namespace vpsc {
 void Block::addVariable(Variable* const v) {
 	v->block=this;
 	vars->push_back(v);
@@ -401,4 +402,5 @@ ostream& operator <<(ostream &os, const Block& b)
 		os<<" Deleted!";
 	}
     return os;
+}
 }

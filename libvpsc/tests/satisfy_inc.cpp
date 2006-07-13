@@ -7,6 +7,7 @@
 #include <math.h>
 #include <cassert>
 using namespace std;
+using namespace vpsc;
 
 inline int getRand(const int range) {
 	return (double)range*rand()/(RAND_MAX+1.0);
@@ -24,7 +25,7 @@ void test1() {
 		new Variable(0,5,1)};
 	Constraint *c[] = {
 		new Constraint(a[0],a[1],2)};
-	IncVPSC vpsc(2,a,1,c);
+	IncSolver vpsc(2,a,1,c);
 	vpsc.satisfy();
 	assert(approxEquals(a[0]->position(),4.5));
 	assert(approxEquals(a[1]->position(),6.5));
@@ -50,7 +51,7 @@ void test2() {
 	double expected[]={0.5,6,3.5,6.5,9.5};
 	unsigned int n = sizeof(a)/sizeof(Variable*);
 	unsigned int m = sizeof(c)/sizeof(Constraint*);
-	IncVPSC vpsc(n,a,m,c);
+	IncSolver vpsc(n,a,m,c);
 	vpsc.satisfy();
 	for(int i=0;i<n;i++) {
 		assert(approxEquals(a[i]->position(),expected[i]));
@@ -76,7 +77,7 @@ void test3() {
 	double expected[]={5,0.5,3.5,6.5,9.5};
 	unsigned int n = sizeof(a)/sizeof(Variable*);
 	unsigned int m = sizeof(c)/sizeof(Constraint*);
-	IncVPSC vpsc(n,a,m,c);
+	IncSolver vpsc(n,a,m,c);
 	vpsc.satisfy();
 	for(int i=0;i<n;i++) {
 		assert(approxEquals(a[i]->position(),expected[i]));
@@ -103,7 +104,7 @@ void test4() {
 	unsigned int n = sizeof(a)/sizeof(Variable*);
 	unsigned int m = sizeof(c)/sizeof(Constraint*);
 	try {
-		IncVPSC vpsc(n,a,m,c);
+		IncSolver vpsc(n,a,m,c);
 		vpsc.solve();
 	} catch (char const *msg) {
 		cerr << msg << endl;
@@ -139,7 +140,7 @@ void test5() {
 	unsigned int n = sizeof(a)/sizeof(Variable*);
 	unsigned int m = sizeof(c)/sizeof(Constraint*);
 	try {
-		IncVPSC vpsc(n,a,m,c);
+		IncSolver vpsc(n,a,m,c);
 		vpsc.solve();
 	} catch (char const *msg) {
 		cerr << msg << endl;
@@ -178,7 +179,7 @@ void rand_test(int n, int m) {
 	}
 	cout<<"}"<<endl;
 	*/
-	IncVPSC vpsc(n,a,cs.size(),acs);
+	IncSolver vpsc(n,a,cs.size(),acs);
 	try {
 		vpsc.solve();
 	} catch (char const *msg) {
