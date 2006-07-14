@@ -1,8 +1,8 @@
 #include <cassert>
+#include <iostream>
 #include <variable.h>
 #include <constraint.h>
 #include <block.h>
-#include <iostream>
 using namespace std;
 using namespace vpsc;
 

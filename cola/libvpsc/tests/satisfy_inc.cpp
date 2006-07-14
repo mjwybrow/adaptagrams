@@ -84,7 +84,7 @@ void test3() {
 	}
 	cout << "Test 3... done." << endl;
 }
-// split required - cycles!
+// split required
 void test4() {
 	cout << "Test 4..." << endl;
 	Variable *a[] = {
@@ -198,11 +198,11 @@ void rand_test(int n, int m) {
 }
 int main() {
 	srand(time(NULL));
-	//test1();
-	//test2();
-	//test3();
-	//test4();
-	//test5();
+	test1();
+	test2();
+	test3();
+	test4();
+	test5();
 	for(int i=0;i<100;i++) {
 		if(i%10==0) cout << "i=" << i << endl;
 		rand_test(100,3);
