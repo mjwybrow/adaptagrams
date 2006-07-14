@@ -1,6 +1,5 @@
 INCLUDES = -I$(top_srcdir)
-#check_PROGRAMS = unconstrained constrained containment straightener shortest_paths
-check_PROGRAMS = unconstrained test_cg cycle_detector
+check_PROGRAMS = unconstrained constrained containment straightener shortest_paths
 shortest_paths_SOURCES = shortest_paths.cpp
 shortest_paths_LDADD = $(top_srcdir)/libcola/libcola.a
 unconstrained_SOURCES = unconstrained.cpp graphlayouttest.cpp
@@ -14,4 +13,6 @@ straightener_LDADD = $(top_srcdir)/libcola/libcola.a $(top_srcdir)/libvpsc/libvp
 test_cg_LDADD = -lgsl -lblas -lstdc++ $(top_srcdir)/libcola/libcola.a
 cycle_detector_SOURCES = graphlayouttest.cpp cycle_detector.cpp
 cycle_detector_LDADD = $(top_srcdir)/libcola/libcola.a $(top_srcdir)/libvpsc/libvpsc.la
+connected_components_SOURCES = graphlayouttest.cpp connected_components.cpp
+connected_components_LDADD = $(top_srcdir)/libcola/libcola.a $(top_srcdir)/libvpsc/libvpsc.la
 TESTS = $(check_PROGRAMS)

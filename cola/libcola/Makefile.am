@@ -13,7 +13,8 @@ libcola_a_SOURCES = cola.h\
 	straightener.h\
 	straightener.cpp\
         cycle_detector.h\
-        cycle_detector.cpp
+        cycle_detector.cpp\
+	connected_components.cpp
 
 include_HEADERS = cola.h
 

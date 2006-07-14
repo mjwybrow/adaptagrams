@@ -11,10 +11,10 @@
 */
 #include <iostream>
 
-#include <cola.h>
 #include <vector>
 #include <algorithm>
 #include <float.h>
+#include <libcola/cola.h>
 #include "graphlayouttest.h"
 
 using namespace std;
@@ -35,10 +35,10 @@ int main() {
 	copy(edge_array,edge_array+E,es.begin());
 	double width=100;
 	double height=100;
-	vector<Rectangle*> rs;
+	vector<vpsc::Rectangle*> rs;
 	for(unsigned i=0;i<V;i++) {
 		double x=getRand(width), y=getRand(height);
-		rs.push_back(new Rectangle(x,x+5,y,y+5));
+		rs.push_back(new vpsc::Rectangle(x,x+5,y,y+5));
 	}
 	ConstrainedMajorizationLayout alg(rs,es,eweights,width/2);
 	AlignmentConstraints acsx;
