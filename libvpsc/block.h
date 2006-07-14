@@ -55,6 +55,7 @@ public:
 	long timeStamp;
 	PairingHeap<Constraint*> *in;
 	PairingHeap<Constraint*> *out;
+	bool isActiveDirectedPathBetween(Variable* u, Variable *v);
 private:
 	typedef enum {NONE, LEFT, RIGHT} Direction;
 	typedef std::pair<double, Constraint*> Pair;

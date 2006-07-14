@@ -39,7 +39,7 @@ Solver::Solver(const unsigned n, Variable* const vs[], const unsigned m, Constra
 	bs=new Blocks(n, vs);
 #ifdef RECTANGLE_OVERLAP_LOGGING
 	printBlocks();
-	assert(!constraintGraphIsCyclic(n,vs));
+	//assert(!constraintGraphIsCyclic(n,vs));
 #endif
 }
 Solver::~Solver() {
@@ -183,6 +183,11 @@ void IncSolver::satisfy() {
 		if(lb != rb) {
 			lb->merge(rb,v);
 		} else {
+			if(lb->isActiveDirectedPathBetween(v->right,v->left)) {
+				// cycle found, relax the violated, cyclic constraint
+				v->gap = v->slack();
+				continue;
+			}
 			if(splitCtr++>10000) {
 				throw "Cycle Error!";
 			}
@@ -307,7 +312,7 @@ struct node {
 	set<node*> out;
 };
 // useful in debugging - cycles would be BAD
-bool Solver::constraintGraphIsCyclic(const unsigned n, Variable *vs[]) {
+bool Solver::constraintGraphIsCyclic(const unsigned n, Variable* const vs[]) {
 	map<Variable*, node*> varmap;
 	vector<node*> graph;
 	for(unsigned i=0;i<n;i++) {

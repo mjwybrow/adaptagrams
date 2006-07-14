@@ -48,7 +48,7 @@ protected:
 	void printBlocks();
 private:
 	void refine();
-	bool constraintGraphIsCyclic(const unsigned n, Variable *vs[]);
+	bool constraintGraphIsCyclic(const unsigned n, Variable* const vs[]);
 	bool blockGraphIsCyclic();
 };
 
