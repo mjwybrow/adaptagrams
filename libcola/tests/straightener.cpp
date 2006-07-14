@@ -12,7 +12,6 @@
 #include <iostream>
 #include <fstream>
 
-#include <cola.h>
 #include <boost/graph/circle_layout.hpp>
 #include <boost/graph/kamada_kawai_spring_layout.hpp>
 #include <boost/graph/adjacency_list.hpp>
@@ -23,12 +22,13 @@
 #include <float.h>
 #include <iomanip>
 #include "graphlayouttest.h"
+#include <libcola/cola.h>
 
 using namespace cola;
 using namespace std;
 
-void addRect(vector<Rectangle*>& rs, double x, double y, double w, double h) {
-	rs.push_back(new Rectangle(x,x+w,y,y+h));
+void addRect(vector<vpsc::Rectangle*>& rs, double x, double y, double w, double h) {
+	rs.push_back(new vpsc::Rectangle(x,x+w,y,y+h));
 }
 void k5() {
 	// Define K5 graph
@@ -45,7 +45,7 @@ void k5() {
 	copy(edge_array,edge_array+E,es.begin());
 
 	const double w=40, h=40;
-	vector<Rectangle*> rs;
+	vector<vpsc::Rectangle*> rs;
 	addRect(rs,79,148,w,h);
 	addRect(rs,42,25,w,h);
 	addRect(rs,139,92,w,h);
@@ -130,7 +130,7 @@ void k6() {
 	copy(edge_array,edge_array+E,es.begin());
 
 	const double w=52, h=32;
-	vector<Rectangle*> rs;
+	vector<vpsc::Rectangle*> rs;
 	addRect(rs,427.000000,372.000000,w,h);
 	addRect(rs,372.000000,402.000000,w,h);
 	addRect(rs,532.000000,415.000000,w,h);

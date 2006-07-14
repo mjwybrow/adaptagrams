@@ -20,6 +20,12 @@ typedef vector<Cluster*> Clusters;
 namespace cola {
     typedef pair<unsigned, unsigned> Edge;
 
+    // for a graph of n nodes, return connected components
+    void connectedComponents(
+            const unsigned n, 
+            vector<Edge> &es, 
+            vector<vector<unsigned>* > &components);
+
     // defines references to three variables for which the goal function
     // will be altered to prefer points u-b-v are in a linear arrangement
     // such that b is placed at u+t(v-u).

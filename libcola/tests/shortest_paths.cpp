@@ -14,7 +14,7 @@
 #include <boost/graph/johnson_all_pairs_shortest.hpp>
 using namespace boost;
 #endif // TEST_AGAINST_BOOST
-#include <shortest_paths.h>
+#include <libcola/shortest_paths.h>
 #include <cmath>
 #include <time.h>
 
