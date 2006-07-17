@@ -5,8 +5,8 @@
 #include "graphlayouttest.h"
 
 using namespace std;
-using cola::Edge;
-using cola::Component;
+using namespace cola;
+using vpsc::Rectangle;
 
 int main() {
 	const unsigned V = 7;
@@ -18,16 +18,16 @@ int main() {
 	Edge edge_array[] = { Edge(0, 1), Edge(1, 2), Edge(3, 2), Edge(1, 3),
         		      Edge(4, 5), Edge(5, 6), Edge(6, 4)	};
 	const std::size_t E = sizeof(edge_array) / sizeof(Edge);
-	vector<Edge> es(E);
-	copy(edge_array,edge_array+E,es.begin());
+	vector<Edge> es(edge_array,edge_array+E);
 	vector< Component* > cs;
-	vector<vpsc::Rectangle*> rs;
+	vector<Rectangle*> rs;
 	double width=100,height=100;
+	SimpleConstraints scx, scy;
 	for(unsigned i=0;i<V;i++) {
 		double x=getRand(width), y=getRand(height);
-		rs.push_back(new vpsc::Rectangle(x,x+5,y,y+5));
+		rs.push_back(new Rectangle(x,x+5,y,y+5));
 	}
-	cola::connectedComponents(rs,es,cs);
+	connectedComponents(rs,es,scx,scy,cs);
 	set<unsigned> result_c1(cs[0]->node_ids.begin(),cs[0]->node_ids.end());
 	set<unsigned> result_c2(cs[1]->node_ids.begin(),cs[1]->node_ids.end());
 	assert(expected_c1==result_c1);
