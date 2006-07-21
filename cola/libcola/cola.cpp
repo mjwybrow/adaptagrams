@@ -192,15 +192,15 @@ void ConstrainedMajorizationLayout
 }
 */
 
-void ConstrainedMajorizationLayout::run() {
+void ConstrainedMajorizationLayout::run(bool x, bool y) {
     if(n>0) do {
         /* Axis-by-axis optimization: */
         if(straightenEdges) {
-            straighten(*straightenEdges,HORIZONTAL);
-            straighten(*straightenEdges,VERTICAL);
+            if(x) straighten(*straightenEdges,HORIZONTAL);
+            if(y) straighten(*straightenEdges,VERTICAL);
         } else {
-            majlayout(Dij,gpX,X);
-            majlayout(Dij,gpY,Y);
+            if(x) majlayout(Dij,gpX,X);
+            if(y) majlayout(Dij,gpY,Y);
         }
     } while(!done(compute_stress(Dij),X,Y));
 }

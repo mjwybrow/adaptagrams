@@ -189,7 +189,10 @@ namespace cola {
             delete [] X;
             delete [] Y;
         }
-		void run();
+        /**
+         * run the layout algorithm in either the x-dim the y-dim or both
+         */
+		void run(bool x=true, bool y=true);
         void straighten(vector<straightener::Edge*>&, Dim);
         bool avoidOverlaps;
         bool constrainedLayout;
