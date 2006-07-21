@@ -17,6 +17,7 @@ using namespace boost;
 #include <libcola/shortest_paths.h>
 #include <cmath>
 #include <time.h>
+#include <assert.h>
 
 using namespace std;
 // creates a (not necessarily connected random graph) with n nodes.
