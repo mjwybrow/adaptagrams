@@ -365,5 +365,31 @@ void ConstrainedMajorizationLayout::setupConstraints(
             VERTICAL,n,Q,Y,tol,100,acsy,avoidOverlaps,boundingBoxes,pbcy,scy);
     this->straightenEdges = straightenEdges;
 }
+
+Rectangle bounds(vector<Rectangle*>& rs) {
+    assert(!rs.empty());
+    
+    double left = rs[0]->getMinX(), right = rs[0]->getMaxX(), 
+        top = rs[0]->getMinY(), bottom = rs[0]->getMaxY();
+    
+    for(unsigned i = 1; i < rs.size(); i++) {
+        left <?= rs[i]->getMinX();
+        right >?= rs[i]->getMaxX();
+        top <?= rs[i]->getMinY();
+        bottom >?= rs[i]->getMaxY();
+    }
+    return Rectangle(left, right, top, bottom);
+}
+
 } // namespace cola
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4
+
+/*
+  Local Variables:
+  mode:c++
+  c-file-style:"stroustrup"
+  c-file-offsets:((innamespace . 0)(inline-open . 0))
+  indent-tabs-mode:nil
+  fill-column:99
+  End:
+*/
