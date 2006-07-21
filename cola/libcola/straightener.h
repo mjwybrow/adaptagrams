@@ -37,6 +37,7 @@ namespace straightener {
         double xmin, xmax, ymin, ymax;
         vector<unsigned> dummyNodes;
         vector<unsigned> path;
+        vector<unsigned> activePath;
         Edge(unsigned id, unsigned start, unsigned end, Route* route)
         : id(id), startNode(start), endNode(end), route(route)
         {
@@ -94,14 +95,16 @@ namespace straightener {
         double width, height;
         double xmin, xmax, ymin, ymax;
         Edge *edge;
-        bool dummy;
+        bool dummy; // nodes on edge paths (but not ends) are dummy
+        bool active; // node is active if it is not dummy or is dummy and involved in
+                     // a violated constraint
         double weight;
         bool open;
         Node(unsigned id, vpsc::Rectangle* r) :
             id(id),x(r->getCentreX()),y(r->getCentreY()), width(r->width()), height(r->height()),
             xmin(x-width/2),xmax(x+width/2),
             ymin(y-height/2),ymax(y+height/2),
-            edge(NULL),dummy(false),weight(-0.1),open(false) { }
+            edge(NULL),dummy(false),active(true),weight(-0.1),open(false) { }
     private:
         friend void sortNeighbours(Node* v, Node* l, Node* r, 
             double conjpos, vector<Edge*>& openEdges, 
@@ -110,7 +113,7 @@ namespace straightener {
             id(id),x(x),y(y), width(4), height(width),
             xmin(x-width/2),xmax(x+width/2),
             ymin(y-height/2),ymax(y+height/2),
-            edge(e),dummy(true),weight(-0.1)  {
+            edge(e),dummy(true),active(false),weight(-0.1)  {
                 e->dummyNodes.push_back(id);
             }
     };

@@ -179,7 +179,7 @@ void k6() {
 	//alg.straighten(routes,HORIZONTAL);
 	//output_svg(rs,routes,"straightener-x.svg",true);
 	//alg.straighten(routes,VERTICAL);
-	output_svg(rs,routes,"k6-unstraightened.svg",true);
+	output_svg(rs,routes,"k6-straightened.svg",true);
 	for(unsigned i=0;i<V;i++) {
 		delete rs[i];
 	}
