@@ -10,15 +10,13 @@
 #include <cassert>
 #include "gradient_projection.h"
 #include "straightener.h"
-
-
-typedef vector<unsigned> Cluster;
-typedef vector<Cluster*> Clusters;
 namespace vpsc { class Rectangle; }
 
 namespace cola {
     using vpsc::Rectangle;
     typedef pair<unsigned, unsigned> Edge;
+    typedef vector<unsigned> Cluster;
+    typedef vector<Cluster*> Clusters;
 
     // a graph component with a list of node_ids giving indices for some larger list of nodes
     // for the nodes in this component, and a list of edges - node indices relative to this component
@@ -191,7 +189,7 @@ namespace cola {
             delete [] X;
             delete [] Y;
         }
-		bool run();
+		void run();
         void straighten(vector<straightener::Edge*>&, Dim);
         bool avoidOverlaps;
         bool constrainedLayout;

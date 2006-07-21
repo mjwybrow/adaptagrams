@@ -65,7 +65,9 @@ namespace straightener {
         copy(dummyNodes.begin(),dummyNodes.end(),ds.begin());
         //printf("Edge::nodePath: (%d,%d) dummyNodes:%d\n",startNode,endNode,ds.size());
         path.clear();
+        activePath.clear();
         path.push_back(startNode);
+        activePath.push_back(0);
         for(unsigned i=1;i<route->n;i++) {
             //printf("  checking segment %d-%d\n",i-1,i);
             set<pair<double,unsigned> > pntsOnLineSegment;
@@ -86,10 +88,14 @@ namespace straightener {
                 }
             }
             for(set<pair<double,unsigned> >::iterator j=pntsOnLineSegment.begin();j!=pntsOnLineSegment.end();j++) {
+                if(nodes[j->second]->active) {
+                    activePath.push_back(path.size());
+                }
                 path.push_back(j->second);
             }
             //printf("\n");
         }
+        activePath.push_back(path.size());
         path.push_back(endNode);
         assert(ds.empty());
     }
@@ -187,6 +193,11 @@ namespace straightener {
     static SimpleConstraint* createConstraint(Node* u, Node* v, Dim dim) {
         double g=dim==HORIZONTAL?(u->width+v->width):(u->height+v->height);
         g/=2;
+        double sep=dim==HORIZONTAL?(v->x-u->x):(v->y-u->y);
+        if(sep < g) {
+            u->active = true;
+            v->active = true;
+        }
         //cerr << "Constraint: "<< u->id << "+"<<g<<"<="<<v->id<<endl;
         return new SimpleConstraint(u->id,v->id,g);
     }
@@ -248,11 +259,12 @@ namespace straightener {
                 }
                 vector<Node*> L;
                 sortNeighbours(v,l,r,e->pos,openEdges,L,nodes,dim);
-                //printf("L=[");
+                /*printf("L=[");
                 for(unsigned i=0;i<L.size();i++) {
-                    //printf("%d ",L[i]->id);
+                    printf("%d ",L[i]->id);
                 }
-                //printf("]\n");
+                printf("]\n");
+                */
                 
                 // Case A: create constraints between adjacent edges skipping edges joined
                 // to l,v or r.

@@ -34,7 +34,6 @@ ConstrainedMajorizationLayout
       gpY(NULL),
       straightenEdges(NULL)
 {
-    assert(rs.size()==n);
     boundingBoxes = new Rectangle*[rs.size()];
     copy(rs.begin(),rs.end(),boundingBoxes);
 
@@ -193,16 +192,8 @@ void ConstrainedMajorizationLayout
 }
 */
 
-bool ConstrainedMajorizationLayout::run() {
-    /*
-    for(unsigned i=0;i<n;i++) {
-        for(unsigned j=0;j<n;j++) {
-            cout << lap2[i][j] << " ";
-        }
-        cout << endl;
-    }
-    */
-    do {
+void ConstrainedMajorizationLayout::run() {
+    if(n>0) do {
         /* Axis-by-axis optimization: */
         if(straightenEdges) {
             straighten(*straightenEdges,HORIZONTAL);
@@ -212,7 +203,6 @@ bool ConstrainedMajorizationLayout::run() {
             majlayout(Dij,gpY,Y);
         }
     } while(!done(compute_stress(Dij),X,Y));
-    return true;
 }
 static bool straightenToProjection=true;
 void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedges, Dim dim) {
@@ -244,19 +234,46 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
     for(unsigned i=0;i<sedges.size();i++) {
         sedges[i]->nodePath(snodes);
         vector<unsigned>& path=sedges[i]->path;
+        vector<unsigned>& activePath=sedges[i]->activePath;
         // take u and v as the ends of the line
-        //unsigned u=path[0];
-        //unsigned v=path[path.size()-1];
+        // unsigned u=path[0];
+        // unsigned v=path[path.size()-1];
         double total_length=0;
+        /*
         for(unsigned j=1;j<path.size();j++) {
             unsigned u=path[j-1], v=path[j];
             total_length+=euclidean_distance(u,v);
         }
         for(unsigned j=1;j<path.size()-1;j++) {
             // find new u and v for each line segment
-            unsigned u=path[j-1];
-            unsigned b=path[j];
-            unsigned v=path[j+1];
+            unsigned u=path[j-1], b=path[j], v=path[j+1];
+            double weight=-0.01;
+            double wub=euclidean_distance(u,b)/total_length;
+            double wbv=euclidean_distance(b,v)/total_length;
+            linearConstraints.push_back(new cola::LinearConstraint(u,v,b,weight,wub,wbv,X,Y));
+        }
+        */
+        for(unsigned j=1;j<path.size();j++) {
+            unsigned u=path[j-1], v=path[j];
+            total_length+=euclidean_distance(u,v);
+        }
+        // keep potential bends straight
+        for(unsigned j=1;j<activePath.size();j++) {
+            unsigned uj=activePath[j-1], vj=activePath[j];
+            unsigned u=path[uj], v=path[vj];
+            for(unsigned k=uj+1;k<vj;k++) {
+                unsigned b=path[k];
+                double weight=-0.01;
+                double wub=euclidean_distance(u,b)/total_length;
+                double wbv=euclidean_distance(b,v)/total_length;
+                linearConstraints.push_back(new cola::LinearConstraint(u,v,b,weight,wub,wbv,X,Y));
+            }
+        }
+        // straighten actual bends
+        for(unsigned j=1;j<activePath.size()-1;j++) {
+            unsigned u=path[activePath[j-1]], 
+                     b=path[activePath[j]],
+                     v=path[activePath[j+1]];
             double weight=-0.01;
             double wub=euclidean_distance(u,b)/total_length;
             double wbv=euclidean_distance(b,v)/total_length;
