@@ -5,7 +5,7 @@ lib_LTLIBRARIES = libvpsc.la
 libvpsc_la_SOURCES = block.cpp\
 	blocks.cpp\
 	constraint.cpp\
-	generate-constraints.cpp\
+	rectangle.cpp\
 	pairingheap/PairingHeap.cpp\
 	remove_rectangle_overlap.cpp\
 	solve_VPSC.cpp\
@@ -15,7 +15,7 @@ libvpsc_la_SOURCES = block.cpp\
 	block.h\
 	blocks.h\
 	constraint.h\
-	generate-constraints.h\
+	rectangle.h\
 	pairingheap/PairingHeap.h\
 	pairingheap/dsexceptions.h\
 	remove_rectangle_overlap.h\
@@ -26,8 +26,8 @@ libvpsc_la_SOURCES = block.cpp\
 include_HEADERS = solve_VPSC.h \
 	variable.h
 	constraint.h\
-	generate-constraints.h\
+	rectangle.h\
 	remove_rectangle_overlap.h\
 	csolve_VPSC.h
-	
+
 SUBDIRS = tests

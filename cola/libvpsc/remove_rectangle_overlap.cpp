@@ -11,7 +11,7 @@
 
 #include <iostream>
 #include <cassert>
-#include "generate-constraints.h"
+#include "rectangle.h"
 #include "solve_VPSC.h"
 #include "variable.h"
 #include "constraint.h"

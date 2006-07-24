@@ -4,7 +4,7 @@
 #include <libvpsc/solve_VPSC.h>
 #include <libvpsc/variable.h>
 #include <libvpsc/constraint.h>
-#include <libvpsc/generate-constraints.h>
+#include <libvpsc/rectangle.h>
 #include <vector>
 #include <iostream>
 #include <math.h>
