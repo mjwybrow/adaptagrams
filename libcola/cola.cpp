@@ -264,9 +264,7 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
             for(unsigned k=uj+1;k<vj;k++) {
                 unsigned b=path[k];
                 double weight=-0.01;
-                double wub=euclidean_distance(u,b)/total_length;
-                double wbv=euclidean_distance(b,v)/total_length;
-                linearConstraints.push_back(new cola::LinearConstraint(u,v,b,weight,wub,wbv,X,Y));
+                linearConstraints.push_back(new cola::LinearConstraint(u,v,b,weight,X,Y));
             }
         }
         // straighten actual bends
@@ -275,9 +273,7 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
                      b=path[activePath[j]],
                      v=path[activePath[j+1]];
             double weight=-0.01;
-            double wub=euclidean_distance(u,b)/total_length;
-            double wbv=euclidean_distance(b,v)/total_length;
-            linearConstraints.push_back(new cola::LinearConstraint(u,v,b,weight,wub,wbv,X,Y));
+            linearConstraints.push_back(new cola::LinearConstraint(u,v,b,weight,X,Y));
         }
     }
     //cout << "Generated "<<linearConstraints.size()<< " linear constraints"<<endl;
@@ -287,40 +283,15 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
     for(LinearConstraints::iterator i=linearConstraints.begin();
            i!= linearConstraints.end();i++) {
         LinearConstraint* c=*i;
-        if(straightenToProjection) {
-            Q[c->u][c->u]+=c->w*c->duu;
-            Q[c->u][c->v]+=c->w*c->duv;
-            Q[c->u][c->b]+=c->w*c->dub;
-            Q[c->v][c->u]+=c->w*c->duv;
-            Q[c->v][c->v]+=c->w*c->dvv;
-            Q[c->v][c->b]+=c->w*c->dvb;
-            Q[c->b][c->b]+=c->w*c->dbb;
-            Q[c->b][c->u]+=c->w*c->dub;
-            Q[c->b][c->v]+=c->w*c->dvb;
-        } else {
-            double wub=edge_length*c->frac_ub;
-            double wbv=edge_length*c->frac_bv;
-            dist_ub=euclidean_distance(c->u,c->b)*wub;
-            dist_bv=euclidean_distance(c->b,c->v)*wbv;
-            wub=max(wub,0.00001);
-            wbv=max(wbv,0.00001);
-            dist_ub=max(dist_ub,0.00001);
-            dist_bv=max(dist_bv,0.00001);
-            wub=1/(wub*wub);
-            wbv=1/(wbv*wbv);
-            Q[c->u][c->u]-=wub;
-            Q[c->u][c->b]+=wub;
-            Q[c->v][c->v]-=wbv;
-            Q[c->v][c->b]+=wbv;
-            Q[c->b][c->b]-=wbv+wub;
-            Q[c->b][c->u]+=wub;
-            Q[c->b][c->v]+=wbv;
-
-            b[c->u]+=(coords[c->b]-coords[c->u]) / dist_ub;
-            b[c->v]+=(coords[c->b]-coords[c->v]) / dist_bv;
-            b[c->b]+=coords[c->u] / dist_ub + coords[c->v] / dist_bv
-                   - coords[c->b] / dist_ub - coords[c->b] / dist_bv;
-        }
+        Q[c->u][c->u]+=c->w*c->duu;
+        Q[c->u][c->v]+=c->w*c->duv;
+        Q[c->u][c->b]+=c->w*c->dub;
+        Q[c->v][c->u]+=c->w*c->duv;
+        Q[c->v][c->v]+=c->w*c->dvv;
+        Q[c->v][c->b]+=c->w*c->dvb;
+        Q[c->b][c->b]+=c->w*c->dbb;
+        Q[c->b][c->u]+=c->w*c->dub;
+        Q[c->b][c->v]+=c->w*c->dvb;
     }
 	GradientProjection gp(dim,n,Q,coords,tol,100,
             (AlignmentConstraints*)NULL,false,(vpsc::Rectangle**)NULL,(PageBoundaryConstraints*)NULL,&cs);
@@ -359,10 +330,10 @@ void ConstrainedMajorizationLayout::setupConstraints(
     if(cs) {
         clusters=cs;
     }
-	gpX=new GradientProjection(
-            HORIZONTAL,n,Q,X,tol,100,acsx,avoidOverlaps,boundingBoxes,pbcx,scx);
-	gpY=new GradientProjection(
-            VERTICAL,n,Q,Y,tol,100,acsy,avoidOverlaps,boundingBoxes,pbcy,scy);
+    gpX=new GradientProjection(
+        HORIZONTAL,n,Q,X,tol,100,acsx,avoidOverlaps,boundingBoxes,pbcx,scx);
+    gpY=new GradientProjection(
+        VERTICAL,n,Q,Y,tol,100,acsy,avoidOverlaps,boundingBoxes,pbcy,scy);
     this->straightenEdges = straightenEdges;
 }
 
@@ -373,10 +344,10 @@ Rectangle bounds(vector<Rectangle*>& rs) {
         top = rs[0]->getMinY(), bottom = rs[0]->getMaxY();
     
     for(unsigned i = 1; i < rs.size(); i++) {
-        left <?= rs[i]->getMinX();
-        right >?= rs[i]->getMaxX();
-        top <?= rs[i]->getMinY();
-        bottom >?= rs[i]->getMaxY();
+        left = min(left,rs[i]->getMinX());
+        right = max(right,rs[i]->getMaxX());
+        top = min(top,rs[i]->getMinY());
+        bottom = max(bottom,rs[i]->getMaxY());
     }
     return Rectangle(left, right, top, bottom);
 }

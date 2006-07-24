@@ -47,38 +47,19 @@ void separateComponents(const vector<Component*> &components);
 // such that b is placed at u+t(v-u).
 struct LinearConstraint {
     LinearConstraint(unsigned u, unsigned v, unsigned b, double w, 
-                     double frac_ub, double frac_bv,
                      double* X, double* Y) 
-        : u(u),v(v),b(b),w(w),frac_ub(frac_ub),frac_bv(frac_bv),
-          tAtProjection(true) 
+        : u(u),v(v),b(b),w(w)
     {
-        assert(frac_ub<=1.0);
-        assert(frac_bv<=1.0);
-        assert(frac_ub>=0);
-        assert(frac_bv>=0);
-        if(tAtProjection) {
-            double uvx = X[v] - X[u],
-                uvy = Y[v] - Y[u],
-                vbx = X[b] - X[u],
-                vby = Y[b] - Y[u];
-            t = uvx * vbx + uvy * vby;
-            t/= uvx * uvx + uvy * uvy;
-            // p is the projection point of b on line uv
-            //double px = scalarProj * uvx + X[u];
-            //double py = scalarProj * uvy + Y[u];
-            // take t=|up|/|uv|
+        // from cosine rule: ub.uv/|uv|=|ub|cos(theta)
+        double uvx = X[v] - X[u],
+               uvy = Y[v] - Y[u],
+               ubx = X[b] - X[u],
+               uby = Y[b] - Y[u],
+               duv2 = uvx * uvx + uvy * uvy;
+        if(duv2 < 0.0001) {
+            t=0;
         } else {
-            double numerator=X[b]-X[u];
-            double denominator=X[v]-X[u];
-            if(fabs(denominator)<0.001) {
-                // if line is close to vertical then use Y coords to compute T
-                numerator=Y[b]-Y[u];
-                denominator=Y[v]-Y[u];
-            }
-            if(fabs(denominator)<0.0001) {
-                denominator=1;
-            }
-            t=numerator/denominator;
+            t = (uvx * ubx + uvy * uby)/duv2;
         }
         duu=(1-t)*(1-t);
         duv=t*(1-t);
@@ -101,10 +82,6 @@ struct LinearConstraint {
     double dvv;
     double dvb;
     double dbb;
-    // Length of each segment as a fraction of the total edge length
-    double frac_ub;
-    double frac_bv;
-    bool tAtProjection;
 };
 typedef vector<LinearConstraint*> LinearConstraints;
 	
