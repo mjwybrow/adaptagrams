@@ -12,7 +12,7 @@
 
 #include <set>
 #include <cassert>
-#include "generate-constraints.h"
+#include "rectangle.h"
 #include "constraint.h"
 
 #include "isnan.h" /* Include last */

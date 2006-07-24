@@ -1,5 +1,5 @@
 #include "graphlayouttest.h"
-#include <libvpsc/generate-constraints.h>
+#include <libvpsc/rectangle.h>
 #include <fstream>
 
 #define ARROW_HEAD_BUFFER 3

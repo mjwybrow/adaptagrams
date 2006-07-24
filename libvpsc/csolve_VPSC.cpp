@@ -12,7 +12,7 @@
 #include <cassert>
 #include "variable.h"
 #include "constraint.h"
-#include "generate-constraints.h"
+#include "rectangle.h"
 #include "solve_VPSC.h"
 #include "csolve_VPSC.h"
 using namespace vpsc;
