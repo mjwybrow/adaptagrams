@@ -12,8 +12,9 @@ void floyd_warshall(
         unsigned n,
         double** D, 
         vector<Edge>& es,
-        double* eweights) 
+        valarray<double>* eweights) 
 {
+    assert(!eweights||eweights->size()==es.size());
     for(unsigned i=0;i<n;i++) {
         for(unsigned j=0;j<n;j++) {
             if(i==j) D[i][j]=0;
@@ -23,7 +24,7 @@ void floyd_warshall(
     for(unsigned i=0;i<es.size();i++) {
         unsigned u=es[i].first, v=es[i].second;
         assert(u<n&&v<n);
-        D[u][v]=D[v][u]=eweights[i];
+        D[u][v]=D[v][u]=eweights?(*eweights)[i]:1;
     }
     for(unsigned k=0; k<n; k++) {
         for(unsigned i=0; i<n; i++) {
@@ -33,13 +34,15 @@ void floyd_warshall(
         }
     }
 }
-void dijkstra_init(Node* vs, vector<Edge>& es, double* eweights) {
+void dijkstra_init(Node* vs, vector<Edge>& es, valarray<double>* eweights) {
+    assert(!eweights||eweights->size()==es.size());
     for(unsigned i=0;i<es.size();i++) {
         unsigned u=es[i].first, v=es[i].second;
+        double w=eweights?(*eweights)[i]:1;
         vs[u].neighbours.push_back(&vs[v]);
-        vs[u].nweights.push_back(eweights[i]);
+        vs[u].nweights.push_back(w);
         vs[v].neighbours.push_back(&vs[u]);
-        vs[v].nweights.push_back(eweights[i]);
+        vs[v].nweights.push_back(w);
     }
 }
 void dijkstra(
@@ -78,8 +81,9 @@ void dijkstra(
         unsigned n,
         double* d,
         vector<Edge>& es,
-        double* eweights)
+        valarray<double>* eweights)
 {
+    assert(!eweights||es.size()==eweights->size());
     assert(s<n);
     Node vs[n];
     dijkstra_init(vs,es,eweights);
@@ -89,7 +93,7 @@ void johnsons(
         unsigned n,
         double** D, 
         vector<Edge>& es,
-        double* eweights) 
+        valarray<double>* eweights) 
 {
     Node vs[n];
     dijkstra_init(vs,es,eweights);

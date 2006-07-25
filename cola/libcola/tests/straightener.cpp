@@ -39,10 +39,7 @@ void k5() {
 		Edge(3, 4)
        	};
 	const size_t E = sizeof(edge_array) / sizeof(Edge);
-	double eweights[E];
-	fill(eweights,eweights+E,1);
-	vector<Edge> es(E);
-	copy(edge_array,edge_array+E,es.begin());
+	vector<Edge> es(edge_array,edge_array+E);
 
 	const double w=40, h=40;
 	vector<vpsc::Rectangle*> rs;
@@ -89,8 +86,7 @@ void k5() {
 	r->ys[2]=rs[4]->getCentreY();
 	routes[6]->setRoute(r);
 	// now straighten the edges
-	TestConvergence test(0.0001,1);
-	ConstrainedMajorizationLayout alg(rs,es,eweights,200,test);
+	ConstrainedMajorizationLayout alg(rs,es,200);
 	alg.setupConstraints(NULL,NULL,false,NULL,NULL,NULL,NULL,NULL,&routes);
 	alg.run();
 	//alg.straighten(routes,HORIZONTAL);
@@ -172,8 +168,7 @@ void k6() {
 		298.000000,444.000000,
 		333.000000,559.000000});
 	// now straighten the edges
-	TestConvergence test(0.0001,1);
-	ConstrainedMajorizationLayout alg(rs,es,eweights,200,test);
+	ConstrainedMajorizationLayout alg(rs,es,200);
 	alg.setupConstraints(NULL,NULL,false,NULL,NULL,NULL,NULL,NULL,&routes);
 	alg.run();
 	//alg.straighten(routes,HORIZONTAL);

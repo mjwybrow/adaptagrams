@@ -5,7 +5,6 @@
 #include <fstream>
 #include <iostream>
 #include <iomanip>
-#include <vector>
 //#define TEST_AGAINST_BOOST
 #ifdef TEST_AGAINST_BOOST
 #include <boost/property_map.hpp>
@@ -56,7 +55,7 @@ main()
     vector<shortest_paths::Edge> es = random_graph(V);
     unsigned E=es.size();
     cout << "  Test graph |V|="<<V<<",|E|="<<E<<endl;
-    double weights[E];
+    valarray<double> weights(E);
     for(unsigned i=0;i<E;i++) {
 	    weights[i]=round(((double)rand()/(double)RAND_MAX)*10);
 #ifdef TEST_AGAINST_BOOST
@@ -79,7 +78,7 @@ main()
     }
     cout<<"Running shortest_paths::johnsons..."<<endl;
     resetClock();
-    shortest_paths::johnsons(V,D1,es,weights);
+    shortest_paths::johnsons(V,D1,es,&weights);
     cout<<"  ...done, time="<<getRunTime()<<endl;
     double** D2=new double*[V];
     for(unsigned i=0;i<V;i++) {
@@ -87,7 +86,7 @@ main()
     }
     cout<<"Running shortest_paths::floyd_warshall..."<<endl;
     resetClock();
-    shortest_paths::floyd_warshall(V,D2,es,weights);
+    shortest_paths::floyd_warshall(V,D2,es,&weights);
     cout<<"  ...done, time="<<getRunTime()<<endl;
 
     for (int i = 0; i < V; ++i) {
