@@ -24,15 +24,13 @@ ConstrainedMajorizationLayout
       n(rs.size()),
       lapSize(n), lap2(new double*[lapSize]), 
       Q(lap2), Dij(new double*[lapSize]),
-      tol(0.0001),
-      done(done),
-      X(new double[n]),
-      Y(new double[n]),
-      clusters(NULL),
-      linearConstraints(NULL),
-      gpX(NULL),
-      gpY(NULL),
-      straightenEdges(NULL)
+      tol(0.0001), done(done),
+      X(new double[n]), Y(new double[n]),
+      clusters(NULL), linearConstraints(NULL),
+      gpX(NULL), gpY(NULL),
+      straightenEdges(NULL),
+      scx(NULL), scy(NULL),
+      bendWeight(0.01),potBendWeight(0.1)
 {
     boundingBoxes = new Rectangle*[rs.size()];
     copy(rs.begin(),rs.end(),boundingBoxes);
@@ -157,40 +155,6 @@ inline double ConstrainedMajorizationLayout
     }
     return sum;
 }
-/*
-void ConstrainedMajorizationLayout
-::addLinearConstraints(LinearConstraints* linearConstraints) {
-    n=lapSize+linearConstraints->size();
-    Q=new double*[n];
-    X=new double[n];
-    Y=new double[n];
-    for(unsigned i = 0; i<n; i++) {
-        X[i]=rs[i]->getCentreX();
-        Y[i]=rs[i]->getCentreY();
-        Q[i]=new double[n];
-        for(unsigned j=0; j<n; j++) {
-            if(i<lapSize&&j<lapSize) {
-                Q[i][j]=lap2[i][j];
-            } else {
-                Q[i][j]=0;
-            }
-        }
-    }
-    for(LinearConstraints::iterator i=linearConstraints->begin();
-           i!= linearConstraints->end();i++) {
-        LinearConstraint* c=*i;
-        Q[c->u][c->u]+=c->w*c->duu;
-        Q[c->u][c->v]+=c->w*c->duv;
-        Q[c->u][c->b]+=c->w*c->dub;
-        Q[c->v][c->u]+=c->w*c->duv;
-        Q[c->v][c->v]+=c->w*c->dvv;
-        Q[c->v][c->b]+=c->w*c->dvb;
-        Q[c->b][c->b]+=c->w*c->dbb;
-        Q[c->b][c->u]+=c->w*c->dub;
-        Q[c->b][c->v]+=c->w*c->dvb;
-    }
-}
-*/
 
 void ConstrainedMajorizationLayout::run(bool x, bool y) {
     if(n>0) do {
@@ -204,13 +168,14 @@ void ConstrainedMajorizationLayout::run(bool x, bool y) {
         }
     } while(!done(compute_stress(Dij),X,Y));
 }
-static bool straightenToProjection=true;
 void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedges, Dim dim) {
 	vector<straightener::Node*> snodes;
 	for (unsigned i=0;i<lapSize;i++) {
 		snodes.push_back(new straightener::Node(i,boundingBoxes[i]));
 	}
-    SimpleConstraints cs;
+    SimpleConstraints *gcs=dim==HORIZONTAL?scx:scy;
+    SimpleConstraints cs(gcs?gcs->size():0);
+    if(gcs) copy(gcs->begin(),gcs->end(),cs.begin());
     straightener::generateConstraints(snodes,sedges,cs,dim);
     n=snodes.size();
     Q=new double*[n];
@@ -239,20 +204,6 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
         // unsigned u=path[0];
         // unsigned v=path[path.size()-1];
         double total_length=0;
-        /*
-        for(unsigned j=1;j<path.size();j++) {
-            unsigned u=path[j-1], v=path[j];
-            total_length+=euclidean_distance(u,v);
-        }
-        for(unsigned j=1;j<path.size()-1;j++) {
-            // find new u and v for each line segment
-            unsigned u=path[j-1], b=path[j], v=path[j+1];
-            double weight=-0.01;
-            double wub=euclidean_distance(u,b)/total_length;
-            double wbv=euclidean_distance(b,v)/total_length;
-            linearConstraints.push_back(new cola::LinearConstraint(u,v,b,weight,wub,wbv,X,Y));
-        }
-        */
         for(unsigned j=1;j<path.size();j++) {
             unsigned u=path[j-1], v=path[j];
             total_length+=euclidean_distance(u,v);
@@ -263,8 +214,8 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
             unsigned u=path[uj], v=path[vj];
             for(unsigned k=uj+1;k<vj;k++) {
                 unsigned b=path[k];
-                double weight=-0.01;
-                linearConstraints.push_back(new cola::LinearConstraint(u,v,b,weight,X,Y));
+		// greater weight for potential bends than actual bends
+                linearConstraints.push_back(new cola::LinearConstraint(u,v,b,-potBendWeight,X,Y));
             }
         }
         // straighten actual bends
@@ -272,13 +223,12 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
             unsigned u=path[activePath[j-1]], 
                      b=path[activePath[j]],
                      v=path[activePath[j+1]];
-            double weight=-0.01;
-            linearConstraints.push_back(new cola::LinearConstraint(u,v,b,weight,X,Y));
+            linearConstraints.push_back(new cola::LinearConstraint(u,v,b,-bendWeight,X,Y));
         }
     }
     //cout << "Generated "<<linearConstraints.size()<< " linear constraints"<<endl;
     assert(snodes.size()==lapSize+linearConstraints.size());
-    double b[n],*coords=dim==HORIZONTAL?X:Y,dist_ub,dist_bv;
+    double b[n],*coords=dim==HORIZONTAL?X:Y;
     fill(b,b+n,0);
     for(LinearConstraints::iterator i=linearConstraints.begin();
            i!= linearConstraints.end();i++) {
@@ -293,8 +243,9 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
         Q[c->b][c->u]+=c->w*c->dub;
         Q[c->b][c->v]+=c->w*c->dvb;
     }
-	GradientProjection gp(dim,n,Q,coords,tol,100,
-            (AlignmentConstraints*)NULL,false,(vpsc::Rectangle**)NULL,(PageBoundaryConstraints*)NULL,&cs);
+    GradientProjection gp(dim,n,Q,coords,tol,100,
+            (AlignmentConstraints*)NULL,false,
+            (vpsc::Rectangle**)NULL,(PageBoundaryConstraints*)NULL,&cs);
     constrainedLayout = true;
     majlayout(Dij,&gp,coords,b);
     for(unsigned i=0;i<sedges.size();i++) {
@@ -302,7 +253,7 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
         sedges[i]->dummyNodes.clear();
         sedges[i]->path.clear();
     }
-    for(unsigned i=0;i<cs.size();i++) {
+    for(unsigned i=gcs?gcs->size():0;i<cs.size();i++) {
         delete cs[i];
     }
     for(unsigned i=0;i<linearConstraints.size();i++) {
@@ -324,17 +275,21 @@ void ConstrainedMajorizationLayout::setupConstraints(
         PageBoundaryConstraints* pbcx, PageBoundaryConstraints* pbcy,
         SimpleConstraints* scx, SimpleConstraints* scy,
         Clusters* cs,
-        vector<straightener::Edge*>* straightenEdges) {
+        vector<straightener::Edge*>* straightenEdges,
+        double bendWeight, double potBendWeight) {
     constrainedLayout = true;
     this->avoidOverlaps = avoidOverlaps;
     if(cs) {
         clusters=cs;
     }
+    this->scx=scx; this->scy=scy;
     gpX=new GradientProjection(
         HORIZONTAL,n,Q,X,tol,100,acsx,avoidOverlaps,boundingBoxes,pbcx,scx);
     gpY=new GradientProjection(
         VERTICAL,n,Q,Y,tol,100,acsy,avoidOverlaps,boundingBoxes,pbcy,scy);
     this->straightenEdges = straightenEdges;
+    this->bendWeight = bendWeight;
+    this->potBendWeight = potBendWeight;
 }
 
 Rectangle bounds(vector<Rectangle*>& rs) {
@@ -353,7 +308,6 @@ Rectangle bounds(vector<Rectangle*>& rs) {
 }
 
 } // namespace cola
-// vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4
 
 /*
   Local Variables:
@@ -364,3 +318,4 @@ Rectangle bounds(vector<Rectangle*>& rs) {
   fill-column:99
   End:
 */
+// vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4 :
