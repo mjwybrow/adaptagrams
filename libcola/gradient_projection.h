@@ -65,12 +65,13 @@ private:
 
 typedef vector<pair<unsigned,double> > CList;
 /**
- * A DummyVarPair is a pair of variables with an ideal distance between them and which have no
- * other interaction with other variables apart from through constraints.  This means that
- * the entries in the laplacian matrix for dummy vars and other vars would be 0 - thus, sparse
- * matrix techniques can be used in laplacian operations.
- * The constraints are specified by a two lists of pairs of variable indexes and required separation.
- * The two lists are:
+ * A DummyVarPair is a pair of variables with an ideal distance between them
+ * and which have no other interaction with other variables apart from through
+ * constraints.  This means that the entries in the laplacian matrix for dummy
+ * vars and other vars would be 0 - thus, sparse matrix techniques can be used
+ * in laplacian operations.
+ * The constraints are specified by a two lists of pairs of variable indexes
+ * and required separation.  The two lists are:
  *   leftof: variables to which left must be to the left of, 
  *   rightof: variables to which right must be to the right of. 
  */

@@ -2,7 +2,7 @@
 #include <cassert>
 #include <math.h>
 #include <time.h>
-#include <generate-constraints.h>
+#include <rectangle.h>
 #include <variable.h>
 #include <constraint.h>
 #include <solve_VPSC.h>

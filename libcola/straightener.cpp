@@ -206,31 +206,32 @@ namespace straightener {
         unsigned nevents=2*nodes.size()+2*edges.size();
         events=new Event*[nevents];
         unsigned ctr=0;
+        double nodeFudge=0.01, edgeFudge=-1;
         if(dim==HORIZONTAL) {
             //cout << "Scanning top to bottom..." << endl;
             for(unsigned i=0;i<nodes.size();i++) {
                 Node *v=nodes[i];
                 v->scanpos=v->x;
-                events[ctr++]=new Event(Open,v,v->ymin+0.01);
-                events[ctr++]=new Event(Close,v,v->ymax-0.01);
+                events[ctr++]=new Event(Open,v,v->ymin+nodeFudge);
+                events[ctr++]=new Event(Close,v,v->ymax-nodeFudge);
             }
             for(unsigned i=0;i<edges.size();i++) {
                 Edge *e=edges[i];
-                events[ctr++]=new Event(Open,e,e->ymin-1);
-                events[ctr++]=new Event(Close,e,e->ymax+1);
+                events[ctr++]=new Event(Open,e,e->ymin+edgeFudge);
+                events[ctr++]=new Event(Close,e,e->ymax-edgeFudge);
             }
         } else {
             //cout << "Scanning left to right..." << endl;
             for(unsigned i=0;i<nodes.size();i++) {
                 Node *v=nodes[i];
                 v->scanpos=v->y;
-                events[ctr++]=new Event(Open,v,v->xmin+0.01);
-                events[ctr++]=new Event(Close,v,v->xmax-0.01);
+                events[ctr++]=new Event(Open,v,v->xmin+nodeFudge);
+                events[ctr++]=new Event(Close,v,v->xmax-nodeFudge);
             }
             for(unsigned i=0;i<edges.size();i++) {
                 Edge *e=edges[i];
-                events[ctr++]=new Event(Open,e,e->xmin-1);
-                events[ctr++]=new Event(Close,e,e->xmax+1);
+                events[ctr++]=new Event(Open,e,e->xmin+edgeFudge);
+                events[ctr++]=new Event(Close,e,e->xmax-edgeFudge);
             }
         }
         qsort((Event*)events, (size_t)nevents, sizeof(Event*), compare_events );

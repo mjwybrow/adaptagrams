@@ -149,7 +149,8 @@ public:
         SimpleConstraints* scx = NULL,
         SimpleConstraints* scy = NULL,
         Clusters* cs = NULL,
-        vector<straightener::Edge*>* straightenEdges = NULL);
+        vector<straightener::Edge*>* straightenEdges = NULL,
+	double bendWeight = 0.01, double potBendWeight = 0.1);
 
     void addLinearConstraints(LinearConstraints* linearConstraints);
 
@@ -203,6 +204,8 @@ private:
     LinearConstraints *linearConstraints;
     GradientProjection *gpX, *gpY;
     vector<straightener::Edge*>* straightenEdges;
+    SimpleConstraints *scx, *scy;
+    double bendWeight, potBendWeight;
 };
 
 Rectangle bounds(vector<Rectangle*>& rs);
