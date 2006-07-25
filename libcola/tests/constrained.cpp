@@ -29,10 +29,7 @@ int main() {
 	typedef pair < unsigned, unsigned >Edge;
 	Edge edge_array[] = { Edge(0, 1), Edge(1, 2), Edge(2, 3), Edge(1, 3) };
 	unsigned E = sizeof(edge_array) / sizeof(Edge);
-	double eweights[E];
-	fill(eweights,eweights+E,1);
-	vector<Edge> es(E);
-	copy(edge_array,edge_array+E,es.begin());
+	vector<Edge> es(edge_array,edge_array+E);
 	double width=100;
 	double height=100;
 	vector<vpsc::Rectangle*> rs;
@@ -40,7 +37,7 @@ int main() {
 		double x=getRand(width), y=getRand(height);
 		rs.push_back(new vpsc::Rectangle(x,x+5,y,y+5));
 	}
-	ConstrainedMajorizationLayout alg(rs,es,eweights,width/2);
+	ConstrainedMajorizationLayout alg(rs,es,width/2);
 	AlignmentConstraints acsx;
 	AlignmentConstraint ac(1);
 	acsx.push_back(&ac);

@@ -13,6 +13,7 @@
 #include <fstream>
 
 #include <vector>
+#include <valarray>
 #include <algorithm>
 #include <float.h>
 #include "graphlayouttest.h"
@@ -31,8 +32,6 @@ int main() {
 	const int V = 4;
 	Edge edge_array[] = { Edge(0, 1), Edge(1, 2), Edge(2, 3), Edge(1, 3) };
 	const std::size_t E = sizeof(edge_array) / sizeof(Edge);
-	double eweights[E];
-	fill(eweights,eweights+E,1);
 	vector<Edge> es(E);
 	copy(edge_array,edge_array+E,es.begin());
 	double width=100;
@@ -43,7 +42,7 @@ int main() {
 		rs.push_back(new vpsc::Rectangle(x,x+5,y,y+5));
 	}
 	CheckProgress test(0.0001,100);
-	ConstrainedMajorizationLayout alg(rs,es,eweights,width/2,test);
+	ConstrainedMajorizationLayout alg(rs,es,width/2,NULL,test);
 	alg.run();
 	output_svg(rs,es,"unconstrained.svg");
 	for(unsigned i=0;i<V;i++) {

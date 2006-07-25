@@ -17,8 +17,8 @@ ConstrainedMajorizationLayout
 ::ConstrainedMajorizationLayout(
         vector<Rectangle*>& rs,
         vector<Edge>& es,
-        double* eweights,
         double idealLength,
+        valarray<double>* eweights,
         TestConvergence& done)
     : constrainedLayout(false),
       n(rs.size()),
@@ -36,6 +36,8 @@ ConstrainedMajorizationLayout
     copy(rs.begin(),rs.end(),boundingBoxes);
 
     done.reset();
+
+    assert(!eweights||eweights->size()==es.size()); 
 
     double** D=new double*[n];
     for(unsigned i=0;i<n;i++) {

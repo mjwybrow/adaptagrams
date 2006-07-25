@@ -4,6 +4,7 @@
 #include <utility>
 #include <iterator>
 #include <vector>
+#include <valarray>
 #include <algorithm>
 #include <cmath>
 #include <iostream>
@@ -119,19 +120,17 @@ private:
     unsigned iterations;
 };
 
-
-
+// The following instance of TestConvergence is used if no other is
+// specified
 static TestConvergence defaultTest(0.0001,100);
-
-
 
 class ConstrainedMajorizationLayout {
 public:
     ConstrainedMajorizationLayout(
         vector<Rectangle*>& rs,
         vector<Edge>& es,
-        double* eweights,
         double idealLength,
+        valarray<double>* eweights=NULL,
         TestConvergence& done=defaultTest);
 
     void moveBoundingBoxes() {

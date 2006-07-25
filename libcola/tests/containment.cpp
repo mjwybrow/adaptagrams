@@ -32,10 +32,7 @@ int main() {
 	typedef pair < unsigned, unsigned >Edge;
 	Edge edge_array[] = { Edge(0, 1), Edge(1, 2), Edge(2, 3), Edge(3, 4) };
 	const std::size_t E = sizeof(edge_array) / sizeof(Edge);
-	double eweights[E];
-	fill(eweights,eweights+E,1);
-	vector<Edge> es(E);
-	copy(edge_array,edge_array+E,es.begin());
+	vector<Edge> es(edge_array,edge_array+E);
 	double width=100;
 	double height=100;
 	vector<vpsc::Rectangle*> rs;
@@ -49,7 +46,7 @@ int main() {
 	c.push_back(4);
 	Clusters cs;
 	cs.push_back(&c);
-	ConstrainedMajorizationLayout alg(rs,es,eweights,width/2);
+	ConstrainedMajorizationLayout alg(rs,es,width/2);
 	alg.setupConstraints(NULL,NULL,false,NULL,NULL,NULL,NULL,&cs);
 	alg.run();
 	output_svg(rs,es,"containment.svg");
