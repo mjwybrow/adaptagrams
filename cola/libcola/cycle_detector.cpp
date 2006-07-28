@@ -130,9 +130,9 @@ vector<bool> *CycleDetector::detect_cycles()  {
       unsigned v = seenInRun.top();
       seenInRun.pop();
       #ifdef RUN_DEBUG
-        cout << "Setting vertex(" << v << ") CA to NULL" << endl;
+        //cout << "Setting vertex(" << v << ") CA to NULL" << endl;
       #endif
-      (*nodes)[v]->cyclicAncestor = NULL;
+      //(*nodes)[v]->cyclicAncestor = NULL;
     }
 
     assert(seenInRun.empty());
@@ -170,17 +170,19 @@ void CycleDetector::visit(unsigned k)  {
   // state that we have seen this vertex
   pair< bool, vector<unsigned>::iterator > haveSeen = find_node(traverse, k);
   if (haveSeen.first)  {
-    #ifdef VISIT_DEBUG
-      cout << "Visiting vertex(" << k << ") for the first time" << endl;
-    #endif
+    seenInRun.push(k);
+
+    // set up this node as being visited.
+    thisNode->stamp = ++Time;
+    thisNode->status = Node::BeingVisited;
+
     traverse.erase(haveSeen.second);
+
+    #ifdef VISIT_DEBUG
+      cout << "Visiting vertex(" << k << ") for the first time TS: " << thisNode->stamp << endl;
+    #endif
+
   }
-
-  seenInRun.push(k);
-
-  // set up this node as being visited.
-  thisNode->stamp = ++Time;
-  thisNode->status = Node::BeingVisited;
 
   // traverse to all the vertices adjacent to this vertex.
   for (unsigned n = 0; n < thisNode->dests.size(); n++)  {
@@ -208,8 +210,8 @@ void CycleDetector::visit(unsigned k)  {
 	for (unsigned i = 0; i < edges->size(); i++)  {
 	  if ((*edges)[i] == Edge(k, otherNode->id))  {
 	    (*cyclicEdgesMapping)[i] = true;
-            #ifdef OUTPUT_DEBUG
-              cout << "Setting cyclicEdgesMapping[" << i << "] to true" << endl;
+            #ifdef VISIT_DEBUG
+              cout << "Setting cyclicEdgesMapping[(" << k << ", " << otherNode->id << ")] to true" << endl;
             #endif
 	  }
 	}
@@ -224,20 +226,35 @@ void CycleDetector::visit(unsigned k)  {
     else  {
       // we are at a node who has been visited before.  If this node's CA is not NULL
       // then this node is part of a cycle.
-      // compare the stamp of the traversal with our stamp
+      #ifdef VISIT_DEBUG
+        cout << "Encountering vertex(" << otherNode->id << ") which is CLOSED" << endl;
+      #endif
+
       if (otherNode->cyclicAncestor != NULL)  {
-	// store the cycle
-	for (unsigned i = 0; i < edges->size(); i++)  {
-	  if ((*edges)[i] == Edge(k, otherNode->id))  {
-	    (*cyclicEdgesMapping)[i] = true;
-            #ifdef VISIT_DEBUG
-              cout << "Setting cyclicEdgesMapping[" << i << "] to true" << endl;
-            #endif
+        #ifdef VISIT_DEBUG
+          cout << "vertex(" << otherNode->id << ")->CA->id = " << otherNode->cyclicAncestor->id << endl;
+        #endif        
+	// compare the stamp of the traversal with our stamp
+        if (otherNode->cyclicAncestor->stamp <= thisNode->stamp && otherNode->cyclicAncestor->status != Node::DoneVisiting)  {
+	  #ifdef VISIT_DEBUG
+            cout << "Edge(" << k << ", " << otherNode->id << ") is part of a cycle" << endl;
+          #endif 
+  	  // store the cycle
+	  for (unsigned i = 0; i < edges->size(); i++)  {
+	    if ((*edges)[i] == Edge(k, otherNode->id))  {
+	      (*cyclicEdgesMapping)[i] = true;
+              #ifdef VISIT_DEBUG
+                cout << "Setting cyclicEdgesMapping[" << i << "] to true" << endl;
+              #endif
+	    }
 	  }
 	}
 
         // this node is part of a cycle
         if (thisNode->cyclicAncestor == NULL)  { thisNode->cyclicAncestor = otherNode->cyclicAncestor; }
+
+	// see if we are part of a cycle with a cyclicAncestor that possesses a lower timestamp
+	if (otherNode->cyclicAncestor->stamp < thisNode->cyclicAncestor->stamp)  { thisNode->cyclicAncestor = otherNode->cyclicAncestor; }
       }
     }
   }
