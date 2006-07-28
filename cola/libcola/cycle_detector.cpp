@@ -130,9 +130,9 @@ vector<bool> *CycleDetector::detect_cycles()  {
       unsigned v = seenInRun.top();
       seenInRun.pop();
       #ifdef RUN_DEBUG
-        cout << "Marking vertex(" << v << ") as CLOSED" << endl;
+        cout << "Setting vertex(" << v << ") CA to NULL" << endl;
       #endif
-      (*nodes)[v]->status = Node::DoneVisiting;
+      (*nodes)[v]->cyclicAncestor = NULL;
     }
 
     assert(seenInRun.empty());
@@ -206,10 +206,12 @@ void CycleDetector::visit(unsigned k)  {
 
 	// store the cycle
 	for (unsigned i = 0; i < edges->size(); i++)  {
-	  if ((*edges)[i] == Edge(k, otherNode->id))  { (*cyclicEdgesMapping)[i] = true; }
-          #ifdef OUTPUT_DEBUG
-            cout << "Setting cyclicEdgesMapping[" << i << "] to true" << endl;
-          #endif
+	  if ((*edges)[i] == Edge(k, otherNode->id))  {
+	    (*cyclicEdgesMapping)[i] = true;
+            #ifdef OUTPUT_DEBUG
+              cout << "Setting cyclicEdgesMapping[" << i << "] to true" << endl;
+            #endif
+	  }
 	}
 
         // this node is part of a cycle
@@ -219,7 +221,32 @@ void CycleDetector::visit(unsigned k)  {
 	if (otherNode->cyclicAncestor->stamp < thisNode->cyclicAncestor->stamp)  { thisNode->cyclicAncestor = otherNode->cyclicAncestor; }
       }
     }
+    else  {
+      // we are at a node who has been visited before.  If this node's CA is not NULL
+      // then this node is part of a cycle.
+      // compare the stamp of the traversal with our stamp
+      if (otherNode->cyclicAncestor != NULL)  {
+	// store the cycle
+	for (unsigned i = 0; i < edges->size(); i++)  {
+	  if ((*edges)[i] == Edge(k, otherNode->id))  {
+	    (*cyclicEdgesMapping)[i] = true;
+            #ifdef VISIT_DEBUG
+              cout << "Setting cyclicEdgesMapping[" << i << "] to true" << endl;
+            #endif
+	  }
+	}
+
+        // this node is part of a cycle
+        if (thisNode->cyclicAncestor == NULL)  { thisNode->cyclicAncestor = otherNode->cyclicAncestor; }
+      }
+    }
   }
+
+  #ifdef RUN_DEBUG
+    cout << "Marking vertex(" << k << ") as CLOSED" << endl;
+  #endif
+
+  thisNode->status = Node::DoneVisiting;
 }
 
 // determines whether or not a vertex is a sink
