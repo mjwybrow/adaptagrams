@@ -274,3 +274,11 @@ pair< bool, vector<unsigned>::iterator > CycleDetector::find_node(std::vector<un
 
   return pair< bool, vector<unsigned>::iterator >(false, traverse.end()); 
 }
+
+vector<TimeStamp> *CycleDetector::getTimeStamps()  {
+  vector<TimeStamp> *times = new vector<TimeStamp>(nodes->size());
+
+  for (unsigned i = 0; i < nodes->size(); i++)  { (*times)[(*nodes)[i]->id] = (*nodes)[i]->stamp; }
+
+  return times;
+}
