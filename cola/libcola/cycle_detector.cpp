@@ -231,14 +231,14 @@ void CycleDetector::visit(unsigned k)  {
                 cout << "Setting cyclicEdgesMapping[" << i << "] to true" << endl;
               #endif
 	    }
-	  }
+	  }	
+
+          // this node is part of a cycle
+          if (thisNode->cyclicAncestor == NULL)  { thisNode->cyclicAncestor = otherNode->cyclicAncestor; }
+
+	  // see if we are part of a cycle with a cyclicAncestor that possesses a lower timestamp
+	  if (otherNode->cyclicAncestor->stamp < thisNode->cyclicAncestor->stamp)  { thisNode->cyclicAncestor = otherNode->cyclicAncestor; }
 	}
-
-        // this node is part of a cycle
-        if (thisNode->cyclicAncestor == NULL)  { thisNode->cyclicAncestor = otherNode->cyclicAncestor; }
-
-	// see if we are part of a cycle with a cyclicAncestor that possesses a lower timestamp
-	if (otherNode->cyclicAncestor->stamp < thisNode->cyclicAncestor->stamp)  { thisNode->cyclicAncestor = otherNode->cyclicAncestor; }
       }
     }
   }
