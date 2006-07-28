@@ -125,18 +125,6 @@ vector<bool> *CycleDetector::detect_cycles()  {
 
   // while we still have vertices to visit, visit.
   while (!traverse.empty())  {
-    // mark any vertices seen in a previous run as closed
-    while (!seenInRun.empty())  {
-      unsigned v = seenInRun.top();
-      seenInRun.pop();
-      #ifdef RUN_DEBUG
-        //cout << "Setting vertex(" << v << ") CA to NULL" << endl;
-      #endif
-      //(*nodes)[v]->cyclicAncestor = NULL;
-    }
-
-    assert(seenInRun.empty());
-
     #ifdef VISIT_DEBUG
       cout << "begining search at vertex(" << traverse[0] << ")" << endl;
     #endif
@@ -148,8 +136,6 @@ vector<bool> *CycleDetector::detect_cycles()  {
   }
 
   // clean up
-  while (!seenInRun.empty())  { seenInRun.pop(); }
-  assert(seenInRun.empty());
   assert(traverse.empty());
 
   return cyclicEdgesMapping;
@@ -170,8 +156,6 @@ void CycleDetector::visit(unsigned k)  {
   // state that we have seen this vertex
   pair< bool, vector<unsigned>::iterator > haveSeen = find_node(traverse, k);
   if (haveSeen.first)  {
-    seenInRun.push(k);
-
     // set up this node as being visited.
     thisNode->stamp = ++Time;
     thisNode->status = Node::BeingVisited;

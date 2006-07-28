@@ -43,7 +43,6 @@ class CycleDetector  {
     std::vector<Node *> *nodes; // the nodes in the graph
     std::vector<bool> *cyclicEdgesMapping; // the cyclic edges in the graph.
     std::vector<unsigned> traverse; // nodes still left to visit in the graph
-    std::stack<unsigned> seenInRun; // nodes visited in a single pass.
 
     // internally used methods
     void make_matrix();
