@@ -23,11 +23,14 @@ libvpsc_la_SOURCES = block.cpp\
 	csolve_VPSC.h\
 	variable.h
 
-include_HEADERS = solve_VPSC.h \
-	variable.h
+libvpscincludedir = ${includedir}/libvpsc
+
+libvpscinclude_HEADERS = solve_VPSC.h \
+	block.h\
 	constraint.h\
+	csolve_VPSC.h\
 	rectangle.h\
 	remove_rectangle_overlap.h\
-	csolve_VPSC.h
+	variable.h
 
 SUBDIRS = tests
