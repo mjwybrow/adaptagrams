@@ -9,11 +9,9 @@
 #include <iostream>
 #include <math.h>
 
-using namespace std;
-
-typedef vector<vpsc::Constraint*> Constraints;
-typedef vector<vpsc::Variable*> Variables;
-typedef vector<pair<unsigned,double> > OffsetList;
+typedef std::vector<vpsc::Constraint*> Constraints;
+typedef std::vector<vpsc::Variable*> Variables;
+typedef std::vector<std::pair<unsigned,double> > OffsetList;
 
 class SimpleConstraint {
 public:
@@ -23,7 +21,7 @@ public:
     unsigned right;
     double gap;
 };
-typedef vector<SimpleConstraint*> SimpleConstraints;
+typedef std::vector<SimpleConstraint*> SimpleConstraints;
 class AlignmentConstraint {
 friend class GradientProjection;
 public:
@@ -37,7 +35,7 @@ public:
 private:
     vpsc::Variable* variable;
 };
-typedef vector<AlignmentConstraint*> AlignmentConstraints;
+typedef std::vector<AlignmentConstraint*> AlignmentConstraints;
 
 class PageBoundaryConstraints {
 public:
@@ -63,7 +61,7 @@ private:
     double weight;
 };
 
-typedef vector<pair<unsigned,double> > CList;
+typedef std::vector<std::pair<unsigned,double> > CList;
 /**
  * A DummyVarPair is a pair of variables with an ideal distance between them
  * and which have no other interaction with other variables apart from through
@@ -171,7 +169,7 @@ friend class GradientProjection;
     double old_place_l; // old_place is where the descent vec g was computed
     double old_place_r;
 };
-typedef vector<DummyVarPair*> DummyVars;
+typedef std::vector<DummyVarPair*> DummyVars;
 
 enum Dim { HORIZONTAL, VERTICAL };
 
