@@ -6,6 +6,12 @@
 
 using namespace cola;
 using vpsc::Rectangle;
+using std::endl;
+using std::ios;
+using std::max;
+using std::min;
+using std::ofstream;
+using std::vector;
 
 void output_svg(vector<Rectangle*>& rs, vector<Edge>& es, char *fname, bool rects) {
 	unsigned E=es.size();

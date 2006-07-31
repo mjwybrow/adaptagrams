@@ -2,6 +2,10 @@
 #include "conjugate_gradient.h"
 #include "straightener.h"
 #include "shortest_paths.h"
+using std::fill;
+using std::min;
+using std::max;
+using std::make_pair;
 
 namespace cola {
 
@@ -18,7 +22,7 @@ ConstrainedMajorizationLayout
         vector<Rectangle*>& rs,
         vector<Edge>& es,
         double idealLength,
-        valarray<double>* eweights,
+        std::valarray<double>* eweights,
         TestConvergence& done)
     : constrainedLayout(false),
       n(rs.size()),

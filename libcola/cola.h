@@ -15,9 +15,10 @@ namespace vpsc { class Rectangle; }
 
 namespace cola {
 using vpsc::Rectangle;
-typedef pair<unsigned, unsigned> Edge;
-    typedef vector<unsigned> Cluster;
-    typedef vector<Cluster*> Clusters;
+using std::vector;
+typedef std::pair<unsigned, unsigned> Edge;
+typedef vector<unsigned> Cluster;
+typedef vector<Cluster*> Clusters;
 
 // a graph component with a list of node_ids giving indices for some larger list of nodes
 // for the nodes in this component, and a list of edges - node indices relative to this component
@@ -130,7 +131,7 @@ public:
         vector<Rectangle*>& rs,
         vector<Edge>& es,
         double idealLength,
-        valarray<double>* eweights=NULL,
+        std::valarray<double>* eweights=NULL,
         TestConvergence& done=defaultTest);
 
     void moveBoundingBoxes() {
@@ -212,14 +213,14 @@ Rectangle bounds(vector<Rectangle*>& rs);
 
 }
 #endif				// COLA_H
-// vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4
 
 /*
   Local Variables:
   mode:c++
   c-file-style:"stroustrup"
-  c-file-offsets:((innamespace . 0)(inline-open . 0))
+  c-file-offsets:((innamespace . 0)(inline-open . 0)(case-label . +))
   indent-tabs-mode:nil
   fill-column:99
   End:
 */
+// vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=8:softtabstop=4:encoding=utf-8:textwidth=99 :

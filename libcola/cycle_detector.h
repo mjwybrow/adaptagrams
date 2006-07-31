@@ -32,7 +32,7 @@ class CycleDetector  {
     void mod_graph(unsigned numVertices, Edges *edges);
     unsigned getV()  { return this->V; }
     Edges *getEdges()  { return this->edges; }
-    vector<TimeStamp> *getTimeStamps();
+    std::vector<TimeStamp> *getTimeStamps();
 
   private:
     // attributes
