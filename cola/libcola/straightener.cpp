@@ -1,7 +1,3 @@
-/*
-** vim: set cindent 
-** vim: ts=4 sw=4 et tw=0 wm=0
-*/
 /**
  * \brief Functions to automatically generate constraints for the
  * rectangular node overlap removal problem.
@@ -21,9 +17,11 @@
 #include <iostream>
 #include <cmath>
 
+using std::list;
+using std::make_pair;
+using std::pair;
 using std::set;
 using std::vector;
-using std::list;
 
 namespace straightener {
 
@@ -371,3 +369,4 @@ namespace straightener {
     }
 }
 
+// vim: cindent ts=4 sw=4 et tw=0 wm=0
