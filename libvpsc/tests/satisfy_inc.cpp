@@ -152,6 +152,72 @@ void test5() {
 	}
 	cout << "Test 5... done." << endl;
 }
+void test6() {
+	cout << "Test 6..." << endl;
+	Variable *a[] = {
+		new Variable(0,7,1),
+		new Variable(1,0,1),
+		new Variable(2,3,1),
+		new Variable(3,1,1),
+		new Variable(4,4,1)
+	};
+	Constraint *c[] = {
+		new Constraint(a[0],a[3],3),
+		new Constraint(a[0],a[2],3),
+		new Constraint(a[1],a[4],3),
+		new Constraint(a[1],a[4],3),
+		new Constraint(a[2],a[3],3),
+		new Constraint(a[3],a[4],3)
+	};
+	double expected[]={-0.75,0,2.25,5.25,8.25};
+	unsigned int n = sizeof(a)/sizeof(Variable*);
+	unsigned int m = sizeof(c)/sizeof(Constraint*);
+	try {
+		IncSolver vpsc(n,a,m,c);
+		vpsc.solve();
+	} catch (char const *msg) {
+		cerr << msg << endl;
+		exit(1);
+	}
+
+	for(int i=0;i<n;i++) {
+		assert(approxEquals(a[i]->position(),expected[i]));
+	}
+	cout << "Test 6... done." << endl;
+}
+void test7() {
+	cout << "Test 7..." << endl;
+	Variable *a[] = {
+		new Variable(0,4,1),
+		new Variable(1,2,1),
+		new Variable(2,3,1),
+		new Variable(3,1,1),
+		new Variable(4,8,1)
+	};
+	Constraint *c[] = {
+		new Constraint(a[0],a[4],3),
+		new Constraint(a[0],a[2],3),
+		new Constraint(a[1],a[3],3),
+		new Constraint(a[2],a[3],3),
+		new Constraint(a[2],a[4],3),
+		new Constraint(a[3],a[4],3)
+	};
+	double expected[]={-0.5,2,2.5,5.5,8.5};
+	unsigned int n = sizeof(a)/sizeof(Variable*);
+	unsigned int m = sizeof(c)/sizeof(Constraint*);
+	try {
+		IncSolver vpsc(n,a,m,c);
+		vpsc.solve();
+	} catch (char const *msg) {
+		cerr << msg << endl;
+		exit(1);
+	}
+
+	for(int i=0;i<n;i++) {
+		assert(approxEquals(a[i]->position(),expected[i]));
+	}
+	cout << "Test 7... done." << endl;
+}
 
 // n=number vars
 // m=max constraints per var
@@ -203,9 +269,17 @@ int main() {
 	test3();
 	test4();
 	test5();
+	test6();
+	test7();
 	for(int i=0;i<100;i++) {
 		if(i%10==0) cout << "i=" << i << endl;
 		rand_test(100,3);
 	}
+	/*
+	for(int i=0;i<100;i++) {
+		if(i%10==0) cout << "i=" << i << endl;
+		rand_test(5,3);
+	}
+	*/
 	return 0;
 }

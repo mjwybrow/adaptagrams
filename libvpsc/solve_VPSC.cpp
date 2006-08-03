@@ -31,7 +31,7 @@ static const double ZERO_UPPERBOUND=-0.0000001;
 IncSolver::IncSolver(const unsigned n, Variable* const vs[], const unsigned m, Constraint *cs[]) 
 	: Solver(n,vs,m,cs) {
 	inactive.assign(cs,cs+m);
-	for(ConstraintList::iterator i=inactive.begin();i!=inactive.end();++i) {
+	for(Constraints::iterator i=inactive.begin();i!=inactive.end();++i) {
 		(*i)->active=false;
 	}
 }
@@ -274,16 +274,16 @@ void IncSolver::splitBlocks() {
  * Scan constraint list for the most violated constraint, or the first equality
  * constraint
  */
-Constraint* IncSolver::mostViolated(ConstraintList &l) {
+Constraint* IncSolver::mostViolated(Constraints &l) {
 	double minSlack = DBL_MAX;
 	Constraint* v=NULL;
 #ifdef RECTANGLE_OVERLAP_LOGGING
 	ofstream f(LOGFILE,ios::app);
 	f<<"Looking for most violated..."<<endl;
 #endif
-	ConstraintList::iterator end = l.end();
-	ConstraintList::iterator deletePoint = end;
-	for(ConstraintList::iterator i=l.begin();i!=end;++i) {
+	Constraints::iterator end = l.end();
+	Constraints::iterator deletePoint = end;
+	for(Constraints::iterator i=l.begin();i!=end;++i) {
 		Constraint *c=*i;
 		double slack = c->slack();
 		if(c->equality || slack < minSlack) {

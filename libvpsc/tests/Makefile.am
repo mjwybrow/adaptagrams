@@ -1,5 +1,6 @@
 INCLUDES = -I$(top_srcdir)/libvpsc
-check_PROGRAMS = rectangleoverlap csolve_VPSC block satisfy_inc cycle
+#check_PROGRAMS = rectangleoverlap csolve_VPSC block satisfy_inc #cycle
+check_PROGRAMS = satisfy_inc
 satisfy_inc_SOURCES = satisfy_inc.cpp
 satisfy_inc_LDADD = $(top_builddir)/libvpsc/libvpsc.la
 block_SOURCES = block.cpp
@@ -11,5 +12,5 @@ csolve_VPSC_LDADD = $(top_builddir)/libvpsc/libvpsc.la
 cycle_SOURCES = cycle.cpp
 cycle_LDADD = $(top_builddir)/libvpsc/libvpsc.la
 
-TESTS = cycle #$(check_PROGRAMS)
+TESTS = $(check_PROGRAMS)
 
