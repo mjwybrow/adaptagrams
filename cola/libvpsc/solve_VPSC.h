@@ -26,6 +26,7 @@ namespace vpsc {
 class Variable;
 class Constraint;
 class Blocks;
+typedef std::vector<Constraint*> Constraints;
 
 /**
  * Variable Placement with Separation Constraints problem instance
@@ -61,9 +62,9 @@ public:
 	void splitBlocks();
 	IncSolver(const unsigned n, Variable* const vs[], const unsigned m, Constraint *cs[]);
 private:
-	typedef std::vector<Constraint*> ConstraintList;
-	ConstraintList inactive;
-	Constraint* mostViolated(ConstraintList &l);
+	Constraints inactive;
+	Constraints violated;
+	Constraint* mostViolated(Constraints &l);
 };
 }
 #endif // SEEN_REMOVEOVERLAP_SOLVE_VPSC_H

@@ -205,6 +205,8 @@ private:
     GradientProjection *gpX, *gpY;
     vector<straightener::Edge*>* straightenEdges;
     SimpleConstraints *scx, *scy;
+	AlignmentConstraints *acsx, *acsy;
+    
     double bendWeight, potBendWeight;
 };
 

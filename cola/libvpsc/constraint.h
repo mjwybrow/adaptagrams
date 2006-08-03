@@ -31,7 +31,8 @@ public:
 	long timeStamp;
 	bool active;
 	bool visited;
-	bool equality;
+	const bool equality;
+	bool vflag;
 };
 #include <float.h>
 #include "block.h"

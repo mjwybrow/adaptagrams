@@ -13,7 +13,6 @@
 #include <fstream>
 
 #include <vector>
-#include <valarray>
 #include <algorithm>
 #include <float.h>
 #include "graphlayouttest.h"

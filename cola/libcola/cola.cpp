@@ -34,6 +34,7 @@ ConstrainedMajorizationLayout
       gpX(NULL), gpY(NULL),
       straightenEdges(NULL),
       scx(NULL), scy(NULL),
+      acsx(NULL), acsy(NULL),
       bendWeight(0.01),potBendWeight(0.1)
 {
     boundingBoxes = new Rectangle*[rs.size()];
@@ -249,8 +250,9 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
         Q[c->b][c->u]+=c->w*c->dub;
         Q[c->b][c->v]+=c->w*c->dvb;
     }
+    AlignmentConstraints *acs=dim==HORIZONTAL?acsx:acsy;
     GradientProjection gp(dim,n,Q,coords,tol,100,
-            (AlignmentConstraints*)NULL,false,
+            (AlignmentConstraints*)acs,false,
             (vpsc::Rectangle**)NULL,(PageBoundaryConstraints*)NULL,&cs);
     constrainedLayout = true;
     majlayout(Dij,&gp,coords,b);
@@ -289,6 +291,7 @@ void ConstrainedMajorizationLayout::setupConstraints(
         clusters=cs;
     }
     this->scx=scx; this->scy=scy;
+    this->acsx=acsx; this->acsy=acsy;
     gpX=new GradientProjection(
         HORIZONTAL,n,Q,X,tol,100,acsx,avoidOverlaps,boundingBoxes,pbcx,scx);
     gpY=new GradientProjection(

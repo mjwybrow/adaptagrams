@@ -182,7 +182,59 @@ void k6() {
 		delete routes[i];
 	}
 }
+void severeBend() {
+	const int V = 4;
+	Edge edge_array[] = { Edge(1,3), Edge(0,3), Edge(1,0), Edge(1,2), Edge(3,2) };
+	const size_t E = sizeof(edge_array) / sizeof(Edge);
+	vector<Edge> es(edge_array,edge_array+E);
+
+	vector<vpsc::Rectangle*> rs;
+	const double avoidBuffer=4;
+	const double w=30+2*avoidBuffer, h=22+2*avoidBuffer;
+	addRect(rs,123-avoidBuffer,170-avoidBuffer,w,h);
+	addRect(rs,176-avoidBuffer,152-avoidBuffer,w,h);
+	addRect(rs,136-avoidBuffer,107-avoidBuffer,w,h);
+	addRect(rs,215-avoidBuffer,131-avoidBuffer,w,h);
+
+	vector<straightener::Edge*> routes(E);
+	for(unsigned i=0;i<E;i++) {
+		straightener::Route* r=new straightener::Route(2);
+		r->xs[0]=rs[es[i].first]->getCentreX();
+		r->ys[0]=rs[es[i].first]->getCentreY();
+		r->xs[1]=rs[es[i].second]->getCentreX();
+		r->ys[1]=rs[es[i].second]->getCentreY();
+		routes[i]=new straightener::Edge(i,es[i].first,es[i].second,r);
+	}
+	// route edges in a crossing-minimal way
+	setRoute(routes,1,3,(double[]){
+		138.000000,181.000000,
+		172.000000,148.000000,
+		230.000000,142.000000
+	});
+	setRoute(routes,3,5,(double[]){
+		191.000000,163.000000,
+		158.000000,197.000000,
+		119.000000,197.000000,
+		119.000000,166.000000,
+		151.000000,118.000000
+	});
+	// now straighten the edges
+	ConstrainedMajorizationLayout alg(rs,es,70);
+	alg.setupConstraints(NULL,NULL,false,NULL,NULL,NULL,NULL,NULL,&routes);
+	alg.run();
+	//alg.straighten(routes,HORIZONTAL);
+	//output_svg(rs,routes,"straightener-x.svg",true);
+	//alg.straighten(routes,VERTICAL);
+	output_svg(rs,routes,"straightener-xy.svg",true);
+	for(unsigned i=0;i<V;i++) {
+		delete rs[i];
+	}
+	for(unsigned i=0;i<E;i++) {
+		delete routes[i];
+	}
+}
 int main() {
 	//k5();
-	k6();
+	//k6();
+	severeBend();
 }
