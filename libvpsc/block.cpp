@@ -78,7 +78,7 @@ void Block::setUpConstraintHeap(PairingHeap<Constraint*>* &h,bool in) {
 		}
 	}
 }	
-void Block::merge(Block* b, Constraint* c) {
+Block* Block::merge(Block* b, Constraint* c) {
 #ifdef RECTANGLE_OVERLAP_LOGGING
 	ofstream f(LOGFILE,ios::app);
 	f<<"  merging on: "<<*c<<",c->left->offset="<<c->left->offset<<",c->right->offset="<<c->right->offset<<endl;
@@ -86,14 +86,16 @@ void Block::merge(Block* b, Constraint* c) {
 	double dist = c->right->offset - c->left->offset - c->gap;
 	Block *l=c->left->block;
 	Block *r=c->right->block;
-	if (vars->size() < b->vars->size()) {
+	if (l->vars->size() < r->vars->size()) {
 		r->merge(l,c,dist);
 	} else {
 	       	l->merge(r,c,-dist);
 	}
+	Block* mergeBlock=b->deleted?this:b;
 #ifdef RECTANGLE_OVERLAP_LOGGING
-	f<<"  merged block="<<(b->deleted?*this:*b)<<endl;
+	f<<"  merged block="<<*mergeBlock<<endl;
 #endif
+	return mergeBlock;
 }
 /**
  * Merges b into this block across c.  Can be either a

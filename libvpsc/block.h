@@ -43,7 +43,7 @@ public:
 	void deleteMinOutConstraint();
 	double desiredWeightedPosition();
 	void merge(Block *b, Constraint *c, double dist);
-	void merge(Block *b, Constraint *c);
+	Block* merge(Block *b, Constraint *c);
 	void mergeIn(Block *b);
 	void mergeOut(Block *b);
 	void split(Block *&l, Block *&r, Constraint *c);

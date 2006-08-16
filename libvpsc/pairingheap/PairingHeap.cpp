@@ -74,7 +74,7 @@ PairingHeap<T>::insert( const T & x )
 	return newNode;
 }
 template <class T>
-int PairingHeap<T>::size() {
+unsigned PairingHeap<T>::size() {
 	return counter;
 }
 /**
