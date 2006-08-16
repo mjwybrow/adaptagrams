@@ -52,7 +52,7 @@ void test2() {
 	unsigned int n = sizeof(a)/sizeof(Variable*);
 	unsigned int m = sizeof(c)/sizeof(Constraint*);
 	IncSolver vpsc(n,a,m,c);
-	vpsc.satisfy();
+	vpsc.solve();
 	for(int i=0;i<n;i++) {
 		assert(approxEquals(a[i]->position(),expected[i]));
 	}

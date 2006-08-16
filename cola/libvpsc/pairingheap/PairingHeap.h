@@ -78,7 +78,7 @@ public:
 
 	bool isEmpty( ) const;
 	bool isFull( ) const;
-	int size();
+	unsigned size();
 
 	PairNode<T> *insert( const T & x );
 	const T & findMin( ) const;
