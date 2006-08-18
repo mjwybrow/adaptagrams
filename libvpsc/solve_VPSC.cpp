@@ -1,4 +1,6 @@
 /**
+ * vim: set cindent 
+ * vim: ts=4 sw=4 et tw=0 wm=0
  * \brief Solve an instance of the "Variable Placement with Separation
  * Constraints" problem.
  *
@@ -15,6 +17,7 @@
 #include "block.h"
 #include "blocks.h"
 #include "solve_VPSC.h"
+#include "cbuffer.h"
 #include <math.h>
 #include <sstream>
 #ifdef RECTANGLE_OVERLAP_LOGGING
@@ -177,6 +180,8 @@ void IncSolver::satisfy() {
 	splitBlocks();
 	long splitCtr = 0;
 	Constraint* v = NULL;
+    //CBuffer buffer(inactive);
+	//while((v=buffer.mostViolated())&&(v->equality || v->slack() < ZERO_UPPERBOUND)) {
 	while((v=mostViolated(inactive))&&(v->equality || v->slack() < ZERO_UPPERBOUND)) {
 		assert(!v->active);
 		Block *lb = v->left->block, *rb = v->right->block;
@@ -193,8 +198,11 @@ void IncSolver::satisfy() {
 			}
 			// constraint is within block, need to split first
 			inactive.push_back(lb->splitBetween(v->left,v->right,lb,rb));
-			lb->merge(rb,v);
+			//inactive.push_back(v);
+			lb->merge(rb,v); // don't want to do this because v
+			                   //may no longer be violated!
 			bs->insert(lb);
+			//bs->insert(rb);
 		}
 	}
 #ifdef RECTANGLE_OVERLAP_LOGGING
