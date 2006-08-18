@@ -11,6 +11,7 @@ libvpsc_la_SOURCES = block.cpp\
 	solve_VPSC.cpp\
 	csolve_VPSC.cpp\
 	variable.cpp\
+	cbuffer.cpp\
 	isnan.h\
 	block.h\
 	blocks.h\
@@ -21,7 +22,8 @@ libvpsc_la_SOURCES = block.cpp\
 	remove_rectangle_overlap.h\
 	solve_VPSC.h\
 	csolve_VPSC.h\
-	variable.h
+	variable.h\
+	cbuffer.h
 
 libvpscincludedir = ${includedir}/libvpsc
 
@@ -31,6 +33,7 @@ libvpscinclude_HEADERS = solve_VPSC.h \
 	csolve_VPSC.h\
 	rectangle.h\
 	remove_rectangle_overlap.h\
-	variable.h
+	variable.h\
+	cbuffer.h
 
 SUBDIRS = tests

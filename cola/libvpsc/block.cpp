@@ -241,14 +241,25 @@ double Block::compute_dfdv(Variable* const v, Variable* const u,
 	}
 	return dfdv;
 }
+double Block::compute_dfdv(Variable* const v, Variable* const u) {
+	double dfdv=v->weight*(v->position() - v->desiredPosition);
+	for(Cit it=v->out.begin();it!=v->out.end();++it) {
+		Constraint *c=*it;
+		if(canFollowRight(c,u)) {
+			dfdv+=c->lm=compute_dfdv(c->right,v);
+		}
+	}
+	for(Cit it=v->in.begin();it!=v->in.end();++it) {
+		Constraint *c=*it;
+		if(canFollowLeft(c,u)) {
+			dfdv-=c->lm=-compute_dfdv(c->left,v);
+		}
+	}
+	return dfdv;
+}
 
-
-// computes dfdv for each variable and uses the sum of dfdv on either side of
-// the constraint c to compute the lagrangian multiplier lm_c.
 // The top level v and r are variables between which we want to find the
 // constraint with the smallest lm.  
-// When we find r we pass NULL to subsequent recursive calls, 
-// thus r=NULL indicates constraints are not on the shortest path.
 // Similarly, m is initially NULL and is only assigned a value if the next
 // variable to be visited is r or if a possible min constraint is returned from
 // a nested call (rather than NULL).
@@ -256,6 +267,35 @@ double Block::compute_dfdv(Variable* const v, Variable* const u,
 // the recursion (checking only constraints traversed left-to-right 
 // in order to avoid creating any new violations).
 // We also do not consider equality constraints as potential split points
+bool Block::split_path(
+		Variable* r, Variable* const v, Variable* const u, Constraint* &m) {
+	for(Cit it(v->in.begin());it!=v->in.end();++it) {
+		Constraint *c=*it;
+		if(canFollowLeft(c,u)) {
+			if(c->left==r) {
+				return true;
+			} else {
+				if(split_path(r,c->left,v,m)) return true;
+			}
+		}
+	}
+	for(Cit it(v->out.begin());it!=v->out.end();++it) {
+		Constraint *c=*it;
+		if(canFollowRight(c,u)) {
+			if(c->right==r) {
+				if(!c->equality) m=c;
+				return true;
+			} else {
+				if(split_path(r,c->right,v,m)) {
+					if(!c->equality && (!m||c->lm<m->lm)) m=c;
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+/*
 Block::Pair Block::compute_dfdv_between(
 		Variable* r, Variable* const v, Variable* const u, 
 		const Direction dir = NONE, bool changedDirection = false) {
@@ -299,6 +339,7 @@ Block::Pair Block::compute_dfdv_between(
 	}
 	return Pair(dfdv,m);
 }
+*/
 
 // resets LMs for all active constraints to 0 by
 // traversing active constraint tree starting from v,
@@ -330,9 +371,14 @@ Constraint *Block::findMinLM() {
 	return min_lm;
 }
 Constraint *Block::findMinLMBetween(Variable* const lv, Variable* const rv) {
-	Constraint *min_lm=NULL;
 	reset_active_lm(vars->front(),NULL);
-	min_lm=compute_dfdv_between(rv,lv,NULL).second;
+	compute_dfdv(vars->front(),NULL);
+	Constraint *min_lm=NULL;
+	split_path(rv,lv,NULL,min_lm);
+	if(min_lm==NULL) {
+		fprintf(stderr,"Couldn't find split point!\n");
+	}
+	assert(min_lm!=NULL);
 	return min_lm;
 }
 
