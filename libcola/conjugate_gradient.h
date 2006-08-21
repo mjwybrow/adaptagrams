@@ -8,8 +8,8 @@ inner(std::valarray<double> const &x,
       std::valarray<double> const &y);
 
 void 
-conjugate_gradient(double **A, 
-		   double *x, 
+conjugate_gradient(std::valarray<double> const & A, 
+		   std::valarray<double>& x, 
 		   double *b, 
 		   unsigned n, 
 		   double tol,

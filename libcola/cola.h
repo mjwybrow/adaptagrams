@@ -49,7 +49,7 @@ void separateComponents(const vector<Component*> &components);
 // such that b is placed at u+t(v-u).
 struct LinearConstraint {
     LinearConstraint(unsigned u, unsigned v, unsigned b, double w, 
-                     double* X, double* Y) 
+                     valarray<double> const & X, valarray<double> const & Y) 
         : u(u),v(v),b(b),w(w)
     {
         // from cosine rule: ub.uv/|uv|=|ub|cos(theta)
@@ -95,7 +95,7 @@ public:
           maxiterations(maxiterations) { reset(); }
     virtual ~TestConvergence() {}
 
-    virtual bool operator()(double new_stress, double* X, double* Y) {
+    virtual bool operator()(double new_stress, valarray<double> const & X, valarray<double> const & Y) {
         //std::cout<<"iteration="<<iterations<<", new_stress="<<new_stress<<std::endl;
         if (old_stress == DBL_MAX) {
             old_stress = new_stress;
@@ -164,14 +164,6 @@ public:
             delete gpX;
             delete gpY;
         }
-        for(unsigned i=0;i<lapSize;i++) {
-            delete [] lap2[i];
-            delete [] Dij[i];
-        }
-        delete [] lap2;
-        delete [] Dij;
-        delete [] X;
-        delete [] Y;
     }
     /**
      * run the layout algorithm in either the x-dim the y-dim or both
@@ -186,19 +178,19 @@ private:
             (X[i] - X[j]) * (X[i] - X[j]) +
             (Y[i] - Y[j]) * (Y[i] - Y[j]));
     }
-    double compute_stress(double **Dij);
-    void majlayout(double** Dij,GradientProjection* gp, double* coords);
-    void majlayout(double** Dij,GradientProjection* gp, double* coords, 
+    double compute_stress(valarray<double> const & Dij);
+    void majlayout(valarray<double> const & Dij,GradientProjection* gp, valarray<double>& coords);
+    void majlayout(valarray<double> const & Dij,GradientProjection* gp, valarray<double>& coords, 
                    double* b);
     unsigned n; // is lapSize + dummyVars
     unsigned lapSize; // lapSize is the number of variables for actual nodes
-    double** lap2; // graph laplacian
-    double** Q; // quadratic terms matrix used in computations
-    double** Dij;
+    valarray<double> lap2; // graph laplacian
+    valarray<double> Q; // quadratic terms matrix used in computations
+    valarray<double> Dij;
     double tol;
     TestConvergence& done;
     Rectangle** boundingBoxes;
-    double *X, *Y;
+    valarray<double> X, Y;
     Clusters* clusters;
     double edge_length;
     LinearConstraints *linearConstraints;

@@ -2,8 +2,10 @@
 #define STRAIGHTENER_H
 #include <set>
 #include <libvpsc/rectangle.h>
+#include <valarray>
 #include "gradient_projection.h"
 namespace straightener {
+    using std::valarray;
     struct Route {
         Route(unsigned n) : n(n), xs(new double[n]), ys(new double[n]) {}
         ~Route() {
@@ -55,7 +57,7 @@ namespace straightener {
             return false;
         }
         void nodePath(std::vector<Node*>& nodes);
-        void createRouteFromPath(double* X, double* Y) {
+        void createRouteFromPath(valarray<double> const & X, valarray<double> const & Y) {
             Route* r=new Route(path.size());
             for(unsigned i=0;i<path.size();i++) {
                 r->xs[i]=X[path[i]];

@@ -8,7 +8,9 @@
 #include <vector>
 #include <iostream>
 #include <math.h>
+#include <valarray>
 
+using std::valarray;
 typedef std::vector<vpsc::Constraint*> Constraints;
 typedef std::vector<vpsc::Variable*> Variables;
 typedef std::vector<std::pair<unsigned,double> > OffsetList;
@@ -178,8 +180,8 @@ public:
 	GradientProjection(
         const Dim k,
 		unsigned n, 
-		double** A,
-		double* x,
+		valarray<double> const & A,
+		valarray<double>& x,
 		double tol,
 		unsigned max_iterations,
         AlignmentConstraints* acs=NULL,
@@ -190,7 +192,7 @@ public:
             : k(k), n(n), A(A), place(x), rs(rs),
               nonOverlapConstraints(nonOverlapConstraints),
               tolerance(tol), acs(acs), max_iterations(max_iterations),
-              g(new double[n]), d(new double[n]), old_place(new double[n]),
+              g(valarray<double>(n)), d(valarray<double>(n)), old_place(valarray<double>(n)),
               constrained(false)
     {
         for(unsigned i=0;i<n;i++) {
@@ -223,9 +225,6 @@ public:
         }
 	}
     ~GradientProjection() {
-        delete [] g;
-        delete [] d;
-        delete [] old_place;
         for(Constraints::iterator i(gcs.begin()); i!=gcs.end(); i++) {
             delete *i;
         }
@@ -242,8 +241,8 @@ private:
     void destroyVPSC(vpsc::IncSolver *vpsc);
     Dim k;
 	unsigned n; // number of actual vars
-	double** A; // Graph laplacian matrix
-    double* place;
+	valarray<double> const & A; // n*n graph laplacian matrix
+    valarray<double> & place;
 	Variables vars; // all variables
                           // computations
     Constraints gcs; /* global constraints - persist throughout all
@@ -254,9 +253,9 @@ private:
     double tolerance;
     AlignmentConstraints* acs;
     unsigned max_iterations;
-	double* g; /* gradient */
-	double* d;
-	double* old_place;
+	valarray<double> g; /* gradient */
+	valarray<double> d;
+	valarray<double> old_place;
     bool constrained;
 };
 

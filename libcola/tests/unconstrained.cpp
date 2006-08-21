@@ -13,6 +13,7 @@
 #include <fstream>
 
 #include <vector>
+#include <valarray>
 #include <algorithm>
 #include <float.h>
 #include "graphlayouttest.h"
@@ -21,7 +22,7 @@ using namespace std;
 using namespace cola;
 struct CheckProgress : TestConvergence {
 	CheckProgress(double d,unsigned i) : TestConvergence(d,i) {}
-	bool operator()(double new_stress, double* X, double* Y) {
+	bool operator()(double new_stress, valarray<double> const & X, valarray<double> const & Y) {
 		cout << "stress="<<new_stress<<endl;
 		return TestConvergence::operator()(new_stress,X,Y);
 	}
