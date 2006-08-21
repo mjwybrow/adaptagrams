@@ -1,4 +1,5 @@
 #include <map>
+#include <valarray>
 #include <libcola/sparse_matrix.h>
 #include <boost/numeric/ublas/matrix_sparse.hpp>
 #include <boost/numeric/ublas/vector.hpp>
@@ -32,18 +33,19 @@ int dense_test(const unsigned n, cola::SparseMatrix::SparseMap& cm, mapped_matri
 }
 
 void test(int (*generate)(const unsigned, cola::SparseMatrix::SparseMap&, mapped_matrix<double>&)) {
+    using std::valarray;
     const unsigned n = 20;
     mapped_matrix<double> bm (n, n, n * n);
     cola::SparseMatrix::SparseMap cm;
     generate(n,cm,bm);
     vector<double> bv (n);
-    double* cv=new double[n];
+    valarray<double> cv(n);
     for (unsigned i = 0; i < n; ++ i) {
         bv(i) = i;
         cv[i] = i;
     }
-    vector<double> br (n);
-    double* cr=new double[n];
+    vector<double> br(n);
+    valarray<double> cr(n);
     cola::SparseMatrix a(cm,n);
     br=prod(bm,bv);
     a.rightMultiply(cv,cr);

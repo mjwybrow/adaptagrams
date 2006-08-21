@@ -1,13 +1,15 @@
 #ifndef _SPARSE_MATRIX_H
 #define _SPARSE_MATRIX_H
+#include <valarray>
 namespace cola {
+    using std::valarray;
 class SparseMatrix {
 public:
     typedef std::pair<unsigned, unsigned> SparseIndex;
     typedef std::map<SparseIndex,double> SparseMap;
-    SparseMatrix(SparseMap& m, const unsigned n)
+    SparseMatrix(SparseMap const & m, const unsigned n)
             : n(n), NZ(m.size()), sparseMap(m), 
-              A(new double[NZ]), IA(new unsigned[n+1]), JA(new unsigned[NZ]) {
+              A(valarray<double>(NZ)), IA(valarray<unsigned>(n+1)), JA(valarray<unsigned>(NZ)) {
         unsigned cnt=0;
         int lastrow=-1;
         for(SparseMap::const_iterator i=m.begin(); i!=m.end(); i++) {
@@ -26,12 +28,7 @@ public:
             IA[r]=NZ;
         }
     }
-    ~SparseMatrix() {
-        delete [] A;
-        delete [] IA;
-        delete [] JA;
-    }
-    void rightMultiply(const double* v, double* r) {
+    void rightMultiply(valarray<double> const & v, valarray<double> & r) {
         for(unsigned i=0;i<n;i++) {
             r[i]=0;
             for(unsigned j=IA[i];j<IA[i+1];j++) {
@@ -40,14 +37,14 @@ public:
         }
     }
     double getIJ(const unsigned i, const unsigned j) {
-        return sparseMap[std::make_pair(i,j)];
+        return sparseMap.find(std::make_pair(i,j))->second;
     }
 
 private:
     const unsigned n,NZ;
-    SparseMap& sparseMap;
-    double* A;
-    unsigned *IA, *JA;
+    SparseMap const & sparseMap;
+    valarray<double> A;
+    valarray<unsigned> IA, JA;
 };
 } //namespace cola
 #endif /* _SPARSE_MATRIX_H */

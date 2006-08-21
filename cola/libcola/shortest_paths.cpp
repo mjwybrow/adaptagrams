@@ -7,7 +7,7 @@
 #include <libvpsc/pairingheap/PairingHeap.h>
 using namespace std;
 namespace shortest_paths {
-// O(n^3) time.  Slow, but fool proof.  Use for testing.
+// O(n^3) time dynamic programming approach.  Slow, but fool proof.  Use for testing.
 void floyd_warshall(
         unsigned n,
         double** D, 

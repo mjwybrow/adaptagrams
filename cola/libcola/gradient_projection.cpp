@@ -72,7 +72,7 @@ unsigned GradientProjection::solve(double * b) {
 			old_place[i]=place[i];
 			g[i] = b[i];
 			for (j=0; j<n; j++) {
-				g[i] -= A[i][j]*place[j];
+				g[i] -= A[i*n+j]*place[j];
 			}
             g[i] *= 2.0;
 		}		
@@ -86,7 +86,7 @@ unsigned GradientProjection::solve(double * b) {
 			numerator += g[i]*g[i];
 			r=0;
 			for (j=0; j<n; j++) {
-				r += A[i][j]*g[j];
+				r += A[i*n+j]*g[j];
 			}
 			denominator -= 2.0 * r*g[i];
 		}
@@ -126,7 +126,7 @@ unsigned GradientProjection::solve(double * b) {
 			numerator += g[i] * d[i];
 			r=0;
 			for (j=0; j<n; j++) {
-				r += A[i][j] * d[j];
+				r += A[i*n+j] * d[j];
 			}
 			denominator += 2.0 * r * d[i];
 		}

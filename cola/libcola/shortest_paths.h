@@ -21,15 +21,22 @@ inline bool compareNodes(Node *const &u, Node *const &v) {
 }
 
 typedef pair<unsigned,unsigned> Edge;
+/*
+ * find all pairs shortest paths, n^3 dynamic programming approach
+ * n: total number of nodes
+ * D: n*n matrix of shortest paths
+ * es: edge pairs
+ * eweights: edge weights, if NULL then all weights will be taken as 1
+ */
 void floyd_warshall(unsigned n, double** D,
         vector<Edge>& es,valarray<double>* eweights=NULL); 
 
 /*
- * find all pairs shortest paths
+ * find all pairs shortest paths, faster, uses dijkstra
  * n: total number of nodes
  * D: n*n matrix of shortest paths
  * es: edge pairs
- * eweights: edge weights
+ * eweights: edge weights, if NULL then all weights will be taken as 1
  */
 void johnsons(unsigned n, double** D,
         vector<Edge>& es, valarray<double>* eweights=NULL);
@@ -39,7 +46,7 @@ void johnsons(unsigned n, double** D,
  * n: total number of nodes
  * d: n vector of path lengths
  * es: edge pairs
- * eweights: weight of each edge
+ * eweights: edge weights, if NULL then all weights will be taken as 1
  */
 void dijkstra(unsigned s, unsigned n, double* d, 
         vector<Edge>& es, valarray<double>* eweights=NULL);
