@@ -1,6 +1,7 @@
 #ifndef _SPARSE_MATRIX_H
 #define _SPARSE_MATRIX_H
 #include <valarray>
+#include <map>
 namespace cola {
     using std::valarray;
 class SparseMatrix {
@@ -14,6 +15,8 @@ public:
         int lastrow=-1;
         for(SparseMap::const_iterator i=m.begin(); i!=m.end(); i++) {
             SparseIndex p = i->first;
+            assert(p.first<n);
+            assert(p.second<n);
             A[cnt]=i->second;
             if(p.first!=lastrow) {
                 for(unsigned r=lastrow+1;r<=p.first;r++) {
@@ -28,7 +31,9 @@ public:
             IA[r]=NZ;
         }
     }
-    void rightMultiply(valarray<double> const & v, valarray<double> & r) {
+    void rightMultiply(valarray<double> const & v, valarray<double> & r) const {
+        assert(v.size()>=n);
+        assert(r.size()>=n);
         for(unsigned i=0;i<n;i++) {
             r[i]=0;
             for(unsigned j=IA[i];j<IA[i+1];j++) {
@@ -36,7 +41,9 @@ public:
             }
         }
     }
-    double getIJ(const unsigned i, const unsigned j) {
+    double getIJ(const unsigned i, const unsigned j) const {
+        assert(i<n);
+        assert(j<n);
         return sparseMap.find(std::make_pair(i,j))->second;
     }
 
