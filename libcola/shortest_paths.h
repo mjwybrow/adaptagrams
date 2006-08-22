@@ -28,8 +28,8 @@ typedef pair<unsigned,unsigned> Edge;
  * es: edge pairs
  * eweights: edge weights, if NULL then all weights will be taken as 1
  */
-void floyd_warshall(unsigned n, double** D,
-        vector<Edge>& es,valarray<double>* eweights=NULL); 
+void floyd_warshall(unsigned const n, double** D,
+        vector<Edge> const & es,valarray<double> const * eweights=NULL); 
 
 /*
  * find all pairs shortest paths, faster, uses dijkstra
@@ -38,8 +38,8 @@ void floyd_warshall(unsigned n, double** D,
  * es: edge pairs
  * eweights: edge weights, if NULL then all weights will be taken as 1
  */
-void johnsons(unsigned n, double** D,
-        vector<Edge>& es, valarray<double>* eweights=NULL);
+void johnsons(unsigned const n, double** D,
+        vector<Edge> const & es, valarray<double> const * eweights=NULL);
 /*
  * find shortest path lengths from node s to all other nodes
  * s: starting node
@@ -48,6 +48,6 @@ void johnsons(unsigned n, double** D,
  * es: edge pairs
  * eweights: edge weights, if NULL then all weights will be taken as 1
  */
-void dijkstra(unsigned s, unsigned n, double* d, 
-        vector<Edge>& es, valarray<double>* eweights=NULL);
+void dijkstra(unsigned const s, unsigned const n, double* d, 
+        vector<Edge> const & es, valarray<double> const * eweights=NULL);
 }

@@ -36,7 +36,7 @@ static void dumpVPSCException(char const *str, IncSolver* solver) {
  * Uses sparse matrix techniques to handle pairs of dummy
  * vars.
  */
-unsigned GradientProjection::solve(double * b) {
+unsigned GradientProjection::solve(valarray<double> &b) {
 	unsigned i,j,counter;
 	if(max_iterations==0) return 0;
 
@@ -60,34 +60,41 @@ unsigned GradientProjection::solve(double * b) {
     for (i=0;i<n;i++) {
         place[i]=vars[i]->position();
     }
-    for (DummyVars::iterator it=dummy_vars.begin();it!=dummy_vars.end();++it){
-        (*it)->updatePosition();
-    }
     	
 	for (counter=0; counter<max_iterations&&!converged; counter++) {
 		converged=true;		
 		// find steepest descent direction
-        //  g = 2 ( b - Ax )
+        //  g = 2 ( b - A x )
+        //    where: A = denseQ + sparseQ
+        //  g = 2 ( b - denseQ x) - 2 sparseQ x
 		for (i=0; i<n; i++) {
 			old_place[i]=place[i];
 			g[i] = b[i];
-			for (j=0; j<n; j++) {
-				g[i] -= A[i*n+j]*place[j];
-			}
+            if(i<denseSize) { for (j=0; j<denseSize; j++) {
+                g[i] -= denseQ[i*denseSize+j]*place[j];
+            } }
             g[i] *= 2.0;
-		}		
-        for (DummyVars::iterator it=dummy_vars.begin();it!=dummy_vars.end();++it){
-            (*it)->computeDescentVector();
+		}
+        // sparse part:
+        if(sparseQ) {
+            valarray<double> r(n);
+            sparseQ->rightMultiply(place,r);
+            g-=2.0*r;
         }
         // compute step size: alpha = ( g' g ) / ( 2 g' A g )
         //   g terms for dummy vars cancel out so don't consider
 		double numerator = 0, denominator = 0, r;
+        valarray<double> Ag;
+        if(sparseQ) {
+            Ag=valarray<double>(n);
+            sparseQ->rightMultiply(g,Ag);
+        }
 		for (i=0; i<n; i++) {
 			numerator += g[i]*g[i];
-			r=0;
-			for (j=0; j<n; j++) {
-				r += A[i*n+j]*g[j];
-			}
+			r = sparseQ ? Ag[i] : 0;
+			if(i<denseSize) { for (j=0; j<denseSize; j++) {
+				r += denseQ[i*denseSize+j]*g[j];
+			} }
 			denominator -= 2.0 * r*g[i];
 		}
 		double alpha = numerator/denominator;
@@ -99,9 +106,6 @@ unsigned GradientProjection::solve(double * b) {
             assert(!isinf(place[i]));
             vars[i]->desiredPosition=place[i];
 		}
-        for (DummyVars::iterator it=dummy_vars.begin();it!=dummy_vars.end();++it){
-            (*it)->steepestDescent(alpha);
-        }
 
         //project to constraint boundary
         try {
@@ -112,9 +116,6 @@ unsigned GradientProjection::solve(double * b) {
         for (i=0;i<n;i++) {
             place[i]=vars[i]->position();
         }
-        for (DummyVars::iterator it=dummy_vars.begin();it!=dummy_vars.end();++it){
-            (*it)->updatePosition();
-        }
         // compute d, the vector from last pnt to projection pnt
 		for (i=0; i<n; i++) {
 			d[i]=place[i]-old_place[i];
@@ -122,17 +123,19 @@ unsigned GradientProjection::solve(double * b) {
 		// now compute beta, optimal step size from last pnt to projection pnt
         //   beta = ( g' d ) / ( 2 d' A d )
 		numerator = 0, denominator = 0;
+        valarray<double> Ad;
+        if(sparseQ) {
+            Ad=valarray<double>(n);
+            sparseQ->rightMultiply(d,Ad);
+        }
 		for (i=0; i<n; i++) {
 			numerator += g[i] * d[i];
-			r=0;
-			for (j=0; j<n; j++) {
-				r += A[i*n+j] * d[j];
-			}
+			r = sparseQ ? Ad[i] : 0;
+			if(i<denseSize) { for (j=0; j<denseSize; j++) {
+				r += denseQ[i*denseSize+j] * d[j];
+			} }
 			denominator += 2.0 * r * d[i];
 		}
-        for (DummyVars::iterator it=dummy_vars.begin();it!=dummy_vars.end();++it){
-            (*it)->betaCalc(numerator,denominator);
-        }
 		double beta = numerator/denominator;
 
         // beta > 1.0 takes us back outside the feasible region
@@ -141,17 +144,11 @@ unsigned GradientProjection::solve(double * b) {
             for (i=0; i<n; i++) {
                 place[i]=old_place[i]+beta*d[i];
             }
-            for (DummyVars::iterator it=dummy_vars.begin();it!=dummy_vars.end();++it){
-                (*it)->feasibleDescent(beta);
-            }
         }
 		double test=0;
 		for (i=0; i<n; i++) {
 			test += fabs(place[i]-old_place[i]);
 		}
-        for (DummyVars::iterator it=dummy_vars.begin();it!=dummy_vars.end();++it){
-            test += (*it)->absoluteDisplacement();
-        }
 		if(test>tolerance) {
 			converged=false;
 		}

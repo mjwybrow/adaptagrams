@@ -8,16 +8,9 @@ inner(std::valarray<double> const &x,
       std::valarray<double> const &y);
 
 void 
-conjugate_gradient(std::valarray<double> const & A, 
-		   std::valarray<double>& x, 
-		   double *b, 
-		   unsigned n, 
-		   double tol,
-           unsigned max_iterations);
-void 
 conjugate_gradient(std::valarray<double> const &A, 
 		   std::valarray<double> &x, 
 		   std::valarray<double> const &b, 
-		   unsigned n, double tol,
-		   unsigned max_iterations);
+		   unsigned const n, double const tol,
+		   unsigned const max_iterations);
 #endif // _CONJUGATE_GRADIENT_H

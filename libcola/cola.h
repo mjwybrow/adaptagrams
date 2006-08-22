@@ -129,9 +129,9 @@ class ConstrainedMajorizationLayout {
 public:
     ConstrainedMajorizationLayout(
         vector<Rectangle*>& rs,
-        vector<Edge>& es,
-        double idealLength,
-        std::valarray<double>* eweights=NULL,
+        vector<Edge> const & es,
+        double const idealLength,
+        std::valarray<double> const * eweights=NULL,
         TestConvergence& done=defaultTest);
 
     void moveBoundingBoxes() {
@@ -180,13 +180,11 @@ private:
     }
     double compute_stress(valarray<double> const & Dij);
     void majlayout(valarray<double> const & Dij,GradientProjection* gp, valarray<double>& coords);
-    void majlayout(valarray<double> const & Dij,GradientProjection* gp, valarray<double>& coords, 
-                   double* b);
     unsigned n; // is lapSize + dummyVars
     unsigned lapSize; // lapSize is the number of variables for actual nodes
     valarray<double> lap2; // graph laplacian
     valarray<double> Q; // quadratic terms matrix used in computations
-    valarray<double> Dij;
+    valarray<double> Dij; // all pairs shortest path distances
     double tol;
     TestConvergence& done;
     Rectangle** boundingBoxes;

@@ -9,6 +9,7 @@
 #include <iostream>
 #include <math.h>
 #include <valarray>
+#include "sparse_matrix.h"
 
 using std::valarray;
 typedef std::vector<vpsc::Constraint*> Constraints;
@@ -179,20 +180,24 @@ class GradientProjection {
 public:
 	GradientProjection(
         const Dim k,
-		unsigned n, 
-		valarray<double> const & A,
+		valarray<double> const & denseQ,
 		valarray<double>& x,
-		double tol,
-		unsigned max_iterations,
+		const double tol,
+		const unsigned max_iterations,
         AlignmentConstraints* acs=NULL,
         bool nonOverlapConstraints=false,
         vpsc::Rectangle** rs=NULL,
         PageBoundaryConstraints *pbc = NULL,
+		cola::SparseMatrix const * sparseQ = NULL,
         SimpleConstraints *sc = NULL)
-            : k(k), n(n), A(A), place(x), rs(rs),
+            : k(k), n(x.size()), 
+              denseSize(unsigned(floor(sqrt(denseQ.size())))), denseQ(denseQ), 
+              place(x), rs(rs),
               nonOverlapConstraints(nonOverlapConstraints),
               tolerance(tol), acs(acs), max_iterations(max_iterations),
-              g(valarray<double>(n)), d(valarray<double>(n)), old_place(valarray<double>(n)),
+              sparseQ(sparseQ),
+              g(valarray<double>(n)), d(valarray<double>(n)), 
+              old_place(valarray<double>(n)),
               constrained(false)
     {
         for(unsigned i=0;i<n;i++) {
@@ -234,14 +239,16 @@ public:
         }
     }
     void clearDummyVars();
-	unsigned solve(double* b);
+	unsigned solve(valarray<double> & b);
     DummyVars dummy_vars; // special vars that must be considered in Lapl.
 private:
     vpsc::IncSolver* setupVPSC();
     void destroyVPSC(vpsc::IncSolver *vpsc);
     Dim k;
 	unsigned n; // number of actual vars
-	valarray<double> const & A; // n*n graph laplacian matrix
+    unsigned denseSize; // denseQ has denseSize^2 entries
+	valarray<double> const & denseQ; // dense square graph laplacian matrix
+    cola::SparseMatrix const * sparseQ; // sparse components of goal function
     valarray<double> & place;
 	Variables vars; // all variables
                           // computations
