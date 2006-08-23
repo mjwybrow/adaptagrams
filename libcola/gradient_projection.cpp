@@ -39,13 +39,15 @@ static inline double dotProd(valarray<double> const & a, valarray<double> const 
     return p;
 }
 
-double GradientProjection::computeSteepestDescentVector(valarray<double> const &b) {
+double GradientProjection::computeSteepestDescentVector(
+        valarray<double> const &b,
+        valarray<double> const &place,
+        valarray<double> &g) {
     // find steepest descent direction
     //  g = 2 ( b - A x )
     //    where: A = denseQ + sparseQ
     //  g = 2 ( b - denseQ x) - 2 sparseQ x
     g = b;
-    old_place=place;
     for (unsigned i=0; i<n; i++) {
         if(i<denseSize) { for (unsigned j=0; j<denseSize; j++) {
             g[i] -= denseQ[i*denseSize+j]*place[j];
@@ -77,10 +79,10 @@ double GradientProjection::computeSteepestDescentVector(valarray<double> const &
     denominator *= -2;
     return numerator/denominator;
 }
-double GradientProjection::computeFeasibleVector() {
-    unsigned i,j;
-    // compute d, the vector from last pnt to projection pnt
-    d=place-old_place;
+// d is the vector from last pnt to projection pnt
+//   i.e. d=place-old_place;
+double GradientProjection::computeFeasibleVector(
+        valarray<double> const & g, valarray<double> const & d) {
     // now compute beta, optimal step size from last pnt to projection pnt
     //   beta = ( g' d ) / ( 2 d' A d )
     valarray<double> Ad;
@@ -90,9 +92,9 @@ double GradientProjection::computeFeasibleVector() {
     }
     double const numerator = dotProd(g, d);
     double denominator = 0;
-    for (i=0; i<n; i++) {
+    for (unsigned i=0; i<n; i++) {
         double r = sparseQ ? Ad[i] : 0;
-        if(i<denseSize) { for (j=0; j<denseSize; j++) {
+        if(i<denseSize) { for (unsigned j=0; j<denseSize; j++) {
             r += denseQ[i*denseSize+j] * d[j];
         } }
         denominator += r * d[i];
@@ -131,9 +133,13 @@ unsigned GradientProjection::solve(valarray<double> const &b) {
         place[i]=vars[i]->position();
     }
     	
+	valarray<double> g(n); /* gradient */
+	valarray<double> old_place(n); /* stored positions */
+    valarray<double> d(n); /* actual descent vector */
 	for (counter=0; counter<max_iterations&&!converged; counter++) {
 		converged=true;		
-        double alpha=computeSteepestDescentVector(b);
+        old_place=place;
+        double alpha=computeSteepestDescentVector(b,place,g);
 
         // move to new unconstrained position
 		for (i=0; i<n; i++) {
@@ -152,7 +158,8 @@ unsigned GradientProjection::solve(valarray<double> const &b) {
         for (i=0;i<n;i++) {
             place[i]=vars[i]->position();
         }
-        double beta = computeFeasibleVector();
+        d = place - old_place;
+        const double beta = computeFeasibleVector(g, d);
         // beta > 1.0 takes us back outside the feasible region
         // beta < 0 clearly not useful and may happen due to numerical imp.
         if(beta>0&&beta<1.0) {
@@ -160,15 +167,13 @@ unsigned GradientProjection::solve(valarray<double> const &b) {
                 place[i]=old_place[i]+beta*d[i];
             }
         }
-		double test=0;
+		double distanceMoved=0;
 		for (i=0; i<n; i++) {
-			test += fabs(place[i]-old_place[i]);
+			distanceMoved += fabs(place[i]-old_place[i]);
 		}
-		if(test>tolerance) {
+		if(distanceMoved>tolerance) {
 			converged=false;
-		} else {
-            printf("Converged after %d iterations!\n",counter);
-        }
+		}
 	}
     destroyVPSC(solver);
 	return counter;

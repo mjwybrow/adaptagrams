@@ -196,8 +196,6 @@ public:
               nonOverlapConstraints(nonOverlapConstraints),
               tolerance(tol), acs(acs), max_iterations(max_iterations),
               sparseQ(sparseQ),
-              g(valarray<double>(n)), d(valarray<double>(n)), 
-              old_place(valarray<double>(n)),
               constrained(false)
     {
         for(unsigned i=0;i<n;i++) {
@@ -243,8 +241,11 @@ public:
     DummyVars dummy_vars; // special vars that must be considered in Lapl.
 private:
     vpsc::IncSolver* setupVPSC();
-    double computeSteepestDescentVector(valarray<double> const & b);
-    double computeFeasibleVector();
+    double computeSteepestDescentVector(
+        valarray<double> const &b, valarray<double> const &place,
+        valarray<double> &g);
+    double computeFeasibleVector(
+        valarray<double> const & g, valarray<double> const & d);
     void destroyVPSC(vpsc::IncSolver *vpsc);
     Dim k;
 	const unsigned n; // number of actual vars
@@ -262,9 +263,6 @@ private:
     Constraints gcs; /* global constraints - persist throughout all
                                 iterations */
     Constraints lcs; /* local constraints - only for current iteration */
-	valarray<double> g; /* gradient */
-	valarray<double> d;
-	valarray<double> old_place;
     bool constrained;
 };
 
