@@ -90,12 +90,12 @@ typedef vector<LinearConstraint*> LinearConstraints;
 class TestConvergence {
 public:
     double old_stress;
-    TestConvergence(const double& tolerance = 0.001, const unsigned maxiterations = 1000)
+    TestConvergence(const double tolerance = 0.001, const unsigned maxiterations = 1000)
         : tolerance(tolerance),
           maxiterations(maxiterations) { reset(); }
     virtual ~TestConvergence() {}
 
-    virtual bool operator()(double new_stress, valarray<double> const & X, valarray<double> const & Y) {
+    virtual bool operator()(const double new_stress, valarray<double> const & X, valarray<double> const & Y) {
         //std::cout<<"iteration="<<iterations<<", new_stress="<<new_stress<<std::endl;
         if (old_stress == DBL_MAX) {
             old_stress = new_stress;

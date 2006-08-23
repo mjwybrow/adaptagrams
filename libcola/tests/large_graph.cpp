@@ -7,20 +7,22 @@
 #include<iomanip>
 #include<fstream>
 #include<vector>
+#include<valarray>
 #include "graphlayouttest.h"
 
 using namespace std;
 using namespace cola;
 
 struct CheckProgress : TestConvergence {
-    CheckProgress(double d,unsigned i) : TestConvergence(d,i) {}
-    bool operator()(double new_stress, double* X, double* Y) {
+    CheckProgress(const double d,const unsigned i) : TestConvergence(d,i) {}
+    bool operator()(const double new_stress, valarray<double> const & X, valarray<double> const & Y) {
         cout << "stress="<<new_stress<<endl;
         return TestConvergence::operator()(new_stress,X,Y);
     }
 };
 int main() {
     ifstream f("data/1138_bus.txt");
+    //ifstream f("data/dg_850.txt");
     string startlabel, endlabel;
     unsigned V = 0;
     double defaultEdgeLength=40;
@@ -32,7 +34,7 @@ int main() {
              end = atoi(endlabel.c_str());
         es.push_back(make_pair(start,end));
         scy.push_back(
-            new SimpleConstraint(end,start,defaultEdgeLength/3));
+            new SimpleConstraint(start,end,defaultEdgeLength/3));
         V=max(V,max(start,end));
     }
     V++;
@@ -48,6 +50,9 @@ int main() {
     CheckProgress test(0.001,100);
     clock_t starttime=clock();
     ConstrainedMajorizationLayout alg(rs,es,defaultEdgeLength,NULL,test);
+    cout << "Unconstrained layout" << endl;
+    alg.run();
+    cout << "Constrained layout" << endl;
     alg.setupConstraints(NULL,NULL,false,NULL,NULL,NULL,&scy);
     alg.run();
     double t=double(clock()-starttime)/double(CLOCKS_PER_SEC);

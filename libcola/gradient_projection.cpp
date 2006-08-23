@@ -30,14 +30,84 @@ static void dumpVPSCException(char const *str, IncSolver* solver) {
         cerr << *cs[i] << endl;
     }
 }
+
+static inline double dotProd(valarray<double> const & a, valarray<double> const & b) {
+    double p = 0;
+    for (unsigned i=0; i<a.size(); i++) {
+        p += a[i]*b[i];
+    }
+    return p;
+}
+
+double GradientProjection::computeSteepestDescentVector(valarray<double> const &b) {
+    // find steepest descent direction
+    //  g = 2 ( b - A x )
+    //    where: A = denseQ + sparseQ
+    //  g = 2 ( b - denseQ x) - 2 sparseQ x
+    g = b;
+    old_place=place;
+    for (unsigned i=0; i<n; i++) {
+        if(i<denseSize) { for (unsigned j=0; j<denseSize; j++) {
+            g[i] -= denseQ[i*denseSize+j]*place[j];
+        } }
+    }
+    // sparse part:
+    if(sparseQ) {
+        valarray<double> r(n);
+        sparseQ->rightMultiply(place,r);
+        g-=r;
+    }
+    g *= 2.0;
+    // compute step size: alpha = ( g' g ) / ( 2 g' A g )
+    //   g terms for dummy vars cancel out so don't consider
+    valarray<double> Ag;
+    if(sparseQ) {
+        Ag.resize(n);
+        sparseQ->rightMultiply(g,Ag);
+    }
+    const double numerator = dotProd(g, g);
+    double denominator = 0;
+    for (unsigned i=0; i<n; i++) {
+        double r = sparseQ ? Ag[i] : 0;
+        if(i<denseSize) { for (unsigned j=0; j<denseSize; j++) {
+            r += denseQ[i*denseSize+j]*g[j];
+        } }
+        denominator += r*g[i];
+    }
+    denominator *= -2;
+    return numerator/denominator;
+}
+double GradientProjection::computeFeasibleVector() {
+    unsigned i,j;
+    // compute d, the vector from last pnt to projection pnt
+    d=place-old_place;
+    // now compute beta, optimal step size from last pnt to projection pnt
+    //   beta = ( g' d ) / ( 2 d' A d )
+    valarray<double> Ad;
+    if(sparseQ) {
+        Ad.resize(n);
+        sparseQ->rightMultiply(d,Ad);
+    }
+    double const numerator = dotProd(g, d);
+    double denominator = 0;
+    for (i=0; i<n; i++) {
+        double r = sparseQ ? Ad[i] : 0;
+        if(i<denseSize) { for (j=0; j<denseSize; j++) {
+            r += denseQ[i*denseSize+j] * d[j];
+        } }
+        denominator += r * d[i];
+    }
+    return numerator/(2.0*denominator);
+}
+
 /*
  * Use gradient-projection to solve an instance of
  * the Variable Placement with Separation Constraints problem.
  * Uses sparse matrix techniques to handle pairs of dummy
  * vars.
  */
-unsigned GradientProjection::solve(valarray<double> &b) {
-	unsigned i,j,counter;
+unsigned GradientProjection::solve(valarray<double> const &b) {
+	unsigned i,counter;
 	if(max_iterations==0) return 0;
 
 	bool converged=false;
@@ -63,41 +133,7 @@ unsigned GradientProjection::solve(valarray<double> &b) {
     	
 	for (counter=0; counter<max_iterations&&!converged; counter++) {
 		converged=true;		
-		// find steepest descent direction
-        //  g = 2 ( b - A x )
-        //    where: A = denseQ + sparseQ
-        //  g = 2 ( b - denseQ x) - 2 sparseQ x
-		for (i=0; i<n; i++) {
-			old_place[i]=place[i];
-			g[i] = b[i];
-            if(i<denseSize) { for (j=0; j<denseSize; j++) {
-                g[i] -= denseQ[i*denseSize+j]*place[j];
-            } }
-            g[i] *= 2.0;
-		}
-        // sparse part:
-        if(sparseQ) {
-            valarray<double> r(n);
-            sparseQ->rightMultiply(place,r);
-            g-=2.0*r;
-        }
-        // compute step size: alpha = ( g' g ) / ( 2 g' A g )
-        //   g terms for dummy vars cancel out so don't consider
-		double numerator = 0, denominator = 0, r;
-        valarray<double> Ag;
-        if(sparseQ) {
-            Ag=valarray<double>(n);
-            sparseQ->rightMultiply(g,Ag);
-        }
-		for (i=0; i<n; i++) {
-			numerator += g[i]*g[i];
-			r = sparseQ ? Ag[i] : 0;
-			if(i<denseSize) { for (j=0; j<denseSize; j++) {
-				r += denseQ[i*denseSize+j]*g[j];
-			} }
-			denominator -= 2.0 * r*g[i];
-		}
-		double alpha = numerator/denominator;
+        double alpha=computeSteepestDescentVector(b);
 
         // move to new unconstrained position
 		for (i=0; i<n; i++) {
@@ -116,28 +152,7 @@ unsigned GradientProjection::solve(valarray<double> &b) {
         for (i=0;i<n;i++) {
             place[i]=vars[i]->position();
         }
-        // compute d, the vector from last pnt to projection pnt
-		for (i=0; i<n; i++) {
-			d[i]=place[i]-old_place[i];
-		}	
-		// now compute beta, optimal step size from last pnt to projection pnt
-        //   beta = ( g' d ) / ( 2 d' A d )
-		numerator = 0, denominator = 0;
-        valarray<double> Ad;
-        if(sparseQ) {
-            Ad=valarray<double>(n);
-            sparseQ->rightMultiply(d,Ad);
-        }
-		for (i=0; i<n; i++) {
-			numerator += g[i] * d[i];
-			r = sparseQ ? Ad[i] : 0;
-			if(i<denseSize) { for (j=0; j<denseSize; j++) {
-				r += denseQ[i*denseSize+j] * d[j];
-			} }
-			denominator += 2.0 * r * d[i];
-		}
-		double beta = numerator/denominator;
-
+        double beta = computeFeasibleVector();
         // beta > 1.0 takes us back outside the feasible region
         // beta < 0 clearly not useful and may happen due to numerical imp.
         if(beta>0&&beta<1.0) {
@@ -151,7 +166,9 @@ unsigned GradientProjection::solve(valarray<double> &b) {
 		}
 		if(test>tolerance) {
 			converged=false;
-		}
+		} else {
+            printf("Converged after %d iterations!\n",counter);
+        }
 	}
     destroyVPSC(solver);
 	return counter;

@@ -1,4 +1,5 @@
 INCLUDES = -I$(top_srcdir)
+AM_CXXFLAGS = -Wall
 
 lib_LIBRARIES = libcola.a
 
