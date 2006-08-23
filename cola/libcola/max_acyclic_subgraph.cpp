@@ -8,12 +8,9 @@
 #include <cassert>
 #include <max_acyclic_subgraph.h>
 
-#define ADJMAKE_DEBUG
-#define COPY_ADJ_DEBUG
-#define RUN_DEBUG
-
 using namespace std;
 using namespace cola;
+using namespace max_acyclic_subgraph;
 
 MaxAcyclicSubgraph::MaxAcyclicSubgraph(unsigned numVertices, Edges *edges)  {
   this->V = numVertices; 

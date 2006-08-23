@@ -9,11 +9,9 @@
 #include <cassert>
 #include <cycle_detector.h>
 
-#define VISIT_DEBUG
-#define RUN_DEBUG
-
 using namespace std;
 using namespace cola;
+using namespace cycle_detector;
 
 // a global var representing time
 TimeStamp Time;
@@ -231,7 +229,7 @@ void CycleDetector::visit(unsigned k)  {
                 cout << "Setting cyclicEdgesMapping[" << i << "] to true" << endl;
               #endif
 	    }
-	  }	
+	  }
 
           // this node is part of a cycle
           if (thisNode->cyclicAncestor == NULL)  { thisNode->cyclicAncestor = otherNode->cyclicAncestor; }

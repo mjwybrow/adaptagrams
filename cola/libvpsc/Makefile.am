@@ -1,8 +1,8 @@
 #INCLUDES = -I$(top_srcdir)
 
-lib_LTLIBRARIES = libvpsc.la
+lib_LIBRARIES = libvpsc.a
 
-libvpsc_la_SOURCES = block.cpp\
+libvpsc_a_SOURCES = block.cpp\
 	blocks.cpp\
 	constraint.cpp\
 	rectangle.cpp\
@@ -28,12 +28,10 @@ libvpsc_la_SOURCES = block.cpp\
 libvpscincludedir = ${includedir}/libvpsc
 
 libvpscinclude_HEADERS = solve_VPSC.h \
-	block.h\
 	constraint.h\
 	csolve_VPSC.h\
 	rectangle.h\
 	remove_rectangle_overlap.h\
-	variable.h\
-	cbuffer.h
+	variable.h
 
 SUBDIRS = tests
