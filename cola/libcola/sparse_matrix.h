@@ -18,7 +18,7 @@ public:
             assert(p.first<n);
             assert(p.second<n);
             A[cnt]=i->second;
-            if(p.first!=lastrow) {
+            if((int)p.first!=lastrow) {
                 for(unsigned r=lastrow+1;r<=p.first;r++) {
                     IA[r]=cnt;
                 }

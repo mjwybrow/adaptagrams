@@ -239,27 +239,29 @@ public:
         }
     }
     void clearDummyVars();
-	unsigned solve(valarray<double> & b);
+	unsigned solve(valarray<double> const & b);
     DummyVars dummy_vars; // special vars that must be considered in Lapl.
 private:
     vpsc::IncSolver* setupVPSC();
+    double computeSteepestDescentVector(valarray<double> const & b);
+    double computeFeasibleVector();
     void destroyVPSC(vpsc::IncSolver *vpsc);
     Dim k;
-	unsigned n; // number of actual vars
-    unsigned denseSize; // denseQ has denseSize^2 entries
+	const unsigned n; // number of actual vars
+    const unsigned denseSize; // denseQ has denseSize^2 entries
 	valarray<double> const & denseQ; // dense square graph laplacian matrix
-    cola::SparseMatrix const * sparseQ; // sparse components of goal function
     valarray<double> & place;
-	Variables vars; // all variables
-                          // computations
-    Constraints gcs; /* global constraints - persist throughout all
-                                iterations */
-    Constraints lcs; /* local constraints - only for current iteration */
     vpsc::Rectangle** rs;
     bool nonOverlapConstraints;
     double tolerance;
     AlignmentConstraints* acs;
     unsigned max_iterations;
+    cola::SparseMatrix const * sparseQ; // sparse components of goal function
+	Variables vars; // all variables
+                          // computations
+    Constraints gcs; /* global constraints - persist throughout all
+                                iterations */
+    Constraints lcs; /* local constraints - only for current iteration */
 	valarray<double> g; /* gradient */
 	valarray<double> d;
 	valarray<double> old_place;

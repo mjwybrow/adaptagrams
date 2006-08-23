@@ -177,9 +177,8 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
     if(gcs) copy(gcs->begin(),gcs->end(),cs.begin());
     straightener::generateConstraints(snodes,sedges,cs,dim);
     n=snodes.size();
-    SparseMatrix::SparseMap Q;
-    X=valarray<double>(n);
-    Y=valarray<double>(n);
+    X.resize(n);
+    Y.resize(n);
     for(unsigned i = 0; i<n; i++) {
         X[i]=snodes[i]->x;
         Y[i]=snodes[i]->y;
@@ -218,6 +217,7 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
     //cout << "Generated "<<linearConstraints.size()<< " linear constraints"<<endl;
     assert(snodes.size()==lapSize+linearConstraints.size());
     valarray<double>& coords=dim==HORIZONTAL?X:Y;
+    SparseMatrix::SparseMap Q;
     for(LinearConstraints::iterator i=linearConstraints.begin();
            i!= linearConstraints.end();i++) {
         LinearConstraint* c=*i;
