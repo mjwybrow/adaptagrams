@@ -13,6 +13,7 @@
  */
 #include "cbuffer.h"
 #include "constraint.h"
+#include <cassert>
 
 namespace vpsc {
     static const double ZERO_UPPERBOUND=-0.0000001;
