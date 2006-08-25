@@ -34,6 +34,7 @@ namespace cycle_detector  {
       unsigned getV()  { return this->V; }
       Edges *getEdges()  { return this->edges; }
       std::vector<TimeStamp> *getTimeStamps();
+      Node *get_highest_ca(Node *n);
 
     private:
       // attributes

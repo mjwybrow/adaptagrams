@@ -7,11 +7,12 @@
 
 using namespace std;
 using namespace cola;
+using namespace cycle_detector;
 using vpsc::Rectangle;
 
 int main()  {
   CycleDetector *cd;
-  Edges case_a, case_b, case_c, case_d, case_e, case_f;
+  Edges case_a, case_b, case_c, case_d, case_e, case_f, case_g;
 
   CyclicEdges *cycles = NULL;
   vector<Rectangle *> rs;
@@ -285,6 +286,72 @@ int main()  {
     rs.clear();
 
     cout << "No cycles found" << endl; 
+  }
+
+  // This tests the cycle detectors ability to cycle through a chain of cyclic ancestors
+  cout << endl << "ENTERING CYCLIC ANCESTOR TEST" << endl;
+  Node a(1), b(2), c(3), d(4), e(5), f(6);
+  // set up the chain
+  f.cyclicAncestor = &e;
+  e.cyclicAncestor = &d;
+  d.cyclicAncestor = &c;
+  c.cyclicAncestor = &b;
+  b.cyclicAncestor = &a;
+  a.cyclicAncestor = &a;
+
+  Node *ca = cd->get_highest_ca(&f);
+  if (ca != NULL)  { cout << "Highest cyclic ancestor found at vertex(" << ca->id << ")" << endl; }
+
+  // create case G
+  // case G hows the ability to find nested cycles and to reassign cyclic ancestors
+  cout << endl << "ENTERING CASE G" << endl;
+  V = 7;
+  case_g.push_back(Edge(0, 1));
+  case_g.push_back(Edge(1, 2));
+  case_g.push_back(Edge(2, 3));
+  case_g.push_back(Edge(3, 4));
+  case_g.push_back(Edge(4, 5));
+  case_g.push_back(Edge(5, 6));
+  case_g.push_back(Edge(6, 5));
+  case_g.push_back(Edge(5, 4));
+  case_g.push_back(Edge(4, 3));
+  case_g.push_back(Edge(3, 2));
+  case_g.push_back(Edge(2, 1));
+  case_g.push_back(Edge(1, 0));
+  case_g.push_back(Edge(0, 6));
+
+  // detect the cycles
+  cd->mod_graph(V, &case_g);
+  cycles = cd->detect_cycles();
+  
+  if (cycles != NULL)  {
+    cout << "cycles->size(): " << cycles->size() << endl; 
+    for (unsigned i = 0; i < case_g.size(); i++)  {
+      // print out the cycles
+      if ((*cycles)[i])  cout << "Cyclic edge found: (" << case_g[i].first << ", " << case_g[i].second << ")" << endl;
+    }
+
+    cout << endl;
+
+    // output a picture
+    cout << "No picture generated" << endl;
+
+    /*rs.push_back(new Rectangle(50,50+5,10,10+5));
+    rs.push_back(new Rectangle(50,50+5,30,30+5));
+    rs.push_back(new Rectangle(50,50+5,60,60+5));
+    rs.push_back(new Rectangle(10,10+5,70,70+5));
+    rs.push_back(new Rectangle(50,50+5,100,100+5));
+    rs.push_back(new Rectangle(10,10+5,40,40+5));
+
+    assert(rs.size() == V);
+
+    output_svg(rs, case_a, "cycle_detector_case_g.svg", false, true, cycles);
+    for (unsigned i = 0; i < rs.size(); i++)  { delete rs[i]; }
+    rs.clear();*/
+    delete cycles;
+  }
+  else  {
+    cout << "No cycles found" << endl;
   }
 
   // END TEST

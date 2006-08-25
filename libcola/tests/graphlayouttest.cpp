@@ -108,6 +108,9 @@ void output_svg(vector<Rectangle*>& rs, vector<Edge>& es, char *fname, bool rect
 	ymin-=2*r;
 	width=xmax-xmin;
 	height=ymax-ymin;
+
+        std::cout << "Making a picture ..." << endl;
+
 	f << "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" ";
 	f << "xmlns:sodipodi=\"http://inkscape.sourceforge.net/DTD/sodipodi-0.dtd\" ";
 	f << "xmlns:inkscape=\"http://www.inkscape.org/namespaces/inkscape\" width=\""<<width<<"\" height=\""<<height<<"\" viewBox = \"";
@@ -128,7 +131,7 @@ void output_svg(vector<Rectangle*>& rs, vector<Edge>& es, char *fname, bool rect
 	  f << "<defs id=\"defs5\">" << endl;
           f << "  <marker inkscape:stockid=\"CyclicConnArrowEnd\"" << endl;
           f << "    orient=\"auto\" refY=\"0.0\" refX=\"" << 4.5 + r + ARROW_HEAD_BUFFER << "\"" << endl;
-          f << "    id=\"CyclicConnArrowEnd\" style=\"overflow:visible;\">" << endl;
+          f << "    id=\"CyclicConnArrowEnd\" style=\"fill:#b400ff;fill-opacity:1;overflow:visible\">" << endl;
           f << "  <path id=\"path3466\"" << endl;
           f << "    d=\"M 0.0,0.0 L 1.0,-5.0 L -12.5,0.0 L 1.0,5.0 L 0.0,0.0 z \"" << endl;
           f << "    style=\"fill-rule:evenodd;stroke:#B400FF;stroke-width:1.0px;marker-start:none;\"" << endl;
@@ -148,7 +151,7 @@ void output_svg(vector<Rectangle*>& rs, vector<Edge>& es, char *fname, bool rect
 
                   if (cyclicEdges != NULL)  {
 		    // if we have a cylic edge we want to draw it a different colour
-		    if ((*cyclicEdges)[i])  { f << "rgb(180,0,255);stroke-width:1px;marker-end:url(#CyclicConnArrowEnd)\""; }
+		    if ((*cyclicEdges)[i])  { f << "rgb(180,0,255);stroke-width:1px;marker-end:url(#CyclicConnArrowEnd);stroke-miterlimit:4;stroke-dasharray:1,1;stroke-dashoffset:0\""; }
 		    else  { f << "rgb(99,99,99);stroke-width:1px;marker-end:url(#ConnArrowEnd)\""; }
 		  }
 		  else  { f << "rgb(99,99,99);stroke-width:1px;marker-end:url(#ConnArrowEnd)\""; }

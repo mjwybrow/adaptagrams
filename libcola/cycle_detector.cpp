@@ -150,6 +150,7 @@ void CycleDetector::mod_graph(unsigned numVertices, Edges *edges)  {
 void CycleDetector::visit(unsigned k)  {
   unsigned cycleOpen;
   Node *thisNode = (*nodes)[k];
+  Node *highestCA = NULL;
 
   // state that we have seen this vertex
   pair< bool, vector<unsigned>::iterator > haveSeen = find_node(traverse, k);
@@ -199,25 +200,41 @@ void CycleDetector::visit(unsigned k)  {
 	}
 
         // this node is part of a cycle
-        if (thisNode->cyclicAncestor == NULL)  { thisNode->cyclicAncestor = otherNode->cyclicAncestor; }
+        if (thisNode->cyclicAncestor == NULL)  { 
+	  #ifdef VISIT_DEBUG
+            cout << "setting vertex(" << thisNode->id << ") cyclic ancestor to vertex(" << otherNode->cyclicAncestor->id << ")" << endl;
+	  #endif
+	  
+	  thisNode->cyclicAncestor = otherNode->cyclicAncestor;
+	}
 
 	// see if we are part of a cycle with a cyclicAncestor that possesses a lower timestamp
-	if (otherNode->cyclicAncestor->stamp < thisNode->cyclicAncestor->stamp)  { thisNode->cyclicAncestor = otherNode->cyclicAncestor; }
+	if (otherNode->cyclicAncestor->stamp < thisNode->cyclicAncestor->stamp)  { 
+	  #ifdef VISIT_DEBUG
+            cout << "setting vertex(" << thisNode->id << ") cyclic ancestor to vertex(" << otherNode->cyclicAncestor->id << ")" << endl;
+	  #endif
+
+	  thisNode->cyclicAncestor = otherNode->cyclicAncestor;
+	}
       }
     }
     else  {
-      // we are at a node who has been visited before.  If this node's CA is not NULL
-      // then this node is part of a cycle.
+      // we are at a node who has been visited before. 
       #ifdef VISIT_DEBUG
         cout << "Encountering vertex(" << otherNode->id << ") which is CLOSED" << endl;
       #endif
 
       if (otherNode->cyclicAncestor != NULL)  {
+        // get the highest possible cyclic ancestor from this node
+	highestCA = this->get_highest_ca(otherNode->cyclicAncestor);
+        assert(highestCA != NULL);
+
         #ifdef VISIT_DEBUG
-          cout << "vertex(" << otherNode->id << ")->CA->id = " << otherNode->cyclicAncestor->id << endl;
-        #endif        
+          cout << "highest cyclic ancestor at vertex(" << highestCA->id << ")" << endl;
+        #endif
+
 	// compare the stamp of the traversal with our stamp
-        if (otherNode->cyclicAncestor->stamp <= thisNode->stamp && otherNode->cyclicAncestor->status != Node::DoneVisiting)  {
+        if (highestCA->stamp <= thisNode->stamp && highestCA->status != Node::DoneVisiting)  {
 	  #ifdef VISIT_DEBUG
             cout << "Edge(" << k << ", " << otherNode->id << ") is part of a cycle" << endl;
           #endif 
@@ -232,10 +249,10 @@ void CycleDetector::visit(unsigned k)  {
 	  }
 
           // this node is part of a cycle
-          if (thisNode->cyclicAncestor == NULL)  { thisNode->cyclicAncestor = otherNode->cyclicAncestor; }
+          if (thisNode->cyclicAncestor == NULL)  { thisNode->cyclicAncestor = highestCA; }
 
-	  // see if we are part of a cycle with a cyclicAncestor that possesses a lower timestamp
-	  if (otherNode->cyclicAncestor->stamp < thisNode->cyclicAncestor->stamp)  { thisNode->cyclicAncestor = otherNode->cyclicAncestor; }
+	  // reassign the other node to point to the highest cyclic ancestor
+	  otherNode->cyclicAncestor = highestCA;
 	}
       }
     }
@@ -246,6 +263,31 @@ void CycleDetector::visit(unsigned k)  {
   #endif
 
   thisNode->status = Node::DoneVisiting;
+}
+
+// finds the cyclic ancestor in the chain with the earliest timestamp
+Node *CycleDetector::get_highest_ca(Node *n)  {
+  #ifdef GET_HIGHEST_CA_DEBUG
+    cout << "At vertex(" << n->id << ")" << endl;
+  #endif
+
+  assert(n->cyclicAncestor != NULL);
+
+  if (n == n->cyclicAncestor)  { 
+    // we have reached the end of the chain
+    #ifdef GET_HIGHEST_CA_DEBUG
+      cout << "Highest CA in chain vertex(" << n->id << ")" << endl;
+    #endif
+
+    return n;
+  } 
+  else  {
+    // recurse
+    #ifdef GET_HIGHEST_CA_DEBUG
+      cout << "Recusing to next chain vertex(" << n->cyclicAncestor->id << ")" << endl;
+    #endif
+    return (this->get_highest_ca(n->cyclicAncestor));
+  }
 }
 
 // determines whether or not a vertex is a sink
