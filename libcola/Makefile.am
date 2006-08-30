@@ -17,6 +17,6 @@ libcola_a_SOURCES = cola.h\
         cycle_detector.cpp\
 	connected_components.cpp
 
-include_HEADERS = cola.h
+include_HEADERS = cola.h gradient_projection.h sparse_matrix.h straightener.h
 
 SUBDIRS = tests
