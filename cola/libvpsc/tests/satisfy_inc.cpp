@@ -9,7 +9,7 @@
 using namespace std;
 using namespace vpsc;
 
-inline int getRand(const int range) {
+static inline int getRand(const int range) {
 	return (double)range*rand()/(RAND_MAX+1.0);
 }
 inline bool approxEquals(const double a, const double b) {
