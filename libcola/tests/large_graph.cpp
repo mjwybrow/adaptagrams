@@ -21,8 +21,12 @@ struct CheckProgress : TestConvergence {
     }
 };
 int main() {
-    ifstream f("data/1138_bus.txt");
-    //ifstream f("data/dg_850.txt");
+    const char *fname="data/1138_bus.txt"; //"data/dg_850.txt";
+    ifstream f(fname);
+    if(!f.is_open()) {
+        cout << "Error opening file: " << fname << endl;
+        exit(1);
+    }
     string startlabel, endlabel;
     unsigned V = 0;
     double defaultEdgeLength=40;
