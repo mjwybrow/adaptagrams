@@ -9,10 +9,10 @@ using namespace std;
 namespace shortest_paths {
 // O(n^3) time dynamic programming approach.  Slow, but fool proof.  Use for testing.
 void floyd_warshall(
-        unsigned n,
+        unsigned const n,
         double** D, 
-        vector<Edge>& es,
-        valarray<double>* eweights) 
+        vector<Edge> const & es,
+        valarray<double> const * eweights) 
 {
     assert(!eweights||eweights->size()==es.size());
     for(unsigned i=0;i<n;i++) {
