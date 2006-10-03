@@ -1,4 +1,10 @@
-// The matrix market 1138_bus graph.
+// Loads a graph from a text file, generates constraints for each edge requiring them
+// to point downwards, and proceeds to produce a layout using libcola.
+// The input file format is 2 numeric node labels per line separated by a space,
+// each pair representing a directed edge.  Node labels are simply used as array
+// offsets so they should start from 0.
+// The graph should be connected.
+// Default input file is the matrix market 1138_bus graph.
 // Running times:
 //    no constraints - steepest descent solver: 149 seconds
 //    no constraints - conjugate gradient solver: 21.7 seconds
