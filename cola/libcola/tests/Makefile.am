@@ -1,6 +1,6 @@
 INCLUDES = -I$(top_srcdir)
-check_PROGRAMS = unconstrained constrained containment straightener shortest_paths connected_components large_graph
-#check_PROGRAMS = large_graph
+#check_PROGRAMS = unconstrained constrained containment straightener shortest_paths connected_components large_graph
+check_PROGRAMS = large_graph
 shortest_paths_LDADD = $(top_builddir)/libcola/libcola.a
 shortest_paths_SOURCES = shortest_paths.cpp
 unconstrained_LDADD = $(top_builddir)/libcola/libcola.a $(top_builddir)/libvpsc/libvpsc.a

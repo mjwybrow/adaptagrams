@@ -47,6 +47,9 @@ double GradientProjection::computeSteepestDescentVector(
     //  g = 2 ( b - A x )
     //    where: A = denseQ + sparseQ
     //  g = 2 ( b - denseQ x) - 2 sparseQ x
+    //
+    //  except the 2s don't matter because we compute 
+    //  the optimal stepsize anyway
     g = b;
     for (unsigned i=0; i<n; i++) {
         if(i<denseSize) { for (unsigned j=0; j<denseSize; j++) {
@@ -59,32 +62,14 @@ double GradientProjection::computeSteepestDescentVector(
         sparseQ->rightMultiply(place,r);
         g-=r;
     }
-    g *= 2.0;
-    // compute step size: alpha = ( g' g ) / ( 2 g' A g )
-    //   g terms for dummy vars cancel out so don't consider
-    valarray<double> Ag;
-    if(sparseQ) {
-        Ag.resize(n);
-        sparseQ->rightMultiply(g,Ag);
-    }
-    const double numerator = dotProd(g, g);
-    double denominator = 0;
-    for (unsigned i=0; i<n; i++) {
-        double r = sparseQ ? Ag[i] : 0;
-        if(i<denseSize) { for (unsigned j=0; j<denseSize; j++) {
-            r += denseQ[i*denseSize+j]*g[j];
-        } }
-        denominator += r*g[i];
-    }
-    denominator *= -2;
-    return numerator/denominator;
+    return computeStepSize(g,g);
 }
-// d is the vector from last pnt to projection pnt
-//   i.e. d=place-old_place;
-double GradientProjection::computeFeasibleVector(
+// compute optimal step size along descent vector d relative to
+// a gradient related vector g (which is actually -gradient/2 as
+// computed above)
+//   stepsize = ( g' d ) / ( 2 d' A d )
+double GradientProjection::computeStepSize(
         valarray<double> const & g, valarray<double> const & d) {
-    // now compute beta, optimal step size from last pnt to projection pnt
-    //   beta = ( g' d ) / ( 2 d' A d )
     valarray<double> Ad;
     if(sparseQ) {
         Ad.resize(n);
@@ -99,7 +84,34 @@ double GradientProjection::computeFeasibleVector(
         } }
         denominator += r * d[i];
     }
-    return numerator/(2.0*denominator);
+    return numerator/(2.*denominator);
+}
+double GradientProjection::computeScaledSteepestDescentVector(
+        valarray<double> const &b,
+        valarray<double> const &place,
+        valarray<double> &d) {
+    valarray<double> g(n); /* gradient */
+    // find steepest descent direction
+    //  g = D - g
+    //    where: D = inverse of the diagonal elements of the hessian
+    g = b;
+    for (unsigned i=0; i<n; i++) {
+        if(i<denseSize) { 
+            for (unsigned j=0; j<denseSize; j++) {
+                g[i] -= denseQ[i*denseSize+j]*place[j];
+                d[i] = -g[i]/denseQ[i*denseSize+i];
+            }
+        }
+    }
+    // sparse part:
+    if(sparseQ) {
+        valarray<double> r(n);
+        sparseQ->rightMultiply(place,r);
+        g-=r;
+    }
+    for (unsigned i=0; i<n; i++) {
+    }
+    return -computeStepSize(g,d);
 }
 
 /*
@@ -143,28 +155,38 @@ unsigned GradientProjection::solve(valarray<double> const &b) {
 
         // move to new unconstrained position
 		for (i=0; i<n; i++) {
-			place[i]-=alpha*g[i];
+			place[i]+=alpha*g[i];
             assert(!isnan(place[i]));
             assert(!isinf(place[i]));
             vars[i]->desiredPosition=place[i];
 		}
 
         //project to constraint boundary
+        bool constrainedOptimum = false;
         try {
-            solver->satisfy();
+            constrainedOptimum=
+                solver->satisfy();
         } catch (char const *str) {
             dumpVPSCException(str,solver);
         }
         for (i=0;i<n;i++) {
             place[i]=vars[i]->position();
         }
-        d = place - old_place;
-        const double beta = computeFeasibleVector(g, d);
-        // beta > 1.0 takes us back outside the feasible region
-        // beta < 0 clearly not useful and may happen due to numerical imp.
-        if(beta>0&&beta<1.0) {
-            for (i=0; i<n; i++) {
-                place[i]=old_place[i]+beta*d[i];
+        if(false/*constrainedOptimum*/) {
+            /* The following step (limiting the step-size in the feasible
+             * direction) seems to be: 
+             * (a) possibly incorrect 
+             * (b) a waste of time
+             */
+            d = place - old_place;
+            const double beta = computeStepSize(g, d);
+            // beta > 1.0 takes us back outside the feasible region
+            // beta < 0 clearly not useful and may happen due to numerical imp.
+            if(beta>0&&beta<0.99999) {
+                printf("beta=%f\n",beta);
+                for (i=0; i<n; i++) {
+                    place[i]=old_place[i]+beta*d[i];
+                }
             }
         }
 		double distanceMoved=0;
@@ -175,7 +197,7 @@ unsigned GradientProjection::solve(valarray<double> const &b) {
 			converged=false;
 		}
 	}
-    destroyVPSC(solver);
+    //destroyVPSC(solver);
 	return counter;
 }
 // Setup an instance of the Variable Placement with Separation Constraints

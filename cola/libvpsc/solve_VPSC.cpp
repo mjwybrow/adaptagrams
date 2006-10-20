@@ -72,7 +72,7 @@ void Solver::printBlocks() {
 * first) fixing the position of variables inside blocks relative to one
 * another so that constraints internal to the block are satisfied.
 */
-void Solver::satisfy() {
+bool Solver::satisfy() {
 	list<Variable*> *vs=bs->totalOrder();
 	for(list<Variable*>::iterator i=vs->begin();i!=vs->end();++i) {
 		Variable *v=*i;
@@ -81,7 +81,9 @@ void Solver::satisfy() {
 		}
 	}
 	bs->cleanup();
+    bool activeConstraints=false;
 	for(unsigned i=0;i<m;i++) {
+        if(cs[i]->active) activeConstraints=true;
 		if(cs[i]->slack() < ZERO_UPPERBOUND) {
 #ifdef RECTANGLE_OVERLAP_LOGGING
 			ofstream f(LOGFILE,ios::app);
@@ -92,6 +94,7 @@ void Solver::satisfy() {
 		}
 	}
 	delete vs;
+    return activeConstraints;
 }
 
 void Solver::refine() {
@@ -172,7 +175,7 @@ void IncSolver::solve() {
  * over an active constraint between the two variables.  We choose the 
  * constraint with the most negative lagrangian multiplier. 
  */
-void IncSolver::satisfy() {
+bool IncSolver::satisfy() {
 #ifdef RECTANGLE_OVERLAP_LOGGING
 	ofstream f(LOGFILE,ios::app);
 	f<<"satisfy_inc()..."<<endl;
@@ -209,8 +212,10 @@ void IncSolver::satisfy() {
 	f<<"  finished merges."<<endl;
 #endif
 	bs->cleanup();
+    bool activeConstraints=false;
 	for(unsigned i=0;i<m;i++) {
 		v=cs[i];
+        if(v->active) activeConstraints=true;
 		if(v->slack() < ZERO_UPPERBOUND) {
 			ostringstream s;
 			s<<"Unsatisfied constraint: "<<*v;
@@ -225,6 +230,7 @@ void IncSolver::satisfy() {
 	f<<"  finished cleanup."<<endl;
 	printBlocks();
 #endif
+    return activeConstraints;
 }
 void IncSolver::moveBlocks() {
 #ifdef RECTANGLE_OVERLAP_LOGGING
