@@ -244,7 +244,10 @@ private:
     double computeSteepestDescentVector(
         valarray<double> const &b, valarray<double> const &place,
         valarray<double> &g);
-    double computeFeasibleVector(
+    double computeScaledSteepestDescentVector(
+        valarray<double> const &b, valarray<double> const &place,
+        valarray<double> &g);
+    double computeStepSize(
         valarray<double> const & g, valarray<double> const & d);
     void destroyVPSC(vpsc::IncSolver *vpsc);
     Dim k;

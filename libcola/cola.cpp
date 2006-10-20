@@ -127,7 +127,7 @@ void ConstrainedMajorizationLayout::majlayout(
             }
             b[i] += degree * coords[i];
         }
-        assert(!isnan(b[i]));
+        assert(!std::isnan(b[i]));
     }
     if(constrainedLayout) {
         setupDummyVars();

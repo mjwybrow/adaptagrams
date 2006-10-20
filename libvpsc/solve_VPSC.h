@@ -33,7 +33,7 @@ typedef std::vector<Constraint*> Constraints;
  */
 class Solver {
 public:
-	virtual void satisfy();
+	virtual bool satisfy();
 	virtual void solve();
 
 	Solver(const unsigned n, Variable* const vs[], const unsigned m, Constraint *cs[]);
@@ -56,7 +56,7 @@ private:
 class IncSolver : public Solver {
 public:
 	unsigned splitCnt;
-	void satisfy();
+	bool satisfy();
 	void solve();
 	void moveBlocks();
 	void splitBlocks();
