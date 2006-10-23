@@ -172,11 +172,9 @@ unsigned GradientProjection::solve(valarray<double> const &b) {
         for (i=0;i<n;i++) {
             place[i]=vars[i]->position();
         }
-        if(false/*constrainedOptimum*/) {
-            /* The following step (limiting the step-size in the feasible
-             * direction) seems to be: 
-             * (a) possibly incorrect 
-             * (b) a waste of time
+        if(constrainedOptimum) {
+            /* The following step limits the step-size in the feasible
+             * direction
              */
             d = place - old_place;
             const double beta = computeStepSize(g, d);
