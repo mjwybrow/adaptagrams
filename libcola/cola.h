@@ -154,7 +154,7 @@ public:
      */
     void setAvoidOverlaps(bool horizontal = false) {
         constrainedLayout = true;
-        this->avoidOverlaps = true;
+        this->avoidOverlaps = horizontal?Horizontal:Both;
     }
     void setXPageBoundaryConstraints(PageBoundaryConstraints* pbcx) {
         constrainedLayout = true;
@@ -194,7 +194,7 @@ public:
      */
     void setupConstraints(
         AlignmentConstraints* acsx, AlignmentConstraints* acsy,
-        bool avoidOverlaps, 
+        NonOverlapConstraints avoidOverlaps, 
         PageBoundaryConstraints* pbcx = NULL,
         PageBoundaryConstraints* pbcy = NULL,
         SimpleConstraints* scx = NULL,
@@ -250,7 +250,7 @@ private:
     Clusters* clusters;
     LinearConstraints *linearConstraints;
     GradientProjection *gpX, *gpY;
-    bool avoidOverlaps;
+    NonOverlapConstraints avoidOverlaps;
     vector<straightener::Edge*>* straightenEdges;
     PageBoundaryConstraints *pbcx, *pbcy;
     SimpleConstraints *scx, *scy;

@@ -175,6 +175,14 @@ friend class GradientProjection;
 typedef std::vector<DummyVarPair*> DummyVars;
 
 enum Dim { HORIZONTAL, VERTICAL };
+/**
+ * resolve overlaps:
+ *   None: not at all
+ *   Horizontal: only horizontally
+ *   Both: resolve in either Horizontal or Vertical direction
+ *         depending on which leads to less displacement
+ */
+enum NonOverlapConstraints { None, Horizontal, Both };
 
 class GradientProjection {
 public:
@@ -185,7 +193,7 @@ public:
 		const double tol,
 		const unsigned max_iterations,
         AlignmentConstraints* acs=NULL,
-        bool nonOverlapConstraints=false,
+        NonOverlapConstraints nonOverlapConstraints=None,
         vpsc::Rectangle** rs=NULL,
         PageBoundaryConstraints *pbc = NULL,
 		cola::SparseMatrix const * sparseQ = NULL,
@@ -223,7 +231,7 @@ public:
                         vars[(*c)->left],vars[(*c)->right],(*c)->gap));
             }
         }
-        if(!gcs.empty() || nonOverlapConstraints) {
+        if(!gcs.empty() || nonOverlapConstraints!=None) {
             constrained=true;
         }
 	}
@@ -256,7 +264,7 @@ private:
 	valarray<double> const & denseQ; // dense square graph laplacian matrix
     valarray<double> & place;
     vpsc::Rectangle** rs;
-    bool nonOverlapConstraints;
+    NonOverlapConstraints nonOverlapConstraints;
     double tolerance;
     AlignmentConstraints* acs;
     unsigned max_iterations;
