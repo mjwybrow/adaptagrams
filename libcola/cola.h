@@ -133,14 +133,65 @@ public:
         double const idealLength,
         std::valarray<double> const * eweights=NULL,
         TestConvergence& done=defaultTest);
-
-    void moveBoundingBoxes() {
-        for(unsigned i=0;i<lapSize;i++) {
-            boundingBoxes[i]->moveCentreX(X[i]);
-            boundingBoxes[i]->moveCentreY(Y[i]);
-        }
+    /**
+     * Horizontal alignment constraints
+     */
+    void setXAlignmentConstraints(AlignmentConstraints* acsx) {
+        constrainedLayout = true;
+        this->acsx=acsx;
     }
-
+    /**
+     * Vertical alignment constraints
+     */
+    void setYAlignmentConstraints(AlignmentConstraints* acsy) {
+        constrainedLayout = true;
+        this->acsy=acsy;
+    }
+    /**
+     * At each iteration of layout, generate constraints to avoid overlaps.
+     * If bool horizontal is true, all overlaps will be resolved horizontally, otherwise
+     * overlaps will be left to be resolved vertically where doing so leads to less displacement
+     */
+    void setAvoidOverlaps(bool horizontal = false) {
+        constrainedLayout = true;
+        this->avoidOverlaps = true;
+    }
+    void setXPageBoundaryConstraints(PageBoundaryConstraints* pbcx) {
+        constrainedLayout = true;
+        this->pbcx = pbcx;
+    }
+    void setYPageBoundaryConstraints(PageBoundaryConstraints* pbcy) {
+        constrainedLayout = true;
+        this->pbcy = pbcy;
+    }
+    void setXSimpleConstraints(SimpleConstraints* scx) {
+        constrainedLayout = true;
+        this->scx = scx;
+    }
+    void setYSimpleConstraints(SimpleConstraints* scy) {
+        constrainedLayout = true;
+        this->scy = scy;
+    }
+    /**
+     * For the specified edges (with routings), generate dummy vars and constraints
+     * to try and straighten them.
+     * bendWeight controls how hard we try to straighten existing bends
+     * potBendWeight controls how much we try to keep straight edges straight
+     */
+    void setStraightenEdges(vector<straightener::Edge*>* straightenEdges, 
+            double bendWeight = 0.01, double potBendWeight = 0.1) {
+        constrainedLayout = true;
+        this->straightenEdges = straightenEdges;
+        this->bendWeight = bendWeight;
+        this->potBendWeight = potBendWeight;
+    }
+    void setClusters(Clusters* cs) {
+        constrainedLayout = true;
+        this->clusters=cs;
+    }
+    /**
+     * one almighty function call to setup all of the above in one go
+     */
     void setupConstraints(
         AlignmentConstraints* acsx, AlignmentConstraints* acsy,
         bool avoidOverlaps, 
@@ -151,6 +202,13 @@ public:
         Clusters* cs = NULL,
         vector<straightener::Edge*>* straightenEdges = NULL,
 	double bendWeight = 0.01, double potBendWeight = 0.1);
+
+    void moveBoundingBoxes() {
+        for(unsigned i=0;i<lapSize;i++) {
+            boundingBoxes[i]->moveCentreX(X[i]);
+            boundingBoxes[i]->moveCentreY(Y[i]);
+        }
+    }
 
     void addLinearConstraints(LinearConstraints* linearConstraints);
 
@@ -194,8 +252,9 @@ private:
     LinearConstraints *linearConstraints;
     GradientProjection *gpX, *gpY;
     vector<straightener::Edge*>* straightenEdges;
+    PageBoundaryConstraints *pbcx, *pbcy;
     SimpleConstraints *scx, *scy;
-	AlignmentConstraints *acsx, *acsy;
+    AlignmentConstraints *acsx, *acsy;
     
     double bendWeight, potBendWeight;
 };

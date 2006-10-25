@@ -1,6 +1,6 @@
 # the following sequence builds from scratch, or just do: bash README
 aclocal
-libtoolize
+#libtoolize
 autoconf
 automake -a --add-missing
 ./configure
