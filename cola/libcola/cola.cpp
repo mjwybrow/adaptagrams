@@ -33,6 +33,7 @@ ConstrainedMajorizationLayout
       clusters(NULL), linearConstraints(NULL),
       gpX(NULL), gpY(NULL),
       straightenEdges(NULL),
+      pbcx(NULL), pbcy(NULL),
       scx(NULL), scy(NULL),
       acsx(NULL), acsy(NULL),
       bendWeight(0.01),potBendWeight(0.1)
@@ -156,6 +157,12 @@ inline double ConstrainedMajorizationLayout
 }
 
 void ConstrainedMajorizationLayout::run(bool x, bool y) {
+    if(constrainedLayout) {
+        gpX=new GradientProjection(
+            HORIZONTAL,lap2,X,tol,100,acsx,avoidOverlaps,boundingBoxes,pbcx,NULL,scx);
+        gpY=new GradientProjection(
+            VERTICAL,lap2,Y,tol,100,acsy,avoidOverlaps,boundingBoxes,pbcy,NULL,scy);
+    }
     if(n>0) do {
         /* Axis-by-axis optimization: */
         if(straightenEdges) {
@@ -271,10 +278,7 @@ void ConstrainedMajorizationLayout::setupConstraints(
     }
     this->scx=scx; this->scy=scy;
     this->acsx=acsx; this->acsy=acsy;
-    gpX=new GradientProjection(
-        HORIZONTAL,lap2,X,tol,100,acsx,avoidOverlaps,boundingBoxes,pbcx,NULL,scx);
-    gpY=new GradientProjection(
-        VERTICAL,lap2,Y,tol,100,acsy,avoidOverlaps,boundingBoxes,pbcy,NULL,scy);
+    this->pbcx = pbcx; this->pbcy = pbcy;
     this->straightenEdges = straightenEdges;
     this->bendWeight = bendWeight;
     this->potBendWeight = potBendWeight;

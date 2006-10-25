@@ -43,7 +43,7 @@ int main() {
 	acsx.push_back(&ac);
 	ac.offsets.push_back(make_pair((unsigned)0,(double)0));
 	ac.offsets.push_back(make_pair((unsigned)3,(double)0));
-	alg.setupConstraints(&acsx,NULL,false);
+	alg.setXAlignmentConstraints(&acsx);
 	alg.run();
 	assert(fabs(rs[0]->getCentreX()-rs[3]->getCentreX())<0.001);
 	cout<<rs[0]->getCentreX()<<","<<rs[3]->getCentreX()<<endl;
