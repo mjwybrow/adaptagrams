@@ -228,8 +228,6 @@ public:
      */
     void run(bool x=true, bool y=true);
     void straighten(vector<straightener::Edge*>&, Dim);
-    bool avoidOverlaps;
-    bool constrainedLayout;
 private:
     double euclidean_distance(unsigned i, unsigned j) {
         return sqrt(
@@ -247,10 +245,12 @@ private:
     TestConvergence& done;
     Rectangle** boundingBoxes;
     valarray<double> X, Y;
-    Clusters* clusters;
     double edge_length;
+    bool constrainedLayout;
+    Clusters* clusters;
     LinearConstraints *linearConstraints;
     GradientProjection *gpX, *gpY;
+    bool avoidOverlaps;
     vector<straightener::Edge*>* straightenEdges;
     PageBoundaryConstraints *pbcx, *pbcy;
     SimpleConstraints *scx, *scy;
