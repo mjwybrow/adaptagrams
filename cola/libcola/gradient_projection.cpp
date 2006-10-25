@@ -216,12 +216,12 @@ IncSolver* GradientProjection::setupVPSC() {
     for(unsigned i=0;i<vars.size();i++) {
         vs[i]=vars[i];
     }
-    if(nonOverlapConstraints) {
+    if(nonOverlapConstraints!=None) {
         Constraint** tmp_cs=NULL;
         unsigned m=0;
         if(k==HORIZONTAL) {
             Rectangle::setXBorder(0.0001);
-            m=generateXConstraints(n,rs,vs,tmp_cs,true); 
+            m=generateXConstraints(n,rs,vs,tmp_cs,nonOverlapConstraints==Both?true:false); 
             Rectangle::setXBorder(0);
         } else {
             m=generateYConstraints(n,rs,vs,tmp_cs); 

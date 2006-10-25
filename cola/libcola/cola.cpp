@@ -32,7 +32,7 @@ ConstrainedMajorizationLayout
       constrainedLayout(false),
       clusters(NULL), linearConstraints(NULL),
       gpX(NULL), gpY(NULL),
-      avoidOverlaps(false),
+      avoidOverlaps(None),
       straightenEdges(NULL),
       pbcx(NULL), pbcy(NULL),
       scx(NULL), scy(NULL),
@@ -242,7 +242,7 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
     AlignmentConstraints *acs=dim==HORIZONTAL?acsx:acsy;
     SparseMatrix sparseQ(Q,n);
     GradientProjection gp(dim,lap2,coords,tol,100,
-            (AlignmentConstraints*)acs,false,
+            (AlignmentConstraints*)acs,None,
             (vpsc::Rectangle**)NULL,(PageBoundaryConstraints*)NULL,
             &sparseQ,&cs);
     constrainedLayout = true;
@@ -266,7 +266,7 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
 
 void ConstrainedMajorizationLayout::setupConstraints(
         AlignmentConstraints* acsx, AlignmentConstraints* acsy,
-        bool avoidOverlaps, 
+        NonOverlapConstraints avoidOverlaps, 
         PageBoundaryConstraints* pbcx, PageBoundaryConstraints* pbcy,
         SimpleConstraints* scx, SimpleConstraints* scy,
         Clusters* cs,
