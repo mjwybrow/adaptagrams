@@ -159,7 +159,7 @@ int main(int argc, char** argv) {
         }
     }
     
-    ConstrainedMajorizationLayout alg(rs,es,width/2);
+    ConstrainedMajorizationLayout alg(rs,es,NULL,width/2);
     
     alg.setYSimpleConstraints(&scy);
     alg.run();

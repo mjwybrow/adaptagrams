@@ -14,7 +14,7 @@ CPP_LN_FLAGS=`pkg-config --cflags --libs pangoft2 gtkmm-2.4 glib-2.0 libxml-2.0 
 EXTRA_CPPFLAGS:=$(shell pkg-config --cflags gtkmm-2.4) \
 		$(shell pkg-config --cflags cairo) 
 
-EXTRA_LDFLAGS:=$(shell pkg-config --libs cairomm-1.0 gtkmm-2.4 libxml-2.0) -L$(cola_libdir) -L$(vpsc_libdir) -L. -lcola -lvpsc
+EXTRA_LDFLAGS:=$(shell pkg-config --libs cairomm-1.0 gtkmm-2.4 libxml-2.0) -L$(cola_libdir) -L$(vpsc_libdir) -L. -lcola libvpsc/libvpsc.a
 
 
 CXX=g++
