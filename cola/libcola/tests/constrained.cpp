@@ -37,7 +37,7 @@ int main() {
 		double x=getRand(width), y=getRand(height);
 		rs.push_back(new vpsc::Rectangle(x,x+5,y,y+5));
 	}
-	ConstrainedMajorizationLayout alg(rs,es,width/2);
+	ConstrainedMajorizationLayout alg(rs,es,NULL,width/2);
 	AlignmentConstraints acsx;
 	AlignmentConstraint ac(1);
 	acsx.push_back(&ac);
