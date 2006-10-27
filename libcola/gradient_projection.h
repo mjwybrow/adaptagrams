@@ -64,116 +64,6 @@ private:
     double weight;
 };
 
-typedef std::vector<std::pair<unsigned,double> > CList;
-/**
- * A DummyVarPair is a pair of variables with an ideal distance between them
- * and which have no other interaction with other variables apart from through
- * constraints.  This means that the entries in the laplacian matrix for dummy
- * vars and other vars would be 0 - thus, sparse matrix techniques can be used
- * in laplacian operations.
- * The constraints are specified by a two lists of pairs of variable indexes
- * and required separation.  The two lists are:
- *   leftof: variables to which left must be to the left of, 
- *   rightof: variables to which right must be to the right of. 
- */
-class DummyVarPair {
-public:
-    DummyVarPair(double desiredDist) : dist(desiredDist), lap2(1.0/(desiredDist*desiredDist)) { }
-    CList leftof; // variables to which left dummy var must be to the left of
-    CList rightof; // variables to which right dummy var must be to the right of
-    double place_l;
-    double place_r;
-    void computeLinearTerm(double euclideanDistance) {   
-        if(euclideanDistance > 1e-30) {
-            b = place_r - place_l;
-            b /= euclideanDistance * dist;
-        } else { b=0; }
-    }
-    double stress(double euclideanDistance) {
-        double diff = dist - euclideanDistance;
-        return diff*diff / (dist*dist);
-    }
-private:
-friend class GradientProjection; 
-    /**
-     * Setup vars and constraints for an instance of the VPSC problem.
-     * Adds generated vars and constraints to the argument vectors.
-     */
-    void setupVPSC(Variables &vars, Constraints &cs) {
-        double weight=1;
-        left = new vpsc::Variable(vars.size(),place_l,weight);
-        vars.push_back(left);
-        right = new vpsc::Variable(vars.size(),place_r,weight);
-        vars.push_back(right);
-        for(CList::iterator cit=leftof.begin();
-                cit!=leftof.end(); ++cit) {
-            vpsc::Variable* v = vars[(*cit).first];
-            cs.push_back(new vpsc::Constraint(left,v,(*cit).second)); 
-        }
-        for(CList::iterator cit=rightof.begin();
-                cit!=rightof.end(); ++cit) {
-            vpsc::Variable* v = vars[(*cit).first];
-            cs.push_back(new vpsc::Constraint(v,right,(*cit).second)); 
-        }
-    }
-    /**
-     * Extract the result of a VPSC solution to the variable positions
-     */
-    void updatePosition() {
-        place_l=left->position();
-        place_r=right->position();
-    }
-    /**
-     * Compute the descent vector, also copying the current position to old_place for
-     * future reference
-     */
-    void computeDescentVector() {
-        old_place_l=place_l;
-        old_place_r=place_r;
-        g = 2.0 * ( b + lap2 * ( place_l - place_r ) );
-    }
-    /** 
-     * move in the direction of steepest descent (based on g computed by computeGradient)
-     * alpha is the step size.
-     */
-    void steepestDescent(double alpha) {
-        place_l -= alpha*g;
-        place_r += alpha*g;
-        left->desiredPosition=place_l;
-        right->desiredPosition=place_r;
-    }
-    /**
-     * add dummy vars' contribution to numerator and denominator for 
-     * beta step size calculation
-     */
-    void betaCalc(double &numerator, double &denominator) {
-        double dl = place_l-old_place_l,
-               dr = place_r-old_place_r,
-               r = 2.0 * lap2 * ( dr - dl );
-        numerator += g * ( dl - dr );
-        denominator += r*dl - r * dr;
-    }
-    /**
-     * move by stepsize beta from old_place to place
-     */
-    void feasibleDescent(double beta) {
-        left->desiredPosition = place_l = old_place_l + beta*(place_l - old_place_l);
-        right->desiredPosition = place_r = old_place_r + beta*(place_r - old_place_r);
-    }
-    double absoluteDisplacement() {
-        return fabs(place_l - old_place_l) + fabs(place_r - old_place_r);
-    }
-    double dist; // ideal distance between vars
-    double b; // linear coefficient in quad form for left (b_right = -b)
-    vpsc::Variable* left; // Variables used in constraints
-    vpsc::Variable* right;
-    double lap2; // laplacian entry
-    double g; // descent vec for quad form for left (g_right = -g)
-    double old_place_l; // old_place is where the descent vec g was computed
-    double old_place_r;
-};
-typedef std::vector<DummyVarPair*> DummyVars;
-
 enum Dim { HORIZONTAL, VERTICAL };
 /**
  * resolve overlaps:
@@ -244,9 +134,7 @@ public:
             delete vars[i];
         }
     }
-    void clearDummyVars();
 	unsigned solve(valarray<double> const & b);
-    DummyVars dummy_vars; // special vars that must be considered in Lapl.
 private:
     vpsc::IncSolver* setupVPSC();
     double computeSteepestDescentVector(

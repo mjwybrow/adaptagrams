@@ -130,6 +130,7 @@ public:
     ConstrainedMajorizationLayout(
         vector<Rectangle*>& rs,
         vector<Edge> const & es,
+        Clusters const * cs,
         double const idealLength,
         std::valarray<double> const * eweights=NULL,
         TestConvergence& done=defaultTest);
@@ -150,7 +151,8 @@ public:
     /**
      * At each iteration of layout, generate constraints to avoid overlaps.
      * If bool horizontal is true, all overlaps will be resolved horizontally, otherwise
-     * overlaps will be left to be resolved vertically where doing so leads to less displacement
+     * some overlaps will be left to be resolved vertically where doing so 
+     * leads to less displacement
      */
     void setAvoidOverlaps(bool horizontal = false) {
         constrainedLayout = true;
@@ -185,10 +187,6 @@ public:
         this->bendWeight = bendWeight;
         this->potBendWeight = potBendWeight;
     }
-    void setClusters(Clusters* cs) {
-        constrainedLayout = true;
-        this->clusters=cs;
-    }
     /**
      * one almighty function call to setup all of the above in one go
      */
@@ -199,20 +197,17 @@ public:
         PageBoundaryConstraints* pbcy = NULL,
         SimpleConstraints* scx = NULL,
         SimpleConstraints* scy = NULL,
-        Clusters* cs = NULL,
         vector<straightener::Edge*>* straightenEdges = NULL,
 	double bendWeight = 0.01, double potBendWeight = 0.1);
 
     void moveBoundingBoxes() {
-        for(unsigned i=0;i<lapSize;i++) {
+        for(unsigned i=0;i<n;i++) {
             boundingBoxes[i]->moveCentreX(X[i]);
             boundingBoxes[i]->moveCentreY(Y[i]);
         }
     }
 
     void addLinearConstraints(LinearConstraints* linearConstraints);
-
-    void setupDummyVars();
 
     ~ConstrainedMajorizationLayout() {
         if(boundingBoxes) {
@@ -235,9 +230,8 @@ private:
             (Y[i] - Y[j]) * (Y[i] - Y[j]));
     }
     double compute_stress(valarray<double> const & Dij);
-    void majlayout(valarray<double> const & Dij,GradientProjection* gp, valarray<double>& coords);
-    unsigned n; // is lapSize + dummyVars
-    unsigned lapSize; // lapSize is the number of variables for actual nodes
+    void majlayout(valarray<double> const & Dij,GradientProjection* gp, valarray<double>& coords, int N = -1);
+    unsigned n; // number of nodes
     valarray<double> lap2; // graph laplacian
     valarray<double> Q; // quadratic terms matrix used in computations
     valarray<double> Dij; // all pairs shortest path distances
@@ -247,7 +241,23 @@ private:
     valarray<double> X, Y;
     double edge_length;
     bool constrainedLayout;
-    Clusters* clusters;
+    /*
+     * Clusters are a set of nodes that are somehow semantically grouped
+     * and should therefore be kept together a bit more tightly than, and
+     * preferably without overlapping, the rest of the graph.
+     *
+     * We achieve this by augmenting the L matrix with stronger attractive
+     * forces between all members of the cluster and by maintaining a
+     * (preferably convex) hull around those constituents which, using
+     * constraints and dummy variables, is prevented from overlapping
+     * other parts of the graph.
+     *
+     * Need to:
+     *  - augment Lap matrix with intra cluster forces
+     *  - compute convex hull of each cluster
+     *  - from convex hull generate "StraightenEdges"
+     */
+    Clusters const * clusters;
     LinearConstraints *linearConstraints;
     GradientProjection *gpX, *gpY;
     NonOverlapConstraints avoidOverlaps;

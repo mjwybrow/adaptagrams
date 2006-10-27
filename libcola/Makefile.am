@@ -15,7 +15,9 @@ libcola_a_SOURCES = cola.h\
 	straightener.cpp\
         cycle_detector.h\
         cycle_detector.cpp\
-	connected_components.cpp
+	connected_components.cpp\
+	convex_hull.h\
+	convex_hull.cpp
 
 include_HEADERS = cola.h gradient_projection.h sparse_matrix.h straightener.h
 

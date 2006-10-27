@@ -117,8 +117,6 @@ double GradientProjection::computeScaledSteepestDescentVector(
 /*
  * Use gradient-projection to solve an instance of
  * the Variable Placement with Separation Constraints problem.
- * Uses sparse matrix techniques to handle pairs of dummy
- * vars.
  */
 unsigned GradientProjection::solve(valarray<double> const &b) {
 	unsigned i,counter;
@@ -129,7 +127,6 @@ unsigned GradientProjection::solve(valarray<double> const &b) {
     IncSolver* solver=NULL;
 
     solver = setupVPSC();
-    //cerr << "in gradient projection: n=" << n << endl;
     for (i=0;i<n;i++) {
         assert(!isnan(place[i]));
         assert(!isinf(place[i]));
@@ -195,7 +192,7 @@ unsigned GradientProjection::solve(valarray<double> const &b) {
 			converged=false;
 		}
 	}
-    //destroyVPSC(solver);
+    destroyVPSC(solver);
 	return counter;
 }
 // Setup an instance of the Variable Placement with Separation Constraints
@@ -206,12 +203,8 @@ unsigned GradientProjection::solve(valarray<double> const &b) {
 // dir-edge constraints, containment constraints, etc).
 IncSolver* GradientProjection::setupVPSC() {
     Constraint **cs;
-    //assert(lcs.size()==0);
+    assert(lcs.size()==0);
     
-    for(DummyVars::iterator dit=dummy_vars.begin();
-            dit!=dummy_vars.end(); ++dit) {
-        (*dit)->setupVPSC(vars,lcs);
-    }
     Variable** vs = new Variable*[vars.size()];
     for(unsigned i=0;i<vars.size();i++) {
         vs[i]=vars[i];
@@ -240,12 +233,6 @@ IncSolver* GradientProjection::setupVPSC() {
     }
     return new IncSolver(vars.size(),vs,m,cs);
 }
-void GradientProjection::clearDummyVars() {
-    for(DummyVars::iterator i=dummy_vars.begin();i!=dummy_vars.end();++i) {
-        delete *i;
-    }
-    dummy_vars.clear();
-}
 void GradientProjection::destroyVPSC(IncSolver *vpsc) {
     if(acs) {
         for(AlignmentConstraints::iterator ac=acs->begin(); ac!=acs->end();++ac) {
@@ -262,13 +249,6 @@ void GradientProjection::destroyVPSC(IncSolver *vpsc) {
             delete *i;
     }
     lcs.clear();
-    //cout << " Vars count = " << vars.size() << " Dummy vars cnt=" << dummy_vars.size() << endl;
-    vars.resize(vars.size()-dummy_vars.size()*2);
-    for(DummyVars::iterator i=dummy_vars.begin();i!=dummy_vars.end();++i) {
-        DummyVarPair* p = *i;
-        delete p->left;
-        delete p->right;
-    }
 }
 
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4 :

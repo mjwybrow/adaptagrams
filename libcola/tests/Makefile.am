@@ -1,6 +1,6 @@
 INCLUDES = -I$(top_srcdir)
-#check_PROGRAMS = unconstrained constrained containment straightener shortest_paths connected_components large_graph
-check_PROGRAMS = containment
+check_PROGRAMS = unconstrained constrained containment straightener shortest_paths connected_components large_graph
+#check_PROGRAMS = unconstrained
 shortest_paths_LDADD = $(top_builddir)/libcola/libcola.a
 shortest_paths_SOURCES = shortest_paths.cpp
 unconstrained_LDADD = $(top_builddir)/libcola/libcola.a $(top_builddir)/libvpsc/libvpsc.a
@@ -9,6 +9,8 @@ constrained_LDADD = $(top_builddir)/libcola/libcola.a $(top_builddir)/libvpsc/li
 constrained_SOURCES = constrained.cpp graphlayouttest.cpp
 containment_LDADD = $(top_builddir)/libcola/libcola.a $(top_builddir)/libvpsc/libvpsc.a
 containment_SOURCES = containment.cpp graphlayouttest.cpp
+containment2_LDADD = $(top_builddir)/libcola/libcola.a $(top_builddir)/libvpsc/libvpsc.a
+containment2_SOURCES = containment2.cpp graphlayouttest.cpp
 straightener_LDADD = $(top_builddir)/libcola/libcola.a $(top_builddir)/libvpsc/libvpsc.a
 straightener_SOURCES = straightener.cpp graphlayouttest.cpp
 connected_components_LDADD = $(top_builddir)/libcola/libcola.a $(top_builddir)/libvpsc/libvpsc.a

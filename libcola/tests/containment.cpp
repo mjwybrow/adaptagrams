@@ -46,8 +46,7 @@ int main() {
 	c.push_back(4);
 	Clusters cs;
 	cs.push_back(&c);
-	ConstrainedMajorizationLayout alg(rs,es,width/2);
-	alg.setClusters(&cs);
+	ConstrainedMajorizationLayout alg(rs,es,&cs,width/2);
 	alg.run();
 	output_svg(rs,es,"containment.svg");
 	for(unsigned i=0;i<V;i++) {
