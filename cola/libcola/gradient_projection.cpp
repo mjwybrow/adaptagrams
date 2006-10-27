@@ -181,7 +181,7 @@ unsigned GradientProjection::solve(valarray<double> const &b) {
             // beta > 1.0 takes us back outside the feasible region
             // beta < 0 clearly not useful and may happen due to numerical imp.
             if(beta>0&&beta<0.99999) {
-                printf("beta=%f\n",beta);
+		    //printf("beta=%f\n",beta);
                 for (i=0; i<n; i++) {
                     place[i]=old_place[i]+beta*d[i];
                 }

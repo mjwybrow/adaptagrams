@@ -65,6 +65,13 @@ public:
 			return r->getMaxY() - minY;
 		return 0;
 	}
+	
+	void offset(double dx, double dy) {
+		minX += dx;
+		maxX += dx;
+		minY += dy;
+		maxY += dy;
+	}
 private:
 	double minX,maxX,minY,maxY;
 };

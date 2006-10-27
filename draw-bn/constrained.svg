@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="124.384934" height="388.000000" viewBox = "392.189358 174.000000 124.384934 388.000000">
+<line x1="506.574292" y1="184.000000" x2="485.689458" y2="284.000000" style="stroke:rgb(99,99,99);stroke-width:2"/>
+<line x1="402.189358" y1="318.000000" x2="432.545005" y2="552.000000" style="stroke:rgb(99,99,99);stroke-width:2"/>
+<line x1="485.689458" y1="284.000000" x2="458.204954" y2="384.000000" style="stroke:rgb(99,99,99);stroke-width:2"/>
+<line x1="432.545005" y1="552.000000" x2="458.204954" y2="384.000000" style="stroke:rgb(99,99,99);stroke-width:2"/>
+<line x1="458.204954" y1="384.000000" x2="414.574192" y2="484.000000" style="stroke:rgb(99,99,99);stroke-width:2"/>
+<line x1="402.189358" y1="318.000000" x2="432.894277" y2="418.000000" style="stroke:rgb(99,99,99);stroke-width:2"/>
+<line x1="458.204954" y1="384.000000" x2="474.689458" y2="518.000000" style="stroke:rgb(99,99,99);stroke-width:2"/>
+<line x1="432.894277" y1="418.000000" x2="474.689458" y2="518.000000" style="stroke:rgb(99,99,99);stroke-width:2"/>
+<g id="node0" class="node"><title>0</title>
+<ellipse cx="506.574292" cy="184.000000" rx="5.000000" ry="5.000000" style="fill:black;stroke:black;"/>
+</g>
+<g id="node1" class="node"><title>1</title>
+<ellipse cx="485.689458" cy="284.000000" rx="5.000000" ry="5.000000" style="fill:black;stroke:black;"/>
+</g>
+<g id="node2" class="node"><title>2</title>
+<ellipse cx="402.189358" cy="318.000000" rx="5.000000" ry="5.000000" style="fill:black;stroke:black;"/>
+</g>
+<g id="node3" class="node"><title>3</title>
+<ellipse cx="432.545005" cy="552.000000" rx="5.000000" ry="5.000000" style="fill:black;stroke:black;"/>
+</g>
+<g id="node4" class="node"><title>4</title>
+<ellipse cx="458.204954" cy="384.000000" rx="5.000000" ry="5.000000" style="fill:black;stroke:black;"/>
+</g>
+<g id="node5" class="node"><title>5</title>
+<ellipse cx="414.574192" cy="484.000000" rx="5.000000" ry="5.000000" style="fill:black;stroke:black;"/>
+</g>
+<g id="node6" class="node"><title>6</title>
+<ellipse cx="432.894277" cy="418.000000" rx="5.000000" ry="5.000000" style="fill:black;stroke:black;"/>
+</g>
+<g id="node7" class="node"><title>7</title>
+<ellipse cx="474.689458" cy="518.000000" rx="5.000000" ry="5.000000" style="fill:black;stroke:black;"/>
+</g>
+</svg>
