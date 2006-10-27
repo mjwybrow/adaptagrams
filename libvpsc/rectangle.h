@@ -33,6 +33,8 @@ public:
 	double getCentreY() const { return minY+height()/2.0; }
 	double width() const { return getMaxX()-minX; }
 	double height() const { return getMaxY()-minY; }
+	void set_width(double w) { maxX = minX + w; }
+	void set_height(double h) { maxY = minY + h; }
 	static void setXBorder(double x) {xBorder=x;}
 	static void setYBorder(double y) {yBorder=y;}
 	void moveCentreX(double x) {
