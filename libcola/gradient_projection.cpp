@@ -169,6 +169,7 @@ unsigned GradientProjection::solve(valarray<double> const &b) {
         for (i=0;i<n;i++) {
             place[i]=vars[i]->position();
         }
+        constrainedOptimum=false;
         if(constrainedOptimum) {
             /* The following step limits the step-size in the feasible
              * direction
@@ -202,7 +203,6 @@ unsigned GradientProjection::solve(valarray<double> const &b) {
 // global constraint list (including alignment constraints,
 // dir-edge constraints, containment constraints, etc).
 IncSolver* GradientProjection::setupVPSC() {
-    Constraint **cs;
     assert(lcs.size()==0);
     
     Variable** vs = new Variable*[vars.size()];
@@ -223,7 +223,7 @@ IncSolver* GradientProjection::setupVPSC() {
             lcs.push_back(tmp_cs[i]);
         }
     }
-    cs = new Constraint*[lcs.size() + gcs.size()];
+    Constraint **cs = new Constraint*[lcs.size() + gcs.size()];
     unsigned m = 0 ;
     for(vector<Constraint*>::iterator ci = lcs.begin();ci!=lcs.end();++ci) {
         cs[m++] = *ci;

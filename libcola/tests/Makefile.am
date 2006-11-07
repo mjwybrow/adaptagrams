@@ -1,6 +1,6 @@
-INCLUDES = -I$(top_srcdir)
-check_PROGRAMS = unconstrained constrained containment straightener shortest_paths connected_components large_graph
-#check_PROGRAMS = unconstrained
+INCLUDES = -I$(top_srcdir) -I/usr/include/cairo -I/usr/include/cairomm-1.0
+#check_PROGRAMS = unconstrained constrained containment straightener shortest_paths connected_components large_graph convex_hull
+check_PROGRAMS = convex_hull
 shortest_paths_LDADD = $(top_builddir)/libcola/libcola.a
 shortest_paths_SOURCES = shortest_paths.cpp
 unconstrained_LDADD = $(top_builddir)/libcola/libcola.a $(top_builddir)/libvpsc/libvpsc.a
@@ -19,4 +19,6 @@ large_graph_LDADD = $(top_srcdir)/libcola/libcola.a $(top_srcdir)/libvpsc/libvps
 large_graph_SOURCES = large_graph.cpp graphlayouttest.cpp
 sparse_matrix_LDADD = $(top_srcdir)/libcola/libcola.a $(top_srcdir)/libvpsc/libvpsc.a
 sparse_matrix_SOURCES = sparse_matrix.cpp
+convex_hull_SOURCES = convex_hull.cpp
+convex_hull_LDADD = $(top_srcdir)/libcola/libcola.a -lcairo -lcairomm-1.0
 TESTS = $(check_PROGRAMS)

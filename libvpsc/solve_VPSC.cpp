@@ -39,6 +39,15 @@ IncSolver::IncSolver(const unsigned n, Variable* const vs[], const unsigned m, C
 	}
 }
 Solver::Solver(const unsigned n, Variable* const vs[], const unsigned m, Constraint *cs[]) : m(m), cs(cs), n(n), vs(vs) {
+    for(unsigned i=0;i<n;i++) {
+        vs[i]->in.clear();
+        vs[i]->out.clear();
+    }
+    for(unsigned i=0;i<m;i++) {
+        Constraint *c=cs[i];
+        c->left->out.push_back(c);
+        c->right->in.push_back(c);
+    }
 	bs=new Blocks(n, vs);
 #ifdef RECTANGLE_OVERLAP_LOGGING
 	printBlocks();
