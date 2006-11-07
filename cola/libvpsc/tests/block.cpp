@@ -1,16 +1,19 @@
 #include <cassert>
 #include <iostream>
-#include <variable.h>
-#include <constraint.h>
-#include <block.h>
+#include <libvpsc/variable.h>
+#include <libvpsc/constraint.h>
+#include <libvpsc/block.h>
 using namespace std;
 using namespace vpsc;
+
 
 void test1() {
 	cout << "Block test 1..." << endl;
 	Variable *a1=new Variable(1,0,1);
 	Variable *a2=new Variable(2,0,1);
 	Constraint *c=new Constraint(a1,a2,1);
+	a1->out.push_back(c);
+	a2->in.push_back(c);
 	Block *b1=new Block(a1);
 	Block *b2=new Block(a2);
 	b1->merge(b2,c);
@@ -46,6 +49,10 @@ void test2() {
 		new Constraint(a[3],a[5],2)};
 	for(int i=0;i<6;i++) {
 		new Block(a[i]);
+	}
+	for(int i=0;i<5;i++) {
+		c[i]->left->out.push_back(c[i]);
+		c[i]->right->in.push_back(c[i]);
 	}
 	for(int i=0;i<5;i++) {
 		Block *l=c[i]->left->block, *r=c[i]->right->block;

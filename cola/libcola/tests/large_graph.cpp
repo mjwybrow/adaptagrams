@@ -60,10 +60,10 @@ int main() {
     CheckProgress test(0.001,100);
     clock_t starttime=clock();
     ConstrainedMajorizationLayout alg(rs,es,NULL,defaultEdgeLength,NULL,test);
-    cout << "Unconstrained layout" << endl;
-    alg.run();
+    //cout << "Unconstrained layout" << endl;
+    //alg.run();
     cout << "Constrained layout" << endl;
-    alg.setupConstraints(NULL,NULL,None,NULL,NULL,NULL,&scy);
+    alg.setYSimpleConstraints(&scy);
     alg.run();
     double t=double(clock()-starttime)/double(CLOCKS_PER_SEC);
     cout<<"Time="<<t<<endl;

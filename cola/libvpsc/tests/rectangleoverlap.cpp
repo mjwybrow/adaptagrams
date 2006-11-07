@@ -2,10 +2,10 @@
 #include <cassert>
 #include <math.h>
 #include <time.h>
-#include <rectangle.h>
-#include <variable.h>
-#include <constraint.h>
-#include <solve_VPSC.h>
+#include <libvpsc/rectangle.h>
+#include <libvpsc/variable.h>
+#include <libvpsc/constraint.h>
+#include <libvpsc/solve_VPSC.h>
 #define EXTRA_GAP 0.0001
 using namespace std;
 using namespace vpsc;

@@ -22,19 +22,23 @@ Constraint::Constraint(Variable *left, Variable *right, double gap, bool equalit
   visited(false),
   equality(equality)
 {
-	left->out.push_back(this);
-	right->in.push_back(this);
+	// In hindsight I think it's probably better to build the constraint DAG
+	// (by creating variable in/out lists) when needed, rather than in advance
+	//left->out.push_back(this);
+	//right->in.push_back(this);
 }
 Constraint::~Constraint() {
-	Constraints::iterator i;
-	for(i=left->out.begin(); i!=left->out.end(); i++) {
-		if(*i==this) break;
-	}
-	left->out.erase(i);
-	for(i=right->in.begin(); i!=right->in.end(); i++) {
-		if(*i==this) break;
-	}
-	right->in.erase(i);
+	// see constructor: the following is just way too slow.  Better to create a
+	// new DAG on demand than maintain the lists dynamically.
+	//Constraints::iterator i;
+	//for(i=left->out.begin(); i!=left->out.end(); i++) {
+		//if(*i==this) break;
+	//}
+	//left->out.erase(i);
+	//for(i=right->in.begin(); i!=right->in.end(); i++) {
+		//if(*i==this) break;
+	//}
+	//right->in.erase(i);
 }
 std::ostream& operator <<(std::ostream &os, const Constraint &c)
 {

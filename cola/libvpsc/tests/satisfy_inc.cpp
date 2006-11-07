@@ -1,6 +1,6 @@
-#include <variable.h>
-#include <constraint.h>
-#include <solve_VPSC.h>
+#include <libvpsc/variable.h>
+#include <libvpsc/constraint.h>
+#include <libvpsc/solve_VPSC.h>
 #include <algorithm>
 #include <iostream>
 #include <time.h>

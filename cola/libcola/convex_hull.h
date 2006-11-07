@@ -3,5 +3,5 @@
 #include <vector>
 #include <valarray>
 
-void ConvexHull(std::valarray<double> const & X, std::valarray<double> const & Y);
+void convexHull(std::valarray<double> const & X, std::valarray<double> const & Y, std::vector<unsigned> & hull);
 
