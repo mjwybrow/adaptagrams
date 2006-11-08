@@ -7,4 +7,5 @@ AC_PROG_CXX
 AC_PROG_CC
 #AC_PROG_INSTALL
 #AC_DEFINE(TRACE_LOGGING)
+AC_CHECK_LIB(cairomm-1.0,cairo_create)
 AC_OUTPUT(Makefile libcola/Makefile libcola/tests/Makefile libvpsc/Makefile libvpsc/tests/Makefile)

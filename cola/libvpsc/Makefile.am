@@ -33,5 +33,3 @@ libvpscinclude_HEADERS = solve_VPSC.h \
 	rectangle.h\
 	remove_rectangle_overlap.h\
 	variable.h
-
-SUBDIRS = tests
