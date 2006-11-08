@@ -59,7 +59,7 @@ void draw_cluster_boundary(Cairo::RefPtr<Cairo::Context> const &cr,
     vector<unsigned> hull;
     convexHull(X,Y,hull);
     cr->save();
-    cr->set_source_rgba(0.7, 0.7, 0.7, 1.);
+    cr->set_source_rgb(0.7, 0.7, 224./255.);
     vector<unsigned>::iterator start=hull.begin();
     cr->move_to(X[*start]-xmin,Y[*start]-ymin);
     for(vector<unsigned>::iterator i=start+1;i!=hull.end();i++) {
@@ -101,11 +101,15 @@ void output_svg(vector<vpsc::Rectangle*> const &rs,
 
     Cairo::RefPtr<Cairo::Context> cr = Cairo::Context::create(surface);
 
+    /* set background colour
     cr->save(); // save the state of the context
     cr->set_source_rgb(0.86, 0.85, 0.47);
     cr->paint();    // fill image with the color
     cr->restore();  // color is back to black now
+    */
 
+    cr->set_line_width(1.);
+    cr->set_font_size(8);
     cr->save();
     for(Clusters::const_iterator c=cs.begin();c!=cs.end();c++) {
         draw_cluster_boundary(cr,rs,*c,xmin,ymin);
@@ -127,7 +131,7 @@ void output_svg(vector<vpsc::Rectangle*> const &rs,
             cr->rectangle(rs[i]->getMinX()-xmin+1,rs[i]->getMinY()-ymin+1,rs[i]->width()-2,rs[i]->height()-2);
             cr->stroke_preserve();
             cr->save();
-            cr->set_source_rgba(1.0, 1.0, 1.0, 1.);
+            cr->set_source_rgb(245./255., 233./255., 177./255.);
             cr->fill();
             cr->restore();
             std::stringstream s; s<<i;
