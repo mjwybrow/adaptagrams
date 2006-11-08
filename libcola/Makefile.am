@@ -1,4 +1,4 @@
-INCLUDES = -I$(top_srcdir)
+INCLUDES = -I$(top_srcdir) -I/usr/include/cairo -I/usr/include/cairomm-1.0
 AM_CXXFLAGS = -Wall
 
 lib_LIBRARIES = libcola.a
@@ -17,8 +17,8 @@ libcola_a_SOURCES = cola.h\
         cycle_detector.cpp\
 	connected_components.cpp\
 	convex_hull.h\
-	convex_hull.cpp
+	convex_hull.cpp\
+	output_svg.h\
+	output_svg.cpp
 
 include_HEADERS = cola.h gradient_projection.h sparse_matrix.h straightener.h
-
-SUBDIRS = tests

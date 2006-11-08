@@ -17,6 +17,7 @@
 #include <float.h>
 #include <iomanip>
 #include <libcola/cola.h>
+#include <libcola/output_svg.h>
 #include "graphlayouttest.h"
 
 using namespace cola;
@@ -50,7 +51,7 @@ int main() {
 	vector<vpsc::Rectangle*> rs;
 	for(unsigned i=0;i<V;i++) {
 		double x=getRand(width), y=getRand(height);
-		rs.push_back(new vpsc::Rectangle(x,x+5,y,y+5));
+		rs.push_back(new vpsc::Rectangle(x,x+17,y,y+10));
 	}
 
 	Cluster c,d,e,f;
@@ -67,9 +68,14 @@ int main() {
 	f.push_back(18);
 	Clusters cs;
 	cs.push_back(&c);
-	ConstrainedMajorizationLayout alg(rs,es,&cs,width/2);
+	cs.push_back(&d);
+	cs.push_back(&e);
+	cs.push_back(&f);
+	ConstrainedMajorizationLayout alg(rs,es,&cs,30);
 	alg.run();
-	output_svg(rs,es,"containment2.svg",true);
+	alg.setAvoidOverlaps();
+	alg.run();
+	output_svg(rs,es,cs,"containment2.svg",true);
 	for(unsigned i=0;i<V;i++) {
 		delete rs[i];
 	}

@@ -1,6 +1,6 @@
 INCLUDES = -I$(top_srcdir) -I/usr/include/cairo -I/usr/include/cairomm-1.0
 #check_PROGRAMS = unconstrained constrained containment straightener shortest_paths connected_components large_graph convex_hull
-check_PROGRAMS = convex_hull
+check_PROGRAMS = containment2
 shortest_paths_LDADD = $(top_builddir)/libcola/libcola.a
 shortest_paths_SOURCES = shortest_paths.cpp
 unconstrained_LDADD = $(top_builddir)/libcola/libcola.a $(top_builddir)/libvpsc/libvpsc.a
