@@ -85,7 +85,7 @@ void ConstrainedMajorizationLayout::majlayout(
     /* compute the vector b */
     /* multiply on-the-fly with distance-based laplacian */
     valarray<double> b(N);
-    for (unsigned i = 0; i < N; i++) {
+    for (unsigned i = 0; i < (unsigned)N; i++) {
         b[i] = degree = 0;
         if(i<n) {
             for (unsigned j = 0; j < n; j++) {
@@ -125,9 +125,9 @@ inline double ConstrainedMajorizationLayout
 void ConstrainedMajorizationLayout::run(bool x, bool y) {
     if(constrainedLayout) {
         gpX=new GradientProjection(
-            HORIZONTAL,lap2,X,tol,100,acsx,avoidOverlaps,boundingBoxes,pbcx,NULL,scx);
+            HORIZONTAL,lap2,X,tol,100,acsx,dcsx,avoidOverlaps,boundingBoxes,pbcx,NULL,scx);
         gpY=new GradientProjection(
-            VERTICAL,lap2,Y,tol,100,acsy,avoidOverlaps,boundingBoxes,pbcy,NULL,scy);
+            VERTICAL,lap2,Y,tol,100,acsy,dcsy,avoidOverlaps,boundingBoxes,pbcy,NULL,scy);
     }
     if(n>0) do {
         /* Axis-by-axis optimization: */
@@ -206,10 +206,11 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
         Q[make_pair(c->b,c->v)]+=c->w*c->dvb;
     }
     AlignmentConstraints *acs=dim==HORIZONTAL?acsx:acsy;
+    DistributionConstraints *dcs=dim==HORIZONTAL?dcsx:dcsy;
     PageBoundaryConstraints *pbcs=dim==HORIZONTAL?pbcx:pbcy;
     SparseMatrix sparseQ(Q,sn);
     GradientProjection gp(dim,lap2,coords,tol,100,
-            (AlignmentConstraints*)acs,None,
+            (AlignmentConstraints*)acs,dcs,None,
             (vpsc::Rectangle**)boundingBoxes,(PageBoundaryConstraints*)pbcs,
             &sparseQ,&cs);
     constrainedLayout = true;

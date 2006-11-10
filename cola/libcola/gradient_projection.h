@@ -18,11 +18,12 @@ typedef std::vector<std::pair<unsigned,double> > OffsetList;
 
 class SimpleConstraint {
 public:
-    SimpleConstraint(unsigned l, unsigned r, double g) 
-        : left(l), right(r), gap(g)  {}
+    SimpleConstraint(unsigned l, unsigned r, double g, bool equality = false) 
+        : left(l), right(r), gap(g), equality(equality)  {}
     unsigned left;
     unsigned right;
     double gap;
+    bool equality;
 };
 typedef std::vector<SimpleConstraint*> SimpleConstraints;
 class AlignmentConstraint {
@@ -39,6 +40,11 @@ private:
     vpsc::Variable* variable;
 };
 typedef std::vector<AlignmentConstraint*> AlignmentConstraints;
+struct DistributionConstraint {
+    std::vector<std::pair<AlignmentConstraint*,AlignmentConstraint*> > acs;
+    double sep;
+};
+typedef std::vector<DistributionConstraint*> DistributionConstraints;
 
 class PageBoundaryConstraints {
 public:
@@ -83,6 +89,7 @@ public:
 		const double tol,
 		const unsigned max_iterations,
         AlignmentConstraints* acs=NULL,
+        DistributionConstraints* dcs=NULL,
         NonOverlapConstraints nonOverlapConstraints=None,
         vpsc::Rectangle** rs=NULL,
         PageBoundaryConstraints *pbc = NULL,
@@ -112,13 +119,30 @@ public:
                 }
             }
         }
+        if(dcs) {
+            for(DistributionConstraints::iterator idc=dcs->begin();
+                    idc!=dcs->end();++idc) {
+                DistributionConstraint *dc=*idc;
+                for(std::vector<std::pair<
+                        AlignmentConstraint*,AlignmentConstraint*> >::iterator iac
+                        =dc->acs.begin(); iac!=dc->acs.end();++iac) {
+                    AlignmentConstraint *c1, *c2;
+                    c1=iac->first;
+                    c2=iac->second;
+                    assert(c1->variable!=NULL);
+                    gcs.push_back(new vpsc::Constraint(
+                                c1->variable,c2->variable,dc->sep,true));
+                }
+            }
+        }
         if (pbc)  {          
             pbc->createVarsAndConstraints(vars,gcs);
         }
         if (sc) {
             for(SimpleConstraints::iterator c=sc->begin(); c!=sc->end();++c) {
                 gcs.push_back(new vpsc::Constraint(
-                        vars[(*c)->left],vars[(*c)->right],(*c)->gap));
+                        vars[(*c)->left],vars[(*c)->right],
+                        (*c)->gap,(*c)->equality));
             }
         }
         if(!gcs.empty() || nonOverlapConstraints!=None) {

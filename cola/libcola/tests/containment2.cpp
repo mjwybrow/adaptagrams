@@ -30,6 +30,27 @@ using namespace std;
 int main() {
 
 	const unsigned V = 19;
+	const char* labels[]={
+		"Hamza Alghamdi",
+		"Nawaf Alhazmi",
+		"Marwan Al-Shehhi",
+		"Mohand Alshehri",
+		"Ahmed Alghamdi",
+		"Saeed Alghamdi",
+		"Salem Alhazmi",
+		"Hani Hanjour",
+		"Mohamed Atta",
+		"Ziad Jarrah",
+		"Ahmed Al Haznawi",
+		"Fayez Ahmed",
+		"Ahmed Alnami",
+		"Khalid Al-Mihdhar",
+		"Majed Moqed",
+		"Abdul Aziz Al-Omari",
+		"Waleed Alshehri",
+		"Wail Alshehri",
+		"Satam Suqami"};
+
 	typedef pair < unsigned, unsigned >Edge;
 	Edge edge_array[] = { 
 		Edge(0,1), Edge(0,3), Edge(0,4), Edge(0,5), Edge(0,10),
@@ -44,6 +65,27 @@ int main() {
 		Edge(16,17), Edge(16,18),
        		Edge(17,18) 
 	};
+	double g=10;
+	SimpleConstraints scy;
+	scy.push_back(new SimpleConstraint(0,10,g));
+	scy.push_back(new SimpleConstraint(0,3,g));
+	scy.push_back(new SimpleConstraint(0,4,g));
+	scy.push_back(new SimpleConstraint(0,12,g));
+	scy.push_back(new SimpleConstraint(0,5,g));
+	scy.push_back(new SimpleConstraint(1,12,g));
+	scy.push_back(new SimpleConstraint(1,5,g));
+	scy.push_back(new SimpleConstraint(1,13,g));
+	scy.push_back(new SimpleConstraint(1,6,g));
+	scy.push_back(new SimpleConstraint(1,7,g));
+	scy.push_back(new SimpleConstraint(2,8,g));
+	scy.push_back(new SimpleConstraint(2,9,g));
+	scy.push_back(new SimpleConstraint(2,15,g));
+	scy.push_back(new SimpleConstraint(2,11,g));
+	scy.push_back(new SimpleConstraint(5,12,g));
+	scy.push_back(new SimpleConstraint(7,13,g));
+	scy.push_back(new SimpleConstraint(7,14,g));
+	scy.push_back(new SimpleConstraint(16,17,g));
+	scy.push_back(new SimpleConstraint(16,18,g));
 	const std::size_t E = sizeof(edge_array) / sizeof(Edge);
 	vector<Edge> es(edge_array,edge_array+E);
 	double width=100;
@@ -72,6 +114,7 @@ int main() {
 	cs.push_back(&e);
 	cs.push_back(&f);
 	ConstrainedMajorizationLayout alg(rs,es,&cs,30);
+	alg.setYSimpleConstraints(&scy);
 	alg.run();
 	alg.setAvoidOverlaps();
 	alg.run();
