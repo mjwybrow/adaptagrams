@@ -58,6 +58,13 @@ namespace straightener {
         }
         return false;
     }
+    /**
+     * sets up the path information for an edge,
+     * i.e. nodes are added to the path list in the order they appear on the
+     * edge, from startNode to endNode.
+     * activePath list is also set up with a subset of nodes from path, each of
+     * which is active (a start/end node or involved in a violated constraint).
+     */
     void Edge::nodePath(vector<Node*>& nodes) {
         list<unsigned> ds(dummyNodes.size());
         copy(dummyNodes.begin(),dummyNodes.end(),ds.begin());
@@ -200,6 +207,15 @@ namespace straightener {
         return new SimpleConstraint(u->id,v->id,g);
     }
 
+    /**
+     * Generates constraints to prevent node/edge and edge/edge intersections.
+     * Can be invoked to generate either horizontal or vertical constraints
+     * depending on dim parameter.
+     * For horizontal constraints, a vertical scan (from top to bottom) is
+     * conducted, looking for node/edge boundaries, and then searching along
+     * the horizontal limit of that boundary for intersections with other
+     * nodes/edges.
+     */
     void generateConstraints(vector<Node*>& nodes, vector<Edge*>& edges,vector<SimpleConstraint*>& cs,Dim dim) {
         unsigned nevents=2*nodes.size()+2*edges.size();
         events=new Event*[nevents];

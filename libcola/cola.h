@@ -149,6 +149,20 @@ public:
         this->acsy=acsy;
     }
     /**
+     * Horizontal distribution constraints
+     */
+    void setXDistributionConstraints(DistributionConstraints* dcsx) {
+        constrainedLayout = true;
+        this->dcsx=dcsx;
+    }
+    /**
+     * Vertical distribution constraints
+     */
+    void setYDistributionConstraints(DistributionConstraints* dcsy) {
+        constrainedLayout = true;
+        this->dcsy=dcsy;
+    }
+    /**
      * At each iteration of layout, generate constraints to avoid overlaps.
      * If bool horizontal is true, all overlaps will be resolved horizontally, otherwise
      * some overlaps will be left to be resolved vertically where doing so 
@@ -265,6 +279,7 @@ private:
     PageBoundaryConstraints *pbcx, *pbcy;
     SimpleConstraints *scx, *scy;
     AlignmentConstraints *acsx, *acsy;
+    DistributionConstraints *dcsx, *dcsy;
     
     double bendWeight, potBendWeight;
 };
