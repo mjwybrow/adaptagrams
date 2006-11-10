@@ -131,8 +131,16 @@ namespace straightener {
         return 0;
     }
 
-    void sortNeighbours(Node* v, Node* l, Node* r, 
-            double conjpos, vector<Edge*>& openEdges, 
+    /**
+     * Search along scan line at conjpos for open edges to the left of v
+     * as far as l, and to the right of v as far as r.
+     * The result is a list of nodes L (including l,v,r and a bunch of
+     * new dummy nodes for each edge intersected).
+     * The new dummy nodes are also added to the end of the canonical
+     * node list: nodes.
+     */
+    void sortNeighbours(Node const * v, Node const * l, Node const * r, 
+            const double conjpos, vector<Edge*> const & openEdges, 
             vector<Node*>& L,vector<Node*>& nodes, Dim dim) {
         double minpos=-DBL_MAX, maxpos=DBL_MAX;
         if(l!=NULL) {
