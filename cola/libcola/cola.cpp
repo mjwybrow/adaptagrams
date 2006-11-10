@@ -131,6 +131,11 @@ void ConstrainedMajorizationLayout::run(bool x, bool y) {
     }
     if(n>0) do {
         /* Axis-by-axis optimization: */
+        // to enforce clusters with non-intersecting, convex boundaries we could
+        // create a cluster boundary here with straightenEdges and then continue
+        // on to straighten edges below.  This should work assuming we already have
+        // a feasible (i.e. non overlapping cluster) state.  The former could be enforced
+        // by an earlier stage involving simple rectangular cluster boundaries.
         if(straightenEdges) {
             if(x) straighten(*straightenEdges,HORIZONTAL);
             if(y) straighten(*straightenEdges,VERTICAL);
