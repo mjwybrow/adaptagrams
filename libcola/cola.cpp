@@ -130,12 +130,15 @@ void ConstrainedMajorizationLayout::run(bool x, bool y) {
             VERTICAL,lap2,Y,tol,100,acsy,dcsy,avoidOverlaps,boundingBoxes,pbcy,NULL,scy);
     }
     if(n>0) do {
+        // to enforce clusters with non-intersecting, convex boundaries we
+        // could create a cluster boundary here with chain of dummy nodes (a
+        // dummy node for each vertex of the convex hull) connected by dummy
+        // straightenEdges and we'd then continue on to straightenEdges below.
+        // This should work assuming we already have a feasible (i.e. non
+        // overlapping cluster) state.  The former could be enforced by an
+        // earlier stage involving simple rectangular cluster boundaries.
+        
         /* Axis-by-axis optimization: */
-        // to enforce clusters with non-intersecting, convex boundaries we could
-        // create a cluster boundary here with straightenEdges and then continue
-        // on to straighten edges below.  This should work assuming we already have
-        // a feasible (i.e. non overlapping cluster) state.  The former could be enforced
-        // by an earlier stage involving simple rectangular cluster boundaries.
         if(straightenEdges) {
             if(x) straighten(*straightenEdges,HORIZONTAL);
             if(y) straighten(*straightenEdges,VERTICAL);
