@@ -12,6 +12,7 @@
 #ifndef SEEN_REMOVEOVERLAP_GENERATE_CONSTRAINTS_H
 #define SEEN_REMOVEOVERLAP_GENERATE_CONSTRAINTS_H
 #include <iostream>
+#include <vector>
 
 namespace vpsc {
 class Rectangle {	
@@ -81,8 +82,8 @@ class Variable;
 class Constraint;
 
 // returns number of constraints generated
-int generateXConstraints(const int n, Rectangle** rs, Variable** vars, Constraint** &cs, const bool useNeighbourLists);
-int generateYConstraints(const int n, Rectangle** rs, Variable** vars, Constraint** &cs);
+int generateXConstraints(const int n, std::vector<Rectangle*> const & rs, Variable** vars, Constraint** &cs, const bool useNeighbourLists);
+int generateYConstraints(const int n, std::vector<Rectangle*> const & rs, Variable** vars, Constraint** &cs);
 
 }
 

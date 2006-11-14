@@ -30,10 +30,11 @@ ConstrainedMajorizationLayout
       pbcx(NULL), pbcy(NULL),
       scx(NULL), scy(NULL),
       acsx(NULL), acsy(NULL),
+      dcsx(NULL), dcsy(NULL),
       bendWeight(0.01), potBendWeight(0.1)
 {
-    boundingBoxes = new Rectangle*[rs.size()];
-    copy(rs.begin(),rs.end(),boundingBoxes);
+    boundingBoxes.resize(rs.size());
+    copy(rs.begin(),rs.end(),boundingBoxes.begin());
 
     done.reset();
 
@@ -48,8 +49,8 @@ ConstrainedMajorizationLayout
     if(clusters!=NULL) {
         for(Clusters::const_iterator i=clusters->begin();i!=clusters->end();i++) {
             Cluster *c=*i;
-            for(Cluster::iterator j=c->begin();j!=c->end();j++) {
-                for(Cluster::iterator k=c->begin();k!=c->end();k++) {
+            for(vector<unsigned>::iterator j=c->nodes.begin();j!=c->nodes.end();j++) {
+                for(vector<unsigned>::iterator k=c->nodes.begin();k!=c->nodes.end();k++) {
                     unsigned a=*j, b=*k;
                     if(a==b) continue;
                     D[a][b]/=2.;
@@ -124,20 +125,23 @@ inline double ConstrainedMajorizationLayout
 
 void ConstrainedMajorizationLayout::run(bool x, bool y) {
     if(constrainedLayout) {
+        vector<vpsc::Rectangle*>* pbb = boundingBoxes.empty()?NULL:&boundingBoxes;
         gpX=new GradientProjection(
-            HORIZONTAL,lap2,X,tol,100,acsx,dcsx,avoidOverlaps,boundingBoxes,pbcx,NULL,scx);
+            HORIZONTAL,lap2,X,tol,100,acsx,dcsx,avoidOverlaps,pbb,pbcx,NULL,scx);
         gpY=new GradientProjection(
-            VERTICAL,lap2,Y,tol,100,acsy,dcsy,avoidOverlaps,boundingBoxes,pbcy,NULL,scy);
+            VERTICAL,lap2,Y,tol,100,acsy,dcsy,avoidOverlaps,pbb,pbcy,NULL,scy);
     }
     if(n>0) do {
         // to enforce clusters with non-intersecting, convex boundaries we
-        // could create a cluster boundary here with chain of dummy nodes (a
+        // could create cluster boundaries here with chains of dummy nodes (a
         // dummy node for each vertex of the convex hull) connected by dummy
         // straightenEdges and we'd then continue on to straightenEdges below.
         // This should work assuming we already have a feasible (i.e. non
         // overlapping cluster) state.  The former could be enforced by an
         // earlier stage involving simple rectangular cluster boundaries.
-        
+
+        vector<straightener::Edge*> sedges;
+        straightenEdges = &sedges;
         /* Axis-by-axis optimization: */
         if(straightenEdges) {
             if(x) straighten(*straightenEdges,HORIZONTAL);
@@ -153,10 +157,12 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
 	for (unsigned i=0;i<n;i++) {
 		snodes.push_back(new straightener::Node(i,boundingBoxes[i]));
 	}
+    vector<straightener::Cluster*> sclusters;
+    generateClusterBoundaries(dim,snodes,sedges,boundingBoxes,*clusters,sclusters);
     SimpleConstraints *gcs=dim==HORIZONTAL?scx:scy;
     SimpleConstraints cs(gcs?gcs->size():0);
     if(gcs) copy(gcs->begin(),gcs->end(),cs.begin());
-    straightener::generateConstraints(snodes,sedges,cs,dim);
+    straightener::generateConstraints(dim,snodes,sedges,cs);
     unsigned sn=snodes.size();
     X.resize(sn);
     Y.resize(sn);
@@ -183,7 +189,7 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
             unsigned u=path[uj], v=path[vj];
             for(unsigned k=uj+1;k<vj;k++) {
                 unsigned b=path[k];
-		// greater weight for potential bends than actual bends
+		// might be useful to have greater weight for potential bends than actual bends
                 linearConstraints.push_back(new cola::LinearConstraint(u,v,b,-potBendWeight,X,Y));
             }
         }
@@ -219,7 +225,7 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
     SparseMatrix sparseQ(Q,sn);
     GradientProjection gp(dim,lap2,coords,tol,100,
             (AlignmentConstraints*)acs,dcs,None,
-            (vpsc::Rectangle**)boundingBoxes,(PageBoundaryConstraints*)pbcs,
+            &boundingBoxes,(PageBoundaryConstraints*)pbcs,
             &sparseQ,&cs);
     constrainedLayout = true;
     majlayout(Dij,&gp,coords,sn);

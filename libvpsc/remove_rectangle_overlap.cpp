@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <cassert>
+#include <vector>
 #include "rectangle.h"
 #include "solve_VPSC.h"
 #include "variable.h"
@@ -40,7 +41,7 @@ double Rectangle::yBorder=0;
  *    x-positions - this corrects the case where rectangles were moved 
  *    too much in the first pass.
  */
-void removeRectangleOverlap(unsigned n, Rectangle *rs[], double xBorder, double yBorder) {
+void removeRectangleOverlap(unsigned n, std::vector<Rectangle*> const & rs, double xBorder, double yBorder) {
 	try {
 	// The extra gap avoids numerical imprecision problems
 	Rectangle::setXBorder(xBorder+EXTRA_GAP);

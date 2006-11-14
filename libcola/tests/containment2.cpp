@@ -96,23 +96,13 @@ int main() {
 		rs.push_back(new vpsc::Rectangle(x,x+17,y,y+10));
 	}
 
-	Cluster c,d,e,f;
-	c.push_back(0);
-	c.push_back(1);
-	d.push_back(3);
-	d.push_back(11);
-	e.push_back(8);
-	e.push_back(9);
-	e.push_back(10);
-	e.push_back(15);
-	e.push_back(16);
-	f.push_back(17);
-	f.push_back(18);
+	const unsigned c[]={0,1},d[]={3,11},e[]={8,9,10,15,16},f[]={17,18};
+        size_t su=sizeof(unsigned);
 	Clusters cs;
-	cs.push_back(&c);
-	cs.push_back(&d);
-	cs.push_back(&e);
-	cs.push_back(&f);
+	cs.push_back(new Cluster(sizeof(c)/su,c));
+	cs.push_back(new Cluster(sizeof(d)/su,d));
+	cs.push_back(new Cluster(sizeof(e)/su,e));
+	cs.push_back(new Cluster(sizeof(f)/su,f));
 	ConstrainedMajorizationLayout alg(rs,es,&cs,30);
 	alg.setYSimpleConstraints(&scy);
 	alg.run();
