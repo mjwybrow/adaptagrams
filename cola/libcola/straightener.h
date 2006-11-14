@@ -108,7 +108,7 @@ namespace straightener {
             edge(NULL),dummy(false),active(true),weight(-0.1),open(false) { }
     private:
         friend void sortNeighbours(Node* v, Node* l, Node* r, 
-            double conjpos, std::vector<Edge*>& openEdges, 
+            double conjpos, std::vector<Edge*> const & openEdges, 
             std::vector<Node*>& L, std::vector<Node*>& nodes, Dim dim);
         Node(unsigned id, double x, double y, Edge* e) : 
             id(id),x(x),y(y), width(4), height(width),

@@ -139,7 +139,7 @@ namespace straightener {
      * The new dummy nodes are also added to the end of the canonical
      * node list: nodes.
      */
-    void sortNeighbours(Node const * v, Node const * l, Node const * r, 
+    void sortNeighbours(Node *const v, Node *const l, Node *const r, 
             const double conjpos, vector<Edge*> const & openEdges, 
             vector<Node*>& L,vector<Node*>& nodes, Dim dim) {
         double minpos=-DBL_MAX, maxpos=DBL_MAX;
