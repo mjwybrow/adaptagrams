@@ -28,6 +28,7 @@ libvpsc_a_SOURCES = block.cpp\
 libvpscincludedir = ${includedir}/libvpsc
 
 libvpscinclude_HEADERS = solve_VPSC.h \
+	block.h\
 	constraint.h\
 	csolve_VPSC.h\
 	rectangle.h\
