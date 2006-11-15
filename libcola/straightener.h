@@ -101,8 +101,9 @@ namespace straightener {
     };
     class Cluster {
     public:
-        valarray<double> hullX, hullY;
         double scanpos;
+        valarray<double> hullX, hullY;
+        std::vector<Edge*> boundary;
     };
     class Node {
     public:

@@ -203,7 +203,7 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
     }
     //std::cout << "Generated "<<linearConstraints.size()<< " linear constraints"<<std::endl;
     //std::cout << "  snodes.size "<<snodes.size()<< " n="<<n<<std::endl;
-    assert(sn==n+linearConstraints.size());
+    //assert(sn==n+linearConstraints.size());
     valarray<double>& coords=dim==HORIZONTAL?X:Y;
     SparseMatrix::SparseMap Q;
     for(LinearConstraints::iterator i=linearConstraints.begin();
@@ -218,6 +218,19 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
         Q[make_pair(c->b,c->b)]+=c->w*c->dbb;
         Q[make_pair(c->b,c->u)]+=c->w*c->dub;
         Q[make_pair(c->b,c->v)]+=c->w*c->dvb;
+    }
+    double boundaryWeight = 0.0001;
+    for(unsigned i=0;i<sclusters.size();i++) {
+        // for each cluster boundary chain create an attractive force between
+        // each pair of adjacent nodes
+        straightener::Cluster* c = sclusters[i];
+        for(unsigned j=0;j<c->boundary.size();j++) {
+            straightener::Edge* e = c->boundary[j];
+            Q[make_pair(e->startNode,e->endNode)]+=boundaryWeight;
+            Q[make_pair(e->endNode,e->startNode)]+=boundaryWeight;
+            Q[make_pair(e->startNode,e->startNode)]-=2.*boundaryWeight;
+            Q[make_pair(e->endNode,e->endNode)]-=2.*boundaryWeight;
+        }
     }
     AlignmentConstraints *acs=dim==HORIZONTAL?acsx:acsy;
     DistributionConstraints *dcs=dim==HORIZONTAL?dcsx:dcsy;

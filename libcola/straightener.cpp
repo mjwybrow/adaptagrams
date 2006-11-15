@@ -242,6 +242,8 @@ namespace straightener {
                     v->scanpos=v->x;
                     events[ctr++]=new Event(Open,v,v->ymin+nodeFudge);
                     events[ctr++]=new Event(Close,v,v->ymax-nodeFudge);
+                } else {
+                    nevents -= 2;
                 }
             }
             for(unsigned i=0;i<edges.size();i++) {
@@ -257,6 +259,8 @@ namespace straightener {
                     v->scanpos=v->y;
                     events[ctr++]=new Event(Open,v,v->xmin+nodeFudge);
                     events[ctr++]=new Event(Close,v,v->xmax-nodeFudge);
+                } else {
+                    nevents -= 2;
                 }
             }
             for(unsigned i=0;i<edges.size();i++) {
@@ -419,17 +423,16 @@ namespace straightener {
         for(cola::Clusters::const_iterator c=clusters.begin();
                 c!=clusters.end(); c++) {
             straightener::Cluster* sc=new straightener::Cluster;
-            for(unsigned i=0;i<(*c)->nodes.size();i++) {
-                nodes[(*c)->nodes[i]]->cluster = sc;
-            }
-            sclusters.push_back(sc);
-            (*c)->computeBoundary(rs,sc->hullX,sc->hullY);
             // compute scanpos based on average position in scan direction
             sc->scanpos=0;
-            for(unsigned i=0;i<sc->hullX.size();i++) {
-                sc->scanpos+=dim==HORIZONTAL?sc->hullX[i]:sc->hullY[i];
+            for(unsigned i=0;i<(*c)->nodes.size();i++) {
+                straightener::Node* u = nodes[(*c)->nodes[i]];
+                sc->scanpos+=dim==HORIZONTAL?u->x:u->y;
+                u->cluster = sc;
             }
-            sc->scanpos/=sc->hullX.size();
+            sc->scanpos/=(*c)->nodes.size();
+            sclusters.push_back(sc);
+            (*c)->computeBoundary(rs,sc->hullX,sc->hullY);
             // create a chain of dummy nodes for the boundary
             Node* first = new Node(nodes.size(),sc->hullX[0],sc->hullY[0]);
             nodes.push_back(first);
@@ -438,14 +441,15 @@ namespace straightener {
             for(;i<sc->hullX.size();i++) {
                 Node* v = new Node(nodes.size(),sc->hullX[i],sc->hullY[i]);
                 nodes.push_back(v);
-                edges.push_back(
-                        new Edge(edges.size(),u->id,v->id,
-                            sc->hullX[i-1],sc->hullY[i-1],sc->hullX[i],sc->hullY[i]));
+                Edge* e = new Edge(edges.size(),u->id,v->id,
+                            sc->hullX[i-1],sc->hullY[i-1],sc->hullX[i],sc->hullY[i]);
+                edges.push_back(e);
+                sc->boundary.push_back(e);
                 u=v;
             }
             edges.push_back(
                     new Edge(edges.size(),u->id,first->id,
-                        sc->hullX[i],sc->hullY[i],sc->hullX[0],sc->hullY[0]));
+                        sc->hullX[i-1],sc->hullY[i-1],sc->hullX[0],sc->hullY[0]));
         }
     }
 }
