@@ -16,7 +16,8 @@ namespace vpsc {
 	class Rectangle;
 }
 
-void removeRectangleOverlap(unsigned n, vpsc::Rectangle *rs[], double xBorder, double yBorder);
+#include <vector>
+void removeRectangleOverlap(unsigned n, std::vector<vpsc::Rectangle*> const & rs, double xBorder, double yBorder);
 
 
 #endif /* !REMOVE_RECTANGLE_OVERLAP_H_SEEN */

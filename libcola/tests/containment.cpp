@@ -33,7 +33,7 @@ struct CheckProgress : TestConvergence {
 	bool operator()(double new_stress, valarray<double> const & X, valarray<double> const & Y) {
 		cout << "stress="<<new_stress<<endl;
 		char fname[50];
-		sprintf(fname,"containment%04d.svg",++iteration);
+		sprintf(fname,"containment1%04d.svg",++iteration);
 		output_svg(rs,es,cs,fname,true);
 		return TestConvergence::operator()(new_stress,X,Y);
 	}
@@ -62,9 +62,10 @@ int main() {
 	cs.push_back(new Cluster(sizeof(c)/su,c));
 	cs.push_back(new Cluster(sizeof(d)/su,d));
 	CheckProgress test(0.0001,100);
-	output_svg(rs,es,cs,"containment0000.svg",true);
+	output_svg(rs,es,cs,"containment10000.svg",true);
 	ConstrainedMajorizationLayout alg(rs,es,&cs,30,NULL,test);
-	//alg.setAvoidOverlaps();
+	alg.run();
+	alg.setNonOverlappingClusters();
 	alg.run();
 	for(unsigned i=0;i<V;i++) {
 		delete rs[i];

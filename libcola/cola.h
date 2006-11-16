@@ -196,6 +196,10 @@ public:
         constrainedLayout = true;
         this->scy = scy;
     }
+    void setNonOverlappingClusters() {
+        constrainedLayout = true;
+        nonOverlappingClusters = true;
+    }
     /**
      * For the specified edges (with routings), generate dummy vars and constraints
      * to try and straighten them.
@@ -260,6 +264,7 @@ private:
     valarray<double> X, Y;
     double edge_length;
     bool constrainedLayout;
+    bool nonOverlappingClusters;
     /*
      * Clusters are a set of nodes that are somehow semantically grouped
      * and should therefore be kept together a bit more tightly than, and

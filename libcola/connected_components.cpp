@@ -113,7 +113,7 @@ namespace cola {
     }
     void separateComponents(const vector<Component*> &components) {
         unsigned n=components.size();
-        Rectangle* bbs[n];
+        vector<Rectangle*> bbs(n);
         double origX[n], origY[n];
         for(unsigned i=0;i<n;i++) {
             bbs[i]=components[i]->getBoundingBox();

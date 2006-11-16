@@ -117,12 +117,12 @@ int main() {
 	cs.push_back(new Cluster(sizeof(d)/su,d));
 	cs.push_back(new Cluster(sizeof(e)/su,e));
 	cs.push_back(new Cluster(sizeof(f)/su,f));
-	CheckProgress test(0.0001,50);
+	CheckProgress test(0.0001,10);
 	ConstrainedMajorizationLayout alg(rs,es,&cs,30,NULL,test);
-	//alg.setYSimpleConstraints(&scy);
-	//alg.run();
-	//alg.setAvoidOverlaps();
 	output_svg(rs,es,cs,"containment20000.svg",true);
+	//alg.setYSimpleConstraints(&scy);
+	alg.run();
+	alg.setNonOverlappingClusters();
 	alg.run();
 	for(unsigned i=0;i<V;i++) {
 		delete rs[i];

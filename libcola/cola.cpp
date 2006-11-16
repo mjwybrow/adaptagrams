@@ -23,6 +23,7 @@ ConstrainedMajorizationLayout
       tol(0.0001), done(done),
       X(valarray<double>(n)), Y(valarray<double>(n)),
       constrainedLayout(false),
+      nonOverlappingClusters(false),
       clusters(cs), linearConstraints(NULL),
       gpX(NULL), gpY(NULL),
       avoidOverlaps(None),
@@ -139,9 +140,10 @@ void ConstrainedMajorizationLayout::run(bool x, bool y) {
         // This should work assuming we already have a feasible (i.e. non
         // overlapping cluster) state.  The former could be enforced by an
         // earlier stage involving simple rectangular cluster boundaries.
-
-        vector<straightener::Edge*> sedges;
-        straightenEdges = &sedges;
+        vector<straightener::Edge*> cedges;
+        if(!straightenEdges && nonOverlappingClusters) {
+            straightenEdges = &cedges;
+        }
         /* Axis-by-axis optimization: */
         if(straightenEdges) {
             if(x) straighten(*straightenEdges,HORIZONTAL);
@@ -158,7 +160,9 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
 		snodes.push_back(new straightener::Node(i,boundingBoxes[i]));
 	}
     vector<straightener::Cluster*> sclusters;
-    generateClusterBoundaries(dim,snodes,sedges,boundingBoxes,*clusters,sclusters);
+    if(nonOverlappingClusters) {
+        generateClusterBoundaries(dim,snodes,sedges,boundingBoxes,*clusters,sclusters);
+    }
     SimpleConstraints *gcs=dim==HORIZONTAL?scx:scy;
     SimpleConstraints cs(gcs?gcs->size():0);
     if(gcs) copy(gcs->begin(),gcs->end(),cs.begin());
