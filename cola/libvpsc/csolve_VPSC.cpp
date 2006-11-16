@@ -10,6 +10,7 @@
  */
 #include <iostream>
 #include <cassert>
+#include <vector>
 #include "variable.h"
 #include "constraint.h"
 #include "rectangle.h"
@@ -31,7 +32,7 @@ Solver* newIncSolver(int n, Variable* vs[], int m, Constraint* cs[]) {
 }
 
 int genXConstraints(int n, boxf* bb, Variable** vs, Constraint*** cs,int transitiveClosure) {
-	Rectangle* rs[n];
+	std::vector<Rectangle*> rs(n);
 	for(int i=0;i<n;i++) {
 		rs[i]=new Rectangle(bb[i].LL.x,bb[i].UR.x,bb[i].LL.y,bb[i].UR.y);
 	}
@@ -42,7 +43,7 @@ int genXConstraints(int n, boxf* bb, Variable** vs, Constraint*** cs,int transit
 	return m;
 }
 int genYConstraints(int n, boxf* bb, Variable** vs, Constraint*** cs) {
-	Rectangle* rs[n];
+	std::vector<Rectangle*> rs(n);
 	for(int i=0;i<n;i++) {
 		rs[i]=new Rectangle(bb[i].LL.x,bb[i].UR.x,bb[i].LL.y,bb[i].UR.y);
 	}

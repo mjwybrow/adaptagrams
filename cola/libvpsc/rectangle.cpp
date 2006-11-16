@@ -166,7 +166,7 @@ int compare_events(const void *a, const void *b) {
  * useNeighbourLists determines whether or not a heuristic is used to deciding whether to resolve
  * all overlap in the x pass, or leave some overlaps for the y pass.
  */
-int generateXConstraints(const int n, Rectangle** rs, Variable** vars, Constraint** &cs, const bool useNeighbourLists) {
+int generateXConstraints(const int n, vector<Rectangle*> const & rs, Variable** vars, Constraint** &cs, const bool useNeighbourLists) {
 	events=new Event*[2*n];
 	int i,m,ctr=0;
 	for(i=0;i<n;i++) {
@@ -251,7 +251,7 @@ int generateXConstraints(const int n, Rectangle** rs, Variable** vars, Constrain
 /**
  * Prepares constraints in order to apply VPSC vertically to remove ALL overlap.
  */
-int generateYConstraints(const int n, Rectangle** rs, Variable** vars, Constraint** &cs) {
+int generateYConstraints(const int n, vector<Rectangle*> const & rs, Variable** vars, Constraint** &cs) {
 	events=new Event*[2*n];
 	int ctr=0,i,m;
 	for(i=0;i<n;i++) {

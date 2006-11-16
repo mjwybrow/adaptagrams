@@ -23,6 +23,21 @@
 using namespace cola;
 using namespace std;
 
+vector<vpsc::Rectangle*> rs;
+vector<Edge> es;
+Clusters cs;
+unsigned iteration=0;
+
+struct CheckProgress : TestConvergence {
+	CheckProgress(double d,unsigned i) : TestConvergence(d,i) {}
+	bool operator()(double new_stress, valarray<double> const & X, valarray<double> const & Y) {
+		cout << "stress="<<new_stress<<endl;
+		char fname[50];
+		sprintf(fname,"containment2%04d.svg",++iteration);
+		output_svg(rs,es,cs,fname,true);
+		return TestConvergence::operator()(new_stress,X,Y);
+	}
+};
 /** 
 * \brief Determines when to terminate layout of a particular graph based
 * on a given relative tolerance. 
@@ -87,38 +102,28 @@ int main() {
 	scy.push_back(new SimpleConstraint(16,17,g));
 	scy.push_back(new SimpleConstraint(16,18,g));
 	const std::size_t E = sizeof(edge_array) / sizeof(Edge);
-	vector<Edge> es(edge_array,edge_array+E);
+	es.resize(E);
+	copy(edge_array,edge_array+E,es.begin());
 	double width=100;
 	double height=100;
-	vector<vpsc::Rectangle*> rs;
 	for(unsigned i=0;i<V;i++) {
 		double x=getRand(width), y=getRand(height);
 		rs.push_back(new vpsc::Rectangle(x,x+17,y,y+10));
 	}
 
-	Cluster c,d,e,f;
-	c.push_back(0);
-	c.push_back(1);
-	d.push_back(3);
-	d.push_back(11);
-	e.push_back(8);
-	e.push_back(9);
-	e.push_back(10);
-	e.push_back(15);
-	e.push_back(16);
-	f.push_back(17);
-	f.push_back(18);
-	Clusters cs;
-	cs.push_back(&c);
-	cs.push_back(&d);
-	cs.push_back(&e);
-	cs.push_back(&f);
-	ConstrainedMajorizationLayout alg(rs,es,&cs,30);
-	alg.setYSimpleConstraints(&scy);
+	const unsigned c[]={0,1},d[]={3,11},e[]={8,9,10,15,16},f[]={17,18};
+        size_t su=sizeof(unsigned);
+	cs.push_back(new Cluster(sizeof(c)/su,c));
+	cs.push_back(new Cluster(sizeof(d)/su,d));
+	cs.push_back(new Cluster(sizeof(e)/su,e));
+	cs.push_back(new Cluster(sizeof(f)/su,f));
+	CheckProgress test(0.0001,10);
+	ConstrainedMajorizationLayout alg(rs,es,&cs,30,NULL,test);
+	output_svg(rs,es,cs,"containment20000.svg",true);
+	//alg.setYSimpleConstraints(&scy);
 	alg.run();
-	alg.setAvoidOverlaps();
+	alg.setNonOverlappingClusters();
 	alg.run();
-	output_svg(rs,es,cs,"containment2.svg",true);
 	for(unsigned i=0;i<V;i++) {
 		delete rs[i];
 	}

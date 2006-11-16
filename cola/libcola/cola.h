@@ -16,8 +16,16 @@ namespace vpsc { class Rectangle; }
 namespace cola {
 using vpsc::Rectangle;
 using std::vector;
+using std::valarray;
 typedef std::pair<unsigned, unsigned> Edge;
-typedef vector<unsigned> Cluster;
+class Cluster {
+public:
+    double margin;
+    vector<unsigned> nodes;
+    Cluster(const std::size_t n, const unsigned ns[]);
+    void computeBoundary(vector<Rectangle*> const & rs,
+            valarray<double> & X, valarray<double> & Y) const;
+};
 typedef vector<Cluster*> Clusters;
 
 // a graph component with a list of node_ids giving indices for some larger list of nodes
@@ -188,6 +196,10 @@ public:
         constrainedLayout = true;
         this->scy = scy;
     }
+    void setNonOverlappingClusters() {
+        constrainedLayout = true;
+        nonOverlappingClusters = true;
+    }
     /**
      * For the specified edges (with routings), generate dummy vars and constraints
      * to try and straighten them.
@@ -224,9 +236,6 @@ public:
     void addLinearConstraints(LinearConstraints* linearConstraints);
 
     ~ConstrainedMajorizationLayout() {
-        if(boundingBoxes) {
-            delete [] boundingBoxes;
-        }
         if(constrainedLayout) {
             delete gpX;
             delete gpY;
@@ -251,10 +260,11 @@ private:
     valarray<double> Dij; // all pairs shortest path distances
     double tol;
     TestConvergence& done;
-    Rectangle** boundingBoxes;
+    vector<Rectangle*> boundingBoxes;
     valarray<double> X, Y;
     double edge_length;
     bool constrainedLayout;
+    bool nonOverlappingClusters;
     /*
      * Clusters are a set of nodes that are somehow semantically grouped
      * and should therefore be kept together a bit more tightly than, and

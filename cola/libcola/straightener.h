@@ -4,6 +4,7 @@
 #include <libvpsc/rectangle.h>
 #include <valarray>
 #include "gradient_projection.h"
+namespace cola { class Cluster; }
 namespace straightener {
     using std::valarray;
     struct Route {
@@ -39,9 +40,19 @@ namespace straightener {
         std::vector<unsigned> dummyNodes;
         std::vector<unsigned> path;
         std::vector<unsigned> activePath;
+        // Edge with a non-trivial route
         Edge(unsigned id, unsigned start, unsigned end, Route* route)
         : id(id), startNode(start), endNode(end), route(route)
         {
+            route->boundingBox(xmin,ymin,xmax,ymax);
+        }
+        // Edge with a trivial route
+        Edge(unsigned id, unsigned start, unsigned end,
+                double x1, double y1, double x2, double y2) 
+        : id(id), startNode(start), endNode(end) {
+            route = new Route(2);
+            route->xs[0]=x1; route->ys[0]=y1;
+            route->xs[1]=x2; route->ys[1]=y2;
             route->boundingBox(xmin,ymin,xmax,ymax);
         }
         ~Edge() {
@@ -88,50 +99,92 @@ namespace straightener {
             }
         }
     };
+    class Cluster {
+    public:
+        double scanpos;
+        valarray<double> hullX, hullY;
+        std::vector<Edge*> boundary;
+    };
     class Node {
     public:
         unsigned id;
+        Cluster* cluster;
+        // Nodes may optionally belong to a cluster.  
+        // Neg cluster_id means no cluster - i.e. top-level membership.
         double x,y;
         double scanpos;
         double width, height;
         double xmin, xmax, ymin, ymax;
-        Edge *edge;
+        Edge* edge;
         bool dummy; // nodes on edge paths (but not ends) are dummy
+        bool scan; // triggers scan events
         bool active; // node is active if it is not dummy or is dummy and involved in
                      // a violated constraint
-        double weight;
-        bool open;
-        Node(unsigned id, vpsc::Rectangle* r) :
-            id(id),x(r->getCentreX()),y(r->getCentreY()), width(r->width()), height(r->height()),
+        bool open; // a node is opened (if scan is true) when the scanline first reaches
+                   // its boundary and closed when the scanline leaves it.
+        Node(const unsigned id, vpsc::Rectangle const * r) :
+            id(id),cluster(NULL),
+            x(r->getCentreX()),y(r->getCentreY()), width(r->width()), height(r->height()),
             xmin(x-width/2),xmax(x+width/2),
             ymin(y-height/2),ymax(y+height/2),
-            edge(NULL),dummy(false),active(true),weight(-0.1),open(false) { }
+            edge(NULL),dummy(false),scan(true),active(true),open(false) { }
+        Node(const unsigned id, const double x, const double y) :
+            id(id),cluster(NULL),
+            x(x),y(y),width(4),height(width),
+            xmin(x-width/2),xmax(x+width/2),
+            ymin(y-height/2),ymax(y+height/2),
+            edge(NULL),dummy(false),scan(false),active(true),open(false) {};
+
     private:
-        friend void sortNeighbours(Node* v, Node* l, Node* r, 
-            double conjpos, std::vector<Edge*> const & openEdges, 
-            std::vector<Node*>& L, std::vector<Node*>& nodes, Dim dim);
-        Node(unsigned id, double x, double y, Edge* e) : 
-            id(id),x(x),y(y), width(4), height(width),
+        friend void sortNeighbours(const Dim dim, Node * v, Node * l, Node * r, 
+            const double conjpos, std::vector<Edge*> const & openEdges, 
+            std::vector<Node *>& L, std::vector<Node *>& nodes);
+        Node(const unsigned id, const double x, const double y, Edge* e) : 
+            id(id),cluster(NULL),
+            x(x),y(y), width(4), height(width),
             xmin(x-width/2),xmax(x+width/2),
             ymin(y-height/2),ymax(y+height/2),
-            edge(e),dummy(true),active(false),weight(-0.1)  {
+            edge(e),dummy(true),scan(false),active(false)  {
                 e->dummyNodes.push_back(id);
             }
     };
     struct CmpNodePos {
         bool operator() (const Node* u, const Node* v) const {
-            if (u->scanpos < v->scanpos) {
+            double upos = u->scanpos;
+            double vpos = v->scanpos;
+            bool tiebreaker = u < v;
+            if (u->cluster != v->cluster) {
+                if(u->cluster!=NULL) {
+                    upos = u->cluster->scanpos;
+                }
+                if(v->cluster!=NULL) {
+                    vpos = v->cluster->scanpos;
+                }
+                tiebreaker = u->cluster < v->cluster;
+            }
+            if (upos < vpos) {
                 return true;
             }
-            if (v->scanpos < u->scanpos) {
+            if (vpos < upos) {
                 return false;
             }
-            return u < v;
+            return tiebreaker;
         }
     };
     typedef std::set<Node*,CmpNodePos> NodeSet;
-    void generateConstraints(std::vector<Node*>& nodes, std::vector<Edge*>& edges, std::vector<SimpleConstraint*>& cs, Dim dim);
+    void generateConstraints(
+            const Dim dim, 
+            std::vector<Node*> & nodes, 
+            std::vector<Edge*> & edges, 
+            std::vector<SimpleConstraint*>& cs);
     void nodePath(Edge& e, std::vector<Node*>& nodes, std::vector<unsigned>& path);
+    void generateClusterBoundaries(
+		    const Dim dim,
+		    std::vector<straightener::Node*> & nodes,
+            std::vector<straightener::Edge*> & edges,
+            std::vector<vpsc::Rectangle*> const & rs,
+		    std::vector<cola::Cluster*> const & clusters,
+		    std::vector<straightener::Cluster*>& sclusters);
 }
 
 #endif

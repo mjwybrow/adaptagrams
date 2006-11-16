@@ -4,7 +4,7 @@
 #include <cairomm/context.h>
 #include <cairomm/surface.h>
 #include "output_svg.h"
-#include "convex_hull.h"
+#include "cola.h"
 
 using namespace cola;
 using vpsc::Rectangle;
@@ -39,33 +39,18 @@ void output_svg(vector<Rectangle*> const & rs,
 
 void draw_cluster_boundary(Cairo::RefPtr<Cairo::Context> const &cr,
         vector<vpsc::Rectangle*> const &rs,
-        Cluster const *c,
+        Cluster const &c,
         const double xmin,
         const double ymin) {
-    valarray<double> X(4*c->size());
-    valarray<double> Y(X.size());
-    unsigned pctr=0;
-    for(Cluster::const_iterator i=c->begin(); i!=c->end(); i++) {
-        vpsc::Rectangle* r=rs[*i];
-        X[pctr]=r->getMinX()-2.;
-        Y[pctr++]=r->getMinY()-2.;
-        X[pctr]=r->getMinX()-2.;
-        Y[pctr++]=r->getMaxY()+2.;
-        X[pctr]=r->getMaxX()+2.;
-        Y[pctr++]=r->getMinY()-2.;
-        X[pctr]=r->getMaxX()+2.;
-        Y[pctr++]=r->getMaxY()+2.;
-    }
-    vector<unsigned> hull;
-    convexHull(X,Y,hull);
+    valarray<double> X, Y;
+    c.computeBoundary(rs,X,Y);
     cr->save();
     cr->set_source_rgb(0.7, 0.7, 224./255.);
-    vector<unsigned>::iterator start=hull.begin();
-    cr->move_to(X[*start]-xmin,Y[*start]-ymin);
-    for(vector<unsigned>::iterator i=start+1;i!=hull.end();i++) {
-        cr->line_to(X[*i]-xmin,Y[*i]-ymin);
+    cr->move_to(X[0]-xmin,Y[0]-ymin);
+    for(unsigned i=1;i<X.size();i++) {
+        cr->line_to(X[i]-xmin,Y[i]-ymin);
     }
-    cr->line_to(X[*start]-xmin,Y[*start]-ymin);
+    cr->line_to(X[0]-xmin,Y[0]-ymin);
     cr->fill();
     cr->restore();
 }
@@ -112,7 +97,7 @@ void output_svg(vector<vpsc::Rectangle*> const &rs,
     cr->set_font_size(8);
     cr->save();
     for(Clusters::const_iterator c=cs.begin();c!=cs.end();c++) {
-        draw_cluster_boundary(cr,rs,*c,xmin,ymin);
+        draw_cluster_boundary(cr,rs,**c,xmin,ymin);
     }
     for (unsigned i=0;i<es.size();i++) {
         cr->move_to(es[i]->route->xs[0]-xmin,es[i]->route->ys[0]-ymin);

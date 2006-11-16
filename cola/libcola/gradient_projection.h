@@ -91,7 +91,7 @@ public:
         AlignmentConstraints* acs=NULL,
         DistributionConstraints* dcs=NULL,
         NonOverlapConstraints nonOverlapConstraints=None,
-        vpsc::Rectangle** rs=NULL,
+        std::vector<vpsc::Rectangle*>* rs = NULL,
         PageBoundaryConstraints *pbc = NULL,
 		cola::SparseMatrix const * sparseQ = NULL,
         SimpleConstraints *sc = NULL)
@@ -175,7 +175,7 @@ private:
     const unsigned denseSize; // denseQ has denseSize^2 entries
 	valarray<double> const & denseQ; // dense square graph laplacian matrix
     valarray<double> & place;
-    vpsc::Rectangle** rs;
+    std::vector<vpsc::Rectangle*>* rs;
     NonOverlapConstraints nonOverlapConstraints;
     double tolerance;
     AlignmentConstraints* acs;

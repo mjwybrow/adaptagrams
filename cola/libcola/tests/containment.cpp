@@ -23,6 +23,21 @@
 using namespace cola;
 using namespace std;
 
+vector<vpsc::Rectangle*> rs;
+vector<Edge> es;
+Clusters cs;
+unsigned iteration=0;
+
+struct CheckProgress : TestConvergence {
+	CheckProgress(double d,unsigned i) : TestConvergence(d,i) {}
+	bool operator()(double new_stress, valarray<double> const & X, valarray<double> const & Y) {
+		cout << "stress="<<new_stress<<endl;
+		char fname[50];
+		sprintf(fname,"containment1%04d.svg",++iteration);
+		output_svg(rs,es,cs,fname,true);
+		return TestConvergence::operator()(new_stress,X,Y);
+	}
+};
 /** 
 * \brief Determines when to terminate layout of a particular graph based
 * on a given relative tolerance. 
@@ -33,28 +48,25 @@ int main() {
 	typedef pair < unsigned, unsigned >Edge;
 	Edge edge_array[] = { Edge(0, 1), Edge(1, 2), Edge(2, 3), Edge(3, 4) };
 	const std::size_t E = sizeof(edge_array) / sizeof(Edge);
-	vector<Edge> es(edge_array,edge_array+E);
+	es.resize(E);
+	copy(edge_array,edge_array+E,es.begin());
 	double width=100;
 	double height=100;
-	vector<vpsc::Rectangle*> rs;
 	for(unsigned i=0;i<V;i++) {
 		double x=getRand(width), y=getRand(height);
 		rs.push_back(new vpsc::Rectangle(x,x+20,y,y+15));
 	}
 
-	Cluster c,d;
-	c.push_back(0);
-	c.push_back(4);
-	d.push_back(1);
-	d.push_back(2);
-	d.push_back(3);
-	Clusters cs;
-	cs.push_back(&c);
-	cs.push_back(&d);
-	ConstrainedMajorizationLayout alg(rs,es,&cs,30);
-	alg.setAvoidOverlaps();
+	const unsigned c[]={0,4}, d[]={1,2,3};
+	size_t su=sizeof(unsigned);
+	cs.push_back(new Cluster(sizeof(c)/su,c));
+	cs.push_back(new Cluster(sizeof(d)/su,d));
+	CheckProgress test(0.0001,100);
+	output_svg(rs,es,cs,"containment10000.svg",true);
+	ConstrainedMajorizationLayout alg(rs,es,&cs,30,NULL,test);
 	alg.run();
-	output_svg(rs,es,cs,"containment.svg",true);
+	alg.setNonOverlappingClusters();
+	alg.run();
 	for(unsigned i=0;i<V;i++) {
 		delete rs[i];
 	}
