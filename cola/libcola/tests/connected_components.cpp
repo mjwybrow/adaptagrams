@@ -22,7 +22,7 @@ int main() {
 	vector< Component* > cs;
 	vector<Rectangle*> rs;
 	double width=100,height=100;
-	SimpleConstraints scx, scy;
+	SeparationConstraints scx, scy;
 	for(unsigned i=0;i<V;i++) {
 		double x=getRand(width), y=getRand(height);
 		rs.push_back(new Rectangle(x,x+5,y,y+5));
