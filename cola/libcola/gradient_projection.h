@@ -12,20 +12,25 @@
 #include "sparse_matrix.h"
 
 using std::valarray;
+using std::make_pair;
 typedef std::vector<vpsc::Constraint*> Constraints;
 typedef std::vector<vpsc::Variable*> Variables;
 typedef std::vector<std::pair<unsigned,double> > OffsetList;
 
-class SimpleConstraint {
+class SeparationConstraint {
 public:
-    SimpleConstraint(unsigned l, unsigned r, double g, bool equality = false) 
+    SeparationConstraint(unsigned l, unsigned r, double g, bool equality = false) 
         : left(l), right(r), gap(g), equality(equality)  {}
     unsigned left;
     unsigned right;
     double gap;
     bool equality;
 };
-typedef std::vector<SimpleConstraint*> SimpleConstraints;
+typedef std::vector<SeparationConstraint*> SeparationConstraints;
+
+// An alignment constraint specifies a group of nodes and offsets for those nodes
+// such that the nodes must be spaced exactly at those offsets from a vertical or
+// horizontal line.
 class AlignmentConstraint {
 friend class GradientProjection;
 public:
@@ -33,16 +38,28 @@ public:
     void updatePosition() {
         position = variable->position();
     }
+    // a list of pairs of node indices and their required offsets
     OffsetList offsets;
+    // the guide pointer is used by dunnart to keep a ref to it's local representation
+    // of the alignment constraint
     void* guide;
+    // The position of the alignment line
     double position;
 private:
     vpsc::Variable* variable;
 };
 typedef std::vector<AlignmentConstraint*> AlignmentConstraints;
+
+// A distribution constraint specifies an ordered set of alignment constraints
+// and a separation required between them.
+// The separation can be variable (but the same between each adjacent pair of
+// alignment constraints) or fixed.
 struct DistributionConstraint {
+    DistributionConstraint(bool isVariable = false) : isVariable(isVariable) {}
     std::vector<std::pair<AlignmentConstraint*,AlignmentConstraint*> > acs;
     double sep;
+    bool isVariable;
+    vpsc::Variable* variable;
 };
 typedef std::vector<DistributionConstraint*> DistributionConstraints;
 
@@ -93,15 +110,14 @@ public:
         NonOverlapConstraints nonOverlapConstraints=None,
         std::vector<vpsc::Rectangle*>* rs = NULL,
         PageBoundaryConstraints *pbc = NULL,
-		cola::SparseMatrix const * sparseQ = NULL,
-        SimpleConstraints *sc = NULL)
+		cola::SparseMap *Q = NULL,
+        SeparationConstraints *sc = NULL)
             : k(k), n(x.size()), 
               denseSize(unsigned(floor(sqrt(denseQ.size())))), denseQ(denseQ), 
               place(x), rs(rs),
               nonOverlapConstraints(nonOverlapConstraints),
               tolerance(tol), acs(acs), max_iterations(max_iterations),
-              sparseQ(sparseQ),
-              constrained(false)
+              sparseQ(NULL),localSparseMapCreated(false)
     {
         for(unsigned i=0;i<n;i++) {
             vars.push_back(new vpsc::Variable(i,1,1));
@@ -122,7 +138,17 @@ public:
         if(dcs) {
             for(DistributionConstraints::iterator idc=dcs->begin();
                     idc!=dcs->end();++idc) {
+                double w=-10.;
                 DistributionConstraint *dc=*idc;
+                if(dc->isVariable) {
+                    if(!Q) {
+                        Q = new cola::SparseMap(n);
+                        localSparseMapCreated=true;
+                    }
+                    dc->variable=new vpsc::Variable(vars.size(),dc->sep,0.000001);
+                    vars.push_back(dc->variable);
+                    Q->n=n=vars.size();
+                }
                 for(std::vector<std::pair<
                         AlignmentConstraint*,AlignmentConstraint*> >::iterator iac
                         =dc->acs.begin(); iac!=dc->acs.end();++iac) {
@@ -130,23 +156,50 @@ public:
                     c1=iac->first;
                     c2=iac->second;
                     assert(c1->variable!=NULL);
-                    gcs.push_back(new vpsc::Constraint(
+                    if(dc->isVariable) {
+                        // set second derivatives of:
+                        // (u + g - v)^2 = g^2 + 2gu + u^2 - 2gv - 2uv + v^2
+                        (*Q)[make_pair(c1->variable->id,c1->variable->id)]+=w;
+                        (*Q)[make_pair(c2->variable->id,c2->variable->id)]+=w;
+                        (*Q)[make_pair(dc->variable->id,dc->variable->id)]+=w;
+                        (*Q)[make_pair(c1->variable->id,c2->variable->id)]-=w;
+                        (*Q)[make_pair(c2->variable->id,c1->variable->id)]-=w;
+                        (*Q)[make_pair(c1->variable->id,dc->variable->id)]+=w;
+                        (*Q)[make_pair(dc->variable->id,c1->variable->id)]+=w;
+                        (*Q)[make_pair(c2->variable->id,dc->variable->id)]-=w;
+                        (*Q)[make_pair(dc->variable->id,c2->variable->id)]-=w;
+                    } else {
+                        gcs.push_back(new vpsc::Constraint(
                                 c1->variable,c2->variable,dc->sep,true));
+                    }
                 }
             }
+        }
+        if(x.size()<n) {
+            // if we added new variables above then we'll have to resize the
+            // coords array accordingly
+            valarray<double> tmp=x;
+            x.resize(n);
+            for(unsigned i=0;i<tmp.size();i++) {
+                x[i]=tmp[i];
+            }
+            for(unsigned i=tmp.size();i<n;i++) {
+                x[i]=vars[i]->desiredPosition;
+            }
+
         }
         if (pbc)  {          
             pbc->createVarsAndConstraints(vars,gcs);
         }
         if (sc) {
-            for(SimpleConstraints::iterator c=sc->begin(); c!=sc->end();++c) {
+            for(SeparationConstraints::iterator c=sc->begin(); c!=sc->end();++c) {
                 gcs.push_back(new vpsc::Constraint(
                         vars[(*c)->left],vars[(*c)->right],
                         (*c)->gap,(*c)->equality));
             }
         }
-        if(!gcs.empty() || nonOverlapConstraints!=None) {
-            constrained=true;
+        if(Q) {
+            sparseQ = new cola::SparseMatrix(*Q);
         }
 	}
     ~GradientProjection() {
@@ -157,8 +210,10 @@ public:
         for(unsigned i=0;i<vars.size();i++) {
             delete vars[i];
         }
+        if(localSparseMapCreated) delete sparseQ;
     }
 	unsigned solve(valarray<double> const & b);
+    unsigned getSize() { return n; }
 private:
     vpsc::IncSolver* setupVPSC();
     double computeSteepestDescentVector(
@@ -171,7 +226,8 @@ private:
         valarray<double> const & g, valarray<double> const & d);
     void destroyVPSC(vpsc::IncSolver *vpsc);
     Dim k;
-	const unsigned n; // number of actual vars
+	unsigned n; // number of actual vars - this may grow in the constructor as we add
+                // dummy vars
     const unsigned denseSize; // denseQ has denseSize^2 entries
 	valarray<double> const & denseQ; // dense square graph laplacian matrix
     valarray<double> & place;
@@ -180,13 +236,13 @@ private:
     double tolerance;
     AlignmentConstraints* acs;
     unsigned max_iterations;
-    cola::SparseMatrix const * sparseQ; // sparse components of goal function
+    cola::SparseMatrix * sparseQ; // sparse components of goal function
 	Variables vars; // all variables
                           // computations
     Constraints gcs; /* global constraints - persist throughout all
                                 iterations */
     Constraints lcs; /* local constraints - only for current iteration */
-    bool constrained;
+    bool localSparseMapCreated;
 };
 
 #endif /* _GRADIENT_PROJECTION_H */

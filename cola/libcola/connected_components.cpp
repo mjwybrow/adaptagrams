@@ -63,8 +63,8 @@ namespace cola {
     void connectedComponents(
             const vector<Rectangle*> &rs,
             const vector<Edge> &es, 
-            const SimpleConstraints &scx,
-            const SimpleConstraints &scy,
+            const SeparationConstraints &scx,
+            const SeparationConstraints &scy,
             vector<Component*> &components) {
         unsigned n=rs.size();
         vector<Node> vs(n);
@@ -76,7 +76,7 @@ namespace cola {
             vs[i].listPos = remaining.insert(remaining.end(),&vs[i]);
         }
         vector<Edge>::const_iterator ei;
-        SimpleConstraints::const_iterator ci;
+        SeparationConstraints::const_iterator ci;
         for(ei=es.begin();ei!=es.end();ei++) {
             vs[ei->first].neighbours.push_back(&vs[ei->second]);
             vs[ei->second].neighbours.push_back(&vs[ei->first]);
@@ -95,20 +95,20 @@ namespace cola {
             u.first->edges.push_back(make_pair(u.second,v.second));
         }
         for(ci=scx.begin();ci!=scx.end();ci++) {
-            SimpleConstraint *c=*ci;
+            SeparationConstraint *c=*ci;
             pair<Component*,unsigned> u=cmap[c->left],
                                       v=cmap[c->right];
             assert(u.first==v.first);
             u.first->scx.push_back(
-                    new SimpleConstraint(u.second,v.second,c->gap));
+                    new SeparationConstraint(u.second,v.second,c->gap));
         }
         for(ci=scy.begin();ci!=scy.end();ci++) {
-            SimpleConstraint *c=*ci;
+            SeparationConstraint *c=*ci;
             pair<Component*,unsigned> u=cmap[c->left],
                                       v=cmap[c->right];
             assert(u.first==v.first);
             u.first->scy.push_back(
-                    new SimpleConstraint(u.second,v.second,c->gap));
+                    new SeparationConstraint(u.second,v.second,c->gap));
         }
     }
     void separateComponents(const vector<Component*> &components) {

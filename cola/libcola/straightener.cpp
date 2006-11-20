@@ -204,7 +204,7 @@ namespace straightener {
             L.push_back(r);
         }
     }
-    static SimpleConstraint* createConstraint(Node* u, Node* v, Dim dim) {
+    static SeparationConstraint* createConstraint(Node* u, Node* v, Dim dim) {
         double g=dim==HORIZONTAL?(u->width+v->width):(u->height+v->height);
         g/=2;
         double sep=dim==HORIZONTAL?(v->x-u->x):(v->y-u->y);
@@ -213,7 +213,7 @@ namespace straightener {
             v->active = true;
         }
         //cerr << "Constraint: "<< u->id << "+"<<g<<"<="<<v->id<<endl;
-        return new SimpleConstraint(u->id,v->id,g);
+        return new SeparationConstraint(u->id,v->id,g);
     }
 
     /**
@@ -229,7 +229,7 @@ namespace straightener {
             const Dim dim, 
             vector<Node*> & nodes, 
             vector<Edge*> & edges, 
-            vector<SimpleConstraint*>& cs) {
+            vector<SeparationConstraint*>& cs) {
         unsigned nevents=2*nodes.size()+2*edges.size();
         events=new Event*[nevents];
         unsigned ctr=0;

@@ -17,7 +17,11 @@ namespace cola {
 using vpsc::Rectangle;
 using std::vector;
 using std::valarray;
+
+// Edges are simply a pair of indices to entries in the Node vector
 typedef std::pair<unsigned, unsigned> Edge;
+
+// A cluster is a set of nodes to be kept together somehow
 class Cluster {
 public:
     double margin;
@@ -29,13 +33,14 @@ public:
 typedef vector<Cluster*> Clusters;
 
 // a graph component with a list of node_ids giving indices for some larger list of nodes
-// for the nodes in this component, and a list of edges - node indices relative to this component
+// for the nodes in this component, 
+// and a list of edges - node indices relative to this component
 class Component {
 public:
     vector<unsigned> node_ids;
     vector<Rectangle*> rects;
     vector<Edge> edges;
-    SimpleConstraints scx, scy;
+    SeparationConstraints scx, scy;
     ~Component();
     void moveRectangles(double x, double y);
     Rectangle* getBoundingBox();
@@ -44,8 +49,8 @@ public:
 void connectedComponents(
     const vector<Rectangle*> &rs,
     const vector<Edge> &es,
-    const SimpleConstraints &scx,
-    const SimpleConstraints &scy, 
+    const SeparationConstraints &scx,
+    const SeparationConstraints &scy, 
     vector<Component*> &components);
 
 // move the contents of each component so that the components do not
@@ -188,11 +193,11 @@ public:
         constrainedLayout = true;
         this->pbcy = pbcy;
     }
-    void setXSimpleConstraints(SimpleConstraints* scx) {
+    void setXSeparationConstraints(SeparationConstraints* scx) {
         constrainedLayout = true;
         this->scx = scx;
     }
-    void setYSimpleConstraints(SimpleConstraints* scy) {
+    void setYSeparationConstraints(SeparationConstraints* scy) {
         constrainedLayout = true;
         this->scy = scy;
     }
@@ -221,8 +226,8 @@ public:
         NonOverlapConstraints avoidOverlaps, 
         PageBoundaryConstraints* pbcx = NULL,
         PageBoundaryConstraints* pbcy = NULL,
-        SimpleConstraints* scx = NULL,
-        SimpleConstraints* scy = NULL,
+        SeparationConstraints* scx = NULL,
+        SeparationConstraints* scy = NULL,
         vector<straightener::Edge*>* straightenEdges = NULL,
 	double bendWeight = 0.01, double potBendWeight = 0.1);
 
@@ -253,7 +258,7 @@ private:
             (Y[i] - Y[j]) * (Y[i] - Y[j]));
     }
     double compute_stress(valarray<double> const & Dij);
-    void majlayout(valarray<double> const & Dij,GradientProjection* gp, valarray<double>& coords, int N = -1);
+    void majlayout(valarray<double> const & Dij,GradientProjection* gp, valarray<double>& coords);
     unsigned n; // number of nodes
     valarray<double> lap2; // graph laplacian
     valarray<double> Q; // quadratic terms matrix used in computations
@@ -287,7 +292,7 @@ private:
     NonOverlapConstraints avoidOverlaps;
     vector<straightener::Edge*>* straightenEdges;
     PageBoundaryConstraints *pbcx, *pbcy;
-    SimpleConstraints *scx, *scy;
+    SeparationConstraints *scx, *scy;
     AlignmentConstraints *acsx, *acsy;
     DistributionConstraints *dcsx, *dcsy;
     

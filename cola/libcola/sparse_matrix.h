@@ -3,18 +3,45 @@
 #include <valarray>
 #include <map>
 namespace cola {
-    using std::valarray;
+using std::valarray;
+struct SparseMap {
+    SparseMap(unsigned n = 0) : n(n) {};
+    unsigned n;
+    typedef std::pair<unsigned, unsigned> SparseIndex;
+    typedef std::map<SparseIndex,double> SparseLookup;
+    typedef SparseLookup::const_iterator ConstIt;
+    SparseLookup lookup;
+    double& operator[](const SparseIndex& k) {
+        return lookup[k];
+    }
+    double getIJ(const unsigned i, const unsigned j) const {
+        assert(i<n);
+        assert(j<n);
+        return lookup.find(std::make_pair(i,j))->second;
+    }
+    unsigned nonZeroCount() const {
+        return lookup.size();
+    }
+};
+/*
+ * Yale Sparse Matrix implementation (from Wikipedia definition).
+ * It stores an initial sparse n×n matrix M in row form using three arrays, A,
+ * IA, JA. NZ denotes the number of nonzero entries in matrix M. The array A
+ * then is of length NZ and holds all nonzero entries of M. The array IA stores
+ * at IA(i) the position of the first element of row i in the sparse array A.
+ * The length of row i is determined by IA(i+1) - IA(i). Therefore IA needs to
+ * be of length N + 1. In array JA, the column index of the element A(j) is
+ * stored. JA is of length NZ.
+ */
 class SparseMatrix {
 public:
-    typedef std::pair<unsigned, unsigned> SparseIndex;
-    typedef std::map<SparseIndex,double> SparseMap;
-    SparseMatrix(SparseMap const & m, const unsigned n)
-            : n(n), NZ(m.size()), sparseMap(m), 
+    SparseMatrix(SparseMap const & m)
+            : n(m.n), NZ(m.nonZeroCount()), sparseMap(m), 
               A(valarray<double>(NZ)), IA(valarray<unsigned>(n+1)), JA(valarray<unsigned>(NZ)) {
         unsigned cnt=0;
         int lastrow=-1;
-        for(SparseMap::const_iterator i=m.begin(); i!=m.end(); i++) {
-            SparseIndex p = i->first;
+        for(SparseMap::ConstIt i=m.lookup.begin(); i!=m.lookup.end(); i++) {
+            SparseMap::SparseIndex p = i->first;
             assert(p.first<n);
             assert(p.second<n);
             A[cnt]=i->second;
@@ -42,9 +69,7 @@ public:
         }
     }
     double getIJ(const unsigned i, const unsigned j) const {
-        assert(i<n);
-        assert(j<n);
-        return sparseMap.find(std::make_pair(i,j))->second;
+        return sparseMap.getIJ(i,j);
     }
 
 private:

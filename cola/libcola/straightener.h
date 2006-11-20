@@ -176,7 +176,7 @@ namespace straightener {
             const Dim dim, 
             std::vector<Node*> & nodes, 
             std::vector<Edge*> & edges, 
-            std::vector<SimpleConstraint*>& cs);
+            std::vector<SeparationConstraint*>& cs);
     void nodePath(Edge& e, std::vector<Node*>& nodes, std::vector<unsigned>& path);
     void generateClusterBoundaries(
 		    const Dim dim,
