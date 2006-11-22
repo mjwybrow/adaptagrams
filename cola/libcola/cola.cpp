@@ -233,8 +233,8 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
             straightener::Edge* e = c->boundary[j];
             Q[make_pair(e->startNode,e->endNode)]+=boundaryWeight;
             Q[make_pair(e->endNode,e->startNode)]+=boundaryWeight;
-            Q[make_pair(e->startNode,e->startNode)]-=2.*boundaryWeight;
-            Q[make_pair(e->endNode,e->endNode)]-=2.*boundaryWeight;
+            Q[make_pair(e->startNode,e->startNode)]-=boundaryWeight;
+            Q[make_pair(e->endNode,e->endNode)]-=boundaryWeight;
         }
     }
     AlignmentConstraints *acs=dim==HORIZONTAL?acsx:acsy;

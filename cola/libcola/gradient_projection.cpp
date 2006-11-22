@@ -51,10 +51,10 @@ double GradientProjection::computeSteepestDescentVector(
     //  except the 2s don't matter because we compute 
     //  the optimal stepsize anyway
     g = b;
-    for (unsigned i=0; i<n; i++) {
-        if(i<denseSize) { for (unsigned j=0; j<denseSize; j++) {
+    for (unsigned i=0; i<denseSize; i++) {
+        for (unsigned j=0; j<denseSize; j++) {
             g[i] -= denseQ[i*denseSize+j]*place[j];
-        } }
+        }
     }
     // sparse part:
     if(sparseQ) {
@@ -83,6 +83,9 @@ double GradientProjection::computeStepSize(
             r += denseQ[i*denseSize+j] * d[j];
         } }
         denominator += r * d[i];
+    }
+    if(denominator==0) {
+        return 0;
     }
     return numerator/(2.*denominator);
 }

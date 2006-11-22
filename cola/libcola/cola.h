@@ -26,6 +26,7 @@ class Cluster {
 public:
     double margin;
     vector<unsigned> nodes;
+    Cluster() : margin(2.) {};
     Cluster(const std::size_t n, const unsigned ns[]);
     void computeBoundary(vector<Rectangle*> const & rs,
             valarray<double> & X, valarray<double> & Y) const;
@@ -193,6 +194,10 @@ public:
         constrainedLayout = true;
         this->pbcy = pbcy;
     }
+    /**
+     * Directly set separation constraints of specific spacing
+     * between pairs of nodes
+     */
     void setXSeparationConstraints(SeparationConstraints* scx) {
         constrainedLayout = true;
         this->scx = scx;
@@ -201,6 +206,9 @@ public:
         constrainedLayout = true;
         this->scy = scy;
     }
+    /**
+     * Add constraints to prevent clusters overlapping
+     */
     void setNonOverlappingClusters() {
         constrainedLayout = true;
         nonOverlappingClusters = true;
