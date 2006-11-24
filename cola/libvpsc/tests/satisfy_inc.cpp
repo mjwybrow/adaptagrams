@@ -20,7 +20,7 @@ typedef vector<Constraint*> CS;
 void test1() {
 	cout << "Test 1..." << endl;
 	Variable *a[] = {
-		new Variable(0,2,1),
+		new Variable(0,2,100000.),
 		new Variable(1,9,1),
 		new Variable(2,9,1),
 		new Variable(3,9,1),
@@ -37,8 +37,13 @@ void test1() {
 		new Constraint(a[3],a[4],3)};
 	unsigned int n = sizeof(a)/sizeof(Variable*);
 	unsigned int m = sizeof(c)/sizeof(Constraint*);
+	double expected[]={2,5,8,8,11};
 	IncSolver vpsc(n,a,m,c);
 	vpsc.satisfy();
+	for(unsigned i=0;i<n;i++) {
+		printf("a[%d]=%.1f\n",i,a[i]->position());
+		assert(approxEquals(a[i]->position(),expected[i]));
+	}
 	cout << "Test 1... done." << endl;
 }
 
@@ -379,6 +384,7 @@ void rand_test(int n, int m) {
 int main() {
 	srand(time(NULL));
 	test1();
+	/*
 	test2();
 	test3();
 	test4();
@@ -392,6 +398,7 @@ int main() {
 		if(i%100==0) cout << "i=" << i << endl;
 		rand_test(100,3);
 	}
+	*/
 	/*
 	for(int i=0;i<10000;i++) {
 		if(i%100==0) cout << "i=" << i << endl;

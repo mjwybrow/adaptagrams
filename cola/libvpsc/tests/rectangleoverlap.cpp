@@ -9,7 +9,7 @@
 #define EXTRA_GAP 0.0001
 using namespace std;
 using namespace vpsc;
-void removeoverlaps(int n, Rectangle **rs) {
+void removeoverlaps(int n, vector<Rectangle *> &rs) {
 	double xBorder=0, yBorder=0;
 	assert(0 <= n);
 	try {
@@ -70,7 +70,7 @@ void removeoverlaps(int n, Rectangle **rs) {
 		}
 	}
 }
-unsigned countOverlaps(Rectangle **rs, unsigned n) {
+unsigned countOverlaps(vector<Rectangle *> &rs, unsigned n) {
 	unsigned overlaps=0;
 	for(unsigned i=0;i<n-1;i++) {
 		for(unsigned j=i+1;j<n;j++) {
@@ -89,8 +89,8 @@ unsigned countOverlaps(Rectangle **rs, unsigned n) {
 inline double getRand(double range) {
 	return range*rand()/RAND_MAX;
 }
-Rectangle **generateRandomRects(unsigned n) {
-	Rectangle **rs=new Rectangle*[n];
+void generateRandomRects(unsigned n, vector<Rectangle*> &rs) {
+	rs.resize(n);
 	double const rect_size = 5;
 	double const fld_size = sqrt(rect_size * n / 2.0);
 	double coords[4];
@@ -107,17 +107,16 @@ Rectangle **generateRandomRects(unsigned n) {
 	}
 	//double k = (double)countOverlaps(rs,n)/n;
 	//cout << "    k="<< k << endl;
-	return rs;
 }
-Rectangle **generateRects(double coords[][4], unsigned n) {
-	Rectangle **rs=new Rectangle*[n];
+void generateRects(double coords[][4], unsigned n,vector<Rectangle *> rs) {
+	rs.resize(n);
 	for (unsigned i = 0; i < n; ++i) {
 		rs[i]=new Rectangle(coords[i][0],coords[i][1],coords[i][2],coords[i][3]);
 	}
-	return rs;
 }
-void test(Rectangle **rs, unsigned n, double &cost, double &duration) {
-	Rectangle **ors=new Rectangle*[n];
+void test(vector<Rectangle *> &rs, double &cost, double &duration) {
+	unsigned n=rs.size();
+	vector<Rectangle *> ors(n);
 	double const rect_size = 5;
 	double const fld_size = sqrt(rect_size * n / 2.0);
 	for (unsigned i = 0; i < n; ++i) {
@@ -144,8 +143,6 @@ void test(Rectangle **rs, unsigned n, double &cost, double &duration) {
 		delete rs[i];
 		delete ors[i];
 	}
-	delete [] rs;
-	delete [] ors;
 }
 double test1[][4]={ { 0, 50, 0, 30 }, { 10, 20, 10, 29 },
 { 30, 70, 39, 70 }, { 0, 90, 40, 50 }, { 30, 70, 1, 29 } };
@@ -672,6 +669,7 @@ double test12[][4]={
 unsigned n12=10;
 int main() {
 	double c,t;
+	vector<Rectangle*> rs;
 	/*
 	cout << "test1" << endl;
 	test(generateRects(test1,n1),n1,c,t);
@@ -704,7 +702,9 @@ int main() {
 		//if(i%5==0) cout << i << endl;
 		double disp=0, time=0;
 		for(int repeat=repeats;repeat--;) {
-			test(generateRandomRects(i),i,c,t);
+			vector<Rectangle*> rs;
+			generateRandomRects(i,rs);
+			test(rs,c,t);
 			disp+=c;
 			time+=t;
 		}   
