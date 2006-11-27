@@ -23,3 +23,5 @@ libcola_a_SOURCES = cola.h\
 	cluster.cpp
 
 include_HEADERS = cola.h gradient_projection.h sparse_matrix.h straightener.h
+
+SUBDIRS = tests
