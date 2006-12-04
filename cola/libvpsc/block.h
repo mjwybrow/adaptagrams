@@ -11,8 +11,8 @@
  * Released under GNU LGPL.  Read the file 'COPYING' for more information.
  */
 
-#ifndef SEEN_REMOVEOVERLAP_BLOCK_H
-#define SEEN_REMOVEOVERLAP_BLOCK_H
+#ifndef SEEN_LIBVPSC_BLOCK_H
+#define SEEN_LIBVPSC_BLOCK_H
 
 #include <vector>
 #include <iostream>
@@ -24,8 +24,10 @@ class Constraint;
 class Block
 {
 	typedef std::vector<Variable*> Variables;
-	typedef std::vector<Constraint*>::iterator Cit;
-	typedef std::vector<Variable*>::iterator Vit;
+	typedef std::vector<Constraint*> Constraints;
+	typedef Variables::iterator Vit;
+	typedef Constraints::iterator Cit;
+	typedef Constraints::const_iterator Cit_const;
 
 	friend std::ostream& operator <<(std::ostream &os,const Block &b);
 public:
@@ -55,7 +57,11 @@ public:
 	long timeStamp;
 	PairingHeap<Constraint*> *in;
 	PairingHeap<Constraint*> *out;
-	bool isActiveDirectedPathBetween(Variable* u, Variable *v);
+	bool getActivePathBetween(Constraints& path, Variable const* u,
+	       	Variable const* v, Variable const *w) const;
+	bool isActiveDirectedPathBetween(
+			Variable const* u, Variable const* v) const;
+	bool getActiveDirectedPathBetween(Constraints& path, Variable const * u, Variable const * v) const;
 private:
 	typedef enum {NONE, LEFT, RIGHT} Direction;
 	typedef std::pair<double, Constraint*> Pair;
@@ -64,12 +70,12 @@ private:
 	double compute_dfdv(Variable* const v, Variable* const u, Constraint *&min_lm);
 	bool split_path(Variable*, Variable* const, Variable* const, 
 			Constraint* &min_lm);
-	bool canFollowLeft(Constraint *c, const Variable* const last);
-	bool canFollowRight(Constraint *c, const Variable* const last);
-	void populateSplitBlock(Block *b, Variable* const v, Variable* const u);
-	void addVariable(Variable* const v);
+	bool canFollowLeft(Constraint const* c, Variable const* last) const;
+	bool canFollowRight(Constraint const* c, Variable const* last) const;
+	void populateSplitBlock(Block *b, Variable* v, Variable const* u);
+	void addVariable(Variable* v);
 	void setUpConstraintHeap(PairingHeap<Constraint*>* &h,bool in);
 };
 
 }
-#endif // SEEN_REMOVEOVERLAP_BLOCK_H
+#endif // SEEN_LIBVPSC_BLOCK_H

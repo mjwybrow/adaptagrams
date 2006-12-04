@@ -17,10 +17,11 @@
 // Also, a lot of the code specific to one or other of these concrete
 // implementations should be moved from Block and Blocks: e.g. mergeLeft etc.
 //
-#ifndef SEEN_REMOVEOVERLAP_SOLVE_VPSC_H
-#define SEEN_REMOVEOVERLAP_SOLVE_VPSC_H
+#ifndef SEEN_LIBVPSC_SOLVE_VPSC_H
+#define SEEN_LIBVPSC_SOLVE_VPSC_H
 
 #include <vector>
+#include "exceptions.h"
 
 namespace vpsc {
 class Variable;
@@ -67,4 +68,4 @@ private:
 	Constraint* mostViolated(Constraints &l);
 };
 }
-#endif // SEEN_REMOVEOVERLAP_SOLVE_VPSC_H
+#endif // SEEN_LIBVPSC_SOLVE_VPSC_H

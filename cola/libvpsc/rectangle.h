@@ -9,8 +9,8 @@
  *
  * Released under GNU LGPL.  Read the file 'COPYING' for more information.
  */
-#ifndef SEEN_REMOVEOVERLAP_GENERATE_CONSTRAINTS_H
-#define SEEN_REMOVEOVERLAP_GENERATE_CONSTRAINTS_H
+#ifndef SEEN_LIBVPSC_RECTANGLE_H
+#define SEEN_LIBVPSC_RECTANGLE_H
 #include <iostream>
 #include <vector>
 
@@ -87,4 +87,4 @@ int generateYConstraints(const int n, std::vector<Rectangle*> const & rs, Variab
 
 }
 
-#endif // SEEN_REMOVEOVERLAP_GENERATE_CONSTRAINTS_H
+#endif // SEEN_LIBVPSC_RECTANGLE_H

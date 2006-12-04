@@ -96,6 +96,7 @@ void setVariableDesiredPos(Variable *v, double desiredPos) {
 double getVariablePos(Variable *v) {
 	return v->position();
 }
+/*
 void remapInConstraints(Variable *u, Variable *v, double dgap) {
 	for(Constraints::iterator i=u->in.begin();i!=u->in.end();i++) {
 		Constraint* c=*i;	
@@ -114,6 +115,7 @@ void remapOutConstraints(Variable *u, Variable *v, double dgap) {
 	}
 	u->out.clear();
 }
+*/
 int getLeftVarID(Constraint *c) {
 	return c->left->id;
 }

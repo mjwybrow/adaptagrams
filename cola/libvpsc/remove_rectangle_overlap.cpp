@@ -16,7 +16,7 @@
 #include "solve_VPSC.h"
 #include "variable.h"
 #include "constraint.h"
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 #include <fstream>
 #include "blocks.h"
 using std::ios;
@@ -57,7 +57,7 @@ void removeRectangleOverlap(unsigned n, std::vector<Rectangle*> const & rs, doub
 		oldX[i]=vs[i]->desiredPosition;
 	}
 	Solver vpsc_x(n,vs,m,cs);
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 	ofstream f(LOGFILE,ios::app);
 	f<<"Calling VPSC: Horizontal pass 1"<<endl;
 	f.close();
@@ -75,7 +75,7 @@ void removeRectangleOverlap(unsigned n, std::vector<Rectangle*> const & rs, doub
 	Rectangle::setXBorder(Rectangle::xBorder-EXTRA_GAP);
 	m=generateYConstraints(n,rs,vs,cs);
 	Solver vpsc_y(n,vs,m,cs);
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 	f.open(LOGFILE,ios::app);
 	f<<"Calling VPSC: Vertical pass"<<endl;
 	f.close();
@@ -93,7 +93,7 @@ void removeRectangleOverlap(unsigned n, std::vector<Rectangle*> const & rs, doub
 	Rectangle::setYBorder(Rectangle::yBorder-EXTRA_GAP);
 	m=generateXConstraints(n,rs,vs,cs,false);
 	Solver vpsc_x2(n,vs,m,cs);
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 	f.open(LOGFILE,ios::app);
 	f<<"Calling VPSC: Horizontal pass 2"<<endl;
 	f.close();

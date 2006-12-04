@@ -24,7 +24,7 @@ class Variable
 public:
 	const int id; // useful in log files
 	double desiredPosition;
-	const double weight;
+	double weight;
 	double offset;
 	Block *block;
 	bool visited;

@@ -16,11 +16,12 @@ ConstrainedMajorizationLayout
         Clusters const *cs,
         double const idealLength,
         std::valarray<double> const * eweights,
-        TestConvergence& done)
+        TestConvergence& done,
+        PreIteration* preIteration)
     : n(rs.size()),
       lap2(valarray<double>(n*n)), 
       Dij(valarray<double>(n*n)),
-      tol(0.0001), done(done),
+      tol(0.0001), done(done), preIteration(preIteration),
       X(valarray<double>(n)), Y(valarray<double>(n)),
       constrainedLayout(false),
       nonOverlappingClusters(false),
@@ -129,9 +130,9 @@ void ConstrainedMajorizationLayout::run(bool x, bool y) {
     if(constrainedLayout) {
         vector<vpsc::Rectangle*>* pbb = boundingBoxes.empty()?NULL:&boundingBoxes;
         gpX=new GradientProjection(
-            HORIZONTAL,lap2,X,tol,10000,acsx,dcsx,avoidOverlaps,pbb,pbcx,NULL,scx);
+            HORIZONTAL,lap2,X,tol,1000,acsx,dcsx,avoidOverlaps,pbb,pbcx,NULL,scx);
         gpY=new GradientProjection(
-            VERTICAL,lap2,Y,tol,10000,acsy,dcsy,avoidOverlaps,pbb,pbcy,NULL,scy);
+            VERTICAL,lap2,Y,tol,1000,acsy,dcsy,avoidOverlaps,pbb,pbcy,NULL,scy);
     }
     if(n>0) do {
         // to enforce clusters with non-intersecting, convex boundaries we
@@ -145,6 +146,22 @@ void ConstrainedMajorizationLayout::run(bool x, bool y) {
         if(!straightenEdges && nonOverlappingClusters) {
             straightenEdges = &cedges;
         }
+        if(preIteration) {
+            (*preIteration)(gpX,gpY);
+            if(constrainedLayout) {
+                gpX->unfixPositions();
+                gpY->unfixPositions();
+            }
+            for(unsigned i=0;i<preIteration->nodes.size();i++) {
+                unsigned j=preIteration->nodes[i];
+                X[j]=preIteration->X[i];
+                Y[j]=preIteration->Y[i];
+                if(constrainedLayout) {
+                    gpX->fixPos(j,X[j]);
+                    gpY->fixPos(j,Y[j]);
+                }
+            }
+        }
         /* Axis-by-axis optimization: */
         if(straightenEdges) {
             if(x) straighten(*straightenEdges,HORIZONTAL);
@@ -152,6 +169,13 @@ void ConstrainedMajorizationLayout::run(bool x, bool y) {
         } else {
             if(x) majlayout(Dij,gpX,X);
             if(y) majlayout(Dij,gpY,Y);
+        }
+        if(preIteration) {
+            for(unsigned i=0;i<preIteration->nodes.size();i++) {
+                unsigned j=preIteration->nodes[i];
+                X[j]=preIteration->X[i];
+                Y[j]=preIteration->Y[i];
+            }
         }
     } while(!done(compute_stress(Dij),X,Y));
 }

@@ -142,7 +142,7 @@ unsigned GradientProjection::solve(valarray<double> const &b) {
 	}
 
     for (i=0;i<n;i++) {
-        place[i]=vars[i]->position();
+        if(!fixedPositions[i]) place[i]=vars[i]->position();
     }
     	
 	valarray<double> g(n); /* gradient */
@@ -155,6 +155,7 @@ unsigned GradientProjection::solve(valarray<double> const &b) {
 
         // move to new unconstrained position
 		for (i=0; i<n; i++) {
+            if(fixedPositions[i]) continue;
 			place[i]+=alpha*g[i];
             assert(!isnan(place[i]));
             assert(!isinf(place[i]));
@@ -170,7 +171,7 @@ unsigned GradientProjection::solve(valarray<double> const &b) {
             dumpVPSCException(str,solver);
         }
         for (i=0;i<n;i++) {
-            place[i]=vars[i]->position();
+            if(!fixedPositions[i]) place[i]=vars[i]->position();
         }
         constrainedOptimum=false;
         if(constrainedOptimum) {

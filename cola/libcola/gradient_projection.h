@@ -112,15 +112,23 @@ public:
         PageBoundaryConstraints *pbc = NULL,
 		cola::SparseMap *Q = NULL,
         SeparationConstraints *sc = NULL)
-            : k(k), n(x.size()), 
-              denseSize(unsigned(floor(sqrt(denseQ.size())))), denseQ(denseQ), 
-              place(x), rs(rs),
+            : k(k), 
+              n(x.size()), 
+              denseSize(unsigned(floor(sqrt(denseQ.size())))),
+              denseQ(denseQ), 
+              place(x),
+              rs(rs),
               nonOverlapConstraints(nonOverlapConstraints),
-              tolerance(tol), acs(acs), max_iterations(max_iterations),
-              sparseQ(NULL),localSparseMapCreated(false)
+              tolerance(tol), 
+              acs(acs), 
+              max_iterations(max_iterations),
+              sparseQ(NULL),
+              localSparseMapCreated(false)
     {
+        fixedPositions.resize(n);
         for(unsigned i=0;i<n;i++) {
             vars.push_back(new vpsc::Variable(i,1,1));
+            fixedPositions[i]=false;
         }
         if(acs) {
             for(AlignmentConstraints::iterator iac=acs->begin();
@@ -214,6 +222,20 @@ public:
     }
 	unsigned solve(valarray<double> const & b);
     unsigned getSize() { return n; }
+    void unfixPositions() {
+        for(unsigned i=0;i<n;i++) {
+            if(fixedPositions[i]) {
+                fixedPositions[i]=false;
+                vars[i]->weight=1;
+            }
+        }
+    }
+    void fixPos(unsigned i,double pos) {
+        vars[i]->weight=100.;
+        vars[i]->desiredPosition=pos;
+        place[i]=pos;
+        fixedPositions[i]=true;
+    }
 private:
     vpsc::IncSolver* setupVPSC();
     double computeSteepestDescentVector(
@@ -243,6 +265,7 @@ private:
                                 iterations */
     Constraints lcs; /* local constraints - only for current iteration */
     bool localSparseMapCreated;
+    valarray<bool> fixedPositions;
 };
 
 #endif /* _GRADIENT_PROJECTION_H */

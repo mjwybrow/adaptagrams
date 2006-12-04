@@ -20,7 +20,7 @@
 #include "cbuffer.h"
 #include <math.h>
 #include <sstream>
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 #include <fstream>
 #endif
 #include <map>
@@ -49,7 +49,7 @@ Solver::Solver(const unsigned n, Variable* const vs[], const unsigned m, Constra
         c->right->in.push_back(c);
     }
 	bs=new Blocks(n, vs);
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 	printBlocks();
 	//assert(!constraintGraphIsCyclic(n,vs));
 #endif
@@ -60,7 +60,7 @@ Solver::~Solver() {
 
 // useful in debugging
 void Solver::printBlocks() {
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 	ofstream f(LOGFILE,ios::app);
 	for(set<Block*>::iterator i=bs->begin();i!=bs->end();++i) {
 		Block *b=*i;
@@ -94,12 +94,12 @@ bool Solver::satisfy() {
 	for(unsigned i=0;i<m;i++) {
         if(cs[i]->active) activeConstraints=true;
 		if(cs[i]->slack() < ZERO_UPPERBOUND) {
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 			ofstream f(LOGFILE,ios::app);
 			f<<"Error: Unsatisfied constraint: "<<*cs[i]<<endl;
 #endif
 			//assert(cs[i]->slack()>-0.0000001);
-			throw "Unsatisfied constraint";
+			throw UnsatisfiedConstraint(*cs[i]);
 		}
 	}
 	delete vs;
@@ -123,7 +123,7 @@ void Solver::refine() {
 			Block *b=*i;
 			Constraint *c=b->findMinLM();
 			if(c!=NULL && c->lm<0) {
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 				ofstream f(LOGFILE,ios::app);
 				f<<"Split on constraint: "<<*c<<endl;
 #endif
@@ -140,7 +140,7 @@ void Solver::refine() {
 	for(unsigned i=0;i<m;i++) {
 		if(cs[i]->slack() < ZERO_UPPERBOUND) {
 			assert(cs[i]->slack()>ZERO_UPPERBOUND);
-			throw "Unsatisfied constraint";
+			throw UnsatisfiedConstraint(*cs[i]);
 		}
 	}
 }
@@ -156,7 +156,7 @@ void Solver::solve() {
 }
 
 void IncSolver::solve() {
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 	ofstream f(LOGFILE,ios::app);
 	f<<"solve_inc()..."<<endl;
 #endif
@@ -166,7 +166,7 @@ void IncSolver::solve() {
 		satisfy();
 		splitBlocks();
 		cost = bs->cost();
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 	f<<"  cost="<<cost<<endl;
 #endif
 	} while(fabs(lastcost-cost)>0.0001);
@@ -185,7 +185,7 @@ void IncSolver::solve() {
  * constraint with the most negative lagrangian multiplier. 
  */
 bool IncSolver::satisfy() {
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 	ofstream f(LOGFILE,ios::app);
 	f<<"satisfy_inc()..."<<endl;
 #endif
@@ -202,14 +202,23 @@ bool IncSolver::satisfy() {
 		} else {
 			if(lb->isActiveDirectedPathBetween(v->right,v->left)) {
 				// cycle found, relax the violated, cyclic constraint
-				v->gap = v->slack();
-				continue;
+				//v->gap = v->slack();
+				//continue;
+                UnsatisfiableException e;
+                lb->getActiveDirectedPathBetween(e.path,v->right,v->left);
+                e.path.push_back(v);
+                throw e;
 			}
-			if(splitCtr++>10000) {
-				throw "Cycle Error!";
-			}
+			//if(splitCtr++>10000) {
+				//throw "Cycle Error!";
+			//}
 			// constraint is within block, need to split first
-			inactive.push_back(lb->splitBetween(v->left,v->right,lb,rb));
+            try {
+			    inactive.push_back(lb->splitBetween(v->left,v->right,lb,rb));
+            } catch(UnsatisfiableException e) {
+                e.path.push_back(v);
+                throw e;
+            }
 			//inactive.push_back(v);
 			lb->merge(rb,v); // don't want to do this because v
 			                   //may no longer be violated!
@@ -217,7 +226,7 @@ bool IncSolver::satisfy() {
 			//bs->insert(rb);
 		}
 	}
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 	f<<"  finished merges."<<endl;
 #endif
 	bs->cleanup();
@@ -228,21 +237,21 @@ bool IncSolver::satisfy() {
 		if(v->slack() < ZERO_UPPERBOUND) {
 			ostringstream s;
 			s<<"Unsatisfied constraint: "<<*v;
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 			ofstream f(LOGFILE,ios::app);
 			f<<s.str()<<endl;
 #endif
 			throw s.str().c_str();
 		}
 	}
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 	f<<"  finished cleanup."<<endl;
 	printBlocks();
 #endif
     return activeConstraints;
 }
 void IncSolver::moveBlocks() {
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 	ofstream f(LOGFILE,ios::app);
 	f<<"moveBlocks()..."<<endl;
 #endif
@@ -251,12 +260,12 @@ void IncSolver::moveBlocks() {
 		b->wposn = b->desiredWeightedPosition();
 		b->posn = b->wposn / b->weight;
 	}
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 	f<<"  moved blocks."<<endl;
 #endif
 }
 void IncSolver::splitBlocks() {
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 	ofstream f(LOGFILE,ios::app);
 #endif
 	moveBlocks();
@@ -267,7 +276,7 @@ void IncSolver::splitBlocks() {
 		Constraint* v=b->findMinLM();
 		if(v!=NULL && v->lm < ZERO_UPPERBOUND) {
 			assert(!v->equality);
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 			f<<"    found split point: "<<*v<<" lm="<<v->lm<<endl;
 #endif
 			splitCnt++;
@@ -282,12 +291,12 @@ void IncSolver::splitBlocks() {
 			bs->insert(r);
 			b->deleted=true;
 			inactive.push_back(v);
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 			f<<"  new blocks: "<<*l<<" and "<<*r<<endl;
 #endif
 		}
 	}
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 	f<<"  finished splits."<<endl;
 #endif
 	bs->cleanup();
@@ -300,7 +309,7 @@ void IncSolver::splitBlocks() {
 Constraint* IncSolver::mostViolated(Constraints &l) {
 	double minSlack = DBL_MAX;
 	Constraint* v=NULL;
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 	ofstream f(LOGFILE,ios::app);
 	f<<"Looking for most violated..."<<endl;
 #endif
@@ -324,7 +333,7 @@ Constraint* IncSolver::mostViolated(Constraints &l) {
 		*deletePoint = l[l.size()-1];
 		l.resize(l.size()-1);
 	}
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 	f<<"  most violated is: "<<*v<<endl;
 #endif
 	return v;

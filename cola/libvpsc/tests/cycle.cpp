@@ -1,6 +1,6 @@
-#include <variable.h>
-#include <constraint.h>
-#include <solve_VPSC.h>
+#include <libvpsc/variable.h>
+#include <libvpsc/constraint.h>
+#include <libvpsc/solve_VPSC.h>
 #include <iostream>
 #include <cassert>
 #include <math.h>
@@ -21,10 +21,18 @@ void test1() {
 	try {
 		IncSolver vpsc(n,a,m,c);
 		vpsc.solve();
-	} catch (char const *msg) {
-		cerr << msg << endl;
+	} catch (UnsatisfiableException& e) {
+		cerr << "Unsatisfiable" << endl;
+		for(vector<Constraint*>::iterator i=e.path.begin();
+				i!=e.path.end();i++) {
+			cout << **i << endl;
+		}
 		exit(1);
-	}
+	} 
+	//catch(...) {
+		//cerr << "Unknown error!" << endl;
+		//exit(1);
+	//}
 
 	for(int i=0;i<n;i++) {
 		assert(approxEquals(a[i]->position(),expected[i]));

@@ -10,8 +10,8 @@
  * Released under GNU LGPL.  Read the file 'COPYING' for more information.
  */
 
-#ifndef SEEN_REMOVEOVERLAP_CONSTRAINT_H
-#define SEEN_REMOVEOVERLAP_CONSTRAINT_H
+#ifndef SEEN_LIBVPSC_CONSTRAINT_H
+#define SEEN_LIBVPSC_CONSTRAINT_H
 
 #include <iostream>
 #include "variable.h"
@@ -23,14 +23,13 @@ class Constraint
 public:
 	Variable *left;
 	Variable *right;
-	double gap;
+	const double gap;
 	double lm;
 	Constraint(Variable *left, Variable *right, double gap, bool equality=false);
 	~Constraint();
 	inline double slack() const { return right->position() - gap - left->position(); }
 	long timeStamp;
 	bool active;
-	bool visited;
 	const bool equality;
 	bool vflag;
 };
@@ -58,4 +57,4 @@ static inline bool compareConstraints(Constraint *const &l, Constraint *const &r
 }
 }
 
-#endif // SEEN_REMOVEOVERLAP_CONSTRAINT_H
+#endif // SEEN_LIBVPSC_CONSTRAINT_H

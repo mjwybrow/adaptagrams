@@ -19,7 +19,6 @@ Constraint::Constraint(Variable *left, Variable *right, double gap, bool equalit
   gap(gap),
   timeStamp(0),
   active(false),
-  visited(false),
   equality(equality)
 {
 	// In hindsight I think it's probably better to build the constraint DAG

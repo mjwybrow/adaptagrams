@@ -101,15 +101,39 @@ struct LinearConstraint {
 };
 typedef vector<LinearConstraint*> LinearConstraints;
 	
+/**
+ * provides a functor that is called before each iteration in the main loop of
+ * the ConstrainedMajorizationLayout::run() method.
+ * Keeps a local copy of the x and y GradientProjection instances.
+ * Use it for things like locking the position of nodes just for the duration of the iteration.
+ */ 
+class PreIteration {
+public:
+    virtual ~PreIteration() {}
+    virtual void operator()(GradientProjection* gpX, GradientProjection* gpY) {}
+    vector<unsigned> nodes;
+    vector<double> X;
+    vector<double> Y;
+private:
+};
+/** 
+ * The following class provides a functor for callback after each iteration
+ * You can either call ConstrainedMajorizationLayout with an instance of this class setting the
+ * tolerance and maxiterations as desired, or create a derived class implementing the operator() to
+ * do your own convergence test, or create your own operator() that calls the
+ * TestConvergence::operator() in order to do any other post processing you might need... e.g. to
+ * animate changes.
+ */
 class TestConvergence {
 public:
     double old_stress;
     TestConvergence(const double tolerance = 0.001, const unsigned maxiterations = 1000)
         : tolerance(tolerance),
-          maxiterations(maxiterations) { reset(); }
+          maxiterations(maxiterations)
+    { reset(); }
     virtual ~TestConvergence() {}
 
-    virtual bool operator()(const double new_stress, valarray<double> const & X, valarray<double> const & Y) {
+    virtual bool operator()(const double new_stress, valarray<double> & X, valarray<double> & Y) {
         //std::cout<<"iteration="<<iterations<<", new_stress="<<new_stress<<std::endl;
         if (old_stress == DBL_MAX) {
             old_stress = new_stress;
@@ -147,7 +171,8 @@ public:
         Clusters const * cs,
         double const idealLength,
         std::valarray<double> const * eweights=NULL,
-        TestConvergence& done=defaultTest);
+        TestConvergence& done=defaultTest,
+        PreIteration* preIteration=NULL);
     /**
      * Horizontal alignment constraints
      */
@@ -273,6 +298,7 @@ private:
     valarray<double> Dij; // all pairs shortest path distances
     double tol;
     TestConvergence& done;
+    PreIteration* preIteration;
     vector<Rectangle*> boundingBoxes;
     valarray<double> X, Y;
     double edge_length;

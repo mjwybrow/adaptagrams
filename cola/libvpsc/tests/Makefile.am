@@ -1,6 +1,6 @@
 INCLUDES = -I$(top_srcdir)
 #check_PROGRAMS = rectangleoverlap block satisfy_inc #csolve_VPSC #cycle
-check_PROGRAMS = satisfy_inc 
+check_PROGRAMS = cycle
 satisfy_inc_SOURCES = satisfy_inc.cpp
 satisfy_inc_LDADD = $(top_builddir)/libvpsc/libvpsc.a
 block_SOURCES = block.cpp

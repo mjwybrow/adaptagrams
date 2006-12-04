@@ -13,9 +13,10 @@
 #include <cassert>
 #include "pairingheap/PairingHeap.h"
 #include "constraint.h"
+#include "exceptions.h"
 #include "block.h"
 #include "blocks.h"
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 #include <fstream>
 using std::ios;
 using std::ofstream;
@@ -24,7 +25,7 @@ using std::endl;
 using std::vector;
 
 namespace vpsc {
-void Block::addVariable(Variable* const v) {
+void Block::addVariable(Variable* v) {
 	v->block=this;
 	vars->push_back(v);
 	weight+=v->weight;
@@ -79,7 +80,7 @@ void Block::setUpConstraintHeap(PairingHeap<Constraint*>* &h,bool in) {
 	}
 }	
 Block* Block::merge(Block* b, Constraint* c) {
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 	ofstream f(LOGFILE,ios::app);
 	f<<"  merging on: "<<*c<<",c->left->offset="<<c->left->offset<<",c->right->offset="<<c->right->offset<<endl;
 #endif
@@ -92,7 +93,7 @@ Block* Block::merge(Block* b, Constraint* c) {
 	       	l->merge(r,c,-dist);
 	}
 	Block* mergeBlock=b->deleted?this:b;
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 	f<<"  merged block="<<*mergeBlock<<endl;
 #endif
 	return mergeBlock;
@@ -105,7 +106,7 @@ Block* Block::merge(Block* b, Constraint* c) {
  * @param distance separation required to satisfy c
  */
 void Block::merge(Block *b, Constraint *c, double dist) {
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 	ofstream f(LOGFILE,ios::app);
 	f<<"    merging: "<<*b<<"dist="<<dist<<endl;
 #endif
@@ -123,7 +124,7 @@ void Block::merge(Block *b, Constraint *c, double dist) {
 }
 
 void Block::mergeIn(Block *b) {
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 	ofstream f(LOGFILE,ios::app);
 	f<<"  merging constraint heaps... "<<endl;
 #endif
@@ -131,7 +132,7 @@ void Block::mergeIn(Block *b) {
 	findMinInConstraint();
 	b->findMinInConstraint();
 	in->merge(b->in);
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 	f<<"  merged heap: "<<*in<<endl;
 #endif
 }
@@ -148,14 +149,14 @@ Constraint *Block::findMinInConstraint() {
 		Block *lb=v->left->block;
 		Block *rb=v->right->block;
 		// rb may not be this if called between merge and mergeIn
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 		ofstream f(LOGFILE,ios::app);
 		f<<"  checking constraint ... "<<*v;
 		f<<"    timestamps: left="<<lb->timeStamp<<" right="<<rb->timeStamp<<" constraint="<<v->timeStamp<<endl;
 #endif
 		if(lb == rb) {
 			// constraint has been merged into the same block
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 			if(v->slack()<0) {
 				f<<"  violated internal constraint found! "<<*v<<endl;
 				f<<"     lb="<<*lb<<endl;
@@ -163,14 +164,14 @@ Constraint *Block::findMinInConstraint() {
 			}
 #endif
 			in->deleteMin();
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 			f<<" ... skipping internal constraint"<<endl;
 #endif
 		} else if(v->timeStamp < lb->timeStamp) {
 			// block at other end of constraint has been moved since this
 			in->deleteMin();
 			outOfDate.push_back(v);
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 			f<<"    reinserting out of date (reinsert later)"<<endl;
 #endif
 		} else {
@@ -201,7 +202,7 @@ Constraint *Block::findMinOutConstraint() {
 }
 void Block::deleteMinInConstraint() {
 	in->deleteMin();
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 	ofstream f(LOGFILE,ios::app);
 	f<<"deleteMinInConstraint... "<<endl;
 	f<<"  result: "<<*in<<endl;
@@ -210,10 +211,10 @@ void Block::deleteMinInConstraint() {
 void Block::deleteMinOutConstraint() {
 	out->deleteMin();
 }
-inline bool Block::canFollowLeft(Constraint *c, const Variable* const last) {
+inline bool Block::canFollowLeft(Constraint const* c, Variable const* last) const {
 	return c->left->block==this && c->active && last!=c->left;
 }
-inline bool Block::canFollowRight(Constraint *c, const Variable* const last) {
+inline bool Block::canFollowRight(Constraint const* c, Variable const* last) const {
 	return c->right->block==this && c->active && last!=c->right;
 }
 
@@ -377,6 +378,9 @@ Constraint *Block::findMinLMBetween(Variable* const lv, Variable* const rv) {
 	split_path(rv,lv,NULL,min_lm);
 	if(min_lm==NULL) {
 		fprintf(stderr,"Couldn't find split point!\n");
+		UnsatisfiableException e;
+		getActivePathBetween(e.path,lv,rv,NULL);
+		throw e;
 	}
 	assert(min_lm!=NULL);
 	return min_lm;
@@ -384,7 +388,7 @@ Constraint *Block::findMinLMBetween(Variable* const lv, Variable* const rv) {
 
 // populates block b by traversing the active constraint tree adding variables as they're 
 // visited.  Starts from variable v and does not backtrack over variable u.
-void Block::populateSplitBlock(Block *b, Variable* const v, Variable* const u) {
+void Block::populateSplitBlock(Block *b, Variable* v, Variable const* u) {
 	b->addVariable(v);
 	for (Cit c=v->in.begin();c!=v->in.end();++c) {
 		if (canFollowLeft(*c,u))
@@ -395,18 +399,53 @@ void Block::populateSplitBlock(Block *b, Variable* const v, Variable* const u) {
 			populateSplitBlock(b, (*c)->right, v);
 	}
 }
+/**
+ * Returns the active path between variables u and v... not back tracking over w
+ */
+bool Block::getActivePathBetween(Constraints& path, Variable const* u,
+	       	Variable const* v, Variable const *w) const {
+	if(u==v) return true;
+	for (Cit_const c=u->in.begin();c!=u->in.end();++c) {
+		if (canFollowLeft(*c,w)) {
+			if(getActivePathBetween(path, (*c)->left, v, u)) {
+				path.push_back(*c);
+				return true;
+			}
+		}
+	}
+	for (Cit_const c=u->out.begin();c!=u->out.end();++c) {
+		if (canFollowRight(*c,w)) {
+			if(getActivePathBetween(path, (*c)->right, v, u)) {
+				path.push_back(*c);
+				return true;
+			}
+		}
+	}
+	return false;
+}
 // Search active constraint tree from u to see if there is a directed path to v.
 // Returns true if path is found with all constraints in path having their visited flag
 // set true.
-bool Block::isActiveDirectedPathBetween(Variable* u, Variable *v) {
+bool Block::isActiveDirectedPathBetween(Variable const* u, Variable const* v) const {
 	if(u==v) return true;
-	for (Cit c=u->out.begin();c!=u->out.end();++c) {
+	for (Cit_const c=u->out.begin();c!=u->out.end();++c) {
 		if(canFollowRight(*c,NULL)) {
 			if(isActiveDirectedPathBetween((*c)->right,v)) {
-				(*c)->visited=true;
 				return true;
 			}
-			(*c)->visited=false;
+		}
+	}
+	return false;
+}
+bool Block::getActiveDirectedPathBetween(
+		Constraints& path, Variable const* u, Variable const* v) const {
+	if(u==v) return true;
+	for (Cit_const c=u->out.begin();c!=u->out.end();++c) {
+		if(canFollowRight(*c,NULL)) {
+			if(getActiveDirectedPathBetween(path,(*c)->right,v)) {
+				path.push_back(*c);
+				return true;
+			}
 		}
 	}
 	return false;
@@ -419,12 +458,12 @@ bool Block::isActiveDirectedPathBetween(Variable* u, Variable *v) {
  */
 Constraint* Block::splitBetween(Variable* const vl, Variable* const vr,
 	       	Block* &lb, Block* &rb) {
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 	ofstream f(LOGFILE,ios::app);
 	f<<"  need to split between: "<<*vl<<" and "<<*vr<<endl;
 #endif
 	Constraint *c=findMinLMBetween(vl, vr);
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 	f<<"  going to split on: "<<*c<<endl;
 #endif
 	split(lb,rb,c);

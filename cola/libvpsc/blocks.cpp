@@ -16,7 +16,7 @@
 #include "blocks.h"
 #include "block.h"
 #include "constraint.h"
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 #include <fstream>
 using std::ios;
 using std::ofstream;
@@ -74,7 +74,7 @@ void Blocks::dfsVisit(Variable *v, list<Variable*> *order) {
 			dfsVisit(c->right, order);
 		}
 	}	
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 	ofstream f(LOGFILE,ios::app);
 	f<<"  order="<<*v<<endl;
 #endif
@@ -85,7 +85,7 @@ void Blocks::dfsVisit(Variable *v, list<Variable*> *order) {
  * neighbouring (left) block until no more violated constraints are found
  */
 void Blocks::mergeLeft(Block *r) {	
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 	ofstream f(LOGFILE,ios::app);
 	f<<"mergeLeft called on "<<*r<<endl;
 #endif
@@ -93,7 +93,7 @@ void Blocks::mergeLeft(Block *r) {
 	r->setUpInConstraints();
 	Constraint *c=r->findMinInConstraint();
 	while (c != NULL && c->slack()<0) {
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 		f<<"mergeLeft on constraint: "<<*c<<endl;
 #endif
 		r->deleteMinInConstraint();
@@ -111,7 +111,7 @@ void Blocks::mergeLeft(Block *r) {
 		removeBlock(l);
 		c=r->findMinInConstraint();
 	}		
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 	f<<"merged "<<*r<<endl;
 #endif
 }	
@@ -119,14 +119,14 @@ void Blocks::mergeLeft(Block *r) {
  * Symmetrical to mergeLeft
  */
 void Blocks::mergeRight(Block *l) {	
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 	ofstream f(LOGFILE,ios::app);
 	f<<"mergeRight called on "<<*l<<endl;
 #endif	
 	l->setUpOutConstraints();
 	Constraint *c = l->findMinOutConstraint();
 	while (c != NULL && c->slack()<0) {		
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 		f<<"mergeRight on constraint: "<<*c<<endl;
 #endif
 		l->deleteMinOutConstraint();
@@ -142,7 +142,7 @@ void Blocks::mergeRight(Block *l) {
 		removeBlock(r);
 		c=l->findMinOutConstraint();
 	}	
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 	f<<"merged "<<*l<<endl;
 #endif
 }
@@ -166,7 +166,7 @@ void Blocks::cleanup() {
  */
 void Blocks::split(Block *b, Block *&l, Block *&r, Constraint *c) {
 	b->split(l,r,c);
-#ifdef RECTANGLE_OVERLAP_LOGGING
+#ifdef LIBVPSC_LOGGING
 	ofstream f(LOGFILE,ios::app);
 	f<<"Split left: "<<*l<<endl;
 	f<<"Split right: "<<*r<<endl;

@@ -13,11 +13,11 @@
  * Released under GNU LGPL.  Read the file 'COPYING' for more information.
  */
 
-#ifndef SEEN_REMOVEOVERLAP_BLOCKS_H
-#define SEEN_REMOVEOVERLAP_BLOCKS_H
+#ifndef SEEN_LIBVPSC_BLOCKS_H
+#define SEEN_LIBVPSC_BLOCKS_H
 
-#ifdef RECTANGLE_OVERLAP_LOGGING
-#define LOGFILE "cRectangleOverlap.log"
+#ifdef LIBVPSC_LOGGING
+#define LOGFILE "libvpsc.log"
 #endif
 
 #include <set>
@@ -52,4 +52,4 @@ private:
 
 extern long blockTimeCtr;
 }
-#endif // SEEN_REMOVEOVERLAP_BLOCKS_H
+#endif // SEEN_LIBVPSC_BLOCKS_H
