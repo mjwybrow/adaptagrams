@@ -20,16 +20,6 @@
 
 using namespace std;
 using namespace vpsc;
-//#define CONMAJ_LOGGING 1
-
-static void dumpVPSCException(char const *str, IncSolver* solver) {
-    cerr<<str<<endl;
-    unsigned m;
-    Constraint** cs = solver->getConstraints(m);
-    for(unsigned i=0;i<m;i++) {
-        cerr << *cs[i] << endl;
-    }
-}
 
 static inline double dotProd(valarray<double> const & a, valarray<double> const & b) {
     double p = 0;
@@ -135,14 +125,11 @@ unsigned GradientProjection::solve(valarray<double> const &b) {
         assert(!isinf(place[i]));
         vars[i]->desiredPosition=place[i];
     }
-    try {
-        solver->satisfy();
-    } catch (char const *str) {
-        dumpVPSCException(str,solver);
-	}
+    solver->satisfy();
 
     for (i=0;i<n;i++) {
-        if(!fixedPositions[i]) place[i]=vars[i]->position();
+        if(!fixedPositions[i]) 
+            place[i]=vars[i]->position();
     }
     	
 	valarray<double> g(n); /* gradient */
@@ -164,12 +151,8 @@ unsigned GradientProjection::solve(valarray<double> const &b) {
 
         //project to constraint boundary
         bool constrainedOptimum = false;
-        try {
-            constrainedOptimum=
-                solver->satisfy();
-        } catch (char const *str) {
-            dumpVPSCException(str,solver);
-        }
+        constrainedOptimum=
+            solver->satisfy();
         for (i=0;i<n;i++) {
             if(!fixedPositions[i]) place[i]=vars[i]->position();
         }

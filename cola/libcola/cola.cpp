@@ -95,7 +95,8 @@ void ConstrainedMajorizationLayout::majlayout(
             for (unsigned j = 0; j < n; j++) {
                 if (j == i) continue;
                 dist_ij = euclidean_distance(i, j);
-                if (dist_ij > 1e-30 && Dij[i*n+j] > 1e-30) {	/* skip zero distances */
+                /* skip zero distances */
+                if (dist_ij > 1e-30 && Dij[i*n+j] > 1e-30) {
                     /* calculate L_ij := w_{ij}*d_{ij}/dist_{ij} */
                     L_ij = 1.0 / (dist_ij * Dij[i*n+j]);
                     degree -= L_ij;
