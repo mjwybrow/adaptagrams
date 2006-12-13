@@ -95,9 +95,7 @@ public:
 		unsigned rhsSize;
 		PairNode<T> *broot=rhs->removeRootForMerge(rhsSize);
 		if (root == NULL) {
-			if(broot != NULL) {
-				root = broot;
-			}
+			root = broot;
 		} else {
 			compareAndLink(root, broot);
 		}
