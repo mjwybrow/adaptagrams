@@ -16,6 +16,7 @@
  * Released under GNU LGPL.  Read the file 'COPYING' for more information.
  */
 
+#include <cassert>
 #include <vector>
 #include <list>
 #include "dsexceptions.h"
