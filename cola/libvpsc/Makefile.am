@@ -1,5 +1,3 @@
-#INCLUDES = -I$(top_srcdir)
-
 lib_LIBRARIES = libvpsc.a
 
 libvpsc_a_SOURCES = block.cpp\
