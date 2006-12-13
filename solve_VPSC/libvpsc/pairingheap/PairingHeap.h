@@ -78,7 +78,7 @@ public:
 
 	bool isEmpty( ) const;
 	bool isFull( ) const;
-	int size();
+	unsigned size() const;
 
 	PairNode<T> *insert( const T & x );
 	const T & findMin( ) const;
@@ -94,9 +94,7 @@ public:
 	{	
 		PairNode<T> *broot=rhs->getRoot();
 		if (root == NULL) {
-			if(broot != NULL) {
-				root = broot;
-			}
+			root = broot;
 		} else {
 			compareAndLink(root, broot);
 		}
@@ -113,7 +111,7 @@ protected:
 private:
 	PairNode<T> *root;
 	bool (*lessThan)(T const &lhs, T const &rhs);
-	int counter;
+	unsigned counter;
 	void reclaimMemory( PairNode<T> *t ) const;
 	void compareAndLink( PairNode<T> * & first, PairNode<T> *second ) const;
 	PairNode<T> * combineSiblings( PairNode<T> *firstSibling ) const;
