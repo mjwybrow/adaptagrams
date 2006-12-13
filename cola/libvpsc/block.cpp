@@ -22,6 +22,7 @@ using std::ios;
 using std::ofstream;
 using std::endl;
 #endif
+using std::ostream;
 using std::vector;
 
 namespace vpsc {
