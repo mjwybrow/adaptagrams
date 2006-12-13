@@ -66,13 +66,6 @@ class PairNode
 };
 
 template <class T>
-class Comparator
-{
-public:
-	virtual bool isLessThan(T const &lhs, T const &rhs) const = 0;
-};
-
-template <class T>
 class PairingHeap
 {
 	friend std::ostream& operator<< <T>(std::ostream &os,const PairingHeap<T> &b);
