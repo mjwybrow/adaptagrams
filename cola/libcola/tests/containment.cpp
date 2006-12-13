@@ -30,7 +30,7 @@ unsigned iteration=0;
 
 struct CheckProgress : TestConvergence {
 	CheckProgress(double d,unsigned i) : TestConvergence(d,i) {}
-	bool operator()(double new_stress, valarray<double> const & X, valarray<double> const & Y) {
+	bool operator()(double new_stress, valarray<double> & X, valarray<double> & Y) {
 		cout << "stress="<<new_stress<<endl;
 		char fname[50];
 		sprintf(fname,"containment1%04d.svg",++iteration);

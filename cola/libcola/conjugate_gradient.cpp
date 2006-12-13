@@ -69,6 +69,7 @@ conjugate_gradient(valarray<double> const &A,
             p = r;
         else {
             r_r_new = inner(r,r);
+            if(r_r_new<tol_squared) break;
             p = r + (r_r_new/r_r)*p;
         }
         matrix_times_vector(A, p, Ap);

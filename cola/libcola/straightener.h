@@ -102,8 +102,26 @@ namespace straightener {
     class Cluster {
     public:
         double scanpos;
-        valarray<double> hullX, hullY;
         std::vector<Edge*> boundary;
+        void getActualBoundary(valarray<double> &X, valarray<double> &Y) const
+        {
+            unsigned n=0;
+            for(std::vector<Edge*>::const_iterator e=boundary.begin();
+                    e!=boundary.end();e++) {
+                n+=(*e)->route->n;
+            }
+            X.resize(n);
+            Y.resize(n);
+            unsigned i=0;
+            for(std::vector<Edge*>::const_iterator e=boundary.begin();
+                    e!=boundary.end();e++) {
+                Route* r=(*e)->route;
+                for(unsigned j=0;j<r->n;j++) {
+                    X[i]=r->xs[j];
+                    Y[i++]=r->ys[j];
+                }
+            }
+        }
     };
     class Node {
     public:
@@ -136,7 +154,7 @@ namespace straightener {
             edge(NULL),dummy(false),scan(false),active(true),open(false) {};
 
     private:
-        friend void sortNeighbours(const Dim dim, Node * v, Node * l, Node * r, 
+        friend void sortNeighbours(const cola::Dim dim, Node * v, Node * l, Node * r, 
             const double conjpos, std::vector<Edge*> const & openEdges, 
             std::vector<Node *>& L, std::vector<Node *>& nodes);
         Node(const unsigned id, const double x, const double y, Edge* e) : 
@@ -173,13 +191,13 @@ namespace straightener {
     };
     typedef std::set<Node*,CmpNodePos> NodeSet;
     void generateConstraints(
-            const Dim dim, 
+            const cola::Dim dim, 
             std::vector<Node*> & nodes, 
             std::vector<Edge*> & edges, 
-            std::vector<SeparationConstraint*>& cs);
+            std::vector<cola::SeparationConstraint*>& cs);
     void nodePath(Edge& e, std::vector<Node*>& nodes, std::vector<unsigned>& path);
     void generateClusterBoundaries(
-		    const Dim dim,
+		    const cola::Dim dim,
 		    std::vector<straightener::Node*> & nodes,
             std::vector<straightener::Edge*> & edges,
             std::vector<vpsc::Rectangle*> const & rs,

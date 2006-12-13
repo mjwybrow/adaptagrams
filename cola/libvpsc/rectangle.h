@@ -44,6 +44,10 @@ public:
 	void moveCentreY(double y) {
 		moveMinY(y-height()/2.0);
 	}
+	void moveCentre(double x, double y) {
+		moveCentreX(x);
+		moveCentreY(y);
+	}
 	void moveMinX(double x) {
 		maxX=x+width()-xBorder;
 		minX=x;

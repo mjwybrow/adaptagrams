@@ -21,7 +21,7 @@ using namespace cola;
 
 struct CheckProgress : TestConvergence {
     CheckProgress(const double d,const unsigned i) : TestConvergence(d,i) {}
-    bool operator()(const double new_stress, valarray<double> const & X, valarray<double> const & Y) {
+    bool operator()(const double new_stress, valarray<double> & X, valarray<double> & Y) {
         cout << "stress="<<new_stress<<endl;
         return TestConvergence::operator()(new_stress,X,Y);
     }

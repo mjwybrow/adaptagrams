@@ -11,22 +11,12 @@
 #include <valarray>
 #include "sparse_matrix.h"
 
+namespace cola {
 using std::valarray;
 using std::make_pair;
 typedef std::vector<vpsc::Constraint*> Constraints;
 typedef std::vector<vpsc::Variable*> Variables;
 typedef std::vector<std::pair<unsigned,double> > OffsetList;
-
-class SeparationConstraint {
-public:
-    SeparationConstraint(unsigned l, unsigned r, double g, bool equality = false) 
-        : left(l), right(r), gap(g), equality(equality)  {}
-    unsigned left;
-    unsigned right;
-    double gap;
-    bool equality;
-};
-typedef std::vector<SeparationConstraint*> SeparationConstraints;
 
 // An alignment constraint specifies a group of nodes and offsets for those nodes
 // such that the nodes must be spaced exactly at those offsets from a vertical or
@@ -34,9 +24,18 @@ typedef std::vector<SeparationConstraint*> SeparationConstraints;
 class AlignmentConstraint {
 friend class GradientProjection;
 public:
-    AlignmentConstraint(double pos) : position(pos), variable(NULL) {}
+    AlignmentConstraint(double pos) : position(pos), fixed(false), variable(NULL) {}
     void updatePosition() {
         position = variable->position();
+    }
+    void fixPos(double pos) {
+        variable->desiredPosition=pos;
+        variable->weight=100000.;
+        fixed=true;
+    }
+    void unfixPos() {
+        variable->weight=1.;
+        fixed=false;
     }
     // a list of pairs of node indices and their required offsets
     OffsetList offsets;
@@ -45,10 +44,42 @@ public:
     void* guide;
     // The position of the alignment line
     double position;
+    bool fixed;
 private:
     vpsc::Variable* variable;
+friend class SeparationConstraint;
 };
 typedef std::vector<AlignmentConstraint*> AlignmentConstraints;
+
+class SeparationConstraint {
+public:
+    SeparationConstraint(unsigned l, unsigned r, double g, bool equality = false) 
+        : left(l), right(r), al(NULL), ar(NULL), gap(g), equality(equality)  {
+    }
+    SeparationConstraint(AlignmentConstraint *l, AlignmentConstraint *r, 
+            double g, bool equality = false) 
+        : left(0), right(0), al(l), ar(r), gap(g), equality(equality)  {
+    }
+    unsigned left;
+    unsigned right;
+    AlignmentConstraint *al;
+    AlignmentConstraint *ar;
+    double gap;
+    bool equality;
+private:
+    void createConstraint(Variables& vs, Constraints& cs) {
+        if(al) {
+            left=al->variable->id;
+        }
+        if(ar) {
+            right=ar->variable->id;
+        }
+        cs.push_back(new vpsc::Constraint(vs[left],vs[right],gap,equality));
+    }
+friend class GradientProjection;
+friend class AlignmentConstraint;
+};
+typedef std::vector<SeparationConstraint*> SeparationConstraints;
 
 // A distribution constraint specifies an ordered set of alignment constraints
 // and a separation required between them.
@@ -66,9 +97,10 @@ typedef std::vector<DistributionConstraint*> DistributionConstraints;
 class PageBoundaryConstraints {
 public:
     PageBoundaryConstraints(double lm, double rm, double w)
-        : leftMargin(lm), rightMargin(rm), weight(w) { }
+        : leftMargin(lm), rightMargin(rm), 
+          actualLeftMargin(0), actualRightMargin(0),
+          weight(w), vl(NULL), vr(NULL) { }
     void createVarsAndConstraints(Variables &vs, Constraints &cs) {
-        vpsc::Variable* vl, * vr;
         // create 2 dummy vars, based on the dimension we are in
         vs.push_back(vl=new vpsc::Variable(vs.size(), leftMargin, weight));
         vs.push_back(vr=new vpsc::Variable(vs.size(), rightMargin, weight));
@@ -80,11 +112,24 @@ public:
             cs.push_back(new vpsc::Constraint(vs[o->first], vr, o->second));
         }
     }
+    void setActualMargins() {
+        actualLeftMargin = vl->position();
+        actualRightMargin = vr->position();
+    }
+    double getActualLeftMargin() {
+        return actualLeftMargin;
+    }
+    double getActualRightMargin() {
+        return actualRightMargin;
+    }
     OffsetList offsets;
 private:
     double leftMargin;
     double rightMargin;
+    double actualLeftMargin;
+    double actualRightMargin;
     double weight;
+    vpsc::Variable *vl, *vr;
 };
 
 enum Dim { HORIZONTAL, VERTICAL };
@@ -121,6 +166,7 @@ public:
               nonOverlapConstraints(nonOverlapConstraints),
               tolerance(tol), 
               acs(acs), 
+              pbc(pbc),
               max_iterations(max_iterations),
               sparseQ(NULL),
               localSparseMapCreated(false)
@@ -201,9 +247,7 @@ public:
         }
         if (sc) {
             for(SeparationConstraints::iterator c=sc->begin(); c!=sc->end();++c) {
-                gcs.push_back(new vpsc::Constraint(
-                        vars[(*c)->left],vars[(*c)->right],
-                        (*c)->gap,(*c)->equality));
+                (*c)->createConstraint(vars,gcs);
             }
         }
         if(Q) {
@@ -222,16 +266,14 @@ public:
     }
 	unsigned solve(valarray<double> const & b);
     unsigned getSize() { return n; }
-    void unfixPositions() {
-        for(unsigned i=0;i<n;i++) {
-            if(fixedPositions[i]) {
-                fixedPositions[i]=false;
-                vars[i]->weight=1;
-            }
+    void unfixPos(unsigned i) {
+        if(fixedPositions[i]) {
+            fixedPositions[i]=false;
+            vars[i]->weight=1;
         }
     }
     void fixPos(unsigned i,double pos) {
-        vars[i]->weight=100.;
+        vars[i]->weight=100000.;
         vars[i]->desiredPosition=pos;
         place[i]=pos;
         fixedPositions[i]=true;
@@ -257,6 +299,7 @@ private:
     NonOverlapConstraints nonOverlapConstraints;
     double tolerance;
     AlignmentConstraints* acs;
+    PageBoundaryConstraints *pbc;
     unsigned max_iterations;
     cola::SparseMatrix * sparseQ; // sparse components of goal function
 	Variables vars; // all variables
@@ -267,6 +310,7 @@ private:
     bool localSparseMapCreated;
     valarray<bool> fixedPositions;
 };
+} // namespace cola
 
 #endif /* _GRADIENT_PROJECTION_H */
 

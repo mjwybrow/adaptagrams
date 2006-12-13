@@ -26,10 +26,10 @@ class Cluster {
 public:
     double margin;
     vector<unsigned> nodes;
+    valarray<double> hullX, hullY;
     Cluster() : margin(2.) {};
     Cluster(const std::size_t n, const unsigned ns[]);
-    void computeBoundary(vector<Rectangle*> const & rs,
-            valarray<double> & X, valarray<double> & Y) const;
+    void computeBoundary(vector<Rectangle*> const & rs);
 };
 typedef vector<Cluster*> Clusters;
 
@@ -107,13 +107,18 @@ typedef vector<LinearConstraint*> LinearConstraints;
  * Keeps a local copy of the x and y GradientProjection instances.
  * Use it for things like locking the position of nodes just for the duration of the iteration.
  */ 
+struct Lock {
+    unsigned id;
+    double x,y;
+    Lock(unsigned id, double x, double y) : id(id), x(x), y(y) {}
+};
+typedef vector<Lock> Locks;
 class PreIteration {
 public:
+    PreIteration(Locks& locks) : locks(locks) {}
     virtual ~PreIteration() {}
     virtual void operator()(GradientProjection* gpX, GradientProjection* gpY) {}
-    vector<unsigned> nodes;
-    vector<double> X;
-    vector<double> Y;
+    Locks& locks;
 private:
 };
 /** 
@@ -168,7 +173,7 @@ public:
     ConstrainedMajorizationLayout(
         vector<Rectangle*>& rs,
         vector<Edge> const & es,
-        Clusters const * cs,
+        Clusters* cs,
         double const idealLength,
         std::valarray<double> const * eweights=NULL,
         TestConvergence& done=defaultTest,
@@ -266,8 +271,7 @@ public:
 
     void moveBoundingBoxes() {
         for(unsigned i=0;i<n;i++) {
-            boundingBoxes[i]->moveCentreX(X[i]);
-            boundingBoxes[i]->moveCentreY(Y[i]);
+            boundingBoxes[i]->moveCentre(X[i],Y[i]);
         }
     }
 
@@ -320,7 +324,7 @@ private:
      *  - compute convex hull of each cluster
      *  - from convex hull generate "StraightenEdges"
      */
-    Clusters const * clusters;
+    Clusters *clusters;
     LinearConstraints *linearConstraints;
     GradientProjection *gpX, *gpY;
     NonOverlapConstraints avoidOverlaps;

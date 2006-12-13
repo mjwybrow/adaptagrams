@@ -92,25 +92,31 @@ public:
 	void decreaseKey( PairNode<T> *p, const T & newVal );
 	void merge( PairingHeap<T> *rhs )
 	{	
-		PairNode<T> *broot=rhs->getRoot();
+		unsigned rhsSize;
+		PairNode<T> *broot=rhs->removeRootForMerge(rhsSize);
 		if (root == NULL) {
-			root = broot;
+			if(broot != NULL) {
+				root = broot;
+			}
 		} else {
 			compareAndLink(root, broot);
 		}
-		counter+=rhs->size();
+		counter+=rhsSize;
 	}
 
 	const PairingHeap & operator=( const PairingHeap & rhs );
 protected:
-	PairNode<T> * getRoot() {
+	// Destructively gets the root for merging into another heap.
+	PairNode<T> * removeRootForMerge(unsigned& size) {
 		PairNode<T> *r=root;
 		root=NULL;
+		size=counter;
+		counter=0;
 		return r;
 	}
+	bool (*lessThan)(T const &lhs, T const &rhs);
 private:
 	PairNode<T> *root;
-	bool (*lessThan)(T const &lhs, T const &rhs);
 	unsigned counter;
 	void reclaimMemory( PairNode<T> *t ) const;
 	void compareAndLink( PairNode<T> * & first, PairNode<T> *second ) const;

@@ -20,6 +20,7 @@
 
 using namespace std;
 using namespace vpsc;
+namespace cola {
 
 static inline double dotProd(valarray<double> const & a, valarray<double> const & b) {
     double p = 0;
@@ -228,6 +229,9 @@ void GradientProjection::destroyVPSC(IncSolver *vpsc) {
             (*ac)->updatePosition();
         }
     }
+    if(pbc) {
+        pbc->setActualMargins();
+    }
     unsigned m,n;
     Constraint** cs = vpsc->getConstraints(m);
     const Variable* const* vs = vpsc->getVariables(n);
@@ -239,5 +243,6 @@ void GradientProjection::destroyVPSC(IncSolver *vpsc) {
     }
     lcs.clear();
 }
+} // namespace cola
 
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4 :

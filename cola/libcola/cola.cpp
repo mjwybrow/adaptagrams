@@ -13,7 +13,7 @@ ConstrainedMajorizationLayout
 ::ConstrainedMajorizationLayout(
         vector<Rectangle*>& rs,
         vector<Edge> const & es,
-        Clusters const *cs,
+        Clusters *cs,
         double const idealLength,
         std::valarray<double> const * eweights,
         TestConvergence& done,
@@ -149,17 +149,14 @@ void ConstrainedMajorizationLayout::run(bool x, bool y) {
         }
         if(preIteration) {
             (*preIteration)(gpX,gpY);
-            if(constrainedLayout) {
-                gpX->unfixPositions();
-                gpY->unfixPositions();
-            }
-            for(unsigned i=0;i<preIteration->nodes.size();i++) {
-                unsigned j=preIteration->nodes[i];
-                X[j]=preIteration->X[i];
-                Y[j]=preIteration->Y[i];
+            for(vector<Lock>::iterator l=preIteration->locks.begin();
+                    l!=preIteration->locks.end();l++) {
+                X[l->id]=l->x;
+                Y[l->id]=l->y;
+                boundingBoxes[l->id]->moveCentre(l->x,l->y);
                 if(constrainedLayout) {
-                    gpX->fixPos(j,X[j]);
-                    gpY->fixPos(j,Y[j]);
+                    gpX->fixPos(l->id,X[l->id]); 
+                    gpY->fixPos(l->id,Y[l->id]);
                 }
             }
         }
@@ -171,11 +168,11 @@ void ConstrainedMajorizationLayout::run(bool x, bool y) {
             if(x) majlayout(Dij,gpX,X);
             if(y) majlayout(Dij,gpY,Y);
         }
-        if(preIteration) {
-            for(unsigned i=0;i<preIteration->nodes.size();i++) {
-                unsigned j=preIteration->nodes[i];
-                X[j]=preIteration->X[i];
-                Y[j]=preIteration->Y[i];
+        if(preIteration && constrainedLayout) {
+            for(vector<Lock>::iterator l=preIteration->locks.begin();
+                    l!=preIteration->locks.end();l++) {
+                gpX->unfixPos(l->id);
+                gpY->unfixPos(l->id);
             }
         }
     } while(!done(compute_stress(Dij),X,Y));
@@ -186,7 +183,7 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
 		snodes.push_back(new straightener::Node(i,boundingBoxes[i]));
 	}
     vector<straightener::Cluster*> sclusters;
-    if(nonOverlappingClusters) {
+    if(nonOverlappingClusters && clusters) {
         generateClusterBoundaries(dim,snodes,sedges,boundingBoxes,*clusters,sclusters);
     }
     SeparationConstraints *gcs=dim==HORIZONTAL?scx:scy;
@@ -269,12 +266,24 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
             (AlignmentConstraints*)acs,dcs,None,
             &boundingBoxes,(PageBoundaryConstraints*)pbcs,
             &Q,&cs);
+    if(preIteration) {
+        for(vector<Lock>::iterator l=preIteration->locks.begin();
+                l!=preIteration->locks.end();l++) {
+            gp.fixPos(l->id,dim==HORIZONTAL?X[l->id]:Y[l->id]); 
+        }
+    }
     constrainedLayout = true;
     majlayout(Dij,&gp,coords);
     for(unsigned i=0;i<sedges.size();i++) {
         sedges[i]->createRouteFromPath(X,Y);
         sedges[i]->dummyNodes.clear();
         sedges[i]->path.clear();
+    }
+    for(unsigned i=0;i<sclusters.size();i++) {
+        Cluster *c = (*clusters)[i];
+        straightener::Cluster *sc = sclusters[i];
+        sc->getActualBoundary(c->hullX,c->hullY);
+        delete sc;
     }
     for(unsigned i=gcs?gcs->size():0;i<cs.size();i++) {
         delete cs[i];

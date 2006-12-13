@@ -9,8 +9,7 @@ namespace cola {
             nodes.push_back(nodeList[i]);
         }
     }
-    void Cluster::computeBoundary(vector<Rectangle*> const & rs,
-                valarray<double> & hullX, valarray<double> & hullY) const {
+    void Cluster::computeBoundary(vector<Rectangle*> const & rs) {
         valarray<double> X(4*nodes.size());
         valarray<double> Y(X.size());
         unsigned pctr=0;

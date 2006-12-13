@@ -119,16 +119,15 @@ namespace straightener {
     int compare_events(const void *a, const void *b) {
         Event *ea=*(Event**)a;
         Event *eb=*(Event**)b;
-        if(ea->v!=NULL&&ea->v==eb->v||ea->e!=NULL&&ea->e==eb->e) {
-            // when comparing opening and closing from object
-            // open must come first
-            if(ea->type==Open) return -1;
-            return 1;
-        } else if(ea->pos > eb->pos) {
+        if(ea->pos > eb->pos) {
             return 1;
         } else if(ea->pos < eb->pos) {
             return -1;
-        }	
+        } else {
+            // All opens should come before closes at the same position
+            if(ea->type==Open && eb->type==Close) return -1;
+            if(ea->type==Close && eb->type==Open) return 1;
+        }
         return 0;
     }
 
@@ -140,7 +139,7 @@ namespace straightener {
      * The new dummy nodes are also added to the end of the canonical
      * node list: nodes.
      */
-    void sortNeighbours(const Dim dim, Node * v, Node * l, Node * r, 
+    void sortNeighbours(const cola::Dim dim, Node * v, Node * l, Node * r, 
             const double conjpos, vector<Edge*> const & openEdges, 
             vector<Node *>& L,vector<Node *>& nodes) {
         double minpos=-DBL_MAX, maxpos=DBL_MAX;
@@ -153,7 +152,7 @@ namespace straightener {
         for(unsigned i=0;i<openEdges.size();i++) {
             Edge *e=openEdges[i];
             vector<double> bs;
-            if(dim==HORIZONTAL) {
+            if(dim==cola::HORIZONTAL) {
                 e->xpos(conjpos,bs);
             } else {
                 e->ypos(conjpos,bs);
@@ -173,7 +172,7 @@ namespace straightener {
             if(e->startNode==v->id||e->endNode==v->id) continue;
             //if(l!=NULL&&(e->startNode==l->id||e->endNode==l->id)) continue;
             //cerr << "edge("<<e->startNode<<","<<e->endNode<<",pts="<<e->pts<<")"<<endl;
-            Node* d=dim==HORIZONTAL?
+            Node* d=dim==cola::HORIZONTAL?
                 new Node(nodes.size(),pos,conjpos,e):
                 new Node(nodes.size(),conjpos,pos,e);
             L.push_back(d);
@@ -194,7 +193,7 @@ namespace straightener {
             if(e->startNode==v->id||e->endNode==v->id) continue;
             //if(r!=NULL&&(e->startNode==r->id||e->endNode==r->id)) continue;
             //cerr << "edge("<<e->startNode<<","<<e->endNode<<",pts="<<e->pts<<")"<<endl;
-            Node* d=dim==HORIZONTAL?
+            Node* d=dim==cola::HORIZONTAL?
                 new Node(nodes.size(),pos,conjpos,e):
                 new Node(nodes.size(),conjpos,pos,e);
             L.push_back(d);
@@ -204,16 +203,17 @@ namespace straightener {
             L.push_back(r);
         }
     }
-    static SeparationConstraint* createConstraint(Node* u, Node* v, Dim dim) {
-        double g=dim==HORIZONTAL?(u->width+v->width):(u->height+v->height);
+    static cola::SeparationConstraint* createConstraint(
+            Node* u, Node* v, cola::Dim dim) {
+        double g=dim==cola::HORIZONTAL?(u->width+v->width):(u->height+v->height);
         g/=2;
-        double sep=dim==HORIZONTAL?(v->x-u->x):(v->y-u->y);
+        double sep=dim==cola::HORIZONTAL?(v->x-u->x):(v->y-u->y);
         if(sep < g) {
             u->active = true;
             v->active = true;
         }
         //cerr << "Constraint: "<< u->id << "+"<<g<<"<="<<v->id<<endl;
-        return new SeparationConstraint(u->id,v->id,g);
+        return new cola::SeparationConstraint(u->id,v->id,g);
     }
 
     /**
@@ -226,15 +226,15 @@ namespace straightener {
      * nodes/edges.
      */
     void generateConstraints(
-            const Dim dim, 
+            const cola::Dim dim, 
             vector<Node*> & nodes, 
             vector<Edge*> & edges, 
-            vector<SeparationConstraint*>& cs) {
+            vector<cola::SeparationConstraint*>& cs) {
         unsigned nevents=2*nodes.size()+2*edges.size();
         events=new Event*[nevents];
         unsigned ctr=0;
-        double nodeFudge=0.01, edgeFudge=-1;
-        if(dim==HORIZONTAL) {
+        double nodeFudge=1, edgeFudge=0;
+        if(dim==cola::HORIZONTAL) {
             //cout << "Scanning top to bottom..." << endl;
             for(unsigned i=0;i<nodes.size();i++) {
                 Node *v=nodes[i];
@@ -395,6 +395,7 @@ namespace straightener {
                 } else {
                     //printf("EdgeClose@%f,eid=%d,(u,v)=(%d,%d)\n", e->pos,e->e->id,e->e->startNode,e->e->endNode);
                     unsigned i=e->e->openInd;
+                    assert(openEdges.size()>0);
                     openEdges[i]=openEdges[openEdges.size()-1];
                     openEdges[i]->openInd=i;
                     openEdges.resize(openEdges.size()-1);
@@ -413,43 +414,44 @@ namespace straightener {
      *   create a chain of dummy nodes for cluster boundary
      */
     void generateClusterBoundaries(
-		    const Dim dim,
+		    const cola::Dim dim,
 		    vector<straightener::Node*> & nodes,
             vector<straightener::Edge*> & edges,
             vector<vpsc::Rectangle*> const & rs,
 		    cola::Clusters const & clusters,
 		    vector<straightener::Cluster*>& sclusters) {
         sclusters.clear();
-        for(cola::Clusters::const_iterator c=clusters.begin();
-                c!=clusters.end(); c++) {
+        for(cola::Clusters::const_iterator i=clusters.begin();
+                i!=clusters.end(); i++) {
+            cola::Cluster* c=*i;
             straightener::Cluster* sc=new straightener::Cluster;
             // compute scanpos based on average position in scan direction
             sc->scanpos=0;
-            for(unsigned i=0;i<(*c)->nodes.size();i++) {
-                straightener::Node* u = nodes[(*c)->nodes[i]];
-                sc->scanpos+=dim==HORIZONTAL?u->x:u->y;
+            for(unsigned i=0;i<c->nodes.size();i++) {
+                straightener::Node* u = nodes[c->nodes[i]];
+                sc->scanpos+=dim==cola::HORIZONTAL?u->x:u->y;
                 u->cluster = sc;
             }
-            sc->scanpos/=(*c)->nodes.size();
+            sc->scanpos/=c->nodes.size();
             sclusters.push_back(sc);
-            (*c)->computeBoundary(rs,sc->hullX,sc->hullY);
+            c->computeBoundary(rs);
             // create a chain of dummy nodes for the boundary
-            Node* first = new Node(nodes.size(),sc->hullX[0],sc->hullY[0]);
+            Node* first = new Node(nodes.size(),c->hullX[0],c->hullY[0]);
             nodes.push_back(first);
             Node* u = first;
             unsigned i=1;
-            for(;i<sc->hullX.size();i++) {
-                Node* v = new Node(nodes.size(),sc->hullX[i],sc->hullY[i]);
+            for(;i<c->hullX.size();i++) {
+                Node* v = new Node(nodes.size(),c->hullX[i],c->hullY[i]);
                 nodes.push_back(v);
                 Edge* e = new Edge(edges.size(),u->id,v->id,
-                            sc->hullX[i-1],sc->hullY[i-1],sc->hullX[i],sc->hullY[i]);
+                            c->hullX[i-1],c->hullY[i-1],c->hullX[i],c->hullY[i]);
                 edges.push_back(e);
                 sc->boundary.push_back(e);
                 u=v;
             }
             edges.push_back(
                     new Edge(edges.size(),u->id,first->id,
-                        sc->hullX[i-1],sc->hullY[i-1],sc->hullX[0],sc->hullY[0]));
+                        c->hullX[i-1],c->hullY[i-1],c->hullX[0],c->hullY[0]));
         }
     }
 }
