@@ -127,7 +127,6 @@ private:
 	PairNode<T> * clone( PairNode<T> * t ) const;
 };
 
-using namespace std;   // fixme: Remove this, especially since this is a #include file.
 
 /**
 * Construct the pairing heap.
@@ -361,7 +360,7 @@ PairingHeap<T>::combineSiblings( PairNode<T> *firstSibling ) const
 		return firstSibling;
 
 	// Allocate the array
-	static vector<PairNode<T> *> treeArray( 5 );
+	static std::vector<PairNode<T> *> treeArray( 5 );
 
 	// Store the subtrees in an array
 	int numSiblings = 0;
@@ -418,12 +417,12 @@ PairingHeap<T>::clone( PairNode<T> * t ) const
 }
 
 template <class T>
-ostream& operator <<(ostream &os, const PairingHeap<T> &b)
+std::ostream& operator <<(std::ostream &os, const PairingHeap<T> &b)
 {
 	os<<"Heap:";
 	if (b.root != NULL) {
 		PairNode<T> *r = b.root;
-		list<PairNode<T>*> q;
+		std::list<PairNode<T>*> q;
 		q.push_back(r);
 		while (!q.empty()) {
 			r = q.front();
