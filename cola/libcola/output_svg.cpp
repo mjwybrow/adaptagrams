@@ -39,18 +39,17 @@ void output_svg(vector<Rectangle*> const & rs,
 
 void draw_cluster_boundary(Cairo::RefPtr<Cairo::Context> const &cr,
         vector<vpsc::Rectangle*> const &rs,
-        Cluster const &c,
+        Cluster &c,
         const double xmin,
         const double ymin) {
-    valarray<double> X, Y;
-    c.computeBoundary(rs,X,Y);
+    c.computeBoundary(rs);
     cr->save();
     cr->set_source_rgb(0.7, 0.7, 224./255.);
-    cr->move_to(X[0]-xmin,Y[0]-ymin);
-    for(unsigned i=1;i<X.size();i++) {
-        cr->line_to(X[i]-xmin,Y[i]-ymin);
+    cr->move_to(c.hullX[0]-xmin,c.hullY[0]-ymin);
+    for(unsigned i=1;i<c.hullX.size();i++) {
+        cr->line_to(c.hullX[i]-xmin,c.hullY[i]-ymin);
     }
-    cr->line_to(X[0]-xmin,Y[0]-ymin);
+    cr->line_to(c.hullX[0]-xmin,c.hullY[0]-ymin);
     cr->fill();
     cr->restore();
 }
