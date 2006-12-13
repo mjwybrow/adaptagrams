@@ -16,6 +16,7 @@
  * Released under GNU LGPL.  Read the file 'COPYING' for more information.
  */
 
+#include <cassert>
 #include <vector>
 #include <list>
 #include "dsexceptions.h"
@@ -73,10 +74,12 @@ PairingHeap<T>::insert( const T & x )
 	counter++;
 	return newNode;
 }
+
 template <class T>
 unsigned PairingHeap<T>::size() const {
 	return counter;
 }
+
 /**
 * Find the smallest item in the priority queue.
 * Return the smallest item, or throw Underflow if empty.
@@ -104,7 +107,8 @@ void PairingHeap<T>::deleteMin( )
         root = NULL;
     else
         root = combineSiblings( root->leftChild );
-	counter--;
+    assert(counter);
+    counter--;
     delete oldRoot;
 }
 
