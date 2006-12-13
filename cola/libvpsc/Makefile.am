@@ -4,7 +4,6 @@ libvpsc_a_SOURCES = block.cpp\
 	blocks.cpp\
 	constraint.cpp\
 	rectangle.cpp\
-	pairingheap/PairingHeap.cpp\
 	remove_rectangle_overlap.cpp\
 	solve_VPSC.cpp\
 	csolve_VPSC.cpp\
@@ -16,7 +15,6 @@ libvpsc_a_SOURCES = block.cpp\
 	constraint.h\
 	rectangle.h\
 	pairingheap/PairingHeap.h\
-	pairingheap/dsexceptions.h\
 	remove_rectangle_overlap.h\
 	solve_VPSC.h\
 	csolve_VPSC.h\
