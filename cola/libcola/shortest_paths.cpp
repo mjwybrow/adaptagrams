@@ -4,7 +4,7 @@
 #include <float.h>
 #include <cassert>
 #include <iostream>
-#include <libvpsc/PairingHeap.h>
+#include <libvpsc/pairing_heap.h>
 using namespace std;
 namespace shortest_paths {
 // O(n^3) time dynamic programming approach.  Slow, but fool proof.  Use for testing.
