@@ -33,7 +33,6 @@ class Underflow { };
 // deleteMin( minItem )   --> Remove (and optionally return) smallest item
 // T findMin( )  --> Return smallest item
 // bool isEmpty( )        --> Return true if empty; else false
-// bool isFull( )         --> Return true if empty; else false
 // void makeEmpty( )      --> Remove all items
 // void decreaseKey( PairNode p, newVal )
 //                        --> Decrease value in node p
@@ -59,14 +58,15 @@ template <class T, class TCompare = std::less<T> >
 class PairingHeap
 {
 public:
-	PairingHeap( );
-	PairingHeap( const PairingHeap & rhs );
-	~PairingHeap( );
-
-	bool isEmpty( ) const;
-	bool isFull( ) const;
-	unsigned size() const;
-
+	PairingHeap() : root(NULL), counter(0) { }
+	PairingHeap(const PairingHeap & rhs) { 
+		// uses operator= to make deep copy
+		*this = rhs; 
+	}
+	~PairingHeap() { makeEmpty(); }
+	const PairingHeap & operator=( const PairingHeap & rhs );
+	bool isEmpty() const { return root == NULL; }
+	unsigned size() const { return counter; }
 	PairNode<T> *insert( const T & x );
 	const T & findMin( ) const;
 	void deleteMin( );
@@ -75,21 +75,13 @@ public:
 		deleteMin();
 		return v;
 	}
-	void makeEmpty( );
-	void decreaseKey( PairNode<T> *p, const T & newVal );
-	void merge( PairingHeap<T,TCompare> *rhs )
-	{	
-		unsigned rhsSize;
-		PairNode<T> *broot=rhs->removeRootForMerge(rhsSize);
-		if (root == NULL) {
-			root = broot;
-		} else {
-			compareAndLink(root, broot);
-		}
-		counter+=rhsSize;
+	void makeEmpty() {
+		reclaimMemory(root);
+		root = NULL;
+		counter = 0;
 	}
-
-	const PairingHeap & operator=( const PairingHeap & rhs );
+	void decreaseKey( PairNode<T> *p, const T & newVal );
+	void merge( PairingHeap<T,TCompare> *rhs );
 protected:
 	// Destructively gets the root for merging into another heap.
 	PairNode<T> * removeRootForMerge(unsigned& size) {
@@ -111,37 +103,6 @@ private:
 
 
 /**
-* Construct the pairing heap.
-*/
-template <class T,class TCompare>
-PairingHeap<T,TCompare>::PairingHeap( )
-{
-	root = NULL;
-	counter=0;
-}
-
-
-/**
-* Copy constructor
-*/
-template <class T, class TCompare>
-PairingHeap<T,TCompare>::PairingHeap( const PairingHeap<T,TCompare> & rhs )
-{
-	root = NULL;
-	counter=rhs->size();
-	*this = rhs;
-}
-
-/**
-* Destroy the leftist heap.
-*/
-template <class T,class TCompare>
-PairingHeap<T,TCompare>::~PairingHeap( )
-{
-	makeEmpty( );
-}
-
-/**
 * Insert item x into the priority queue, maintaining heap order.
 * Return a pointer to the node containing the new item.
 */
@@ -157,11 +118,6 @@ PairingHeap<T,TCompare>::insert( const T & x )
 		compareAndLink( root, newNode );
 	counter++;
 	return newNode;
-}
-
-template <class T,class TCompare>
-unsigned PairingHeap<T,TCompare>::size() const {
-	return counter;
 }
 
 /**
@@ -194,37 +150,6 @@ void PairingHeap<T,TCompare>::deleteMin( )
     assert(counter);
     counter--;
     delete oldRoot;
-}
-
-/**
-* Test if the priority queue is logically empty.
-* Returns true if empty, false otherwise.
-*/
-template <class T,class TCompare>
-bool PairingHeap<T,TCompare>::isEmpty( ) const
-{
-	return root == NULL;
-}
-
-/**
-* Test if the priority queue is logically full.
-* Returns false in this implementation.
-*/
-template <class T,class TCompare>
-bool PairingHeap<T,TCompare>::isFull( ) const
-{
-	return false;
-}
-
-/**
-* Make the priority queue logically empty.
-*/
-template <class T,class TCompare>
-void PairingHeap<T,TCompare>::makeEmpty( )
-{
-	reclaimMemory( root );
-	root = NULL;
-	counter = 0;
 }
 
 /**
@@ -285,6 +210,22 @@ void PairingHeap<T,TCompare>::decreaseKey( PairNode<T> *p,
 		p->nextSibling = NULL;
 		compareAndLink( root, p );
 	}
+}
+
+/**
+ * Merges rhs into this pairing heap by inserting its root
+ */
+template <class T,class TCompare>
+void PairingHeap<T,TCompare>::merge( PairingHeap<T,TCompare> *rhs )
+{	
+	unsigned rhsSize;
+	PairNode<T> *broot=rhs->removeRootForMerge(rhsSize);
+	if (root == NULL) {
+		root = broot; 
+	} else {
+		compareAndLink(root, broot);
+	}
+	counter+=rhsSize;
 }
 
 /**
