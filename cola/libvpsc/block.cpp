@@ -11,7 +11,7 @@
  * Released under GNU LGPL.  Read the file 'COPYING' for more information.
  */
 #include <cassert>
-#include "PairingHeap.h"
+#include "pairing_heap.h"
 #include "constraint.h"
 #include "exceptions.h"
 #include "block.h"
