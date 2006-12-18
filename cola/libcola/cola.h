@@ -45,31 +45,6 @@ public:
 };
 typedef vector<Cluster*> Clusters;
 
-// a graph component with a list of node_ids giving indices for some larger list of nodes
-// for the nodes in this component, 
-// and a list of edges - node indices relative to this component
-class Component {
-public:
-    vector<unsigned> node_ids;
-    vector<Rectangle*> rects;
-    vector<Edge> edges;
-    CompoundConstraints cx, cy;
-    ~Component();
-    void moveRectangles(double x, double y);
-    Rectangle* getBoundingBox();
-};
-// for a graph of n nodes, return connected components
-void connectedComponents(
-    const vector<Rectangle*> &rs,
-    const vector<Edge> &es,
-    const CompoundConstraints &cx,
-    const CompoundConstraints &cy, 
-    vector<Component*> &components);
-
-// move the contents of each component so that the components do not
-// overlap.
-void separateComponents(const vector<Component*> &components);
-
 // defines references to three variables for which the goal function
 // will be altered to prefer points u-b-v are in a linear arrangement
 // such that b is placed at u+t(v-u).

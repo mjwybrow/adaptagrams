@@ -1,7 +1,7 @@
 #include <map>
 #include <list>
 #include <libvpsc/remove_rectangle_overlap.h>
-#include "cola.h"
+#include "connected_components.h"
 using namespace std;
 
 namespace cola {

@@ -55,7 +55,7 @@ struct PairNode
        	{ }
 };
 
-template <class T, class TCompare >
+template <class T, class TCompare = std::less<T> >
 class PairingHeap
 {
 public:
