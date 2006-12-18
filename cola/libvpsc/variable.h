@@ -28,6 +28,7 @@ public:
 	double offset;
 	Block *block;
 	bool visited;
+	bool fixedDesiredPosition;
 	Constraints in;
 	Constraints out;
 	char *toString();
@@ -38,6 +39,7 @@ public:
 		, offset(0)
 		, block(NULL)
 		, visited(false)
+		, fixedDesiredPosition(false)
 	{
 	}
 	inline double position() const {

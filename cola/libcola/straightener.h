@@ -3,8 +3,7 @@
 #include <set>
 #include <libvpsc/rectangle.h>
 #include <valarray>
-#include "gradient_projection.h"
-namespace cola { class Cluster; }
+#include "cola.h"
 namespace straightener {
     using std::valarray;
     struct Route {
@@ -67,7 +66,7 @@ namespace straightener {
             if(startNode==n||endNode==n) return true;
             return false;
         }
-        void nodePath(std::vector<Node*>& nodes);
+        void nodePath(std::vector<Node*>& nodes, bool allActive);
         void createRouteFromPath(valarray<double> const & X, valarray<double> const & Y) {
             Route* r=new Route(path.size());
             for(unsigned i=0;i<path.size();i++) {
@@ -101,24 +100,26 @@ namespace straightener {
     };
     class Cluster {
     public:
+        cola::ConvexCluster* colaCluster;
+        Cluster(cola::ConvexCluster* c) : colaCluster(c) {}
         double scanpos;
         std::vector<Edge*> boundary;
-        void getActualBoundary(valarray<double> &X, valarray<double> &Y) const
+        void updateActualBoundary()
         {
             unsigned n=0;
             for(std::vector<Edge*>::const_iterator e=boundary.begin();
                     e!=boundary.end();e++) {
                 n+=(*e)->route->n;
             }
-            X.resize(n);
-            Y.resize(n);
+            colaCluster->hullX.resize(n);
+            colaCluster->hullY.resize(n);
             unsigned i=0;
             for(std::vector<Edge*>::const_iterator e=boundary.begin();
                     e!=boundary.end();e++) {
                 Route* r=(*e)->route;
                 for(unsigned j=0;j<r->n;j++) {
-                    X[i]=r->xs[j];
-                    Y[i++]=r->ys[j];
+                    colaCluster->hullX[i]=r->xs[j];
+                    colaCluster->hullY[i++]=r->ys[j];
                 }
             }
         }
@@ -194,7 +195,7 @@ namespace straightener {
             const cola::Dim dim, 
             std::vector<Node*> & nodes, 
             std::vector<Edge*> & edges, 
-            std::vector<cola::SeparationConstraint*>& cs);
+            std::vector<cola::CompoundConstraint*>& cs);
     void nodePath(Edge& e, std::vector<Node*>& nodes, std::vector<unsigned>& path);
     void generateClusterBoundaries(
 		    const cola::Dim dim,
@@ -203,7 +204,7 @@ namespace straightener {
             std::vector<vpsc::Rectangle*> const & rs,
 		    std::vector<cola::Cluster*> const & clusters,
 		    std::vector<straightener::Cluster*>& sclusters);
-}
+} // namespace straightener
 
 #endif
 // vim: cindent ts=4 sw=4 et tw=0 wm=0

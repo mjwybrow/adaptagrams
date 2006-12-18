@@ -6,12 +6,14 @@ using namespace std;
 
 namespace cola {
     Component::~Component() {
+        /*
         for(unsigned i=0;i<scx.size();i++) {
             delete scx[i];
         }
         for(unsigned i=0;i<scy.size();i++) {
             delete scy[i];
         }
+        */
     }
     void Component::moveRectangles(double x, double y) {
         for(unsigned i=0;i<rects.size();i++) {
@@ -63,8 +65,8 @@ namespace cola {
     void connectedComponents(
             const vector<Rectangle*> &rs,
             const vector<Edge> &es, 
-            const SeparationConstraints &scx,
-            const SeparationConstraints &scy,
+            //const SeparationConstraints &scx,
+            //const SeparationConstraints &scy,
             vector<Component*> &components) {
         unsigned n=rs.size();
         vector<Node> vs(n);
@@ -76,7 +78,6 @@ namespace cola {
             vs[i].listPos = remaining.insert(remaining.end(),&vs[i]);
         }
         vector<Edge>::const_iterator ei;
-        SeparationConstraints::const_iterator ci;
         for(ei=es.begin();ei!=es.end();ei++) {
             vs[ei->first].neighbours.push_back(&vs[ei->second]);
             vs[ei->second].neighbours.push_back(&vs[ei->first]);
@@ -94,6 +95,8 @@ namespace cola {
             assert(u.first==v.first);
             u.first->edges.push_back(make_pair(u.second,v.second));
         }
+        /*
+        SeparationConstraints::const_iterator ci;
         for(ci=scx.begin();ci!=scx.end();ci++) {
             SeparationConstraint *c=*ci;
             pair<Component*,unsigned> u=cmap[c->left],
@@ -110,6 +113,7 @@ namespace cola {
             u.first->scy.push_back(
                     new SeparationConstraint(u.second,v.second,c->gap));
         }
+        */
     }
     void separateComponents(const vector<Component*> &components) {
         unsigned n=components.size();

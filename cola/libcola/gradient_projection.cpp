@@ -22,6 +22,8 @@ using namespace std;
 using namespace vpsc;
 namespace cola {
 
+const double DistributionConstraint::w;
+
 static inline double dotProd(valarray<double> const & a, valarray<double> const & b) {
     double p = 0;
     for (unsigned i=0; i<a.size(); i++) {
@@ -124,13 +126,12 @@ unsigned GradientProjection::solve(valarray<double> const &b) {
     for (i=0;i<n;i++) {
         assert(!isnan(place[i]));
         assert(!isinf(place[i]));
-        vars[i]->desiredPosition=place[i];
+        if(!vars[i]->fixedDesiredPosition) vars[i]->desiredPosition=place[i];
     }
     solver->satisfy();
 
     for (i=0;i<n;i++) {
-        if(!fixedPositions[i]) 
-            place[i]=vars[i]->position();
+        place[i]=vars[i]->position();
     }
     	
 	valarray<double> g(n); /* gradient */
@@ -143,11 +144,12 @@ unsigned GradientProjection::solve(valarray<double> const &b) {
 
         // move to new unconstrained position
 		for (i=0; i<n; i++) {
-            if(fixedPositions[i]) continue;
-			place[i]+=alpha*g[i];
+            // dividing by variable weight is a cheap trick to make these
+            // weights mean something in terms of the descent vector
+			place[i]+=alpha*g[i]/vars[i]->weight;
             assert(!isnan(place[i]));
             assert(!isinf(place[i]));
-            vars[i]->desiredPosition=place[i];
+            if(!vars[i]->fixedDesiredPosition) vars[i]->desiredPosition=place[i];
 		}
 
         //project to constraint boundary
@@ -155,7 +157,7 @@ unsigned GradientProjection::solve(valarray<double> const &b) {
         constrainedOptimum=
             solver->satisfy();
         for (i=0;i<n;i++) {
-            if(!fixedPositions[i]) place[i]=vars[i]->position();
+            place[i]=vars[i]->position();
         }
         constrainedOptimum=false;
         if(constrainedOptimum) {
@@ -224,13 +226,10 @@ IncSolver* GradientProjection::setupVPSC() {
     return new IncSolver(vars.size(),vs,m,cs);
 }
 void GradientProjection::destroyVPSC(IncSolver *vpsc) {
-    if(acs) {
-        for(AlignmentConstraints::iterator ac=acs->begin(); ac!=acs->end();++ac) {
-            (*ac)->updatePosition();
+    if(ccs) {
+        for(CompoundConstraints::const_iterator c=ccs->begin(); c!=ccs->end();++c) {
+            (*c)->updatePosition();
         }
-    }
-    if(pbc) {
-        pbc->setActualMargins();
     }
     unsigned m,n;
     Constraint** cs = vpsc->getConstraints(m);

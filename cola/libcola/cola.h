@@ -10,8 +10,11 @@
 #include <iostream>
 #include <cassert>
 #include "gradient_projection.h"
-#include "straightener.h"
 namespace vpsc { class Rectangle; }
+namespace straightener { 
+    class Edge;
+    class StraightenEdges; 
+}
 
 namespace cola {
 using vpsc::Rectangle;
@@ -25,10 +28,19 @@ typedef std::pair<unsigned, unsigned> Edge;
 class Cluster {
 public:
     double margin;
+    double internalEdgeWeightFactor;
     vector<unsigned> nodes;
     valarray<double> hullX, hullY;
-    Cluster() : margin(2.) {};
-    Cluster(const std::size_t n, const unsigned ns[]);
+    Cluster();
+    virtual ~Cluster();
+    virtual void computeBoundary(vector<Rectangle*> const & rs) = 0;
+};
+class RectangularCluster : public Cluster {
+public:
+    void computeBoundary(vector<Rectangle*> const & rs);
+};
+class ConvexCluster : public Cluster {
+public:
     void computeBoundary(vector<Rectangle*> const & rs);
 };
 typedef vector<Cluster*> Clusters;
@@ -41,7 +53,7 @@ public:
     vector<unsigned> node_ids;
     vector<Rectangle*> rects;
     vector<Edge> edges;
-    SeparationConstraints scx, scy;
+    CompoundConstraints cx, cy;
     ~Component();
     void moveRectangles(double x, double y);
     Rectangle* getBoundingBox();
@@ -50,8 +62,8 @@ public:
 void connectedComponents(
     const vector<Rectangle*> &rs,
     const vector<Edge> &es,
-    const SeparationConstraints &scx,
-    const SeparationConstraints &scy, 
+    const CompoundConstraints &cx,
+    const CompoundConstraints &cy, 
     vector<Component*> &components);
 
 // move the contents of each component so that the components do not
@@ -175,36 +187,24 @@ public:
         vector<Edge> const & es,
         Clusters* cs,
         double const idealLength,
+        std::valarray<double> const * startX=NULL,
+        std::valarray<double> const * startY=NULL,
         std::valarray<double> const * eweights=NULL,
         TestConvergence& done=defaultTest,
         PreIteration* preIteration=NULL);
     /**
      * Horizontal alignment constraints
      */
-    void setXAlignmentConstraints(AlignmentConstraints* acsx) {
+    void setXConstraints(CompoundConstraints* ccsx) {
         constrainedLayout = true;
-        this->acsx=acsx;
+        this->ccsx=ccsx;
     }
     /**
      * Vertical alignment constraints
      */
-    void setYAlignmentConstraints(AlignmentConstraints* acsy) {
+    void setYConstraints(CompoundConstraints* ccsy) {
         constrainedLayout = true;
-        this->acsy=acsy;
-    }
-    /**
-     * Horizontal distribution constraints
-     */
-    void setXDistributionConstraints(DistributionConstraints* dcsx) {
-        constrainedLayout = true;
-        this->dcsx=dcsx;
-    }
-    /**
-     * Vertical distribution constraints
-     */
-    void setYDistributionConstraints(DistributionConstraints* dcsy) {
-        constrainedLayout = true;
-        this->dcsy=dcsy;
+        this->ccsy=ccsy;
     }
     /**
      * At each iteration of layout, generate constraints to avoid overlaps.
@@ -215,26 +215,6 @@ public:
     void setAvoidOverlaps(bool horizontal = false) {
         constrainedLayout = true;
         this->avoidOverlaps = horizontal?Horizontal:Both;
-    }
-    void setXPageBoundaryConstraints(PageBoundaryConstraints* pbcx) {
-        constrainedLayout = true;
-        this->pbcx = pbcx;
-    }
-    void setYPageBoundaryConstraints(PageBoundaryConstraints* pbcy) {
-        constrainedLayout = true;
-        this->pbcy = pbcy;
-    }
-    /**
-     * Directly set separation constraints of specific spacing
-     * between pairs of nodes
-     */
-    void setXSeparationConstraints(SeparationConstraints* scx) {
-        constrainedLayout = true;
-        this->scx = scx;
-    }
-    void setYSeparationConstraints(SeparationConstraints* scy) {
-        constrainedLayout = true;
-        this->scy = scy;
     }
     /**
      * Add constraints to prevent clusters overlapping
@@ -256,19 +236,6 @@ public:
         this->bendWeight = bendWeight;
         this->potBendWeight = potBendWeight;
     }
-    /**
-     * one almighty function call to setup all of the above in one go
-     */
-    void setupConstraints(
-        AlignmentConstraints* acsx, AlignmentConstraints* acsy,
-        NonOverlapConstraints avoidOverlaps, 
-        PageBoundaryConstraints* pbcx = NULL,
-        PageBoundaryConstraints* pbcy = NULL,
-        SeparationConstraints* scx = NULL,
-        SeparationConstraints* scy = NULL,
-        vector<straightener::Edge*>* straightenEdges = NULL,
-	double bendWeight = 0.01, double potBendWeight = 0.1);
-
     void moveBoundingBoxes() {
         for(unsigned i=0;i<n;i++) {
             boundingBoxes[i]->moveCentre(X[i],Y[i]);
@@ -295,7 +262,7 @@ private:
             (Y[i] - Y[j]) * (Y[i] - Y[j]));
     }
     double compute_stress(valarray<double> const & Dij);
-    void majlayout(valarray<double> const & Dij,GradientProjection* gp, valarray<double>& coords);
+    void majlayout(valarray<double> const & Dij,GradientProjection* gp, valarray<double>& coords, valarray<double> const * startCoords);
     unsigned n; // number of nodes
     valarray<double> lap2; // graph laplacian
     valarray<double> Q; // quadratic terms matrix used in computations
@@ -304,6 +271,13 @@ private:
     TestConvergence& done;
     PreIteration* preIteration;
     vector<Rectangle*> boundingBoxes;
+    // stickyNodes controls whether nodes are attracted to their starting
+    // positions (at time of ConstrainedMajorizationLayout instantiation)
+    // stored in startX, startY
+    bool stickyNodes;
+    double stickyWeight;
+    valarray<double> const *startX, *startY;
+
     valarray<double> X, Y;
     double edge_length;
     bool constrainedLayout;
@@ -327,12 +301,9 @@ private:
     Clusters *clusters;
     LinearConstraints *linearConstraints;
     GradientProjection *gpX, *gpY;
+    CompoundConstraints *ccsx, *ccsy;
     NonOverlapConstraints avoidOverlaps;
     vector<straightener::Edge*>* straightenEdges;
-    PageBoundaryConstraints *pbcx, *pbcy;
-    SeparationConstraints *scx, *scy;
-    AlignmentConstraints *acsx, *acsy;
-    DistributionConstraints *dcsx, *dcsy;
     
     double bendWeight, potBendWeight;
 };

@@ -30,7 +30,7 @@ unsigned iteration=0;
 
 struct CheckProgress : TestConvergence {
 	CheckProgress(double d,unsigned i) : TestConvergence(d,i) {}
-	bool operator()(double new_stress, valarray<double> const & X, valarray<double> const & Y) {
+	bool operator()(double new_stress, valarray<double> & X, valarray<double> & Y) {
 		cout << "stress="<<new_stress<<endl;
 		char fname[50];
 		sprintf(fname,"containment2%04d.svg",++iteration);
@@ -117,11 +117,11 @@ int main() {
 	cs.push_back(new Cluster(sizeof(d)/su,d));
 	cs.push_back(new Cluster(sizeof(e)/su,e));
 	cs.push_back(new Cluster(sizeof(f)/su,f));
-	CheckProgress test(0.0001,10);
+	CheckProgress test(0.0001,100);
 	ConstrainedMajorizationLayout alg(rs,es,&cs,30,NULL,test);
 	output_svg(rs,es,cs,"containment20000.svg",true);
 	//alg.setYSeparationConstraints(&scy);
-	alg.run();
+	//alg.run();
 	alg.setNonOverlappingClusters();
 	alg.run();
 	for(unsigned i=0;i<V;i++) {

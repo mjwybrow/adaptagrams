@@ -2,6 +2,7 @@
 #define _SPARSE_MATRIX_H
 #include <valarray>
 #include <map>
+#include <iostream>
 namespace cola {
 using std::valarray;
 struct SparseMap {
@@ -17,7 +18,11 @@ struct SparseMap {
     double getIJ(const unsigned i, const unsigned j) const {
         assert(i<n);
         assert(j<n);
-        return lookup.find(std::make_pair(i,j))->second;
+        ConstIt v=lookup.find(std::make_pair(i,j));
+        if(v!=lookup.end()) {
+            return v->second;
+        }
+        return 0;
     }
     unsigned nonZeroCount() const {
         return lookup.size();
@@ -70,6 +75,14 @@ public:
     }
     double getIJ(const unsigned i, const unsigned j) const {
         return sparseMap.getIJ(i,j);
+    }
+    void print() const {
+        for(unsigned i=0;i<n;i++) {
+            for(unsigned j=0;j<n;j++) {
+                printf("%f ",getIJ(i,j));
+            }
+            printf("\n");
+        }
     }
 
 private:

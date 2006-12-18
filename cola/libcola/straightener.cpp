@@ -16,7 +16,6 @@
 #include "straightener.h"
 #include <iostream>
 #include <cmath>
-#include "cola.h"
 
 using std::list;
 using std::make_pair;
@@ -63,10 +62,12 @@ namespace straightener {
      * sets up the path information for an edge,
      * i.e. nodes are added to the path list in the order they appear on the
      * edge, from startNode to endNode.
+     * activePath contains at least the first and last node in the edge.
+     * If allActive is true then
      * activePath list is also set up with a subset of nodes from path, each of
      * which is active (a start/end node or involved in a violated constraint).
      */
-    void Edge::nodePath(vector<Node*>& nodes) {
+    void Edge::nodePath(vector<Node*>& nodes, bool allActive = true) {
         list<unsigned> ds(dummyNodes.size());
         copy(dummyNodes.begin(),dummyNodes.end(),ds.begin());
         //printf("Edge::nodePath: (%d,%d) dummyNodes:%d\n",startNode,endNode,ds.size());
@@ -94,7 +95,7 @@ namespace straightener {
                 }
             }
             for(set<pair<double,unsigned> >::iterator j=pntsOnLineSegment.begin();j!=pntsOnLineSegment.end();j++) {
-                if(nodes[j->second]->active) {
+                if(allActive && nodes[j->second]->active) {
                     activePath.push_back(path.size());
                 }
                 path.push_back(j->second);
@@ -229,7 +230,7 @@ namespace straightener {
             const cola::Dim dim, 
             vector<Node*> & nodes, 
             vector<Edge*> & edges, 
-            vector<cola::SeparationConstraint*>& cs) {
+            vector<cola::CompoundConstraint*>& cs) {
         unsigned nevents=2*nodes.size()+2*edges.size();
         events=new Event*[nevents];
         unsigned ctr=0;
@@ -423,35 +424,36 @@ namespace straightener {
         sclusters.clear();
         for(cola::Clusters::const_iterator i=clusters.begin();
                 i!=clusters.end(); i++) {
-            cola::Cluster* c=*i;
-            straightener::Cluster* sc=new straightener::Cluster;
-            // compute scanpos based on average position in scan direction
-            sc->scanpos=0;
-            for(unsigned i=0;i<c->nodes.size();i++) {
-                straightener::Node* u = nodes[c->nodes[i]];
-                sc->scanpos+=dim==cola::HORIZONTAL?u->x:u->y;
-                u->cluster = sc;
+            if(cola::ConvexCluster* c=dynamic_cast<cola::ConvexCluster*>(*i)) {
+                straightener::Cluster* sc=new straightener::Cluster(c);
+                // compute scanpos based on average position in scan direction
+                sc->scanpos=0;
+                for(unsigned i=0;i<c->nodes.size();i++) {
+                    straightener::Node* u = nodes[c->nodes[i]];
+                    sc->scanpos+=dim==cola::HORIZONTAL?u->x:u->y;
+                    u->cluster = sc;
+                }
+                sc->scanpos/=c->nodes.size();
+                sclusters.push_back(sc);
+                c->computeBoundary(rs);
+                // create a chain of dummy nodes for the boundary
+                Node* first = new Node(nodes.size(),c->hullX[0],c->hullY[0]);
+                nodes.push_back(first);
+                Node* u = first;
+                unsigned i=1;
+                for(;i<c->hullX.size();i++) {
+                    Node* v = new Node(nodes.size(),c->hullX[i],c->hullY[i]);
+                    nodes.push_back(v);
+                    Edge* e = new Edge(edges.size(),u->id,v->id,
+                                c->hullX[i-1],c->hullY[i-1],c->hullX[i],c->hullY[i]);
+                    edges.push_back(e);
+                    sc->boundary.push_back(e);
+                    u=v;
+                }
+                edges.push_back(
+                        new Edge(edges.size(),u->id,first->id,
+                            c->hullX[i-1],c->hullY[i-1],c->hullX[0],c->hullY[0]));
             }
-            sc->scanpos/=c->nodes.size();
-            sclusters.push_back(sc);
-            c->computeBoundary(rs);
-            // create a chain of dummy nodes for the boundary
-            Node* first = new Node(nodes.size(),c->hullX[0],c->hullY[0]);
-            nodes.push_back(first);
-            Node* u = first;
-            unsigned i=1;
-            for(;i<c->hullX.size();i++) {
-                Node* v = new Node(nodes.size(),c->hullX[i],c->hullY[i]);
-                nodes.push_back(v);
-                Edge* e = new Edge(edges.size(),u->id,v->id,
-                            c->hullX[i-1],c->hullY[i-1],c->hullX[i],c->hullY[i]);
-                edges.push_back(e);
-                sc->boundary.push_back(e);
-                u=v;
-            }
-            edges.push_back(
-                    new Edge(edges.size(),u->id,first->id,
-                        c->hullX[i-1],c->hullY[i-1],c->hullX[0],c->hullY[0]));
         }
     }
 }

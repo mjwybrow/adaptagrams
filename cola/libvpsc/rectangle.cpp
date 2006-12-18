@@ -143,8 +143,8 @@ Event **events;
 int compare_events(const void *a, const void *b) {
 	Event *ea=*(Event**)a;
 	Event *eb=*(Event**)b;
-	if(ea->v->r==eb->v->r) {
-		// when comparing opening and closing from the same rect
+	if(ea->pos==eb->pos) {
+		// when comparing opening and closing
 		// open must come first
 		if(ea->type==Open) return -1;
 		return 1;
