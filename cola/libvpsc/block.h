@@ -16,10 +16,11 @@
 
 #include <vector>
 #include <iostream>
-template <class T> class PairingHeap;
+template <class T, class TCompare> class PairingHeap;
 namespace vpsc {
 class Variable;
 class Constraint;
+class CompareConstraints;
 
 class Block
 {
@@ -55,8 +56,8 @@ public:
 	double cost();
 	bool deleted;
 	long timeStamp;
-	PairingHeap<Constraint*> *in;
-	PairingHeap<Constraint*> *out;
+	PairingHeap<Constraint*,CompareConstraints> *in;
+	PairingHeap<Constraint*,CompareConstraints> *out;
 	bool getActivePathBetween(Constraints& path, Variable const* u,
 	       	Variable const* v, Variable const *w) const;
 	bool isActiveDirectedPathBetween(
@@ -74,7 +75,7 @@ private:
 	bool canFollowRight(Constraint const* c, Variable const* last) const;
 	void populateSplitBlock(Block *b, Variable* v, Variable const* u);
 	void addVariable(Variable* v);
-	void setUpConstraintHeap(PairingHeap<Constraint*>* &h,bool in);
+	void setUpConstraintHeap(PairingHeap<Constraint*,CompareConstraints>* &h,bool in);
 };
 
 }

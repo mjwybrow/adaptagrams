@@ -1,5 +1,6 @@
 #include "graphlayouttest.h"
 #include <libvpsc/rectangle.h>
+#include <libcola/straightener.h>
 #include <fstream>
 
 #define ARROW_HEAD_BUFFER 3

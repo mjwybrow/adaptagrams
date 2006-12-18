@@ -65,9 +65,9 @@ void Block::setUpInConstraints() {
 void Block::setUpOutConstraints() {
 	setUpConstraintHeap(out,false);
 }
-void Block::setUpConstraintHeap(PairingHeap<Constraint*>* &h,bool in) {
+void Block::setUpConstraintHeap(PairingHeap<Constraint*,CompareConstraints>* &h,bool in) {
 	delete h;
-	h = new PairingHeap<Constraint*>(&compareConstraints);
+	h = new PairingHeap<Constraint*,CompareConstraints>();
 	for (Vit i=vars->begin();i!=vars->end();++i) {
 		Variable *v=*i;
 		vector<Constraint*> *cs=in?&(v->in):&(v->out);

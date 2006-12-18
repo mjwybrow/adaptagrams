@@ -41,18 +41,9 @@ class Underflow { };
 // Throws Underflow as warranted
 
 
-// Node and forward declaration because g++ does
-// not understand nested classes.
-template <class T> 
-class PairingHeap;
-
 template <class T>
-std::ostream& operator<< (std::ostream &os,const PairingHeap<T> &b);
-
-template <class T>
-class PairNode
+struct PairNode
 {
-	friend std::ostream& operator<< <T>(std::ostream &os,const PairingHeap<T> &b);
 	T   element;
 	PairNode    *leftChild;
 	PairNode    *nextSibling;
@@ -62,15 +53,13 @@ class PairNode
 	       	element( theElement ),
 		leftChild(NULL), nextSibling(NULL), prev(NULL)
        	{ }
-	friend class PairingHeap<T>;
 };
 
-template <class T>
+template <class T, class TCompare >
 class PairingHeap
 {
-	friend std::ostream& operator<< <T>(std::ostream &os,const PairingHeap<T> &b);
 public:
-	PairingHeap( bool (*lessThan)(T const &lhs, T const &rhs) );
+	PairingHeap( );
 	PairingHeap( const PairingHeap & rhs );
 	~PairingHeap( );
 
@@ -88,7 +77,7 @@ public:
 	}
 	void makeEmpty( );
 	void decreaseKey( PairNode<T> *p, const T & newVal );
-	void merge( PairingHeap<T> *rhs )
+	void merge( PairingHeap<T,TCompare> *rhs )
 	{	
 		unsigned rhsSize;
 		PairNode<T> *broot=rhs->removeRootForMerge(rhsSize);
@@ -110,7 +99,7 @@ protected:
 		counter=0;
 		return r;
 	}
-	bool (*lessThan)(T const &lhs, T const &rhs);
+	TCompare lessThan;
 private:
 	PairNode<T> *root;
 	unsigned counter;
@@ -124,20 +113,19 @@ private:
 /**
 * Construct the pairing heap.
 */
-template <class T>
-PairingHeap<T>::PairingHeap( bool (*lessThan)(T const &lhs, T const &rhs) )
+template <class T,class TCompare>
+PairingHeap<T,TCompare>::PairingHeap( )
 {
 	root = NULL;
 	counter=0;
-	this->lessThan=lessThan;
 }
 
 
 /**
 * Copy constructor
 */
-template <class T>
-PairingHeap<T>::PairingHeap( const PairingHeap<T> & rhs )
+template <class T, class TCompare>
+PairingHeap<T,TCompare>::PairingHeap( const PairingHeap<T,TCompare> & rhs )
 {
 	root = NULL;
 	counter=rhs->size();
@@ -147,8 +135,8 @@ PairingHeap<T>::PairingHeap( const PairingHeap<T> & rhs )
 /**
 * Destroy the leftist heap.
 */
-template <class T>
-PairingHeap<T>::~PairingHeap( )
+template <class T,class TCompare>
+PairingHeap<T,TCompare>::~PairingHeap( )
 {
 	makeEmpty( );
 }
@@ -157,9 +145,9 @@ PairingHeap<T>::~PairingHeap( )
 * Insert item x into the priority queue, maintaining heap order.
 * Return a pointer to the node containing the new item.
 */
-template <class T>
+template <class T,class TCompare>
 PairNode<T> *
-PairingHeap<T>::insert( const T & x )
+PairingHeap<T,TCompare>::insert( const T & x )
 {
 	PairNode<T> *newNode = new PairNode<T>( x );
 
@@ -171,8 +159,8 @@ PairingHeap<T>::insert( const T & x )
 	return newNode;
 }
 
-template <class T>
-unsigned PairingHeap<T>::size() const {
+template <class T,class TCompare>
+unsigned PairingHeap<T,TCompare>::size() const {
 	return counter;
 }
 
@@ -180,8 +168,8 @@ unsigned PairingHeap<T>::size() const {
 * Find the smallest item in the priority queue.
 * Return the smallest item, or throw Underflow if empty.
 */
-template <class T>
-const T & PairingHeap<T>::findMin( ) const
+template <class T,class TCompare>
+const T & PairingHeap<T,TCompare>::findMin( ) const
 {
 	if( isEmpty( ) )
 		throw Underflow( );
@@ -191,8 +179,8 @@ const T & PairingHeap<T>::findMin( ) const
  * Remove the smallest item from the priority queue.
  * Throws Underflow if empty.
  */
-template <class T>
-void PairingHeap<T>::deleteMin( )
+template <class T,class TCompare>
+void PairingHeap<T,TCompare>::deleteMin( )
 {
     if( isEmpty( ) )
         throw Underflow( );
@@ -212,8 +200,8 @@ void PairingHeap<T>::deleteMin( )
 * Test if the priority queue is logically empty.
 * Returns true if empty, false otherwise.
 */
-template <class T>
-bool PairingHeap<T>::isEmpty( ) const
+template <class T,class TCompare>
+bool PairingHeap<T,TCompare>::isEmpty( ) const
 {
 	return root == NULL;
 }
@@ -222,8 +210,8 @@ bool PairingHeap<T>::isEmpty( ) const
 * Test if the priority queue is logically full.
 * Returns false in this implementation.
 */
-template <class T>
-bool PairingHeap<T>::isFull( ) const
+template <class T,class TCompare>
+bool PairingHeap<T,TCompare>::isFull( ) const
 {
 	return false;
 }
@@ -231,8 +219,8 @@ bool PairingHeap<T>::isFull( ) const
 /**
 * Make the priority queue logically empty.
 */
-template <class T>
-void PairingHeap<T>::makeEmpty( )
+template <class T,class TCompare>
+void PairingHeap<T,TCompare>::makeEmpty( )
 {
 	reclaimMemory( root );
 	root = NULL;
@@ -242,16 +230,15 @@ void PairingHeap<T>::makeEmpty( )
 /**
 * Deep copy.
 */
-template <class T>
-const PairingHeap<T> &
-PairingHeap<T>::operator=( const PairingHeap<T> & rhs )
+template <class T,class TCompare>
+const PairingHeap<T,TCompare> &
+PairingHeap<T,TCompare>::operator=( const PairingHeap<T,TCompare> & rhs )
 {
 	if( this != &rhs )
 	{
 		makeEmpty( );
 		root = clone( rhs.root );
 		counter = rhs.size();
-		lessThan = rhs.lessThan;
 	}
 
 	return *this;
@@ -261,8 +248,8 @@ PairingHeap<T>::operator=( const PairingHeap<T> & rhs )
 * Internal method to make the tree empty.
 * WARNING: This is prone to running out of stack space.
 */
-template <class T>
-void PairingHeap<T>::reclaimMemory( PairNode<T> * t ) const
+template <class T,class TCompare>
+void PairingHeap<T,TCompare>::reclaimMemory( PairNode<T> * t ) const
 {
 	if( t != NULL )
 	{
@@ -279,8 +266,8 @@ void PairingHeap<T>::reclaimMemory( PairNode<T> * t ) const
 * newVal is the new value, which must be smaller
 *    than the currently stored value.
 */
-template <class T>
-void PairingHeap<T>::decreaseKey( PairNode<T> *p,
+template <class T,class TCompare>
+void PairingHeap<T,TCompare>::decreaseKey( PairNode<T> *p,
 				  const T & newVal )
 {
 	if( lessThan(p->element,newVal) )
@@ -308,13 +295,14 @@ void PairingHeap<T>::decreaseKey( PairNode<T> *p,
 * second is root of tree 2, which may be NULL.
 * first becomes the result of the tree merge.
 */
-template <class T>
-void PairingHeap<T>::
+template <class T,class TCompare>
+void PairingHeap<T,TCompare>::
 compareAndLink( PairNode<T> * & first,
 		PairNode<T> *second ) const
 {
 	if( second == NULL )
 		return;
+
 	if( lessThan(second->element,first->element) )
 	{
 		// Attach first as leftmost child of second
@@ -345,9 +333,9 @@ compareAndLink( PairNode<T> * & first,
 * firstSibling the root of the conglomerate;
 *     assumed not NULL.
 */
-template <class T>
+template <class T,class TCompare>
 PairNode<T> *
-PairingHeap<T>::combineSiblings( PairNode<T> *firstSibling ) const
+PairingHeap<T,TCompare>::combineSiblings( PairNode<T> *firstSibling ) const
 {
 	if( firstSibling->nextSibling == NULL )
 		return firstSibling;
@@ -392,9 +380,9 @@ PairingHeap<T>::combineSiblings( PairNode<T> *firstSibling ) const
 * Internal method to clone subtree.
 * WARNING: This is prone to running out of stack space.
 */
-template <class T>
+template <class T,class TCompare>
 PairNode<T> *
-PairingHeap<T>::clone( PairNode<T> * t ) const
+PairingHeap<T,TCompare>::clone( PairNode<T> * t ) const
 {
 	if( t == NULL ) 
 		return NULL;
@@ -409,8 +397,8 @@ PairingHeap<T>::clone( PairNode<T> * t ) const
 	}
 }
 
-template <class T>
-std::ostream& operator <<(std::ostream &os, const PairingHeap<T> &b)
+template <class T,class TCompare>
+std::ostream& operator <<(std::ostream &os, const PairingHeap<T,TCompare> &b)
 {
 	os<<"Heap:";
 	if (b.root != NULL) {

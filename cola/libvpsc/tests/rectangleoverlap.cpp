@@ -26,7 +26,7 @@ void removeoverlaps(int n, vector<Rectangle *> &rs) {
 		for(int i=0;i<n;i++) {
 			oldX[i]=vs[i]->desiredPosition;
 		}
-		IncSolver vpsc_x(n,vs,m,cs);
+		Solver vpsc_x(n,vs,m,cs);
 		vpsc_x.solve();
 		for(int i=0;i<n;i++) {
 			rs[i]->moveCentreX(vs[i]->position());
@@ -39,7 +39,7 @@ void removeoverlaps(int n, vector<Rectangle *> &rs) {
 		// one another above are not considered overlapping
 		Rectangle::setXBorder(Rectangle::xBorder-EXTRA_GAP);
 		m=generateYConstraints(n,rs,vs,cs);
-		IncSolver vpsc_y(n,vs,m,cs);
+		Solver vpsc_y(n,vs,m,cs);
 		vpsc_y.solve();
 		for(int i=0;i<n;i++) {
 			rs[i]->moveCentreY(vs[i]->position());
@@ -52,7 +52,7 @@ void removeoverlaps(int n, vector<Rectangle *> &rs) {
 		delete [] cs;
 		Rectangle::setYBorder(Rectangle::yBorder-EXTRA_GAP);
 		m=generateXConstraints(n,rs,vs,cs,false);
-		IncSolver vpsc_x2(n,vs,m,cs);
+		Solver vpsc_x2(n,vs,m,cs);
 		vpsc_x2.solve();
 		for(int i = 0; i < m; ++i) {
 			delete cs[i];

@@ -81,7 +81,7 @@ int main() {
        		Edge(17,18) 
 	};
 	double g=10;
-	SeparationConstraints scy;
+	CompoundConstraints scy;
 	scy.push_back(new SeparationConstraint(0,10,g));
 	scy.push_back(new SeparationConstraint(0,3,g));
 	scy.push_back(new SeparationConstraint(0,4,g));
@@ -111,14 +111,27 @@ int main() {
 		rs.push_back(new vpsc::Rectangle(x,x+17,y,y+10));
 	}
 
-	const unsigned c[]={0,1},d[]={3,11},e[]={8,9,10,15,16},f[]={17,18};
-        size_t su=sizeof(unsigned);
-	cs.push_back(new Cluster(sizeof(c)/su,c));
-	cs.push_back(new Cluster(sizeof(d)/su,d));
-	cs.push_back(new Cluster(sizeof(e)/su,e));
-	cs.push_back(new Cluster(sizeof(f)/su,f));
+	ConvexCluster c;
+	c.nodes.push_back(0);
+	c.nodes.push_back(1);
+	ConvexCluster d;
+	d.nodes.push_back(3);
+	d.nodes.push_back(11);
+	ConvexCluster e;
+	e.nodes.push_back(8);
+	e.nodes.push_back(9);
+	e.nodes.push_back(10);
+	e.nodes.push_back(15);
+	e.nodes.push_back(16);
+	ConvexCluster f;
+	f.nodes.push_back(17);
+	f.nodes.push_back(18);
+	cs.push_back(&c);
+	cs.push_back(&d);
+	cs.push_back(&e);
+	cs.push_back(&f);
 	CheckProgress test(0.0001,100);
-	ConstrainedMajorizationLayout alg(rs,es,&cs,30,NULL,test);
+	ConstrainedMajorizationLayout alg(rs,es,&cs,30,NULL,NULL,NULL,test);
 	output_svg(rs,es,cs,"containment20000.svg",true);
 	//alg.setYSeparationConstraints(&scy);
 	//alg.run();

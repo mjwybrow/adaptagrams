@@ -58,7 +58,7 @@ void dijkstra(
         vs[i].p=NULL;
     }
     vs[s].d=0;
-    PairingHeap<Node*> Q(&compareNodes);
+    PairingHeap<Node*,CompareNodes> Q;
     for(unsigned i=0;i<n;i++) {
         vs[i].qnode = Q.insert(&vs[i]);
     }

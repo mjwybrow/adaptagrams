@@ -16,9 +16,11 @@ struct Node {
     vector<double> nweights;
     PairNode<Node*>* qnode;
 };
-inline bool compareNodes(Node *const &u, Node *const &v) {
-	return u->d < v->d;
-}
+struct CompareNodes {
+    bool operator() (Node *const &u, Node *const &v) const {
+        return u->d < v->d;
+    }
+};
 
 typedef pair<unsigned,unsigned> Edge;
 /*
