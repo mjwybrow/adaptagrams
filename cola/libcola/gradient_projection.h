@@ -8,21 +8,13 @@
 #include <iostream>
 #include <math.h>
 #include <valarray>
+#include "commondefs.h"
 #include "compound_constraints.h"
+#include "cluster.h"
 #include "sparse_matrix.h"
 
 namespace cola {
 using std::valarray;
-
-enum Dim { HORIZONTAL, VERTICAL };
-/**
- * resolve overlaps:
- *   None: not at all
- *   Horizontal: only horizontally
- *   Both: resolve in either Horizontal or Vertical direction
- *         depending on which leads to less displacement
- */
-enum NonOverlapConstraints { None, Horizontal, Both };
 
 class GradientProjection {
 public:
@@ -34,6 +26,7 @@ public:
 		const unsigned max_iterations,
         CompoundConstraints const * ccs,
         NonOverlapConstraints nonOverlapConstraints = None,
+        RootCluster* clusterHierarchy = NULL,
         std::vector<vpsc::Rectangle*>* rs = NULL,
 		cola::SparseMap *Q = NULL)
             : k(k), 
@@ -44,6 +37,7 @@ public:
               rs(rs),
               ccs(ccs),
               nonOverlapConstraints(nonOverlapConstraints),
+              clusterHierarchy(clusterHierarchy),
               tolerance(tol), 
               max_iterations(max_iterations),
               sparseQ(NULL),
@@ -59,23 +53,26 @@ public:
                 (*c)->generateSeparationConstraints(vars,gcs,Q);
                 if(Q!=oldQ) localSparseMapCreated = true;
             }
-            n = vars.size();
-            if(x.size()<n) {
-                // if we added new variables above then we'll have to resize the
-                // coords array accordingly
-                valarray<double> tmp=x;
-                x.resize(n);
-                for(unsigned i=0;i<tmp.size();i++) {
-                    x[i]=tmp[i];
-                }
-                for(unsigned i=tmp.size();i<n;i++) {
-                    x[i]=vars[i]->desiredPosition;
-                }
+        }
+        if(clusterHierarchy) {
+            clusterHierarchy->createVars(k,*rs,vars);
+        }
+        n = vars.size();
+        if(x.size()<n) {
+            // if we added new variables above then we'll have to resize the
+            // coords array accordingly
+            valarray<double> tmp=x;
+            x.resize(n);
+            for(unsigned i=0;i<tmp.size();i++) {
+                x[i]=tmp[i];
             }
-            if(Q) {
-                sparseQ = new cola::SparseMatrix(*Q);
-                //sparseQ->print();
+            for(unsigned i=tmp.size();i<n;i++) {
+                x[i]=vars[i]->desiredPosition;
             }
+        }
+        if(Q) {
+            sparseQ = new cola::SparseMatrix(*Q);
+            //sparseQ->print();
         }
 	}
     ~GradientProjection() {
@@ -125,6 +122,7 @@ private:
     std::vector<vpsc::Rectangle*>* rs;
     CompoundConstraints const * ccs;
     NonOverlapConstraints nonOverlapConstraints;
+    Cluster* clusterHierarchy;
     double tolerance;
     unsigned max_iterations;
     cola::SparseMatrix * sparseQ; // sparse components of goal function

@@ -204,6 +204,20 @@ namespace straightener {
             L.push_back(r);
         }
     }
+    static double xOverlap(Node const *u, Node const *v) {
+		if (u->x <= v->x && v->xmin < u->xmax)
+			return u->xmax - v->xmin;
+		if (v->x <= u->x && u->xmin < v->xmax)
+			return v->xmax - u->xmin;
+		return 0;
+	}
+	static double yOverlap(Node const *u, Node const *v) {
+		if (u->y <= v->y && v->ymin < u->ymax)
+			return u->ymax - v->ymin;
+		if (v->y <= u->y && u->ymin < v->ymax)
+			return v->ymax - u->ymin;
+		return 0;
+	}
     static cola::SeparationConstraint* createConstraint(
             Node* u, Node* v, cola::Dim dim) {
         double g=dim==cola::HORIZONTAL?(u->width+v->width):(u->height+v->height);
@@ -285,13 +299,24 @@ namespace straightener {
                     // it points to the first node to the right of v
                     NodeSet::iterator it=openNodes.lower_bound(v);
                     // step left to find the first node to the left of v
-                    if(it--!=openNodes.begin()) {
-                        l=*it;
+                    while(it--!=openNodes.begin()) {
+                        if(dim!=cola::HORIZONTAL
+                                || xOverlap(*it,v) <= 0
+                                || xOverlap(*it,v) <= yOverlap(*it,v)) {
+                            l=*it;
+                            break;
+                        }
                         //printf("l=%d\n",l->id);
                     }
                     it=openNodes.upper_bound(v);
-                    if(it!=openNodes.end()) {
-                        r=*it;
+                    while(it!=openNodes.end()) {
+                        if(dim!=cola::HORIZONTAL
+                                || xOverlap(v,*it) <= 0
+                                || xOverlap(v,*it) <= yOverlap(v,*it)) {
+                            r=*it;
+                            break;
+                        }
+                        it++;
                     }
                 }
                 vector<Node*> L;
@@ -419,11 +444,12 @@ namespace straightener {
 		    vector<straightener::Node*> & nodes,
             vector<straightener::Edge*> & edges,
             vector<vpsc::Rectangle*> const & rs,
-		    cola::Clusters const & clusters,
+		    cola::Cluster const & clusterHierarchy,
 		    vector<straightener::Cluster*>& sclusters) {
         sclusters.clear();
-        for(cola::Clusters::const_iterator i=clusters.begin();
-                i!=clusters.end(); i++) {
+        for(vector<cola::Cluster*>::const_iterator i
+                =clusterHierarchy.clusters.begin();
+                i!=clusterHierarchy.clusters.end(); i++) {
             if(cola::ConvexCluster* c=dynamic_cast<cola::ConvexCluster*>(*i)) {
                 straightener::Cluster* sc=new straightener::Cluster(c);
                 // compute scanpos based on average position in scan direction

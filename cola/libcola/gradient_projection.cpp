@@ -194,25 +194,30 @@ unsigned GradientProjection::solve(valarray<double> const &b) {
 // dir-edge constraints, containment constraints, etc).
 IncSolver* GradientProjection::setupVPSC() {
     assert(lcs.size()==0);
-    
     Variable** vs = new Variable*[vars.size()];
     for(unsigned i=0;i<vars.size();i++) {
         vs[i]=vars[i];
     }
     if(nonOverlapConstraints!=None) {
-        Constraint** tmp_cs=NULL;
-        unsigned m=0;
-        if(k==HORIZONTAL) {
-            Rectangle::setXBorder(0.0001);
-            // use rs->size() rather than n because some of the variables may
-            // be dummy vars with no corresponding rectangle
-            m=generateXConstraints(rs->size(),*rs,vs,tmp_cs,nonOverlapConstraints==Both?true:false); 
-            Rectangle::setXBorder(0);
+        if(clusterHierarchy) {
+            //printf("Setup up cluster constraints, dim=%d--------------\n",k);
+            clusterHierarchy->
+                generateNonOverlapConstraints(k,nonOverlapConstraints,*rs,vars,lcs);
         } else {
-            m=generateYConstraints(rs->size(),*rs,vs,tmp_cs); 
-        }
-        for(unsigned i=0;i<m;i++) {
-            lcs.push_back(tmp_cs[i]);
+            Constraint** tmp_cs=NULL;
+            unsigned m=0;
+            if(k==HORIZONTAL) {
+                Rectangle::setXBorder(0.0001);
+                // use rs->size() rather than n because some of the variables may
+                // be dummy vars with no corresponding rectangle
+                m=generateXConstraints(rs->size(),*rs,vs,tmp_cs,nonOverlapConstraints==Both?true:false); 
+                Rectangle::setXBorder(0);
+            } else {
+                m=generateYConstraints(rs->size(),*rs,vs,tmp_cs); 
+            }
+            for(unsigned i=0;i<m;i++) {
+                lcs.push_back(tmp_cs[i]);
+            }
         }
     }
     Constraint **cs = new Constraint*[lcs.size() + gcs.size()];
@@ -230,6 +235,9 @@ void GradientProjection::destroyVPSC(IncSolver *vpsc) {
         for(CompoundConstraints::const_iterator c=ccs->begin(); c!=ccs->end();++c) {
             (*c)->updatePosition();
         }
+    }
+    if(clusterHierarchy) {
+        clusterHierarchy->computeBoundary(*rs);
     }
     unsigned m,n;
     Constraint** cs = vpsc->getConstraints(m);

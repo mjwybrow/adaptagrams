@@ -13,23 +13,22 @@ ConstrainedMajorizationLayout
 ::ConstrainedMajorizationLayout(
         vector<Rectangle*>& rs,
         vector<Edge> const & es,
-        Clusters *cs,
+        RootCluster *clusterHierarchy,
         double const idealLength,
-        std::valarray<double> const * startX,
-        std::valarray<double> const * startY,
         std::valarray<double> const * eweights,
         TestConvergence& done,
         PreIteration* preIteration)
     : n(rs.size()),
+      //degrees(valarray<double>(n)),
       lap2(valarray<double>(n*n)), 
       Dij(valarray<double>(n*n)),
-      tol(0.0001), done(done), preIteration(preIteration),
-      stickyNodes(startX!=NULL), stickyWeight(0.00001),
-      startX(startX), startY(startY),
+      tol(1e-9), done(done), preIteration(preIteration),
       X(valarray<double>(n)), Y(valarray<double>(n)),
-      constrainedLayout(stickyNodes),
+      stickyNodes(false), 
+      startX(valarray<double>(n)), startY(valarray<double>(n)),
+      constrainedLayout(false),
       nonOverlappingClusters(false),
-      clusters(cs), linearConstraints(NULL),
+      clusterHierarchy(clusterHierarchy), linearConstraints(NULL),
       gpX(NULL), gpY(NULL),
       ccsx(NULL), ccsy(NULL),
       avoidOverlaps(None),
@@ -42,9 +41,6 @@ ConstrainedMajorizationLayout
     done.reset();
 
     assert(!eweights||eweights->size()==es.size()); 
-    assert(!stickyNodes && !startX && !startY
-            ||stickyNodes && startX && startY
-              && startX->size()==n && startY->size()==n);
 
     double** D=new double*[n];
     for(unsigned i=0;i<n;i++) {
@@ -52,8 +48,9 @@ ConstrainedMajorizationLayout
     }
     shortest_paths::johnsons(n,D,es,eweights);
     edge_length = idealLength;
-    if(clusters) {
-        for(Clusters::const_iterator i=clusters->begin();i!=clusters->end();i++) {
+    if(clusterHierarchy) {
+        for(Clusters::const_iterator i=clusterHierarchy->clusters.begin();
+                i!=clusterHierarchy->clusters.end();i++) {
             Cluster *c=*i;
             for(vector<unsigned>::iterator j=c->nodes.begin();j!=c->nodes.end();j++) {
                 for(vector<unsigned>::iterator k=c->nodes.begin();k!=c->nodes.end();k++) {
@@ -70,25 +67,41 @@ ConstrainedMajorizationLayout
         X[i]=rs[i]->getCentreX();
         Y[i]=rs[i]->getCentreY();
         double degree = 0;
+        //degrees[i]=1;
         for(unsigned j=0;j<n;j++) {
             double w = edge_length * D[i][j];
             Dij[i*n+j]=w;
             if(i==j) continue;
             degree+=lap2[i*n+j]=w>1e-30?1./(w*w):0;
-        }
-        if(stickyNodes) {
-            // stickyNodes adds a small force attracting nodes 
-            // back to their starting positions
-            degree+=stickyWeight;
+            //degrees[i]+=D[i][j]<1.1?1:0;
         }
         lap2[i*n+i]=-degree;
         delete [] D[i];
     }
     delete [] D;
 }
+// stickyNodes adds a small force attracting nodes 
+// back to their starting positions
+void ConstrainedMajorizationLayout::setStickyNodes(
+        const double stickyWeight, 
+        valarray<double> const & startX,
+        valarray<double> const & startY) {
+    assert( startX.size()==n && startY.size()==n);
+    stickyNodes = true;
+    // not really constrained but we want to use GP solver rather than 
+    // ConjugateGradient
+    constrainedLayout = true; 
+    this->stickyWeight=stickyWeight;
+    this->startX = startX;
+    this->startY = startY;
+    for(unsigned i = 0; i<n; i++) {
+        lap2[i*n+i]-=stickyWeight;// *1./degrees[i];
+    }
+}
 
 void ConstrainedMajorizationLayout::majlayout(
-        valarray<double> const & Dij, GradientProjection* gp, valarray<double>& coords,valarray<double> const * startCoords) 
+        valarray<double> const & Dij, GradientProjection* gp, 
+        valarray<double>& coords,valarray<double> const & startCoords) 
 {
     double L_ij,dist_ij,degree;
     unsigned N=n;
@@ -113,7 +126,7 @@ void ConstrainedMajorizationLayout::majlayout(
                 }
             }
             if(stickyNodes) {
-                b[i]-=stickyWeight*(*startCoords)[i];
+                b[i]-=stickyWeight*startCoords[i]; //*1./degrees[i];
             }
             b[i] += degree * coords[i];
         }
@@ -143,9 +156,9 @@ void ConstrainedMajorizationLayout::run(bool x, bool y) {
     if(constrainedLayout) {
         vector<vpsc::Rectangle*>* pbb = boundingBoxes.empty()?NULL:&boundingBoxes;
         gpX=new GradientProjection(
-            HORIZONTAL,lap2,X,tol,1000,ccsx,avoidOverlaps,pbb,NULL);
+            HORIZONTAL,lap2,X,tol,1000,ccsx,avoidOverlaps,clusterHierarchy,pbb,NULL);
         gpY=new GradientProjection(
-            VERTICAL,lap2,Y,tol,1000,ccsy,avoidOverlaps,pbb,NULL);
+            VERTICAL,lap2,Y,tol,1000,ccsy,avoidOverlaps,clusterHierarchy,pbb,NULL);
     }
     if(n>0) do {
         // to enforce clusters with non-intersecting, convex boundaries we
@@ -180,8 +193,9 @@ void ConstrainedMajorizationLayout::run(bool x, bool y) {
             if(x) majlayout(Dij,gpX,X,startX);
             if(y) majlayout(Dij,gpY,Y,startY);
         }
-        if(clusters) {
-            for(Clusters::iterator c=clusters->begin();c!=clusters->end();c++) {
+        if(clusterHierarchy) {
+            for(Clusters::iterator c=clusterHierarchy->clusters.begin();
+                    c!=clusterHierarchy->clusters.end();c++) {
                 (*c)->computeBoundary(boundingBoxes);
             }
         }
@@ -200,8 +214,9 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
 		snodes.push_back(new straightener::Node(i,boundingBoxes[i]));
 	}
     vector<straightener::Cluster*> sclusters;
-    if(nonOverlappingClusters && clusters) {
-        generateClusterBoundaries(dim,snodes,sedges,boundingBoxes,*clusters,sclusters);
+    if(nonOverlappingClusters && clusterHierarchy) {
+        generateClusterBoundaries(dim,snodes,sedges,boundingBoxes,
+                *clusterHierarchy,sclusters);
     }
     CompoundConstraints *gcs=dim==HORIZONTAL?ccsx:ccsy;
     CompoundConstraints cs(gcs?gcs->size():0);
@@ -249,7 +264,7 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
     //std::cout << "  snodes.size "<<snodes.size()<< " n="<<n<<std::endl;
     //assert(sn==n+linearConstraints.size());
     valarray<double>& coords=dim==HORIZONTAL?X:Y;
-    valarray<double> const * startCoords=dim==HORIZONTAL?startX:startY;
+    valarray<double> const& startCoords=dim==HORIZONTAL?startX:startY;
     SparseMap Q(sn);
     for(LinearConstraints::iterator i=linearConstraints.begin();
            i!= linearConstraints.end();i++) {
@@ -277,16 +292,16 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
             Q[make_pair(e->endNode,e->endNode)]-=boundaryWeight;
         }
     }
-    GradientProjection gp(dim,lap2,coords,tol,100,&cs,None,
-            &boundingBoxes,&Q);
+    GradientProjection *gp=new GradientProjection(dim,lap2,coords,tol,100,&cs,None,
+            clusterHierarchy,&boundingBoxes,&Q);
     if(preIteration) {
         for(vector<Lock>::iterator l=preIteration->locks.begin();
                 l!=preIteration->locks.end();l++) {
-            gp.fixPos(l->id,dim==HORIZONTAL?X[l->id]:Y[l->id]); 
+            gp->fixPos(l->id,dim==HORIZONTAL?X[l->id]:Y[l->id]); 
         }
     }
     constrainedLayout = true;
-    majlayout(Dij,&gp,coords,startCoords);
+    majlayout(Dij,gp,coords,startCoords);
     for(unsigned i=0;i<sedges.size();i++) {
         sedges[i]->createRouteFromPath(X,Y);
         sedges[i]->dummyNodes.clear();
@@ -306,6 +321,7 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
     for(unsigned i=0;i<snodes.size();i++) {
         delete snodes[i];
     }
+    delete gp;
     snodes.resize(n);
 }
 

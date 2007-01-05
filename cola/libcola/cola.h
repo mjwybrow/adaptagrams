@@ -10,6 +10,8 @@
 #include <iostream>
 #include <cassert>
 #include "gradient_projection.h"
+#include "cluster.h"
+
 namespace vpsc { class Rectangle; }
 namespace straightener { 
     class Edge;
@@ -24,70 +26,6 @@ using std::valarray;
 // Edges are simply a pair of indices to entries in the Node vector
 typedef std::pair<unsigned, unsigned> Edge;
 
-// A cluster is a set of nodes to be kept together somehow
-class Cluster {
-public:
-    double margin;
-    double internalEdgeWeightFactor;
-    vector<unsigned> nodes;
-    valarray<double> hullX, hullY;
-    Cluster();
-    virtual ~Cluster();
-    virtual void computeBoundary(vector<Rectangle*> const & rs) = 0;
-};
-class RectangularCluster : public Cluster {
-public:
-    void computeBoundary(vector<Rectangle*> const & rs);
-};
-class ConvexCluster : public Cluster {
-public:
-    void computeBoundary(vector<Rectangle*> const & rs);
-};
-typedef vector<Cluster*> Clusters;
-
-// defines references to three variables for which the goal function
-// will be altered to prefer points u-b-v are in a linear arrangement
-// such that b is placed at u+t(v-u).
-struct LinearConstraint {
-    LinearConstraint(unsigned u, unsigned v, unsigned b, double w, 
-                     valarray<double> const & X, valarray<double> const & Y) 
-        : u(u),v(v),b(b),w(w)
-    {
-        // from cosine rule: ub.uv/|uv|=|ub|cos(theta)
-        double uvx = X[v] - X[u],
-               uvy = Y[v] - Y[u],
-               ubx = X[b] - X[u],
-               uby = Y[b] - Y[u],
-               duv2 = uvx * uvx + uvy * uvy;
-        if(duv2 < 0.0001) {
-            t=0;
-        } else {
-            t = (uvx * ubx + uvy * uby)/duv2;
-        }
-        duu=(1-t)*(1-t);
-        duv=t*(1-t);
-        dub=t-1;
-        dvv=t*t;
-        dvb=-t;
-        dbb=1;
-        //printf("New LC: t=%f\n",t); 
-    }
-    unsigned u;
-    unsigned v;
-    unsigned b;
-    double w; // weight
-    double t;
-    // 2nd partial derivatives of the goal function
-    //   (X[b] - (1-t) X[u] - t X[v])^2
-    double duu;
-    double duv;
-    double dub;
-    double dvv;
-    double dvb;
-    double dbb;
-};
-typedef vector<LinearConstraint*> LinearConstraints;
-	
 /**
  * provides a functor that is called before each iteration in the main loop of
  * the ConstrainedMajorizationLayout::run() method.
@@ -160,10 +98,8 @@ public:
     ConstrainedMajorizationLayout(
         vector<Rectangle*>& rs,
         vector<Edge> const & es,
-        Clusters* cs,
+        RootCluster* clusterHierarchy,
         double const idealLength,
-        std::valarray<double> const * startX=NULL,
-        std::valarray<double> const * startY=NULL,
         std::valarray<double> const * eweights=NULL,
         TestConvergence& done=defaultTest,
         PreIteration* preIteration=NULL);
@@ -181,6 +117,9 @@ public:
         constrainedLayout = true;
         this->ccsy=ccsy;
     }
+    void setStickyNodes(const double stickyWeight, 
+            valarray<double> const & startX,
+            valarray<double> const & startY);
     /**
      * At each iteration of layout, generate constraints to avoid overlaps.
      * If bool horizontal is true, all overlaps will be resolved horizontally, otherwise
@@ -237,8 +176,9 @@ private:
             (Y[i] - Y[j]) * (Y[i] - Y[j]));
     }
     double compute_stress(valarray<double> const & Dij);
-    void majlayout(valarray<double> const & Dij,GradientProjection* gp, valarray<double>& coords, valarray<double> const * startCoords);
+    void majlayout(valarray<double> const & Dij,GradientProjection* gp, valarray<double>& coords, valarray<double> const & startCoords);
     unsigned n; // number of nodes
+    //valarray<double> degrees;
     valarray<double> lap2; // graph laplacian
     valarray<double> Q; // quadratic terms matrix used in computations
     valarray<double> Dij; // all pairs shortest path distances
@@ -249,31 +189,34 @@ private:
     // stickyNodes controls whether nodes are attracted to their starting
     // positions (at time of ConstrainedMajorizationLayout instantiation)
     // stored in startX, startY
+    valarray<double> X, Y;
     bool stickyNodes;
     double stickyWeight;
-    valarray<double> const *startX, *startY;
-
-    valarray<double> X, Y;
+    valarray<double> startX;
+    valarray<double> startY;
     double edge_length;
     bool constrainedLayout;
     bool nonOverlappingClusters;
     /*
-     * Clusters are a set of nodes that are somehow semantically grouped
+     * A cluster is a set of nodes that are somehow semantically grouped
      * and should therefore be kept together a bit more tightly than, and
      * preferably without overlapping, the rest of the graph.
      *
      * We achieve this by augmenting the L matrix with stronger attractive
-     * forces between all members of the cluster and by maintaining a
-     * (preferably convex) hull around those constituents which, using
-     * constraints and dummy variables, is prevented from overlapping
-     * other parts of the graph.
+     * forces between all members of a cluster (other than the root)
+     * and by maintaining a (preferably convex) hull around those 
+     * constituents which, using constraints and dummy variables, is 
+     * prevented from overlapping other parts of the graph.
+     *
+     * Clusters are defined over the graph in a hierarchy starting with
+     * a single root cluster.
      *
      * Need to:
      *  - augment Lap matrix with intra cluster forces
      *  - compute convex hull of each cluster
      *  - from convex hull generate "StraightenEdges"
      */
-    Clusters *clusters;
+    RootCluster *clusterHierarchy;
     LinearConstraints *linearConstraints;
     GradientProjection *gpX, *gpY;
     CompoundConstraints *ccsx, *ccsy;

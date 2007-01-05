@@ -202,7 +202,7 @@ namespace straightener {
 		    std::vector<straightener::Node*> & nodes,
             std::vector<straightener::Edge*> & edges,
             std::vector<vpsc::Rectangle*> const & rs,
-		    std::vector<cola::Cluster*> const & clusters,
+		    cola::Cluster const & clusterHierarchy,
 		    std::vector<straightener::Cluster*>& sclusters);
 } // namespace straightener
 
