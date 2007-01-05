@@ -20,8 +20,9 @@ libcola_a_SOURCES = cola.h\
 	convex_hull.cpp\
 	output_svg.h\
 	output_svg.cpp\
-	cluster.cpp
+	cluster.cpp\
+	compound_constraints.h
 
-include_HEADERS = cola.h gradient_projection.h sparse_matrix.h straightener.h
+include_HEADERS = cola.h gradient_projection.h sparse_matrix.h straightener.h 
 
 SUBDIRS = tests

@@ -38,12 +38,12 @@ int main() {
 		rs.push_back(new vpsc::Rectangle(x,x+5,y,y+5));
 	}
 	ConstrainedMajorizationLayout alg(rs,es,NULL,width/2);
-	AlignmentConstraints acsx;
+	CompoundConstraints acsx;
 	AlignmentConstraint ac(1);
 	acsx.push_back(&ac);
 	ac.offsets.push_back(make_pair((unsigned)0,(double)0));
 	ac.offsets.push_back(make_pair((unsigned)3,(double)0));
-	alg.setXAlignmentConstraints(&acsx);
+	alg.setXConstraints(&acsx);
 	alg.run();
 	assert(fabs(rs[0]->getCentreX()-rs[3]->getCentreX())<0.001);
 	cout<<rs[0]->getCentreX()<<","<<rs[3]->getCentreX()<<endl;

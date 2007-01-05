@@ -45,7 +45,10 @@ std::ostream& operator <<(std::ostream &os, const Constraint &c)
 		os<<"NULL";
 	} else {
 		const char *type=c.equality?"=":"<=";
-		os<<*c.left<<"+"<<c.gap<<type<<*c.right<<"("<<c.slack()<<")"<<(c.active?"-active":"");
+		if(c.left->block&&c.right->block)
+			os<<*c.left<<"+"<<c.gap<<type<<*c.right<<"("<<c.slack()<<")"<<(c.active?"-active":"");
+		else
+			os<<*c.left<<"+"<<c.gap<<type<<*c.right<<"(vars have no position)";
 	}
 	return os;
 }

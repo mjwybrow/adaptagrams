@@ -25,7 +25,7 @@ using namespace std;
 
 vector<vpsc::Rectangle*> rs;
 vector<Edge> es;
-Clusters cs;
+RootCluster root;
 unsigned iteration=0;
 
 struct CheckProgress : TestConvergence {
@@ -34,7 +34,7 @@ struct CheckProgress : TestConvergence {
 		cout << "stress="<<new_stress<<endl;
 		char fname[50];
 		sprintf(fname,"containment1%04d.svg",++iteration);
-		output_svg(rs,es,cs,fname,true);
+		output_svg(rs,es,root,fname,true);
 		return TestConvergence::operator()(new_stress,X,Y);
 	}
 };
@@ -58,12 +58,17 @@ int main() {
 	}
 
 	const unsigned c[]={0,4}, d[]={1,2,3};
-	size_t su=sizeof(unsigned);
-	cs.push_back(new Cluster(sizeof(c)/su,c));
-	cs.push_back(new Cluster(sizeof(d)/su,d));
+	unsigned nc=sizeof(c)/sizeof(unsigned), nd=sizeof(d)/sizeof(unsigned);
+	RectangularCluster rc, rd;
+	rc.nodes.resize(nc);
+	copy(c,c+nc,rc.nodes.begin());
+	rd.nodes.resize(nd);
+	copy(d,d+nd,rd.nodes.begin());
+	root.clusters.push_back(&rc);
+	root.clusters.push_back(&rd);
 	CheckProgress test(0.0001,100);
-	output_svg(rs,es,cs,"containment10000.svg",true);
-	ConstrainedMajorizationLayout alg(rs,es,&cs,30,NULL,test);
+	output_svg(rs,es,root,"containment10000.svg",true);
+	ConstrainedMajorizationLayout alg(rs,es,&root,30,NULL,test);
 	alg.run();
 	alg.setNonOverlappingClusters();
 	alg.run();

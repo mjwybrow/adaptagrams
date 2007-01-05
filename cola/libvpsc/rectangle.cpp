@@ -28,8 +28,8 @@ std::ostream& operator <<(std::ostream &os, const Rectangle &r) {
 
 Rectangle::Rectangle(double x, double X, double y, double Y) 
 : minX(x),maxX(X),minY(y),maxY(Y) {
-		assert(x<=X);
-		assert(y<=Y);
+	assert(x<=X);
+	assert(y<=Y);
 }
 
 struct Node;

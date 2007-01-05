@@ -37,13 +37,13 @@ int main() {
     unsigned V = 0;
     double defaultEdgeLength=40;
     vector<Edge> es;
-    SeparationConstraints scy;
+    CompoundConstraints cy;
     while(!getline(f,startlabel,' ').eof()) {
         getline(f,endlabel);
         unsigned start = atoi(startlabel.c_str()),
              end = atoi(endlabel.c_str());
         es.push_back(make_pair(start,end));
-        scy.push_back(
+        cy.push_back(
             new SeparationConstraint(start,end,defaultEdgeLength/3));
         V=max(V,max(start,end));
     }
@@ -63,7 +63,7 @@ int main() {
     //cout << "Unconstrained layout" << endl;
     //alg.run();
     cout << "Constrained layout" << endl;
-    alg.setYSeparationConstraints(&scy);
+    alg.setYConstraints(&cy);
     alg.run();
     double t=double(clock()-starttime)/double(CLOCKS_PER_SEC);
     cout<<"Time="<<t<<endl;

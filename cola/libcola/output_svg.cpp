@@ -19,7 +19,7 @@ using std::vector;
 
 void output_svg(vector<Rectangle*> const & rs, 
 		vector<Edge> const & es, 
-        Clusters const & cs,
+        RootCluster const & rc,
 		char const *fname, 
 		const bool rects) {
 	unsigned E=es.size();
@@ -32,7 +32,7 @@ void output_svg(vector<Rectangle*> const & rs,
 		r->ys[1]=rs[es[i].second]->getCentreY();
 		routes[i]=new straightener::Edge(i,es[i].first,es[i].second,r);
 	}
-	output_svg(rs,routes,cs,fname,rects);
+	output_svg(rs,routes,rc,fname,rects);
 	for(unsigned i=0;i<E;i++) {
 		delete routes[i];
 	}
@@ -57,7 +57,7 @@ void draw_cluster_boundary(Cairo::RefPtr<Cairo::Context> const &cr,
 
 void output_svg(vector<vpsc::Rectangle*> const &rs, 
 		vector<straightener::Edge*> const & es, 
-		Clusters const & cs, 
+		RootCluster const & rc, 
 		char const* fname,
 		const bool rects)
 {
@@ -96,7 +96,7 @@ void output_svg(vector<vpsc::Rectangle*> const &rs,
     cr->set_line_width(1.);
     cr->set_font_size(8);
     cr->save();
-    for(Clusters::const_iterator c=cs.begin();c!=cs.end();c++) {
+    for(Clusters::const_iterator c=rc.clusters.begin();c!=rc.clusters.end();c++) {
         draw_cluster_boundary(cr,rs,**c,xmin,ymin);
     }
     for (unsigned i=0;i<es.size();i++) {

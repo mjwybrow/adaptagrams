@@ -23,7 +23,7 @@ class Constraint
 public:
 	Variable *left;
 	Variable *right;
-	const double gap;
+	double gap;
 	double lm;
 	Constraint(Variable *left, Variable *right, double gap, bool equality=false);
 	~Constraint();

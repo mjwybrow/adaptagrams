@@ -23,6 +23,7 @@
 #include <iomanip>
 #include "graphlayouttest.h"
 #include <libcola/cola.h>
+#include <libcola/straightener.h>
 
 using namespace cola;
 using namespace std;
