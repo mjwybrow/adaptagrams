@@ -53,7 +53,7 @@ class ConvexCluster : public Cluster {
 public:
     void computeBoundary(vector<Rectangle*> const & rs);
 };
-} // namespace cluster
+} // namespace cola
 
 #endif // COLA_CLUSTER_H
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=8:softtabstop=4:encoding=utf-8:textwidth=99 :

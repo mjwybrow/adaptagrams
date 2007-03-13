@@ -5,7 +5,7 @@ namespace cola {
     using namespace std;
 
     Cluster::Cluster()
-        : varWeight(0.0001),internalEdgeWeightFactor(2.),bounds(-1,1,-1,1)
+        : varWeight(0.0001),internalEdgeWeightFactor(1.),bounds(-1,1,-1,1)
       {}
 
     Cluster::~Cluster() {
@@ -107,15 +107,13 @@ namespace cola {
         if(dim==HORIZONTAL) {
             vMax=vXMax;
             vMax->desiredPosition=bounds.getMaxX();
-            return Rectangle(bounds.getMaxX(),
-                             bounds.getMaxX(),
-                             bounds.getMinY(),bounds.getMaxY());
+            return Rectangle(bounds.getMaxX(), bounds.getMaxX(),
+                             bounds.getMinY(), bounds.getMaxY());
         } else {
             vMax=vYMax;
             vMax->desiredPosition=bounds.getMaxY();
-            return Rectangle(bounds.getMinX(),bounds.getMaxX(),
-                             bounds.getMaxY(),
-                             bounds.getMaxY());
+            return Rectangle(bounds.getMinX(), bounds.getMaxX(),
+                             bounds.getMaxY(), bounds.getMaxY());
         }
     }
     void Cluster::createVars(

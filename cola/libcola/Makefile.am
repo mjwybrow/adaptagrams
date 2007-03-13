@@ -18,10 +18,10 @@ libcola_a_SOURCES = cola.h\
 	connected_components.cpp\
 	convex_hull.h\
 	convex_hull.cpp\
-	output_svg.h\
-	output_svg.cpp\
 	cluster.cpp\
-	compound_constraints.h
+	compound_constraints.h\
+	output_svg.cpp\
+	output_svg.h
 
 include_HEADERS = cola.h gradient_projection.h sparse_matrix.h straightener.h 
 

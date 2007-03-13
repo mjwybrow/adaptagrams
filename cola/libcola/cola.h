@@ -11,12 +11,9 @@
 #include <cassert>
 #include "gradient_projection.h"
 #include "cluster.h"
+#include "straightener.h"
 
 namespace vpsc { class Rectangle; }
-namespace straightener { 
-    class Edge;
-    class StraightenEdges; 
-}
 
 namespace cola {
 using vpsc::Rectangle;
@@ -30,7 +27,11 @@ typedef std::pair<unsigned, unsigned> Edge;
  * provides a functor that is called before each iteration in the main loop of
  * the ConstrainedMajorizationLayout::run() method.
  * Keeps a local copy of the x and y GradientProjection instances.
- * Use it for things like locking the position of nodes just for the duration of the iteration.
+ * Override the operator() for things like locking the position of nodes
+ * just for the duration of the iteration.
+ * If the operator() returns false the subsequent iterations are
+ * abandoned... ie layout ends immediately.  You can make it return true
+ * e.g. when a user-interrupt is detected.
  */ 
 struct Lock {
     unsigned id;
@@ -42,7 +43,9 @@ class PreIteration {
 public:
     PreIteration(Locks& locks) : locks(locks) {}
     virtual ~PreIteration() {}
-    virtual void operator()(GradientProjection* gpX, GradientProjection* gpY) {}
+    virtual bool operator()(GradientProjection* gpX, GradientProjection* gpY) {
+        return true;
+    }
     Locks& locks;
 private:
 };
@@ -57,7 +60,7 @@ private:
 class TestConvergence {
 public:
     double old_stress;
-    TestConvergence(const double tolerance = 0.001, const unsigned maxiterations = 1000)
+    TestConvergence(const double tolerance = 1e-4, const unsigned maxiterations = 100)
         : tolerance(tolerance),
           maxiterations(maxiterations)
     { reset(); }
@@ -144,8 +147,10 @@ public:
      * potBendWeight controls how much we try to keep straight edges straight
      */
     void setStraightenEdges(vector<straightener::Edge*>* straightenEdges, 
-            double bendWeight = 0.01, double potBendWeight = 0.1) {
+            double bendWeight = 0.01, double potBendWeight = 0.1,
+            bool xSkipping = true) {
         constrainedLayout = true;
+        this->xSkipping = xSkipping;
         this->straightenEdges = straightenEdges;
         this->bendWeight = bendWeight;
         this->potBendWeight = potBendWeight;
@@ -155,8 +160,6 @@ public:
             boundingBoxes[i]->moveCentre(X[i],Y[i]);
         }
     }
-
-    void addLinearConstraints(LinearConstraints* linearConstraints);
 
     ~ConstrainedMajorizationLayout() {
         if(constrainedLayout) {
@@ -217,13 +220,16 @@ private:
      *  - from convex hull generate "StraightenEdges"
      */
     RootCluster *clusterHierarchy;
-    LinearConstraints *linearConstraints;
+    straightener::LinearConstraints *linearConstraints;
     GradientProjection *gpX, *gpY;
     CompoundConstraints *ccsx, *ccsy;
     NonOverlapConstraints avoidOverlaps;
     vector<straightener::Edge*>* straightenEdges;
     
     double bendWeight, potBendWeight;
+    // determines whether we should leave some overlaps to be resolved
+    // vertically when generating straightening constraints in the x-dim
+    bool xSkipping;
 };
 
 Rectangle bounds(vector<Rectangle*>& rs);

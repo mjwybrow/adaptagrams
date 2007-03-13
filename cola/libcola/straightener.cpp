@@ -13,9 +13,11 @@
 #include <set>
 #include <list>
 #include <cassert>
-#include "straightener.h"
 #include <iostream>
 #include <cmath>
+#include "cola.h"
+#include "compound_constraints.h"
+#include "straightener.h"
 
 using std::list;
 using std::make_pair;
@@ -106,6 +108,14 @@ namespace straightener {
         path.push_back(endNode);
         assert(ds.empty());
     }
+    void Edge::createRouteFromPath(std::vector<Node *> const & nodes) {
+        Route* r=new Route(path.size());
+        for(unsigned i=0;i<path.size();i++) {
+            r->xs[i]=nodes[path[i]]->x;
+            r->ys[i]=nodes[path[i]]->y;
+        }
+        setRoute(r);
+    }
 
     typedef enum {Open, Close} EventType;
     struct Event {
@@ -173,6 +183,10 @@ namespace straightener {
             if(e->startNode==v->id||e->endNode==v->id) continue;
             //if(l!=NULL&&(e->startNode==l->id||e->endNode==l->id)) continue;
             //cerr << "edge("<<e->startNode<<","<<e->endNode<<",pts="<<e->pts<<")"<<endl;
+            // here, we probably want to search for existing dummy 
+            // nodes associated with the same edge within some
+            // range of (pos,conjpos), rather than creating new ones.
+            // Would require some sort of quad-tree structure
             Node* d=dim==cola::HORIZONTAL?
                 new Node(nodes.size(),pos,conjpos,e):
                 new Node(nodes.size(),conjpos,pos,e);
@@ -218,6 +232,7 @@ namespace straightener {
 			return v->ymax - u->ymin;
 		return 0;
 	}
+
     static cola::SeparationConstraint* createConstraint(
             Node* u, Node* v, cola::Dim dim) {
         double g=dim==cola::HORIZONTAL?(u->width+v->width):(u->height+v->height);
@@ -244,7 +259,8 @@ namespace straightener {
             const cola::Dim dim, 
             vector<Node*> & nodes, 
             vector<Edge*> & edges, 
-            vector<cola::CompoundConstraint*>& cs) {
+            vector<cola::SeparationConstraint*>& cs,
+            bool xSkipping = true) {
         unsigned nevents=2*nodes.size()+2*edges.size();
         events=new Event*[nevents];
         unsigned ctr=0;
@@ -300,7 +316,8 @@ namespace straightener {
                     NodeSet::iterator it=openNodes.lower_bound(v);
                     // step left to find the first node to the left of v
                     while(it--!=openNodes.begin()) {
-                        if(dim!=cola::HORIZONTAL
+                        if(!xSkipping
+                                || dim!=cola::HORIZONTAL
                                 || xOverlap(*it,v) <= 0
                                 || xOverlap(*it,v) <= yOverlap(*it,v)) {
                             l=*it;
@@ -310,7 +327,8 @@ namespace straightener {
                     }
                     it=openNodes.upper_bound(v);
                     while(it!=openNodes.end()) {
-                        if(dim!=cola::HORIZONTAL
+                        if(!xSkipping
+                                || dim!=cola::HORIZONTAL
                                 || xOverlap(v,*it) <= 0
                                 || xOverlap(v,*it) <= yOverlap(v,*it)) {
                             r=*it;
@@ -479,6 +497,26 @@ namespace straightener {
                 edges.push_back(
                         new Edge(edges.size(),u->id,first->id,
                             c->hullX[i-1],c->hullY[i-1],c->hullX[0],c->hullY[0]));
+            }
+        }
+    }
+
+    void Cluster::updateActualBoundary()
+    {
+        unsigned n=0;
+        for(std::vector<Edge*>::const_iterator e=boundary.begin();
+                e!=boundary.end();e++) {
+            n+=(*e)->route->n;
+        }
+        colaCluster->hullX.resize(n);
+        colaCluster->hullY.resize(n);
+        unsigned i=0;
+        for(std::vector<Edge*>::const_iterator e=boundary.begin();
+                e!=boundary.end();e++) {
+            Route* r=(*e)->route;
+            for(unsigned j=0;j<r->n;j++) {
+                colaCluster->hullX[i]=r->xs[j];
+                colaCluster->hullY[i++]=r->ys[j];
             }
         }
     }

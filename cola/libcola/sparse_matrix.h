@@ -84,7 +84,9 @@ public:
             printf("\n");
         }
     }
-
+    unsigned rowSize() const {
+        return n;
+    }
 private:
     const unsigned n,NZ;
     SparseMap const & sparseMap;

@@ -13,6 +13,9 @@
 #include "cluster.h"
 #include "sparse_matrix.h"
 
+namespace straightener {
+    class Node;
+}
 namespace cola {
 using std::valarray;
 
@@ -21,60 +24,45 @@ public:
 	GradientProjection(
         const Dim k,
 		valarray<double> const & denseQ,
-		valarray<double>& x,
 		const double tol,
 		const unsigned max_iterations,
         CompoundConstraints const * ccs,
         NonOverlapConstraints nonOverlapConstraints = None,
         RootCluster* clusterHierarchy = NULL,
-        std::vector<vpsc::Rectangle*>* rs = NULL,
-		cola::SparseMap *Q = NULL)
+        std::vector<vpsc::Rectangle*>* rs = NULL) 
             : k(k), 
-              n(x.size()), 
               denseSize(unsigned(floor(sqrt(denseQ.size())))),
               denseQ(denseQ), 
-              place(x),
               rs(rs),
               ccs(ccs),
               nonOverlapConstraints(nonOverlapConstraints),
               clusterHierarchy(clusterHierarchy),
               tolerance(tol), 
               max_iterations(max_iterations),
-              sparseQ(NULL),
-              localSparseMapCreated(false)
+              sparseQ(NULL)
     {
-        for(unsigned i=0;i<n;i++) {
+        for(unsigned i=0;i<denseSize;i++) {
             vars.push_back(new vpsc::Variable(i,1,1));
         }
         if(ccs) {
-            cola::SparseMap* oldQ = Q;
             for(CompoundConstraints::const_iterator c=ccs->begin();
                     c!=ccs->end();c++) {
-                (*c)->generateSeparationConstraints(vars,gcs,Q);
-                if(Q!=oldQ) localSparseMapCreated = true;
+                (*c)->generateVariables(vars);
+            }
+            for(CompoundConstraints::const_iterator c=ccs->begin();
+                    c!=ccs->end();c++) {
+                (*c)->generateSeparationConstraints(vars,gcs);
             }
         }
         if(clusterHierarchy) {
+            printf("gradient_projection: creating vars for cluster hierarchy\n");
             clusterHierarchy->createVars(k,*rs,vars);
         }
-        n = vars.size();
-        if(x.size()<n) {
-            // if we added new variables above then we'll have to resize the
-            // coords array accordingly
-            valarray<double> tmp=x;
-            x.resize(n);
-            for(unsigned i=0;i<tmp.size();i++) {
-                x[i]=tmp[i];
-            }
-            for(unsigned i=tmp.size();i<n;i++) {
-                x[i]=vars[i]->desiredPosition;
-            }
-        }
-        if(Q) {
-            sparseQ = new cola::SparseMatrix(*Q);
-            //sparseQ->print();
-        }
+        numStaticVars=vars.size();
 	}
+    unsigned getNumStaticVars() const {
+        return numStaticVars;
+    }
     ~GradientProjection() {
         for(Constraints::iterator i(gcs.begin()); i!=gcs.end(); i++) {
             delete *i;
@@ -83,55 +71,60 @@ public:
         for(unsigned i=0;i<vars.size();i++) {
             delete vars[i];
         }
-        if(localSparseMapCreated) delete sparseQ;
     }
-	unsigned solve(valarray<double> const & b);
-    unsigned getSize() { return n; }
+	unsigned solve(valarray<double> const & b, valarray<double> & x);
     void unfixPos(unsigned i) {
         if(vars[i]->fixedDesiredPosition) {
             vars[i]->weight=1;
             vars[i]->fixedDesiredPosition=false;
         }
     }
-    void fixPos(unsigned i,double pos) {
+    void fixPos(const unsigned i,const double pos) {
         vars[i]->weight=100000.;
         vars[i]->desiredPosition=pos;
         vars[i]->fixedDesiredPosition=true;
-        place[i]=pos;
     }
-    Dim getDimension() {
+    const Dim getDimension() const {
         return k;
+    }
+    void straighten(
+		cola::SparseMatrix const * Q, 
+        vector<SeparationConstraint*> const & ccs,
+        vector<straightener::Node*> const & snodes);
+    valarray<double> const & getFullResult() const {
+        return result;
     }
 private:
     vpsc::IncSolver* setupVPSC();
+    double computeCost(valarray<double> const &b,
+        valarray<double> const &x) const;
     double computeSteepestDescentVector(
         valarray<double> const &b, valarray<double> const &place,
-        valarray<double> &g);
+        valarray<double> &g) const;
     double computeScaledSteepestDescentVector(
         valarray<double> const &b, valarray<double> const &place,
-        valarray<double> &g);
+        valarray<double> &g) const;
     double computeStepSize(
-        valarray<double> const & g, valarray<double> const & d);
+        valarray<double> const & g, valarray<double> const & d) const;
     void destroyVPSC(vpsc::IncSolver *vpsc);
     Dim k;
-	unsigned n; // number of actual vars - this may grow in the constructor as we add
-                // dummy vars
+    unsigned numStaticVars; // number of variables that persist
+                              // throughout iterations
     const unsigned denseSize; // denseQ has denseSize^2 entries
 	valarray<double> const & denseQ; // dense square graph laplacian matrix
-    valarray<double> & place;
     std::vector<vpsc::Rectangle*>* rs;
     CompoundConstraints const * ccs;
     NonOverlapConstraints nonOverlapConstraints;
     Cluster* clusterHierarchy;
     double tolerance;
     unsigned max_iterations;
-    cola::SparseMatrix * sparseQ; // sparse components of goal function
+    cola::SparseMatrix const * sparseQ; // sparse components of goal function
 	Variables vars; // all variables
                           // computations
     Constraints gcs; /* global constraints - persist throughout all
                                 iterations */
     Constraints lcs; /* local constraints - only for current iteration */
-    bool localSparseMapCreated;
+    valarray<double> result;
 };
 } // namespace cola
 

@@ -56,6 +56,7 @@ conjugate_gradient(valarray<double> const &A,
 		   valarray<double> const &b, 
 		   unsigned const n, double const tol,
 		   unsigned const max_iterations) {
+    //printf("Conjugate Gradient...\n");
     valarray<double> Ap(n), p(n), r(n);
     matrix_times_vector(A,x,Ap);
     r=b-Ap; 
