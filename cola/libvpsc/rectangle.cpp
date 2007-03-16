@@ -26,8 +26,8 @@ std::ostream& operator <<(std::ostream &os, const Rectangle &r) {
 	return os;
 }
 
-Rectangle::Rectangle(double x, double X, double y, double Y) 
-: minX(x),maxX(X),minY(y),maxY(Y) {
+Rectangle::Rectangle(double x, double X, double y, double Y,bool allowOverlap) 
+: minX(x),maxX(X),minY(y),maxY(Y),overlap(allowOverlap) {
 	assert(x<=X);
 	assert(y<=Y);
 }

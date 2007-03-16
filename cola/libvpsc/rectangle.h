@@ -19,7 +19,8 @@ class Rectangle {
 	friend std::ostream& operator <<(std::ostream &os, const Rectangle &r);
 public:
 	static double xBorder,yBorder;
-	Rectangle(double x, double X, double y, double Y);
+	Rectangle(double x, double X, double y, double Y,
+			bool allowOverlap=false);
 	double getMaxX() const { return maxX+xBorder; }
 	double getMaxY() const { return maxY+yBorder; }
 	double getMinX() const { return minX; }
@@ -56,21 +57,23 @@ public:
 		maxY=y+height()-yBorder;
 		minY=y;
 	}
-	inline double overlapX(Rectangle *r) const {
+	double overlapX(Rectangle *r) const {
 		if (getCentreX() <= r->getCentreX() && r->minX < getMaxX())
 			return getMaxX() - r->minX;
 		if (r->getCentreX() <= getCentreX() && minX < r->getMaxX())
 			return r->getMaxX() - minX;
 		return 0;
 	}
-	inline double overlapY(Rectangle *r) const {
+	double overlapY(Rectangle *r) const {
 		if (getCentreY() <= r->getCentreY() && r->minY < getMaxY())
 			return getMaxY() - r->minY;
 		if (r->getCentreY() <= getCentreY() && minY < r->getMaxY())
 			return r->getMaxY() - minY;
 		return 0;
 	}
-	
+	bool allowOverlap() {
+		return overlap;
+	}
 	void offset(double dx, double dy) {
 		minX += dx;
 		maxX += dx;
@@ -79,6 +82,7 @@ public:
 	}
 private:
 	double minX,maxX,minY,maxY;
+	bool overlap;
 };
 
 
