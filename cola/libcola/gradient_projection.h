@@ -55,7 +55,6 @@ public:
             }
         }
         if(clusterHierarchy) {
-            printf("gradient_projection: creating vars for cluster hierarchy\n");
             clusterHierarchy->createVars(k,*rs,vars);
         }
         numStaticVars=vars.size();

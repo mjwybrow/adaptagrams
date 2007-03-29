@@ -215,7 +215,7 @@ unsigned GradientProjection::solve(
         if(counter%2) {
             double cost = computeCost(b,result);
             //printf("gp[%d] cost=%f\n",counter,cost);
-            assert(previousCost>cost);
+            //assert(previousCost>cost);
             if(fabs(previousCost - cost) < tolerance) {
                 converged = true;
             }
@@ -241,7 +241,7 @@ IncSolver* GradientProjection::setupVPSC() {
     }
     if(nonOverlapConstraints!=None) {
         if(clusterHierarchy) {
-            printf("Setup cluster constraints, dim=%d--------------\n",k);
+            //printf("Setup up cluster constraints, dim=%d--------------\n",k);
             clusterHierarchy->
                 generateNonOverlapConstraints(k,nonOverlapConstraints,*rs,vars,lcs);
         } else {

@@ -18,7 +18,13 @@ struct Node {
 };
 struct CompareNodes {
     bool operator() (Node *const &u, Node *const &v) const {
-        return u->d < v->d;
+        if(u==v) return false; // with g++ 4.1.2 unless I have this explicit check
+                               // it returns true for this case when using -O3 optimization
+                               // CRAZY!
+        if(u->d < v->d) {
+            return true;
+        } 
+        return false;
     }
 };
 

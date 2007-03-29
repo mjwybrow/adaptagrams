@@ -195,8 +195,7 @@ template <class T,class TCompare>
 void PairingHeap<T,TCompare>::decreaseKey( PairNode<T> *p,
 				  const T & newVal )
 {
-	if( lessThan(p->element,newVal) )
-		return;    // newVal cannot be bigger
+	assert(!lessThan(p->element,newVal)); // newVal cannot be bigger
 	p->element = newVal;
 	if( p != root )
 	{

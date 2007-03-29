@@ -99,6 +99,17 @@ void ConstrainedMajorizationLayout::setStickyNodes(
     }
 }
 
+/*
+void ConstrainedMajorizationLayout::guttman(
+        valarray<double> const & Dij) {
+    // compute B:
+    //   b_ij = - Dij/dist(ij)
+    //           (or 0 if dist(ij)=0)
+    //   b_ii = - sum(j!=i) bij
+    // then:
+    //   X' = 1/n * B X
+}
+*/
 void ConstrainedMajorizationLayout::majlayout(
         valarray<double> const & Dij, GradientProjection* gp, 
         valarray<double>& coords,
@@ -122,10 +133,10 @@ void ConstrainedMajorizationLayout::majlayout(
             }
         }
         if(stickyNodes) {
-            double l = startCoords[i]-coords[i];
-            l/=10.;
-            b[i]-=stickyWeight*(coords[i]+l);
-            //b[i] -= stickyWeight*startCoords[i];
+            //double l = startCoords[i]-coords[i];
+            //l/=10.;
+            //b[i]-=stickyWeight*(coords[i]+l);
+            b[i] -= stickyWeight*startCoords[i];
         }
         b[i] += degree * coords[i];
         assert(!std::isnan(b[i]));
@@ -183,12 +194,18 @@ void ConstrainedMajorizationLayout::run(bool x, bool y) {
             if ((*preIteration)(gpX,gpY)) {
                 for(vector<Lock>::iterator l=preIteration->locks.begin();
                         l!=preIteration->locks.end();l++) {
-                    X[l->id]=l->x;
-                    Y[l->id]=l->y;
-                    boundingBoxes[l->id]->moveCentre(l->x,l->y);
+                    unsigned id=l->id;
+                    double x=l->x, y=l->y;
+                    X[id]=x;
+                    Y[id]=y;
+                    if(stickyNodes) {
+                        startX[id]=x;
+                        startY[id]=y;
+                    }
+                    boundingBoxes[id]->moveCentre(x,y);
                     if(constrainedLayout) {
-                        gpX->fixPos(l->id,X[l->id]); 
-                        gpY->fixPos(l->id,Y[l->id]);
+                        gpX->fixPos(id,X[id]); 
+                        gpY->fixPos(id,Y[id]);
                     }
                 }
             } else { break; }
@@ -200,6 +217,7 @@ void ConstrainedMajorizationLayout::run(bool x, bool y) {
         } else {
             if(x) majlayout(Dij,gpX,X,startX);
             if(y) majlayout(Dij,gpY,Y,startY);
+            //guttman(Dij,X,Y);
         }
         if(clusterHierarchy) {
             for(Clusters::iterator c=clusterHierarchy->clusters.begin();
