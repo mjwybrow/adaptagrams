@@ -61,10 +61,13 @@ int main() {
     clock_t starttime=clock();
     ConstrainedMajorizationLayout alg(rs,es,NULL,defaultEdgeLength,NULL,test);
     //cout << "Unconstrained layout" << endl;
-    //alg.run();
+    alg.setConstrainedLayout(true);
+    alg.run();
+    /*
     cout << "Constrained layout" << endl;
     alg.setYConstraints(&cy);
     alg.run();
+    */
     double t=double(clock()-starttime)/double(CLOCKS_PER_SEC);
     cout<<"Time="<<t<<endl;
     output_svg(rs,es,"large_graph.svg");

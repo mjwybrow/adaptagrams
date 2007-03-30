@@ -172,6 +172,9 @@ public:
      */
     void run(bool x=true, bool y=true);
     void straighten(vector<straightener::Edge*>&, Dim);
+    void setConstrainedLayout(bool c) {
+        constrainedLayout=c;
+    }
 private:
     double euclidean_distance(unsigned i, unsigned j) {
         return sqrt(

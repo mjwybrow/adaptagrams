@@ -44,6 +44,15 @@ public:
         for(unsigned i=0;i<denseSize;i++) {
             vars.push_back(new vpsc::Variable(i,1,1));
         }
+        scaledDenseQ.resize(denseSize*denseSize);
+        for(unsigned i=0;i<denseSize;i++) {
+            double s=1./sqrt(fabs(denseQ[i*denseSize+i]));
+            for(unsigned j=0;j<denseSize;j++) {
+                scaledDenseQ[i*denseSize+j]=denseQ[i*denseSize+j]*s
+                    *1./sqrt(fabs(denseQ[j*denseSize+j]));
+            }
+        }
+
         if(ccs) {
             for(CompoundConstraints::const_iterator c=ccs->begin();
                     c!=ccs->end();c++) {
@@ -111,6 +120,7 @@ private:
                               // throughout iterations
     const unsigned denseSize; // denseQ has denseSize^2 entries
 	valarray<double> const & denseQ; // dense square graph laplacian matrix
+	valarray<double> scaledDenseQ; // scaled dense square graph laplacian matrix
     std::vector<vpsc::Rectangle*>* rs;
     CompoundConstraints const * ccs;
     NonOverlapConstraints nonOverlapConstraints;

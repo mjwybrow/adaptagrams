@@ -67,6 +67,7 @@ double GradientProjection::computeSteepestDescentVector(
     g = b;
     for (unsigned i=0; i<denseSize; i++) {
         for (unsigned j=0; j<denseSize; j++) {
+            //g[i] -= scaledDenseQ[i*denseSize+j]*x[j];
             g[i] -= denseQ[i*denseSize+j]*x[j];
         }
     }
@@ -94,6 +95,7 @@ double GradientProjection::computeStepSize(
     for (unsigned i=0; i<g.size(); i++) {
         double r = sparseQ ? Ad[i] : 0;
         if(i<denseSize) { for (unsigned j=0; j<denseSize; j++) {
+            //r += scaledDenseQ[i*denseSize+j] * d[j];
             r += denseQ[i*denseSize+j] * d[j];
         } }
         denominator += r * d[i];
@@ -117,8 +119,8 @@ double GradientProjection::computeScaledSteepestDescentVector(
         if(i<denseSize) { 
             for (unsigned j=0; j<denseSize; j++) {
                 g[i] -= denseQ[i*denseSize+j]*x[j];
-                d[i] = -g[i]/denseQ[i*denseSize+i];
             }
+            d[i] = -g[i]/denseQ[i*denseSize+i];
         }
     }
     // sparse part:
@@ -129,7 +131,7 @@ double GradientProjection::computeScaledSteepestDescentVector(
     }
     for (unsigned i=0; i<n; i++) {
     }
-    return -0.5*computeStepSize(g,d);
+    return computeStepSize(g,d);
 }
 
 
@@ -166,7 +168,9 @@ unsigned GradientProjection::solve(
     result.resize(n);
     for (unsigned i=0;i<n;i++) {
         b[i]=i<linearCoefficients.size()?linearCoefficients[i]:0;
+        //b[i]/=sqrt(fabs(denseQ[i*n+i]));
         result[i]=vars[i]->position();
+        //result[i]/sqrt(fabs(denseQ[i*n+i]));
     }
     	
 	valarray<double> g(n); /* gradient */
@@ -175,15 +179,19 @@ unsigned GradientProjection::solve(
 
     double previousCost = DBL_MAX;
     unsigned counter=0;
+    double stepSize;
 	for (; counter<max_iterations&&!converged; counter++) {
         previous=result;
+        stepSize=0;
         double alpha=computeSteepestDescentVector(b,result,g);
 
         // move to new unconstrained position
 		for (unsigned i=0; i<n; i++) {
             // dividing by variable weight is a cheap trick to make these
             // weights mean something in terms of the descent vector
-			result[i]+=alpha*g[i]/vars[i]->weight;
+            double step=alpha*g[i]/vars[i]->weight;
+			result[i]+=step;
+            stepSize+=step*step;
             assert(!isnan(result[i]));
             assert(!isinf(result[i]));
             if(!vars[i]->fixedDesiredPosition) vars[i]->desiredPosition=result[i];
@@ -193,25 +201,32 @@ unsigned GradientProjection::solve(
         bool constrainedOptimum = false;
         constrainedOptimum=
             solver->satisfy();
+        stepSize=0;
         for (unsigned i=0;i<n;i++) {
+            double step = previous[i]-vars[i]->position();
+            stepSize+=step*step;
             result[i]=vars[i]->position();
         }
-        constrainedOptimum=false;
+        /* beta seems, more often than not, to be >1
         if(constrainedOptimum) {
-            /* The following step limits the step-size in the feasible
-             * direction
-             */
+            // The following step limits the step-size in the feasible
+            // direction
             d = result - previous;
             const double beta = 0.5*computeStepSize(g, d);
             // beta > 1.0 takes us back outside the feasible region
             // beta < 0 clearly not useful and may happen due to numerical imp.
+		    printf("beta=%f\n",beta);
             if(beta>0&&beta<0.99999) {
-		    //printf("beta=%f\n",beta);
+                stepSize=0;
                 for (unsigned i=0; i<n; i++) {
-                    result[i]=previous[i]+beta*d[i];
+                    double step=beta*d[i];
+                    result[i]=previous[i]+step;
+                    stepSize+=step*step;
                 }
             }
         }
+         */
+        /* This would be the slow way to detect convergence
         if(counter%2) {
             double cost = computeCost(b,result);
             //printf("gp[%d] cost=%f\n",counter,cost);
@@ -221,9 +236,13 @@ unsigned GradientProjection::solve(
             }
             previousCost = cost;
         }
+        */
+        if(stepSize<tolerance) converged = true; 
 	}
+    printf("GP converged after %d iterations.\n",counter);
     for(unsigned i=0;i<x.size();i++) {
         x[i]=result[i];
+        //x[i]*=sqrt(fabs(denseQ[i*n+i]));
     }
     destroyVPSC(solver);
 	return counter;

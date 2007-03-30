@@ -142,8 +142,10 @@ void ConstrainedMajorizationLayout::majlayout(
         assert(!std::isnan(b[i]));
     }
     if(constrainedLayout) {
+        //printf("GP iteration...\n");
         gp->solve(b,coords);
     } else {
+        //printf("CG iteration...\n");
         conjugate_gradient(lap2, coords, b, n, tol, n);
     }
     moveBoundingBoxes();
