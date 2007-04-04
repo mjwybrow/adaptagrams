@@ -57,9 +57,9 @@ namespace cola {
         convexHull(X,Y,hull);
         hullX.resize(hull.size());
         hullY.resize(hull.size());
-        for(unsigned i=0;i<hull.size();i++) {
-            hullX[i]=X[hull[i]];
-            hullY[i]=Y[hull[i]];
+        for(unsigned j=0;j<hull.size();j++) {
+            hullX[j]=X[hull[j]];
+            hullY[j]=Y[hull[j]];
         }
     }
     void RectangularCluster::computeBoundary(vector<Rectangle*> const & rs) {

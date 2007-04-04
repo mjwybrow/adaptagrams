@@ -190,7 +190,7 @@ bool IncSolver::satisfy() {
 	f<<"satisfy_inc()..."<<endl;
 #endif
 	splitBlocks();
-	long splitCtr = 0;
+	//long splitCtr = 0;
 	Constraint* v = NULL;
     //CBuffer buffer(inactive);
 	//while((v=buffer.mostViolated())&&(v->equality || v->slack() < ZERO_UPPERBOUND)) {

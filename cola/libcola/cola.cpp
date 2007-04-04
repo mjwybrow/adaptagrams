@@ -7,6 +7,7 @@ using std::fill;
 using std::min;
 using std::max;
 using std::make_pair;
+using std::copy;
 
 namespace cola {
 

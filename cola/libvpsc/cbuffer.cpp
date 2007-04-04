@@ -61,7 +61,7 @@ namespace vpsc {
             }
             double minSlack=DBL_MAX;
             int i,deletePos=-1;
-            for(i=0;i<size;i++) {
+            for(i=0;i<(int)size;i++) {
                 Constraint *c=buffer[i];
                 double slack = c->slack();
                 if(!(c->equality||slack < ZERO_UPPERBOUND)) {

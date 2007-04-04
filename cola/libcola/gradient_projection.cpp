@@ -23,8 +23,6 @@ using namespace std;
 using namespace vpsc;
 namespace cola {
 
-const double DistributionConstraint::w;
-
 static inline double dotProd(valarray<double> const & a, valarray<double> const & b) {
     double p = 0;
     for (unsigned i=0; i<a.size(); i++) {
@@ -177,7 +175,9 @@ unsigned GradientProjection::solve(
 	valarray<double> previous(n); /* stored positions */
     valarray<double> d(n); /* actual descent vector */
 
+#ifdef CHECK_CONVERGENCE_BY_COST
     double previousCost = DBL_MAX;
+#endif
     unsigned counter=0;
     double stepSize;
 	for (; counter<max_iterations&&!converged; counter++) {
@@ -207,7 +207,7 @@ unsigned GradientProjection::solve(
             stepSize+=step*step;
             result[i]=vars[i]->position();
         }
-        /* beta seems, more often than not, to be >1
+        // beta seems, more often than not, to be >1!
         if(constrainedOptimum) {
             // The following step limits the step-size in the feasible
             // direction
@@ -225,8 +225,8 @@ unsigned GradientProjection::solve(
                 }
             }
         }
-         */
-        /* This would be the slow way to detect convergence
+#ifdef CHECK_CONVERGENCE_BY_COST
+        /* This would be the slow way to detect convergence */
         if(counter%2) {
             double cost = computeCost(b,result);
             //printf("gp[%d] cost=%f\n",counter,cost);
@@ -236,8 +236,9 @@ unsigned GradientProjection::solve(
             }
             previousCost = cost;
         }
-        */
+#else
         if(stepSize<tolerance) converged = true; 
+#endif
 	}
     printf("GP converged after %d iterations.\n",counter);
     for(unsigned i=0;i<x.size();i++) {

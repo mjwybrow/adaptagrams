@@ -35,7 +35,8 @@ public:
 };
 #include <float.h>
 #include "block.h"
-struct CompareConstraints {
+class CompareConstraints {
+public:
 	bool operator() (Constraint *const &l, Constraint *const &r) const {
 		double const sl = 
 			l->left->block->timeStamp > l->timeStamp

@@ -196,7 +196,6 @@ public:
 // alignment constraints) or fixed.
 class DistributionConstraint : public CompoundConstraint {
 public:
-    static const double w = -10.;
     DistributionConstraint() {}
     void generateVariables(Variables& vars) { }
 	void generateSeparationConstraints(
