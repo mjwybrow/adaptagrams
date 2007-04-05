@@ -1,5 +1,11 @@
+#include "commondefs.h"             // magmy20070405: Added
+
 #include "cola.h"
 #include "convex_hull.h"
+
+#include <libvpsc/rectangle.h>      // magmy20070405: Added
+using vpsc::generateXConstraints;   // magmy20070405: Added
+using vpsc::generateYConstraints;   // magmy20070405: Added
 
 namespace cola {
     using namespace std;

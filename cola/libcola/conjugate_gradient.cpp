@@ -1,3 +1,5 @@
+#include "commondefs.h"       // magmy20070405: Added
+
 #include <math.h>
 #include <stdlib.h>
 #include <valarray>
@@ -26,7 +28,17 @@ matrix_times_vector(valarray<double> const &matrix, /* m * n */
     unsigned n = vec.size();
     unsigned m = result.size();
     assert(m*n == matrix.size());
+#   if defined(_MSC_VER)
+    // magmy20070405: The following lines show how operator[] is defined for valarray under MSVC
+    // _Ty valarray<_Ty>::operator[](size_t _Off) const;
+	 // _Ty &valarray<_Ty>::operator[](size_t _Off);
+    // As a consequence, it is not possible to take the address of a constant valarray[n].
+    // This looks like a bug in the Microsoft's <valarray> file.
+    // Below is a workaround
+    double const *mp = &const_cast<valarray<double> &>(matrix)[0];
+#   else
     const double* mp = &matrix[0];
+#   endif
     for (unsigned i = 0; i < m; i++) {
         double res = 0;
         for (unsigned j = 0; j < n; j++)

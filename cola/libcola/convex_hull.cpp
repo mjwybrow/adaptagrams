@@ -1,7 +1,12 @@
+#include "commondefs.h"       // magmy20070405: Added
+
 #include <valarray>
 #include <cassert>
 #include <float.h>
-#include <convex_hull.h>
+#if defined(_MSC_VER)         // magmy20070405: Added to get access to std::sort
+#  include <algorithm>        // magmy20070405: Added to get access to std::sort
+#endif
+#include "convex_hull.h"      // magmy20070405: Changed from <...> to "..."
 using namespace std;
 /**
  * CrossProduct of three points: If the result is 0, the points are collinear; 

@@ -1,3 +1,5 @@
+#include "commondefs.h"                         // magmy20070405: Added
+
 #include <cmath>
 #include "cola.h"
 #include "conjugate_gradient.h"
@@ -8,6 +10,7 @@ using std::min;
 using std::max;
 using std::make_pair;
 using std::copy;
+using straightener::generateClusterBoundaries;  // magmy20070405: Added
 
 namespace cola {
 
@@ -260,7 +263,7 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
     }
     vector<straightener::Cluster*> sclusters;
     if(nonOverlappingClusters && clusterHierarchy) {
-        generateClusterBoundaries(dim,snodes,sedges,boundingBoxes,
+       generateClusterBoundaries(dim,snodes,sedges,boundingBoxes,
                 *clusterHierarchy,sclusters);
     }
     vector<SeparationConstraint*> cs;

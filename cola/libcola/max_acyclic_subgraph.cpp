@@ -2,11 +2,13 @@
  *
  * Kieran Simpson 2006
 */
+#include "commondefs.h" // magmy20070405: Added
+
 #include <iostream>
 #include <stack>
 #include <vector>
 #include <cassert>
-#include <max_acyclic_subgraph.h>
+#include "max_acyclic_subgraph.h"   // magmy20070405: Changed from <...> to "..."
 
 using namespace std;
 using namespace cola;

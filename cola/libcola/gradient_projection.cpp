@@ -6,6 +6,8 @@
  * Tim Dwyer, 2006
  **********************************************************/
 
+#include "commondefs.h" // magmy20070405: Added
+
 #include <math.h>
 #include <stdlib.h>
 #include <time.h>

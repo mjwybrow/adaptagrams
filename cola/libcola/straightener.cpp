@@ -10,6 +10,8 @@
  * Released under GNU LGPL.  Read the file 'COPYING' for more information.
  */
 
+#include "commondefs.h"
+
 #include <set>
 #include <list>
 #include <cassert>

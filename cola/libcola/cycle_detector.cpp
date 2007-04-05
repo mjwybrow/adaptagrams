@@ -3,11 +3,13 @@
  *
  * Kieran Simpson 2006
 */
+#include "commondefs.h"       // magmy20070405: Added
+
 #include <iostream>
 #include <stack>
 #include <vector>
 #include <cassert>
-#include <cycle_detector.h>
+#include "cycle_detector.h"   // magmy20070405: Changed from <...> to "..."
 
 using namespace std;
 using namespace cola;
