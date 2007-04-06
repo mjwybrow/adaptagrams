@@ -21,6 +21,13 @@ public:
 	static double xBorder,yBorder;
 	Rectangle(double x, double X, double y, double Y,
 			bool allowOverlap=false);
+	Rectangle(Rectangle const &Other)   // magmy20070406: Added copy constructor
+   :  minX(Other.minX)
+   ,  maxX(Other.maxX)
+   ,  minY(Other.minY)
+   ,  maxY(Other.maxY)
+   ,  overlap(Other.overlap) {
+   }
 	double getMaxX() const { return maxX+xBorder; }
 	double getMaxY() const { return maxY+yBorder; }
 	double getMinX() const { return minX; }
