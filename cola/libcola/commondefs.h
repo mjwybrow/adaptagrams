@@ -12,16 +12,20 @@
 #include <float.h>
 #include <malloc.h>     // Contains _alloca
 namespace std {
-inline bool isnan(double const &x) { return _isnan(x); }
-inline bool isinf(double const &x) { return !_finite(x); }
+inline bool isnan(double const &x) { return _isnan(x) != 0; }
+inline bool isinf(double const &x) { return !(_finite(x) || _isnan(x)); }
 } // end std
 
-/* MS VC does not accept local type declarations like this one:
-   double Array[n]; // Where n is a non-static integral constant
-   We rewrite using _alloca
-
-   Usage:
-      DELARE_LOCAL_ARRAY(Array, double, n);
+/* Macro for allocating varible-size local arrays
+ * The problem:
+ *    MS VC does not accept local type declarations like this one:
+ *       double Array[n]; // Where n is a non-static integral constant
+ *
+ * Solution:
+ *    Use _alloca when compiling with MSVC.
+ *
+ * Usage:
+ *    DELARE_LOCAL_ARRAY(double, Array, n);
 */
 #  define DELARE_LOCAL_ARRAY(Type, Name, Count) Type *Name = (Type *)_alloca(sizeof(Type)*Count)
 #else
