@@ -79,7 +79,7 @@ bool CmpNodePos::operator() (const Node* u, const Node* v) const {
 		return false;
 	}
 	if (isNaN(u->pos) != isNaN(v->pos)) {
-		return isNaN(u->pos);
+		return isNaN(u->pos) != 0; // magmy20070424: Avoid warning "forcing value to bool' under MS VC++
 	}
 	return u < v;
 
