@@ -252,13 +252,21 @@ public:
     PageBoundaryConstraints(double lm, double rm, double w)
         : leftMargin(lm), rightMargin(rm), 
           actualLeftMargin(0), actualRightMargin(0),
-          weight(w), vl(NULL), vr(NULL) { }
+          leftWeight(w), rightWeight(w), vl(NULL), vr(NULL) { }
+    PageBoundaryConstraints(double lm, double rm, double lw, double rw) // magmy20070509: New constructor with separate edge weights
+        : leftMargin(lm), rightMargin(rm), 
+          actualLeftMargin(0), actualRightMargin(0),
+          leftWeight(lw), rightWeight(rw), vl(NULL), vr(NULL) { }
     void generateVariables(Variables& vars) { 
         // create 2 dummy vars, based on the dimension we are in
-        vars.push_back(vl=new vpsc::Variable(vars.size(), leftMargin, weight));
-        vars.push_back(vr=new vpsc::Variable(vars.size(), rightMargin, weight));
-        vl->fixedDesiredPosition=true;
-        vr->fixedDesiredPosition=true;
+        if(leftWeight) {
+            vars.push_back(vl=new vpsc::Variable(vars.size(), leftMargin, leftWeight));
+            vl->fixedDesiredPosition=true;
+        } // end if
+        if(rightWeight) {
+            vars.push_back(vr=new vpsc::Variable(vars.size(), rightMargin, rightWeight));
+            vr->fixedDesiredPosition=true;
+        } // end if
     }
 	void generateSeparationConstraints(
             Variables& vs, 
@@ -267,13 +275,15 @@ public:
         // for each of the "real" variables, create a constraint that puts that var
         // between our two new dummy vars, depending on the dimension.
         for(OffsetList::iterator o=offsets.begin(); o!=offsets.end(); ++o)  {
-            cs.push_back(new vpsc::Constraint(vl, vs[o->first], o->second));
-            cs.push_back(new vpsc::Constraint(vs[o->first], vr, o->second));
+            if(vl)
+                cs.push_back(new vpsc::Constraint(vl, vs[o->first], o->second));
+            if(vr)
+                cs.push_back(new vpsc::Constraint(vs[o->first], vr, o->second));
         }
     }
     void updatePosition() {
-        actualLeftMargin = vl->position();
-        actualRightMargin = vr->position();
+        if(vl) actualLeftMargin = vl->position();
+        if(vr) actualRightMargin = vr->position();
     }
     double getActualLeftMargin() {
         return actualLeftMargin;
@@ -287,7 +297,8 @@ private:
     double rightMargin;
     double actualLeftMargin;
     double actualRightMargin;
-    double weight;
+    double leftWeight;        // magmy20070508: Split weight member into separate weights for left and right
+    double rightWeight;       // - " -
     vpsc::Variable *vl, *vr;
 };
 } // namespace cola
