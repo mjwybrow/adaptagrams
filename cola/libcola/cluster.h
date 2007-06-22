@@ -36,6 +36,7 @@ public:
             vector<Rectangle*> const& rs,
             vector<Variable*> const& vars,
             vector<vpsc::Constraint*> & cs);
+    void clear();
 private:
     Variable *vMin, *vMax;
     double length;

@@ -209,5 +209,14 @@ namespace cola {
         }
         delete [] vs;
     } 
+
+    /** recursively delete all clusters */
+    void Cluster::clear() {
+        for(vector<Cluster*>::iterator c=clusters.begin();
+                c!=clusters.end(); c++) {
+            delete *c;
+        }
+        clusters.clear();
+    }
 }
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=8:softtabstop=4:encoding=utf-8:textwidth=99 :
