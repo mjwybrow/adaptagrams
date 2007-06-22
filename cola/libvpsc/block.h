@@ -22,8 +22,8 @@ class Variable;
 class Constraint;
 class CompareConstraints;
 
-struct ScaleInfo {
-	ScaleInfo() : scale(0), AB(0), AD(0), A2(0) {}
+struct PositionStats {
+	PositionStats() : scale(0), AB(0), AD(0), A2(0) {}
 	void addVariable(Variable* const v);
 	double scale;
 	double AB;
@@ -45,7 +45,7 @@ public:
 	double posn;
 	double weight;
 	double wposn;
-	ScaleInfo scale;
+	PositionStats ps;
 	Block(Variable* const v=NULL);
 	~Block(void);
 	Constraint* findMinLM();

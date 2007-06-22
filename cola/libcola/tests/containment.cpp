@@ -52,7 +52,7 @@ int main() {
 	unsigned nc=sizeof(c)/sizeof(unsigned), nd=sizeof(d)/sizeof(unsigned);
 	CheckProgress test(0.0001,100);
 	ConstrainedMajorizationLayout alg(rs,es,&root,30,NULL,test);
-    alg.setScaling(false);
+    alg.setScaling(true);
 	rc.nodes.resize(nc);
 	copy(c,c+nc,rc.nodes.begin());
 	rd.nodes.resize(nd);

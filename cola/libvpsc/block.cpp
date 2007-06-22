@@ -26,12 +26,13 @@ using std::ostream;
 using std::vector;
 
 namespace vpsc {
-void ScaleInfo::addVariable(Variable* v) {
+void PositionStats::addVariable(Variable* v) {
 	double ai=scale/v->scale;
 	double bi=v->offset/v->scale;
-	AB+=ai*bi;
-	AD+=ai*v->desiredPosition;
-	A2+=ai*ai;
+	double wi=v->weight;
+	AB+=wi*ai*bi;
+	AD+=wi*ai*v->desiredPosition;
+	A2+=wi*ai*ai;
 	/*
 #ifdef LIBVPSC_LOGGING
 	ofstream f(LOGFILE,ios::app);
@@ -44,12 +45,12 @@ void ScaleInfo::addVariable(Variable* v) {
 void Block::addVariable(Variable* v) {
 	v->block=this;
 	vars->push_back(v);
-	if(scale.A2==0) scale.scale=v->scale;
+	if(ps.A2==0) ps.scale=v->scale;
 	//weight+= v->weight;
 	//wposn += v->weight * (v->desiredPosition - v->offset);
 	//posn=wposn/weight;
-	scale.addVariable(v);
-	posn=(scale.AD - scale.AB) / scale.A2;
+	ps.addVariable(v);
+	posn=(ps.AD - ps.AB) / ps.A2;
 	/*
 #ifdef LIBVPSC_LOGGING
 	ofstream f(LOGFILE,ios::app);
@@ -75,12 +76,12 @@ Block::Block(Variable* const v)
 
 void Block::updateWeightedPosition() {
 	//wposn=0;
-	scale.AB=scale.AD=scale.A2=0;
+	ps.AB=ps.AD=ps.A2=0;
 	for (Vit v=vars->begin();v!=vars->end();++v) {
 		//wposn += ((*v)->desiredPosition - (*v)->offset) * (*v)->weight;
-		scale.addVariable(*v);
+		ps.addVariable(*v);
 	}
-	posn=(scale.AD - scale.AB) / scale.A2;
+	posn=(ps.AD - ps.AB) / ps.A2;
 #ifdef LIBVPSC_LOGGING
 	ofstream f(LOGFILE,ios::app);
 	f << ", posn=" << posn << endl;
@@ -161,11 +162,11 @@ void Block::merge(Block *b, Constraint *c, double dist) {
 			<<" a="<<v->scale<<" o="<<v->offset
 			<<endl;
 	}
-	f<<"  AD="<<scale.AD<<" AB="<<scale.AB<<" A2="<<scale.A2<<endl;
+	f<<"  AD="<<ps.AD<<" AB="<<ps.AB<<" A2="<<ps.A2<<endl;
 #endif
 	//posn=wposn/weight;
-	//assert(wposn==scale.AD - scale.AB);
-	posn=(scale.AD - scale.AB) / scale.A2;
+	//assert(wposn==ps.AD - ps.AB);
+	posn=(ps.AD - ps.AB) / ps.A2;
 	b->deleted=true;
 }
 

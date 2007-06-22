@@ -46,7 +46,7 @@ public:
 	{
 	}
 	inline double position() const {
-		return (block->scale.scale*block->posn+offset)/scale;
+		return (block->ps.scale*block->posn+offset)/scale;
 	}
 	double dfdv() const {
 		return 2. * weight * ( position() - desiredPosition );
