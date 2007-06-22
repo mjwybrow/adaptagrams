@@ -150,26 +150,28 @@ void Solver::refine() {
  * refinement is possible by splitting the block. This is done repeatedly
  * until no further improvement is possible.
  */
-void Solver::solve() {
+bool Solver::solve() {
 	satisfy();
 	refine();
+    return bs->size()!=n;
 }
 
-void IncSolver::solve() {
+bool IncSolver::solve() {
 #ifdef LIBVPSC_LOGGING
 	ofstream f(LOGFILE,ios::app);
 	f<<"solve_inc()..."<<endl;
 #endif
-	double lastcost,cost = bs->cost();
-	do {
-		lastcost=cost;
+    satisfy();
+	double lastcost = DBL_MAX, cost = bs->cost();
+	while(fabs(lastcost-cost)>0.0001) {
 		satisfy();
-		splitBlocks();
+        lastcost=cost;
 		cost = bs->cost();
 #ifdef LIBVPSC_LOGGING
-	f<<"  cost="<<cost<<endl;
+        f<<"  bs->size="<<bs->size()<<", cost="<<cost<<endl;
 #endif
-	} while(fabs(lastcost-cost)>0.0001);
+	}
+    return bs->size()!=n; 
 }
 /**
  * incremental version of satisfy that allows refinement after blocks are
@@ -219,12 +221,19 @@ bool IncSolver::satisfy() {
                 e.path.push_back(v);
                 throw e;
             }
-			//inactive.push_back(v);
-			lb->merge(rb,v); // don't want to do this because v
-			                   //may no longer be violated!
-			bs->insert(lb);
-			//bs->insert(rb);
+			if(v->slack()>-ZERO_UPPERBOUND) {
+                // v was satisfied by the above split!
+                inactive.push_back(v);
+                bs->insert(lb);
+                bs->insert(rb);
+            } else {
+                bs->insert(lb->merge(rb,v));
+            }
 		}
+        bs->cleanup();
+#ifdef LIBVPSC_LOGGING
+        f<<"...remaining blocks="<<bs->size()<<", cost="<<bs->cost()<<endl;
+#endif
 	}
 #ifdef LIBVPSC_LOGGING
 	f<<"  finished merges."<<endl;
@@ -257,8 +266,8 @@ void IncSolver::moveBlocks() {
 #endif
 	for(set<Block*>::const_iterator i(bs->begin());i!=bs->end();++i) {
 		Block *b = *i;
-		b->wposn = b->desiredWeightedPosition();
-		b->posn = b->wposn / b->weight;
+		b->updateWeightedPosition();
+		//b->posn = b->wposn / b->weight;
 	}
 #ifdef LIBVPSC_LOGGING
 	f<<"  moved blocks."<<endl;
@@ -282,11 +291,13 @@ void IncSolver::splitBlocks() {
 			splitCnt++;
 			Block *b = v->left->block, *l=NULL, *r=NULL;
 			assert(v->left->block == v->right->block);
-			double pos = b->posn;
+			//double pos = b->posn;
 			b->split(l,r,v);
-			l->posn=r->posn=pos;
-			l->wposn = l->posn * l->weight;
-			r->wposn = r->posn * r->weight;
+			//l->posn=r->posn=pos;
+			//l->wposn = l->posn * l->weight;
+			//r->wposn = r->posn * r->weight;
+            l->updateWeightedPosition();
+            r->updateWeightedPosition();
 			bs->insert(l);
 			bs->insert(r);
 			b->deleted=true;
@@ -296,6 +307,7 @@ void IncSolver::splitBlocks() {
 #endif
 		}
 	}
+    //if(splitCnt>0) { std::cout<<"  splits: "<<splitCnt<<endl; }
 #ifdef LIBVPSC_LOGGING
 	f<<"  finished splits."<<endl;
 #endif

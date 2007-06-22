@@ -11,6 +11,7 @@
  */
 
 #include "constraint.h"
+#include <sstream>
 #include <cassert>
 namespace vpsc {
 Constraint::Constraint(Variable *left, Variable *right, double gap, bool equality)
@@ -27,7 +28,8 @@ Constraint::Constraint(Variable *left, Variable *right, double gap, bool equalit
 	//right->in.push_back(this);
 }
 Constraint::~Constraint() {
-	// see constructor: the following is just way too slow.  Better to create a
+	// see constructor: the following is just way too slow.  
+	// Better to create a
 	// new DAG on demand than maintain the lists dynamically.
 	//Constraints::iterator i;
 	//for(i=left->out.begin(); i!=left->out.end(); i++) {
@@ -45,10 +47,19 @@ std::ostream& operator <<(std::ostream &os, const Constraint &c)
 		os<<"NULL";
 	} else {
 		const char *type=c.equality?"=":"<=";
+		std::ostringstream lscale, rscale;
+		if(c.left->scale!=1) {
+			lscale << c.left->scale << "*";
+		}
+		if(c.right->scale!=1) {
+			rscale << c.right->scale << "*";
+		}
+		os<<lscale.str()<<*c.left<<"+"<<c.gap<<type<<rscale.str()<<*c.right;
 		if(c.left->block&&c.right->block)
-			os<<*c.left<<"+"<<c.gap<<type<<*c.right<<"("<<c.slack()<<")"<<(c.active?"-active":"");
+			os<<"("<<c.slack()<<")"<<(c.active?"-active":"")
+				<<"(lm="<<c.lm<<")";
 		else
-			os<<*c.left<<"+"<<c.gap<<type<<*c.right<<"(vars have no position)";
+			os<<"(vars have no position)";
 	}
 	return os;
 }

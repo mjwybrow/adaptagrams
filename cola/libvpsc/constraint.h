@@ -27,7 +27,7 @@ public:
 	double lm;
 	Constraint(Variable *left, Variable *right, double gap, bool equality=false);
 	~Constraint();
-	inline double slack() const { return right->position() - gap - left->position(); }
+	inline double slack() const { return right->scale * right->position() - gap - left->scale * left->position(); }
 	long timeStamp;
 	bool active;
 	const bool equality;

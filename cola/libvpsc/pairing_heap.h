@@ -54,9 +54,16 @@ struct PairNode
        	{ }
 };
 
+template <class T, class TCompare>
+class PairingHeap;
+
+template <class T,class TCompare>
+std::ostream& operator <<(std::ostream &os, const PairingHeap<T,TCompare> &b);
+
 template <class T, class TCompare = std::less<T> >
 class PairingHeap
 {
+	friend std::ostream& operator << <T,TCompare> (std::ostream &os, const PairingHeap<T,TCompare> &b);
 public:
 	PairingHeap() : root(NULL), counter(0) { }
 	PairingHeap(const PairingHeap & rhs) { 

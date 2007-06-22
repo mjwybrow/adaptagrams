@@ -34,8 +34,14 @@ typedef std::vector<Constraint*> Constraints;
  */
 class Solver {
 public:
+	// the following two methods both attempt to solve a least-squares
+	// problem subject to a set of sepation constraints.  They return
+	// true if any constraints are active, in both cases false means
+	// an unconstrained optimum has been found.
+	// satisfy returns an approximate solution subject to the constraints
 	virtual bool satisfy();
-	virtual void solve();
+	// solve returns an optimum solution subject to the constraints
+	virtual bool solve();
 
 	Solver(const unsigned n, Variable* const vs[], const unsigned m, Constraint *cs[]);
 	virtual ~Solver();
@@ -58,7 +64,7 @@ class IncSolver : public Solver {
 public:
 	unsigned splitCnt;
 	bool satisfy();
-	void solve();
+	bool solve();
 	void moveBlocks();
 	void splitBlocks();
 	IncSolver(const unsigned n, Variable* const vs[], const unsigned m, Constraint *cs[]);

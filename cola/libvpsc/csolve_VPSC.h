@@ -40,6 +40,8 @@ void remapOutConstraints(Variable *u, Variable *v, double dgap);
 int getLeftVarID(Constraint *c);
 int getRightVarID(Constraint *c);
 double getSeparation(Constraint *c);
+double getLeftScale(Constraint *c);
+double getRightScale(Constraint *c);
 
 #ifndef HAVE_POINTF_S
 typedef struct pointf_s { double x, y; } pointf;

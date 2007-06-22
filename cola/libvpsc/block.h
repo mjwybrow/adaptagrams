@@ -22,6 +22,15 @@ class Variable;
 class Constraint;
 class CompareConstraints;
 
+struct ScaleInfo {
+	ScaleInfo() : scale(0), AB(0), AD(0), A2(0) {}
+	void addVariable(Variable* const v);
+	double scale;
+	double AB;
+	double AD;
+	double A2;
+};
+
 class Block
 {
 	typedef std::vector<Variable*> Variables;
@@ -36,6 +45,7 @@ public:
 	double posn;
 	double weight;
 	double wposn;
+	ScaleInfo scale;
 	Block(Variable* const v=NULL);
 	~Block(void);
 	Constraint* findMinLM();
@@ -44,7 +54,7 @@ public:
 	Constraint* findMinOutConstraint();
 	void deleteMinInConstraint();
 	void deleteMinOutConstraint();
-	double desiredWeightedPosition();
+	void updateWeightedPosition();
 	void merge(Block *b, Constraint *c, double dist);
 	Block* merge(Block *b, Constraint *c);
 	void mergeIn(Block *b);
@@ -67,6 +77,7 @@ private:
 	typedef enum {NONE, LEFT, RIGHT} Direction;
 	typedef std::pair<double, Constraint*> Pair;
 	void reset_active_lm(Variable* const v, Variable* const u);
+	void list_active(Variable* const v, Variable* const u);
 	double compute_dfdv(Variable* const v, Variable* const u);
 	double compute_dfdv(Variable* const v, Variable* const u, Constraint *&min_lm);
 	bool split_path(Variable*, Variable* const, Variable* const, 

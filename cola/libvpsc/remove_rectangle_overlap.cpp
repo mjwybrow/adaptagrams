@@ -48,7 +48,7 @@ void removeRectangleOverlap(unsigned n, std::vector<Rectangle*> const & rs, doub
 	Rectangle::setYBorder(yBorder+EXTRA_GAP);
 	Variable **vs=new Variable*[n];
 	for(unsigned i=0;i<n;i++) {
-		vs[i]=new Variable(i,0,1);
+		vs[i]=new Variable(i,0);
 	}
 	Constraint **cs;
 	double *oldX = new double[n];

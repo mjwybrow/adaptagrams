@@ -24,7 +24,8 @@ class Variable
 public:
 	const int id; // useful in log files
 	double desiredPosition;
-	double weight;
+	double weight; // how much the variable wants to be at it's desired position
+	double scale; // translates variable to another space
 	double offset;
 	Block *block;
 	bool visited;
@@ -32,10 +33,12 @@ public:
 	Constraints in;
 	Constraints out;
 	char *toString();
-	inline Variable(const int id, const double desiredPos, const double weight)
+	inline Variable(const int id, const double desiredPos, 
+			const double weight=1., const double scale=1.)
 		: id(id)
 		, desiredPosition(desiredPos)
 		, weight(weight)
+		, scale(scale)
 		, offset(0)
 		, block(NULL)
 		, visited(false)
@@ -43,7 +46,10 @@ public:
 	{
 	}
 	inline double position() const {
-		return block->posn+offset;
+		return (block->scale.scale*block->posn+offset)/scale;
+	}
+	double dfdv() const {
+		return 2. * weight * ( position() - desiredPosition );
 	}
 	//double position() const;
 	~Variable(void){

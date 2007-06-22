@@ -6,45 +6,160 @@
 #include <time.h>
 #include <math.h>
 #include <cassert>
+#include <libvpsc/mosek_quad_solve.h>
+
 using namespace std;
 using namespace vpsc;
 
-static inline int getRand(const int range) {
+static inline double getRand(const int range) {
 	return (double)range*rand()/(RAND_MAX+1.0);
 }
 inline bool approxEquals(const double a, const double b) {
-	return fabs((double)a-b)<0.0001;
+	return fabs((double)a-b)<0.001;
 }
 typedef vector<Constraint*> CS;
 
+bool checkResult(unsigned n, Variable *a[], unsigned m, Constraint *c[], double expected[]=NULL) {
+	IncSolver vpsc(n,a,m,c);
+	vpsc.solve();
+#ifdef MOSEK_AVAILABLE
+	printf("Checking with mosek...");
+	MosekEnv* menv = mosek_init_sep_ls(n,c,m);
+	float *b=new float[n];
+	float *x=new float[n];
+	for(unsigned i=0;i<n;i++) {
+		b[i]=a[i]->desiredPosition;
+	}
+	mosek_quad_solve_sep(menv,b,x);
+	mosek_delete(menv);
+#endif
+	for(unsigned i=0;i<n;i++) {
+		char s=',';
+		if(i==n-1) s='\n';
+#ifdef MOSEK_AVAILABLE
+		printf("%f(%f)%c",a[i]->position(),x[i],s);
+		if(!(approxEquals(a[i]->position(),x[i]))) {
+			return false;
+		}
+		assert(approxEquals(a[i]->position(),x[i]));
+#endif
+		if(expected) assert(approxEquals(a[i]->position(),expected[i]));
+	}
+#ifdef MOSEK_AVAILABLE
+	delete [] b;
+	delete [] x;
+#endif
+	return true;
+}
+void dumpMatlabProblem(unsigned n, Variable *a[], unsigned m, Constraint *c[]){
+	printf("H=2*eye(%d);\n",n);
+	printf("f=-2*[ ");
+	for(unsigned i=0;i<n;i++) {
+		printf("%f ",a[i]->desiredPosition);
+	}
+	printf("];\n");
+	printf("s=[ ");
+	for(unsigned i=0;i<n;i++) {
+		printf("%f ",a[i]->scale);
+	}
+	printf("];\n");
+	printf("C=zeros(%d,%d);\n",m,n);
+	for(unsigned i=0;i<m;i++) {
+		printf("C(%d,[%d %d])=[1 -1];\n",i+1,c[i]->left->id+1,c[i]->right->id+1);
+	}
+	printf("A=C*diag(s);\n");
+	printf("b=[ ");
+	for(unsigned i=0;i<m;i++) {
+		printf("%f ",-1.*c[i]->gap);
+	}
+	printf("];\n");
+	printf("quadprog(H,f,A,b)\n");
+}
 void test1() {
 	cout << "Test 1..." << endl;
 	Variable *a[] = {
-		new Variable(0,2,100000.),
-		new Variable(1,9,1),
-		new Variable(2,9,1),
-		new Variable(3,9,1),
-		new Variable(4,2,1)};
+		new Variable(0,2,1,1.),
+		new Variable(1,9,1,1),
+		new Variable(2,9,1,1),
+		new Variable(3,9,1,1),
+		new Variable(4,2,1,1)};
 	Constraint *c[] = {
-		new Constraint(a[0],a[4],3),
 		new Constraint(a[0],a[4],3),
 		new Constraint(a[0],a[1],3),
 		new Constraint(a[1],a[2],3),
-		new Constraint(a[1],a[2],3),
 		new Constraint(a[2],a[4],3),
-		new Constraint(a[3],a[4],3),
-		new Constraint(a[3],a[4],3),
 		new Constraint(a[3],a[4],3)};
 	unsigned int n = sizeof(a)/sizeof(Variable*);
 	unsigned int m = sizeof(c)/sizeof(Constraint*);
-	double expected[]={2,5,8,8,11};
-	IncSolver vpsc(n,a,m,c);
-	vpsc.satisfy();
-	for(unsigned i=0;i<n;i++) {
-		printf("a[%d]=%.1f\n",i,a[i]->position());
-		assert(approxEquals(a[i]->position(),expected[i]));
-	}
+	double expected[]={1.4,4.4,7.4,7.4,10.4};
+	checkResult(n,a,m,c,expected);
 	cout << "Test 1... done." << endl;
+}
+void test1a() {
+	cout << "Test 1a..." << endl;
+	/* matlab:
+	 H=2*eye(2)
+	 f=[0 0]
+	 A=[ 2 -1 ]
+	 b=[ -2 ]
+	 quadprog(H,f,A,b)
+	 */
+	Variable *a[] = {
+		new Variable(0,0,1,2.),
+		new Variable(1,0,1,1)};
+	Constraint *c[] = {
+		new Constraint(a[0],a[1],2)};
+	unsigned int n = sizeof(a)/sizeof(Variable*);
+	unsigned int m = sizeof(c)/sizeof(Constraint*);
+	double expected[]={-0.8,0.4};
+	checkResult(n,a,m,c,expected);
+	cout << "Test 1a... done." << endl;
+}
+void test1b() {
+	cout << "Test 1b..." << endl;
+	/* matlab:
+	 H=2*eye(2)
+	 f=[0 0]
+	 A=[ 1 -2 ]
+	 b=[ -2 ]
+	 quadprog(H,f,A,b)
+	 */
+	Variable *a[] = {
+		new Variable(0,0,1,1.),
+		new Variable(1,0,1,2)};
+	Constraint *c[] = {
+		new Constraint(a[0],a[1],2)};
+	unsigned int n = sizeof(a)/sizeof(Variable*);
+	unsigned int m = sizeof(c)/sizeof(Constraint*);
+	double expected[]={-0.4,0.8};
+	checkResult(n,a,m,c,expected);
+	cout << "Test 1b... done." << endl;
+}
+void test1c() {
+	cout << "Test 1c..." << endl;
+	/* matlab:
+	 H=2*eye(3)
+	 f=-2*[ 1 1 1 ]
+	 s=[ 3  2  4 ]
+	 C=zeros(2,3)
+	 C(1,1:2)=[1 -1]
+	 C(2,2:3)=[1 -1]
+	 A=C*diag(s)
+	 b=[-2 -2 ]
+	 quadprog(H,f,A,b)
+	 */
+	Variable *a[] = {
+		new Variable(0,1,1,3),
+		new Variable(1,1,1,2),
+		new Variable(2,1,1,4)};
+	Constraint *c[] = {
+		new Constraint(a[0],a[1],2),
+		new Constraint(a[1],a[2],2)};
+	unsigned int n = sizeof(a)/sizeof(Variable*);
+	unsigned int m = sizeof(c)/sizeof(Constraint*);
+	double expected[]={0.2623, 1.3934, 1.1967};
+	checkResult(n,a,m,c,expected);
+	cout << "Test 1c... done." << endl;
 }
 
 // no splits required
@@ -66,17 +181,26 @@ void test2() {
 	double expected[]={0.5,6,3.5,6.5,9.5};
 	unsigned int n = sizeof(a)/sizeof(Variable*);
 	unsigned int m = sizeof(c)/sizeof(Constraint*);
-	IncSolver vpsc(n,a,m,c);
-	vpsc.solve();
-	for(int i=0;i<n;i++) {
-		printf("%f,",a[i]->position());
-		//assert(approxEquals(a[i]->position(),expected[i]));
-	}
+	checkResult(n,a,m,c,expected);
 	cout << "Test 2... done." << endl;
 }
 
-// split required - cycles without change in direction check
+// split required
 void test3() {
+	/* matlab:
+	 H=2*eye(5)
+	 f=-2*[ 5 6 7 4 3 ]
+	 s=[ 1 1 1 1 1 ]
+	 C=zeros(5,5)
+	 C(1,[1 5])=[1 -1]
+	 C(2,[2 3])=[1 -1]
+	 C(3,[3 4])=[1 -1]
+	 C(4,[3 5])=[1 -1]
+	 C(5,[4 5])=[1 -1]
+	 A=C*diag(s)
+	 b=-3*ones(5,1)
+	 quadprog(H,f,A,b)
+	 */
 	cout << "Test 3..." << endl;
 	Variable *a[] = {
 		new Variable(0,5,1),
@@ -90,26 +214,36 @@ void test3() {
 		new Constraint(a[2],a[3],3),
 		new Constraint(a[2],a[4],3),
 		new Constraint(a[3],a[4],3)};
-	double expected[]={6.2,0.2,3.2,6.2,9.2};
+	double expected[]={5,0.5,3.5,6.5,9.5};
 	unsigned int n = sizeof(a)/sizeof(Variable*);
 	unsigned int m = sizeof(c)/sizeof(Constraint*);
-	IncSolver vpsc(n,a,m,c);
-	vpsc.satisfy();
-	for(int i=0;i<n;i++) {
-		printf("%f,",a[i]->position());
-		//assert(approxEquals(a[i]->position(),expected[i]));
-	}
+	checkResult(n,a,m,c,expected);
 	cout << "Test 3... done." << endl;
 }
 // split required
 void test4() {
+	/* matlab:
+	 H=2*eye(5)
+	 f=-2*[ 7 1 6 0 2 ]
+	 s=[ 5 8 3 1 7 ]
+	 C=zeros(6,5)
+	 C(1,[1 4])=[1 -1]
+	 C(2,[1 2])=[1 -1]
+	 C(3,[2 5])=[1 -1]
+	 C(4,[3 5])=[1 -1]
+	 C(5,[3 4])=[1 -1]
+	 C(6,[4 5])=[1 -1]
+	 A=C*diag(s)
+	 b=-3*ones(6,1)
+	 quadprog(H,f,A,b)
+	 */
 	cout << "Test 4..." << endl;
 	Variable *a[] = {
-		new Variable(0,7,1),
-		new Variable(1,1,1),
-		new Variable(2,6,1),
-		new Variable(3,0,1),
-		new Variable(4,2,1)};
+		new Variable(0,7,1,1),
+		new Variable(1,1,1,1),
+		new Variable(2,6,1,1),
+		new Variable(3,0,1,1),
+		new Variable(4,2,1,1)};
 	Constraint *c[] = {
 		new Constraint(a[0],a[3],3),
 		new Constraint(a[0],a[1],3),
@@ -117,22 +251,10 @@ void test4() {
 		new Constraint(a[2],a[4],3),
 		new Constraint(a[2],a[3],3),
 		new Constraint(a[3],a[4],3)};
-	double expected[]={5,0.5,3.5,6.5,9.5};
+	double expected[]={0.8,3.8,0.8,3.8,6.8};
 	unsigned int n = sizeof(a)/sizeof(Variable*);
 	unsigned int m = sizeof(c)/sizeof(Constraint*);
-	try {
-		IncSolver vpsc(n,a,m,c);
-		vpsc.solve();
-	} catch (char const *msg) {
-		cerr << msg << endl;
-		exit(1);
-	}
-
-	/*
-	for(int i=0;i<n;i++) {
-		assert(approxEquals(a[i]->position(),expected[i]));
-	}
-	*/
+	checkResult(n,a,m,c,expected);
 	cout << "Test 4... done." << endl;
 }
 void test5() {
@@ -156,18 +278,7 @@ void test5() {
 	double expected[]={-3.71429,4,1,-0.714286,2.28571,2.28571,7,5.28571,8.28571,11.2857};
 	unsigned int n = sizeof(a)/sizeof(Variable*);
 	unsigned int m = sizeof(c)/sizeof(Constraint*);
-	try {
-		IncSolver vpsc(n,a,m,c);
-		vpsc.solve();
-	} catch (char const *msg) {
-		cerr << msg << endl;
-		exit(1);
-	}
-
-	for(int i=0;i<n;i++) {
-		printf("%f,",a[i]->position());
-		//assert(approxEquals(a[i]->position(),expected[i]));
-	}
+	checkResult(n,a,m,c,expected);
 	cout << "Test 5... done." << endl;
 }
 void test6() {
@@ -190,17 +301,7 @@ void test6() {
 	double expected[]={-0.75,0,2.25,5.25,8.25};
 	unsigned int n = sizeof(a)/sizeof(Variable*);
 	unsigned int m = sizeof(c)/sizeof(Constraint*);
-	try {
-		IncSolver vpsc(n,a,m,c);
-		vpsc.solve();
-	} catch (char const *msg) {
-		cerr << msg << endl;
-		exit(1);
-	}
-
-	for(int i=0;i<n;i++) {
-		assert(approxEquals(a[i]->position(),expected[i]));
-	}
+	checkResult(n,a,m,c,expected);
 	cout << "Test 6... done." << endl;
 }
 void test7() {
@@ -223,20 +324,25 @@ void test7() {
 	double expected[]={-0.5,2,2.5,5.5,8.5};
 	unsigned int n = sizeof(a)/sizeof(Variable*);
 	unsigned int m = sizeof(c)/sizeof(Constraint*);
-	try {
-		IncSolver vpsc(n,a,m,c);
-		vpsc.solve();
-	} catch (char const *msg) {
-		cerr << msg << endl;
-		exit(1);
-	}
-
-	for(int i=0;i<n;i++) {
-		assert(approxEquals(a[i]->position(),expected[i]));
-	}
+	checkResult(n,a,m,c,expected);
 	cout << "Test 7... done." << endl;
 }
 void test8() {
+	/* matlab:
+	 H=2*eye(5)
+	 f=-2*[ 3 4 0 5 6 ]
+	 s=[ 1 1 1 1 1 ]
+	 C=zeros(6,5)
+	 C(1,[1 2])=[1 -1]
+	 C(2,[1 3])=[1 -1]
+	 C(3,[2 3])=[1 -1]
+	 C(4,[2 5])=[1 -1]
+	 C(5,[3 4])=[1 -1]
+	 C(6,[4 5])=[1 -1]
+	 A=C*diag(s)
+	 b=-3*ones(6,1)
+	 quadprog(H,f,A,b)
+	 */
 	// This cycles when using the heuristic of merging on the least
 	// violated, violated constraint first.
 	cout << "Test 8..." << endl;
@@ -250,7 +356,6 @@ void test8() {
 	Constraint *c[] = {
 		new Constraint(a[0],a[1],3),
 		new Constraint(a[0],a[2],3),
-		new Constraint(a[0],a[2],3),
 		new Constraint(a[1],a[2],3),
 		new Constraint(a[1],a[4],3),
 		new Constraint(a[2],a[3],3),
@@ -258,25 +363,29 @@ void test8() {
 		new Constraint(a[3],a[4],3),
 		new Constraint(a[3],a[4],3)
 	};
-	double expected[]={-0.5,2,2.5,5.5,8.5};
+	double expected[]={-2.4,0.6,3.6,6.6,9.6};
 	unsigned int n = sizeof(a)/sizeof(Variable*);
 	unsigned int m = sizeof(c)/sizeof(Constraint*);
-	try {
-		IncSolver vpsc(n,a,m,c);
-		vpsc.solve();
-	} catch (char const *msg) {
-		cerr << msg << endl;
-		exit(1);
-	}
-
-	/*
-	for(int i=0;i<n;i++) {
-		assert(approxEquals(a[i]->position(),expected[i]));
-	}
-	*/
+	checkResult(n,a,m,c,expected);
 	cout << "Test 8... done." << endl;
 }
 void test9() {
+	/* matlab:
+	 H=2*eye(5)
+	 f=-2*[ 8 2 6 5 3 ]
+	 s=[ 1 1 1 1 1 ]
+	 C=zeros(7,5)
+	 C(1,[1 5])=[1 -1]
+	 C(2,[1 4])=[1 -1]
+	 C(3,[2 3])=[1 -1]
+	 C(4,[2 5])=[1 -1]
+	 C(5,[3 4])=[1 -1]
+	 C(6,[3 5])=[1 -1]
+	 C(7,[4 5])=[1 -1]
+	 A=C*diag(s)
+	 b=-3*ones(7,1)
+	 quadprog(H,f,A,b)
+	 */
 	cout << "Test 9..." << endl;
 	Variable *a[] = {
 		new Variable(0,8,1),
@@ -292,68 +401,117 @@ void test9() {
 		new Constraint(a[2],a[3],3),
 		new Constraint(a[2],a[4],3),
 		new Constraint(a[3],a[4],3)};
-	double expected[]={0.5,6,3.5,6.5,9.5};
+	double expected[]={3.6,0.6,3.6,6.6,9.6};
 	unsigned int n = sizeof(a)/sizeof(Variable*);
 	unsigned int m = sizeof(c)/sizeof(Constraint*);
-	IncSolver vpsc(n,a,m,c);
-	vpsc.solve();
-	for(int i=0;i<n;i++) {
-		printf("%f,",a[i]->position());
-		//assert(approxEquals(a[i]->position(),expected[i]));
-	}
+	checkResult(n,a,m,c,expected);
 	cout << "Test 9... done." << endl;
 }
 
 void test10() {
 	cout << "Test 10..." << endl;
 	Variable *a[] = {
-		new Variable(0,5,1),
-		new Variable(1,4,1),
-		new Variable(2,0,1),
-		new Variable(3,6,1),
-		new Variable(4,4,1)};
+		new Variable(0,8.56215,1,4.99888),
+new Variable(1,1.27641,1,8.06009),
+new Variable(2,6.28523,1,1.06585),
+new Variable(3,4.09743,1,0.924166),
+new Variable(4,0.369025,1,6.12702)};
+
 	Constraint *c[] = {
-		new Constraint(a[0],a[1],3),
 		new Constraint(a[0],a[2],3),
-		new Constraint(a[1],a[4],3),
-		new Constraint(a[1],a[2],3),
-		new Constraint(a[2],a[4],3),
-		new Constraint(a[3],a[4],3)};
-	double expected[]={5,0.5,3.5,6.5,9.5};
+new Constraint(a[0],a[1],3),
+new Constraint(a[0],a[1],3),
+new Constraint(a[1],a[3],3),
+new Constraint(a[1],a[3],3),
+new Constraint(a[1],a[2],3),
+new Constraint(a[2],a[4],3),
+new Constraint(a[2],a[4],3),
+new Constraint(a[3],a[4],3),
+new Constraint(a[3],a[4],3)};
+
+	//double expected[]={-1,2,5,5,8};
 	unsigned int n = sizeof(a)/sizeof(Variable*);
 	unsigned int m = sizeof(c)/sizeof(Constraint*);
-	try {
-		IncSolver vpsc(n,a,m,c);
-		vpsc.solve();
-	} catch (char const *msg) {
-		cerr << msg << endl;
-		exit(1);
-	}
-
-	/*
-	for(int i=0;i<n;i++) {
-		assert(approxEquals(a[i]->position(),expected[i]));
-	}
-	*/
+	IncSolver vpsc(n,a,m,c);
+	vpsc.solve();
+	assert(checkResult(n,a,m,c,NULL));
 	cout << "Test 10... done." << endl;
+}
+void test11() {
+	cout << "Test 11..." << endl;
+	Variable *a[] = {
+		new Variable(0,1.31591,1,9.02545),
+new Variable(1,1.48155,1,3.68918),
+new Variable(2,3.5091,1,2.07033),
+new Variable(3,3.47131,1,8.75145),
+new Variable(4,0.77374,1,0.967941)};
+
+	Constraint *c[] = {
+new Constraint(a[0],a[3],3),
+new Constraint(a[0],a[1],3),
+new Constraint(a[1],a[4],3),
+new Constraint(a[1],a[2],3),
+new Constraint(a[2],a[4],3),
+new Constraint(a[2],a[4],3),
+new Constraint(a[3],a[4],3),
+new Constraint(a[3],a[4],3)};
+
+	//double expected[]={-1,2,5,5,8};
+	unsigned int n = sizeof(a)/sizeof(Variable*);
+	unsigned int m = sizeof(c)/sizeof(Constraint*);
+	dumpMatlabProblem(n,a,m,c);
+	IncSolver vpsc(n,a,m,c);
+	vpsc.solve();
+	assert(checkResult(n,a,m,c,NULL));
+	cout << "Test 11... done." << endl;
+}
+void test12() {
+	cout << "Test 12..." << endl;
+	Variable *a[] = {
+new Variable(0,2.83063,1,6.67901),
+new Variable(1,6.81696,1,7.28642),
+new Variable(2,9.27616,1,0.918345),
+new Variable(3,3.4094,1,3.39673),
+new Variable(4,2.92492,1,2.36269)};
+
+	Constraint *c[] = {
+new Constraint(a[0],a[3],3),
+new Constraint(a[0],a[2],3),
+new Constraint(a[0],a[1],3),
+new Constraint(a[1],a[4],3),
+new Constraint(a[1],a[4],3),
+new Constraint(a[1],a[4],3),
+new Constraint(a[2],a[4],3),
+new Constraint(a[2],a[4],3),
+new Constraint(a[3],a[4],3),
+new Constraint(a[3],a[4],3),
+new Constraint(a[3],a[4],3),
+new Constraint(a[3],a[4],3)};
+
+	//double expected[]={-1,2,5,5,8};
+	unsigned int n = sizeof(a)/sizeof(Variable*);
+	unsigned int m = sizeof(c)/sizeof(Constraint*);
+	dumpMatlabProblem(n,a,m,c);
+	assert(checkResult(n,a,m,c,NULL));
+	cout << "Test 12... done." << endl;
 }
 
 // n=number vars
 // m=max constraints per var
-void rand_test(int n, int m) {
+void rand_test(unsigned n, unsigned m) {
 	Variable *a[n];
 	CS cs;
-	for(int i=0;i<n;i++) {
-		a[i]=new Variable(i,getRand(10),1);
+	for(unsigned i=0;i<n;i++) {
+		a[i]=new Variable(i,getRand(10),1,getRand(10));
 	}
-	for(int i=0;i<n-1;i++) {
+	for(unsigned i=0;i<n-1;i++) {
 		for(int j=0;j<getRand(m)+1;j++) {
 			int e = i + getRand(n-1-i)+1;
 			cs.push_back(new Constraint(a[i],a[e],3));
 		}
 	}
 	Constraint *acs[cs.size()];
-	for(int i=0;i<cs.size();i++) {
+	for(unsigned i=0;i<cs.size();i++) {
 		acs[i]=cs[i];
 	}
 	/*
@@ -364,27 +522,61 @@ void rand_test(int n, int m) {
 	}
 	cout<<"}"<<endl;
 	*/
-	IncSolver vpsc(n,a,cs.size(),acs);
 	try {
-		vpsc.solve();
+		if(!checkResult(n,a,cs.size(),acs)) {
+			throw "Check failed!";
+		}
 	} catch (char const *msg) {
 		cout << msg << endl;
-		for(int i=0;i<n;i++) {
-			cout << "new Variable("<<i<<","<<a[i]->desiredPosition<< ",1)," << endl;
+		for(unsigned i=0;i<n;i++) {
+			if(i!=0) cout << "," << endl;
+			cout << "new Variable("<<i<<","<<a[i]->desiredPosition<< ",1,"
+				<< a[i]->scale <<")";
 			//cout << "a[i]->Pos="<<a[i]->position() << endl;
 		}
+		cout << "};" << endl;
 		for(CS::iterator i(cs.begin());i!=cs.end();i++) {
+			if(i!=cs.begin()) cout << "," << endl;
 			Constraint *c=*i;
 			//cout << c->left->id << "->" << c->right->id << ";" << endl;
-			cout << "new Constraint(a[" <<  c->left->id << "],a[" <<  c->right->id << "],3)," << endl;
+			cout << "new Constraint(a[" <<  c->left->id << "],a[" <<  c->right->id << "],3)";
+
 		}
+		cout << "};" << endl;
 		throw "test failed!";
 	}
+	/*
+	for(unsigned i=0;i<n;i++) {
+		a[i]->desiredPosition=getRand(10);
+	}
+	vpsc.solve();
+	try {
+		if(!checkResult(n,a,m,acs)) {
+			throw "2nd Check failed!";
+		}
+	} catch (char const *msg) {
+		cout << msg << endl;
+		for(unsigned i=0;i<n;i++) {
+			if(i!=0) cout << "," << endl;
+			cout << "new Variable("<<i<<","<<a[i]->desiredPosition<< ",1)";
+			//cout << "a[i]->Pos="<<a[i]->position() << endl;
+		}
+		cout << "};" << endl;
+		for(CS::iterator i(cs.begin());i!=cs.end();i++) {
+			if(i!=cs.begin()) cout << "," << endl;
+			Constraint *c=*i;
+			//cout << c->left->id << "->" << c->right->id << ";" << endl;
+			cout << "new Constraint(a[" <<  c->left->id << "],a[" <<  c->right->id << "],3)";
+
+		}
+		cout << "};" << endl;
+		throw "test failed!";
+	}
+	*/
 }
 int main() {
 	srand(time(NULL));
 	test1();
-	/*
 	test2();
 	test3();
 	test4();
@@ -394,16 +586,17 @@ int main() {
 	test8();
 	test9();
 	test10();
+	test11();
+	test12();
+	/*
 	for(int i=0;i<1000;i++) {
 		if(i%100==0) cout << "i=" << i << endl;
 		rand_test(100,3);
 	}
-	*/
-	/*
+*/
 	for(int i=0;i<10000;i++) {
 		if(i%100==0) cout << "i=" << i << endl;
 		rand_test(5,3);
 	}
-	*/
 	return 0;
 }

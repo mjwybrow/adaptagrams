@@ -176,7 +176,7 @@ void Blocks::split(Block *b, Block *&l, Block *&r, Constraint *c) {
 	mergeLeft(l);
 	// r may have been merged!
 	r = c->right->block;
-	r->wposn = r->desiredWeightedPosition();
+	r->updateWeightedPosition();
 	r->posn = r->wposn / r->weight;
 	mergeRight(r);
 	removeBlock(b);

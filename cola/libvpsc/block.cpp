@@ -26,32 +26,65 @@ using std::ostream;
 using std::vector;
 
 namespace vpsc {
+void ScaleInfo::addVariable(Variable* v) {
+	double ai=scale/v->scale;
+	double bi=v->offset/v->scale;
+	AB+=ai*bi;
+	AD+=ai*v->desiredPosition;
+	A2+=ai*ai;
+	/*
+#ifdef LIBVPSC_LOGGING
+	ofstream f(LOGFILE,ios::app);
+	f << "adding v[" << v->id << "], blockscale=" << scale << ", despos=" 
+	  << v->desiredPosition << ", ai=" << ai << ", bi=" << bi
+	  << ", AB=" << AB << ", AD=" << AD << ", A2=" << A2;
+#endif
+*/
+}
 void Block::addVariable(Variable* v) {
 	v->block=this;
 	vars->push_back(v);
-	weight+=v->weight;
-	wposn += v->weight * (v->desiredPosition - v->offset);
-	posn=wposn/weight;
+	if(scale.A2==0) scale.scale=v->scale;
+	//weight+= v->weight;
+	//wposn += v->weight * (v->desiredPosition - v->offset);
+	//posn=wposn/weight;
+	scale.addVariable(v);
+	posn=(scale.AD - scale.AB) / scale.A2;
+	/*
+#ifdef LIBVPSC_LOGGING
+	ofstream f(LOGFILE,ios::app);
+	f << ", posn=" << posn << endl;
+#endif
+*/
 }
-Block::Block(Variable* const v) {
-	timeStamp=0;
-	posn=weight=wposn=0;
-	in=NULL;
-	out=NULL;
-	deleted=false;
-	vars=new vector<Variable*>;
+Block::Block(Variable* const v)
+	: vars(new vector<Variable*>)
+	, posn(0)
+	, weight(0)
+	, wposn(0)
+	, deleted(false)
+	, timeStamp(0)
+	, in(NULL)
+	, out(NULL)
+{
 	if(v!=NULL) {
 		v->offset=0;
 		addVariable(v);
 	}
 }
 
-double Block::desiredWeightedPosition() {
-	double wp = 0;
+void Block::updateWeightedPosition() {
+	//wposn=0;
+	scale.AB=scale.AD=scale.A2=0;
 	for (Vit v=vars->begin();v!=vars->end();++v) {
-		wp += ((*v)->desiredPosition - (*v)->offset) * (*v)->weight;
+		//wposn += ((*v)->desiredPosition - (*v)->offset) * (*v)->weight;
+		scale.addVariable(*v);
 	}
-	return wp;
+	posn=(scale.AD - scale.AB) / scale.A2;
+#ifdef LIBVPSC_LOGGING
+	ofstream f(LOGFILE,ios::app);
+	f << ", posn=" << posn << endl;
+#endif
 }
 Block::~Block(void)
 {
@@ -112,15 +145,27 @@ void Block::merge(Block *b, Constraint *c, double dist) {
 	f<<"    merging: "<<*b<<"dist="<<dist<<endl;
 #endif
 	c->active=true;
-	wposn+=b->wposn-dist*b->weight;
-	weight+=b->weight;
-	posn=wposn/weight;
+	//wposn+=b->wposn-dist*b->weight;
+	//weight+=b->weight;
 	for(Vit i=b->vars->begin();i!=b->vars->end();++i) {
 		Variable *v=*i;
-		v->block=this;
+		//v->block=this;
+		//vars->push_back(v);
 		v->offset+=dist;
-		vars->push_back(v);
+		addVariable(v);
 	}
+#ifdef LIBVPSC_LOGGING
+	for(Vit i=vars->begin();i!=vars->end();++i) {
+		Variable *v=*i;
+		f<<"    v["<<v->id<<"]: d="<<v->desiredPosition
+			<<" a="<<v->scale<<" o="<<v->offset
+			<<endl;
+	}
+	f<<"  AD="<<scale.AD<<" AB="<<scale.AB<<" A2="<<scale.A2<<endl;
+#endif
+	//posn=wposn/weight;
+	//assert(wposn==scale.AD - scale.AB);
+	posn=(scale.AD - scale.AB) / scale.A2;
 	b->deleted=true;
 }
 
@@ -226,38 +271,42 @@ inline bool Block::canFollowRight(Constraint const* c, Variable const* last) con
 // in min_lm
 double Block::compute_dfdv(Variable* const v, Variable* const u,
 	       	Constraint *&min_lm) {
-	double dfdv=v->weight*(v->position() - v->desiredPosition);
+	double dfdv=v->dfdv();
 	for(Cit it=v->out.begin();it!=v->out.end();++it) {
 		Constraint *c=*it;
 		if(canFollowRight(c,u)) {
-			dfdv+=c->lm=compute_dfdv(c->right,v,min_lm);
+			c->lm=compute_dfdv(c->right,v,min_lm);
+			dfdv+=c->lm*c->left->scale;
 			if(!c->equality&&(min_lm==NULL||c->lm<min_lm->lm)) min_lm=c;
 		}
 	}
 	for(Cit it=v->in.begin();it!=v->in.end();++it) {
 		Constraint *c=*it;
 		if(canFollowLeft(c,u)) {
-			dfdv-=c->lm=-compute_dfdv(c->left,v,min_lm);
+			c->lm=-compute_dfdv(c->left,v,min_lm);
+			dfdv-=c->lm*c->right->scale;
 			if(!c->equality&&(min_lm==NULL||c->lm<min_lm->lm)) min_lm=c;
 		}
 	}
-	return dfdv;
+	return dfdv/v->scale;
 }
 double Block::compute_dfdv(Variable* const v, Variable* const u) {
-	double dfdv=v->weight*(v->position() - v->desiredPosition);
-	for(Cit it=v->out.begin();it!=v->out.end();++it) {
-		Constraint *c=*it;
+	double dfdv = v->dfdv();
+	for(Cit it = v->out.begin(); it != v->out.end(); ++it) {
+		Constraint *c = *it;
 		if(canFollowRight(c,u)) {
-			dfdv+=c->lm=compute_dfdv(c->right,v);
+			c->lm =   compute_dfdv(c->right,v);
+			dfdv += c->lm * c->left->scale;
 		}
 	}
 	for(Cit it=v->in.begin();it!=v->in.end();++it) {
-		Constraint *c=*it;
+		Constraint *c = *it;
 		if(canFollowLeft(c,u)) {
-			dfdv-=c->lm=-compute_dfdv(c->left,v);
+			c->lm = - compute_dfdv(c->left,v);
+			dfdv -= c->lm * c->right->scale;
 		}
 	}
-	return dfdv;
+	return dfdv/v->scale;
 }
 
 // The top level v and r are variables between which we want to find the
@@ -274,6 +323,10 @@ bool Block::split_path(
 	for(Cit it(v->in.begin());it!=v->in.end();++it) {
 		Constraint *c=*it;
 		if(canFollowLeft(c,u)) {
+#ifdef LIBVPSC_LOGGING
+	ofstream f(LOGFILE,ios::app);
+	f<<"  left split path: "<<*c<<endl;
+#endif
 			if(c->left==r) {
 				return true;
 			} else {
@@ -284,6 +337,10 @@ bool Block::split_path(
 	for(Cit it(v->out.begin());it!=v->out.end();++it) {
 		Constraint *c=*it;
 		if(canFollowRight(c,u)) {
+#ifdef LIBVPSC_LOGGING
+	ofstream f(LOGFILE,ios::app);
+	f<<"  right split path: "<<*c<<endl;
+#endif
 			if(c->right==r) {
 				if(!c->equality) m=c;
 				return true;
@@ -362,6 +419,28 @@ void Block::reset_active_lm(Variable* const v, Variable* const u) {
 		}
 	}
 }
+void Block::list_active(Variable* const v, Variable* const u) {
+	for(Cit it=v->out.begin();it!=v->out.end();++it) {
+		Constraint *c=*it;
+		if(canFollowRight(c,u)) {
+#ifdef LIBVPSC_LOGGING
+	ofstream f(LOGFILE,ios::app);
+	f<<"  "<<*c<<endl;
+#endif
+			list_active(c->right,v);
+		}
+	}
+	for(Cit it=v->in.begin();it!=v->in.end();++it) {
+		Constraint *c=*it;
+		if(canFollowLeft(c,u)) {
+#ifdef LIBVPSC_LOGGING
+	ofstream f(LOGFILE,ios::app);
+	f<<"  "<<*c<<endl;
+#endif
+			list_active(c->left,v);
+		}
+	}
+}
 /**
  * finds the constraint with the minimum lagrange multiplier, that is, the constraint
  * that most wants to split
@@ -370,6 +449,11 @@ Constraint *Block::findMinLM() {
 	Constraint *min_lm=NULL;
 	reset_active_lm(vars->front(),NULL);
 	compute_dfdv(vars->front(),NULL,min_lm);
+#ifdef LIBVPSC_LOGGING
+	ofstream f(LOGFILE,ios::app);
+	f<<"  langrangians: "<<endl;
+	list_active(vars->front(),NULL);
+#endif
 	return min_lm;
 }
 Constraint *Block::findMinLMBetween(Variable* const lv, Variable* const rv) {
@@ -471,6 +555,7 @@ Constraint* Block::splitBetween(Variable* const vl, Variable* const vr,
 	deleted = true;
 	return c;
 }
+
 /**
  * Creates two new blocks, l and r, and splits this block across constraint c,
  * placing the left subtree of constraints (and associated variables) into l
@@ -498,7 +583,7 @@ double Block::cost() {
 }
 ostream& operator <<(ostream &os, const Block& b)
 {
-	os<<"Block:";
+	os<<"Block(posn="<<b.posn<<"):";
 	for(Block::Vit v=b.vars->begin();v!=b.vars->end();++v) {
 		os<<" "<<**v;
 	}

@@ -36,7 +36,7 @@ int genXConstraints(int n, boxf* bb, Variable** vs, Constraint*** cs,int transit
 	for(int i=0;i<n;i++) {
 		rs[i]=new Rectangle(bb[i].LL.x,bb[i].UR.x,bb[i].LL.y,bb[i].UR.y);
 	}
-	int m = generateXConstraints(n,rs,vs,*cs,transitiveClosure != 0); // magmy20070424: Added != 0 in to avoid warning "Forcing value to bool" under MS VC++
+	int m = generateXConstraints(n,rs,vs,*cs,transitiveClosure);
 	for(int i=0;i<n;i++) {
 		delete rs[i];
 	}
@@ -124,5 +124,11 @@ int getRightVarID(Constraint *c){
 }
 double getSeparation(Constraint *c){
 	return c->gap;
+}
+double getLeftScale(Constraint *c) {
+	return c->left->scale;
+}
+double getRightScale(Constraint *c) {
+	return c->right->scale;
 }
 }

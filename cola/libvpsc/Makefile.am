@@ -1,4 +1,6 @@
+INCLUDES = -I$(top_srcdir)
 lib_LIBRARIES = libvpsc.a
+#DEFS=-DLIBVPSC_LOGGING
 
 libvpsc_a_SOURCES = block.cpp\
 	blocks.cpp\
@@ -19,7 +21,9 @@ libvpsc_a_SOURCES = block.cpp\
 	solve_VPSC.h\
 	csolve_VPSC.h\
 	variable.h\
-	cbuffer.h
+	cbuffer.h\
+	mosek_quad_solve.h\
+	mosek_quad_solve.c
 
 libvpscincludedir = ${includedir}/libvpsc
 
