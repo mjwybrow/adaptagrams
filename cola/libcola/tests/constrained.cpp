@@ -25,7 +25,7 @@ using namespace cola;
 */
 int main() {
 
-	const int V = 4;
+	const unsigned V = 4;
 	typedef pair < unsigned, unsigned >Edge;
 	Edge edge_array[] = { Edge(0, 1), Edge(1, 2), Edge(2, 3), Edge(1, 3) };
 	unsigned E = sizeof(edge_array) / sizeof(Edge);
@@ -37,17 +37,21 @@ int main() {
 		double x=getRand(width), y=getRand(height);
 		rs.push_back(new vpsc::Rectangle(x,x+5,y,y+5));
 	}
-	ConstrainedMajorizationLayout alg(rs,es,NULL,width/2);
 	CompoundConstraints acsx;
 	AlignmentConstraint ac(1);
 	acsx.push_back(&ac);
 	ac.offsets.push_back(make_pair((unsigned)0,(double)0));
 	ac.offsets.push_back(make_pair((unsigned)3,(double)0));
+	ConstrainedMajorizationLayout alg(rs,es,NULL,width/2);
 	alg.setXConstraints(&acsx);
+	alg.setScaling(true);
 	alg.run();
-	assert(fabs(rs[0]->getCentreX()-rs[3]->getCentreX())<0.001);
+	//assert(fabs(rs[0]->getCentreX()-rs[3]->getCentreX())<0.001);
 	cout<<rs[0]->getCentreX()<<","<<rs[3]->getCentreX()<<endl;
-	output_svg(rs,es,"constrained.svg");
+	OutputFile output(rs,es,NULL,"constrained.svg");
+	output.rects=true;
+	output.generate();
+
 	for(unsigned i=0;i<V;i++) {
 		delete rs[i];
 	}

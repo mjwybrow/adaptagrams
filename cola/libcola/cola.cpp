@@ -26,7 +26,7 @@ ConstrainedMajorizationLayout
     : n(rs.size()),
       lap2(valarray<double>(n*n)), 
       Dij(valarray<double>(n*n)),
-      tol(1e-4), done(done), preIteration(preIteration),
+      tol(1e-2), done(done), preIteration(preIteration),
       X(valarray<double>(n)), Y(valarray<double>(n)),
       stickyNodes(false), 
       startX(valarray<double>(n)), startY(valarray<double>(n)),
@@ -38,7 +38,9 @@ ConstrainedMajorizationLayout
       avoidOverlaps(None),
       straightenEdges(NULL),
       bendWeight(0.1), potBendWeight(0.1),
-      xSkipping(true)
+      xSkipping(true),
+      scaling(true),
+      externalSolver(false)
 {
     boundingBoxes.resize(rs.size());
     copy(rs.begin(),rs.end(),boundingBoxes.begin());
@@ -179,10 +181,12 @@ inline double ConstrainedMajorizationLayout
 void ConstrainedMajorizationLayout::run(bool x, bool y) {
     if(constrainedLayout) {
         vector<vpsc::Rectangle*>* pbb = boundingBoxes.empty()?NULL:&boundingBoxes;
+        SolveWithMosek mosek = Off;
+        if(externalSolver) mosek=Outer;
         gpX=new GradientProjection(
-            HORIZONTAL,lap2,tol,1000,ccsx,avoidOverlaps,clusterHierarchy,pbb);
+            HORIZONTAL,&lap2,tol,100,ccsx,avoidOverlaps,clusterHierarchy,pbb,scaling,mosek);
         gpY=new GradientProjection(
-            VERTICAL,lap2,tol,1000,ccsy,avoidOverlaps,clusterHierarchy,pbb);
+            VERTICAL,&lap2,tol,100,ccsy,avoidOverlaps,clusterHierarchy,pbb,scaling,mosek);
     }
     if(n>0) do {
         // to enforce clusters with non-intersecting, convex boundaries we

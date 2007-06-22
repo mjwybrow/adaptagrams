@@ -25,19 +25,9 @@ using namespace std;
 
 vector<vpsc::Rectangle*> rs;
 vector<Edge> es;
-Clusters cs;
+RootCluster root;
 unsigned iteration=0;
 
-struct CheckProgress : TestConvergence {
-	CheckProgress(double d,unsigned i) : TestConvergence(d,i) {}
-	bool operator()(double new_stress, valarray<double> & X, valarray<double> & Y) {
-		cout << "stress="<<new_stress<<endl;
-		char fname[50];
-		sprintf(fname,"containment2%04d.svg",++iteration);
-		output_svg(rs,es,cs,fname,true);
-		return TestConvergence::operator()(new_stress,X,Y);
-	}
-};
 /** 
 * \brief Determines when to terminate layout of a particular graph based
 * on a given relative tolerance. 
@@ -111,33 +101,37 @@ int main() {
 		rs.push_back(new vpsc::Rectangle(x,x+17,y,y+10));
 	}
 
-	ConvexCluster c;
+	RectangularCluster c;
 	c.nodes.push_back(0);
 	c.nodes.push_back(1);
-	ConvexCluster d;
+	RectangularCluster d;
 	d.nodes.push_back(3);
 	d.nodes.push_back(11);
-	ConvexCluster e;
+	RectangularCluster e;
 	e.nodes.push_back(8);
 	e.nodes.push_back(9);
 	e.nodes.push_back(10);
 	e.nodes.push_back(15);
 	e.nodes.push_back(16);
-	ConvexCluster f;
+	RectangularCluster f;
 	f.nodes.push_back(17);
 	f.nodes.push_back(18);
-	cs.push_back(&c);
-	cs.push_back(&d);
-	cs.push_back(&e);
-	cs.push_back(&f);
+	root.clusters.push_back(&c);
+	root.clusters.push_back(&d);
+	root.clusters.push_back(&e);
+	root.clusters.push_back(&f);
+    OutputFile of(rs,es,&root,"containment2.svg",true,true);
+    //of.setLabels(V,labels);
 	CheckProgress test(0.0001,100);
-	ConstrainedMajorizationLayout alg(rs,es,&cs,30,NULL,NULL,NULL,test);
-	output_svg(rs,es,cs,"containment20000.svg",true);
+	ConstrainedMajorizationLayout alg(rs,es,&root,30,NULL,test);
+    alg.setScaling(false);
 	//alg.setYSeparationConstraints(&scy);
 	//alg.run();
-	alg.setNonOverlappingClusters();
+	alg.setAvoidOverlaps();
 	alg.run();
+    of.generate();
 	for(unsigned i=0;i<V;i++) {
 		delete rs[i];
 	}
 }
+// vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:encoding=utf-8:textwidth=99 :

@@ -7,8 +7,11 @@
 // Default input file is the matrix market 1138_bus graph.
 // Running times:
 //    no constraints - steepest descent solver: 149 seconds
-//    no constraints - conjugate gradient solver: 21.7 seconds
-//    dir-edge constraints - conj grad. solver: 155.69 seconds
+//    no constraints - mosek: 49.47 seconds
+//    no constraints - conjugate gradient solver: 12.2 seconds
+//    dir-edge constraints - mosek: 214.2 seconds
+//    
+//    V=1138
 #include<iostream>
 #include<iomanip>
 #include<fstream>
@@ -19,13 +22,6 @@
 using namespace std;
 using namespace cola;
 
-struct CheckProgress : TestConvergence {
-    CheckProgress(const double d,const unsigned i) : TestConvergence(d,i) {}
-    bool operator()(const double new_stress, valarray<double> & X, valarray<double> & Y) {
-        cout << "stress="<<new_stress<<endl;
-        return TestConvergence::operator()(new_stress,X,Y);
-    }
-};
 int main() {
     const char *fname="data/1138_bus.txt"; //"data/dg_850.txt";
     ifstream f(fname);
@@ -37,7 +33,7 @@ int main() {
     unsigned V = 0;
     double defaultEdgeLength=40;
     vector<Edge> es;
-    CompoundConstraints cy;
+    CompoundConstraints cx,cy;
     while(!getline(f,startlabel,' ').eof()) {
         getline(f,endlabel);
         unsigned start = atoi(startlabel.c_str()),
@@ -48,31 +44,29 @@ int main() {
         V=max(V,max(start,end));
     }
     V++;
+    /*
+    DFS::Graph dfs(V,es);
+    for(unsigned i=1;i<dfs.order.size();i++) {
+        cx.push_back(
+                new SeparationConstraint(dfs.order[i-1],dfs.order[i],0));
+    }
+    */
     cout << "V="<<V<<endl;
     double width=1000;
     double height=1000;
-    vector<vpsc::Rectangle*> rs;
+    vector<pair<double,double> > startpos(V);
     //srand(time(NULL));
     for(unsigned i=0;i<V;i++) {
         double x=getRand(width), y=getRand(height);
-        rs.push_back(new vpsc::Rectangle(x,x+1,y,y+1));
+        startpos[i]=make_pair(x,y);
     }
-    CheckProgress test(0.001,100);
-    clock_t starttime=clock();
-    ConstrainedMajorizationLayout alg(rs,es,NULL,defaultEdgeLength,NULL,test);
-    //cout << "Unconstrained layout" << endl;
-    alg.setConstrainedLayout(true);
-    alg.run();
-    /*
-    cout << "Constrained layout" << endl;
-    alg.setYConstraints(&cy);
-    alg.run();
-    */
-    double t=double(clock()-starttime)/double(CLOCKS_PER_SEC);
-    cout<<"Time="<<t<<endl;
-    output_svg(rs,es,"large_graph.svg");
-    for(unsigned i=0;i<V;i++) {
-        delete rs[i];
-    }
+    const char *testname="large_graph";
+    //run_test(startpos,es,defaultEdgeLength,cx,cy,CG,false,testname,"cg");
+    //run_test(startpos,es,defaultEdgeLength,cx,cy,IP,false,testname,"ip");
+    //run_test(startpos,es,defaultEdgeLength,cx,cy,UGP,false,testname,"ugp");
+    //run_test(startpos,es,defaultEdgeLength,cx,cy,SGP,false,testname,"sgp");
+    //run_test(startpos,es,defaultEdgeLength,cx,cy,IP,true,testname,"cip");
+    run_test(startpos,es,defaultEdgeLength,cx,cy,UGP,true,testname,"cugp");
+    run_test(startpos,es,defaultEdgeLength,cx,cy,SGP,true,testname,"csgp");
 }
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:encoding=utf-8:textwidth=99 :

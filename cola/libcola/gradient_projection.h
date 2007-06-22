@@ -12,6 +12,9 @@
 #include "compound_constraints.h"
 #include "cluster.h"
 #include "sparse_matrix.h"
+#ifdef MOSEK_AVAILABLE
+#include <libvpsc/mosek_quad_solve.h>
+#endif
 
 namespace straightener {
     class Node;
@@ -19,19 +22,23 @@ namespace straightener {
 namespace cola {
 using std::valarray;
 
+enum SolveWithMosek { Off, Inner, Outer };
+
 class GradientProjection {
 public:
 	GradientProjection(
         const Dim k,
-		valarray<double> const & denseQ,
+		valarray<double> *denseQ,
 		const double tol,
 		const unsigned max_iterations,
         CompoundConstraints const * ccs,
         NonOverlapConstraints nonOverlapConstraints = None,
         RootCluster* clusterHierarchy = NULL,
-        std::vector<vpsc::Rectangle*>* rs = NULL) 
+        std::vector<vpsc::Rectangle*>* rs = NULL,
+        const bool scaling = false,
+        SolveWithMosek solveWithMosek = Off) 
             : k(k), 
-              denseSize(unsigned(floor(sqrt(denseQ.size())))),
+              denseSize(unsigned(floor(sqrt(denseQ->size())))),
               denseQ(denseQ), 
               rs(rs),
               ccs(ccs),
@@ -39,19 +46,31 @@ public:
               clusterHierarchy(clusterHierarchy),
               tolerance(tol), 
               max_iterations(max_iterations),
-              sparseQ(NULL)
+              sparseQ(NULL),
+              solveWithMosek(solveWithMosek),
+              scaling(scaling)
     {
+        printf("GP Instance: scaling=%d, mosek=%d\n",scaling,solveWithMosek);
         for(unsigned i=0;i<denseSize;i++) {
             vars.push_back(new vpsc::Variable(i,1,1));
         }
-        scaledDenseQ.resize(denseSize*denseSize);
-        for(unsigned i=0;i<denseSize;i++) {
-            double s=1./sqrt(fabs(denseQ[i*denseSize+i]));
-            for(unsigned j=0;j<denseSize;j++) {
-                scaledDenseQ[i*denseSize+j]=denseQ[i*denseSize+j]*s
-                    *1./sqrt(fabs(denseQ[j*denseSize+j]));
+        if(scaling) {
+            scaledDenseQ.resize(denseSize*denseSize);
+            for(unsigned i=0;i<denseSize;i++) {
+                vars[i]->scale=1./sqrt(fabs((*denseQ)[i*denseSize+i]));
             }
+            // the following computes S'QS for Q=denseQ
+            // and S is diagonal matrix of scale factors
+            for(unsigned i=0;i<denseSize;i++) {
+                for(unsigned j=0;j<denseSize;j++) {
+                    scaledDenseQ[i*denseSize+j]=(*denseQ)[i*denseSize+j]*vars[i]->scale
+                        *vars[j]->scale;
+                }
+            }
+            this->denseQ = &scaledDenseQ;
         }
+        //dumpSquareMatrix(*this->denseQ);
+        //dumpSquareMatrix(scaledDenseQ);
 
         if(ccs) {
             for(CompoundConstraints::const_iterator c=ccs->begin();
@@ -67,11 +86,27 @@ public:
             clusterHierarchy->createVars(k,*rs,vars);
         }
         numStaticVars=vars.size();
+        solver=setupVPSC();
 	}
+    void dumpSquareMatrix(valarray<double> const &L) const {
+        unsigned n=(unsigned)floor(sqrt(L.size()));
+        printf("Matrix %dX%d\n{",n,n);
+        for(unsigned i=0;i<n;i++) {
+            printf("{");
+            for(unsigned j=0;j<n;j++) {
+                char c=j==n-1?'}':',';
+                printf("%f%c",1. * L[i*n+j],c);
+            }
+            char c=i==n-1?'}':',';
+            printf("%c\n",c);
+        }
+    }
+
     unsigned getNumStaticVars() const {
         return numStaticVars;
     }
     ~GradientProjection() {
+        destroyVPSC(solver);
         for(Constraints::iterator i(gcs.begin()); i!=gcs.end(); i++) {
             delete *i;
         }
@@ -114,12 +149,13 @@ private:
         valarray<double> &g) const;
     double computeStepSize(
         valarray<double> const & g, valarray<double> const & d) const;
+    bool runSolver(valarray<double> & result);
     void destroyVPSC(vpsc::IncSolver *vpsc);
     Dim k;
     unsigned numStaticVars; // number of variables that persist
                               // throughout iterations
     const unsigned denseSize; // denseQ has denseSize^2 entries
-	valarray<double> const & denseQ; // dense square graph laplacian matrix
+	valarray<double> *denseQ; // dense square graph laplacian matrix
 	valarray<double> scaledDenseQ; // scaled dense square graph laplacian matrix
     std::vector<vpsc::Rectangle*>* rs;
     CompoundConstraints const * ccs;
@@ -134,6 +170,12 @@ private:
                                 iterations */
     Constraints lcs; /* local constraints - only for current iteration */
     valarray<double> result;
+#ifdef MOSEK_AVAILABLE
+    MosekEnv* menv;
+#endif
+    vpsc::IncSolver* solver;
+    SolveWithMosek solveWithMosek;
+    const bool scaling;
 };
 } // namespace cola
 

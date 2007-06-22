@@ -21,8 +21,7 @@ public:
     Clusters clusters;
     valarray<double> hullX, hullY;
     Cluster();
-    void clear();    
-    virtual ~Cluster();
+    virtual ~Cluster() {}
     void updatePosition();
     virtual void computeBoundary(vector<Rectangle*> const & rs) = 0;
     vpsc::Rectangle getMinRect( const Dim dim, Rectangle const & bounds);

@@ -123,6 +123,13 @@ public:
     void setStickyNodes(const double stickyWeight, 
             valarray<double> const & startX,
             valarray<double> const & startY);
+
+    void setScaling(bool scaling) {
+        this->scaling=scaling;
+    }
+    void setExternalSolver(bool externalSolver) {
+        this->externalSolver=externalSolver;
+    }
     /**
      * At each iteration of layout, generate constraints to avoid overlaps.
      * If bool horizontal is true, all overlaps will be resolved horizontally, otherwise
@@ -233,6 +240,12 @@ private:
     // determines whether we should leave some overlaps to be resolved
     // vertically when generating straightening constraints in the x-dim
     bool xSkipping;
+    // when using the gradient projection optimisation method, the following controls
+    // whether the problem should be preconditioned by affine scaling
+    bool scaling;
+    // if the Mosek quadratic programming environment is available it may be used
+    // to solve each iteration of stress majorization... slow but useful for testing
+    bool externalSolver;
 };
 
 Rectangle bounds(vector<Rectangle*>& rs);

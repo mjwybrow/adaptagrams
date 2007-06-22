@@ -20,16 +20,9 @@
 using namespace std;
 
 using namespace cola;
-struct CheckProgress : TestConvergence {
-	CheckProgress(double d,unsigned i) : TestConvergence(d,i) {}
-	bool operator()(double new_stress, valarray<double> & X, valarray<double> & Y) {
-		cout << "stress="<<new_stress<<endl;
-		return TestConvergence::operator()(new_stress,X,Y);
-	}
-};
 int main() {
 
-	const int V = 4;
+	const unsigned V = 4;
 	Edge edge_array[] = { Edge(0, 1), Edge(1, 2), Edge(2, 3), Edge(1, 3) };
 	const std::size_t E = sizeof(edge_array) / sizeof(Edge);
 	vector<Edge> es(E);
@@ -43,8 +36,10 @@ int main() {
 	}
 	CheckProgress test(0.0001,100);
 	ConstrainedMajorizationLayout alg(rs,es,NULL,width/2,NULL,test);
+	alg.setConstrainedLayout(true);
 	alg.run();
-	output_svg(rs,es,"unconstrained.svg");
+	OutputFile output(rs,es,NULL,"unconstrained.svg");
+	output.generate();
 	for(unsigned i=0;i<V;i++) {
 		delete rs[i];
 	}

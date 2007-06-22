@@ -14,17 +14,6 @@ namespace cola {
         : varWeight(0.0001),internalEdgeWeightFactor(1.),bounds(-1,1,-1,1)
       {}
 
-    Cluster::~Cluster() {
-        clear();
-    }
-
-    void Cluster::clear() {
-        for(vector<Cluster*>::iterator c=clusters.begin();
-                c!=clusters.end(); c++) {
-            delete *c;
-        }
-        clusters.clear();
-    }
     void Cluster::computeBoundingRect(vector<Rectangle*> const & rs) {
         double minX=DBL_MAX, maxX=-DBL_MAX, minY=DBL_MAX, maxY=-DBL_MAX;
         for(vector<Cluster*>::const_iterator i=clusters.begin(); i!=clusters.end(); i++) {

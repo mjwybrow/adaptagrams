@@ -62,6 +62,21 @@ inner(valarray<double> const &x,
     return total;// (x*y).sum(); <- this is more concise, but ineff
 }
 
+double compute_cost(valarray<double> const &A, 
+        valarray<double> const &b,
+        valarray<double> const &x,
+        const unsigned n) {
+    // computes cost = 2 b x - x A x
+    double cost = 2. * inner(b,x);
+    valarray<double> Ax(n);
+    for (unsigned i=0; i<n; i++) {
+        Ax[i] = 0;
+        for (unsigned j=0; j<n; j++) {
+            Ax[i] += A[i*n+j]*x[j];
+        }
+    }
+    return cost - inner(x,Ax);
+}
 void 
 conjugate_gradient(valarray<double> const &A, 
 		   valarray<double> &x, 
@@ -75,6 +90,9 @@ conjugate_gradient(valarray<double> const &A,
     double r_r = inner(r,r);
     unsigned k = 0;
     double tol_squared = tol*tol;
+#ifdef EXAMINE_COST
+    double previousCost=compute_cost(A,b,x,n),cost;
+#endif
     while(k < max_iterations && r_r > tol_squared) {
         k++;
         double r_r_new = r_r;
@@ -88,9 +106,15 @@ conjugate_gradient(valarray<double> const &A,
         matrix_times_vector(A, p, Ap);
         double alpha_k = r_r_new / inner(p, Ap);
         x += alpha_k*p;
+#ifdef EXAMINE_COST
+        cost=compute_cost(A,b,x,n);
+        printf("  CG[%d] %.15f %.15f\n",k,previousCost,cost);
+        previousCost=cost;
+#endif
         r -= alpha_k*Ap;
         r_r = r_r_new;
     }
+    printf("  CG finished after %d iterations\n",k);
     //printf("njh: %d iters, Linfty = %g L2 = %g\n", k, 
     //std::max(-r.min(), r.max()), sqrt(r_r));
     // x is solution
