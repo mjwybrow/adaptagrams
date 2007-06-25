@@ -70,11 +70,7 @@ public:
         //std::cout<<"iteration="<<iterations<<", new_stress="<<new_stress<<std::endl;
         if (old_stress == DBL_MAX) {
             old_stress = new_stress;
-            if(++iterations>=maxiterations) {;
-            return true;
-            } else {
-                return false;
-            }
+            return ++iterations >= maxiterations;
         }
         bool converged = 
             fabs(new_stress - old_stress) / (new_stress + 1e-10) < tolerance

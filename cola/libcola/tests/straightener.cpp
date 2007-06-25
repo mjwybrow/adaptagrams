@@ -12,10 +12,6 @@
 #include <iostream>
 #include <fstream>
 
-#include <boost/graph/circle_layout.hpp>
-#include <boost/graph/kamada_kawai_spring_layout.hpp>
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/graphviz.hpp>
 #include <map>
 #include <vector>
 #include <algorithm>
@@ -33,7 +29,7 @@ void addRect(vector<vpsc::Rectangle*>& rs, double x, double y, double w, double 
 }
 void k5() {
 	// Define K5 graph
-	const int V = 5;
+	const unsigned V = 5;
 	Edge edge_array[] = { Edge(0, 1), Edge(0, 2), Edge(0, 3), Edge(0, 4),
 		Edge(1, 2), Edge(1, 3), Edge(1, 4),
 		Edge(2, 3), Edge(2, 4),
@@ -88,12 +84,16 @@ void k5() {
 	routes[6]->setRoute(r);
 	// now straighten the edges
 	ConstrainedMajorizationLayout alg(rs,es,NULL,200);
+    alg.setScaling(false);
 	alg.setStraightenEdges(&routes);
 	alg.run();
 	//alg.straighten(routes,HORIZONTAL);
-	//output_svg(rs,routes,"straightener-x.svg",true);
+    //OutputFile of1(rs,es,NULL,"straightener-x.svg",true,false);
+    //of1.generate();
 	//alg.straighten(routes,VERTICAL);
-	output_svg(rs,routes,"straightener-xy.svg",true);
+    OutputFile of(rs,es,NULL,"straightener-k5.svg",true,false);
+    of.routes=&routes;
+    of.generate();
 	for(unsigned i=0;i<V;i++) {
 		delete rs[i];
 	}
@@ -112,7 +112,7 @@ void setRoute(vector<straightener::Edge*> routes,unsigned i,
 }
 void k6() {
 	// Define K6 graph
-	const int V = 6;
+	const unsigned V = 6;
 	Edge edge_array[] = { 
 		Edge(0, 1), Edge(0, 2), Edge(0, 3), Edge(0, 4), Edge(0, 5),
 		Edge(1, 2), Edge(1, 3), Edge(1, 4), Edge(1, 5),
@@ -172,10 +172,8 @@ void k6() {
 	ConstrainedMajorizationLayout alg(rs,es,NULL,200);
 	alg.setStraightenEdges(&routes);
 	alg.run();
-	//alg.straighten(routes,HORIZONTAL);
-	//output_svg(rs,routes,"straightener-x.svg",true);
-	//alg.straighten(routes,VERTICAL);
-	output_svg(rs,routes,"k6-straightened.svg",true);
+    OutputFile of(rs,es,NULL,"straightener-k6.svg",true,false);
+    of.generate();
 	for(unsigned i=0;i<V;i++) {
 		delete rs[i];
 	}
@@ -184,7 +182,7 @@ void k6() {
 	}
 }
 void severeBend() {
-	const int V = 4;
+	const unsigned V = 4;
 	Edge edge_array[] = { Edge(1,3), Edge(0,3), Edge(1,0), Edge(1,2), Edge(3,2) };
 	const size_t E = sizeof(edge_array) / sizeof(Edge);
 	vector<Edge> es(edge_array,edge_array+E);
@@ -223,10 +221,8 @@ void severeBend() {
 	ConstrainedMajorizationLayout alg(rs,es,NULL,70);
 	alg.setStraightenEdges(&routes);
 	alg.run();
-	//alg.straighten(routes,HORIZONTAL);
-	//output_svg(rs,routes,"straightener-x.svg",true);
-	//alg.straighten(routes,VERTICAL);
-	output_svg(rs,routes,"straightener-xy.svg",true);
+    OutputFile of(rs,es,NULL,"straightener-severeBend.svg",true,false);
+    of.generate();
 	for(unsigned i=0;i<V;i++) {
 		delete rs[i];
 	}
@@ -235,7 +231,8 @@ void severeBend() {
 	}
 }
 int main() {
-	//k5();
-	//k6();
+	k5();
+	k6();
 	severeBend();
 }
+// vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:encoding=utf-8:textwidth=99 :

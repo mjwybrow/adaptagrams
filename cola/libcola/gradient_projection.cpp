@@ -73,7 +73,6 @@ double GradientProjection::computeSteepestDescentVector(
     }
     // sparse part:
     if(sparseQ) {
-        printf("Sparse steepest descent, sparsevars=%d\n",sparseQ->rowSize());
         valarray<double> r(x.size());
         sparseQ->rightMultiply(x,r);
         g-=r;
@@ -152,7 +151,7 @@ unsigned GradientProjection::solve(
 
 	bool converged=false;
 
-    //solver = setupVPSC();
+    solver = setupVPSC();
 #ifdef MOSEK_AVAILABLE
     if(solveWithMosek==Outer) {
         float* ba=new float[vars.size()];
@@ -268,7 +267,7 @@ unsigned GradientProjection::solve(
             x[i]*=vars[i]->scale;
         }
     }
-    //destroyVPSC(solver);
+    destroyVPSC(solver);
 	return counter;
 }
 // Setup an instance of the Variable Placement with Separation Constraints

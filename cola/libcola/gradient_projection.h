@@ -86,7 +86,7 @@ public:
             clusterHierarchy->createVars(k,*rs,vars);
         }
         numStaticVars=vars.size();
-        solver=setupVPSC();
+        //solver=setupVPSC();
 	}
     void dumpSquareMatrix(valarray<double> const &L) const {
         unsigned n=(unsigned)floor(sqrt(L.size()));
@@ -106,7 +106,7 @@ public:
         return numStaticVars;
     }
     ~GradientProjection() {
-        destroyVPSC(solver);
+        //destroyVPSC(solver);
         for(Constraints::iterator i(gcs.begin()); i!=gcs.end(); i++) {
             delete *i;
         }

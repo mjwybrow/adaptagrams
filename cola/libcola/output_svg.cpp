@@ -81,7 +81,7 @@ void OutputFile::generate() {
 		} else {
             double x=rs[i]->getMinX()-xmin, y=rs[i]->getMinY()-ymin;
             std::string str;
-            if(labels) {
+            if(labels.get()) {
                 str=std::string((*labels)[i]);
             } else {
                 std::stringstream s; s<<i;

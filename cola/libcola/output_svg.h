@@ -12,7 +12,7 @@ public:
 	std::string const fname;
 	bool rects;
 	bool curvedEdges;
-	std::vector<const char*>* labels;
+    std::auto_ptr<std::vector<const char*> > labels;
 	OutputFile(std::vector<vpsc::Rectangle*> const &rs, 
 		std::vector<cola::Edge> const &es, 
 		cola::RootCluster const * rc, 
@@ -26,23 +26,15 @@ public:
 		  fname(fname),
 		  rects(rects),
 		  curvedEdges(curvedEdges),
-       		  labels(NULL),
-		  deleteLabels(false)	{}
-	~OutputFile() {
-		if(deleteLabels) {
-			delete labels;
-		}
-	}
+       	  labels(NULL) {}
 	void generate();
 	void setLabels(const unsigned n, const char *ls[]) {
-		deleteLabels=true;
-		labels=new std::vector<const char *>(n);
+		labels.reset(new std::vector<const char *>(n));
 		for(unsigned i=0;i<n;i++) {
 			(*labels)[i]=ls[i];
 		}
 	}
 private:
-	bool deleteLabels;
 	void draw_cluster_boundary(Cairo::RefPtr<Cairo::Context> const &cr, 
         cola::Cluster &c, const double xmin, const double ymin);
 	void draw_edges(Cairo::RefPtr<Cairo::Context> &cr, 
