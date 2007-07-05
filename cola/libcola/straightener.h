@@ -95,6 +95,27 @@ struct Edge {
         }
     }
 };
+class Straightener {
+public:
+    Straightener(
+            const cola::Dim dim,
+            std::vector<vpsc::Rectangle*> const & rs,
+            std::vector<Edge*> const & edges, 
+            cola::Variables const & vs,
+            cola::Variables & lvs,
+            cola::Constraints & lcs);
+    ~Straightener();
+    void updateNodePositions();
+    void applyForces();
+    std::valarray<double> dummyNodesX;
+    std::valarray<double> dummyNodesY;
+private:
+    const cola::Dim dim;
+    std::vector<Edge*> const & edges;
+    cola::Variables const & vs;
+    cola::Variables & lvs;
+    std::vector<Node*> nodes;
+};
 class Cluster {
 public:
     cola::ConvexCluster* colaCluster;
@@ -223,7 +244,7 @@ typedef std::vector<LinearConstraint*> LinearConstraints;
 void generateConstraints(
         const cola::Dim dim, 
         std::vector<Node*> & nodes, 
-        std::vector<Edge*> & edges, 
+        std::vector<Edge*> const & edges, 
         std::vector<cola::SeparationConstraint*>& cs,
         bool xSkipping);
 void nodePath(Edge& e, std::vector<Node*>& nodes, std::vector<unsigned>& path);

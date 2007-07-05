@@ -32,7 +32,7 @@ namespace vpsc {
 
 long blockTimeCtr;
 
-Blocks::Blocks(const int n, Variable* const vs[]) : vs(vs),nvs(n) {
+Blocks::Blocks(vector<Variable*> const &vs) : vs(vs),nvs(vs.size()) {
 	blockTimeCtr=0;
 	for(int i=0;i<nvs;i++) {
 		insert(new Block(vs[i]));

@@ -21,6 +21,8 @@
 #include "compound_constraints.h"
 #include "straightener.h"
 
+//#define STRAIGHTENER_DEBUG 1
+
 using std::list;
 using std::make_pair;
 using std::pair;
@@ -113,10 +115,19 @@ namespace straightener {
     }
     void Edge::createRouteFromPath(std::vector<Node *> const & nodes) {
         Route* r=new Route(path.size());
+#ifdef STRAIGHTENER_DEBUG
+        printf("Route:");
+#endif
         for(unsigned i=0;i<path.size();i++) {
             r->xs[i]=nodes[path[i]]->x;
             r->ys[i]=nodes[path[i]]->y;
+#ifdef STRAIGHTENER_DEBUG
+            printf("(%f,%f)",r->xs[i],r->ys[i]);
+#endif
         }
+#ifdef STRAIGHTENER_DEBUG
+        printf("\n");
+#endif
         setRoute(r);
     }
 
@@ -261,15 +272,17 @@ namespace straightener {
     void generateConstraints(
             const cola::Dim dim, 
             vector<Node*> & nodes, 
-            vector<Edge*> & edges, 
+            vector<Edge*> const & edges, 
             vector<cola::SeparationConstraint*>& cs,
             bool xSkipping = true) {
         unsigned nevents=2*nodes.size()+2*edges.size();
         events=new Event*[nevents];
         unsigned ctr=0;
-        double nodeFudge=1, edgeFudge=0;
+        double nodeFudge=0, edgeFudge=0;
         if(dim==cola::HORIZONTAL) {
-            //cout << "Scanning top to bottom..." << endl;
+#ifdef STRAIGHTENER_DEBUG
+            printf("Scanning top to bottom...\n");
+#endif
             for(unsigned i=0;i<nodes.size();i++) {
                 Node *v=nodes[i];
                 if(v->scan) {
@@ -286,7 +299,9 @@ namespace straightener {
                 events[ctr++]=new Event(Close,e,e->ymax-edgeFudge);
             }
         } else {
-            //cout << "Scanning left to right..." << endl;
+#ifdef STRAIGHTENER_DEBUG
+            printf("Scanning left to right...\n");
+#endif
             for(unsigned i=0;i<nodes.size();i++) {
                 Node *v=nodes[i];
                 if(v->scan) {
@@ -312,7 +327,9 @@ namespace straightener {
             Node *v=e->v;
             if(v!=NULL) {
                 v->open = true;
-                //printf("NEvent@%f,nid=%d,(%f,%f),w=%f,h=%f,openn=%d,opene=%d\n",e->pos,v->id,v->x,v->y,v->width,v->height,(int)openNodes.size(),(int)openEdges.size());
+#ifdef STRAIGHTENER_DEBUG
+                printf("NEvent@%f,nid=%d,(%f,%f),w=%f,h=%f,openn=%d,opene=%d\n",e->pos,v->id,v->x,v->y,v->width,v->height,(int)openNodes.size(),(int)openEdges.size());
+#endif
                 Node *l=NULL, *r=NULL;
                 if(!openNodes.empty()) {
                     // it points to the first node to the right of v
@@ -326,7 +343,9 @@ namespace straightener {
                             l=*it;
                             break;
                         }
-                        //printf("l=%d\n",l->id);
+#ifdef STRAIGHTENER_DEBUG
+                        printf("l=%d\n",l->id);
+#endif
                     }
                     it=openNodes.upper_bound(v);
                     while(it!=openNodes.end()) {
@@ -342,12 +361,13 @@ namespace straightener {
                 }
                 vector<Node*> L;
                 sortNeighbours(dim,v,l,r,e->pos,openEdges,L,nodes);
-                /*printf("L=[");
+#ifdef STRAIGHTENER_DEBUG
+                printf("L=[");
                 for(unsigned i=0;i<L.size();i++) {
                     printf("%d ",L[i]->id);
                 }
                 printf("]\n");
-                */
+#endif
                 
                 // Case A: create constraints between adjacent edges skipping edges joined
                 // to l,v or r.
@@ -360,7 +380,9 @@ namespace straightener {
                                 &&(l!=NULL&&!edge->isEnd(l->id)||l==NULL)
                                 &&(r!=NULL&&!edge->isEnd(r->id)||r==NULL)) {
                             if(lastNode!=NULL) {
-                                //printf("  Rule A: Constraint: v%d +g <= v%d\n",lastNode->id,(*i)->id);
+#ifdef STRAIGHTENER_DEBUG
+                                printf("  Rule A: Constraint: v%d +g <= v%d\n",lastNode->id,(*i)->id);
+#endif
                                 cs.push_back(createConstraint(lastNode,*i,dim));
                             }
                             lastNode=*i;
@@ -383,7 +405,9 @@ namespace straightener {
                             } else {
                                 for(vector<Node*>::iterator j=skipList.begin();
                                         j!=skipList.end();j++) {
-                                    //printf("  Rule B: Constraint: v%d +g <= v%d\n",(*j)->id,(*i)->id);
+#ifdef STRAIGHTENER_DEBUG
+                                    printf("  Rule B: Constraint: v%d +g <= v%d\n",(*j)->id,(*i)->id);
+#endif
                                     cs.push_back(createConstraint(*j,*i,dim));
                                 }
                                 skipList.clear();
@@ -408,7 +432,9 @@ namespace straightener {
                             } else {
                                 for(vector<Node*>::iterator j=skipList.begin();
                                         j!=skipList.end();j++) {
-                                    //printf("  Rule C: Constraint: v%d +g <= v%d\n",(*i)->id,(*j)->id);
+#ifdef STRAIGHTENER_DEBUG
+                                    printf("  Rule C: Constraint: v%d +g <= v%d\n",(*i)->id,(*j)->id);
+#endif
                                     cs.push_back(createConstraint(*i,*j,dim));
                                 }
                                 skipList.clear();
@@ -430,7 +456,9 @@ namespace straightener {
                 if(v!=NULL) {
                     openNodes.insert(v);
                 } else {
-                    //printf("EdgeOpen@%f,eid=%d,(u,v)=(%d,%d)\n", e->pos,e->e->id,e->e->startNode,e->e->endNode);
+#ifdef STRAIGHTENER_DEBUG
+                    printf("EdgeOpen@%f,eid=%d,(u,v)=(%d,%d)\n", e->pos,e->e->id,e->e->startNode,e->e->endNode);
+#endif
                     e->e->openInd=openEdges.size();
                     openEdges.push_back(e->e);
                 }
@@ -440,7 +468,9 @@ namespace straightener {
                     openNodes.erase(v);
                     v->open=false;
                 } else {
-                    //printf("EdgeClose@%f,eid=%d,(u,v)=(%d,%d)\n", e->pos,e->e->id,e->e->startNode,e->e->endNode);
+#ifdef STRAIGHTENER_DEBUG
+                    printf("EdgeClose@%f,eid=%d,(u,v)=(%d,%d)\n", e->pos,e->e->id,e->e->startNode,e->e->endNode);
+#endif                    
                     unsigned i=e->e->openInd;
                     assert(openEdges.size()>0);
                     openEdges[i]=openEdges[openEdges.size()-1];
@@ -521,6 +551,104 @@ namespace straightener {
                 colaCluster->hullX[i]=r->xs[j];
                 colaCluster->hullY[i++]=r->ys[j];
             }
+        }
+    }
+    Straightener::Straightener(
+            const cola::Dim dim,
+            std::vector<vpsc::Rectangle*> const & rs,
+            std::vector<Edge*> const & edges, 
+            cola::Variables const & vs,
+            cola::Variables & lvs,
+            cola::Constraints & lcs) 
+        : dim(dim),
+          edges(edges), 
+          vs(vs), 
+          lvs(lvs) 
+    {
+        for (unsigned i=0;i<rs.size();i++) {
+            nodes.push_back(new straightener::Node(i,rs[i]));
+        }
+        vector<cola::SeparationConstraint*> cs;
+        straightener::generateConstraints(dim,nodes,edges,cs);
+        // after generateConstraints we have new dummy nodes at the end of snodes and
+        // constraints in cs
+        //   need to create variables for dummy nodes in lvs and constraints in lcs
+        for (unsigned i=rs.size();i<nodes.size();i++) {
+            double desiredPos = (dim==cola::HORIZONTAL)?nodes[i]->x:nodes[i]->y;
+            lvs.push_back(new vpsc::Variable(i,desiredPos,1));
+        }
+        for (vector<cola::SeparationConstraint*>::iterator i=cs.begin();i!=cs.end();i++) {
+            unsigned lv=(*i)->left;
+            unsigned rv=(*i)->right;
+            double g=(*i)->gap;
+            vpsc::Variable* l = lv<rs.size()?vs[lv]:lvs[lv-rs.size()];
+            vpsc::Variable* r = rv<rs.size()?vs[rv]:lvs[rv-rs.size()];
+            lcs.push_back(new vpsc::Constraint(l,r,g));
+        }
+        for(unsigned i=0;i<edges.size();i++) {
+            edges[i]->nodePath(nodes,false);
+        }
+    }
+    Straightener::~Straightener() {
+        for_each(nodes.begin(),nodes.end(),delete_object());
+    }
+    void Straightener::applyForces() {
+        for(unsigned i=0;i<edges.size();i++) {
+            printf("Straightening path:\n");
+            vector<unsigned>& path=edges[i]->path;
+            for(unsigned j=1;j<path.size();j++) {
+                unsigned u=path[j-1], v=path[j];
+                double x1=nodes[u]->x, x2=nodes[v]->x, y1=nodes[u]->y, y2=nodes[v]->y;
+                double dx=x1-x2, dy=y1-y2;
+                double dx2=dx*dx, dy2=dy*dy;
+                double l=sqrt(dx2+dy2);
+                double f=dim==cola::HORIZONTAL?dx:dy;
+                if(l>0.00001) {
+                    f*=1/l;
+                } else {
+                    continue;
+                }
+                vpsc::Variable *var1=u<vs.size()?vs[u]:lvs[u-vs.size()];
+                vpsc::Variable *var2=v<vs.size()?vs[v]:lvs[v-vs.size()];
+                var1->desiredPosition-=f;
+                var2->desiredPosition+=f;
+                printf("  (%d,%d)=((%f,%f),(%f,%f)):f=%f\n",u,v,x1,y1,x2,y2,f);
+            }
+        }
+    }
+    void Straightener::updateNodePositions() {
+        // real nodes
+        for (unsigned i=0;i<vs.size();i++) {
+            double pos = vs[i]->position();
+            Node *n=nodes[i];
+            if(dim==cola::HORIZONTAL) {
+                n->x=pos;
+            } else {
+                n->y=pos;
+            }
+        }
+        // dummy bend nodes
+        printf("got %d dummy nodes\n",lvs.size());
+        dummyNodesX.resize(lvs.size());
+        dummyNodesY.resize(lvs.size());
+        for (unsigned i=0;i<lvs.size();i++) {
+            assert(i+vs.size() < nodes.size());
+            double pos = lvs[i]->position();
+            Node *n=nodes[i+vs.size()];
+            if(dim==cola::HORIZONTAL) {
+                n->x=pos;
+                dummyNodesX[i]=pos;
+                dummyNodesY[i]=n->y;
+            } else {
+                n->y=pos;
+                dummyNodesX[i]=n->x;
+                dummyNodesY[i]=pos;
+            }
+        }
+        for(unsigned i=0;i<edges.size();i++) {
+            edges[i]->createRouteFromPath(nodes);
+            edges[i]->dummyNodes.clear();
+            edges[i]->path.clear();
         }
     }
 }

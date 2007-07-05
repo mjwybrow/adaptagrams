@@ -277,18 +277,13 @@ unsigned GradientProjection::solve(
 // global constraint list (including alignment constraints,
 // dir-edge constraints, containment constraints, etc).
 IncSolver* GradientProjection::setupVPSC() {
-    Variable** vs = new Variable*[vars.size()];
-    for(unsigned i=0;i<vars.size();i++) {
-        vs[i]=vars[i];
-    }
     if(nonOverlapConstraints!=None) {
         if(clusterHierarchy) {
             //printf("Setup up cluster constraints, dim=%d--------------\n",k);
             clusterHierarchy->
                 generateNonOverlapConstraints(k,nonOverlapConstraints,*rs,vars,lcs);
         } else {
-            Constraint** tmp_cs=NULL;
-            unsigned m=0;
+            vector<Constraint*> tmp_cs;
             vector<Rectangle*> lrs;
             for(vector<Rectangle*>::const_iterator i=rs->begin();
                     i!=rs->end();i++) {
@@ -301,30 +296,24 @@ IncSolver* GradientProjection::setupVPSC() {
                 Rectangle::setXBorder(0.0001);
                 // use rs->size() rather than n because some of the variables may
                 // be dummy vars with no corresponding rectangle
-                m=generateXConstraints(lrs.size(),lrs,vs,tmp_cs,nonOverlapConstraints==Both?true:false); 
+                generateXConstraints(lrs,vars,tmp_cs,nonOverlapConstraints==Both?true:false); 
                 Rectangle::setXBorder(0);
             } else {
-                m=generateYConstraints(lrs.size(),lrs,vs,tmp_cs); 
+                generateYConstraints(lrs,vars,tmp_cs); 
             }
-            for(unsigned i=0;i<m;i++) {
+            for(unsigned i=0;i<tmp_cs.size();i++) {
                 lcs.push_back(tmp_cs[i]);
             }
         }
     }
-    Constraint **cs = new Constraint*[lcs.size() + gcs.size()];
-    unsigned m = 0 ;
-    for(vector<Constraint*>::iterator ci = lcs.begin();ci!=lcs.end();++ci) {
-        cs[m++] = *ci;
-    }
-    for(vector<Constraint*>::iterator ci = gcs.begin();ci!=gcs.end();++ci) {
-        cs[m++] = *ci;
-    }
+    cs=gcs;
+    cs.insert(cs.end(),lcs.begin(),lcs.end());
     switch(solveWithMosek) {
         case Off:
             break;
 #ifdef MOSEK_AVAILABLE
         case Inner:
-            menv = mosek_init_sep_ls(vars.size(),cs,m);
+            menv = mosek_init_sep_ls(vars.size(),cs);
             break;
         case Outer:
             unsigned n = vars.size();
@@ -336,14 +325,14 @@ IncSolver* GradientProjection::setupVPSC() {
                     k++;
                 }
             }
-            menv = mosek_init_sep(lap,n,cs,m,1);
+            menv = mosek_init_sep(lap,n,cs,1);
             delete [] lap;
             break;
 #endif
         default:
             break;
     }
-    return new IncSolver(vars.size(),vs,m,cs);
+    return new IncSolver(vars,cs);
 }
 void GradientProjection::destroyVPSC(IncSolver *vpsc) {
     if(ccs) {
@@ -354,7 +343,6 @@ void GradientProjection::destroyVPSC(IncSolver *vpsc) {
     if(clusterHierarchy) {
         clusterHierarchy->computeBoundary(*rs);
     }
-    unsigned m,n;
     if(sparseQ) {
         for(unsigned i=numStaticVars;i<vars.size();i++) {
             delete vars[i];
@@ -366,11 +354,7 @@ void GradientProjection::destroyVPSC(IncSolver *vpsc) {
         delete *i;
     }
     lcs.clear();
-    Constraint** cs = vpsc->getConstraints(m);
-    const Variable* const* vs = vpsc->getVariables(n);
     delete vpsc;
-    delete [] cs;
-    delete [] vs;
 #ifdef MOSEK_AVAILABLE
     if(solveWithMosek!=Off) mosek_delete(menv);
 #endif

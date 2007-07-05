@@ -43,16 +43,15 @@ public:
 	// solve returns an optimum solution subject to the constraints
 	virtual bool solve();
 
-	Solver(const unsigned n, Variable* const vs[], const unsigned m, Constraint *cs[]);
+	Solver(std::vector<Variable*> const &vs, std::vector<Constraint *> const &cs);
 	virtual ~Solver();
-	Constraint** getConstraints(unsigned &m) { m=this->m; return cs; }
-	const Variable* const * getVariables(unsigned &n) { n=this->n; return vs; }
+	std::vector<Variable*> const & getVariables() { return vs; }
 protected:
 	Blocks *bs;
 	unsigned m;
-	Constraint **cs;
+	std::vector<Constraint*> const &cs;
 	unsigned n;
-	const Variable* const *vs;
+	std::vector<Variable*> const &vs;
 	void printBlocks();
 private:
 	void refine();
@@ -67,7 +66,7 @@ public:
 	bool solve();
 	void moveBlocks();
 	void splitBlocks();
-	IncSolver(const unsigned n, Variable* const vs[], const unsigned m, Constraint *cs[]);
+	IncSolver(std::vector<Variable*> const &vs, std::vector<Constraint*> const &cs);
 private:
 	Constraints inactive;
 	Constraints violated;

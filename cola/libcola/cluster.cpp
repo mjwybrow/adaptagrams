@@ -147,7 +147,7 @@ namespace cola {
         // One var/rect for each node, one for each child cluster, one for
         // the LHS of this cluster and one for the RHS.
         unsigned n=nodes.size()+clusters.size()+2;
-        vpsc::Variable** vs = new vpsc::Variable*[n];
+        vector<vpsc::Variable*> vs(n);
         vector<Rectangle*> lrs(n);
         unsigned vctr=0;
         for(vector<unsigned>::iterator i=nodes.begin();i!=nodes.end();i++) {
@@ -174,20 +174,19 @@ namespace cola {
         lrs[vctr++]=&rMax;
 
         //printf("Processing cluster: vars=%d,%d length=%f\n",vMin->id,vMax->id,length);
-        vpsc::Constraint** tmp_cs=NULL;
-        unsigned m=0;
+        vector<vpsc::Constraint*> tmp_cs;
         double hAdjust=0;
         if(dim==HORIZONTAL) {
             hAdjust=1;
             Rectangle::setXBorder(0.001);
             // use rs->size() rather than n because some of the variables may
             // be dummy vars with no corresponding rectangle
-            m=generateXConstraints(lrs.size(),lrs,vs,tmp_cs,nonOverlapConstraints==Both?true:false); 
+            generateXConstraints(lrs,vars,tmp_cs,nonOverlapConstraints==Both?true:false); 
             Rectangle::setXBorder(0);
         } else {
-            m=generateYConstraints(lrs.size(),lrs,vs,tmp_cs); 
+            generateYConstraints(lrs,vars,tmp_cs); 
         }
-        for(unsigned i=0;i<m;i++) {
+        for(unsigned i=0;i<tmp_cs.size();i++) {
             vpsc::Constraint* co = tmp_cs[i];
             // need to remap outgoing constraints of each cluster to maxVar of
             // cluster.
@@ -207,7 +206,6 @@ namespace cola {
             }
             cs.push_back(co);
         }
-        delete [] vs;
     } 
 
     /** recursively delete all clusters */

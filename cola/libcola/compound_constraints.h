@@ -70,7 +70,11 @@ public:
 // horizontal line.
 class AlignmentConstraint : public CompoundConstraint {
 public:
-    AlignmentConstraint(double pos) : position(pos), fixed(false), variable(NULL) {}
+    AlignmentConstraint(double pos) 
+        : position(pos), 
+          fixed(false),
+          variable(new vpsc::Variable(0,position,0.0001)
+        ) {}
     void updatePosition() {
         position = variable->position();
     }
@@ -94,7 +98,7 @@ public:
     double position;
     bool fixed;
     void generateVariables(Variables& vars) {
-        variable = new vpsc::Variable(vars.size(),position,0.0001);
+        variable->id=vars.size();
         if(fixed) {
             variable->fixedDesiredPosition=true;
             variable->weight=100000;

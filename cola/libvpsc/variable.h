@@ -22,7 +22,7 @@ class Variable
 {
 	friend std::ostream& operator <<(std::ostream &os, const Variable &v);
 public:
-	const int id; // useful in log files
+	int id; // useful in log files
 	double desiredPosition;
 	double weight; // how much the variable wants to be at it's desired position
 	double scale; // translates variable to another space

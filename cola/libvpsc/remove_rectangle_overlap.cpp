@@ -46,17 +46,17 @@ void removeRectangleOverlap(unsigned n, std::vector<Rectangle*> const & rs, doub
 	// The extra gap avoids numerical imprecision problems
 	Rectangle::setXBorder(xBorder+EXTRA_GAP);
 	Rectangle::setYBorder(yBorder+EXTRA_GAP);
-	Variable **vs=new Variable*[n];
+	std::vector<Variable *> vs(n);
 	for(unsigned i=0;i<n;i++) {
-		vs[i]=new Variable(i,0);
+		vs[i]=new Variable(i,rs[i]->getCentreX(),1);
 	}
-	Constraint **cs;
+	std::vector<Constraint *> cs;
 	double *oldX = new double[n];
-	unsigned m=generateXConstraints(n,rs,vs,cs,true);
+	generateXConstraints(rs,vs,cs,true);
 	for(unsigned i=0;i<n;i++) {
 		oldX[i]=vs[i]->desiredPosition;
 	}
-	Solver vpsc_x(n,vs,m,cs);
+	Solver vpsc_x(vs,cs);
 #ifdef LIBVPSC_LOGGING
 	ofstream f(LOGFILE,ios::app);
 	f<<"Calling VPSC: Horizontal pass 1"<<endl;
@@ -66,15 +66,18 @@ void removeRectangleOverlap(unsigned n, std::vector<Rectangle*> const & rs, doub
 	for(unsigned i=0;i<n;i++) {
 		rs[i]->moveCentreX(vs[i]->position());
 	}
-	for(unsigned i = 0; i < m; ++i) {
+	for(unsigned i = 0; i < cs.size(); ++i) {
 		delete cs[i];
 	}
-	delete [] cs;
+	cs.clear();
 	// Removing the extra gap here ensures things that were moved to be adjacent to
 	// one another above are not considered overlapping
 	Rectangle::setXBorder(Rectangle::xBorder-EXTRA_GAP);
-	m=generateYConstraints(n,rs,vs,cs);
-	Solver vpsc_y(n,vs,m,cs);
+	for(unsigned i=0;i<n;i++) {
+		vs[i]->desiredPosition=rs[i]->getCentreY();
+	}
+	generateYConstraints(rs,vs,cs);
+	Solver vpsc_y(vs,cs);
 #ifdef LIBVPSC_LOGGING
 	f.open(LOGFILE,ios::app);
 	f<<"Calling VPSC: Vertical pass"<<endl;
@@ -86,28 +89,29 @@ void removeRectangleOverlap(unsigned n, std::vector<Rectangle*> const & rs, doub
 		rs[i]->moveCentreX(oldX[i]);
 	}
 	delete [] oldX;
-	for(unsigned i = 0; i < m; ++i) {
+	for(unsigned i = 0; i < cs.size(); ++i) {
 		delete cs[i];
 	}
-	delete [] cs;
+	cs.clear();
 	Rectangle::setYBorder(Rectangle::yBorder-EXTRA_GAP);
-	m=generateXConstraints(n,rs,vs,cs,false);
-	Solver vpsc_x2(n,vs,m,cs);
+	for(unsigned i=0;i<n;i++) {
+		vs[i]->desiredPosition=rs[i]->getCentreY();
+	}
+	generateXConstraints(rs,vs,cs,false);
+	Solver vpsc_x2(vs,cs);
 #ifdef LIBVPSC_LOGGING
 	f.open(LOGFILE,ios::app);
 	f<<"Calling VPSC: Horizontal pass 2"<<endl;
 	f.close();
 #endif
 	vpsc_x2.solve();
-	for(unsigned i = 0; i < m; ++i) {
+	for(unsigned i = 0; i < cs.size(); ++i) {
 		delete cs[i];
 	}
-	delete [] cs;
 	for(unsigned i=0;i<n;i++) {
 		rs[i]->moveCentreX(vs[i]->position());
 		delete vs[i];
 	}
-	delete [] vs;
 	} catch (char const *str) {
 		std::cerr<<str<<std::endl;
 		for(unsigned i=0;i<n;i++) {

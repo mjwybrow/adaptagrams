@@ -97,8 +97,8 @@ class Variable;
 class Constraint;
 
 // returns number of constraints generated
-int generateXConstraints(const int n, std::vector<Rectangle*> const & rs, Variable** vars, Constraint** &cs, const bool useNeighbourLists);
-int generateYConstraints(const int n, std::vector<Rectangle*> const & rs, Variable** vars, Constraint** &cs);
+void generateXConstraints(std::vector<Rectangle*> const & rs, std::vector<Variable*> const & vars, std::vector<Constraint*> & cs, const bool useNeighbourLists);
+void generateYConstraints(std::vector<Rectangle*> const & rs, std::vector<Variable*> const & vars, std::vector<Constraint*> & cs);
 
 }
 

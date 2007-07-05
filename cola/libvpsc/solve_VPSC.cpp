@@ -31,14 +31,14 @@ namespace vpsc {
 
 static const double ZERO_UPPERBOUND=-0.0000001;
 
-IncSolver::IncSolver(const unsigned n, Variable* const vs[], const unsigned m, Constraint *cs[]) 
-	: Solver(n,vs,m,cs) {
-	inactive.assign(cs,cs+m);
+IncSolver::IncSolver(vector<Variable*> const &vs, vector<Constraint *> const &cs) 
+	: Solver(vs,cs) {
+    inactive=cs;
 	for(Constraints::iterator i=inactive.begin();i!=inactive.end();++i) {
 		(*i)->active=false;
 	}
 }
-Solver::Solver(const unsigned n, Variable* const vs[], const unsigned m, Constraint *cs[]) : m(m), cs(cs), n(n), vs(vs) {
+Solver::Solver(vector<Variable*> const &vs, vector<Constraint*> const &cs) : m(cs.size()), cs(cs), n(vs.size()), vs(vs) {
     for(unsigned i=0;i<n;i++) {
         vs[i]->in.clear();
         vs[i]->out.clear();
@@ -48,7 +48,7 @@ Solver::Solver(const unsigned n, Variable* const vs[], const unsigned m, Constra
         c->left->out.push_back(c);
         c->right->in.push_back(c);
     }
-	bs=new Blocks(n, vs);
+	bs=new Blocks(vs);
 #ifdef LIBVPSC_LOGGING
 	printBlocks();
 	//assert(!constraintGraphIsCyclic(n,vs));

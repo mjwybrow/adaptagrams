@@ -43,5 +43,10 @@ namespace cola {
 enum NonOverlapConstraints { None, Horizontal, Both };
 enum Dim { HORIZONTAL, VERTICAL };
 }
+struct delete_object
+{
+  template <typename T>
+  void operator()(T *ptr){ delete ptr;}
+};
 
 #endif

@@ -15,9 +15,9 @@ struct Node {
     unsigned id;
     T d;
     Node* p; // predecessor    
-    vector<Node*> neighbours;
+    vector<Node<T>*> neighbours;
     vector<T> nweights;
-    PairNode<Node*>* qnode;
+    PairNode<Node<T>*>* qnode;
 };
 template <typename T>
 struct CompareNodes {

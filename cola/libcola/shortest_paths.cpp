@@ -79,7 +79,8 @@ void dijkstra(
         for(unsigned i=0;i<u->neighbours.size();i++) {
             Node<T> *v=u->neighbours[i];
             T w=u->nweights[i];
-            if(v->d>u->d+w) {
+            if(u->d!=numeric_limits<T>::max()
+               && v->d > u->d+w) {
                 v->p=u;
                 v->d=u->d+w;
                 Q.decreaseKey(v->qnode,v);

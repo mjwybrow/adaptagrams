@@ -169,6 +169,7 @@ private:
     Constraints gcs; /* global constraints - persist throughout all
                                 iterations */
     Constraints lcs; /* local constraints - only for current iteration */
+    Constraints cs; /* working list of constraints: gcs +lcs */
     valarray<double> result;
 #ifdef MOSEK_AVAILABLE
     MosekEnv* menv;

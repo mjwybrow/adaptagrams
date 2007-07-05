@@ -5,7 +5,6 @@
 #include "conjugate_gradient.h"
 #include "straightener.h"
 #include "shortest_paths.h"
-using std::fill;
 using std::min;
 using std::max;
 using std::make_pair;
@@ -26,7 +25,7 @@ ConstrainedMajorizationLayout
     : n(rs.size()),
       lap2(valarray<double>(n*n)), 
       Dij(valarray<double>(n*n)),
-      tol(1e-2), done(done), preIteration(preIteration),
+      tol(1e-7), done(done), preIteration(preIteration),
       X(valarray<double>(n)), Y(valarray<double>(n)),
       stickyNodes(false), 
       startX(valarray<double>(n)), startY(valarray<double>(n)),
@@ -105,17 +104,6 @@ void ConstrainedMajorizationLayout::setStickyNodes(
     }
 }
 
-/*
-void ConstrainedMajorizationLayout::guttman(
-        valarray<double> const & Dij) {
-    // compute B:
-    //   b_ij = - Dij/dist(ij)
-    //           (or 0 if dist(ij)=0)
-    //   b_ii = - sum(j!=i) bij
-    // then:
-    //   X' = 1/n * B X
-}
-*/
 void ConstrainedMajorizationLayout::majlayout(
         valarray<double> const & Dij, GradientProjection* gp, 
         valarray<double>& coords,
@@ -204,7 +192,7 @@ void ConstrainedMajorizationLayout::run(bool x, bool y) {
             straightenEdges = &cedges;
         }
         if(preIteration) {
-            if ((*preIteration)(gpX,gpY)) {
+            if ((*preIteration)()) {
                 for(vector<Lock>::iterator l=preIteration->locks.begin();
                         l!=preIteration->locks.end();l++) {
                     unsigned id=l->id;
@@ -230,7 +218,6 @@ void ConstrainedMajorizationLayout::run(bool x, bool y) {
         } else {
             if(x) majlayout(Dij,gpX,X,startX);
             if(y) majlayout(Dij,gpY,Y,startY);
-            //guttman(Dij,X,Y);
         }
         if(clusterHierarchy) {
             for(Clusters::iterator c=clusterHierarchy->clusters.begin();

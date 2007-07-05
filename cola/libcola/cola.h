@@ -43,7 +43,7 @@ class PreIteration {
 public:
     PreIteration(Locks& locks) : locks(locks) {}
     virtual ~PreIteration() {}
-    virtual bool operator()(GradientProjection* gpX, GradientProjection* gpY) {
+    virtual bool operator()() {
         return true;
     }
     Locks& locks;
@@ -246,6 +246,78 @@ private:
 
 Rectangle bounds(vector<Rectangle*>& rs);
 
+class Projection {
+public:
+    Projection(const unsigned n, CompoundConstraints * ccs, valarray<bool> const &fixed);
+    ~Projection();
+    void solve(Variables &lvs, Constraints &lcs);
+    Variables vars;
+    Constraints gcs;
+    void setDesiredPositions(valarray<double> &X);
+    void updatePositions(valarray<double> &X);
+private:
+    unsigned n;
+    CompoundConstraints* ccs;
+    valarray<bool> const &fixed;
+};
+
+class ConstrainedFDLayout {
+public:
+    ConstrainedFDLayout(
+        vector<Rectangle*>& rs,
+        vector<Edge> const & es,
+        RootCluster* clusterHierarchy,
+        double const idealLength,
+        std::valarray<double> const * eweights=NULL,
+        TestConvergence& done=defaultTest,
+        PreIteration* preIteration=NULL);
+    void run();
+    /**
+     * Horizontal alignment constraints
+     */
+    void setXConstraints(CompoundConstraints* ccsx) {
+        constrainedX=true;
+        this->ccsx=ccsx;
+    }
+    /**
+     * Vertical alignment constraints
+     */
+    void setYConstraints(CompoundConstraints* ccsy) {
+        constrainedY=true;
+        this->ccsy=ccsy;
+    }
+    void setAvoidOverlaps(bool avoidOverlaps) {
+        constrainedX=constrainedY=true;
+        this->avoidOverlaps=avoidOverlaps;
+    }
+    void setStraightenEdges(vector<straightener::Edge*>* straightenEdges, double straighteningStrength) {
+        this->straightenEdges=straightenEdges;
+        this->straighteningStrength=straighteningStrength;
+    }
+    valarray<double> dummyNodesX, dummyNodesY;
+private:
+    unsigned n; // number of nodes
+    valarray<double> X, Y;
+    vector<Rectangle*> boundingBoxes;
+    void applyForcesAndConstraints(const Dim dim);
+    double move(valarray<double> const &X0, valarray<double> const &Y0);
+    void computeForces(const Dim dim, valarray<double> &f);
+    vector<vector<unsigned> > neighbours;
+    vector<vector<double> > neighbourLengths;
+    TestConvergence& done;
+    PreIteration* preIteration;
+    double avgLength;
+    valarray<bool> fixedPos;
+    double fc,fs;
+    bool constrainedX, constrainedY;
+    CompoundConstraints *ccsx, *ccsy;
+    bool avoidOverlaps;
+    std::auto_ptr<Projection> px, py;
+    double** D;
+    unsigned** G;
+    vector<straightener::Edge*>* straightenEdges;
+    double straighteningStrength;
+};
 
 }
 #endif				// COLA_H

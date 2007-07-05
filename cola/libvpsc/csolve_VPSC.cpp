@@ -25,33 +25,51 @@ Constraint* newConstraint(Variable* left, Variable* right, double gap) {
 	return new Constraint(left,right,gap);
 }
 Solver* newSolver(int n, Variable* vs[], int m, Constraint* cs[]) {
-	return new Solver(n,vs,m,cs);
+	std::vector<Variable*> vars(n);
+	copy(vs,vs+n,vars.begin());
+	std::vector<Constraint*> vcs(m);
+	copy(cs,cs+m,vcs.begin());
+	return new Solver(vars,vcs);
 }
 Solver* newIncSolver(int n, Variable* vs[], int m, Constraint* cs[]) {
-	return (Solver*)new vpsc::IncSolver(n,vs,m,cs);
+	std::vector<Variable*> vars(n);
+	copy(vs,vs+n,vars.begin());
+	std::vector<Constraint*> vcs(m);
+	copy(cs,cs+m,vcs.begin());
+	return (Solver*)new vpsc::IncSolver(vars,vcs);
 }
 
 int genXConstraints(int n, boxf* bb, Variable** vs, Constraint*** cs,int transitiveClosure) {
 	std::vector<Rectangle*> rs(n);
+	std::vector<Variable*> vars(n);
+	std::vector<Constraint*> lcs;
 	for(int i=0;i<n;i++) {
 		rs[i]=new Rectangle(bb[i].LL.x,bb[i].UR.x,bb[i].LL.y,bb[i].UR.y);
+		vars[i]=vs[i];
 	}
-	int m = generateXConstraints(n,rs,vs,*cs,transitiveClosure);
+	generateXConstraints(rs,vars,lcs,transitiveClosure);
 	for(int i=0;i<n;i++) {
 		delete rs[i];
 	}
-	return m;
+	*cs = (Constraint**)malloc(sizeof(Constraint*)*lcs.size());
+	copy(lcs.begin(),lcs.end(),*cs);
+	return lcs.size();
 }
 int genYConstraints(int n, boxf* bb, Variable** vs, Constraint*** cs) {
 	std::vector<Rectangle*> rs(n);
+	std::vector<Variable*> vars(n);
+	std::vector<Constraint*> lcs;
 	for(int i=0;i<n;i++) {
 		rs[i]=new Rectangle(bb[i].LL.x,bb[i].UR.x,bb[i].LL.y,bb[i].UR.y);
+		vars[i]=vs[i];
 	}
-	int m = generateYConstraints(n,rs,vs,*cs);
+	generateYConstraints(rs,vars,lcs);
 	for(int i=0;i<n;i++) {
 		delete rs[i];
 	}
-	return m;
+	*cs = (Constraint**)malloc(sizeof(Constraint*)*lcs.size());
+	copy(lcs.begin(),lcs.end(),*cs);
+	return lcs.size();
 }
 
 Constraint** newConstraints(int m) {
