@@ -1,7 +1,6 @@
 #include "commondefs.h"
 // vim: set cindent 
 // vim: ts=4 sw=4 et tw=0 wm=0
-#include "shortest_paths.h"
 #include <float.h>
 #include <cassert>
 #include <iostream>
@@ -9,17 +8,18 @@
 using namespace std;
 namespace shortest_paths {
 // O(n^3) time dynamic programming approach.  Slow, but fool proof.  Use for testing.
+template <typename T>
 void floyd_warshall(
         unsigned const n,
-        double** D, 
+        T** D, 
         vector<Edge> const & es,
-        valarray<double> const * eweights) 
+        valarray<T> const * eweights) 
 {
     assert(!eweights||eweights->size()==es.size());
     for(unsigned i=0;i<n;i++) {
         for(unsigned j=0;j<n;j++) {
             if(i==j) D[i][j]=0;
-            else D[i][j]=DBL_MAX;
+            else D[i][j]=numeric_limits<T>::max();
         }
     }
     for(unsigned i=0;i<es.size();i++) {
@@ -35,10 +35,11 @@ void floyd_warshall(
         }
     }
 }
+template <typename T>
 void dijkstra_init(
-        vector<Node> & vs, 
+        vector<Node<T> > & vs, 
         vector<Edge> const& es, 
-        valarray<double> const* eweights) {
+        valarray<T> const* eweights) {
     assert(!eweights||eweights->size()==es.size());
 #ifndef NDEBUG
     const unsigned n=vs.size();
@@ -47,36 +48,37 @@ void dijkstra_init(
         unsigned u=es[i].first, v=es[i].second;
         assert(u<n);
         assert(v<n);
-        double w=eweights?(*eweights)[i]:1;
+        T w=eweights?(*eweights)[i]:1;
         vs[u].neighbours.push_back(&vs[v]);
         vs[u].nweights.push_back(w);
         vs[v].neighbours.push_back(&vs[u]);
         vs[v].nweights.push_back(w);
     }
 }
+template <typename T>
 void dijkstra(
         unsigned const s,
-        vector<Node> & vs,
-        double* d)
+        vector<Node<T> > & vs,
+        T* d)
 {
     const unsigned n=vs.size();
     assert(s<n);
     for(unsigned i=0;i<n;i++) {
         vs[i].id=i;
-        vs[i].d=DBL_MAX;
+        vs[i].d=numeric_limits<T>::max();
         vs[i].p=NULL;
     }
     vs[s].d=0;
-    PairingHeap<Node*,CompareNodes> Q;
+    PairingHeap<Node<T>*,CompareNodes<T> > Q;
     for(unsigned i=0;i<n;i++) {
         vs[i].qnode = Q.insert(&vs[i]);
     }
     while(!Q.isEmpty()) {
-        Node *u=Q.extractMin();
+        Node<T> *u=Q.extractMin();
         d[u->id]=u->d;
         for(unsigned i=0;i<u->neighbours.size();i++) {
-            Node *v=u->neighbours[i];
-            double w=u->nweights[i];
+            Node<T> *v=u->neighbours[i];
+            T w=u->nweights[i];
             if(v->d>u->d+w) {
                 v->p=u;
                 v->d=u->d+w;
@@ -85,26 +87,28 @@ void dijkstra(
         }
     }
 }
+template <typename T>
 void dijkstra(
         unsigned const s,
         unsigned const n,
-        double* d,
+        T* d,
         vector<Edge> const & es,
-        valarray<double> const * eweights)
+        valarray<T> const * eweights)
 {
     assert(!eweights||es.size()==eweights->size());
     assert(s<n);
-    vector<Node> vs(n);
+    vector<Node<T> > vs(n);
     dijkstra_init(vs,es,eweights);
     dijkstra(s,vs,d);
 }
+template <typename T>
 void johnsons(
         unsigned const n,
-        double** D, 
+        T** D, 
         vector<Edge> const & es,
-        valarray<double> const * eweights) 
+        valarray<T> const * eweights) 
 {
-    vector<Node> vs(n);
+    vector<Node<T> > vs(n);
     dijkstra_init(vs,es,eweights);
     for(unsigned k=0;k<n;k++) {
         dijkstra(k,vs,D[k]);

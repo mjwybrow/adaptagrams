@@ -183,6 +183,9 @@ void ConstrainedMajorizationLayout::run(bool x, bool y) {
         vector<vpsc::Rectangle*>* pbb = boundingBoxes.empty()?NULL:&boundingBoxes;
         SolveWithMosek mosek = Off;
         if(externalSolver) mosek=Outer;
+        // scaling doesn't currently work with straighten edges because sparse
+        // matrix used with dummy nodes is not properly scaled at the moment.
+        if(straightenEdges) setScaling(false);
         gpX=new GradientProjection(
             HORIZONTAL,&lap2,tol,100,ccsx,avoidOverlaps,clusterHierarchy,pbb,scaling,mosek);
         gpY=new GradientProjection(

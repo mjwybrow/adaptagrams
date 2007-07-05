@@ -260,7 +260,7 @@ unsigned GradientProjection::solve(
         if(stepSize<tolerance) converged = true; 
 #endif
 	}
-    printf("GP[%d] converged after %d iterations.\n",k,counter);
+    //printf("GP[%d] converged after %d iterations.\n",k,counter);
     for(unsigned i=0;i<x.size();i++) {
         x[i]=result[i];
         if(scaling) {

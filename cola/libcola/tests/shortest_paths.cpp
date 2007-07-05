@@ -1,12 +1,12 @@
 // vim: set cindent 
 // vim: ts=4 sw=4 et tw=0 wm=0
 
-#include <boost/config.hpp>
 #include <fstream>
 #include <iostream>
 #include <iomanip>
 //#define TEST_AGAINST_BOOST
 #ifdef TEST_AGAINST_BOOST
+#include <boost/config.hpp>
 #include <boost/property_map.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graphviz.hpp>

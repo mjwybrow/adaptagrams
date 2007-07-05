@@ -232,7 +232,7 @@ void severeBend() {
 }
 int main() {
 	k5();
-	k6();
-	severeBend();
+	//k6();
+	//severeBend();
 }
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:encoding=utf-8:textwidth=99 :
