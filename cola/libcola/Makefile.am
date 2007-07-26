@@ -5,6 +5,7 @@ lib_LIBRARIES = libcola.a
 
 libcola_a_SOURCES = cola.h\
 	cola.cpp\
+	colafd.cpp\
 	conjugate_gradient.cpp\
 	conjugate_gradient.h\
 	gradient_projection.cpp\

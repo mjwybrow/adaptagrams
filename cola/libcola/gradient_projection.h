@@ -31,7 +31,8 @@ public:
 		valarray<double> *denseQ,
 		const double tol,
 		const unsigned max_iterations,
-        CompoundConstraints const * ccs,
+        CompoundConstraints const *ccs,
+        UnsatisfiableConstraintInfos *unsatisfiableConstraints,
         NonOverlapConstraints nonOverlapConstraints = None,
         RootCluster* clusterHierarchy = NULL,
         std::vector<vpsc::Rectangle*>* rs = NULL,
@@ -42,6 +43,7 @@ public:
               denseQ(denseQ), 
               rs(rs),
               ccs(ccs),
+              unsatisfiableConstraints(unsatisfiableConstraints),
               nonOverlapConstraints(nonOverlapConstraints),
               clusterHierarchy(clusterHierarchy),
               tolerance(tol), 
@@ -57,7 +59,12 @@ public:
         if(scaling) {
             scaledDenseQ.resize(denseSize*denseSize);
             for(unsigned i=0;i<denseSize;i++) {
-                vars[i]->scale=1./sqrt(fabs((*denseQ)[i*denseSize+i]));
+                double d=(*denseQ)[i*denseSize+i];
+                if(d!=0) {
+                    vars[i]->scale=1./sqrt(fabs((*denseQ)[i*denseSize+i]));
+                } else {
+                    vars[i]->scale=1;
+                }
             }
             // the following computes S'QS for Q=denseQ
             // and S is diagonal matrix of scale factors
@@ -88,7 +95,7 @@ public:
         numStaticVars=vars.size();
         //solver=setupVPSC();
 	}
-    void dumpSquareMatrix(valarray<double> const &L) const {
+    static void dumpSquareMatrix(valarray<double> const &L) {
         unsigned n=(unsigned)floor(sqrt(L.size()));
         printf("Matrix %dX%d\n{",n,n);
         for(unsigned i=0;i<n;i++) {
@@ -158,7 +165,8 @@ private:
 	valarray<double> *denseQ; // dense square graph laplacian matrix
 	valarray<double> scaledDenseQ; // scaled dense square graph laplacian matrix
     std::vector<vpsc::Rectangle*>* rs;
-    CompoundConstraints const * ccs;
+    CompoundConstraints const *ccs;
+    UnsatisfiableConstraintInfos *unsatisfiableConstraints;
     NonOverlapConstraints nonOverlapConstraints;
     Cluster* clusterHierarchy;
     double tolerance;

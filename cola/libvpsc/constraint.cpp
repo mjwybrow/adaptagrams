@@ -13,6 +13,7 @@
 #include "constraint.h"
 #include <sstream>
 #include <cassert>
+#include <cfloat>
 namespace vpsc {
 Constraint::Constraint(Variable *left, Variable *right, double gap, bool equality)
 : left(left),
@@ -20,7 +21,8 @@ Constraint::Constraint(Variable *left, Variable *right, double gap, bool equalit
   gap(gap),
   timeStamp(0),
   active(false),
-  equality(equality)
+  equality(equality),
+  unsatisfiable(false)
 {
 	// In hindsight I think it's probably better to build the constraint DAG
 	// (by creating variable in/out lists) when needed, rather than in advance
@@ -40,6 +42,11 @@ Constraint::~Constraint() {
 		//if(*i==this) break;
 	//}
 	//right->in.erase(i);
+}
+double Constraint::slack() const { 
+	return unsatisfiable ? DBL_MAX
+	       : right->scale * right->position() 
+		 - gap - left->scale * left->position(); 
 }
 std::ostream& operator <<(std::ostream &os, const Constraint &c)
 {
@@ -62,5 +69,28 @@ std::ostream& operator <<(std::ostream &os, const Constraint &c)
 			os<<"(vars have no position)";
 	}
 	return os;
+}
+#include "block.h"
+bool CompareConstraints::operator() (
+	Constraint *const &l, Constraint *const &r
+) const {
+	double const sl = 
+		l->left->block->timeStamp > l->timeStamp
+		||l->left->block==l->right->block
+		?-DBL_MAX:l->slack();
+	double const sr = 
+		r->left->block->timeStamp > r->timeStamp
+		||r->left->block==r->right->block
+		?-DBL_MAX:r->slack();
+	if(sl==sr) {
+		// arbitrary choice based on id
+		if(l->left->id==r->left->id) {
+			if(l->right->id<r->right->id) return true;
+			return false;
+		}
+		if(l->left->id<r->left->id) return true;
+		return false;
+	}
+	return sl < sr;
 }
 }

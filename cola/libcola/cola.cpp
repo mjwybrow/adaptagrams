@@ -34,6 +34,7 @@ ConstrainedMajorizationLayout
       clusterHierarchy(clusterHierarchy), linearConstraints(NULL),
       gpX(NULL), gpY(NULL),
       ccsx(NULL), ccsy(NULL),
+      unsatisfiableX(NULL), unsatisfiableY(NULL),
       avoidOverlaps(None),
       straightenEdges(NULL),
       bendWeight(0.1), potBendWeight(0.1),
@@ -78,11 +79,16 @@ ConstrainedMajorizationLayout
             double d = edge_length * D[i][j];
             Dij[i*n + j] = d;
             if(i==j) continue;
-            degree += lap2[i*n + j] = d>1e-30&&d<1e10?1./(d*d):0;
+            double lij=0;
+            if(!isinf(d)) {
+                lij=1./(d*d);
+            }
+            degree += lap2[i*n + j] = lij;
         }
         lap2[i*n + i]=-degree;
         delete [] D[i];
     }
+    //GradientProjection::dumpSquareMatrix(Dij);
     delete [] D;
 }
 // stickyNodes adds a small force attracting nodes 
@@ -150,7 +156,7 @@ inline double ConstrainedMajorizationLayout
     for (unsigned i = 1; i < n; i++) {
         for (unsigned j = 0; j < i; j++) {
             d = Dij[i*n+j];
-            if(!std::isinf(d)) {
+            if(!isinf(d)&&d!=numeric_limits<double>::max()) {
                 diff = d - euclidean_distance(i,j);
                 sum += diff*diff / (d*d);
             }
@@ -175,9 +181,11 @@ void ConstrainedMajorizationLayout::run(bool x, bool y) {
         // matrix used with dummy nodes is not properly scaled at the moment.
         if(straightenEdges) setScaling(false);
         gpX=new GradientProjection(
-            HORIZONTAL,&lap2,tol,100,ccsx,avoidOverlaps,clusterHierarchy,pbb,scaling,mosek);
+            HORIZONTAL,&lap2,tol,100,ccsx,unsatisfiableX,
+            avoidOverlaps,clusterHierarchy,pbb,scaling,mosek);
         gpY=new GradientProjection(
-            VERTICAL,&lap2,tol,100,ccsy,avoidOverlaps,clusterHierarchy,pbb,scaling,mosek);
+            VERTICAL,&lap2,tol,100,ccsy,unsatisfiableY,
+            avoidOverlaps,clusterHierarchy,pbb,scaling,mosek);
     }
     if(n>0) do {
         // to enforce clusters with non-intersecting, convex boundaries we
@@ -248,14 +256,21 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
         startCoords=&startY;
     }
 	vector<straightener::Node*> snodes;
+    if(dim==HORIZONTAL) {
+        Rectangle::setXBorder(0.0001);
+    }
 	for (unsigned i=0;i<n;i++) {
 		snodes.push_back(new straightener::Node(i,boundingBoxes[i]));
 	}
+    if(dim==HORIZONTAL) {
+        Rectangle::setXBorder(0);
+    }
     for (unsigned i=n;i<gp->getNumStaticVars();i++) {
         // insert some dummy nodes
         snodes.push_back(new straightener::Node(i,-100,-100));
     }
     vector<straightener::Cluster*> sclusters;
+    
     if(nonOverlappingClusters && clusterHierarchy) {
        generateClusterBoundaries(dim,snodes,sedges,boundingBoxes,
                 *clusterHierarchy,sclusters);
@@ -327,6 +342,7 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
     constrainedLayout = true;
     SparseMatrix sparseQ(Q);
     gp->straighten(&sparseQ,cs,snodes);
+    //return;
     majlayout(Dij,gp,*coords,*startCoords);
     valarray<double> const & r=gp->getFullResult();
     for(unsigned i=0;i<snodes.size();i++) {

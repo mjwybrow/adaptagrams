@@ -40,6 +40,7 @@ public:
 private:
     Variable *vMin, *vMax;
     double length;
+    double border;
 };
 class RectangularCluster : public Cluster {
 public:

@@ -112,7 +112,7 @@ void setVariableDesiredPos(Variable *v, double desiredPos) {
 	v->desiredPosition = desiredPos;
 }
 double getVariablePos(Variable *v) {
-	return v->position();
+	return v->finalPosition;
 }
 /*
 void remapInConstraints(Variable *u, Variable *v, double dgap) {

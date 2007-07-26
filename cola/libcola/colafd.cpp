@@ -38,13 +38,15 @@ Projection::Projection(const unsigned n, CompoundConstraints * ccs, valarray<boo
     for(unsigned i=0;i<n;i++) {
         vars.push_back(new vpsc::Variable(i,1,1));
     }
-    for(CompoundConstraints::const_iterator c=ccs->begin();
-            c!=ccs->end();c++) {
-        (*c)->generateVariables(vars);
-    }
-    for(CompoundConstraints::const_iterator c=ccs->begin();
-            c!=ccs->end();c++) {
-        (*c)->generateSeparationConstraints(vars,gcs);
+    if(ccs) {
+        for(CompoundConstraints::const_iterator c=ccs->begin();
+                c!=ccs->end();c++) {
+            (*c)->generateVariables(vars);
+        }
+        for(CompoundConstraints::const_iterator c=ccs->begin();
+                c!=ccs->end();c++) {
+            (*c)->generateSeparationConstraints(vars,gcs);
+        }
     }
 }
 Projection::~Projection() {
@@ -57,21 +59,21 @@ void Projection::setDesiredPositions(valarray<double> &X) {
         vars[i]->weight=fixed[i]?100000:1;
     }
 }
-void Projection::solve(Variables &lvs, Constraints &lcs) {
+void Projection::solve(Variables &lvs, Constraints &lcs,valarray<double> &X) {
     Variables vs(vars);
     vs.insert(vs.end(),lvs.begin(),lvs.end());
     Constraints cs(gcs);
     cs.insert(cs.end(),lcs.begin(),lcs.end());
     vpsc::IncSolver vpsc(vs,cs);
     vpsc.solve();
-}
-void Projection::updatePositions(valarray<double> &X) {
-    for (unsigned i=0;i<n;i++) {
-        X[i]=vars[i]->position();
+    for(unsigned i=0;i<n;i++) {
+        X[i]=vs[i]->finalPosition;
     }
-    for(CompoundConstraints::const_iterator c=ccs->begin();
-            c!=ccs->end();c++) {
-        (*c)->updatePosition();
+    if(ccs) {
+        for(CompoundConstraints::const_iterator c=ccs->begin();
+                c!=ccs->end();c++) {
+            (*c)->updatePosition();
+        }
     }
 }
 template <typename T>
@@ -106,7 +108,8 @@ ConstrainedFDLayout::ConstrainedFDLayout(
       ccsx(NULL), ccsy(NULL),
       avoidOverlaps(false),
       px(NULL), py(NULL),
-      straightenEdges(NULL)
+      straightenEdges(NULL),
+      straightener(NULL)
 {
     boundingBoxes.resize(n);
     copy(rs.begin(),rs.end(),boundingBoxes.begin());
@@ -143,8 +146,14 @@ ConstrainedFDLayout::ConstrainedFDLayout(
 
 void ConstrainedFDLayout::run() {
     double displacement;
-    if(constrainedX) px.reset(new Projection(n,ccsx,fixedPos));
-    if(constrainedY) py.reset(new Projection(n,ccsy,fixedPos));
+    if(constrainedX) {
+        px.reset(new Projection(n,ccsx,fixedPos));
+    }
+    if(constrainedY) {
+        py.reset(new Projection(n,ccsy,fixedPos));
+    }
+    double stress=DBL_MAX, oldStress=DBL_MAX;
+    int maxits=100;
     if(n>0) do {
         if(preIteration) {
             if ((*preIteration)()) {
@@ -164,7 +173,10 @@ void ConstrainedFDLayout::run() {
         applyForcesAndConstraints(VERTICAL);
         displacement=move(X0,Y0);
         fixedPos=false;
-    } while(!done(displacement,X,Y));
+        done(displacement,X,Y);
+        oldStress=stress;
+        stress=computeStress();
+    } while(oldStress-stress>0.001&&maxits-->0);
 }
 /**
  * We have an unconstrained solution in X or Y (depending on dim).
@@ -182,7 +194,7 @@ void ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim) {
         R[u]+=dx;
     }
     Projection *p = dim==HORIZONTAL?px.get():py.get();
-    auto_ptr<straightener::Straightener> s(NULL);
+    if(!p)  { return; }
     Variables vs;
     Variables lvs;
     Constraints lcs;
@@ -210,9 +222,10 @@ void ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim) {
         }
     }
     if(straightenEdges) {
-        s.reset(new straightener::Straightener(dim,lrs,*straightenEdges,vs,lvs,lcs));
-        printf("Straightener: vs.size()=%d,lvs.size()=%d,lcs.size()=%d\n",vs.size(),lvs.size(),lcs.size());
-        s->applyForces();
+        straightener.reset(new straightener::Straightener(dim,lrs,*straightenEdges,vs,lvs,lcs));
+        //printf("Straightener: vs.size()=%d,lvs.size()=%d,lcs.size()=%d\n",
+                //(int) vs.size(), (int) lvs.size(), (int) lcs.size());
+        straightener->applyForces();
         for(unsigned i=0;i<n;i++) {
             if(fixedPos[i]) {
                 p->vars[i]->desiredPosition=R[i];
@@ -220,16 +233,15 @@ void ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim) {
         }
     }
     if(p) {
-        p->solve(lvs,lcs);
-        p->updatePositions(R);
+        p->solve(lvs,lcs,R);
     }
     if(straightenEdges) {
-        s->updateNodePositions();
-        dummyNodesX.resize(s->dummyNodesX.size());
-        dummyNodesY.resize(s->dummyNodesY.size());
-        dummyNodesX=s->dummyNodesX;
-        dummyNodesY=s->dummyNodesY;
-        printf("have %d dummy nodes\n",dummyNodesX.size());
+        straightener->updateNodePositions();
+        dummyNodesX.resize(straightener->dummyNodesX.size());
+        dummyNodesY.resize(straightener->dummyNodesY.size());
+        dummyNodesX=straightener->dummyNodesX;
+        dummyNodesY=straightener->dummyNodesY;
+        //printf("have %d dummy nodes\n", (int) dummyNodesX.size());
     }
     delete_vector(lrs);
     delete_vector(lvs);
@@ -245,17 +257,45 @@ void ConstrainedFDLayout::computeForces(const Dim dim, valarray<double> &f) {
             if(u==v) continue;
             // no forces between disconnected parts of the graph
             if(G[u][v]==numeric_limits<unsigned>::max()) continue;
-            double d=D[u][v];
             double rx=X[u]-X[v], ry=Y[u]-Y[v];
             double l=sqrt(rx*rx+ry*ry);
+            double d=D[u][v];
             // we don't want long range attractive forces between not immediately connected nodes
             if(G[u][v]>1 && l>d) continue;
             double d2=d*d;
-            double rl=(d-l)/l;
+            double rl=d-l;
+            if(l>0.01) {
+                rl/=l;
+            }
             double dx=dim==HORIZONTAL?rx:ry;
             f[u]+=fs*dx*rl/d2;
         }
+        //printf("f[%d]=%f\n",u,f[u]);
     }
+}
+double ConstrainedFDLayout::computeStress() {
+    double stress=0;
+    for(unsigned u=0;u<n;u++) {
+        for(unsigned v=0;v<n;v++) {
+            if(u==v) continue;
+            // no forces between disconnected parts of the graph
+            if(G[u][v]==numeric_limits<unsigned>::max()) continue;
+            double rx=X[u]-X[v], ry=Y[u]-Y[v];
+            double l=sqrt(rx*rx+ry*ry);
+            double d=D[u][v];
+            // we don't want long range attractive forces between not immediately connected nodes
+            if(G[u][v]>1 && l>d) continue;
+            double d2=d*d;
+            double rl=d-l;
+            stress+=rl*rl/d2;
+        }
+    }
+    if(straightenEdges) {
+        double sstress=straightener->computeStress();
+        stress+=sstress;
+    }
+    printf("stress=%f\n",stress);
+    return stress;
 }
 double ConstrainedFDLayout::move(valarray<double> const &X0, valarray<double> const &Y0) {
         double displacement=0;

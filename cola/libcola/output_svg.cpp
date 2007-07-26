@@ -72,12 +72,20 @@ void OutputFile::generate() {
         draw_curved_edges(cr,*routes,xmin,ymin);
     else 
         draw_edges(cr,*routes,xmin,ymin);
-    Cairo::TextExtents te;
+    //Cairo::TextExtents te;
 	for (unsigned i=0;i<rs.size();i++) {
 		if(!rects) {
             double x=rs[i]->getCentreX()-xmin, y=rs[i]->getCentreY()-ymin;
+            if(colours) {
+                cr->save();
+                ColourRGBA &c=(*colours)[i];
+                cr->set_source_rgba(c.r, c.g, c.b, c.a);
+            }
             cr->arc(x,y,r, 0.0, 2.0 * M_PI);
             cr->fill();
+            if(colours) { 
+                cr->restore(); 
+            }
 		} else {
             double x=rs[i]->getMinX()-xmin, y=rs[i]->getMinY()-ymin;
             std::string str;
@@ -338,7 +346,7 @@ void OutputFile::draw_curved_edges(Cairo::RefPtr<Cairo::Context> &cr,
 
     cr->save();
     // background
-    cr->set_source_rgba(0,0,1,0.2);
+    cr->set_source_rgba(edgeColour.r, edgeColour.g, edgeColour.b, edgeColour.a);
     for (unsigned i=0;i<edges.size();i++) {
         CEdge &e=edges[i];
         cr->move_to(e.x0,e.y0);

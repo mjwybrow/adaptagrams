@@ -72,8 +72,10 @@ public:
             old_stress = new_stress;
             return ++iterations >= maxiterations;
         }
+        // converged if relative decrease in stress falls below threshold
+        // or if stress increases (shouldn't happen for straight majorization)
         bool converged = 
-            fabs(new_stress - old_stress) / (new_stress + 1e-10) < tolerance
+            fabs(old_stress - new_stress) / (new_stress + 1e-10) < tolerance
             || ++iterations > maxiterations;
         old_stress = new_stress;
         return converged;
@@ -115,6 +117,16 @@ public:
     void setYConstraints(CompoundConstraints* ccsy) {
         constrainedLayout = true;
         this->ccsy=ccsy;
+    }
+    /**
+     * These lists will have info about unsatisfiable constraints
+     * after each iteration of constrained layout
+     */
+    void setUnsatisfiableConstraintInfo(
+            UnsatisfiableConstraintInfos *unsatisfiableX,
+            UnsatisfiableConstraintInfos *unsatisfiableY) {
+        this->unsatisfiableX = unsatisfiableX;
+        this->unsatisfiableY = unsatisfiableY;
     }
     void setStickyNodes(const double stickyWeight, 
             valarray<double> const & startX,
@@ -229,6 +241,7 @@ private:
     straightener::LinearConstraints *linearConstraints;
     GradientProjection *gpX, *gpY;
     CompoundConstraints *ccsx, *ccsy;
+    UnsatisfiableConstraintInfos *unsatisfiableX, *unsatisfiableY;
     NonOverlapConstraints avoidOverlaps;
     vector<straightener::Edge*>* straightenEdges;
     
@@ -250,11 +263,10 @@ class Projection {
 public:
     Projection(const unsigned n, CompoundConstraints * ccs, valarray<bool> const &fixed);
     ~Projection();
-    void solve(Variables &lvs, Constraints &lcs);
+    void solve(Variables &lvs, Constraints &lcs,valarray<double> &X);
     Variables vars;
     Constraints gcs;
     void setDesiredPositions(valarray<double> &X);
-    void updatePositions(valarray<double> &X);
 private:
     unsigned n;
     CompoundConstraints* ccs;
@@ -276,25 +288,37 @@ public:
      * Horizontal alignment constraints
      */
     void setXConstraints(CompoundConstraints* ccsx) {
-        constrainedX=true;
-        this->ccsx=ccsx;
+        if(ccsx->size()>0) {
+            printf("setXConstraints\n");
+            constrainedX=true;
+            this->ccsx=ccsx;
+        }
     }
     /**
      * Vertical alignment constraints
      */
     void setYConstraints(CompoundConstraints* ccsy) {
-        constrainedY=true;
-        this->ccsy=ccsy;
+        if(ccsy->size()>0) {
+            printf("setYConstraints\n");
+            constrainedY=true;
+            this->ccsy=ccsy;
+        }
     }
     void setAvoidOverlaps(bool avoidOverlaps) {
-        constrainedX=constrainedY=true;
+        if(avoidOverlaps) {
+            printf("setAvoidOverlaps\n");
+            constrainedX=constrainedY=true;
+        }
         this->avoidOverlaps=avoidOverlaps;
     }
     void setStraightenEdges(vector<straightener::Edge*>* straightenEdges, double straighteningStrength) {
+        printf("setStraightenEdges\n");
+        constrainedX=constrainedY=true;
         this->straightenEdges=straightenEdges;
         this->straighteningStrength=straighteningStrength;
     }
     valarray<double> dummyNodesX, dummyNodesY;
+    double computeStress();
 private:
     unsigned n; // number of nodes
     valarray<double> X, Y;
@@ -317,6 +341,7 @@ private:
     unsigned** G;
     vector<straightener::Edge*>* straightenEdges;
     double straighteningStrength;
+    std::auto_ptr<straightener::Straightener> straightener;
 };
 
 }

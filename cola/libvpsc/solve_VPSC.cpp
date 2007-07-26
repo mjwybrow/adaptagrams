@@ -71,6 +71,16 @@ void Solver::printBlocks() {
 	}
 #endif
 }
+
+/**
+ * Stores the relative positions of the variables in their finalPosition
+ * field.
+ */
+void Solver::copyResult() {
+    for(unsigned i=0;i<n;i++) {
+        vs[i]->finalPosition=vs[i]->position();
+    }
+}
 /**
 * Produces a feasible - though not necessarily optimal - solution by
 * examining blocks in the partial order defined by the directed acyclic
@@ -82,8 +92,8 @@ void Solver::printBlocks() {
 * another so that constraints internal to the block are satisfied.
 */
 bool Solver::satisfy() {
-	list<Variable*> *vs=bs->totalOrder();
-	for(list<Variable*>::iterator i=vs->begin();i!=vs->end();++i) {
+	list<Variable*> *vList=bs->totalOrder();
+	for(list<Variable*>::iterator i=vList->begin();i!=vList->end();++i) {
 		Variable *v=*i;
 		if(!v->block->deleted) {
 			bs->mergeLeft(v->block);
@@ -102,7 +112,8 @@ bool Solver::satisfy() {
 			throw UnsatisfiedConstraint(*cs[i]);
 		}
 	}
-	delete vs;
+	delete vList;
+    copyResult();
     return activeConstraints;
 }
 
@@ -153,6 +164,7 @@ void Solver::refine() {
 bool Solver::solve() {
 	satisfy();
 	refine();
+    copyResult();
     return bs->size()!=n;
 }
 
@@ -171,6 +183,7 @@ bool IncSolver::solve() {
         f<<"  bs->size="<<bs->size()<<", cost="<<cost<<endl;
 #endif
 	}
+    copyResult();
     return bs->size()!=n; 
 }
 /**
@@ -204,19 +217,26 @@ bool IncSolver::satisfy() {
 		} else {
 			if(lb->isActiveDirectedPathBetween(v->right,v->left)) {
 				// cycle found, relax the violated, cyclic constraint
-				//v->gap = v->slack();
-				//continue;
-                UnsatisfiableException e;
-                lb->getActiveDirectedPathBetween(e.path,v->right,v->left);
-                e.path.push_back(v);
-                throw e;
+				v->unsatisfiable=true;
+				continue;
+                //UnsatisfiableException e;
+                //lb->getActiveDirectedPathBetween(e.path,v->right,v->left);
+                //e.path.push_back(v);
+                //throw e;
 			}
 			//if(splitCtr++>10000) {
 				//throw "Cycle Error!";
 			//}
 			// constraint is within block, need to split first
             try {
-			    inactive.push_back(lb->splitBetween(v->left,v->right,lb,rb));
+                Constraint* splitConstraint
+                    =lb->splitBetween(v->left,v->right,lb,rb);
+                if(splitConstraint!=NULL) {
+			        inactive.push_back(splitConstraint);
+                } else {
+                    v->unsatisfiable=true;
+                    continue;
+                }
             } catch(UnsatisfiableException e) {
                 e.path.push_back(v);
                 throw e;
@@ -257,6 +277,7 @@ bool IncSolver::satisfy() {
 	f<<"  finished cleanup."<<endl;
 	printBlocks();
 #endif
+    copyResult();
     return activeConstraints;
 }
 void IncSolver::moveBlocks() {

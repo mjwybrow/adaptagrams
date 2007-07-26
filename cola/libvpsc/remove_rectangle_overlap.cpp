@@ -64,7 +64,7 @@ void removeRectangleOverlap(unsigned n, std::vector<Rectangle*> const & rs, doub
 #endif
 	vpsc_x.solve();
 	for(unsigned i=0;i<n;i++) {
-		rs[i]->moveCentreX(vs[i]->position());
+		rs[i]->moveCentreX(vs[i]->finalPosition);
 	}
 	for(unsigned i = 0; i < cs.size(); ++i) {
 		delete cs[i];
@@ -85,7 +85,7 @@ void removeRectangleOverlap(unsigned n, std::vector<Rectangle*> const & rs, doub
 #endif
 	vpsc_y.solve();
 	for(unsigned i=0;i<n;i++) {
-		rs[i]->moveCentreY(vs[i]->position());
+		rs[i]->moveCentreY(vs[i]->finalPosition);
 		rs[i]->moveCentreX(oldX[i]);
 	}
 	delete [] oldX;
@@ -109,7 +109,7 @@ void removeRectangleOverlap(unsigned n, std::vector<Rectangle*> const & rs, doub
 		delete cs[i];
 	}
 	for(unsigned i=0;i<n;i++) {
-		rs[i]->moveCentreX(vs[i]->position());
+		rs[i]->moveCentreX(vs[i]->finalPosition);
 		delete vs[i];
 	}
 	} catch (char const *str) {

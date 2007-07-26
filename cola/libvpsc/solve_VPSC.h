@@ -53,6 +53,7 @@ protected:
 	unsigned n;
 	std::vector<Variable*> const &vs;
 	void printBlocks();
+	void copyResult();
 private:
 	void refine();
 	bool constraintGraphIsCyclic(const unsigned n, Variable* const vs[]);

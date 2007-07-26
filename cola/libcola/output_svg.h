@@ -3,6 +3,14 @@
 #include "cola.h"
 #include <cairomm/context.h>
 #include <cairomm/surface.h>
+struct ColourRGBA {
+    double r, g, b, a;
+    ColourRGBA() : r(0), g(0), b(0), a(1) {}
+    ColourRGBA(double r, double g, double b, double a)
+        : r(r), g(g), b(b), a(a) {}
+    ColourRGBA(unsigned r, unsigned g, unsigned b, unsigned a)
+        : r((double)r/255.), g((double)g/255.), b((double)b/255.), a((double)a/255.) {}
+};
 class OutputFile {
 public:
 	std::vector<vpsc::Rectangle*> const &rs;
@@ -13,6 +21,8 @@ public:
 	bool rects;
 	bool curvedEdges;
     std::auto_ptr<std::vector<const char*> > labels;
+    std::vector<ColourRGBA> *colours;
+    ColourRGBA edgeColour;
 	OutputFile(std::vector<vpsc::Rectangle*> const &rs, 
 		std::vector<cola::Edge> const &es, 
 		cola::RootCluster const * rc, 
@@ -26,7 +36,10 @@ public:
 		  fname(fname),
 		  rects(rects),
 		  curvedEdges(curvedEdges),
-       	  labels(NULL) {}
+       	  labels(NULL),
+          colours(NULL),
+          edgeColour(0,0,0,0.1) {
+      }
 	void generate();
 	void setLabels(const unsigned n, const char *ls[]) {
 		labels.reset(new std::vector<const char *>(n));

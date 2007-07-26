@@ -111,7 +111,7 @@ bool GradientProjection::runSolver(valarray<double> & result) {
         case Off:
             activeConstraints = solver->satisfy();
             for (unsigned i=0;i<vars.size();i++) {
-                result[i]=vars[i]->position();
+                result[i]=vars[i]->finalPosition;
             }
             break;
         case Inner:
@@ -293,6 +293,8 @@ IncSolver* GradientProjection::setupVPSC() {
                 }
             }
             if(k==HORIZONTAL) {
+                // Make rectangles a little bit wider when processing horizontally so that any overlap
+                // resolved horizontally is strictly non-overlapping when processing vertically
                 Rectangle::setXBorder(0.0001);
                 // use rs->size() rather than n because some of the variables may
                 // be dummy vars with no corresponding rectangle
@@ -336,8 +338,22 @@ IncSolver* GradientProjection::setupVPSC() {
 }
 void GradientProjection::destroyVPSC(IncSolver *vpsc) {
     if(ccs) {
-        for(CompoundConstraints::const_iterator c=ccs->begin(); c!=ccs->end();++c) {
+        for(CompoundConstraints::const_iterator c=ccs->begin(); 
+                c!=ccs->end();++c) {
             (*c)->updatePosition();
+        }
+    }
+    if(unsatisfiableConstraints) {
+        unsatisfiableConstraints->clear();
+        for(Constraints::iterator i=cs.begin();i!=cs.end();i++) {
+            Constraint* c=*i;
+            if(c->unsatisfiable) {
+                UnsatisfiableConstraintInfo *ci = new UnsatisfiableConstraintInfo();
+                ci->vlid = c->left->id;
+                ci->vrid = c->right->id;
+                ci->gap = c->gap;
+                unsatisfiableConstraints->push_back(ci);
+            }
         }
     }
     if(clusterHierarchy) {

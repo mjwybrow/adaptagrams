@@ -320,7 +320,13 @@ double Block::compute_dfdv(Variable* const v, Variable* const u) {
 // in order to avoid creating any new violations).
 // We also do not consider equality constraints as potential split points
 bool Block::split_path(
-		Variable* r, Variable* const v, Variable* const u, Constraint* &m) {
+	Variable* r, 
+	Variable* const v, 
+	Variable* const u, 
+	Constraint* &m,
+	bool desperation=false
+	) 
+{
 	for(Cit it(v->in.begin());it!=v->in.end();++it) {
 		Constraint *c=*it;
 		if(canFollowLeft(c,u)) {
@@ -329,9 +335,15 @@ bool Block::split_path(
 	f<<"  left split path: "<<*c<<endl;
 #endif
 			if(c->left==r) {
+				if(desperation&&!c->equality) m=c;
 				return true;
 			} else {
-				if(split_path(r,c->left,v,m)) return true;
+				if(split_path(r,c->left,v,m)) {
+					if(desperation && !c->equality && (!m||c->lm<m->lm)) {
+					       	m=c;
+					}
+					return true;
+				}
 			}
 		}
 	}
@@ -347,7 +359,8 @@ bool Block::split_path(
 				return true;
 			} else {
 				if(split_path(r,c->right,v,m)) {
-					if(!c->equality && (!m||c->lm<m->lm)) m=c;
+					if(!c->equality && (!m||c->lm<m->lm))
+					       	m=c;
 					return true;
 				}
 			}
@@ -463,12 +476,17 @@ Constraint *Block::findMinLMBetween(Variable* const lv, Variable* const rv) {
 	Constraint *min_lm=NULL;
 	split_path(rv,lv,NULL,min_lm);
 	if(min_lm==NULL) {
+		split_path(rv,lv,NULL,min_lm,true);
+	}
+	/*
+	if(min_lm==NULL) {
 		fprintf(stderr,"Couldn't find split point!\n");
 		UnsatisfiableException e;
 		getActivePathBetween(e.path,lv,rv,NULL);
 		throw e;
 	}
 	assert(min_lm!=NULL);
+	*/
 	return min_lm;
 }
 
@@ -552,8 +570,10 @@ Constraint* Block::splitBetween(Variable* const vl, Variable* const vr,
 #ifdef LIBVPSC_LOGGING
 	f<<"  going to split on: "<<*c<<endl;
 #endif
-	split(lb,rb,c);
-	deleted = true;
+	if(c!=NULL) {
+		split(lb,rb,c);
+		deleted = true;
+	}
 	return c;
 }
 

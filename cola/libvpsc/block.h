@@ -81,7 +81,7 @@ private:
 	double compute_dfdv(Variable* const v, Variable* const u);
 	double compute_dfdv(Variable* const v, Variable* const u, Constraint *&min_lm);
 	bool split_path(Variable*, Variable* const, Variable* const, 
-			Constraint* &min_lm);
+			Constraint* &min_lm, bool desperation);
 	bool canFollowLeft(Constraint const* c, Variable const* last) const;
 	bool canFollowRight(Constraint const* c, Variable const* last) const;
 	void populateSplitBlock(Block *b, Variable* v, Variable const* u);

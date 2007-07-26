@@ -11,7 +11,7 @@ namespace cola {
     using namespace std;
 
     Cluster::Cluster()
-        : varWeight(0.0001),internalEdgeWeightFactor(1.),bounds(-1,1,-1,1)
+        : border(7), varWeight(0.0001),internalEdgeWeightFactor(1.),bounds(-1,1,-1,1)
       {}
 
     void Cluster::computeBoundingRect(vector<Rectangle*> const & rs) {
@@ -86,29 +86,29 @@ namespace cola {
             length=bounds.width();
             vMin=vXMin;
             vMin->desiredPosition=bounds.getMinX();
-            return Rectangle(bounds.getMinX(),
-                             bounds.getMinX(),
+            return Rectangle(bounds.getMinX()-border,
+                             bounds.getMinX()+border,
                              bounds.getMinY(),bounds.getMaxY());
         } else {
             length=bounds.height();
             vMin=vYMin;
             vMin->desiredPosition=bounds.getMinY();
             return Rectangle(bounds.getMinX(),bounds.getMaxX(),
-                             bounds.getMinY(),
-                             bounds.getMinY());
+                             bounds.getMinY()-border,
+                             bounds.getMinY()+border);
         }
     }
     vpsc::Rectangle Cluster::getMaxRect( const Dim dim, Rectangle const & bounds) {
         if(dim==HORIZONTAL) {
             vMax=vXMax;
             vMax->desiredPosition=bounds.getMaxX();
-            return Rectangle(bounds.getMaxX(), bounds.getMaxX(),
+            return Rectangle(bounds.getMaxX()-border, bounds.getMaxX()+border,
                              bounds.getMinY(), bounds.getMaxY());
         } else {
             vMax=vYMax;
             vMax->desiredPosition=bounds.getMaxY();
             return Rectangle(bounds.getMinX(), bounds.getMaxX(),
-                             bounds.getMaxY(), bounds.getMaxY());
+                             bounds.getMaxY()-border, bounds.getMaxY()+border);
         }
     }
     void Cluster::createVars(
@@ -147,11 +147,11 @@ namespace cola {
         // One var/rect for each node, one for each child cluster, one for
         // the LHS of this cluster and one for the RHS.
         unsigned n=nodes.size()+clusters.size()+2;
-        vector<vpsc::Variable*> vs(n);
+        vector<vpsc::Variable*> lvs(n);
         vector<Rectangle*> lrs(n);
         unsigned vctr=0;
         for(vector<unsigned>::iterator i=nodes.begin();i!=nodes.end();i++) {
-            vs[vctr]=vars[*i];
+            lvs[vctr]=vars[*i];
             lrs[vctr]=rs[*i];
             //printf("  adding var %d, w=%f, h=%f\n",*i,rs[*i]->width(),rs[*i]->height());
             vctr++;
@@ -160,7 +160,7 @@ namespace cola {
         computeBoundingRect(rs);
         for(vector<Cluster*>::iterator i=clusters.begin();i!=clusters.end();i++) {
             Cluster* c=*i;
-            vs[vctr]=c->vMin;
+            lvs[vctr]=c->vMin;
             varClusterMap[c->vMin]=c;
             lrs[vctr]=&c->bounds;
             //printf("  adding cluster %d, w=%f, h=%f\n",c->vMin->id,lrs[vctr]->width(),lrs[vctr]->height());
@@ -168,9 +168,9 @@ namespace cola {
         }
         Rectangle rMin=getMinRect(dim,bounds), 
                   rMax=getMaxRect(dim,bounds);
-        vs[vctr]=vMin;
+        lvs[vctr]=vMin;
         lrs[vctr++]=&rMin;
-        vs[vctr]=vMax;
+        lvs[vctr]=vMax;
         lrs[vctr++]=&rMax;
 
         //printf("Processing cluster: vars=%d,%d length=%f\n",vMin->id,vMax->id,length);
@@ -181,10 +181,10 @@ namespace cola {
             Rectangle::setXBorder(0.001);
             // use rs->size() rather than n because some of the variables may
             // be dummy vars with no corresponding rectangle
-            generateXConstraints(lrs,vars,tmp_cs,nonOverlapConstraints==Both?true:false); 
+            generateXConstraints(lrs,lvs,tmp_cs,nonOverlapConstraints==Both?true:false); 
             Rectangle::setXBorder(0);
         } else {
-            generateYConstraints(lrs,vars,tmp_cs); 
+            generateYConstraints(lrs,lvs,tmp_cs); 
         }
         for(unsigned i=0;i<tmp_cs.size();i++) {
             vpsc::Constraint* co = tmp_cs[i];
@@ -210,10 +210,7 @@ namespace cola {
 
     /** recursively delete all clusters */
     void Cluster::clear() {
-        for(vector<Cluster*>::iterator c=clusters.begin();
-                c!=clusters.end(); c++) {
-            delete *c;
-        }
+        for_each(clusters.begin(),clusters.end(),delete_object());
         clusters.clear();
     }
 }

@@ -1,7 +1,7 @@
 #mosek_home=/home/dwyer/devel/mosek/4/tools/platform/linux32x86
 INCLUDES = -I$(top_srcdir) -I/usr/include/cairo -I/usr/include/cairomm-1.0 -I$(mosek_home)/h
 #check_PROGRAMS = unconstrained constrained containment straightener shortest_paths connected_components large_graph convex_hull scale_free trees random_graph large_graph
-check_PROGRAMS = constrained
+check_PROGRAMS = gml_graph
 shortest_paths_LDADD = $(top_builddir)/libcola/libcola.a
 shortest_paths_SOURCES = shortest_paths.cpp
 unconstrained_LDADD = $(top_builddir)/libcola/libcola.a $(top_builddir)/libvpsc/libvpsc.a
@@ -30,6 +30,8 @@ small_graph_LDADD = $(top_srcdir)/libcola/libcola.a $(top_srcdir)/libvpsc/libvps
 small_graph_SOURCES = small_graph.cpp 
 large_graph_LDADD = $(top_srcdir)/libcola/libcola.a $(top_srcdir)/libvpsc/libvpsc.a
 large_graph_SOURCES = large_graph.cpp 
+gml_graph_LDADD = $(top_srcdir)/libcola/libcola.a $(top_srcdir)/libvpsc/libvpsc.a /usr/lib/libboost_regex.so
+gml_graph_SOURCES = gml_graph.cpp 
 scale_free_LDADD = $(top_srcdir)/libcola/libcola.a $(top_srcdir)/libvpsc/libvpsc.a
 scale_free_SOURCES = scale_free.cpp 
 random_graph_LDADD = $(top_srcdir)/libcola/libcola.a $(top_srcdir)/libvpsc/libvpsc.a

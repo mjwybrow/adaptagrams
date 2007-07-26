@@ -38,7 +38,7 @@ class BoundaryConstraint : public CompoundConstraint {
 public:
     BoundaryConstraint(double pos) : position(pos), variable(NULL) {}
     void updatePosition() {
-        position = variable->position();
+        position = variable->finalPosition;
     }
     void generateVariables(Variables& vars) {
         variable = new vpsc::Variable(vars.size(),position,0.0001);
@@ -76,7 +76,7 @@ public:
           variable(new vpsc::Variable(0,position,0.0001)
         ) {}
     void updatePosition() {
-        position = variable->position();
+        position = variable->finalPosition;
     }
     void fixPos(double pos) {
         variable->desiredPosition=pos;
@@ -286,8 +286,8 @@ public:
         }
     }
     void updatePosition() {
-        if(vl) actualLeftMargin = vl->position();
-        if(vr) actualRightMargin = vr->position();
+        if(vl) actualLeftMargin = vl->finalPosition;
+        if(vr) actualRightMargin = vr->finalPosition;
     }
     double getActualLeftMargin() {
         return actualLeftMargin;
@@ -305,6 +305,16 @@ private:
     double rightWeight;       // - " -
     vpsc::Variable *vl, *vr;
 };
+/**
+ * Info about constraints that could not be satisfied in gradient projection
+ * process
+ */
+struct UnsatisfiableConstraintInfo {
+    unsigned vlid, vrid;
+    double vlpos, vrpos, vlypos, vrypos;
+    double gap;
+};
+typedef vector<UnsatisfiableConstraintInfo*> UnsatisfiableConstraintInfos;
 } // namespace cola
 #endif // _COMPOUND_CONSTRAINTS_H
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4 :

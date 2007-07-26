@@ -21,9 +21,13 @@ typedef std::vector<Constraint*> Constraints;
 class Variable
 {
 	friend std::ostream& operator <<(std::ostream &os, const Variable &v);
+	friend class Block;
+	friend class Constraint;
+	friend class Solver;
 public:
 	int id; // useful in log files
 	double desiredPosition;
+	double finalPosition;
 	double weight; // how much the variable wants to be at it's desired position
 	double scale; // translates variable to another space
 	double offset;
@@ -45,9 +49,6 @@ public:
 		, fixedDesiredPosition(false)
 	{
 	}
-	inline double position() const {
-		return (block->ps.scale*block->posn+offset)/scale;
-	}
 	double dfdv() const {
 		return 2. * weight * ( position() - desiredPosition );
 	}
@@ -55,6 +56,10 @@ public:
 	~Variable(void){
 		in.clear();
 		out.clear();
+	}
+private:
+	double position() const {
+		return (block->ps.scale*block->posn+offset)/scale;
 	}
 };
 }

@@ -34,6 +34,15 @@ struct Route {
     double *ys;
 };
 class Node;
+struct DebugPoint {
+    double x,y;
+};
+struct DebugLine {
+    DebugLine(double x0,double y0,double x1,double y1,unsigned colour) 
+        : x0(x0),y0(y0),x1(x1),y1(y1),colour(colour) {}
+    double x0,y0,x1,y1;
+    unsigned colour;
+};
 struct Edge {
     unsigned id;
     unsigned openInd; // position in openEdges
@@ -43,6 +52,8 @@ struct Edge {
     std::vector<unsigned> dummyNodes;
     std::vector<unsigned> path;
     std::vector<unsigned> activePath;
+    std::vector<DebugPoint> debugPoints;
+    std::vector<DebugLine> debugLines;
     // Edge with a non-trivial route
     Edge(unsigned id, unsigned start, unsigned end, Route* route)
     : id(id), startNode(start), endNode(end), route(route)
@@ -78,7 +89,7 @@ struct Edge {
             double ax=route->xs[i-1], bx=route->xs[i], ay=route->ys[i-1], by=route->ys[i];
             double r=(y-ay)/(by-ay);
             // as long as y is between ay and by then r>0
-            if(r>0&&r<=1) {
+            if(r>=0&&r<=1) {
                 xs.push_back(ax+(bx-ax)*r);
             }
         }
@@ -107,6 +118,7 @@ public:
     ~Straightener();
     void updateNodePositions();
     void applyForces();
+    double computeStress();
     std::valarray<double> dummyNodesX;
     std::valarray<double> dummyNodesY;
 private:
@@ -144,8 +156,8 @@ public:
     Node(const unsigned id, vpsc::Rectangle const * r) :
         id(id),cluster(NULL),
         x(r->getCentreX()),y(r->getCentreY()), width(r->width()), height(r->height()),
-        xmin(x-width/2),xmax(x+width/2),
-        ymin(y-height/2),ymax(y+height/2),
+        xmin(r->getMinX()),xmax(r->getMaxX()),
+        ymin(r->getMinY()),ymax(r->getMaxY()),
         edge(NULL),dummy(false),scan(true),active(true),open(false) { }
     Node(const unsigned id, const double x, const double y) :
         id(id),cluster(NULL),

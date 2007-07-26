@@ -14,6 +14,7 @@
 #define SEEN_LIBVPSC_CONSTRAINT_H
 
 #include <iostream>
+#include <float.h>
 #include "variable.h"
 namespace vpsc {
 
@@ -27,36 +28,15 @@ public:
 	double lm;
 	Constraint(Variable *left, Variable *right, double gap, bool equality=false);
 	~Constraint();
-	inline double slack() const { return right->scale * right->position() - gap - left->scale * left->position(); }
+	double slack() const;
 	long timeStamp;
 	bool active;
 	const bool equality;
-	bool vflag;
+	bool unsatisfiable;
 };
-#include <float.h>
-#include "block.h"
 class CompareConstraints {
 public:
-	bool operator() (Constraint *const &l, Constraint *const &r) const {
-		double const sl = 
-			l->left->block->timeStamp > l->timeStamp
-			||l->left->block==l->right->block
-			?-DBL_MAX:l->slack();
-		double const sr = 
-			r->left->block->timeStamp > r->timeStamp
-			||r->left->block==r->right->block
-			?-DBL_MAX:r->slack();
-		if(sl==sr) {
-			// arbitrary choice based on id
-			if(l->left->id==r->left->id) {
-				if(l->right->id<r->right->id) return true;
-				return false;
-			}
-			if(l->left->id<r->left->id) return true;
-			return false;
-		}
-		return sl < sr;
-	}
+	bool operator() (Constraint *const &l, Constraint *const &r) const;
 };
 }
 
