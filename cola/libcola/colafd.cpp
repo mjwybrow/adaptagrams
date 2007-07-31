@@ -153,7 +153,6 @@ void ConstrainedFDLayout::run() {
         py.reset(new Projection(n,ccsy,fixedPos));
     }
     double stress=DBL_MAX, oldStress=DBL_MAX;
-    int maxits=100;
     if(n>0) do {
         if(preIteration) {
             if ((*preIteration)()) {
@@ -176,7 +175,7 @@ void ConstrainedFDLayout::run() {
         done(displacement,X,Y);
         oldStress=stress;
         stress=computeStress();
-    } while(oldStress-stress>0.001&&maxits-->0);
+    } while(oldStress-stress>0.001);
 }
 /**
  * We have an unconstrained solution in X or Y (depending on dim).
@@ -268,6 +267,7 @@ void ConstrainedFDLayout::computeForces(const Dim dim, valarray<double> &f) {
                 rl/=l;
             }
             double dx=dim==HORIZONTAL?rx:ry;
+            //fs=1;
             f[u]+=fs*dx*rl/d2;
         }
         //printf("f[%d]=%f\n",u,f[u]);

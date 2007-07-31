@@ -40,7 +40,8 @@ ConstrainedMajorizationLayout
       bendWeight(0.1), potBendWeight(0.1),
       xSkipping(true),
       scaling(true),
-      externalSolver(false)
+      externalSolver(false),
+      majorization(false)
 {
     boundingBoxes.resize(rs.size());
     copy(rs.begin(),rs.end(),boundingBoxes.begin());
@@ -110,7 +111,7 @@ void ConstrainedMajorizationLayout::setStickyNodes(
     }
 }
 
-void ConstrainedMajorizationLayout::majlayout(
+void ConstrainedMajorizationLayout::majorize(
         valarray<double> const & Dij, GradientProjection* gp, 
         valarray<double>& coords,
         valarray<double> const & startCoords)
@@ -150,6 +151,87 @@ void ConstrainedMajorizationLayout::majlayout(
     }
     moveBoundingBoxes();
 }
+void ConstrainedMajorizationLayout::newton(
+        valarray<double> const & Dij, GradientProjection* gp, 
+        valarray<double>& coords,
+        valarray<double> const & startCoords)
+{
+    /* compute the vector b */
+    /* multiply on-the-fly with distance-based laplacian */
+    valarray<double> b(n);
+    valarray<double> A(n*n);
+    for (unsigned i = 0; i < n; i++) {
+        b[i] = 0;
+        double Aii = 0;
+        for (unsigned j = 0; j < n; j++) {
+            if (j == i) continue;
+            double d = Dij[i*n+j];
+            double l = euclidean_distance(i,j);
+            double dx = coords[i]-coords[j];
+            double dy2 = l*l - dx*dx;
+            /* skip zero distances */
+            if (l > 1e-30 
+                    && d > 1e-30 && d < 1e10) {
+                if(d>80 && l > d) continue;
+                b[i]+=dx*(l-d)/(l*d*d);
+                Aii-=A[i*n+j]=(d*dy2/(l*l*l)-1)/(d*d);
+            }
+        }
+        A[i*n+i]=Aii;
+    }
+    if(constrainedLayout) {
+        //printf("GP iteration...\n");
+        gp->solve(b,coords);
+    } else {
+        //printf("CG iteration...\n");
+        /*
+        unsigned N=n-1;
+        valarray<double> b2(N);
+        valarray<double> A2(N*N);
+        valarray<double> x(N);
+        for(unsigned i=0;i<N;i++) {
+            b2=b[i];
+            x=coords[i];
+            for(unsigned j=0;j<N;j++) {
+                A2[i*N+j]=A[i*n+j];
+            }
+        }
+        conjugate_gradient(A2, x, b2, N, tol, N);
+        */
+        //valarray<double> x=coords;
+        //x-=x.sum()/n;
+        //conjugate_gradient(A, x, b, n, tol, n);
+        //double stepsize=0.5;
+        valarray<double> x=b;
+        // stepsize = g.g / (g A g)
+        double numerator = 0;
+        for(unsigned i=0;i<n;i++) {
+            numerator+=x[i]*x[i];
+        }
+        double denominator = 0;
+        for(unsigned i=0;i<n;i++) {
+            double r=0;
+            for(unsigned j=0;j<n;j++) {
+                r+=A[i*n+j]*x[j];
+            }
+            denominator+=r*x[i];
+        }
+        double stepsize=numerator/(2*denominator);
+        double oldstress=compute_stress(Dij);
+        valarray<double> oldcoords=coords;
+        while(stepsize>0.00001) {
+            coords=oldcoords-stepsize*x;
+            double stress=compute_stress(Dij);
+                printf("  stress=%f, stepsize=%f\n",stress,stepsize);
+            if(oldstress>=stress) {
+                break;
+            }
+            coords=oldcoords;
+            stepsize*=0.5;
+        }
+    }
+    moveBoundingBoxes();
+}
 inline double ConstrainedMajorizationLayout
 ::compute_stress(valarray<double> const &Dij) {
     double sum = 0, d, diff;
@@ -158,6 +240,7 @@ inline double ConstrainedMajorizationLayout
             d = Dij[i*n+j];
             if(!isinf(d)&&d!=numeric_limits<double>::max()) {
                 diff = d - euclidean_distance(i,j);
+                if(d>80&&diff<0) continue;
                 sum += diff*diff / (d*d);
             }
         }
@@ -224,8 +307,13 @@ void ConstrainedMajorizationLayout::run(bool x, bool y) {
             if(x) straighten(*straightenEdges,HORIZONTAL);
             if(y) straighten(*straightenEdges,VERTICAL);
         } else {
-            if(x) majlayout(Dij,gpX,X,startX);
-            if(y) majlayout(Dij,gpY,Y,startY);
+            if(majorization) {
+                if(x) majorize(Dij,gpX,X,startX);
+                if(y) majorize(Dij,gpY,Y,startY);
+            } else {
+                if(x) newton(Dij,gpX,X,startX);
+                if(y) newton(Dij,gpY,Y,startY);
+            }
         }
         if(clusterHierarchy) {
             for(Clusters::iterator c=clusterHierarchy->clusters.begin();
@@ -343,7 +431,7 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
     SparseMatrix sparseQ(Q);
     gp->straighten(&sparseQ,cs,snodes);
     //return;
-    majlayout(Dij,gp,*coords,*startCoords);
+    majorize(Dij,gp,*coords,*startCoords);
     valarray<double> const & r=gp->getFullResult();
     for(unsigned i=0;i<snodes.size();i++) {
         if(dim==HORIZONTAL) {

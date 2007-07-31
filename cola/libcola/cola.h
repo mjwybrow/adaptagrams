@@ -75,7 +75,7 @@ public:
         // converged if relative decrease in stress falls below threshold
         // or if stress increases (shouldn't happen for straight majorization)
         bool converged = 
-            fabs(old_stress - new_stress) / (new_stress + 1e-10) < tolerance
+            (old_stress - new_stress) / (new_stress + 1e-10) < tolerance
             || ++iterations > maxiterations;
         old_stress = new_stress;
         return converged;
@@ -197,7 +197,8 @@ private:
             (Y[i] - Y[j]) * (Y[i] - Y[j]));
     }
     double compute_stress(valarray<double> const & Dij);
-    void majlayout(valarray<double> const & Dij,GradientProjection* gp, valarray<double>& coords, valarray<double> const & startCoords);
+    void majorize(valarray<double> const & Dij,GradientProjection* gp, valarray<double>& coords, valarray<double> const & startCoords);
+    void newton(valarray<double> const & Dij,GradientProjection* gp, valarray<double>& coords, valarray<double> const & startCoords);
     unsigned n; // number of nodes
     //valarray<double> degrees;
     valarray<double> lap2; // graph laplacian
@@ -255,6 +256,7 @@ private:
     // if the Mosek quadratic programming environment is available it may be used
     // to solve each iteration of stress majorization... slow but useful for testing
     bool externalSolver;
+    bool majorization;
 };
 
 Rectangle bounds(vector<Rectangle*>& rs);

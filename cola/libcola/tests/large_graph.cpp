@@ -61,12 +61,12 @@ int main() {
         startpos[i]=make_pair(x,y);
     }
     const char *testname="large_graph";
-    //run_test(startpos,es,defaultEdgeLength,cx,cy,CG,false,testname,"cg");
+    run_test(startpos,es,defaultEdgeLength,cx,cy,CG,false,testname,"cg");
     //run_test(startpos,es,defaultEdgeLength,cx,cy,IP,false,testname,"ip");
     //run_test(startpos,es,defaultEdgeLength,cx,cy,UGP,false,testname,"ugp");
     //run_test(startpos,es,defaultEdgeLength,cx,cy,SGP,false,testname,"sgp");
     //run_test(startpos,es,defaultEdgeLength,cx,cy,IP,true,testname,"cip");
-    run_test(startpos,es,defaultEdgeLength,cx,cy,UGP,true,testname,"cugp");
-    run_test(startpos,es,defaultEdgeLength,cx,cy,SGP,true,testname,"csgp");
+    //run_test(startpos,es,defaultEdgeLength,cx,cy,UGP,true,testname,"cugp");
+    //run_test(startpos,es,defaultEdgeLength,cx,cy,SGP,true,testname,"csgp");
 }
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:encoding=utf-8:textwidth=99 :
