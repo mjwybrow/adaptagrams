@@ -61,12 +61,29 @@ int main() {
         startpos[i]=make_pair(x,y);
     }
     const char *testname="large_graph";
-    run_test(startpos,es,defaultEdgeLength,cx,cy,CG,false,testname,"cg");
+    //run_test(startpos,es,defaultEdgeLength,cx,cy,CG,false,testname,"cg");
     //run_test(startpos,es,defaultEdgeLength,cx,cy,IP,false,testname,"ip");
     //run_test(startpos,es,defaultEdgeLength,cx,cy,UGP,false,testname,"ugp");
     //run_test(startpos,es,defaultEdgeLength,cx,cy,SGP,false,testname,"sgp");
     //run_test(startpos,es,defaultEdgeLength,cx,cy,IP,true,testname,"cip");
     //run_test(startpos,es,defaultEdgeLength,cx,cy,UGP,true,testname,"cugp");
     //run_test(startpos,es,defaultEdgeLength,cx,cy,SGP,true,testname,"csgp");
+	vector<vpsc::Rectangle*> rs;
+	for(unsigned i=0;i<V;i++) {
+		double x=getRand(width), y=getRand(height);
+		rs.push_back(new vpsc::Rectangle(x,x+5,y,y+5));
+	}
+	CheckProgress test(0.0001,20);
+    ConstrainedMajorizationLayout alg(rs,es,NULL,defaultEdgeLength,NULL,test);
+    //alg.setYConstraints(&cy);
+	alg.run();
+	ConstrainedFDLayout alg2(rs,es,NULL,defaultEdgeLength,NULL,test);
+    //alg2.setYConstraints(&cy);
+	alg2.run();
+	OutputFile output(rs,es,NULL,"large_graph.svg");
+	output.generate();
+	for(unsigned i=0;i<V;i++) {
+		delete rs[i];
+	}
 }
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:encoding=utf-8:textwidth=99 :

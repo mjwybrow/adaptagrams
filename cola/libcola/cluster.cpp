@@ -11,7 +11,7 @@ namespace cola {
     using namespace std;
 
     Cluster::Cluster()
-        : border(7), varWeight(0.0001),internalEdgeWeightFactor(1.),bounds(-1,1,-1,1)
+        : varWeight(0.0001), internalEdgeWeightFactor(1.), bounds(-1,1,-1,1), border(7)
       {}
 
     void Cluster::computeBoundingRect(vector<Rectangle*> const & rs) {

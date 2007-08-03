@@ -84,7 +84,6 @@ public:
         old_stress = DBL_MAX;
         iterations = 0;
     }
-private:
     const double tolerance;
     const unsigned maxiterations;
     unsigned iterations;
@@ -325,9 +324,17 @@ private:
     unsigned n; // number of nodes
     valarray<double> X, Y;
     vector<Rectangle*> boundingBoxes;
-    void applyForcesAndConstraints(const Dim dim);
-    double move(valarray<double> const &X0, valarray<double> const &Y0);
-    void computeForces(const Dim dim, valarray<double> &f);
+    double applyForcesAndConstraints(const Dim dim,const double oldStress,const bool firstPass);
+    double computeStepSize(SparseMatrix const & H, valarray<double> const & g,
+            valarray<double> const & d) const;
+    double applyDescentVector(
+            valarray<double> const & d,
+            valarray<double> const & oldCoords,
+            valarray<double> &coords, 
+            const double oldStress, 
+            double stepsize);
+    void move();
+    void computeForces(const Dim dim, SparseMap &H, valarray<double> &g);
     vector<vector<unsigned> > neighbours;
     vector<vector<double> > neighbourLengths;
     TestConvergence& done;

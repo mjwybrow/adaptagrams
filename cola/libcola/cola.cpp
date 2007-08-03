@@ -41,7 +41,7 @@ ConstrainedMajorizationLayout
       xSkipping(true),
       scaling(true),
       externalSolver(false),
-      majorization(false)
+      majorization(true)
 {
     boundingBoxes.resize(rs.size());
     copy(rs.begin(),rs.end(),boundingBoxes.begin());

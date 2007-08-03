@@ -83,7 +83,7 @@ using namespace std;
 struct CheckProgress : TestConvergence {
     CheckProgress(const double d,const unsigned i) : TestConvergence(d,i) {}
     bool operator()(const double new_stress, valarray<double> & X, valarray<double> & Y) {
-        cout << "stress="<<new_stress<<endl;
+        cout << "stress="<<new_stress<<" iteration="<<iterations<<endl;
         return TestConvergence::operator()(new_stress,X,Y);
     }
 };
