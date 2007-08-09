@@ -267,7 +267,6 @@ public:
     void solve(Variables &lvs, Constraints &lcs,valarray<double> &X);
     Variables vars;
     Constraints gcs;
-    void setDesiredPositions(valarray<double> &X);
 private:
     unsigned n;
     CompoundConstraints* ccs;
@@ -332,7 +331,8 @@ private:
             valarray<double> const & oldCoords,
             valarray<double> &coords, 
             const double oldStress, 
-            double stepsize);
+            double stepsize,
+            straightener::Straightener *s=NULL);
     void move();
     void computeForces(const Dim dim, SparseMap &H, valarray<double> &g);
     vector<vector<unsigned> > neighbours;
@@ -350,7 +350,6 @@ private:
     unsigned** G;
     vector<straightener::Edge*>* straightenEdges;
     double straighteningStrength;
-    std::auto_ptr<straightener::Straightener> straightener;
 };
 
 }

@@ -83,9 +83,10 @@ void k5() {
 	r->ys[2]=rs[4]->getCentreY();
 	routes[6]->setRoute(r);
 	// now straighten the edges
-	ConstrainedMajorizationLayout alg(rs,es,NULL,200);
-    alg.setScaling(false);
-	alg.setStraightenEdges(&routes);
+	ConstrainedFDLayout alg(rs,es,NULL,200);
+	//ConstrainedMajorizationLayout alg(rs,es,NULL,200);
+    //alg.setScaling(false);
+	alg.setStraightenEdges(&routes,1);
 	alg.run();
 	//alg.straighten(routes,HORIZONTAL);
     //OutputFile of1(rs,es,NULL,"straightener-x.svg",true,false);
@@ -169,8 +170,9 @@ void k6() {
 		298.000000,444.000000,
 		333.000000,559.000000});
 	// now straighten the edges
-	ConstrainedMajorizationLayout alg(rs,es,NULL,200);
-	alg.setStraightenEdges(&routes);
+	//ConstrainedMajorizationLayout alg(rs,es,NULL,200);
+	ConstrainedFDLayout alg(rs,es,NULL,200);
+	alg.setStraightenEdges(&routes,1);
 	alg.run();
     OutputFile of(rs,es,NULL,"straightener-k6.svg",true,false);
     of.generate();
@@ -218,8 +220,9 @@ void severeBend() {
 		151.000000,118.000000
 	});
 	// now straighten the edges
-	ConstrainedMajorizationLayout alg(rs,es,NULL,70);
-	alg.setStraightenEdges(&routes);
+	//ConstrainedMajorizationLayout alg(rs,es,NULL,70);
+	ConstrainedFDLayout alg(rs,es,NULL,70);
+	alg.setStraightenEdges(&routes,1);
 	alg.run();
     OutputFile of(rs,es,NULL,"straightener-severeBend.svg",true,false);
     of.generate();

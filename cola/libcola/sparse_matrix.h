@@ -15,6 +15,9 @@ struct SparseMap {
     double& operator[](const SparseIndex& k) {
         return lookup[k];
     }
+    double& operator()(const unsigned i, const unsigned j) {
+        return lookup[std::make_pair(i,j)]; 
+    }
     double getIJ(const unsigned i, const unsigned j) const {
         assert(i<n);
         assert(j<n);
@@ -26,6 +29,9 @@ struct SparseMap {
     }
     unsigned nonZeroCount() const {
         return lookup.size();
+    }
+    void resize(unsigned n) {
+        this->n = n;
     }
 };
 /*

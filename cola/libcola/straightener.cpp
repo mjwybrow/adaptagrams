@@ -578,18 +578,23 @@ namespace straightener {
         }
     }
     Straightener::Straightener(
+            const double strength,
             const cola::Dim dim,
             std::vector<vpsc::Rectangle*> const & rs,
             std::vector<Edge*> const & edges, 
             cola::Variables const & vs,
             cola::Variables & lvs,
-            cola::Constraints & lcs) 
-        : dim(dim),
+            cola::Constraints & lcs,
+            std::valarray<double> &oldCoords,
+            std::valarray<double> &oldG) 
+        : strength(strength),
+          dim(dim),
           edges(edges), 
           vs(vs), 
           lvs(lvs) 
     {
-        for (unsigned i=0;i<rs.size();i++) {
+        unsigned n=rs.size();
+        for (unsigned i=0;i<n;i++) {
             nodes.push_back(new straightener::Node(i,rs[i]));
         }
         vector<cola::SeparationConstraint*> cs;
@@ -597,17 +602,26 @@ namespace straightener {
         // after generateConstraints we have new dummy nodes at the end of snodes and
         // constraints in cs
         //   need to create variables for dummy nodes in lvs and constraints in lcs
-        for (unsigned i=rs.size();i<nodes.size();i++) {
+        N=nodes.size();
+        g.resize(N);
+        coords.resize(N);
+        for(unsigned i=0;i<n;i++) {
+            g[i]=oldG[i];
+            coords[i]=oldCoords[i];
+        }
+        for (unsigned i=n;i<N;i++) {
             double desiredPos = (dim==cola::HORIZONTAL)?nodes[i]->x:nodes[i]->y;
             lvs.push_back(new vpsc::Variable(i,desiredPos,1));
+            g[i]=0;
+            coords[i]=desiredPos;
         }
         for (vector<cola::SeparationConstraint*>::iterator i=cs.begin();i!=cs.end();i++) {
             unsigned lv=(*i)->left;
             unsigned rv=(*i)->right;
-            double g=(*i)->gap;
-            vpsc::Variable* l = lv<rs.size()?vs[lv]:lvs[lv-rs.size()];
-            vpsc::Variable* r = rv<rs.size()?vs[rv]:lvs[rv-rs.size()];
-            lcs.push_back(new vpsc::Constraint(l,r,g));
+            double gap=(*i)->gap;
+            vpsc::Variable* l = lv<n?vs[lv]:lvs[lv-n];
+            vpsc::Variable* r = rv<n?vs[rv]:lvs[rv-n];
+            lcs.push_back(new vpsc::Constraint(l,r,gap));
         }
         for(unsigned i=0;i<edges.size();i++) {
             edges[i]->nodePath(nodes,false);
@@ -616,7 +630,10 @@ namespace straightener {
     Straightener::~Straightener() {
         for_each(nodes.begin(),nodes.end(),delete_object());
     }
-    void Straightener::applyForces() {
+    void Straightener::computeForces(cola::SparseMap &H) {
+        // hessian matrix:
+        //   diagonal: sum dy2/l^3
+        //   off-diag: -dy2/l^3
         for(unsigned i=0;i<edges.size();i++) {
             //printf("Straightening path:\n");
             vector<unsigned>& path=edges[i]->path;
@@ -627,16 +644,17 @@ namespace straightener {
                 double dx=x1-x2, dy=y1-y2;
                 double dx2=dx*dx, dy2=dy*dy;
                 double l=sqrt(dx2+dy2);
+                if(l<0.0000001) continue;
                 double f=dim==cola::HORIZONTAL?dx:dy;
-                if(l>0.0001) {
-                    f/=l;
-                } else {
-                    continue;
-                }
-                vpsc::Variable *var1=u<vs.size()?vs[u]:lvs[u-vs.size()];
-                vpsc::Variable *var2=v<vs.size()?vs[v]:lvs[v-vs.size()];
-                var1->desiredPosition-=f;
-                var2->desiredPosition+=f;
+                f*=strength/l;
+                g[u]+=f;
+                g[v]-=f;
+                double h=dim==cola::HORIZONTAL?dy2:dx2;
+                h*=strength/(l*l*l);
+                H(u,u)+=h;
+                H(v,v)+=h;
+                H(u,v)-=h;
+                H(v,u)-=h;
                 //printf("  (%d,%d)=((%f,%f),(%f,%f)):f=%f\n",u,v,x1,y1,x2,y2,f);
             }
         }

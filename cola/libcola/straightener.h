@@ -109,19 +109,26 @@ struct Edge {
 class Straightener {
 public:
     Straightener(
+            const double strength,
             const cola::Dim dim,
             std::vector<vpsc::Rectangle*> const & rs,
             std::vector<Edge*> const & edges, 
             cola::Variables const & vs,
             cola::Variables & lvs,
-            cola::Constraints & lcs);
+            cola::Constraints & lcs,
+            std::valarray<double> & oldCoords,
+            std::valarray<double> & oldG);
     ~Straightener();
     void updateNodePositions();
-    void applyForces();
+    void computeForces(cola::SparseMap &H);
     double computeStress();
     std::valarray<double> dummyNodesX;
     std::valarray<double> dummyNodesY;
+    std::valarray<double> g;
+    std::valarray<double> coords;
+    unsigned N;
 private:
+    double strength;
     const cola::Dim dim;
     std::vector<Edge*> const & edges;
     cola::Variables const & vs;

@@ -3,6 +3,7 @@
 #include <cmath>
 #include "cola.h"
 #include "shortest_paths.h"
+#include "straightener.h"
 #include <libvpsc/solve_VPSC.h>
 #include <libvpsc/variable.h>
 #include <libvpsc/constraint.h>
@@ -61,21 +62,21 @@ Projection::~Projection() {
     delete_vector(vars);
     vars.clear();
 }
-void Projection::setDesiredPositions(valarray<double> &X) {
-    for (unsigned i=0;i<X.size();i++) {
-        vars[i]->desiredPosition=X[i];
-        vars[i]->weight=fixed[i]?100000:1;
-    }
-}
-void Projection::solve(Variables &lvs, Constraints &lcs,valarray<double> &X) {
+void Projection::solve(Variables &lvs, Constraints &lcs, valarray<double> & X) {
+    unsigned N=X.size();
+    assert(X.size()==vars.size()+lvs.size());
     Variables vs(vars);
     vs.insert(vs.end(),lvs.begin(),lvs.end());
+    for(unsigned i=0;i<N;i++) {
+        vs[i]->desiredPosition = X[i];
+        vs[i]->weight=i<n&&fixed[i]?100000:1;
+    }
     Constraints cs(gcs);
     cs.insert(cs.end(),lcs.begin(),lcs.end());
     vpsc::IncSolver vpsc(vs,cs);
     vpsc.solve();
     for(unsigned i=0;i<n;i++) {
-        X[i]=vs[i]->finalPosition;
+        X[i] = vs[i]->finalPosition;
     }
     if(ccs) {
         for(CompoundConstraints::const_iterator c=ccs->begin();
@@ -116,8 +117,7 @@ ConstrainedFDLayout::ConstrainedFDLayout(
       ccsx(NULL), ccsy(NULL),
       avoidOverlaps(false),
       px(NULL), py(NULL),
-      straightenEdges(NULL),
-      straightener(NULL)
+      straightenEdges(NULL)
 {
     boundingBoxes.resize(n);
     copy(rs.begin(),rs.end(),boundingBoxes.begin());
@@ -188,24 +188,21 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
         const bool firstPass) {
     valarray<double> g(n);
     valarray<double> &coords = (dim==HORIZONTAL)?X:Y;
-    valarray<double> oldCoords=coords;
     SparseMap HMap(n);
     computeForces(dim,HMap,g);
-    SparseMatrix H(HMap);
-    printf("sparse matrix nonzero size=%d\n",HMap.nonZeroCount());
+    //printf("sparse matrix nonzero size=%d\n",HMap.nonZeroCount());
     //printf(" dim=%d alpha: ",dim);
     Projection *p = dim==HORIZONTAL?px.get():py.get();
-    double stress = applyDescentVector(g,oldCoords,coords,oldStress,computeStepSize(H,g,g)); 
-
     if(!p)  { 
         // unconstrained
-        return stress;
+        SparseMatrix H(HMap);
+        valarray<double> oldCoords=coords;
+        return applyDescentVector(g,oldCoords,coords,oldStress,computeStepSize(H,g,g));
     }
     Variables vs;
     Variables lvs;
     Constraints lcs;
     vector<Rectangle*> lrs;
-    p->setDesiredPositions(coords);
     if(avoidOverlaps||straightenEdges) {
         assert(p!=NULL);
         for(unsigned i=0;i<boundingBoxes.size();i++) {
@@ -228,31 +225,54 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
         }
     }
     if(straightenEdges) {
-        straightener.reset(new straightener::Straightener(dim,lrs,*straightenEdges,vs,lvs,lcs));
-        //printf("Straightener: vs.size()=%d,lvs.size()=%d,lcs.size()=%d\n",
-                //(int) vs.size(), (int) lvs.size(), (int) lcs.size());
-        //straightener->computeForces(Hs,gs);
-    }
-    p->solve(lvs,lcs,coords);
-    if(straightenEdges) {
-        straightener->updateNodePositions();
-        dummyNodesX.resize(straightener->dummyNodesX.size());
-        dummyNodesY.resize(straightener->dummyNodesY.size());
-        dummyNodesX=straightener->dummyNodesX;
-        dummyNodesY=straightener->dummyNodesY;
-        //printf("have %d dummy nodes\n", (int) dummyNodesX.size());
-    }
-    delete_vector(lrs);
-    delete_vector(lvs);
-    delete_vector(lcs);
-
-    if(!firstPass) {
-        valarray<double> d(n);
-        d=oldCoords-coords;
-        double stepsize=computeStepSize(H,g,d);
-        stepsize=max(0.,min(stepsize,1.));
-        //printf(" dim=%d beta: ",dim);
-        return applyDescentVector(d,oldCoords,coords,oldStress,stepsize);
+        straightener::Straightener s(straighteningStrength, dim,lrs,*straightenEdges,vs,lvs,lcs,coords,g);
+        HMap.resize(s.N);
+        valarray<double> oldCoords=s.coords;
+        s.computeForces(HMap);
+        SparseMatrix H(HMap);
+        applyDescentVector(s.g,oldCoords,s.coords,oldStress,computeStepSize(H,s.g,s.g),&s);
+        p->solve(lvs,lcs,s.coords);
+        s.updateNodePositions();
+        dummyNodesX.resize(s.dummyNodesX.size());
+        dummyNodesY.resize(s.dummyNodesY.size());
+        dummyNodesX=s.dummyNodesX;
+        dummyNodesY=s.dummyNodesY;
+            //printf("have %d dummy nodes\n", (int) dummyNodesX.size());
+        delete_vector(lrs);
+        delete_vector(lvs);
+        delete_vector(lcs);
+        double stress=-1;
+        if(!firstPass) {
+            valarray<double> d(s.N);
+            d=oldCoords-s.coords;
+            double stepsize=computeStepSize(H,s.g,d);
+            stepsize=max(0.,min(stepsize,1.));
+            //printf(" dim=%d beta: ",dim);
+            stress=applyDescentVector(d,oldCoords,s.coords,oldStress,stepsize);
+        }
+        double* p=&s.coords[0];
+        copy(p,p+n,&coords[0]);
+        if(stress!=-1) {
+            return stress;
+        } else {
+            return computeStress()+s.computeStress();
+        }
+    } else {
+        SparseMatrix H(HMap);
+        valarray<double> oldCoords=coords;
+        applyDescentVector(g,oldCoords,coords,oldStress,computeStepSize(H,g,g));
+        p->solve(lvs,lcs,coords);
+        delete_vector(lrs);
+        delete_vector(lvs);
+        delete_vector(lcs);
+        if(!firstPass) {
+            valarray<double> d(n);
+            d=oldCoords-coords;
+            double stepsize=computeStepSize(H,g,d);
+            stepsize=max(0.,min(stepsize,1.));
+            //printf(" dim=%d beta: ",dim);
+            return applyDescentVector(d,oldCoords,coords,oldStress,stepsize);
+        }
     }
     return computeStress();
 }
@@ -261,11 +281,15 @@ double ConstrainedFDLayout::applyDescentVector(
         valarray<double> const &oldCoords,
         valarray<double> &coords,
         const double oldStress,
-        double stepsize
+        double stepsize,
+        straightener::Straightener *s
         ) {
+    assert(d.size()==oldCoords.size());
+    assert(d.size()==coords.size());
     while(stepsize>0.00000000001) {
         coords=oldCoords-stepsize*d;
         double stress=computeStress();
+        if(s) stress+=s->computeStress();
         //printf(" oldstress=%f, stress=%f, stepsize=%f\n", oldStress,stress,stepsize);
         if(oldStress>=stress) {
             return stress;
@@ -303,9 +327,9 @@ void ConstrainedFDLayout::computeForces(
             double dx=dim==HORIZONTAL?rx:ry;
             double dy=dim==HORIZONTAL?ry:rx;
             g[u]+=dx*(l-d)/(d2*l);
-            Huu-=H[make_pair(u,v)]=(d*dy*dy/(l*l*l)-1)/d2;
+            Huu-=H(u,v)=(d*dy*dy/(l*l*l)-1)/d2;
         }
-        H[make_pair(u,u)]=Huu;
+        H(u,u)=Huu;
     }
 }
 double ConstrainedFDLayout::computeStepSize(
@@ -314,9 +338,10 @@ double ConstrainedFDLayout::computeStepSize(
         valarray<double> const &d) const
 {
     assert(g.size()==d.size());
+    assert(g.size()==H.rowSize());
     // stepsize = g'd / (d' H d)
     double numerator = dotProd(g,d);
-    valarray<double> Hd(n);
+    valarray<double> Hd(d.size());
     H.rightMultiply(d,Hd);
     double denominator = dotProd(d,Hd);
     return numerator/denominator;
@@ -337,10 +362,6 @@ double ConstrainedFDLayout::computeStress() {
             double rl=d-l;
             stress+=rl*rl/d2;
         }
-    }
-    if(straightenEdges) {
-        double sstress=straightener->computeStress();
-        stress+=sstress;
     }
     return stress;
 }

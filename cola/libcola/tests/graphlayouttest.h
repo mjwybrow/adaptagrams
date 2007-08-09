@@ -136,7 +136,7 @@ void run_test(
         cout << "Unconstrained layout" << endl;
     } else {
         cout << "Constrained layout" << endl;
-        printf("|XConstraints|=%d, |YConstraints|=%d\n",cx.size(),cy.size());
+        printf("|XConstraints|=%u, |YConstraints|=%u\n",(unsigned)cx.size(),(unsigned)cy.size());
         alg.setXConstraints(&cx);
         alg.setYConstraints(&cy);
     }

@@ -7,7 +7,6 @@
 #include "shortest_paths.h"
 using std::min;
 using std::max;
-using std::make_pair;
 using std::copy;
 using straightener::generateClusterBoundaries;  // magmy20070405: Added
 
@@ -404,15 +403,15 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
     for(straightener::LinearConstraints::iterator i=linearConstraints.begin();
            i!= linearConstraints.end();i++) {
         straightener::LinearConstraint* c=*i;
-        Q[make_pair(c->u,c->u)]+=c->w*c->duu;
-        Q[make_pair(c->u,c->v)]+=c->w*c->duv;
-        Q[make_pair(c->u,c->b)]+=c->w*c->dub;
-        Q[make_pair(c->v,c->u)]+=c->w*c->duv;
-        Q[make_pair(c->v,c->v)]+=c->w*c->dvv;
-        Q[make_pair(c->v,c->b)]+=c->w*c->dvb;
-        Q[make_pair(c->b,c->b)]+=c->w*c->dbb;
-        Q[make_pair(c->b,c->u)]+=c->w*c->dub;
-        Q[make_pair(c->b,c->v)]+=c->w*c->dvb;
+        Q(c->u,c->u)+=c->w*c->duu;
+        Q(c->u,c->v)+=c->w*c->duv;
+        Q(c->u,c->b)+=c->w*c->dub;
+        Q(c->v,c->u)+=c->w*c->duv;
+        Q(c->v,c->v)+=c->w*c->dvv;
+        Q(c->v,c->b)+=c->w*c->dvb;
+        Q(c->b,c->b)+=c->w*c->dbb;
+        Q(c->b,c->u)+=c->w*c->dub;
+        Q(c->b,c->v)+=c->w*c->dvb;
     }
     double boundaryWeight = 0.0001;
     for(unsigned i=0;i<sclusters.size();i++) {
@@ -421,10 +420,10 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
         straightener::Cluster* c = sclusters[i];
         for(unsigned j=0;j<c->boundary.size();j++) {
             straightener::Edge* e = c->boundary[j];
-            Q[make_pair(e->startNode,e->endNode)]+=boundaryWeight;
-            Q[make_pair(e->endNode,e->startNode)]+=boundaryWeight;
-            Q[make_pair(e->startNode,e->startNode)]-=boundaryWeight;
-            Q[make_pair(e->endNode,e->endNode)]-=boundaryWeight;
+            Q(e->startNode,e->endNode)+=boundaryWeight;
+            Q(e->endNode,e->startNode)+=boundaryWeight;
+            Q(e->startNode,e->startNode)-=boundaryWeight;
+            Q(e->endNode,e->endNode)-=boundaryWeight;
         }
     }
     constrainedLayout = true;
