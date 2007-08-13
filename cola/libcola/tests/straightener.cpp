@@ -30,6 +30,8 @@ void addRect(vector<vpsc::Rectangle*>& rs, double x, double y, double w, double 
 void k5() {
 	// Define K5 graph
 	const unsigned V = 5;
+    const char* ls[]={"0","1","2","3","4"};
+    vector<const char*> labels(ls,ls+V);
 	Edge edge_array[] = { Edge(0, 1), Edge(0, 2), Edge(0, 3), Edge(0, 4),
 		Edge(1, 2), Edge(1, 3), Edge(1, 4),
 		Edge(2, 3), Edge(2, 4),
@@ -83,16 +85,18 @@ void k5() {
 	r->ys[2]=rs[4]->getCentreY();
 	routes[6]->setRoute(r);
 	// now straighten the edges
-	ConstrainedFDLayout alg(rs,es,NULL,200);
-	//ConstrainedMajorizationLayout alg(rs,es,NULL,200);
+    TestConvergence test(0.01,100);
+	ConstrainedFDLayout alg(rs,es,NULL,200,NULL,test);
+	//ConstrainedMajorizationLayout alg(rs,es,NULL,200,NULL,test);
     //alg.setScaling(false);
-	alg.setStraightenEdges(&routes,1);
+	alg.setStraightenEdges(&routes);
 	alg.run();
 	//alg.straighten(routes,HORIZONTAL);
     //OutputFile of1(rs,es,NULL,"straightener-x.svg",true,false);
     //of1.generate();
 	//alg.straighten(routes,VERTICAL);
     OutputFile of(rs,es,NULL,"straightener-k5.svg",true,false);
+    of.setLabels(&labels);
     of.routes=&routes;
     of.generate();
 	for(unsigned i=0;i<V;i++) {

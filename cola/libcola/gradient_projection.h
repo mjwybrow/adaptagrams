@@ -59,12 +59,7 @@ public:
         if(scaling) {
             scaledDenseQ.resize(denseSize*denseSize);
             for(unsigned i=0;i<denseSize;i++) {
-                double d=(*denseQ)[i*denseSize+i];
-                if(d!=0) {
-                    vars[i]->scale=1./sqrt(fabs((*denseQ)[i*denseSize+i]));
-                } else {
-                    vars[i]->scale=1;
-                }
+                vars[i]->scale=1./sqrt(fabs((*denseQ)[i*denseSize+i]));
             }
             // the following computes S'QS for Q=denseQ
             // and S is diagonal matrix of scale factors

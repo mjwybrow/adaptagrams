@@ -120,8 +120,9 @@ public:
             std::valarray<double> & oldG);
     ~Straightener();
     void updateNodePositions();
+    void finalizeRoutes();
     void computeForces(cola::SparseMap &H);
-    double computeStress();
+    double computeStress(std::valarray<double> const &coords);
     std::valarray<double> dummyNodesX;
     std::valarray<double> dummyNodesY;
     std::valarray<double> g;

@@ -67,7 +67,7 @@ public:
     virtual ~TestConvergence() {}
 
     virtual bool operator()(const double new_stress, valarray<double> & X, valarray<double> & Y) {
-        //std::cout<<"iteration="<<iterations<<", new_stress="<<new_stress<<std::endl;
+        std::cout<<"iteration="<<iterations<<", new_stress="<<new_stress<<std::endl;
         if (old_stress == DBL_MAX) {
             old_stress = new_stress;
             return ++iterations >= maxiterations;
@@ -76,7 +76,8 @@ public:
         // or if stress increases (shouldn't happen for straight majorization)
         bool converged = 
             (old_stress - new_stress) / (new_stress + 1e-10) < tolerance
-            || ++iterations > maxiterations;
+             || 
+            ++iterations > maxiterations;
         old_stress = new_stress;
         return converged;
     }
@@ -283,7 +284,7 @@ public:
         std::valarray<double> const * eweights=NULL,
         TestConvergence& done=defaultTest,
         PreIteration* preIteration=NULL);
-    void run();
+    void run(bool x=true, bool y=true);
     /**
      * Horizontal alignment constraints
      */
@@ -311,14 +312,14 @@ public:
         }
         this->avoidOverlaps=avoidOverlaps;
     }
-    void setStraightenEdges(vector<straightener::Edge*>* straightenEdges, double straighteningStrength) {
+    void setStraightenEdges(vector<straightener::Edge*>* straightenEdges, double straighteningStrength=0.01) {
         printf("setStraightenEdges\n");
         constrainedX=constrainedY=true;
         this->straightenEdges=straightenEdges;
         this->straighteningStrength=straighteningStrength;
     }
     valarray<double> dummyNodesX, dummyNodesY;
-    double computeStress();
+    double computeStress() const;
 private:
     unsigned n; // number of nodes
     valarray<double> X, Y;
@@ -332,7 +333,7 @@ private:
             valarray<double> &coords, 
             const double oldStress, 
             double stepsize,
-            straightener::Straightener *s=NULL);
+            straightener::Straightener *s=NULL) const;
     void move();
     void computeForces(const Dim dim, SparseMap &H, valarray<double> &g);
     vector<vector<unsigned> > neighbours;

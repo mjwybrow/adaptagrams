@@ -3,14 +3,6 @@
 #include "cola.h"
 #include <cairomm/context.h>
 #include <cairomm/surface.h>
-struct ColourRGBA {
-    double r, g, b, a;
-    ColourRGBA() : r(0), g(0), b(0), a(1) {}
-    ColourRGBA(double r, double g, double b, double a)
-        : r(r), g(g), b(b), a(a) {}
-    ColourRGBA(unsigned r, unsigned g, unsigned b, unsigned a)
-        : r((double)r/255.), g((double)g/255.), b((double)b/255.), a((double)a/255.) {}
-};
 class OutputFile {
 public:
 	std::vector<vpsc::Rectangle*> const &rs;
@@ -20,9 +12,6 @@ public:
 	std::string const fname;
 	bool rects;
 	bool curvedEdges;
-    std::auto_ptr<std::vector<const char*> > labels;
-    std::vector<ColourRGBA> *colours;
-    ColourRGBA edgeColour;
 	OutputFile(std::vector<vpsc::Rectangle*> const &rs, 
 		std::vector<cola::Edge> const &es, 
 		cola::RootCluster const * rc, 
@@ -36,16 +25,15 @@ public:
 		  fname(fname),
 		  rects(rects),
 		  curvedEdges(curvedEdges),
-       	  labels(NULL),
-          colours(NULL),
-          edgeColour(0,0,0,0.1) {
-      }
+       	  labels(NULL) {}
 	void generate();
-	void setLabels(const unsigned n, const char *ls[]) {
-		labels.reset(new std::vector<const char *>(n));
-		for(unsigned i=0;i<n;i++) {
-			(*labels)[i]=ls[i];
-		}
+    void setLabels(std::vector<const char*> * ls) {
+        labels=ls;
+    }
+	void setLabels(const unsigned n, const char **ls) {
+        localLabels.resize(n);
+        labels=&localLabels;
+        std::copy(ls,ls+n,labels->begin());
 	}
 private:
 	void draw_cluster_boundary(Cairo::RefPtr<Cairo::Context> const &cr, 
@@ -58,6 +46,8 @@ private:
 		const double xmin, 
 		const double ymin);
 	void openCairo(Cairo::RefPtr<Cairo::Context> &cr, double width, double height);
+    std::vector<const char*> *labels;
+    std::vector<const char*> localLabels;
 };
 #endif // _OUTPUT_SVG_H
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:encoding=utf-8:textwidth=99 :

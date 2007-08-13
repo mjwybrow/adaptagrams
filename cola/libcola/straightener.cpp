@@ -637,6 +637,7 @@ namespace straightener {
         for(unsigned i=0;i<edges.size();i++) {
             //printf("Straightening path:\n");
             vector<unsigned>& path=edges[i]->path;
+            assert(path.size()>0);
             for(unsigned j=1;j<path.size();j++) {
                 unsigned u=path[j-1], v=path[j];
                 double x1=nodes[u]->x, x2=nodes[v]->x,
@@ -655,34 +656,44 @@ namespace straightener {
                 H(v,v)+=h;
                 H(u,v)-=h;
                 H(v,u)-=h;
-                //printf("  (%d,%d)=((%f,%f),(%f,%f)):f=%f\n",u,v,x1,y1,x2,y2,f);
             }
         }
     }
-    double Straightener::computeStress() {
+    double Straightener::computeStress(std::valarray<double> const &coords) {
         double stress=0;
         for(unsigned i=0;i<edges.size();i++) {
-            Route* r=edges[i]->route;
-            for(unsigned j=1;j<r->n;j++) {
-                double x1=r->xs[j-1], x2=r->xs[j],
-                       y1=r->ys[j-1], y2=r->ys[j];
+            vector<unsigned>& path=edges[i]->path;
+            assert(path.size()>0);
+            for(unsigned j=1;j<path.size();j++) {
+                unsigned u=path[j-1], v=path[j];
+                double x1,x2,y1,y2;
+                if(dim==cola::HORIZONTAL) {
+                    x1=coords[u];
+                    x2=coords[v];
+                    y1=nodes[u]->y;
+                    y2=nodes[v]->y;
+                } else {
+                    x1=nodes[u]->x;
+                    x2=nodes[v]->x;
+                    y1=coords[u];
+                    y2=coords[v];
+                }
                 double dx=x1-x2, dy=y1-y2;
                 double dx2=dx*dx, dy2=dy*dy;
                 double l=sqrt(dx2+dy2);
                 stress+=l;
             }
         }
-        return stress;
+        return strength*stress;
     }
     void Straightener::updateNodePositions() {
         // real nodes
-        for (unsigned i=0;i<vs.size();i++) {
-            double pos = vs[i]->finalPosition;
+        for (unsigned i=0;i<N;i++) {
             Node *n=nodes[i];
             if(dim==cola::HORIZONTAL) {
-                n->x=pos;
+                n->x=coords[i];
             } else {
-                n->y=pos;
+                n->y=coords[i];
             }
         }
         // dummy bend nodes
@@ -691,22 +702,24 @@ namespace straightener {
         dummyNodesY.resize(lvs.size());
         for (unsigned i=0;i<lvs.size();i++) {
             assert(i+vs.size() < nodes.size());
-            double pos = lvs[i]->finalPosition;
             Node *n=nodes[i+vs.size()];
-            if(dim==cola::HORIZONTAL) {
-                n->x=pos;
-                dummyNodesX[i]=pos;
-                dummyNodesY[i]=n->y;
-            } else {
-                n->y=pos;
-                dummyNodesX[i]=n->x;
-                dummyNodesY[i]=pos;
-            }
+            dummyNodesX[i]=n->x;
+            dummyNodesY[i]=n->y;
         }
+    }
+    void Straightener::finalizeRoutes() {
         for(unsigned i=0;i<edges.size();i++) {
-            edges[i]->createRouteFromPath(nodes);
-            edges[i]->dummyNodes.clear();
-            edges[i]->path.clear();
+            straightener::Edge* e=edges[i];
+            e->createRouteFromPath(nodes);
+            Route* r=e->route;
+            /*
+            printf("Route[%d,%d]: ",e->startNode,e->endNode);
+            for(unsigned j=0;j<r->n;j++) {
+                printf("   (%f,%f)\n",r->xs[j],r->ys[j]);
+            }
+            */
+            e->dummyNodes.clear();
+            e->path.clear();
         }
     }
 }

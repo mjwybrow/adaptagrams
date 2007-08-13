@@ -75,7 +75,7 @@ void Projection::solve(Variables &lvs, Constraints &lcs, valarray<double> & X) {
     cs.insert(cs.end(),lcs.begin(),lcs.end());
     vpsc::IncSolver vpsc(vs,cs);
     vpsc.solve();
-    for(unsigned i=0;i<n;i++) {
+    for(unsigned i=0;i<N;i++) {
         X[i] = vs[i]->finalPosition;
     }
     if(ccs) {
@@ -147,14 +147,14 @@ ConstrainedFDLayout::ConstrainedFDLayout(
     }
 }
 
-void ConstrainedFDLayout::run() {
+void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis) {
     if(constrainedX) {
         px.reset(new Projection(n,ccsx,fixedPos));
     }
     if(constrainedY) {
         py.reset(new Projection(n,ccsy,fixedPos));
     }
-    double stress=computeStress();
+    double stress=DBL_MAX;//computeStress();
     bool firstPass=true;
     printf("n==%d\n",n);
     if(n>0) do {
@@ -171,8 +171,12 @@ void ConstrainedFDLayout::run() {
                 }
             } else { break; }
         }
-        stress=applyForcesAndConstraints(HORIZONTAL,stress,firstPass);
-        stress=applyForcesAndConstraints(VERTICAL,stress,firstPass);
+        if(xAxis) {
+            stress=applyForcesAndConstraints(HORIZONTAL,stress,firstPass);
+        }
+        if(yAxis) {
+            stress=applyForcesAndConstraints(VERTICAL,stress,firstPass);
+        }
         firstPass=false;
         move();
         fixedPos=false;
@@ -230,33 +234,33 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
         valarray<double> oldCoords=s.coords;
         s.computeForces(HMap);
         SparseMatrix H(HMap);
-        applyDescentVector(s.g,oldCoords,s.coords,oldStress,computeStepSize(H,s.g,s.g),&s);
+        double stress=applyDescentVector(s.g,oldCoords,s.coords,oldStress,computeStepSize(H,s.g,s.g),&s);
         p->solve(lvs,lcs,s.coords);
         s.updateNodePositions();
         dummyNodesX.resize(s.dummyNodesX.size());
         dummyNodesY.resize(s.dummyNodesY.size());
         dummyNodesX=s.dummyNodesX;
         dummyNodesY=s.dummyNodesY;
-            //printf("have %d dummy nodes\n", (int) dummyNodesX.size());
+        //printf("have %d dummy nodes\n", (int) dummyNodesX.size());
+        //for(unsigned i=0;i<lcs.size();i++) {
+            //cout<<"  "<<*lcs[i]<<endl;
+        //}
         delete_vector(lrs);
         delete_vector(lvs);
         delete_vector(lcs);
-        double stress=-1;
         if(!firstPass) {
             valarray<double> d(s.N);
             d=oldCoords-s.coords;
             double stepsize=computeStepSize(H,s.g,d);
             stepsize=max(0.,min(stepsize,1.));
             //printf(" dim=%d beta: ",dim);
-            stress=applyDescentVector(d,oldCoords,s.coords,oldStress,stepsize);
+            stress=applyDescentVector(d,oldCoords,s.coords,oldStress,stepsize,&s);
+            s.updateNodePositions();
         }
         double* p=&s.coords[0];
         copy(p,p+n,&coords[0]);
-        if(stress!=-1) {
-            return stress;
-        } else {
-            return computeStress()+s.computeStress();
-        }
+        s.finalizeRoutes();
+        return stress;
     } else {
         SparseMatrix H(HMap);
         valarray<double> oldCoords=coords;
@@ -283,14 +287,19 @@ double ConstrainedFDLayout::applyDescentVector(
         const double oldStress,
         double stepsize,
         straightener::Straightener *s
-        ) {
+        ) const {
     assert(d.size()==oldCoords.size());
     assert(d.size()==coords.size());
     while(stepsize>0.00000000001) {
         coords=oldCoords-stepsize*d;
         double stress=computeStress();
-        if(s) stress+=s->computeStress();
-        //printf(" oldstress=%f, stress=%f, stepsize=%f\n", oldStress,stress,stepsize);
+        if(s) {
+            s->updateNodePositions();
+            double sstress=s->computeStress(coords);
+            //printf("  s1=%f,s2=%f ",stress,sstress);
+            stress+=sstress;
+        }
+        printf(" applyDV: oldstress=%f, stress=%f, stepsize=%f\n", oldStress,stress,stepsize);
         if(oldStress>=stress) {
             return stress;
         }
@@ -344,9 +353,9 @@ double ConstrainedFDLayout::computeStepSize(
     valarray<double> Hd(d.size());
     H.rightMultiply(d,Hd);
     double denominator = dotProd(d,Hd);
-    return numerator/denominator;
+    return numerator/(2.*denominator);
 }
-double ConstrainedFDLayout::computeStress() {
+double ConstrainedFDLayout::computeStress() const {
     double stress=0;
     for(unsigned u=0;u<n;u++) {
         for(unsigned v=0;v<n;v++) {
