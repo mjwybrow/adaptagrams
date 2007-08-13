@@ -648,14 +648,14 @@ namespace straightener {
                 if(l<0.0000001) continue;
                 double f=dim==cola::HORIZONTAL?dx:dy;
                 f*=strength/l;
-                g[u]+=f;
-                g[v]-=f;
+                g[u]-=f;
+                g[v]+=f;
                 double h=dim==cola::HORIZONTAL?dy2:dx2;
                 h*=strength/(l*l*l);
-                H(u,u)+=h;
-                H(v,v)+=h;
-                H(u,v)-=h;
-                H(v,u)-=h;
+                H(u,u)-=h;
+                H(v,v)-=h;
+                H(u,v)+=h;
+                H(v,u)+=h;
             }
         }
     }
@@ -712,12 +712,10 @@ namespace straightener {
             straightener::Edge* e=edges[i];
             e->createRouteFromPath(nodes);
             Route* r=e->route;
-            /*
-            printf("Route[%d,%d]: ",e->startNode,e->endNode);
-            for(unsigned j=0;j<r->n;j++) {
-                printf("   (%f,%f)\n",r->xs[j],r->ys[j]);
-            }
-            */
+            //printf("Route[%d,%d]: ",e->startNode,e->endNode);
+            //for(unsigned j=0;j<r->n;j++) {
+                //printf("   (%f,%f)\n",r->xs[j],r->ys[j]);
+            //}
             e->dummyNodes.clear();
             e->path.clear();
         }

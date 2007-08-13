@@ -89,8 +89,8 @@ void k5() {
 	ConstrainedFDLayout alg(rs,es,NULL,200,NULL,test);
 	//ConstrainedMajorizationLayout alg(rs,es,NULL,200,NULL,test);
     //alg.setScaling(false);
-	alg.setStraightenEdges(&routes);
-	alg.run();
+	alg.setStraightenEdges(&routes,1.);
+	alg.run(true,true);
 	//alg.straighten(routes,HORIZONTAL);
     //OutputFile of1(rs,es,NULL,"straightener-x.svg",true,false);
     //of1.generate();

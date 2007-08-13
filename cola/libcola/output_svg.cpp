@@ -79,7 +79,7 @@ void OutputFile::generate() {
             cr->arc(x,y,r, 0.0, 2.0 * M_PI);
             cr->fill();
 		} else {
-            double x=rs[i]->getMinX()-xmin, y=rs[i]->getMinY()-ymin;
+            double x=rs[i]->getMinX()-xmin+0.5, y=rs[i]->getMinY()-ymin+0.5;
             std::string str;
             if(labels) {
                 str=std::string((*labels)[i]);
@@ -94,11 +94,11 @@ void OutputFile::generate() {
             cr->rectangle(llx,lly,te.width+2,te.height+2);
             */
             cr->rectangle(x,y,
-                    rs[i]->width(),rs[i]->height());
+                    rs[i]->width()-1,rs[i]->height()-1);
             cr->stroke_preserve();
             cr->save();
             cr->set_source_rgb(245./255., 233./255., 177./255.);
-            cr->fill();
+            //cr->fill();
             cr->restore();
             if(labels) {
                 cr->move_to(x-te.x_bearing-te.width/2.,y+te.height/2.);

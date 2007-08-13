@@ -241,10 +241,12 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
         dummyNodesY.resize(s.dummyNodesY.size());
         dummyNodesX=s.dummyNodesX;
         dummyNodesY=s.dummyNodesY;
-        //printf("have %d dummy nodes\n", (int) dummyNodesX.size());
-        //for(unsigned i=0;i<lcs.size();i++) {
-            //cout<<"  "<<*lcs[i]<<endl;
-        //}
+        /*
+        printf("have %d dummy nodes\n", (int) dummyNodesX.size());
+        for(unsigned i=0;i<lcs.size();i++) {
+            cout<<"  "<<*lcs[i]<<endl;
+        }
+        */
         delete_vector(lrs);
         delete_vector(lvs);
         delete_vector(lcs);
