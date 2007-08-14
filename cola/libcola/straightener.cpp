@@ -631,7 +631,7 @@ namespace straightener {
     Straightener::~Straightener() {
         for_each(nodes.begin(),nodes.end(),delete_object());
     }
-    void Straightener::computeForces(cola::SparseMap &H) {
+    void Straightener::computeForces(cola::SparseMap &H, std::valarray<bool> const & fixedPos) {
         // hessian matrix:
         //   diagonal: sum dy2/l^3
         //   off-diag: -dy2/l^3
@@ -649,8 +649,8 @@ namespace straightener {
                 if(l<0.0000001) continue;
                 double f=dim==cola::HORIZONTAL?dx:dy;
                 f*=strength/l;
-                g[u]+=f;
-                g[v]-=f;
+                if(u>=fixedPos.size()||!fixedPos[u]) { g[u]+=f; }
+                if(v>=fixedPos.size()||!fixedPos[v]) { g[v]-=f; }
                 double h=dim==cola::HORIZONTAL?dy2:dx2;
                 h*=strength/(l*l*l);
                 H(u,u)+=h;

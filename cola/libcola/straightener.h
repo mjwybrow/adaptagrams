@@ -121,7 +121,7 @@ public:
     ~Straightener();
     void updateNodePositions();
     void finalizeRoutes();
-    void computeForces(cola::SparseMap &H);
+    void computeForces(cola::SparseMap &H, std::valarray<bool> const & fixedPos);
     double computeStress(std::valarray<double> const &coords);
     std::valarray<double> dummyNodesX;
     std::valarray<double> dummyNodesY;

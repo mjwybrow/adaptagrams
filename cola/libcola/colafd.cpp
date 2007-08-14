@@ -232,7 +232,7 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
         straightener::Straightener s(straighteningStrength, dim,lrs,*straightenEdges,vs,lvs,lcs,coords,g);
         HMap.resize(s.N);
         valarray<double> oldCoords=s.coords;
-        s.computeForces(HMap);
+        s.computeForces(HMap,fixedPos);
         SparseMatrix H(HMap);
         double stress=applyDescentVector(s.g,oldCoords,s.coords,oldStress,computeStepSize(H,s.g,s.g),&s);
         p->solve(lvs,lcs,s.coords);
