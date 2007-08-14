@@ -64,7 +64,7 @@ Projection::~Projection() {
 }
 void Projection::solve(Variables &lvs, Constraints &lcs, valarray<double> & X) {
     unsigned N=X.size();
-    assert(X.size()==vars.size()+lvs.size());
+    //assert(X.size()==vars.size()+lvs.size());
     Variables vs(vars);
     vs.insert(vs.end(),lvs.begin(),lvs.end());
     for(unsigned i=0;i<N;i++) {
@@ -154,7 +154,7 @@ void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis) {
     if(constrainedY) {
         py.reset(new Projection(n,ccsy,fixedPos));
     }
-    double stress=DBL_MAX;//computeStress();
+    double stress=computeStress();
     bool firstPass=true;
     printf("n==%d\n",n);
     if(n>0) do {
@@ -195,7 +195,7 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
     SparseMap HMap(n);
     computeForces(dim,HMap,g);
     //printf("sparse matrix nonzero size=%d\n",HMap.nonZeroCount());
-    //printf(" dim=%d alpha: ",dim);
+    printf(" dim=%d alpha: ",dim);
     Projection *p = dim==HORIZONTAL?px.get():py.get();
     if(!p)  { 
         // unconstrained
@@ -255,7 +255,7 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
             d=oldCoords-s.coords;
             double stepsize=computeStepSize(H,s.g,d);
             stepsize=max(0.,min(stepsize,1.));
-            //printf(" dim=%d beta: ",dim);
+            printf(" dim=%d beta: ",dim);
             stress=applyDescentVector(d,oldCoords,s.coords,oldStress,stepsize,&s);
             s.updateNodePositions();
         }
@@ -276,7 +276,7 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
             d=oldCoords-coords;
             double stepsize=computeStepSize(H,g,d);
             stepsize=max(0.,min(stepsize,1.));
-            //printf(" dim=%d beta: ",dim);
+            printf(" dim=%d beta: ",dim);
             return applyDescentVector(d,oldCoords,coords,oldStress,stepsize);
         }
     }
@@ -292,7 +292,11 @@ double ConstrainedFDLayout::applyDescentVector(
         ) const {
     assert(d.size()==oldCoords.size());
     assert(d.size()==coords.size());
-    while(stepsize>0.00000000001) {
+    double oldstress=oldStress;
+    if(s) {
+        oldstress+=s->computeStress(oldCoords);
+    }
+    while(fabs(stepsize)>0.00000000001) {
         coords=oldCoords-stepsize*d;
         double stress=computeStress();
         if(s) {
@@ -301,14 +305,14 @@ double ConstrainedFDLayout::applyDescentVector(
             //printf("  s1=%f,s2=%f ",stress,sstress);
             stress+=sstress;
         }
-        printf(" applyDV: oldstress=%f, stress=%f, stepsize=%f\n", oldStress,stress,stepsize);
-        if(oldStress>=stress) {
+        //printf(" applyDV: oldstress=%f, stress=%f, stepsize=%f\n", oldstress,stress,stepsize);
+        if(oldstress>=stress) {
             return stress;
         }
         coords=oldCoords;
         stepsize*=0.5;
     }
-    return oldStress;
+    return oldstress;
 }
 void ConstrainedFDLayout::computeForces(
         const Dim dim,
@@ -355,7 +359,9 @@ double ConstrainedFDLayout::computeStepSize(
     valarray<double> Hd(d.size());
     H.rightMultiply(d,Hd);
     double denominator = dotProd(d,Hd);
-    return numerator/(2.*denominator);
+    //assert(numerator>=0);
+    //assert(denominator>=0);
+    return numerator/(1.*denominator);
 }
 double ConstrainedFDLayout::computeStress() const {
     double stress=0;
