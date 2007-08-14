@@ -318,6 +318,14 @@ public:
         this->straightenEdges=straightenEdges;
         this->straighteningStrength=straighteningStrength;
     }
+    ~ConstrainedFDLayout() {
+        for(unsigned i=0;i<n;i++) {
+            delete [] G[i];
+            delete [] D[i];
+        }
+        delete [] G;
+        delete [] D;
+    }
     valarray<double> dummyNodesX, dummyNodesY;
     double computeStress() const;
 private:

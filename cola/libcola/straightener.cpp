@@ -626,6 +626,7 @@ namespace straightener {
         for(unsigned i=0;i<edges.size();i++) {
             edges[i]->nodePath(nodes,false);
         }
+        for_each(cs.begin(),cs.end(),delete_object());
     }
     Straightener::~Straightener() {
         for_each(nodes.begin(),nodes.end(),delete_object());
