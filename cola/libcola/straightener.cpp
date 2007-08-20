@@ -637,6 +637,7 @@ namespace straightener {
         //   off-diag: -dy2/l^3
         for(unsigned i=0;i<edges.size();i++) {
             //printf("Straightening path:\n");
+            //edges[i]->print();
             vector<unsigned>& path=edges[i]->path;
             assert(path.size()>0);
             for(unsigned j=1;j<path.size();j++) {

@@ -237,9 +237,61 @@ void severeBend() {
 		delete routes[i];
 	}
 }
+void smallTrap() {
+    printf("test: severeBend()\n");
+	const unsigned V = 4;
+    const char * ls[]={"0","1","2","3"};
+    vector<const char *> labels(ls,ls+V);
+	Edge edge_array[] = { Edge(1,2) };
+	const size_t E = sizeof(edge_array) / sizeof(Edge);
+	vector<Edge> es(edge_array,edge_array+E);
+
+	vector<vpsc::Rectangle*> rs;
+    addRect(rs,363.500000,220.500000,63.000000,43.000000);
+    addRect(rs,377.500000,177.500000,63.000000,43.000000);
+    addRect(rs,403.500000,278.500000,63.000000,43.000000);
+    addRect(rs,340.500000,263.500000,63.000000,43.000000);
+
+	vector<straightener::Edge*> routes(E);
+    /*
+    straightener::Route* r=new straightener::Route(2); 
+    r->xs[0]=rs[0]->getCentreX();
+    r->ys[0]=rs[0]->getCentreY();
+    r->xs[1]=rs[1]->getCentreX();
+    r->ys[1]=rs[1]->getCentreY();
+    routes[0]=new straightener::Edge(0,0,1,r);
+    */
+    straightener::Route* r=new straightener::Route(4); 
+    r->xs[0]=rs[1]->getCentreX();
+    r->ys[0]=rs[1]->getCentreY();
+    r->xs[1]=rs[0]->getMinX();
+    r->ys[1]=rs[0]->getMinY();
+    r->xs[2]=rs[0]->getMinX();
+    r->ys[2]=rs[0]->getMaxY();
+    r->xs[3]=rs[2]->getCentreX();
+    r->ys[3]=rs[2]->getCentreY();
+    routes[0]=new straightener::Edge(0,1,2,r);
+	// now straighten the edges
+	//ConstrainedMajorizationLayout alg(rs,es,NULL,70);
+    TestConvergence test(0.01,1);
+	ConstrainedFDLayout alg(rs,es,NULL,70,NULL,test);
+	alg.setStraightenEdges(&routes,1);
+	alg.run(true,false);
+    OutputFile of(rs,es,NULL,"straightener-severeBend.svg",true,false);
+    of.setLabels(&labels);
+    of.routes=&routes;
+    of.generate();
+	for(unsigned i=0;i<V;i++) {
+		delete rs[i];
+	}
+	for(unsigned i=0;i<E;i++) {
+		delete routes[i];
+	}
+}
 int main() {
 	//k5();
 	//k6();
-	severeBend();
+	//severeBend();
+    smalltrap();
 }
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:encoding=utf-8:textwidth=99 :

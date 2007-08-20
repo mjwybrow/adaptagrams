@@ -123,8 +123,10 @@ ConstrainedFDLayout::ConstrainedFDLayout(
     copy(rs.begin(),rs.end(),boundingBoxes.begin());
     done.reset();
     for(unsigned i=0;i<n;i++) {
-        X[i]=rs[i]->getCentreX();
-        Y[i]=rs[i]->getCentreY();
+        vpsc::Rectangle *r=rs[i];
+        X[i]=r->getCentreX();
+        Y[i]=r->getCentreY();
+        //printf("r[%d]=(%f,%f,%f,%f)\n",i,r->getMinX(),r->getMinY(),r->width(),r->height());
     }
     D=new double*[n];
     G=new unsigned*[n];
@@ -156,7 +158,7 @@ void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis) {
     }
     double stress=computeStress();
     bool firstPass=true;
-    printf("n==%d\n",n);
+    //printf("n==%d\n",n);
     if(n>0) do {
         if(preIteration) {
             if ((*preIteration)()) {
@@ -195,7 +197,7 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
     SparseMap HMap(n);
     computeForces(dim,HMap,g);
     //printf("sparse matrix nonzero size=%d\n",HMap.nonZeroCount());
-    printf(" dim=%d alpha: ",dim);
+    //printf(" dim=%d alpha: ",dim);
     Projection *p = dim==HORIZONTAL?px.get():py.get();
     if(!p)  { 
         // unconstrained
@@ -234,6 +236,7 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
         valarray<double> oldCoords=s.coords;
         s.computeForces(HMap,fixedPos);
         SparseMatrix H(HMap);
+        //H.print();
         double stress=applyDescentVector(s.g,oldCoords,s.coords,oldStress,computeStepSize(H,s.g,s.g),&s);
         p->solve(lvs,lcs,s.coords);
         s.updateNodePositions();
@@ -250,15 +253,17 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
         delete_vector(lrs);
         delete_vector(lvs);
         delete_vector(lcs);
+        /*
         if(!firstPass) {
             valarray<double> d(s.N);
             d=oldCoords-s.coords;
             double stepsize=computeStepSize(H,s.g,d);
             stepsize=max(0.,min(stepsize,1.));
-            printf(" dim=%d beta: ",dim);
+            //printf(" dim=%d beta: ",dim);
             stress=applyDescentVector(d,oldCoords,s.coords,oldStress,stepsize,&s);
             s.updateNodePositions();
         }
+        */
         double* p=&s.coords[0];
         copy(p,p+n,&coords[0]);
         s.finalizeRoutes();
@@ -276,7 +281,7 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
             d=oldCoords-coords;
             double stepsize=computeStepSize(H,g,d);
             stepsize=max(0.,min(stepsize,1.));
-            printf(" dim=%d beta: ",dim);
+            //printf(" dim=%d beta: ",dim);
             return applyDescentVector(d,oldCoords,coords,oldStress,stepsize);
         }
     }

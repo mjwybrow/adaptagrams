@@ -67,14 +67,14 @@ namespace cola {
         }
         hullX.resize(4);
         hullY.resize(4);
-        hullX[0]=xMin;
-        hullY[0]=yMin;
-        hullX[1]=xMin;
-        hullY[1]=yMax;
-        hullX[2]=xMax;
-        hullY[2]=yMax;
-        hullX[3]=xMax;
+        hullX[3]=xMin;
         hullY[3]=yMin;
+        hullX[2]=xMin;
+        hullY[2]=yMax;
+        hullX[1]=xMax;
+        hullY[1]=yMax;
+        hullX[0]=xMax;
+        hullY[0]=yMin;
     }
     void RootCluster::computeBoundary(vector<Rectangle*> const & rs) {
         for(unsigned i=0;i<clusters.size();i++) {
