@@ -824,23 +824,27 @@ namespace straightener {
             double h=weight*hRuleD1(u,v,dl);
             H(u,u)+=h;
             double g1=weight*dl*gRule1(u,v);
-            g[u]-=g1;
+            if(u>=fixedPos.size()||!fixedPos[u]) { g[u]-=g1; }
             if(n==2||dl>0) {
                 // rule 1
                 H(v,v)+=h;
                 H(u,v)-=h;
                 H(v,u)-=h;
-                g[v]+=g1;
+                if(v>=fixedPos.size()||!fixedPos[v]) { g[v]+=g1; }
                 continue;
             }
             u=path[n-2]; v=path[n-1];
-            g[v]+=weight*dl*gRule1(u,v);
+            if(v>=fixedPos.size()||!fixedPos[v]) { 
+                g[v]+=weight*dl*gRule1(u,v);
+            }
             H(v,v)+=weight*hRuleD1(u,v,dl);
             // remaining diagonal entries
             for(unsigned j=1;j<n-1;j++) {
                 u=path[j-1], v=path[j], w=path[j+1];
                 H(v,v)+=weight*hRuleD2(u,v,w,dl);
-                g[v]+=weight*dl*gRule2(u,v,w);
+                if(v>=fixedPos.size()||!fixedPos[v]) { 
+                    g[v]+=weight*dl*gRule2(u,v,w);
+                }
             }
 
             // off diagonal entries
@@ -886,6 +890,7 @@ namespace straightener {
                 }
             }
         }
+        /*
         for(unsigned i=0;i<edges.size();i++) {
             Edge* e=edges[i];
             vector<unsigned>& path=e->path;
@@ -921,6 +926,7 @@ namespace straightener {
             }
             printf("\n");
         }
+        */
     }
     double Straightener::computeStress(std::valarray<double> const &coords) {
         double stress=0;
@@ -954,7 +960,7 @@ namespace straightener {
         for(unsigned i=0;i<edges.size();i++) {
             double d = edges[i]->idealLength;
             double weight=1/(d*d);
-            printf("pathLength=%f\n",pathLength(edges[i],nodes));
+            //printf("pathLength=%f\n",pathLength(edges[i],nodes));
             double sqrtf=fabs(d-pathLength(edges[i],nodes));
             stress+=weight*sqrtf*sqrtf;
         }

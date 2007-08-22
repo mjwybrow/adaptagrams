@@ -259,6 +259,27 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
         printf("]\n");
         */
         double stress=applyDescentVector(s.g,oldCoords,s.coords,oldStress,computeStepSize(H,s.g,s.g),&s);
+        //
+        //  We must generate separation constraints lazily:  
+        //    - generate dummy nodes for each of the bend points in the input routing
+        //    - then for each edge segment (u,v) which overlaps with a node w in the axis 
+        //      of concern (assume x), we generate a topology constraint:
+        //        w_x > u_x + (v_x - u_x)|w_y-u_y|/|v_y-u_y| + g
+        //      to keep w to the right of uv, or a symmetric constraint to keep w to the left of uv
+        //      (where g is half the width of w)
+        //    - move x by descent vector
+        //    * we then repeatedly check to see if any topology constraints are violated
+        //       - if a violated topology constraint is found:
+        //         - we choose the most violated topology constraint
+        //         - we split the edge segment, creating a new dummy var z and 
+        //           separation constraint w>z+g.  
+        //         - any other topology constraints associated with the
+        //           original segment will have to be recreated for the new
+        //           segments and added to the list being checked. 
+        //    - we call VPSC_satisfy on the resultant separation constraint problem
+        //    - we check the separation constraints and any that are inactive are removed
+        //    - repeat from * until no change in position
+        //
         p->solve(lvs,lcs,s.coords);
         s.updateNodePositions();
         dummyNodesX.resize(s.dummyNodesX.size());
@@ -324,10 +345,10 @@ double ConstrainedFDLayout::applyDescentVector(
         if(s) {
             s->updateNodePositions();
             double sstress=s->computeStress2(coords);
-            printf("  s1=%f,s2=%f ",stress,sstress);
+            //printf("  s1=%f,s2=%f ",stress,sstress);
             stress+=sstress;
         }
-        printf(" applyDV: oldstress=%f, stress=%f, stepsize=%f\n", oldStress,stress,stepsize);
+        //printf(" applyDV: oldstress=%f, stress=%f, stepsize=%f\n", oldStress,stress,stepsize);
         if(oldStress>=stress) {
             return stress;
         }
