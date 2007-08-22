@@ -187,6 +187,43 @@ void k6() {
 		delete routes[i];
 	}
 }
+void simplest() {
+    printf("test: simplest(): two nodes, one edge\n");
+	const unsigned V = 2;
+    const char * ls[]={"0","1"};
+    vector<const char *> labels(ls,ls+V);
+	Edge edge_array[] = { Edge(0,1) };
+	const size_t E = sizeof(edge_array) / sizeof(Edge);
+	vector<Edge> es(edge_array,edge_array+E);
+
+	vector<vpsc::Rectangle*> rs;
+	addRect(rs,270,0,60,40);
+	addRect(rs,270,100,60,40);
+
+	vector<straightener::Edge*> routes(E);
+    straightener::Route* r=new straightener::Route(2); 
+    r->xs[0]=rs[0]->getCentreX();
+    r->ys[0]=rs[0]->getCentreY();
+    r->xs[1]=rs[1]->getCentreX();
+    r->ys[1]=rs[1]->getCentreY();
+    routes[0]=new straightener::Edge(0,0,1,r);
+	// now straighten the edges
+	//ConstrainedMajorizationLayout alg(rs,es,NULL,70);
+    TestConvergence test(0.01,1);
+	ConstrainedFDLayout alg(rs,es,NULL,70,NULL,test);
+	alg.setStraightenEdges(&routes,1);
+	alg.run(true,true);
+    OutputFile of(rs,es,NULL,"straightener-simplest.svg",true,false);
+    of.setLabels(&labels);
+    of.routes=&routes;
+    of.generate();
+	for(unsigned i=0;i<V;i++) {
+		delete rs[i];
+	}
+	for(unsigned i=0;i<E;i++) {
+		delete routes[i];
+	}
+}
 void severeBend() {
     printf("test: severeBend()\n");
 	const unsigned V = 3;
@@ -225,7 +262,7 @@ void severeBend() {
     TestConvergence test(0.01,1);
 	ConstrainedFDLayout alg(rs,es,NULL,70,NULL,test);
 	alg.setStraightenEdges(&routes,1);
-	alg.run(true,false);
+	alg.run(true,true);
     OutputFile of(rs,es,NULL,"straightener-severeBend.svg",true,false);
     of.setLabels(&labels);
     of.routes=&routes;
@@ -238,7 +275,7 @@ void severeBend() {
 	}
 }
 void smallTrap() {
-    printf("test: severeBend()\n");
+    printf("test: smallTrap()\n");
 	const unsigned V = 4;
     const char * ls[]={"0","1","2","3"};
     vector<const char *> labels(ls,ls+V);
@@ -277,7 +314,7 @@ void smallTrap() {
 	ConstrainedFDLayout alg(rs,es,NULL,70,NULL,test);
 	alg.setStraightenEdges(&routes,1);
 	alg.run(true,false);
-    OutputFile of(rs,es,NULL,"straightener-severeBend.svg",true,false);
+    OutputFile of(rs,es,NULL,"straightener-smallTrap.svg",true,false);
     of.setLabels(&labels);
     of.routes=&routes;
     of.generate();
@@ -291,7 +328,8 @@ void smallTrap() {
 int main() {
 	//k5();
 	//k6();
-	//severeBend();
-    smalltrap();
+    //smallTrap();
+	severeBend();
+    //simplest();
 }
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:encoding=utf-8:textwidth=99 :

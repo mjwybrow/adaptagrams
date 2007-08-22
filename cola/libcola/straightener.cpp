@@ -661,6 +661,267 @@ namespace straightener {
             }
         }
     }
+    double Straightener::len(const unsigned u, const unsigned v, 
+            double& dx, double& dy,
+            double& dx2, double& dy2) {
+        dx=nodes[u]->x-nodes[v]->x;
+        dy=nodes[u]->y-nodes[v]->y;
+        dx2=dx*dx;
+        dy2=dy*dy;
+        return sqrt(dx2+dy2);
+    }
+    double Straightener::gRule1(const unsigned a, const unsigned b) {
+        double dxab, dyab, dxab2, dyab2;
+        double lab=dim==cola::HORIZONTAL?
+            len(a,b,dxab,dyab,dxab2,dyab2):
+            len(a,b,dyab,dxab,dyab2,dxab2);
+        return dxab/lab;
+    }
+    double Straightener::gRule2(const unsigned a, const unsigned b, const unsigned c) {
+        double dxab, dyab, dxab2, dyab2;
+        double lab=dim==cola::HORIZONTAL?
+            len(a,b,dxab,dyab,dxab2,dyab2):
+            len(a,b,dyab,dxab,dyab2,dxab2);
+        double dxbc, dybc, dxbc2, dybc2;
+        double lbc=dim==cola::HORIZONTAL?
+            len(b,c,dxbc,dybc,dxbc2,dybc2):
+            len(b,c,dybc,dxbc,dybc2,dxbc2);
+        return dxab/lab - dxbc/lbc;
+    }
+    double Straightener::hRuleD1(const unsigned u, const unsigned v, const double dl) {
+        double dx, dy, dx2, dy2;
+        double l=dim==cola::HORIZONTAL?
+            len(u,v,dx,dy,dx2,dy2):
+            len(u,v,dy,dx,dy2,dx2);
+        return dl*(dx2/(l*l*l) - 1/l) + dx2/(l*l);
+    }
+    double Straightener::hRuleD2(const unsigned u, const unsigned v, const unsigned w, 
+            const double dl) {
+        double dxuv, dyuv, dxuv2, dyuv2;
+        double luv=dim==cola::HORIZONTAL?
+            len(u,v,dxuv,dyuv,dxuv2,dyuv2):
+            len(u,v,dyuv,dxuv,dyuv2,dxuv2);
+        double dxvw, dyvw, dxvw2, dyvw2;
+        double lvw=dim==cola::HORIZONTAL?
+            len(v,w,dxvw,dyvw,dxvw2,dyvw2):
+            len(v,w,dyvw,dxvw,dyvw2,dxvw2);
+        double p1=dl*(dxuv2/(luv*luv*luv) - 1/luv + dxvw2/(lvw*lvw*lvw) - 1/lvw);
+        double p2=(dxuv/luv - dxvw/lvw);
+        return p1+p2*p2;
+    }
+    double Straightener::hRule2(const unsigned u, const unsigned v, const unsigned w, 
+            const double dl) {
+        double dxuv, dyuv, dxuv2, dyuv2;
+        double luv=dim==cola::HORIZONTAL?
+            len(u,v,dxuv,dyuv,dxuv2,dyuv2):
+            len(u,v,dyuv,dxuv,dyuv2,dxuv2);
+        double dxvw, dyvw, dxvw2, dyvw2;
+        double lvw=dim==cola::HORIZONTAL?
+            len(v,w,dxvw,dyvw,dxvw2,dyvw2):
+            len(v,w,dyvw,dxvw,dyvw2,dxvw2);
+        return -dl*dxuv2/(luv*luv*luv)
+            +dl/luv
+            -dxuv2/(luv*luv)
+            +dxuv*dxvw/(luv*lvw);
+    }
+    double Straightener::hRule3(const unsigned u, const unsigned v, const unsigned w, 
+            const double dl) {
+        double dxuv, dyuv, dxuv2, dyuv2;
+        double luv=dim==cola::HORIZONTAL?
+            len(u,v,dxuv,dyuv,dxuv2,dyuv2):
+            len(u,v,dyuv,dxuv,dyuv2,dxuv2);
+        double dxvw, dyvw, dxvw2, dyvw2;
+        double lvw=dim==cola::HORIZONTAL?
+            len(v,w,dxvw,dyvw,dxvw2,dyvw2):
+            len(v,w,dyvw,dxvw,dyvw2,dxvw2);
+        return -dl*dxvw2/(lvw*lvw*lvw)
+            -dxvw2/(lvw*lvw)
+            +dl/lvw
+            +dxuv*dxvw/(luv*lvw);
+    }
+    double Straightener::hRule4(const unsigned a, const unsigned b, 
+            const unsigned c, const unsigned d) {
+        double dxab, dyab, dxab2, dyab2;
+        double lab=dim==cola::HORIZONTAL?
+            len(a,b,dxab,dyab,dxab2,dyab2):
+            len(a,b,dyab,dxab,dyab2,dxab2);
+        double dxcd, dycd, dxcd2, dycd2;
+        double lcd=dim==cola::HORIZONTAL?
+            len(c,d,dxcd,dycd,dxcd2,dycd2):
+            len(c,d,dycd,dxcd,dycd2,dxcd2);
+        return -dxab*dxcd/(lab*lcd);
+    }
+    double Straightener::hRule56(const unsigned u, const unsigned v, 
+            const unsigned a, const unsigned b, const unsigned c) {
+        double dxuv, dyuv, dxuv2, dyuv2;
+        double luv=dim==cola::HORIZONTAL?
+            len(u,v,dxuv,dyuv,dxuv2,dyuv2):
+            len(u,v,dyuv,dxuv,dyuv2,dxuv2);
+        double dxab, dyab, dxab2, dyab2;
+        double lab=dim==cola::HORIZONTAL?
+            len(a,b,dxab,dyab,dxab2,dyab2):
+            len(a,b,dyab,dxab,dyab2,dxab2);
+        double dxbc, dybc, dxbc2, dybc2;
+        double lbc=dim==cola::HORIZONTAL?
+            len(b,c,dxbc,dybc,dxbc2,dybc2):
+            len(b,c,dybc,dxbc,dybc2,dxbc2);
+        return dxuv/luv * ( dxbc/lbc - dxab/lab );
+    }
+    double Straightener::hRule7(const unsigned a, const unsigned b, 
+            const unsigned c, const unsigned d, const double dl) {
+        double dxab, dyab, dxab2, dyab2;
+        double lab=dim==cola::HORIZONTAL?
+            len(a,b,dxab,dyab,dxab2,dyab2):
+            len(a,b,dyab,dxab,dyab2,dxab2);
+        double dxbc, dybc, dxbc2, dybc2;
+        double lbc=dim==cola::HORIZONTAL?
+            len(b,c,dxbc,dybc,dxbc2,dybc2):
+            len(b,c,dybc,dxbc,dybc2,dxbc2);
+        double dxcd, dycd, dxcd2, dycd2;
+        double lcd=dim==cola::HORIZONTAL?
+            len(c,d,dxcd,dycd,dxcd2,dycd2):
+            len(c,d,dycd,dxcd,dycd2,dxcd2);
+        return dl*(1/lbc - dxbc2/(lbc*lbc*lbc))
+            +(dxab/lab - dxbc/lbc)*(dxbc/lbc - dxcd/lcd);
+    }
+    double Straightener::hRule8(const unsigned u, const unsigned v, const unsigned w,
+            const unsigned a, const unsigned b, const unsigned c) {
+        double dxuv, dyuv, dxuv2, dyuv2;
+        double luv=dim==cola::HORIZONTAL?
+            len(u,v,dxuv,dyuv,dxuv2,dyuv2):
+            len(u,v,dyuv,dxuv,dyuv2,dxuv2);
+        double dxvw, dyvw, dxvw2, dyvw2;
+        double lvw=dim==cola::HORIZONTAL?
+            len(v,w,dxvw,dyvw,dxvw2,dyvw2):
+            len(v,w,dyvw,dxvw,dyvw2,dxvw2);
+        double dxab, dyab, dxab2, dyab2;
+        double lab=dim==cola::HORIZONTAL?
+            len(a,b,dxab,dyab,dxab2,dyab2):
+            len(a,b,dyab,dxab,dyab2,dxab2);
+        double dxbc, dybc, dxbc2, dybc2;
+        double lbc=dim==cola::HORIZONTAL?
+            len(b,c,dxbc,dybc,dxbc2,dybc2):
+            len(b,c,dybc,dxbc,dybc2,dxbc2);
+        return (dxuv/luv - dxvw/lvw) * (dxab/lab - dxbc/lbc);
+    }
+    void Straightener::computeForces2(cola::SparseMap &H, std::valarray<bool> const & fixedPos) {
+        // hessian matrix:
+        unsigned u,v,w;
+        for(unsigned i=0;i<edges.size();i++) {
+            //printf("Straightening path:\n");
+            //edges[i]->print();
+            Edge* e=edges[i];
+            vector<unsigned>& path=e->path;
+            unsigned n=path.size();
+            assert(n>=2);
+            double d=e->idealLength;
+            double weight=2/(d*d);
+            double dl=d-pathLength(e,nodes);
+
+            // first and last entries
+            // gradient
+            u=path[0], v=path[1];
+            double h=weight*hRuleD1(u,v,dl);
+            H(u,u)+=h;
+            double g1=weight*dl*gRule1(u,v);
+            g[u]-=g1;
+            if(n==2||dl>0) {
+                // rule 1
+                H(v,v)+=h;
+                H(u,v)-=h;
+                H(v,u)-=h;
+                g[v]+=g1;
+                continue;
+            }
+            u=path[n-2]; v=path[n-1];
+            g[v]+=weight*dl*gRule1(u,v);
+            H(v,v)+=weight*hRuleD1(u,v,dl);
+            // remaining diagonal entries
+            for(unsigned j=1;j<n-1;j++) {
+                u=path[j-1], v=path[j], w=path[j+1];
+                H(v,v)+=weight*hRuleD2(u,v,w,dl);
+                g[v]+=weight*dl*gRule2(u,v,w);
+            }
+
+            // off diagonal entries
+            // hRule 2
+            u=path[0], v=path[1], w=path[2];
+            h=weight*hRule2(u,v,w,dl);
+            H(u,v)+=h;
+            H(v,u)+=h;
+            // hRule 3
+            u=path[n-3], v=path[n-2], w=path[n-1];
+            h=weight*hRule3(u,v,w,dl);
+            H(v,w)+=h;
+            H(w,v)+=h;
+            // hRule 4
+            u=path[0], v=path[n-1];
+            h=weight*hRule4(u,path[1],path[n-2],v);
+            H(u,v)+=h;
+            H(v,u)+=h;
+            if(n==3) continue;
+            for(unsigned j=2;j<n-1;j++) {
+                // hRule 5
+                u=path[0],v=path[j];
+                h=weight*hRule56(u,path[1],path[j-1],v,path[j+1]);
+                H(u,v)+=h;
+                H(v,u)+=h;
+                // hRule 6
+                u=path[n-1], v=path[n-1-j];
+                h=weight*hRule56(u,path[n-2],path[n-1-j-1],v,path[n-1-j+1]);
+                H(u,v)+=h;
+                H(v,u)+=h;
+                // hRule 7
+                u=path[j-1], v=path[j];
+                h=weight*hRule7(path[j-2],u,v,path[j+1],dl);
+                H(u,v)+=h;
+                H(v,u)+=h;
+            } 
+            for(unsigned j=1;j<n-3;j++) {
+                for(unsigned k=j+2;k<n-1;k++) {
+                    u=path[j]; v=path[k];
+                    h=weight*hRule8(path[j-1],u,path[j+1],path[k-1],v,path[k+1]);
+                    H(u,v)+=h;
+                    H(v,u)+=h;
+                }
+            }
+        }
+        for(unsigned i=0;i<edges.size();i++) {
+            Edge* e=edges[i];
+            vector<unsigned>& path=e->path;
+            unsigned n=path.size();
+            printf("d=%f;\n",e->idealLength);
+            printf("X={");
+            for(unsigned j=0;j<n;j++) {
+                printf("%f",nodes[path[j]]->x);
+                if(j<n-1) {
+                    printf(",");
+                }
+            }
+            printf("};\n");
+            printf("Y={");
+            for(unsigned j=0;j<n;j++) {
+                printf("%f",nodes[path[j]]->y);
+                if(j<n-1) {
+                    printf(",");
+                }
+            }
+            printf("};\n");
+            printf("H=\n");
+            for(unsigned j=0;j<n;j++) {
+                for(unsigned k=0;k<n;k++) {
+                    unsigned u=path[j], v=path[k];
+                    printf("%f ",H(u,v));
+                }
+                printf("\n");
+            }
+            printf("g=");
+            for(unsigned j=0;j<n;j++) {
+                printf("%f ",g[path[j]]);
+            }
+            printf("\n");
+        }
+    }
     double Straightener::computeStress(std::valarray<double> const &coords) {
         double stress=0;
         for(unsigned i=0;i<edges.size();i++) {
@@ -685,6 +946,17 @@ namespace straightener {
                 double l=sqrt(dx2+dy2);
                 stress+=l;
             }
+        }
+        return strength*stress;
+    }
+    double Straightener::computeStress2(std::valarray<double> const &coords) {
+        double stress=0;
+        for(unsigned i=0;i<edges.size();i++) {
+            double d = edges[i]->idealLength;
+            double weight=1/(d*d);
+            printf("pathLength=%f\n",pathLength(edges[i],nodes));
+            double sqrtf=fabs(d-pathLength(edges[i],nodes));
+            stress+=weight*sqrtf*sqrtf;
         }
         return strength*stress;
     }
@@ -715,6 +987,34 @@ namespace straightener {
             edges[i]->dummyNodes.clear();
             edges[i]->path.clear();
         }
+    }
+    void setEdgeLengths(double **D, vector<Edge*> & edges) {
+        for(unsigned i=0;i<edges.size();i++) {
+            Edge* e=edges[i];
+            e->idealLength=D[e->startNode][e->endNode];
+        } 
+    }
+    double pathLength(Edge const * e, vector<Node*> const & nodes) {
+        double length=0;
+        vector<unsigned> const & path=e->path;
+        for(unsigned i=1;i<path.size();i++) {
+            Node *u=nodes[path[i-1]], *v=nodes[path[i]];
+            double dx=u->x-v->x;
+            double dy=u->y-v->y;
+            length+=sqrt(dx*dx+dy*dy);
+        }
+        return length;
+    }
+    double computeStressFromRoutes(double strength, vector<Edge*> & edges) {
+        double stress=0;
+        for(unsigned i=0;i<edges.size();i++) {
+            Edge* e=edges[i];
+            double d = e->idealLength;
+            double weight=1/(d*d);
+            double sqrtf=fabs(d-e->route->routeLength());
+            stress+=weight*sqrtf*sqrtf;
+        }
+        return strength*stress;
     }
 }
 

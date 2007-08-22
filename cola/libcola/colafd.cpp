@@ -156,10 +156,15 @@ void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis) {
     if(constrainedY) {
         py.reset(new Projection(n,ccsy,fixedPos));
     }
-    double stress=computeStress();
-    bool firstPass=true;
     //printf("n==%d\n",n);
-    if(n>0) do {
+    if(n==0) return;
+    double stress=computeStress();
+    if(straightenEdges) {
+        straightener::setEdgeLengths(D,*straightenEdges);
+        stress+=straightener::computeStressFromRoutes(straighteningStrength,*straightenEdges);
+    }
+    bool firstPass=true;
+    do {
         if(preIteration) {
             if ((*preIteration)()) {
                 for(vector<Lock>::iterator l=preIteration->locks.begin();
@@ -196,12 +201,20 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
     valarray<double> &coords = (dim==HORIZONTAL)?X:Y;
     SparseMap HMap(n);
     computeForces(dim,HMap,g);
+    /*
+    printf("g=[");
+    for(unsigned i=0;i<n;i++) {
+        printf("%f ",g[i]);
+    }
+    printf("]\n");
+    */
     //printf("sparse matrix nonzero size=%d\n",HMap.nonZeroCount());
     //printf(" dim=%d alpha: ",dim);
     Projection *p = dim==HORIZONTAL?px.get():py.get();
     if(!p)  { 
         // unconstrained
         SparseMatrix H(HMap);
+        //H.print();
         valarray<double> oldCoords=coords;
         return applyDescentVector(g,oldCoords,coords,oldStress,computeStepSize(H,g,g));
     }
@@ -234,9 +247,17 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
         straightener::Straightener s(straighteningStrength, dim,lrs,*straightenEdges,vs,lvs,lcs,coords,g);
         HMap.resize(s.N);
         valarray<double> oldCoords=s.coords;
-        s.computeForces(HMap,fixedPos);
+        s.computeForces2(HMap,fixedPos);
+        printf("STRESS=%f\n",s.computeStress2(s.coords));
         SparseMatrix H(HMap);
         //H.print();
+        /*
+        printf("g=[");
+        for(unsigned i=0;i<s.N;i++) {
+            printf("%f ",s.g[i]);
+        }
+        printf("]\n");
+        */
         double stress=applyDescentVector(s.g,oldCoords,s.coords,oldStress,computeStepSize(H,s.g,s.g),&s);
         p->solve(lvs,lcs,s.coords);
         s.updateNodePositions();
@@ -297,27 +318,23 @@ double ConstrainedFDLayout::applyDescentVector(
         ) const {
     assert(d.size()==oldCoords.size());
     assert(d.size()==coords.size());
-    double oldstress=oldStress;
-    if(s) {
-        oldstress+=s->computeStress(oldCoords);
-    }
     while(fabs(stepsize)>0.00000000001) {
         coords=oldCoords-stepsize*d;
         double stress=computeStress();
         if(s) {
             s->updateNodePositions();
-            double sstress=s->computeStress(coords);
-            //printf("  s1=%f,s2=%f ",stress,sstress);
+            double sstress=s->computeStress2(coords);
+            printf("  s1=%f,s2=%f ",stress,sstress);
             stress+=sstress;
         }
-        //printf(" applyDV: oldstress=%f, stress=%f, stepsize=%f\n", oldstress,stress,stepsize);
-        if(oldstress>=stress) {
+        printf(" applyDV: oldstress=%f, stress=%f, stepsize=%f\n", oldStress,stress,stepsize);
+        if(oldStress>=stress) {
             return stress;
         }
         coords=oldCoords;
         stepsize*=0.5;
     }
-    return oldstress;
+    return oldStress;
 }
 void ConstrainedFDLayout::computeForces(
         const Dim dim,
@@ -337,8 +354,12 @@ void ConstrainedFDLayout::computeForces(
             double rx=X[u]-X[v], ry=Y[u]-Y[v];
             double l=sqrt(rx*rx+ry*ry);
             double d=D[u][v];
-            // we don't want long range attractive forces between not immediately connected nodes
+            // we don't want long range attractive forces between 
+            // not immediately connected nodes
             if(G[u][v]>1 && l>d) continue;
+            // if we compute straightenEdge forces then they replace
+            // forces between adjacent nodes
+            if(straightenEdges && G[u][v]==1) continue;
             double d2=d*d;
             /* force apart zero distances */
             if (l < 1e-30) {
@@ -366,19 +387,23 @@ double ConstrainedFDLayout::computeStepSize(
     double denominator = dotProd(d,Hd);
     //assert(numerator>=0);
     //assert(denominator>=0);
-    return numerator/(1.*denominator);
+    if(denominator==0) return 0;
+    return numerator/denominator;
 }
 double ConstrainedFDLayout::computeStress() const {
     double stress=0;
-    for(unsigned u=0;u<n;u++) {
-        for(unsigned v=0;v<n;v++) {
-            if(u==v) continue;
+    for(unsigned u=0;u<n-1;u++) {
+        for(unsigned v=u+1;v<n;v++) {
             // no forces between disconnected parts of the graph
             if(G[u][v]==numeric_limits<unsigned>::max()) continue;
+            // if we compute straightenEdge forces then they replace
+            // forces between adjacent nodes
+            if(straightenEdges && G[u][v]==1) continue;
             double rx=X[u]-X[v], ry=Y[u]-Y[v];
             double l=sqrt(rx*rx+ry*ry);
             double d=D[u][v];
-            // we don't want long range attractive forces between not immediately connected nodes
+            // we don't want long range attractive forces between 
+            // not immediately connected nodes
             if(G[u][v]>1 && l>d) continue;
             double d2=d*d;
             double rl=d-l;

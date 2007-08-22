@@ -36,6 +36,15 @@ struct Route {
             ymax=max(ymax,ys[i]);
         } 
     }
+    double routeLength () {
+        double length=0;
+        for(unsigned i=1;i<n;i++) {
+            double dx=xs[i-1]-xs[i];
+            double dy=ys[i-1]-ys[i];
+            length+=sqrt(dx*dx+dy*dy);
+        }
+        return length;
+    }
     unsigned n;
     double *xs;
     double *ys;
@@ -56,6 +65,7 @@ struct Edge {
     unsigned startNode, endNode;
     Route* route;
     double xmin, xmax, ymin, ymax;
+    double idealLength;
     vector<unsigned> dummyNodes;
     vector<unsigned> path;
     vector<unsigned> activePath;
@@ -133,7 +143,9 @@ public:
     void updateNodePositions();
     void finalizeRoutes();
     void computeForces(cola::SparseMap &H, valarray<bool> const & fixedPos);
+    void computeForces2(cola::SparseMap &H, valarray<bool> const & fixedPos);
     double computeStress(valarray<double> const &coords);
+    double computeStress2(valarray<double> const &coords);
     valarray<double> dummyNodesX;
     valarray<double> dummyNodesY;
     valarray<double> g;
@@ -146,6 +158,22 @@ private:
     cola::Variables const & vs;
     cola::Variables & lvs;
     vector<Node*> nodes;
+    double len(const unsigned u, const unsigned v, 
+            double& dx, double& dy,
+            double& dx2, double& dy2);
+    double gRule1(const unsigned a, const unsigned b);
+    double gRule2(const unsigned a, const unsigned b, const unsigned c);
+    double hRuleD1(const unsigned u, const unsigned v, const double sqrtf);
+    double hRuleD2(const unsigned u, const unsigned v, const unsigned w, const double sqrtf);
+    double hRule2(const unsigned u, const unsigned v, const unsigned w, const double sqrtf);
+    double hRule3(const unsigned u, const unsigned v, const unsigned w, const double sqrtf);
+    double hRule4(const unsigned a, const unsigned b, const unsigned c, const unsigned d);
+    double hRule56(const unsigned u, const unsigned v, 
+            const unsigned a, const unsigned b, const unsigned c);
+    double hRule7(const unsigned a, const unsigned b, 
+            const unsigned c, const unsigned d, const double sqrtf);
+    double hRule8(const unsigned u, const unsigned v, const unsigned w,
+            const unsigned a, const unsigned b, const unsigned c);
 };
 class Cluster {
 public:
@@ -271,6 +299,9 @@ struct LinearConstraint {
     double dvb;
     double dbb;
 };
+void setEdgeLengths(double **D, vector<Edge*> & edges);
+double pathLength(Edge const * e, vector<Node*> const & nodes);
+double computeStressFromRoutes(double strength, vector<Edge*> & edges);
 typedef vector<LinearConstraint*> LinearConstraints;
 void generateConstraints(
         const cola::Dim dim, 
@@ -281,8 +312,8 @@ void generateConstraints(
 void nodePath(Edge& e, vector<Node*>& nodes, vector<unsigned>& path);
 void generateClusterBoundaries(
         const cola::Dim dim,
-        vector<straightener::Node*> & nodes,
-        vector<straightener::Edge*> & edges,
+        vector<Node*> & nodes,
+        vector<Edge*> & edges,
         vector<vpsc::Rectangle*> const & rs,
         cola::Cluster const & clusterHierarchy,
         vector<straightener::Cluster*>& sclusters);
