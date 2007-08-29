@@ -23,6 +23,12 @@ libcola_a_SOURCES = cola.h\
 	output_svg.cpp\
 	output_svg.h
 
-include_HEADERS = cola.h gradient_projection.h sparse_matrix.h straightener.h 
+include_HEADERS = cola.h\
+	cluster.h\
+	commondefs.h\
+	compound_constraints.h\
+	gradient_projection.h\
+	sparse_matrix.h\
+	straightener.h 
 
 SUBDIRS = tests

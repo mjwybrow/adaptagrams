@@ -31,6 +31,7 @@ libvpscinclude_HEADERS = solve_VPSC.h \
 	block.h\
 	constraint.h\
 	csolve_VPSC.h\
+	exceptions.h\
 	rectangle.h\
 	remove_rectangle_overlap.h\
 	variable.h
