@@ -42,12 +42,25 @@ int main() {
         double x=getRand(width), y=getRand(height);
         startpos[i]=make_pair(x,y);
     }
-    run_test(startpos,es,defaultEdgeLength,cx,cy,CG,false,"random_cg.svg");
-    run_test(startpos,es,defaultEdgeLength,cx,cy,IP,false,"random_ip.svg");
-    run_test(startpos,es,defaultEdgeLength,cx,cy,UGP,false,"random_ugp.svg");
-    run_test(startpos,es,defaultEdgeLength,cx,cy,SGP,false,"random_sgp.svg");
-    run_test(startpos,es,defaultEdgeLength,cx,cy,IP,true,"random_cip.svg");
-    run_test(startpos,es,defaultEdgeLength,cx,cy,UGP,true,"random_cugp.svg");
-    run_test(startpos,es,defaultEdgeLength,cx,cy,SGP,true,"random_csgp.svg");
+
+    /*void run_test(
+        vector<pair<double,double> > const &startpos,
+        vector<Edge> const &es, 
+        const double defaultEdgeLength,
+        CompoundConstraints &cx,
+        CompoundConstraints &cy,
+        const SolverType s, 
+        const bool constrained,
+        const char *fname,
+        const char *testdesc) {
+    */
+    
+    run_test(startpos,es,defaultEdgeLength,cx,cy,CG,false,"random","cg");
+    run_test(startpos,es,defaultEdgeLength,cx,cy,IP,false,"random", "ip");
+    run_test(startpos,es,defaultEdgeLength,cx,cy,UGP,false,"random", "ugp");
+    run_test(startpos,es,defaultEdgeLength,cx,cy,SGP,false,"random", "sgp");
+    run_test(startpos,es,defaultEdgeLength,cx,cy,IP,true,"random", "cip");
+    run_test(startpos,es,defaultEdgeLength,cx,cy,UGP,true,"random", "cugp");
+    run_test(startpos,es,defaultEdgeLength,cx,cy,SGP,true,"random", "csgp");
 }
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:encoding=utf-8:textwidth=99 :
