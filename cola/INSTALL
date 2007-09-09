@@ -1,0 +1,5 @@
+from svn
+autoreconf
+./configure
+make
+make install
