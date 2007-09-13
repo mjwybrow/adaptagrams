@@ -23,12 +23,14 @@ libcola_a_SOURCES = cola.h\
 	output_svg.cpp\
 	output_svg.h
 
-include_HEADERS = cola.h\
+libcolaincludedir = ${includedir}/libcola
+libcolainclude_HEADERS = cola.h\
 	cluster.h\
 	commondefs.h\
 	compound_constraints.h\
 	gradient_projection.h\
 	sparse_matrix.h\
-	straightener.h 
+	straightener.h \
+	output_svg.h
 
 SUBDIRS = tests
