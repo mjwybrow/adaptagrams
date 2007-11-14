@@ -4,12 +4,14 @@
 #include "cola.h"
 #include "shortest_paths.h"
 #include "straightener.h"
+#include "topology_constraints.h"
 #include <libvpsc/solve_VPSC.h>
 #include <libvpsc/variable.h>
 #include <libvpsc/constraint.h>
 #include <libvpsc/rectangle.h>
 
 namespace cola {
+using vpsc::Constraint;
 template <class T>
 void delete_vector(vector<T*> &v) {
     for_each(v.begin(),v.end(),delete_object());
@@ -41,8 +43,8 @@ inline double dotProd(valarray<double> x, valarray<double> y) {
  *     - straightening constraints
  *
  */
-Projection::Projection(const unsigned n, CompoundConstraints * ccs, valarray<bool> const & fixed) 
-    : n(n), ccs(ccs), fixed(fixed)
+Projection::Projection(const unsigned n, CompoundConstraints * ccs, FixedList const & fixed) 
+    : ccs(ccs), n(n), fixed(fixed)
 {
     for(unsigned i=0;i<n;i++) {
         vars.push_back(new vpsc::Variable(i,1,1));
@@ -62,14 +64,15 @@ Projection::~Projection() {
     delete_vector(vars);
     vars.clear();
 }
-void Projection::solve(Variables &lvs, Constraints &lcs, valarray<double> & X) {
+void Projection::solve(Variables &lvs, set<Constraint*> &lcs, valarray<double> & X) {
     unsigned N=X.size();
     //assert(X.size()==vars.size()+lvs.size());
     Variables vs(vars);
     vs.insert(vs.end(),lvs.begin(),lvs.end());
     for(unsigned i=0;i<N;i++) {
         vs[i]->desiredPosition = X[i];
-        vs[i]->weight=i<n&&fixed[i]?100000:1;
+        vs[i]->weight=fixed.check(i)?100000:1;
+        //vs[i]->block=NULL;
     }
     Constraints cs(gcs);
     cs.insert(cs.end(),lcs.begin(),lcs.end());
@@ -78,6 +81,29 @@ void Projection::solve(Variables &lvs, Constraints &lcs, valarray<double> & X) {
     for(unsigned i=0;i<N;i++) {
         X[i] = vs[i]->finalPosition;
     }
+    printf("all local constraints after solve:\n");
+    for(set<Constraint*>::iterator i=lcs.begin();i!=lcs.end();i++) {
+        Constraint* c=*i;
+        printf("    v[%d]+%f<=v[%d]:\n",c->left->id,c->gap,c->right->id);
+    }
+    if(ccs) {
+        for(CompoundConstraints::const_iterator c=ccs->begin();
+                c!=ccs->end();c++) {
+            (*c)->updatePosition();
+        }
+    }
+}
+void Projection::solve(Variables &lvs, set<Constraint*> &lcs) {
+    Variables vs(vars);
+    vs.insert(vs.end(),lvs.begin(),lvs.end());
+    for(unsigned i=0;i<vs.size();i++) {
+        vs[i]->weight=fixed.check(i)?100000:1;
+        //printf("solve: vs[%d]=%f\n",i,vs[i]->desiredPosition);
+    }
+    Constraints cs(gcs);
+    cs.insert(cs.end(),lcs.begin(),lcs.end());
+    vpsc::IncSolver vpsc(vs,cs);
+    vpsc.solve();
     if(ccs) {
         for(CompoundConstraints::const_iterator c=ccs->begin();
                 c!=ccs->end();c++) {
@@ -112,7 +138,7 @@ ConstrainedFDLayout::ConstrainedFDLayout(
       Y(valarray<double>(n)),
       done(done),
       preIteration(preIteration),
-      fixedPos(valarray<bool>(n)),
+      fixed(FixedList(n)),
       constrainedX(false), constrainedY(false),
       ccsx(NULL), ccsy(NULL),
       avoidOverlaps(false),
@@ -138,7 +164,6 @@ ConstrainedFDLayout::ConstrainedFDLayout(
     shortest_paths::johnsons(n,D,es,eweights);
     //dumpSquareMatrix<unsigned>(n,G);
     //dumpSquareMatrix<double>(n,D);
-    fixedPos=false;
     for(unsigned i=0;i<n;i++) {
         for(unsigned j=0;j<n;j++) {
             if(i==j) continue;
@@ -150,11 +175,24 @@ ConstrainedFDLayout::ConstrainedFDLayout(
 }
 
 void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis) {
+    // uses steepest descent techniques with linesearch stepsize selection to
+    // ensure monotonic reduction of stress
+    //   However: while monotonic reduction of stress ensures convergence, it is not 
+    //   enough to prevent apparent vibration
+    //   On the plus side, we can easily try out any goal function as long as we
+    //   can compute the derivative g to find the descent direction and the second
+    //   derivative H to compute the initial stepsize g'g/(g'Hg)
+    //
+    //   To handle constraints we use a gradient projection technique, treating the
+    //   axes separately.  Note that separating axes may ruin convergence to true
+    //   local minima, but projection in a single axis is usually a tractable problem
+    //   whereas projection over both axes with a disjunction of constraints is most
+    //   likely NP-hard.
     if(constrainedX) {
-        px.reset(new Projection(n,ccsx,fixedPos));
+        px.reset(new Projection(n,ccsx,fixed));
     }
     if(constrainedY) {
-        py.reset(new Projection(n,ccsy,fixedPos));
+        py.reset(new Projection(n,ccsy,fixed));
     }
     //printf("n==%d\n",n);
     if(n==0) return;
@@ -167,6 +205,7 @@ void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis) {
     do {
         if(preIteration) {
             if ((*preIteration)()) {
+                bool stressNeedsUpdate=false;
                 for(vector<Lock>::iterator l=preIteration->locks.begin();
                         l!=preIteration->locks.end();l++) {
                     unsigned id=l->id;
@@ -174,19 +213,26 @@ void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis) {
                     X[id]=x;
                     Y[id]=y;
                     boundingBoxes[id]->moveCentre(x,y);
-                    fixedPos[id]=true;
+                    fixed.set(id);
+                    stressNeedsUpdate=true;
+                }
+                if(stressNeedsUpdate) {
+                    stress=computeStress();
+                    if(straightenEdges) {
+                        stress+=straightener::computeStressFromRoutes(straighteningStrength,*straightenEdges);
+                    }
                 }
             } else { break; }
         }
-        if(xAxis) {
+        //if(xAxis) {
             stress=applyForcesAndConstraints(HORIZONTAL,stress,firstPass);
-        }
-        if(yAxis) {
-            stress=applyForcesAndConstraints(VERTICAL,stress,firstPass);
-        }
+        //}
+        //if(yAxis) {
+            //stress=applyForcesAndConstraints(VERTICAL,stress,firstPass);
+        //}
         firstPass=false;
         move();
-        fixedPos=false;
+        fixed.unsetAll();
     } while(!done(stress,X,Y));
 }
 /**
@@ -195,11 +241,13 @@ void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis) {
  * little as possible.  If "meta-constraints" such as avoidOverlaps or edge
  * straightening are required then dummy variables will be generated.
  */
-double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const double oldStress,
+double ConstrainedFDLayout::applyForcesAndConstraints(const cola::Dim dim, const double oldStress,
         const bool firstPass) {
-    valarray<double> g(n);
-    valarray<double> &coords = (dim==HORIZONTAL)?X:Y;
-    SparseMap HMap(n);
+    valarray<double> g(2*n);
+    valarray<double> coords(2*n);
+    copy(&X[0],&X[n],&coords[0]);
+    copy(&Y[0],&Y[n],&coords[n]);
+    SparseMap HMap(2*n);
     computeForces(dim,HMap,g);
     /*
     printf("g=[");
@@ -216,85 +264,132 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
         SparseMatrix H(HMap);
         //H.print();
         valarray<double> oldCoords=coords;
-        return applyDescentVector(g,oldCoords,coords,oldStress,computeStepSize(H,g,g));
+        double stress = applyDescentVector(g,oldCoords,coords,oldStress,computeStepSize(H,g,g));
+        copy(&coords[0],&coords[n],&X[0]);
+        copy(&coords[n],&coords[2*n],&Y[0]);
+        return stress;
     }
-    Variables vs;
     Variables lvs;
-    Constraints lcs;
-    vector<Rectangle*> lrs;
+    set<Constraint*> lcs;
     if(avoidOverlaps||straightenEdges) {
-        assert(p!=NULL);
-        for(unsigned i=0;i<boundingBoxes.size();i++) {
-            vpsc::Rectangle* r=boundingBoxes[i];
-            if(!r->allowOverlap()) {
-                vpsc::Rectangle* r2=new vpsc::Rectangle(*r);
-                r2->moveCentre(X[i],Y[i]);
-                vs.push_back(p->vars[i]);
-                lrs.push_back(r2);
+        /*
+        if(p->ccs) {
+            for(CompoundConstraints::const_iterator c=p->ccs->begin();
+                    c!=p->ccs->end();c++) {
+                OrthogonalEdgeConstraint* e=dynamic_cast<OrthogonalEdgeConstraint*>(*c);
+                if(e) {
+                    e->generateTopologyConstraints(dim,boundingBoxes,p->vars,lcs);
+                }
             }
         }
-    }
-    if(avoidOverlaps) {
+        */
+        Constraints overlapConstraints;
         if(dim==HORIZONTAL) {
             Rectangle::setXBorder(0.1);
-            generateXConstraints(lrs,vs,lcs,true); 
+            generateXConstraints(boundingBoxes,p->vars,overlapConstraints,true); 
             Rectangle::setXBorder(0);
         } else {
-            generateYConstraints(lrs,vs,lcs); 
+            for(unsigned i=0;i<n;i++) { 
+                // need to make sure that the bounding box position matches most up-to-date
+                // x-position before computing y-constraints
+                boundingBoxes[i]->moveCentreX(X[i]);
+            }
+            generateYConstraints(boundingBoxes,p->vars,overlapConstraints); 
         }
+        lcs.insert(overlapConstraints.begin(),overlapConstraints.end());
     }
     if(straightenEdges) {
-        straightener::Straightener s(straighteningStrength, dim,lrs,*straightenEdges,vs,lvs,lcs,coords,g);
-        HMap.resize(s.N);
+        //straightener::Straightener s(straighteningStrength, dim,lrs,fixed,*straightenEdges,vs,lvs,lcs,coords,g);
+        topology::TopologyConstraints s(dim,boundingBoxes,fixed,*straightenEdges,p->vars,lvs,&lcs,coords,g);
+        //return computeStress(&s);
+        HMap.resize(s.N());
         valarray<double> oldCoords=s.coords;
-        s.computeForces2(HMap,fixedPos);
-        printf("STRESS=%f\n",s.computeStress2(s.coords));
+        s.computeForces(HMap);
         SparseMatrix H(HMap);
+        //printf("STRESS=%f\n",s.computeStress(s.coords));
         //H.print();
-        /*
-        printf("g=[");
-        for(unsigned i=0;i<s.N;i++) {
+        printf("s.g=[");
+        for(unsigned i=0;i<s.N();i++) {
             printf("%f ",s.g[i]);
         }
         printf("]\n");
-        */
-        double stress=applyDescentVector(s.g,oldCoords,s.coords,oldStress,computeStepSize(H,s.g,s.g),&s);
-        //
-        //  We must generate separation constraints lazily:  
-        //    - generate dummy nodes for each of the bend points in the input routing
-        //    - then for each edge segment (u,v) which overlaps with a node w in the axis 
-        //      of concern (assume x), we generate a topology constraint:
-        //        w_x > u_x + (v_x - u_x)|w_y-u_y|/|v_y-u_y| + g
-        //      to keep w to the right of uv, or a symmetric constraint to keep w to the left of uv
-        //      (where g is half the width of w)
-        //    - move x by descent vector
-        //    * we then repeatedly check to see if any topology constraints are violated
-        //       - if a violated topology constraint is found:
-        //         - we choose the most violated topology constraint
-        //         - we split the edge segment, creating a new dummy var z and 
-        //           separation constraint w>z+g.  
-        //         - any other topology constraints associated with the
-        //           original segment will have to be recreated for the new
-        //           segments and added to the list being checked. 
-        //    - we call VPSC_satisfy on the resultant separation constraint problem
-        //    - we check the separation constraints and any that are inactive are removed
-        //    - repeat from * until no change in position
-        //
+        // double stress=
+        applyDescentVector(s.g,oldCoords,s.coords,computeStress(&s),computeStepSize(H,s.g,s.g),&s);
         p->solve(lvs,lcs,s.coords);
-        s.updateNodePositions();
-        dummyNodesX.resize(s.dummyNodesX.size());
-        dummyNodesY.resize(s.dummyNodesY.size());
-        dummyNodesX=s.dummyNodesX;
-        dummyNodesY=s.dummyNodesY;
-        /*
-        printf("have %d dummy nodes\n", (int) dummyNodesX.size());
-        for(unsigned i=0;i<lcs.size();i++) {
-            cout<<"  "<<*lcs[i]<<endl;
+        s.updateNodePositionsFromVars();
+        //  TopologyConstraint
+        //    Segment* segment
+        //    Node* w // real node
+        //
+        //  satisfyTopologyConstraint(TopologyConstraint v, lvs, lcs):
+        //    z = new dummy var
+        //    add z to lvs
+        //    z->variable->desiredPosition=v->RHS - g 
+        //    s = v->segment
+        //    s1 = new Segment(s->start,z)
+        //    s2 = new Segment(z,s->end)
+        //    s->edge->segments->replace(s,s1,s2)
+        //    for each t in s->topologyConstraints:
+        //      t->segment = s1 or s2 based on t->w_y
+        //    c = new separation constraint w>z+g
+        //    add c to lcs
+        //    
+        //  List<TopologyConstraint*> processList
+        //
+        //  We generate separation constraints based on topology constraints lazily:  
+        //    Generate dummy nodes for each of the bend points in the input routing
+        //    and a separation constraint between each bend point and rectangle on the
+        //    same scan line.
+        //    Then for each edge segment (u,v) and each node w with which it
+        //    overlaps in the axis of concern (assume x), we generate a
+        //    topology constraint:
+        //      w_x > u_x + (v_x - u_x)|w_y-u_y|/|v_y-u_y| + g
+        //    to keep w to the right of uv, or a symmetric constraint to keep
+        //    w to the left of uv (where g is half the width of w)
+        //    compute forces on real nodes and dummy nodes
+        //    move x coords of real nodes and dummy nodes by descent vector
+        //  after such a move there may be violated topology constraints and separation
+        //  constraints for dummy vars that have become inactive
+        //    merge segments around dummy nodes with no or inactive constraints
+        //    satisfy violated topology constraints by splitting around a new dummy var
+        s.tightenSegments(lcs);
+        //fixed.fixAll(true);
+        while(true) {
+            topology::TopologyConstraint* v = s.mostViolated();
+            if(v == NULL) {
+                printf("After solve: No more violated topology constraints\n");
+                break;
+            } else {
+                printf("After solve: most violated:\n");
+                v->print();
+                v->satisfy(s.addDummyNode(lvs),s.coords,lcs);
+                delete v;
+            }
+            SparseMap HMapEdges(s.N());
+            s.g.resize(s.N());
+            s.g=0;
+            valarray<double> oldCoords=s.coords;
+            s.computeForces(HMapEdges);
+            SparseMatrix HEdges(HMapEdges);
+            printf("g=[");
+            for(unsigned i=0;i<s.N();i++) {
+                printf("%f ",s.g[i]);
+            }
+            printf("]\n");
+            applyDescentVector(s.g,oldCoords,s.coords,computeStress(&s),
+                    computeStepSize(HEdges,s.g,s.g),&s);
+            p->solve(lvs,lcs,s.coords);
+            s.updateNodePositionsFromVars();
         }
-        */
-        delete_vector(lrs);
+        for(unsigned i=0;i<n;i++) { 
+            // need to make sure that the bounding box position matches most up-to-date
+            // x-position before computing y-constraints
+            boundingBoxes[i]->moveCentreX(s.coords[i]);
+        }
+        s.verify(boundingBoxes);
+        //fixed.fixAll(false);
         delete_vector(lvs);
-        delete_vector(lcs);
+        for_each(lcs.begin(),lcs.end(),delete_object());
         /*
         if(!firstPass) {
             valarray<double> d(s.N);
@@ -303,21 +398,20 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
             stepsize=max(0.,min(stepsize,1.));
             //printf(" dim=%d beta: ",dim);
             stress=applyDescentVector(d,oldCoords,s.coords,oldStress,stepsize,&s);
-            s.updateNodePositions();
+            s.coordsToNodePositions();
         }
         */
         double* p=&s.coords[0];
         copy(p,p+n,&coords[0]);
         s.finalizeRoutes();
-        return stress;
+        return computeStress(&s);
     } else {
         SparseMatrix H(HMap);
         valarray<double> oldCoords=coords;
         applyDescentVector(g,oldCoords,coords,oldStress,computeStepSize(H,g,g));
         p->solve(lvs,lcs,coords);
-        delete_vector(lrs);
         delete_vector(lvs);
-        delete_vector(lcs);
+        for_each(lcs.begin(),lcs.end(),delete_object());
         if(!firstPass) {
             valarray<double> d(n);
             d=oldCoords-coords;
@@ -335,19 +429,13 @@ double ConstrainedFDLayout::applyDescentVector(
         valarray<double> &coords,
         const double oldStress,
         double stepsize,
-        straightener::Straightener *s
+        topology::TopologyConstraints *s
         ) const {
     assert(d.size()==oldCoords.size());
     assert(d.size()==coords.size());
     while(fabs(stepsize)>0.00000000001) {
         coords=oldCoords-stepsize*d;
-        double stress=computeStress();
-        if(s) {
-            s->updateNodePositions();
-            double sstress=s->computeStress2(coords);
-            //printf("  s1=%f,s2=%f ",stress,sstress);
-            stress+=sstress;
-        }
+        double stress=computeStress(s);
         //printf(" applyDV: oldstress=%f, stress=%f, stepsize=%f\n", oldStress,stress,stepsize);
         if(oldStress>=stress) {
             return stress;
@@ -365,33 +453,42 @@ void ConstrainedFDLayout::computeForces(
     g=0;
     // for each node:
     for(unsigned u=0;u<n;u++) {
-        if(fixedPos[u]) continue;
+        if(fixed.check(u)) {
+            continue;
+        }
         // Stress model
-        double Huu=0;
+        double Huux=0,Huuy=0;
         for(unsigned v=0;v<n;v++) {
             if(u==v) continue;
             // no forces between disconnected parts of the graph
             if(G[u][v]==numeric_limits<unsigned>::max()) continue;
+            // if we compute straightenEdge forces then they replace
+            // forces between adjacent nodes
+            if(straightenEdges && G[u][v]==1) continue;
             double rx=X[u]-X[v], ry=Y[u]-Y[v];
             double l=sqrt(rx*rx+ry*ry);
             double d=D[u][v];
             // we don't want long range attractive forces between 
             // not immediately connected nodes
             if(G[u][v]>1 && l>d) continue;
-            // if we compute straightenEdge forces then they replace
-            // forces between adjacent nodes
-            if(straightenEdges && G[u][v]==1) continue;
             double d2=d*d;
             /* force apart zero distances */
             if (l < 1e-30) {
                 l=0.1;
             }
-            double dx=dim==HORIZONTAL?rx:ry;
-            double dy=dim==HORIZONTAL?ry:rx;
-            g[u]+=dx*(l-d)/(d2*l);
-            Huu-=H(u,v)=(d*dy*dy/(l*l*l)-1)/d2;
+            g[u]+=rx*(l-d)/(d2*l);
+            g[u+n]+=ry*(l-d)/(d2*l);
+            double hx=(d*ry*ry/(l*l*l)-1)/d2;
+            double hy=(d*rx*rx/(l*l*l)-1)/d2;
+            if(!fixed.check(v)) {
+                H(u,v)=hx;
+                H(u+n,v+n)=hy;
+            }
+            Huux-=hx;
+            Huuy-=hy;
         }
-        H(u,u)=Huu;
+        H(u,u)=Huux;
+        H(u+n,u+n)=Huuy;
     }
 }
 double ConstrainedFDLayout::computeStepSize(
@@ -411,7 +508,7 @@ double ConstrainedFDLayout::computeStepSize(
     if(denominator==0) return 0;
     return numerator/denominator;
 }
-double ConstrainedFDLayout::computeStress() const {
+double ConstrainedFDLayout::computeStress(topology::TopologyConstraints *t) const {
     double stress=0;
     for(unsigned u=0;u<n-1;u++) {
         for(unsigned v=u+1;v<n;v++) {
@@ -430,6 +527,10 @@ double ConstrainedFDLayout::computeStress() const {
             double rl=d-l;
             stress+=rl*rl/d2;
         }
+    }
+    if(t) {
+        t->coordsToNodePositions();
+        stress+=t->computeStress();
     }
     return stress;
 }

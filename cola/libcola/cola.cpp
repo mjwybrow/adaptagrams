@@ -55,6 +55,7 @@ ConstrainedMajorizationLayout
         D[i]=new double[n];
     }
     shortest_paths::johnsons(n,D,es,eweights);
+    //shortest_paths::neighbours(n,D,es,eweights);
     edge_length = idealLength;
     if(clusterHierarchy) {
         for(Clusters::const_iterator i=clusterHierarchy->clusters.begin();
@@ -80,7 +81,7 @@ ConstrainedMajorizationLayout
             Dij[i*n + j] = d;
             if(i==j) continue;
             double lij=0;
-            if(!isinf(d)) {
+            if(d!=0 && !isinf(d)) {
                 lij=1./(d*d);
             }
             degree += lap2[i*n + j] = lij;
@@ -433,11 +434,7 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
     majorize(Dij,gp,*coords,*startCoords);
     valarray<double> const & r=gp->getFullResult();
     for(unsigned i=0;i<snodes.size();i++) {
-        if(dim==HORIZONTAL) {
-            snodes[i]->x = r[i];
-        } else {
-            snodes[i]->y = r[i];
-        }
+        snodes[i]->pos[dim] = r[i];
     }
     for(unsigned i=0;i<sedges.size();i++) {
         sedges[i]->createRouteFromPath(snodes);

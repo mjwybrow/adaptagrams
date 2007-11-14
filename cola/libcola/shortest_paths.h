@@ -33,34 +33,44 @@ struct CompareNodes {
 };
 
 typedef pair<unsigned,unsigned> Edge;
-/*
+template <typename T>
+/**
+ * returns the adjacency matrix, 0 entries for non-adjacent nodes
+ * @param n total number of nodes
+ * @param D n*n matrix of shortest paths
+ * @param es edge pairs
+ * @param eweights edge weights, if NULL then all weights will be taken as 1
+ */
+void neighbours(unsigned const n, T** D,
+        vector<Edge> const & es,valarray<T> const * eweights=NULL); 
+/**
  * find all pairs shortest paths, n^3 dynamic programming approach
- * n: total number of nodes
- * D: n*n matrix of shortest paths
- * es: edge pairs
- * eweights: edge weights, if NULL then all weights will be taken as 1
+ * @param n total number of nodes
+ * @param D n*n matrix of shortest paths
+ * @param es edge pairs
+ * @param eweights edge weights, if NULL then all weights will be taken as 1
  */
 template <typename T>
 void floyd_warshall(unsigned const n, T** D,
         vector<Edge> const & es,valarray<T> const * eweights=NULL); 
 
-/*
+/**
  * find all pairs shortest paths, faster, uses dijkstra
- * n: total number of nodes
- * D: n*n matrix of shortest paths
- * es: edge pairs
- * eweights: edge weights, if NULL then all weights will be taken as 1
+ * @param n total number of nodes
+ * @param D n*n matrix of shortest paths
+ * @param es edge pairs
+ * @param eweights edge weights, if NULL then all weights will be taken as 1
  */
 template <typename T>
 void johnsons(unsigned const n, T** D,
         vector<Edge> const & es, valarray<T> const * eweights=NULL);
-/*
+/**
  * find shortest path lengths from node s to all other nodes
- * s: starting node
- * n: total number of nodes
- * d: n vector of path lengths
- * es: edge pairs
- * eweights: edge weights, if NULL then all weights will be taken as 1
+ * @param s starting node
+ * @param n total number of nodes
+ * @param d n vector of path lengths
+ * @param es edge pairs
+ * @param eweights edge weights, if NULL then all weights will be taken as 1
  */
 template <typename T>
 void dijkstra(unsigned const s, unsigned const n, T* d, 

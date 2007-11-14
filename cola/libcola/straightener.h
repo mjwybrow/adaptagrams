@@ -20,11 +20,11 @@ struct Route {
         delete [] ys;
     }
     void print() {
-        cout << "  xs=";
-        copy(xs,xs+n,ostream_iterator<double>(cout,","));
-        cout << endl << "  ys=";
-        copy(ys,ys+n,ostream_iterator<double>(cout,","));
-        cout << endl;
+        cout << "double xs[]={";
+        copy(xs,xs+n-1,ostream_iterator<double>(cout,","));
+        cout << xs[n-1] << "};" << endl << "double ys[]={";
+        copy(ys,ys+n-1,ostream_iterator<double>(cout,","));
+        cout << ys[n-1] << "};" << endl;
     }
     void boundingBox(double &xmin,double &ymin,double &xmax,double &ymax) {
         xmin=ymin=DBL_MAX;
@@ -36,7 +36,7 @@ struct Route {
             ymax=max(ymax,ys[i]);
         } 
     }
-    double routeLength () {
+    double routeLength () const {
         double length=0;
         for(unsigned i=1;i<n;i++) {
             double dx=xs[i-1]-xs[i];
@@ -45,6 +45,7 @@ struct Route {
         }
         return length;
     }
+    void rerouteAround(vpsc::Rectangle *rect);
     unsigned n;
     double *xs;
     double *ys;
@@ -59,12 +60,23 @@ struct DebugLine {
     double x0,y0,x1,y1;
     unsigned colour;
 };
-struct Edge {
-    unsigned id;
+class ScanObject {
+public:
+    const unsigned id;
+    double getMin(cola::Dim d) const {
+        return min[d];
+    }
+    double getMax(cola::Dim d) const {
+        return max[d];
+    }
+    ScanObject(unsigned id) : id(id) {}
+protected:
+    double min[2], max[2];
+};
+class Edge : public ScanObject {
+public:
     unsigned openInd; // position in openEdges
     unsigned startNode, endNode;
-    Route* route;
-    double xmin, xmax, ymin, ymax;
     double idealLength;
     vector<unsigned> dummyNodes;
     vector<unsigned> path;
@@ -75,36 +87,42 @@ struct Edge {
         printf("Edge[%d]=(%d,%d)\n",id,startNode,endNode);
         route->print();
     }
+    // if the edge route intersects with any of the rectangles in rects then reroute
+    // those parts of the route around the rectangle boundaries
+    void rerouteAround(vector<vpsc::Rectangle*> const &rects) {
+        unsigned rid=0;
+        for(vector<vpsc::Rectangle*>::const_iterator r=rects.begin();r!=rects.end();r++,rid++) {
+            if(rid!=startNode && rid!=endNode) {
+                route->rerouteAround(*r);
+            }
+        }
+        updateBoundingBox();
+    }
     // Edge with a non-trivial route
     Edge(unsigned id, unsigned start, unsigned end, Route* route)
-    : id(id), startNode(start), endNode(end), route(route)
+    : ScanObject(id), startNode(start), endNode(end), route(route)
     {
-        route->boundingBox(xmin,ymin,xmax,ymax);
+        updateBoundingBox();
     }
     // Edge with a trivial route
     Edge(unsigned id, unsigned start, unsigned end,
             double x1, double y1, double x2, double y2) 
-    : id(id), startNode(start), endNode(end) {
+    : ScanObject(id), startNode(start), endNode(end) {
         route = new Route(2);
         route->xs[0]=x1; route->ys[0]=y1;
         route->xs[1]=x2; route->ys[1]=y2;
-        route->boundingBox(xmin,ymin,xmax,ymax);
+        updateBoundingBox();
     }
     ~Edge() {
         delete route;
     }
-    void setRoute(Route* r) {
-        delete route;
-        route=r;
-        route->boundingBox(xmin,ymin,xmax,ymax);
-    }
-    bool isEnd(unsigned n) {
+    bool isEnd(unsigned n) const {
         if(startNode==n||endNode==n) return true;
         return false;
     }
     void nodePath(vector<Node*>& nodes, bool allActive);
     void createRouteFromPath(vector<Node *> const & nodes);
-    void xpos(double y, vector<double>& xs) {
+    void xpos(double y, vector<double>& xs) const {
         // search line segments for intersection points with y pos
         for(unsigned i=1;i<route->n;i++) {
             double ax=route->xs[i-1], bx=route->xs[i], ay=route->ys[i-1], by=route->ys[i];
@@ -115,7 +133,7 @@ struct Edge {
             }
         }
     }
-    void ypos(double x, vector<double>& ys) {
+    void ypos(double x, vector<double>& ys) const {
         // search line segments for intersection points with x pos
         for(unsigned i=1;i<route->n;i++) {
             double ax=route->xs[i-1], bx=route->xs[i], ay=route->ys[i-1], by=route->ys[i];
@@ -126,6 +144,19 @@ struct Edge {
             }
         }
     }
+    Route const * getRoute() const {
+        return route;
+    }
+    void setRoute(Route * r) {
+        delete route;
+        route=r;
+        updateBoundingBox();
+    }
+private:
+    void updateBoundingBox() {
+        route->boundingBox(min[0],min[1],max[0],max[1]);
+    }
+    Route* route;
 };
 class Straightener {
 public:
@@ -133,6 +164,7 @@ public:
             const double strength,
             const cola::Dim dim,
             vector<vpsc::Rectangle*> const & rs,
+            cola::FixedList const & fixed,
             vector<Edge*> const & edges, 
             cola::Variables const & vs,
             cola::Variables & lvs,
@@ -142,8 +174,8 @@ public:
     ~Straightener();
     void updateNodePositions();
     void finalizeRoutes();
-    void computeForces(cola::SparseMap &H, valarray<bool> const & fixedPos);
-    void computeForces2(cola::SparseMap &H, valarray<bool> const & fixedPos);
+    void computeForces(cola::SparseMap &H);
+    void computeForces2(cola::SparseMap &H);
     double computeStress(valarray<double> const &coords);
     double computeStress2(valarray<double> const &coords);
     valarray<double> dummyNodesX;
@@ -154,6 +186,7 @@ public:
 private:
     double strength;
     const cola::Dim dim;
+    cola::FixedList const & fixed;
     vector<Edge*> const & edges;
     cola::Variables const & vs;
     cola::Variables & lvs;
@@ -183,16 +216,14 @@ public:
     vector<Edge*> boundary;
     void updateActualBoundary();
 };
-class Node {
+class Node : public ScanObject {
 public:
-    unsigned id;
     Cluster* cluster;
     // Nodes may optionally belong to a cluster.  
     // Neg cluster_id means no cluster - i.e. top-level membership.
-    double x,y;
+    double pos[2];
     double scanpos;
-    double width, height;
-    double xmin, xmax, ymin, ymax;
+    double length[2];
     Edge* edge;
     bool dummy; // nodes on edge paths (but not ends) are dummy
     bool scan; // triggers scan events
@@ -200,21 +231,30 @@ public:
                  // a violated constraint
     bool open; // a node is opened (if scan is true) when the scanline first reaches
                // its boundary and closed when the scanline leaves it.
-    Node(const unsigned id, vpsc::Rectangle const * r) :
-        id(id),cluster(NULL),
-        x(r->getCentreX()),y(r->getCentreY()), width(r->width()), height(r->height()),
-        xmin(r->getMinX()),xmax(r->getMaxX()),
-        ymin(r->getMinY()),ymax(r->getMaxY()),
-        edge(NULL),dummy(false),scan(true),active(true),open(false) { }
-    Node(const unsigned id, const double x, const double y) :
-        id(id),cluster(NULL),
-        x(x),y(y),width(4),height(width),
-        xmin(x-width/2),xmax(x+width/2),
-        ymin(y-height/2),ymax(y+height/2),
-        edge(NULL),dummy(false),scan(false),active(true),open(false) {};
+    Node(unsigned id, vpsc::Rectangle const * r) :
+        ScanObject(id),cluster(NULL),
+        edge(NULL),dummy(false),scan(true),active(true),open(false) { 
+            for(unsigned i=0;i<2;i++) {
+                pos[i]=r->getCentreD(i);
+                min[i]=r->getMinD(i);
+                max[i]=r->getMaxD(i);
+                length[i]=r->length(i);
+            }
+    }
+    Node(unsigned id, const double x, const double y) :
+        ScanObject(id),cluster(NULL),
+        edge(NULL),dummy(false),scan(false),active(true),open(false) {
+            pos[cola::HORIZONTAL]=x;
+            pos[cola::VERTICAL]=y;
+            for(unsigned i=0;i<2;i++) {
+                length[i]=4;
+                min[i]=pos[i]-length[i]/2.0;
+                max[i]=pos[i]+length[i]/2.0;
+            }
+    }
     double euclidean_distance(Node const * v) const {
-        double dx=x-v->x;
-        double dy=y-v->y;
+        double dx=pos[0]-v->pos[0];
+        double dy=pos[1]-v->pos[1];
         return sqrt(dx*dx+dy*dy);
     }
 
@@ -223,11 +263,15 @@ private:
         const double conjpos, vector<Edge*> const & openEdges, 
         vector<Node *>& L, vector<Node *>& nodes);
     Node(const unsigned id, const double x, const double y, Edge* e) : 
-        id(id),cluster(NULL),
-        x(x),y(y), width(4), height(width),
-        xmin(x-width/2),xmax(x+width/2),
-        ymin(y-height/2),ymax(y+height/2),
+        ScanObject(id),cluster(NULL),
         edge(e),dummy(true),scan(false),active(false)  {
+            pos[cola::HORIZONTAL]=x;
+            pos[cola::VERTICAL]=y;
+            for(unsigned i=0;i<2;i++) {
+                length[i]=4;
+                min[i]=pos[i]-length[i]/2.0;
+                max[i]=pos[i]+length[i]/2.0;
+            }
             e->dummyNodes.push_back(id);
         }
 };
@@ -267,10 +311,10 @@ struct LinearConstraint {
         : u(u.id),v(v.id),b(b.id),w(w)
     {
         // from cosine rule: ub.uv/|uv|=|ub|cos(theta)
-        double uvx = v.x - u.x,
-               uvy = v.y - u.y,
-               ubx = b.x - u.x,
-               uby = b.y - u.y,
+        double uvx = v.pos[0] - u.pos[0],
+               uvy = v.pos[1] - u.pos[1],
+               ubx = b.pos[0] - u.pos[0],
+               uby = b.pos[1] - u.pos[1],
                duv2 = uvx * uvx + uvy * uvy;
         if(duv2 < 0.0001) {
             t=0;

@@ -156,9 +156,10 @@ void OutputFile::draw_edges(Cairo::RefPtr<Cairo::Context> &cr,
     // background
     cr->set_source_rgba(0,0,1,0.5);
     for (unsigned i=0;i<es.size();i++) {
-        cr->move_to(es[i]->route->xs[0]-xmin,es[i]->route->ys[0]-ymin);
-		for (unsigned j=1;j<es[i]->route->n;j++) {
-            cr->line_to(es[i]->route->xs[j]-xmin,es[i]->route->ys[j]-ymin);
+        const straightener::Route* r=es[i]->getRoute();
+        cr->move_to(r->xs[0]-xmin,r->ys[0]-ymin);
+		for (unsigned j=1;j<r->n;j++) {
+            cr->line_to(r->xs[j]-xmin,r->ys[j]-ymin);
 		}
         cr->stroke();
 	}

@@ -14,13 +14,17 @@
 #include "straightener.h"
 
 namespace vpsc { class Rectangle; }
+namespace topology { class TopologyConstraints; }
 
+/**
+ * The cola namespace delineates the interface to the libcola constraint layout library
+ */
 namespace cola {
 using vpsc::Rectangle;
 using std::vector;
 using std::valarray;
 
-// Edges are simply a pair of indices to entries in the Node vector
+//! Edges are simply a pair of indices to entries in the Node vector
 typedef std::pair<unsigned, unsigned> Edge;
 
 /**
@@ -39,6 +43,9 @@ struct Lock {
     Lock(unsigned id, double x, double y) : id(id), x(x), y(y) {}
 };
 typedef vector<Lock> Locks;
+/** 
+ * provides a functor for callback before each iteration
+ */
 class PreIteration {
 public:
     PreIteration(Locks& locks) : locks(locks) {}
@@ -50,7 +57,7 @@ public:
 private:
 };
 /** 
- * The following class provides a functor for callback after each iteration
+ * provides a functor for callback after each iteration
  * You can either call ConstrainedMajorizationLayout with an instance of this class setting the
  * tolerance and maxiterations as desired, or create a derived class implementing the operator() to
  * do your own convergence test, or create your own operator() that calls the
@@ -67,7 +74,7 @@ public:
     virtual ~TestConvergence() {}
 
     virtual bool operator()(const double new_stress, valarray<double> & X, valarray<double> & Y) {
-        std::cout<<"iteration="<<iterations<<", new_stress="<<new_stress<<std::endl;
+        //std::cout<<"iteration="<<iterations<<", old_stress="<<old_stress<<", new_stress="<<new_stress<<std::endl;
         if (old_stress == DBL_MAX) {
             old_stress = new_stress;
             return ++iterations >= maxiterations;
@@ -90,10 +97,15 @@ public:
     unsigned iterations;
 };
 
-// The following instance of TestConvergence is used if no other is
-// specified
+//! default instance of TestConvergence used if no other is specified
 static TestConvergence defaultTest(0.0001,100);
 
+/**
+ * The following class implements the Constrained Majorization graph Layout algorithm.
+ * The optimisation method used is "stress majorization", where a sequence of quadratic
+ * functions which strictly bound the stress from above, is solved to monotonically reduce
+ * the stress (by iteratively changing the configuration of nodes).
+ */
 class ConstrainedMajorizationLayout {
 public:
     ConstrainedMajorizationLayout(
@@ -128,13 +140,23 @@ public:
         this->unsatisfiableX = unsatisfiableX;
         this->unsatisfiableY = unsatisfiableY;
     }
+    /**
+     * sticky nodes causes nodes to spring back to (startX,startY) when unconstrained
+     */
     void setStickyNodes(const double stickyWeight, 
             valarray<double> const & startX,
             valarray<double> const & startY);
 
+    /**
+     * scaling speeds up the solver by conditioning the quadratic terms matrix.
+     */
     void setScaling(bool scaling) {
         this->scaling=scaling;
     }
+    /**
+     * says that the Mosek optimisation library should be used to solve the quadratic
+     * programs rather than the libvpsc solver
+     */
     void setExternalSolver(bool externalSolver) {
         this->externalSolver=externalSolver;
     }
@@ -164,12 +186,18 @@ public:
     void setStraightenEdges(vector<straightener::Edge*>* straightenEdges, 
             double bendWeight = 0.01, double potBendWeight = 0.1,
             bool xSkipping = true) {
+        for(vector<straightener::Edge*>::const_iterator e=straightenEdges->begin();
+                e!=straightenEdges->end();e++) {
+            (*e)->rerouteAround(boundingBoxes);
+        }
         constrainedLayout = true;
         this->xSkipping = xSkipping;
         this->straightenEdges = straightenEdges;
         this->bendWeight = bendWeight;
         this->potBendWeight = potBendWeight;
     }
+    /** update position of bounding boxes
+     */
     void moveBoundingBoxes() {
         for(unsigned i=0;i<n;i++) {
             boundingBoxes[i]->moveCentre(X[i],Y[i]);
@@ -199,18 +227,19 @@ private:
     double compute_stress(valarray<double> const & Dij);
     void majorize(valarray<double> const & Dij,GradientProjection* gp, valarray<double>& coords, valarray<double> const & startCoords);
     void newton(valarray<double> const & Dij,GradientProjection* gp, valarray<double>& coords, valarray<double> const & startCoords);
-    unsigned n; // number of nodes
+    unsigned n; //!< number of nodes
     //valarray<double> degrees;
-    valarray<double> lap2; // graph laplacian
-    valarray<double> Q; // quadratic terms matrix used in computations
-    valarray<double> Dij; // all pairs shortest path distances
-    double tol;
-    TestConvergence& done;
-    PreIteration* preIteration;
-    vector<Rectangle*> boundingBoxes;
-    // stickyNodes controls whether nodes are attracted to their starting
-    // positions (at time of ConstrainedMajorizationLayout instantiation)
-    // stored in startX, startY
+    valarray<double> lap2; //!< graph laplacian
+    valarray<double> Q; //!< quadratic terms matrix used in computations
+    valarray<double> Dij; //!< all pairs shortest path distances
+    double tol; //!< convergence tolerance
+    TestConvergence& done; //!< functor used to determine if layout is finished
+    PreIteration* preIteration; //!< client can use this to create locks on nodes
+    vector<Rectangle*> boundingBoxes; //!< node bounding boxes
+    /** stickyNodes controls whether nodes are attracted to their starting
+     * positions (at time of ConstrainedMajorizationLayout instantiation)
+     * stored in startX, startY
+     */
     valarray<double> X, Y;
     bool stickyNodes;
     double stickyWeight;
@@ -219,7 +248,7 @@ private:
     double edge_length;
     bool constrainedLayout;
     bool nonOverlappingClusters;
-    /*
+    /**
      * A cluster is a set of nodes that are somehow semantically grouped
      * and should therefore be kept together a bit more tightly than, and
      * preferably without overlapping, the rest of the graph.
@@ -247,14 +276,16 @@ private:
     vector<straightener::Edge*>* straightenEdges;
     
     double bendWeight, potBendWeight;
-    // determines whether we should leave some overlaps to be resolved
-    // vertically when generating straightening constraints in the x-dim
+    /** determines whether we should leave some overlaps to be resolved
+     * vertically when generating straightening constraints in the x-dim
+     */
     bool xSkipping;
-    // when using the gradient projection optimisation method, the following controls
-    // whether the problem should be preconditioned by affine scaling
+    /** when using the gradient projection optimisation method, the following controls
+     * whether the problem should be preconditioned by affine scaling
+     */
     bool scaling;
-    // if the Mosek quadratic programming environment is available it may be used
-    // to solve each iteration of stress majorization... slow but useful for testing
+    /** if the Mosek quadratic programming environment is available it may be used
+       to solve each iteration of stress majorization... slow but useful for testing */
     bool externalSolver;
     bool majorization;
 };
@@ -263,15 +294,16 @@ Rectangle bounds(vector<Rectangle*>& rs);
 
 class Projection {
 public:
-    Projection(const unsigned n, CompoundConstraints * ccs, valarray<bool> const &fixed);
+    Projection(const unsigned n, CompoundConstraints * ccs, FixedList const &fixed);
     ~Projection();
-    void solve(Variables &lvs, Constraints &lcs,valarray<double> &X);
+    void solve(Variables &lvs, std::set<vpsc::Constraint*> &lcs, valarray<double> &X);
+    void solve(Variables &lvs, std::set<vpsc::Constraint*> &lcs);
     Variables vars;
     Constraints gcs;
+    CompoundConstraints* ccs;
 private:
     unsigned n;
-    CompoundConstraints* ccs;
-    valarray<bool> const &fixed;
+    FixedList const &fixed;
 };
 
 class ConstrainedFDLayout {
@@ -327,7 +359,7 @@ public:
         delete [] D;
     }
     valarray<double> dummyNodesX, dummyNodesY;
-    double computeStress() const;
+    double computeStress(topology::TopologyConstraints *t=NULL) const;
 private:
     unsigned n; // number of nodes
     valarray<double> X, Y;
@@ -341,15 +373,15 @@ private:
             valarray<double> &coords, 
             const double oldStress, 
             double stepsize,
-            straightener::Straightener *s=NULL) const;
+            topology::TopologyConstraints *s=NULL) const;
     void move();
     void computeForces(const Dim dim, SparseMap &H, valarray<double> &g);
     vector<vector<unsigned> > neighbours;
     vector<vector<double> > neighbourLengths;
     TestConvergence& done;
     PreIteration* preIteration;
+    FixedList fixed;
     double avgLength;
-    valarray<bool> fixedPos;
     double fc,fs;
     bool constrainedX, constrainedY;
     CompoundConstraints *ccsx, *ccsy;

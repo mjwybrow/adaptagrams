@@ -283,14 +283,9 @@ IncSolver* GradientProjection::setupVPSC() {
             clusterHierarchy->
                 generateNonOverlapConstraints(k,nonOverlapConstraints,*rs,vars,lcs);
         } else {
-            vector<Constraint*> tmp_cs;
-            vector<Rectangle*> lrs;
-            for(vector<Rectangle*>::const_iterator i=rs->begin();
-                    i!=rs->end();i++) {
-                Rectangle* r=*i;
-                if(!r->allowOverlap()) {
-                    lrs.push_back(r);
-                }
+            for(vector<OrthogonalEdgeConstraint*>::iterator i=orthogonalEdges.begin();i!=orthogonalEdges.end();i++) {
+                OrthogonalEdgeConstraint* e=*i;
+                e->generateTopologyConstraints(k,*rs,vars,lcs);
             }
             if(k==HORIZONTAL) {
                 // Make rectangles a little bit wider when processing horizontally so that any overlap
@@ -298,13 +293,10 @@ IncSolver* GradientProjection::setupVPSC() {
                 Rectangle::setXBorder(0.0001);
                 // use rs->size() rather than n because some of the variables may
                 // be dummy vars with no corresponding rectangle
-                generateXConstraints(lrs,vars,tmp_cs,nonOverlapConstraints==Both?true:false); 
+                generateXConstraints(*rs,vars,lcs,nonOverlapConstraints==Both?true:false); 
                 Rectangle::setXBorder(0);
             } else {
-                generateYConstraints(lrs,vars,tmp_cs); 
-            }
-            for(unsigned i=0;i<tmp_cs.size();i++) {
-                lcs.push_back(tmp_cs[i]);
+                generateYConstraints(*rs,vars,lcs); 
             }
         }
     }
@@ -384,9 +376,8 @@ void GradientProjection::straighten(
     assert(vars.size()==numStaticVars);
     sparseQ = Q;
     for(unsigned i=numStaticVars;i<snodes.size();i++) {
-        Variable* v=new vpsc::Variable(i,k==HORIZONTAL?snodes[i]->x:snodes[i]->y,1);
-        assert(k==HORIZONTAL&&v->desiredPosition==snodes[i]->x
-                || k==VERTICAL&&v->desiredPosition==snodes[i]->y);
+        Variable* v=new vpsc::Variable(i,snodes[i]->pos[k],1);
+        assert(v->desiredPosition==snodes[i]->pos[k]);
         vars.push_back(v);
     }
     assert(lcs.size()==0);

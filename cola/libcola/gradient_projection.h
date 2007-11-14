@@ -78,6 +78,10 @@ public:
             for(CompoundConstraints::const_iterator c=ccs->begin();
                     c!=ccs->end();c++) {
                 (*c)->generateVariables(vars);
+                OrthogonalEdgeConstraint* e=dynamic_cast<OrthogonalEdgeConstraint*>(*c);
+                if(e) {
+                    orthogonalEdges.push_back(e);
+                }
             }
             for(CompoundConstraints::const_iterator c=ccs->begin();
                     c!=ccs->end();c++) {
@@ -180,6 +184,7 @@ private:
     vpsc::IncSolver* solver;
     SolveWithMosek solveWithMosek;
     const bool scaling;
+    vector<OrthogonalEdgeConstraint*> orthogonalEdges;
 };
 } // namespace cola
 

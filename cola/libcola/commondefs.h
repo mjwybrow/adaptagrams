@@ -32,6 +32,9 @@ inline bool isinf(double const &x) { return !(_finite(x) || _isnan(x)); }
 #  define DELARE_LOCAL_ARRAY(Type, Name, Count) Type Name[Count]
 #endif
 
+#include <valarray>
+#include <cassert>
+
 namespace cola {
 /**
  * resolve overlaps:
@@ -42,6 +45,33 @@ namespace cola {
  */
 enum NonOverlapConstraints { None, Horizontal, Both };
 enum Dim { HORIZONTAL, VERTICAL };
+class FixedList {
+public:
+    FixedList(const unsigned n) : array(std::valarray<bool>(n)),allFixed(false) 
+    { 
+        array=false; 
+    }
+    void set(const unsigned i, const bool value=true) {
+        assert(i<array.size());
+        array[i]=value;
+    }
+    bool check(const unsigned i) const {
+        if(allFixed||i>=array.size()) {
+            return false;
+        }
+        return array[i];
+    }
+    void unsetAll() {
+        array=false;
+    }
+    void fixAll(bool val) {
+	    allFixed=val;
+    }
+private:
+    std::valarray<bool> array;
+    bool allFixed;
+};
+
 }
 struct delete_object
 {

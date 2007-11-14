@@ -23,7 +23,8 @@ libvpsc_a_SOURCES = block.cpp\
 	variable.h\
 	cbuffer.h\
 	mosek_quad_solve.h\
-	mosek_quad_solve.c
+	mosek_quad_solve.c\
+	linesegment.h
 
 libvpscincludedir = ${includedir}/libvpsc
 

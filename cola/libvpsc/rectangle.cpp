@@ -1,5 +1,6 @@
 /**
- * \brief Functions to automatically generate constraints for the
+ * @file rectangle.cpp
+ * @brief Functions to automatically generate constraints for the
  * rectangular node overlap removal problem.
  *
  * Authors:
@@ -82,23 +83,6 @@ bool CmpNodePos::operator() (const Node* u, const Node* v) const {
 		return isNaN(u->pos) != 0; // magmy20070424: Avoid warning "forcing value to bool' under MS VC++
 	}
 	return u < v;
-
-	/* I don't know how important it is to handle NaN correctly
-	 * (e.g. we probably handle it badly in other code anyway, and
-	 * in any case the best we can hope for is to reduce the
-	 * badness of other nodes).
-	 *
-	 * Nevertheless, we try to do the right thing here and in
-	 * event comparison.  The issue is that (on platforms with
-	 * ieee floating point comparison) NaN compares neither less
-	 * than nor greater than any other number, yet sort wants a
-	 * well-defined ordering.  In particular, we want to ensure
-	 * transitivity of equivalence, which normally wouldn't be
-	 * guaranteed if the "middle" item in the transitivity
-	 * involves a NaN.  (NaN is neither less than nor greater than
-	 * other numbers, so tends to be considered as equal to all
-	 * other numbers: even unequal numbers.)
-	 */
 }
 
 NodeSet* getLeftNeighbours(NodeSet &scanline,Node *v) {
@@ -297,6 +281,172 @@ void generateYConstraints(vector<Rectangle*> const & rs, vector<Variable*> const
 	}
 	delete [] events;
 }
+#include "linesegment.h"
+using namespace linesegment;
+inline bool checkIntersection(
+        const LineSegment::IntersectResult result, 
+        Vector const &intersection,
+        RectangleIntersections &ri, 
+        bool &side, double &sideX, double &sideY) {
+    switch(result) {
+    case LineSegment::INTERSECTING:
+        ri.intersects=side=true;
+        sideX=intersection.x_;
+        sideY=intersection.y_;
+    case LineSegment::PARALLEL:
+    case LineSegment::NOT_INTERSECTING:
+        return true;
+    case LineSegment::COINCIDENT:
+        ri.intersects=ri.top=ri.bottom=ri.left=ri.right=false;
+        return false;
+    }
+    return false;
+}
+void Rectangle::
+lineIntersections(double x1, double y1, double x2, double y2, RectangleIntersections &ri) const {
+    Vector intersection;
+    LineSegment l(Vector(x1,y1),Vector(x2,y2));
+    LineSegment top(Vector(minX,maxY),Vector(maxX,maxY));
+    if(!checkIntersection(
+            l.Intersect(top,intersection),intersection,
+            ri,ri.top,ri.topX,ri.topY)) {
+        return;
+    }
+    LineSegment bottom(Vector(minX,minY),Vector(maxX,minY));
+    if(!checkIntersection(
+            l.Intersect(bottom,intersection),intersection,
+            ri,ri.bottom,ri.bottomX,ri.bottomY)) {
+        return;
+    }
+    LineSegment left(Vector(minX,minY),Vector(minX,maxY));
+    if(!checkIntersection(
+            l.Intersect(left,intersection),intersection,
+            ri,ri.left,ri.leftX,ri.leftY)) {
+        return;
+    }
+    LineSegment right(Vector(maxX,minY),Vector(maxX,maxY));
+    if(!checkIntersection(
+            l.Intersect(right,intersection),intersection,
+            ri,ri.right,ri.rightX,ri.rightY)) {
+        return;
+    }
+}
+static const double ERROR_MARGIN = 1e-4;
+inline bool eq(double a, double b) {
+    return fabs(a-b)<ERROR_MARGIN;
+    //return a==b;
+}
+/*
+bool Rectangle::inside(double x, double y) const {
+    return x>(minX+ERROR_MARGIN) && x<(maxX-ERROR_MARGIN) 
+        && y>(minY+ERROR_MARGIN) && y<(maxY-ERROR_MARGIN);
+}
+*/
+// p1=(x1,y1),p2=(x2,y2) are points on the boundary.  Puts the shortest
+// path round the outside of the rectangle  from p1 to p2 into xs, ys.
+void Rectangle::routeAround(double x1, double y1, double x2, double y2,
+        std::vector<double> &xs, std::vector<double> &ys) {
+    assert(eq(x1,minX) || eq(x1,maxX) || eq(y1,minY) || eq(y1,maxY));
+    assert(eq(x2,minX) || eq(x2,maxX) || eq(y2,minY) || eq(y2,maxY));
+    xs.push_back(x1);
+    ys.push_back(y1);
+    bool top1=eq(y1,maxY), top2=eq(y2,maxY),
+         bottom1=eq(y1,minY), bottom2=eq(y2,minY);
+    bool left1=eq(x1,minX), left2=eq(x2,minX), 
+         right1=eq(x1,maxX), right2=eq(x2,maxX);
+    bool leftright = left1 && right2 || right1 && left2;
+    bool topbottom = top1 && bottom2 || bottom1 && top2;
+    bool lefttop = left1 && top2 || top1 && left2;
+    bool righttop = right1 && top2 || top1 && right2;
+    bool leftbottom = left1 && bottom2 || bottom1 && left2;
+    bool rightbottom = right1 && bottom2 || bottom1 && right2;
+    if(lefttop) {
+        xs.push_back(minX);
+        ys.push_back(maxY);
+    } else if(righttop) {
+        xs.push_back(maxX);
+        ys.push_back(maxY);
+    } else if(leftbottom) {
+        xs.push_back(minX);
+        ys.push_back(minY);
+    } else if(rightbottom) {
+        xs.push_back(maxX);
+        ys.push_back(minY);
+    } else if(leftright) {
+        double midY = y1+(y2-y1)/2.0;
+        if(left1) { // left to right
+            if(midY<getCentreY()) { // route below
+                // bottom left
+                xs.push_back(getMinX());
+                ys.push_back(getMinY());
+                // bottom right
+                xs.push_back(getMaxX());
+                ys.push_back(getMinY());
+            } else { // route above
+                // top left
+                xs.push_back(getMinX());
+                ys.push_back(getMaxY());
+                // top right
+                xs.push_back(getMaxX());
+                ys.push_back(getMaxY());
+            }
+        } else { // right to left
+            if(midY<getCentreY()) { // route below
+                // bottom right
+                xs.push_back(getMaxX());
+                ys.push_back(getMinY());
+                // bottom left
+                xs.push_back(getMinX());
+                ys.push_back(getMinY());
+            } else { // route above
+                // top right
+                xs.push_back(getMaxX());
+                ys.push_back(getMaxY());
+                // top left
+                xs.push_back(getMinX());
+                ys.push_back(getMaxY());
+            }
+        }
+    } else if(topbottom) {
+        double midX = x1+(x2-x1)/2.0;
+        if(top1) {
+            if(midX<getCentreX()) { // route left
+                // top left
+                xs.push_back(getMinX());
+                ys.push_back(getMaxY());
+                // bottom left
+                xs.push_back(getMinX());
+                ys.push_back(getMinY());
+            } else { // route right
+                // top right
+                xs.push_back(getMaxX());
+                ys.push_back(getMaxY());
+                // bottom right
+                xs.push_back(getMaxX());
+                ys.push_back(getMinY());
+            }
+        } else { // bottom to top
+            if(midX<getCentreX()) { // route left
+                // bottom left
+                xs.push_back(getMinX());
+                ys.push_back(getMinY());
+                // top left
+                xs.push_back(getMinX());
+                ys.push_back(getMaxY());
+            } else { // route right
+                // bottom right
+                xs.push_back(getMaxX());
+                ys.push_back(getMinY());
+                // top right
+                xs.push_back(getMaxX());
+                ys.push_back(getMaxY());
+            }
+        }
+    }
+    xs.push_back(x2);
+    ys.push_back(y2);
+}
+
 }
 /*
   Local Variables:

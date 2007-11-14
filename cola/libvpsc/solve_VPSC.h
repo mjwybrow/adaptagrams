@@ -1,5 +1,6 @@
 /**
- * \brief Solve an instance of the "Variable Placement with Separation
+ * @file 
+ * @brief Solve an instance of the "Variable Placement with Separation
  * Constraints" problem.
  *
  * Authors:
@@ -23,6 +24,10 @@
 #include <vector>
 #include "exceptions.h"
 
+/**
+ * the vpsc namespace delineates the libvpsc Variable Placement with
+ * Separation Constraints quadratic program solver library.
+ */
 namespace vpsc {
 class Variable;
 class Constraint;

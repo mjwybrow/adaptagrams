@@ -35,6 +35,26 @@ void floyd_warshall(
         }
     }
 }
+// Simply returns the adjacency graph
+template <typename T>
+void neighbours(
+        unsigned const n,
+        T** D, 
+        vector<Edge> const & es,
+        valarray<T> const * eweights) 
+{
+    assert(!eweights||eweights->size()==es.size());
+    for(unsigned i=0;i<n;i++) {
+        for(unsigned j=0;j<n;j++) {
+            D[i][j]=0;
+        }
+    }
+    for(unsigned i=0;i<es.size();i++) {
+        unsigned u=es[i].first, v=es[i].second;
+        assert(u<n&&v<n);
+        D[u][v]=D[v][u]=eweights?(*eweights)[i]:1;
+    }
+}
 template <typename T>
 void dijkstra_init(
         vector<Node<T> > & vs, 

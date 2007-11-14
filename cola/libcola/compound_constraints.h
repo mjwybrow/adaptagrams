@@ -157,6 +157,69 @@ public:
     }
     vpsc::Constraint* vpscConstraint;
 };
+// Orthogonal edges must have their end points aligned horizontally or vertically
+class OrthogonalEdgeConstraint : public CompoundConstraint {
+public:
+    OrthogonalEdgeConstraint(unsigned l, unsigned r)
+        : left(l), right(r), 
+          vpscConstraint(NULL)  {
+    }
+    unsigned left;
+    unsigned right;
+    void generateVariables(Variables& vars) { }
+	void generateSeparationConstraints(
+            Variables& vs, 
+            Constraints& cs) {
+        vpscConstraint = new vpsc::Constraint(vs[left],vs[right],0,true);
+        cs.push_back(vpscConstraint);
+    }
+    void generateTopologyConstraints(const Dim k, vector<vpsc::Rectangle*> const & rs, 
+            vector<vpsc::Variable*> const & vars, vector<vpsc::Constraint*> & cs) {
+        double lBound, rBound, pos;
+        if(k==HORIZONTAL) {
+            lBound = rs[left]->getCentreY();
+            rBound = rs[right]->getCentreY();
+            pos = rs[left]->getCentreX();
+        } else {
+            lBound = rs[left]->getCentreX();
+            rBound = rs[right]->getCentreX();
+            pos = rs[left]->getCentreY();
+        }
+        double minBound = std::min(lBound,rBound);
+        double maxBound = std::max(lBound,rBound);
+        for(unsigned i=0;i<rs.size();i++) {
+            if(i==left || i==right) continue;
+            vpsc::Rectangle* r=rs[i];
+            if(r->allowOverlap()) continue;
+            double l, rMin, rMax, rCentre;
+            rectBounds(k,r,rMin,rMax,rCentre,l);
+            if(rMin >= minBound && rMin <= maxBound || rMax >= minBound && rMax <= maxBound) {
+                double g=l/2;
+                if(rCentre < pos) {
+                    cs.push_back(new vpsc::Constraint(vars[i], vars[left], g));
+                } else {
+                    cs.push_back(new vpsc::Constraint(vars[left], vars[i], g));
+                }
+            }
+        }
+    }
+    vpsc::Constraint* vpscConstraint;
+private:
+    void rectBounds(const Dim k, vpsc::Rectangle const *r, 
+            double & cmin, double & cmax, double & centre, double & l) const {
+        if(k==HORIZONTAL) {
+            cmin = r->getMinY();
+            cmax = r->getMaxY();
+            centre = r->getCentreX();
+            l = r->width();
+        } else {
+            cmin = r->getMinX();
+            cmax = r->getMaxX();
+            centre = r->getCentreY();
+            l = r->height();
+        }
+    }
+};
 
 // A set of horizontal or vertical spacing constraints between adjacent pairs
 // of alignment constraints

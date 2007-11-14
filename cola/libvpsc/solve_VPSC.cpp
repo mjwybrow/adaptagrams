@@ -1,7 +1,9 @@
-/**
+/*
  * vim: set cindent 
  * vim: ts=4 sw=4 et tw=0 wm=0
- * \brief Solve an instance of the "Variable Placement with Separation
+ */
+/**
+ * \file Solve an instance of the "Variable Placement with Separation
  * Constraints" problem.
  *
  * Authors:
