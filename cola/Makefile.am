@@ -1,3 +1,3 @@
 AUTOMAKE_OPTIONS = gnu
-SUBDIRS = libvpsc libcola
+SUBDIRS = libvpsc libcola libproject
 

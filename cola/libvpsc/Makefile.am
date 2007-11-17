@@ -1,4 +1,5 @@
-INCLUDES = -I$(top_srcdir)
+mosek_home=/home/dwyer/devel/mosek/5/tools/platform/linux32x86
+INCLUDES = -I$(top_srcdir) -I$(mosek_home)/h
 lib_LIBRARIES = libvpsc.a
 #DEFS=-DLIBVPSC_LOGGING
 

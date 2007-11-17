@@ -1,4 +1,4 @@
-#mosek_home=/home/dwyer/devel/mosek/4/tools/platform/linux32x86
+mosek_home=/home/dwyer/devel/mosek/4/tools/platform/linux32x86
 INCLUDES = -I$(top_srcdir) -I/usr/include/cairo -I/usr/include/cairomm-1.0 -I$(mosek_home)/h
 #check_PROGRAMS = unconstrained constrained containment straightener shortest_paths connected_components large_graph convex_hull scale_free trees random_graph large_graph
 check_PROGRAMS = straightener 

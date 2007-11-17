@@ -15,7 +15,7 @@ static inline double getRand(const int range) {
 	return (double)range*rand()/(RAND_MAX+1.0);
 }
 inline bool approxEquals(const double a, const double b) {
-	return fabs((double)a-b)<0.001;
+	return fabs((double)a-b)<0.01;
 }
 typedef vector<Constraint*> CS;
 
@@ -25,7 +25,7 @@ bool checkResult(unsigned n, Variable *a[], unsigned m, Constraint *c[], double 
 	IncSolver vpsc(aa,cc);
 	vpsc.solve();
 #ifdef MOSEK_AVAILABLE
-	printf("Checking with mosek...");
+	//printf("Checking with mosek...");
 	MosekEnv* menv = mosek_init_sep_ls(n,c,m);
 	float *b=new float[n];
 	float *x=new float[n];
@@ -39,14 +39,13 @@ bool checkResult(unsigned n, Variable *a[], unsigned m, Constraint *c[], double 
 		char s=',';
 		if(i==n-1) s='\n';
 #ifdef MOSEK_AVAILABLE
-		printf("%f(%f)%c",a[i]->position(),x[i],s);
-		if(!(approxEquals(a[i]->position(),x[i]))) {
+		//printf("%f(%f)%c",a[i]->finalPosition,x[i],s);
+		if(!(approxEquals(a[i]->finalPosition,x[i]))) {
 			return false;
 		}
-		assert(approxEquals(a[i]->position(),x[i]));
+		assert(approxEquals(a[i]->finalPosition,x[i]));
 #endif
-		//position private now.
-		//if(expected) assert(approxEquals(a[i]->position(),expected[i]));
+		if(expected) assert(approxEquals(a[i]->finalPosition,expected[i]));
 	}
 #ifdef MOSEK_AVAILABLE
 	delete [] b;
@@ -509,7 +508,7 @@ void rand_test(unsigned n, unsigned m) {
 	Variable *a[n];
 	CS cs;
 	for(unsigned i=0;i<n;i++) {
-		a[i]=new Variable(i,getRand(10),1,getRand(10));
+		a[i]=new Variable(i,getRand(10),1,1);//getRand(10));
 	}
 	for(unsigned i=0;i<n-1;i++) {
 		for(int j=0;j<getRand(m)+1;j++) {
@@ -583,6 +582,7 @@ void rand_test(unsigned n, unsigned m) {
 }
 int main() {
 	srand(time(NULL));
+	/*
 	test1();
 	test2();
 	test3();
@@ -595,15 +595,14 @@ int main() {
 	test10();
 	test11();
 	test12();
-	/*
 	for(int i=0;i<1000;i++) {
 		if(i%100==0) cout << "i=" << i << endl;
 		rand_test(100,3);
 	}
-*/
+	*/
 	for(int i=0;i<10000;i++) {
 		if(i%100==0) cout << "i=" << i << endl;
-		rand_test(5,3);
+		rand_test(10,3);
 	}
 	return 0;
 }
