@@ -15,6 +15,7 @@
 #include <vector>
 #include <numeric>
 #include <cmath>
+#include <cfloat>
 #include "util.h"
 #include "feasible_projection_algorithm.h"
 
@@ -86,9 +87,9 @@ FeasibleProjectionAlgorithm::
 ~FeasibleProjectionAlgorithm() {
     for_each(blocks.begin(),blocks.end(),delete_object());
 }
-Struct AlphaSearch {
-    AlphaSearch() : safe_c(NULL), safe_alpha(DBL_MAX) {}
-    void operator(Constraint const* c) {
+struct AlphaSearch {
+    AlphaSearch() : safeC(NULL), safeAlpha(DBL_MAX) {}
+    void operator()(Constraint const* c) {
         double alpha = 0;
         double Xl = c->l->block->X,
                Xr = c->r->block->X,
@@ -105,19 +106,17 @@ Struct AlphaSearch {
                    Br = Xr - XIr;
             alpha = (c->g + Al - Ar) / (Br - Bl);
         }
-        if(alpha < safe_alpha) {
-            safe_c = c;
-            safe_alpha = alpha;
+        if(alpha < safeAlpha) {
+            safeC = c;
+            safeAlpha = alpha;
         }
     }
-    Constraint *safeC;
-    double &safeAlpha;
+    Constraint const *safeC;
+    double safeAlpha;
 };
 void FeasibleProjectionAlgorithm:: 
 make_optimal() {
-    Constraint* c = NULL;
-    double safeAlpha = DBL_MAX;
-    for_each(cs.begin();cs.end();max_safe_alpha(c,safeAlpha));
+    for_each(cs.begin(),cs.end(),AlphaSearch());
 }
 void FeasibleProjectionAlgorithm:: 
 make_active(Constraint *c) {
