@@ -16,6 +16,7 @@
 #define _PROJECT_FEASIBLE_PROJECT_ALGORITHM_H
 
 #include <vector>
+#include <set>
 #include "project.h"
 
 namespace algorithm {
@@ -35,7 +36,7 @@ struct Variable : public project::Variable {
 };
 typedef vector<Variable*> Variables;
 /**
- * A separation constraint of the form l->x + g <= r->x
+ * A separation constraint of the form \f$x_l + g \le x_r\f$
  */
 class Constraint {
 public:
@@ -48,12 +49,15 @@ public:
     double lm; ///< lagrange multiplier
 };
 
+/**
+ * A block is a set of variables spanned by a tree of active constraints.
+ */
 class Block {
 public:
     Block(Variable* v);
     /**
-     * compute the optimal position for this block based on the ideal positions of
-     * its constituent variables
+     * Compute the optimal position for this block based on the ideal positions of
+     * its constituent variables.  
      */
     double optBlockPos() const;
     /**
@@ -87,13 +91,14 @@ public:
      */
     bool project();
 private:
-    vector<Constraint*> const &cs;
     vector<Variable*> const &vs;
+    vector<Constraint*> const &cs;
     vector<Block*> blocks;
+    set<Constraint*> inactive;
     void init_blocks();
     double maxSafeAlpha(Constraint const* c) const;
     void make_optimal();
-    void make_active(Constraint *c);
+    void make_active(Constraint *c, double alpha);
     void make_inactive(Constraint *c);
     void split_blocks(); 
 };

@@ -45,6 +45,12 @@ struct sum_posdiff {
     }
 };
 /**
+ * Compute the optimal position for this block based on the ideal positions of
+ * its constituent variables.  
+ * That is, for each variable in the block \f$v_i\in V\f$ with ideal
+ * positions \f$d_i\f$ and offset relative to the block reference position
+ * \f$b_i\f$ the ideal position for the block is
+ * \f$\frac{1}{|V|}\sum_{v_i\in V} d_i - b_i\f$.
  */
 double Block::optBlockPos() const {
     return accumulate(V.begin(),V.end(),0.0,sum_posdiff()) / V.size();
@@ -76,6 +82,16 @@ void Block::computeLagrangians() {
     compute_dfdv(V[0],NULL);
 }
 
+FeasibleProjectionAlgorithm::
+FeasibleProjectionAlgorithm(
+        std::vector<Variable*> const &vs, 
+        std::vector<Constraint *> const &cs) 
+    : vs(vs)
+    , cs(cs)
+    , inactive(cs.begin(),cs.end()) 
+{
+
+}
 void FeasibleProjectionAlgorithm::
 init_blocks() {
     for(Variables::const_iterator i=vs.begin();i!=vs.end();i++) {
@@ -87,9 +103,12 @@ FeasibleProjectionAlgorithm::
 ~FeasibleProjectionAlgorithm() {
     for_each(blocks.begin(),blocks.end(),delete_object());
 }
-struct AlphaSearch {
-    AlphaSearch() : safeC(NULL), safeAlpha(DBL_MAX) {}
-    void operator()(Constraint const* c) {
+struct MaxSafeAlpha {
+    MaxSafeAlpha(Constraint *&c, double &alpha) : safeC(c), safeAlpha(alpha) { 
+        c=NULL;
+        safeAlpha = DBL_MAX;
+    }
+    void operator()(Constraint * c) {
         double alpha = 0;
         double Xl = c->l->block->X,
                Xr = c->r->block->X,
@@ -111,15 +130,26 @@ struct AlphaSearch {
             safeAlpha = alpha;
         }
     }
-    Constraint const *safeC;
-    double safeAlpha;
+    Constraint *&safeC;
+    double &safeAlpha;
 };
 void FeasibleProjectionAlgorithm:: 
 make_optimal() {
-    for_each(cs.begin(),cs.end(),AlphaSearch());
+    Constraint *c;
+    double alpha;
+    for_each(inactive.begin(),inactive.end(),MaxSafeAlpha(c,alpha));
+    while(alpha < 1) {
+        make_active(c, alpha);
+        inactive.erase(c);
+        for_each(inactive.begin(),inactive.end(),MaxSafeAlpha(c,alpha));
+    }
+    for(vector<Block*>::iterator i=blocks.begin(); i!=blocks.end(); i++) {
+        Block* b=*i;
+        b->XI = b->X;
+    }
 }
 void FeasibleProjectionAlgorithm:: 
-make_active(Constraint *c) {
+make_active(Constraint *c, double alpha) {
 }
 void FeasibleProjectionAlgorithm:: 
 make_inactive(Constraint *c) {
