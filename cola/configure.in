@@ -45,4 +45,4 @@ if test "$GXX" = "yes"; then
 fi
 
 AC_CHECK_LIB(cairomm-1.0,cairo_create)
-AC_OUTPUT(Makefile libcola/Makefile libcola/tests/Makefile libvpsc/Makefile libvpsc/tests/Makefile libproject/Makefile)
+AC_OUTPUT(Makefile libcola/Makefile libcola/tests/Makefile libvpsc/Makefile libvpsc/tests/Makefile libproject/Makefile libproject/tests/Makefile)

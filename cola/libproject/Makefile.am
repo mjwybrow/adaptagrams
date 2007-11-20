@@ -3,11 +3,13 @@
 lib_LIBRARIES = libproject.a
 
 libproject_a_SOURCES = project.cpp \
-		       feasible_projection_algorithm.cpp
+		       feasible_projection_algorithm.cpp \
+		       util.cpp
 
-libprojectincludedir = ${includedir}/libvpsc
+libprojectincludedir = ${includedir}/libproject
 
 libprojectinclude_HEADERS = project.h \
-	feasible_projection_algorithm.h
+	feasible_projection_algorithm.h \
+	util.h
 
-#SUBDIRS = tests
+SUBDIRS = tests

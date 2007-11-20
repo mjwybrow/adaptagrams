@@ -12,14 +12,16 @@
  * Released under GNU LGPL.  Read the file 'COPYING' for more information.
  */
 
-#include <vector>
 #include <numeric>
 #include <cmath>
 #include <cfloat>
+#include <cassert>
 #include "util.h"
 #include "feasible_projection_algorithm.h"
 
 namespace algorithm {
+
+void Variable::updatePosition() { x = block->X + b; }
 
 Constraint::Constraint(Variable *l, Variable *r, const double g)
     : l(l), r(r), g(g)
@@ -39,11 +41,6 @@ Block::Block(Variable* v)
     v->block=this;
 }
 
-struct sum_posdiff {
-    double operator() (double acc, Variable const *v) {
-        return acc + (v->d - v->b);
-    }
-};
 /**
  * Compute the optimal position for this block based on the ideal positions of
  * its constituent variables.  
@@ -52,20 +49,25 @@ struct sum_posdiff {
  * \f$b_i\f$ the ideal position for the block is
  * \f$\frac{1}{|V|}\sum_{v_i\in V} d_i - b_i\f$.
  */
-double Block::optBlockPos() const {
-    return accumulate(V.begin(),V.end(),0.0,sum_posdiff()) / V.size();
+double Block::optimalPosition() const {
+    return sum_over(V.begin(),V.end(),0.0,mem_fun(&Variable::displacement))
+           / V.size();
 }
 
-double Block::compute_dfdv(Variable const* v, Constraint const* last) {
+/**
+ * used by computeLagrangians to recursively compute lagrangrians from the
+ * partial derivatives of each variable.
+ */
+double compute_dfdv(Variable const* v, Constraint const* last) {
     double dfdv = 2.0 * (v->x - v->d);
-    for(Constraints::const_iterator i=v->out.begin();i!=v->out.end();i++) {
+    for(Constraints::const_iterator i=v->out.begin();i!=v->out.end();++i) {
         Constraint *c=*i;
         if(c!=last && c->active) {
             c->lm = compute_dfdv(c->r,c);
             dfdv += c->lm;
         }
     }
-    for(Constraints::const_iterator i=v->in.begin();i!=v->in.end();i++) {
+    for(Constraints::const_iterator i=v->in.begin();i!=v->in.end();++i) {
         Constraint *c=*i;
         if(c!=last && c->active) {
             c->lm = -compute_dfdv(c->l,c);
@@ -74,11 +76,10 @@ double Block::compute_dfdv(Variable const* v, Constraint const* last) {
     }
     return dfdv;
 }
-struct reset_lm { void operator() (Constraint *c) { c->lm = 0; } };
 /**
  */
 void Block::computeLagrangians() {
-    for_each(C.begin(),C.end(),reset_lm());
+    for_each(C.begin(),C.end(),mem_fun(&Constraint::resetLM));
     compute_dfdv(V[0],NULL);
 }
 
@@ -89,73 +90,163 @@ FeasibleProjectionAlgorithm(
     : vs(vs)
     , cs(cs)
     , inactive(cs.begin(),cs.end()) 
-{
-
+{ 
 }
-void FeasibleProjectionAlgorithm::
-init_blocks() {
-    for(Variables::const_iterator i=vs.begin();i!=vs.end();i++) {
-        blocks.push_back(new Block(*i));
-    }
-}
-
 FeasibleProjectionAlgorithm::
 ~FeasibleProjectionAlgorithm() {
     for_each(blocks.begin(),blocks.end(),delete_object());
 }
-struct MaxSafeAlpha {
-    MaxSafeAlpha(Constraint *&c, double &alpha) : safeC(c), safeAlpha(alpha) { 
-        c=NULL;
-        safeAlpha = DBL_MAX;
+bool FeasibleProjectionAlgorithm::
+project() {
+    initBlocks();
+    bool optimal;
+    do {
+        makeOptimal();
+        for_each(vs.begin(),vs.end(),mem_fun(&Variable::updatePosition));
+        optimal=splitBlocks();
+    } while(!optimal);
+    return true;
+}
+void FeasibleProjectionAlgorithm::
+initBlocks() {
+    for(Variables::const_iterator i=vs.begin();i!=vs.end();++i) {
+        blocks.push_back(new Block(*i));
     }
-    void operator()(Constraint * c) {
-        double alpha = 0;
-        double Xl = c->l->block->X,
-               Xr = c->r->block->X,
-               bl = c->l->b,
-               br = c->r->b;
-        if(Xl + bl + c->g <= Xr + br) {
-            alpha = 1;
+}
+
+struct MaxSafeMove : unary_function<Constraint*,void> {
+    MaxSafeMove(Constraint *&c, double &alpha) : c(c), alpha(alpha) { }
+    void operator()(Constraint *_c) {
+        double a = 0;
+        double Xl = _c->l->block->X,
+               Xr = _c->r->block->X,
+               bl = _c->l->b,
+               br = _c->r->b;
+        if(Xl + bl + _c->g <= Xr + br) {
+            // if constraint is satisfied at the desired positions
+            // then we can move all the way
+            a = 1;
         } else {
-            double XIl = c->l->block->XI,
-                   XIr = c->r->block->XI;
+            double XIl = _c->l->block->XI,
+                   XIr = _c->r->block->XI;
             double Al = XIl + bl,
                    Ar = XIr + br,
                    Bl = Xl - XIl,
                    Br = Xr - XIr;
-            alpha = (c->g + Al - Ar) / (Br - Bl);
+            a = (_c->g + Al - Ar) / (Br - Bl);
         }
-        if(alpha < safeAlpha) {
-            safeC = c;
-            safeAlpha = alpha;
+        if(a < alpha) {
+            c = _c;
+            alpha = a;
         }
     }
-    Constraint *&safeC;
-    double &safeAlpha;
+    Constraint *&c;
+    double &alpha;
 };
 void FeasibleProjectionAlgorithm:: 
-make_optimal() {
-    Constraint *c;
-    double alpha;
-    for_each(inactive.begin(),inactive.end(),MaxSafeAlpha(c,alpha));
+makeOptimal() {
+    Constraint *c=NULL;
+    double alpha=DBL_MAX;
+    for_each(inactive.begin(),inactive.end(),MaxSafeMove(c,alpha));
     while(alpha < 1) {
-        make_active(c, alpha);
+        makeActive(c,alpha);
         inactive.erase(c);
-        for_each(inactive.begin(),inactive.end(),MaxSafeAlpha(c,alpha));
+        for_each(inactive.begin(),inactive.end(),MaxSafeMove(c,alpha=DBL_MAX));
     }
-    for(vector<Block*>::iterator i=blocks.begin(); i!=blocks.end(); i++) {
+    for(Blocks::iterator i=blocks.begin(); i!=blocks.end(); ++i) {
         Block* b=*i;
         b->XI = b->X;
     }
 }
+/**
+ * Make a given (inactive) constraint active by merging the two blocks it
+ * spans into one new block (actually we merge the right hand side into the
+ * left)
+ * @param c the constraint with the maximum alpha over which it is
+ * safe (meaning does not violate any other constraints) to merge.
+ * @param alpha the fraction of the distance from the current to the
+ * optimal position by which to move XI (the "initial" position)
+ */
 void FeasibleProjectionAlgorithm:: 
-make_active(Constraint *c, double alpha) {
+makeActive(Constraint *c, double alpha) {
+    Block *L = c->l->block;
+    Block *R = c->r->block;
+    double br = c->l->b - c->r->b + c->g;
+    double prevOptPos = L->X;
+    for(Variables::iterator i=R->V.begin();i!=R->V.end();++i) {
+        Variable *v=*i;
+        v->b+=br;
+        v->block=L;
+    }
+    L->V.insert(L->V.end(),R->V.begin(),R->V.end());
+    L->C.insert(L->C.end(),R->C.begin(),R->C.end());
+    L->C.push_back(c);
+    L->X = L->optimalPosition();
+    L->XI = (L->XI - alpha * (L->XI - L->X + prevOptPos))
+            / (1.0 - alpha);
+}
+bool cmpLagrangians(Constraint* a,Constraint* b) { return a->lm < b->lm; }
+bool FeasibleProjectionAlgorithm:: 
+splitBlocks() {
+    bool optimal = true;
+    for(Blocks::iterator i = blocks.begin(); i!=blocks.end(); ++i) {
+        Block* b = *i;
+        b->XI = b->X;
+        if(b->C.empty()) continue;
+        b->computeLagrangians();
+        Constraint *sc
+            = *min_element(b->C.begin(),b->C.end(),cmpLagrangians);
+        if(sc->lm < 0) {
+            optimal = false;
+            makeInactive(sc,i);
+        }
+    }
+    return optimal;
+}
+void populateSplitBlock(
+        Variable const* v, Constraint const* last,
+        Variables &vs, Constraints &cs
+) {
+    for(Constraints::const_iterator i=v->out.begin();i!=v->out.end();++i) {
+        Constraint *c=*i;
+        if(c!=last && c->active) {
+            vs.push_back(c->r);
+            cs.push_back(c);
+            populateSplitBlock(c->r,c,vs,cs);
+        }
+    }
+    for(Constraints::const_iterator i=v->in.begin();i!=v->in.end();++i) {
+        Constraint *c=*i;
+        if(c!=last && c->active) {
+            vs.push_back(c->l);
+            cs.push_back(c);
+            populateSplitBlock(c->l,c,vs,cs);
+        }
+    }
+}
+/**
+ * create a block by traversing a tree of active constraints.
+ * @param v the variable from which to start the traversal
+ * @param c don't traverse back over this constraint (v should be
+ * either the left- or right-hand side of c)
+ */
+Block::Block(Variable* v, Constraint* c) {
+    populateSplitBlock(v,c,V,C);
+    XI=v->block->XI;
+    for_each(V.begin(),V.end(),bind2nd(mem_fun(&Variable::setBlock),this));
+    X=optimalPosition();
 }
 void FeasibleProjectionAlgorithm:: 
-make_inactive(Constraint *c) {
-}
-void FeasibleProjectionAlgorithm:: 
-split_blocks() {
+makeInactive(Constraint *c,Blocks::iterator &i) {
+    inactive.insert(c);
+    Block* b=c->l->block;
+    assert(b==*i);
+    Block* lb=new Block(c->l,c);
+    Block* rb=new Block(c->r,c);
+    blocks.insert(i,lb);
+    blocks.insert(i,rb);
+    blocks.erase(i);
+    delete b;
 }
 
 } // namespace algorithm

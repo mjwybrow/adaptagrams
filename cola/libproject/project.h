@@ -12,8 +12,8 @@
  * Released under GNU LGPL.  Read the file 'COPYING' for more information.
  */
 
-#ifndef _PROJECT_PROJECT_H
-#define _PROJECT_PROJECT_H
+#ifndef _LIBPROJECT_PROJECT_H
+#define _LIBPROJECT_PROJECT_H
 
 #include <vector>
 #include <map>
@@ -35,7 +35,7 @@ class Block;
  */
 class Variable {
 public:
-    Variable(double x, double d);
+    Variable(double x, double d) : x(x),d(d) {}
     double x; ///< current position
     const double d; ///< desired position
 };
@@ -46,7 +46,8 @@ typedef vector<Variable*> Variables;
  */
 class Constraint {
 public:
-    Constraint(Variable const *l, Variable const *r, const double g);
+    Constraint(Variable const *l, Variable const *r, const double g)
+        : l(l), r(r), g(g) {}
     Variable const *l; 
     Variable const *r;
     const double g; ///< minimum separation required between l and r
@@ -77,7 +78,7 @@ private:
 };
 
 } // namespace project
-#endif // _PROJECT_PROJECT_H
+#endif // _LIBPROJECT_PROJECT_H
 /*
  * vim: set cindent 
  * vim: ts=4 sw=4 et tw=0 wm=0

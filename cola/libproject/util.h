@@ -1,18 +1,30 @@
-#ifndef _PROJECT_FEASIBLE_PROJECT_H
-#define _PROJECT_FEASIBLE_PROJECT_H
+#ifndef _LIBPROJECT_UTIL_H
+#define _LIBPROJECT_UTIL_H
 
+/**
+ * templated delete functor for use in for_each loop over vector
+ */
 struct delete_object
 {
   template <typename T>
-  void operator()(T *ptr){ delete ptr; }
+  void operator()(T *ptr){ delete ptr;}
 };
 
-#ifndef NDEBUG
-#include <cmath>
-static const double epsilon=1e-8;
-bool approx_equals(double a, double b) {
-    return fabs(a-b)<epsilon;
+/** 
+ * Sum over the results of calling operation for each member in the
+ * iterator.  Handier than std::accumulate because we can use with
+ * mem_fun to pass in a getter method.
+ */
+template <class InputIterator, class T, class Operation >
+T sum_over(InputIterator beg, InputIterator end, T init, Operation op)
+{
+	for ( ; beg != end; ++beg)
+	init = init + op(*beg);
+	return init;
 }
-#endif
 
-#endif // _PROJECT_UTIL_H
+#ifndef NDEBUG
+bool approx_equals(double a, double b);
+#endif // NDEBUG
+
+#endif // _LIBPROJECT_UTIL_H

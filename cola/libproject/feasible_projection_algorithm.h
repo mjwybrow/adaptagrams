@@ -12,11 +12,12 @@
  * Released under GNU LGPL.  Read the file 'COPYING' for more information.
  */
 
-#ifndef _PROJECT_FEASIBLE_PROJECT_ALGORITHM_H
-#define _PROJECT_FEASIBLE_PROJECT_ALGORITHM_H
+#ifndef _LIBPROJECT_FEASIBLE_PROJECT_ALGORITHM_H
+#define _LIBPROJECT_FEASIBLE_PROJECT_ALGORITHM_H
 
 #include <vector>
 #include <set>
+#include <list>
 #include "project.h"
 
 namespace algorithm {
@@ -30,6 +31,11 @@ class Block;
 struct Variable : public project::Variable {
     Variable(project::Variable const &v)
         : project::Variable(v) {}
+    /// recompute the current position based on offset and block position
+    void updatePosition();
+    /// displacement from ideal position
+    double displacement() { return d - b; }
+    void setBlock(Block* b) { block = b; }
     Block* block; ///< container block
     double b; ///< offset from block reference variable
     Constraints in, out; ///< defines constraint DAG
@@ -47,6 +53,7 @@ public:
     double slack() const;
     bool active; ///< if set at equality
     double lm; ///< lagrange multiplier
+    void resetLM() { lm = 0; }
 };
 
 /**
@@ -54,27 +61,36 @@ public:
  */
 class Block {
 public:
+    /**
+     * create a block starting with a single variable.
+     * @param v the starting variable
+     */
     Block(Variable* v);
+    /**
+     * create a block by traversing a tree of active constraints.
+     * @param v the variable from which to start the traversal
+     * @param c don't traverse back over this constraint (v should be
+     * either the left- or right-hand side of c)
+     */
+    Block(Variable* v, Constraint* c);
     /**
      * Compute the optimal position for this block based on the ideal positions of
      * its constituent variables.  
      */
-    double optBlockPos() const;
+    double optimalPosition() const;
     /**
      * compute the lagrangian multipliers of all the active constraints in this block.
      */
     void computeLagrangians();
-    vector<Variable*> V; ///< member vars
-    vector<Constraint*> C; ///< active constraints
+    Variables V; ///< member vars
+    Constraints C; ///< active constraints
     double X; ///< position of reference var
     double XI; ///< initial position
 private:
-    /**
-     * used by compute_lagrangians to recursively compute lagrangrians from the partial derivatives
-     * of each variable.
-     */
-    double compute_dfdv(Variable const* v, Constraint const* last);
 };
+typedef list<Block*> Blocks;
+
+struct MaxSafeMove;
 
 /**
  * A solver that projects onto separation constraints, starting from a
@@ -91,20 +107,19 @@ public:
      */
     bool project();
 private:
-    vector<Variable*> const &vs;
-    vector<Constraint*> const &cs;
-    vector<Block*> blocks;
+    Variables const &vs;
+    Constraints const &cs;
+    Blocks blocks;
     set<Constraint*> inactive;
-    void init_blocks();
-    double maxSafeAlpha(Constraint const* c) const;
-    void make_optimal();
-    void make_active(Constraint *c, double alpha);
-    void make_inactive(Constraint *c);
-    void split_blocks(); 
+    void initBlocks();
+    void makeOptimal();
+    void makeActive(Constraint *c, double alpha);
+    void makeInactive(Constraint *c,Blocks::iterator &i);
+    bool splitBlocks(); 
 };
 
 } // namespace algorithm
-#endif // _PROJECT_FEASIBLE_PROJECT_ALGORITHM_H
+#endif // _LIBPROJECT_FEASIBLE_PROJECT_ALGORITHM_H
 /*
  * vim: set cindent 
  * vim: ts=4 sw=4 et tw=0 wm=0
