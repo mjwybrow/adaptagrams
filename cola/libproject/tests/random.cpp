@@ -30,12 +30,12 @@ void printProblem(Variables &vs,
 	vector<double>::iterator xi=XI.begin();
 	for(Variables::iterator i=vs.begin();i!=vs.end();++i,++xi) {
 		Variable* v=*i;
-		printf("Variable(%f,%f);\n",*xi,v->d);
+		printf("vs.push_back(Variable(%f,%f));\n",*xi,v->d);
 	}
 	for(Constraints::iterator i=cs.begin();i!=cs.end();++i) {
 		Constraint* c=*i;
 		unsigned l=vmap[c->l], r=vmap[c->r];
-		printf("Constraint(vs[%d],vs[%d],%f);\n", l,r,c->g);
+		printf("cs.push_back(Constraint(vs[%d],vs[%d],%f));\n", l,r,c->g);
 	}
 }
 void test(unsigned n=10,double range=10) {
