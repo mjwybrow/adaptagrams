@@ -1,5 +1,5 @@
 /**
- * \file static_tests.cpp
+ * \file static.cpp
  * small test cases that have identified bugs at various times
  */
 #include <iostream>
