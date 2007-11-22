@@ -56,6 +56,7 @@ public:
     void resetLM() { lm = 0; }
 };
 
+typedef list<Block*> Blocks;
 /**
  * A block is a set of variables spanned by a tree of active constraints.
  */
@@ -86,9 +87,9 @@ public:
     Constraints C; ///< active constraints
     double X; ///< position of reference var
     double XI; ///< initial position
+    Blocks::iterator listIndex; ///< for easy removal from the blocks list
 private:
 };
-typedef list<Block*> Blocks;
 
 struct MaxSafeMove;
 
@@ -114,8 +115,11 @@ private:
     void initBlocks();
     void makeOptimal();
     void makeActive(Constraint *c, double alpha);
-    void makeInactive(Constraint *c,Blocks::iterator &i);
+    Blocks::iterator makeInactive(Constraint *c);
     bool splitBlocks(); 
+#ifndef NDEBUG
+    void assertNoneViolated();
+#endif
 };
 
 } // namespace algorithm

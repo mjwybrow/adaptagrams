@@ -77,6 +77,7 @@ double compute_dfdv(Variable const* v, Constraint const* last) {
     return dfdv;
 }
 /**
+ * Compute the lagrange multipliers for each active constraint in the block
  */
 void Block::computeLagrangians() {
     for_each(C.begin(),C.end(),mem_fun(&Constraint::resetLM));
@@ -99,7 +100,7 @@ FeasibleProjectionAlgorithm::
 bool FeasibleProjectionAlgorithm::
 project() {
     initBlocks();
-    bool optimal;
+    bool optimal=true;
     do {
         makeOptimal();
         for_each(vs.begin(),vs.end(),mem_fun(&Variable::updatePosition));
@@ -110,7 +111,8 @@ project() {
 void FeasibleProjectionAlgorithm::
 initBlocks() {
     for(Variables::const_iterator i=vs.begin();i!=vs.end();++i) {
-        blocks.push_back(new Block(*i));
+        Block *b=new Block(*i);
+        b->listIndex=blocks.insert(blocks.end(),b);
     }
 }
 
@@ -134,7 +136,13 @@ struct MaxSafeMove : unary_function<Constraint*,void> {
                    Bl = Xl - XIl,
                    Br = Xr - XIr;
             a = (_c->g + Al - Ar) / (Br - Bl);
+            //assert(0<=a && a<=1);
+            if(!(0<=a && a<=1)) {
+                printf("alpha=%f\n",a);
+                throw "strange alpha computed!";
+            }
         }
+        printf("C->g=%f, alpha=%f\n",_c->g,a);
         if(a < alpha) {
             c = _c;
             alpha = a;
@@ -143,8 +151,29 @@ struct MaxSafeMove : unary_function<Constraint*,void> {
     Constraint *&c;
     double &alpha;
 };
+#ifndef NDEBUG
+const double epsilon = 1e-10;
+void FeasibleProjectionAlgorithm::
+assertNoneViolated() {
+    for(Constraints::const_iterator i=cs.begin();i!=cs.end();i++) {
+        Constraint *c=*i;
+        double XIl = c->l->block->XI,
+               XIr = c->r->block->XI,
+               bl = c->l->b,
+               br = c->r->b;
+        double slack = XIr + br - XIl - bl - c->g;
+        //assert(slack>=-epsilon);
+        if(slack<=-epsilon) {
+            throw "Internal error in libproject: infeasible state reached!";
+        }
+    }
+}
+#endif
 void FeasibleProjectionAlgorithm:: 
 makeOptimal() {
+#ifndef NDEBUG
+    assertNoneViolated();
+#endif
     Constraint *c=NULL;
     double alpha=DBL_MAX;
     for_each(inactive.begin(),inactive.end(),MaxSafeMove(c,alpha));
@@ -157,15 +186,20 @@ makeOptimal() {
         Block* b=*i;
         b->XI = b->X;
     }
+#ifndef NDEBUG
+    assertNoneViolated();
+#endif
 }
 /**
- * Make a given (inactive) constraint active by merging the two blocks it
+ * Move all blocks by alpha * (X-XI) and make the specified constraint
+ * active by setting to equality and merging the two blocks that it
  * spans into one new block (actually we merge the right hand side into the
  * left)
  * @param c the constraint with the maximum alpha over which it is
  * safe (meaning does not violate any other constraints) to merge.
  * @param alpha the fraction of the distance from the current to the
- * optimal position by which to move XI (the "initial" position)
+ * optimal position by which to move XI (the "initial" position) of 
+ * each block
  */
 void FeasibleProjectionAlgorithm:: 
 makeActive(Constraint *c, double alpha) {
@@ -173,17 +207,27 @@ makeActive(Constraint *c, double alpha) {
     Block *R = c->r->block;
     double br = c->l->b - c->r->b + c->g;
     double prevOptPos = L->X;
+    printf("mergeblock:\n");
+    for(Variables::iterator i=L->V.begin();i!=L->V.end();++i) {
+        Variable *v=*i;
+        printf("  v[%p]->b=%f\n",v,v->b);
+    }
+    printf(" plus:\n");
     for(Variables::iterator i=R->V.begin();i!=R->V.end();++i) {
         Variable *v=*i;
         v->b+=br;
         v->block=L;
+        printf("  v[%p]->b=%f\n",v,v->b);
     }
+    c->active=true;
     L->V.insert(L->V.end(),R->V.begin(),R->V.end());
     L->C.insert(L->C.end(),R->C.begin(),R->C.end());
     L->C.push_back(c);
     L->X = L->optimalPosition();
-    L->XI = (L->XI - alpha * (L->XI - L->X + prevOptPos))
+    L->XI = (L->XI - alpha * (L->XI - prevOptPos + L->X))
             / (1.0 - alpha);
+    printf("   X=%f, XI=%f\n",L->X, L->XI);
+    blocks.erase(R->listIndex);
 }
 bool cmpLagrangians(Constraint* a,Constraint* b) { return a->lm < b->lm; }
 bool FeasibleProjectionAlgorithm:: 
@@ -194,23 +238,28 @@ splitBlocks() {
         b->XI = b->X;
         if(b->C.empty()) continue;
         b->computeLagrangians();
+        for(Constraints::iterator j=b->C.begin();j!=b->C.end();j++) {
+            Constraint* c=*j;
+            printf("C->g=%f, lm=%f\n",c->g,c->lm);
+        }
         Constraint *sc
             = *min_element(b->C.begin(),b->C.end(),cmpLagrangians);
+        printf("min: C->g=%f, lm=%f\n",sc->g,sc->lm);
         if(sc->lm < 0) {
             optimal = false;
-            makeInactive(sc,i);
+            i=makeInactive(sc);
         }
     }
     return optimal;
 }
 void populateSplitBlock(
-        Variable const* v, Constraint const* last,
+        Variable* v, Constraint const* last,
         Variables &vs, Constraints &cs
 ) {
+    vs.push_back(v);
     for(Constraints::const_iterator i=v->out.begin();i!=v->out.end();++i) {
         Constraint *c=*i;
         if(c!=last && c->active) {
-            vs.push_back(c->r);
             cs.push_back(c);
             populateSplitBlock(c->r,c,vs,cs);
         }
@@ -218,7 +267,6 @@ void populateSplitBlock(
     for(Constraints::const_iterator i=v->in.begin();i!=v->in.end();++i) {
         Constraint *c=*i;
         if(c!=last && c->active) {
-            vs.push_back(c->l);
             cs.push_back(c);
             populateSplitBlock(c->l,c,vs,cs);
         }
@@ -236,17 +284,18 @@ Block::Block(Variable* v, Constraint* c) {
     for_each(V.begin(),V.end(),bind2nd(mem_fun(&Variable::setBlock),this));
     X=optimalPosition();
 }
-void FeasibleProjectionAlgorithm:: 
-makeInactive(Constraint *c,Blocks::iterator &i) {
+Blocks::iterator FeasibleProjectionAlgorithm:: 
+makeInactive(Constraint *c) {
+    printf("FeasibleProjectionAlgorithm::makeInactive(Constraint *c)\n");
     inactive.insert(c);
     Block* b=c->l->block;
-    assert(b==*i);
     Block* lb=new Block(c->l,c);
     Block* rb=new Block(c->r,c);
-    blocks.insert(i,lb);
-    blocks.insert(i,rb);
-    blocks.erase(i);
+    lb->listIndex=blocks.insert(b->listIndex,lb);
+    rb->listIndex=blocks.insert(b->listIndex,rb);
+    blocks.erase(b->listIndex);
     delete b;
+    return rb->listIndex;
 }
 
 } // namespace algorithm
