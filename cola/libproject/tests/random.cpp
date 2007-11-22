@@ -3,6 +3,7 @@
 #include <libproject/project.h>
 #include <libproject/util.h>
 #include <cmath>
+#include "testutil.h"
 
 using namespace project;
 using namespace std;
@@ -18,77 +19,69 @@ using namespace std;
  *   - all constraints active
  *   - constraint DAG is a simple chain
  */
-double getRand(const double range) {
-	return (double)range*rand()/(RAND_MAX);
-}
-typedef map<const Variable*,unsigned> VMap;
-void printProblem(Variables &vs, 
-		vector<double> &XI, 
-		Constraints &cs, 
-		VMap &vmap) 
-{
-	vector<double>::iterator xi=XI.begin();
-	for(Variables::iterator i=vs.begin();i!=vs.end();++i,++xi) {
-		Variable* v=*i;
-		printf("vs.push_back(Variable(%f,%f));\n",*xi,v->d);
-	}
-	for(Constraints::iterator i=cs.begin();i!=cs.end();++i) {
-		Constraint* c=*i;
-		unsigned l=vmap[c->l], r=vmap[c->r];
-		printf("cs.push_back(Constraint(vs[%d],vs[%d],%f));\n", l,r,c->g);
-	}
-}
 void test(unsigned n=10,double range=10) {
-	Variables vs;
-	double rpos=getRand(range/n);
-	double epsilon = 1e-10;
-	VMap vmap;
-	vector<double> XI(n);
-	for(unsigned i=0;i<n;i++) {
-		Variable* v=new Variable(rpos,getRand(range));
-		XI[i]=rpos;
-		vmap[v]=i;
-		vs.push_back(v);
-		rpos+=getRand(range/n);
-	}
-	Constraints cs;
-	for(unsigned i=0;i<n-1;i++) {
-		if(getRand(2)>1) {
-			unsigned j=i+unsigned(ceil(getRand(n-i-1)));
-			double r=getRand(1);
-			Variable *lv=vs[i], *rv=vs[j];
-			double g=r*(rv->x-lv->x);
-			cs.push_back(new Constraint(lv,rv,g));
-		}
-	}
-	// assert initial solution is feasible:
-	for(Constraints::iterator i=cs.begin();i!=cs.end();++i) {
-		Constraint* c=*i;
-		assert(c->r->x - c->l->x >= c->g);
-	}
-	FeasibleProjection f(vs,cs);
-	f.solve();
-	// assert final solution is feasible:
-	for(Constraints::iterator i=cs.begin();i!=cs.end();++i) {
-		Constraint* c=*i;
-		double slack = c->l->x+c->g-c->r->x;
-		if(slack<0) {
-			unsigned l=vmap[c->l], r=vmap[c->r];
-			printf("Unsatisfied: Constraint(vs[%d],vs[%d],%f), slack=%f\n", l,r,c->g,slack);
-			printProblem(vs,XI,cs,vmap);
-		}
-		assert(slack+epsilon>=0);
-	}
-	for_each(vs.begin(),vs.end(),delete_object());
-	for_each(cs.begin(),cs.end(),delete_object());
+    Variables vs;
+    double rpos=getRand(range/n);
+    VMap vmap;
+    vector<double> XI(n);
+    for(unsigned i=0;i<n;i++) {
+        Variable* v=new Variable(rpos,getRand(range));
+        XI[i]=rpos;
+        vmap[v]=i;
+        vs.push_back(v);
+        rpos+=getRand(range/n);
+    }
+    Constraints cs;
+    for(unsigned i=0;i<n-1;i++) {
+        if(getRand(2)>1) {
+            unsigned j=i+unsigned(ceil(getRand(n-i-1)));
+            double r=getRand(1);
+            Variable *lv=vs[i], *rv=vs[j];
+            double g=r*(rv->x-lv->x);
+            cs.push_back(new Constraint(lv,rv,g));
+        }
+    }
+    // assert initial solution is feasible:
+    assert(feasible(cs));
+
+    // run standard qpsolver
+    vector<double> qpresult;
+    qps(vs,cs,qpresult);
+
+    try {
+        // run our solver
+        FeasibleProjection f(vs,cs);
+        f.solve();
+
+        // assert final solution is feasible:
+        if(!feasible(cs)) {
+            throw "infeasible solution!";
+        }
+        // assert solution matches solution from standard QP solver
+        for(unsigned i=0;i<vs.size();i++) {
+            if(!approxEquals(vs[i]->x,qpresult[i])) {
+                throw "incorrect solution!";
+            }
+        }
+    } catch(const char *e) {
+        printProblem(vs,XI,cs,vmap);
+        fprintf(stderr,"%s\n",e);
+        exit(1);
+    }
+    for_each(vs.begin(),vs.end(),delete_object());
+    for_each(cs.begin(),cs.end(),delete_object());
 }
 int main() {
-	srand(time(NULL));
-	for(unsigned i=0;i<10000;i++) {
-		test(3,3);
-		if(!(i%100)) {
-			printf("i=%d\n",i);
-		}
-	}
-	return 0;
+    srand(time(NULL));
+    for(unsigned i=0;i<10000;i++) {
+        test(3,3);
+        if(!(i%100)) {
+            printf("i=%d\n",i);
+        }
+    }
+    return 0;
 }
+/*
+ * vim: set cindent 
+ * vim: ts=4 sw=4 et tw=0 wm=0
+ */
