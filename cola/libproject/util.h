@@ -1,6 +1,45 @@
 #ifndef _LIBPROJECT_UTIL_H
 #define _LIBPROJECT_UTIL_H
 
+#include <cassert>
+#include <iostream>
+
+#ifdef NDEBUG \
+#define LIBPROJECT_ASSERT(expr)  (__ASSERT_VOID_CAST (0))
+#else // Not NDEBUG
+#ifdef USE_CASSERT
+#define LIBPROJECT_ASSERT(expr)  assert(expr)
+#else // Not USE_CASSERT
+#define LIBPROJECT_ASSERT(expr) \
+	if(!(expr)) { \
+		throw CriticalFailure( \
+				__STRING(expr), \
+				__FILE__, \
+				__LINE__, \
+				__ASSERT_FUNCTION); \
+	}
+#endif // USE_CASSERT
+#endif // NDEBUG
+
+#define LIBPROJECT_LOG(msg)  printf(msg)
+
+struct CriticalFailure {
+	CriticalFailure(const char *expr, 
+			const char *file, 
+			int line, 
+			const char *function)
+		: expr(expr), file(file), line(line), function(function)
+	{}
+	void print() {
+		fprintf(stderr,"ERROR: Critical sanity check failed in libproject!\n"
+				"  expression: %s\n  at line %d of %s\n"
+				"  in: %s\n", expr, line, file, function);
+	}
+	const char *expr;
+	const char *file;
+	int line;
+	const char *function;
+};
 /**
  * templated delete functor for use in for_each loop over vector
  */

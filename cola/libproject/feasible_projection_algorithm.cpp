@@ -119,6 +119,9 @@ initBlocks() {
 struct MaxSafeMove : unary_function<Constraint*,void> {
     MaxSafeMove(Constraint *&c, double &alpha) : c(c), alpha(alpha) { }
     void operator()(Constraint *_c) {
+        // MaxSafeMove should only ever be applied to inactive constraints
+        LIBPROJECT_ASSERT(!_c->active);
+        LIBPROJECT_ASSERT(_c->l->block!=_c->r->block);
         double a = 0;
         double Xl = _c->l->block->X,
                Xr = _c->r->block->X,
@@ -127,8 +130,12 @@ struct MaxSafeMove : unary_function<Constraint*,void> {
         if(Xl + bl + _c->g <= Xr + br) {
             // if constraint is satisfied at the desired positions
             // then we can move all the way
+            // note: this should also include inactive constraints within
+            // the same block, hence the assertion below that the two sides of _c
+            // be in a different block.
             a = 1;
         } else {
+            LIBPROJECT_ASSERT(_c->l->block!=_c->r->block);
             double XIl = _c->l->block->XI,
                    XIr = _c->r->block->XI;
             double Al = XIl + bl,
@@ -136,13 +143,9 @@ struct MaxSafeMove : unary_function<Constraint*,void> {
                    Bl = Xl - XIl,
                    Br = Xr - XIr;
             a = (_c->g + Al - Ar) / (Br - Bl);
-            //assert(0<=a && a<=1);
-            if(!(0<=a && a<=1)) {
-                printf("alpha=%f\n",a);
-                throw "strange alpha computed!";
-            }
+            LIBPROJECT_ASSERT(0<=a && a<=1);
         }
-        printf("C->g=%f, alpha=%f\n",_c->g,a);
+        LIBPROJECT_LOG("C->g=%f, alpha=%f\n",_c->g,a);
         if(a < alpha) {
             c = _c;
             alpha = a;
@@ -162,10 +165,7 @@ assertNoneViolated() {
                bl = c->l->b,
                br = c->r->b;
         double slack = XIr + br - XIl - bl - c->g;
-        //assert(slack>=-epsilon);
-        if(slack<=-epsilon) {
-            throw "Internal error in libproject: infeasible state reached!";
-        }
+        LIBPROJECT_ASSERT(slack>=-epsilon);
     }
 }
 #endif
@@ -207,17 +207,17 @@ makeActive(Constraint *c, double alpha) {
     Block *R = c->r->block;
     double br = c->l->b - c->r->b + c->g;
     double prevOptPos = L->X;
-    printf("mergeblock:\n");
+    LIBPROJECT_LOG("mergeblock:\n");
     for(Variables::iterator i=L->V.begin();i!=L->V.end();++i) {
         Variable *v=*i;
-        printf("  v[%p]->b=%f\n",v,v->b);
+        LIBPROJECT_LOG("  v[%p]->b=%f\n",v,v->b);
     }
-    printf(" plus:\n");
+    LIBPROJECT_LOG(" plus:\n");
     for(Variables::iterator i=R->V.begin();i!=R->V.end();++i) {
         Variable *v=*i;
         v->b+=br;
         v->block=L;
-        printf("  v[%p]->b=%f\n",v,v->b);
+        LIBPROJECT_LOG("  v[%p]->b=%f\n",v,v->b);
     }
     c->active=true;
     L->V.insert(L->V.end(),R->V.begin(),R->V.end());
@@ -226,7 +226,7 @@ makeActive(Constraint *c, double alpha) {
     L->X = L->optimalPosition();
     L->XI = (L->XI - alpha * (L->XI - prevOptPos + L->X))
             / (1.0 - alpha);
-    printf("   X=%f, XI=%f\n",L->X, L->XI);
+    LIBPROJECT_LOG("   X=%f, XI=%f\n",L->X, L->XI);
     blocks.erase(R->listIndex);
 }
 bool cmpLagrangians(Constraint* a,Constraint* b) { return a->lm < b->lm; }
@@ -240,11 +240,11 @@ splitBlocks() {
         b->computeLagrangians();
         for(Constraints::iterator j=b->C.begin();j!=b->C.end();j++) {
             Constraint* c=*j;
-            printf("C->g=%f, lm=%f\n",c->g,c->lm);
+            LIBPROJECT_LOG("C->g=%f, lm=%f\n",c->g,c->lm);
         }
         Constraint *sc
             = *min_element(b->C.begin(),b->C.end(),cmpLagrangians);
-        printf("min: C->g=%f, lm=%f\n",sc->g,sc->lm);
+        LIBPROJECT_LOG("min: C->g=%f, lm=%f\n",sc->g,sc->lm);
         if(sc->lm < 0) {
             optimal = false;
             i=makeInactive(sc);
@@ -286,8 +286,9 @@ Block::Block(Variable* v, Constraint* c) {
 }
 Blocks::iterator FeasibleProjectionAlgorithm:: 
 makeInactive(Constraint *c) {
-    printf("FeasibleProjectionAlgorithm::makeInactive(Constraint *c)\n");
+    LIBPROJECT_LOG("FeasibleProjectionAlgorithm::makeInactive(Constraint *c)\n");
     inactive.insert(c);
+    c->active=false;
     Block* b=c->l->block;
     Block* lb=new Block(c->l,c);
     Block* rb=new Block(c->r,c);

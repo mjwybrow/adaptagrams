@@ -36,7 +36,7 @@ return __ASSERT_FUNCTION;
 }
 
 /**
- * strange alpha problem!
+ * requires two splits
  */
 const char* t3(Variables& vs, Constraints &cs) {
 vs.push_back(new Variable(0.388295,3.504715));//soln=2.161169 != rslt=0.388295
@@ -51,8 +51,8 @@ return __ASSERT_FUNCTION;
 }
 
 int main() {
-    test(t1);
-    test(t2);
+    //test(t1);
+    //test(t2);
     test(t3);
     return 0;
 }
