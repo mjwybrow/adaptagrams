@@ -145,7 +145,7 @@ struct MaxSafeMove : unary_function<Constraint*,void> {
             a = (_c->g + Al - Ar) / (Br - Bl);
             LIBPROJECT_ASSERT(0<=a && a<=1);
         }
-        LIBPROJECT_LOG("C->g=%f, alpha=%f\n",_c->g,a);
+        LIBPROJECT_LOG(("C->g=%f, alpha=%f\n",_c->g,a));
         if(a < alpha) {
             c = _c;
             alpha = a;
@@ -207,17 +207,19 @@ makeActive(Constraint *c, double alpha) {
     Block *R = c->r->block;
     double br = c->l->b - c->r->b + c->g;
     double prevOptPos = L->X;
-    LIBPROJECT_LOG("mergeblock:\n");
+    LIBPROJECT_LOG(("mergeblock:\n"));
+#ifdef LOGGING
     for(Variables::iterator i=L->V.begin();i!=L->V.end();++i) {
         Variable *v=*i;
-        LIBPROJECT_LOG("  v[%p]->b=%f\n",v,v->b);
+        LIBPROJECT_LOG(("  v[%p]->b=%f\n",v,v->b));
     }
-    LIBPROJECT_LOG(" plus:\n");
+#endif
+    LIBPROJECT_LOG((" plus:\n"));
     for(Variables::iterator i=R->V.begin();i!=R->V.end();++i) {
         Variable *v=*i;
         v->b+=br;
         v->block=L;
-        LIBPROJECT_LOG("  v[%p]->b=%f\n",v,v->b);
+        LIBPROJECT_LOG(("  v[%p]->b=%f\n",v,v->b));
     }
     c->active=true;
     L->V.insert(L->V.end(),R->V.begin(),R->V.end());
@@ -226,7 +228,7 @@ makeActive(Constraint *c, double alpha) {
     L->X = L->optimalPosition();
     L->XI = (L->XI - alpha * (L->XI - prevOptPos + L->X))
             / (1.0 - alpha);
-    LIBPROJECT_LOG("   X=%f, XI=%f\n",L->X, L->XI);
+    LIBPROJECT_LOG(("   X=%f, XI=%f\n",L->X, L->XI));
     blocks.erase(R->listIndex);
 }
 bool cmpLagrangians(Constraint* a,Constraint* b) { return a->lm < b->lm; }
@@ -238,13 +240,15 @@ splitBlocks() {
         b->XI = b->X;
         if(b->C.empty()) continue;
         b->computeLagrangians();
+#ifdef LOGGING
         for(Constraints::iterator j=b->C.begin();j!=b->C.end();j++) {
             Constraint* c=*j;
-            LIBPROJECT_LOG("C->g=%f, lm=%f\n",c->g,c->lm);
+            LIBPROJECT_LOG(("C->g=%f, lm=%f\n",c->g,c->lm));
         }
+#endif
         Constraint *sc
             = *min_element(b->C.begin(),b->C.end(),cmpLagrangians);
-        LIBPROJECT_LOG("min: C->g=%f, lm=%f\n",sc->g,sc->lm);
+        LIBPROJECT_LOG(("min: C->g=%f, lm=%f\n",sc->g,sc->lm));
         if(sc->lm < 0) {
             optimal = false;
             i=makeInactive(sc);
@@ -286,7 +290,7 @@ Block::Block(Variable* v, Constraint* c) {
 }
 Blocks::iterator FeasibleProjectionAlgorithm:: 
 makeInactive(Constraint *c) {
-    LIBPROJECT_LOG("FeasibleProjectionAlgorithm::makeInactive(Constraint *c)\n");
+    LIBPROJECT_LOG(("FeasibleProjectionAlgorithm::makeInactive(Constraint *c)\n"));
     inactive.insert(c);
     c->active=false;
     Block* b=c->l->block;

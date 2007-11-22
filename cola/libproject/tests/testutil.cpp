@@ -124,7 +124,7 @@ bool approxEquals(double a, double b) {
  * @param t pointer to a function that will populate a list of variables and a list
  * of constraints.
  */
-void test(const char* (*t)(Variables&, Constraints&)) {
+void test(const char* (*t)(Variables&, Constraints&), bool silentPass) {
     Variables vs;
     Constraints cs;
 
@@ -167,7 +167,9 @@ void test(const char* (*t)(Variables&, Constraints&)) {
                 throw "incorrect solution!";
             }
         }
-        printf("PASS: %s\n",testName);
+        if(!silentPass) {
+            printf("PASS: %s\n",testName);
+        }
     } catch(CriticalFailure &f) {
         f.print();
         printProblem(vs,XI,cs,vmap);

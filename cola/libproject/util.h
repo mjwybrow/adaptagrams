@@ -4,7 +4,7 @@
 #include <cassert>
 #include <iostream>
 
-#ifdef NDEBUG \
+#ifdef NDEBUG 
 #define LIBPROJECT_ASSERT(expr)  (__ASSERT_VOID_CAST (0))
 #else // Not NDEBUG
 #ifdef USE_CASSERT
@@ -21,7 +21,11 @@
 #endif // USE_CASSERT
 #endif // NDEBUG
 
-#define LIBPROJECT_LOG(msg)  printf(msg)
+#ifdef LOGGING
+#define LIBPROJECT_LOG(msg)  printf msg 
+#else
+#define LIBPROJECT_LOG(msg)  // nop
+#endif
 
 struct CriticalFailure {
 	CriticalFailure(const char *expr, 

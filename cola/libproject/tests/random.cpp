@@ -8,6 +8,9 @@
 using namespace project;
 using namespace std;
 
+static const unsigned numVars = 3;
+static const unsigned minConstraints = numVars * 1.5;
+
 /**
  * Random test:
  *   - set of variables V with strictly increasing random starting positions
@@ -21,33 +24,36 @@ using namespace std;
  *   - constraint DAG is a simple chain
  */
 const char* randomProblem(Variables &vs, Constraints &cs) {
-    unsigned n=5;
-    double range=n;
-    double rpos=getRand(range/n);
+    double range=(double)numVars;
+    double rpos=getRand(range/numVars);
     VMap vmap;
-    vector<double> XI(n);
-    for(unsigned i=0;i<n;i++) {
+    vector<double> XI(numVars);
+    for(unsigned i=0;i<numVars;i++) {
         Variable* v=new Variable(rpos,getRand(range));
         XI[i]=rpos;
         vmap[v]=i;
         vs.push_back(v);
-        rpos+=getRand(range/n);
+        rpos+=getRand(range/(double)numVars);
     }
-    for(unsigned i=0;i<n-1;i++) {
-        if(getRand(2)>1) {
-            unsigned j=i+unsigned(ceil(getRand(n-i-1)));
-            double r=getRand(1);
-            Variable *lv=vs[i], *rv=vs[j];
-            double g=r*(rv->x-lv->x);
-            cs.push_back(new Constraint(lv,rv,g));
+    while(cs.size()<minConstraints) {
+        for(unsigned i=0;i<numVars-1;i++) {
+            double probability = getRand(2);
+            if(probability>1.0) {
+                unsigned j=i+unsigned(ceil(getRand(numVars-i-1)));
+                double r=getRand(1);
+                Variable *lv=vs[i], *rv=vs[j];
+                double g=r*(rv->x-lv->x);
+                cs.push_back(new Constraint(lv,rv,g));
+            }
         }
     }
+    //printf("minConstraints=%u,|V|=%u,|C|=%u\n",minConstraints,(unsigned)vs.size(),(unsigned)cs.size());
     return __ASSERT_FUNCTION;
 }
 int main() {
     srand(time(NULL));
     for(unsigned i=0;i<10000;i++) {
-        test(randomProblem);
+        test(randomProblem,true);
         if(!(i%100)) {
             printf("i=%d\n",i);
         }
