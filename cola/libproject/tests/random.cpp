@@ -8,8 +8,8 @@
 using namespace project;
 using namespace std;
 
-static const unsigned numVars = 3;
-static const unsigned minConstraints = numVars * 1.5;
+static unsigned numVars = 5;
+static unsigned minConstraints = numVars * 1.5;
 
 /**
  * Random test:
@@ -52,10 +52,24 @@ const char* randomProblem(Variables &vs, Constraints &cs) {
 }
 int main() {
     srand(time(NULL));
-    for(unsigned i=0;i<10000;i++) {
-        test(randomProblem,true);
-        if(!(i%100)) {
-            printf("i=%d\n",i);
+    unsigned instances = 10000;
+    for(numVars = 3; numVars < 10; numVars++) {
+        printf("Running %d instances with %d variables...\n",instances,numVars);
+        for(unsigned i=0;i<instances;i++) {
+            test(randomProblem,true);
+            //if(!(i%100)) {
+                //printf("i=%d\n",i);
+            //}
+        }
+    }
+    instances = 1000;
+    for(numVars = 10; numVars < 20; numVars++) {
+        printf("Running %d instances with %d variables...\n",instances,numVars);
+        for(unsigned i=0;i<instances;i++) {
+            test(randomProblem,true);
+            //if(!(i%100)) {
+                //printf("i=%d\n",i);
+            //}
         }
     }
     return 0;

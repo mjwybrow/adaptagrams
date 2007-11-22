@@ -51,7 +51,7 @@ return __ASSERT_FUNCTION;
 }
 
 /**
- * redundant constraint
+ * redundant constraints
  */
 const char* t4(Variables& vs, Constraints &cs) {
 vs.push_back(new Variable(0.875029,2.370362));//soln=1.928746 != rslt=0.875029

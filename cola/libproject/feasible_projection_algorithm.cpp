@@ -121,7 +121,6 @@ struct MaxSafeMove : unary_function<Constraint*,void> {
     void operator()(Constraint *_c) {
         // MaxSafeMove should only ever be applied to inactive constraints
         LIBPROJECT_ASSERT(!_c->active);
-        LIBPROJECT_ASSERT(_c->l->block!=_c->r->block);
         double a = 0;
         double Xl = _c->l->block->X,
                Xr = _c->r->block->X,
@@ -131,8 +130,8 @@ struct MaxSafeMove : unary_function<Constraint*,void> {
             // if constraint is satisfied at the desired positions
             // then we can move all the way
             // note: this should also include inactive constraints within
-            // the same block, hence the assertion below that the two sides of _c
-            // be in a different block.
+            // the same block, hence the assertion below that the two 
+            // sides of _c be in a different block.
             a = 1;
         } else {
             LIBPROJECT_ASSERT(_c->l->block!=_c->r->block);
