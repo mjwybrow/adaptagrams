@@ -33,7 +33,8 @@ Constraint::Constraint(Variable *l, Variable *r, const double g)
 }
 
 Block::Block(Variable* v) 
-    : X(v->d)
+    : w(v->w)
+    , X(v->d)
     , XI(v->x)
 {
     V.push_back(v);
@@ -50,16 +51,18 @@ Block::Block(Variable* v)
  * \f$\frac{1}{|V|}\sum_{v_i\in V} d_i - b_i\f$.
  */
 double Block::optimalPosition() const {
-    return sum_over(V.begin(),V.end(),0.0,mem_fun(&Variable::displacement))
-           / V.size();
+    return sum_over(V.begin(),V.end(),0.0,mem_fun(&Variable::displacement)) / w;
 }
 
 /**
- * used by computeLagrangians to recursively compute lagrangrians from the
- * partial derivatives of each variable.
+ * Used by computeLagrangians to recursively compute lagrangrians over the tree of
+ * active constraints, from the partial derivatives of each variable.
+ * @param v either the left or right side of last, used as the starting point of recursion
+ * @param last don't backtrack over this constraint.
  */
 double compute_dfdv(Variable const* v, Constraint const* last) {
-    double dfdv = 2.0 * (v->x - v->d);
+    LIBPROJECT_ASSERT( last==NULL || v==last->l || v==last->r );
+    double dfdv = v->dfdv();
     for(Constraints::const_iterator i=v->out.begin();i!=v->out.end();++i) {
         Constraint *c=*i;
         if(c!=last && c->active) {
@@ -97,6 +100,11 @@ Project::
 ~Project() {
     for_each(blocks.begin(),blocks.end(),delete_object());
 }
+/** 
+ * attempts to solve a least-squares
+ * problem subject to a set of separation constraints.
+ * @return false if an unsatisfiable constraint is found
+ */
 bool Project::
 solve() {
     initBlocks();
@@ -108,6 +116,9 @@ solve() {
     } while(!optimal);
     return true;
 }
+/**
+ * Put each variable in its own block
+ */
 void Project::
 initBlocks() {
     for(Variables::const_iterator i=vs.begin();i!=vs.end();++i) {
@@ -116,8 +127,18 @@ initBlocks() {
     }
 }
 
+/**
+ * Functor used for finding the largest move (alpha) we can make along the line from 
+ * current positions to desired positions without violating a constraint.
+ */
 struct MaxSafeMove : unary_function<Constraint*,void> {
     MaxSafeMove(Constraint *&c, double &alpha) : c(c), alpha(alpha) { }
+    /**
+     * Compute the distance along the line from current to desired positions we would
+     * need to move to make a given constraint tight.  If that distance is smaller than
+     * the existing alpha then store it in alpha and note the constraint in c.
+     * @param _c constraint to check against alpha
+     */
     void operator()(Constraint *_c) {
         // MaxSafeMove should only ever be applied to inactive constraints
         LIBPROJECT_ASSERT(!_c->active);
@@ -150,8 +171,8 @@ struct MaxSafeMove : unary_function<Constraint*,void> {
             alpha = a;
         }
     }
-    Constraint *&c;
-    double &alpha;
+    Constraint *&c; ///< the constraint with the smallest alpha to date
+    double &alpha; ///< the distance required to move c in order to make it tight
 };
 #ifndef NDEBUG
 const double epsilon = 1e-10;
@@ -168,6 +189,12 @@ assertNoneViolated() {
     }
 }
 #endif
+/**
+ * Repeatedly search along the line from current to desired positions for the
+ * first constraint that would be violated if we moved any further, and make
+ * that constraint active.  We finish when all blocks can be moved to their
+ * desired positions without violating any further constraints.
+ */
 void Project:: 
 makeOptimal() {
 #ifndef NDEBUG
@@ -222,6 +249,7 @@ makeActive(Constraint *c, double alpha) {
     }
     c->active=true;
     L->V.insert(L->V.end(),R->V.begin(),R->V.end());
+    L->w+=R->w;
     L->C.insert(L->C.end(),R->C.begin(),R->C.end());
     L->C.push_back(c);
     L->X = L->optimalPosition();
@@ -231,6 +259,11 @@ makeActive(Constraint *c, double alpha) {
     blocks.erase(R->listIndex);
 }
 bool cmpLagrangians(Constraint* a,Constraint* b) { return a->lm < b->lm; }
+/**
+ * Check each block to see if splitting it allows the two new blocks to be moved
+ * closer to their desired positions.  Returns true if no further splits are required
+ * and therefore an optimal solution has been found.
+ */
 bool Project:: 
 splitBlocks() {
     bool optimal = true;
@@ -255,23 +288,30 @@ splitBlocks() {
     }
     return optimal;
 }
-void populateSplitBlock(
-        Variable* v, Constraint const* last,
-        Variables &vs, Constraints &cs
-) {
-    vs.push_back(v);
+/**
+ * Populate a new block that is created as the result of a splitting an existing block
+ * by traversing its tree of active constraints.
+ * @param v the start point of the traversal, assumes v->block still points to the old block
+ * @param last don't backtrack over this constraint
+ */
+void Block::populateSplitBlock(Variable* v, Constraint const* last) {
+    LIBPROJECT_ASSERT( v==last->l || v==last->r );
+    LIBPROJECT_ASSERT( v->block!=this );
+    V.push_back(v);
+    v->block = this;
+    w+=v->w;
     for(Constraints::const_iterator i=v->out.begin();i!=v->out.end();++i) {
         Constraint *c=*i;
         if(c!=last && c->active) {
-            cs.push_back(c);
-            populateSplitBlock(c->r,c,vs,cs);
+            C.push_back(c);
+            populateSplitBlock(c->r,c);
         }
     }
     for(Constraints::const_iterator i=v->in.begin();i!=v->in.end();++i) {
         Constraint *c=*i;
         if(c!=last && c->active) {
-            cs.push_back(c);
-            populateSplitBlock(c->l,c,vs,cs);
+            C.push_back(c);
+            populateSplitBlock(c->l,c);
         }
     }
 }
@@ -281,15 +321,18 @@ void populateSplitBlock(
  * @param c don't traverse back over this constraint (v should be
  * either the left- or right-hand side of c)
  */
-Block::Block(Variable* v, Constraint* c) {
-    populateSplitBlock(v,c,V,C);
-    XI=v->block->XI;
-    for_each(V.begin(),V.end(),bind2nd(mem_fun(&Variable::setBlock),this));
+Block::Block(Variable* v, Constraint* c) : w(0), XI(v->block->XI) {
+    populateSplitBlock(v,c);
     X=optimalPosition();
 }
+/**
+ * Make a given active constraint inactive, therefore cutting the tree of active
+ * constraints in the block to which it belongs, and creating two new blocks.
+ */
 Blocks::iterator Project:: 
 makeInactive(Constraint *c) {
     LIBPROJECT_LOG(("Project::makeInactive(Constraint *c)\n"));
+    LIBPROJECT_ASSERT(c->active);
     inactive.insert(c);
     c->active=false;
     Block* b=c->l->block;

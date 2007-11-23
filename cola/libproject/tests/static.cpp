@@ -65,9 +65,9 @@ return __ASSERT_FUNCTION;
 }
 
 int main() {
-    //test(t1);
-    //test(t2);
-    //test(t3);
+    test(t1);
+    test(t2);
+    test(t3);
     test(t4);
     return 0;
 }
