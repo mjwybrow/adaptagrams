@@ -1,5 +1,5 @@
 /**
- * @file 
+ * @file project.h
  * @brief Solve an instance of the "Variable Placement with Separation
  * Constraints" problem, that is a projection onto separation constraints,
  * whilest always maintaining feasibility.
@@ -18,9 +18,8 @@
 #include <vector>
 #include <set>
 #include <list>
-#include "project.h"
 
-namespace algorithm {
+namespace project {
 
 using namespace std;
 
@@ -28,14 +27,18 @@ class Constraint;
 typedef vector<Constraint*> Constraints;
 class Block;
 
-struct Variable : public project::Variable {
-    Variable(project::Variable const &v)
-        : project::Variable(v) {}
+/**
+ * Data for a Variable in a projection problem.
+ */
+struct Variable {
+    Variable(double x, double d) : x(x),d(d) {}
     /// recompute the current position based on offset and block position
     void updatePosition();
     /// displacement from ideal position
     double displacement() { return d - b; }
     void setBlock(Block* b) { block = b; }
+    double x; ///< current position
+    const double d; ///< desired position
     Block* block; ///< container block
     double b; ///< offset from block reference variable
     Constraints in, out; ///< defines constraint DAG
@@ -122,7 +125,7 @@ private:
 #endif
 };
 
-} // namespace algorithm
+} // namespace project
 #endif // _LIBPROJECT_FEASIBLE_PROJECT_ALGORITHM_H
 /*
  * vim: set cindent 

@@ -19,7 +19,7 @@
 #include "util.h"
 #include "feasible_projection_algorithm.h"
 
-namespace algorithm {
+namespace project {
 
 void Variable::updatePosition() { x = block->X + b; }
 
@@ -302,7 +302,7 @@ makeInactive(Constraint *c) {
     return rb->listIndex;
 }
 
-} // namespace algorithm
+} // namespace project
 /*
  * vim: set cindent 
  * vim: ts=4 sw=4 et tw=0 wm=0

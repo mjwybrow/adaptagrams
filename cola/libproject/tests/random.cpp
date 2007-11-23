@@ -1,6 +1,6 @@
 #include <iostream>
 #include <cassert>
-#include <libproject/project.h>
+#include <libproject/feasible_projection_algorithm.h>
 #include <libproject/util.h>
 #include <cmath>
 #include "testutil.h"
@@ -9,7 +9,7 @@ using namespace project;
 using namespace std;
 
 static unsigned numVars = 5;
-static unsigned minConstraints = numVars * 1.5;
+static unsigned minConstraints = (unsigned)((double)numVars * 1.5);
 
 /**
  * Random test:
@@ -51,7 +51,7 @@ const char* randomProblem(Variables &vs, Constraints &cs) {
     return __ASSERT_FUNCTION;
 }
 int main() {
-    srand(time(NULL));
+    //srand(time(NULL));
     unsigned instances = 10000;
     for(numVars = 3; numVars < 10; numVars++) {
         printf("Running %d instances with %d variables...\n",instances,numVars);
