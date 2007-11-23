@@ -3,7 +3,6 @@
  * small test cases that have identified bugs at various times
  */
 #include <iostream>
-#include <cassert>
 #include <libproject/project.h>
 #include <libproject/util.h>
 #include "testutil.h"

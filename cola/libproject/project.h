@@ -38,6 +38,8 @@ struct Variable {
     double dfdv() const { return 2.0 * w * (x-d); }
     /// weighted displacement from ideal position for block position
     double displacement() const { return w * (d-b); }
+    /// compute cost of goal function at current position
+    double cost() const { double dx=x-d; return w * dx*dx; }
     double x; ///< current position
     const double d; ///< desired position
     double w; ///< weight of variable's contribution to goal function
@@ -120,6 +122,10 @@ public:
      * @return false if an unsatisfiable constraint is found
      */
     bool solve();
+    /**
+     * computes cost of the goal function over all variables
+     */
+    double cost() const;
 private:
     Variables const &vs;
     Constraints const &cs;
@@ -159,9 +165,6 @@ private:
      * and therefore an optimal solution has been found.
      */
     bool splitBlocks(); 
-#ifndef NDEBUG
-    void assertNoneViolated();
-#endif
 };
 
 } // namespace project

@@ -19,6 +19,34 @@
 #include "util.h"
 #include "project.h"
 
+#ifndef NDEBUG
+static double lastCost;
+#define INIT_COST(p) {      \
+    lastCost = (p)->cost(); \
+}
+#define ASSERT_COST_DECREASE(p) {    \
+    double c = (p)->cost();          \
+    /*printf("lastcost=%f, currcost=%f\n",lastCost,c);*/ \
+    LIBPROJECT_ASSERT(c<=lastCost);  \
+    lastCost = c;                    \
+}
+const double epsilon = 1e-10;
+#define ASSERT_NONE_VIOLATED(p) { \
+    for(Constraints::const_iterator i=(p)->cs.begin();i!=(p)->cs.end();i++) { \
+        Constraint *c=*i;                                                     \
+        double XIl = c->l->block->XI,                                         \
+               XIr = c->r->block->XI,                                         \
+               bl = c->l->b,                                                  \
+               br = c->r->b;                                                  \
+        double slack = XIr + br - XIl - bl - c->g;                            \
+        LIBPROJECT_ASSERT(slack>=-epsilon);                                   \
+    }                                                                         \
+}
+#else // not NDEBUG
+#define ASSERT_COST_DECREASE(p)
+#define ASSERT_NONE_VIOLATED(p)
+#define INIT_COST(p)
+#endif
 namespace project {
 
 void Variable::updatePosition() { x = block->X + b; }
@@ -109,9 +137,11 @@ bool Project::
 solve() {
     initBlocks();
     bool optimal=true;
+    INIT_COST(this);
     do {
         makeOptimal();
         for_each(vs.begin(),vs.end(),mem_fun(&Variable::updatePosition));
+        ASSERT_COST_DECREASE(this);
         optimal=splitBlocks();
     } while(!optimal);
     return true;
@@ -174,21 +204,6 @@ struct MaxSafeMove : unary_function<Constraint*,void> {
     Constraint *&c; ///< the constraint with the smallest alpha to date
     double &alpha; ///< the distance required to move c in order to make it tight
 };
-#ifndef NDEBUG
-const double epsilon = 1e-10;
-void Project::
-assertNoneViolated() {
-    for(Constraints::const_iterator i=cs.begin();i!=cs.end();i++) {
-        Constraint *c=*i;
-        double XIl = c->l->block->XI,
-               XIr = c->r->block->XI,
-               bl = c->l->b,
-               br = c->r->b;
-        double slack = XIr + br - XIl - bl - c->g;
-        LIBPROJECT_ASSERT(slack>=-epsilon);
-    }
-}
-#endif
 /**
  * Repeatedly search along the line from current to desired positions for the
  * first constraint that would be violated if we moved any further, and make
@@ -197,9 +212,7 @@ assertNoneViolated() {
  */
 void Project:: 
 makeOptimal() {
-#ifndef NDEBUG
-    assertNoneViolated();
-#endif
+    ASSERT_NONE_VIOLATED(this);
     Constraint *c=NULL;
     double alpha=DBL_MAX;
     for_each(inactive.begin(),inactive.end(),MaxSafeMove(c,alpha));
@@ -212,9 +225,7 @@ makeOptimal() {
         Block* b=*i;
         b->XI = b->X;
     }
-#ifndef NDEBUG
-    assertNoneViolated();
-#endif
+    ASSERT_NONE_VIOLATED(this);
 }
 /**
  * Move all blocks by alpha * (X-XI) and make the specified constraint
@@ -349,6 +360,13 @@ makeInactive(Constraint *c) {
     blocks.erase(b->listIndex);
     delete b;
     return rb->listIndex;
+}
+
+/**
+ * computes cost of the goal function over all variables
+ */
+double Project::cost() const {
+    return sum_over(vs.begin(),vs.end(),0.0,mem_fun(&Variable::cost));
 }
 
 } // namespace project
