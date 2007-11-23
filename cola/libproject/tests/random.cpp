@@ -1,6 +1,6 @@
 #include <iostream>
 #include <cassert>
-#include <libproject/feasible_projection_algorithm.h>
+#include <libproject/project.h>
 #include <libproject/util.h>
 #include <cmath>
 #include "testutil.h"

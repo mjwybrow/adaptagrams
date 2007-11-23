@@ -1,8 +1,7 @@
 #INCLUDES = -I$(top_srcdir)
 INCLUDES = -I$(top_srcdir) -Iquadprogpp
 LIBPROJECT = $(top_builddir)/libproject/libproject.a
-#check_PROGRAMS = simple static random
-check_PROGRAMS = random
+check_PROGRAMS = simple static random
 testutil_SOURCES = testutil.cpp quadprogpp/QuadProg++.cc
 simple_SOURCES = simple.cpp
 simple_LDADD = $(LIBPROJECT)

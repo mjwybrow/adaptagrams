@@ -1,5 +1,5 @@
 /**
- * @file 
+ * @file project.cpp
  * @brief Solve an instance of the "Variable Placement with Separation
  * Constraints" problem, that is a projection onto separation constraints,
  * whilest always maintaining feasibility.
@@ -17,7 +17,7 @@
 #include <cfloat>
 #include <cassert>
 #include "util.h"
-#include "feasible_projection_algorithm.h"
+#include "project.h"
 
 namespace project {
 
@@ -84,8 +84,8 @@ void Block::computeLagrangians() {
     compute_dfdv(V[0],NULL);
 }
 
-FeasibleProjectionAlgorithm::
-FeasibleProjectionAlgorithm(
+Project::
+Project(
         std::vector<Variable*> const &vs, 
         std::vector<Constraint *> const &cs) 
     : vs(vs)
@@ -93,12 +93,12 @@ FeasibleProjectionAlgorithm(
     , inactive(cs.begin(),cs.end()) 
 { 
 }
-FeasibleProjectionAlgorithm::
-~FeasibleProjectionAlgorithm() {
+Project::
+~Project() {
     for_each(blocks.begin(),blocks.end(),delete_object());
 }
-bool FeasibleProjectionAlgorithm::
-project() {
+bool Project::
+solve() {
     initBlocks();
     bool optimal=true;
     do {
@@ -108,7 +108,7 @@ project() {
     } while(!optimal);
     return true;
 }
-void FeasibleProjectionAlgorithm::
+void Project::
 initBlocks() {
     for(Variables::const_iterator i=vs.begin();i!=vs.end();++i) {
         Block *b=new Block(*i);
@@ -155,7 +155,7 @@ struct MaxSafeMove : unary_function<Constraint*,void> {
 };
 #ifndef NDEBUG
 const double epsilon = 1e-10;
-void FeasibleProjectionAlgorithm::
+void Project::
 assertNoneViolated() {
     for(Constraints::const_iterator i=cs.begin();i!=cs.end();i++) {
         Constraint *c=*i;
@@ -168,7 +168,7 @@ assertNoneViolated() {
     }
 }
 #endif
-void FeasibleProjectionAlgorithm:: 
+void Project:: 
 makeOptimal() {
 #ifndef NDEBUG
     assertNoneViolated();
@@ -200,7 +200,7 @@ makeOptimal() {
  * optimal position by which to move XI (the "initial" position) of 
  * each block
  */
-void FeasibleProjectionAlgorithm:: 
+void Project:: 
 makeActive(Constraint *c, double alpha) {
     Block *L = c->l->block;
     Block *R = c->r->block;
@@ -231,7 +231,7 @@ makeActive(Constraint *c, double alpha) {
     blocks.erase(R->listIndex);
 }
 bool cmpLagrangians(Constraint* a,Constraint* b) { return a->lm < b->lm; }
-bool FeasibleProjectionAlgorithm:: 
+bool Project:: 
 splitBlocks() {
     bool optimal = true;
     for(Blocks::iterator i = blocks.begin(); i!=blocks.end(); ++i) {
@@ -287,9 +287,9 @@ Block::Block(Variable* v, Constraint* c) {
     for_each(V.begin(),V.end(),bind2nd(mem_fun(&Variable::setBlock),this));
     X=optimalPosition();
 }
-Blocks::iterator FeasibleProjectionAlgorithm:: 
+Blocks::iterator Project:: 
 makeInactive(Constraint *c) {
-    LIBPROJECT_LOG(("FeasibleProjectionAlgorithm::makeInactive(Constraint *c)\n"));
+    LIBPROJECT_LOG(("Project::makeInactive(Constraint *c)\n"));
     inactive.insert(c);
     c->active=false;
     Block* b=c->l->block;

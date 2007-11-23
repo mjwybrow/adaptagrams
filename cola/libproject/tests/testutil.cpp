@@ -5,7 +5,7 @@
 #include <cassert>
 #include <cmath>
 #include <algorithm>
-#include <libproject/feasible_projection_algorithm.h>
+#include <libproject/project.h>
 #include <libproject/util.h>
 #include "testutil.h"
 #include "quadprogpp/QuadProg++.hh"
@@ -154,8 +154,8 @@ void test(const char* (*t)(Variables&, Constraints&), bool silentPass) {
 
     try {
         // run our solver
-        FeasibleProjectionAlgorithm f(vs,cs);
-        f.project();
+        Project f(vs,cs);
+        f.solve();
 
         // assert final solution is feasible:
         if(!feasible(cs)) {

@@ -100,16 +100,16 @@ struct MaxSafeMove;
  * A solver that projects onto separation constraints, starting from a
  * feasible solution, and maintaining feasibility at all times.
  */
-class FeasibleProjectionAlgorithm {
+class Project {
 public:
-    FeasibleProjectionAlgorithm(std::vector<Variable*> const &vs, std::vector<Constraint *> const &cs);
-    ~FeasibleProjectionAlgorithm();
+    Project(std::vector<Variable*> const &vs, std::vector<Constraint *> const &cs);
+    ~Project();
     /** 
      * attempts to solve a least-squares
      * problem subject to a set of separation constraints.
      * @return false if an unsatisfiable constraint is found
      */
-    bool project();
+    bool solve();
 private:
     Variables const &vs;
     Constraints const &cs;

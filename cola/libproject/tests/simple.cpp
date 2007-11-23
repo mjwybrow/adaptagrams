@@ -25,7 +25,7 @@ void simple1() {
     vs.push_back(new Variable(1.348192,1.385243));
     cs.push_back(new Constraint(vs[0],vs[2],0.793396));
     cs.push_back(new Constraint(vs[1],vs[2],0.320881));
-    FeasibleProjection f(vs,cs);
+    Project f(vs,cs);
     f.solve();
     double expected[]={0.940896,1.295395,1.734292};
     for(unsigned i=0;i<vs.size();i++) {
@@ -58,7 +58,7 @@ void simple2() {
     for(unsigned i=0;i<n-1;i++) {
         cs.push_back(new Constraint(vs[i],vs[i+1],1));
     }
-    FeasibleProjection f(vs,cs);
+    Project f(vs,cs);
     f.solve();
     unsigned i=0;
     double firstPos=-(n-1.0)/2.0;
