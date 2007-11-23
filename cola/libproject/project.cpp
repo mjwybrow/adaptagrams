@@ -322,6 +322,8 @@ void Block::populateSplitBlock(Variable* v, Constraint const* last) {
  * either the left- or right-hand side of c)
  */
 Block::Block(Variable* v, Constraint* c) : w(0), XI(v->block->XI) {
+    LIBPROJECT_ASSERT(!c->active);
+    LIBPROJECT_ASSERT( v==c->l || v==c->r );
     populateSplitBlock(v,c);
     X=optimalPosition();
 }
@@ -338,6 +340,10 @@ makeInactive(Constraint *c) {
     Block* b=c->l->block;
     Block* lb=new Block(c->l,c);
     Block* rb=new Block(c->r,c);
+    LIBPROJECT_ASSERT(b->V.size()==lb->V.size()+rb->V.size());
+    LIBPROJECT_ASSERT(b->w==lb->w+rb->w);
+    LIBPROJECT_ASSERT(lb->X<=b->X);
+    LIBPROJECT_ASSERT(rb->X>=b->X);
     lb->listIndex=blocks.insert(b->listIndex,lb);
     rb->listIndex=blocks.insert(b->listIndex,rb);
     blocks.erase(b->listIndex);
