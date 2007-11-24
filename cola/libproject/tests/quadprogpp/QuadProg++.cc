@@ -26,6 +26,11 @@
  along with QuadProg++; if not, write to the Free Software
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  
+NOTE: 
+Modified to dynamically allocate storage for the 2D arrays --- removing
+the previously hard-coded limit on problem size.
+Tim Dwyer 24/11/07
+
 */
 
 #include <iostream>
@@ -38,18 +43,18 @@
 #include "QuadProg++.hh"
 
 // Utility functions for updating some data needed by the solution method 
-void compute_d(double d[], double J[][MATRIX_DIM], double np[], int n);
-void update_z(double z[], double J[][MATRIX_DIM], double d[], int n, int iq);
-void update_r(double R[][MATRIX_DIM], double r[], double d[], int n, int iq);
-bool add_constraint(double R[][MATRIX_DIM], double J[][MATRIX_DIM], double d[], int n, int& iq, double& rnorm);
-void delete_constraint(double R[][MATRIX_DIM], double J[][MATRIX_DIM], int A[], double u[], int n, int p, int& iq, int l);
+void compute_d(double d[], double *J[], double np[], int n);
+void update_z(double z[], double *J[], double d[], int n, int iq);
+void update_r(double *R[], double r[], double d[], int n, int iq);
+bool add_constraint(double *R[], double *J[], double d[], int n, int& iq, double& rnorm);
+void delete_constraint(double *R[], double *J[], int A[], double u[], int n, int p, int& iq, int l);
 
 // Utility functions for computing the Cholesky decomposition and solving
 // linear systems
-void cholesky_decomposition(double A[][MATRIX_DIM], int n);
-void cholesky_solve(double L[][MATRIX_DIM], double x[], double b[], int n);
-void forward_elimination(double L[][MATRIX_DIM], double y[], double b[], int n);
-void backward_elimination(double U[][MATRIX_DIM], double x[], double y[], int n);
+void cholesky_decomposition(double *A[], int n);
+void cholesky_solve(double *L[], double x[], double b[], int n);
+void forward_elimination(double *L[], double y[], double b[], int n);
+void backward_elimination(double *U[], double x[], double y[], int n);
 
 // Utility functions for computing the scalar product and the euclidean 
 // distance between two numbers
@@ -57,21 +62,41 @@ double scalar_product(double x[], double y[], int n);
 double distance(double a, double b);
 
 // Utility functions for printing vectors and matrices
-void print_matrix(char* name, double A[][MATRIX_DIM], int n);
-void print_rmatrix(char* name, double A[][MATRIX_DIM], int n, int m);
+void print_matrix(char* name, double *A[], int n);
+void print_rmatrix(char* name, double *A[], int n, int m);
 void print_vector(char* name, double v[], int n);
 void print_ivector(char* name, int v[], int n);
 
-// The Solving function, implementing the Goldfarb-Idnani method
+/**
+ * The following assigns memory for a square matrix of size n.
+ * Declared on the stack it will work as a smart pointer to cleanup
+ * when the stack frame returns.
+ */
+struct MatrixStorage {
+  MatrixStorage(double *M[], int n) : M(M), n(n) {
+    for(int i=0;i<n;i++) {
+      M[i]=new double[n];
+    }
+  }
+  ~MatrixStorage() {
+    for(int i=0;i<n;i++) {
+      delete [] M[i];
+    }
+  }
+  double **M;
+  int n;
+};
 
-double solve_quadprog(double G[][MATRIX_DIM], double g0[], int n, 
-                      double CE[][MATRIX_DIM], double ce0[], int p, 
-                      double CI[][MATRIX_DIM], double ci0[], int m,
+
+// The Solving function, implementing the Goldfarb-Idnani method
+double solve_quadprog(double *G[], double g0[], int n, 
+                      double *CE[], double ce0[], int p, 
+                      double *CI[], double ci0[], int m,
                       double x[])
 {
   int i, j, k, l; /* indices */
   int ip, me, mi; 
-  double R[n][MATRIX_DIM], s[m + p], z[n], r[m + p], d[n], J[n][MATRIX_DIM], np[n], u[m + p];
+  double *R[n], s[m + p], z[n], r[m + p], d[n], *J[n], np[n], u[m + p];
   double x_old[n], u_old[m + p];
   double f_value, psi, c1, c2, sum, ss, R_norm;
   const double inf = std::numeric_limits<double>::infinity();
@@ -80,6 +105,7 @@ double solve_quadprog(double G[][MATRIX_DIM], double g0[], int n,
   int A[m + p], A_old[m + p], iai[m + p], q;
   int iq, iter = 0;
   bool iaexcl[m + p];
+  MatrixStorage smartPtr(R,n), smartPrt(J,n);
   
   me = p; /* number of equality constraints */
   mi = m; /* number of inequality constraints */
@@ -426,7 +452,7 @@ l2a:/* Step 2a: determine step direction */
   goto l2a;
 }
 
-void compute_d(double d[], double J[][MATRIX_DIM], double np[], int n)
+void compute_d(double d[], double *J[], double np[], int n)
 {
   register int i, j;
   register double sum;
@@ -441,7 +467,7 @@ void compute_d(double d[], double J[][MATRIX_DIM], double np[], int n)
   }
 }
 
-void update_z(double z[], double J[][MATRIX_DIM], double d[], int n, int iq)
+void update_z(double z[], double *J[], double d[], int n, int iq)
 {
   register int i, j;
   
@@ -454,7 +480,7 @@ void update_z(double z[], double J[][MATRIX_DIM], double d[], int n, int iq)
   }
 }
 
-void update_r(double R[][MATRIX_DIM], double r[], double d[], int n, int iq) 
+void update_r(double *R[], double r[], double d[], int n, int iq) 
 {
   register int i, j;
   register double sum;
@@ -469,7 +495,7 @@ void update_r(double R[][MATRIX_DIM], double r[], double d[], int n, int iq)
   }
 }
 
-bool add_constraint(double R[][MATRIX_DIM], double J[][MATRIX_DIM], double d[], int n, int& iq, double& R_norm)
+bool add_constraint(double *R[], double *J[], double d[], int n, int& iq, double& R_norm)
 {
 #ifdef TRACE_SOLVER
   std::cerr << "Add constraint " << iq << '/';
@@ -534,7 +560,7 @@ bool add_constraint(double R[][MATRIX_DIM], double J[][MATRIX_DIM], double d[], 
   return true;
 }
 
-void delete_constraint(double R[][MATRIX_DIM], double J[][MATRIX_DIM], int A[], double u[], int n, int p, int& iq, int l)
+void delete_constraint(double *R[], double *J[], int A[], double u[], int n, int p, int& iq, int l)
 {
 #ifdef TRACE_SOLVER
   std::cerr << "Delete constraint " << l << ' ' << iq;
@@ -643,7 +669,7 @@ double scalar_product(double *x, double *y, int n)
   return sum;     
 }
 
-void cholesky_decomposition(double A[][MATRIX_DIM], int n) 
+void cholesky_decomposition(double *A[], int n) 
 {
   register int i, j, k;
   register double sum;
@@ -673,7 +699,7 @@ void cholesky_decomposition(double A[][MATRIX_DIM], int n)
   } 
 }
 
-void cholesky_solve(double L[][MATRIX_DIM], double x[], double b[], int n)
+void cholesky_solve(double *L[], double x[], double b[], int n)
 {
   double y[n];
   
@@ -683,7 +709,7 @@ void cholesky_solve(double L[][MATRIX_DIM], double x[], double b[], int n)
   backward_elimination(L, x, y, n);
 }
 
-void forward_elimination(double L[][MATRIX_DIM], double y[], double b[], int n)
+void forward_elimination(double *L[], double y[], double b[], int n)
 {
   register int i, j;
   
@@ -697,7 +723,7 @@ void forward_elimination(double L[][MATRIX_DIM], double y[], double b[], int n)
   }
 }
 
-void backward_elimination(double U[][MATRIX_DIM], double x[], double y[], int n)
+void backward_elimination(double *U[], double x[], double y[], int n)
 {
   register int i, j;
   
@@ -711,7 +737,7 @@ void backward_elimination(double U[][MATRIX_DIM], double x[], double y[], int n)
   }
 }
 
-void print_matrix(char* name, double A[][MATRIX_DIM], int n)
+void print_matrix(char* name, double *A[], int n)
 {
   std::ostringstream s;
   std::string t;
@@ -729,7 +755,7 @@ void print_matrix(char* name, double A[][MATRIX_DIM], int n)
   std::cerr << t << std::endl;
 }
 
-void print_rmatrix(char* name, double A[][MATRIX_DIM], int n, int m)
+void print_rmatrix(char* name, double *A[], int n, int m)
 {
   std::ostringstream s;
   std::string t;

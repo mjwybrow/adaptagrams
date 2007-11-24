@@ -121,11 +121,14 @@ Project(
         std::vector<Constraint *> const &cs) 
     : vs(vs)
     , cs(cs)
-    , inactive(cs.begin(),cs.end()) 
+    , inactive(cs.begin(),cs.end())
+    , merges(0)
+    , splits(0)
 { 
 }
 Project::
 ~Project() {
+    LIBPROJECT_ASSERT(blocks.size()==vs.size()-merges+splits);
     for_each(blocks.begin(),blocks.end(),delete_object());
 }
 /** 
@@ -268,6 +271,8 @@ makeActive(Constraint *c, double alpha) {
             / (1.0 - alpha);
     LIBPROJECT_LOG(("   X=%f, XI=%f\n",L->X, L->XI));
     blocks.erase(R->listIndex);
+    delete R;
+    merges++;
 }
 bool cmpLagrangians(Constraint* a,Constraint* b) { return a->lm < b->lm; }
 /**
@@ -352,13 +357,14 @@ makeInactive(Constraint *c) {
     Block* lb=new Block(c->l,c);
     Block* rb=new Block(c->r,c);
     LIBPROJECT_ASSERT(b->V.size()==lb->V.size()+rb->V.size());
-    LIBPROJECT_ASSERT(b->w==lb->w+rb->w);
+    LIBPROJECT_ASSERT(approx_equals(b->w,lb->w+rb->w));
     LIBPROJECT_ASSERT(lb->X<=b->X);
     LIBPROJECT_ASSERT(rb->X>=b->X);
     lb->listIndex=blocks.insert(b->listIndex,lb);
     rb->listIndex=blocks.insert(b->listIndex,rb);
     blocks.erase(b->listIndex);
     delete b;
+    splits++;
     return rb->listIndex;
 }
 

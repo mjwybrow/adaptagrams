@@ -29,7 +29,7 @@ const char* randomProblem(Variables &vs, Constraints &cs) {
     VMap vmap;
     vector<double> XI(numVars);
     for(unsigned i=0;i<numVars;i++) {
-        Variable* v=new Variable(rpos,getRand(range));
+        Variable* v=new Variable(rpos,getRand(range),getRand(100));
         XI[i]=rpos;
         vmap[v]=i;
         vs.push_back(v);

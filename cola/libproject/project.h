@@ -165,6 +165,8 @@ private:
      * and therefore an optimal solution has been found.
      */
     bool splitBlocks(); 
+    /// invariant: blocks.size() = |vs| - merges + splits
+    int merges, splits;
 };
 
 } // namespace project

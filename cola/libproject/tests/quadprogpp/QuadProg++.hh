@@ -2,7 +2,7 @@
 #ifndef _QUADPROGPP
 #define _QUADPROGPP
 
-/*
+/**
  File QuadProg++.hh
  
  The quadprog_solve() function implements the algorithm of Goldfarb and Idnani 
@@ -76,15 +76,15 @@ You should have received a copy of the GNU General Public License
 along with QuadProg++; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
+NOTE: 
+Modified to dynamically allocate storage for the 2D arrays --- removing
+the previously hard-coded limit on problem size.
+Tim Dwyer 24/11/07
 */
 
-#ifndef MATRIX_DIM
-#define MATRIX_DIM 20
-#endif
-
-double solve_quadprog(double G[][MATRIX_DIM], double g0[], int n, 
-                      double CE[][MATRIX_DIM], double ce0[], int p, 
-                      double CI[][MATRIX_DIM], double ci0[], int m,
+double solve_quadprog(double *G[], double g0[], int n, 
+                      double *CE[], double ce0[], int p, 
+                      double *CI[], double ci0[], int m,
                       double x[]);
 #endif // #define _QUADPROGPP
 

@@ -29,22 +29,24 @@ using namespace std;
  */
 void qps(Variables &vs, Constraints &cs, vector<double> &result) {
     const unsigned n=vs.size();
-    assert(n<=MATRIX_DIM);
-    double G[MATRIX_DIM][MATRIX_DIM],
-           g[MATRIX_DIM];
+    double *G[n],
+           g[n];
     VMap vmap;
     for(unsigned i=0;i<n;i++) {
-        vmap[vs[i]]=i;
-        g[i]=-2.0*vs[i]->d;
+        Variable *v=vs[i];
+        vmap[v]=i;
+        g[i]=-2.0*v->w*v->d;
+        G[i]=new double[n];
         for(unsigned j=0;j<n;j++) {
-            G[i][j]=i==j?2:0;
+            G[i][j]=
+                i==j ? (2.0*v->w) : 0;
         }
     }
     const unsigned m=cs.size();
-    assert(m<=MATRIX_DIM);
-    double C[MATRIX_DIM][MATRIX_DIM],
-           c[MATRIX_DIM];
+    double *C[n],
+           c[m];
     for(unsigned i=0;i<n;i++) {
+        C[i]=new double[m];
         fill(C[i],C[i]+m,0);
     }
     for(unsigned i=0;i<m;i++) {
@@ -54,10 +56,14 @@ void qps(Variables &vs, Constraints &cs, vector<double> &result) {
         C[r][i]=1;
         c[i]=-cs[i]->g;
     }
-    double x[MATRIX_DIM];
+    double x[n];
     solve_quadprog(G, g, n, NULL, NULL, 0, C, c, m, x);
     result.resize(n);
     copy(x,x+n,result.begin());
+    for(unsigned i=0;i<n;i++) {
+        delete [] G[i];
+        delete [] C[i];
+    }
 }
 
 /**
@@ -94,8 +100,8 @@ void printProblem(Variables &vs,
         if(!approxEquals(vs[i]->x,x[i])) {
             match="!=";
         }
-        printf("vs.push_back(new Variable(%f,%f));//soln=%f %s rslt=%f\n",
-                XI[i],vs[i]->d,x[i],match,vs[i]->x);
+        printf("vs.push_back(new Variable(%f,%f,%f));//soln=%f%srslt=%f\n",
+                XI[i],vs[i]->d,vs[i]->w,x[i],match,vs[i]->x);
     }
     for(Constraints::iterator i=cs.begin();i!=cs.end();++i) {
         Constraint* c=*i;
