@@ -21,8 +21,14 @@
 
 #ifndef NDEBUG
 static double lastCost;
-#define INIT_COST(p) {      \
+/// invariant: blocks.size() = |vs| - merges + splits
+static int merges;
+static int splits;
+#define DEBUG_CODE(code) { code; }
+#define INIT_DEBUG(p) {      \
     lastCost = (p)->cost(); \
+    merges = 0; \
+    splits = 0; \
 }
 #define ASSERT_COST_DECREASE(p) {    \
     double c = (p)->cost();          \
@@ -45,7 +51,8 @@ const double epsilon = 1e-10;
 #else // not NDEBUG
 #define ASSERT_COST_DECREASE(p)
 #define ASSERT_NONE_VIOLATED(p)
-#define INIT_COST(p)
+#define INIT_DEBUG(p)
+#define DEBUG_CODE(code)
 #endif
 namespace project {
 
@@ -122,8 +129,6 @@ Project(
     : vs(vs)
     , cs(cs)
     , inactive(cs.begin(),cs.end())
-    , merges(0)
-    , splits(0)
 { 
 }
 Project::
@@ -140,7 +145,7 @@ bool Project::
 solve() {
     initBlocks();
     bool optimal=true;
-    INIT_COST(this);
+    INIT_DEBUG(this);
     do {
         makeOptimal();
         for_each(vs.begin(),vs.end(),mem_fun(&Variable::updatePosition));
@@ -231,10 +236,13 @@ makeOptimal() {
     ASSERT_NONE_VIOLATED(this);
 }
 /**
- * Move all blocks by alpha * (X-XI) and make the specified constraint
- * active by setting to equality and merging the two blocks that it
- * spans into one new block (actually we merge the right hand side into the
- * left)
+ * Make the specified constraint active by setting to equality and merging the
+ * two blocks that it spans into one new block (actually we merge the right
+ * hand side into the left).
+ * The desired position of the merged block is recomputed and a "virtual" initial position
+ * for the new block is computed by projection along the line from the new desired
+ * position and the point XI+alpha*(X-XI), where XI and X are the initial and desired
+ * positions of the old left block.
  * @param c the constraint with the maximum alpha over which it is
  * safe (meaning does not violate any other constraints) to merge.
  * @param alpha the fraction of the distance from the current to the
@@ -272,7 +280,7 @@ makeActive(Constraint *c, double alpha) {
     LIBPROJECT_LOG(("   X=%f, XI=%f\n",L->X, L->XI));
     blocks.erase(R->listIndex);
     delete R;
-    merges++;
+    DEBUG_CODE(merges++);
 }
 bool cmpLagrangians(Constraint* a,Constraint* b) { return a->lm < b->lm; }
 /**
@@ -364,7 +372,7 @@ makeInactive(Constraint *c) {
     rb->listIndex=blocks.insert(b->listIndex,rb);
     blocks.erase(b->listIndex);
     delete b;
-    splits++;
+    DEBUG_CODE(splits++);
     return rb->listIndex;
 }
 

@@ -143,10 +143,13 @@ private:
      */
     void makeOptimal();
     /**
-     * Move all blocks by alpha * (X-XI) and make the specified constraint
-     * active by setting to equality and merging the two blocks that it
-     * spans into one new block (actually we merge the right hand side into the
-     * left)
+     * Make the specified constraint active by setting to equality and merging the
+     * two blocks that it spans into one new block (actually we merge the right
+     * hand side into the left).
+     * The desired position of the merged block is recomputed and a "virtual" initial position
+     * for the new block is computed by projection along the line from the new desired
+     * position and the point XI+alpha*(X-XI), where XI and X are the initial and desired
+     * positions of the old left block.
      * @param c the constraint with the maximum alpha over which it is
      * safe (meaning does not violate any other constraints) to merge.
      * @param alpha the fraction of the distance from the current to the
@@ -165,8 +168,6 @@ private:
      * and therefore an optimal solution has been found.
      */
     bool splitBlocks(); 
-    /// invariant: blocks.size() = |vs| - merges + splits
-    int merges, splits;
 };
 
 } // namespace project
