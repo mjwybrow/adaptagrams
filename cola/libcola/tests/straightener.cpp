@@ -1,5 +1,4 @@
-/** \file
- * Interface between Inkscape code (SPItem) and graphlayout functions.
+/** \file straightener.cpp
  */
 /*
 * Authors:

@@ -299,6 +299,7 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const cola::Dim dim, const
         lcs.insert(overlapConstraints.begin(),overlapConstraints.end());
     }
     if(straightenEdges) {
+    /*
         //straightener::Straightener s(straighteningStrength, dim,lrs,fixed,*straightenEdges,vs,lvs,lcs,coords,g);
         topology::TopologyConstraints s(dim,boundingBoxes,fixed,*straightenEdges,p->vars,lvs,&lcs,coords,g);
         //return computeStress(&s);
@@ -361,7 +362,7 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const cola::Dim dim, const
                 break;
             } else {
                 printf("After solve: most violated:\n");
-                v->print();
+                //v->print();
                 v->satisfy(s.addDummyNode(lvs),s.coords,lcs);
                 delete v;
             }
@@ -390,7 +391,6 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const cola::Dim dim, const
         //fixed.fixAll(false);
         delete_vector(lvs);
         for_each(lcs.begin(),lcs.end(),delete_object());
-        /*
         if(!firstPass) {
             valarray<double> d(s.N);
             d=oldCoords-s.coords;
@@ -400,11 +400,11 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const cola::Dim dim, const
             stress=applyDescentVector(d,oldCoords,s.coords,oldStress,stepsize,&s);
             s.coordsToNodePositions();
         }
-        */
         double* p=&s.coords[0];
         copy(p,p+n,&coords[0]);
         s.finalizeRoutes();
         return computeStress(&s);
+        */
     } else {
         SparseMatrix H(HMap);
         valarray<double> oldCoords=coords;
@@ -529,7 +529,6 @@ double ConstrainedFDLayout::computeStress(topology::TopologyConstraints *t) cons
         }
     }
     if(t) {
-        t->coordsToNodePositions();
         stress+=t->computeStress();
     }
     return stress;

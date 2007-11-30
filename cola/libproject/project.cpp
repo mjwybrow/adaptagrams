@@ -129,6 +129,7 @@ Project(
     : vs(vs)
     , cs(cs)
     , inactive(cs.begin(),cs.end())
+    , externalAlphaCheck(NULL)
 { 
 }
 Project::
@@ -139,7 +140,6 @@ Project::
 /** 
  * attempts to solve a least-squares
  * problem subject to a set of separation constraints.
- * @return false if an unsatisfiable constraint is found
  */
 bool Project::
 solve() {
@@ -213,6 +213,25 @@ struct MaxSafeMove : unary_function<Constraint*,void> {
     double &alpha; ///< the distance required to move c in order to make it tight
 };
 /**
+ * Find the largest move (alpha) we can make along the line from 
+ * current positions to desired positions without violating a constraint.
+ * If the function pointer externalAlphaCheck is set, then the function it points to
+ * is called giving the application the chance to interrupt the solver early (for
+ * example, to satisfy some other type of constraint and recompute the desired positions).
+ * @param c will be set to the constraint which becomes active at alpha
+ * @return the largest move (alpha) that we can make without violating a constraint
+ */
+double Project::
+findSafeMove(Constraint* &c) {
+    c=NULL;
+    double alpha=DBL_MAX;
+    for_each(inactive.begin(),inactive.end(),MaxSafeMove(c,alpha));
+    if(externalAlphaCheck) {
+        (*externalAlphaCheck)(alpha);
+    }
+    return alpha;
+} 
+/**
  * Repeatedly search along the line from current to desired positions for the
  * first constraint that would be violated if we moved any further, and make
  * that constraint active.  We finish when all blocks can be moved to their
@@ -222,12 +241,10 @@ void Project::
 makeOptimal() {
     ASSERT_NONE_VIOLATED(this);
     Constraint *c=NULL;
-    double alpha=DBL_MAX;
-    for_each(inactive.begin(),inactive.end(),MaxSafeMove(c,alpha));
-    while(alpha < 1) {
+    double alpha;
+    while((alpha = findSafeMove(c)) < 1) {
         makeActive(c,alpha);
         inactive.erase(c);
-        for_each(inactive.begin(),inactive.end(),MaxSafeMove(c,alpha=DBL_MAX));
     }
     for(Blocks::iterator i=blocks.begin(); i!=blocks.end(); ++i) {
         Block* b=*i;
@@ -354,6 +371,8 @@ Block::Block(Variable* v, Constraint* c) : w(0), XI(v->block->XI) {
 /**
  * Make a given active constraint inactive, therefore cutting the tree of active
  * constraints in the block to which it belongs, and creating two new blocks.
+ * @param c the constraint to make inactive and hence split the block across
+ * @return position of the second of the two new blocks in the list of blocks
  */
 Blocks::iterator Project:: 
 makeInactive(Constraint *c) {

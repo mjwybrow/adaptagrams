@@ -19,6 +19,9 @@
 #include <set>
 #include <list>
 
+/**
+ * project namespace delineates classes belonging to the libproject solver library.
+ */
 namespace project {
 
 using namespace std;
@@ -126,6 +129,11 @@ public:
      * computes cost of the goal function over all variables
      */
     double cost() const;
+    /**
+     * Set a pointer to a function that checks to make sure a given alpha does not
+     * violate some external condition.
+     */
+    void setExternalAlphaCheck(void (*externalAlphaCheck)(double alpha));
 private:
     Variables const &vs;
     Constraints const &cs;
@@ -135,6 +143,18 @@ private:
      * Put each variable in its own block
      */
     void initBlocks();
+    /**
+     * Find the largest move (alpha) we can make along the line from 
+     * current positions to desired positions without violating a constraint.
+     * If the function pointer externalAlphaCheck is set, then the function it points to
+     * is called after an alpha is found for the internal constraints.  This gives
+     * the application the chance to interrupt the solver early (for example,
+     * to satisfy some other type of constraint and recompute the desired
+     * positions).
+     * @param c will be set to the constraint which becomes active at alpha
+     * @return the largest move (alpha) that we can make without violating a constraint
+     */
+    double findSafeMove(Constraint* &c);
     /**
      * Repeatedly search along the line from current to desired positions for the
      * first constraint that would be violated if we moved any further, and make
@@ -168,6 +188,8 @@ private:
      * and therefore an optimal solution has been found.
      */
     bool splitBlocks(); 
+    /// a callback function checked in findSafeMove
+    void (*externalAlphaCheck)(double alpha);
 };
 
 } // namespace project

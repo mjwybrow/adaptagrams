@@ -1,3 +1,11 @@
+/**
+ * \file topology_constraints.h
+ *
+ * Classes used in generating and managing topology constraints, i.e. constraints
+ * of the form (e.g.) \f$w_x + \frac{1}{2}\mathrm{width}(w) \le u_x + (v_x - u_x) \frac {(w_y-u_y)}{(v_y-u_y)}\f$
+ * where (u,v) is an edge segment and w is a node constrained to lie to the left of
+ * that segment.  Right-, above- and below-of constraints are similarly defined.
+ */
 #ifndef TOPOLOGY_CONSTRAINTS_H
 #define TOPOLOGY_CONSTRAINTS_H
 #include <vector>
@@ -6,83 +14,219 @@
 #include "commondefs.h"
 namespace vpsc {
     class Rectangle;
+}
+namespace project {
     class Variable;
     class Constraint;
 }
 namespace straightener {
-    class Edge;
+    class Route;
 }
 namespace cola {
     class SparseMap;
-    typedef std::vector<vpsc::Variable*> Variables;
-    typedef std::vector<vpsc::Constraint*> Constraints;
 }
+/**
+ * namespace for classes uses in generating and solving forces and constraints associated with
+ * topology preserving layout.
+ */
 namespace topology {
     extern cola::Dim dim;
     using std::valarray;
     class Segment;
     class TopologyConstraint;
     class Edge;
-    class DummyNode {
-    public:
+    /**
+     * Each node is associated with a rectangle and a solver variable
+     */
+    struct Node {
+        /// the index of the associated node / variable / rectangle
         const unsigned id;
-        double pos[2];
-        vpsc::Rectangle* r;
-        Segment* inSegment;
-        Segment* outSegment;
-        vpsc::Variable* var;
-        std::set<vpsc::Constraint*> cs;
-        DummyNode(const unsigned id, double x, double y, vpsc::Rectangle* r=NULL) 
-                : id(id), r(r), inSegment(NULL), outSegment(NULL), var(NULL) {
-            pos[0]=x; pos[1]=y;
-        }
+        /// the bounding box of the associated node
+        vpsc::Rectangle* rect;
+        /// the variable (associated with node) to be passed to libproject solver
+        project::Variable* var;
+        Node(unsigned id, vpsc::Rectangle* r, project::Variable* v)
+            : id(id), rect(r), var(v) {}
     };
+    typedef std::vector<Node*> Nodes;
+    /**
+     * An EdgePoint is a point along an edge path.  It must correspond to either the middle
+     * of a Node (the start/end of the edge) or to a corner of a Node (a bend point around
+     * an edge).
+     */
+    class EdgePoint {
+    public:
+        /// the node / variable / rectangle associated with this EdgePoint
+        const Node* node;
+        /// the position, computed based on rectIntersect and rectangle position and boundary
+        /// @param dim the axis (either horizontal or vertical) of the coordinate to return
+        double pos[2];
+        /// where the node lies on the rectangle
+        enum RectIntersect { 
+            TL, ///< bends around rectangle's top-left corner
+            TR, ///< top right corner
+            BR, ///< bottom right corner
+            BL, ///< bottom left corner
+            CENTRE ///< connected to the rectangle's centre, hence the end of the edge.
+        } rectIntersect;
+        /// the incoming segment to this EdgePoint on the edge path
+        Segment* inSegment;
+        /// the outgoing segment to this EdgePoint on the edge path
+        Segment* outSegment;
+        /**
+         * the constructor sets up the position 
+         */
+        EdgePoint(Node* node, RectIntersect i) 
+                : node(node), rectIntersect(i)
+                , inSegment(NULL), outSegment(NULL) 
+        {
+            setPos();
+        }
+        /**
+         * @return true if the EdgePoint is the end of an edge otherwise asserts that
+         * it is a valid bend point.
+         */
+        bool isReal() const {
+            if(rectIntersect==CENTRE
+               && (inSegment!=NULL || outSegment!=NULL)
+               && (inSegment==NULL || outSegment==NULL)
+              ) {
+                return true;
+            }
+            // verify that this is a bend around a corner of a rectangle 
+            assert(rectIntersect!=CENTRE);
+            assert(inSegment!=NULL && outSegment!=NULL);
+            return false;
+        }
+        /**
+         * update the position from the position of the associated rectangle
+         */
+        void setPos();
+        /**
+         * @return offset from centre of node
+         */
+        double offset() const;
+    };
+    typedef std::vector<EdgePoint*> EdgePoints;
+    /**
+     * a Segment is one straightline segment between two EdgePoint which are
+     * either bend points and/or ends of the edge.
+     */
     class Segment {
     public:
-        Edge* edge;
-        std::list<Segment*>::iterator edgePos;
-        DummyNode* start;
-        DummyNode* end;
-        std::vector<TopologyConstraint*> topologyConstraints;
-        Segment(Edge* edge, DummyNode* start, DummyNode* end) 
+        /**
+         * Create segment for a given edge between two EdgePoints.
+         * @param edge the edge to which this segment belongs
+         * @param start the EdgePoint at the start of the segment
+         * @param end the EdgePoint at the end of the segment
+         */
+        Segment(Edge* edge, EdgePoint* start, EdgePoint* end) 
             : edge(edge), start(start), end(end) {
-            if(start->r==NULL) {
-                start->outSegment = this;
+            start->outSegment=this;
+            end->inSegment=this;
+        }
+        /// the edge which this segment is part of
+        Edge* edge;
+        /// the position of the segment in the list of segments associated
+        /// with the edge
+        std::list<Segment*>::iterator edgePos;
+        /// the start point of the segment - either the end of the edge
+        /// if connected to a real node, or a bend point
+        EdgePoint* start;
+        /// the end point of the segment
+        EdgePoint* end;
+        /// a set of topology constraints (left-/right-/above-/below-of
+        /// relationships / between this segment and nodes
+        std::vector<TopologyConstraint*> topologyConstraints;
+        /// @return the EdgePoint at the minimum extent of this segment on the scan axis
+        EdgePoint* getMin() const {
+            if(start->pos[!dim] <= end->pos[!dim]) {
+                return start;
             }
-            if(end->r==NULL) {
-                end->inSegment = this;
+            return end;
+        }
+        /// @return the EdgePoint on the maximum extent of this segment on the scan axis
+        EdgePoint* getMax() const {
+            if(start->pos[!dim] > end->pos[!dim]) {
+                return start;
             }
+            return end;
         }
-        double getMin() {
-            return std::min(start->pos[!dim], end->pos[!dim]);
-        }
-        double getMax() {
-            return std::max(start->pos[!dim], end->pos[!dim]);
-        }
-        bool intersects(double pos) {
-            //printf("Testing intersection: pos=%f, segmin=%f, segmax=%f\n",pos,getMin(),getMax());
-            if(pos>=getMin() && pos<=getMax()) {
+        /** test a given point to see if it lies within the scan range of this segment
+         * @param pos position to test
+         * @return true if point does lie in the scan range
+         */
+        bool intersects(double pos) const {
+            if(pos>=getMin()->pos[!dim] && pos<=getMax()->pos[!dim]) {
                 return true;
             }
             return false;
         }
-        void print() {
-            double x1=start->pos[0],y1=start->pos[1],x2=end->pos[0],y2=end->pos[1];
-            double dx=x2-x1, dy=y2-y1;
-            double length=sqrt(dx*dx+dy*dy);
-            printf("  segment((%d,%d):((%f,%f),(%f,%f)) l=%f\n",start->id,end->id,start->pos[0],start->pos[1], end->pos[0],end->pos[1],length);
+        /** 
+         * compute the intersection with the scanline.
+         * if called when Segment is parallel to scan line it will throw an assertion error.
+         * @param pos position of scanline
+         * @param p distance along line from start to end at which intersection occurs (where 0
+         * is at the start and 1 is at the end).
+         * @return position along scanline of intersection with the line along this edge segment
+         */
+        double intersection(double pos, double &p) const {
+            double ux=start->pos[dim] , vx=end->pos[dim],
+                   uy=start->pos[!dim], vy=end->pos[!dim];
+            double denom = vy - uy;
+            assert(denom!=0); // must not be parallel to scanline!
+            p = (pos - uy)/denom;
+            return ux + p * (vx-ux);
         }
+        /**
+         * Compute the euclidean distance between #start and #end.
+         */
+        double length() const;
     };
-    static double PI=2*acos(0.);
+    typedef std::list<Segment*> Segments;
+    /**
+     * An Edge provides a doubly linked list of segments, each involving a pair of
+     * EdgePoints
+     */
     class Edge {
     public:
-        straightener::Edge* sEdge;
-        std::list<Segment*> segments;
-        Edge(straightener::Edge * e) :sEdge(e) { }
+        /**
+         * Doubly linked list of segments each involving a pair of EdgePoints
+         */
+        Segments segments;
+        /**
+         * Construct an edge from a list of EdgePoint in sequence
+         */
+        Edge(EdgePoints &vs) {
+            EdgePoints::iterator a=vs.begin();
+            for(EdgePoints::iterator b=a+1;b!=vs.end();++a,++b) {
+                segments.push_back(new Segment(this,*a,*b)); 
+            }
+        }
+        /**
+         * cleanup segments
+         */
         ~Edge() {
             for_each(segments.begin(),segments.end(),delete_object());
         }
-        void getPath(std::vector<unsigned> & path) const;
+        /**
+         * the sum of the lengths of all the segments
+         */
+        double pathLength() const;
+        /**
+         * get a list of all the EdgePoints along the path
+         */
+        void getPath(EdgePoints &vs) const;
+        /**
+         * @return the start of the edge
+         */
+        EdgePoint* start() const;
+        /**
+         * @return the end of the edge
+         */
+        EdgePoint* end() const;
+        /// the ideal length which the layout should try to obtain for this edge
+        double idealLength;
         void splitSegment(Segment* o, Segment* n1, Segment* n2) {
             n1->edgePos=segments.insert(o->edgePos, n1);
             n2->edgePos=segments.insert(o->edgePos, n2);
@@ -93,11 +237,16 @@ namespace topology {
             segments.erase(o1->edgePos);
             segments.erase(o2->edgePos);
         }
+        /**
+         * @return a list of the coordinates along the edge route
+         */
+        straightener::Route* getRoute();
+        /*
         void print() {
-            DummyNode *u=NULL, *v=segments.front()->start;
+            EdgePoint *u=NULL, *v=segments.front()->start;
             double minTheta=PI;
             for(std::list<Segment*>::const_iterator i=segments.begin();i!=segments.end();i++) {
-                DummyNode* w=(*i)->end;
+                EdgePoint* w=(*i)->end;
                 if(u) {
                     double ax=v->pos[0]-u->pos[0],
                            ay=v->pos[1]-u->pos[1],
@@ -116,98 +265,66 @@ namespace topology {
             }
             //assert(minTheta>PI/2.);
         }
+        */
     };
+    typedef std::vector<Edge*> Edges;
+
+    /**
+     * A constraint between variables \f$u,v,w\f$ where \f$w\f$ is required to be to one
+     * side of the line between \f$u,v\f$.
+     * That is, e.g. if we require \f$w\f$ to be some minimum distance \f$g\f$ to the left
+     * of the parameterised distance \f$p\f$ along the line \f$(u,v)\f$ we have:
+     * \f[ w + g\le u + p*(v - u) \f]
+     * Right-of constraints are similar.
+     */
     class TopologyConstraint {
-        // a constraint between an edge segment uv and some shape w with which may potentially
-        // intersect after movement along position pos in axis dim.
-        // For example if dim==HORIZONTAL and w is initially to the right of uv the topology
-        // constraint is:
-        //      w_x > u_x + (v_x - u_x)|w_y-u_y|/|v_y-u_y| + g
-        // where g is usually width(w)/2
     public:
-        Segment* segment; // uv
-        DummyNode* node;  // w
-        double pos;
-        double g;
-        TopologyConstraint(Segment* segment, DummyNode* node, const double y, const double g,
-                const bool segmentLeft);
-        bool violated() {
-            if(slack()<0) {
-                return true;
-            }
-            return false;
-        }
-        void satisfy(DummyNode* z, valarray<double> & coords, std::set<vpsc::Constraint*> & lcs); 
-        double slack() const {
-            double d=idealPoint();
-            if(segmentLeft) {
-                return node->pos[dim] - g - d;
-            } else {
-                return d - node->pos[dim] - g;
-            }
-        }
-        void print() const {
-            char dir=segmentLeft?'<':'>';
-            char sign=segmentLeft?'+':'-';
-            DummyNode *a=segment->start, *b=segment->end;
-            printf("  TC: segment(%d@(%f,%f),%d@(%f,%f)):%f %c %f %c node(%d@(%f,%f)): slack=%f\n", a->id,a->pos[0],a->pos[1], b->id,b->pos[0],b->pos[1], idealPoint(),sign,g,dir, node->id,node->pos[0],node->pos[1], slack());
-        }
-        bool segmentLeft;
-    private:
-        double idealPoint() const;
-        double idealPoint(
-                DummyNode const * u, DummyNode const * v,  const double pos) const;
+        /// Variables are directly entered into the libproject solver
+        project::Variable *u, *v, *w;
+        /// p is the parameter for the constraint line, g is the offset constant
+        double p, g;
+        /// determines direction of inequality, w to the left of uv or to the right
+        bool leftOf;
+        TopologyConstraint(
+                project::Variable *u, 
+                project::Variable *v, 
+                project::Variable *w, 
+                double p, double g, bool left);
     };
     class TopologyConstraints {
     public:
-        std::vector<Edge*> edges;
-        std::vector<DummyNode*> dummyNodes;
-        unsigned N() { return dummyNodes.size(); }
-        valarray<double> g;
-        valarray<double> coords;
-        cola::FixedList const & fixed;
+        const Edges& edges;
         TopologyConstraints(
             const cola::Dim dim, 
-            std::vector<vpsc::Rectangle*> const & rs,
-            cola::FixedList const & fixed,
-            std::vector<straightener::Edge*> const & edges,
-            cola::Variables const & vs,
-            cola::Variables & lvs,
-            std::set<vpsc::Constraint*> *lcs,
-            valarray<double> & oldCoords,
-            valarray<double> & oldG);
-        ~TopologyConstraints() {
-            for_each(edges.begin(),edges.end(),delete_object());
-            for_each(dummyNodes.begin(),dummyNodes.end(),delete_object());
-        }
-        DummyNode* addDummyNode(cola::Variables & lvs);
+            const Nodes &vs,
+            const Edges &es);
+        ~TopologyConstraints() { }
         void violated(std::vector<TopologyConstraint*> & ts) const;
         TopologyConstraint* mostViolated() const;
-        void computeForces(cola::SparseMap &H);
+        void computeForces(cola::SparseMap &H, valarray<double> &g);
         double computeStress() const;
-        void updateNodePositionsFromVars();
-        void coordsToNodePositions();
         void finalizeRoutes();
-        void verify(std::vector<vpsc::Rectangle*> &rs);
-        void getInactiveDummyNodes(std::vector<DummyNode*> &inactive) const;
-        void tightenSegments(std::set<vpsc::Constraint*> &lcs);
     private:
-        double len(const unsigned u, const unsigned v, 
+        double len(const EdgePoint* u, const EdgePoint* v, 
                 double& dx, double& dy,
                 double& dx2, double& dy2);
-        double gRule1(const unsigned a, const unsigned b);
-        double gRule2(const unsigned a, const unsigned b, const unsigned c);
-        double hRuleD1(const unsigned u, const unsigned v, const double sqrtf);
-        double hRuleD2(const unsigned u, const unsigned v, const unsigned w, const double sqrtf);
-        double hRule2(const unsigned u, const unsigned v, const unsigned w, const double sqrtf);
-        double hRule3(const unsigned u, const unsigned v, const unsigned w, const double sqrtf);
-        double hRule4(const unsigned a, const unsigned b, const unsigned c, const unsigned d);
-        double hRule56(const unsigned u, const unsigned v, 
-                const unsigned a, const unsigned b, const unsigned c);
-        double hRule7(const unsigned a, const unsigned b, 
-                const unsigned c, const unsigned d, const double sqrtf);
-        double hRule8(const unsigned u, const unsigned v, const unsigned w,
-                const unsigned a, const unsigned b, const unsigned c);
+        double gRule1(const EdgePoint* a, const EdgePoint* b);
+        double gRule2(const EdgePoint* a, const EdgePoint* b, const EdgePoint* c);
+        double hRuleD1(const EdgePoint* u, const EdgePoint* v, const double sqrtf);
+        double hRuleD2(const EdgePoint* u, const EdgePoint* v, const EdgePoint* w, 
+                const double sqrtf);
+        double hRule2(const EdgePoint* u, const EdgePoint* v, const EdgePoint* w,
+                const double sqrtf);
+        double hRule3(const EdgePoint* u, const EdgePoint* v, const EdgePoint* w,
+                const double sqrtf);
+        double hRule4(const EdgePoint* a, const EdgePoint* b,
+                const EdgePoint* c, const EdgePoint* d);
+        double hRule56(const EdgePoint* u, const EdgePoint* v, 
+                const EdgePoint* a, const EdgePoint* b, const EdgePoint* c);
+        double hRule7(const EdgePoint* a, const EdgePoint* b, 
+                const EdgePoint* c, const EdgePoint* d, const double sqrtf);
+        double hRule8(const EdgePoint* u, const EdgePoint* v, const EdgePoint* w,
+                const EdgePoint* a, const EdgePoint* b, const EdgePoint* c);
     };
 } // namespace topology
 #endif // TOPOLOGY_CONSTRAINTS_H

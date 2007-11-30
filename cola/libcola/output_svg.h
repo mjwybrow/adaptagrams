@@ -7,7 +7,7 @@ class OutputFile {
 public:
 	std::vector<vpsc::Rectangle*> const &rs;
 	std::vector<cola::Edge> const &es;
-	std::vector<straightener::Edge*> *routes;
+	std::vector<straightener::Route*> *routes;
 	cola::RootCluster const * rc;
 	std::string const fname;
 	bool rects;
@@ -39,10 +39,10 @@ private:
 	void draw_cluster_boundary(Cairo::RefPtr<Cairo::Context> const &cr, 
         cola::Cluster &c, const double xmin, const double ymin);
 	void draw_edges(Cairo::RefPtr<Cairo::Context> &cr, 
-        std::vector<straightener::Edge*> const & es, 
+        std::vector<straightener::Route*> const & es, 
         double const xmin, double const ymin);
 	void draw_curved_edges(Cairo::RefPtr<Cairo::Context> &cr,
-		std::vector<straightener::Edge*> const & es, 
+		std::vector<cola::Edge> const & es, 
 		const double xmin, 
 		const double ymin);
 	void openCairo(Cairo::RefPtr<Cairo::Context> &cr, double width, double height);

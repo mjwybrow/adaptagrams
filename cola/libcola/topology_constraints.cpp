@@ -4,64 +4,93 @@
 using namespace std;
 using vpsc::Rectangle;
 namespace topology {
-    double pathLength(Edge const * e,vector<DummyNode*> const &dummyNodes) {
-        double length=0;
-        vector<unsigned> path;
-        e->getPath(path);
-        for(unsigned i=1;i<path.size();i++) {
-            DummyNode *u=dummyNodes[path[i-1]], *v=dummyNodes[path[i]];
-            double dx=u->pos[0]-v->pos[0];
-            double dy=u->pos[1]-v->pos[1];
-            length+=sqrt(dx*dx+dy*dy);
+    void EdgePoint::setPos() {
+        double &x=pos[0],&y=pos[1];
+        vpsc::Rectangle* r=node->rect;
+        switch(rectIntersect) {
+            case TL:
+                x=r->getMinX();
+                y=r->getMaxY();
+                break;
+            case TR:
+                x=r->getMaxX();
+                y=r->getMaxY();
+                break;
+            case BL:
+                x=r->getMinX();
+                y=r->getMinY();
+                break;
+            case BR:
+                x=r->getMaxX();
+                y=r->getMinY();
+                break;
+            default:
+                x=r->getCentreX();
+                y=r->getCentreY();
         }
-        return length;
     }
-    void TopologyConstraints::coordsToNodePositions() {
-        for (unsigned i=0;i<dummyNodes.size();i++) {
-            dummyNodes[i]->pos[dim]=coords[i];
+    double EdgePoint::offset() const {
+        if(rectIntersect==CENTRE) {
+            return 0;
+        }
+        double o = node->rect->length(dim)/2.0;
+        if(dim==cola::HORIZONTAL && (rectIntersect == TL || rectIntersect == BL)
+         ||dim==cola::VERTICAL && (rectIntersect == BL || rectIntersect == BR)) {
+            return -o;
+        }
+        return o;
+    }
+    double Segment::length() const {
+        double dx = end->pos[0] - start->pos[0];
+        double dy = end->pos[1] - start->pos[1];
+        return sqrt(dx*dx + dy*dy);
+    }
+    straightener::Route* Edge::getRoute() {
+        EdgePoints vs;
+        getPath(vs);
+        straightener::Route* r = new straightener::Route(vs.size());
+        double *x=r->xs, *y=r->ys;
+        for(EdgePoints::iterator v=vs.begin();v!=vs.end();++v,++x,++y) {
+            *x=(*v)->pos[0];
+            *y=(*v)->pos[1];
+        }
+        return r;
+    }
+    double Edge::pathLength() const {
+        return sum_over(segments.begin(),segments.end(),0.0,mem_fun(&Segment::length));
+    }
+    /**
+     * @return the start of the edge
+     */
+    EdgePoint* Edge::start() const {
+        EdgePoint* s=segments.front()->start;
+        assert(s->isReal());
+        return s;
+    }
+    /**
+     * @return the end of the edge
+     */
+    EdgePoint* Edge::end() const {
+        EdgePoint* e=segments.back()->end;
+        assert(e->isReal());
+        return e;
+    }
+    /**
+     * get a list of all the EdgePoints along the Edge path
+     */
+    void Edge::getPath(EdgePoints &vs) const {
+        vs.push_back(segments.front()->start);
+        for(Segments::const_iterator s=segments.begin();s!=segments.end();++s) {
+            vs.push_back((*s)->end);
         }
     }
-    void TopologyConstraints::updateNodePositionsFromVars() {
-        for (unsigned i=0;i<dummyNodes.size();i++) {
-            DummyNode *n=dummyNodes[i];
-            n->pos[dim]=n->var->finalPosition;
-            coords[i]=n->var->finalPosition;
-        }
-    }
-    double TopologyConstraint::idealPoint(
-            DummyNode const * u, DummyNode const * v,  const double pos) const {
-        assert(v->pos[!dim] - u->pos[!dim] != 0);
-        return u->pos[dim] + (v->pos[dim] - u->pos[dim]) * fabs((pos-u->pos[!dim])
-                /(v->pos[!dim]-u->pos[!dim]));
-    }
-    double TopologyConstraint::idealPoint() const {
-        assert(segment->intersects(pos));
-        return idealPoint(segment->start,segment->end,pos);
-    }
-    TopologyConstraint::TopologyConstraint(Segment* segment, DummyNode* node, 
-            const double pos, const double g, const bool segmentLeft) 
-               : segment(segment), node(node), pos(pos), g(g), segmentLeft(segmentLeft) {
-        print();
-    }
-    DummyNode* TopologyConstraints::addDummyNode(cola::Variables & lvs) {
-        DummyNode* z = new DummyNode(N(),1,1,false);
-        z->var = new vpsc::Variable(z->id,1,1);
-        dummyNodes.push_back(z);
-        lvs.push_back(z->var);
-        valarray<double> oldCoords=coords;
-        coords.resize(N());
-        for(unsigned i=0;i<N()-1;i++) {
-            coords[i]=oldCoords[i];
-        }
-        coords[N()-1]=1;
-        return z;
-    }
-    /*
+    /**
      * satisfies a violated topology constraint by splitting the associated
      * edge segment into two new segments connected by the new dummy node z
      * whose ideal position is set to midway between the ends.
      */
-    void TopologyConstraint::satisfy(DummyNode* z, valarray<double> & coords,
+        /*
+    void TopologyConstraint::satisfy(EdgePoint* z, valarray<double> & coords,
             set<vpsc::Constraint*> & lcs) {
         //printf("  TopologyConstraint::satisfy: \n");
         if(dim==cola::HORIZONTAL) {
@@ -112,52 +141,14 @@ namespace topology {
         //cout << *c << endl;
         delete segment;
     }
-    void TopologyConstraints::violated(vector<TopologyConstraint*> & ts) const {
-        for(vector<Edge*>::const_iterator i=edges.begin();i!=edges.end();i++) {
-            list<Segment*> segments=(*i)->segments;
-            for(list<Segment*>::const_iterator j=segments.begin();j!=segments.end();j++) {
-                vector<TopologyConstraint*> sts=(*j)->topologyConstraints;
-                for(vector<TopologyConstraint*>::const_iterator k=sts.begin();k!=sts.end();k++) {
-                    TopologyConstraint* t=*k;
-                    if(t->violated()) {
-                        ts.push_back(t);
-                    }
-                }
-            }
-        }
-    }
-    /**
-     * check the constraints associated with each dummy node
-     * If no active constraints are found then add the node to inactive list
-     */
-    void TopologyConstraints::
-    getInactiveDummyNodes(std::vector<DummyNode*> &inactive) const {
-        for(vector<DummyNode*>::const_iterator i=dummyNodes.begin(); 
-                i!=dummyNodes.end(); i++) {
-            DummyNode* v = *i;
-            if(v->r!=NULL || v->inSegment == NULL || v->outSegment == NULL) {
-                // either deleted already or
-                // associated with real shape, i.e. not just a bend point
-                continue;
-            }
-            for(set<vpsc::Constraint*>::iterator j=v->cs.begin();j!=v->cs.end(); j++) {
-                vpsc::Constraint* c=*j;
-                if(c->active) {
-                    goto active_found;
-                }
-            }
-            inactive.push_back(v);
-active_found:;
-        }
-    }
+        */
     /*
      * merge segments to either side of dummy nodes with no or inactive constraints
-     */
     void TopologyConstraints::
     tightenSegments(set<vpsc::Constraint*> &lcs) {
         // dummy vars with inactive (or no) separation constraints
-        vector<topology::DummyNode*> inactive;
-        getInactiveDummyNodes(inactive);
+        vector<topology::EdgePoint*> inactive;
+        getInactiveEdgePoints(inactive);
         // for each v in inactive: 
         //   replace segments (s1,v),(v,s2) 
         //     with new segment s in s1->edge->segments
@@ -166,9 +157,9 @@ active_found:;
         //     propagate all topology constraints in s1 and s2 up to s
         //   (note: we do not delete variables but such inactive variables 
         //     will be unconstrained and hence not affect the VPSC result)
-        for(vector<DummyNode*>::iterator i=inactive.begin(); 
+        for(vector<EdgePoint*>::iterator i=inactive.begin(); 
                 i!=inactive.end(); i++) {
-            DummyNode* v = *i;
+            EdgePoint* v = *i;
             // v is doomed!
             assert(v->r==NULL);
             Edge* e = v->inSegment->edge;
@@ -213,7 +204,7 @@ active_found:;
                 vpsc::Constraint* c=*j;
                 printf("deleting separation constraint: v[%d]+%f<=v[%d]:\n",c->left->id,c->gap,c->right->id);
                 lcs.erase(c);
-                DummyNode* w;
+                EdgePoint* w;
                 bool segmentLeft=true;
                 if(v->var == c->left) {
                     w = dummyNodes[c->right->id];
@@ -234,7 +225,7 @@ active_found:;
             }
             v->cs.clear();
             v->inSegment=v->outSegment=NULL;
-            typedef map<DummyNode*,bool> CheckSides;
+            typedef map<EdgePoint*,bool> CheckSides;
             CheckSides checkSides;
             for(unsigned j=0;j<t.size();j++) {
                 TopologyConstraint* c=t[j];
@@ -250,37 +241,25 @@ active_found:;
         }
         printf("-------merge done---------------------------------------------\n");
     }
-    TopologyConstraint* TopologyConstraints::mostViolated() const {
-        vector<TopologyConstraint*> ts;
-        violated(ts);
-        double minSlack = -1e-4;
-        TopologyConstraint* v = NULL;
-        for(unsigned i=0;i<ts.size();i++) {
-            double slack = ts[i]->slack();
-            if(slack<minSlack) {
-                v = ts[i];
-                minSlack = slack;
-            }
-        }
-        return v;
-    }
-    double TopologyConstraints::len(const unsigned u, const unsigned v, 
+     */
+    double TopologyConstraints::len(const EdgePoint* u, const EdgePoint* v, 
             double& dx, double& dy,
             double& dx2, double& dy2) {
-        dx=dummyNodes[u]->pos[0]-dummyNodes[v]->pos[0];
-        dy=dummyNodes[u]->pos[1]-dummyNodes[v]->pos[1];
+        dx=u->pos[0]-v->pos[0];
+        dy=u->pos[1]-v->pos[1];
         dx2=dx*dx;
         dy2=dy*dy;
         return sqrt(dx2+dy2);
     }
-    double TopologyConstraints::gRule1(const unsigned a, const unsigned b) {
+    double TopologyConstraints::gRule1(const EdgePoint* a, const EdgePoint* b) {
         double dxab, dyab, dxab2, dyab2;
         double lab=dim==cola::HORIZONTAL?
             len(a,b,dxab,dyab,dxab2,dyab2):
             len(a,b,dyab,dxab,dyab2,dxab2);
         return dxab/lab;
     }
-    double TopologyConstraints::gRule2(const unsigned a, const unsigned b, const unsigned c) {
+    double TopologyConstraints::gRule2(
+            const EdgePoint* a, const EdgePoint* b, const EdgePoint* c) {
         double dxab, dyab, dxab2, dyab2;
         double lab=dim==cola::HORIZONTAL?
             len(a,b,dxab,dyab,dxab2,dyab2):
@@ -291,15 +270,15 @@ active_found:;
             len(b,c,dybc,dxbc,dybc2,dxbc2);
         return dxab/lab - dxbc/lbc;
     }
-    double TopologyConstraints::hRuleD1(const unsigned u, const unsigned v, const double dl) {
+    double TopologyConstraints::hRuleD1(const EdgePoint* u, const EdgePoint* v, const double dl) {
         double dx, dy, dx2, dy2;
         double l=dim==cola::HORIZONTAL?
             len(u,v,dx,dy,dx2,dy2):
             len(u,v,dy,dx,dy2,dx2);
         return dl*(dx2/(l*l*l) - 1/l) + dx2/(l*l);
     }
-    double TopologyConstraints::hRuleD2(const unsigned u, const unsigned v, const unsigned w, 
-            const double dl) {
+    double TopologyConstraints::hRuleD2(
+            const EdgePoint* u, const EdgePoint* v, const EdgePoint* w, const double dl) {
         double dxuv, dyuv, dxuv2, dyuv2;
         double luv=dim==cola::HORIZONTAL?
             len(u,v,dxuv,dyuv,dxuv2,dyuv2):
@@ -312,8 +291,8 @@ active_found:;
         double p2=(dxuv/luv - dxvw/lvw);
         return p1+p2*p2;
     }
-    double TopologyConstraints::hRule2(const unsigned u, const unsigned v, const unsigned w, 
-            const double dl) {
+    double TopologyConstraints::hRule2(
+            const EdgePoint* u, const EdgePoint* v, const EdgePoint* w, const double dl) {
         double dxuv, dyuv, dxuv2, dyuv2;
         double luv=dim==cola::HORIZONTAL?
             len(u,v,dxuv,dyuv,dxuv2,dyuv2):
@@ -327,7 +306,8 @@ active_found:;
             -dxuv2/(luv*luv)
             +dxuv*dxvw/(luv*lvw);
     }
-    double TopologyConstraints::hRule3(const unsigned u, const unsigned v, const unsigned w, 
+    double TopologyConstraints::hRule3(
+            const EdgePoint* u, const EdgePoint* v, const EdgePoint* w, 
             const double dl) {
         double dxuv, dyuv, dxuv2, dyuv2;
         double luv=dim==cola::HORIZONTAL?
@@ -342,8 +322,8 @@ active_found:;
             +dl/lvw
             +dxuv*dxvw/(luv*lvw);
     }
-    double TopologyConstraints::hRule4(const unsigned a, const unsigned b, 
-            const unsigned c, const unsigned d) {
+    double TopologyConstraints::hRule4(const EdgePoint* a, const EdgePoint* b, 
+            const EdgePoint* c, const EdgePoint* d) {
         double dxab, dyab, dxab2, dyab2;
         double lab=dim==cola::HORIZONTAL?
             len(a,b,dxab,dyab,dxab2,dyab2):
@@ -354,8 +334,8 @@ active_found:;
             len(c,d,dycd,dxcd,dycd2,dxcd2);
         return -dxab*dxcd/(lab*lcd);
     }
-    double TopologyConstraints::hRule56(const unsigned u, const unsigned v, 
-            const unsigned a, const unsigned b, const unsigned c) {
+    double TopologyConstraints::hRule56(const EdgePoint* u, const EdgePoint* v, 
+            const EdgePoint* a, const EdgePoint* b, const EdgePoint* c) {
         double dxuv, dyuv, dxuv2, dyuv2;
         double luv=dim==cola::HORIZONTAL?
             len(u,v,dxuv,dyuv,dxuv2,dyuv2):
@@ -370,8 +350,8 @@ active_found:;
             len(b,c,dybc,dxbc,dybc2,dxbc2);
         return dxuv/luv * ( dxbc/lbc - dxab/lab );
     }
-    double TopologyConstraints::hRule7(const unsigned a, const unsigned b, 
-            const unsigned c, const unsigned d, const double dl) {
+    double TopologyConstraints::hRule7(const EdgePoint* a, const EdgePoint* b, 
+            const EdgePoint* c, const EdgePoint* d, const double dl) {
         double dxab, dyab, dxab2, dyab2;
         double lab=dim==cola::HORIZONTAL?
             len(a,b,dxab,dyab,dxab2,dyab2):
@@ -387,8 +367,8 @@ active_found:;
         return dl*(1/lbc - dxbc2/(lbc*lbc*lbc))
             +(dxab/lab - dxbc/lbc)*(dxbc/lbc - dxcd/lcd);
     }
-    double TopologyConstraints::hRule8(const unsigned u, const unsigned v, const unsigned w,
-            const unsigned a, const unsigned b, const unsigned c) {
+    double TopologyConstraints::hRule8(const EdgePoint* u, const EdgePoint* v, const EdgePoint* w,
+            const EdgePoint* a, const EdgePoint* b, const EdgePoint* c) {
         double dxuv, dyuv, dxuv2, dyuv2;
         double luv=dim==cola::HORIZONTAL?
             len(u,v,dxuv,dyuv,dxuv2,dyuv2):
@@ -407,13 +387,8 @@ active_found:;
             len(b,c,dybc,dxbc,dybc2,dxbc2);
         return (dxuv/luv - dxvw/lvw) * (dxab/lab - dxbc/lbc);
     }
-    void Edge::getPath(vector<unsigned> & path) const {
-        path.push_back(segments.front()->start->id);
-        for(list<Segment*>::const_iterator i=segments.begin();i!=segments.end();i++) {
-            path.push_back((*i)->end->id);
-        }
-    }
     double TopologyConstraints::computeStress() const {
+        /*
         double stress=0;
         for(unsigned i=0;i<edges.size();i++) {
             double d = edges[i]->sEdge->idealLength;
@@ -423,96 +398,116 @@ active_found:;
             stress+=weight*sqrtf*sqrtf;
         }
         return stress;
+        */
+        return 0;
     }
-    void TopologyConstraints::computeForces(cola::SparseMap &H) {
-        // hessian matrix:
-        unsigned u,v,w;
-        for(unsigned i=0;i<edges.size();i++) {
+    /**
+     * a wrapper for a SparseMap so that we can index it by two EdgePoint
+     */
+    struct SparseMapMap {
+        cola::SparseMap &H;
+        SparseMapMap(cola::SparseMap &H) : H(H) {}
+        double& operator()(const EdgePoint *i, const EdgePoint* j) {
+            return H(i->node->id,j->node->id);
+        }
+    };
+    /**
+     * a wrapper for a valarray so that we can index it by an EdgePoint
+     */
+    template <typename T>
+    struct ArrayMap {
+        valarray<T>& a;
+        ArrayMap(valarray<T>& a) : a(a) {}
+        double& operator[](const EdgePoint *i) {
+            return a[i->node->id];
+        }
+    };
+    /**
+     * Compute the forces associated with each EdgePoint (bend or end point) along each each
+     * on the nodes/rectangles in the graph.
+     */
+    void TopologyConstraints::computeForces(cola::SparseMap &hessian, valarray<double> &gradient) {
+        SparseMapMap H(hessian);
+        ArrayMap<double> g(gradient);
+        EdgePoint *u,*v,*w;
+        for(Edges::const_iterator i=edges.begin();i!=edges.end();i++) {
             //printf("Straightening path:\n");
             //edges[i]->print();
-            Edge* e=edges[i];
-            vector<unsigned> path;
+            Edge* e=*i;
+            vector<EdgePoint*> path;
             e->getPath(path);
             unsigned n=path.size();
             assert(n>=2);
-            double d=e->sEdge->idealLength;
+            double d=e->idealLength;
             printf("idealLength=%f\n",d);
             double weight=1/(d*d);
-            double dl=d-pathLength(e,dummyNodes);
+            double dl=d-e->pathLength();
 
             // first and last entries
             // gradient
-            u=path[0], v=path[1];
+            u=e->start(), v=e->end();
             double h=weight*hRuleD1(u,v,dl);
-            if(!fixed.check(u)) H(u,u)+=h;
+            H(u,u)+=h;
             double g1=weight*dl*gRule1(u,v);
-            if(!fixed.check(u)) { g[u]-=g1; }
+            g[u]-=g1;
             if(n==2||dl>0) {
                 // rule 1
-                if(!fixed.check(v)) {
-                    H(v,v)+=h;
-                    g[v]+=g1; 
-                }
-                if(!fixed.check(u)&&!fixed.check(v)) {
-                    H(u,v)-=h;
-                    H(v,u)-=h;
-                }
+                H(v,v)+=h;
+                g[v]+=g1; 
+                H(u,v)-=h;
+                H(v,u)-=h;
                 continue;
             }
             u=path[n-2]; v=path[n-1];
-            if(!fixed.check(v)) {
-                g[v]+=weight*dl*gRule1(u,v);
-            }
-            if(!fixed.check(v)) H(v,v)+=weight*hRuleD1(u,v,dl);
+            g[v]+=weight*dl*gRule1(u,v);
+            H(v,v)+=weight*hRuleD1(u,v,dl);
             // remaining diagonal entries
             for(unsigned j=1;j<n-1;j++) {
                 u=path[j-1], v=path[j], w=path[j+1];
-                if(!fixed.check(v)) H(v,v)+=weight*hRuleD2(u,v,w,dl);
-                if(!fixed.check(v)) { 
-                    g[v]+=weight*dl*gRule2(u,v,w);
-                }
+                H(v,v)+=weight*hRuleD2(u,v,w,dl);
+                g[v]+=weight*dl*gRule2(u,v,w);
             }
 
             // off diagonal entries
             // hRule 2
             u=path[0], v=path[1], w=path[2];
             h=weight*hRule2(u,v,w,dl);
-            if(!fixed.check(u)) H(u,v)+=h;
-            if(!fixed.check(v)) H(v,u)+=h;
+            H(u,v)+=h;
+            H(v,u)+=h;
             // hRule 3
             u=path[n-3], v=path[n-2], w=path[n-1];
             h=weight*hRule3(u,v,w,dl);
-            if(!fixed.check(v)) H(v,w)+=h;
-            if(!fixed.check(w)) H(w,v)+=h;
+            H(v,w)+=h;
+            H(w,v)+=h;
             // hRule 4
             u=path[0], v=path[n-1];
             h=weight*hRule4(u,path[1],path[n-2],v);
-            if(!fixed.check(u)) H(u,v)+=h;
-            if(!fixed.check(v)) H(v,u)+=h;
+            H(u,v)+=h;
+            H(v,u)+=h;
             if(n==3) continue;
             for(unsigned j=2;j<n-1;j++) {
                 // hRule 5
                 u=path[0],v=path[j];
                 h=weight*hRule56(u,path[1],path[j-1],v,path[j+1]);
-                if(!fixed.check(u)) H(u,v)+=h;
-                if(!fixed.check(v)) H(v,u)+=h;
+                H(u,v)+=h;
+                H(v,u)+=h;
                 // hRule 6
                 u=path[n-1], v=path[n-1-j];
                 h=weight*hRule56(u,path[n-2],path[n-1-j-1],v,path[n-1-j+1]);
-                if(!fixed.check(u)) H(u,v)+=h;
-                if(!fixed.check(v)) H(v,u)+=h;
+                H(u,v)+=h;
+                H(v,u)+=h;
                 // hRule 7
                 u=path[j-1], v=path[j];
                 h=weight*hRule7(path[j-2],u,v,path[j+1],dl);
-                if(!fixed.check(u)) H(u,v)+=h;
-                if(!fixed.check(v)) H(v,u)+=h;
+                H(u,v)+=h;
+                H(v,u)+=h;
             } 
             for(unsigned j=1;j<n-3;j++) {
                 for(unsigned k=j+2;k<n-1;k++) {
                     u=path[j]; v=path[k];
                     h=weight*hRule8(path[j-1],u,path[j+1],path[k-1],v,path[k+1]);
-                    if(!fixed.check(u)) H(u,v)+=h;
-                    if(!fixed.check(v)) H(v,u)+=h;
+                    H(u,v)+=h;
+                    H(v,u)+=h;
                 }
             }
         }
@@ -554,31 +549,14 @@ active_found:;
         }
         */
     }
-    void TopologyConstraints::verify(vector<vpsc::Rectangle*> &rs) {
-        for(unsigned e=0;e<edges.size();e++) {
-            Edge* edge=edges[e];
-            list<Segment*> &segments=edge->segments;
-            for(list<Segment*>::const_iterator s=segments.begin();
-                    s!=segments.end();s++) {
-                DummyNode *u=(*s)->start, *v=(*s)->end;
-                for(unsigned r=0;r<rs.size();r++) {
-                    if(edge->sEdge->startNode==r) continue;
-                    if(edge->sEdge->endNode==r) continue;
-
-                    assert(!rs[r]->overlaps(
-                            u->pos[0],u->pos[1],v->pos[0],v->pos[1]));
-                }
-            }
-        }
-    }
 
     void TopologyConstraints::finalizeRoutes() {
         //printf("Routes:\n");
         for(unsigned e=0;e<edges.size();e++) {
-            edges[e]->print();
+            //edges[e]->print();
             list<Segment*> &segments=edges[e]->segments;
             straightener::Route* r=new straightener::Route(segments.size()+1);
-            DummyNode* u=segments.front()->start;
+            EdgePoint* u=segments.front()->start;
             unsigned rcnt=0;
             r->xs[rcnt]=u->pos[0];
             r->ys[rcnt++]=u->pos[1];
@@ -590,7 +568,7 @@ active_found:;
                 r->ys[rcnt++]=u->pos[1];
             }
             r->n=rcnt;
-            edges[e]->sEdge->setRoute(r);
+            //edges[e]->sEdge->setRoute(r);
         }
     }
 }

@@ -13,6 +13,7 @@
 #define SEEN_LIBVPSC_RECTANGLE_H
 #include <iostream>
 #include <vector>
+#include <cassert>
 
 namespace vpsc {
 enum Dim { HORIZONTAL, VERTICAL };

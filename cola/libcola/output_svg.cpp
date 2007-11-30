@@ -22,14 +22,14 @@ void OutputFile::generate() {
     bool cleanupRoutes=false;
     if(routes==NULL) {
         cleanupRoutes=true;
-        routes = new vector<straightener::Edge*>(E);
+        routes = new vector<straightener::Route*>(E);
         for(unsigned i=0;i<E;i++) {
             straightener::Route* r=new straightener::Route(2);
             r->xs[0]=rs[es[i].first]->getCentreX();
             r->ys[0]=rs[es[i].first]->getCentreY();
             r->xs[1]=rs[es[i].second]->getCentreX();
             r->ys[1]=rs[es[i].second]->getCentreY();
-            (*routes)[i]=new straightener::Edge(i,es[i].first,es[i].second,r);
+            (*routes)[i]=r;
         }
     }
 #if defined (CAIRO_HAS_SVG_SURFACE) && defined (CAIRO_HAS_PDF_SURFACE)
@@ -69,7 +69,7 @@ void OutputFile::generate() {
         draw_cluster_boundary(cr,**c,xmin,ymin);
     }
     if(curvedEdges)
-        draw_curved_edges(cr,*routes,xmin,ymin);
+        draw_curved_edges(cr,es,xmin,ymin);
     else 
         draw_edges(cr,*routes,xmin,ymin);
     Cairo::TextExtents te;
@@ -151,12 +151,12 @@ void OutputFile::draw_cluster_boundary(Cairo::RefPtr<Cairo::Context> const &cr,
 }
 
 void OutputFile::draw_edges(Cairo::RefPtr<Cairo::Context> &cr,
- vector<straightener::Edge*> const & es, double const xmin, double const ymin) {
+ vector<straightener::Route*> const & es, double const xmin, double const ymin) {
     cr->save();
     // background
     cr->set_source_rgba(0,0,1,0.5);
     for (unsigned i=0;i<es.size();i++) {
-        const straightener::Route* r=es[i]->getRoute();
+        const straightener::Route* r=es[i];
         cr->move_to(r->xs[0]-xmin,r->ys[0]-ymin);
 		for (unsigned j=1;j<r->n;j++) {
             cr->line_to(r->xs[j]-xmin,r->ys[j]-ymin);
@@ -242,7 +242,7 @@ struct clockwise {
  * is less than pi/8
  */
 void OutputFile::draw_curved_edges(Cairo::RefPtr<Cairo::Context> &cr,
-        vector<straightener::Edge*> const & es, 
+        vector<cola::Edge> const & es, 
         const double xmin, 
         const double ymin) {
     using namespace bundles;
@@ -250,8 +250,8 @@ void OutputFile::draw_curved_edges(Cairo::RefPtr<Cairo::Context> &cr,
     vector<CEdge> edges(es.size());
     for (unsigned i=0;i<es.size();i++) {
         CEdge *e=&edges[i];
-        unsigned start=es[i]->startNode;
-        unsigned end=es[i]->endNode;
+        unsigned start=es[i].first;
+        unsigned end=es[i].second;
         e->startID=start;
         e->endID=end;
         nodes[start].x=rs[start]->getCentreX()-xmin;
