@@ -289,7 +289,8 @@ namespace topology {
                 project::Variable *u, 
                 project::Variable *v, 
                 project::Variable *w, 
-                double p, double g, bool left);
+                double p, double g, bool left)
+            : u(u), v(v), w(w), p(p), g(g), leftOf(left) {}
     };
     class TopologyConstraints {
     public:

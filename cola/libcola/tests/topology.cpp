@@ -8,15 +8,18 @@ using namespace std;
 using namespace topology;
 
 Nodes vs;
+vector<vpsc::Rectangle*> rs;
 EdgePoints ps;
 Edges es;
 
 Node* addNode(double x, double y, double w, double h) {
-	Node *v = new Node(vs.size(),new project::Variable(1,1), new vpsc::Rectangle(x,x+w,y,y+h));
+    vpsc::Rectangle* r = new vpsc::Rectangle(x,x+w,y,y+h);
+	Node *v = new Node(vs.size(), r, new project::Variable(1,1));
     vs.push_back(v);
+    rs.push_back(r);
     return v;
 }
-void addToPath(Node *v, topology::DummyNode::RectIntersect i) {
+void addToPath(Node *v, topology::EdgePoint::RectIntersect i) {
     ps.push_back(new EdgePoint(v,i));
 }
 
@@ -29,31 +32,34 @@ void simpleBend() {
     Node *v0 = addNode(571.500000,363.500000,63.000000,43.000000),
          *v1 = addNode(592.148117,469.500000,63.000000,43.000000),
          *v2 = addNode(541.500000,300.500000,63.000000,43.000000);
-    addToPath(v1,DummyNode::CENTRE);
-    addToPath(v0,DummyNode::TR);
-    addToPath(v0,DummyNode::BR);
-    addToPath(v2,DummyNode::CENTRE);
+    addToPath(v1,EdgePoint::CENTRE);
+    addToPath(v0,EdgePoint::TR);
+    addToPath(v0,EdgePoint::BR);
+    addToPath(v2,EdgePoint::CENTRE);
 
-    es.push_back(new topology::Edge(vs));
+    es.push_back(new topology::Edge(ps));
 
     vector<straightener::Route*> routes;
 
-    for(vector<topology::Edge*>::iterator i=tes.begin();i!=tes.end();++i) {
+    for(vector<topology::Edge*>::iterator i=es.begin();i!=es.end();++i) {
         topology::Edge* e=*i;
         routes.push_back(e->getRoute());
     }
 
-    TopologyConstraints t(cola::HORIZONTAL,vs,tes);
+    TopologyConstraints t(cola::HORIZONTAL,vs,es);
 
-    OutputFile of(rs,es,NULL,"simpleBend.svg",true,false);
+    vector<cola::Edge> cedges;
+    cedges.push_back(make_pair(1,2));
+
+    OutputFile of(rs,cedges,NULL,"simpleBend.svg",true,false);
     of.setLabels(3,ls);
     of.routes=&routes;
     of.generate();
 
     for_each(ps.begin(),ps.end(),delete_object());
-    for_each(tes.begin(),tes.end(),delete_object());
+    for_each(es.begin(),es.end(),delete_object());
+    for_each(rs.begin(),rs.end(),delete_object());
     for(Nodes::iterator i=vs.begin();i!=vs.end();i++) {
-        delete (*i)->rect;
         delete (*i)->var;
         delete *i;
     }
