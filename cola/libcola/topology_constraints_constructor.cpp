@@ -81,10 +81,14 @@ namespace topology {
     struct NodeClose : NodeEvent {
         NodeOpen* opening;
         NodeClose(Node* node) :
-            NodeEvent(false,node->rect->getMinD(!dim),node) {}
+            NodeEvent(false,node->rect->getMaxD(!dim),node) {}
         void process() {
             print();
+#ifndef NDEBUG
+            unsigned count = 
+#endif
             openNodes.erase(node->rect->getCentreD(dim));
+            assert(count == 1);
             // create topology constraint from scanpos in every open edge to node
             createTopologyConstraint();
             delete this;
@@ -152,12 +156,12 @@ namespace topology {
             vpsc::Rectangle* r=node->rect;
             // segment must overlap in the scan dimension with the rectangle
             assert(!(
-                        u->pos[!dim]>r->getMaxD(!dim)
-                      &&v->pos[!dim]>r->getMaxD(!dim)
+                        u->pos[!dim]>=r->getMaxD(!dim)
+                      &&v->pos[!dim]>=r->getMaxD(!dim)
                     ));
             assert(!(
-                        u->pos[!dim]<r->getMinD(!dim)
-                      &&v->pos[!dim]<r->getMinD(!dim)
+                        u->pos[!dim]<=r->getMinD(!dim)
+                      &&v->pos[!dim]<=r->getMinD(!dim)
                     ));
             // determine direction of constraint based on intersection of segment with scan line
             bool passLeft=false;
@@ -185,21 +189,37 @@ namespace topology {
             if(a->pos < b->pos) {
                 return true;
             } else if(a->pos==b->pos) {
-                // All opens should come before closes when at the same position
-                if(a->open && !b->open) return true;
-                if(!a->open && b->open) return false;
-                // Segment opens at the same position as node opens, segment comes first
+#ifndef NDEBUG
+                SegmentEvent* sa = dynamic_cast<SegmentEvent*>(a);
+                SegmentEvent* sb = dynamic_cast<SegmentEvent*>(b);
+                if(sa&&sb) {
+                    // events should not have been generated for 
+                    // segments parallel to scan line
+                    assert(sa->s!=sb->s);
+                }
+#endif
+                // note: Segments orthogonal to scan direction (i.e.
+                // OpenPos=ClosePos) can still have node events between the
+                // segment open and close... need to handle elsewhere 
+                // Let closes come before opens when at the same position
+                if(!a->open && b->open) return true;
+                if(a->open && !b->open) return false;
+                // Segment opens at the same position as node opens, node
+                // comes first
                 if(a->open && b->open) {
-                    if(dynamic_cast<SegmentOpen*>(a) && dynamic_cast<NodeOpen*>(b)) return true;
-                    if(dynamic_cast<SegmentOpen*>(b) && dynamic_cast<NodeOpen*>(a)) return false;
+                    if(dynamic_cast<SegmentOpen*>(b) 
+                       && dynamic_cast<NodeOpen*>(a)) return true;
+                    if(dynamic_cast<SegmentOpen*>(a) 
+                       && dynamic_cast<NodeOpen*>(b)) return false;
                 }
-                // Segment closes at the same position as node closes, node comes first
+                // Segment closes at the same position as node closes, segment
+                // comes first
                 if(!a->open && !b->open) {
-                    if(dynamic_cast<SegmentOpen*>(a) && dynamic_cast<NodeOpen*>(b)) return false;
-                    if(dynamic_cast<SegmentOpen*>(b) && dynamic_cast<NodeOpen*>(a)) return true;
+                    if(dynamic_cast<SegmentClose*>(a) &&
+                       dynamic_cast<NodeClose*>(b)) return true;
+                    if(dynamic_cast<SegmentClose*>(b) &&
+                       dynamic_cast<NodeClose*>(a)) return false;
                 }
-                // note: Segments orthogonal to scan direction (i.e. OpenPos=ClosePos) can still
-                // have node events between the segment open and close... need to handle elsewhere 
             }
             return false;
         }
@@ -225,6 +245,10 @@ namespace topology {
             for(Segments::iterator si=(*e)->segments.begin();
                     si!=(*e)->segments.end();si++) {
                 Segment* s=*si;
+                if(s->start->pos[!dim]==s->end->pos[!dim]) {
+                    // don't generate events for segments parallel to scan line
+                    continue;
+                }
                 SegmentOpen *open=new SegmentOpen(s);
                 SegmentClose *close=new SegmentClose(s,open);
                 events.push_back(open);
