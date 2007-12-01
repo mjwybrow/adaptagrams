@@ -152,12 +152,12 @@ namespace topology {
             vpsc::Rectangle* r=node->rect;
             // segment must overlap in the scan dimension with the rectangle
             assert(!(
-                        u->pos[!dim]>=r->getMaxD(!dim)
-                      &&v->pos[!dim]>=r->getMaxD(!dim)
+                        u->pos[!dim]>r->getMaxD(!dim)
+                      &&v->pos[!dim]>r->getMaxD(!dim)
                     ));
             assert(!(
-                        u->pos[!dim]<=r->getMinD(!dim)
-                      &&v->pos[!dim]<=r->getMinD(!dim)
+                        u->pos[!dim]<r->getMinD(!dim)
+                      &&v->pos[!dim]<r->getMinD(!dim)
                     ));
             // determine direction of constraint based on intersection of segment with scan line
             bool passLeft=false;
