@@ -1,3 +1,12 @@
+/**
+ * Everything in here is related to creating a topology_constraints instance.
+ * The main complexity here is the definition of structures representing events
+ * in a plane scan algorithm for generating topology constraints between
+ * rectangles and line segments. 
+ * \file topology_constraints_constructor.cpp
+ * \author Tim Dwyer
+ * \date Dec 2007
+ */
 #include "topology_constraints.h"
 #include "cola.h"
 #include "straightener.h"
@@ -5,15 +14,6 @@ using namespace std;
 using vpsc::Rectangle;
 namespace topology {
     cola::Dim dim;
-    /** The following structures represent events in a plane scan algorithm
-     * for generating topology constraints between rectangles and line segments. 
-     *
-     *                Event        
-     *               /     \               
-     *      NodeEvent       SegmentEvent    
-     *     /      \            /        \     
-     * NodeOpen NodeClose SegmentOpen SegmentClose
-     */
     struct SegmentOpen;
     struct NodeOpen;
     typedef list<SegmentOpen*> OpenSegments;
@@ -42,7 +42,14 @@ namespace topology {
         double pos;
         Event(bool open, double pos) : open(open), pos(pos) {}
         virtual ~Event() {};
+        /**
+         * process is called for each event in pos order as part of the scan
+         * algorithm to generate topology constraints.
+         */
         virtual void process()=0;
+        /**
+         * print is useful in debugging
+         */
         virtual void print()=0;
     };
     /**
@@ -55,6 +62,10 @@ namespace topology {
             : Event(open,pos), node(v) {
         }
         ~NodeEvent(){}
+        /**
+         * topology constraints are generated for the opening and closing edges of each node
+         * and every open segment at pos
+         */
         void createTopologyConstraint();
     };
     /**
@@ -62,12 +73,19 @@ namespace topology {
      * is created for one side of the node rectangle and every open segment.
      */
     struct NodeOpen : NodeEvent {
+        /// position in openNodes
+        OpenNodes::iterator openListIndex;
         NodeOpen(Node const *node) 
             : NodeEvent(true,node->rect->getMinD(!dim),node) {
         }
         void process() {
             print();
-            openNodes[node->rect->getCentreD(dim)]=this;
+            pair<OpenNodes::iterator,bool> r =
+                openNodes.insert(make_pair(node->rect->getCentreD(dim),this));
+            // the following test fails if there is already an entry in
+            // openNodes at this position
+            assert(r.second);
+            openListIndex = r.first;
             createTopologyConstraint();
         }
         void print() {
@@ -79,16 +97,21 @@ namespace topology {
      * are created for the remaining side of the node rectangle and every open segment.
      */
     struct NodeClose : NodeEvent {
+        /** we store the opening corresponding to this closing so that we can delete it and
+         *  remove it from the list of OpenNodes.
+         */
         NodeOpen* opening;
-        NodeClose(Node* node) :
-            NodeEvent(false,node->rect->getMaxD(!dim),node) {}
+        NodeClose(Node* node, NodeOpen* o) :
+            NodeEvent(false,node->rect->getMaxD(!dim),node), opening(o) {
+            assert(opening->node == node);
+        }
+        /**
+         * remove opening from openNodes, cleanup, and generate TopologyConstraints.
+         */
         void process() {
             print();
-#ifndef NDEBUG
-            unsigned count = 
-#endif
-            openNodes.erase(node->rect->getCentreD(dim));
-            assert(count == 1);
+            openNodes.erase(opening->openListIndex);
+            delete opening;
             // create topology constraint from scanpos in every open edge to node
             createTopologyConstraint();
             delete this;
@@ -109,9 +132,11 @@ namespace topology {
      * at a segment open we add the segment to the list of open segments
      */
     struct SegmentOpen : SegmentEvent {
+        /// position in openSegments
         OpenSegments::iterator openListIndex;
         SegmentOpen(Segment *s) 
             : SegmentEvent(true,s->getMin(),s) {}
+        /// add to list of open segments
         void process() {
             print();
             openListIndex=openSegments.insert(openSegments.end(),this);
@@ -122,15 +147,20 @@ namespace topology {
         }
     };
     /**
-     * at a segment closing we remove the segment from the list of openings
+     * at a segment closing we remove the segment from the list of openings and cleanup
      */
     struct SegmentClose : SegmentEvent {
+        /// opening corresponding to this closing
         SegmentOpen* opening;
         SegmentClose(Segment *s, SegmentOpen* so)
-            : SegmentEvent(false,s->getMax(),s), opening(so) {}
+            : SegmentEvent(false,s->getMax(),s), opening(so) 
+        {
+            assert(opening->s==s);
+        }
         void process() {
             print();
-            openSegments.erase(opening->openListIndex);
+            OpenSegments::iterator i=openSegments.erase(opening->openListIndex);
+            delete opening;
             delete this;
         }
         void print() {
@@ -232,12 +262,15 @@ namespace topology {
         printf("Generating topology constraints! (dim=%d)\n",dim);
 
         vector<Event*> events;
+        unsigned ctr=0;
         // scan vertically to create horizontal topology constraints
         // place Segment opening/closing and Rectangle opening/closing into event queue
         for(Nodes::const_iterator i=nodes.begin();i!=nodes.end();++i) {
             Node* v=*i;
+            vpsc::Rectangle* r=v->rect;
+            printf("v%d={%f,%f,%f,%f}\n",ctr++,r->getMinX(),r->getMinY(),r->width(),r->height());
             NodeOpen *open=new NodeOpen(v);
-            NodeClose *close=new NodeClose(v);
+            NodeClose *close=new NodeClose(v,open);
             events.push_back(open);
             events.push_back(close);
         }

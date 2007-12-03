@@ -1,3 +1,8 @@
+/**
+ * \file sparse_matrix.h
+ * \author Tim Dwyer
+ * \date 2007
+ */
 #ifndef _SPARSE_MATRIX_H
 #define _SPARSE_MATRIX_H
 #include <valarray>
@@ -34,7 +39,7 @@ struct SparseMap {
         this->n = n;
     }
 };
-/*
+/**
  * Yale Sparse Matrix implementation (from Wikipedia definition).
  * It stores an initial sparse n×n matrix M in row form using three arrays, A,
  * IA, JA. NZ denotes the number of nonzero entries in matrix M. The array A

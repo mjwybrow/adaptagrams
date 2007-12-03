@@ -58,8 +58,9 @@ namespace topology {
     public:
         /// the node / variable / rectangle associated with this EdgePoint
         const Node* node;
-        /// the position, computed based on rectIntersect and rectangle position and boundary
-        /// @param dim the axis (either horizontal or vertical) of the coordinate to return
+        /** the position, computed based on rectIntersect and rectangle position and boundary
+         *  @param dim the axis (either horizontal or vertical) of the coordinate to return
+         */
         double pos[2];
         /// where the node lies on the rectangle
         enum RectIntersect { 
@@ -197,7 +198,7 @@ namespace topology {
         /**
          * Construct an edge from a list of EdgePoint in sequence
          */
-        Edge(EdgePoints &vs) {
+        Edge(double idealLength, EdgePoints &vs) : idealLength(idealLength) {
             EdgePoints::iterator a=vs.begin();
             for(EdgePoints::iterator b=a+1;b!=vs.end();++a,++b) {
                 segments.push_back(new Segment(this,*a,*b)); 
@@ -294,6 +295,9 @@ namespace topology {
                 printf("TopologyConstraint created!\n");
         }
     };
+    /**
+     * Define a topology over a diagram by generating a set of TopologyConstraint
+     */
     class TopologyConstraints {
     public:
         const Edges& edges;

@@ -1,4 +1,5 @@
 #include <vector>
+#include <iostream>
 #include <libvpsc/rectangle.h>
 #include <libcola/topology_constraints.h>
 #include <libcola/cola.h>
@@ -11,6 +12,11 @@ Nodes vs;
 vector<vpsc::Rectangle*> rs;
 EdgePoints ps;
 Edges es;
+double expectedStress=1.05721;
+double expectedG[]={0.0143283,0.00271783,-0.0170462};
+double expectedH[][3]={{0.000340898, -0.000138663, -0.000202235}, 
+                       {-0.000138663, 0.000160573, -0.0000219108}, 
+                       {-0.000202235, -0.0000219108, 0.000224146}};
 
 Node* addNode(double x, double y, double w, double h) {
     vpsc::Rectangle* r = new vpsc::Rectangle(x,x+w,y,y+h);
@@ -30,23 +36,43 @@ void simpleBend() {
     vector<const char *> labels(ls,ls+V);
 
     Node *v0 = addNode(571.500000,363.500000,63.000000,43.000000),
-         *v1 = addNode(592.148117,469.500000,63.000000,43.000000),
+         *v1 = addNode(620.0,469.500000,63.000000,43.000000),
          *v2 = addNode(541.500000,300.500000,63.000000,43.000000);
     addToPath(v1,EdgePoint::CENTRE);
-    addToPath(v0,EdgePoint::TR);
     addToPath(v0,EdgePoint::BR);
     addToPath(v2,EdgePoint::CENTRE);
 
-    es.push_back(new topology::Edge(ps));
+    Edge *e = new Edge(100,ps);
+    es.push_back(e);
 
     vector<straightener::Route*> routes;
-
-    for(vector<topology::Edge*>::iterator i=es.begin();i!=es.end();++i) {
-        topology::Edge* e=*i;
-        routes.push_back(e->getRoute());
-    }
+    routes.push_back(e->getRoute());
 
     TopologyConstraints t(cola::HORIZONTAL,vs,es);
+
+    // this simple case shouldn't have generated any topology constraints
+    unsigned ctr=0;
+    for(Segments::iterator i=e->segments.begin();i!=e->segments.end();++i) {
+        Segment* s=*i;
+        ctr+=s->topologyConstraints.size();
+    }
+    assert(ctr==1);
+    printf(" %d topology constraints created!\n",ctr);
+
+    // test computeStress
+    double stress=t.computeStress();
+    assert(fabs(expectedStress-stress)<1e-4);
+
+    unsigned n=vs.size();
+    valarray<double> g(n);
+    cola::SparseMap h(n);
+    t.computeForces(h,g);
+    for(unsigned i=0;i<n;++i) {
+        assert(fabs(g[i]-expectedG[i])<1e-4);
+        for(unsigned j=0;j<n;++j) {
+            assert(fabs(h(i,j)-expectedH[i][j])<1e-4);
+        }
+    }
 
     vector<cola::Edge> cedges;
     cedges.push_back(make_pair(1,2));

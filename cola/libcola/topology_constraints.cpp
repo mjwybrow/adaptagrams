@@ -387,19 +387,23 @@ namespace topology {
             len(b,c,dybc,dxbc,dybc2,dxbc2);
         return (dxuv/luv - dxvw/lvw) * (dxab/lab - dxbc/lbc);
     }
+    /**
+     * compute the stress:
+     * \f[
+     *   \sigma = \sum_{e \in E} \left( d_e - \sum_{s \in S(e)} |s| \right)^2
+     * \f]
+     */
     double TopologyConstraints::computeStress() const {
-        /*
         double stress=0;
-        for(unsigned i=0;i<edges.size();i++) {
-            double d = edges[i]->sEdge->idealLength;
-            double weight=1/(d*d);
-            //printf("pathLength=%f\n",pathLength(edges[i],nodes));
-            double sqrtf=fabs(d-pathLength(edges[i],dummyNodes));
+        for(Edges::const_iterator i=edges.begin();i!=edges.end();++i) {
+            Edge* e=*i;
+            double d = e->idealLength;
+            double weight=1.0/(d*d);
+            printf("pathLength=%f\n",e->pathLength());
+            double sqrtf=fabs(d-e->pathLength());
             stress+=weight*sqrtf*sqrtf;
         }
         return stress;
-        */
-        return 0;
     }
     /**
      * a wrapper for a SparseMap so that we can index it by two EdgePoint
@@ -439,13 +443,13 @@ namespace topology {
             unsigned n=path.size();
             assert(n>=2);
             double d=e->idealLength;
-            printf("idealLength=%f\n",d);
-            double weight=1/(d*d);
+
+            double weight=2.0/(d*d);
             double dl=d-e->pathLength();
 
             // first and last entries
             // gradient
-            u=e->start(), v=e->end();
+            u=path[0]; v=path[1];
             double h=weight*hRuleD1(u,v,dl);
             H(u,u)+=h;
             double g1=weight*dl*gRule1(u,v);
