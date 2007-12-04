@@ -44,7 +44,7 @@ struct Variable {
     /// compute cost of goal function at current position
     double cost() const { double dx=x-d; return w * dx*dx; }
     double x; ///< current position
-    const double d; ///< desired position
+    double d; ///< desired position
     double w; ///< weight of variable's contribution to goal function
     Block* block; ///< container block
     double b; ///< offset from block reference variable
@@ -133,7 +133,9 @@ public:
      * Set a pointer to a function that checks to make sure a given alpha does not
      * violate some external condition.
      */
-    void setExternalAlphaCheck(void (*externalAlphaCheck)(double alpha));
+    void setExternalAlphaCheck(void (*check)(double alpha)) {
+        externalAlphaCheck=check;
+    }
 private:
     Variables const &vs;
     Constraints const &cs;

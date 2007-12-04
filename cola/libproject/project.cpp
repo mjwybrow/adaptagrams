@@ -224,7 +224,7 @@ struct MaxSafeMove : unary_function<Constraint*,void> {
 double Project::
 findSafeMove(Constraint* &c) {
     c=NULL;
-    double alpha=DBL_MAX;
+    double alpha=1.0;
     for_each(inactive.begin(),inactive.end(),MaxSafeMove(c,alpha));
     if(externalAlphaCheck) {
         (*externalAlphaCheck)(alpha);

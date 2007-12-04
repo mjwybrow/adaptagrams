@@ -399,7 +399,7 @@ namespace topology {
             Edge* e=*i;
             double d = e->idealLength;
             double weight=1.0/(d*d);
-            printf("pathLength=%f\n",e->pathLength());
+            //printf("pathLength=%f\n",e->pathLength());
             double sqrtf=fabs(d-e->pathLength());
             stress+=weight*sqrtf*sqrtf;
         }
