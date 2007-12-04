@@ -14,6 +14,8 @@ project::Constraints cs;
 vector<vpsc::Rectangle*> rs;
 EdgePoints ps;
 Edges es;
+vector<TopologyConstraint*> ts;
+
 double expectedStress=1.05721;
 double expectedG[]={0.0143283,0.00271783,-0.0170462};
 double expectedH[][3]={{0.000340898, -0.000138663, -0.000202235}, 
@@ -39,6 +41,8 @@ double computeStepSize(
 
 void alphaCheck(double a) {
     printf("Hi from alphaCheck: %f\n",a);
+    // find minimum feasible alpha b over all topology constraints
+    // if b<a then move all by b and throw interrupt expection
 }
 
 void simpleBend() {
@@ -62,14 +66,9 @@ void simpleBend() {
 
     TopologyConstraints t(cola::HORIZONTAL,vs,es);
 
-    // this simple case shouldn't have generated any topology constraints
-    unsigned ctr=0;
-    for(Segments::iterator i=e->segments.begin();i!=e->segments.end();++i) {
-        Segment* s=*i;
-        ctr+=s->topologyConstraints.size();
-    }
-    assert(ctr==1);
-    printf(" %d topology constraints created!\n",ctr);
+    // this simple case should have generated one topology constraint
+    t.constraints(ts);
+    assert(ts.size()==1);
 
     // test computeStress
     double stress=t.computeStress();

@@ -35,14 +35,18 @@ class Block;
  */
 struct Variable {
     Variable(double x, double d, double w=1.0) : x(x),d(d),w(w) {}
-    /// recompute the current position based on offset and block position
-    void updatePosition();
     /// compute derivative of goal function
     double dfdv() const { return 2.0 * w * (x-d); }
     /// weighted displacement from ideal position for block position
     double displacement() const { return w * (d-b); }
     /// compute cost of goal function at current position
     double cost() const { double dx=x-d; return w * dx*dx; }
+    /// @return block->XI + b
+    double relativeInitialPos() const;
+    /// @return block->X + b
+    double relativeDesiredPos() const;
+    /// recompute the current position based on offset and block position
+    void updatePosition() { x = relativeDesiredPos(); }
     double x; ///< current position
     double d; ///< desired position
     double w; ///< weight of variable's contribution to goal function
@@ -61,6 +65,18 @@ public:
     Variable *r;
     const double g;
     double slack() const;
+    /** 
+     * @return true if the constraint can be satisfied at the relative desired positions for
+     *  l and r.
+     */
+    bool feasibleAtDesired() const {
+        return l->relativeDesiredPos() + g <= r->relativeDesiredPos();
+    }
+    /** 
+     * @return the maximum move we can make along the line from initial to desired positions
+     * without violating this constraint
+     */
+    double maxSafeAlpha() const;
     bool active; ///< if set at equality
     double lm; ///< lagrange multiplier
     void resetLM() { lm = 0; }
@@ -93,6 +109,8 @@ public:
      * compute the lagrangian multipliers of all the active constraints in this block.
      */
     void computeLagrangians();
+    /// vector to desired position
+    double toDesired() const { return X - XI; }
     Variables V; ///< member vars
     double w; ///< total weight of constituent vars
     Constraints C; ///< active constraints

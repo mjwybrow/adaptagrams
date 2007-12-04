@@ -56,7 +56,8 @@ const double epsilon = 1e-10;
 #endif
 namespace project {
 
-void Variable::updatePosition() { x = block->X + b; }
+double Variable::relativeInitialPos() const { return block->XI + b; }
+double Variable::relativeDesiredPos() const { return block->X + b; }
 
 Constraint::Constraint(Variable *l, Variable *r, const double g)
     : l(l), r(r), g(g)
@@ -165,6 +166,33 @@ initBlocks() {
     }
 }
 
+/** 
+ * @return the maximum move we can make along the line from initial to desired positions
+ * without violating this constraint
+ */
+double Constraint::maxSafeAlpha() const {
+    // maxSafeAlpha should only ever be applied to inactive constraints
+    LIBPROJECT_ASSERT(!active);
+    double a;
+    if(feasibleAtDesired()) {
+        // if constraint is satisfied at the desired positions
+        // then we can move all the way
+        // note: this should also include inactive constraints within
+        // the same block, hence the assertion below that the two 
+        // sides of _c be in a different block.
+        a = 1;
+    } else {
+        LIBPROJECT_ASSERT(l->block!=r->block);
+        double Al = l->relativeInitialPos(),
+               Ar = r->relativeInitialPos(),
+               Bl = l->block->toDesired(),
+               Br = r->block->toDesired();
+        a = (g + Al - Ar) / (Br - Bl);
+        LIBPROJECT_ASSERT(0<=a && a<=1);
+    }
+    LIBPROJECT_LOG(("C->g=%f, alpha=%f\n",g,a));
+    return a;
+}
 /**
  * Functor used for finding the largest move (alpha) we can make along the line from 
  * current positions to desired positions without violating a constraint.
@@ -178,32 +206,7 @@ struct MaxSafeMove : unary_function<Constraint*,void> {
      * @param _c constraint to check against alpha
      */
     void operator()(Constraint *_c) {
-        // MaxSafeMove should only ever be applied to inactive constraints
-        LIBPROJECT_ASSERT(!_c->active);
-        double a = 0;
-        double Xl = _c->l->block->X,
-               Xr = _c->r->block->X,
-               bl = _c->l->b,
-               br = _c->r->b;
-        if(Xl + bl + _c->g <= Xr + br) {
-            // if constraint is satisfied at the desired positions
-            // then we can move all the way
-            // note: this should also include inactive constraints within
-            // the same block, hence the assertion below that the two 
-            // sides of _c be in a different block.
-            a = 1;
-        } else {
-            LIBPROJECT_ASSERT(_c->l->block!=_c->r->block);
-            double XIl = _c->l->block->XI,
-                   XIr = _c->r->block->XI;
-            double Al = XIl + bl,
-                   Ar = XIr + br,
-                   Bl = Xl - XIl,
-                   Br = Xr - XIr;
-            a = (_c->g + Al - Ar) / (Br - Bl);
-            LIBPROJECT_ASSERT(0<=a && a<=1);
-        }
-        LIBPROJECT_LOG(("C->g=%f, alpha=%f\n",_c->g,a));
+        double a = _c->maxSafeAlpha();
         if(a < alpha) {
             c = _c;
             alpha = a;
