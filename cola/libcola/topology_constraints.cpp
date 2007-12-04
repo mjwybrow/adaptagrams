@@ -575,5 +575,18 @@ namespace topology {
             //edges[e]->sEdge->setRoute(r);
         }
     }
+void TopologyConstraints::
+constraints(std::vector<TopologyConstraint*> & ts) const {
+    for(Edges::const_iterator e=edges.begin();e!=edges.end();++e) {
+        for(Segments::const_iterator s=(*e)->segments.begin();
+                s!=(*e)->segments.end();++s) {
+            for(vector<TopologyConstraint*>::const_iterator 
+                t=(*s)->topologyConstraints.begin();
+                t!=(*s)->topologyConstraints.end();++t) {
+                ts.push_back(*t);
+            }
+        }
+    }
 }
+} // namespace topology
 // vim: cindent ts=4 sw=4 et tw=0 wm=0

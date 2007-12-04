@@ -307,6 +307,7 @@ namespace topology {
             const Edges &es);
         ~TopologyConstraints() { }
         void violated(std::vector<TopologyConstraint*> & ts) const;
+        void constraints(std::vector<TopologyConstraint*> & ts) const;
         TopologyConstraint* mostViolated() const;
         void computeForces(cola::SparseMap &H, valarray<double> &g);
         double computeStress() const;

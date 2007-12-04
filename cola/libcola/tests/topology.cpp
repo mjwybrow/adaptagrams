@@ -109,10 +109,10 @@ void simpleBend() {
     of.generate();
 
     for_each(ps.begin(),ps.end(),delete_object());
-    for_each(es.begin(),es.end(),delete_object());
     for_each(rs.begin(),rs.end(),delete_object());
     for_each(vs.begin(),vs.end(),delete_object());
     for_each(vars.begin(),vars.end(),delete_object());
+    for_each(es.begin(),es.end(),delete_object());
     for_each(routes.begin(),routes.end(),delete_object());
 }
 
