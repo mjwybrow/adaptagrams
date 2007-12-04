@@ -288,12 +288,9 @@ namespace topology {
                 events.push_back(close);
             }
         }
-        //   sort events top to bottom
+        // process events in top to bottom order
         std::sort(events.begin(),events.end(),CompareEvents());
-        for(vector<Event*>::iterator i=events.begin();i!=events.end();i++) {
-            Event* e=*i;
-            e->process();
-        }
+        for_each(events.begin(),events.end(),mem_fun(&Event::process));
         assert(openSegments.empty());
         assert(openNodes.empty());
     }
