@@ -84,8 +84,8 @@ namespace topology {
             setPos();
         }
         /**
-         * @return true if the EdgePoint is the end of an edge otherwise asserts that
-         * it is a valid bend point.
+         * @return true if the EdgePoint is the end of an edge otherwise
+         * asserts that it is a valid bend point.
          */
         bool isReal() const {
             if(rectIntersect==CENTRE
@@ -164,8 +164,9 @@ namespace topology {
             return false;
         }
         /** 
-         * compute the intersection with the scanline.
-         * if called when Segment is parallel to scan line it will throw an assertion error.
+         * compute the intersection with the line !dim=pos.
+         * if called when Segment is parallel to scan line it will throw an
+         * assertion error.
          * @param pos position of scanline
          * @param p distance along line from start to end at which intersection occurs (where 0
          * is at the start and 1 is at the end).
@@ -179,6 +180,14 @@ namespace topology {
             p = (pos - uy)/denom;
             return ux + p * (vx-ux);
         }
+        /**
+         * create a constraint for the bend at the end of a segment that
+         * prevents the bend from changing direction.  In other words, the
+         * constraint (a TopologyConstraint over the segment start, segment end
+         * and the end of the next segment) becomes active when the bend is
+         * straight.
+         */
+        void createBendConstraint();
         /**
          * Compute the euclidean distance between #start and #end.
          */
@@ -294,6 +303,11 @@ namespace topology {
             : u(u), v(v), w(w), p(p), g(g), leftOf(left) {
                 printf("TopologyConstraint created!\n");
         }
+        /** 
+         * @return the maximum move we can make along the line from initial to
+         * desired positions without violating this constraint
+         */
+        double maxSafeAlpha() const;
     };
     /**
      * Define a topology over a diagram by generating a set of TopologyConstraint

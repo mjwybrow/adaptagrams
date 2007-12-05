@@ -254,6 +254,33 @@ namespace topology {
             return false;
         }
     };
+    /**
+     * create a constraint for the bend at the end of a segment that
+     * prevents the bend from changing direction.  In other words,
+     * the constraint (a TopologyConstraint over the segment start, 
+     * segment end and the end of the next segment) becomes active when the
+     * bend is straight.
+     */
+    void
+    Segment::createBendConstraint() {
+        // we do not apply this to horizontal segments
+        assert(start->pos[!dim]!=end->pos[!dim]);
+        // or to the last segment in an edge
+        assert(!end->isReal());
+        EdgePoint* u=start, * v=end;
+        EdgePoint* w=end->outSegment->end;
+        // because all of our nodes are boxes we do not expect consecutive
+        // segments to change horizontal or vertical direction
+        assert(u->pos[!dim]<v->pos[!dim]&&v->pos[!dim]<=w->pos[!dim]
+            || u->pos[!dim]>v->pos[!dim]&&v->pos[!dim]>=w->pos[!dim]);
+        double g=u->offset()+v->offset()+w->offset();
+        double p;
+        double i=intersection(w->pos[!dim],p);
+        bool leftOf = w->pos[dim] < i;
+        TopologyConstraint* t = new TopologyConstraint(
+            u->node->var,v->node->var,w->node->var,p,g,leftOf);
+        topologyConstraints.push_back(t);
+    }
     TopologyConstraints::TopologyConstraints( const cola::Dim axisDim,
             Nodes const & nodes,
             Edges const & edges) : edges(edges) {
@@ -281,6 +308,9 @@ namespace topology {
                 if(s->start->pos[!dim]==s->end->pos[!dim]) {
                     // don't generate events for segments parallel to scan line
                     continue;
+                }
+                if(!s->end->isReal()) {
+                    s->createBendConstraint();
                 }
                 SegmentOpen *open=new SegmentOpen(s);
                 SegmentClose *close=new SegmentClose(s,open);

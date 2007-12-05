@@ -124,16 +124,6 @@ void Block::computeLagrangians() {
 }
 
 Project::
-Project(
-        std::vector<Variable*> const &vs, 
-        std::vector<Constraint *> const &cs) 
-    : vs(vs)
-    , cs(cs)
-    , inactive(cs.begin(),cs.end())
-    , externalAlphaCheck(NULL)
-{ 
-}
-Project::
 ~Project() {
     LIBPROJECT_ASSERT(blocks.size()==vs.size()-merges+splits);
     for_each(blocks.begin(),blocks.end(),delete_object());

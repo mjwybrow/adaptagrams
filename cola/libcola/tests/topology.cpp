@@ -39,11 +39,38 @@ double computeStepSize(
         valarray<double> const &g, 
         valarray<double> const &d);
 
-void alphaCheck(double a) {
-    printf("Hi from alphaCheck: %f\n",a);
-    // find minimum feasible alpha b over all topology constraints
-    // if b<a then move all by b and throw interrupt expection
-}
+struct InterruptException {
+};
+struct AlphaCheck : project::ExternalAlphaCheck {
+    AlphaCheck(project::Variables& vs, vector<TopologyConstraint*>& ts) 
+        : vs(vs), ts(ts) {}
+    void operator()(double alpha) {
+        printf("AlphaCheck: %f\n",alpha);
+        double minTAlpha=DBL_MAX;
+        TopologyConstraint* minT=NULL;
+        // find minimum feasible alpha over all topology constraints
+        for(vector<TopologyConstraint*>::iterator i=ts.begin();
+                i!=ts.end();++i) {
+            TopologyConstraint* t=*i;
+            double tAlpha=t->maxSafeAlpha();
+            printf("  TopologyConstraint alpha: %f\n",tAlpha);
+            if(tAlpha>=0 && tAlpha<minTAlpha) {
+                minTAlpha=tAlpha;
+                minT=t;
+                printf("  violated TopologyConstraint at: %f\n",minTAlpha);
+            }
+        }
+        // if minTAlpha<alpha move all by minTAlpha 
+        // and throw interrupt expection
+        if(minTAlpha<alpha) {
+            for_each(vs.begin(),vs.end(),
+                    bind2nd(mem_fun(&project::Variable::moveBy),minTAlpha));
+            throw InterruptException();
+        }
+    }
+    project::Variables& vs;
+    vector<TopologyConstraint*>& ts;
+};
 
 void simpleBend() {
     printf("test: simpleBend()\n");
@@ -61,14 +88,12 @@ void simpleBend() {
     Edge *e = new Edge(100,ps);
     es.push_back(e);
 
-    vector<straightener::Route*> routes;
-    routes.push_back(e->getRoute());
-
     TopologyConstraints t(cola::HORIZONTAL,vs,es);
 
-    // this simple case should have generated one topology constraint
+    // this simple case should have generated two topology constraints
+    //   one at the actual bend point and another at the potential bend
     t.constraints(ts);
-    assert(ts.size()==1);
+    assert(ts.size()==2);
 
     // test computeStress
     double stress=t.computeStress();
@@ -93,14 +118,23 @@ void simpleBend() {
         v->d=r->getCentreX()-g[i]*stepSize;
     }
     project::Project p(vars,cs);
-    p.setExternalAlphaCheck(alphaCheck);
-    p.solve();
+    AlphaCheck a(vars,ts);
+    p.setExternalAlphaCheck(&a);
+    try {
+        p.solve();
+    } catch(InterruptException& e) {
+        printf("finished early!\n");
+    }
     for(unsigned i=0;i<n;i++) {
         rs[i]->moveCentreX(vars[i]->x);
+        ps[i]->pos[0]=ps[i]->node->var->x+ps[i]->offset();
     }
 
     vector<cola::Edge> cedges;
     cedges.push_back(make_pair(1,2));
+
+    vector<straightener::Route*> routes;
+    routes.push_back(e->getRoute());
 
     OutputFile of(rs,cedges,NULL,"simpleBend.svg",true,false);
     of.setLabels(3,ls);

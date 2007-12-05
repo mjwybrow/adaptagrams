@@ -1,3 +1,4 @@
+#include <libproject/project.h>
 #include "topology_constraints.h"
 #include "cola.h"
 #include "straightener.h"
@@ -83,6 +84,22 @@ namespace topology {
         for(Segments::const_iterator s=segments.begin();s!=segments.end();++s) {
             vs.push_back((*s)->end);
         }
+    }
+    /** 
+     * @return the maximum move we can make along the line from initial to
+     * desired positions without violating this constraint
+     */
+    double TopologyConstraint::maxSafeAlpha() const {
+        double u1=u->relativeInitialPos();
+        double u2=u->relativeDesiredPos();
+        double v1=v->relativeInitialPos();
+        double v2=v->relativeDesiredPos();
+        double w1=w->relativeInitialPos();
+        double w2=w->relativeDesiredPos();
+        double numerator=-g - u1 + p*u1 - p*v1 + w1;
+        double denominator=-u1 + p*u1 + u2 - p*u2 - p*v1 + p*v2 + w1 - w2;
+        assert(denominator!=0);
+        return numerator/denominator;
     }
     /**
      * satisfies a violated topology constraint by splitting the associated

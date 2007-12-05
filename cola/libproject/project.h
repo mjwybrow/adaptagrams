@@ -47,6 +47,13 @@ struct Variable {
     double relativeDesiredPos() const;
     /// recompute the current position based on offset and block position
     void updatePosition() { x = relativeDesiredPos(); }
+    /** move x by alpha along the line from the relative initial position
+     *  to the relative desired position
+     */
+    void moveBy(double alpha) { 
+        double i=relativeInitialPos(), d=relativeDesiredPos();
+        x = i + alpha*(d-i);
+    }
     double x; ///< current position
     double d; ///< desired position
     double w; ///< weight of variable's contribution to goal function
@@ -66,15 +73,15 @@ public:
     const double g;
     double slack() const;
     /** 
-     * @return true if the constraint can be satisfied at the relative desired positions for
-     *  l and r.
+     * @return true if the constraint can be satisfied at the relative desired
+     * positions for l and r.
      */
     bool feasibleAtDesired() const {
         return l->relativeDesiredPos() + g <= r->relativeDesiredPos();
     }
     /** 
-     * @return the maximum move we can make along the line from initial to desired positions
-     * without violating this constraint
+     * @return the maximum move we can make along the line from initial to
+     * desired positions without violating this constraint
      */
     double maxSafeAlpha() const;
     bool active; ///< if set at equality
@@ -127,6 +134,16 @@ private:
     void populateSplitBlock(Variable* v, Constraint const* last);
 };
 
+/**
+ * Override this functor and pass in a pointer to the implementation using 
+ * Project::setExternalAlphaCheck in order to apply extra checks in each 
+ * invocation of findSafeMove.
+ */
+struct ExternalAlphaCheck {
+    virtual void operator()(double)=0;
+    virtual ~ExternalAlphaCheck() {};
+};
+
 struct MaxSafeMove;
 
 /**
@@ -135,7 +152,15 @@ struct MaxSafeMove;
  */
 class Project {
 public:
-    Project(std::vector<Variable*> const &vs, std::vector<Constraint *> const &cs);
+    Project(
+            std::vector<Variable*> const &vs, 
+            std::vector<Constraint *> const &cs) 
+        : vs(vs)
+        , cs(cs)
+        , inactive(cs.begin(),cs.end())
+        , externalAlphaCheck(NULL)
+    { 
+    }
     ~Project();
     /** 
      * attempts to solve a least-squares
@@ -151,7 +176,7 @@ public:
      * Set a pointer to a function that checks to make sure a given alpha does not
      * violate some external condition.
      */
-    void setExternalAlphaCheck(void (*check)(double alpha)) {
+    void setExternalAlphaCheck(ExternalAlphaCheck* check) {
         externalAlphaCheck=check;
     }
 private:
@@ -209,7 +234,7 @@ private:
      */
     bool splitBlocks(); 
     /// a callback function checked in findSafeMove
-    void (*externalAlphaCheck)(double alpha);
+    ExternalAlphaCheck* externalAlphaCheck;
 };
 
 } // namespace project
