@@ -52,8 +52,8 @@ struct AlphaCheck : project::ExternalAlphaCheck {
         for(vector<TopologyConstraint*>::iterator i=ts.begin();
                 i!=ts.end();++i) {
             TopologyConstraint* t=*i;
-            double tAlpha=t->maxSafeAlpha();
-            printf("  TopologyConstraint alpha: %f\n",tAlpha);
+            double tAlpha=t->c->maxSafeAlpha();
+            printf("  TopologyConstraint %p alpha: %f\n",t,tAlpha);
             if(tAlpha>=0 && tAlpha<minTAlpha) {
                 minTAlpha=tAlpha;
                 minT=t;
@@ -61,10 +61,19 @@ struct AlphaCheck : project::ExternalAlphaCheck {
             }
         }
         // if minTAlpha<alpha move all by minTAlpha 
-        // and throw interrupt expection
+        // and throw interrupt exception
         if(minTAlpha<alpha) {
             for_each(vs.begin(),vs.end(),
                     bind2nd(mem_fun(&project::Variable::moveBy),minTAlpha));
+            /*
+            for(vector<TopologyConstraint*>::iterator i=ts.begin();
+                    i!=ts.end();++i) {
+                TopologyConstraint* t=*i;
+                //t->print();
+                printf("  TopologyConstraint %p slack: %f\n",t,t->slack());
+            }
+            */
+            minT->satisfy();
             throw InterruptException();
         }
     }
@@ -136,10 +145,12 @@ void simpleBend() {
     vector<straightener::Route*> routes;
     routes.push_back(e->getRoute());
 
+    /*
     OutputFile of(rs,cedges,NULL,"simpleBend.svg",true,false);
     of.setLabels(3,ls);
     of.routes=&routes;
     of.generate();
+    */
 
     for_each(ps.begin(),ps.end(),delete_object());
     for_each(rs.begin(),rs.end(),delete_object());
@@ -147,6 +158,7 @@ void simpleBend() {
     for_each(vars.begin(),vars.end(),delete_object());
     for_each(es.begin(),es.end(),delete_object());
     for_each(routes.begin(),routes.end(),delete_object());
+    for_each(ts.begin(),ts.end(),delete_object());
 }
 
 int main() {

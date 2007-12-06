@@ -77,7 +77,7 @@ namespace topology {
         /**
          * the constructor sets up the position 
          */
-        EdgePoint(Node* node, RectIntersect i) 
+        EdgePoint(const Node* node, RectIntersect i) 
                 : node(node), rectIntersect(i)
                 , inSegment(NULL), outSegment(NULL) 
         {
@@ -181,14 +181,6 @@ namespace topology {
             return ux + p * (vx-ux);
         }
         /**
-         * create a constraint for the bend at the end of a segment that
-         * prevents the bend from changing direction.  In other words, the
-         * constraint (a TopologyConstraint over the segment start, segment end
-         * and the end of the next segment) becomes active when the bend is
-         * straight.
-         */
-        void createBendConstraint();
-        /**
          * Compute the euclidean distance between #start and #end.
          */
         double length() const;
@@ -237,12 +229,13 @@ namespace topology {
         EdgePoint* end() const;
         /// the ideal length which the layout should try to obtain for this edge
         double idealLength;
+
         void splitSegment(Segment* o, Segment* n1, Segment* n2) {
             n1->edgePos=segments.insert(o->edgePos, n1);
             n2->edgePos=segments.insert(o->edgePos, n2);
             segments.erase(o->edgePos);
         }
-        void mergeSegment(Segment* o1, Segment* o2, Segment* n) {
+        void mergeSegments(Segment* o1, Segment* o2, Segment* n) {
             n->edgePos=segments.insert(o1->edgePos,n);
             segments.erase(o1->edgePos);
             segments.erase(o2->edgePos);
@@ -280,22 +273,24 @@ namespace topology {
     typedef std::vector<Edge*> Edges;
 
     /**
-     * A constraint between variables \f$u,v,w\f$ where \f$w\f$ is required to be to one
-     * side of the line between \f$u,v\f$.
-     * That is, e.g. if we require \f$w\f$ to be some minimum distance \f$g\f$ to the left
-     * of the parameterised distance \f$p\f$ along the line \f$(u,v)\f$ we have:
-     * \f[ w + g\le u + p*(v - u) \f]
-     * Right-of constraints are similar.
+     * A constraint between three variables \f$u,v,w\f$ where \f$w\f$ is
+     * required to be to one side of the line between \f$u,v\f$.  That is, e.g.
+     * if we require \f$w\f$ to be some minimum distance \f$g\f$ to the left of
+     * the parameterised distance \f$p\f$ along the line \f$(u,v)\f$ we have:
+     * \f[ w + g\le u + p*(v - u) \f] Right-of constraints are similar.
      */
-    class TopologyConstraint {
+    class TriConstraint {
     public:
         /// Variables are directly entered into the libproject solver
         project::Variable *u, *v, *w;
         /// p is the parameter for the constraint line, g is the offset constant
         double p, g;
-        /// determines direction of inequality, w to the left of uv or to the right
+        /** 
+         * determines direction of inequality, w to the left of uv or to the
+         * right
+         */
         bool leftOf;
-        TopologyConstraint(
+        TriConstraint(
                 project::Variable *u, 
                 project::Variable *v, 
                 project::Variable *w, 
@@ -308,6 +303,43 @@ namespace topology {
          * desired positions without violating this constraint
          */
         double maxSafeAlpha() const;
+        double slack () const;
+        void print() const;
+    };
+    class TopologyConstraint {
+    public:
+        TriConstraint* c;
+        Segment* s;
+        const Node* node;
+        const double pos;
+        /**
+         * create a constraint between a segment and a node that is
+         * activated when the segment needs to be bent (divided into
+         * two new segments
+         * @param s the segment
+         * @param node the node
+         * @param pos the position in !dim (i.e. position of scan line) at
+         * which to create the constraint
+         */
+        TopologyConstraint(Segment* s, const Node* node,
+                const double pos);
+        /**
+         * create a constraint between a segment and the following segment
+         * in the edge path.  The constraint is activated when the segments are
+         * aligned.
+         */
+        TopologyConstraint(Segment* s);
+
+        /**
+         * depending on the type of constraint (i.e. whether it is a constraint
+         * between a segment and a node or between two segments) we either
+         * split the segment (creating a new bend EdgePoint) or merge 
+         * the segment with its neighbour (removing an EdgePoint).
+         */
+        void satisfy();
+        ~TopologyConstraint() {
+            delete c;
+        }
     };
     /**
      * Define a topology over a diagram by generating a set of TopologyConstraint

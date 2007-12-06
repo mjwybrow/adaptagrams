@@ -172,47 +172,87 @@ namespace topology {
      * Segments must not be on-top-of rectangles.
      */
     void NodeEvent::createTopologyConstraint() {
-        printf("---------createTopologyConstraint()------------------------\n");
-        for(OpenSegments::iterator j=openSegments.begin(); j!=openSegments.end();j++) {
+        for(OpenSegments::iterator j=openSegments.begin(); j!=openSegments.end();++j) {
             Segment* s=(*j)->s;
             // skip if edge is attached to this node
             if(s->edge->start()->node==node || s->edge->end()->node==node) {
                 continue;
             }
-            EdgePoint *u=s->start, *v=s->end;
             // segments orthogonal to scan direction need no constraints
-            if(v->pos[!dim]-u->pos[!dim]==0) continue;
+            if(s->start->pos[!dim]-s->end->pos[!dim]==0) continue;
 
-            vpsc::Rectangle* r=node->rect;
-            // segment must overlap in the scan dimension with the rectangle
-            assert(!(
-                        u->pos[!dim]>=r->getMaxD(!dim)
-                      &&v->pos[!dim]>=r->getMaxD(!dim)
-                    ));
-            assert(!(
-                        u->pos[!dim]<=r->getMinD(!dim)
-                      &&v->pos[!dim]<=r->getMinD(!dim)
-                    ));
-            // determine direction of constraint based on intersection of segment with scan line
-            bool passLeft=false;
-            double p;
-            if(s->intersection(pos,p) < node->rect->getCentreD(dim)) {
-                passLeft=true;
-            } 
-#ifdef STRAIGHTENER_DEBUG
-            if(dim==cola::HORIZONTAL) {
-                s->edge->sEdge->debugLines.push_back(
-                        straightener::DebugLine( dummyNode->pos[0], pos, intersection, pos, 1));
-            } else {
-                s->edge->sEdge->debugLines.push_back(
-                        straightener::DebugLine( pos, dummyNode->pos[1], pos, intersection, 1));
-            }
-#endif
-            double g=u->offset()+p*(v->offset()-u->offset())+r->length(dim)/2.0;
             s->topologyConstraints.push_back(new TopologyConstraint(
-                        u->node->var,v->node->var,node->var,p,g,passLeft));
+                        s,node,pos));
         }
-        printf("---------createTopologyConstraint done!------------------\n");
+    }
+    /**
+     * create a constraint between a segment and a node that is
+     * activated when the segment needs to be bent (divided into
+     * two new segments
+     * @param s the segment
+     * @param node the node
+     * @param pos the position in !dim (i.e. position of scan line) at
+     * which to create the constraint
+     */
+    TopologyConstraint::TopologyConstraint(
+            Segment* s, 
+            const Node* node,
+            const double pos) 
+        : s(s), node(node), pos(pos) {
+        EdgePoint *u=s->start, *v=s->end;
+        // segments orthogonal to scan direction need no constraints
+        assert(v->pos[!dim]-u->pos[!dim]!=0);
+
+        vpsc::Rectangle* r=node->rect;
+        // segment must overlap in the scan dimension with the rectangle
+        assert(!(
+                    u->pos[!dim]>=r->getMaxD(!dim)
+                  &&v->pos[!dim]>=r->getMaxD(!dim)
+                ));
+        assert(!(
+                    u->pos[!dim]<=r->getMinD(!dim)
+                  &&v->pos[!dim]<=r->getMinD(!dim)
+                ));
+        // determine direction of constraint based on intersection
+        // of segment with scan line
+        bool passLeft=false;
+        double p;
+        if(s->intersection(pos,p) < node->rect->getCentreD(dim)) {
+            passLeft=true;
+        } 
+        double g=u->offset()+p*(v->offset()-u->offset());
+        if(passLeft) {
+            g+=r->length(dim)/2.0;
+        } else {
+            g-=r->length(dim)/2.0;
+        }
+        c=new TriConstraint(
+                    u->node->var,v->node->var,node->var,p,g,passLeft);
+    }
+    /**
+     * create a constraint between a segment and the following segment
+     * in the edge path.  The constraint is activated when the segments are
+     * aligned.
+     */
+    TopologyConstraint::TopologyConstraint(Segment* s) 
+        : s(s), node(NULL), pos(s->end->outSegment->end->pos[!dim]) {
+            printf("creating straight tc\n");
+        // we do not apply this to horizontal segments
+        assert(s->start->pos[!dim]!=s->end->pos[!dim]);
+        // or to the last segment in an edge
+        assert(!s->end->isReal());
+        EdgePoint* u=s->start, * v=s->end;
+        EdgePoint* w=v->outSegment->end;
+        // because all of our nodes are boxes we do not expect consecutive
+        // segments to change horizontal or vertical direction
+        assert(u->pos[!dim]<v->pos[!dim]&&v->pos[!dim]<=pos
+            || u->pos[!dim]>v->pos[!dim]&&v->pos[!dim]>=pos);
+        double p;
+        double i=s->intersection(pos,p);
+        double g=w->offset()+u->offset()+p*(v->offset()-u->offset());
+        bool leftOf = w->pos[dim] < i;
+        c = new TriConstraint(
+            u->node->var,v->node->var,w->node->var,p,g,leftOf);
     }
     struct CompareEvents {
         bool operator() (Event *const &a, Event *const &b) const {
@@ -254,33 +294,6 @@ namespace topology {
             return false;
         }
     };
-    /**
-     * create a constraint for the bend at the end of a segment that
-     * prevents the bend from changing direction.  In other words,
-     * the constraint (a TopologyConstraint over the segment start, 
-     * segment end and the end of the next segment) becomes active when the
-     * bend is straight.
-     */
-    void
-    Segment::createBendConstraint() {
-        // we do not apply this to horizontal segments
-        assert(start->pos[!dim]!=end->pos[!dim]);
-        // or to the last segment in an edge
-        assert(!end->isReal());
-        EdgePoint* u=start, * v=end;
-        EdgePoint* w=end->outSegment->end;
-        // because all of our nodes are boxes we do not expect consecutive
-        // segments to change horizontal or vertical direction
-        assert(u->pos[!dim]<v->pos[!dim]&&v->pos[!dim]<=w->pos[!dim]
-            || u->pos[!dim]>v->pos[!dim]&&v->pos[!dim]>=w->pos[!dim]);
-        double g=u->offset()+v->offset()+w->offset();
-        double p;
-        double i=intersection(w->pos[!dim],p);
-        bool leftOf = w->pos[dim] < i;
-        TopologyConstraint* t = new TopologyConstraint(
-            u->node->var,v->node->var,w->node->var,p,g,leftOf);
-        topologyConstraints.push_back(t);
-    }
     TopologyConstraints::TopologyConstraints( const cola::Dim axisDim,
             Nodes const & nodes,
             Edges const & edges) : edges(edges) {
@@ -310,7 +323,7 @@ namespace topology {
                     continue;
                 }
                 if(!s->end->isReal()) {
-                    s->createBendConstraint();
+                    s->topologyConstraints.push_back(new TopologyConstraint(s));
                 }
                 SegmentOpen *open=new SegmentOpen(s);
                 SegmentClose *close=new SegmentClose(s,open);

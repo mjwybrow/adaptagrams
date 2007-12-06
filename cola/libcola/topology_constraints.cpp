@@ -89,7 +89,7 @@ namespace topology {
      * @return the maximum move we can make along the line from initial to
      * desired positions without violating this constraint
      */
-    double TopologyConstraint::maxSafeAlpha() const {
+    double TriConstraint::maxSafeAlpha() const {
         double u1=u->relativeInitialPos();
         double u2=u->relativeDesiredPos();
         double v1=v->relativeInitialPos();
@@ -100,6 +100,48 @@ namespace topology {
         double denominator=-u1 + p*u1 + u2 - p*u2 - p*v1 + p*v2 + w1 - w2;
         assert(denominator!=0);
         return numerator/denominator;
+    }
+    double TriConstraint::slack () const {
+        double rhs = u->x+p*(v->x-u->x)+g;
+        double lhs = w->x;
+        return leftOf ? rhs - lhs : lhs - rhs;
+    }
+    void TriConstraint::print() const {
+        printf("TopologyConstraint@%p\n",this);
+        printf("  u=%f\n  v=%f\n  w=%f\n  p=%f\n  g=%f\n  left=%d\n",
+                u->x,v->x,w->x,p,g,leftOf);
+    }
+    /**
+     * depending on the type of constraint (i.e. whether it is a constraint
+     * between a segment and a node or between two segments) we either
+     * split the segment (creating a new bend EdgePoint) or merge 
+     * the segment with its neighbour (removing an EdgePoint).
+     */
+    void TopologyConstraint::satisfy() {
+        Edge* e=s->edge;
+        if(node) {
+            // determine ri from pos, node->rect and c->leftOf
+            // create bend point
+            EdgePoint::RectIntersect ri = EdgePoint::TL;
+            EdgePoint* p = new EdgePoint(node,ri);
+            Segment* s1 = new Segment(e,s->start,p);
+            Segment* s2 = new Segment(e,p,s->end);
+            e->splitSegment(s,s1,s2);
+            // transfer other potential-bend topology constraints 
+            // from s to s1 or s2 depending on which side of p they are on.
+            // inter-segment topology constraints from s need to
+            // be transferred to s2.
+            // update inter-segment topology constraints from 
+            // s1->start->inSegment
+        } else {
+            // remove bend point
+            Segment* s2 = s->end->outSegment;
+            Segment* newSegment = new Segment(e,s->start,s2->end);
+            e->mergeSegments(s,s2,newSegment);
+            // transfer topology constraints from s and s2 to newSegment.
+            // update inter-segment topology constraints from
+            // newSegment->start->inSegment
+        }
     }
     /**
      * satisfies a violated topology constraint by splitting the associated
