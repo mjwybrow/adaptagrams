@@ -175,13 +175,14 @@ namespace topology {
         for(OpenSegments::iterator j=openSegments.begin(); j!=openSegments.end();++j) {
             Segment* s=(*j)->s;
             // skip if edge is attached to this node
-            if(s->edge->start()->node==node || s->edge->end()->node==node) {
+            if(s->edge->firstSegment->start->node==node 
+                    || s->edge->lastSegment->end->node==node) {
                 continue;
             }
             // segments orthogonal to scan direction need no constraints
             if(s->start->pos[!dim]-s->end->pos[!dim]==0) continue;
 
-            s->topologyConstraints.push_back(new TopologyConstraint(
+            s->straightConstraints.push_back(new StraightConstraint(
                         s,node,pos));
         }
     }
@@ -194,11 +195,12 @@ namespace topology {
      * @param pos the position in !dim (i.e. position of scan line) at
      * which to create the constraint
      */
-    TopologyConstraint::TopologyConstraint(
+    StraightConstraint::StraightConstraint(
             Segment* s, 
             const Node* node,
             const double pos) 
-        : s(s), node(node), pos(pos) {
+        : segment(s), node(node), pos(pos)
+   {
         EdgePoint *u=s->start, *v=s->end;
         // segments orthogonal to scan direction need no constraints
         assert(v->pos[!dim]-u->pos[!dim]!=0);
@@ -220,6 +222,9 @@ namespace topology {
         if(s->intersection(pos,p) < node->rect->getCentreD(dim)) {
             passLeft=true;
         } 
+        ri=pos < node->rect->getCentreD(!dim)
+             ? passLeft ? EdgePoint::BL : EdgePoint::BR
+             : passLeft ? EdgePoint::TL : EdgePoint::TR;
         double g=u->offset()+p*(v->offset()-u->offset());
         if(passLeft) {
             g+=r->length(dim)/2.0;
@@ -230,25 +235,24 @@ namespace topology {
                     u->node->var,v->node->var,node->var,p,g,passLeft);
     }
     /**
-     * create a constraint between a segment and the following segment
-     * in the edge path.  The constraint is activated when the segments are
-     * aligned.
+     * create a constraint between the two segments joined by this
+     * EdgePoint such that the constraint is activated when the segments
+     * are aligned.
+     * @param bendPoint the articulation point
      */
-    TopologyConstraint::TopologyConstraint(Segment* s) 
-        : s(s), node(NULL), pos(s->end->outSegment->end->pos[!dim]) {
-            printf("creating straight tc\n");
-        // we do not apply this to horizontal segments
-        assert(s->start->pos[!dim]!=s->end->pos[!dim]);
-        // or to the last segment in an edge
-        assert(!s->end->isReal());
-        EdgePoint* u=s->start, * v=s->end;
-        EdgePoint* w=v->outSegment->end;
+    BendConstraint::BendConstraint(EdgePoint* v) 
+        : bendPoint(v) {
+            printf("creating BendConstraint\n");
+        // we only consider articulation points (not first or last points
+        // in edge)
+        assert(!v->isReal());
+        EdgePoint* u=v->inSegment->start, * w=v->outSegment->end;
         // because all of our nodes are boxes we do not expect consecutive
         // segments to change horizontal or vertical direction
-        assert(u->pos[!dim]<v->pos[!dim]&&v->pos[!dim]<=pos
-            || u->pos[!dim]>v->pos[!dim]&&v->pos[!dim]>=pos);
+        assert(u->pos[!dim]<v->pos[!dim]&&v->pos[!dim]<=w->pos[!dim]
+            || u->pos[!dim]>v->pos[!dim]&&v->pos[!dim]>=w->pos[!dim]);
         double p;
-        double i=s->intersection(pos,p);
+        double i=v->inSegment->intersection(w->pos[!dim],p);
         double g=w->offset()+u->offset()+p*(v->offset()-u->offset());
         bool leftOf = w->pos[dim] < i;
         c = new TriConstraint(
@@ -294,6 +298,25 @@ namespace topology {
             return false;
         }
     };
+    struct constructEventsAndBendConstraints {
+        constructEventsAndBendConstraints(vector<Event*>& events)
+            : events(events) {}
+        void operator() (Segment* s) {
+            // don't generate events for segments parallel to scan line
+            if(s->start->pos[!dim]!=s->end->pos[!dim]) {
+                // if it's a bend point then create a TopologyConstraint
+                // that becomes active when the bend straightens
+                if(!s->end->isReal()) {
+                    s->end->bendConstraint = new BendConstraint(s->end);
+                }
+                SegmentOpen *open=new SegmentOpen(s);
+                SegmentClose *close=new SegmentClose(s,open);
+                events.push_back(open);
+                events.push_back(close);
+            }
+        }
+        vector<Event*>& events;
+    };
     TopologyConstraints::TopologyConstraints( const cola::Dim axisDim,
             Nodes const & nodes,
             Edges const & edges) : edges(edges) {
@@ -315,21 +338,8 @@ namespace topology {
             events.push_back(close);
         }
         for(Edges::const_iterator e=edges.begin();e!=edges.end();++e) {
-            for(Segments::iterator si=(*e)->segments.begin();
-                    si!=(*e)->segments.end();si++) {
-                Segment* s=*si;
-                if(s->start->pos[!dim]==s->end->pos[!dim]) {
-                    // don't generate events for segments parallel to scan line
-                    continue;
-                }
-                if(!s->end->isReal()) {
-                    s->topologyConstraints.push_back(new TopologyConstraint(s));
-                }
-                SegmentOpen *open=new SegmentOpen(s);
-                SegmentClose *close=new SegmentClose(s,open);
-                events.push_back(open);
-                events.push_back(close);
-            }
+            (*e)->forEachSegment(
+                    constructEventsAndBendConstraints(events));
         }
         // process events in top to bottom order
         std::sort(events.begin(),events.end(),CompareEvents());

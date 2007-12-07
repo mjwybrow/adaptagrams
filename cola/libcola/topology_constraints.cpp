@@ -57,33 +57,31 @@ namespace topology {
         }
         return r;
     }
+    struct accumulateLength {
+        accumulateLength(double& a) : a(a) {}
+        void operator()(const Segment* s) {
+            a+=s->length();
+        }
+        double& a;
+    };
     double Edge::pathLength() const {
-        return sum_over(segments.begin(),segments.end(),0.0,mem_fun(&Segment::length));
+        double totalLength = 0;
+        forEachSegmentConst(accumulateLength(totalLength));
+        return totalLength;
     }
-    /**
-     * @return the start of the edge
-     */
-    EdgePoint* Edge::start() const {
-        EdgePoint* s=segments.front()->start;
-        assert(s->isReal());
-        return s;
-    }
-    /**
-     * @return the end of the edge
-     */
-    EdgePoint* Edge::end() const {
-        EdgePoint* e=segments.back()->end;
-        assert(e->isReal());
-        return e;
-    }
+    struct buildPath {
+        buildPath(EdgePoints& vs) : vs(vs) {}
+        void operator()(const Segment* s) {
+            vs.push_back(s->end);
+        }
+        EdgePoints& vs;
+    };
     /**
      * get a list of all the EdgePoints along the Edge path
      */
     void Edge::getPath(EdgePoints &vs) const {
-        vs.push_back(segments.front()->start);
-        for(Segments::const_iterator s=segments.begin();s!=segments.end();++s) {
-            vs.push_back((*s)->end);
-        }
+        vs.push_back(firstSegment->start);
+        forEachSegmentConst(buildPath(vs));
     }
     /** 
      * @return the maximum move we can make along the line from initial to
@@ -111,37 +109,67 @@ namespace topology {
         printf("  u=%f\n  v=%f\n  w=%f\n  p=%f\n  g=%f\n  left=%d\n",
                 u->x,v->x,w->x,p,g,leftOf);
     }
-    /**
-     * depending on the type of constraint (i.e. whether it is a constraint
-     * between a segment and a node or between two segments) we either
-     * split the segment (creating a new bend EdgePoint) or merge 
-     * the segment with its neighbour (removing an EdgePoint).
-     */
-    void TopologyConstraint::satisfy() {
-        Edge* e=s->edge;
-        if(node) {
-            // determine ri from pos, node->rect and c->leftOf
-            // create bend point
-            EdgePoint::RectIntersect ri = EdgePoint::TL;
-            EdgePoint* p = new EdgePoint(node,ri);
-            Segment* s1 = new Segment(e,s->start,p);
-            Segment* s2 = new Segment(e,p,s->end);
-            e->splitSegment(s,s1,s2);
-            // transfer other potential-bend topology constraints 
-            // from s to s1 or s2 depending on which side of p they are on.
-            // inter-segment topology constraints from s need to
-            // be transferred to s2.
-            // update inter-segment topology constraints from 
-            // s1->start->inSegment
-        } else {
-            // remove bend point
-            Segment* s2 = s->end->outSegment;
-            Segment* newSegment = new Segment(e,s->start,s2->end);
-            e->mergeSegments(s,s2,newSegment);
-            // transfer topology constraints from s and s2 to newSegment.
-            // update inter-segment topology constraints from
-            // newSegment->start->inSegment
+    struct transferStraightConstraint {
+        transferStraightConstraint(Segment* target)
+            : target(target) {}
+        void operator() (StraightConstraint* s) {
+            target->straightConstraints.push_back(
+                    new StraightConstraint(target,s->node,s->pos));
         }
+        Segment* target;
+    };
+    /**
+     * The bend has become straight, remove bend
+     */
+    void BendConstraint::satisfy() {
+        Segment* s1 = bendPoint->inSegment,
+               * s2 = bendPoint->outSegment;
+        Edge* e = s1->edge;
+        EdgePoint* start = s1->start,
+                 * end = s2->end;
+        Segment* s = new Segment(e,start,end);
+        if(e->firstSegment==s1) {
+            e->firstSegment=s;
+        }
+        if(e->lastSegment==s2) {
+            e->lastSegment=s;
+        }
+        // transfer each StraightConstraint from s1 and s2 to newSegment.
+        transferStraightConstraint transfer(s);
+        for_each(s1->straightConstraints.begin(),
+                 s1->straightConstraints.end(),
+                 transfer);
+        for_each(s2->straightConstraints.begin(),
+                 s2->straightConstraints.end(),
+                 transfer);
+        // update each BendConstraint involving bendPoint
+        if(!start->isReal()) {
+            delete start->bendConstraint;
+            start->bendConstraint = new BendConstraint(start);
+        }
+        if(!end->isReal()) {
+            delete end->bendConstraint;
+            end->bendConstraint = new BendConstraint(end);
+        }
+                 
+        e->nSegments--;
+        delete bendPoint;
+        delete s1;
+        delete s2;
+    }
+    /**
+     * Segment needs to bend
+     */
+    void StraightConstraint::satisfy() {
+        //EdgePoint* p = new EdgePoint(node,ri);
+        //segment->edge->addBend(this,s,p);
+        //delete segment;
+        // transfer other potential-bend topology constraints 
+        // from s to s1 or s2 depending on which side of p they are on.
+        // inter-segment topology constraints from s need to
+        // be transferred to s2.
+        // update inter-segment topology constraints from 
+        // s1->start->inSegment
     }
     /**
      * satisfies a violated topology constraint by splitting the associated
@@ -613,38 +641,49 @@ namespace topology {
         */
     }
 
+    struct buildRoute {
+        buildRoute(straightener::Route* r, unsigned& n) : r(r), n(n) {}
+        void operator() (const Segment* s) {
+            EdgePoint* u=s->end;
+            r->xs[n]=u->pos[0];
+            r->ys[n++]=u->pos[1];
+        }
+        straightener::Route* r;
+        unsigned& n;
+    };
     void TopologyConstraints::finalizeRoutes() {
         //printf("Routes:\n");
-        for(unsigned e=0;e<edges.size();e++) {
+        for(Edges::const_iterator e=edges.begin();e!=edges.end();++e) {
             //edges[e]->print();
-            list<Segment*> &segments=edges[e]->segments;
-            straightener::Route* r=new straightener::Route(segments.size()+1);
-            EdgePoint* u=segments.front()->start;
-            unsigned rcnt=0;
-            r->xs[rcnt]=u->pos[0];
-            r->ys[rcnt++]=u->pos[1];
-            for(list<Segment*>::const_iterator s=segments.begin();
-                    s!=segments.end();s++) {
-                u=(*s)->end;
-                assert(rcnt<=segments.size());
-                r->xs[rcnt]=u->pos[0];
-                r->ys[rcnt++]=u->pos[1];
-            }
-            r->n=rcnt;
+            Segment* s=(*e)->firstSegment;
+            straightener::Route* r=new straightener::Route((*e)->nSegments+1);
+            EdgePoint* u=s->start;
+            unsigned n=0;
+            r->xs[n]=u->pos[0];
+            r->ys[n++]=u->pos[1];
+            (*e)->forEachSegmentConst(buildRoute(r,n));
+            r->n=n;
             //edges[e]->sEdge->setRoute(r);
         }
     }
+struct getTopologyConstraints {
+    getTopologyConstraints(vector<TopologyConstraint*>& ts) : ts(ts) {}
+    void operator() (const Segment* s) {
+        for(vector<StraightConstraint*>::const_iterator 
+            t=s->straightConstraints.begin();
+            t!=s->straightConstraints.end();++t) {
+            ts.push_back(*t);
+        }
+        if(!s->end->isReal()) {
+            ts.push_back(s->end->bendConstraint);
+        }
+    }
+    vector<TopologyConstraint*>& ts;
+};
 void TopologyConstraints::
 constraints(std::vector<TopologyConstraint*> & ts) const {
     for(Edges::const_iterator e=edges.begin();e!=edges.end();++e) {
-        for(Segments::const_iterator s=(*e)->segments.begin();
-                s!=(*e)->segments.end();++s) {
-            for(vector<TopologyConstraint*>::const_iterator 
-                t=(*s)->topologyConstraints.begin();
-                t!=(*s)->topologyConstraints.end();++t) {
-                ts.push_back(*t);
-            }
-        }
+        (*e)->forEachSegmentConst(getTopologyConstraints(ts));
     }
 }
 } // namespace topology

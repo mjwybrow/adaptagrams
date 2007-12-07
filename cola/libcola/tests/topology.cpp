@@ -136,7 +136,9 @@ void simpleBend() {
     }
     for(unsigned i=0;i<n;i++) {
         rs[i]->moveCentreX(vars[i]->x);
-        ps[i]->pos[0]=ps[i]->node->var->x+ps[i]->offset();
+        for(Edges::iterator e=es.begin();e!=es.end();++e) {
+            (*e)->forEachSegment(mem_fun(&Segment::updateEdgePoints));
+        }
     }
 
     vector<cola::Edge> cedges;
@@ -145,20 +147,16 @@ void simpleBend() {
     vector<straightener::Route*> routes;
     routes.push_back(e->getRoute());
 
-    /*
     OutputFile of(rs,cedges,NULL,"simpleBend.svg",true,false);
     of.setLabels(3,ls);
     of.routes=&routes;
     of.generate();
-    */
 
-    for_each(ps.begin(),ps.end(),delete_object());
     for_each(rs.begin(),rs.end(),delete_object());
     for_each(vs.begin(),vs.end(),delete_object());
     for_each(vars.begin(),vars.end(),delete_object());
     for_each(es.begin(),es.end(),delete_object());
     for_each(routes.begin(),routes.end(),delete_object());
-    for_each(ts.begin(),ts.end(),delete_object());
 }
 
 int main() {

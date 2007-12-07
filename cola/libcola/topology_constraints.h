@@ -33,7 +33,8 @@ namespace topology {
     extern cola::Dim dim;
     using std::valarray;
     class Segment;
-    class TopologyConstraint;
+    class BendConstraint;
+    class StraightConstraint;
     class Edge;
     /**
      * Each node is associated with a rectangle and a solver variable
@@ -74,6 +75,10 @@ namespace topology {
         Segment* inSegment;
         /// the outgoing segment to this EdgePoint on the edge path
         Segment* outSegment;
+        /** each articulation EdgePoint (where isReal()==false) 
+         *  will be assigned (not immediately) a bendConstraint
+         */
+        BendConstraint* bendConstraint;
         /**
          * the constructor sets up the position 
          */
@@ -126,11 +131,15 @@ namespace topology {
             start->outSegment=this;
             end->inSegment=this;
         }
+        /**
+         * clean up topologyConstraints
+         */
+        ~Segment() {
+            for_each(straightConstraints.begin(),straightConstraints.end(),
+                    delete_object());
+        }
         /// the edge which this segment is part of
         Edge* edge;
-        /// the position of the segment in the list of segments associated
-        /// with the edge
-        std::list<Segment*>::iterator edgePos;
         /// the start point of the segment - either the end of the edge
         /// if connected to a real node, or a bend point
         EdgePoint* start;
@@ -138,7 +147,7 @@ namespace topology {
         EdgePoint* end;
         /// a set of topology constraints (left-/right-/above-/below-of
         /// relationships / between this segment and nodes
-        std::vector<TopologyConstraint*> topologyConstraints;
+        std::vector<StraightConstraint*> straightConstraints;
         /// @return the EdgePoint at the minimum extent of this segment on the scan axis
         EdgePoint* getMin() const {
             if(start->pos[!dim] <= end->pos[!dim]) {
@@ -153,7 +162,12 @@ namespace topology {
             }
             return end;
         }
-        /** test a given point to see if it lies within the scan range of this segment
+        void updateEdgePoints() {
+            start->setPos();
+            end->setPos();
+        }
+        /** test a given point to see if it lies within the scan range of this
+         * segment
          * @param pos position to test
          * @return true if point does lie in the scan range
          */
@@ -168,9 +182,10 @@ namespace topology {
          * if called when Segment is parallel to scan line it will throw an
          * assertion error.
          * @param pos position of scanline
-         * @param p distance along line from start to end at which intersection occurs (where 0
-         * is at the start and 1 is at the end).
-         * @return position along scanline of intersection with the line along this edge segment
+         * @param p distance along line from start to end at which intersection
+         * occurs (where 0 is at the start and 1 is at the end).
+         * @return position along scanline of intersection with the line along
+         * this edge segment
          */
         double intersection(double pos, double &p) const {
             double ux=start->pos[dim] , vx=end->pos[dim],
@@ -185,90 +200,88 @@ namespace topology {
          */
         double length() const;
     };
-    typedef std::list<Segment*> Segments;
     /**
      * An Edge provides a doubly linked list of segments, each involving a pair of
      * EdgePoints
      */
     class Edge {
     public:
+        /// the ideal length which the layout should try to obtain for this edge
+        double idealLength;
         /**
-         * Doubly linked list of segments each involving a pair of EdgePoints
+         * Head of a doubly-linked list of Segment each involving a pair of
+         * EdgePoints
          */
-        Segments segments;
+        Segment* firstSegment;
+        /**
+         * End of list of Segment
+         */
+        Segment* lastSegment;
+        /// size of segments list headed by firstSegment
+        size_t nSegments;
         /**
          * Construct an edge from a list of EdgePoint in sequence
          */
-        Edge(double idealLength, EdgePoints &vs) : idealLength(idealLength) {
+        Edge(double idealLength, EdgePoints &vs) 
+            : idealLength(idealLength)
+            , firstSegment(NULL), lastSegment(NULL)
+            , nSegments(0) 
+        {
             EdgePoints::iterator a=vs.begin();
             for(EdgePoints::iterator b=a+1;b!=vs.end();++a,++b) {
-                segments.push_back(new Segment(this,*a,*b)); 
+                Segment* s = new Segment(this,*a,*b); 
+                nSegments++;
+                if(firstSegment==NULL) {
+                    firstSegment = s;
+                }
+                lastSegment = s;
+            }
+        }
+        /**
+         * apply an operation to every segment associated with this edge
+         * @param o operation (a function or functor that takes a pointer to
+         * a segment as an argument)
+         */
+        template <typename T>
+        void forEachSegment(T o) {
+            Segment* s=firstSegment;
+            while(s!=NULL) {
+                EdgePoint* e=s->end;
+                o(s);
+                s=e->outSegment;
+            }
+        }
+        /**
+         * a version of forEachSegment for const edges
+         * @param o an operation on a const Segment
+         */
+        template <typename T>
+        void forEachSegmentConst(T o) const {
+            const Segment* s=firstSegment;
+            while(s!=NULL) {
+                EdgePoint* e=s->end;
+                o(s);
+                s=e->outSegment;
             }
         }
         /**
          * cleanup segments
          */
         ~Edge() {
-            for_each(segments.begin(),segments.end(),delete_object());
+            forEachSegment(delete_object());
         }
         /**
          * the sum of the lengths of all the segments
          */
         double pathLength() const;
         /**
-         * get a list of all the EdgePoints along the path
+         * get a list of all the EdgePoints along the Edge path
          */
         void getPath(EdgePoints &vs) const;
-        /**
-         * @return the start of the edge
-         */
-        EdgePoint* start() const;
-        /**
-         * @return the end of the edge
-         */
-        EdgePoint* end() const;
-        /// the ideal length which the layout should try to obtain for this edge
-        double idealLength;
-
-        void splitSegment(Segment* o, Segment* n1, Segment* n2) {
-            n1->edgePos=segments.insert(o->edgePos, n1);
-            n2->edgePos=segments.insert(o->edgePos, n2);
-            segments.erase(o->edgePos);
-        }
-        void mergeSegments(Segment* o1, Segment* o2, Segment* n) {
-            n->edgePos=segments.insert(o1->edgePos,n);
-            segments.erase(o1->edgePos);
-            segments.erase(o2->edgePos);
-        }
         /**
          * @return a list of the coordinates along the edge route
          */
         straightener::Route* getRoute();
-        /*
-        void print() {
-            EdgePoint *u=NULL, *v=segments.front()->start;
-            double minTheta=PI;
-            for(std::list<Segment*>::const_iterator i=segments.begin();i!=segments.end();i++) {
-                EdgePoint* w=(*i)->end;
-                if(u) {
-                    double ax=v->pos[0]-u->pos[0],
-                           ay=v->pos[1]-u->pos[1],
-                           bx=w->pos[0]-v->pos[0],
-                           by=w->pos[1]-v->pos[1];
-                    double ab=ax*bx+ay*by;
-                    double la=sqrt(ax*ax+ay*ay);
-                    double lb=sqrt(bx*bx+by*by);
-                    double theta=PI-acos(ab/(la*lb));
-                    //printf("    angle=%f,a=(%f,%f),b=(%f,%f)\n",theta,ax,ay,bx,by);
-                    if(theta<minTheta) minTheta = theta;
-                }
-                //(*i)->print();
-                u=v;
-                v=w;
-            }
-            //assert(minTheta>PI/2.);
-        }
-        */
     };
     typedef std::vector<Edge*> Edges;
 
@@ -309,40 +322,58 @@ namespace topology {
     class TopologyConstraint {
     public:
         TriConstraint* c;
-        Segment* s;
-        const Node* node;
-        const double pos;
-        /**
-         * create a constraint between a segment and a node that is
-         * activated when the segment needs to be bent (divided into
-         * two new segments
-         * @param s the segment
-         * @param node the node
-         * @param pos the position in !dim (i.e. position of scan line) at
-         * which to create the constraint
-         */
-        TopologyConstraint(Segment* s, const Node* node,
-                const double pos);
-        /**
-         * create a constraint between a segment and the following segment
-         * in the edge path.  The constraint is activated when the segments are
-         * aligned.
-         */
-        TopologyConstraint(Segment* s);
-
         /**
          * depending on the type of constraint (i.e. whether it is a constraint
          * between a segment and a node or between two segments) we either
          * split the segment (creating a new bend EdgePoint) or merge 
          * the segment with its neighbour (removing an EdgePoint).
          */
-        void satisfy();
-        ~TopologyConstraint() {
+        virtual void satisfy() = 0;
+        virtual ~TopologyConstraint() {
             delete c;
         }
     };
     /**
-     * Define a topology over a diagram by generating a set of TopologyConstraint
+     * A constraint around a bend point that becomes active when the bend
+     * goes straight
+     */
+    class BendConstraint : public TopologyConstraint {
+    public:
+        EdgePoint* bendPoint;
+        /**
+         * create a constraint between the two segments joined by this
+         * EdgePoint such that the constraint is activated when the segments
+         * are aligned.
+         * @param bendPoint the articulation point
+         */
+        BendConstraint(EdgePoint* bendPoint);
+        void satisfy();
+    };
+    /**
+     * A constraint between a Node and a Segment that is activated when
+     * the Node wants to move through the Segment to create a bend point
+     */
+    class StraightConstraint : public TopologyConstraint {
+    public:
+        Segment* segment;
+        const Node* node;
+        const double pos;
+        EdgePoint::RectIntersect ri;
+        /** 
+         * create a constraint between a segment and one corner of a node such
+         * that the constraint is activated when the segment needs to be bent
+         * (divided into two new segments)
+         * @param s the segment
+         * @param node the node
+         * @param pos the position of the scan line along which the constraint
+         * lies
+         */
+        StraightConstraint(Segment* s, const Node* node, double pos);
+        void satisfy();
+    };
+    /**
+     * Define a topology over a diagram by generating a set of
+     * TopologyConstraint
      */
     class TopologyConstraints {
     public:
