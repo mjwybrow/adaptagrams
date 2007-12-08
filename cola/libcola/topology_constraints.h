@@ -199,13 +199,33 @@ namespace topology {
          */
         double length() const;
     };
+    /// do nothing operator used in ForEach
     template <typename T>
     struct NoOp {
         void operator() (T t) {}
     };
     /**
-     * An Edge provides a doubly linked list of segments, each involving a pair of
-     * EdgePoints
+     * defines (hopefully just once) a loop over the bipartite linked-list
+     * of Segment and EdgePoint in an Edge.
+     */
+    template <typename _Edge=Edge*, 
+              typename PointOp=NoOp<EdgePoint*>,
+              typename SegmentOp=NoOp<Segment*> >
+    struct ForEach {
+        ForEach(_Edge e, PointOp po, SegmentOp so) {
+            Segment* s=e->firstSegment;
+            po(s->start);
+            while(s!=NULL) {
+                EdgePoint* p=s->end;
+                so(s);
+                s=p->outSegment;
+                po(p);
+            }
+        }
+    };
+    /**
+     * An Edge provides a doubly linked list of segments, each involving a pair
+     * of EdgePoints
      */
     class Edge {
     public:
@@ -240,30 +260,28 @@ namespace topology {
                 lastSegment = s;
             }
         }
+        /**
+         * apply an operation to every Segment and EdgePoint associated with
+         * this Edge 
+         * @param po operation to apply to each EdgePoint
+         * @param so operation to apply to each Segment
+         */
         template <typename PointOp, typename SegmentOp>
         void forEach(PointOp po, SegmentOp so) {
-            Segment* s=firstSegment;
-            po(s->start);
-            while(s!=NULL) {
-                EdgePoint* p=s->end;
-                so(s);
-                s=p->outSegment;
-                po(p);
-            }
-        }
-        template <typename PointOp, typename SegmentOp>
-        void forEachConst(PointOp po, SegmentOp so) const {
-            const Segment* s=firstSegment;
-            po(s->start);
-            while(s!=NULL) {
-                const EdgePoint* p=s->end;
-                so(s);
-                s=p->outSegment;
-                po(p);
-            }
+            ForEach<Edge*,PointOp,SegmentOp>(this,po,so);
         }
         /**
-         * apply an operation to every segment associated with this edge
+         * apply an operation to every Segment and EdgePoint associated with
+         * this Edge, without changing anything
+         * @param po operation to apply to each EdgePoint
+         * @param so operation to apply to each Segment
+         */
+        template <typename PointOp, typename SegmentOp>
+        void forEachConst(PointOp po, SegmentOp so) const {
+            ForEach<const Edge*,PointOp,SegmentOp>(this,po,so);
+        }
+        /**
+         * apply an operation to every Segment associated with this Edge
          * @param o operation (a function or functor that takes a pointer to
          * a segment as an argument)
          */

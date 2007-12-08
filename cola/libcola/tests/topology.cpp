@@ -147,12 +147,10 @@ void simpleBend() {
     vector<straightener::Route*> routes;
     routes.push_back(e->getRoute());
 
-    /*
     OutputFile of(rs,cedges,NULL,"simpleBend.svg",true,false);
     of.setLabels(3,ls);
     of.routes=&routes;
     of.generate();
-    */
 
     for_each(rs.begin(),rs.end(),delete_object());
     for_each(vs.begin(),vs.end(),delete_object());
@@ -190,4 +188,4 @@ double computeStepSize(
     return numerator/denominator;
 }
   
-// vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:encoding=utf-8:textwidth=99 :
+// vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:encoding=utf-8:textwidth=80 :
