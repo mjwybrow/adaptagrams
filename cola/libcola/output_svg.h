@@ -24,16 +24,17 @@ public:
 		  rc(rc),
 		  fname(fname),
 		  rects(rects),
-		  curvedEdges(curvedEdges),
-       	  labels(NULL) {}
+		  curvedEdges(curvedEdges) {}
 	void generate();
-    void setLabels(std::vector<const char*> * ls) {
-        labels=ls;
+    void setLabels(std::vector<std::string> ls) {
+        labels.resize(ls.size());
+        std::copy(ls.begin(),ls.end(),labels.begin());
     }
 	void setLabels(const unsigned n, const char **ls) {
-        localLabels.resize(n);
-        labels=&localLabels;
-        std::copy(ls,ls+n,labels->begin());
+        labels.resize(n);
+        for(unsigned i=0;i<n;i++) {
+            labels[i]=ls[i];
+        }
 	}
 private:
 	void draw_cluster_boundary(Cairo::RefPtr<Cairo::Context> const &cr, 
@@ -46,8 +47,7 @@ private:
 		const double xmin, 
 		const double ymin);
 	void openCairo(Cairo::RefPtr<Cairo::Context> &cr, double width, double height);
-    std::vector<const char*> *labels;
-    std::vector<const char*> localLabels;
+    std::vector<std::string> labels;
 };
 #endif // _OUTPUT_SVG_H
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:encoding=utf-8:textwidth=99 :

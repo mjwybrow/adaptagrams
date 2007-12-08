@@ -101,9 +101,14 @@ namespace topology {
         double v2=v->relativeDesiredPos();
         double w1=w->relativeInitialPos();
         double w2=w->relativeDesiredPos();
-        double numerator=-g - u1 + p*u1 - p*v1 + w1;
-        double denominator=-u1 + p*u1 + u2 - p*u2 - p*v1 + p*v2 + w1 - w2;
-        assert(denominator!=0);
+        double numerator=w1 - g - u1 + p*(u1-v1);
+        // There are a number of situations where the following can
+        // be 0!
+        double denominator=u2-u1 + p*(u1-u2 + v2-v1) + w1-w2;
+        //assert(denominator!=0);
+        if(denominator==0) {
+            return 1;
+        }
         return numerator/denominator;
     }
     double TriConstraint::slack () const {
@@ -158,6 +163,9 @@ namespace topology {
             delete end->bendConstraint;
             end->bendConstraint = new BendConstraint(end);
         }
+        // create a new StraightConstraint to replace the BendConstraint
+        s->straightConstraints.push_back(new StraightConstraint(
+                    s, bendPoint->node, bendPoint->pos[!dim]));
                  
         e->nSegments--;
         delete bendPoint;
@@ -169,15 +177,15 @@ namespace topology {
                 double pos, StraightConstraint* ignore)
             : target1(target1), target2(target2)
             , pos(pos), ignore(ignore) {}
-        void operator() (StraightConstraint* s) {
-            if(s!=ignore) {
+        void operator() (StraightConstraint* c) {
+            if(c!=ignore) {
                 if(target1->start->pos[!dim] > target2->end->pos[!dim]
                    && pos > target1->end->pos[!dim]) {
                     target1->straightConstraints.push_back(
-                            new StraightConstraint(target1,s->node,s->pos));
+                            new StraightConstraint(target1,c->node,c->pos));
                 } else {
                     target2->straightConstraints.push_back(
-                            new StraightConstraint(target2,s->node,s->pos));
+                            new StraightConstraint(target2,c->node,c->pos));
                 }
             }
         }

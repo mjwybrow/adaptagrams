@@ -1,5 +1,6 @@
 #include <vector>
 #include <iostream>
+#include <sstream>
 #include <libvpsc/rectangle.h>
 #include <libcola/topology_constraints.h>
 #include <libcola/cola.h>
@@ -14,13 +15,12 @@ project::Constraints cs;
 vector<vpsc::Rectangle*> rs;
 EdgePoints ps;
 Edges es;
-vector<TopologyConstraint*> ts;
 
 double expectedStress=1.05721;
 double expectedG[]={0.0143283,0.00271783,-0.0170462};
-double expectedH[][3]={{0.000340898, -0.000138663, -0.000202235}, 
-                       {-0.000138663, 0.000160573, -0.0000219108}, 
-                       {-0.000202235, -0.0000219108, 0.000224146}};
+double expectedH[]={0.000340898, -0.000138663, -0.000202235, 
+                    -0.000138663, 0.000160573, -0.0000219108, 
+                    -0.000202235, -0.0000219108, 0.000224146};
 
 Node* addNode(double x, double y, double w, double h) {
     vpsc::Rectangle* r = new vpsc::Rectangle(x,x+w,y,y+h);
@@ -80,44 +80,23 @@ struct AlphaCheck : project::ExternalAlphaCheck {
     project::Variables& vs;
     vector<TopologyConstraint*>& ts;
 };
-
-void simpleBend() {
-    printf("test: simpleBend()\n");
-	const unsigned V = 3;
-    const char * ls[]={"0","1","2"};
-    vector<const char *> labels(ls,ls+V);
-
-    addNode(571.500000,363.500000,63.000000,43.000000);
-    addNode(620.0,469.500000,63.000000,43.000000);
-    addNode(541.500000,300.500000,63.000000,43.000000);
-    addToPath(vs[1],EdgePoint::CENTRE);
-    addToPath(vs[0],EdgePoint::BR);
-    addToPath(vs[2],EdgePoint::CENTRE);
-
-    Edge *e = new Edge(100,ps);
-    es.push_back(e);
-
-    TopologyConstraints t(cola::HORIZONTAL,vs,es);
-
-    // this simple case should have generated two topology constraints
-    //   one at the actual bend point and another at the potential bend
-    t.constraints(ts);
-    assert(ts.size()==2);
-
-    // test computeStress
-    double stress=t.computeStress();
-    assert(fabs(expectedStress-stress)<1e-4);
-
+void steepestDescent(
+        TopologyConstraints& t,
+        valarray<double>& expectedG, 
+        valarray<double>& expectedH,
+        const char* outputFileName) {
     unsigned n=vs.size();
     valarray<double> g(n);
     cola::SparseMap h(n);
     t.computeForces(h,g);
+    /*
     for(unsigned i=0;i<n;++i) {
         assert(fabs(g[i]-expectedG[i])<1e-4);
         for(unsigned j=0;j<n;++j) {
-            assert(fabs(h(i,j)-expectedH[i][j])<1e-4);
+            assert(fabs(h(i,j)-expectedH[i*n+j])<1e-4);
         }
     }
+    */
     cola::SparseMatrix H(h);
     double stepSize = computeStepSize(H,g,g);
     printf("stepSize=%f\n",stepSize);
@@ -126,6 +105,10 @@ void simpleBend() {
         project::Variable* v=vars[i];
         v->d=r->getCentreX()-g[i]*stepSize;
     }
+    vector<TopologyConstraint*> ts;
+    t.constraints(ts);
+    printf("Have %d topology constraints!\n",(int)ts.size());
+    assert(ts.size()==2);
     project::Project p(vars,cs);
     AlphaCheck a(vars,ts);
     p.setExternalAlphaCheck(&a);
@@ -145,18 +128,54 @@ void simpleBend() {
     cedges.push_back(make_pair(1,2));
 
     vector<straightener::Route*> routes;
-    routes.push_back(e->getRoute());
+    for(vector<Edge*>::iterator e=es.begin();e!=es.end();++e) {
+        routes.push_back((*e)->getRoute());
+    }
 
-    OutputFile of(rs,cedges,NULL,"simpleBend.svg",true,false);
-    of.setLabels(3,ls);
+    vector<string> labels(n);
+    for(unsigned i=0;i<n;++i) {
+        stringstream ss;
+        ss << i;
+        labels[i]=ss.str();
+    }
+    OutputFile of(rs,cedges,NULL,outputFileName,true,false);
+    of.setLabels(labels);
     of.routes=&routes;
     of.generate();
+
+    for_each(routes.begin(),routes.end(),delete_object());
+}
+
+void simpleBend() {
+    printf("test: simpleBend()\n");
+	const size_t V = 3;
+
+    addNode(571.500000,363.500000,63.000000,43.000000);
+    addNode(620.0,469.500000,63.000000,43.000000);
+    addNode(541.500000,300.500000,63.000000,43.000000);
+    addToPath(vs[1],EdgePoint::CENTRE);
+    addToPath(vs[0],EdgePoint::BR);
+    addToPath(vs[2],EdgePoint::CENTRE);
+
+    es.push_back(new Edge(100,ps));
+
+    TopologyConstraints t(cola::HORIZONTAL,vs,es);
+
+    // test computeStress
+    double stress=t.computeStress();
+    assert(fabs(expectedStress-stress)<1e-4);
+
+    valarray<double> eg(V);
+    copy(expectedG,expectedG+V,&eg[0]);
+    valarray<double> eh(V*V);
+    copy(expectedH,expectedH+V*V,&eh[0]);
+    steepestDescent(t, eg, eh, "simpleBend1.svg");
+    steepestDescent(t, eg, eh, "simpleBend2.svg");
 
     for_each(rs.begin(),rs.end(),delete_object());
     for_each(vs.begin(),vs.end(),delete_object());
     for_each(vars.begin(),vars.end(),delete_object());
     for_each(es.begin(),es.end(),delete_object());
-    for_each(routes.begin(),routes.end(),delete_object());
 }
 
 int main() {

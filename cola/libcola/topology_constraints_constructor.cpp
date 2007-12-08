@@ -233,6 +233,8 @@ namespace topology {
         }
         c=new TriConstraint(
                     u->node->var,v->node->var,node->var,p,g,passLeft);
+        printf("Created new StraightConstraint: p=%f g=%f uy=%f vy=%f wy=%f\n",
+                p,g,u->pos[!dim],v->pos[!dim],pos);
     }
     /**
      * create a constraint between the two segments joined by this

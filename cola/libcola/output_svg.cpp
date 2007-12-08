@@ -81,8 +81,8 @@ void OutputFile::generate() {
 		} else {
             double x=rs[i]->getMinX()-xmin+0.5, y=rs[i]->getMinY()-ymin+0.5;
             std::string str;
-            if(labels) {
-                str=std::string((*labels)[i]);
+            if(labels.size()==rs.size()) {
+                str=labels[i];
             } else {
                 std::stringstream s; s<<i;
                 str=s.str();
@@ -100,7 +100,7 @@ void OutputFile::generate() {
             cr->set_source_rgb(245./255., 233./255., 177./255.);
             //cr->fill();
             cr->restore();
-            if(labels) {
+            if(labels.size()==rs.size()) {
                 cr->move_to(x-te.x_bearing-te.width/2.,y+te.height/2.);
                 cr->show_text(str);
             }
