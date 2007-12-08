@@ -5,6 +5,11 @@
 using namespace std;
 using vpsc::Rectangle;
 namespace topology {
+    EdgePoint::~EdgePoint() {
+        if(bendConstraint) {
+            delete bendConstraint;
+        }
+    }
     void EdgePoint::setPos() {
         double &x=pos[0],&y=pos[1];
         vpsc::Rectangle* r=node->rect;
@@ -46,15 +51,18 @@ namespace topology {
         double dy = end->pos[1] - start->pos[1];
         return sqrt(dx*dx + dy*dy);
     }
-    straightener::Route* Edge::getRoute() {
-        EdgePoints vs;
-        getPath(vs);
-        straightener::Route* r = new straightener::Route(vs.size());
-        double *x=r->xs, *y=r->ys;
-        for(EdgePoints::iterator v=vs.begin();v!=vs.end();++v,++x,++y) {
-            *x=(*v)->pos[0];
-            *y=(*v)->pos[1];
+
+    struct copyEdgePointsToRoute {
+        copyEdgePointsToRoute(straightener::Route* r) : x(r->xs), y(r->ys) {}
+        void operator() (const EdgePoint* p) {
+            *x++=p->pos[0];
+            *y++=p->pos[1];
         }
+        double *x, *y;
+    };
+    straightener::Route* Edge::getRoute() {
+        straightener::Route* r = new straightener::Route(nSegments+1);
+        forEachEdgePointConst(copyEdgePointsToRoute(r));
         return r;
     }
     struct accumulateLength {
@@ -71,8 +79,8 @@ namespace topology {
     }
     struct buildPath {
         buildPath(EdgePoints& vs) : vs(vs) {}
-        void operator()(const Segment* s) {
-            vs.push_back(s->end);
+        void operator()(const EdgePoint* p) {
+            vs.push_back((EdgePoint*)p);
         }
         EdgePoints& vs;
     };
@@ -80,8 +88,7 @@ namespace topology {
      * get a list of all the EdgePoints along the Edge path
      */
     void Edge::getPath(EdgePoints &vs) const {
-        vs.push_back(firstSegment->start);
-        forEachSegmentConst(buildPath(vs));
+        forEachEdgePointConst(buildPath(vs));
     }
     /** 
      * @return the maximum move we can make along the line from initial to
@@ -157,19 +164,62 @@ namespace topology {
         delete s1;
         delete s2;
     }
+    struct transferStraightConstraintChoose {
+        transferStraightConstraintChoose(Segment* target1, Segment* target2,
+                double pos, StraightConstraint* ignore)
+            : target1(target1), target2(target2)
+            , pos(pos), ignore(ignore) {}
+        void operator() (StraightConstraint* s) {
+            if(s!=ignore) {
+                if(target1->start->pos[!dim] > target2->end->pos[!dim]
+                   && pos > target1->end->pos[!dim]) {
+                    target1->straightConstraints.push_back(
+                            new StraightConstraint(target1,s->node,s->pos));
+                } else {
+                    target2->straightConstraints.push_back(
+                            new StraightConstraint(target2,s->node,s->pos));
+                }
+            }
+        }
+        Segment* target1, * target2;
+        double pos;
+        StraightConstraint* ignore;
+    };
     /**
      * Segment needs to bend
      */
     void StraightConstraint::satisfy() {
-        //EdgePoint* p = new EdgePoint(node,ri);
-        //segment->edge->addBend(this,s,p);
-        //delete segment;
-        // transfer other potential-bend topology constraints 
+        Edge* e = segment->edge;
+        EdgePoint* start = segment->start,
+                 * end = segment->end,
+                 * bend = new EdgePoint(node,ri);
+        Segment* s1 = new Segment(e,start,bend);
+        Segment* s2 = new Segment(e,bend,end);
+        if(e->firstSegment==segment) {
+            e->firstSegment=s1;
+        }
+        if(e->lastSegment==segment) {
+            e->lastSegment=s2;
+        }
+        // transfer other StraightConstraint constraints 
         // from s to s1 or s2 depending on which side of p they are on.
-        // inter-segment topology constraints from s need to
-        // be transferred to s2.
-        // update inter-segment topology constraints from 
-        // s1->start->inSegment
+        transferStraightConstraintChoose transfer(s1,s2,pos,this);
+        for_each(segment->straightConstraints.begin(),
+                 segment->straightConstraints.end(),
+                 transfer);
+        // BendConstraint constraints associated with segment->end and 
+        // segment->start need to be updated
+        if(!start->isReal()) {
+            delete start->bendConstraint;
+            start->bendConstraint = new BendConstraint(start);
+        }
+        if(!end->isReal()) {
+            delete end->bendConstraint;
+            end->bendConstraint = new BendConstraint(end);
+        }
+                 
+        e->nSegments++;
+        delete segment;
     }
     /**
      * satisfies a violated topology constraint by splitting the associated

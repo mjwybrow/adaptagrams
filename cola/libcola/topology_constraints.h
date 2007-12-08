@@ -85,9 +85,11 @@ namespace topology {
         EdgePoint(const Node* node, RectIntersect i) 
                 : node(node), rectIntersect(i)
                 , inSegment(NULL), outSegment(NULL) 
+                , bendConstraint(NULL)
         {
             setPos();
         }
+        ~EdgePoint();
         /**
          * @return true if the EdgePoint is the end of an edge otherwise
          * asserts that it is a valid bend point.
@@ -161,10 +163,6 @@ namespace topology {
                 return start;
             }
             return end;
-        }
-        void updateEdgePoints() {
-            start->setPos();
-            end->setPos();
         }
         /** test a given point to see if it lies within the scan range of this
          * segment
@@ -265,10 +263,46 @@ namespace topology {
             }
         }
         /**
+         * apply an operation to every EdgePoint associated with this edge
+         * @param o operation (a function or functor that takes a pointer to
+         * an EdgePoint as an argument)
+         */
+        template <typename T>
+        void forEachEdgePoint(T o) {
+            Segment* s=firstSegment;
+            o(s->start);
+            while(s!=NULL) {
+                EdgePoint* e=s->end;
+                o(e);
+                s=e->outSegment;
+            }
+        }
+        /**
+         * a version of forEachEdgePoint for const edges
+         * @param o an operation on a const EdgePoint
+         */
+        template <typename T>
+        void forEachEdgePointConst(T o) const {
+            const Segment* s=firstSegment;
+            o(s->start);
+            while(s!=NULL) {
+                EdgePoint* e=s->end;
+                o(e);
+                s=e->outSegment;
+            }
+        }
+        /**
          * cleanup segments
          */
         ~Edge() {
-            forEachSegment(delete_object());
+            Segment* s=firstSegment;
+            delete s->start;
+            while(s!=NULL) {
+                EdgePoint* p=s->end;
+                delete s;
+                s=p->outSegment;
+                delete p;
+            }
         }
         /**
          * the sum of the lengths of all the segments
