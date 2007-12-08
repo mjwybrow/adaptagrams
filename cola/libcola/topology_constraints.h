@@ -116,6 +116,7 @@ namespace topology {
         double offset() const;
     };
     typedef std::vector<EdgePoint*> EdgePoints;
+    typedef std::vector<const EdgePoint*> ConstEdgePoints;
     /**
      * a Segment is one straightline segment between two EdgePoint which are
      * either bend points and/or ends of the edge.
@@ -308,7 +309,7 @@ namespace topology {
         /**
          * get a list of all the EdgePoints along the Edge path
          */
-        void getPath(EdgePoints &vs) const;
+        void getPath(ConstEdgePoints& vs) const;
         /**
          * @return a list of the coordinates along the edge route
          */

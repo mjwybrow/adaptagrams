@@ -78,16 +78,16 @@ namespace topology {
         return totalLength;
     }
     struct buildPath {
-        buildPath(EdgePoints& vs) : vs(vs) {}
+        buildPath(ConstEdgePoints& vs) : vs(vs) {}
         void operator()(const EdgePoint* p) {
-            vs.push_back((EdgePoint*)p);
+            vs.push_back(p);
         }
-        EdgePoints& vs;
+        ConstEdgePoints& vs;
     };
     /**
      * get a list of all the EdgePoints along the Edge path
      */
-    void Edge::getPath(EdgePoints &vs) const {
+    void Edge::getPath(ConstEdgePoints& vs) const {
         forEachEdgePointConst(buildPath(vs));
     }
     /** 
@@ -570,12 +570,12 @@ namespace topology {
     void TopologyConstraints::computeForces(cola::SparseMap &hessian, valarray<double> &gradient) {
         SparseMapMap H(hessian);
         ArrayMap<double> g(gradient);
-        EdgePoint *u,*v,*w;
+        const EdgePoint *u,*v,*w;
         for(Edges::const_iterator i=edges.begin();i!=edges.end();i++) {
             //printf("Straightening path:\n");
             //edges[i]->print();
             Edge* e=*i;
-            vector<EdgePoint*> path;
+            ConstEdgePoints path;
             e->getPath(path);
             unsigned n=path.size();
             assert(n>=2);
