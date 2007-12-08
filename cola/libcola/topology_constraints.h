@@ -198,6 +198,10 @@ namespace topology {
          */
         double length() const;
     };
+    template <typename T>
+    struct NoOp {
+        void operator() (T t) {}
+    };
     /**
      * An Edge provides a doubly linked list of segments, each involving a pair of
      * EdgePoints
@@ -235,6 +239,28 @@ namespace topology {
                 lastSegment = s;
             }
         }
+        template <typename PointOp, typename SegmentOp>
+        void forEach(PointOp po, SegmentOp so) {
+            Segment* s=firstSegment;
+            po(s->start);
+            while(s!=NULL) {
+                EdgePoint* p=s->end;
+                so(s);
+                s=p->outSegment;
+                po(p);
+            }
+        }
+        template <typename PointOp, typename SegmentOp>
+        void forEachConst(PointOp po, SegmentOp so) const {
+            const Segment* s=firstSegment;
+            po(s->start);
+            while(s!=NULL) {
+                const EdgePoint* p=s->end;
+                so(s);
+                s=p->outSegment;
+                po(p);
+            }
+        }
         /**
          * apply an operation to every segment associated with this edge
          * @param o operation (a function or functor that takes a pointer to
@@ -242,12 +268,7 @@ namespace topology {
          */
         template <typename T>
         void forEachSegment(T o) {
-            Segment* s=firstSegment;
-            while(s!=NULL) {
-                EdgePoint* e=s->end;
-                o(s);
-                s=e->outSegment;
-            }
+            forEach(NoOp<EdgePoint*>(),o);
         }
         /**
          * a version of forEachSegment for const edges
@@ -255,12 +276,7 @@ namespace topology {
          */
         template <typename T>
         void forEachSegmentConst(T o) const {
-            const Segment* s=firstSegment;
-            while(s!=NULL) {
-                EdgePoint* e=s->end;
-                o(s);
-                s=e->outSegment;
-            }
+            forEachConst(NoOp<const EdgePoint*>(),o);
         }
         /**
          * apply an operation to every EdgePoint associated with this edge
@@ -269,13 +285,7 @@ namespace topology {
          */
         template <typename T>
         void forEachEdgePoint(T o) {
-            Segment* s=firstSegment;
-            o(s->start);
-            while(s!=NULL) {
-                EdgePoint* e=s->end;
-                o(e);
-                s=e->outSegment;
-            }
+            forEach(o,NoOp<Segment*>());
         }
         /**
          * a version of forEachEdgePoint for const edges
@@ -283,26 +293,13 @@ namespace topology {
          */
         template <typename T>
         void forEachEdgePointConst(T o) const {
-            const Segment* s=firstSegment;
-            o(s->start);
-            while(s!=NULL) {
-                EdgePoint* e=s->end;
-                o(e);
-                s=e->outSegment;
-            }
+            forEachConst(o,NoOp<const Segment*>());
         }
         /**
          * cleanup segments
          */
         ~Edge() {
-            Segment* s=firstSegment;
-            delete s->start;
-            while(s!=NULL) {
-                EdgePoint* p=s->end;
-                delete s;
-                s=p->outSegment;
-                delete p;
-            }
+            forEach(delete_object(),delete_object());
         }
         /**
          * the sum of the lengths of all the segments
