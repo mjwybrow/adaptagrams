@@ -10,6 +10,7 @@
 #include <libproject/project.h>
 #include <libcola/cola.h>
 #include <libcola/straightener.h>
+#include "topology_graph.h"
 #include "topology_constraints.h"
 using namespace std;
 using vpsc::Rectangle;
