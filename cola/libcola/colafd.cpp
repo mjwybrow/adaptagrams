@@ -4,7 +4,6 @@
 #include "cola.h"
 #include "shortest_paths.h"
 #include "straightener.h"
-#include "topology_constraints.h"
 #include <libvpsc/solve_VPSC.h>
 #include <libvpsc/variable.h>
 #include <libvpsc/constraint.h>
@@ -428,14 +427,14 @@ double ConstrainedFDLayout::applyDescentVector(
         valarray<double> const &oldCoords,
         valarray<double> &coords,
         const double oldStress,
-        double stepsize,
-        topology::TopologyConstraints *s
+        double stepsize/*,
+        topology::TopologyConstraints *s*/
         ) const {
     assert(d.size()==oldCoords.size());
     assert(d.size()==coords.size());
     while(fabs(stepsize)>0.00000000001) {
         coords=oldCoords-stepsize*d;
-        double stress=computeStress(s);
+        double stress=computeStress(/*s*/);
         //printf(" applyDV: oldstress=%f, stress=%f, stepsize=%f\n", oldStress,stress,stepsize);
         if(oldStress>=stress) {
             return stress;
@@ -508,7 +507,7 @@ double ConstrainedFDLayout::computeStepSize(
     if(denominator==0) return 0;
     return numerator/denominator;
 }
-double ConstrainedFDLayout::computeStress(topology::TopologyConstraints *t) const {
+double ConstrainedFDLayout::computeStress(/*topology::TopologyConstraints *t*/) const {
     double stress=0;
     for(unsigned u=0;u<n-1;u++) {
         for(unsigned v=u+1;v<n;v++) {
@@ -528,9 +527,11 @@ double ConstrainedFDLayout::computeStress(topology::TopologyConstraints *t) cons
             stress+=rl*rl/d2;
         }
     }
+    /*
     if(t) {
         stress+=t->computeStress();
     }
+    */
     return stress;
 }
 void ConstrainedFDLayout::move() {

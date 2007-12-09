@@ -21,10 +21,7 @@ libcola_a_SOURCES = cola.h\
 	cluster.cpp\
 	compound_constraints.h\
 	output_svg.cpp\
-	output_svg.h\
-	topology_constraints.cpp\
-	topology_constraints.h\
-	topology_constraints_constructor.cpp
+	output_svg.h
 
 libcolaincludedir = ${includedir}/libcola
 libcolainclude_HEADERS = cola.h\

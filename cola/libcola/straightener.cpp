@@ -20,7 +20,7 @@
 #include "cola.h"
 #include "compound_constraints.h"
 #include "straightener.h"
-#include "topology_constraints.h"
+//#include "topology_constraints.h"
 
 //#define STRAIGHTENER_DEBUG 1
 

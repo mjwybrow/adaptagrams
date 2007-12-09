@@ -14,7 +14,7 @@
 #include "straightener.h"
 
 namespace vpsc { class Rectangle; }
-namespace topology { class TopologyConstraints; }
+//namespace topology { class TopologyConstraints; }
 
 /**
  * The cola namespace delineates the interface to the libcola constraint layout library
@@ -359,7 +359,7 @@ public:
         delete [] D;
     }
     valarray<double> dummyNodesX, dummyNodesY;
-    double computeStress(topology::TopologyConstraints *t=NULL) const;
+    double computeStress(/*topology::TopologyConstraints *t=NULL*/) const;
 private:
     unsigned n; // number of nodes
     valarray<double> X, Y;
@@ -372,8 +372,8 @@ private:
             valarray<double> const & oldCoords,
             valarray<double> &coords, 
             const double oldStress, 
-            double stepsize,
-            topology::TopologyConstraints *s=NULL) const;
+            double stepsize
+            /*,topology::TopologyConstraints *s=NULL*/) const;
     void move();
     void computeForces(const Dim dim, SparseMap &H, valarray<double> &g);
     vector<vector<unsigned> > neighbours;
