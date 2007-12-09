@@ -17,10 +17,14 @@ EdgePoints ps;
 Edges es;
 
 double expectedStress=1.05721;
-double expectedG[]={0.0143283,0.00271783,-0.0170462};
-double expectedH[]={0.000340898, -0.000138663, -0.000202235, 
+double expectedG1[]={0.0143283,0.00271783,-0.0170462};
+double expectedG2[]={0.0,0.004044,-0.004044};
+double expectedH1[]={0.000340898, -0.000138663, -0.000202235, 
                     -0.000138663, 0.000160573, -0.0000219108, 
                     -0.000202235, -0.0000219108, 0.000224146};
+double expectedH2[]={0.000000, 0.000000, 0.000000,
+                     0.000000, 0.000094, -0.000094,
+                     0.000000, -0.000094, 0.000094};
 
 Node* addNode(double x, double y, double w, double h) {
     vpsc::Rectangle* r = new vpsc::Rectangle(x,x+w,y,y+h);
@@ -89,14 +93,15 @@ void steepestDescent(
     valarray<double> g(n);
     cola::SparseMap h(n);
     t.computeForces(h,g);
-    /*
     for(unsigned i=0;i<n;++i) {
+        //printf("g[%d]=%f,eg[%d]=%f\n",i,g[i],i,expectedG[i]);
         assert(fabs(g[i]-expectedG[i])<1e-4);
         for(unsigned j=0;j<n;++j) {
+            //printf("h[%d,%d]=%f,eh[%d,%d]=%f\n",i,j,h(i,j),i,j,expectedH[i*n+j]);
+            //printf("%f,\n",h(i,j));
             assert(fabs(h(i,j)-expectedH[i*n+j])<1e-4);
         }
     }
-    */
     cola::SparseMatrix H(h);
     double stepSize = computeStepSize(H,g,g);
     printf("stepSize=%f\n",stepSize);
@@ -166,10 +171,12 @@ void simpleBend() {
     assert(fabs(expectedStress-stress)<1e-4);
 
     valarray<double> eg(V);
-    copy(expectedG,expectedG+V,&eg[0]);
+    copy(expectedG1,expectedG1+V,&eg[0]);
     valarray<double> eh(V*V);
-    copy(expectedH,expectedH+V*V,&eh[0]);
+    copy(expectedH1,expectedH1+V*V,&eh[0]);
     steepestDescent(t, eg, eh, "simpleBend1.svg");
+    copy(expectedG2,expectedG2+V,&eg[0]);
+    copy(expectedH2,expectedH2+V*V,&eh[0]);
     steepestDescent(t, eg, eh, "simpleBend2.svg");
 
     for_each(rs.begin(),rs.end(),delete_object());
