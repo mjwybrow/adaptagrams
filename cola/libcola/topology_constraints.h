@@ -18,6 +18,7 @@ namespace vpsc {
 namespace project {
     class Variable;
     class Constraint;
+    typedef std::vector<Constraint*> Constraints;
 }
 namespace straightener {
     class Route;
@@ -430,6 +431,7 @@ namespace topology {
         const Edges& edges;
         TopologyConstraints(
             const cola::Dim dim, 
+            project::Constraints& cs,
             const Nodes &vs,
             const Edges &es);
         ~TopologyConstraints() { }

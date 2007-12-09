@@ -7,6 +7,7 @@
  * \author Tim Dwyer
  * \date Dec 2007
  */
+#include <libproject/project.h>
 #include "topology_constraints.h"
 #include "cola.h"
 #include "straightener.h"
@@ -25,8 +26,9 @@ namespace topology {
     typedef map<double,NodeOpen*> OpenNodes;
     /** 
      * open nodes are stored in a map keyed on position along scan line.
-     * We use this to find neighbouring rectangles so that we can generate
-     * non-overlap constraints between them
+     * We use this to find neighbouring rectangles at a NodeClose event
+     * so that we can generate non-overlap constraints between the closing
+     * node and its immediate neighbours.
      * Note that this assumes no overlaps between rectangles.
      */
     OpenNodes openNodes;
@@ -69,8 +71,9 @@ namespace topology {
         void createTopologyConstraint();
     };
     /**
-     * at node openings the node is placed in the list of #openNodes and a topology constraint
-     * is created for one side of the node rectangle and every open segment.
+     * at node openings the node is placed in the list of #openNodes and a
+     * topology constraint is created for one side of the node rectangle and
+     * every open segment.
      */
     struct NodeOpen : NodeEvent {
         /// position in openNodes
@@ -93,24 +96,43 @@ namespace topology {
         }
     };
     /**
-     * at node closings the node is removed from the list of #openNodes and topology constraints
-     * are created for the remaining side of the node rectangle and every open segment.
+     * at node closings the node is removed from the list of #openNodes and
+     * topology constraints are created for the remaining side of the node
+     * rectangle and every open segment.  Also, non-overlap constraints
+     * are created between the node and its immediate neighbours in openNodes.
      */
     struct NodeClose : NodeEvent {
         /** we store the opening corresponding to this closing so that we can delete it and
          *  remove it from the list of OpenNodes.
          */
         NodeOpen* opening;
-        NodeClose(Node* node, NodeOpen* o) :
-            NodeEvent(false,node->rect->getMaxD(!dim),node), opening(o) {
+        project::Constraints& cs;
+        NodeClose(Node* node, NodeOpen* o, project::Constraints& cs)
+            : NodeEvent(false,node->rect->getMaxD(!dim),node)
+            , opening(o)
+            , cs(cs) {
             assert(opening->node == node);
         }
+        void createNonOverlapConstraint(const Node* left, const Node* right) {
+            double g = left->rect->length(dim) + right->rect->length(dim);
+            g/=2.0;
+            cs.push_back(new project::Constraint(left->var, right->var, g));
+        }
         /**
-         * remove opening from openNodes, cleanup, and generate TopologyConstraints.
+         * remove opening from openNodes, cleanup, and generate
+         * TopologyConstraints.
          */
         void process() {
             print();
-            openNodes.erase(opening->openListIndex);
+            OpenNodes::iterator nodePos=opening->openListIndex;
+            OpenNodes::iterator right=nodePos, left=nodePos;
+            if(left--!=openNodes.begin()) {
+                createNonOverlapConstraint(left->second->node,node);
+            }
+            if((++right)!=openNodes.end()) {
+                createNonOverlapConstraint(node,right->second->node);
+            }
+            openNodes.erase(nodePos);
             delete opening;
             // create topology constraint from scanpos in every open edge to node
             createTopologyConstraint();
@@ -320,6 +342,7 @@ namespace topology {
         vector<Event*>& events;
     };
     TopologyConstraints::TopologyConstraints( const cola::Dim axisDim,
+            project::Constraints & cs,
             Nodes const & nodes,
             Edges const & edges) : edges(edges) {
 
@@ -335,7 +358,7 @@ namespace topology {
             vpsc::Rectangle* r=v->rect;
             printf("v%d={%f,%f,%f,%f}\n",ctr++,r->getMinX(),r->getMinY(),r->width(),r->height());
             NodeOpen *open=new NodeOpen(v);
-            NodeClose *close=new NodeClose(v,open);
+            NodeClose *close=new NodeClose(v,open,cs);
             events.push_back(open);
             events.push_back(close);
         }
