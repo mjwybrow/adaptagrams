@@ -1,11 +1,11 @@
 /**
- * @file project.cpp
- * @brief Solve an instance of the "Variable Placement with Separation
+ * Solve an instance of the "Variable Placement with Separation
  * Constraints" problem, that is a projection onto separation constraints,
  * whilest always maintaining feasibility.
  *
+ * \file project.cpp
  * Authors:
- *   Tim Dwyer <tgdwyer@gmail.com>
+ * \author Tim Dwyer <tgdwyer@gmail.com>
  *
  * Copyright (C) 2007 Authors
  *

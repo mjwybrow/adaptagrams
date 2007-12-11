@@ -1,4 +1,13 @@
 /**
+ * Yale Sparse Matrix implementation (from Wikipedia definition).
+ * It stores an initial sparse n×n matrix M in row form using three arrays, A,
+ * IA, JA. NZ denotes the number of nonzero entries in matrix M. The array A
+ * then is of length NZ and holds all nonzero entries of M. The array IA stores
+ * at IA(i) the position of the first element of row i in the sparse array A.
+ * The length of row i is determined by IA(i+1) - IA(i). Therefore IA needs to
+ * be of length N + 1. In array JA, the column index of the element A(j) is
+ * stored. JA is of length NZ.
+ *
  * \file sparse_matrix.h
  * \author Tim Dwyer
  * \date 2007
@@ -8,6 +17,7 @@
 #include <valarray>
 #include <map>
 #include <iostream>
+#include <cassert>
 namespace cola {
 using std::valarray;
 struct SparseMap {
@@ -37,6 +47,9 @@ struct SparseMap {
     }
     void resize(unsigned n) {
         this->n = n;
+    }
+    void clear() {
+        lookup.clear();
     }
 };
 /**

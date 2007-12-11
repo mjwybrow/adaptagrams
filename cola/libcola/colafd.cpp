@@ -142,7 +142,7 @@ ConstrainedFDLayout::ConstrainedFDLayout(
       ccsx(NULL), ccsy(NULL),
       avoidOverlaps(false),
       px(NULL), py(NULL),
-      straightenEdges(NULL)
+      topology(false)
 {
     boundingBoxes.resize(n);
     copy(rs.begin(),rs.end(),boundingBoxes.begin());
@@ -196,10 +196,12 @@ void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis) {
     //printf("n==%d\n",n);
     if(n==0) return;
     double stress=computeStress();
+    /*
     if(straightenEdges) {
         straightener::setEdgeLengths(D,*straightenEdges);
         stress+=straightener::computeStressFromRoutes(straighteningStrength,*straightenEdges);
     }
+    */
     bool firstPass=true;
     do {
         if(preIteration) {
@@ -217,18 +219,20 @@ void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis) {
                 }
                 if(stressNeedsUpdate) {
                     stress=computeStress();
+                    /*
                     if(straightenEdges) {
                         stress+=straightener::computeStressFromRoutes(straighteningStrength,*straightenEdges);
                     }
+                    */
                 }
             } else { break; }
         }
-        //if(xAxis) {
+        if(xAxis) {
             stress=applyForcesAndConstraints(HORIZONTAL,stress,firstPass);
-        //}
-        //if(yAxis) {
-            //stress=applyForcesAndConstraints(VERTICAL,stress,firstPass);
-        //}
+        }
+        if(yAxis) {
+            stress=applyForcesAndConstraints(VERTICAL,stress,firstPass);
+        }
         firstPass=false;
         move();
         fixed.unsetAll();
@@ -242,11 +246,9 @@ void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis) {
  */
 double ConstrainedFDLayout::applyForcesAndConstraints(const cola::Dim dim, const double oldStress,
         const bool firstPass) {
-    valarray<double> g(2*n);
-    valarray<double> coords(2*n);
-    copy(&X[0],&X[n],&coords[0]);
-    copy(&Y[0],&Y[n],&coords[n]);
-    SparseMap HMap(2*n);
+    valarray<double> g(n);
+    valarray<double>& coords=dim==cola::HORIZONTAL?X:Y;
+    SparseMap HMap(n);
     computeForces(dim,HMap,g);
     /*
     printf("g=[");
@@ -264,13 +266,11 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const cola::Dim dim, const
         //H.print();
         valarray<double> oldCoords=coords;
         double stress = applyDescentVector(g,oldCoords,coords,oldStress,computeStepSize(H,g,g));
-        copy(&coords[0],&coords[n],&X[0]);
-        copy(&coords[n],&coords[2*n],&Y[0]);
         return stress;
     }
     Variables lvs;
     set<Constraint*> lcs;
-    if(avoidOverlaps||straightenEdges) {
+    if(avoidOverlaps) {
         /*
         if(p->ccs) {
             for(CompoundConstraints::const_iterator c=p->ccs->begin();
@@ -297,128 +297,19 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const cola::Dim dim, const
         }
         lcs.insert(overlapConstraints.begin(),overlapConstraints.end());
     }
-    if(straightenEdges) {
-    /*
-        //straightener::Straightener s(straighteningStrength, dim,lrs,fixed,*straightenEdges,vs,lvs,lcs,coords,g);
-        topology::TopologyConstraints s(dim,boundingBoxes,fixed,*straightenEdges,p->vars,lvs,&lcs,coords,g);
-        //return computeStress(&s);
-        HMap.resize(s.N());
-        valarray<double> oldCoords=s.coords;
-        s.computeForces(HMap);
-        SparseMatrix H(HMap);
-        //printf("STRESS=%f\n",s.computeStress(s.coords));
-        //H.print();
-        printf("s.g=[");
-        for(unsigned i=0;i<s.N();i++) {
-            printf("%f ",s.g[i]);
-        }
-        printf("]\n");
-        // double stress=
-        applyDescentVector(s.g,oldCoords,s.coords,computeStress(&s),computeStepSize(H,s.g,s.g),&s);
-        p->solve(lvs,lcs,s.coords);
-        s.updateNodePositionsFromVars();
-        //  TopologyConstraint
-        //    Segment* segment
-        //    Node* w // real node
-        //
-        //  satisfyTopologyConstraint(TopologyConstraint v, lvs, lcs):
-        //    z = new dummy var
-        //    add z to lvs
-        //    z->variable->desiredPosition=v->RHS - g 
-        //    s = v->segment
-        //    s1 = new Segment(s->start,z)
-        //    s2 = new Segment(z,s->end)
-        //    s->edge->segments->replace(s,s1,s2)
-        //    for each t in s->topologyConstraints:
-        //      t->segment = s1 or s2 based on t->w_y
-        //    c = new separation constraint w>z+g
-        //    add c to lcs
-        //    
-        //  List<TopologyConstraint*> processList
-        //
-        //  We generate separation constraints based on topology constraints lazily:  
-        //    Generate dummy nodes for each of the bend points in the input routing
-        //    and a separation constraint between each bend point and rectangle on the
-        //    same scan line.
-        //    Then for each edge segment (u,v) and each node w with which it
-        //    overlaps in the axis of concern (assume x), we generate a
-        //    topology constraint:
-        //      w_x > u_x + (v_x - u_x)|w_y-u_y|/|v_y-u_y| + g
-        //    to keep w to the right of uv, or a symmetric constraint to keep
-        //    w to the left of uv (where g is half the width of w)
-        //    compute forces on real nodes and dummy nodes
-        //    move x coords of real nodes and dummy nodes by descent vector
-        //  after such a move there may be violated topology constraints and separation
-        //  constraints for dummy vars that have become inactive
-        //    merge segments around dummy nodes with no or inactive constraints
-        //    satisfy violated topology constraints by splitting around a new dummy var
-        s.tightenSegments(lcs);
-        //fixed.fixAll(true);
-        while(true) {
-            topology::TopologyConstraint* v = s.mostViolated();
-            if(v == NULL) {
-                printf("After solve: No more violated topology constraints\n");
-                break;
-            } else {
-                printf("After solve: most violated:\n");
-                //v->print();
-                v->satisfy(s.addDummyNode(lvs),s.coords,lcs);
-                delete v;
-            }
-            SparseMap HMapEdges(s.N());
-            s.g.resize(s.N());
-            s.g=0;
-            valarray<double> oldCoords=s.coords;
-            s.computeForces(HMapEdges);
-            SparseMatrix HEdges(HMapEdges);
-            printf("g=[");
-            for(unsigned i=0;i<s.N();i++) {
-                printf("%f ",s.g[i]);
-            }
-            printf("]\n");
-            applyDescentVector(s.g,oldCoords,s.coords,computeStress(&s),
-                    computeStepSize(HEdges,s.g,s.g),&s);
-            p->solve(lvs,lcs,s.coords);
-            s.updateNodePositionsFromVars();
-        }
-        for(unsigned i=0;i<n;i++) { 
-            // need to make sure that the bounding box position matches most up-to-date
-            // x-position before computing y-constraints
-            boundingBoxes[i]->moveCentreX(s.coords[i]);
-        }
-        s.verify(boundingBoxes);
-        //fixed.fixAll(false);
-        delete_vector(lvs);
-        for_each(lcs.begin(),lcs.end(),delete_object());
-        if(!firstPass) {
-            valarray<double> d(s.N);
-            d=oldCoords-s.coords;
-            double stepsize=computeStepSize(H,s.g,d);
-            stepsize=max(0.,min(stepsize,1.));
-            //printf(" dim=%d beta: ",dim);
-            stress=applyDescentVector(d,oldCoords,s.coords,oldStress,stepsize,&s);
-            s.coordsToNodePositions();
-        }
-        double* p=&s.coords[0];
-        copy(p,p+n,&coords[0]);
-        s.finalizeRoutes();
-        return computeStress(&s);
-        */
-    } else {
-        SparseMatrix H(HMap);
-        valarray<double> oldCoords=coords;
-        applyDescentVector(g,oldCoords,coords,oldStress,computeStepSize(H,g,g));
-        p->solve(lvs,lcs,coords);
-        delete_vector(lvs);
-        for_each(lcs.begin(),lcs.end(),delete_object());
-        if(!firstPass) {
-            valarray<double> d(n);
-            d=oldCoords-coords;
-            double stepsize=computeStepSize(H,g,d);
-            stepsize=max(0.,min(stepsize,1.));
-            //printf(" dim=%d beta: ",dim);
-            return applyDescentVector(d,oldCoords,coords,oldStress,stepsize);
-        }
+    SparseMatrix H(HMap);
+    valarray<double> oldCoords=coords;
+    applyDescentVector(g,oldCoords,coords,oldStress,computeStepSize(H,g,g));
+    p->solve(lvs,lcs,coords);
+    delete_vector(lvs);
+    for_each(lcs.begin(),lcs.end(),delete_object());
+    if(!firstPass) {
+        valarray<double> d(n);
+        d=oldCoords-coords;
+        double stepsize=computeStepSize(H,g,d);
+        stepsize=max(0.,min(stepsize,1.));
+        //printf(" dim=%d beta: ",dim);
+        return applyDescentVector(d,oldCoords,coords,oldStress,stepsize);
     }
     return computeStress();
 }
@@ -452,42 +343,33 @@ void ConstrainedFDLayout::computeForces(
     g=0;
     // for each node:
     for(unsigned u=0;u<n;u++) {
-        if(fixed.check(u)) {
-            continue;
-        }
+        //if(fixedPos[u]) continue;
         // Stress model
-        double Huux=0,Huuy=0;
+        double Huu=0;
         for(unsigned v=0;v<n;v++) {
             if(u==v) continue;
             // no forces between disconnected parts of the graph
             if(G[u][v]==numeric_limits<unsigned>::max()) continue;
-            // if we compute straightenEdge forces then they replace
-            // forces between adjacent nodes
-            if(straightenEdges && G[u][v]==1) continue;
             double rx=X[u]-X[v], ry=Y[u]-Y[v];
             double l=sqrt(rx*rx+ry*ry);
             double d=D[u][v];
-            // we don't want long range attractive forces between 
+            // we don't want long range attractive forces between
             // not immediately connected nodes
             if(G[u][v]>1 && l>d) continue;
+            // if we compute straightenEdge forces then they replace
+            // forces between adjacent nodes
+            if(topology && G[u][v]==1) continue;
             double d2=d*d;
             /* force apart zero distances */
             if (l < 1e-30) {
                 l=0.1;
             }
-            g[u]+=rx*(l-d)/(d2*l);
-            g[u+n]+=ry*(l-d)/(d2*l);
-            double hx=(d*ry*ry/(l*l*l)-1)/d2;
-            double hy=(d*rx*rx/(l*l*l)-1)/d2;
-            if(!fixed.check(v)) {
-                H(u,v)=hx;
-                H(u+n,v+n)=hy;
-            }
-            Huux-=hx;
-            Huuy-=hy;
+            double dx=dim==HORIZONTAL?rx:ry;
+            double dy=dim==HORIZONTAL?ry:rx;
+            g[u]+=dx*(l-d)/(d2*l);
+            Huu-=H(u,v)=(d*dy*dy/(l*l*l)-1)/d2;
         }
-        H(u,u)=Huux;
-        H(u+n,u+n)=Huuy;
+        H(u,u)=Huu;
     }
 }
 double ConstrainedFDLayout::computeStepSize(
@@ -513,9 +395,9 @@ double ConstrainedFDLayout::computeStress(/*topology::TopologyConstraints *t*/) 
         for(unsigned v=u+1;v<n;v++) {
             // no forces between disconnected parts of the graph
             if(G[u][v]==numeric_limits<unsigned>::max()) continue;
-            // if we compute straightenEdge forces then they replace
+            // if we compute topology forces then they replace
             // forces between adjacent nodes
-            if(straightenEdges && G[u][v]==1) continue;
+            if(topology && G[u][v]==1) continue;
             double rx=X[u]-X[v], ry=Y[u]-Y[v];
             double l=sqrt(rx*rx+ry*ry);
             double d=D[u][v];

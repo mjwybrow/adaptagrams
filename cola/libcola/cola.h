@@ -14,7 +14,10 @@
 #include "straightener.h"
 
 namespace vpsc { class Rectangle; }
-//namespace topology { class TopologyConstraints; }
+namespace topology { 
+    class Node; 
+    class Edge;
+}
 
 /**
  * The cola namespace delineates the interface to the libcola constraint layout library
@@ -344,11 +347,10 @@ public:
         }
         this->avoidOverlaps=avoidOverlaps;
     }
-    void setStraightenEdges(vector<straightener::Edge*>* straightenEdges, double straighteningStrength=0.01) {
-        printf("setStraightenEdges\n");
+    void setTopology(vector<topology::Node*>* tnodes, vector<topology::Edge*>* routes) {
+        printf("set Topology Constriants\n");
+        topology=true;
         constrainedX=constrainedY=true;
-        this->straightenEdges=straightenEdges;
-        this->straighteningStrength=straighteningStrength;
     }
     ~ConstrainedFDLayout() {
         for(unsigned i=0;i<n;i++) {
@@ -389,8 +391,7 @@ private:
     std::auto_ptr<Projection> px, py;
     double** D;
     unsigned** G;
-    vector<straightener::Edge*>* straightenEdges;
-    double straighteningStrength;
+    bool topology;
 };
 
 }
