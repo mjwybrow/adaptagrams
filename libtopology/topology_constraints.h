@@ -142,26 +142,6 @@ namespace topology {
         double computeStress() const;
         void steepestDescent(valarray<double>& g, cola::SparseMap& h);
     private:
-        double len(const EdgePoint* u, const EdgePoint* v, 
-                double& dx, double& dy,
-                double& dx2, double& dy2);
-        double gRule1(const EdgePoint* a, const EdgePoint* b);
-        double gRule2(const EdgePoint* a, const EdgePoint* b, const EdgePoint* c);
-        double hRuleD1(const EdgePoint* u, const EdgePoint* v, const double sqrtf);
-        double hRuleD2(const EdgePoint* u, const EdgePoint* v, const EdgePoint* w, 
-                const double sqrtf);
-        double hRule2(const EdgePoint* u, const EdgePoint* v, const EdgePoint* w,
-                const double sqrtf);
-        double hRule3(const EdgePoint* u, const EdgePoint* v, const EdgePoint* w,
-                const double sqrtf);
-        double hRule4(const EdgePoint* a, const EdgePoint* b,
-                const EdgePoint* c, const EdgePoint* d);
-        double hRule56(const EdgePoint* u, const EdgePoint* v, 
-                const EdgePoint* a, const EdgePoint* b, const EdgePoint* c);
-        double hRule7(const EdgePoint* a, const EdgePoint* b, 
-                const EdgePoint* c, const EdgePoint* d, const double sqrtf);
-        double hRule8(const EdgePoint* u, const EdgePoint* v, const EdgePoint* w,
-                const EdgePoint* a, const EdgePoint* b, const EdgePoint* c);
     };
 } // namespace topology
 #endif // TOPOLOGY_CONSTRAINTS_H

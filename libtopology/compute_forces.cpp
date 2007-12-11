@@ -1,8 +1,4 @@
-#include <vector>
-#include <libcola/cola.h>
-#include <libvpsc/rectangle.h>
-#include <libproject/project.h>
-#include "topology_graph.h"
+#include <libcola/sparse_matrix.h>
 #include "topology_constraints.h"
 using namespace std;
 namespace topology {
@@ -15,7 +11,7 @@ namespace topology {
  * @param dy2 squared y distance between u and v
  * @return euclidean distance between a pair of EdgePoint (u,v)
  */
-double TopologyConstraints::len(const EdgePoint* u, const EdgePoint* v, 
+double len(const EdgePoint* u, const EdgePoint* v, 
         double& dx, double& dy,
         double& dx2, double& dy2) {
     dx=u->pos[0]-v->pos[0];
@@ -24,14 +20,14 @@ double TopologyConstraints::len(const EdgePoint* u, const EdgePoint* v,
     dy2=dy*dy;
     return sqrt(dx2+dy2);
 }
-double TopologyConstraints::gRule1(const EdgePoint* a, const EdgePoint* b) {
+double gRule1(const EdgePoint* a, const EdgePoint* b) {
     double dxab, dyab, dxab2, dyab2;
     double lab=dim==cola::HORIZONTAL?
         len(a,b,dxab,dyab,dxab2,dyab2):
         len(a,b,dyab,dxab,dyab2,dxab2);
     return dxab/lab;
 }
-double TopologyConstraints::gRule2(
+double gRule2(
         const EdgePoint* a, const EdgePoint* b, const EdgePoint* c) {
     double dxab, dyab, dxab2, dyab2;
     double lab=dim==cola::HORIZONTAL?
@@ -43,14 +39,14 @@ double TopologyConstraints::gRule2(
         len(b,c,dybc,dxbc,dybc2,dxbc2);
     return dxab/lab - dxbc/lbc;
 }
-double TopologyConstraints::hRuleD1(const EdgePoint* u, const EdgePoint* v, const double dl) {
+double hRuleD1(const EdgePoint* u, const EdgePoint* v, const double dl) {
     double dx, dy, dx2, dy2;
     double l=dim==cola::HORIZONTAL?
         len(u,v,dx,dy,dx2,dy2):
         len(u,v,dy,dx,dy2,dx2);
     return dl*(dx2/(l*l*l) - 1/l) + dx2/(l*l);
 }
-double TopologyConstraints::hRuleD2(
+double hRuleD2(
         const EdgePoint* u, const EdgePoint* v, const EdgePoint* w, const double dl) {
     double dxuv, dyuv, dxuv2, dyuv2;
     double luv=dim==cola::HORIZONTAL?
@@ -64,7 +60,7 @@ double TopologyConstraints::hRuleD2(
     double p2=(dxuv/luv - dxvw/lvw);
     return p1+p2*p2;
 }
-double TopologyConstraints::hRule2(
+double hRule2(
         const EdgePoint* u, const EdgePoint* v, const EdgePoint* w, const double dl) {
     double dxuv, dyuv, dxuv2, dyuv2;
     double luv=dim==cola::HORIZONTAL?
@@ -79,7 +75,7 @@ double TopologyConstraints::hRule2(
         -dxuv2/(luv*luv)
         +dxuv*dxvw/(luv*lvw);
 }
-double TopologyConstraints::hRule3(
+double hRule3(
         const EdgePoint* u, const EdgePoint* v, const EdgePoint* w, 
         const double dl) {
     double dxuv, dyuv, dxuv2, dyuv2;
@@ -95,7 +91,7 @@ double TopologyConstraints::hRule3(
         +dl/lvw
         +dxuv*dxvw/(luv*lvw);
 }
-double TopologyConstraints::hRule4(const EdgePoint* a, const EdgePoint* b, 
+double hRule4(const EdgePoint* a, const EdgePoint* b, 
         const EdgePoint* c, const EdgePoint* d) {
     double dxab, dyab, dxab2, dyab2;
     double lab=dim==cola::HORIZONTAL?
@@ -107,7 +103,7 @@ double TopologyConstraints::hRule4(const EdgePoint* a, const EdgePoint* b,
         len(c,d,dycd,dxcd,dycd2,dxcd2);
     return -dxab*dxcd/(lab*lcd);
 }
-double TopologyConstraints::hRule56(const EdgePoint* u, const EdgePoint* v, 
+double hRule56(const EdgePoint* u, const EdgePoint* v, 
         const EdgePoint* a, const EdgePoint* b, const EdgePoint* c) {
     double dxuv, dyuv, dxuv2, dyuv2;
     double luv=dim==cola::HORIZONTAL?
@@ -123,7 +119,7 @@ double TopologyConstraints::hRule56(const EdgePoint* u, const EdgePoint* v,
         len(b,c,dybc,dxbc,dybc2,dxbc2);
     return dxuv/luv * ( dxbc/lbc - dxab/lab );
 }
-double TopologyConstraints::hRule7(const EdgePoint* a, const EdgePoint* b, 
+double hRule7(const EdgePoint* a, const EdgePoint* b, 
         const EdgePoint* c, const EdgePoint* d, const double dl) {
     double dxab, dyab, dxab2, dyab2;
     double lab=dim==cola::HORIZONTAL?
@@ -140,7 +136,7 @@ double TopologyConstraints::hRule7(const EdgePoint* a, const EdgePoint* b,
     return dl*(1/lbc - dxbc2/(lbc*lbc*lbc))
         +(dxab/lab - dxbc/lbc)*(dxbc/lbc - dxcd/lcd);
 }
-double TopologyConstraints::hRule8(const EdgePoint* u, const EdgePoint* v, const EdgePoint* w,
+double hRule8(const EdgePoint* u, const EdgePoint* v, const EdgePoint* w,
         const EdgePoint* a, const EdgePoint* b, const EdgePoint* c) {
     double dxuv, dyuv, dxuv2, dyuv2;
     double luv=dim==cola::HORIZONTAL?
@@ -159,25 +155,6 @@ double TopologyConstraints::hRule8(const EdgePoint* u, const EdgePoint* v, const
         len(b,c,dxbc,dybc,dxbc2,dybc2):
         len(b,c,dybc,dxbc,dybc2,dxbc2);
     return (dxuv/luv - dxvw/lvw) * (dxab/lab - dxbc/lbc);
-}
-
-/**
- * compute the stress:
- * \f[
- *   \sigma = \sum_{e \in E} \left( d_e - \sum_{s \in S(e)} |s| \right)^2
- * \f]
- */
-double TopologyConstraints::computeStress() const {
-    double stress=0;
-    for(Edges::const_iterator i=edges.begin();i!=edges.end();++i) {
-        Edge* e=*i;
-        double d = e->idealLength;
-        double weight=1.0/(d*d);
-        //printf("pathLength=%f\n",e->pathLength());
-        double sqrtf=fabs(d-e->pathLength());
-        stress+=weight*sqrtf*sqrtf;
-    }
-    return stress;
 }
 /**
  * a wrapper for a SparseMap so that we can index it by two EdgePoint
@@ -327,115 +304,6 @@ computeForces(valarray<double>& gradient, cola::SparseMap& hessian) {
         printf("\n");
     }
     */
-}
-inline double dotProd(valarray<double> x, valarray<double> y) {
-    assert(x.size()==y.size());
-    double dp=0;
-    for(unsigned i=0;i<x.size();i++) {
-        dp+=x[i]*y[i]; 
-    }
-    return dp;
-}
-double computeStepSize(
-        cola::SparseMatrix const &H, 
-        valarray<double> const &g, 
-        valarray<double> const &d) {
-    assert(g.size()==d.size());
-    assert(g.size()==H.rowSize());
-    // stepsize = g'd / (d' H d)
-    double numerator = dotProd(g,d);
-    valarray<double> Hd(d.size());
-    H.rightMultiply(d,Hd);
-    double denominator = dotProd(d,Hd);
-    //assert(numerator>=0);
-    //assert(denominator>=0);
-    if(denominator==0) return 0;
-    return numerator/denominator;
-}
-struct InterruptException {
-};
-struct AlphaCheck : project::ExternalAlphaCheck {
-    AlphaCheck(project::Variables& vs, vector<TopologyConstraint*>& ts) 
-        : vs(vs), ts(ts) {}
-    void operator()(double alpha) {
-        printf("AlphaCheck: %f\n",alpha);
-        double minTAlpha=DBL_MAX;
-        TopologyConstraint* minT=NULL;
-        // find minimum feasible alpha over all topology constraints
-        for(vector<TopologyConstraint*>::iterator i=ts.begin();
-                i!=ts.end();++i) {
-            TopologyConstraint* t=*i;
-            double tAlpha=t->c->maxSafeAlpha();
-            printf("  TopologyConstraint %p alpha: %f\n",t,tAlpha);
-            if(tAlpha>=0 && tAlpha<minTAlpha) {
-                minTAlpha=tAlpha;
-                minT=t;
-                printf("  violated TopologyConstraint at: %f\n",minTAlpha);
-            }
-        }
-        // if minTAlpha<alpha move all by minTAlpha 
-        // and throw interrupt exception
-        if(minTAlpha<alpha) {
-            for_each(vs.begin(),vs.end(),
-                    bind2nd(mem_fun(&project::Variable::moveBy),minTAlpha));
-            /*
-            for(vector<TopologyConstraint*>::iterator i=ts.begin();
-                    i!=ts.end();++i) {
-                TopologyConstraint* t=*i;
-                //t->print();
-                printf("  TopologyConstraint %p slack: %f\n",t,t->slack());
-            }
-            */
-            minT->satisfy();
-            throw InterruptException();
-        }
-    }
-    project::Variables& vs;
-    vector<TopologyConstraint*>& ts;
-};
-void TopologyConstraints::
-steepestDescent(valarray<double>& g, cola::SparseMap& h) {
-    assert(g.size()==n);
-    assert(h.n==n);
-    computeForces(g,h);
-    for(unsigned i=0;i<n;++i) {
-        //printf("g[%d]=%f,eg[%d]=%f\n",i,g[i],i,expectedG[i]);
-        //assert(fabs(g[i]-expectedG[i])<1e-4);
-        for(unsigned j=0;j<n;++j) {
-            //printf("h[%d,%d]=%f,eh[%d,%d]=%f\n",i,j,h(i,j),i,j,expectedH[i*n+j]);
-            //printf("%f,\n",h(i,j));
-            //assert(fabs(h(i,j)-expectedH[i*n+j])<1e-4);
-        }
-    }
-    cola::SparseMatrix H(h);
-    double stepSize = computeStepSize(H,g,g);
-    printf("stepSize=%f\n",stepSize);
-    project::Variables vars(n);
-    for(unsigned i=0;i<n;++i) {
-        Node* node=nodes[i];
-        vpsc::Rectangle* r=node->rect;
-        project::Variable* v=node->var;
-        v->d=r->getCentreX()-g[i]*stepSize;
-        vars[i]=v;
-    }
-    vector<TopologyConstraint*> ts;
-    constraints(ts);
-    printf("Have %d topology constraints!\n",(int)ts.size());
-    assert(ts.size()==2);
-    project::Project p(vars,cs);
-    AlphaCheck a(vars,ts);
-    p.setExternalAlphaCheck(&a);
-    try {
-        p.solve();
-    } catch(InterruptException& e) {
-        printf("finished early!\n");
-    }
-    for(unsigned i=0;i<n;i++) {
-        nodes[i]->rect->moveCentreX(vars[i]->x);
-        for(Edges::iterator e=edges.begin();e!=edges.end();++e) {
-            (*e)->forEachEdgePoint(mem_fun(&EdgePoint::setPos));
-        }
-    }
 }
 } // namespace topology
 // vim: cindent ts=4 sw=4 et tw=0 wm=0
