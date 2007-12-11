@@ -51,9 +51,7 @@ namespace topology {
                 project::Variable *v, 
                 project::Variable *w, 
                 double p, double g, bool left)
-            : u(u), v(v), w(w), p(p), g(g), leftOf(left) {
-                printf("TopologyConstraint created!\n");
-        }
+            : u(u), v(v), w(w), p(p), g(g), leftOf(left) { }
         /** 
          * @return the maximum move we can make along the line from initial to
          * desired positions without violating this constraint
@@ -72,6 +70,7 @@ namespace topology {
          * the segment with its neighbour (removing an EdgePoint).
          */
         virtual void satisfy() = 0;
+        virtual void print() = 0;
         virtual ~TopologyConstraint() {
             delete c;
         }
@@ -91,6 +90,9 @@ namespace topology {
          */
         BendConstraint(EdgePoint* bendPoint);
         void satisfy();
+        void print() {
+            printf("BendConstraint@%p\n",this);
+        }
     };
     /**
      * A constraint between a Node and a Segment that is activated when
@@ -113,6 +115,9 @@ namespace topology {
          */
         StraightConstraint(Segment* s, const Node* node, double pos);
         void satisfy();
+        void print() {
+            printf("StraightConstraint@%p\n",this);
+        }
     };
     /**
      * Define a topology over a diagram by generating a set of
@@ -120,19 +125,22 @@ namespace topology {
      */
     class TopologyConstraints {
     public:
-        const Edges& edges;
+        const size_t n;
+        Nodes& nodes;
+        Edges& edges;
+        project::Constraints& cs;
         TopologyConstraints(
             const cola::Dim dim, 
-            project::Constraints& cs,
-            const Nodes &vs,
-            const Edges &es);
+            Nodes &vs,
+            Edges &es,
+            project::Constraints& cs);
         ~TopologyConstraints() { }
         void violated(std::vector<TopologyConstraint*> & ts) const;
         void constraints(std::vector<TopologyConstraint*> & ts) const;
         TopologyConstraint* mostViolated() const;
-        void computeForces(cola::SparseMap &H, valarray<double> &g);
+        void computeForces(valarray<double>& g, cola::SparseMap& h);
         double computeStress() const;
-        void finalizeRoutes();
+        void steepestDescent(valarray<double>& g, cola::SparseMap& h);
     private:
         double len(const EdgePoint* u, const EdgePoint* v, 
                 double& dx, double& dy,
