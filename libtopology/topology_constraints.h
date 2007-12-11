@@ -1,13 +1,13 @@
 /**
- * \file topology_constraints.h
- * \author Tim Dwyer
- * \date 2007
- *
  * Classes used in generating and managing topology constraints, i.e.
  * constraints of the form (e.g.) \f$w_x + \frac{1}{2}\mathrm{width}(w) \le u_x
  * + (v_x - u_x) \frac {(w_y-u_y)}{(v_y-u_y)}\f$ where (u,v) is an edge segment
  * and w is a node constrained to lie to the left of that segment.  Right-,
  * above- and below-of constraints are similarly defined.
+ *
+ * \file topology_constraints.h
+ * \author Tim Dwyer
+ * \date 2007
  */
 #ifndef TOPOLOGY_CONSTRAINTS_H
 #define TOPOLOGY_CONSTRAINTS_H

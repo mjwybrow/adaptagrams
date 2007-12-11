@@ -1,3 +1,10 @@
+/**
+ * Methods associated with computing a descent vector for the topology stress function.
+ *
+ * \file steepest_descent.cpp
+ * \author Tim Dwyer
+ * \date Dec 2007
+ */
 #include <vector>
 #include <libcola/cola.h>
 #include <libvpsc/rectangle.h>
@@ -64,7 +71,7 @@ struct AlphaCheck : project::ExternalAlphaCheck {
             TopologyConstraint* t=*i;
             double tAlpha=t->c->maxSafeAlpha();
             printf("  TopologyConstraint %p alpha: %f\n",t,tAlpha);
-            if(tAlpha>=0 && tAlpha<minTAlpha) {
+            if(tAlpha>=0.0001 && tAlpha<minTAlpha) {
                 minTAlpha=tAlpha;
                 minT=t;
                 printf("  violated TopologyConstraint at: %f\n",minTAlpha);
@@ -117,8 +124,6 @@ steepestDescent(valarray<double>& g, cola::SparseMap& h) {
     }
     vector<TopologyConstraint*> ts;
     constraints(ts);
-    printf("Have %d topology constraints!\n",(int)ts.size());
-    assert(ts.size()==2);
     project::Project p(vars,cs);
     AlphaCheck a(vars,ts);
     p.setExternalAlphaCheck(&a);

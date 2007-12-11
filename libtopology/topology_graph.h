@@ -1,10 +1,10 @@
 /**
+ * Class definitions for graph elements used in determining topology
+ * preserving constraints.
+ *
  * \file topology_graph.h
  * \author Tim Dwyer
  * \date 2007
- *
- * Class definitions for graph elements used in determining topology
- * preserving constraints.
  */
 
 #ifndef TOPOLOGY_GRAPH_H
@@ -39,7 +39,14 @@ namespace topology {
         vpsc::Rectangle* rect;
         /// the variable (associated with node) to be passed to libproject solver
         project::Variable* var;
-        Node(unsigned id, vpsc::Rectangle* r, project::Variable* v)
+        /** 
+         * when an edge path is being defined externally with a vector of EdgePoint,
+         * a variable would not be specified.
+         * @param id
+         * @param r
+         * @param v optional
+         */
+        Node(unsigned id, vpsc::Rectangle* r, project::Variable* v=NULL)
             : id(id), rect(r), var(v) {}
     };
     typedef std::vector<Node*> Nodes;
@@ -58,10 +65,10 @@ namespace topology {
         double pos[2];
         /// where the node lies on the rectangle
         enum RectIntersect { 
-            TL, ///< bends around rectangle's top-left corner
             TR, ///< top right corner
             BR, ///< bottom right corner
             BL, ///< bottom left corner
+            TL, ///< bends around rectangle's top-left corner
             CENTRE ///< connected to the rectangle's centre, hence the end of the edge.
         } rectIntersect;
         /// the incoming segment to this EdgePoint on the edge path

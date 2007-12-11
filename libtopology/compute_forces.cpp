@@ -1,6 +1,12 @@
+/**
+ * Method body and support routines for topology::TopologyConstraints::computeForces.
+ *
+ * \file compute_forces.cpp
+ * \author Tim Dwyer
+ * \date Dec 2007
+ */
 #include <libcola/sparse_matrix.h>
 #include "topology_constraints.h"
-using namespace std;
 namespace topology {
 /**
  * @param u an EdgePoint

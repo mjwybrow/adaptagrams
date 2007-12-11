@@ -1,10 +1,10 @@
 /**
+ * Really basic test of topology conserving constraints.  Sets up a graph
+ * with three nodes and one edge, initially bent around the disconnected node.
+ *
  * \file simple_bend.cpp
  * \author Tim Dwyer
  * \date Dec 2007
- *
- * Really basic test of topology conserving constraints.  Sets up a graph
- * with three nodes and one edge, initially bent around the disconnected node.
  *
  * Runs two iterations of straightening.
  */
