@@ -331,6 +331,23 @@ namespace topology {
         straightener::Route* getRoute();
     };
     typedef std::vector<Edge*> Edges;
+    /**
+     * a Functor for use in a sum_over a collection of edges
+     * which computes the total stress based on the difference in total
+     * pathLength for each edge and idealLength.
+     * More precisely the stress for a given edge \f$e\f$ is:
+     * \f[
+     *   \sigma(e) \left( d_e - \sum_{s \in S(e)} |s| \right)^2
+     * \f]
+     */
+    struct ComputeStress {
+        double operator()(const Edge* e) {
+            double d = e->idealLength;
+            double weight=1.0/(d*d);
+            double sqrtf=fabs(d-e->pathLength());
+            return weight*sqrtf*sqrtf;
+        }
+    };
 } // namespace topology
 #endif // TOPOLOGY_GRAPH_H
 

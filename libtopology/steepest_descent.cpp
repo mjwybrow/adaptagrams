@@ -21,16 +21,7 @@ namespace topology {
  * \f]
  */
 double TopologyConstraints::computeStress() const {
-    double stress=0;
-    for(Edges::const_iterator i=edges.begin();i!=edges.end();++i) {
-        Edge* e=*i;
-        double d = e->idealLength;
-        double weight=1.0/(d*d);
-        //printf("pathLength=%f\n",e->pathLength());
-        double sqrtf=fabs(d-e->pathLength());
-        stress+=weight*sqrtf*sqrtf;
-    }
-    return stress;
+    return sum_over(edges.begin(),edges.end(),0.0,ComputeStress());
 }
 inline double dotProd(valarray<double> x, valarray<double> y) {
     assert(x.size()==y.size());
