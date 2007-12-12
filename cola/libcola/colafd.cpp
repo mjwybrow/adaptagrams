@@ -8,6 +8,8 @@
 #include <libvpsc/variable.h>
 #include <libvpsc/constraint.h>
 #include <libvpsc/rectangle.h>
+#include <libtopology/topology_constraints.h>
+#include <libproject/project.h>
 
 namespace cola {
 using vpsc::Constraint;
@@ -196,12 +198,6 @@ void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis) {
     //printf("n==%d\n",n);
     if(n==0) return;
     double stress=computeStress();
-    /*
-    if(straightenEdges) {
-        straightener::setEdgeLengths(D,*straightenEdges);
-        stress+=straightener::computeStressFromRoutes(straighteningStrength,*straightenEdges);
-    }
-    */
     bool firstPass=true;
     do {
         if(preIteration) {
@@ -219,11 +215,6 @@ void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis) {
                 }
                 if(stressNeedsUpdate) {
                     stress=computeStress();
-                    /*
-                    if(straightenEdges) {
-                        stress+=straightener::computeStressFromRoutes(straighteningStrength,*straightenEdges);
-                    }
-                    */
                 }
             } else { break; }
         }
@@ -269,47 +260,23 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const cola::Dim dim, const
         return stress;
     }
     Variables lvs;
-    set<Constraint*> lcs;
+    Constraints lcs;
+
     if(avoidOverlaps) {
-        /*
-        if(p->ccs) {
-            for(CompoundConstraints::const_iterator c=p->ccs->begin();
-                    c!=p->ccs->end();c++) {
-                OrthogonalEdgeConstraint* e=dynamic_cast<OrthogonalEdgeConstraint*>(*c);
-                if(e) {
-                    e->generateTopologyConstraints(dim,boundingBoxes,p->vars,lcs);
-                }
-            }
-        }
-        */
-        Constraints overlapConstraints;
-        if(dim==HORIZONTAL) {
-            Rectangle::setXBorder(0.1);
-            generateXConstraints(boundingBoxes,p->vars,overlapConstraints,true); 
-            Rectangle::setXBorder(0);
-        } else {
-            for(unsigned i=0;i<n;i++) { 
-                // need to make sure that the bounding box position matches most up-to-date
-                // x-position before computing y-constraints
-                boundingBoxes[i]->moveCentreX(X[i]);
-            }
-            generateYConstraints(boundingBoxes,p->vars,overlapConstraints); 
-        }
-        lcs.insert(overlapConstraints.begin(),overlapConstraints.end());
     }
-    SparseMatrix H(HMap);
-    valarray<double> oldCoords=coords;
-    applyDescentVector(g,oldCoords,coords,oldStress,computeStepSize(H,g,g));
-    p->solve(lvs,lcs,coords);
-    delete_vector(lvs);
-    for_each(lcs.begin(),lcs.end(),delete_object());
-    if(!firstPass) {
-        valarray<double> d(n);
-        d=oldCoords-coords;
-        double stepsize=computeStepSize(H,g,d);
-        stepsize=max(0.,min(stepsize,1.));
-        //printf(" dim=%d beta: ",dim);
-        return applyDescentVector(d,oldCoords,coords,oldStress,stepsize);
+    for(topology::Nodes::iterator i=topologyNodes->begin();
+            i!=topologyNodes->end();++i) {
+        topology::Node* v=*i;
+        v->var = new project::Variable(v->rect->getCentreD(dim),-1);
+    }
+    vector<project::Constraint*> pcs;
+    topology::TopologyConstraints t(dim,*topologyNodes,*topologyRoutes,pcs);
+    //t.steepestDescent(g,HMap);
+    for(topology::Nodes::iterator i=topologyNodes->begin();
+            i!=topologyNodes->end();++i) {
+        topology::Node* v=*i;
+        coords[v->id]=v->var->x;
+        delete v->var;
     }
     return computeStress();
 }
@@ -325,7 +292,7 @@ double ConstrainedFDLayout::applyDescentVector(
     assert(d.size()==coords.size());
     while(fabs(stepsize)>0.00000000001) {
         coords=oldCoords-stepsize*d;
-        double stress=computeStress(/*s*/);
+        double stress=computeStress();
         //printf(" applyDV: oldstress=%f, stress=%f, stepsize=%f\n", oldStress,stress,stepsize);
         if(oldStress>=stress) {
             return stress;
@@ -389,7 +356,7 @@ double ConstrainedFDLayout::computeStepSize(
     if(denominator==0) return 0;
     return numerator/denominator;
 }
-double ConstrainedFDLayout::computeStress(/*topology::TopologyConstraints *t*/) const {
+double ConstrainedFDLayout::computeStress() const {
     double stress=0;
     for(unsigned u=0;u<n-1;u++) {
         for(unsigned v=u+1;v<n;v++) {
@@ -409,11 +376,10 @@ double ConstrainedFDLayout::computeStress(/*topology::TopologyConstraints *t*/) 
             stress+=rl*rl/d2;
         }
     }
-    /*
-    if(t) {
-        stress+=t->computeStress();
+    if(topologyRoutes) {
+        cola::sum_over(topologyRoutes->begin(),topologyRoutes->end(),stress,
+                topology::ComputeStress());
     }
-    */
     return stress;
 }
 void ConstrainedFDLayout::move() {

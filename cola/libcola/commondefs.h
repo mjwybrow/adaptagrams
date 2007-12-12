@@ -78,6 +78,6 @@ T sum_over(InputIterator beg, InputIterator end, T init, Operation op)
 	init = init + op(*beg);
 	return init;
 }
-}
+} // namespace cola
 
 #endif

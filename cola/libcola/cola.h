@@ -17,6 +17,7 @@ namespace vpsc { class Rectangle; }
 namespace topology { 
     class Node; 
     class Edge;
+    class TopologyConstraints;
 }
 
 /**
@@ -362,7 +363,7 @@ public:
         delete [] D;
     }
     valarray<double> dummyNodesX, dummyNodesY;
-    double computeStress(/*topology::TopologyConstraints *t=NULL*/) const;
+    double computeStress() const;
 private:
     unsigned n; // number of nodes
     valarray<double> X, Y;
