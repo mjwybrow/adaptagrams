@@ -30,11 +30,36 @@ class Constraint;
 typedef vector<Constraint*> Constraints;
 class Block;
 
+/// type for Inital position for Variable ctor
+struct Initial {
+    explicit Initial(double pos) : pos(pos) {}
+    double pos;
+};
+/// type for Desired position for Variable ctor
+struct Desired {
+    explicit Desired(double pos) : pos(pos) {}
+    double pos;
+};
+/// type for Weight of Variable ctor
+struct Weight {
+    explicit Weight(double w) : w(w) {}
+    double w;
+};
 /**
  * Data for a Variable in a projection problem.
  */
 struct Variable {
-    Variable(double x, double d, double w=1.0) : x(x),d(d),w(w),block(NULL),b(0) {}
+    /**
+     * Arguments are passed in with explicit types to ensure they're in
+     * the right order.
+     * @param x the initial value of the variable
+     * @param d the desired value
+     * @param w weight, default is 1.0
+     */
+    Variable(const Initial& x, const Desired& d, 
+            const Weight& w=Weight(1.0)) 
+        : x(x.pos),d(d.pos),w(w.w),block(NULL),b(0)
+        , in(),out() {}
     /// compute derivative of goal function
     double dfdv() const { return 2.0 * w * (x-d); }
     /// weighted displacement from ideal position for block position
@@ -173,8 +198,8 @@ public:
      */
     double cost() const;
     /**
-     * Set a pointer to a function that checks to make sure a given alpha does not
-     * violate some external condition.
+     * Set a pointer to a function that checks to make sure a given alpha does
+     * not violate some external condition.
      */
     void setExternalAlphaCheck(ExternalAlphaCheck* check) {
         externalAlphaCheck=check;
@@ -235,7 +260,15 @@ private:
     bool splitBlocks(); 
     /// a callback function checked in findSafeMove
     ExternalAlphaCheck* externalAlphaCheck;
-};
+}; // class Project
+
+/**
+ * Solve an instance of a variable placement with separation constraint (VPSC)
+ * problem, that is a projection of variables onto separation constraints,
+ * by a method that maintains feasibility at all times.
+ * @return false if an unsatisfiable constraint is found.
+ */
+bool solve(Variables& vs, Constraints& cs);
 
 } // namespace project
 #endif // _LIBPROJECT_FEASIBLE_PROJECT_ALGORITHM_H

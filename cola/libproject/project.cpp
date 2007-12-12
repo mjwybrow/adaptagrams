@@ -55,6 +55,16 @@ const double epsilon = 1e-10;
 #define DEBUG_CODE(code)
 #endif
 namespace project {
+/**
+ * Solve an instance of a variable placement with separation constraint (VPSC)
+ * problem, that is a projection of variables onto separation constraints,
+ * by a method that maintains feasibility at all times.
+ * @return false if an unsatisfiable constraint is found.
+ */
+bool solve(Variables& vs, Constraints& cs) {
+    Project p(vs,cs);
+    return p.solve();
+}
 
 double Variable::relativeInitialPos() const { return block->XI + b; }
 double Variable::relativeDesiredPos() const { return block->X + b; }

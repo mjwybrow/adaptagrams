@@ -160,8 +160,7 @@ void test(const char* (*t)(Variables&, Constraints&), bool silentPass) {
 
     try {
         // run our solver
-        Project f(vs,cs);
-        f.solve();
+        solve(vs,cs);
 
         // assert final solution is feasible:
         if(!feasible(cs)) {

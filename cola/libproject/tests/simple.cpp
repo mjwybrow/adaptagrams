@@ -20,9 +20,9 @@ using namespace std;
 void simple1() {
     Variables vs;
     Constraints cs;
-    vs.push_back(new Variable(0.343187,1.289946));
-    vs.push_back(new Variable(0.966096,1.295395));
-    vs.push_back(new Variable(1.348192,1.385243));
+    vs.push_back(new Variable(Initial(0.343187),Desired(1.289946)));
+    vs.push_back(new Variable(Initial(0.966096),Desired(1.295395)));
+    vs.push_back(new Variable(Initial(1.348192),Desired(1.385243)));
     cs.push_back(new Constraint(vs[0],vs[2],0.793396));
     cs.push_back(new Constraint(vs[1],vs[2],0.320881));
     Project f(vs,cs);
@@ -52,14 +52,13 @@ void simple2() {
     unsigned n=100;
     Variables vs;
     for(unsigned i=0;i<n;i++) {
-        vs.push_back(new Variable(i,0));
+        vs.push_back(new Variable(Initial(i),Desired(0)));
     }
     Constraints cs;
     for(unsigned i=0;i<n-1;i++) {
         cs.push_back(new Constraint(vs[i],vs[i+1],1));
     }
-    Project f(vs,cs);
-    f.solve();
+    solve(vs,cs);
     unsigned i=0;
     double firstPos=-(n-1.0)/2.0;
     for(Variables::iterator j=vs.begin();j!=vs.end();i++,j++) {
