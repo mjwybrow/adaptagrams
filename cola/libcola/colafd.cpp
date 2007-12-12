@@ -267,11 +267,13 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const cola::Dim dim, const
     for(topology::Nodes::iterator i=topologyNodes->begin();
             i!=topologyNodes->end();++i) {
         topology::Node* v=*i;
-        v->var = new project::Variable(v->rect->getCentreD(dim),-1);
+        v->var = new project::Variable(
+                project::Initial(v->rect->getCentreD(dim)),
+                project::Desired(-1));
     }
     vector<project::Constraint*> pcs;
     topology::TopologyConstraints t(dim,*topologyNodes,*topologyRoutes,pcs);
-    //t.steepestDescent(g,HMap);
+    t.steepestDescent(g,HMap);
     for(topology::Nodes::iterator i=topologyNodes->begin();
             i!=topologyNodes->end();++i) {
         topology::Node* v=*i;
