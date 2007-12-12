@@ -70,7 +70,7 @@ struct AlphaCheck : project::ExternalAlphaCheck {
                 i!=ts.end();++i) {
             TopologyConstraint* t=*i;
             double tAlpha=t->c->maxSafeAlpha();
-            printf("  TopologyConstraint %p alpha: %f\n",t,tAlpha);
+            printf("  TopologyConstraint %p alpha: %f\n",(void*)t,tAlpha);
             if(tAlpha>=0.0001 && tAlpha<minTAlpha) {
                 minTAlpha=tAlpha;
                 minT=t;

@@ -47,6 +47,13 @@ namespace topology {
         }
         return o;
     }
+    /**
+     * clean up topologyConstraints
+     */
+    Segment::~Segment() {
+        for_each(straightConstraints.begin(),straightConstraints.end(),
+            delete_object());
+    }
     double Segment::length() const {
         double dx = end->pos[0] - start->pos[0];
         double dy = end->pos[1] - start->pos[1];
@@ -93,3 +100,4 @@ namespace topology {
     }
 } // namespace topology
 
+// vim: cindent ts=4 sw=4 et tw=0 wm=0

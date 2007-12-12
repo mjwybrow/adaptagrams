@@ -32,7 +32,7 @@ double TriConstraint::slack () const {
     return leftOf ? rhs - lhs : lhs - rhs;
 }
 void TriConstraint::print() const {
-    printf("TopologyConstraint@%p\n",this);
+    printf("TopologyConstraint@%p\n",(void*)this);
     printf("  u=%f\n  v=%f\n  w=%f\n  p=%f\n  g=%f\n  left=%d\n",
             u->x,v->x,w->x,p,g,leftOf);
 }

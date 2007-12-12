@@ -224,7 +224,7 @@ StraightConstraint::StraightConstraint(
         const double pos) 
     : segment(s), node(node), pos(pos)
 {
-    printf("creating StraightConstraint@%p\n",this);
+    printf("creating StraightConstraint@%p\n",(void*)this);
     EdgePoint *u=s->start, *v=s->end;
     // segments orthogonal to scan direction need no constraints
     assert(v->pos[!dim]-u->pos[!dim]!=0);
@@ -269,7 +269,7 @@ StraightConstraint::StraightConstraint(
 BendConstraint::BendConstraint(EdgePoint* v) 
     : bendPoint(v) 
 {
-    printf("creating BendConstraint@%p\n",this);
+    printf("creating BendConstraint@%p\n",(void*)this);
     printf("  bend point@(%f,%f)\n",v->pos[dim],v->pos[!dim]);
     // we only consider articulation points (not first or last points
     // in edge)

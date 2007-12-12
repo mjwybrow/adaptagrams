@@ -91,7 +91,7 @@ namespace topology {
         BendConstraint(EdgePoint* bendPoint);
         void satisfy();
         void print() {
-            printf("BendConstraint@%p\n",this);
+            printf("BendConstraint@%p\n",(void*)this);
         }
     };
     /**
@@ -116,7 +116,7 @@ namespace topology {
         StraightConstraint(Segment* s, const Node* node, double pos);
         void satisfy();
         void print() {
-            printf("StraightConstraint@%p\n",this);
+            printf("StraightConstraint@%p\n",(void*)this);
         }
     };
     /**

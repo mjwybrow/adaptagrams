@@ -10,11 +10,11 @@
 #ifndef TOPOLOGY_GRAPH_H
 #define TOPOLOGY_GRAPH_H
 #include <vector>
-#include <libcola/commondefs.h>
+#include "util.h"
 namespace vpsc {
     class Rectangle;
 }
-	
+    
 namespace project {
     class Variable;
     class Constraint;
@@ -137,10 +137,7 @@ namespace topology {
         /**
          * clean up topologyConstraints
          */
-        ~Segment() {
-            for_each(straightConstraints.begin(),straightConstraints.end(),
-                    delete_object());
-        }
+        ~Segment();
         /// the edge which this segment is part of
         Edge* edge;
         /// the start point of the segment - either the end of the edge
