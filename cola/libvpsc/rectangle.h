@@ -93,6 +93,13 @@ public:
 	void set_height(double h) { maxY = minY + h; }
 	static void setXBorder(double x) {xBorder=x;}
 	static void setYBorder(double y) {yBorder=y;}
+	void moveCentreD(const unsigned d, double p) {
+		if(d == 0) {
+			moveCentreX(p);
+		} else {
+			moveCentreY(p);
+		}
+	}
 	void moveCentreX(double x) {
 		moveMinX(x-width()/2.0);
 	}
