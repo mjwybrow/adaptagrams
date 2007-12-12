@@ -70,11 +70,11 @@ void BendConstraint::satisfy() {
              s2->straightConstraints.end(),
              transfer);
     // update each BendConstraint involving bendPoint
-    if(!start->isReal()) {
+    if(start->bendConstraint!=NULL) {
         delete start->bendConstraint;
         start->bendConstraint = new BendConstraint(start);
     }
-    if(!end->isReal()) {
+    if(end->bendConstraint!=NULL) {
         delete end->bendConstraint;
         end->bendConstraint = new BendConstraint(end);
     }
@@ -135,11 +135,11 @@ void StraightConstraint::satisfy() {
              transfer);
     // BendConstraint constraints associated with segment->end and 
     // segment->start need to be updated
-    if(!start->isReal()) {
+    if(start->bendConstraint) {
         delete start->bendConstraint;
         start->bendConstraint = new BendConstraint(start);
     }
-    if(!end->isReal()) {
+    if(end->bendConstraint) {
         delete end->bendConstraint;
         end->bendConstraint = new BendConstraint(end);
     }
@@ -166,8 +166,8 @@ struct getTopologyConstraints {
             assert(*t!=NULL);
             ts.push_back(*t);
         }
-        if(!s->end->isReal()) {
-            assert(s->end->bendConstraint!=NULL);
+        // bendConstraints may be absent if the segment is horizontal
+        if(s->end->bendConstraint!=NULL) {
             ts.push_back(s->end->bendConstraint);
         }
     }

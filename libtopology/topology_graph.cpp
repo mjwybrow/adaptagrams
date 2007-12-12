@@ -48,6 +48,17 @@ namespace topology {
         return o;
     }
     /**
+     * @return true if the EdgePoint is the end of an edge otherwise
+     * asserts that it is a valid bend point.
+     */
+    bool EdgePoint::isEnd() const {
+        Edge* e = outSegment->edge;
+        if(outSegment == e->firstSegment || inSegment == e->lastSegment) {
+            return true;
+        }
+        return false;
+    }
+    /**
      * clean up topologyConstraints
      */
     Segment::~Segment() {

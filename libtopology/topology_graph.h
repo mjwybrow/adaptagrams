@@ -94,18 +94,7 @@ namespace topology {
          * @return true if the EdgePoint is the end of an edge otherwise
          * asserts that it is a valid bend point.
          */
-        bool isReal() const {
-            if(rectIntersect==CENTRE
-               && (inSegment!=NULL || outSegment!=NULL)
-               && (inSegment==NULL || outSegment==NULL)
-              ) {
-                return true;
-            }
-            // verify that this is a bend around a corner of a rectangle 
-            assert(rectIntersect!=CENTRE);
-            assert(inSegment!=NULL && outSegment!=NULL);
-            return false;
-        }
+        bool isEnd() const;
         /**
          * update the position from the position of the associated rectangle
          */

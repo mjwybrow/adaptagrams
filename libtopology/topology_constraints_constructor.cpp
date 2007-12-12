@@ -271,9 +271,6 @@ BendConstraint::BendConstraint(EdgePoint* v)
 {
     printf("creating BendConstraint@%p\n",(void*)this);
     printf("  bend point@(%f,%f)\n",v->pos[dim],v->pos[!dim]);
-    // we only consider articulation points (not first or last points
-    // in edge)
-    assert(!v->isReal());
     EdgePoint* u=v->inSegment->start, * w=v->outSegment->end;
     // because all of our nodes are boxes we do not expect consecutive
     // segments to change horizontal or vertical direction
@@ -292,6 +289,7 @@ struct CompareEvents {
             return true;
         } else if(a->pos==b->pos) {
 #ifndef NDEBUG
+            /*
             SegmentEvent* sa = dynamic_cast<SegmentEvent*>(a);
             SegmentEvent* sb = dynamic_cast<SegmentEvent*>(b);
             if(sa&&sb) {
@@ -299,6 +297,7 @@ struct CompareEvents {
                 // segments parallel to scan line
                 assert(sa->s!=sb->s);
             }
+            */
 #endif
             // note: Segments orthogonal to scan direction (i.e.
             // OpenPos=ClosePos) can still have node events between the
@@ -326,17 +325,26 @@ struct CompareEvents {
         return false;
     }
 };
-struct constructEventsAndBendConstraints {
-    constructEventsAndBendConstraints(vector<Event*>& events)
+struct createBendConstraints {
+    void operator() (EdgePoint* p) {
+        Segment* in = p->inSegment, * out = p->outSegment;
+        // don't generate events for segments parallel to scan line
+        // or points at the end of an edge
+        if(in!=NULL && out!=NULL
+           && in->start->pos[!dim]!=in->end->pos[!dim]
+           && out->start->pos[!dim]!=out->end->pos[!dim] ) {
+            // if it's valid a bend point then create a TopologyConstraint
+            // that becomes active when the bend straightens
+            p->bendConstraint = new BendConstraint(p);
+        }
+    }
+};
+struct createSegmentEvents {
+    createSegmentEvents(vector<Event*>& events)
         : events(events) {}
     void operator() (Segment* s) {
         // don't generate events for segments parallel to scan line
         if(s->start->pos[!dim]!=s->end->pos[!dim]) {
-            // if it's a bend point then create a TopologyConstraint
-            // that becomes active when the bend straightens
-            if(!s->end->isReal()) {
-                s->end->bendConstraint = new BendConstraint(s->end);
-            }
             SegmentOpen *open=new SegmentOpen(s);
             SegmentClose *close=new SegmentClose(s,open);
             events.push_back(open);
@@ -373,8 +381,7 @@ TopologyConstraints(
         events.push_back(close);
     }
     for(Edges::const_iterator e=edges.begin();e!=edges.end();++e) {
-        (*e)->forEachSegment(
-                constructEventsAndBendConstraints(events));
+        (*e)->forEach(createBendConstraints(),createSegmentEvents(events));
     }
     // process events in top to bottom order
     std::sort(events.begin(),events.end(),CompareEvents());

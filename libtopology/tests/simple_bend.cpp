@@ -28,7 +28,9 @@ Edges es;
 
 Node* addNode(double x, double y, double w, double h) {
     vpsc::Rectangle* r = new vpsc::Rectangle(x,x+w,y,y+h);
-    project::Variable* var=new project::Variable(r->getCentreX(),-1);
+    project::Variable* var=new project::Variable(
+            project::Initial(r->getCentreX()),
+            project::Desired(-1));
 	Node *v = new Node(vs.size(), r, var);
     vars.push_back(var);
     vs.push_back(v);
