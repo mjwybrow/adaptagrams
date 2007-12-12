@@ -120,9 +120,8 @@ namespace cola {
     void separateComponents(const vector<Component*> &components) {
         unsigned n=components.size();
         vector<Rectangle*> bbs(n);
-        // double origX[n], origY[n];           // magmy20070405: Replaced by the two lines below (reason: MSVC)
-        DELARE_LOCAL_ARRAY(double, origX, n);
-        DELARE_LOCAL_ARRAY(double, origY, n);
+        valarray<double> origX(n);
+        valarray<double> origY(n);
         for(unsigned i=0;i<n;i++) {
             bbs[i]=components[i]->getBoundingBox();
             origX[i]=bbs[i]->getCentreX();

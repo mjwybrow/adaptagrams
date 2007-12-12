@@ -17,6 +17,7 @@
 #include <vector>
 #include <set>
 #include <list>
+#include "util.h"
 
 /**
  * project namespace delineates classes belonging to the libproject solver library.
@@ -33,7 +34,7 @@ class Block;
  * Data for a Variable in a projection problem.
  */
 struct Variable {
-    Variable(double x, double d, double w=1.0) : x(x),d(d),w(w) {}
+    Variable(double x, double d, double w=1.0) : x(x),d(d),w(w),block(NULL),b(0) {}
     /// compute derivative of goal function
     double dfdv() const { return 2.0 * w * (x-d); }
     /// weighted displacement from ideal position for block position
@@ -149,7 +150,7 @@ struct MaxSafeMove;
  * A solver that projects onto separation constraints, starting from a
  * feasible solution, and maintaining feasibility at all times.
  */
-class Project {
+class Project : private Uncopyable {
 public:
     Project(
             std::vector<Variable*> const &vs, 

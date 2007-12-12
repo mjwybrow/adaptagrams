@@ -31,7 +31,7 @@ if test "$GXX" = "yes"; then
   # programmer deliberately has an unused parameter (e.g. because it's used
   # as a callback or similar function pointer use).
 
-  CXXFLAGS="-Wall -W -Wpointer-arith -Wcast-align -Wsign-compare -Woverloaded-virtual -Wswitch  $CXXFLAGS"
+  CXXFLAGS="-Wall -Wpointer-arith -Wcast-align -Wsign-compare -Woverloaded-virtual -Wswitch  $CXXFLAGS"
 
   dnl Test for arch-specific situations.
   case "$host_cpu" in

@@ -16,20 +16,6 @@ inline bool isnan(double const &x) { return _isnan(x) != 0; }
 inline bool isinf(double const &x) { return !(_finite(x) || _isnan(x)); }
 } // end std
 
-/* Macro for allocating varible-size local arrays
- * The problem:
- *    MS VC does not accept local type declarations like this one:
- *       double Array[n]; // Where n is a non-static integral constant
- *
- * Solution:
- *    Use _alloca when compiling with MSVC.
- *
- * Usage:
- *    DELARE_LOCAL_ARRAY(double, Array, n);
-*/
-#  define DELARE_LOCAL_ARRAY(Type, Name, Count) Type *Name = (Type *)_alloca(sizeof(Type)*Count)
-#else
-#  define DELARE_LOCAL_ARRAY(Type, Name, Count) Type Name[Count]
 #endif
 
 #include <valarray>
@@ -72,7 +58,6 @@ private:
     bool allFixed;
 };
 
-}
 /**
  * templated delete functor for use in for_each loop over vector
  */
@@ -92,6 +77,7 @@ T sum_over(InputIterator beg, InputIterator end, T init, Operation op)
 	for ( ; beg != end; ++beg)
 	init = init + op(*beg);
 	return init;
+}
 }
 
 #endif

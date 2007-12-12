@@ -142,7 +142,7 @@ ConstrainedFDLayout::ConstrainedFDLayout(
       ccsx(NULL), ccsy(NULL),
       avoidOverlaps(false),
       px(NULL), py(NULL),
-      topology(false)
+      topologyNodes(NULL), topologyRoutes(NULL)
 {
     boundingBoxes.resize(n);
     copy(rs.begin(),rs.end(),boundingBoxes.begin());
@@ -358,7 +358,7 @@ void ConstrainedFDLayout::computeForces(
             if(G[u][v]>1 && l>d) continue;
             // if we compute straightenEdge forces then they replace
             // forces between adjacent nodes
-            if(topology && G[u][v]==1) continue;
+            if(topologyNodes && G[u][v]==1) continue;
             double d2=d*d;
             /* force apart zero distances */
             if (l < 1e-30) {
@@ -397,7 +397,7 @@ double ConstrainedFDLayout::computeStress(/*topology::TopologyConstraints *t*/) 
             if(G[u][v]==numeric_limits<unsigned>::max()) continue;
             // if we compute topology forces then they replace
             // forces between adjacent nodes
-            if(topology && G[u][v]==1) continue;
+            if(topologyNodes && G[u][v]==1) continue;
             double rx=X[u]-X[v], ry=Y[u]-Y[v];
             double l=sqrt(rx*rx+ry*ry);
             double d=D[u][v];

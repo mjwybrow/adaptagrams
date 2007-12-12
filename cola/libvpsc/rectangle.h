@@ -22,10 +22,9 @@ enum Dim { HORIZONTAL, VERTICAL };
 struct RectangleIntersections {
 	bool intersects, top, bottom, left, right;
 	double topX, topY, bottomX, bottomY, leftX, leftY, rightX, rightY;
-	RectangleIntersections() {
-		intersects=top=bottom=left=right=false;
-		topX=topY=bottomX=bottomY=leftX=leftY=rightX=rightY=0;
-	}	
+	RectangleIntersections()
+        : intersects(false),top(false),bottom(false),left(false),right(false),
+	  topX(0),topY(0),bottomX(0),bottomY(0),leftX(0),leftY(0),rightX(0),rightY(0) {} 
 	int countIntersections() {
 		return left+right+top+bottom;
 	}

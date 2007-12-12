@@ -349,7 +349,8 @@ public:
     }
     void setTopology(vector<topology::Node*>* tnodes, vector<topology::Edge*>* routes) {
         printf("set Topology Constriants\n");
-        topology=true;
+        topologyNodes=tnodes;
+        topologyRoutes=routes;
         constrainedX=constrainedY=true;
     }
     ~ConstrainedFDLayout() {
@@ -391,7 +392,8 @@ private:
     std::auto_ptr<Projection> px, py;
     double** D;
     unsigned** G;
-    bool topology;
+    vector<topology::Node*>* topologyNodes;
+    vector<topology::Edge*>* topologyRoutes;
 };
 
 }
