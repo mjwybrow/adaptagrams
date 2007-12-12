@@ -62,7 +62,8 @@ struct AlphaCheck : project::ExternalAlphaCheck {
             TopologyConstraint* t=*i;
             double tAlpha=t->c->maxSafeAlpha();
             printf("  TopologyConstraint %p alpha: %f\n",(void*)t,tAlpha);
-            if(tAlpha>=0.0001 && tAlpha<minTAlpha) {
+            t->print();
+            if(tAlpha>0.00001 && tAlpha<minTAlpha) {
                 minTAlpha=tAlpha;
                 minT=t;
                 printf("  violated TopologyConstraint at: %f\n",minTAlpha);
@@ -110,7 +111,7 @@ steepestDescent(valarray<double>& g, cola::SparseMap& h) {
         Node* node=nodes[i];
         vpsc::Rectangle* r=node->rect;
         project::Variable* v=node->var;
-        v->d=r->getCentreX()-g[i]*stepSize;
+        v->d=r->getCentreD(dim)-g[i]*stepSize;
         vars[i]=v;
     }
     vector<TopologyConstraint*> ts;
@@ -124,7 +125,9 @@ steepestDescent(valarray<double>& g, cola::SparseMap& h) {
         printf("finished early!\n");
     }
     for(unsigned i=0;i<n;i++) {
-        nodes[i]->rect->moveCentreX(vars[i]->x);
+        nodes[i]->rect->moveCentreD(dim,vars[i]->x);
+        vpsc::Rectangle* r=nodes[i]->rect;
+        cout << "Rectangle: " << *r << "C(" << r->getCentreX() << "," << r->getCentreY() << ")" << endl;
         for(Edges::iterator e=edges.begin();e!=edges.end();++e) {
             (*e)->forEachEdgePoint(mem_fun(&EdgePoint::setPos));
         }
