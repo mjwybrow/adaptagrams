@@ -331,8 +331,7 @@ struct createBendConstraints {
     }
 };
 struct createSegmentEvents {
-    createSegmentEvents(vector<Event*>& events)
-        : events(events) {}
+    createSegmentEvents(vector<Event*>& events) : events(events) {}
     void operator() (Segment* s) {
         // don't generate events for segments parallel to scan line
         if(s->start->pos[!dim]!=s->end->pos[!dim]) {
@@ -377,6 +376,14 @@ TopologyConstraints(
     for_each(events.begin(),events.end(),mem_fun(&Event::process));
     assert(openSegments.empty());
     assert(openNodes.empty());
+}
+
+TopologyConstraints::
+~TopologyConstraints() {
+    for(Edges::const_iterator e=edges.begin();e!=edges.end();++e) {
+        (*e)->forEach(mem_fun(&EdgePoint::deleteBendConstraint),
+                mem_fun(&Segment::deleteStraightConstraints));
+    }
 }
 } // namespace topology
 // vim: cindent ts=4 sw=4 et tw=0 wm=0

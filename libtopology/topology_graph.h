@@ -79,6 +79,8 @@ namespace topology {
          *  will be assigned (not immediately) a bendConstraint
          */
         BendConstraint* bendConstraint;
+        /// delete the bendConstraint and reset pointer to NULL
+        void deleteBendConstraint();
         /**
          * the constructor sets up the position 
          */
@@ -126,6 +128,7 @@ namespace topology {
         /**
          * clean up topologyConstraints
          */
+        void deleteStraightConstraints();
         ~Segment();
         /// the edge which this segment is part of
         Edge* edge;

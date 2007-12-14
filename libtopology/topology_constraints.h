@@ -142,7 +142,7 @@ namespace topology {
             Nodes &vs,
             Edges &es,
             project::Constraints& cs);
-        ~TopologyConstraints() { }
+        ~TopologyConstraints();
         void violated(std::vector<TopologyConstraint*> & ts) const;
         void constraints(std::vector<TopologyConstraint*> & ts) const;
         TopologyConstraint* mostViolated() const;

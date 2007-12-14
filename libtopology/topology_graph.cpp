@@ -6,10 +6,14 @@
 using namespace std;
 using vpsc::Rectangle;
 namespace topology {
-    EdgePoint::~EdgePoint() {
+    void EdgePoint::deleteBendConstraint() {
         if(bendConstraint) {
             delete bendConstraint;
+            bendConstraint=NULL;
         }
+    }
+    EdgePoint::~EdgePoint() {
+        deleteBendConstraint();
     }
     void EdgePoint::setPos() {
         double &x=pos[0],&y=pos[1];
@@ -58,12 +62,16 @@ namespace topology {
         }
         return false;
     }
+    void Segment::deleteStraightConstraints() {
+        for_each(straightConstraints.begin(),straightConstraints.end(),
+            delete_object());
+        straightConstraints.clear();
+    }
     /**
      * clean up topologyConstraints
      */
     Segment::~Segment() {
-        for_each(straightConstraints.begin(),straightConstraints.end(),
-            delete_object());
+        deleteStraightConstraints();
     }
     double Segment::length() const {
         double dx = end->pos[0] - start->pos[0];
