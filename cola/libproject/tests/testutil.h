@@ -46,7 +46,7 @@ void printProblem(project::Variables &vs,
 /**
  * float comparisons (i.e. \f$a=b\$f) in our tests are actually \$f|a-b|<epsilon\$f.
  */
-const double epsilon = 1e-10;
+extern const double testEpsilon;
 /**
  * float comparisons (i.e. \f$a=b\$f) in our tests are actually \$f|a-b|<epsilon\$f.
  * Check approximate equality of two doubles.

@@ -43,8 +43,8 @@ typedef std::pair<unsigned, unsigned> Edge;
  */ 
 struct Lock {
     unsigned id;
-    double x,y;
-    Lock(unsigned id, double x, double y) : id(id), x(x), y(y) {}
+    double pos[2];
+    Lock(unsigned id, double x, double y) : id(id) { pos[0]=x; pos[1]=y; }
 };
 typedef vector<Lock> Locks;
 /** 
@@ -312,6 +312,17 @@ private:
 
 class ConstrainedFDLayout {
 public:
+    /**
+     * @param rs bounding boxes of nodes passed in at their initial positions
+     * @param es simple pair edges, giving indices of the start and end nodes
+     * @param clusterHierarchy @todo remains to be seen!
+     * @param idealLength is a scalar modifier of ideal edge lengths in eweights
+     * @param eweights individual ideal lengths for edges, actual ideal length of the
+     * ith edge is idealLength*eweights[i], if eweights is NULL then just idealLength
+     * is used (ie eweights[i] is assumed to be 1).
+     * @param done a test of convergence operation called at the end of each iteration
+     * @param preIteration an operation called before each iteration
+     */
     ConstrainedFDLayout(
         vector<Rectangle*>& rs,
         vector<Edge> const & es,
@@ -362,7 +373,6 @@ public:
         delete [] G;
         delete [] D;
     }
-    valarray<double> dummyNodesX, dummyNodesY;
     double computeStress() const;
 private:
     unsigned n; // number of nodes

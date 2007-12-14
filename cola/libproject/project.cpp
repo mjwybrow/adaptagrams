@@ -33,10 +33,9 @@ static int splits;
 #define ASSERT_COST_DECREASE(p) {    \
     double c = (p)->cost();          \
     /*printf("lastcost=%f, currcost=%f\n",lastCost,c);*/ \
-    LIBPROJECT_ASSERT(c<=lastCost);  \
+    LIBPROJECT_ASSERT(c<=lastCost+epsilon);  \
     lastCost = c;                    \
 }
-const double epsilon = 1e-10;
 #define ASSERT_NONE_VIOLATED(p) { \
     for(Constraints::const_iterator i=(p)->cs.begin();i!=(p)->cs.end();i++) { \
         Constraint *c=*i;                                                     \
@@ -187,7 +186,13 @@ double Constraint::maxSafeAlpha() const {
                Ar = r->relativeInitialPos(),
                Bl = l->block->toDesired(),
                Br = r->block->toDesired();
-        a = (g + Al - Ar) / (Br - Bl);
+        double n = g + Al - Ar,
+               d = Br - Bl;
+        if(approx_equals(n,0)||approx_equals(d,0)) {
+            a = 0;
+        } else {
+            a = n / d;
+        }
         LIBPROJECT_ASSERT(0<=a && a<=1);
     }
     LIBPROJECT_LOG(("C->g=%f, alpha=%f\n",g,a));

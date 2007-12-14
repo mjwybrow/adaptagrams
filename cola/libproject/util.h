@@ -5,7 +5,7 @@
 #include <iostream>
 
 #ifdef NDEBUG 
-#define LIBPROJECT_ASSERT(expr)  (__ASSERT_VOID_CAST (0))
+#define LIBPROJECT_ASSERT(expr)  static_cast<void>(0)
 #else // Not NDEBUG
 #ifdef USE_CASSERT
 #define LIBPROJECT_ASSERT(expr)  assert(expr)
@@ -28,23 +28,6 @@
 #endif
 
 namespace project {
-struct CriticalFailure {
-    CriticalFailure(const char *expr, 
-            const char *file, 
-            int line, 
-            const char *function)
-        : expr(expr), file(file), line(line), function(function)
-    {}
-    void print() {
-        fprintf(stderr,"ERROR: Critical sanity check failed in libproject!\n"
-                "  expression: %s\n  at line %d of %s\n"
-                "  in: %s\n", expr, line, file, function);
-    }
-    const char *expr;
-    const char *file;
-    int line;
-    const char *function;
-};
 /**
  * templated delete functor for use in for_each loop over vector
  */
@@ -80,9 +63,8 @@ private:
     Uncopyable& operator=(const Uncopyable&);
 };
 
-#ifndef NDEBUG
+extern const double epsilon;
 bool approx_equals(double a, double b);
-#endif // NDEBUG
 
 } // namespace project
 

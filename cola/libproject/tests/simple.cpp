@@ -29,8 +29,8 @@ void simple1() {
     f.solve();
     double expected[]={0.940896,1.295395,1.734292};
     for(unsigned i=0;i<vs.size();i++) {
-        printf("vs[%d]=%f\n",i,vs[i]->x);
-        assert(fabs(vs[i]->x - expected[i]) < 1e-5);
+        printf("vs[%d]=%f\n",i,vs[i]->getPosition());
+        assert(fabs(vs[i]->getPosition() - expected[i]) < 1e-5);
     }
     for_each(vs.begin(),vs.end(),delete_object());
     for_each(cs.begin(),cs.end(),delete_object());
@@ -64,8 +64,8 @@ void simple2() {
     for(Variables::iterator j=vs.begin();j!=vs.end();i++,j++) {
         Variable *v=*j;
         double expected=firstPos+i;
-        //cout << "vs["<<i<<"]="<<v->x << ", expected="<<expected<<endl;
-        assert(expected==v->x);
+        //cout << "vs["<<i<<"]="<<v->getPosition() << ", expected="<<expected<<endl;
+        assert(expected==v->getPosition());
     }
     for_each(vs.begin(),vs.end(),delete_object());
     for_each(cs.begin(),cs.end(),delete_object());

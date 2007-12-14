@@ -48,7 +48,8 @@ struct Weight {
 /**
  * Data for a Variable in a projection problem.
  */
-struct Variable {
+class Variable {
+public:
     /**
      * Arguments are passed in with explicit types to ensure they're in
      * the right order.
@@ -60,6 +61,19 @@ struct Variable {
             const Weight& w=Weight(1.0)) 
         : x(x.pos),d(d.pos),w(w.w),block(NULL),b(0)
         , in(),out() {}
+    /** 
+     * It may be necessary for the user to change the desired position after
+     * the Variable is created.
+     */
+    void setDesiredPosition(const Desired& des) { d=des.pos; }
+    double getDesiredPosition() const { return d; }
+    /**
+     * Similarly weight may need to be adjusted after initialisation
+     */
+    void setWeight(const Weight& weight) { w=weight.w; }
+    double getWeight() const { return w; }
+    /// get the current position (x)
+    double getPosition() const { return x; }
     /// compute derivative of goal function
     double dfdv() const { return 2.0 * w * (x-d); }
     /// weighted displacement from ideal position for block position
@@ -79,12 +93,17 @@ struct Variable {
         double i=relativeInitialPos(), d=relativeDesiredPos();
         x = i + alpha*(d-i);
     }
+private:
     double x; ///< current position
     double d; ///< desired position
     double w; ///< weight of variable's contribution to goal function
     Block* block; ///< container block
     double b; ///< offset from block reference variable
     Constraints in, out; ///< defines constraint DAG
+friend class Constraint;
+friend class Block;
+friend class Project;
+friend double compute_dfdv(Variable const*, Constraint const*);
 };
 typedef vector<Variable*> Variables;
 /**
@@ -262,6 +281,27 @@ private:
     ExternalAlphaCheck* externalAlphaCheck;
 }; // class Project
 
+/**
+ * Critical failure: either something went wrong with the solver or (more likely) there
+ * was infeasible input.
+ */
+struct CriticalFailure {
+    CriticalFailure(const char *expr, 
+            const char *file, 
+            int line, 
+            const char *function)
+        : expr(expr), file(file), line(line), function(function)
+    {}
+    void print() {
+        fprintf(stderr,"ERROR: Critical sanity check failed in libproject!\n"
+                "  expression: %s\n  at line %d of %s\n"
+                "  in: %s\n", expr, line, file, function);
+    }
+    const char *expr;
+    const char *file;
+    int line;
+    const char *function;
+};
 /**
  * Solve an instance of a variable placement with separation constraint (VPSC)
  * problem, that is a projection of variables onto separation constraints,

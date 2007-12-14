@@ -287,7 +287,7 @@ void ConstrainedMajorizationLayout::run(bool x, bool y) {
                 for(vector<Lock>::iterator l=preIteration->locks.begin();
                         l!=preIteration->locks.end();l++) {
                     unsigned id=l->id;
-                    double x=l->x, y=l->y;
+                    double x=l->pos[0], y=l->pos[1];
                     X[id]=x;
                     Y[id]=y;
                     if(stickyNodes) {

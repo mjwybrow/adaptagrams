@@ -200,24 +200,6 @@ void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis) {
     double stress=computeStress();
     bool firstPass=true;
     do {
-        if(preIteration) {
-            if ((*preIteration)()) {
-                bool stressNeedsUpdate=false;
-                for(vector<Lock>::iterator l=preIteration->locks.begin();
-                        l!=preIteration->locks.end();l++) {
-                    unsigned id=l->id;
-                    double x=l->x, y=l->y;
-                    X[id]=x;
-                    Y[id]=y;
-                    boundingBoxes[id]->moveCentre(x,y);
-                    fixed.set(id);
-                    stressNeedsUpdate=true;
-                }
-                if(stressNeedsUpdate) {
-                    stress=computeStress();
-                }
-            } else { break; }
-        }
         if(xAxis) {
             stress=applyForcesAndConstraints(HORIZONTAL,stress,firstPass);
         }
@@ -225,7 +207,6 @@ void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis) {
             stress=applyForcesAndConstraints(VERTICAL,stress,firstPass);
         }
         firstPass=false;
-        move();
         fixed.unsetAll();
     } while(!done(stress,X,Y));
 }
@@ -249,7 +230,7 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const cola::Dim dim, const
     printf("]\n");
     */
     //printf("sparse matrix nonzero size=%d\n",HMap.nonZeroCount());
-    //printf(" dim=%d alpha: ",dim);
+    printf(" dim=%d\n",dim);
     Projection *p = dim==HORIZONTAL?px.get():py.get();
     if(!p)  { 
         // unconstrained
@@ -262,22 +243,37 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const cola::Dim dim, const
     Variables lvs;
     Constraints lcs;
 
-    if(avoidOverlaps) {
-    }
     for(topology::Nodes::iterator i=topologyNodes->begin();
             i!=topologyNodes->end();++i) {
         topology::Node* v=*i;
         v->var = new project::Variable(
                 project::Initial(v->rect->getCentreD(dim)),
                 project::Desired(-1));
+        printf("init: id=%d,x=%f,y=%f\n",v->id,v->rect->getCentreD(0),v->rect->getCentreD(1));
+    }
+    topology::DesiredPositions des;
+    if(preIteration) {
+        if ((*preIteration)()) {
+            for(vector<Lock>::iterator l=preIteration->locks.begin();
+                    l!=preIteration->locks.end();l++) {
+                des.push_back(make_pair(l->id,l->pos[dim]));
+                printf("desi: id=%d,x=%f,y=%f\n",l->id,l->pos[0],l->pos[1]);
+            }
+        }
     }
     vector<project::Constraint*> pcs;
+    if(dim==cola::HORIZONTAL) {
+            Rectangle::setXBorder(0.1);
+    }
     topology::TopologyConstraints t(dim,*topologyNodes,*topologyRoutes,pcs);
-    t.steepestDescent(g,HMap);
+    printf(" %d constraint.\n",pcs.size());
+    t.steepestDescent(g,HMap,des);
+    Rectangle::setXBorder(0);
     for(topology::Nodes::iterator i=topologyNodes->begin();
             i!=topologyNodes->end();++i) {
         topology::Node* v=*i;
-        coords[v->id]=v->var->x;
+        coords[v->id]=v->var->getPosition();
+        printf("Setting v[%d]=%f\n",v->id,v->var->getPosition());
         delete v->var;
     }
     return computeStress();

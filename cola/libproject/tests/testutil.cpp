@@ -14,6 +14,11 @@ using namespace project;
 using namespace std;
 
 /**
+ * float comparisons (i.e. \f$a=b\$f) in our tests are actually \$f|a-b|<epsilon\$f.
+ */
+const double testEpsilon = 1e-10;
+
+/**
  * Solve a project problem using a conventional quadratic programming solver.
  * We use Luca Di Gaspero's GPLed QuadProg++ program 
  * http://www.diegm.uniud.it/digaspero/
@@ -35,11 +40,11 @@ void qps(Variables &vs, Constraints &cs, vector<double> &result) {
     for(unsigned i=0;i<n;i++) {
         Variable *v=vs[i];
         vmap[v]=i;
-        g[i]=-2.0*v->w*v->d;
+        g[i]=-2.0*v->getWeight()*v->getDesiredPosition();
         G[i]=new double[n];
         for(unsigned j=0;j<n;j++) {
             G[i][j]=
-                i==j ? (2.0*v->w) : 0;
+                i==j ? (2.0*v->getWeight()) : 0;
         }
     }
     const unsigned m=cs.size();
@@ -73,8 +78,8 @@ void qps(Variables &vs, Constraints &cs, vector<double> &result) {
 bool feasible(Constraints &cs) {
     for(Constraints::iterator i=cs.begin();i!=cs.end();++i) {
         Constraint* c=*i;
-        double slack = c->r->x - c->l->x - c->g;
-        if (slack < -epsilon) {
+        double slack = c->r->getPosition() - c->l->getPosition() - c->g;
+        if (slack < -testEpsilon) {
             printf("Unsatisfiable constraint: slack = %f\n",slack);    
             return false;
         }
@@ -97,11 +102,11 @@ void printProblem(Variables &vs,
     qps(vs,cs,x);
     for(unsigned i=0;i<vs.size();i++) {
         char *match="==";
-        if(!approxEquals(vs[i]->x,x[i])) {
+        if(!approxEquals(vs[i]->getPosition(),x[i])) {
             match="!=";
         }
         printf("vs.push_back(new Variable(%f,%f,%f));//soln=%f%srslt=%f\n",
-                XI[i],vs[i]->d,vs[i]->w,x[i],match,vs[i]->x);
+                XI[i],vs[i]->getDesiredPosition(),vs[i]->getWeight(),x[i],match,vs[i]->getPosition());
     }
     for(Constraints::iterator i=cs.begin();i!=cs.end();++i) {
         Constraint* c=*i;
@@ -123,7 +128,7 @@ double getRand(const double max) {
  * @return true if the above condition is met
  */
 bool approxEquals(double a, double b) {
-    return fabs(a-b)<epsilon;
+    return fabs(a-b)<testEpsilon;
 }
 /**
  * Attempt to use libproject to solve a given projection problem instance.
@@ -147,7 +152,7 @@ void test(const char* (*t)(Variables&, Constraints&), bool silentPass) {
     vector<double> XI(vs.size());
     VMap vmap;
     for(unsigned i=0;i<vs.size();i++) {
-        XI[i]=vs[i]->x;
+        XI[i]=vs[i]->getPosition();
         vmap[vs[i]]=i;
     }
 
@@ -168,7 +173,7 @@ void test(const char* (*t)(Variables&, Constraints&), bool silentPass) {
         }
         // assert solution matches solution from standard QP solver
         for(unsigned i=0;i<vs.size();i++) {
-            if(!approxEquals(vs[i]->x,qpresult[i])) {
+            if(!approxEquals(vs[i]->getPosition(),qpresult[i])) {
                 throw "incorrect solution!";
             }
         }

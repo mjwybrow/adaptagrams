@@ -118,6 +118,13 @@ public:
 		maxY=y+height()-yBorder;
 		minY=y;
 	}
+	double overlapD(const unsigned d, Rectangle* r) {
+		if(d==0) {
+			return overlapX(r);
+		} else {
+			return overlapY(r);
+		}
+	}
 	double overlapX(Rectangle *r) const {
 		if (getCentreX() <= r->getCentreX() && r->minX < getMaxX())
 			return getMaxX() - r->minX;

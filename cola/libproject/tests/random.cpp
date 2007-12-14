@@ -46,7 +46,7 @@ const char* randomProblem(Variables &vs, Constraints &cs) {
                 unsigned j=i+unsigned(ceil(getRand(numVars-i-1)));
                 double r=getRand(1);
                 Variable *lv=vs[i], *rv=vs[j];
-                double g=r*(rv->x-lv->x);
+                double g=r*(rv->getPosition()-lv->getPosition());
                 cs.push_back(new Constraint(lv,rv,g));
             }
         }
