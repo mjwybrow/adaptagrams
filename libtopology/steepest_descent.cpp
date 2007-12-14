@@ -53,7 +53,7 @@ struct AlphaCheck : project::ExternalAlphaCheck {
     AlphaCheck(project::Variables& vs, vector<TopologyConstraint*>& ts) 
         : vs(vs), ts(ts) {}
     void operator()(double alpha) {
-        printf("AlphaCheck: %f\n",alpha);
+        //printf("AlphaCheck: %f\n",alpha);
         double minTAlpha=DBL_MAX;
         TopologyConstraint* minT=NULL;
         // find minimum feasible alpha over all topology constraints
@@ -91,28 +91,39 @@ struct AlphaCheck : project::ExternalAlphaCheck {
 };
 void TopologyConstraints::
 steepestDescent(valarray<double>& g, cola::SparseMap& h) {
+    steepestDescent(g,h,DesiredPositions());
+}
+void TopologyConstraints::
+steepestDescent(valarray<double>& g, cola::SparseMap& h, const DesiredPositions& d=DesiredPositions()) {
     assert(g.size()==n);
     assert(h.n==n);
     computeForces(g,h);
+    /*
     for(unsigned i=0;i<n;++i) {
-        //printf("g[%d]=%f,eg[%d]=%f\n",i,g[i],i,expectedG[i]);
-        //assert(fabs(g[i]-expectedG[i])<1e-4);
+        printf("g[%d]=%f,eg[%d]=%f\n",i,g[i],i,expectedG[i]);
+        assert(fabs(g[i]-expectedG[i])<1e-4);
         for(unsigned j=0;j<n;++j) {
-            //printf("h[%d,%d]=%f,eh[%d,%d]=%f\n",i,j,h(i,j),i,j,expectedH[i*n+j]);
-            //printf("%f,\n",h(i,j));
-            //assert(fabs(h(i,j)-expectedH[i*n+j])<1e-4);
+            printf("h[%d,%d]=%f,eh[%d,%d]=%f\n",i,j,h(i,j),i,j,expectedH[i*n+j]);
+            printf("%f,\n",h(i,j));
+            assert(fabs(h(i,j)-expectedH[i*n+j])<1e-4);
         }
     }
+    */
     cola::SparseMatrix H(h);
     double stepSize = computeStepSize(H,g,g);
-    printf("stepSize=%f\n",stepSize);
+    //printf("stepSize=%f\n",stepSize);
     project::Variables vars(n);
     for(unsigned i=0;i<n;++i) {
         Node* node=nodes[i];
         vpsc::Rectangle* r=node->rect;
         project::Variable* v=node->var;
-        v->d=r->getCentreD(dim)-g[i]*stepSize;
+        v->setDesiredPosition(project::Desired(r->getCentreD(dim)-g[i]*stepSize));
         vars[i]=v;
+    }
+    for(DesiredPositions::const_iterator i=d.begin();i!=d.end();++i) {
+        project::Variable* v = vars[i->first];
+        v->setDesiredPosition(i->second);
+        v->setWeight(project::Weight(1e10));
     }
     vector<TopologyConstraint*> ts;
     constraints(ts);
@@ -123,11 +134,14 @@ steepestDescent(valarray<double>& g, cola::SparseMap& h) {
         p.solve();
     } catch(InterruptException& e) {
         printf("finished early!\n");
+    } catch(project::CriticalFailure& f) {
+        f.print();
+        exit(1);
     }
     for(unsigned i=0;i<n;i++) {
-        nodes[i]->rect->moveCentreD(dim,vars[i]->x);
-        vpsc::Rectangle* r=nodes[i]->rect;
-        cout << "Rectangle: " << *r << "C(" << r->getCentreX() << "," << r->getCentreY() << ")" << endl;
+        nodes[i]->rect->moveCentreD(dim,vars[i]->getPosition());
+        //vpsc::Rectangle* r=nodes[i]->rect;
+     //   cout << "Rectangle: " << *r << "C(" << r->getCentreX() << "," << r->getCentreY() << ")" << endl;
         for(Edges::iterator e=edges.begin();e!=edges.end();++e) {
             (*e)->forEachEdgePoint(mem_fun(&EdgePoint::setPos));
         }

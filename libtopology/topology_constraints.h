@@ -19,6 +19,10 @@
 namespace cola {
     class SparseMap;
 }
+namespace project {
+    class Desired;
+    class Variable;
+}
 /**
  * namespace for classes uses in generating and solving forces and constraints associated with
  * topology preserving layout.
@@ -120,15 +124,19 @@ namespace topology {
         }
     };
     /**
+     * desired positions which should override those computed by applying forces
+     * are passed in for a set of nodes.  The first entry is the Node->id, the
+     * second is the desired position.
+     */
+    typedef std::pair<unsigned,project::Desired> DesiredPosition;
+    typedef std::vector<DesiredPosition> DesiredPositions;
+    /**
      * Define a topology over a diagram by generating a set of
      * TopologyConstraint
      */
     class TopologyConstraints {
     public:
         const size_t n;
-        Nodes& nodes;
-        Edges& edges;
-        project::Constraints& cs;
         TopologyConstraints(
             const cola::Dim dim, 
             Nodes &vs,
@@ -140,8 +148,15 @@ namespace topology {
         TopologyConstraint* mostViolated() const;
         void computeForces(valarray<double>& g, cola::SparseMap& h);
         double computeStress() const;
-        void steepestDescent(valarray<double>& g, cola::SparseMap& h);
+        void steepestDescent(valarray<double>& g, 
+                cola::SparseMap& h);
+        void steepestDescent(valarray<double>& g, 
+                cola::SparseMap& h, 
+                const DesiredPositions& d);
     private:
+        Nodes& nodes;
+        Edges& edges;
+        project::Constraints& cs;
     };
 } // namespace topology
 #endif // TOPOLOGY_CONSTRAINTS_H

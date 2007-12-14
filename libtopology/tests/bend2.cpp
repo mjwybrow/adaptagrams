@@ -51,7 +51,7 @@ void bend2() {
     es.push_back(new Edge(100,ps));
 
     TopologyConstraints t(cola::HORIZONTAL,vs,es,cs);
-    writeFile(t,"bend2-0.svg");
+    writeFile(vs,es,"bend2-0.svg");
 
     // test computeStress
     double stress=t.computeStress();
@@ -63,11 +63,11 @@ void bend2() {
     g=0;h.clear();
     t.steepestDescent(g,h);
     check(t, g, h, expectedG1, expectedH1);
-    writeFile(t,"bend2-1.svg");
+    writeFile(vs,es,"bend2-1.svg");
     g=0;h.clear();
     t.steepestDescent(g,h);
     check(t, g, h, expectedG2, expectedH2);
-    writeFile(t,"bend2-2.svg");
+    writeFile(vs,es,"bend2-2.svg");
 
     for(Nodes::iterator i=vs.begin();i!=vs.end();++i) {
         Node* v=*i;
@@ -81,30 +81,6 @@ void bend2() {
 int main() {
     bend2();
     return 0;
-}
-inline double dotProd(valarray<double> x, valarray<double> y) {
-    assert(x.size()==y.size());
-    double dp=0;
-    for(unsigned i=0;i<x.size();i++) {
-        dp+=x[i]*y[i]; 
-    }
-    return dp;
-}
-double computeStepSize(
-        cola::SparseMatrix const &H, 
-        valarray<double> const &g, 
-        valarray<double> const &d) {
-    assert(g.size()==d.size());
-    assert(g.size()==H.rowSize());
-    // stepsize = g'd / (d' H d)
-    double numerator = dotProd(g,d);
-    valarray<double> Hd(d.size());
-    H.rightMultiply(d,Hd);
-    double denominator = dotProd(d,Hd);
-    //assert(numerator>=0);
-    //assert(denominator>=0);
-    if(denominator==0) return 0;
-    return numerator/denominator;
 }
   
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:encoding=utf-8:textwidth=80 :

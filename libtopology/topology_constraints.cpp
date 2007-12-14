@@ -27,14 +27,19 @@ double TriConstraint::maxSafeAlpha() const {
     return numerator/denominator;
 }
 double TriConstraint::slack () const {
-    double rhs = u->x+p*(v->x-u->x)+g;
-    double lhs = w->x;
+    double ux = u->relativeDesiredPos()
+         , vx = v->relativeDesiredPos()
+         , lhs = w->relativeDesiredPos();
+    double rhs = ux+p*(vx-ux)+g;
     return leftOf ? rhs - lhs : lhs - rhs;
 }
 void TriConstraint::print() const {
+    double ux = u->relativeDesiredPos()
+         , vx = v->relativeDesiredPos()
+         , wx = w->relativeDesiredPos();
     printf("TopologyConstraint@%p\n",(void*)this);
     printf("  u=%f\n  v=%f\n  w=%f\n  p=%f\n  g=%f\n  left=%d\n",
-            u->x,v->x,w->x,p,g,leftOf);
+            ux,vx,wx,p,g,leftOf);
 }
 struct transferStraightConstraint {
     transferStraightConstraint(Segment* target)
