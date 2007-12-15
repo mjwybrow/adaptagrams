@@ -1,0 +1,109 @@
+(************** Content-type: application/mathematica **************
+                     CreatedBy='Mathematica 5.2'
+
+                    Mathematica-Compatible Notebook
+
+This notebook can be used with any Mathematica-compatible
+application, such as Mathematica, MathReader or Publicon. The data
+for the notebook starts with the line containing stars above.
+
+To get the notebook into a Mathematica-compatible application, do
+one of the following:
+
+* Save the data starting with the line of stars above into a file
+  with a name ending in .nb, then open the file inside the
+  application;
+
+* Copy the data starting with the line of stars above to the
+  clipboard, then use the Paste menu command inside the application.
+
+Data for notebooks contains only printable 7-bit ASCII and can be
+sent directly in email or through ftp in text mode.  Newlines can be
+CR, LF or CRLF (Unix, Macintosh or MS-DOS style).
+
+NOTE: If you modify the data for this notebook not in a Mathematica-
+compatible application, you must delete the line below containing
+the word CacheID, otherwise Mathematica-compatible applications may
+try to use invalid cache data.
+
+For more information on notebooks and Mathematica-compatible 
+applications, contact Wolfram Research:
+  web: http://www.wolfram.com
+  email: info@wolfram.com
+  phone: +1-217-398-0700 (U.S.)
+
+Notebook reader applications are available free of charge from 
+Wolfram Research.
+*******************************************************************)
+
+(*CacheID: 232*)
+
+
+(*NotebookFileLineBreakTest
+NotebookFileLineBreakTest*)
+(*NotebookOptionsPosition[      2261,         69]*)
+(*NotebookOutlinePosition[      2893,         91]*)
+(*  CellTagsIndexPosition[      2849,         87]*)
+(*WindowFrame->Normal*)
+
+
+
+Notebook[{
+Cell[BoxData[
+    \(F[x_] := x[\([1]\)] + \[Alpha] \((x[\([2]\)] - x[\([1]\)])\)\)], "Input"],
+
+Cell[BoxData[
+    \(U = Array[u, 2]; \ V = Array[v, 2]; \ W = Array[w, 2];\)], "Input"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+    \(Solve[
+      F[W] \[Equal] F[U] + p \((F[V] - F[U])\) + g, \[Alpha]]\)], "Input"],
+
+Cell[BoxData[
+    \({{\[Alpha] \[Rule] \(\(-g\) - u[1] + p\ u[1] - p\ v[1] + \
+w[1]\)\/\(\(-u[1]\) + p\ u[1] + u[2] - p\ u[2] - p\ v[1] + p\ v[2] + w[1] - \
+w[2]\)}}\)], "Output"]
+}, Open  ]]
+},
+FrontEndVersion->"5.2 for X",
+ScreenRectangle->{{0, 1680}, {0, 1050}},
+WindowSize->{520, 600},
+WindowMargins->{{262, Automatic}, {Automatic, 201}}
+]
+
+(*******************************************************************
+Cached data follows.  If you edit this Notebook file directly, not
+using Mathematica, you must remove the line containing CacheID at
+the top of  the file.  The cache data will then be recreated when
+you save this file from within Mathematica.
+*******************************************************************)
+
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+
+(*NotebookFileOutline
+Notebook[{
+Cell[1754, 51, 93, 1, 27, "Input"],
+Cell[1850, 54, 87, 1, 27, "Input"],
+
+Cell[CellGroupData[{
+Cell[1962, 59, 101, 2, 27, "Input"],
+Cell[2066, 63, 179, 3, 73, "Output"]
+}, Open  ]]
+}
+]
+*)
+
+
+
+(*******************************************************************
+End of Mathematica Notebook file.
+*******************************************************************)
+
