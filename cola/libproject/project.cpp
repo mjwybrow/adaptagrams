@@ -18,6 +18,7 @@
 #include <cassert>
 #include "util.h"
 #include "project.h"
+#include "log.h"
 
 #ifndef NDEBUG
 static double lastCost;
@@ -133,6 +134,18 @@ void Block::computeLagrangians() {
 }
 
 Project::
+Project(
+        vector<Variable*> const &vs, 
+        vector<Constraint *> const &cs) 
+    : vs(vs)
+    , cs(cs)
+    , inactive(cs.begin(),cs.end())
+    , externalAlphaCheck(NULL)
+{ 
+    FILELog::ReportingLevel() = logWARNING;
+    //FILELog::ReportingLevel() = logDEBUG1;
+}
+Project::
 ~Project() {
     LIBPROJECT_ASSERT(blocks.size()==vs.size()-merges+splits);
     for_each(blocks.begin(),blocks.end(),delete_object());
@@ -195,7 +208,7 @@ double Constraint::maxSafeAlpha() const {
         }
         LIBPROJECT_ASSERT(0<=a && a<=1);
     }
-    LIBPROJECT_LOG(("C->g=%f, alpha=%f\n",g,a));
+    FILE_LOG(logDEBUG1)<<"C->g="<<g<<", alpha="<<a;
     return a;
 }
 /**
@@ -260,6 +273,18 @@ makeOptimal() {
     }
     ASSERT_NONE_VIOLATED(this);
 }
+
+ostream& operator <<(ostream &os, const Variable* &v) {
+    os << "(" << v->getPosition()
+       << "," << v->getDesiredPosition()
+       << "," << v->getWeight()
+       << ")";
+	return os;
+}
+ostream& operator <<(ostream &os, const Block &b) {
+    copy(b.V.begin(),b.V.end(),ostream_iterator<Variable*>(os,","));
+	return os;
+}
 /**
  * Make the specified constraint active by setting to equality and merging the
  * two blocks that it spans into one new block (actually we merge the right
@@ -280,19 +305,14 @@ makeActive(Constraint *c, double alpha) {
     Block *R = c->r->block;
     double br = c->l->b - c->r->b + c->g;
     double prevOptPos = L->X;
-    LIBPROJECT_LOG(("mergeblock:\n"));
-#ifdef LOGGING
-    for(Variables::iterator i=L->V.begin();i!=L->V.end();++i) {
-        Variable *v=*i;
-        LIBPROJECT_LOG(("  v[%p]->b=%f\n",v,v->b));
-    }
-#endif
-    LIBPROJECT_LOG((" plus:\n"));
+    FILE_LOG(logDEBUG1)<<"mergeblock:";
+    FILE_LOG(logDEBUG1)<<*L;
+    FILE_LOG(logDEBUG1)<<" plus:";
+    FILE_LOG(logDEBUG1)<<*R;
     for(Variables::iterator i=R->V.begin();i!=R->V.end();++i) {
         Variable *v=*i;
         v->b+=br;
         v->block=L;
-        LIBPROJECT_LOG(("  v[%p]->b=%f\n",v,v->b));
     }
     c->active=true;
     L->V.insert(L->V.end(),R->V.begin(),R->V.end());
@@ -302,12 +322,20 @@ makeActive(Constraint *c, double alpha) {
     L->X = L->optimalPosition();
     L->XI = (L->XI - alpha * (L->XI - prevOptPos + L->X))
             / (1.0 - alpha);
-    LIBPROJECT_LOG(("   X=%f, XI=%f\n",L->X, L->XI));
+    FILE_LOG(logDEBUG1)<<"  L': X="<<L->X<<", XI="<<L->XI;
     blocks.erase(R->listIndex);
     delete R;
     DEBUG_CODE(merges++);
 }
 bool cmpLagrangians(Constraint* a,Constraint* b) { return a->lm < b->lm; }
+ostream& operator <<(ostream &os, const Constraint* &c) {
+    os<<"C->g="<<c->g<<", lm="<<c->lm;
+    return os;
+}
+ostream& operator <<(ostream &os, const Constraints &cs) {
+    copy(cs.begin(),cs.end(),ostream_iterator<Constraint*>(os,","));
+	return os;
+}
 /**
  * Check each block to see if splitting it allows the two new blocks to be moved
  * closer to their desired positions.  Returns true if no further splits are required
@@ -321,15 +349,14 @@ splitBlocks() {
         b->XI = b->X;
         if(b->C.empty()) continue;
         b->computeLagrangians();
-#ifdef LOGGING
-        for(Constraints::iterator j=b->C.begin();j!=b->C.end();j++) {
-            Constraint* c=*j;
-            LIBPROJECT_LOG(("C->g=%f, lm=%f\n",c->g,c->lm));
-        }
-#endif
+
+        FILE_LOG(logDEBUG1)<<b->C;
+
         Constraint *sc
             = *min_element(b->C.begin(),b->C.end(),cmpLagrangians);
-        LIBPROJECT_LOG(("min: C->g=%f, lm=%f\n",sc->g,sc->lm));
+
+        FILE_LOG(logDEBUG1)<<"min: "<<sc;
+
         if(sc->lm < 0) {
             optimal = false;
             i=makeInactive(sc);
@@ -384,7 +411,7 @@ Block::Block(Variable* v, Constraint* c) : w(0), XI(v->block->XI) {
  */
 Blocks::iterator Project:: 
 makeInactive(Constraint *c) {
-    LIBPROJECT_LOG(("Project::makeInactive(Constraint *c)\n"));
+    FILE_LOG(logDEBUG) << "Project::makeInactive(Constraint *c)";
     LIBPROJECT_ASSERT(c->active);
     inactive.insert(c);
     c->active=false;

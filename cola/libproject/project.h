@@ -198,13 +198,8 @@ class Project : private Uncopyable {
 public:
     Project(
             std::vector<Variable*> const &vs, 
-            std::vector<Constraint *> const &cs) 
-        : vs(vs)
-        , cs(cs)
-        , inactive(cs.begin(),cs.end())
-        , externalAlphaCheck(NULL)
-    { 
-    }
+            std::vector<Constraint *> const &cs);
+
     ~Project();
     /** 
      * attempts to solve a least-squares
