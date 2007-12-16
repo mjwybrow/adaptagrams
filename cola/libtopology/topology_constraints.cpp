@@ -1,3 +1,5 @@
+#include <sstream>
+#include <string>
 #include <libproject/project.h>
 #include <libcola/cola.h>
 #include <libcola/straightener.h>
@@ -98,18 +100,41 @@ void BendConstraint::satisfy() {
     delete s1;
     delete s2;
 }
+string BendConstraint::
+toString() {
+    stringstream s;
+    s << "BendConstraint: bendPoint=(" << bendPoint->pos[0] << "," << bendPoint->pos[1] << ")";
+    return s.str();
+}
+/**
+ * functor that transfers the constraints from one segment to one of two new
+ * segments depending which intersects with pos in the scan axis.
+ */
 struct transferStraightConstraintChoose {
+    /**
+     * @param target1 the first of two possible target segments for the transfer
+     * @param target2 the second of two possible target segments for the transfer
+     * @param pos scan position
+     * @param ignore the constraint which, in being satisfied, caused this
+     * transfer and which should therefore not be transfered.
+     */
     transferStraightConstraintChoose(Segment* target1, Segment* target2,
             double pos, StraightConstraint* ignore)
         : target1(target1), target2(target2)
         , pos(pos), ignore(ignore) {}
+    /**
+     * @param c constraint to transfer to target1 or target2
+     */
     void operator() (StraightConstraint* c) {
         if(c!=ignore) {
-            if(target1->start->pos[!dim] > target2->end->pos[!dim]
-               && c->pos > target1->end->pos[!dim]) {
+            double min1=min(target1->start->pos[!dim],target1->end->pos[!dim]);
+            double max1=max(target1->start->pos[!dim],target1->end->pos[!dim]);
+            if(c->pos>=min1 && c->pos<=max1) {
                 target1->straightConstraints.push_back(
                         new StraightConstraint(target1,c->node,c->pos));
             } else {
+                assert(c->pos>min(target2->start->pos[!dim],target2->end->pos[!dim]));
+                assert(c->pos<max(target2->start->pos[!dim],target2->end->pos[!dim]));
                 target2->straightConstraints.push_back(
                         new StraightConstraint(target2,c->node,c->pos));
             }
@@ -158,6 +183,12 @@ void StraightConstraint::satisfy() {
     e->nSegments++;
     delete segment;
 }
+string StraightConstraint::
+toString() {
+    stringstream s;
+    s << "StraightConstraint: pos=" << pos;
+    return s.str();
+}
 struct buildRoute {
     buildRoute(straightener::Route* r, unsigned& n) : r(r), n(n) {}
     void operator() (const Segment* s) {
@@ -191,4 +222,4 @@ constraints(std::vector<TopologyConstraint*> & ts) const {
     }
 }
 } // namespace topology
-// vim: cindent ts=4 sw=4 et tw=0 wm=0
+// vim: cindent ts=4 sw=4 et tw=80 wm=5 

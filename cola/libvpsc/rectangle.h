@@ -184,6 +184,7 @@ private:
 	bool overlap;
 };
 
+std::ostream& operator<< (std::ostream& os, const Rectangle& r);
 
 class Variable;
 class Constraint;

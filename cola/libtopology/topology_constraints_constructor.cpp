@@ -10,6 +10,7 @@
 #include <libproject/project.h>
 #include <libcola/cola.h>
 #include <libcola/straightener.h>
+#include "log.h"
 #include "topology_graph.h"
 #include "topology_constraints.h"
 using namespace std;
@@ -107,6 +108,7 @@ struct NodeClose : NodeEvent {
         assert(opening->node == node);
     }
     void createNonOverlapConstraint(const Node* left, const Node* right) {
+        FILE_LOG(logDEBUG)<<"NodeClose::createNonOverlapConstraint left="<<left<<" right="<<right;
         double overlap = left->rect->overlapD(!dim,right->rect);
         if(overlap>1e-5) {
             double g = left->rect->length(dim) + right->rect->length(dim);
@@ -177,6 +179,7 @@ struct SegmentClose : SegmentEvent {
  * Segments must not be on-top-of rectangles.
  */
 void NodeEvent::createTopologyConstraint() {
+    FILE_LOG(logDEBUG)<<"NodeEvent::createTopologyConstraint():node@"<<node<<" pos="<<pos;
     for(OpenSegments::iterator j=openSegments.begin(); j!=openSegments.end();++j) {
         Segment* s=(*j)->s;
         // skip if edge is attached to this node
@@ -206,20 +209,19 @@ StraightConstraint::StraightConstraint(
         const double pos) 
     : segment(s), node(node), pos(pos)
 {
+    FILE_LOG(logDEBUG)<<"StraightConstraint ctor: pos="<<pos;
     EdgePoint *u=s->start, *v=s->end;
     // segments orthogonal to scan direction need no constraints
     assert(v->pos[!dim]-u->pos[!dim]!=0);
 
     vpsc::Rectangle* r=node->rect;
+    FILE_LOG(logDEBUG1)<<"Segment: from "<<u->pos[!dim]<<" to "<<v->pos[!dim];
+    FILE_LOG(logDEBUG1)<<"Node: rect "<<*r;
     // segment must overlap in the scan dimension with the rectangle
-    assert(!(
-                u->pos[!dim]>=r->getMaxD(!dim)
-              &&v->pos[!dim]>=r->getMaxD(!dim)
-            ));
-    assert(!(
-                u->pos[!dim]<=r->getMinD(!dim)
-              &&v->pos[!dim]<=r->getMinD(!dim)
-            ));
+    assert(min(v->pos[!dim],u->pos[!dim])<=pos);
+    assert(max(v->pos[!dim],u->pos[!dim])>=pos);
+    assert(r->getMinD(!dim)<=pos);
+    assert(r->getMaxD(!dim)>=pos);
     // determine direction of constraint based on intersection
     // of segment with scan line
     bool passLeft=false;
@@ -245,12 +247,16 @@ StraightConstraint::StraightConstraint(
  * are aligned.
  * @param bendPoint the articulation point
  */
-BendConstraint::BendConstraint(EdgePoint* v) 
+BendConstraint::
+BendConstraint(EdgePoint* v) 
     : bendPoint(v) 
 {
+    FILE_LOG(logDEBUG)<<"BendConstraint ctor, pos="<<v->pos[!dim];
     EdgePoint* u=v->inSegment->start, * w=v->outSegment->end;
     // because all of our nodes are boxes we do not expect consecutive
     // segments to change horizontal or vertical direction
+    FILE_LOG(logDEBUG1)<<"u="<<u->pos[!dim]<<" v="<<v->pos[!dim]<<" w="<<w->pos[!dim];
+    FLUSH_LOG(logDEBUG1);
     assert(u->pos[!dim]<v->pos[!dim]&&v->pos[!dim]<=w->pos[!dim]
         || u->pos[!dim]>v->pos[!dim]&&v->pos[!dim]>=w->pos[!dim]);
     double p;
@@ -299,7 +305,7 @@ struct createBendConstraints {
         if(in!=NULL && out!=NULL
            && in->start->pos[!dim]!=in->end->pos[!dim]
            && out->start->pos[!dim]!=out->end->pos[!dim] ) {
-            // if it's valid a bend point then create a TopologyConstraint
+            // if it's a valid bend point then create a TopologyConstraint
             // that becomes active when the bend straightens
             p->bendConstraint = new BendConstraint(p);
         }
@@ -330,6 +336,8 @@ TopologyConstraints(
   , edges(edges) 
   , cs(cs)
 {
+    FILELog::ReportingLevel() = logDEBUG1;
+
     dim = axisDim;
 
     vector<Event*> events;

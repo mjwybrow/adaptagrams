@@ -50,6 +50,14 @@ double computeStepSize(
 }
 struct InterruptException {
 };
+ostream& operator<< (ostream& os, BendConstraint& t) {
+    os<<"BendConstraint";
+    return os;
+}
+ostream& operator<< (ostream& os, StraightConstraint& t) {
+    os<<"StraightConstraint";
+    return os;
+}
 struct AlphaCheck : project::ExternalAlphaCheck {
     AlphaCheck(project::Variables& vs, vector<TopologyConstraint*>& ts) 
         : vs(vs), ts(ts) {}
@@ -69,6 +77,8 @@ struct AlphaCheck : project::ExternalAlphaCheck {
         // if minTAlpha<alpha move all by minTAlpha 
         // and throw interrupt exception
         if(minTAlpha<alpha) {
+            FILE_LOG(logDEBUG)<<"Violated topology constraint! alpha="<<minTAlpha;
+            FILE_LOG(logDEBUG)<<minT->toString();
             for_each(vs.begin(),vs.end(),
                     bind2nd(mem_fun(&project::Variable::moveBy),minTAlpha));
             minT->satisfy();
@@ -84,6 +94,7 @@ steepestDescent(valarray<double>& g, cola::SparseMap& h) {
 }
 void TopologyConstraints::
 steepestDescent(valarray<double>& g, cola::SparseMap& h, const DesiredPositions& d=DesiredPositions()) {
+    FILE_LOG(logDEBUG)<<"TopologyConstraints::steepestDescent...";
     assert(g.size()==n);
     assert(h.n==n);
     computeForces(g,h);
@@ -123,6 +134,17 @@ steepestDescent(valarray<double>& g, cola::SparseMap& h, const DesiredPositions&
             (*e)->forEachEdgePoint(mem_fun(&EdgePoint::setPos));
         }
     }
+    FILE_LOG(logDEBUG)<<"TopologyConstraints::steepestDescent... done";
+}
+double TopologyConstraints::
+reachedDesired(const DesiredPositions& d) {
+    double furthest = DBL_MIN;
+    for(DesiredPositions::const_iterator i=d.begin();i!=d.end();++i) {
+        project::Variable* v = nodes[i->first]->var;
+        furthest = max(furthest,fabs(i->second.pos-v->getPosition()));
+    }
+    FILE_LOG(logDEBUG)<<"max distance to desired="<<furthest;
+    return furthest;
 }
 } // namespace topology
 // vim: cindent ts=4 sw=4 et tw=0 wm=0

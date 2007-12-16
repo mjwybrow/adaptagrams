@@ -72,25 +72,37 @@ srand(time(NULL));
         tes.push_back(new topology::Edge(idealLength, ps));
     }
     Locks locks;
-    locks.push_back(Lock(3,150,25));
+    // we move the 4th node to the right.  The triangle should be
+    // dragged along!
+    locks.push_back(Lock(3,80,30));
     SetDesiredPos preIteration(locks);
-
     ConstrainedFDLayout alg(rs,es,NULL,idealLength,NULL,test,&preIteration);
+
     alg.setTopology(&vs,&tes);
     alg.run();
+    double finalStress=alg.computeStress();
+    printf("finalStress=%f\n",finalStress);
+
+    // write output
     vector<string> labels(V);
     for(unsigned i=0;i<V;++i) {
         stringstream ss;
         ss << i;
         labels[i]=ss.str();
     }
-    // write output
+
+
     OutputFile output(rs,es,NULL,"topology.svg",true);
     output.setLabels(labels);
+    vector<straightener::Route*> routes;
+    for(vector<topology::Edge*>::const_iterator e=tes.begin();e!=tes.end();++e) {
+        routes.push_back((*e)->getRoute());
+    }
+    output.routes=&routes;
     output.generate();
+    assert(finalStress<1e-5);
     for(unsigned i=0;i<V;i++) {
         delete rs[i];
     }
-    assert(alg.computeStress()<1e-5);
 }
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:encoding=utf-8:textwidth=80 :

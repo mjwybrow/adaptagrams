@@ -142,8 +142,8 @@ Project(
     , inactive(cs.begin(),cs.end())
     , externalAlphaCheck(NULL)
 { 
-    FILELog::ReportingLevel() = logWARNING;
-    //FILELog::ReportingLevel() = logDEBUG1;
+    //FILELog::ReportingLevel() = logWARNING;
+    FILELog::ReportingLevel() = logDEBUG1;
 }
 Project::
 ~Project() {

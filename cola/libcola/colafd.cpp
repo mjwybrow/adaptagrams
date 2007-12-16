@@ -11,6 +11,7 @@
 #include <libproject/project.h>
 #include <libtopology/topology_graph.h>
 #include <libtopology/topology_constraints.h>
+#include "log.h"
 
 namespace cola {
 template <class T>
@@ -59,6 +60,7 @@ ConstrainedFDLayout::ConstrainedFDLayout(
       topologyNodes(NULL),
       topologyRoutes(NULL)
 {
+    FILELog::ReportingLevel() = logDEBUG1;
     boundingBoxes.resize(n);
     copy(rs.begin(),rs.end(),boundingBoxes.begin());
     done.reset();
@@ -66,7 +68,6 @@ ConstrainedFDLayout::ConstrainedFDLayout(
         vpsc::Rectangle *r=rs[i];
         X[i]=r->getCentreX();
         Y[i]=r->getCentreY();
-        //printf("r[%d]=(%f,%f,%f,%f)\n",i,r->getMinX(),r->getMinY(),r->width(),r->height());
     }
     D=new double*[n];
     G=new unsigned*[n];
@@ -89,7 +90,7 @@ ConstrainedFDLayout::ConstrainedFDLayout(
 }
 
 void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis) {
-    //printf("n==%d\n",n);
+    FILE_LOG(logDEBUG) << "ConstrainedFDLayout::run...";
     if(n==0) return;
     double stress=computeStress();
     bool firstPass=true;
@@ -103,6 +104,7 @@ void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis) {
         firstPass=false;
         move();
     } while(!done(stress,X,Y));
+    FILE_LOG(logDEBUG) << "ConstrainedFDLayout::run done.";
 }
 /**
  * The following computes an unconstrained solution then uses Projection to
@@ -112,10 +114,9 @@ void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis) {
  */
 double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const double oldStress,
         const bool firstPass) {
+    FILE_LOG(logDEBUG) << "ConstrainedFDLayout::applyForcesAndConstraints...";
     valarray<double> g(n);
     valarray<double> &coords = (dim==HORIZONTAL)?X:Y;
-    SparseMap HMap(n);
-    computeForces(dim,HMap,g);
     /*
     printf("g=[");
     for(unsigned i=0;i<n;i++) {
@@ -143,12 +144,17 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
             }
         }
         vector<project::Constraint*> pcs;
+        printf("dim=%d\n",dim);
         if(dim==cola::HORIZONTAL) {
-                Rectangle::setXBorder(0.1);
+            Rectangle::setXBorder(0.1);
         }
         topology::TopologyConstraints t(dim,*topologyNodes,*topologyRoutes,pcs);
-        printf(" %d constraint.\n",pcs.size());
-        t.steepestDescent(g,HMap,des);
+        do {
+            printf(" %d constraint.\n",pcs.size());
+            SparseMap HMap(n);
+            computeForces(dim,HMap,g);
+            t.steepestDescent(g,HMap,des);
+        } while(t.reachedDesired(des)>10);
         Rectangle::setXBorder(0);
         for(topology::Nodes::iterator i=topologyNodes->begin();
                 i!=topologyNodes->end();++i) {
@@ -158,6 +164,8 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
             delete v->var;
         }
     } else {
+        SparseMap HMap(n);
+        computeForces(dim,HMap,g);
         SparseMatrix H(HMap);
         valarray<double> oldCoords=coords;
         applyDescentVector(g,oldCoords,coords,oldStress,computeStepSize(H,g,g));
@@ -170,6 +178,7 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
             return applyDescentVector(d,oldCoords,coords,oldStress,stepsize);
         }
     }
+    FILE_LOG(logDEBUG) << "ConstrainedFDLayout::applyForcesAndConstraints... done.";
     return computeStress();
 }
 double ConstrainedFDLayout::applyDescentVector(
@@ -264,6 +273,15 @@ double ConstrainedFDLayout::computeStress() const {
             double d2=d*d;
             double rl=d-l;
             stress+=rl*rl/d2;
+        }
+    }
+    if(preIteration) {
+        if ((*preIteration)()) {
+            for(vector<Lock>::iterator l=preIteration->locks.begin();
+                    l!=preIteration->locks.end();l++) {
+                double dx=l->pos[0]-X[l->id], dy=l->pos[1]-Y[l->id];
+                stress+=10000*(dx*dx+dy*dy);
+            }
         }
     }
     if(topologyRoutes) {

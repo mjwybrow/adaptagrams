@@ -73,6 +73,8 @@ namespace topology {
          * the segment with its neighbour (removing an EdgePoint).
          */
         virtual void satisfy() = 0;
+        /// for log messages
+        virtual std::string toString() = 0;
         virtual ~TopologyConstraint() {
             delete c;
         }
@@ -92,6 +94,7 @@ namespace topology {
          */
         BendConstraint(EdgePoint* bendPoint);
         void satisfy();
+        std::string toString();
     };
     /**
      * A constraint between a Node and a Segment that is activated when
@@ -114,6 +117,7 @@ namespace topology {
          */
         StraightConstraint(Segment* s, const Node* node, double pos);
         void satisfy();
+        std::string toString();
     };
     /**
      * desired positions which should override those computed by applying forces
@@ -145,6 +149,7 @@ namespace topology {
         void steepestDescent(valarray<double>& g, 
                 cola::SparseMap& h, 
                 const DesiredPositions& d);
+        double reachedDesired(const DesiredPositions& d);
     private:
         Nodes& nodes;
         Edges& edges;

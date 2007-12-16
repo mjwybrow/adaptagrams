@@ -24,6 +24,7 @@ public:
     Log();
     virtual ~Log();
     std::ostringstream& Get(TLogLevel level = logINFO);
+    void flush();
 public:
     static TLogLevel& ReportingLevel();
     static std::string ToString(TLogLevel level);
@@ -50,10 +51,15 @@ std::ostringstream& Log<T>::Get(TLogLevel level)
 }
 
 template <typename T>
-Log<T>::~Log()
+void Log<T>::flush()
 {
     os << std::endl;
     T::Output(os.str());
+}
+template <typename T>
+Log<T>::~Log()
+{
+    flush();
 }
 
 template <typename T>
@@ -138,6 +144,11 @@ class FILELOG_DECLSPEC FILELog : public Log<Output2FILE> {};
     if (level > FILELOG_MAX_LEVEL) ;\
     else if (level > FILELog::ReportingLevel() || !Output2FILE::Stream()) ; \
     else FILELog().Get(level)
+
+#define FLUSH_LOG(level) \
+    if (level > FILELOG_MAX_LEVEL) ;\
+    else if (level > FILELog::ReportingLevel() || !Output2FILE::Stream()) ; \
+    else FILELog().flush()
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
 
