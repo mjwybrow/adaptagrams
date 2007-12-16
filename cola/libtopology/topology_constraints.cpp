@@ -33,13 +33,19 @@ double TriConstraint::slack () const {
     double rhs = ux+p*(vx-ux)+g;
     return leftOf ? rhs - lhs : lhs - rhs;
 }
-void TriConstraint::print() const {
-    double ux = u->relativeDesiredPos()
-         , vx = v->relativeDesiredPos()
-         , wx = w->relativeDesiredPos();
-    printf("TopologyConstraint@%p\n",(void*)this);
-    printf("  u=%f\n  v=%f\n  w=%f\n  p=%f\n  g=%f\n  left=%d\n",
-            ux,vx,wx,p,g,leftOf);
+
+ostream& operator<< (ostream& os, const TriConstraint& c) {
+    double ux = c.u->relativeDesiredPos()
+         , vx = c.v->relativeDesiredPos()
+         , wx = c.w->relativeDesiredPos();
+    os << "TriConstraint@" << &c 
+       << ": u=" << ux 
+       <<  " v=" << vx
+       <<  " w=" << wx
+       <<  " p=" << c.p
+       <<  " g=" << c.g
+       <<  " left=" << c.leftOf; 
+    return os;
 }
 struct transferStraightConstraint {
     transferStraightConstraint(Segment* target)
@@ -100,7 +106,7 @@ struct transferStraightConstraintChoose {
     void operator() (StraightConstraint* c) {
         if(c!=ignore) {
             if(target1->start->pos[!dim] > target2->end->pos[!dim]
-               && pos > target1->end->pos[!dim]) {
+               && c->pos > target1->end->pos[!dim]) {
                 target1->straightConstraints.push_back(
                         new StraightConstraint(target1,c->node,c->pos));
             } else {

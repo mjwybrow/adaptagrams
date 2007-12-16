@@ -62,7 +62,6 @@ namespace topology {
          */
         double maxSafeAlpha() const;
         double slack () const;
-        void print() const;
     };
     class TopologyConstraint {
     public:
@@ -74,7 +73,6 @@ namespace topology {
          * the segment with its neighbour (removing an EdgePoint).
          */
         virtual void satisfy() = 0;
-        virtual void print() = 0;
         virtual ~TopologyConstraint() {
             delete c;
         }
@@ -94,9 +92,6 @@ namespace topology {
          */
         BendConstraint(EdgePoint* bendPoint);
         void satisfy();
-        void print() {
-            printf("BendConstraint@%p\n",(void*)this);
-        }
     };
     /**
      * A constraint between a Node and a Segment that is activated when
@@ -119,9 +114,6 @@ namespace topology {
          */
         StraightConstraint(Segment* s, const Node* node, double pos);
         void satisfy();
-        void print() {
-            printf("StraightConstraint@%p\n",(void*)this);
-        }
     };
     /**
      * desired positions which should override those computed by applying forces

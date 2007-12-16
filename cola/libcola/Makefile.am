@@ -1,5 +1,4 @@
-mosek_home=/home/dwyer/devel/mosek/4/tools/platform/linux32x86
-INCLUDES = -I$(top_srcdir) -I/usr/include/cairo -I/usr/include/cairomm-1.0 -I$(mosek_home)/h
+INCLUDES = -I$(top_srcdir) -I/usr/include/cairo -I/usr/include/cairomm-1.0 
 
 lib_LIBRARIES = libcola.a
 

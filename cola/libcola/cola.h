@@ -296,19 +296,6 @@ private:
 
 Rectangle bounds(vector<Rectangle*>& rs);
 
-class Projection {
-public:
-    Projection(const unsigned n, CompoundConstraints * ccs, FixedList const &fixed);
-    ~Projection();
-    void solve(Variables &lvs, std::set<vpsc::Constraint*> &lcs, valarray<double> &X);
-    void solve(Variables &lvs, std::set<vpsc::Constraint*> &lcs);
-    Variables vars;
-    Constraints gcs;
-    CompoundConstraints* ccs;
-private:
-    unsigned n;
-    FixedList const &fixed;
-};
 
 class ConstrainedFDLayout {
 public:
@@ -394,13 +381,11 @@ private:
     vector<vector<double> > neighbourLengths;
     TestConvergence& done;
     PreIteration* preIteration;
-    FixedList fixed;
     double avgLength;
     double fc,fs;
     bool constrainedX, constrainedY;
     CompoundConstraints *ccsx, *ccsy;
     bool avoidOverlaps;
-    std::auto_ptr<Projection> px, py;
     double** D;
     unsigned** G;
     vector<topology::Node*>* topologyNodes;

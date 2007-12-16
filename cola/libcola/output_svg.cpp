@@ -98,10 +98,10 @@ void OutputFile::generate() {
             cr->stroke_preserve();
             cr->save();
             cr->set_source_rgb(245./255., 233./255., 177./255.);
-            //cr->fill();
+            cr->fill();
             cr->restore();
             if(labels.size()==rs.size()) {
-                cr->move_to(x-te.x_bearing-te.width/2.,y+te.height/2.);
+                cr->move_to(x-te.x_bearing+te.width/2.,y-te.y_bearing+te.height/2.);
                 cr->show_text(str);
             }
             cr->stroke();

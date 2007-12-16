@@ -1,5 +1,7 @@
-/** \file
- * Interface between Inkscape code (SPItem) and graphlayout functions.
+/** \file unconstrained.cpp
+ *
+ * Unconstrained graph layout test.  Simple graph with 4 nodes and 4 edges,
+ * a triangle with a dangle.  Final stress checked.
  */
 /*
 * Authors:
@@ -38,6 +40,8 @@ int main() {
 	ConstrainedFDLayout alg(rs,es,NULL,width/2,NULL,test);
 	//alg.setConstrainedLayout(true);
 	alg.run();
+	double stress = alg.computeStress();
+	assert(stress < 0.0013);
 	OutputFile output(rs,es,NULL,"unconstrained.svg");
 	output.generate();
 	for(unsigned i=0;i<V;i++) {

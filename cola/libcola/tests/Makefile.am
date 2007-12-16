@@ -1,9 +1,11 @@
 INCLUDES = -I$(top_srcdir) -I/usr/include/cairo -I/usr/include/cairomm-1.0
+common_LDADD = $(top_builddir)/libcola/libcola.a $(top_builddir)/libvpsc/libvpsc.a $(top_builddir)/libtopology/libtopology.a $(top_builddir)/libproject/libproject.a
 #check_PROGRAMS = unconstrained constrained containment straightener shortest_paths connected_components large_graph convex_hull scale_free trees random_graph large_graph
-check_PROGRAMS = topology 
+check_PROGRAMS = unconstrained topology
+
 shortest_paths_LDADD = $(top_builddir)/libcola/libcola.a
 shortest_paths_SOURCES = shortest_paths.cpp
-unconstrained_LDADD = $(top_builddir)/libcola/libcola.a $(top_builddir)/libvpsc/libvpsc.a
+unconstrained_LDADD = $(top_builddir)/libcola/libcola.a $(top_builddir)/libvpsc/libvpsc.a $(top_builddir)/libtopology/libtopology.a $(top_builddir)/libproject/libproject.a
 unconstrained_SOURCES = unconstrained.cpp 
 constrained_LDADD = $(top_builddir)/libcola/libcola.a $(top_builddir)/libvpsc/libvpsc.a
 constrained_SOURCES = constrained.cpp 
@@ -13,7 +15,7 @@ containment2_LDADD = $(top_builddir)/libcola/libcola.a $(top_builddir)/libvpsc/l
 containment2_SOURCES = containment2.cpp 
 straightener_LDADD = $(top_builddir)/libcola/libcola.a $(top_builddir)/libvpsc/libvpsc.a
 straightener_SOURCES = straightener.cpp 
-topology_LDADD = $(top_builddir)/libcola/libcola.a $(top_builddir)/libvpsc/libvpsc.a $(top_builddir)/libproject/libproject.a
+topology_LDADD = $(common_LDADD)
 topology_SOURCES = topology.cpp 
 #connected_components_LDADD = $(top_builddir)/libcola/libcola.a $(top_builddir)/libvpsc/libvpsc.a
 #connected_components_SOURCES = connected_components.cpp

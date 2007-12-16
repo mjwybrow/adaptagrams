@@ -50,10 +50,6 @@ struct Event {
      * algorithm to generate topology constraints.
      */
     virtual void process()=0;
-    /**
-     * print is useful in debugging
-     */
-    virtual void print()=0;
 };
 /**
  * There is a NodeEvent for the top and bottom (or left and right sides depending on
@@ -83,7 +79,6 @@ struct NodeOpen : NodeEvent {
         : NodeEvent(true,node->rect->getMinD(!dim),node) {
     }
     void process() {
-        //print();
         pair<OpenNodes::iterator,bool> r =
             openNodes.insert(make_pair(node->rect->getCentreD(dim),this));
         // the following test fails if there is already an entry in
@@ -91,9 +86,6 @@ struct NodeOpen : NodeEvent {
         assert(r.second);
         openListIndex = r.first;
         createTopologyConstraint();
-    }
-    void print() {
-        printf("NodeOpen: pos=%f\n",pos);
     }
 };
 /**
@@ -116,7 +108,6 @@ struct NodeClose : NodeEvent {
     }
     void createNonOverlapConstraint(const Node* left, const Node* right) {
         double overlap = left->rect->overlapD(!dim,right->rect);
-        printf("overlap=%f\n",overlap);
         if(overlap>1e-5) {
             double g = left->rect->length(dim) + right->rect->length(dim);
             g/=2.0;
@@ -128,7 +119,6 @@ struct NodeClose : NodeEvent {
      * TopologyConstraints.
      */
     void process() {
-        //print();
         OpenNodes::iterator nodePos=opening->openListIndex;
         OpenNodes::iterator right=nodePos, left=nodePos;
         if(left--!=openNodes.begin()) {
@@ -142,9 +132,6 @@ struct NodeClose : NodeEvent {
         // create topology constraint from scanpos in every open edge to node
         createTopologyConstraint();
         delete this;
-    }
-    void print() {
-        printf("NodeClose: pos=%f\n",pos);
     }
 };
 /**
@@ -165,11 +152,7 @@ struct SegmentOpen : SegmentEvent {
         : SegmentEvent(true,s->getMin(),s) {}
     /// add to list of open segments
     void process() {
-        //print();
         openListIndex=openSegments.insert(openSegments.end(),this);
-    }
-    void print() {
-        printf("SegmentOpen: pos=%f\n",pos);
     }
 };
 /**
@@ -184,13 +167,9 @@ struct SegmentClose : SegmentEvent {
         assert(opening->s==s);
     }
     void process() {
-        //print();
         OpenSegments::iterator i=openSegments.erase(opening->openListIndex);
         delete opening;
         delete this;
-    }
-    void print() {
-        printf("SegmentClose: pos=%f\n",pos);
     }
 };
 /** 
@@ -227,7 +206,6 @@ StraightConstraint::StraightConstraint(
         const double pos) 
     : segment(s), node(node), pos(pos)
 {
-    //printf("creating StraightConstraint@%p\n",(void*)this);
     EdgePoint *u=s->start, *v=s->end;
     // segments orthogonal to scan direction need no constraints
     assert(v->pos[!dim]-u->pos[!dim]!=0);
@@ -260,7 +238,6 @@ StraightConstraint::StraightConstraint(
     }
     c=new TriConstraint(
                 u->node->var,v->node->var,node->var,p,g,passLeft);
-    //printf("Created new StraightConstraint: p=%f g=%f uy=%f vy=%f wy=%f\n", p,g,u->pos[!dim],v->pos[!dim],pos);
 }
 /**
  * create a constraint between the two segments joined by this
@@ -271,8 +248,6 @@ StraightConstraint::StraightConstraint(
 BendConstraint::BendConstraint(EdgePoint* v) 
     : bendPoint(v) 
 {
-    //printf("creating BendConstraint@%p\n",(void*)this);
-    //printf("  bend point@(%f,%f)\n",v->pos[dim],v->pos[!dim]);
     EdgePoint* u=v->inSegment->start, * w=v->outSegment->end;
     // because all of our nodes are boxes we do not expect consecutive
     // segments to change horizontal or vertical direction
@@ -343,6 +318,7 @@ struct createSegmentEvents {
     }
     vector<Event*>& events;
 };
+
 TopologyConstraints::
 TopologyConstraints( 
     const cola::Dim axisDim,
@@ -355,7 +331,6 @@ TopologyConstraints(
   , cs(cs)
 {
     dim = axisDim;
-    //printf("Generating topology constraints! (dim=%d)\n",dim);
 
     vector<Event*> events;
 

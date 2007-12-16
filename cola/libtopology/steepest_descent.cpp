@@ -11,6 +11,7 @@
 #include <libproject/project.h>
 #include "topology_graph.h"
 #include "topology_constraints.h"
+#include "log.h"
 using namespace std;
 namespace topology {
 
@@ -53,7 +54,6 @@ struct AlphaCheck : project::ExternalAlphaCheck {
     AlphaCheck(project::Variables& vs, vector<TopologyConstraint*>& ts) 
         : vs(vs), ts(ts) {}
     void operator()(double alpha) {
-        //printf("AlphaCheck: %f\n",alpha);
         double minTAlpha=DBL_MAX;
         TopologyConstraint* minT=NULL;
         // find minimum feasible alpha over all topology constraints
@@ -61,12 +61,9 @@ struct AlphaCheck : project::ExternalAlphaCheck {
                 i!=ts.end();++i) {
             TopologyConstraint* t=*i;
             double tAlpha=t->c->maxSafeAlpha();
-            printf("  TopologyConstraint %p alpha: %f\n",(void*)t,tAlpha);
-            t->print();
             if(tAlpha>0.00001 && tAlpha<minTAlpha) {
                 minTAlpha=tAlpha;
                 minT=t;
-                printf("  violated TopologyConstraint at: %f\n",minTAlpha);
             }
         }
         // if minTAlpha<alpha move all by minTAlpha 
@@ -74,14 +71,6 @@ struct AlphaCheck : project::ExternalAlphaCheck {
         if(minTAlpha<alpha) {
             for_each(vs.begin(),vs.end(),
                     bind2nd(mem_fun(&project::Variable::moveBy),minTAlpha));
-            /*
-            for(vector<TopologyConstraint*>::iterator i=ts.begin();
-                    i!=ts.end();++i) {
-                TopologyConstraint* t=*i;
-                //t->print();
-                printf("  TopologyConstraint %p slack: %f\n",t,t->slack());
-            }
-            */
             minT->satisfy();
             throw InterruptException();
         }
@@ -98,20 +87,8 @@ steepestDescent(valarray<double>& g, cola::SparseMap& h, const DesiredPositions&
     assert(g.size()==n);
     assert(h.n==n);
     computeForces(g,h);
-    /*
-    for(unsigned i=0;i<n;++i) {
-        printf("g[%d]=%f,eg[%d]=%f\n",i,g[i],i,expectedG[i]);
-        assert(fabs(g[i]-expectedG[i])<1e-4);
-        for(unsigned j=0;j<n;++j) {
-            printf("h[%d,%d]=%f,eh[%d,%d]=%f\n",i,j,h(i,j),i,j,expectedH[i*n+j]);
-            printf("%f,\n",h(i,j));
-            assert(fabs(h(i,j)-expectedH[i*n+j])<1e-4);
-        }
-    }
-    */
     cola::SparseMatrix H(h);
     double stepSize = computeStepSize(H,g,g);
-    //printf("stepSize=%f\n",stepSize);
     project::Variables vars(n);
     for(unsigned i=0;i<n;++i) {
         Node* node=nodes[i];
@@ -133,7 +110,7 @@ steepestDescent(valarray<double>& g, cola::SparseMap& h, const DesiredPositions&
     try {
         p.solve();
     } catch(InterruptException& e) {
-        printf("finished early!\n");
+        FILE_LOG(logDEBUG)<<"finished early!\n";
     } catch(project::CriticalFailure& f) {
         f.print();
         exit(1);
