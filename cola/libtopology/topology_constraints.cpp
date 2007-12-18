@@ -30,16 +30,27 @@ double TriConstraint::maxSafeAlpha() const {
     return numerator/denominator;
 }
 bool TriConstraint::tightening() const {
+    double u1=u->relativeInitialPos();
+    double u2=u->relativeDesiredPos();
+    double v1=v->relativeInitialPos();
+    double v2=v->relativeDesiredPos();
+    double w1=w->relativeInitialPos();
+    double w2=w->relativeDesiredPos();
     double du=u->relativeDesiredPos()-u->relativeInitialPos();
     double dv=v->relativeDesiredPos()-v->relativeInitialPos();
     double dw=w->relativeDesiredPos()-w->relativeInitialPos();
     double rhs = du + p*(dv-du);
     if(leftOf) {
-        FILE_LOG(logDEBUG1)<<"rhs-dw="<<(rhs-dw);
-        return dw < rhs;
+        double x=w2+g-u2-p*(v2-u2);
+        FILE_LOG(logDEBUG1)<<" w2+g-u2-p*(v2-u2)="<<x;
+        //FILE_LOG(logDEBUG1)<<"rhs-dw="<<(rhs-dw);
+        //return dw < rhs;
     }
-    FILE_LOG(logDEBUG1)<<"dw-rhs="<<(dw-rhs);
-    return dw > rhs;
+    double x=u2+p*(v2-u2)-w2-g;
+    FILE_LOG(logDEBUG1)<<"u2+p*(v2-u2)-w2-g="<<x;
+    //FILE_LOG(logDEBUG1)<<"dw-rhs="<<(dw-rhs);
+    //return dw > rhs;
+    return false;
 }
 double TriConstraint::slack () const {
     double ux = u->relativeDesiredPos()
