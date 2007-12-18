@@ -12,7 +12,7 @@ void addToPath(EdgePoints& ps, Node *v, topology::EdgePoint::RectIntersect i) {
     ps.push_back(new EdgePoint(v,i));
 }
 
-void writeFile(const Nodes& vs, const Edges& es, const char *outputFileName) {
+void writeFile(const Nodes& vs, const Edges& es, const string& outputFileName) {
     const unsigned n=vs.size();
     vector<cola::Edge> cedges;
 
@@ -36,7 +36,7 @@ void writeFile(const Nodes& vs, const Edges& es, const char *outputFileName) {
     for(Nodes::const_iterator i=vs.begin();i!=vs.end();++i) {
 	    rs.push_back((*i)->rect);
     }
-    OutputFile of(rs,cedges,NULL,outputFileName,true,false);
+    OutputFile of(rs,cedges,NULL,outputFileName.c_str(),true,false);
     of.setLabels(labels);
     of.routes=&routes;
     of.generate();

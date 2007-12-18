@@ -73,7 +73,10 @@ void split() {
     for(unsigned i=1;i<5;i++) {
         g=0;
         h.clear();
-        t.steepestDescent(g,h);
+        TopologyConstraint* v=t.steepestDescent(g,h);
+        if(v) {
+            printf("v->slack()=%f\n",v->c->slack());
+        }
         stringstream ss;
         ss << "split-" << i << ".svg";
         writeFile(vs,es,ss.str().c_str());

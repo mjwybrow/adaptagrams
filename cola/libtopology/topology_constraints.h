@@ -151,9 +151,9 @@ namespace topology {
         TopologyConstraint* mostViolated() const;
         void computeForces(valarray<double>& g, cola::SparseMap& h);
         double computeStress() const;
-        void steepestDescent(valarray<double>& g, 
+        TopologyConstraint* steepestDescent(valarray<double>& g, 
                 cola::SparseMap& h);
-        void steepestDescent(valarray<double>& g, 
+        TopologyConstraint* steepestDescent(valarray<double>& g, 
                 cola::SparseMap& h, 
                 const DesiredPositions& d);
         double reachedDesired(const DesiredPositions& d);

@@ -41,13 +41,14 @@ bool TriConstraint::tightening() const {
     double dw=w->relativeDesiredPos()-w->relativeInitialPos();
     double rhs = du + p*(dv-du);
     if(leftOf) {
-        double x=w2+g-u2-p*(v2-u2);
-        FILE_LOG(logDEBUG1)<<" w2+g-u2-p*(v2-u2)="<<x;
+        double x=w2-u2-p*(v2-u2)-g;
+        FILE_LOG(logDEBUG1)<<" w2-u2-p*(v2-u2)-g="<<x;
         //FILE_LOG(logDEBUG1)<<"rhs-dw="<<(rhs-dw);
         //return dw < rhs;
+        return false;
     }
-    double x=u2+p*(v2-u2)-w2-g;
-    FILE_LOG(logDEBUG1)<<"u2+p*(v2-u2)-w2-g="<<x;
+    double x=u2+p*(v2-u2)+g-w2;
+    FILE_LOG(logDEBUG1)<<"u2+p*(v2-u2)+g-w2="<<x;
     //FILE_LOG(logDEBUG1)<<"dw-rhs="<<(dw-rhs);
     //return dw > rhs;
     return false;

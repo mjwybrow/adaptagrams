@@ -1,6 +1,6 @@
 INCLUDES = -I$(top_srcdir) -I/usr/include/cairo -I/usr/include/cairomm-1.0
-#check_PROGRAMS = simple_bend triangle split kamada
-check_PROGRAMS = triangle
+#check_PROGRAMS = simple_bend triangle split kamada corners
+check_PROGRAMS = simple_bend
 simple_bend_LDADD = $(top_builddir)/libtopology/libtopology.a $(top_builddir)/libcola/libcola.a $(top_builddir)/libvpsc/libvpsc.a $(top_builddir)/libproject/libproject.a
 simple_bend_SOURCES = simple_bend.cpp 
 triangle_LDADD = $(top_builddir)/libtopology/libtopology.a $(top_builddir)/libcola/libcola.a $(top_builddir)/libvpsc/libvpsc.a $(top_builddir)/libproject/libproject.a
@@ -9,4 +9,6 @@ split_LDADD = $(top_builddir)/libtopology/libtopology.a $(top_builddir)/libcola/
 split_SOURCES = split.cpp 
 kamada_LDADD = $(top_builddir)/libtopology/libtopology.a $(top_builddir)/libcola/libcola.a $(top_builddir)/libvpsc/libvpsc.a $(top_builddir)/libproject/libproject.a
 kamada_SOURCES = kamada.cpp 
+corners_LDADD = $(top_builddir)/libtopology/libtopology.a $(top_builddir)/libcola/libcola.a $(top_builddir)/libvpsc/libvpsc.a $(top_builddir)/libproject/libproject.a
+corners_SOURCES = corners.cpp 
 TESTS = $(check_PROGRAMS)
