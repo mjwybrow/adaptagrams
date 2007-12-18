@@ -65,7 +65,7 @@ public:
      * It may be necessary for the user to change the desired position after
      * the Variable is created.
      */
-    void setDesiredPosition(const Desired& des) { d=des.pos; }
+    void setPosition(const Desired& des) { d=des.pos; }
     double getDesiredPosition() const { return d; }
     /**
      * Similarly weight may need to be adjusted after initialisation
@@ -74,6 +74,7 @@ public:
     double getWeight() const { return w; }
     /// get the current position (x)
     double getPosition() const { return x; }
+    void setPosition(const Initial& p) { x=p.pos; }
     /// compute derivative of goal function
     double dfdv() const { return 2.0 * w * (x-d); }
     /// weighted displacement from ideal position for block position

@@ -7,6 +7,7 @@
  */
 #include <libcola/sparse_matrix.h>
 #include "topology_constraints.h"
+#include "topology_log.h"
 namespace topology {
 /**
  * @param u an EdgePoint
@@ -31,6 +32,7 @@ double gRule1(const EdgePoint* a, const EdgePoint* b) {
     double lab=dim==cola::HORIZONTAL?
         len(a,b,dxab,dyab,dxab2,dyab2):
         len(a,b,dyab,dxab,dyab2,dxab2);
+    assert(lab!=0);
     return dxab/lab;
 }
 double gRule2(
@@ -39,10 +41,12 @@ double gRule2(
     double lab=dim==cola::HORIZONTAL?
         len(a,b,dxab,dyab,dxab2,dyab2):
         len(a,b,dyab,dxab,dyab2,dxab2);
+    assert(lab!=0);
     double dxbc, dybc, dxbc2, dybc2;
     double lbc=dim==cola::HORIZONTAL?
         len(b,c,dxbc,dybc,dxbc2,dybc2):
         len(b,c,dybc,dxbc,dybc2,dxbc2);
+    assert(lbc!=0);
     return dxab/lab - dxbc/lbc;
 }
 double hRuleD1(const EdgePoint* u, const EdgePoint* v, const double dl) {
@@ -50,6 +54,7 @@ double hRuleD1(const EdgePoint* u, const EdgePoint* v, const double dl) {
     double l=dim==cola::HORIZONTAL?
         len(u,v,dx,dy,dx2,dy2):
         len(u,v,dy,dx,dy2,dx2);
+    assert(l!=0);
     return dl*(dx2/(l*l*l) - 1/l) + dx2/(l*l);
 }
 double hRuleD2(
@@ -58,10 +63,12 @@ double hRuleD2(
     double luv=dim==cola::HORIZONTAL?
         len(u,v,dxuv,dyuv,dxuv2,dyuv2):
         len(u,v,dyuv,dxuv,dyuv2,dxuv2);
+    assert(luv!=0);
     double dxvw, dyvw, dxvw2, dyvw2;
     double lvw=dim==cola::HORIZONTAL?
         len(v,w,dxvw,dyvw,dxvw2,dyvw2):
         len(v,w,dyvw,dxvw,dyvw2,dxvw2);
+    assert(lvw!=0);
     double p1=dl*(dxuv2/(luv*luv*luv) - 1/luv + dxvw2/(lvw*lvw*lvw) - 1/lvw);
     double p2=(dxuv/luv - dxvw/lvw);
     return p1+p2*p2;
@@ -72,10 +79,12 @@ double hRule2(
     double luv=dim==cola::HORIZONTAL?
         len(u,v,dxuv,dyuv,dxuv2,dyuv2):
         len(u,v,dyuv,dxuv,dyuv2,dxuv2);
+    assert(luv!=0);
     double dxvw, dyvw, dxvw2, dyvw2;
     double lvw=dim==cola::HORIZONTAL?
         len(v,w,dxvw,dyvw,dxvw2,dyvw2):
         len(v,w,dyvw,dxvw,dyvw2,dxvw2);
+    assert(lvw!=0);
     return -dl*dxuv2/(luv*luv*luv)
         +dl/luv
         -dxuv2/(luv*luv)
@@ -88,10 +97,12 @@ double hRule3(
     double luv=dim==cola::HORIZONTAL?
         len(u,v,dxuv,dyuv,dxuv2,dyuv2):
         len(u,v,dyuv,dxuv,dyuv2,dxuv2);
+    assert(luv!=0);
     double dxvw, dyvw, dxvw2, dyvw2;
     double lvw=dim==cola::HORIZONTAL?
         len(v,w,dxvw,dyvw,dxvw2,dyvw2):
         len(v,w,dyvw,dxvw,dyvw2,dxvw2);
+    assert(lvw!=0);
     return -dl*dxvw2/(lvw*lvw*lvw)
         -dxvw2/(lvw*lvw)
         +dl/lvw
@@ -103,10 +114,12 @@ double hRule4(const EdgePoint* a, const EdgePoint* b,
     double lab=dim==cola::HORIZONTAL?
         len(a,b,dxab,dyab,dxab2,dyab2):
         len(a,b,dyab,dxab,dyab2,dxab2);
+    assert(lab!=0);
     double dxcd, dycd, dxcd2, dycd2;
     double lcd=dim==cola::HORIZONTAL?
         len(c,d,dxcd,dycd,dxcd2,dycd2):
         len(c,d,dycd,dxcd,dycd2,dxcd2);
+    assert(lcd!=0);
     return -dxab*dxcd/(lab*lcd);
 }
 double hRule56(const EdgePoint* u, const EdgePoint* v, 
@@ -115,14 +128,17 @@ double hRule56(const EdgePoint* u, const EdgePoint* v,
     double luv=dim==cola::HORIZONTAL?
         len(u,v,dxuv,dyuv,dxuv2,dyuv2):
         len(u,v,dyuv,dxuv,dyuv2,dxuv2);
+    assert(luv!=0);
     double dxab, dyab, dxab2, dyab2;
     double lab=dim==cola::HORIZONTAL?
         len(a,b,dxab,dyab,dxab2,dyab2):
         len(a,b,dyab,dxab,dyab2,dxab2);
+    assert(lab!=0);
     double dxbc, dybc, dxbc2, dybc2;
     double lbc=dim==cola::HORIZONTAL?
         len(b,c,dxbc,dybc,dxbc2,dybc2):
         len(b,c,dybc,dxbc,dybc2,dxbc2);
+    assert(lbc!=0);
     return dxuv/luv * ( dxbc/lbc - dxab/lab );
 }
 double hRule7(const EdgePoint* a, const EdgePoint* b, 
@@ -131,14 +147,17 @@ double hRule7(const EdgePoint* a, const EdgePoint* b,
     double lab=dim==cola::HORIZONTAL?
         len(a,b,dxab,dyab,dxab2,dyab2):
         len(a,b,dyab,dxab,dyab2,dxab2);
+    assert(lab!=0);
     double dxbc, dybc, dxbc2, dybc2;
     double lbc=dim==cola::HORIZONTAL?
         len(b,c,dxbc,dybc,dxbc2,dybc2):
         len(b,c,dybc,dxbc,dybc2,dxbc2);
+    assert(lbc!=0);
     double dxcd, dycd, dxcd2, dycd2;
     double lcd=dim==cola::HORIZONTAL?
         len(c,d,dxcd,dycd,dxcd2,dycd2):
         len(c,d,dycd,dxcd,dycd2,dxcd2);
+    assert(lcd!=0);
     return dl*(1/lbc - dxbc2/(lbc*lbc*lbc))
         +(dxab/lab - dxbc/lbc)*(dxbc/lbc - dxcd/lcd);
 }
@@ -148,18 +167,22 @@ double hRule8(const EdgePoint* u, const EdgePoint* v, const EdgePoint* w,
     double luv=dim==cola::HORIZONTAL?
         len(u,v,dxuv,dyuv,dxuv2,dyuv2):
         len(u,v,dyuv,dxuv,dyuv2,dxuv2);
+    assert(luv!=0);
     double dxvw, dyvw, dxvw2, dyvw2;
     double lvw=dim==cola::HORIZONTAL?
         len(v,w,dxvw,dyvw,dxvw2,dyvw2):
         len(v,w,dyvw,dxvw,dyvw2,dxvw2);
+    assert(lvw!=0);
     double dxab, dyab, dxab2, dyab2;
     double lab=dim==cola::HORIZONTAL?
         len(a,b,dxab,dyab,dxab2,dyab2):
         len(a,b,dyab,dxab,dyab2,dxab2);
+    assert(lab!=0);
     double dxbc, dybc, dxbc2, dybc2;
     double lbc=dim==cola::HORIZONTAL?
         len(b,c,dxbc,dybc,dxbc2,dybc2):
         len(b,c,dybc,dxbc,dybc2,dxbc2);
+    assert(lbc!=0);
     return (dxuv/luv - dxvw/lvw) * (dxab/lab - dxbc/lbc);
 }
 /**
@@ -189,6 +212,7 @@ struct ArrayMap {
  */
 void TopologyConstraints::
 computeForces(valarray<double>& gradient, cola::SparseMap& hessian) {
+    FILE_LOG(logDEBUG1) << "TopologyConstraints::computeForces";
     SparseMapMap H(hessian);
     ArrayMap<double> g(gradient);
     const EdgePoint *u,*v,*w;
@@ -199,11 +223,14 @@ computeForces(valarray<double>& gradient, cola::SparseMap& hessian) {
         ConstEdgePoints path;
         e->getPath(path);
         unsigned n=path.size();
+        FILE_LOG(logDEBUG2) << "  path: n="<<n;
         assert(n>=2);
         double d=e->idealLength;
 
         double weight=2.0/(d*d);
         double dl=d-e->pathLength();
+
+        if(dl>=0) continue;
 
         // first and last entries
         // gradient
@@ -272,6 +299,9 @@ computeForces(valarray<double>& gradient, cola::SparseMap& hessian) {
                 H(v,u)+=h;
             }
         }
+    }
+    for(unsigned i=0;i<gradient.size();i++) {
+        assert(gradient[i]==gradient[i]);
     }
     /*
     for(unsigned i=0;i<edges.size();i++) {

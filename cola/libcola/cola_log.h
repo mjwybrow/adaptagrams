@@ -6,13 +6,14 @@ Author: Petru Marginean
 Keywords: OCT07   C++  
 Description: Unpublished source code accompanying the article by Petru Marginean, in which he presents a C++ logging framework that is typesafe, thread-safe, and portable.
  */
-#ifndef __LOG_H__
-#define __LOG_H__
+#ifndef __COLA_LOG_H__
+#define __COLA_LOG_H__
 
 #include <sstream>
 #include <string>
 #include <stdio.h>
 
+namespace cola {
 inline std::string NowTime();
 
 enum TLogLevel {logERROR, logWARNING, logINFO, logDEBUG, logDEBUG1, logDEBUG2, logDEBUG3, logDEBUG4};
@@ -174,7 +175,8 @@ inline std::string NowTime()
     std::sprintf(result, "%s.%03ld", buffer, (long)tv.tv_usec / 1000); 
     return result;
 }
+} // namespace cola
 
 #endif //WIN32
 
-#endif //__LOG_H__
+#endif //__COLA_LOG_H__

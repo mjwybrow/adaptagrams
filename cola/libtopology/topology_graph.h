@@ -91,12 +91,25 @@ namespace topology {
         {
             setPos();
         }
+        /**
+         * for any two EdgePoint the following should always be false!
+         * @param e an EdgePoint (not this one)
+         */
+        bool uniqueCheck(const EdgePoint* e) const {
+            assert(this!=e);
+            return node==e->node && rectIntersect==e->rectIntersect;
+        }
         ~EdgePoint();
         /**
          * @return true if the EdgePoint is the end of an edge otherwise
          * asserts that it is a valid bend point.
          */
         bool isEnd() const;
+        /**
+         * asserts that, if this is a bend point, it does not double back in either
+         * the horizontal or vertical directions.
+         */
+        bool assertConvexBend() const;
         /**
          * update the position from the position of the associated rectangle
          */
@@ -121,9 +134,15 @@ namespace topology {
          * @param end the EdgePoint at the end of the segment
          */
         Segment(Edge* edge, EdgePoint* start, EdgePoint* end) 
-            : edge(edge), start(start), end(end) {
+            : edge(edge), start(start), end(end) 
+        {
+            // no self loops!
+            assert(start!=end);
+            // the ends of the segment should not involve the same rectangle vertex
+            assert(!start->uniqueCheck(end));
             start->outSegment=this;
             end->inSegment=this;
+            assert(length()!=0);
         }
         /**
          * clean up topologyConstraints
@@ -321,25 +340,10 @@ namespace topology {
          * @return a list of the coordinates along the edge route
          */
         straightener::Route* getRoute();
+        bool assertConvexBends() const;
     };
     typedef std::vector<Edge*> Edges;
-    /**
-     * a Functor for use in a sum_over a collection of edges
-     * which computes the total stress based on the difference in total
-     * pathLength for each edge and idealLength.
-     * More precisely the stress for a given edge \f$e\f$ is:
-     * \f[
-     *   \sigma(e) \left( d_e - \sum_{s \in S(e)} |s| \right)^2
-     * \f]
-     */
-    struct ComputeStress {
-        double operator()(const Edge* e) {
-            double d = e->idealLength;
-            double weight=1.0/(d*d);
-            double sqrtf=fabs(d-e->pathLength());
-            return weight*sqrtf*sqrtf;
-        }
-    };
+    double compute_stress(const Edges& es);
 } // namespace topology
 #endif // TOPOLOGY_GRAPH_H
 

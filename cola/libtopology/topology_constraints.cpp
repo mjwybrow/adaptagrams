@@ -5,6 +5,7 @@
 #include <libcola/straightener.h>
 #include "topology_graph.h"
 #include "topology_constraints.h"
+#include "topology_log.h"
 using namespace std;
 namespace topology {
 /** 
@@ -27,6 +28,18 @@ double TriConstraint::maxSafeAlpha() const {
         return 1;
     }
     return numerator/denominator;
+}
+bool TriConstraint::tightening() const {
+    double du=u->relativeDesiredPos()-u->relativeInitialPos();
+    double dv=v->relativeDesiredPos()-v->relativeInitialPos();
+    double dw=w->relativeDesiredPos()-w->relativeInitialPos();
+    double rhs = du + p*(dv-du);
+    if(leftOf) {
+        FILE_LOG(logDEBUG1)<<"rhs-dw="<<(rhs-dw);
+        return dw < rhs;
+    }
+    FILE_LOG(logDEBUG1)<<"dw-rhs="<<(dw-rhs);
+    return dw > rhs;
 }
 double TriConstraint::slack () const {
     double ux = u->relativeDesiredPos()
@@ -62,6 +75,7 @@ struct transferStraightConstraint {
  * The bend has become straight, remove bend
  */
 void BendConstraint::satisfy() {
+    FILE_LOG(logDEBUG)<<"BendConstraint::satisfy()";
     Segment* s1 = bendPoint->inSegment,
            * s2 = bendPoint->outSegment;
     Edge* e = s1->edge;
@@ -148,6 +162,7 @@ struct transferStraightConstraintChoose {
  * Segment needs to bend
  */
 void StraightConstraint::satisfy() {
+    FILE_LOG(logDEBUG)<<"StraightConstraint::satisfy()";
     Edge* e = segment->edge;
     EdgePoint* start = segment->start,
              * end = segment->end,
@@ -219,6 +234,26 @@ void TopologyConstraints::
 constraints(std::vector<TopologyConstraint*> & ts) const {
     for(Edges::const_iterator e=edges.begin();e!=edges.end();++e) {
         (*e)->forEachSegmentConst(getTopologyConstraints(ts));
+    }
+}
+
+struct PrintEdgePoint {
+    void operator() (EdgePoint* p) {
+        printf("addToPath(ps,vs[%d],(topology::EdgePoint::RectIntersect)%d);\n",p->node->id,p->rectIntersect);
+    }
+};
+void TopologyConstraints::
+printInstance() const {
+    for(Nodes::const_iterator i=nodes.begin();i!=nodes.end();++i) {
+        const Node* v=*i;
+        const vpsc::Rectangle* r=v->rect;
+        printf("addNode(vs,%f,%f,%f,%f);\n",
+                r->getMinX(),r->getMinY(),r->width(),r->height());
+    }
+    for(Edges::const_iterator e=edges.begin();e!=edges.end();++e) {
+        printf("ps.clear();\n");
+        (*e)->forEachEdgePoint(PrintEdgePoint());
+        printf("es.push_back(new Edge(%f,ps));\n",(*e)->idealLength);
     }
 }
 } // namespace topology

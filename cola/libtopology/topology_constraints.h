@@ -61,6 +61,11 @@ namespace topology {
          * desired positions without violating this constraint
          */
         double maxSafeAlpha() const;
+        /**
+         * indicates whether the movement of the variables (from their 
+         * initial to desired positions) is tightening the constraint.
+         */
+        bool tightening() const;
         double slack () const;
     };
     class TopologyConstraint {
@@ -78,6 +83,8 @@ namespace topology {
         virtual ~TopologyConstraint() {
             delete c;
         }
+    protected:
+        TopologyConstraint() : c(NULL) { }
     };
     /**
      * A constraint around a bend point that becomes active when the bend
@@ -150,6 +157,7 @@ namespace topology {
                 cola::SparseMap& h, 
                 const DesiredPositions& d);
         double reachedDesired(const DesiredPositions& d);
+        void printInstance() const;
     private:
         Nodes& nodes;
         Edges& edges;

@@ -78,7 +78,7 @@ public:
     virtual ~TestConvergence() {}
 
     virtual bool operator()(const double new_stress, valarray<double> & X, valarray<double> & Y) {
-        //std::cout<<"iteration="<<iterations<<", old_stress="<<old_stress<<", new_stress="<<new_stress<<std::endl;
+        std::cout<<"iteration="<<iterations<<", old_stress="<<old_stress<<", new_stress="<<new_stress<<std::endl;
         if (old_stress == DBL_MAX) {
             old_stress = new_stress;
             return ++iterations >= maxiterations;
@@ -376,6 +376,7 @@ private:
             double stepsize
             /*,topology::TopologyConstraints *s=NULL*/) const;
     void move();
+    bool noForces(double, double, unsigned) const;
     void computeForces(const Dim dim, SparseMap &H, valarray<double> &g);
     vector<vector<unsigned> > neighbours;
     vector<vector<double> > neighbourLengths;

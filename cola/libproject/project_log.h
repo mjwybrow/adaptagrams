@@ -6,13 +6,14 @@ Author: Petru Marginean
 Keywords: OCT07   C++  
 Description: Unpublished source code accompanying the article by Petru Marginean, in which he presents a C++ logging framework that is typesafe, thread-safe, and portable.
  */
-#ifndef __LOG_H__
-#define __LOG_H__
+#ifndef __PROJECT_LOG_H__
+#define __PROJECT_LOG_H__
 
 #include <sstream>
 #include <string>
 #include <stdio.h>
 
+namespace project {
 inline std::string NowTime();
 
 enum TLogLevel {logERROR, logWARNING, logINFO, logDEBUG, logDEBUG1, logDEBUG2, logDEBUG3, logDEBUG4};
@@ -24,7 +25,6 @@ public:
     Log();
     virtual ~Log();
     std::ostringstream& Get(TLogLevel level = logINFO);
-    void flush();
 public:
     static TLogLevel& ReportingLevel();
     static std::string ToString(TLogLevel level);
@@ -51,15 +51,10 @@ std::ostringstream& Log<T>::Get(TLogLevel level)
 }
 
 template <typename T>
-void Log<T>::flush()
+Log<T>::~Log()
 {
     os << std::endl;
     T::Output(os.str());
-}
-template <typename T>
-Log<T>::~Log()
-{
-    flush();
 }
 
 template <typename T>
@@ -145,11 +140,6 @@ class FILELOG_DECLSPEC FILELog : public Log<Output2FILE> {};
     else if (level > FILELog::ReportingLevel() || !Output2FILE::Stream()) ; \
     else FILELog().Get(level)
 
-#define FLUSH_LOG(level) \
-    if (level > FILELOG_MAX_LEVEL) ;\
-    else if (level > FILELog::ReportingLevel() || !Output2FILE::Stream()) ; \
-    else FILELog().flush()
-
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
 
 #include <windows.h>
@@ -187,5 +177,6 @@ inline std::string NowTime()
 }
 
 #endif //WIN32
+} // namespace project
 
-#endif //__LOG_H__
+#endif //__PROJECT_LOG_H__

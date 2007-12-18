@@ -10,7 +10,7 @@
 #include <libproject/project.h>
 #include <libcola/cola.h>
 #include <libcola/straightener.h>
-#include "log.h"
+#include "topology_log.h"
 #include "topology_graph.h"
 #include "topology_constraints.h"
 using namespace std;
@@ -80,6 +80,7 @@ struct NodeOpen : NodeEvent {
         : NodeEvent(true,node->rect->getMinD(!dim),node) {
     }
     void process() {
+        FILE_LOG(logDEBUG) << "NodeOpen::process()";
         pair<OpenNodes::iterator,bool> r =
             openNodes.insert(make_pair(node->rect->getCentreD(dim),this));
         // the following test fails if there is already an entry in
@@ -121,6 +122,7 @@ struct NodeClose : NodeEvent {
      * TopologyConstraints.
      */
     void process() {
+        FILE_LOG(logDEBUG) << "NodeClose::process()";
         OpenNodes::iterator nodePos=opening->openListIndex;
         OpenNodes::iterator right=nodePos, left=nodePos;
         if(left--!=openNodes.begin()) {
@@ -174,6 +176,7 @@ struct SegmentClose : SegmentEvent {
         delete this;
     }
 };
+struct RedundantStraightConstraint { };
 /** 
  * Create topology constraint from scanpos in every open segment to node.
  * Segments must not be on-top-of rectangles.
@@ -187,11 +190,15 @@ void NodeEvent::createTopologyConstraint() {
                 || s->edge->lastSegment->end->node==node) {
             continue;
         }
+        // skip if the one end of the segment is already 
         // segments orthogonal to scan direction need no constraints
         if(s->start->pos[!dim]-s->end->pos[!dim]==0) continue;
 
-        s->straightConstraints.push_back(new StraightConstraint(
-                    s,node,pos));
+        try {
+            s->straightConstraints.push_back(new StraightConstraint(s,node,pos));
+        } catch(RedundantStraightConstraint e) {
+            FILE_LOG(logWARNING) << "RedundantStraightConstraint exception";
+        }
     }
 }
 /**
@@ -217,29 +224,44 @@ StraightConstraint::StraightConstraint(
     vpsc::Rectangle* r=node->rect;
     FILE_LOG(logDEBUG1)<<"Segment: from "<<u->pos[!dim]<<" to "<<v->pos[!dim];
     FILE_LOG(logDEBUG1)<<"Node: rect "<<*r;
-    // segment must overlap in the scan dimension with the rectangle
+    // segment must overlap in the scan dimension with the potential bend point
     assert(min(v->pos[!dim],u->pos[!dim])<=pos);
     assert(max(v->pos[!dim],u->pos[!dim])>=pos);
-    assert(r->getMinD(!dim)<=pos);
-    assert(r->getMaxD(!dim)>=pos);
     // determine direction of constraint based on intersection
     // of segment with scan line
-    bool passLeft=false;
     double p;
-    if(s->intersection(pos,p) < node->rect->getCentreD(dim)) {
-        passLeft=true;
-    } 
-    ri=pos < node->rect->getCentreD(!dim)
-         ? passLeft ? EdgePoint::BL : EdgePoint::BR
-         : passLeft ? EdgePoint::TL : EdgePoint::TR;
+    // set passLeft based on whether the intersection of the potential bend point
+    // is to the left or right of the node centre
+    bool passLeft=s->intersection(pos,p) < node->rect->getCentreD(dim);
+    if(dim==cola::HORIZONTAL) {
+        ri=pos < node->rect->getCentreY()
+             ? (passLeft ? EdgePoint::BL : EdgePoint::BR)
+             : (passLeft ? EdgePoint::TL : EdgePoint::TR);
+    } else {
+        ri=pos < node->rect->getCentreX()
+             ? (passLeft ? EdgePoint::BL : EdgePoint::TL)
+             : (passLeft ? EdgePoint::BR : EdgePoint::TR);
+    }
+    if(node==u->node  && ri==u->rectIntersect) {
+        // constraint is redundant because the potential bend point is
+        // already a real bend associated with the start EdgePoint of this
+        // segment !
+        throw RedundantStraightConstraint();
+    }
+    if(node==v->node  && ri==v->rectIntersect) {
+        // constraint is redundant - end EdgePoint of this segment!
+        throw RedundantStraightConstraint();
+    }
+    // no heap allocations before this point so that the above throw does not 
+    // cause a memory leak
+
     double g=u->offset()+p*(v->offset()-u->offset());
     if(passLeft) {
         g+=r->length(dim)/2.0;
     } else {
         g-=r->length(dim)/2.0;
     }
-    c=new TriConstraint(
-                u->node->var,v->node->var,node->var,p,g,passLeft);
+    c=new TriConstraint(u->node->var,v->node->var,node->var,p,g,passLeft);
 }
 /**
  * create a constraint between the two segments joined by this
@@ -252,13 +274,15 @@ BendConstraint(EdgePoint* v)
     : bendPoint(v) 
 {
     FILE_LOG(logDEBUG)<<"BendConstraint ctor, pos="<<v->pos[!dim];
+    assert(v->inSegment!=NULL);
+    assert(v->outSegment!=NULL);
+    assert(!v->isEnd());
     EdgePoint* u=v->inSegment->start, * w=v->outSegment->end;
     // because all of our nodes are boxes we do not expect consecutive
     // segments to change horizontal or vertical direction
     FILE_LOG(logDEBUG1)<<"u="<<u->pos[!dim]<<" v="<<v->pos[!dim]<<" w="<<w->pos[!dim];
     FLUSH_LOG(logDEBUG1);
-    assert(u->pos[!dim]<v->pos[!dim]&&v->pos[!dim]<=w->pos[!dim]
-        || u->pos[!dim]>v->pos[!dim]&&v->pos[!dim]>=w->pos[!dim]);
+    assert(v->assertConvexBend());
     double p;
     double i=v->inSegment->intersection(w->pos[!dim],p);
     double g=u->offset()+p*(v->offset()-u->offset())-w->offset();
@@ -300,11 +324,13 @@ struct CompareEvents {
 struct createBendConstraints {
     void operator() (EdgePoint* p) {
         Segment* in = p->inSegment, * out = p->outSegment;
-        // don't generate events for segments parallel to scan line
+        double v = p->pos[!dim];
+        // don't generate BendConstraints for segments parallel to scan line
         // or points at the end of an edge
         if(in!=NULL && out!=NULL
-           && in->start->pos[!dim]!=in->end->pos[!dim]
-           && out->start->pos[!dim]!=out->end->pos[!dim] ) {
+           && in->start->pos[!dim]!=v && v!=out->end->pos[!dim]) {
+            // edges shouldn't double back!
+            assert(p->assertConvexBend());
             // if it's a valid bend point then create a TopologyConstraint
             // that becomes active when the bend straightens
             p->bendConstraint = new BendConstraint(p);
@@ -336,6 +362,7 @@ TopologyConstraints(
   , edges(edges) 
   , cs(cs)
 {
+    //FILELog::ReportingLevel() = logWARNING;
     FILELog::ReportingLevel() = logDEBUG1;
 
     dim = axisDim;

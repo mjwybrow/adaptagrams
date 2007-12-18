@@ -37,6 +37,7 @@ double expectedH2[]={0.000505,-0.000169,-0.000336,
 
 void split() {
     Nodes vs;
+    Edges es;
 
     printf("test: bend2()\n");
 
@@ -49,8 +50,6 @@ void split() {
     addToPath(p1,vs[1],EdgePoint::BL);
     addToPath(p1,vs[1],EdgePoint::TL);
     addToPath(p1,vs[3],EdgePoint::CENTRE);
-
-    Edges es;
     es.push_back(new Edge(100,p1));
 
     EdgePoints p2;

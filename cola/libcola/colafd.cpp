@@ -11,7 +11,7 @@
 #include <libproject/project.h>
 #include <libtopology/topology_graph.h>
 #include <libtopology/topology_constraints.h>
-#include "log.h"
+#include "cola_log.h"
 
 namespace cola {
 template <class T>
@@ -114,7 +114,7 @@ void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis) {
  */
 double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const double oldStress,
         const bool firstPass) {
-    FILE_LOG(logDEBUG) << "ConstrainedFDLayout::applyForcesAndConstraints...";
+    FILE_LOG(logDEBUG) << "ConstrainedFDLayout::applyForcesAndConstraints(): dim="<<dim;
     valarray<double> g(n);
     valarray<double> &coords = (dim==HORIZONTAL)?X:Y;
     /*
@@ -131,7 +131,8 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
             v->var = new project::Variable(
                     project::Initial(v->rect->getCentreD(dim)),
                     project::Desired(-1));
-            printf("init: id=%d,x=%f,y=%f\n",v->id,v->rect->getCentreD(0),v->rect->getCentreD(1));
+            FILE_LOG(logDEBUG1)<<"init: v["<<v->id<<"]=("<<v->rect->getCentreX()
+                <<","<<v->rect->getCentreY()<<")";
         }
         topology::DesiredPositions des;
         if(preIteration) {
@@ -139,7 +140,8 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
                 for(vector<Lock>::iterator l=preIteration->locks.begin();
                         l!=preIteration->locks.end();l++) {
                     des.push_back(make_pair(l->id,l->pos[dim]));
-                    printf("desi: id=%d,x=%f,y=%f\n",l->id,l->pos[0],l->pos[1]);
+                    FILE_LOG(logDEBUG1)<<"desi: v["<<l->id<<"]=("<<l->pos[0]
+                        <<","<<l->pos[1]<<")";
                 }
             }
         }
@@ -150,17 +152,16 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
         }
         topology::TopologyConstraints t(dim,*topologyNodes,*topologyRoutes,pcs);
         do {
-            printf(" %d constraint.\n",pcs.size());
             SparseMap HMap(n);
             computeForces(dim,HMap,g);
             t.steepestDescent(g,HMap,des);
-        } while(t.reachedDesired(des)>10);
+        } while(t.reachedDesired(des)>0.01);
         Rectangle::setXBorder(0);
         for(topology::Nodes::iterator i=topologyNodes->begin();
                 i!=topologyNodes->end();++i) {
             topology::Node* v=*i;
             coords[v->id]=v->var->getPosition();
-            printf("Setting v[%d]=%f\n",v->id,v->var->getPosition());
+            FILE_LOG(logDEBUG1)<<"result: v["<<v->id<<"]="<<v->var->getPosition();
             delete v->var;
         }
     } else {
@@ -202,6 +203,31 @@ double ConstrainedFDLayout::applyDescentVector(
     }
     return oldStress;
 }
+/**
+ * When considering a given pair of nodes we, in some circumstances, do not want to
+ * compute forces between them.
+ * Specifically, if nodes are further apart than their desired separation (l>d) and:
+ *  - they are not immediately connected (g>1); or
+ *  - they are immediately connected but we have topology routes (in which case the
+ *    attractive force will be computed over the path length rather than the euclidean
+ *    separation).
+ * @param l actual separation between the pair of nodes
+ * @param d desired separation between them
+ * @param g graph path length between them
+ * @return true if forces should NOT be computed
+ */
+bool ConstrainedFDLayout::noForces(double l, double d, unsigned g) const {
+    if(l>d) {
+        // we don't want long range attractive forces between 
+        // not immediately connected nodes
+        if(g>1) return true;
+        // if we compute forces over topological edge paths then they replace
+        // short range repulsive forces between adjacent nodes
+        if(topologyRoutes && g==1) return true;
+    }
+    return false;
+}
+        
 void ConstrainedFDLayout::computeForces(
         const Dim dim,
         SparseMap &H,
@@ -214,17 +240,13 @@ void ConstrainedFDLayout::computeForces(
         double Huu=0;
         for(unsigned v=0;v<n;v++) {
             if(u==v) continue;
+            unsigned p = G[u][v];
             // no forces between disconnected parts of the graph
-            if(G[u][v]==numeric_limits<unsigned>::max()) continue;
+            if(p==numeric_limits<unsigned>::max()) continue;
             double rx=X[u]-X[v], ry=Y[u]-Y[v];
             double l=sqrt(rx*rx+ry*ry);
             double d=D[u][v];
-            // we don't want long range attractive forces between 
-            // not immediately connected nodes
-            if(G[u][v]>1 && l>d) continue;
-            // if we compute topology forces then they replace
-            // forces between adjacent nodes
-            if(topologyRoutes && G[u][v]==1) continue;
+            if(noForces(l,d,p)) continue;
             double d2=d*d;
             /* force apart zero distances */
             if (l < 1e-30) {
@@ -256,23 +278,22 @@ double ConstrainedFDLayout::computeStepSize(
     return numerator/denominator;
 }
 double ConstrainedFDLayout::computeStress() const {
+    FILE_LOG(logDEBUG)<<"ConstrainedFDLayout::computeStress()";
     double stress=0;
     for(unsigned u=0;u<n-1;u++) {
         for(unsigned v=u+1;v<n;v++) {
+            unsigned p=G[u][v];
             // no forces between disconnected parts of the graph
-            if(G[u][v]==numeric_limits<unsigned>::max()) continue;
-            // if we compute forces over topological edge paths then they replace
-            // forces between adjacent nodes
-            if(topologyRoutes && G[u][v]==1) continue;
+            if(p==numeric_limits<unsigned>::max()) continue;
             double rx=X[u]-X[v], ry=Y[u]-Y[v];
             double l=sqrt(rx*rx+ry*ry);
             double d=D[u][v];
-            // we don't want long range attractive forces between 
-            // not immediately connected nodes
-            if(G[u][v]>1 && l>d) continue;
+            if(noForces(l,d,p)) continue;
             double d2=d*d;
             double rl=d-l;
-            stress+=rl*rl/d2;
+            double s=rl*rl/d2;
+            stress+=s;
+            FILE_LOG(logDEBUG1)<<"s("<<u<<","<<v<<")="<<s;
         }
     }
     if(preIteration) {
@@ -280,21 +301,24 @@ double ConstrainedFDLayout::computeStress() const {
             for(vector<Lock>::iterator l=preIteration->locks.begin();
                     l!=preIteration->locks.end();l++) {
                 double dx=l->pos[0]-X[l->id], dy=l->pos[1]-Y[l->id];
-                stress+=10000*(dx*dx+dy*dy);
+                double s=10000*(dx*dx+dy*dy);
+                stress+=s;
+                FILE_LOG(logDEBUG1)<<"d("<<l->id<<")="<<s;
             }
         }
     }
     if(topologyRoutes) {
-        cola::sum_over(topologyRoutes->begin(),topologyRoutes->end(),stress,
-                topology::ComputeStress());
+        double s=topology::compute_stress(*topologyRoutes);
+        FILE_LOG(logDEBUG1)<<"s(topology)="<<s;
+        stress+=s;
     }
     return stress;
 }
 void ConstrainedFDLayout::move() {
-        for(unsigned i=0;i<n;i++) {
-            boundingBoxes[i]->moveCentre(X[i],Y[i]);
-        }
+    for(unsigned i=0;i<n;i++) {
+        boundingBoxes[i]->moveCentre(X[i],Y[i]);
     }
+}
 
 } // namespace cola
 

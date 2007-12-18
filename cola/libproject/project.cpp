@@ -18,7 +18,7 @@
 #include <cassert>
 #include "util.h"
 #include "project.h"
-#include "log.h"
+#include "project_log.h"
 
 #ifndef NDEBUG
 static double lastCost;
@@ -142,8 +142,8 @@ Project(
     , inactive(cs.begin(),cs.end())
     , externalAlphaCheck(NULL)
 { 
-    //FILELog::ReportingLevel() = logWARNING;
-    FILELog::ReportingLevel() = logDEBUG1;
+    FILELog::ReportingLevel() = logWARNING;
+    //FILELog::ReportingLevel() = logDEBUG1;
 }
 Project::
 ~Project() {
