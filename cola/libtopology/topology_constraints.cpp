@@ -29,36 +29,20 @@ double TriConstraint::maxSafeAlpha() const {
     }
     return numerator/denominator;
 }
-bool TriConstraint::tightening() const {
-    double u1=u->relativeInitialPos();
-    double u2=u->relativeDesiredPos();
-    double v1=v->relativeInitialPos();
-    double v2=v->relativeDesiredPos();
-    double w1=w->relativeInitialPos();
-    double w2=w->relativeDesiredPos();
-    double du=u->relativeDesiredPos()-u->relativeInitialPos();
-    double dv=v->relativeDesiredPos()-v->relativeInitialPos();
-    double dw=w->relativeDesiredPos()-w->relativeInitialPos();
-    double rhs = du + p*(dv-du);
-    if(leftOf) {
-        double x=w2-u2-p*(v2-u2)-g;
-        FILE_LOG(logDEBUG1)<<" w2-u2-p*(v2-u2)-g="<<x;
-        //FILE_LOG(logDEBUG1)<<"rhs-dw="<<(rhs-dw);
-        //return dw < rhs;
-        return false;
-    }
-    double x=u2+p*(v2-u2)+g-w2;
-    FILE_LOG(logDEBUG1)<<"u2+p*(v2-u2)+g-w2="<<x;
-    //FILE_LOG(logDEBUG1)<<"dw-rhs="<<(dw-rhs);
-    //return dw > rhs;
-    return false;
+double TriConstraint::slack(const double ux, const double vx, const double wx) const {
+    const double lhs = wx;
+    const double rhs = ux+p*(vx-ux)+g;
+    return leftOf ? rhs - lhs
+                  : lhs - rhs;
+}
+double TriConstraint::slackAtDesired() const {
+    return 
+        slack(u->getDesiredPosition(), 
+              v->getDesiredPosition(), 
+              w->getDesiredPosition());
 }
 double TriConstraint::slack () const {
-    double ux = u->relativeDesiredPos()
-         , vx = v->relativeDesiredPos()
-         , lhs = w->relativeDesiredPos();
-    double rhs = ux+p*(vx-ux)+g;
-    return leftOf ? rhs - lhs : lhs - rhs;
+    return slack(u->getPosition(), v->getPosition(), w->getPosition());
 }
 
 ostream& operator<< (ostream& os, const TriConstraint& c) {
@@ -88,6 +72,7 @@ struct transferStraightConstraint {
  */
 void BendConstraint::satisfy() {
     FILE_LOG(logDEBUG)<<"BendConstraint::satisfy()";
+    assert(fabs(c->slack())<1e-7);
     Segment* s1 = bendPoint->inSegment,
            * s2 = bendPoint->outSegment;
     Edge* e = s1->edge;
@@ -175,6 +160,7 @@ struct transferStraightConstraintChoose {
  */
 void StraightConstraint::satisfy() {
     FILE_LOG(logDEBUG)<<"StraightConstraint::satisfy()";
+    assert(fabs(c->slack())<1e-7);
     Edge* e = segment->edge;
     EdgePoint* start = segment->start,
              * end = segment->end,

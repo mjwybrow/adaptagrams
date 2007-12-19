@@ -104,10 +104,11 @@ struct AlphaCheck : project::ExternalAlphaCheck {
                 i!=ts.end();++i) {
             TopologyConstraint* t=*i;
             double tAlpha=t->c->maxSafeAlpha();
-            t->c->tightening();
-            FILE_LOG(logDEBUG1)<<"Checking topology constraint! alpha="<<tAlpha;
+            double slackAtDesired=t->c->slackAtDesired();
+            FILE_LOG(logDEBUG1)<<"Checking topology constraint! alpha="<<tAlpha
+                <<"\n  slack at desired="<<slackAtDesired;
             FILE_LOG(logDEBUG1)<<t->toString();
-            if(tAlpha>1e-7 && tAlpha<minTAlpha) {
+            if(slackAtDesired<0 && tAlpha<minTAlpha) {
                 minTAlpha=tAlpha;
                 minT=t;
             } else {
@@ -127,7 +128,7 @@ struct AlphaCheck : project::ExternalAlphaCheck {
     project::Variables& vs;
     vector<TopologyConstraint*>& ts;
 };
-TopologyConstraint* TopologyConstraints::
+void TopologyConstraints::
 steepestDescent(valarray<double>& g, cola::SparseMap& h) {
     return steepestDescent(g,h,DesiredPositions());
 }
@@ -141,7 +142,7 @@ struct PrintPoint {
         printf(" node: %p, corner: %d\n",p->node,p->rectIntersect);
     }
 };
-TopologyConstraint* TopologyConstraints::
+void TopologyConstraints::
 steepestDescent(valarray<double>& g, cola::SparseMap& h, const DesiredPositions& d=DesiredPositions()) {
     FILE_LOG(logDEBUG)<<"TopologyConstraints::steepestDescent... dim="<<dim;
     assert(g.size()==n);
@@ -213,7 +214,6 @@ steepestDescent(valarray<double>& g, cola::SparseMap& h, const DesiredPositions&
         assert((*e)->assertConvexBends());
     }
     FILE_LOG(logDEBUG)<<"TopologyConstraints::steepestDescent... done";
-    return violated;
 }
 double TopologyConstraints::
 reachedDesired(const DesiredPositions& d) {

@@ -60,7 +60,8 @@ ConstrainedFDLayout::ConstrainedFDLayout(
       topologyNodes(NULL),
       topologyRoutes(NULL)
 {
-    FILELog::ReportingLevel() = logDEBUG1;
+    //FILELog::ReportingLevel() = logDEBUG1;
+    FILELog::ReportingLevel() = logERROR;
     boundingBoxes.resize(n);
     copy(rs.begin(),rs.end(),boundingBoxes.begin());
     done.reset();
@@ -164,6 +165,7 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
             FILE_LOG(logDEBUG1)<<"result: v["<<v->id<<"]="<<v->var->getPosition();
             delete v->var;
         }
+        for_each(pcs.begin(),pcs.end(),delete_object());
     } else {
         SparseMap HMap(n);
         computeForces(dim,HMap,g);

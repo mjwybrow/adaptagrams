@@ -36,118 +36,177 @@ double expectedH2[]={0.000505,-0.000169,-0.000336,
                      -0.000169,0.000165,0.000004 ,
                      -0.000336,0.000004,0.000333};
 
-unsigned case1(Nodes& vs, Edges& es) {
-    EdgePoints ps;
-    addNode(vs,2.655473,0.000000,10.100000,10.000000);
-    addNode(vs,49.957304,50.000000,10.100000,10.000000);
-    addNode(vs,97.259136,0.000000,10.100000,10.000000);
-    addNode(vs,63.828037,25.000000,10.100000,10.000000);
-    ps.clear();
-    addToPath(ps,vs[0],(topology::EdgePoint::RectIntersect)4);
-    addToPath(ps,vs[1],(topology::EdgePoint::RectIntersect)4);
-    es.push_back(new Edge(60.000000,ps));
-    ps.clear();
-    addToPath(ps,vs[1],(topology::EdgePoint::RectIntersect)4);
-    addToPath(ps,vs[3],(topology::EdgePoint::RectIntersect)0);
-    addToPath(ps,vs[2],(topology::EdgePoint::RectIntersect)4);
-    es.push_back(new Edge(60.000000,ps));
-    ps.clear();
-    addToPath(ps,vs[2],(topology::EdgePoint::RectIntersect)4);
-    addToPath(ps,vs[0],(topology::EdgePoint::RectIntersect)4);
-    es.push_back(new Edge(60.000000,ps));
-    return vs.size();
-}
-unsigned case2(Nodes& vs, Edges& es) {
-    EdgePoints ps;
-    addNode(vs,20.428107,0.000000,10.100000,10.000000);
-    addNode(vs,45.716379,50.000000,10.100000,10.000000);
-    addNode(vs,79.517409,0.000000,10.100000,10.000000);
-    addNode(vs,17.425625,25.000000,10.100000,10.000000);
-    ps.clear();
-    addToPath(ps,vs[0],(topology::EdgePoint::RectIntersect)4);
-    addToPath(ps,vs[3],(topology::EdgePoint::RectIntersect)2);
-    addToPath(ps,vs[3],(topology::EdgePoint::RectIntersect)3);
-    addToPath(ps,vs[1],(topology::EdgePoint::RectIntersect)4);
-    es.push_back(new Edge(60.000000,ps));
-    ps.clear();
-    addToPath(ps,vs[1],(topology::EdgePoint::RectIntersect)4);
-    addToPath(ps,vs[2],(topology::EdgePoint::RectIntersect)4);
-    es.push_back(new Edge(60.000000,ps));
-    ps.clear();
-    addToPath(ps,vs[2],(topology::EdgePoint::RectIntersect)4);
-    addToPath(ps,vs[0],(topology::EdgePoint::RectIntersect)4);
-    es.push_back(new Edge(60.000000,ps));
-
-    return vs.size();
-}
-unsigned case3(Nodes& vs, Edges& es) {
-    EdgePoints ps;
-    addNode(vs,101.846987,160.020991,10.100000,10.000000);
-    addNode(vs,117.734372,216.805338,10.100000,10.000000);
-    addNode(vs,160.316550,174.380230,10.100000,10.000000);
-    addNode(vs,106.896987,179.923284,10.100000,10.000000);
-    ps.clear();
-    addToPath(ps,vs[0],(topology::EdgePoint::RectIntersect)4);
-    addToPath(ps,vs[3],(topology::EdgePoint::RectIntersect)3);
-    addToPath(ps,vs[1],(topology::EdgePoint::RectIntersect)4);
-    es.push_back(new Edge(60.000000,ps));
-    ps.clear();
-    addToPath(ps,vs[1],(topology::EdgePoint::RectIntersect)4);
-    addToPath(ps,vs[2],(topology::EdgePoint::RectIntersect)4);
-    es.push_back(new Edge(60.000000,ps));
-    ps.clear();
-    addToPath(ps,vs[2],(topology::EdgePoint::RectIntersect)4);
-    addToPath(ps,vs[0],(topology::EdgePoint::RectIntersect)4);
-    es.push_back(new Edge(60.000000,ps));
-
-    return vs.size();
-}
-
-void triangle() {
-    printf("test: triangle()\n");
+struct TestCase {
     Nodes vs;
     Edges es;
-
-    const size_t V = case3(vs,es);
-
-    project::Constraints cs;
-    TopologyConstraints t(cola::HORIZONTAL,vs,es,cs);
-    writeFile(vs,es,"triangle-000.svg");
-
-    // test computeStress
-    double stress=t.computeStress();
-    printf("Stress=%f\n",stress);
-    //assert(fabs(expectedStress-stress)<1e-4);
-
-    double gradient[]={8.34249e-05,-7.59405e-05,-7.48445e-06,0};
-    valarray<double> g(V);
-    for(unsigned i=0;i<V;i++) {
-        g[i]=gradient[i];
-    }
-    cola::SparseMap h(V);
     DesiredPositions des;
-    //des.push_back(make_pair(3,60));
-    des.push_back(make_pair(3,111.933269));
-    for(unsigned i=1;i<10;i++) {
-        g=0;
-        h.clear();
-        t.steepestDescent(g,h,des);
-        stringstream ss;
-        ss << "triangle-" << setfill('0') << setw(3) << i << ".svg";
-        writeFile(vs,es,ss.str().c_str());
-    }
+    valarray<double> g;
+    EdgePoints ps;
+    project::Constraints cs;
+    cola::Dim dim;
+    unsigned iterations;
+    TestCase() : dim(cola::HORIZONTAL), iterations(10) { }
 
-    for(Nodes::iterator i=vs.begin();i!=vs.end();++i) {
-        Node* v=*i;
-        delete v->rect;
-        delete v->var;
-        delete v;
+    void run() {
+        writeFile(vs,es,"triangle-000.svg");
+
+        if(g.size()!=vs.size()) {
+            g.resize(vs.size());
+            g=0;
+        }
+        TopologyConstraints t(dim,vs,es,cs);
+        // test computeStress
+        double stress=t.computeStress();
+        printf("Stress=%f\n",stress);
+        //assert(fabs(expectedStress-stress)<1e-4);
+
+        cola::SparseMap h(vs.size());
+        for(unsigned i=1;i<iterations;i++) {
+            g=0;
+            h.clear();
+            t.steepestDescent(g,h,des);
+            stringstream ss;
+            ss << "triangle-" << setfill('0') << setw(3) << i << ".svg";
+            writeFile(vs,es,ss.str().c_str());
+        }
     }
-    for_each(es.begin(),es.end(),delete_object());
+    ~TestCase() {
+        for_each(es.begin(),es.end(),delete_object());
+        for_each(cs.begin(),cs.end(),delete_object());
+        for(Nodes::iterator i=vs.begin();i!=vs.end();++i) {
+            Node* v=*i;
+            delete v->rect;
+            delete v->var;
+            delete v;
+        }
+    }
+    void setGradient(double* gradient) {
+        assert(vs.size()>0);
+        g.resize(vs.size());
+        for(unsigned i=0;i<vs.size();i++) {
+            g[i]=gradient[i];
+        }
+    }
+    Node* addNode(double x, double y, double w, double h) {
+        vpsc::Rectangle* r = new vpsc::Rectangle(x,x+w,y,y+h);
+        project::Variable* var=new project::Variable(
+                project::Initial(-1),
+                project::Desired(-1));
+        Node *v = new Node(vs.size(), r, var);
+        vs.push_back(v);
+        return v;
+    }
+    void addEdge(double idealLength) {
+        assert(ps.size()>=2);
+        es.push_back(new Edge(idealLength,ps));
+        ps.clear();
+    }
+    void addDesired(unsigned vid, double pos) {
+        des.push_back(make_pair(vid,pos));
+    }
+    void addToPath(unsigned vid, topology::EdgePoint::RectIntersect i) {
+        ps.push_back(new EdgePoint(vs[vid],i));
+    }
+};
+void case1(TestCase& t) {
+    t.addNode(2.655473,0.000000,10.100000,10.000000);
+    t.addNode(49.957304,50.000000,10.100000,10.000000);
+    t.addNode(97.259136,0.000000,10.100000,10.000000);
+    t.addNode(63.828037,25.000000,10.100000,10.000000);
+    t.addToPath(0,(topology::EdgePoint::RectIntersect)4);
+    t.addToPath(1,(topology::EdgePoint::RectIntersect)4);
+    t.addEdge(60);
+    t.addToPath(1,(topology::EdgePoint::RectIntersect)4);
+    t.addToPath(3,(topology::EdgePoint::RectIntersect)0);
+    t.addToPath(2,(topology::EdgePoint::RectIntersect)4);
+    t.addEdge(60);
+    t.addToPath(2,(topology::EdgePoint::RectIntersect)4);
+    t.addToPath(0,(topology::EdgePoint::RectIntersect)4);
+    t.addEdge(60);
+}
+void case2(TestCase& t) {
+    t.addNode(20.428107,0.000000,10.100000,10.000000);
+    t.addNode(45.716379,50.000000,10.100000,10.000000);
+    t.addNode(79.517409,0.000000,10.100000,10.000000);
+    t.addNode(17.425625,25.000000,10.100000,10.000000);
+    t.addToPath(0,(topology::EdgePoint::RectIntersect)4);
+    t.addToPath(3,(topology::EdgePoint::RectIntersect)2);
+    t.addToPath(3,(topology::EdgePoint::RectIntersect)3);
+    t.addToPath(1,(topology::EdgePoint::RectIntersect)4);
+    t.addEdge(60);
+    t.addToPath(1,(topology::EdgePoint::RectIntersect)4);
+    t.addToPath(2,(topology::EdgePoint::RectIntersect)4);
+    t.addEdge(60);
+    t.addToPath(2,(topology::EdgePoint::RectIntersect)4);
+    t.addToPath(0,(topology::EdgePoint::RectIntersect)4);
+    t.addEdge(60);
+}
+void case3(TestCase& t) {
+    t.addNode(101.846987,160.020991,10.100000,10.000000);
+    t.addNode(117.734372,216.805338,10.100000,10.000000);
+    t.addNode(160.316550,174.380230,10.100000,10.000000);
+    t.addNode(106.896987,179.923284,10.100000,10.000000);
+    t.addToPath(0,(topology::EdgePoint::RectIntersect)4);
+    t.addToPath(3,(topology::EdgePoint::RectIntersect)3);
+    t.addToPath(1,(topology::EdgePoint::RectIntersect)4);
+    t.addEdge(60);
+    t.addToPath(1,(topology::EdgePoint::RectIntersect)4);
+    t.addToPath(2,(topology::EdgePoint::RectIntersect)4);
+    t.addEdge(60);
+    t.addToPath(2,(topology::EdgePoint::RectIntersect)4);
+    t.addToPath(0,(topology::EdgePoint::RectIntersect)4);
+    t.addEdge(60);
+}
+
+void case4(TestCase& t) {
+    t.addNode(205.081973,200.000000,10.100000,10.000000);
+    t.addNode(250.000000,250.000000,10.100000,10.000000);
+    t.addNode(294.918027,200.000000,10.100000,10.000000);
+    t.addNode(289.868027,225.000000,10.100000,10.000000);
+    t.addToPath(0,(topology::EdgePoint::RectIntersect)4);
+    t.addToPath(1,(topology::EdgePoint::RectIntersect)4);
+    t.addEdge(60);
+    t.addToPath(1,(topology::EdgePoint::RectIntersect)4);
+    t.addToPath(3,(topology::EdgePoint::RectIntersect)0);
+    t.addToPath(3,(topology::EdgePoint::RectIntersect)1);
+    t.addToPath(2,(topology::EdgePoint::RectIntersect)4);
+    t.addEdge(60);
+    t.addToPath(2,(topology::EdgePoint::RectIntersect)4);
+    t.addToPath(0,(topology::EdgePoint::RectIntersect)4);
+    t.addEdge(60);
+
+    t.addDesired(3,400.000000);
+}
+void case5(TestCase& t) {
+    t.addNode(335.658737,287.843360,10.100000,10.000000);
+    t.addNode(338.869923,347.780782,10.100000,10.000000);
+    t.addNode(388.857209,315.489405,10.100000,10.000000);
+    t.addNode(348.886210,337.789705,10.100000,10.000000);
+    t.addToPath(0,(topology::EdgePoint::RectIntersect)4);
+    t.addToPath(1,(topology::EdgePoint::RectIntersect)4);
+    t.addEdge(60);
+    t.addToPath(1,(topology::EdgePoint::RectIntersect)4);
+    t.addToPath(3,(topology::EdgePoint::RectIntersect)0);
+    t.addToPath(2,(topology::EdgePoint::RectIntersect)4);
+    t.addEdge(60);
+    t.addToPath(2,(topology::EdgePoint::RectIntersect)4);
+    t.addToPath(0,(topology::EdgePoint::RectIntersect)4);
+    t.addEdge(60);
+    t.addDesired(3,353.886210);
+
+    double gradient[]={1.15455e-05,0.000114288,-0.000125833,0};
+    t.setGradient(gradient);
+}
+
+void triangle(void tcase(TestCase&)) {
+    printf("test: triangle()\n");
+    TestCase t;
+    tcase(t);
+    t.run();
 }
 
 int main() {
-    triangle();
+    triangle(case5);
     return 0;
 }
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:encoding=utf-8:textwidth=80 :

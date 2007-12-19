@@ -62,11 +62,15 @@ namespace topology {
          */
         double maxSafeAlpha() const;
         /**
-         * indicates whether the movement of the variables (from their 
-         * initial to desired positions) is tightening the constraint.
+         * amount of slack at current positions of variables
          */
-        bool tightening() const;
-        double slack () const;
+        double slack() const;
+        /**
+         * amount of slack at desired positions of variables
+         */
+        double slackAtDesired() const;
+    private:
+        double slack(const double, const double, const double) const;
     };
     class TopologyConstraint {
     public:
@@ -151,9 +155,9 @@ namespace topology {
         TopologyConstraint* mostViolated() const;
         void computeForces(valarray<double>& g, cola::SparseMap& h);
         double computeStress() const;
-        TopologyConstraint* steepestDescent(valarray<double>& g, 
+        void steepestDescent(valarray<double>& g, 
                 cola::SparseMap& h);
-        TopologyConstraint* steepestDescent(valarray<double>& g, 
+        void steepestDescent(valarray<double>& g, 
                 cola::SparseMap& h, 
                 const DesiredPositions& d);
         double reachedDesired(const DesiredPositions& d);

@@ -230,17 +230,20 @@ StraightConstraint::StraightConstraint(
     // determine direction of constraint based on intersection
     // of segment with scan line
     double p;
-    // set passLeft based on whether the intersection of the potential bend point
+    // set nodeLeft based on whether the intersection of the potential bend
+    // point
     // is to the left or right of the node centre
-    bool passLeft=s->intersection(pos,p) < node->rect->getCentreD(dim);
+    bool nodeLeft=node->rect->getCentreD(dim) < s->intersection(pos,p) ;
+    // set ri (the vertex of the node rectangle that is to be 
+    // kept to the left of the segment
     if(dim==cola::HORIZONTAL) {
         ri=pos < node->rect->getCentreY()
-             ? (passLeft ? EdgePoint::BL : EdgePoint::BR)
-             : (passLeft ? EdgePoint::TL : EdgePoint::TR);
+             ? (nodeLeft ? EdgePoint::BR : EdgePoint::BL)
+             : (nodeLeft ? EdgePoint::TR : EdgePoint::TL);
     } else {
         ri=pos < node->rect->getCentreX()
-             ? (passLeft ? EdgePoint::BL : EdgePoint::TL)
-             : (passLeft ? EdgePoint::BR : EdgePoint::TR);
+             ? (nodeLeft ? EdgePoint::TL : EdgePoint::BL)
+             : (nodeLeft ? EdgePoint::TR : EdgePoint::BR);
     }
     if(node==u->node  && ri==u->rectIntersect) {
         // constraint is redundant because the potential bend point is
@@ -256,12 +259,12 @@ StraightConstraint::StraightConstraint(
     // cause a memory leak
 
     double g=u->offset()+p*(v->offset()-u->offset());
-    if(passLeft) {
-        g+=r->length(dim)/2.0;
-    } else {
+    if(nodeLeft) {
         g-=r->length(dim)/2.0;
+    } else {
+        g+=r->length(dim)/2.0;
     }
-    c=new TriConstraint(u->node->var,v->node->var,node->var,p,g,passLeft);
+    c=new TriConstraint(u->node->var,v->node->var,node->var,p,g,nodeLeft);
 }
 /**
  * create a constraint between the two segments joined by this
@@ -276,7 +279,9 @@ BendConstraint(EdgePoint* v)
     FILE_LOG(logDEBUG)<<"BendConstraint ctor, pos="<<v->pos[!dim];
     assert(v->inSegment!=NULL);
     assert(v->outSegment!=NULL);
+    // v must be a bend point around some node
     assert(!v->isEnd());
+    assert(v->rectIntersect!=EdgePoint::CENTRE);
     EdgePoint* u=v->inSegment->start, * w=v->outSegment->end;
     // because all of our nodes are boxes we do not expect consecutive
     // segments to change horizontal or vertical direction
@@ -284,9 +289,22 @@ BendConstraint(EdgePoint* v)
     FLUSH_LOG(logDEBUG1);
     assert(v->assertConvexBend());
     double p;
-    double i=v->inSegment->intersection(w->pos[!dim],p);
+    /*double i=*/
+    v->inSegment->intersection(w->pos[!dim],p);
     double g=u->offset()+p*(v->offset()-u->offset())-w->offset();
-    bool leftOf = w->pos[dim] < i;
+    // we could set leftOf=w->pos[dim] < i, but that isn't a good idea
+    // when the two segments are already straight!
+    // So we choose leftOf based on the rectangle intersect of v
+    bool leftOf=false;
+    if(dim==cola::HORIZONTAL) {
+        if(v->rectIntersect==EdgePoint::TR || v->rectIntersect==EdgePoint::BR) {
+            leftOf=true;
+        }
+    } else {
+        if(v->rectIntersect==EdgePoint::TL || v->rectIntersect==EdgePoint::TR) {
+            leftOf=true;
+        }
+    }
     c = new TriConstraint(
         u->node->var,v->node->var,w->node->var,p,g,leftOf);
 }
@@ -362,8 +380,8 @@ TopologyConstraints(
   , edges(edges) 
   , cs(cs)
 {
-    //FILELog::ReportingLevel() = logWARNING;
-    FILELog::ReportingLevel() = logDEBUG1;
+    FILELog::ReportingLevel() = logERROR;
+    //FILELog::ReportingLevel() = logDEBUG1;
 
     dim = axisDim;
 

@@ -60,26 +60,25 @@ void split() {
     const size_t V = vs.size();
 
     project::Constraints cs;
-    TopologyConstraints t(cola::HORIZONTAL,vs,es,cs);
-    writeFile(vs,es,"split-0.svg");
+    { // scope for t, so that t gets destroyed before es
+        TopologyConstraints t(cola::HORIZONTAL,vs,es,cs);
+        writeFile(vs,es,"split-0.svg");
 
-    // test computeStress
-    double stress=t.computeStress();
-    printf("Stress=%f\n",stress);
-    //assert(fabs(expectedStress-stress)<1e-4);
+        // test computeStress
+        double stress=t.computeStress();
+        printf("Stress=%f\n",stress);
+        //assert(fabs(expectedStress-stress)<1e-4);
 
-    valarray<double> g(V);
-    cola::SparseMap h(V);
-    for(unsigned i=1;i<5;i++) {
-        g=0;
-        h.clear();
-        TopologyConstraint* v=t.steepestDescent(g,h);
-        if(v) {
-            printf("v->slack()=%f\n",v->c->slack());
+        valarray<double> g(V);
+        cola::SparseMap h(V);
+        for(unsigned i=1;i<5;i++) {
+            g=0;
+            h.clear();
+            t.steepestDescent(g,h);
+            stringstream ss;
+            ss << "split-" << i << ".svg";
+            writeFile(vs,es,ss.str().c_str());
         }
-        stringstream ss;
-        ss << "split-" << i << ".svg";
-        writeFile(vs,es,ss.str().c_str());
     }
 
     for(Nodes::iterator i=vs.begin();i!=vs.end();++i) {
@@ -89,6 +88,7 @@ void split() {
         delete v;
     }
     for_each(es.begin(),es.end(),delete_object());
+    for_each(cs.begin(),cs.end(),delete_object());
 }
 
 int main() {

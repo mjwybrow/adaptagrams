@@ -78,7 +78,7 @@ struct Test : TestConvergence {
         cout << "stress="<<new_stress<<" iteration="<<iterations<<endl;
         stringstream ss;
         ss << "topology-" << setfill('0') << setw(3) << ++iterations << ".svg";
-        writeFile(vs,es,ss.str().c_str());
+        //writeFile(vs,es,ss.str().c_str());
         if(iterations<100) {
             return false;
         }
@@ -89,24 +89,19 @@ struct Test : TestConvergence {
     topology::Nodes& vs;
     topology::Edges& es;
 };
-int main() {
-    //srand(time(NULL));
-    srand(3);
+void randomMove(int i) {
+    printf("We have a triangle of three connected nodes and a fourth disconnected node.  We set the fourth node's desired position at a point some random direction outside the triangle.\n");
+    printf("Using srand=%d\n",i);
+    srand(i);
     const unsigned V = 4;
     Edge edge_array[] = { Edge(0, 1), Edge(1, 2), Edge(2, 0) };
     const std::size_t E = sizeof(edge_array) / sizeof(Edge);
-    vector<Edge> es(E);
-    copy(edge_array,edge_array+E,es.begin());
+    vector<Edge> es(edge_array,edge_array+E);
     vector<vpsc::Rectangle*> rs;
-    double x,y,size=10;
-    x=200,y=200;
-    rs.push_back(new vpsc::Rectangle(x,x+size,y,y+size));
-    x=250,y=250;
-    rs.push_back(new vpsc::Rectangle(x,x+size,y,y+size));
-    x=300,y=200;
-    rs.push_back(new vpsc::Rectangle(x,x+size,y,y+size));
-    x=250,y=225;
-    rs.push_back(new vpsc::Rectangle(x,x+size,y,y+size));
+    double x[]={200,250,300,250},y[]={200,250,200,225},size=10;
+    for(unsigned i=0;i<V;++i) {
+        rs.push_back(new vpsc::Rectangle(x[i],x[i]+size,y[i],y[i]+size));
+    }
     double idealLength=60;
     // set up topology graph
     topology::Nodes vs;
@@ -120,7 +115,7 @@ int main() {
         addToPath(ps,vs[e->second],topology::EdgePoint::CENTRE);
         tes.push_back(new topology::Edge(idealLength, ps));
     }
-    writeFile(vs,tes,"topology-000.svg");
+    //writeFile(vs,tes,"topology-000.svg");
     Locks locks;
     // we move the 4th node somewhere outside the triangle.  The triangle should be
     // dragged along!
@@ -131,7 +126,6 @@ int main() {
            ly=rs[3]->getCentreY()+dy;
     locks.push_back(Lock(3,lx,ly));
     printf(" Lock: %f,%f\n",lx,ly);
-    //locks.push_back(Lock(3,150,150));
     SetDesiredPos preIteration(locks);
     Test test(0.00001,100,vs,tes);
     ConstrainedFDLayout alg(rs,es,NULL,idealLength,NULL,test,&preIteration);
@@ -142,8 +136,18 @@ int main() {
     printf("finalStress=%f\n",finalStress);
 
     //assert(finalStress<1e-5);
-    for(unsigned i=0;i<V;i++) {
-        delete rs[i];
+    for_each(rs.begin(),rs.end(),delete_object());
+    for_each(tes.begin(),tes.end(),delete_object());
+    for_each(vs.begin(),vs.end(),delete_object());
+}
+int main() {
+    /*
+    unsigned i=0;
+    for(;i<100;i++) {
+        randomMove(i);
     }
+    */
+    randomMove(6);
+    return 0;
 }
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:encoding=utf-8:textwidth=80 :
