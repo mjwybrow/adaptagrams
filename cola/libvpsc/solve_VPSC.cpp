@@ -79,8 +79,10 @@ void Solver::printBlocks() {
  * field.
  */
 void Solver::copyResult() {
-    for(unsigned i=0;i<n;i++) {
-        vs[i]->finalPosition=vs[i]->position();
+    for(Variables::const_iterator i=vs.begin();i!=vs.end();++i) {
+        Variable* v=*i;
+        v->finalPosition=v->position();
+        assert(v->finalPosition==v->finalPosition);
     }
 }
 /**

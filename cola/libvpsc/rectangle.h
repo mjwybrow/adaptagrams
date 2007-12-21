@@ -184,15 +184,21 @@ private:
 	bool overlap;
 };
 
+typedef std::vector<Rectangle*> Rectangles;
 std::ostream& operator<< (std::ostream& os, const Rectangle& r);
 
 class Variable;
 class Constraint;
 
 // returns number of constraints generated
-void generateXConstraints(std::vector<Rectangle*> const & rs, std::vector<Variable*> const & vars, std::vector<Constraint*> & cs, const bool useNeighbourLists);
+void generateXConstraints(const Rectangles& rs, std::vector<Variable*> const & vars, std::vector<Constraint*> & cs, const bool useNeighbourLists);
 void generateYConstraints(std::vector<Rectangle*> const & rs, std::vector<Variable*> const & vars, std::vector<Constraint*> & cs);
+struct delete_object
+{
+  template <typename T>
+  void operator()(T *ptr){ delete ptr;}
+};
 
-}
+} // namespace vpsc
 
 #endif // SEEN_LIBVPSC_RECTANGLE_H

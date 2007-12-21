@@ -30,24 +30,25 @@ namespace topology {
     class StraightConstraint;
     class Edge;
     /**
-     * Each node is associated with a rectangle and a solver variable
+     * Each node is associated with a rectangle and solver variables
+     * for the x and y axes
      */
     struct Node {
         /// the index of the associated node / variable / rectangle
         const unsigned id;
         /// the bounding box of the associated node
         vpsc::Rectangle* rect;
-        /// the variable (associated with node) to be passed to libproject solver
-        project::Variable* var;
+        /** variables associated with x and y positions of nodes,
+         *   to be passed to libproject solver
+         */
+        project::Variable* variable[2];
         /** 
          * when an edge path is being defined externally with a vector of EdgePoint,
          * a variable would not be specified.
          * @param id
          * @param r
-         * @param v optional
          */
-        Node(unsigned id, vpsc::Rectangle* r, project::Variable* v=NULL)
-            : id(id), rect(r), var(v) {}
+        Node(unsigned id, vpsc::Rectangle* r);
     };
     typedef std::vector<Node*> Nodes;
     /**

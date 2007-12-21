@@ -51,6 +51,7 @@ struct Event {
      * algorithm to generate topology constraints.
      */
     virtual void process()=0;
+    virtual string toString()=0;
 };
 /**
  * There is a NodeEvent for the top and bottom (or left and right sides depending on
@@ -89,6 +90,11 @@ struct NodeOpen : NodeEvent {
         openListIndex = r.first;
         createTopologyConstraint();
     }
+    string toString() {
+        stringstream s;
+        s<<"NodeOpen@"<<pos;
+        return s.str();
+    }
 };
 /**
  * at node closings the node is removed from the list of #openNodes and
@@ -110,12 +116,15 @@ struct NodeClose : NodeEvent {
     }
     void createNonOverlapConstraint(const Node* left, const Node* right) {
         FILE_LOG(logDEBUG)<<"NodeClose::createNonOverlapConstraint left="<<left<<" right="<<right;
-        double overlap = left->rect->overlapD(!dim,right->rect);
-        if(overlap>1e-5) {
+        //double overlap = left->rect->overlapD(!dim,right->rect);
+        //if(overlap>1e-5) {
             double g = left->rect->length(dim) + right->rect->length(dim);
             g/=2.0;
-            cs.push_back(new project::Constraint(left->var, right->var, g));
-        }
+            g=static_cast<int>(g+0.5);
+            project::Variable *l=left->variable[dim], *r=right->variable[dim];
+            assert(l->getPosition() + g <= r->getPosition());
+            cs.push_back(new project::Constraint(l, r, g));
+        //}
     }
     /**
      * remove opening from openNodes, cleanup, and generate
@@ -136,6 +145,11 @@ struct NodeClose : NodeEvent {
         // create topology constraint from scanpos in every open edge to node
         createTopologyConstraint();
         delete this;
+    }
+    string toString() {
+        stringstream s;
+        s<<"NodeClose@"<<pos;
+        return s.str();
     }
 };
 /**
@@ -158,6 +172,11 @@ struct SegmentOpen : SegmentEvent {
     void process() {
         openListIndex=openSegments.insert(openSegments.end(),this);
     }
+    string toString() {
+        stringstream s;
+        s<<"SegmentOpen@"<<pos;
+        return s.str();
+    }
 };
 /**
  * at a segment closing we remove the segment from the list of openings and cleanup
@@ -174,6 +193,11 @@ struct SegmentClose : SegmentEvent {
         OpenSegments::iterator i=openSegments.erase(opening->openListIndex);
         delete opening;
         delete this;
+    }
+    string toString() {
+        stringstream s;
+        s<<"SegmentClose@"<<pos;
+        return s.str();
     }
 };
 struct RedundantStraightConstraint { };
@@ -201,6 +225,40 @@ void NodeEvent::createTopologyConstraint() {
         }
     }
 }
+struct CompareEvents {
+    bool operator() (Event *const &a, Event *const &b) const {
+        if(a==b) {
+            // Irreflexivity
+            return false;
+        }
+        if(a->pos < b->pos) {
+            return true;
+        } else if(a->pos==b->pos) {
+            // we don't support zero height/width nodes and events should not
+            // have been generated for segments parallel to the scan line.
+            // Let closes come before opens when at the same position
+            if(!a->open && b->open) return true;
+            if(a->open && !b->open) return false;
+            // Segment opens at the same position as node opens, node
+            // comes first
+            if(a->open && b->open) {
+                if(dynamic_cast<SegmentOpen*>(b) 
+                   && dynamic_cast<NodeOpen*>(a)) return true;
+                if(dynamic_cast<SegmentOpen*>(a) 
+                   && dynamic_cast<NodeOpen*>(b)) return false;
+            }
+            // Segment closes at the same position as node closes, segment
+            // comes first
+            if(!a->open && !b->open) {
+                if(dynamic_cast<SegmentClose*>(a) &&
+                   dynamic_cast<NodeClose*>(b)) return true;
+                if(dynamic_cast<SegmentClose*>(b) &&
+                   dynamic_cast<NodeClose*>(a)) return false;
+            }
+        }
+        return false;
+    }
+};
 /**
  * create a constraint between a segment and a node that is
  * activated when the segment needs to be bent (divided into
@@ -264,7 +322,10 @@ StraightConstraint::StraightConstraint(
     } else {
         g+=r->length(dim)/2.0;
     }
-    c=new TriConstraint(u->node->var,v->node->var,node->var,p,g,nodeLeft);
+    project::Variable *uv=u->node->variable[dim],
+                      *vv=v->node->variable[dim],
+                      *wv=node->variable[dim];
+    c=new TriConstraint(uv,vv,wv,p,g,nodeLeft);
 }
 /**
  * create a constraint between the two segments joined by this
@@ -305,40 +366,11 @@ BendConstraint(EdgePoint* v)
             leftOf=true;
         }
     }
-    c = new TriConstraint(
-        u->node->var,v->node->var,w->node->var,p,g,leftOf);
+    project::Variable *uv=u->node->variable[dim],
+                      *vv=v->node->variable[dim],
+                      *wv=w->node->variable[dim];
+    c=new TriConstraint(uv,vv,wv,p,g,leftOf);
 }
-struct CompareEvents {
-    bool operator() (Event *const &a, Event *const &b) const {
-        if(a->pos < b->pos) {
-            return true;
-        } else if(a->pos==b->pos) {
-            // note: Segments orthogonal to scan direction (i.e.
-            // OpenPos=ClosePos) can still have node events between the
-            // segment open and close... need to handle elsewhere 
-            // Let closes come before opens when at the same position
-            if(!a->open && b->open) return true;
-            if(a->open && !b->open) return false;
-            // Segment opens at the same position as node opens, node
-            // comes first
-            if(a->open && b->open) {
-                if(dynamic_cast<SegmentOpen*>(b) 
-                   && dynamic_cast<NodeOpen*>(a)) return true;
-                if(dynamic_cast<SegmentOpen*>(a) 
-                   && dynamic_cast<NodeOpen*>(b)) return false;
-            }
-            // Segment closes at the same position as node closes, segment
-            // comes first
-            if(!a->open && !b->open) {
-                if(dynamic_cast<SegmentClose*>(a) &&
-                   dynamic_cast<NodeClose*>(b)) return true;
-                if(dynamic_cast<SegmentClose*>(b) &&
-                   dynamic_cast<NodeClose*>(a)) return false;
-            }
-        }
-        return false;
-    }
-};
 struct createBendConstraints {
     void operator() (EdgePoint* p) {
         Segment* in = p->inSegment, * out = p->outSegment;
@@ -400,7 +432,7 @@ TopologyConstraints(
         (*e)->forEach(createBendConstraints(),createSegmentEvents(events));
     }
     // process events in top to bottom order
-    std::sort(events.begin(),events.end(),CompareEvents());
+    sort(events.begin(),events.end(),CompareEvents());
     for_each(events.begin(),events.end(),mem_fun(&Event::process));
     assert(openSegments.empty());
     assert(openNodes.empty());

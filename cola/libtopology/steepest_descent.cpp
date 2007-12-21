@@ -142,15 +142,18 @@ struct PrintPoint {
         printf(" node: %p, corner: %d\n",p->node,p->rectIntersect);
     }
 };
+struct AssertFeasibility {
+    void operator()(project::Constraint* c) {
+        assert(c->initialSlack()>=0);
+    }
+};
+
 void TopologyConstraints::
 steepestDescent(valarray<double>& g, cola::SparseMap& h, const DesiredPositions& d=DesiredPositions()) {
     FILE_LOG(logDEBUG)<<"TopologyConstraints::steepestDescent... dim="<<dim;
     assert(g.size()==n);
     assert(h.n==n);
-    printf("double gradient[]={");
-    copy(&g[0],&g[0]+n,ostream_iterator<double>(cout,","));
-    printf("}\n");
-    printInstance();
+    printInstance(g);
     computeForces(g,h);
     cola::SparseMatrix H(h);
     double stepSize = computeStepSize(H,g,g);
@@ -159,9 +162,8 @@ steepestDescent(valarray<double>& g, cola::SparseMap& h, const DesiredPositions&
     for(unsigned i=0;i<n;++i) {
         Node* node=nodes[i];
         vpsc::Rectangle* r=node->rect;
-        project::Variable* v=node->var;
+        project::Variable* v=node->variable[dim];
         double x=r->getCentreD(dim);
-        v->setPosition(project::Initial(x));
         v->setPosition(project::Desired(x-g[i]*stepSize));
         vars[i]=v;
         FILE_LOG(logDEBUG1)<<"v["<<i<<"]:init="<<v->getPosition()<<", desi="<<v->getDesiredPosition();
@@ -175,6 +177,7 @@ steepestDescent(valarray<double>& g, cola::SparseMap& h, const DesiredPositions&
     }
     vector<TopologyConstraint*> ts;
     constraints(ts);
+    for_each(cs.begin(),cs.end(),AssertFeasibility());
     project::Project p(vars,cs);
     AlphaCheck a(vars,ts);
     p.setExternalAlphaCheck(&a);
@@ -219,7 +222,7 @@ double TopologyConstraints::
 reachedDesired(const DesiredPositions& d) {
     double furthest = DBL_MIN;
     for(DesiredPositions::const_iterator i=d.begin();i!=d.end();++i) {
-        project::Variable* v = nodes[i->first]->var;
+        project::Variable* v = nodes[i->first]->variable[dim];
         furthest = max(furthest,fabs(i->second.pos-v->getPosition()));
     }
     FILE_LOG(logDEBUG)<<"max distance to desired="<<furthest;

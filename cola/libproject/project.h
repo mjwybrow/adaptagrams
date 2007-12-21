@@ -17,6 +17,7 @@
 #include <vector>
 #include <set>
 #include <list>
+#include <sstream>
 #include "util.h"
 
 /**
@@ -30,7 +31,7 @@ class Constraint;
 typedef vector<Constraint*> Constraints;
 class Block;
 
-/// type for Inital position for Variable ctor
+/// type for Initial position for Variable ctor
 struct Initial {
     explicit Initial(double pos) : pos(pos) {}
     double pos;
@@ -50,6 +51,9 @@ struct Weight {
  */
 class Variable {
 public:
+    Variable(const unsigned id, const Initial& i) 
+        : id(id), x(i.pos), d(i.pos), w(1.0)
+        , block(NULL), b(0), in(), out() {}
     /**
      * Arguments are passed in with explicit types to ensure they're in
      * the right order.
@@ -57,9 +61,13 @@ public:
      * @param d the desired value
      * @param w weight, default is 1.0
      */
-    Variable(const Initial& x, const Desired& d, 
+    Variable(const unsigned id, const Initial& i, const Desired& d,
             const Weight& w=Weight(1.0)) 
-        : x(x.pos),d(d.pos),w(w.w),block(NULL),b(0)
+        : id(id), x(i.pos),d(d.pos),w(w.w),block(NULL),b(0)
+        , in(),out() {}
+    Variable(const Initial& i, const Desired& d,
+            const Weight& w=Weight(1.0)) 
+        : id(idCtr++), x(i.pos),d(d.pos),w(w.w),block(NULL),b(0)
         , in(),out() {}
     /** 
      * It may be necessary for the user to change the desired position after
@@ -94,6 +102,11 @@ public:
         double i=relativeInitialPos(), d=relativeDesiredPos();
         x = i + alpha*(d-i);
     }
+    void clearConstraints() {
+        in.clear();
+        out.clear();
+    }
+    const unsigned id;
 private:
     double x; ///< current position
     double d; ///< desired position
@@ -101,6 +114,7 @@ private:
     Block* block; ///< container block
     double b; ///< offset from block reference variable
     Constraints in, out; ///< defines constraint DAG
+    static unsigned idCtr;
 friend class Constraint;
 friend class Block;
 friend class Project;
@@ -116,7 +130,7 @@ public:
     Variable *l;
     Variable *r;
     const double g;
-    double slack() const;
+    double initialSlack() const;
     /** 
      * @return true if the constraint can be satisfied at the relative desired
      * positions for l and r.
@@ -129,9 +143,25 @@ public:
      * desired positions without violating this constraint
      */
     double maxSafeAlpha() const;
+    void setActive(bool val) {
+        active=val;
+    }
+    bool isActive() const { return active; }
+    void resetLM() { lm = 0; }
+    bool wantsToMoveApart() const {
+        return lm<0;
+    }
+    string toString() {
+        std::stringstream s;
+        s<<"C->g="<<g<<", lm="<<lm;
+        return s.str();
+    }
+private:
     bool active; ///< if set at equality
     double lm; ///< lagrange multiplier
-    void resetLM() { lm = 0; }
+friend class Block;
+friend double compute_dfdv(Variable const* v, Constraint const* last);
+friend bool cmpLagrangians(Constraint* a,Constraint* b);
 };
 
 typedef list<Block*> Blocks;
@@ -227,7 +257,7 @@ private:
     /**
      * Put each variable in its own block
      */
-    void initBlocks();
+    void initBlocksAndConstraints();
     /**
      * Find the largest move (alpha) we can make along the line from 
      * current positions to desired positions without violating a constraint.

@@ -161,7 +161,7 @@ namespace topology {
                 cola::SparseMap& h, 
                 const DesiredPositions& d);
         double reachedDesired(const DesiredPositions& d);
-        void printInstance() const;
+        void printInstance(valarray<double>& g) const;
     private:
         Nodes& nodes;
         Edges& edges;

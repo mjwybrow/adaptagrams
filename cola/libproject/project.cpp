@@ -66,6 +66,8 @@ bool solve(Variables& vs, Constraints& cs) {
     return p.solve();
 }
 
+unsigned Variable::idCtr=0;
+
 double Variable::relativeInitialPos() const { return block->XI + b; }
 double Variable::relativeDesiredPos() const { return block->X + b; }
 
@@ -76,6 +78,10 @@ Constraint::Constraint(Variable *l, Variable *r, const double g)
 {
     l->out.push_back(this);
     r->in.push_back(this);
+}
+
+double Constraint::initialSlack() const {
+    return r->x - l->x - g;
 }
 
 Block::Block(Variable* v) 
@@ -156,9 +162,9 @@ Project::
  */
 bool Project::
 solve() {
-    initBlocks();
-    bool optimal=true;
+    initBlocksAndConstraints();
     INIT_DEBUG(this);
+    bool optimal=true;
     do {
         makeOptimal();
         for_each(vs.begin(),vs.end(),mem_fun(&Variable::updatePosition));
@@ -171,11 +177,13 @@ solve() {
  * Put each variable in its own block
  */
 void Project::
-initBlocks() {
+initBlocksAndConstraints() {
     for(Variables::const_iterator i=vs.begin();i!=vs.end();++i) {
-        Block *b=new Block(*i);
+        Variable* v=*i;
+        Block *b=new Block(v);
         b->listIndex=blocks.insert(blocks.end(),b);
     }
+    for_each(cs.begin(),cs.end(),bind2nd(mem_fun(&Constraint::setActive),false));
 }
 
 /** 
@@ -314,7 +322,7 @@ makeActive(Constraint *c, double alpha) {
         v->b+=br;
         v->block=L;
     }
-    c->active=true;
+    c->setActive(true);
     L->V.insert(L->V.end(),R->V.begin(),R->V.end());
     L->w+=R->w;
     L->C.insert(L->C.end(),R->C.begin(),R->C.end());
@@ -328,11 +336,12 @@ makeActive(Constraint *c, double alpha) {
     DEBUG_CODE(merges++);
 }
 bool cmpLagrangians(Constraint* a,Constraint* b) { return a->lm < b->lm; }
-ostream& operator <<(ostream &os, const Constraint* &c) {
-    os<<"C->g="<<c->g<<", lm="<<c->lm;
-    return os;
-}
 ostream& operator <<(ostream &os, const Constraints &cs) {
+    Constraints::const_iterator c=cs.begin();
+    os << (*(c++))->toString();
+    for(;c!=cs.end();++c) {
+        os<<","<<(*c)->toString();
+    }
     copy(cs.begin(),cs.end(),ostream_iterator<Constraint*>(os,","));
 	return os;
 }
@@ -357,7 +366,7 @@ splitBlocks() {
 
         FILE_LOG(logDEBUG1)<<"min: "<<sc;
 
-        if(sc->lm < 0) {
+        if(sc->wantsToMoveApart()) {
             optimal = false;
             i=makeInactive(sc);
         }
@@ -412,9 +421,9 @@ Block::Block(Variable* v, Constraint* c) : w(0), XI(v->block->XI) {
 Blocks::iterator Project:: 
 makeInactive(Constraint *c) {
     FILE_LOG(logDEBUG) << "Project::makeInactive(Constraint *c)";
-    LIBPROJECT_ASSERT(c->active);
+    LIBPROJECT_ASSERT(c->isActive());
     inactive.insert(c);
-    c->active=false;
+    c->setActive(false);
     Block* b=c->l->block;
     Block* lb=new Block(c->l,c);
     Block* rb=new Block(c->r,c);

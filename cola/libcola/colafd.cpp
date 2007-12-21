@@ -60,8 +60,8 @@ ConstrainedFDLayout::ConstrainedFDLayout(
       topologyNodes(NULL),
       topologyRoutes(NULL)
 {
-    //FILELog::ReportingLevel() = logDEBUG1;
-    FILELog::ReportingLevel() = logERROR;
+    FILELog::ReportingLevel() = logDEBUG1;
+    //FILELog::ReportingLevel() = logERROR;
     boundingBoxes.resize(n);
     copy(rs.begin(),rs.end(),boundingBoxes.begin());
     done.reset();
@@ -107,6 +107,60 @@ void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis) {
     } while(!done(stress,X,Y));
     FILE_LOG(logDEBUG) << "ConstrainedFDLayout::run done.";
 }
+void removeoverlaps(vpsc::Rectangles &rs) {
+	double xBorder=0, yBorder=0;
+    static const double EXTRA_GAP=1e-5;
+	unsigned n=rs.size();
+	try {
+		// The extra gap avoids numerical imprecision problems
+		Rectangle::setXBorder(xBorder+EXTRA_GAP);
+		Rectangle::setYBorder(yBorder+EXTRA_GAP);
+        vpsc::Variables vs(n);
+		unsigned i=0;
+		for(Variables::iterator v=vs.begin();v!=vs.end();++v,++i) {
+			*v=new Variable(i,0,1);
+		}
+        vpsc::Constraints cs;
+        vpsc::generateXConstraints(rs,vs,cs,true);
+        vpsc::Solver vpsc_x(vs,cs);
+		vpsc_x.solve();
+        vpsc::Rectangles::iterator r=rs.begin();
+		for(Variables::iterator v=vs.begin();v!=vs.end();++v,++r) {
+			assert((*v)->finalPosition==(*v)->finalPosition);
+			(*r)->moveCentreX((*v)->finalPosition);
+		}
+		assert(r==rs.end());
+		for_each(cs.begin(),cs.end(),delete_object());
+		cs.clear();
+		// Removing the extra gap here ensures things that were moved to be adjacent to
+		// one another above are not considered overlapping
+		Rectangle::setXBorder(Rectangle::xBorder-EXTRA_GAP);
+        vpsc::generateYConstraints(rs,vs,cs);
+        vpsc::Solver vpsc_y(vs,cs);
+		vpsc_y.solve();
+		r=rs.begin();
+		for(Variables::iterator v=vs.begin();v!=vs.end();++v,++r) {
+			(*r)->moveCentreY((*v)->finalPosition);
+		}
+		for_each(cs.begin(),cs.end(),delete_object());
+		cs.clear();
+		Rectangle::setYBorder(Rectangle::yBorder-EXTRA_GAP);
+        vpsc::generateXConstraints(rs,vs,cs,false);
+        vpsc::Solver vpsc_x2(vs,cs);
+		vpsc_x2.solve();
+		r=rs.begin();
+		for(Variables::iterator v=vs.begin();v!=vs.end();++v,++r) {
+			(*r)->moveCentreX((*v)->finalPosition);
+		}
+		for_each(cs.begin(),cs.end(),delete_object());
+		for_each(vs.begin(),vs.end(),delete_object());
+	} catch (char *str) {
+		std::cerr<<str<<std::endl;
+		for(vpsc::Rectangles::iterator r=rs.begin();r!=rs.end();++r) {
+			std::cerr << **r <<std::endl;
+		}
+	}
+}
 /**
  * The following computes an unconstrained solution then uses Projection to
  * make this solution feasible with respect to constraints by moving things as
@@ -126,12 +180,13 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
     printf("]\n");
     */
     if(topologyRoutes) {
+        removeoverlaps(boundingBoxes);
         for(topology::Nodes::iterator i=topologyNodes->begin();
                 i!=topologyNodes->end();++i) {
             topology::Node* v=*i;
-            v->var = new project::Variable(
-                    project::Initial(v->rect->getCentreD(dim)),
-                    project::Desired(-1));
+            v->variable[0]->setPosition(project::Initial(v->rect->getCentreX()));
+            v->variable[1]->setPosition(project::Initial(v->rect->getCentreY()));
+            v->variable[dim]->clearConstraints();
             FILE_LOG(logDEBUG1)<<"init: v["<<v->id<<"]=("<<v->rect->getCentreX()
                 <<","<<v->rect->getCentreY()<<")";
         }
@@ -148,22 +203,17 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
         }
         vector<project::Constraint*> pcs;
         printf("dim=%d\n",dim);
-        if(dim==cola::HORIZONTAL) {
-            Rectangle::setXBorder(0.1);
-        }
         topology::TopologyConstraints t(dim,*topologyNodes,*topologyRoutes,pcs);
         do {
             SparseMap HMap(n);
             computeForces(dim,HMap,g);
             t.steepestDescent(g,HMap,des);
         } while(t.reachedDesired(des)>0.01);
-        Rectangle::setXBorder(0);
         for(topology::Nodes::iterator i=topologyNodes->begin();
                 i!=topologyNodes->end();++i) {
             topology::Node* v=*i;
-            coords[v->id]=v->var->getPosition();
-            FILE_LOG(logDEBUG1)<<"result: v["<<v->id<<"]="<<v->var->getPosition();
-            delete v->var;
+            coords[v->id]=v->variable[dim]->getPosition();
+            FILE_LOG(logDEBUG1)<<"result: v["<<v->id<<"]="<<v->variable[dim]->getPosition();
         }
         for_each(pcs.begin(),pcs.end(),delete_object());
     } else {

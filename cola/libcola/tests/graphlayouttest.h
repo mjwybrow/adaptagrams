@@ -152,5 +152,36 @@ void run_test(
         delete rs[i];
     }
 }
+void writeFile(const topology::Nodes& vs, const topology::Edges& es, const string outputFileName) {
+    const unsigned n=vs.size();
+    vector<cola::Edge> cedges;
+
+    for(unsigned i=0;i<es.size();i++) {
+        cedges.push_back(make_pair(1,2));
+    }
+
+    vector<straightener::Route*> routes;
+    for(topology::Edges::const_iterator e=es.begin();e!=es.end();++e) {
+        routes.push_back((*e)->getRoute());
+    }
+
+    vector<string> labels(n);
+    for(unsigned i=0;i<n;++i) {
+        stringstream ss;
+        ss << i;
+        labels[i]=ss.str();
+    }
+
+    vector<vpsc::Rectangle*> rs;
+    for(topology::Nodes::const_iterator i=vs.begin();i!=vs.end();++i) {
+	    rs.push_back((*i)->rect);
+    }
+    OutputFile of(rs,cedges,NULL,outputFileName,true,false);
+    of.setLabels(labels);
+    of.routes=&routes;
+    of.generate();
+
+    for_each(routes.begin(),routes.end(),delete_object());
+}
 
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:encoding=utf-8:textwidth=99 :

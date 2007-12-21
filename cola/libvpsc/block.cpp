@@ -25,6 +25,8 @@ using std::endl;
 using std::ostream;
 using std::vector;
 
+#define __NOTNAN(p) (p)==(p)
+
 namespace vpsc {
 void PositionStats::addVariable(Variable* v) {
 	double ai=scale/v->scale;
@@ -51,6 +53,7 @@ void Block::addVariable(Variable* v) {
 	//posn=wposn/weight;
 	ps.addVariable(v);
 	posn=(ps.AD - ps.AB) / ps.A2;
+	assert(__NOTNAN(posn));
 	/*
 #ifdef LIBVPSC_LOGGING
 	ofstream f(LOGFILE,ios::app);
@@ -61,8 +64,8 @@ void Block::addVariable(Variable* v) {
 Block::Block(Variable* const v)
 	: vars(new vector<Variable*>)
 	, posn(0)
-	, weight(0)
-	, wposn(0)
+	//, weight(0)
+	//, wposn(0)
 	, deleted(false)
 	, timeStamp(0)
 	, in(NULL)
@@ -82,6 +85,7 @@ void Block::updateWeightedPosition() {
 		ps.addVariable(*v);
 	}
 	posn=(ps.AD - ps.AB) / ps.A2;
+	assert(__NOTNAN(posn));
 #ifdef LIBVPSC_LOGGING
 	ofstream f(LOGFILE,ios::app);
 	f << ", posn=" << posn << endl;
@@ -167,6 +171,7 @@ void Block::merge(Block *b, Constraint *c, double dist) {
 	//posn=wposn/weight;
 	//assert(wposn==ps.AD - ps.AB);
 	posn=(ps.AD - ps.AB) / ps.A2;
+	assert(__NOTNAN(posn));
 	b->deleted=true;
 }
 
@@ -586,8 +591,10 @@ void Block::split(Block* &l, Block* &r, Constraint* c) {
 	c->active=false;
 	l=new Block();
 	populateSplitBlock(l,c->left,c->right);
+	//assert(l->weight>0);
 	r=new Block();
 	populateSplitBlock(r,c->right,c->left);
+	//assert(r->weight>0);
 }
 
 /**

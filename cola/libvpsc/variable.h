@@ -62,5 +62,6 @@ private:
 		return (block->ps.scale*block->posn+offset)/scale;
 	}
 };
+typedef std::vector<Variable*> Variables;
 }
 #endif // SEEN_REMOVEOVERLAP_VARIABLE_H

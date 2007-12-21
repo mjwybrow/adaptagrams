@@ -23,7 +23,6 @@ double TriConstraint::maxSafeAlpha() const {
     // There are a number of situations where the following can
     // be 0!
     double denominator=u2-u1 + p*(u1-u2 + v2-v1) + w1-w2;
-    //assert(denominator!=0);
     if(denominator==0) {
         return 1;
     }
@@ -237,21 +236,23 @@ constraints(std::vector<TopologyConstraint*> & ts) const {
 
 struct PrintEdgePoint {
     void operator() (EdgePoint* p) {
-        printf("addToPath(ps,vs[%d],(topology::EdgePoint::RectIntersect)%d);\n",p->node->id,p->rectIntersect);
+        printf("t.addToPath(%d,(topology::EdgePoint::RectIntersect)%d);\n",p->node->id,p->rectIntersect);
     }
 };
 void TopologyConstraints::
-printInstance() const {
+printInstance(valarray<double>& g) const {
+    printf("double gradient[]={%f",g[0]);
+    for(unsigned i=0;i<n;++i) { printf(",%f",g[i]); }
+    printf("}\nt.setGradient(gradient)\n");
     for(Nodes::const_iterator i=nodes.begin();i!=nodes.end();++i) {
         const Node* v=*i;
         const vpsc::Rectangle* r=v->rect;
-        printf("addNode(vs,%f,%f,%f,%f);\n",
+        printf("t.addNode(%f,%f,%f,%f);\n",
                 r->getMinX(),r->getMinY(),r->width(),r->height());
     }
     for(Edges::const_iterator e=edges.begin();e!=edges.end();++e) {
-        printf("ps.clear();\n");
         (*e)->forEachEdgePoint(PrintEdgePoint());
-        printf("es.push_back(new Edge(%f,ps));\n",(*e)->idealLength);
+        printf("t.addEdge(%f);\n",(*e)->idealLength);
     }
 }
 } // namespace topology

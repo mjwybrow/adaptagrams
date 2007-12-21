@@ -38,6 +38,7 @@ class CompareConstraints {
 public:
 	bool operator() (Constraint *const &l, Constraint *const &r) const;
 };
+typedef std::vector<Constraint*> Constraints;
 }
 
 #endif // SEEN_LIBVPSC_CONSTRAINT_H

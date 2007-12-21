@@ -78,7 +78,7 @@ struct Test : TestConvergence {
         cout << "stress="<<new_stress<<" iteration="<<iterations<<endl;
         stringstream ss;
         ss << "topology-" << setfill('0') << setw(3) << ++iterations << ".svg";
-        //writeFile(vs,es,ss.str().c_str());
+        writeFile(vs,es,ss.str().c_str());
         if(iterations<100) {
             return false;
         }
@@ -115,15 +115,17 @@ void randomMove(int i) {
         addToPath(ps,vs[e->second],topology::EdgePoint::CENTRE);
         tes.push_back(new topology::Edge(idealLength, ps));
     }
-    //writeFile(vs,tes,"topology-000.svg");
+    writeFile(vs,tes,"topology-000.svg");
     Locks locks;
     // we move the 4th node somewhere outside the triangle.  The triangle should be
     // dragged along!
     const double PI = 2.0*acos(0.0);
     double angle = getRand(2.0*PI);
     double dx=150*cos(angle), dy=150*sin(angle);
+    
     double lx=rs[3]->getCentreX()+dx,
            ly=rs[3]->getCentreY()+dy;
+    //double lx=353.886210, ly=342.789705;
     locks.push_back(Lock(3,lx,ly));
     printf(" Lock: %f,%f\n",lx,ly);
     SetDesiredPos preIteration(locks);
@@ -141,13 +143,10 @@ void randomMove(int i) {
     for_each(vs.begin(),vs.end(),delete_object());
 }
 int main() {
-    /*
     unsigned i=0;
     for(;i<100;i++) {
         randomMove(i);
     }
-    */
-    randomMove(6);
     return 0;
 }
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:encoding=utf-8:textwidth=80 :

@@ -43,8 +43,8 @@ class Block
 public:
 	Variables *vars;
 	double posn;
-	double weight;
-	double wposn;
+	//double weight;
+	//double wposn;
 	PositionStats ps;
 	Block(Variable* const v=NULL);
 	~Block(void);

@@ -232,19 +232,25 @@ void generateXConstraints(vector<Rectangle*> const & rs, vector<Variable*> const
 /**
  * Prepares constraints in order to apply VPSC vertically to remove ALL overlap.
  */
-void generateYConstraints(vector<Rectangle*> const & rs, vector<Variable*> const &vars, vector<Constraint*> &cs) {
+void generateYConstraints(const Rectangles& rs, const Variables& vars, Constraints& cs) {
 	const unsigned n = rs.size();
+    assert(vars.size()==n);
 	events=new Event*[2*n];
-	unsigned ctr=0,i;
-	for(i=0;i<n;i++) {
-		vars[i]->desiredPosition=rs[i]->getCentreY();
-		Node *v = new Node(vars[i],rs[i],rs[i]->getCentreY());
-		events[ctr++]=new Event(Open,v,rs[i]->getMinX());
-		events[ctr++]=new Event(Close,v,rs[i]->getMaxX());
+	unsigned ctr=0;
+    Rectangles::const_iterator ri=rs.begin();
+    Variables::const_iterator vi=vars.begin();
+    for(;ri!=rs.end()&&vi!=vars.end();++ri,++vi) {
+        Rectangle* r=*ri;
+        Variable* v=*vi;
+		v->desiredPosition=r->getCentreY();
+		Node *node = new Node(v,r,r->getCentreY());
+		events[ctr++]=new Event(Open,node,r->getMinX());
+		events[ctr++]=new Event(Close,node,r->getMaxX());
 	}
+    assert(ri==rs.end()&&vi==vars.end());
 	qsort((Event*)events, (size_t)2*n, sizeof(Event*), compare_events );
 	NodeSet scanline;
-	for(i=0;i<2*n;i++) {
+	for(unsigned i=0;i<2*n;i++) {
 		Event *e=events[i];
 		Node *v=e->v;
 		if(e->type==Open) {

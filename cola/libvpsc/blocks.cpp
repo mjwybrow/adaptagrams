@@ -13,6 +13,7 @@
  * Released under GNU LGPL.  Read the file 'COPYING' for more information.
  */
 
+#include <cassert>
 #include "blocks.h"
 #include "block.h"
 #include "constraint.h"
@@ -27,6 +28,7 @@ using std::vector;
 using std::iterator;
 using std::list;
 using std::copy;
+#define __NOTNAN(p) (p)==(p)
 
 namespace vpsc {
 
@@ -172,17 +174,20 @@ void Blocks::split(Block *b, Block *&l, Block *&r, Constraint *c) {
 	f<<"Split right: "<<*r<<endl;
 #endif
 	r->posn = b->posn;
-	r->wposn = r->posn * r->weight;
+	//assert(r->weight!=0);
+	//r->wposn = r->posn * r->weight;
 	mergeLeft(l);
 	// r may have been merged!
 	r = c->right->block;
 	r->updateWeightedPosition();
-	r->posn = r->wposn / r->weight;
+	//r->posn = r->wposn / r->weight;
 	mergeRight(r);
 	removeBlock(b);
 
 	insert(l);
 	insert(r);
+	assert(__NOTNAN(l->posn));
+	assert(__NOTNAN(r->posn));
 }
 /**
  * returns the cost total squared distance of variables from their desired

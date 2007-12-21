@@ -197,6 +197,28 @@ void case5(TestCase& t) {
     double gradient[]={1.15455e-05,0.000114288,-0.000125833,0};
     t.setGradient(gradient);
 }
+void case6(TestCase& t) {
+    t.addNode(194.965627,200.000000,10.000000,10.000000);
+t.addNode(250.000000,250.000000,10.000000,10.000000);
+t.addNode(190.502921,200.000000,10.000000,10.000000);
+t.addNode(209.301752,225.000000,10.000000,10.000000);
+t.addToPath(0,(topology::EdgePoint::RectIntersect)4);
+t.addToPath(1,(topology::EdgePoint::RectIntersect)4);
+t.addEdge(60.000000);
+t.addToPath(1,(topology::EdgePoint::RectIntersect)4);
+t.addToPath(3,(topology::EdgePoint::RectIntersect)1);
+t.addToPath(2,(topology::EdgePoint::RectIntersect)4);
+t.addEdge(60.000000);
+t.addToPath(2,(topology::EdgePoint::RectIntersect)4);
+t.addToPath(0,(topology::EdgePoint::RectIntersect)4);
+t.addEdge(60.000000);
+desired.push_back(make_pair(3,404.312087));
+
+    t.addDesired(3,353.886210);
+
+    double gradient[]={1.15455e-05,0.000114288,-0.000125833,0};
+    t.setGradient(gradient);
+}
 
 void triangle(void tcase(TestCase&)) {
     printf("test: triangle()\n");
@@ -206,6 +228,10 @@ void triangle(void tcase(TestCase&)) {
 }
 
 int main() {
+    //triangle(case1);
+    //triangle(case2);
+    //triangle(case3);
+    //triangle(case4);
     triangle(case5);
     return 0;
 }

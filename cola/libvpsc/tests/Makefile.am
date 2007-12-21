@@ -1,6 +1,6 @@
 INCLUDES = -I$(top_srcdir) -I/usr/include/cairo -I/usr/include/cairomm-1.0
 #check_PROGRAMS = rectangleoverlap block satisfy_inc #csolve_VPSC #cycle
-check_PROGRAMS = satisfy_inc
+check_PROGRAMS = rectangleoverlap
 satisfy_inc_SOURCES = satisfy_inc.cpp
 satisfy_inc_LDADD = $(top_builddir)/libvpsc/libvpsc.a # -L$(mosek_home)/bin -lmosek -lguide -limf -lirc
 block_SOURCES = block.cpp

@@ -9,64 +9,57 @@
 #define EXTRA_GAP 0.0001
 using namespace std;
 using namespace vpsc;
-void removeoverlaps(int n, vector<Rectangle *> &rs) {
+
+void removeoverlaps(Rectangles &rs) {
 	double xBorder=0, yBorder=0;
-	assert(0 <= n);
+	unsigned n=rs.size();
 	try {
 		// The extra gap avoids numerical imprecision problems
 		Rectangle::setXBorder(xBorder+EXTRA_GAP);
 		Rectangle::setYBorder(yBorder+EXTRA_GAP);
-		Variable **vs=new Variable*[n];
-		for(int i=0;i<n;i++) {
-			vs[i]=new Variable(i,0,1);
+		Variables vs(n);
+		unsigned i=0;
+		for(Variables::iterator v=vs.begin();v!=vs.end();++v,++i) {
+			*v=new Variable(i,0,1);
 		}
-		Constraint **cs;
-		double *oldX = new double[n];
-		int m=generateXConstraints(n,rs,vs,cs,true);
-		for(int i=0;i<n;i++) {
-			oldX[i]=vs[i]->desiredPosition;
-		}
-		Solver vpsc_x(n,vs,m,cs);
+		Constraints cs;
+		generateXConstraints(rs,vs,cs,true);
+		Solver vpsc_x(vs,cs);
 		vpsc_x.solve();
-		for(int i=0;i<n;i++) {
-			rs[i]->moveCentreX(vs[i]->position());
+		Rectangles::iterator r=rs.begin();
+		for(Variables::iterator v=vs.begin();v!=vs.end();++v,++r) {
+			assert((*v)->finalPosition==(*v)->finalPosition);
+			(*r)->moveCentreX((*v)->finalPosition);
 		}
-		for(int i = 0; i < m; ++i) {
-			delete cs[i];
-		}
-		delete [] cs;
+		assert(r==rs.end());
+		for_each(cs.begin(),cs.end(),delete_object());
+		cs.clear();
 		// Removing the extra gap here ensures things that were moved to be adjacent to
 		// one another above are not considered overlapping
 		Rectangle::setXBorder(Rectangle::xBorder-EXTRA_GAP);
-		m=generateYConstraints(n,rs,vs,cs);
-		Solver vpsc_y(n,vs,m,cs);
+		generateYConstraints(rs,vs,cs);
+		Solver vpsc_y(vs,cs);
 		vpsc_y.solve();
-		for(int i=0;i<n;i++) {
-			rs[i]->moveCentreY(vs[i]->position());
-			rs[i]->moveCentreX(oldX[i]);
+		r=rs.begin();
+		for(Variables::iterator v=vs.begin();v!=vs.end();++v,++r) {
+			(*r)->moveCentreY((*v)->finalPosition);
 		}
-		delete [] oldX;
-		for(int i = 0; i < m; ++i) {
-			delete cs[i];
-		}
-		delete [] cs;
+		for_each(cs.begin(),cs.end(),delete_object());
+		cs.clear();
 		Rectangle::setYBorder(Rectangle::yBorder-EXTRA_GAP);
-		m=generateXConstraints(n,rs,vs,cs,false);
-		Solver vpsc_x2(n,vs,m,cs);
+		generateXConstraints(rs,vs,cs,false);
+		Solver vpsc_x2(vs,cs);
 		vpsc_x2.solve();
-		for(int i = 0; i < m; ++i) {
-			delete cs[i];
+		r=rs.begin();
+		for(Variables::iterator v=vs.begin();v!=vs.end();++v,++r) {
+			(*r)->moveCentreX((*v)->finalPosition);
 		}
-		delete [] cs;
-		for(int i=0;i<n;i++) {
-			rs[i]->moveCentreX(vs[i]->position());
-			delete vs[i];
-		}
-		delete [] vs;
+		for_each(cs.begin(),cs.end(),delete_object());
+		for_each(vs.begin(),vs.end(),delete_object());
 	} catch (char *str) {
 		std::cerr<<str<<std::endl;
-		for(int i=0;i<n;i++) {
-			std::cerr << *rs[i]<<std::endl;
+		for(Rectangles::iterator r=rs.begin();r!=rs.end();++r) {
+			std::cerr << **r <<std::endl;
 		}
 	}
 }
@@ -108,23 +101,22 @@ void generateRandomRects(unsigned n, vector<Rectangle*> &rs) {
 	//double k = (double)countOverlaps(rs,n)/n;
 	//cout << "    k="<< k << endl;
 }
-void generateRects(double coords[][4], unsigned n,vector<Rectangle *> rs) {
+vector<Rectangle*>& generateRects(double coords[][4], unsigned n,vector<Rectangle *>& rs) {
 	rs.resize(n);
 	for (unsigned i = 0; i < n; ++i) {
 		rs[i]=new Rectangle(coords[i][0],coords[i][1],coords[i][2],coords[i][3]);
 	}
+	return rs;
 }
 void test(vector<Rectangle *> &rs, double &cost, double &duration) {
 	unsigned n=rs.size();
 	vector<Rectangle *> ors(n);
-	double const rect_size = 5;
-	double const fld_size = sqrt(rect_size * n / 2.0);
 	for (unsigned i = 0; i < n; ++i) {
 		ors[i]=new Rectangle(rs[i]->getMinX(),rs[i]->getMaxX(),rs[i]->getMinY(),rs[i]->getMaxY());
 	}
 
 	clock_t starttime = clock();
-	removeoverlaps(n,rs);
+	removeoverlaps(rs);
 	duration = (double)(clock() - starttime)/CLOCKS_PER_SEC;
 	/*
 	if(countOverlaps(rs,n)!=0){
@@ -670,32 +662,30 @@ unsigned n12=10;
 int main() {
 	double c,t;
 	vector<Rectangle*> rs;
-	/*
 	cout << "test1" << endl;
-	test(generateRects(test1,n1),n1,c,t);
+	test(generateRects(test1,n1,rs),c,t);
 	cout << "test2" << endl;
-	test(generateRects(test2,n2),n2,c,t);
+	test(generateRects(test2,n2,rs),c,t);
 	cout << "test3" << endl;
-	test(generateRects(test3,n3),n3,c,t);
+	test(generateRects(test3,n3,rs),c,t);
 	cout << "test4" << endl;
-	test(generateRects(test4,n4),n4,c,t);
+	test(generateRects(test4,n4,rs),c,t);
 	cout << "test5" << endl;
-	test(generateRects(test5,n5),n5,c,t);
+	test(generateRects(test5,n5,rs),c,t);
 	cout << "test6" << endl;
-	test(generateRects(test6,n6),n6,c,t);
+	test(generateRects(test6,n6,rs),c,t);
 	cout << "test7" << endl;
-	test(generateRects(test7,n7),n7,c,t);
+	test(generateRects(test7,n7,rs),c,t);
 	cout << "test8" << endl;
-	test(generateRects(test8,n8),n8,c,t);
+	test(generateRects(test8,n8,rs),c,t);
 	cout << "test9" << endl;
-	test(generateRects(test9,n9),n9,c,t);
+	test(generateRects(test9,n9,rs),c,t);
 	cout << "test10" << endl;
-	test(generateRects(test10,n10),n10,c,t);
+	test(generateRects(test10,n10,rs),c,t);
 	cout << "test11" << endl;
-	test(generateRects(test11,n11),n11,c,t);
+	test(generateRects(test11,n11,rs),c,t);
 	cout << "test12" << endl;
-	test(generateRects(test12,n12),n12,c,t);
-	*/
+	test(generateRects(test12,n12,rs),c,t);
 	int max_size=100, repeats=100,step=10; 
 	//srand(time(NULL));
 	for(int i=10;i<=max_size;i+=step) {
