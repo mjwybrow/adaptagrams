@@ -7,7 +7,7 @@
  * \author Tim Dwyer
  * \date Dec 2007
  */
-#include <libproject/project.h>
+#include <libvpsc/constraint.h>
 #include <libcola/cola.h>
 #include <libcola/straightener.h>
 #include "topology_log.h"
@@ -86,7 +86,15 @@ struct NodeOpen : NodeEvent {
             openNodes.insert(make_pair(node->rect->getCentreD(dim),this));
         // the following test fails if there is already an entry in
         // openNodes at this position
+        //assert(r.second);
+        if(!r.second) {
+            const Node *n1=node;
+            const Node *n2=((r.first)->second)->node;
+            printf("scanpos %f, duplicate in open list at position: %f\n",pos,n1->rect->getCentreD(dim));
+            printf("  id1=%d, id2=%d\n",n1->id, n2->id);
+        }
         assert(r.second);
+
         openListIndex = r.first;
         createTopologyConstraint();
     }
@@ -103,12 +111,12 @@ struct NodeOpen : NodeEvent {
  * are created between the node and its immediate neighbours in openNodes.
  */
 struct NodeClose : NodeEvent {
-    /** we store the opening corresponding to this closing so that we can delete it and
-     *  remove it from the list of OpenNodes.
+    /** we store the opening corresponding to this closing so that we can
+     * delete it and remove it from the list of OpenNodes.
      */
     NodeOpen* opening;
-    project::Constraints& cs;
-    NodeClose(Node* node, NodeOpen* o, project::Constraints& cs)
+    vpsc::Constraints& cs;
+    NodeClose(Node* node, NodeOpen* o, vpsc::Constraints& cs)
         : NodeEvent(false,node->rect->getMaxD(!dim),node)
         , opening(o)
         , cs(cs) {
@@ -116,15 +124,15 @@ struct NodeClose : NodeEvent {
     }
     void createNonOverlapConstraint(const Node* left, const Node* right) {
         FILE_LOG(logDEBUG)<<"NodeClose::createNonOverlapConstraint left="<<left<<" right="<<right;
-        //double overlap = left->rect->overlapD(!dim,right->rect);
-        //if(overlap>1e-5) {
+        double overlap = left->rect->overlapD(!dim,right->rect);
+        if(overlap>1e-5) {
             double g = left->rect->length(dim) + right->rect->length(dim);
             g/=2.0;
-            g=static_cast<int>(g+0.5);
-            project::Variable *l=left->variable[dim], *r=right->variable[dim];
-            assert(l->getPosition() + g <= r->getPosition());
-            cs.push_back(new project::Constraint(l, r, g));
-        //}
+            g+=1e-7;
+            vpsc::Variable *l=left->var, *r=right->var;
+            //assert(l->getPosition() + g <= r->getPosition());
+            cs.push_back(new vpsc::Constraint(l, r, g));
+        }
     }
     /**
      * remove opening from openNodes, cleanup, and generate
@@ -322,9 +330,7 @@ StraightConstraint::StraightConstraint(
     } else {
         g+=r->length(dim)/2.0;
     }
-    project::Variable *uv=u->node->variable[dim],
-                      *vv=v->node->variable[dim],
-                      *wv=node->variable[dim];
+    const VarPos *uv=&u->node->varPos, *vv=&v->node->varPos, *wv=&node->varPos;
     c=new TriConstraint(uv,vv,wv,p,g,nodeLeft);
 }
 /**
@@ -366,9 +372,8 @@ BendConstraint(EdgePoint* v)
             leftOf=true;
         }
     }
-    project::Variable *uv=u->node->variable[dim],
-                      *vv=v->node->variable[dim],
-                      *wv=w->node->variable[dim];
+    const VarPos *uv=&u->node->varPos, 
+          *vv=&v->node->varPos, *wv=&w->node->varPos;
     c=new TriConstraint(uv,vv,wv,p,g,leftOf);
 }
 struct createBendConstraints {
@@ -406,7 +411,7 @@ TopologyConstraints(
     const cola::Dim axisDim,
     Nodes& nodes,
     Edges& edges,
-    project::Constraints & cs
+    vpsc::Constraints & cs
 ) : n(nodes.size())
   , nodes(nodes)
   , edges(edges) 

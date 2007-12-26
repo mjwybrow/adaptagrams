@@ -13,12 +13,7 @@
 #include "util.h"
 namespace vpsc {
     class Rectangle;
-}
-    
-namespace project {
     class Variable;
-    class Constraint;
-    typedef std::vector<Constraint*> Constraints;
 }
 namespace straightener {
     class Route;
@@ -29,6 +24,14 @@ namespace topology {
     class BendConstraint;
     class StraightConstraint;
     class Edge;
+    struct VarPos {
+        double initial;
+        double desired;
+        double posOnLine(double alpha) const {
+            double d=desired-initial;
+            return initial+alpha*d; 
+        }
+    };
     /**
      * Each node is associated with a rectangle and solver variables
      * for the x and y axes
@@ -38,10 +41,9 @@ namespace topology {
         const unsigned id;
         /// the bounding box of the associated node
         vpsc::Rectangle* rect;
-        /** variables associated with x and y positions of nodes,
-         *   to be passed to libproject solver
-         */
-        project::Variable* variable[2];
+        /// variable positions used by solver
+        vpsc::Variable* var;
+        VarPos varPos;
         /** 
          * when an edge path is being defined externally with a vector of EdgePoint,
          * a variable would not be specified.

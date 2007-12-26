@@ -16,12 +16,12 @@
 #include <vector>
 #include <set>
 #include <list>
+namespace vpsc {
+    class Constraint;
+    typedef std::vector<Constraint*> Constraints;
+}
 namespace cola {
     class SparseMap;
-}
-namespace project {
-    class Desired;
-    class Variable;
 }
 /**
  * namespace for classes uses in generating and solving forces and constraints associated with
@@ -42,7 +42,7 @@ namespace topology {
     class TriConstraint {
     public:
         /// Variables are directly entered into the libproject solver
-        project::Variable *u, *v, *w;
+        const VarPos *u, *v, *w;
         /// p is the parameter for the constraint line, g is the offset constant
         double p, g;
         /** 
@@ -51,9 +51,9 @@ namespace topology {
          */
         bool leftOf;
         TriConstraint(
-                project::Variable *u, 
-                project::Variable *v, 
-                project::Variable *w, 
+                const VarPos *u, 
+                const VarPos *v, 
+                const VarPos *w, 
                 double p, double g, bool left)
             : u(u), v(v), w(w), p(p), g(g), leftOf(left) { }
         /** 
@@ -64,7 +64,7 @@ namespace topology {
         /**
          * amount of slack at current positions of variables
          */
-        double slack() const;
+        double slackAtInitial() const;
         /**
          * amount of slack at desired positions of variables
          */
@@ -135,7 +135,7 @@ namespace topology {
      * are passed in for a set of nodes.  The first entry is the Node->id, the
      * second is the desired position.
      */
-    typedef std::pair<unsigned,project::Desired> DesiredPosition;
+    typedef std::pair<unsigned,double> DesiredPosition;
     typedef std::vector<DesiredPosition> DesiredPositions;
     /**
      * Define a topology over a diagram by generating a set of
@@ -148,16 +148,16 @@ namespace topology {
             const cola::Dim dim, 
             Nodes &vs,
             Edges &es,
-            project::Constraints& cs);
+            vpsc::Constraints& cs);
         ~TopologyConstraints();
         void violated(std::vector<TopologyConstraint*> & ts) const;
         void constraints(std::vector<TopologyConstraint*> & ts) const;
         TopologyConstraint* mostViolated() const;
         void computeForces(valarray<double>& g, cola::SparseMap& h);
         double computeStress() const;
-        void steepestDescent(valarray<double>& g, 
+        bool steepestDescent(valarray<double>& g, 
                 cola::SparseMap& h);
-        void steepestDescent(valarray<double>& g, 
+        bool steepestDescent(valarray<double>& g, 
                 cola::SparseMap& h, 
                 const DesiredPositions& d);
         double reachedDesired(const DesiredPositions& d);
@@ -165,7 +165,7 @@ namespace topology {
     private:
         Nodes& nodes;
         Edges& edges;
-        project::Constraints& cs;
+        vpsc::Constraints& cs;
     };
 } // namespace topology
 #endif // TOPOLOGY_CONSTRAINTS_H

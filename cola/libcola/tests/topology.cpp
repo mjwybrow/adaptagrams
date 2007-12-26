@@ -23,9 +23,9 @@
 #include <valarray>
 #include <algorithm>
 #include <float.h>
-#include "graphlayouttest.h"
+#include <libcola/cola.h>
 #include <libtopology/topology_graph.h>
-#include <libproject/project.h>
+#include "graphlayouttest.h"
 using namespace std;
 using namespace cola;
 
@@ -144,9 +144,9 @@ void randomMove(int i) {
 }
 int main() {
     unsigned i=0;
-    for(;i<100;i++) {
+    //for(;i<100;i++) {
         randomMove(i);
-    }
+    //}
     return 0;
 }
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:encoding=utf-8:textwidth=80 :

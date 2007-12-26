@@ -1,6 +1,6 @@
 #include <sstream>
 #include <string>
-#include <libproject/project.h>
+#include <libvpsc/variable.h>
 #include <libcola/cola.h>
 #include <libcola/straightener.h>
 #include "topology_graph.h"
@@ -13,12 +13,12 @@ namespace topology {
  * desired positions without violating this constraint
  */
 double TriConstraint::maxSafeAlpha() const {
-    double u1=u->relativeInitialPos();
-    double u2=u->relativeDesiredPos();
-    double v1=v->relativeInitialPos();
-    double v2=v->relativeDesiredPos();
-    double w1=w->relativeInitialPos();
-    double w2=w->relativeDesiredPos();
+    double u1=u->initial;
+    double u2=u->desired;
+    double v1=v->initial;
+    double v2=v->desired;
+    double w1=w->initial;
+    double w2=w->desired;
     double numerator=w1 - g - u1 + p*(u1-v1);
     // There are a number of situations where the following can
     // be 0!
@@ -36,18 +36,18 @@ double TriConstraint::slack(const double ux, const double vx, const double wx) c
 }
 double TriConstraint::slackAtDesired() const {
     return 
-        slack(u->getDesiredPosition(), 
-              v->getDesiredPosition(), 
-              w->getDesiredPosition());
+        slack(u->desired, 
+              v->desired, 
+              w->desired);
 }
-double TriConstraint::slack () const {
-    return slack(u->getPosition(), v->getPosition(), w->getPosition());
+double TriConstraint::slackAtInitial () const {
+    return slack(u->initial, v->initial, w->initial);
 }
 
 ostream& operator<< (ostream& os, const TriConstraint& c) {
-    double ux = c.u->relativeDesiredPos()
-         , vx = c.v->relativeDesiredPos()
-         , wx = c.w->relativeDesiredPos();
+    double ux = c.u->desired
+         , vx = c.v->desired
+         , wx = c.w->desired;
     os << "TriConstraint@" << &c 
        << ": u=" << ux 
        <<  " v=" << vx
@@ -71,7 +71,6 @@ struct transferStraightConstraint {
  */
 void BendConstraint::satisfy() {
     FILE_LOG(logDEBUG)<<"BendConstraint::satisfy()";
-    assert(fabs(c->slack())<1e-7);
     Segment* s1 = bendPoint->inSegment,
            * s2 = bendPoint->outSegment;
     Edge* e = s1->edge;
@@ -143,8 +142,8 @@ struct transferStraightConstraintChoose {
                 target1->straightConstraints.push_back(
                         new StraightConstraint(target1,c->node,c->pos));
             } else {
-                assert(c->pos>min(target2->start->pos[!dim],target2->end->pos[!dim]));
-                assert(c->pos<max(target2->start->pos[!dim],target2->end->pos[!dim]));
+                assert(c->pos>=min(target2->start->pos[!dim],target2->end->pos[!dim]));
+                assert(c->pos<=max(target2->start->pos[!dim],target2->end->pos[!dim]));
                 target2->straightConstraints.push_back(
                         new StraightConstraint(target2,c->node,c->pos));
             }
@@ -159,7 +158,6 @@ struct transferStraightConstraintChoose {
  */
 void StraightConstraint::satisfy() {
     FILE_LOG(logDEBUG)<<"StraightConstraint::satisfy()";
-    assert(fabs(c->slack())<1e-7);
     Edge* e = segment->edge;
     EdgePoint* start = segment->start,
              * end = segment->end,

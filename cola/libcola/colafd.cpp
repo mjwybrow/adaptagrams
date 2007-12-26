@@ -60,8 +60,8 @@ ConstrainedFDLayout::ConstrainedFDLayout(
       topologyNodes(NULL),
       topologyRoutes(NULL)
 {
-    FILELog::ReportingLevel() = logDEBUG1;
-    //FILELog::ReportingLevel() = logERROR;
+    //FILELog::ReportingLevel() = logDEBUG1;
+    FILELog::ReportingLevel() = logERROR;
     boundingBoxes.resize(n);
     copy(rs.begin(),rs.end(),boundingBoxes.begin());
     done.reset();
@@ -167,8 +167,7 @@ void removeoverlaps(vpsc::Rectangles &rs) {
  * little as possible.  If "meta-constraints" such as avoidOverlaps or edge
  * straightening are required then dummy variables will be generated.
  */
-double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const double oldStress,
-        const bool firstPass) {
+double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const double oldStress, const bool firstPass) {
     FILE_LOG(logDEBUG) << "ConstrainedFDLayout::applyForcesAndConstraints(): dim="<<dim;
     valarray<double> g(n);
     valarray<double> &coords = (dim==HORIZONTAL)?X:Y;
@@ -180,16 +179,6 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
     printf("]\n");
     */
     if(topologyRoutes) {
-        removeoverlaps(boundingBoxes);
-        for(topology::Nodes::iterator i=topologyNodes->begin();
-                i!=topologyNodes->end();++i) {
-            topology::Node* v=*i;
-            v->variable[0]->setPosition(project::Initial(v->rect->getCentreX()));
-            v->variable[1]->setPosition(project::Initial(v->rect->getCentreY()));
-            v->variable[dim]->clearConstraints();
-            FILE_LOG(logDEBUG1)<<"init: v["<<v->id<<"]=("<<v->rect->getCentreX()
-                <<","<<v->rect->getCentreY()<<")";
-        }
         topology::DesiredPositions des;
         if(preIteration) {
             if ((*preIteration)()) {
@@ -201,21 +190,36 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
                 }
             }
         }
-        vector<project::Constraint*> pcs;
+        for(topology::Nodes::iterator
+                i=topologyNodes->begin();i!=topologyNodes->end();++i) {
+            topology::Node* node=*i;
+            // ideal position is set later in t.steepestDescent
+            node->var=new Variable(node->id,-1);
+        }
+        vpsc::Constraints cs;
         printf("dim=%d\n",dim);
-        topology::TopologyConstraints t(dim,*topologyNodes,*topologyRoutes,pcs);
+        /*
+		if(dim==cola::HORIZONTAL) {
+            Rectangle::setXBorder(0.1);
+            Rectangle::setYBorder(0.1);
+        }
+        */
+        topology::TopologyConstraints t(dim,*topologyNodes,*topologyRoutes,cs);
+        bool interrupted;
         do {
             SparseMap HMap(n);
             computeForces(dim,HMap,g);
-            t.steepestDescent(g,HMap,des);
-        } while(t.reachedDesired(des)>0.01);
+            interrupted=t.steepestDescent(g,HMap,des);
+        } while(interrupted);
+		Rectangle::setXBorder(0);
+		Rectangle::setYBorder(0);
         for(topology::Nodes::iterator i=topologyNodes->begin();
                 i!=topologyNodes->end();++i) {
             topology::Node* v=*i;
-            coords[v->id]=v->variable[dim]->getPosition();
-            FILE_LOG(logDEBUG1)<<"result: v["<<v->id<<"]="<<v->variable[dim]->getPosition();
+            coords[v->id]=v->rect->getCentreD(dim);
+            delete v->var;
         }
-        for_each(pcs.begin(),pcs.end(),delete_object());
+        for_each(cs.begin(),cs.end(),delete_object());
     } else {
         SparseMap HMap(n);
         computeForces(dim,HMap,g);

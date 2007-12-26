@@ -1,7 +1,7 @@
 INCLUDES = -I$(top_srcdir) -I/usr/include/cairo -I/usr/include/cairomm-1.0
 common_LDADD = $(top_builddir)/libcola/libcola.a $(top_builddir)/libvpsc/libvpsc.a $(top_builddir)/libtopology/libtopology.a $(top_builddir)/libproject/libproject.a
-#check_PROGRAMS = unconstrained constrained containment straightener shortest_paths connected_components large_graph convex_hull scale_free trees random_graph large_graph nodedragging
-check_PROGRAMS = nodedragging
+#check_PROGRAMS = unconstrained constrained containment straightener shortest_paths connected_components large_graph convex_hull scale_free trees random_graph large_graph nodedragging planar
+check_PROGRAMS = planar
 
 shortest_paths_LDADD = $(top_builddir)/libcola/libcola.a
 shortest_paths_SOURCES = shortest_paths.cpp
@@ -19,6 +19,8 @@ topology_LDADD = $(common_LDADD)
 topology_SOURCES = topology.cpp 
 nodedragging_LDADD = $(common_LDADD)
 nodedragging_SOURCES = nodedragging.cpp 
+planar_LDADD = $(common_LDADD)
+planar_SOURCES = planar.cpp 
 #connected_components_LDADD = $(top_builddir)/libcola/libcola.a $(top_builddir)/libvpsc/libvpsc.a
 #connected_components_SOURCES = connected_components.cpp
 #sparse_matrix_LDADD = $(top_srcdir)/libcola/libcola.a $(top_srcdir)/libvpsc/libvpsc.a

@@ -12,7 +12,6 @@
 #include <libtopology/topology_constraints.h>
 #include <libcola/cola.h>
 #include <libcola/output_svg.h>
-#include <libproject/project.h>
 #include <vector>
 #include <iostream>
 #include <iomanip>
@@ -42,7 +41,7 @@ struct TestCase {
     DesiredPositions des;
     valarray<double> g;
     EdgePoints ps;
-    project::Constraints cs;
+    vpsc::Constraints cs;
     cola::Dim dim;
     unsigned iterations;
     TestCase() : dim(cola::HORIZONTAL), iterations(10) { }
@@ -89,10 +88,8 @@ struct TestCase {
     }
     Node* addNode(double x, double y, double w, double h) {
         vpsc::Rectangle* r = new vpsc::Rectangle(x,x+w,y,y+h);
-        project::Variable* var=new project::Variable(
-                project::Initial(-1),
-                project::Desired(-1));
-        Node *v = new Node(vs.size(), r, var);
+        Node *v = new Node(vs.size(), r);
+        v->var=new vpsc::Variable(vs.size(),-1);
         vs.push_back(v);
         return v;
     }
@@ -192,28 +189,6 @@ void case5(TestCase& t) {
     t.addToPath(2,(topology::EdgePoint::RectIntersect)4);
     t.addToPath(0,(topology::EdgePoint::RectIntersect)4);
     t.addEdge(60);
-    t.addDesired(3,353.886210);
-
-    double gradient[]={1.15455e-05,0.000114288,-0.000125833,0};
-    t.setGradient(gradient);
-}
-void case6(TestCase& t) {
-    t.addNode(194.965627,200.000000,10.000000,10.000000);
-t.addNode(250.000000,250.000000,10.000000,10.000000);
-t.addNode(190.502921,200.000000,10.000000,10.000000);
-t.addNode(209.301752,225.000000,10.000000,10.000000);
-t.addToPath(0,(topology::EdgePoint::RectIntersect)4);
-t.addToPath(1,(topology::EdgePoint::RectIntersect)4);
-t.addEdge(60.000000);
-t.addToPath(1,(topology::EdgePoint::RectIntersect)4);
-t.addToPath(3,(topology::EdgePoint::RectIntersect)1);
-t.addToPath(2,(topology::EdgePoint::RectIntersect)4);
-t.addEdge(60.000000);
-t.addToPath(2,(topology::EdgePoint::RectIntersect)4);
-t.addToPath(0,(topology::EdgePoint::RectIntersect)4);
-t.addEdge(60.000000);
-desired.push_back(make_pair(3,404.312087));
-
     t.addDesired(3,353.886210);
 
     double gradient[]={1.15455e-05,0.000114288,-0.000125833,0};

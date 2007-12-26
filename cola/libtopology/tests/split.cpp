@@ -12,7 +12,7 @@
 #include <libtopology/topology_constraints.h>
 #include <libcola/cola.h>
 #include <libcola/output_svg.h>
-#include <libproject/project.h>
+#include <libvpsc/constraint.h>
 #include <vector>
 #include <iostream>
 #include <sstream>
@@ -59,7 +59,7 @@ void split() {
 
     const size_t V = vs.size();
 
-    project::Constraints cs;
+    vpsc::Constraints cs;
     { // scope for t, so that t gets destroyed before es
         TopologyConstraints t(cola::HORIZONTAL,vs,es,cs);
         writeFile(vs,es,"split-0.svg");

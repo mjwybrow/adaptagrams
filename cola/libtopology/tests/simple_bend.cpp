@@ -10,7 +10,8 @@
 #include <libtopology/topology_constraints.h>
 #include <libcola/cola.h>
 #include <libcola/output_svg.h>
-#include <libproject/project.h>
+#include <libvpsc/variable.h>
+#include <libvpsc/constraint.h>
 #include <vector>
 #include <iostream>
 #include <sstream>
@@ -24,7 +25,7 @@ void test1(Nodes& vs, EdgePoints& ps, DesiredPositions& d, string& name) {
     addNode(vs,280,220,50,30);
     addToPath(ps,vs[2],EdgePoint::RectIntersect(4));
     addToPath(ps,vs[1],EdgePoint::RectIntersect(4));
-    d.push_back(make_pair(0,project::Desired(361.000000)));
+    d.push_back(make_pair(0,361.000000));
 }
 void test2(Nodes& vs, EdgePoints& ps, DesiredPositions& d, string& name) {
     name=string("test2");
@@ -33,7 +34,7 @@ void test2(Nodes& vs, EdgePoints& ps, DesiredPositions& d, string& name) {
     addNode(vs,0,50,54,34);
     addToPath(ps,vs[0],EdgePoint::RectIntersect(4));
     addToPath(ps,vs[1],EdgePoint::RectIntersect(4));
-    d.push_back(make_pair(2,project::Desired(150)));
+    d.push_back(make_pair(2,150));
 }
 void test3(Nodes& vs, EdgePoints& ps, DesiredPositions& d, string& name) {
     name=string("test3");
@@ -42,7 +43,7 @@ void test3(Nodes& vs, EdgePoints& ps, DesiredPositions& d, string& name) {
     addNode(vs,100,50,54,34);
     addToPath(ps,vs[0],EdgePoint::RectIntersect(4));
     addToPath(ps,vs[1],EdgePoint::RectIntersect(4));
-    d.push_back(make_pair(2,project::Desired(0)));
+    d.push_back(make_pair(2,0));
 }
 void test4(Nodes& vs, EdgePoints& ps, DesiredPositions& d, string& name) {
     name=string("test4");
@@ -67,10 +68,10 @@ void simple(void test(Nodes&, EdgePoints&, DesiredPositions&,string&)){
 
     writeFile(vs,es,"simple-"+name+"-0.svg");
 
-    project::Constraints cs;
+    vpsc::Constraints cs;
 
     { // scope for t, so that t gets destroyed before es
-        TopologyConstraints t(cola::VERTICAL,vs,es,cs);
+        TopologyConstraints t(cola::HORIZONTAL,vs,es,cs);
 
         // test computeStress
         double stress=t.computeStress();
@@ -96,7 +97,6 @@ void simple(void test(Nodes&, EdgePoints&, DesiredPositions&,string&)){
     for(Nodes::iterator i=vs.begin();i!=vs.end();++i) {
         Node* v=*i;
         delete v->rect;
-        delete v->var;
         delete v;
     }
     for_each(es.begin(),es.end(),delete_object());
@@ -104,9 +104,9 @@ void simple(void test(Nodes&, EdgePoints&, DesiredPositions&,string&)){
 }
 
 int main() {
-    //simple(test1);
-    //simple(test2);
-    //simple(test3);
+    simple(test1);
+    simple(test2);
+    simple(test3);
     simple(test4);
     return 0;
 }

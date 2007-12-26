@@ -1,7 +1,6 @@
 #include <libvpsc/rectangle.h>
 #include <libcola/cola.h>
 #include <libcola/straightener.h>
-#include <libproject/project.h>
 #include "topology_graph.h"
 #include "topology_constraints.h"
 using namespace std;
@@ -9,12 +8,7 @@ using vpsc::Rectangle;
 namespace topology {
     Node::Node(unsigned id, vpsc::Rectangle* r)
         : id(id), rect(r) 
-    {
-        for(unsigned i=0;i<2;++i) {
-            variable[i]=new project::Variable(id,
-                    project::Initial(r->getCentreD(i)));
-        }
-    }
+    { }
     void EdgePoint::deleteBendConstraint() {
         if(bendConstraint) {
             delete bendConstraint;

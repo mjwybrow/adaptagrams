@@ -93,44 +93,10 @@ struct TopologyConstraintInterrupt : InterruptException {
     TopologyConstraint* violated;
     double alpha;
 };
-struct AlphaCheck : project::ExternalAlphaCheck {
-    AlphaCheck(project::Variables& vs, vector<TopologyConstraint*>& ts) 
-        : vs(vs), ts(ts) {}
-    void operator()(double alpha) {
-        double minTAlpha=DBL_MAX;
-        TopologyConstraint* minT=NULL;
-        // find minimum feasible alpha over all topology constraints
-        for(vector<TopologyConstraint*>::iterator i=ts.begin();
-                i!=ts.end();++i) {
-            TopologyConstraint* t=*i;
-            double tAlpha=t->c->maxSafeAlpha();
-            double slackAtDesired=t->c->slackAtDesired();
-            FILE_LOG(logDEBUG1)<<"Checking topology constraint! alpha="<<tAlpha
-                <<"\n  slack at desired="<<slackAtDesired;
-            FILE_LOG(logDEBUG1)<<t->toString();
-            if(slackAtDesired<0 && tAlpha<minTAlpha) {
-                minTAlpha=tAlpha;
-                minT=t;
-            } else {
-                //assert(!t->c->tightening());
-            }
-        }
-        // if minTAlpha<alpha move all by minTAlpha 
-        // and throw interrupt exception
-        if(minTAlpha<alpha) {
-            FILE_LOG(logDEBUG)<<"Violated topology constraint! alpha="<<minTAlpha;
-            FILE_LOG(logDEBUG)<<minT->toString();
-            for_each(vs.begin(),vs.end(),
-                    bind2nd(mem_fun(&project::Variable::moveBy),minTAlpha));
-            throw TopologyConstraintInterrupt(minT,minTAlpha);
-        }
-    }
-    project::Variables& vs;
-    vector<TopologyConstraint*>& ts;
-};
-void TopologyConstraints::
+bool TopologyConstraints::
 steepestDescent(valarray<double>& g, cola::SparseMap& h) {
-    return steepestDescent(g,h,DesiredPositions());
+    DesiredPositions d;
+    return steepestDescent(g,h,d);
 }
 struct PrintSegmentLength {
     void operator() (Segment* s) {
@@ -142,91 +108,86 @@ struct PrintPoint {
         printf(" node: %p, corner: %d\n",p->node,p->rectIntersect);
     }
 };
-struct AssertFeasibility {
-    void operator()(project::Constraint* c) {
-        assert(c->initialSlack()>=0);
-    }
-};
 
-void TopologyConstraints::
-steepestDescent(valarray<double>& g, cola::SparseMap& h, const DesiredPositions& d=DesiredPositions()) {
+bool TopologyConstraints::
+steepestDescent(valarray<double>& g, cola::SparseMap& h, const DesiredPositions& d) {
     FILE_LOG(logDEBUG)<<"TopologyConstraints::steepestDescent... dim="<<dim;
     assert(g.size()==n);
     assert(h.n==n);
-    printInstance(g);
+    //printInstance(g);
+    bool interrupted=false;
     computeForces(g,h);
     cola::SparseMatrix H(h);
     double stepSize = computeStepSize(H,g,g);
     FILE_LOG(logDEBUG1)<<"stepSize="<<stepSize;
-    project::Variables vars(n);
+    vpsc::Variables vars;
     for(unsigned i=0;i<n;++i) {
-        Node* node=nodes[i];
-        vpsc::Rectangle* r=node->rect;
-        project::Variable* v=node->variable[dim];
-        double x=r->getCentreD(dim);
-        v->setPosition(project::Desired(x-g[i]*stepSize));
-        vars[i]=v;
-        FILE_LOG(logDEBUG1)<<"v["<<i<<"]:init="<<v->getPosition()<<", desi="<<v->getDesiredPosition();
+        double x=nodes[i]->rect->getCentreD(dim);
+        vpsc::Variable* v=nodes[i]->var;
+        v->desiredPosition=x-g[i]*stepSize;
+        vars.push_back(v);
     }
     for(DesiredPositions::const_iterator i=d.begin();i!=d.end();++i) {
-        project::Variable* v = vars[i->first];
-        v->setPosition(i->second);
-        v->setWeight(project::Weight(1e10));
-        printf("desired.push_back(make_pair(%d,%f));\n",i->first,i->second.pos);
-        FILE_LOG(logDEBUG1)<<"override desi="<<v->getDesiredPosition();
+        vpsc::Variable* v = vars[i->first];
+        v->desiredPosition=i->second;
+        v->weight=1e10;
+        FILE_LOG(logDEBUG1)<<"override desi="<<v->desiredPosition;
     }
     vector<TopologyConstraint*> ts;
     constraints(ts);
-    for_each(cs.begin(),cs.end(),AssertFeasibility());
-    project::Project p(vars,cs);
-    AlphaCheck a(vars,ts);
-    p.setExternalAlphaCheck(&a);
-    TopologyConstraint* violated=NULL;
-    try {
-        p.solve();
-        FILE_LOG(logDEBUG)<<"project finished with no violated topology constraints.";
-    } catch(TopologyConstraintInterrupt& e) {
-        FILE_LOG(logDEBUG)<<"finished early!";
-        violated=e.violated;
-    } catch(project::CriticalFailure& f) {
-        f.print();
-        exit(1);
+    vpsc::IncSolver s(vars,cs);
+    s.solve();
+    for(unsigned i=0;i<n;++i) {
+        vpsc::Variable* v=vars[i];
+        Node* node=nodes[i];
+        node->varPos.initial = node->rect->getCentreD(dim);
+        node->varPos.desired = v->finalPosition;
+    }
+    double minTAlpha=DBL_MAX;
+    TopologyConstraint* minT=NULL;
+    // find minimum feasible alpha over all topology constraints
+    for(vector<TopologyConstraint*>::iterator i=ts.begin();
+            i!=ts.end();++i) {
+        TopologyConstraint* t=*i;
+        double tAlpha=t->c->maxSafeAlpha();
+        double slackAtDesired=t->c->slackAtDesired();
+        FILE_LOG(logDEBUG1)<<"Checking topology constraint! alpha="<<tAlpha
+            <<"\n  slack at desired="<<slackAtDesired;
+        FILE_LOG(logDEBUG1)<<t->toString();
+        if(slackAtDesired<0 && tAlpha<minTAlpha) {
+            minTAlpha=tAlpha;
+            minT=t;
+        }
+    }
+    if(minTAlpha<1) {
+        interrupted=true;
+        FILE_LOG(logDEBUG1)<<"violated topology constraint! alpha="<<minTAlpha;
+    }
+    for(Nodes::iterator i=nodes.begin();i!=nodes.end();++i) {
+        Node* v=*i;
+        double p=interrupted ? v->varPos.posOnLine(minTAlpha)
+                             : v->varPos.desired;
+        v->rect->moveCentreD(dim,p);
     }
     for(Edges::iterator e=edges.begin();e!=edges.end();++e) {
         assert((*e)->assertConvexBends());
-    }
-    // at this point, variables have moved by some alpha 0<=alpha<=1 along the line
-    // from initial positions to desired positions that is guaranteed not to
-    // violate any constraints.
-    for(unsigned i=0;i<n;i++) {
-        //printf("old pos[%d]=%f,%f\n",i,nodes[i]->rect->getCentreX(),nodes[i]->rect->getCentreY());
-        nodes[i]->rect->moveCentreD(dim,vars[i]->getPosition());
-        //printf("new pos[%d]=%f,%f\n",i,nodes[i]->rect->getCentreX(),nodes[i]->rect->getCentreY());
     }
     for(Edges::iterator e=edges.begin();e!=edges.end();++e) {
         (*e)->forEachEdgePoint(mem_fun(&EdgePoint::setPos));
     }
     // rectangle and edge point positions updated to variables.
     FILE_LOG(logDEBUG)<<" moves done.";
-    if(violated) {
-        // now we satisfy the violated topology constraint, i.e. a bend point that
-        // has become straight is removed or a segment that needs to bend is split
-        violated->satisfy();
+    if(interrupted) {
+        // now we satisfy the violated topology constraint, i.e. a bend point
+        // that has become straight is removed or a segment that needs to bend
+        // is split
+        minT->satisfy();
     }
     for(Edges::iterator e=edges.begin();e!=edges.end();++e) {
         assert((*e)->assertConvexBends());
     }
     FILE_LOG(logDEBUG)<<"TopologyConstraints::steepestDescent... done";
-}
-double TopologyConstraints::
-reachedDesired(const DesiredPositions& d) {
-    double furthest = DBL_MIN;
-    for(DesiredPositions::const_iterator i=d.begin();i!=d.end();++i) {
-        project::Variable* v = nodes[i->first]->variable[dim];
-        furthest = max(furthest,fabs(i->second.pos-v->getPosition()));
-    }
-    FILE_LOG(logDEBUG)<<"max distance to desired="<<furthest;
-    return furthest;
+    return interrupted;
 }
 } // namespace topology
 // vim: cindent ts=4 sw=4 et tw=0 wm=0

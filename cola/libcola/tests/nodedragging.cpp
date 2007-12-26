@@ -91,8 +91,8 @@ void nodeDragging() {
     ConstrainedFDLayout alg(rs,es,NULL,idealLength,NULL,test,&preIteration);
     alg.setTopology(&vs,&tes);
 
-    double step=10;
-    for(unsigned i=0;i<20;i++) {
+    double step=1;
+    for(unsigned i=0;i<100;i++) {
         lock.pos[0]=rs[0]->getCentreX()+step;
         lock.pos[1]=rs[0]->getCentreY()-step;
         alg.run(true,true);
