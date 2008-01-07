@@ -1,4 +1,6 @@
+#include <libvpsc/rectangle.h>
 #include <libcola/cola.h>
+#include <libtopology/topology_graph.h>
 #include <libcola/output_svg.h>
 #include<sstream>
 
@@ -152,7 +154,7 @@ void run_test(
         delete rs[i];
     }
 }
-void writeFile(const topology::Nodes& vs, const topology::Edges& es, const string outputFileName) {
+void writeFile(const topology::Nodes& vs, const topology::Edges& es, const string& outputFileName) {
     const unsigned n=vs.size();
     vector<cola::Edge> cedges;
 

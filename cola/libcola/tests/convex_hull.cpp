@@ -1,4 +1,9 @@
+/**
+ * Really basic regression test of convex hull implementation
+ * declared in libcola/convex_hull.h
+ */
 #include <valarray>
+#include <algorithm>
 #include <libcola/convex_hull.h>
 #include "graphlayouttest.h"
 
@@ -12,70 +17,134 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #endif 
+using namespace std;
+
+typedef vector<unsigned> Hull;
+/**
+ * generates a random set of n points in X and Y.
+ */
+void randTest(unsigned n, valarray<double>& X, valarray<double>& Y) {
+    X.resize(n);
+    Y.resize(n);
+    srand(time(NULL));
+	for(unsigned i=0;i<n;i++) {
+		X[i]=getRand(1.);
+		Y[i]=getRand(1.);
+	}
+}
+/**
+ * generates a set of 8 points (actually the vertices of two rectangles)
+ * which lineup horizontally.  The expected hull are the lower-left and
+ * top-left corners of the left rectangle and the top-right/lower-right
+ * corners of the right rectangle.
+ */
+void tworects(valarray<double>& X, valarray<double>& Y, Hull& expectedHull) {
+    const unsigned n=8;
+    X.resize(n);
+    Y.resize(n);
+    X[0]=330.011898, Y[0]=203.250425;
+    X[1]=330.011898, Y[1]=237.250425;
+    X[2]=276.011898, Y[2]=237.250425;
+    X[3]=276.011898, Y[3]=203.250425;
+    X[4]=459.998300, Y[4]=203.250425;
+    X[5]=459.998300, Y[5]=237.250425;
+    X[6]=405.998300, Y[6]=237.250425;
+    X[7]=405.998300, Y[7]=203.250425;
+    unsigned hull[]={3,4,5,2};
+    unsigned m=sizeof(hull)/sizeof(unsigned);
+    expectedHull.resize(m);
+    copy(hull,hull+m,expectedHull.begin());
+}
+
+int drawCairo(const string& fname,
+        const valarray<double>& X, const valarray<double>& Y, 
+        const Hull& hull);
+
+int main(int argc, char** argv) {
+	valarray<double> X, Y;
+	Hull hull,expectedHull;
+    tworects(X,Y,expectedHull);
+	convexHull(X,Y,hull);
+    pair<Hull::iterator,Hull::iterator> r
+        =mismatch(hull.begin(),hull.end(),expectedHull.begin());
+    assert(r.first==hull.end());
+    drawCairo("convex_tworects.svg",X,Y,hull);
+
+    randTest(20,X,Y);
+	convexHull(X,Y,hull);
+    drawCairo("convex_hull_random.svg",X,Y,hull);
+}
+
+/***********CAIRO CODE***************************************************/
+double width = 600;
+double height = 400;
+double border=10;
 void dot(Cairo::RefPtr<Cairo::Context> & cr, double x, double y) {
     cr->arc(x, y, 
             2., 0.0, 2.0 * M_PI);
     cr->stroke();
 }
 
-int main(int argc, char** argv)
-{
-    unsigned n=20;
-	std::valarray<double> X(n);
-	std::valarray<double> Y(n);
-    srand(time(NULL));
-	for(unsigned i=0;i<n;i++) {
-		X[i]=getRand(1.);
-		Y[i]=getRand(1.);
-	}
-	std::vector<unsigned> hull;
-	convexHull(X,Y,hull);
+double xcoord(double x) {
+    return border+x*width;
+}
+double ycoord(double y) {
+    return border+y*height;
+}
+int drawCairo(const string& fname,
+        const valarray<double>& Xin, const valarray<double>& Yin, 
+        const Hull& hull) {
 #ifdef CAIRO_HAS_SVG_SURFACE
+    unsigned n=Xin.size();
+    assert(Yin.size()==n);
 
-    std::string filename = "image.svg";
-    double width = 600;
-    double height = 400;
+    // normalise coords to range 0-1
+    valarray<double> X=Xin, Y=Yin;
+    X-=X.min();
+    Y-=Y.min();
+    X/=X.max();
+    Y/=Y.max();
+
     Cairo::RefPtr<Cairo::SvgSurface> surface =
-        Cairo::SvgSurface::create(filename, width, height);
+        Cairo::SvgSurface::create(fname, width+2*border, height+2*border);
 
     Cairo::RefPtr<Cairo::Context> cr = Cairo::Context::create(surface);
 
     cr->save(); // save the state of the context
     cr->set_source_rgba(0.0, 0.0, 0.0, 0.7);
-    // draw a circle in the center of the image
+    // draw a circle at each coordinate
     for(unsigned i=0;i<n;i++) {
-        dot(cr,height*X[i],height*(1-Y[i]));
+        dot(cr,xcoord(X[i]),ycoord(Y[i]));
     }
 
     cr->set_source_rgba(0.0, 0.0, 0.0, 0.3);
-    cr->move_to(height*X[hull[0]],height*(1-Y[hull[0]]));
-    for(int i=1;i<hull.size();i++) {
-        cr->line_to(height*X[hull[i]],height*(1-Y[hull[i]]));
+    cr->move_to(xcoord(X[hull[0]]),ycoord(Y[hull[0]]));
+    for(unsigned i=1;i<hull.size();i++) {
+        cr->line_to(xcoord(X[hull[i]]),ycoord(Y[hull[i]]));
     }
-    cr->line_to(height*X[hull[0]],height*(1-Y[hull[0]]));
+    cr->line_to(xcoord(X[hull[0]]),ycoord(Y[hull[0]]));
     cr->stroke();
     cr->set_source_rgba(0.0, 0.0, 0.0, 1.);
-    for(int i=0;i<hull.size();i++) {
-        char ch[3];
-        unsigned j=hull[i];
-        printf("%d,%d\n",i,j);
-        sprintf(ch,"%d",i);
-        std::string s(ch);
-        cr->move_to(height*X[j],height*(1-Y[j]));
-        cr->show_text(s);
+    for(vector<unsigned>::const_iterator i=hull.begin();i!=hull.end();++i) {
+        unsigned j=*i;
+        stringstream ss;
+        ss<<j;
+        printf("p[%d]=(%f,%f)\n",j,X[j],Y[j]);
+        cr->move_to(xcoord(X[j]),ycoord(Y[j]));
+        cr->show_text(ss.str());
         cr->stroke();
     }
     cr->restore();
 
     cr->show_page();
 
-    std::cout << "Wrote SVG file \"" << filename << "\"" << std::endl;
+    cout << "Wrote SVG file \"" << fname << "\"" << endl;
     return 0;
 
 #else
 
-    std::cout << "You must compile cairo with SVG support for this example to work."
-        << std::endl;
+    cout << "You must compile cairo with SVG support for this example to work."
+        << endl;
     return 1;
 
 #endif

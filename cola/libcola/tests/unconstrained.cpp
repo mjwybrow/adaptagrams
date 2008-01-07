@@ -37,7 +37,7 @@ int main() {
 		rs.push_back(new vpsc::Rectangle(x,x+5,y,y+5));
 	}
 	CheckProgress test(0.0001,100);
-	ConstrainedFDLayout alg(rs,es,NULL,width/2,NULL,test);
+	ConstrainedFDLayout alg(rs,es,width/2,NULL,test);
 	//alg.setConstrainedLayout(true);
 	alg.run();
 	double stress = alg.computeStress();

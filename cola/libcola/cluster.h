@@ -33,10 +33,15 @@ public:
     void generateNonOverlapConstraints(
             const Dim dim,
             const NonOverlapConstraints nonOverlapConstraints,
-            vector<Rectangle*> const& rs,
-            vector<Variable*> const& vars,
-            vector<vpsc::Constraint*> & cs);
+            const vpsc::Rectangles& rs,
+            const vpsc::Variables& vars,
+            vpsc::Constraints & cs);
     void clear();
+    /**
+     * @return the total area covered by contents of this cluster (not
+     * including space between nodes/clusters)
+     */
+    double area(const vpsc::Rectangles& rs);
 private:
     Variable *vMin, *vMax;
     double length;
@@ -53,6 +58,8 @@ public:
 class ConvexCluster : public Cluster {
 public:
     void computeBoundary(vector<Rectangle*> const & rs);
+    valarray<unsigned> hullRIDs;
+    valarray<unsigned char> hullCorners;
 };
 } // namespace cola
 

@@ -44,11 +44,14 @@ struct SetDesiredPos : public PreIteration {
 struct Test : TestConvergence {
     Test(const double d,const unsigned i,topology::Nodes& vs, topology::Edges& es) : TestConvergence(d,i), vs(vs), es(es), iter(1) {}
     bool operator()(const double new_stress, valarray<double> & X, valarray<double> & Y) {
-        cout << "stress="<<new_stress<<" iteration="<<iter<<endl;
-        stringstream ss;
-        ss << outFName << "-" << setfill('0') << setw(3) << iter++ << ".svg";
-        writeFile(vs,es,ss.str());
-        return TestConvergence::operator()(new_stress,X,Y);
+        bool converged = TestConvergence::operator()(new_stress,X,Y);
+        if(converged) {
+            cout << "stress="<<new_stress<<" iteration="<<iter<<endl;
+            stringstream ss;
+            ss<<outFName<<"-"<< setfill('0') << setw(3) << iter++ << ".svg";
+            writeFile(vs,es,ss.str());
+        }
+        return converged;
     }
     double lastStress;
     topology::Nodes& vs;
@@ -88,7 +91,7 @@ void nodeDragging() {
     Lock& lock=locks[0];
     SetDesiredPos preIteration(locks);
     Test test(0.00001,100,vs,tes);
-    ConstrainedFDLayout alg(rs,es,NULL,idealLength,NULL,test,&preIteration);
+    ConstrainedFDLayout alg(rs,es,idealLength,NULL,test,&preIteration);
     alg.setTopology(&vs,&tes);
 
     double step=1;

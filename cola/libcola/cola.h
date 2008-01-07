@@ -302,7 +302,6 @@ public:
     /**
      * @param rs bounding boxes of nodes passed in at their initial positions
      * @param es simple pair edges, giving indices of the start and end nodes
-     * @param clusterHierarchy @todo remains to be seen!
      * @param idealLength is a scalar modifier of ideal edge lengths in eweights
      * @param eweights individual ideal lengths for edges, actual ideal length of the
      * ith edge is idealLength*eweights[i], if eweights is NULL then just idealLength
@@ -313,7 +312,6 @@ public:
     ConstrainedFDLayout(
         vector<Rectangle*>& rs,
         vector<Edge> const & es,
-        RootCluster* clusterHierarchy,
         double const idealLength,
         std::valarray<double> const * eweights=NULL,
         TestConvergence& done=defaultTest,

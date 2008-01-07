@@ -130,7 +130,7 @@ void randomMove(int i) {
     printf(" Lock: %f,%f\n",lx,ly);
     SetDesiredPos preIteration(locks);
     Test test(0.00001,100,vs,tes);
-    ConstrainedFDLayout alg(rs,es,NULL,idealLength,NULL,test,&preIteration);
+    ConstrainedFDLayout alg(rs,es,idealLength,NULL,test,&preIteration);
 
     alg.setTopology(&vs,&tes);
     alg.run(true,true);
@@ -144,9 +144,9 @@ void randomMove(int i) {
 }
 int main() {
     unsigned i=0;
-    //for(;i<100;i++) {
+    for(;i<1;i++) {
         randomMove(i);
-    //}
+    }
     return 0;
 }
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:encoding=utf-8:textwidth=80 :

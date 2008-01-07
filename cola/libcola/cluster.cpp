@@ -30,31 +30,42 @@ namespace cola {
             minY=min(r->getMinY(),minY);
             maxY=max(r->getMaxY(),maxY);
         }
-        bounds=Rectangle(minX,maxX,minY,maxY);
     }
 
     void ConvexCluster::computeBoundary(vector<Rectangle*> const & rs) {
-        valarray<double> X(4*nodes.size());
-        valarray<double> Y(X.size());
+        unsigned n=4*nodes.size();
+        valarray<double> X(n);
+        valarray<double> Y(n);
         unsigned pctr=0;
         for(vector<unsigned>::const_iterator i=nodes.begin(); i!=nodes.end(); i++) {
             vpsc::Rectangle* r=rs[*i];
-            X[pctr]=r->getMinX();
-            Y[pctr++]=r->getMinY();
-            X[pctr]=r->getMinX();
-            Y[pctr++]=r->getMaxY();
+            // Bottom Right
             X[pctr]=r->getMaxX();
             Y[pctr++]=r->getMinY();
+            // Top Right
             X[pctr]=r->getMaxX();
             Y[pctr++]=r->getMaxY();
+            // Top Left
+            X[pctr]=r->getMinX();
+            Y[pctr++]=r->getMaxY();
+            // Bottom Left
+            X[pctr]=r->getMinX();
+            Y[pctr++]=r->getMinY();
+        }
+        for(unsigned i=0;i<n;i++) {
+            printf("X[%d]=%f, Y[%d]=%f;\n",i,X[i],i,Y[i]);
         }
         vector<unsigned> hull;
         convexHull(X,Y,hull);
         hullX.resize(hull.size());
         hullY.resize(hull.size());
+        hullRIDs.resize(hull.size());
+        hullCorners.resize(hull.size());
         for(unsigned j=0;j<hull.size();j++) {
             hullX[j]=X[hull[j]];
             hullY[j]=Y[hull[j]];
+            hullRIDs[j]=hull[j]/4;
+            hullCorners[j]=hull[j]%4;
         }
     }
     void RectangularCluster::computeBoundary(vector<Rectangle*> const & rs) {
@@ -115,6 +126,10 @@ namespace cola {
             const Dim dim,
             vector<vpsc::Rectangle*> const & rs, 
             vector<vpsc::Variable*>& vars) {
+        assert(clusters.size()>0||nodes.size()>0);
+        for(vector<Cluster*>::iterator i=clusters.begin();i!=clusters.end();i++) {
+            (*i)->createVars(dim,rs,vars);
+        }
         computeBoundingRect(rs);
         if(dim==HORIZONTAL) {
             vars.push_back(vXMin=new Variable(
@@ -127,9 +142,6 @@ namespace cola {
             vars.push_back(vYMax=new Variable(
                         vars.size(),bounds.getMaxX(),varWeight));
         }
-        for(vector<Cluster*>::iterator i=clusters.begin();i!=clusters.end();i++) {
-            (*i)->createVars(dim,rs,vars);
-        }
     }
     void Cluster::generateNonOverlapConstraints(
             const Dim dim,
@@ -137,6 +149,7 @@ namespace cola {
             vector<Rectangle*> const& rs,
             vector<vpsc::Variable*> const& vars,
             vector<vpsc::Constraint*> & cs) {
+        assert(clusters.size()>0||nodes.size()>0);
         for(unsigned i=0;i<clusters.size();i++) {
             Cluster* c=clusters[i];
             c->generateNonOverlapConstraints(dim,nonOverlapConstraints,rs,vars,cs);
@@ -157,7 +170,6 @@ namespace cola {
             vctr++;
         }
         map<vpsc::Variable*, Cluster*> varClusterMap;
-        computeBoundingRect(rs);
         for(vector<Cluster*>::iterator i=clusters.begin();i!=clusters.end();i++) {
             Cluster* c=*i;
             lvs[vctr]=c->vMin;
@@ -213,5 +225,20 @@ namespace cola {
         for_each(clusters.begin(),clusters.end(),delete_object());
         clusters.clear();
     }
-}
+    /**
+     * @return the total area covered by contents of this cluster (not
+     * including space between nodes/clusters)
+     */
+    double Cluster::area(const vpsc::Rectangles& rs) {
+        double a=0;
+        for(vector<unsigned>::iterator i=nodes.begin();i!=nodes.end();++i) {
+            vpsc::Rectangle* r=rs[*i];
+            a+=r->width()*r->height();
+        }
+        for(Clusters::iterator i=clusters.begin();i!=clusters.end();++i) {
+            a+=(*i)->area(rs);
+        }
+        return a;
+    }
+} // namespace cola
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=8:softtabstop=4:encoding=utf-8:textwidth=99 :

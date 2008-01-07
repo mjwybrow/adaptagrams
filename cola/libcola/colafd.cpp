@@ -44,7 +44,6 @@ void dumpSquareMatrix(unsigned n, T** L) {
 ConstrainedFDLayout::ConstrainedFDLayout(
         vector<Rectangle*>& rs,
         vector<Edge> const & es,
-        RootCluster* clusterHierarchy,
         double const idealLength,
         std::valarray<double> const * eweights,
         TestConvergence& done,
@@ -103,7 +102,6 @@ void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis) {
             stress=applyForcesAndConstraints(VERTICAL,stress,firstPass);
         }
         firstPass=false;
-        move();
     } while(!done(stress,X,Y));
     FILE_LOG(logDEBUG) << "ConstrainedFDLayout::run done.";
 }
@@ -180,6 +178,7 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
     */
     if(topologyRoutes) {
         topology::DesiredPositions des;
+        removeoverlaps(boundingBoxes);
         if(preIteration) {
             if ((*preIteration)()) {
                 for(vector<Lock>::iterator l=preIteration->locks.begin();
@@ -197,7 +196,6 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
             node->var=new Variable(node->id,-1);
         }
         vpsc::Constraints cs;
-        printf("dim=%d\n",dim);
         /*
 		if(dim==cola::HORIZONTAL) {
             Rectangle::setXBorder(0.1);
@@ -206,11 +204,13 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
         */
         topology::TopologyConstraints t(dim,*topologyNodes,*topologyRoutes,cs);
         bool interrupted;
+        int loopBreaker=10;
         do {
             SparseMap HMap(n);
             computeForces(dim,HMap,g);
             interrupted=t.steepestDescent(g,HMap,des);
-        } while(interrupted);
+            loopBreaker--;
+        } while(interrupted&&loopBreaker>0);
 		Rectangle::setXBorder(0);
 		Rectangle::setYBorder(0);
         for(topology::Nodes::iterator i=topologyNodes->begin();
@@ -264,9 +264,9 @@ double ConstrainedFDLayout::applyDescentVector(
  * compute forces between them.
  * Specifically, if nodes are further apart than their desired separation (l>d) and:
  *  - they are not immediately connected (g>1); or
- *  - they are immediately connected but we have topology routes (in which case the
- *    attractive force will be computed over the path length rather than the euclidean
- *    separation).
+ *  - they are immediately connected but we have topology routes (in which case
+ *    the attractive force will be computed over the path length rather than
+ *    the euclidean separation).
  * @param l actual separation between the pair of nodes
  * @param d desired separation between them
  * @param g graph path length between them

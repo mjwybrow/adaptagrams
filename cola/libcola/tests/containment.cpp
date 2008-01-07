@@ -1,5 +1,6 @@
-/** \file
- * Interface between Inkscape code (SPItem) and graphlayout functions.
+/** \file containment.cpp
+ *
+ * simple test of clustered graph layout
  */
 /*
 * Authors:
@@ -29,10 +30,6 @@ RectangularCluster rc, rd;
 RootCluster root;
 unsigned iteration=0;
 
-/** 
-* \brief Determines when to terminate layout of a particular graph based
-* on a given relative tolerance. 
-*/
 int main() {
 
 	const unsigned V = 5;
