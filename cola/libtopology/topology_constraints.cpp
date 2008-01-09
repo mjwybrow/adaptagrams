@@ -57,8 +57,13 @@ ostream& operator<< (ostream& os, const TriConstraint& c) {
        <<  " left=" << c.leftOf; 
     return os;
 }
-struct transferStraightConstraint {
-    transferStraightConstraint(Segment* target)
+/**
+ * Functor which creates a new StraightConstraint in the target Segment
+ * for a given StraightConstraint in some Segment being replaced by
+ * target.
+ */
+struct TransferStraightConstraint {
+    TransferStraightConstraint(Segment* target)
         : target(target) {}
     void operator() (StraightConstraint* s) {
         target->straightConstraints.push_back(
@@ -70,13 +75,18 @@ struct transferStraightConstraint {
  * The bend has become straight, remove bend
  */
 void BendConstraint::satisfy() {
-    FILE_LOG(logDEBUG)<<"BendConstraint::satisfy()";
+    FILE_LOG(logDEBUG)<<"BendConstraint::satisfy()...";
     Segment* s1 = bendPoint->inSegment,
            * s2 = bendPoint->outSegment;
     Edge* e = s1->edge;
     EdgePoint* start = s1->start,
              * end = s2->end;
     Segment* s = new Segment(e,start,end);
+    if(e->lastSegment==s1 && e->firstSegment==s2) {
+        FILE_LOG(logDEBUG)<<"  handling cyclical boundary.";
+        e->firstSegment=s;
+        e->lastSegment=start->inSegment;
+    }
     if(e->firstSegment==s1) {
         e->firstSegment=s;
     }
@@ -84,7 +94,7 @@ void BendConstraint::satisfy() {
         e->lastSegment=s;
     }
     // transfer each StraightConstraint from s1 and s2 to newSegment.
-    transferStraightConstraint transfer(s);
+    TransferStraightConstraint transfer(s);
     for_each(s1->straightConstraints.begin(),
              s1->straightConstraints.end(),
              transfer);
@@ -108,6 +118,7 @@ void BendConstraint::satisfy() {
     delete bendPoint;
     delete s1;
     delete s2;
+    FILE_LOG(logDEBUG)<<"BendConstraint::satisfy()...done.";
 }
 string BendConstraint::
 toString() {
@@ -153,6 +164,23 @@ struct transferStraightConstraintChoose {
     double pos;
     StraightConstraint* ignore;
 };
+bool sameCorner(const EdgePoint* a, const EdgePoint* b) {
+    assert( !(a->node->id==b->node->id
+                &&a->rectIntersect==b->rectIntersect));
+    return false;
+}
+bool zigzag(const EdgePoint* a, const Segment* s) {
+    if(s!=NULL) {
+        assert(!sameCorner(a,s->end));
+    }
+    return false;
+}
+bool zagzig(const EdgePoint* a, const Segment* s) {
+    if(s!=NULL) {
+        assert(!sameCorner(a,s->start));
+    }
+    return false;
+}
 /**
  * Segment needs to bend
  */
@@ -162,6 +190,9 @@ void StraightConstraint::satisfy() {
     EdgePoint* start = segment->start,
              * end = segment->end,
              * bend = new EdgePoint(node,ri);
+    assert(!zigzag(bend,end->outSegment));
+    assert(!zagzig(bend,start->inSegment));
+    
     Segment* s1 = new Segment(e,start,bend);
     Segment* s2 = new Segment(e,bend,end);
     if(e->firstSegment==segment) {

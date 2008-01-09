@@ -13,7 +13,6 @@
 #include "util.h"
 namespace vpsc {
     class Rectangle;
-    class Variable;
 }
 namespace straightener {
     class Route;
@@ -42,7 +41,6 @@ namespace topology {
         /// the bounding box of the associated node
         vpsc::Rectangle* rect;
         /// variable positions used by solver
-        vpsc::Variable* var;
         VarPos varPos;
         /** 
          * when an edge path is being defined externally with a vector of EdgePoint,
@@ -87,8 +85,8 @@ namespace topology {
         /**
          * the constructor sets up the position 
          */
-        EdgePoint(const Node* node, RectIntersect i) 
-                : node(node), rectIntersect(i)
+        EdgePoint(const Node* n, RectIntersect i) 
+                : node(n), rectIntersect(i)
                 , inSegment(NULL), outSegment(NULL) 
                 , bendConstraint(NULL)
         {
@@ -218,6 +216,11 @@ namespace topology {
     /**
      * defines (hopefully just once) a loop over the bipartite linked-list
      * of Segment and EdgePoint in an Edge.
+     * In the case of a cluster boundary, the edge will be a cycle, where
+     * the last EdgePoint is also the first.  Thus, we process from
+     * Edge::firstSegment to Edge::lastSegment.  We visit every EdgePoint
+     * (i.e. nSegments+1), in the case of a cycle, the first/last
+     * point will be visited (PointOp applied) twice.
      */
     template <typename _Edge=Edge*, 
               typename PointOp=NoOp<EdgePoint*>,
@@ -226,12 +229,17 @@ namespace topology {
         ForEach(_Edge e, PointOp po, SegmentOp so) {
             Segment* s=e->firstSegment;
             po(s->start);
-            while(s!=NULL) {
+            bool last=false;
+            do {
                 EdgePoint* p=s->end;
                 so(s);
-                s=p->outSegment;
+                if(s==e->lastSegment) {
+                    last=true;
+                } else {
+                    s=p->outSegment;
+                }
                 po(p);
-            }
+            } while(!last);
         }
     };
     /**
@@ -344,6 +352,10 @@ namespace topology {
          */
         straightener::Route* getRoute();
         bool assertConvexBends() const;
+        bool cycle() {
+            return firstSegment->start==lastSegment->end;
+        }
+        std::string toString() const;
     };
     typedef std::vector<Edge*> Edges;
     double compute_stress(const Edges& es);

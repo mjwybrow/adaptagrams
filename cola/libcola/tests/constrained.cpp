@@ -1,5 +1,7 @@
-/** \file
- * Interface between Inkscape code (SPItem) and graphlayout functions.
+/** \file constrained.cpp
+ *
+ * runs constraint layout on a small graph.  nodes 0 and 3 are constrained
+ * to a vertical line
  */
 /*
 * Authors:
@@ -15,7 +17,10 @@
 #include <algorithm>
 #include <float.h>
 #include <libcola/cola.h>
-#include "graphlayouttest.h"
+#include <libcola/output_svg.h>
+inline double getRand(double range) {
+	return range*rand()/RAND_MAX;
+}
 
 using namespace std;
 using namespace cola;
@@ -42,11 +47,25 @@ int main() {
 	acsx.push_back(&ac);
 	ac.offsets.push_back(make_pair((unsigned)0,(double)0));
 	ac.offsets.push_back(make_pair((unsigned)3,(double)0));
+	// apply steepest descent layout
+	ConstrainedFDLayout alg2(rs,es,width/2);
+	alg2.setXConstraints(&acsx);
+	alg2.run();
+	assert(alg2.computeStress()<0.0013);
+	// the following pair of nodes should line-up
+	assert(fabs(rs[0]->getCentreX()-rs[3]->getCentreX())<0.001);
+	// reset rectangles to random positions
+	for(unsigned i=0;i<V;i++) {
+		double x=getRand(width), y=getRand(height);
+		rs[i]->moveCentre(x,y);
+	}
+	// apply scaled majorization layout
 	ConstrainedMajorizationLayout alg(rs,es,NULL,width/2);
 	alg.setXConstraints(&acsx);
 	alg.setScaling(true);
 	alg.run();
-	//assert(fabs(rs[0]->getCentreX()-rs[3]->getCentreX())<0.001);
+	// the following pair of nodes should line-up
+	assert(fabs(rs[0]->getCentreX()-rs[3]->getCentreX())<0.001);
 	cout<<rs[0]->getCentreX()<<","<<rs[3]->getCentreX()<<endl;
 	OutputFile output(rs,es,NULL,"constrained.svg");
 	output.rects=true;

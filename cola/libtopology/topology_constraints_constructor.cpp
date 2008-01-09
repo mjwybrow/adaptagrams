@@ -115,24 +115,28 @@ struct NodeClose : NodeEvent {
      * delete it and remove it from the list of OpenNodes.
      */
     NodeOpen* opening;
+    vpsc::Variables& vs;
     vpsc::Constraints& cs;
-    NodeClose(Node* node, NodeOpen* o, vpsc::Constraints& cs)
+    NodeClose(Node* node, NodeOpen* o, 
+            vpsc::Variables& vs, vpsc::Constraints& cs)
         : NodeEvent(false,node->rect->getMaxD(!dim),node)
         , opening(o)
+        , vs(vs)
         , cs(cs) {
         assert(opening->node == node);
     }
     void createNonOverlapConstraint(const Node* left, const Node* right) {
         FILE_LOG(logDEBUG)<<"NodeClose::createNonOverlapConstraint left="<<left<<" right="<<right;
-        double overlap = left->rect->overlapD(!dim,right->rect);
-        if(overlap>1e-5) {
+        //double overlap = left->rect->overlapD(!dim,right->rect);
+        //if(overlap>1e-5) {
             double g = left->rect->length(dim) + right->rect->length(dim);
             g/=2.0;
-            g+=1e-7;
-            vpsc::Variable *l=left->var, *r=right->var;
+            //if(dim==cola::HORIZONTAL) {
+                g+=1e-7;
+            //}
             //assert(l->getPosition() + g <= r->getPosition());
-            cs.push_back(new vpsc::Constraint(l, r, g));
-        }
+            cs.push_back(new vpsc::Constraint(vs[left->id], vs[right->id], g));
+        //}
     }
     /**
      * remove opening from openNodes, cleanup, and generate
@@ -217,12 +221,13 @@ void NodeEvent::createTopologyConstraint() {
     FILE_LOG(logDEBUG)<<"NodeEvent::createTopologyConstraint():node@"<<node<<" pos="<<pos;
     for(OpenSegments::iterator j=openSegments.begin(); j!=openSegments.end();++j) {
         Segment* s=(*j)->s;
-        // skip if edge is attached to this node
-        if(s->edge->firstSegment->start->node==node 
-                || s->edge->lastSegment->end->node==node) {
-            continue;
+        if(!s->edge->cycle()) {
+            // skip if edge is attached to this node
+            if(s->edge->firstSegment->start->node==node 
+                    || s->edge->lastSegment->end->node==node) {
+                continue;
+            }
         }
-        // skip if the one end of the segment is already 
         // segments orthogonal to scan direction need no constraints
         if(s->start->pos[!dim]-s->end->pos[!dim]==0) continue;
 
@@ -267,6 +272,15 @@ struct CompareEvents {
         return false;
     }
 };
+TriConstraint::TriConstraint(
+        const VarPos *u, 
+        const VarPos *v, 
+        const VarPos *w, 
+        double p, double g, bool left)
+    : u(u), v(v), w(w), p(p), g(g), leftOf(left) 
+{
+}
+
 /**
  * create a constraint between a segment and a node that is
  * activated when the segment needs to be bent (divided into
@@ -353,7 +367,6 @@ BendConstraint(EdgePoint* v)
     // because all of our nodes are boxes we do not expect consecutive
     // segments to change horizontal or vertical direction
     FILE_LOG(logDEBUG1)<<"u="<<u->pos[!dim]<<" v="<<v->pos[!dim]<<" w="<<w->pos[!dim];
-    FLUSH_LOG(logDEBUG1);
     assert(v->assertConvexBend());
     double p;
     /*double i=*/
@@ -376,13 +389,15 @@ BendConstraint(EdgePoint* v)
           *vv=&v->node->varPos, *wv=&w->node->varPos;
     c=new TriConstraint(uv,vv,wv,p,g,leftOf);
 }
-struct createBendConstraints {
+struct CreateBendConstraints {
     void operator() (EdgePoint* p) {
         Segment* in = p->inSegment, * out = p->outSegment;
         double v = p->pos[!dim];
+        if(p->bendConstraint==NULL 
+                // dont want to create bend constraint twice if
+                // edge is cyclical
+           && in!=NULL && out!=NULL // or if this is the end of an edge
         // don't generate BendConstraints for segments parallel to scan line
-        // or points at the end of an edge
-        if(in!=NULL && out!=NULL
            && in->start->pos[!dim]!=v && v!=out->end->pos[!dim]) {
             // edges shouldn't double back!
             assert(p->assertConvexBend());
@@ -392,8 +407,8 @@ struct createBendConstraints {
         }
     }
 };
-struct createSegmentEvents {
-    createSegmentEvents(vector<Event*>& events) : events(events) {}
+struct CreateSegmentEvents {
+    CreateSegmentEvents(vector<Event*>& events) : events(events) {}
     void operator() (Segment* s) {
         // don't generate events for segments parallel to scan line
         if(s->start->pos[!dim]!=s->end->pos[!dim]) {
@@ -406,19 +421,43 @@ struct createSegmentEvents {
     vector<Event*>& events;
 };
 
+bool TopologyConstraints::noOverlaps() const {
+    const double e=1e-7;
+    for(Nodes::const_iterator i=nodes.begin();i!=nodes.end();++i) {
+        const Node* u=*i;
+        for(Nodes::const_iterator i=nodes.begin();i!=nodes.end();++i) {
+            const Node* v=*i;
+            if(u==v) continue;
+            /*
+            cout<<"checking overlap ru="<<*u->rect<<" rv="<<*v->rect<<endl;
+            cout<<"   overlapX="<<u->rect->overlapX(v->rect)<<endl;
+            cout<<"   overlapY="<<u->rect->overlapY(v->rect)<<endl;
+            */
+            if(u->rect->overlapX(v->rect)>e) {
+                assert(u->rect->overlapY(v->rect)<e);
+            }
+        }
+    }
+    return true;
+}
 TopologyConstraints::
 TopologyConstraints( 
     const cola::Dim axisDim,
     Nodes& nodes,
     Edges& edges,
-    vpsc::Constraints & cs
+    vpsc::Variables& vs,
+    vpsc::Constraints& cs
 ) : n(nodes.size())
   , nodes(nodes)
   , edges(edges) 
+  , vs(vs)
   , cs(cs)
 {
     FILELog::ReportingLevel() = logERROR;
     //FILELog::ReportingLevel() = logDEBUG1;
+    FILE_LOG(logDEBUG)<<"TopologyConstraints::TopologyConstraints():dim="<<axisDim;
+
+    assert(noOverlaps());
 
     dim = axisDim;
 
@@ -429,18 +468,19 @@ TopologyConstraints(
     for(Nodes::const_iterator i=nodes.begin();i!=nodes.end();++i) {
         Node* v=*i;
         NodeOpen *open=new NodeOpen(v);
-        NodeClose *close=new NodeClose(v,open,cs);
+        NodeClose *close=new NodeClose(v,open,vs,cs);
         events.push_back(open);
         events.push_back(close);
     }
     for(Edges::const_iterator e=edges.begin();e!=edges.end();++e) {
-        (*e)->forEach(createBendConstraints(),createSegmentEvents(events));
+        (*e)->forEach(CreateBendConstraints(),CreateSegmentEvents(events));
     }
     // process events in top to bottom order
     sort(events.begin(),events.end(),CompareEvents());
     for_each(events.begin(),events.end(),mem_fun(&Event::process));
     assert(openSegments.empty());
     assert(openNodes.empty());
+    FILE_LOG(logDEBUG)<<"TopologyConstraints::TopologyConstraints()... done.";
 }
 
 TopologyConstraints::

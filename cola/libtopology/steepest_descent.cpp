@@ -31,7 +31,7 @@ struct ComputeStress {
         double dl=d-e->pathLength();
         if(dl>0) return 0;
         double s=weight*dl*dl;
-        FILE_LOG(logDEBUG1)<<"e("<<e->firstSegment->start->node->id<<","<<e->lastSegment->end->node->id<<")="<<s<<std::endl;
+        //FILE_LOG(logDEBUG1)<<"e("<<e->firstSegment->start->node->id<<","<<e->lastSegment->end->node->id<<")="<<s<<std::endl;
         return s;
     }
 };
@@ -109,36 +109,43 @@ struct PrintPoint {
     }
 };
 
+bool assertConvexBends(const Edges& edges) {
+    for(Edges::const_iterator e=edges.begin();e!=edges.end();++e) {
+        assert((*e)->assertConvexBends());
+    }
+    return true;
+}
 bool TopologyConstraints::
-steepestDescent(valarray<double>& g, cola::SparseMap& h, const DesiredPositions& d) {
+steepestDescent(valarray<double>& g, cola::SparseMap& h, const
+        DesiredPositions& d) 
+{
     FILE_LOG(logDEBUG)<<"TopologyConstraints::steepestDescent... dim="<<dim;
     assert(g.size()==n);
     assert(h.n==n);
+    assert(assertConvexBends(edges));
     //printInstance(g);
     bool interrupted=false;
     computeForces(g,h);
     cola::SparseMatrix H(h);
     double stepSize = computeStepSize(H,g,g);
     FILE_LOG(logDEBUG1)<<"stepSize="<<stepSize;
-    vpsc::Variables vars;
     for(unsigned i=0;i<n;++i) {
         double x=nodes[i]->rect->getCentreD(dim);
-        vpsc::Variable* v=nodes[i]->var;
+        vpsc::Variable* v=vs[i];
         v->desiredPosition=x-g[i]*stepSize;
-        vars.push_back(v);
     }
     for(DesiredPositions::const_iterator i=d.begin();i!=d.end();++i) {
-        vpsc::Variable* v = vars[i->first];
+        vpsc::Variable* v = vs[i->first];
         v->desiredPosition=i->second;
         v->weight=1e10;
         FILE_LOG(logDEBUG1)<<"override desi="<<v->desiredPosition;
     }
     vector<TopologyConstraint*> ts;
     constraints(ts);
-    vpsc::IncSolver s(vars,cs);
+    vpsc::IncSolver s(vs,cs);
     s.solve();
     for(unsigned i=0;i<n;++i) {
-        vpsc::Variable* v=vars[i];
+        vpsc::Variable* v=vs[i];
         Node* node=nodes[i];
         node->varPos.initial = node->rect->getCentreD(dim);
         node->varPos.desired = v->finalPosition;
@@ -159,6 +166,7 @@ steepestDescent(valarray<double>& g, cola::SparseMap& h, const DesiredPositions&
             minT=t;
         }
     }
+    assert(assertConvexBends(edges));
     if(minTAlpha<1) {
         interrupted=true;
         FILE_LOG(logDEBUG1)<<"violated topology constraint! alpha="<<minTAlpha;
@@ -169,9 +177,8 @@ steepestDescent(valarray<double>& g, cola::SparseMap& h, const DesiredPositions&
                              : v->varPos.desired;
         v->rect->moveCentreD(dim,p);
     }
-    for(Edges::iterator e=edges.begin();e!=edges.end();++e) {
-        assert((*e)->assertConvexBends());
-    }
+    assert(noOverlaps());
+    assert(assertConvexBends(edges));
     for(Edges::iterator e=edges.begin();e!=edges.end();++e) {
         (*e)->forEachEdgePoint(mem_fun(&EdgePoint::setPos));
     }
@@ -183,9 +190,7 @@ steepestDescent(valarray<double>& g, cola::SparseMap& h, const DesiredPositions&
         // is split
         minT->satisfy();
     }
-    for(Edges::iterator e=edges.begin();e!=edges.end();++e) {
-        assert((*e)->assertConvexBends());
-    }
+    assert(assertConvexBends(edges));
     FILE_LOG(logDEBUG)<<"TopologyConstraints::steepestDescent... done";
     return interrupted;
 }

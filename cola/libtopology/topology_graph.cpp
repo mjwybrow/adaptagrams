@@ -1,3 +1,4 @@
+#include <sstream>
 #include <libvpsc/rectangle.h>
 #include <libcola/cola.h>
 #include <libcola/straightener.h>
@@ -57,19 +58,31 @@ namespace topology {
     /**
      * @return true if the EdgePoint is the end of an edge otherwise
      * asserts that it is a valid bend point.
+     * Note that cluster boundary edges are cycles, and therefore have no
+     * ends.
      */
     bool EdgePoint::isEnd() const {
         Edge* e = outSegment->edge;
         if(outSegment == e->firstSegment || inSegment == e->lastSegment) {
+            if(e->firstSegment->start==e->lastSegment->end) {
+                // it's a cycle (as in a cluster boundary)
+                return false;
+            }
             return true;
         }
         return false;
     }
     bool EdgePoint::assertConvexBend() const {
         if(inSegment && outSegment) {
-            double* upos = inSegment->start->pos;
-            double* wpos = outSegment->end->pos;
-            double e=1e-7;
+            EdgePoint* u=inSegment->start;
+            EdgePoint* w=outSegment->end;
+            assert(
+                    !(u->node->id==w->node->id
+                        &&u->rectIntersect==w->rectIntersect));
+
+            double* upos = u->pos;
+            double* wpos = w->pos;
+            double e=0;//1e-7;
 
 //#define ____FASTFAIL
 #ifdef ____FASTFAIL
@@ -86,9 +99,9 @@ namespace topology {
                 return true;
             }
             printf("  convexity bend point test failed:\n");
-            printf("    u=(%f,%f)\n",upos[0],upos[1]);
-            printf("    v=(%f,%f)\n",pos[0],pos[1]);
-            printf("    w=(%f,%f)\n",wpos[0],wpos[1]);
+            printf("    u(nid=%d,ri=%d)=(%f,%f)\n",u->node->id,u->rectIntersect,upos[0],upos[1]);
+            printf("    v(nid=%d,ri=%d)=(%f,%f)\n",node->id,rectIntersect,pos[0],pos[1]);
+            printf("    w(nid=%d,ri=%d)=(%f,%f)\n",w->node->id,w->rectIntersect,wpos[0],wpos[1]);
             assert(false);
 #endif
         } 
@@ -139,6 +152,19 @@ namespace topology {
     bool Edge::assertConvexBends() const {
         forEachEdgePointConst(mem_fun(&EdgePoint::assertConvexBend));
         return true;
+    }
+    struct PointToString {
+        PointToString(stringstream& ss) : ss(ss) {}
+        void operator()(const EdgePoint* p) {
+            ss << "EP@" << p <<": pos=("
+               << p->pos[0]<<","<<p->pos[1]<<")"<<endl;
+        }
+        stringstream& ss;
+    };
+    string Edge::toString() const {
+        stringstream ss;
+        forEachEdgePointConst(PointToString(ss));
+        return ss.str();
     }
     struct buildPath {
         buildPath(ConstEdgePoints& vs) : vs(vs) {}

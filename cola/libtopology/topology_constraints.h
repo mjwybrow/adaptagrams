@@ -18,7 +18,9 @@
 #include <list>
 namespace vpsc {
     class Constraint;
+    class Variable;
     typedef std::vector<Constraint*> Constraints;
+    typedef std::vector<Variable*> Variables;
 }
 namespace cola {
     class SparseMap;
@@ -54,8 +56,7 @@ namespace topology {
                 const VarPos *u, 
                 const VarPos *v, 
                 const VarPos *w, 
-                double p, double g, bool left)
-            : u(u), v(v), w(w), p(p), g(g), leftOf(left) { }
+                double p, double g, bool left);
         /** 
          * @return the maximum move we can make along the line from initial to
          * desired positions without violating this constraint
@@ -146,8 +147,9 @@ namespace topology {
         const size_t n;
         TopologyConstraints(
             const cola::Dim dim, 
-            Nodes &vs,
-            Edges &es,
+            Nodes& nodes,
+            Edges& edges,
+            vpsc::Variables& vs,
             vpsc::Constraints& cs);
         ~TopologyConstraints();
         void violated(std::vector<TopologyConstraint*> & ts) const;
@@ -162,9 +164,11 @@ namespace topology {
                 const DesiredPositions& d);
         double reachedDesired(const DesiredPositions& d);
         void printInstance(valarray<double>& g) const;
+        bool noOverlaps() const;
     private:
         Nodes& nodes;
         Edges& edges;
+        vpsc::Variables& vs;
         vpsc::Constraints& cs;
     };
 } // namespace topology
