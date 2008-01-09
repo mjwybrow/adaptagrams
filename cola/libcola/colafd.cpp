@@ -8,7 +8,6 @@
 #include <libvpsc/variable.h>
 #include <libvpsc/constraint.h>
 #include <libvpsc/rectangle.h>
-#include <libproject/project.h>
 #include <libtopology/topology_graph.h>
 #include <libtopology/topology_constraints.h>
 #include "cola_log.h"
@@ -92,14 +91,28 @@ ConstrainedFDLayout::ConstrainedFDLayout(
 void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis) {
     FILE_LOG(logDEBUG) << "ConstrainedFDLayout::run...";
     if(n==0) return;
-    double stress=computeStress();
+    double stress=DBL_MAX;
     bool firstPass=true;
     do {
+        if(preIteration) {
+            if(!(*preIteration)()) {
+                break;
+            } else {
+                //printf("preIteration->changed=%d\n",preIteration->changed);
+                firstPass=preIteration->changed;
+            }
+        }
         if(xAxis) {
-            stress=applyForcesAndConstraints(HORIZONTAL,stress,firstPass);
+            if (firstPass) {
+                stress=DBL_MAX;
+            }
+            stress=applyForcesAndConstraints(HORIZONTAL,stress);
         }
         if(yAxis) {
-            stress=applyForcesAndConstraints(VERTICAL,stress,firstPass);
+            if (firstPass) {
+                stress=DBL_MAX;
+            }
+            stress=applyForcesAndConstraints(VERTICAL,stress);
         }
         firstPass=false;
     } while(!done(stress,X,Y));
@@ -120,7 +133,7 @@ void removeoverlaps(vpsc::Rectangles &rs) {
 		}
         vpsc::Constraints cs;
         vpsc::generateXConstraints(rs,vs,cs,true);
-        vpsc::Solver vpsc_x(vs,cs);
+        vpsc::IncSolver vpsc_x(vs,cs);
 		vpsc_x.solve();
         vpsc::Rectangles::iterator r=rs.begin();
 		for(Variables::iterator v=vs.begin();v!=vs.end();++v,++r) {
@@ -134,7 +147,7 @@ void removeoverlaps(vpsc::Rectangles &rs) {
 		// one another above are not considered overlapping
 		Rectangle::setXBorder(Rectangle::xBorder-EXTRA_GAP);
         vpsc::generateYConstraints(rs,vs,cs);
-        vpsc::Solver vpsc_y(vs,cs);
+        vpsc::IncSolver vpsc_y(vs,cs);
 		vpsc_y.solve();
 		r=rs.begin();
 		for(Variables::iterator v=vs.begin();v!=vs.end();++v,++r) {
@@ -144,7 +157,7 @@ void removeoverlaps(vpsc::Rectangles &rs) {
 		cs.clear();
 		Rectangle::setYBorder(Rectangle::yBorder-EXTRA_GAP);
         vpsc::generateXConstraints(rs,vs,cs,false);
-        vpsc::Solver vpsc_x2(vs,cs);
+        vpsc::IncSolver vpsc_x2(vs,cs);
 		vpsc_x2.solve();
 		r=rs.begin();
 		for(Variables::iterator v=vs.begin();v!=vs.end();++v,++r) {
@@ -159,13 +172,59 @@ void removeoverlaps(vpsc::Rectangles &rs) {
 		}
 	}
 }
+void setupVarsAndConstraints(unsigned n, const CompoundConstraints* ccs,
+        vpsc::Variables& vs, vpsc::Constraints& cs) {
+    vs.resize(n);
+    for(unsigned i=0;i<n;++i) {
+        vs[i]=new vpsc::Variable(i);
+    }
+    if(ccs) {
+        for(CompoundConstraints::const_iterator c=ccs->begin();
+                c!=ccs->end();++c) {
+            (*c)->generateVariables(vs);
+        }
+        for(CompoundConstraints::const_iterator c=ccs->begin();
+                c!=ccs->end();++c) {
+            (*c)->generateSeparationConstraints(vs,cs);
+        }
+    }
+}
+void updateCompoundConstraints(const CompoundConstraints* ccs) {
+    if(ccs) {
+        for(CompoundConstraints::const_iterator c=ccs->begin();
+                c!=ccs->end();c++) {
+            (*c)->updatePosition();
+        }
+    }
+}
+void project(vpsc::Variables& vs, vpsc::Constraints& cs, const topology::DesiredPositions& des, valarray<double>& coords) {
+    unsigned n=coords.size();
+    assert(vs.size()>=n);
+    for(unsigned i=0;i<n;++i) {
+        vpsc::Variable* v=vs[i];
+        v->desiredPosition = coords[i];
+        v->weight=1;
+    }
+    for(topology::DesiredPositions::const_iterator d=des.begin();
+            d!=des.end();++d) {
+        assert(d->first<vs.size());
+        vpsc::Variable* v=vs[d->first];
+        v->desiredPosition = d->second;
+        v->weight=10000;
+    }
+    vpsc::IncSolver s(vs,cs);
+    s.solve();
+    for(unsigned i=0;i<n;++i) {
+        coords[i]=vs[i]->finalPosition;
+    }
+}
 /**
  * The following computes an unconstrained solution then uses Projection to
  * make this solution feasible with respect to constraints by moving things as
  * little as possible.  If "meta-constraints" such as avoidOverlaps or edge
  * straightening are required then dummy variables will be generated.
  */
-double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const double oldStress, const bool firstPass) {
+double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const double oldStress) {
     FILE_LOG(logDEBUG) << "ConstrainedFDLayout::applyForcesAndConstraints(): dim="<<dim;
     valarray<double> g(n);
     valarray<double> &coords = (dim==HORIZONTAL)?X:Y;
@@ -176,33 +235,26 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
     }
     printf("]\n");
     */
+    topology::DesiredPositions des;
+    if(preIteration) {
+        for(vector<Lock>::iterator l=preIteration->locks.begin();
+                l!=preIteration->locks.end();l++) {
+            des.push_back(make_pair(l->id,l->pos[dim]));
+            FILE_LOG(logDEBUG1)<<"desi: v["<<l->id<<"]=("<<l->pos[0]
+                <<","<<l->pos[1]<<")";
+        }
+    }
+    vpsc::Variables vs;
+    vpsc::Constraints cs;
+    CompoundConstraints* ccs=dim==HORIZONTAL?ccsx:ccsy;
+    double stress;
+    setupVarsAndConstraints(n,ccs,vs,cs);
     if(topologyRoutes) {
-        topology::DesiredPositions des;
-        removeoverlaps(boundingBoxes);
-        if(preIteration) {
-            if ((*preIteration)()) {
-                for(vector<Lock>::iterator l=preIteration->locks.begin();
-                        l!=preIteration->locks.end();l++) {
-                    des.push_back(make_pair(l->id,l->pos[dim]));
-                    FILE_LOG(logDEBUG1)<<"desi: v["<<l->id<<"]=("<<l->pos[0]
-                        <<","<<l->pos[1]<<")";
-                }
-            }
+        if(dim==cola::HORIZONTAL) {
+            Rectangle::setXBorder(0);
         }
-        for(topology::Nodes::iterator
-                i=topologyNodes->begin();i!=topologyNodes->end();++i) {
-            topology::Node* node=*i;
-            // ideal position is set later in t.steepestDescent
-            node->var=new Variable(node->id,-1);
-        }
-        vpsc::Constraints cs;
-        /*
-		if(dim==cola::HORIZONTAL) {
-            Rectangle::setXBorder(0.1);
-            Rectangle::setYBorder(0.1);
-        }
-        */
-        topology::TopologyConstraints t(dim,*topologyNodes,*topologyRoutes,cs);
+        topology::TopologyConstraints t(dim,*topologyNodes,*topologyRoutes,
+                vs,cs);
         bool interrupted;
         int loopBreaker=10;
         do {
@@ -217,34 +269,46 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
                 i!=topologyNodes->end();++i) {
             topology::Node* v=*i;
             coords[v->id]=v->rect->getCentreD(dim);
-            delete v->var;
         }
-        for_each(cs.begin(),cs.end(),delete_object());
+        stress=computeStress();
     } else {
         SparseMap HMap(n);
         computeForces(dim,HMap,g);
         SparseMatrix H(HMap);
         valarray<double> oldCoords=coords;
         applyDescentVector(g,oldCoords,coords,oldStress,computeStepSize(H,g,g));
-        if(!firstPass) {
-            valarray<double> d(n);
-            d=oldCoords-coords;
-            double stepsize=computeStepSize(H,g,d);
-            stepsize=max(0.,min(stepsize,1.));
-            //printf(" dim=%d beta: ",dim);
-            return applyDescentVector(d,oldCoords,coords,oldStress,stepsize);
-        }
+        project(vs,cs,des,coords);
+        valarray<double> d(n);
+        d=oldCoords-coords;
+        double stepsize=computeStepSize(H,g,d);
+        stepsize=max(0.,min(stepsize,1.));
+        //printf(" dim=%d beta: ",dim);
+        stress = applyDescentVector(d,oldCoords,coords,oldStress,stepsize);
+        move();
     }
+    updateCompoundConstraints(ccs);
     FILE_LOG(logDEBUG) << "ConstrainedFDLayout::applyForcesAndConstraints... done.";
-    return computeStress();
+    for_each(vs.begin(),vs.end(),delete_object());
+    for_each(cs.begin(),cs.end(),delete_object());
+    return stress;
 }
+/**
+ * Attempts to set coords=oldCoords-stepsize*d.  If this does not reduce
+ * the stress from oldStress then stepsize is halved.  This is repeated
+ * until stepsize falls below a threshhold.
+ * @param d is a descent vector (a movement vector intended to reduce the
+ * stress)
+ * @param oldCoords are the previous position vector
+ * @param coords will hold the new position after applying d
+ * @param stepsize is a scalar multiple of the d to apply
+ */
 double ConstrainedFDLayout::applyDescentVector(
         valarray<double> const &d,
         valarray<double> const &oldCoords,
         valarray<double> &coords,
         const double oldStress,
         double stepsize
-        ) const {
+        ) {
     assert(d.size()==oldCoords.size());
     assert(d.size()==coords.size());
     while(fabs(stepsize)>0.00000000001) {
@@ -349,7 +413,7 @@ double ConstrainedFDLayout::computeStress() const {
             double rl=d-l;
             double s=rl*rl/d2;
             stress+=s;
-            FILE_LOG(logDEBUG1)<<"s("<<u<<","<<v<<")="<<s;
+            FILE_LOG(logDEBUG2)<<"s("<<u<<","<<v<<")="<<s;
         }
     }
     if(preIteration) {
@@ -359,13 +423,13 @@ double ConstrainedFDLayout::computeStress() const {
                 double dx=l->pos[0]-X[l->id], dy=l->pos[1]-Y[l->id];
                 double s=10000*(dx*dx+dy*dy);
                 stress+=s;
-                FILE_LOG(logDEBUG1)<<"d("<<l->id<<")="<<s;
+                FILE_LOG(logDEBUG2)<<"d("<<l->id<<")="<<s;
             }
         }
     }
     if(topologyRoutes) {
         double s=topology::compute_stress(*topologyRoutes);
-        FILE_LOG(logDEBUG1)<<"s(topology)="<<s;
+        FILE_LOG(logDEBUG2)<<"s(topology)="<<s;
         stress+=s;
     }
     return stress;

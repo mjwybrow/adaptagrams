@@ -149,7 +149,7 @@ public:
     bool isActive() const { return active; }
     void resetLM() { lm = 0; }
     bool wantsToMoveApart() const {
-        return lm<0;
+        return lm<-epsilon;
     }
     string toString() {
         std::stringstream s;

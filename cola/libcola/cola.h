@@ -44,7 +44,10 @@ typedef std::pair<unsigned, unsigned> Edge;
 struct Lock {
     unsigned id;
     double pos[2];
-    Lock(unsigned id, double x, double y) : id(id) { pos[0]=x; pos[1]=y; }
+    Lock(unsigned id, double x, double y) : id(id) {
+        pos[0]=x; 
+        pos[1]=y; 
+    }
 };
 typedef vector<Lock> Locks;
 /** 
@@ -52,12 +55,11 @@ typedef vector<Lock> Locks;
  */
 class PreIteration {
 public:
-    PreIteration(Locks& locks) : locks(locks) {}
+    PreIteration(Locks& locks) : locks(locks), changed(true) {}
     virtual ~PreIteration() {}
-    virtual bool operator()() {
-        return true;
-    }
+    virtual bool operator()() {return true;}
     Locks& locks;
+    bool changed;
 private:
 };
 /** 
@@ -78,7 +80,7 @@ public:
     virtual ~TestConvergence() {}
 
     virtual bool operator()(const double new_stress, valarray<double> & X, valarray<double> & Y) {
-        std::cout<<"iteration="<<iterations<<", old_stress="<<old_stress<<", new_stress="<<new_stress<<std::endl;
+        //std::cout<<"iteration="<<iterations<<", old_stress="<<old_stress<<", new_stress="<<new_stress<<std::endl;
         if (old_stress == DBL_MAX) {
             old_stress = new_stress;
             return ++iterations >= maxiterations;
@@ -345,7 +347,7 @@ public:
         this->avoidOverlaps=avoidOverlaps;
     }
     void setTopology(vector<topology::Node*>* tnodes, vector<topology::Edge*>* routes) {
-        printf("set Topology Constriants\n");
+        //printf("setTopology...\n");
         topologyNodes=tnodes;
         topologyRoutes=routes;
         constrainedX=constrainedY=true;
@@ -363,7 +365,7 @@ private:
     unsigned n; // number of nodes
     valarray<double> X, Y;
     vector<Rectangle*> boundingBoxes;
-    double applyForcesAndConstraints(const Dim dim,const double oldStress,const bool firstPass);
+    double applyForcesAndConstraints(const Dim dim,const double oldStress);
     double computeStepSize(SparseMatrix const & H, valarray<double> const & g,
             valarray<double> const & d) const;
     double applyDescentVector(
@@ -372,7 +374,7 @@ private:
             valarray<double> &coords, 
             const double oldStress, 
             double stepsize
-            /*,topology::TopologyConstraints *s=NULL*/) const;
+            /*,topology::TopologyConstraints *s=NULL*/);
     void move();
     bool noForces(double, double, unsigned) const;
     void computeForces(const Dim dim, SparseMap &H, valarray<double> &g);

@@ -36,61 +36,62 @@ double expectedH2[]={0.000505,-0.000169,-0.000336,
                      -0.000336,0.000004,0.000333};
 
 struct TestCase {
-    Nodes vs;
+    Nodes nodes;
     Edges es;
     DesiredPositions des;
     valarray<double> g;
     EdgePoints ps;
+    vpsc::Variables vs;
     vpsc::Constraints cs;
     cola::Dim dim;
     unsigned iterations;
     TestCase() : dim(cola::HORIZONTAL), iterations(10) { }
 
     void run() {
-        writeFile(vs,es,"triangle-000.svg");
+        writeFile(nodes,es,"triangle-000.svg");
 
-        if(g.size()!=vs.size()) {
-            g.resize(vs.size());
+        if(g.size()!=nodes.size()) {
+            g.resize(nodes.size());
             g=0;
         }
-        TopologyConstraints t(dim,vs,es,cs);
+        TopologyConstraints t(dim,nodes,es,vs,cs);
         // test computeStress
         double stress=t.computeStress();
         printf("Stress=%f\n",stress);
         //assert(fabs(expectedStress-stress)<1e-4);
 
-        cola::SparseMap h(vs.size());
+        cola::SparseMap h(nodes.size());
         for(unsigned i=1;i<iterations;i++) {
             g=0;
             h.clear();
             t.steepestDescent(g,h,des);
             stringstream ss;
             ss << "triangle-" << setfill('0') << setw(3) << i << ".svg";
-            writeFile(vs,es,ss.str().c_str());
+            writeFile(nodes,es,ss.str().c_str());
         }
     }
     ~TestCase() {
         for_each(es.begin(),es.end(),delete_object());
         for_each(cs.begin(),cs.end(),delete_object());
-        for(Nodes::iterator i=vs.begin();i!=vs.end();++i) {
+        for_each(vs.begin(),vs.end(),delete_object());
+        for(Nodes::iterator i=nodes.begin();i!=nodes.end();++i) {
             Node* v=*i;
             delete v->rect;
-            delete v->var;
             delete v;
         }
     }
     void setGradient(double* gradient) {
-        assert(vs.size()>0);
-        g.resize(vs.size());
-        for(unsigned i=0;i<vs.size();i++) {
+        assert(nodes.size()>0);
+        g.resize(nodes.size());
+        for(unsigned i=0;i<nodes.size();i++) {
             g[i]=gradient[i];
         }
     }
     Node* addNode(double x, double y, double w, double h) {
         vpsc::Rectangle* r = new vpsc::Rectangle(x,x+w,y,y+h);
-        Node *v = new Node(vs.size(), r);
-        v->var=new vpsc::Variable(vs.size(),-1);
-        vs.push_back(v);
+        Node *v = new Node(nodes.size(), r);
+        nodes.push_back(v);
+        vs.push_back(new vpsc::Variable(vs.size()));
         return v;
     }
     void addEdge(double idealLength) {
@@ -102,7 +103,7 @@ struct TestCase {
         des.push_back(make_pair(vid,pos));
     }
     void addToPath(unsigned vid, topology::EdgePoint::RectIntersect i) {
-        ps.push_back(new EdgePoint(vs[vid],i));
+        ps.push_back(new EdgePoint(nodes[vid],i));
     }
 };
 void case1(TestCase& t) {
@@ -176,9 +177,9 @@ void case4(TestCase& t) {
 }
 void case5(TestCase& t) {
     t.addNode(335.658737,287.843360,10.100000,10.000000);
-    t.addNode(338.869923,347.780782,10.100000,10.000000);
+    t.addNode(338.8,347.780782,10.100000,10.000000);
     t.addNode(388.857209,315.489405,10.100000,10.000000);
-    t.addNode(348.886210,337.789705,10.100000,10.000000);
+    t.addNode(348.9,337.789705,10.100000,10.000000);
     t.addToPath(0,(topology::EdgePoint::RectIntersect)4);
     t.addToPath(1,(topology::EdgePoint::RectIntersect)4);
     t.addEdge(60);

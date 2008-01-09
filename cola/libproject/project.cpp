@@ -216,7 +216,7 @@ double Constraint::maxSafeAlpha() const {
         }
         LIBPROJECT_ASSERT(0<=a && a<=1);
     }
-    FILE_LOG(logDEBUG1)<<"C->g="<<g<<", alpha="<<a;
+    FILE_LOG(logDEBUG1)<<"C@"<<this<<" g="<<g<<", alpha="<<a;
     return a;
 }
 /**
@@ -429,8 +429,8 @@ makeInactive(Constraint *c) {
     Block* rb=new Block(c->r,c);
     LIBPROJECT_ASSERT(b->V.size()==lb->V.size()+rb->V.size());
     LIBPROJECT_ASSERT(approx_equals(b->w,lb->w+rb->w));
-    LIBPROJECT_ASSERT(lb->X<=b->X);
-    LIBPROJECT_ASSERT(rb->X>=b->X);
+    LIBPROJECT_ASSERT(lb->X<=b->X+epsilon);
+    LIBPROJECT_ASSERT(rb->X>=b->X-epsilon);
     lb->listIndex=blocks.insert(b->listIndex,lb);
     rb->listIndex=blocks.insert(b->listIndex,rb);
     blocks.erase(b->listIndex);

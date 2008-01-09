@@ -28,7 +28,8 @@ public:
 	int id; // useful in log files
 	double desiredPosition;
 	double finalPosition;
-	double weight; // how much the variable wants to be at it's desired position
+	double weight; // how much the variable wants to 
+	               // be at it's desired position
 	double scale; // translates variable to another space
 	double offset;
 	Block *block;
@@ -37,8 +38,8 @@ public:
 	Constraints in;
 	Constraints out;
 	char *toString();
-	inline Variable(const int id, const double desiredPos, 
-			const double weight=1., const double scale=1.)
+	inline Variable(const int id, const double desiredPos=-1.0, 
+			const double weight=1.0, const double scale=1.0)
 		: id(id)
 		, desiredPosition(desiredPos)
 		, weight(weight)
@@ -53,7 +54,7 @@ public:
 		return 2. * weight * ( position() - desiredPosition );
 	}
 	//double position() const;
-	~Variable(void){
+	~Variable(void) {
 		in.clear();
 		out.clear();
 	}

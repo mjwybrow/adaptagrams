@@ -126,17 +126,21 @@ public:
 		}
 	}
 	double overlapX(Rectangle *r) const {
-		if (getCentreX() <= r->getCentreX() && r->minX < getMaxX())
+		double ux=getCentreX(), vx=r->getCentreX();
+		if (ux <= vx && r->minX < getMaxX())
 			return getMaxX() - r->minX;
-		if (r->getCentreX() <= getCentreX() && minX < r->getMaxX())
+		if (vx <= ux && minX < r->getMaxX())
 			return r->getMaxX() - minX;
 		return 0;
 	}
 	double overlapY(Rectangle *r) const {
-		if (getCentreY() <= r->getCentreY() && r->minY < getMaxY())
+		double uy=getCentreY(), vy=r->getCentreY();
+		if (uy <= vy && r->minY < getMaxY()) {
 			return getMaxY() - r->minY;
-		if (r->getCentreY() <= getCentreY() && minY < r->getMaxY())
+		}
+		if (vy <= uy && minY < r->getMaxY()) {
 			return r->getMaxY() - minY;
+		}
 		return 0;
 	}
 	bool allowOverlap() {

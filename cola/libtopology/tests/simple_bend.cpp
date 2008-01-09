@@ -57,21 +57,25 @@ void test4(Nodes& vs, EdgePoints& ps, DesiredPositions& d, string& name) {
     d.push_back(make_pair(0,339.000000));
 }
 void simple(void test(Nodes&, EdgePoints&, DesiredPositions&,string&)){
-    Nodes vs;
+    Nodes nodes;
     EdgePoints ps;
     DesiredPositions d;
     string name;
-    test(vs,ps,d,name);
-    const size_t V = vs.size();
+    test(nodes,ps,d,name);
+    const size_t V = nodes.size();
     Edges es;
     es.push_back(new Edge(210,ps));
 
-    writeFile(vs,es,"simple-"+name+"-0.svg");
+    writeFile(nodes,es,"simple-"+name+"-0.svg");
 
+    vpsc::Variables vs;
     vpsc::Constraints cs;
+    for(unsigned i=0;i<V;++i) {
+        vs.push_back(new vpsc::Variable(i));
+    }
 
     { // scope for t, so that t gets destroyed before es
-        TopologyConstraints t(cola::HORIZONTAL,vs,es,cs);
+        TopologyConstraints t(cola::HORIZONTAL,nodes,es,vs,cs);
 
         // test computeStress
         double stress=t.computeStress();
@@ -90,17 +94,18 @@ void simple(void test(Nodes&, EdgePoints&, DesiredPositions&,string&)){
             t.steepestDescent(g,h,d);
             stringstream ss;
             ss << "simple-" << name << "-" << i << ".svg";
-            writeFile(vs,es,ss.str());
+            writeFile(nodes,es,ss.str());
         }
     }
 
-    for(Nodes::iterator i=vs.begin();i!=vs.end();++i) {
+    for(Nodes::iterator i=nodes.begin();i!=nodes.end();++i) {
         Node* v=*i;
         delete v->rect;
         delete v;
     }
     for_each(es.begin(),es.end(),delete_object());
     for_each(cs.begin(),cs.end(),delete_object());
+    for_each(vs.begin(),vs.end(),delete_object());
 }
 
 int main() {

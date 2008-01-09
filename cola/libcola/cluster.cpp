@@ -17,6 +17,7 @@ namespace cola {
     void Cluster::computeBoundingRect(vector<Rectangle*> const & rs) {
         double minX=DBL_MAX, maxX=-DBL_MAX, minY=DBL_MAX, maxY=-DBL_MAX;
         for(vector<Cluster*>::const_iterator i=clusters.begin(); i!=clusters.end(); i++) {
+            (*i)->computeBoundingRect(rs);
             vpsc::Rectangle r=(*i)->bounds;
             minX=min(r.getMinX(),minX);
             maxX=max(r.getMaxX(),maxX);
@@ -30,6 +31,7 @@ namespace cola {
             minY=min(r->getMinY(),minY);
             maxY=max(r->getMaxY(),maxY);
         }
+        bounds=Rectangle(minX,maxX,minY,maxY);
     }
 
     void ConvexCluster::computeBoundary(vector<Rectangle*> const & rs) {
@@ -52,9 +54,11 @@ namespace cola {
             X[pctr]=r->getMinX();
             Y[pctr++]=r->getMinY();
         }
+        /*
         for(unsigned i=0;i<n;i++) {
             printf("X[%d]=%f, Y[%d]=%f;\n",i,X[i],i,Y[i]);
         }
+        */
         vector<unsigned> hull;
         convexHull(X,Y,hull);
         hullX.resize(hull.size());
@@ -130,7 +134,6 @@ namespace cola {
         for(vector<Cluster*>::iterator i=clusters.begin();i!=clusters.end();i++) {
             (*i)->createVars(dim,rs,vars);
         }
-        computeBoundingRect(rs);
         if(dim==HORIZONTAL) {
             vars.push_back(vXMin=new Variable(
                         vars.size(),bounds.getMinX(),varWeight));

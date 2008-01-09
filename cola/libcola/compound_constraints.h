@@ -15,31 +15,56 @@ typedef vector<vpsc::Constraint*> Constraints;
 typedef vector<vpsc::Variable*> Variables;
 typedef vector<std::pair<unsigned,double> > OffsetList;
 
-// A compound constraint is a conceptual, diagramming application oriented
-// type of constraint, which can be translated into a set of simple
-// separation constraints, possibly extra dummy variables, and possibly
-// even some extra terms for the quadratic objective function used
-// in the gradient projection solver.
+/** 
+ * A compound constraint is a conceptual, diagramming application oriented
+ * type of constraint, which can be translated into a set of simple
+ * separation constraints, possibly extra dummy variables, and possibly
+ * even some extra terms for the quadratic objective function used
+ * in the gradient projection solver.
+ */
 class CompoundConstraint {
 public:
+    /**
+     * generate any additional variables required by this compound constraint
+     * and add them to vars.  These variables should be cleaned up by
+     * the caller after the vpsc problem is solved.
+     * The variables' ideal position and weight should be set and they
+     * should be added to the end of vars.
+     * @param vars the list of variables for the overall problem instance
+     * to which any variables generated should be appended.
+     */
     virtual void generateVariables(Variables& vars) = 0;
+    /**
+     * create the separation constraints that will effect this
+     * CompoundConstraint.
+     */
 	virtual void generateSeparationConstraints(
             Variables& vars, Constraints& cs) = 0;
+    /**
+     * after the vpsc instance is solved the following should be called
+     * to send position information back to the interface.
+     */
     virtual void updatePosition() {};
     virtual ~CompoundConstraint() {}
 };
 typedef vector<CompoundConstraint*> CompoundConstraints;
-// A boundary constraint gives a bounding line (position stored in the variable)
-// and a set of nodes required to be to the left of that boundary and
-// nodes required to be to the right of the line.  leftOffsets and
-// rightOffsets store minimum separations required b/n each of these nodes and
-// the line.
+/**
+ * A boundary constraint gives a bounding line (position stored in the variable)
+ * and a set of nodes required to be to the left of that boundary and
+ * nodes required to be to the right of the line.  leftOffsets and
+ * rightOffsets store minimum separations required b/n each of these nodes and
+ * the line.
+ */
 class BoundaryConstraint : public CompoundConstraint {
 public:
     BoundaryConstraint(double pos) : position(pos), variable(NULL) {}
     void updatePosition() {
         position = variable->finalPosition;
     }
+    /**
+     * just one variable is generated, associated with the position of the
+     * boundary.
+     */
     void generateVariables(Variables& vars) {
         variable = new vpsc::Variable(vars.size(),position,0.0001);
         vars.push_back(variable);
@@ -65,40 +90,38 @@ public:
     vpsc::Variable* variable;
 };
 
-// An alignment constraint specifies a group of nodes and offsets for those nodes
-// such that the nodes must be spaced exactly at those offsets from a vertical or
-// horizontal line.
+/*
+ * An alignment constraint specifies a group of nodes and offsets for those
+ * nodes such that the nodes must be spaced exactly at those offsets from a
+ * vertical or horizontal line.
+ */
 class AlignmentConstraint : public CompoundConstraint {
 public:
     AlignmentConstraint(double pos) 
         : position(pos), 
           fixed(false),
-          variable(new vpsc::Variable(0,position,0.0001)
-        ) {}
+          variable(NULL) {}
     void updatePosition() {
         position = variable->finalPosition;
     }
     void fixPos(double pos) {
-        variable->desiredPosition=pos;
-        variable->weight=100000.;
-        variable->fixedDesiredPosition=true;
+        position=pos;
         fixed=true;
     }
     void unfixPos() {
-        variable->weight=1.;
         fixed=false;
-        variable->fixedDesiredPosition=false;
     }
-    // a list of pairs of node indices and their required offsets
+    //! a list of pairs of node indices and their required offsets
     OffsetList offsets;
-    // the guide pointer is used by dunnart to keep a ref to it's local representation
-    // of the alignment constraint
+    /** the guide pointer is used by dunnart to keep a ref to it's local
+     * representation of the alignment constraint
+     */
     void* guide;
     // The position of the alignment line
     double position;
     bool fixed;
     void generateVariables(Variables& vars) {
-        variable->id=vars.size();
+        variable = new vpsc::Variable(vars.size(),position,0.0001);
         if(fixed) {
             variable->fixedDesiredPosition=true;
             variable->weight=100000;
@@ -108,8 +131,10 @@ public:
 	void generateSeparationConstraints(
             Variables& vars, 
             Constraints& cs) {
+        assert(variable!=NULL);
         for(OffsetList::iterator o=offsets.begin();
                 o!=offsets.end(); o++) {
+            assert(vars.size()>o->first);
             cs.push_back(
                     new vpsc::Constraint(
                         variable,vars[o->first],o->second,true));

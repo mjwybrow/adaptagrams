@@ -2,7 +2,6 @@
 Node* addNode(Nodes& vs, double x, double y, double w, double h) {
     vpsc::Rectangle* r = new vpsc::Rectangle(x,x+w,y,y+h);
     Node *v = new Node(vs.size(), r);
-    v->var=new vpsc::Variable(vs.size(),-1);
     vs.push_back(v);
     return v;
 }

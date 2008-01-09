@@ -36,12 +36,11 @@ int main() {
 		double x=getRand(width), y=getRand(height);
 		rs.push_back(new vpsc::Rectangle(x,x+5,y,y+5));
 	}
-	CheckProgress test(0.0001,100);
+	CheckProgress test(1e-9,100);
 	ConstrainedFDLayout alg(rs,es,width/2,NULL,test);
-	//alg.setConstrainedLayout(true);
 	alg.run();
 	double stress = alg.computeStress();
-	assert(stress < 0.0013);
+  	assert(stress < 0.0013);
 	OutputFile output(rs,es,NULL,"unconstrained.svg");
 	output.generate();
 	for(unsigned i=0;i<V;i++) {
