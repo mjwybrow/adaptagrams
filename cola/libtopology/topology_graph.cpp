@@ -134,7 +134,7 @@ namespace topology {
     };
     straightener::Route* Edge::getRoute() {
         straightener::Route* r = new straightener::Route(nSegments+1);
-        forEachEdgePointConst(copyEdgePointsToRoute(r));
+        forEachEdgePoint(copyEdgePointsToRoute(r));
         return r;
     }
     struct accumulateLength {
@@ -146,11 +146,11 @@ namespace topology {
     };
     double Edge::pathLength() const {
         double totalLength = 0;
-        forEachSegmentConst(accumulateLength(totalLength));
+        forEachSegment(accumulateLength(totalLength));
         return totalLength;
     }
     bool Edge::assertConvexBends() const {
-        forEachEdgePointConst(mem_fun(&EdgePoint::assertConvexBend));
+        forEachEdgePoint(mem_fun(&EdgePoint::assertConvexBend));
         return true;
     }
     struct PointToString {
@@ -163,7 +163,7 @@ namespace topology {
     };
     string Edge::toString() const {
         stringstream ss;
-        forEachEdgePointConst(PointToString(ss));
+        forEachEdgePoint(PointToString(ss));
         return ss.str();
     }
     struct buildPath {
@@ -177,7 +177,7 @@ namespace topology {
      * get a list of all the EdgePoints along the Edge path
      */
     void Edge::getPath(ConstEdgePoints& vs) const {
-        forEachEdgePointConst(buildPath(vs));
+        forEachEdgePoint(buildPath(vs));
     }
 } // namespace topology
 

@@ -259,7 +259,7 @@ struct getTopologyConstraints {
 void TopologyConstraints::
 constraints(std::vector<TopologyConstraint*> & ts) const {
     for(Edges::const_iterator e=edges.begin();e!=edges.end();++e) {
-        (*e)->forEachSegmentConst(getTopologyConstraints(ts));
+        (*e)->forEachSegment(getTopologyConstraints(ts));
     }
 }
 

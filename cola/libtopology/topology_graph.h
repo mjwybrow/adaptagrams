@@ -296,7 +296,7 @@ namespace topology {
          * @param so operation to apply to each Segment
          */
         template <typename PointOp, typename SegmentOp>
-        void forEachConst(PointOp po, SegmentOp so) const {
+        void forEach(PointOp po, SegmentOp so) const {
             ForEach<const Edge*,PointOp,SegmentOp>(this,po,so);
         }
         /**
@@ -313,8 +313,8 @@ namespace topology {
          * @param o an operation on a const Segment
          */
         template <typename T>
-        void forEachSegmentConst(T o) const {
-            forEachConst(NoOp<const EdgePoint*>(),o);
+        void forEachSegment(T o) const {
+            forEach(NoOp<const EdgePoint*>(),o);
         }
         /**
          * apply an operation to every EdgePoint associated with this edge
@@ -330,8 +330,8 @@ namespace topology {
          * @param o an operation on a const EdgePoint
          */
         template <typename T>
-        void forEachEdgePointConst(T o) const {
-            forEachConst(o,NoOp<const Segment*>());
+        void forEachEdgePoint(T o) const {
+            forEach(o,NoOp<const Segment*>());
         }
         /**
          * cleanup segments
