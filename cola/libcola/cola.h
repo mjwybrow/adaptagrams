@@ -57,7 +57,7 @@ class PreIteration {
 public:
     PreIteration(Locks& locks) : locks(locks), changed(true) {}
     virtual ~PreIteration() {}
-    virtual bool operator()() {return true;}
+    virtual bool operator()()=0;
     Locks& locks;
     bool changed;
 private:
@@ -352,6 +352,17 @@ public:
         topologyRoutes=routes;
         constrainedX=constrainedY=true;
     }
+    /**
+     * These lists will have info about unsatisfiable constraints
+     * after each iteration of constrained layout
+     */
+    void setUnsatisfiableConstraintInfo(
+            UnsatisfiableConstraintInfos* unsatisfiableX,
+            UnsatisfiableConstraintInfos* unsatisfiableY) {
+        unsatisfiable.resize(2);
+        unsatisfiable[0]=unsatisfiableX;
+        unsatisfiable[1]=unsatisfiableY;
+    }
     ~ConstrainedFDLayout() {
         for(unsigned i=0;i<n;i++) {
             delete [] G[i];
@@ -391,6 +402,7 @@ private:
     unsigned** G;
     vector<topology::Node*>* topologyNodes;
     vector<topology::Edge*>* topologyRoutes;
+    vector<UnsatisfiableConstraintInfos*> unsatisfiable;
 };
 
 }

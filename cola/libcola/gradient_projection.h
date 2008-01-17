@@ -76,7 +76,7 @@ public:
 
         if(ccs) {
             for(CompoundConstraints::const_iterator c=ccs->begin();
-                    c!=ccs->end();c++) {
+                    c!=ccs->end();++c) {
                 (*c)->generateVariables(vars);
                 OrthogonalEdgeConstraint* e=dynamic_cast<OrthogonalEdgeConstraint*>(*c);
                 if(e) {
@@ -84,7 +84,7 @@ public:
                 }
             }
             for(CompoundConstraints::const_iterator c=ccs->begin();
-                    c!=ccs->end();c++) {
+                    c!=ccs->end();++c) {
                 (*c)->generateSeparationConstraints(vars,gcs);
             }
         }

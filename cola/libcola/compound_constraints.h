@@ -48,6 +48,11 @@ public:
     virtual ~CompoundConstraint() {}
 };
 typedef vector<CompoundConstraint*> CompoundConstraints;
+
+/**
+ * generate all the variables and constraints for a collection of CompoundConstraint
+ */
+void generateVariablesAndConstriants(CompoundConstraints& ccs, Variables& vars, Constraints& cs);
 /**
  * A boundary constraint gives a bounding line (position stored in the variable)
  * and a set of nodes required to be to the left of that boundary and
@@ -69,22 +74,7 @@ public:
         variable = new vpsc::Variable(vars.size(),position,0.0001);
         vars.push_back(variable);
     }
-	void generateSeparationConstraints(
-            Variables& vars, 
-            Constraints& cs) {
-        for(OffsetList::iterator o=leftOffsets.begin();
-                o!=leftOffsets.end(); o++) {
-            cs.push_back(
-                    new vpsc::Constraint(
-                        vars[o->first],variable,o->second));
-        }
-        for(OffsetList::iterator o=rightOffsets.begin();
-                o!=rightOffsets.end(); o++) {
-            cs.push_back(
-                    new vpsc::Constraint(
-                        variable,vars[o->first],o->second));
-        }
-    }
+	void generateSeparationConstraints( Variables& vars, Constraints& cs);
     double position;
     OffsetList leftOffsets, rightOffsets;
     vpsc::Variable* variable;
@@ -120,26 +110,8 @@ public:
     // The position of the alignment line
     double position;
     bool fixed;
-    void generateVariables(Variables& vars) {
-        variable = new vpsc::Variable(vars.size(),position,0.0001);
-        if(fixed) {
-            variable->fixedDesiredPosition=true;
-            variable->weight=100000;
-        }
-        vars.push_back(variable);
-    }
-	void generateSeparationConstraints(
-            Variables& vars, 
-            Constraints& cs) {
-        assert(variable!=NULL);
-        for(OffsetList::iterator o=offsets.begin();
-                o!=offsets.end(); o++) {
-            assert(vars.size()>o->first);
-            cs.push_back(
-                    new vpsc::Constraint(
-                        variable,vars[o->first],o->second,true));
-        }
-    }
+    void generateVariables(Variables& vars);
+	void generateSeparationConstraints( Variables& vars, Constraints& cs);
     vpsc::Variable* variable;
 };
 
@@ -162,24 +134,8 @@ public:
     double gap;
     bool equality;
     void generateVariables(Variables& vars) { }
-	void generateSeparationConstraints(
-            Variables& vs, 
-            Constraints& cs) {
-        if(al) {
-            left=al->variable->id;
-        }
-        if(ar) {
-            right=ar->variable->id;
-        }
-        vpscConstraint = new vpsc::Constraint(vs[left],vs[right],gap,equality);
-        cs.push_back(vpscConstraint);
-    }
-    void setSeparation(double gap) {
-        this->gap = gap;
-        if(vpscConstraint!=NULL) {
-            vpscConstraint->gap = gap;
-        }
-    }
+	void generateSeparationConstraints( Variables& vs, Constraints& cs);
+    void setSeparation(double gap);
     vpsc::Constraint* vpscConstraint;
 };
 // Orthogonal edges must have their end points aligned horizontally or vertically
@@ -192,58 +148,13 @@ public:
     unsigned left;
     unsigned right;
     void generateVariables(Variables& vars) { }
-	void generateSeparationConstraints(
-            Variables& vs, 
-            Constraints& cs) {
-        vpscConstraint = new vpsc::Constraint(vs[left],vs[right],0,true);
-        cs.push_back(vpscConstraint);
-    }
+	void generateSeparationConstraints( Variables& vs, Constraints& cs);
     void generateTopologyConstraints(const Dim k, vector<vpsc::Rectangle*> const & rs, 
-            vector<vpsc::Variable*> const & vars, vector<vpsc::Constraint*> & cs) {
-        double lBound, rBound, pos;
-        if(k==HORIZONTAL) {
-            lBound = rs[left]->getCentreY();
-            rBound = rs[right]->getCentreY();
-            pos = rs[left]->getCentreX();
-        } else {
-            lBound = rs[left]->getCentreX();
-            rBound = rs[right]->getCentreX();
-            pos = rs[left]->getCentreY();
-        }
-        double minBound = std::min(lBound,rBound);
-        double maxBound = std::max(lBound,rBound);
-        for(unsigned i=0;i<rs.size();i++) {
-            if(i==left || i==right) continue;
-            vpsc::Rectangle* r=rs[i];
-            if(r->allowOverlap()) continue;
-            double l, rMin, rMax, rCentre;
-            rectBounds(k,r,rMin,rMax,rCentre,l);
-            if(rMin >= minBound && rMin <= maxBound || rMax >= minBound && rMax <= maxBound) {
-                double g=l/2;
-                if(rCentre < pos) {
-                    cs.push_back(new vpsc::Constraint(vars[i], vars[left], g));
-                } else {
-                    cs.push_back(new vpsc::Constraint(vars[left], vars[i], g));
-                }
-            }
-        }
-    }
+            vector<vpsc::Variable*> const & vars, vector<vpsc::Constraint*> & cs);
     vpsc::Constraint* vpscConstraint;
 private:
     void rectBounds(const Dim k, vpsc::Rectangle const *r, 
-            double & cmin, double & cmax, double & centre, double & l) const {
-        if(k==HORIZONTAL) {
-            cmin = r->getMinY();
-            cmax = r->getMaxY();
-            centre = r->getCentreX();
-            l = r->width();
-        } else {
-            cmin = r->getMinX();
-            cmax = r->getMaxX();
-            centre = r->getCentreY();
-            l = r->height();
-        }
-    }
+            double & cmin, double & cmax, double & centre, double & l) const;
 };
 
 // A set of horizontal or vertical spacing constraints between adjacent pairs
@@ -254,21 +165,7 @@ public:
         : sep(minSep), equality(equality)  {
     }
     void generateVariables(Variables& vars) { }
-	void generateSeparationConstraints(
-            Variables& vs, 
-            Constraints& gcs) {
-        for(vector<std::pair<
-                AlignmentConstraint*,AlignmentConstraint*> >::iterator iac
-                =acs.begin(); iac!=acs.end();++iac) {
-            AlignmentConstraint *c1, *c2;
-            c1=iac->first;
-            c2=iac->second;
-            vpsc::Constraint* c = new vpsc::Constraint(
-                c1->variable,c2->variable,sep,equality);
-            gcs.push_back(c);
-            cs.push_back(c);
-        }
-    }
+	void generateSeparationConstraints( Variables& vs, Constraints& gcs);
     void setSeparation(double sep) {
         this->sep = sep;
         for(unsigned i=0;i<cs.size();i++) {
@@ -290,40 +187,7 @@ class DistributionConstraint : public CompoundConstraint {
 public:
     DistributionConstraint() {}
     void generateVariables(Variables& vars) { }
-	void generateSeparationConstraints(
-            Variables& vars, 
-            Constraints& gcs) {
-        cs.clear();
-        for(vector<std::pair<
-                AlignmentConstraint*,AlignmentConstraint*> >::iterator iac
-                =acs.begin(); iac!=acs.end();++iac) {
-            AlignmentConstraint *c1, *c2;
-            c1=iac->first;
-            c2=iac->second;
-            assert(c1->variable!=NULL);
-            vpsc::Constraint* c=new vpsc::Constraint(
-                    c1->variable,c2->variable,sep,true);
-            gcs.push_back(c);
-            cs.push_back(c);
-/*
-            //The following was an experiment to allow variable distributions 
-            //solved by optimisation rather than satisfying constraints
-            if(isVariable) {
-                // set second derivatives of:
-                // (u + g - v)^2 = g^2 + 2gu + u^2 - 2gv - 2uv + v^2
-                (*Q)[make_pair(c1->variable->id,c1->variable->id)]+=w;
-                (*Q)[make_pair(c2->variable->id,c2->variable->id)]+=w;
-                (*Q)[make_pair(variable->id,variable->id)]+=w;
-                (*Q)[make_pair(c1->variable->id,c2->variable->id)]-=w;
-                (*Q)[make_pair(c2->variable->id,c1->variable->id)]-=w;
-                (*Q)[make_pair(c1->variable->id,variable->id)]+=w;
-                (*Q)[make_pair(variable->id,c1->variable->id)]+=w;
-                (*Q)[make_pair(c2->variable->id,variable->id)]-=w;
-                (*Q)[make_pair(variable->id,c2->variable->id)]-=w;
-            }
-*/
-        }
-    }
+	void generateSeparationConstraints(Variables& vars, Constraints& gcs);
     void setSeparation(double sep) {
         this->sep = sep;
         for(unsigned i=0;i<cs.size();i++) {
@@ -349,30 +213,8 @@ public:
         : leftMargin(lm), rightMargin(rm), 
           actualLeftMargin(0), actualRightMargin(0),
           leftWeight(lw), rightWeight(rw), vl(NULL), vr(NULL) { }
-    void generateVariables(Variables& vars) { 
-        // create 2 dummy vars, based on the dimension we are in
-        if(leftWeight) {
-            vars.push_back(vl=new vpsc::Variable(vars.size(), leftMargin, leftWeight));
-            vl->fixedDesiredPosition=true;
-        } // end if
-        if(rightWeight) {
-            vars.push_back(vr=new vpsc::Variable(vars.size(), rightMargin, rightWeight));
-            vr->fixedDesiredPosition=true;
-        } // end if
-    }
-	void generateSeparationConstraints(
-            Variables& vs, 
-            Constraints& cs) {
-
-        // for each of the "real" variables, create a constraint that puts that var
-        // between our two new dummy vars, depending on the dimension.
-        for(OffsetList::iterator o=offsets.begin(); o!=offsets.end(); ++o)  {
-            if(vl)
-                cs.push_back(new vpsc::Constraint(vl, vs[o->first], o->second));
-            if(vr)
-                cs.push_back(new vpsc::Constraint(vs[o->first], vr, o->second));
-        }
-    }
+    void generateVariables(Variables& vars);
+	void generateSeparationConstraints(Variables& vars, Constraints& gcs);
     void updatePosition() {
         if(vl) actualLeftMargin = vl->finalPosition;
         if(vr) actualRightMargin = vr->finalPosition;
@@ -398,8 +240,8 @@ private:
  * process
  */
 struct UnsatisfiableConstraintInfo {
+    UnsatisfiableConstraintInfo(const vpsc::Constraint* c);
     unsigned vlid, vrid;
-    double vlpos, vrpos, vlypos, vrypos;
     double gap;
 };
 typedef vector<UnsatisfiableConstraintInfo*> UnsatisfiableConstraintInfos;

@@ -218,6 +218,15 @@ void project(vpsc::Variables& vs, vpsc::Constraints& cs, const topology::Desired
         coords[i]=vs[i]->finalPosition;
     }
 }
+void checkUnsatisfiable(const vpsc::Constraints& cs, 
+        UnsatisfiableConstraintInfos* unsatisfiable) {
+    for(vpsc::Constraints::const_iterator c=cs.begin();c!=cs.end();++c) {
+        if((*c)->unsatisfiable) {
+            UnsatisfiableConstraintInfo* i=new UnsatisfiableConstraintInfo(*c);
+            unsatisfiable->push_back(i);
+        }
+    }
+}
 /**
  * The following computes an unconstrained solution then uses Projection to
  * make this solution feasible with respect to constraints by moving things as
@@ -287,6 +296,9 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
         move();
     }
     updateCompoundConstraints(ccs);
+    if(unsatisfiable.size()==2) {
+        checkUnsatisfiable(cs,unsatisfiable[dim]);
+    }
     FILE_LOG(logDEBUG) << "ConstrainedFDLayout::applyForcesAndConstraints... done.";
     for_each(vs.begin(),vs.end(),delete_object());
     for_each(cs.begin(),cs.end(),delete_object());
@@ -315,9 +327,9 @@ double ConstrainedFDLayout::applyDescentVector(
         coords=oldCoords-stepsize*d;
         double stress=computeStress();
         //printf(" applyDV: oldstress=%f, stress=%f, stepsize=%f\n", oldStress,stress,stepsize);
-        if(oldStress>=stress) {
+        //if(oldStress>=stress) {
             return stress;
-        }
+        //}
         coords=oldCoords;
         stepsize*=0.5;
     }

@@ -340,10 +340,7 @@ void GradientProjection::destroyVPSC(IncSolver *vpsc) {
         for(Constraints::iterator i=cs.begin();i!=cs.end();i++) {
             Constraint* c=*i;
             if(c->unsatisfiable) {
-                UnsatisfiableConstraintInfo *ci = new UnsatisfiableConstraintInfo();
-                ci->vlid = c->left->id;
-                ci->vrid = c->right->id;
-                ci->gap = c->gap;
+                UnsatisfiableConstraintInfo *ci = new UnsatisfiableConstraintInfo(c);
                 unsatisfiableConstraints->push_back(ci);
             }
         }

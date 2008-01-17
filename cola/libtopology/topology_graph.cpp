@@ -150,7 +150,7 @@ namespace topology {
         return totalLength;
     }
     bool Edge::assertConvexBends() const {
-        forEachEdgePoint(mem_fun(&EdgePoint::assertConvexBend));
+        forEachEdgePoint(mem_fun(&EdgePoint::assertConvexBend),true);
         return true;
     }
     struct PointToString {
@@ -174,7 +174,9 @@ namespace topology {
         ConstEdgePoints& vs;
     };
     /**
-     * get a list of all the EdgePoints along the Edge path
+     * Get a list of all the EdgePoints along the Edge path.  Note that for
+     * cycles the start/end point will be at the start and end of the list,
+     * i.e. it will appear in the list twice.
      */
     void Edge::getPath(ConstEdgePoints& vs) const {
         forEachEdgePoint(buildPath(vs));

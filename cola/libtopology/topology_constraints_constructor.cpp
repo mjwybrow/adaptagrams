@@ -473,7 +473,7 @@ TopologyConstraints(
         events.push_back(close);
     }
     for(Edges::const_iterator e=edges.begin();e!=edges.end();++e) {
-        (*e)->forEach(CreateBendConstraints(),CreateSegmentEvents(events));
+        (*e)->forEach(CreateBendConstraints(),CreateSegmentEvents(events),true);
     }
     // process events in top to bottom order
     sort(events.begin(),events.end(),CompareEvents());
@@ -487,7 +487,7 @@ TopologyConstraints::
 ~TopologyConstraints() {
     for(Edges::const_iterator e=edges.begin();e!=edges.end();++e) {
         (*e)->forEach(mem_fun(&EdgePoint::deleteBendConstraint),
-                mem_fun(&Segment::deleteStraightConstraints));
+                mem_fun(&Segment::deleteStraightConstraints),true);
     }
 }
 } // namespace topology

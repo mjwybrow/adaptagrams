@@ -180,7 +180,7 @@ steepestDescent(valarray<double>& g, cola::SparseMap& h, const
     assert(noOverlaps());
     assert(assertConvexBends(edges));
     for(Edges::iterator e=edges.begin();e!=edges.end();++e) {
-        (*e)->forEachEdgePoint(mem_fun(&EdgePoint::setPos));
+        (*e)->forEachEdgePoint(mem_fun(&EdgePoint::setPos),true);
     }
     // rectangle and edge point positions updated to variables.
     FILE_LOG(logDEBUG)<<" moves done.";

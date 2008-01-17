@@ -220,28 +220,29 @@ namespace topology {
      * the last EdgePoint is also the first.  Thus, we process from
      * Edge::firstSegment to Edge::lastSegment.  We visit every EdgePoint
      * (i.e. nSegments+1), in the case of a cycle, the first/last
-     * point will be visited (PointOp applied) twice.
+     * point will be visited (PointOp applied) twice unless noCycle is set 
+     * true.
      */
-    template <typename _Edge=Edge*, 
-              typename PointOp=NoOp<EdgePoint*>,
-              typename SegmentOp=NoOp<Segment*> >
-    struct ForEach {
-        ForEach(_Edge e, PointOp po, SegmentOp so) {
-            Segment* s=e->firstSegment;
+    template <typename PEdge,
+              typename PointOp,
+              typename SegmentOp >
+    void ForEach(PEdge e, PointOp po, SegmentOp so, bool noCycle=false) {
+        Segment* s=e->firstSegment;
+        if(!(e->cycle()&&noCycle)) {
             po(s->start);
-            bool last=false;
-            do {
-                EdgePoint* p=s->end;
-                so(s);
-                if(s==e->lastSegment) {
-                    last=true;
-                } else {
-                    s=p->outSegment;
-                }
-                po(p);
-            } while(!last);
         }
-    };
+        bool last=false;
+        do {
+            EdgePoint* p=s->end;
+            so(s);
+            if(s==e->lastSegment) {
+                last=true;
+            } else {
+                s=p->outSegment;
+            }
+            po(p);
+        } while(!last);
+    }
     /**
      * An Edge provides a doubly linked list of segments, each involving a pair
      * of EdgePoints
@@ -286,8 +287,8 @@ namespace topology {
          * @param so operation to apply to each Segment
          */
         template <typename PointOp, typename SegmentOp>
-        void forEach(PointOp po, SegmentOp so) {
-            ForEach<Edge*,PointOp,SegmentOp>(this,po,so);
+        void forEach(PointOp po, SegmentOp so, bool noCycle=false) {
+            ForEach<Edge*,PointOp,SegmentOp>(this,po,so,noCycle);
         }
         /**
          * apply an operation to every Segment and EdgePoint associated with
@@ -296,8 +297,8 @@ namespace topology {
          * @param so operation to apply to each Segment
          */
         template <typename PointOp, typename SegmentOp>
-        void forEach(PointOp po, SegmentOp so) const {
-            ForEach<const Edge*,PointOp,SegmentOp>(this,po,so);
+        void forEach(PointOp po, SegmentOp so, bool noCycle=false) const {
+            ForEach<const Edge*,PointOp,SegmentOp>(this,po,so,noCycle);
         }
         /**
          * apply an operation to every Segment associated with this Edge
@@ -322,22 +323,22 @@ namespace topology {
          * an EdgePoint as an argument)
          */
         template <typename T>
-        void forEachEdgePoint(T o) {
-            forEach(o,NoOp<Segment*>());
+        void forEachEdgePoint(T o, bool noCycle=false) {
+            forEach(o,NoOp<Segment*>(),noCycle);
         }
         /**
          * a version of forEachEdgePoint for const edges
          * @param o an operation on a const EdgePoint
          */
         template <typename T>
-        void forEachEdgePoint(T o) const {
-            forEach(o,NoOp<const Segment*>());
+        void forEachEdgePoint(T o, bool noCycle=false) const {
+            forEach(o,NoOp<const Segment*>(),noCycle);
         }
         /**
          * cleanup segments
          */
         ~Edge() {
-            forEach(delete_object(),delete_object());
+            forEach(delete_object(),delete_object(),true);
         }
         /**
          * the sum of the lengths of all the segments
@@ -352,7 +353,7 @@ namespace topology {
          */
         straightener::Route* getRoute();
         bool assertConvexBends() const;
-        bool cycle() {
+        bool cycle() const {
             return firstSegment->start==lastSegment->end;
         }
         std::string toString() const;
