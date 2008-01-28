@@ -53,10 +53,8 @@ int main() {
     unsigned V;
     CompoundConstraints cx,cy;
     //srand(time(NULL));
-    //srand(3);
-    //vector<Edge> es = random_tree(7,4,V,cx,cy);
     srand(3);
-    vector<Edge> es = random_tree(8,4,V,cx,cy);
+    vector<Edge> es = random_tree(7,4,V,cx,cy);
     double defaultEdgeLength=40;
 
     cout << "V="<<V<<endl;

@@ -23,7 +23,7 @@ vector<Edge> random_graph(unsigned n) {
 	return edges;
 }
 int main() {
-    unsigned V=1000;
+    unsigned V=100;
     CompoundConstraints cx,cy;
     vector<Edge> es = random_graph(V);
     double defaultEdgeLength=40;
@@ -55,6 +55,7 @@ int main() {
         const char *testdesc) {
     */
     
+/*
     run_test(startpos,es,defaultEdgeLength,cx,cy,CG,false,"random","cg");
     run_test(startpos,es,defaultEdgeLength,cx,cy,IP,false,"random", "ip");
     run_test(startpos,es,defaultEdgeLength,cx,cy,UGP,false,"random", "ugp");
@@ -62,5 +63,23 @@ int main() {
     run_test(startpos,es,defaultEdgeLength,cx,cy,IP,true,"random", "cip");
     run_test(startpos,es,defaultEdgeLength,cx,cy,UGP,true,"random", "cugp");
     run_test(startpos,es,defaultEdgeLength,cx,cy,SGP,true,"random", "csgp");
+    */
+	vector<vpsc::Rectangle*> rs;
+	for(unsigned i=0;i<V;i++) {
+		double x=getRand(width), y=getRand(height);
+		rs.push_back(new vpsc::Rectangle(x,x+5,y,y+5));
+	}
+	CheckProgress test(0.0001,200);
+    ConstrainedMajorizationLayout alg(rs,es,NULL,defaultEdgeLength,NULL,test);
+    //alg.setYConstraints(&cy);
+	alg.run();
+	ConstrainedFDLayout alg2(rs,es,defaultEdgeLength,NULL,test);
+    //alg2.setYConstraints(&cy);
+	alg2.run();
+	OutputFile output(rs,es,NULL,"random.pdf");
+	output.generate();
+	for(unsigned i=0;i<V;i++) {
+		delete rs[i];
+	}
 }
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:encoding=utf-8:textwidth=99 :

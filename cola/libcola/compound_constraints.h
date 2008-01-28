@@ -166,12 +166,7 @@ public:
     }
     void generateVariables(Variables& vars) { }
 	void generateSeparationConstraints( Variables& vs, Constraints& gcs);
-    void setSeparation(double sep) {
-        this->sep = sep;
-        for(unsigned i=0;i<cs.size();i++) {
-            cs[i]->gap = sep;
-        }
-    }
+    void setSeparation(double sep) { this->sep = sep; }
     Constraints cs;
     vector<std::pair<AlignmentConstraint*,AlignmentConstraint*> > acs;
     void *indicator;
@@ -190,9 +185,6 @@ public:
 	void generateSeparationConstraints(Variables& vars, Constraints& gcs);
     void setSeparation(double sep) {
         this->sep = sep;
-        for(unsigned i=0;i<cs.size();i++) {
-            cs[i]->gap = sep;
-        }
     }
     Constraints cs;
     vector<std::pair<AlignmentConstraint*,AlignmentConstraint*> > acs;

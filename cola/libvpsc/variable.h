@@ -53,11 +53,6 @@ public:
 	double dfdv() const {
 		return 2. * weight * ( position() - desiredPosition );
 	}
-	//double position() const;
-	~Variable(void) {
-		in.clear();
-		out.clear();
-	}
 private:
 	double position() const {
 		return (block->ps.scale*block->posn+offset)/scale;

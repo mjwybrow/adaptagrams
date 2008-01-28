@@ -351,7 +351,7 @@ namespace topology {
         /**
          * @return a list of the coordinates along the edge route
          */
-        straightener::Route* getRoute();
+        straightener::Route* getRoute() const;
         bool assertConvexBends() const;
         bool cycle() const {
             return firstSegment->start==lastSegment->end;

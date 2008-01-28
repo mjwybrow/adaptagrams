@@ -40,6 +40,9 @@ void addToPath(topology::EdgePoints& ps, topology::Node *v, topology::EdgePoint:
 }
 struct SetDesiredPos : public PreIteration {
     SetDesiredPos(Locks& locks) : PreIteration(locks) {}
+    bool operator()() { 
+        return true; 
+    }
 };
 void writeFile(const topology::Nodes& vs, const topology::Edges& es, const char *outputFileName) {
     const unsigned n=vs.size();

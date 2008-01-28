@@ -77,10 +77,10 @@ int main() {
     ConstrainedMajorizationLayout alg(rs,es,NULL,defaultEdgeLength,NULL,test);
     //alg.setYConstraints(&cy);
 	alg.run();
-	ConstrainedFDLayout alg2(rs,es,NULL,defaultEdgeLength,NULL,test);
+	ConstrainedFDLayout alg2(rs,es,defaultEdgeLength,NULL,test);
     //alg2.setYConstraints(&cy);
 	alg2.run();
-	OutputFile output(rs,es,NULL,"large_graph.svg");
+	OutputFile output(rs,es,NULL,"large_graph.pdf");
 	output.generate();
 	for(unsigned i=0;i<V;i++) {
 		delete rs[i];

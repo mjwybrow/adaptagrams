@@ -19,6 +19,7 @@ libcola_a_SOURCES = cola.h\
 	convex_hull.cpp\
 	cluster.cpp\
 	compound_constraints.h\
+	compound_constraints.cpp\
 	output_svg.cpp\
 	output_svg.h
 
