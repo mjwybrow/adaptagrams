@@ -1,7 +1,8 @@
 /**
- * Methods associated with computing a descent vector for the topology stress function.
+ * Methods associated with computing a descent vector for the topology stress
+ * function.
  *
- * \file steepest_descent.cpp
+ * \file gradient_projection.cpp
  * \author Tim Dwyer
  * \date Dec 2007
  */
@@ -94,9 +95,9 @@ struct TopologyConstraintInterrupt : InterruptException {
     double alpha;
 };
 bool TopologyConstraints::
-steepestDescent(valarray<double>& g, cola::SparseMap& h) {
+gradientProjection(valarray<double>& g, cola::SparseMap& h) {
     DesiredPositions d;
-    return steepestDescent(g,h,d);
+    return gradientProjection(g,h,d);
 }
 struct PrintSegmentLength {
     void operator() (Segment* s) {
@@ -116,7 +117,7 @@ bool assertConvexBends(const Edges& edges) {
     return true;
 }
 bool TopologyConstraints::
-steepestDescent(valarray<double>& g, cola::SparseMap& h, const
+gradientProjection(valarray<double>& g, cola::SparseMap& h, const
         DesiredPositions& d) 
 {
     FILE_LOG(logDEBUG)<<"TopologyConstraints::steepestDescent... dim="<<dim;

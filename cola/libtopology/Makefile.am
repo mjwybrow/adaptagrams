@@ -5,7 +5,7 @@ lib_LIBRARIES = libtopology.a
 libtopology_a_SOURCES = topology_graph.cpp\
 			topology_constraints.cpp\
 			compute_forces.cpp\
-			steepest_descent.cpp\
+			gradient_projection.cpp\
 			topology_graph.h\
 			topology_constraints.h\
 			topology_constraints_constructor.cpp
