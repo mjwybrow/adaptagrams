@@ -13,6 +13,7 @@
 
 #include <set>
 #include <cassert>
+#include "solve_VPSC.h"
 #include "rectangle.h"
 #include "constraint.h"
 
@@ -451,6 +452,75 @@ void Rectangle::routeAround(double x1, double y1, double x2, double y2,
     }
     xs.push_back(x2);
     ys.push_back(y2);
+}
+/** 
+ * moves all the rectangles to remove all overlaps.  Heuristic
+ * attempts to move by as little as possible.
+ * no overlaps guaranteed.
+ */
+void removeoverlaps(Rectangles &rs) {
+	const double xBorder=Rectangle::xBorder, yBorder=Rectangle::yBorder;
+    const double EXTRA_GAP=1e-7;
+	unsigned n=rs.size();
+	try {
+		// The extra gap avoids numerical imprecision problems
+		Rectangle::setXBorder(xBorder+EXTRA_GAP);
+		Rectangle::setYBorder(yBorder+EXTRA_GAP);
+		Variables vs(n);
+		unsigned i=0;
+		for(Variables::iterator v=vs.begin();v!=vs.end();++v,++i) {
+			*v=new Variable(i,0,1);
+		}
+		Constraints cs;
+		generateXConstraints(rs,vs,cs,true);
+		Solver vpsc_x(vs,cs);
+		vpsc_x.solve();
+		Rectangles::iterator r=rs.begin();
+		for(Variables::iterator v=vs.begin();v!=vs.end();++v,++r) {
+			assert((*v)->finalPosition==(*v)->finalPosition);
+			(*r)->moveCentreX((*v)->finalPosition);
+		}
+		assert(r==rs.end());
+		for_each(cs.begin(),cs.end(),delete_object());
+		cs.clear();
+        // Removing the extra gap here ensures things that were moved to be
+        // adjacent to one another above are not considered overlapping
+		Rectangle::setXBorder(xBorder);
+		generateYConstraints(rs,vs,cs);
+		Solver vpsc_y(vs,cs);
+		vpsc_y.solve();
+		r=rs.begin();
+		for(Variables::iterator v=vs.begin();v!=vs.end();++v,++r) {
+			(*r)->moveCentreY((*v)->finalPosition);
+		}
+		for_each(cs.begin(),cs.end(),delete_object());
+		cs.clear();
+		Rectangle::setYBorder(yBorder);
+		generateXConstraints(rs,vs,cs,false);
+		Solver vpsc_x2(vs,cs);
+		vpsc_x2.solve();
+		r=rs.begin();
+		for(Variables::iterator v=vs.begin();v!=vs.end();++v,++r) {
+			(*r)->moveCentreX((*v)->finalPosition);
+		}
+		for_each(cs.begin(),cs.end(),delete_object());
+		for_each(vs.begin(),vs.end(),delete_object());
+	} catch (char *str) {
+		std::cerr<<str<<std::endl;
+		for(Rectangles::iterator r=rs.begin();r!=rs.end();++r) {
+			std::cerr << **r <<std::endl;
+		}
+	}
+}
+void assertNoOverlaps(const Rectangles& rs) {
+	for(Rectangles::const_iterator i=rs.begin();i!=rs.end();++i) {
+		for(Rectangles::const_iterator j=i+1;j!=rs.end();++j) {
+			Rectangle *u=*i, *v=*j;
+			if(u->overlapX(v)>0) {
+				assert(u->overlapY(v)==0);
+			}
+		}
+	}
 }
 
 }

@@ -64,7 +64,7 @@ struct TestCase {
         for(unsigned i=1;i<iterations;i++) {
             g=0;
             h.clear();
-            t.steepestDescent(g,h,des);
+            t.gradientProjection(g,h,des);
             stringstream ss;
             ss << "triangle-" << setfill('0') << setw(3) << i << ".svg";
             writeFile(nodes,es,ss.str().c_str());

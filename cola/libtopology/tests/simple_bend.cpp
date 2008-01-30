@@ -91,7 +91,7 @@ void simple(void test(Nodes&, EdgePoints&, DesiredPositions&,string&)){
         for(unsigned i=1;i<2;i++) {
             //g=0;
             h.clear();
-            t.steepestDescent(g,h,d);
+            t.gradientProjection(g,h,d);
             stringstream ss;
             ss << "simple-" << name << "-" << i << ".svg";
             writeFile(nodes,es,ss.str());

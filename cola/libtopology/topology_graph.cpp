@@ -72,8 +72,21 @@ namespace topology {
         }
         return false;
     }
+/**
+ * CrossProduct of three points: If the result is 0, the points are collinear; 
+ * if it is positive, the three points (in order) constitute a "left turn", 
+ * otherwise a "right turn".
+ */
+inline double crossProduct(
+        double x0, double y0,
+        double x1, double y1,
+        double x2, double y2) {
+    return (x1-x0)*(y2-y0)-(x2-x0)*(y1-y0);
+}
+
     bool EdgePoint::assertConvexBend() const {
         if(inSegment && outSegment) {
+            int fail=0;
             EdgePoint* u=inSegment->start;
             EdgePoint* w=outSegment->end;
             assert(
@@ -82,28 +95,62 @@ namespace topology {
 
             double* upos = u->pos;
             double* wpos = w->pos;
-            double e=0;//1e-7;
 
-//#define ____FASTFAIL
-#ifdef ____FASTFAIL
-            assert(upos[0]<=(pos[0]+e)&&pos[0]<=(wpos[0]+e)
-                ||(upos[0]+e)>=pos[0]&&(pos[0]+e)>=wpos[0]);
-            assert(upos[1]<=(pos[1]+e)&&pos[1]<=(wpos[1]+e)
-                ||(upos[1]+e)>=pos[1]&&(pos[1]+e)>=wpos[1]);
-#else
-            if( (upos[0]<=(pos[0]+e)&&pos[0]<=(wpos[0]+e)
-                ||(upos[0]+e)>=pos[0]&&(pos[0]+e)>=wpos[0])
-              &&(upos[1]<=(pos[1]+e)&&pos[1]<=(wpos[1]+e)
-                ||(upos[1]+e)>=pos[1]&&(pos[1]+e)>=wpos[1])) 
-            {
-                return true;
+            // monotonicity:
+            if(!( upos[0]<=pos[0] && pos[0]<=wpos[0]
+                ||upos[0]>=pos[0] && pos[0]>=wpos[0])) {
+                fail=1;
             }
-            printf("  convexity bend point test failed:\n");
-            printf("    u(nid=%d,ri=%d)=(%f,%f)\n",u->node->id,u->rectIntersect,upos[0],upos[1]);
-            printf("    v(nid=%d,ri=%d)=(%f,%f)\n",node->id,rectIntersect,pos[0],pos[1]);
-            printf("    w(nid=%d,ri=%d)=(%f,%f)\n",w->node->id,w->rectIntersect,wpos[0],wpos[1]);
+            if(!( upos[1]<=pos[1] && pos[1]<=wpos[1]
+                ||upos[1]>=pos[1] && pos[1]>=wpos[1]) )
+            {
+                fail=2;
+            }
+
+            // ensure clockwise winding order
+            switch(rectIntersect) {
+                case TR:
+                    if(upos[0]>wpos[0]||upos[0]==wpos[0]&&upos[1]<wpos[1]) {
+                        swap(upos,wpos);
+                    }
+                    break;
+                case BR:
+                    if(upos[0]<wpos[0]||upos[0]==wpos[0]&&upos[1]<wpos[1]) {
+                        swap(upos,wpos);
+                    }
+                    break;
+                case BL:
+                    if(upos[0]<wpos[0]||upos[0]==wpos[0]&&upos[1]>wpos[1]) {
+                        swap(upos,wpos);
+                    }
+                    break;
+                case TL:
+                    if(upos[0]>wpos[0]||upos[0]==wpos[0]&&upos[1]>wpos[1]) {
+                        swap(upos,wpos);
+                    }
+                    break;
+                default:
+                    // a bend point must be associated with one of the
+                    // corners of a rectangle!
+                    assert(false);
+            }
+            // angle must be a "right turn"
+            double cp
+                = crossProduct(upos[0],upos[1],pos[0],pos[1],wpos[0],wpos[1]);
+            if(cp>1e-7) {
+                fail=3;
+            }
+            if(fail==0) return true;
+            printf("  convexity bend point test failed, condition=%d:\n",fail);
+            printf("    u(nid=%d,ri=%d)=(%f,%f)\n",
+                    u->node->id,u->rectIntersect,upos[0],upos[1]);
+            printf("    v(nid=%d,ri=%d)=(%f,%f)\n",
+                    node->id,rectIntersect,pos[0],pos[1]);
+            printf("    w(nid=%d,ri=%d)=(%f,%f)\n",
+                    w->node->id,w->rectIntersect,wpos[0],wpos[1]);
+            printf("    turn cross product=%e\n",cp);
             assert(false);
-#endif
+
         } 
         return true;
     }

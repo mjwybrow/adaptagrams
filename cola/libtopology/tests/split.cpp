@@ -78,7 +78,7 @@ void split() {
         for(unsigned i=1;i<5;i++) {
             g=0;
             h.clear();
-            t.steepestDescent(g,h);
+            t.gradientProjection(g,h);
             stringstream ss;
             ss << "split-" << i << ".svg";
             writeFile(nodes,es,ss.str().c_str());

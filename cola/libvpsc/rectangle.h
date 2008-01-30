@@ -194,9 +194,18 @@ std::ostream& operator<< (std::ostream& os, const Rectangle& r);
 class Variable;
 class Constraint;
 
-// returns number of constraints generated
 void generateXConstraints(const Rectangles& rs, std::vector<Variable*> const & vars, std::vector<Constraint*> & cs, const bool useNeighbourLists);
 void generateYConstraints(std::vector<Rectangle*> const & rs, std::vector<Variable*> const & vars, std::vector<Constraint*> & cs);
+
+/** 
+ * moves all the rectangles to remove all overlaps.  Heuristic
+ * attempts to move by as little as possible.
+ * no overlaps guaranteed.
+ */
+void removeoverlaps(Rectangles& rs);
+
+void assertNoOverlaps(const Rectangles& rs);
+
 struct delete_object
 {
   template <typename T>

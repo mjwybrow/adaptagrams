@@ -269,7 +269,7 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
         do {
             SparseMap HMap(n);
             computeForces(dim,HMap,g);
-            interrupted=t.steepestDescent(g,HMap,des);
+            interrupted=t.gradientProjection(g,HMap,des);
             loopBreaker--;
         } while(interrupted&&loopBreaker>0);
 		Rectangle::setXBorder(0);

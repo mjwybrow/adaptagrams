@@ -2,7 +2,7 @@ INCLUDES = -I$(top_srcdir) -I/usr/include/cairo -I/usr/include/cairomm-1.0
 common_LDADD = $(top_builddir)/libcola/libcola.a $(top_builddir)/libvpsc/libvpsc.a $(top_builddir)/libtopology/libtopology.a $(top_builddir)/libproject/libproject.a
 #check_PROGRAMS = unconstrained constrained containment straightener shortest_paths connected_components large_graph convex_hull scale_free trees random_graph large_graph nodedragging topology boundary planar
 #check_PROGRAMS = shortest_paths convex_hull unconstrained constrained topology nodedragging boundary
-check_PROGRAMS = beautify
+check_PROGRAMS = topology
 
 shortest_paths_LDADD = $(top_builddir)/libcola/libcola.a
 shortest_paths_SOURCES = shortest_paths.cpp
