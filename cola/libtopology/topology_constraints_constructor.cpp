@@ -212,7 +212,6 @@ struct SegmentClose : SegmentEvent {
         return s.str();
     }
 };
-struct RedundantStraightConstraint { };
 /** 
  * Create topology constraint from scanpos in every open segment to node.
  * Segments must not be on-top-of rectangles.
@@ -228,14 +227,7 @@ void NodeEvent::createTopologyConstraint() {
                 continue;
             }
         }
-        // segments orthogonal to scan direction need no constraints
-        if(s->start->pos[!dim]-s->end->pos[!dim]==0) continue;
-
-        try {
-            s->straightConstraints.push_back(new StraightConstraint(s,node,pos));
-        } catch(RedundantStraightConstraint e) {
-            FILE_LOG(logWARNING) << "RedundantStraightConstraint exception";
-        }
+        s->createStraightConstraint(node,pos);
     }
 }
 struct CompareEvents {
@@ -281,6 +273,58 @@ TriConstraint::TriConstraint(
 {
 }
 
+bool Segment::createStraightConstraint(const Node* node, const double pos) {
+    // segments orthogonal to scan direction need no constraints
+    if(start->pos[!dim]-end->pos[!dim]==0) {
+        return false;
+    }
+    FILE_LOG(logDEBUG)<<"Segment::createStraightConstraint, pos="<<pos;
+    // segment must overlap in the scan dimension with the potential bend point
+    assert(min(end->pos[!dim],start->pos[!dim])<=pos);
+    assert(max(end->pos[!dim],start->pos[!dim])>=pos);
+    vpsc::Rectangle* r=node->rect;
+    FILE_LOG(logDEBUG1)<<"Segment: from "<<start->pos[!dim]<<" to "<<end->pos[!dim];
+    FILE_LOG(logDEBUG1)<<"Node: rect "<<*r;
+    // determine direction of constraint based on intersection of segment with
+    // scan line, i.e. set nodeLeft based on whether the intersection of the
+    // potential bend point is to the left or right of the node centre
+    double p;
+    bool nodeLeft=r->getCentreD(dim) < intersection(pos,p) ;
+    // set ri (the vertex of the node rectangle that is to be 
+    // kept to the left of the segment
+    EdgePoint::RectIntersect ri;
+    if(dim==cola::HORIZONTAL) {
+        ri=pos < r->getCentreY()
+             ? (nodeLeft ? EdgePoint::BR : EdgePoint::BL)
+             : (nodeLeft ? EdgePoint::TR : EdgePoint::TL);
+    } else {
+        ri=pos < r->getCentreX()
+             ? (nodeLeft ? EdgePoint::TL : EdgePoint::BL)
+             : (nodeLeft ? EdgePoint::TR : EdgePoint::BR);
+    }
+    if(node==start->node  && ri==start->rectIntersect) {
+        // constraint is redundant because the potential bend point is
+        // already a real bend associated with the start EdgePoint of this
+        // segment !
+        return false;
+    }
+    if(node==end->node  && ri==end->rectIntersect) {
+        // constraint is redundant - end EdgePoint of this segment!
+        return false;
+    }
+    straightConstraints.push_back(
+            new StraightConstraint(this,node,ri,pos,p,nodeLeft));
+    return true;
+}
+
+/**
+ * creates a copy of the StraightConstraint in our own straightConstraints
+ * list.
+ * @param s the StraightConstraint to be copied across
+ */
+void Segment::transferStraightConstraint(StraightConstraint* s) {
+    createStraightConstraint(s->node,s->pos);
+}
 /**
  * create a constraint between a segment and a node that is
  * activated when the segment needs to be bent (divided into
@@ -291,61 +335,29 @@ TriConstraint::TriConstraint(
  * which to create the constraint
  */
 StraightConstraint::StraightConstraint(
-        Segment* s, 
+        Segment* s,
         const Node* node,
-        const double pos) 
-    : segment(s), node(node), pos(pos)
+        const EdgePoint::RectIntersect ri,
+        const double scanPos,
+        const double segmentPos,
+        const bool nodeLeft) 
+    : segment(s), node(node), ri(ri), pos(scanPos)
 {
     FILE_LOG(logDEBUG)<<"StraightConstraint ctor: pos="<<pos;
-    EdgePoint *u=s->start, *v=s->end;
-    // segments orthogonal to scan direction need no constraints
-    assert(v->pos[!dim]-u->pos[!dim]!=0);
 
-    vpsc::Rectangle* r=node->rect;
-    FILE_LOG(logDEBUG1)<<"Segment: from "<<u->pos[!dim]<<" to "<<v->pos[!dim];
-    FILE_LOG(logDEBUG1)<<"Node: rect "<<*r;
-    // segment must overlap in the scan dimension with the potential bend point
-    assert(min(v->pos[!dim],u->pos[!dim])<=pos);
-    assert(max(v->pos[!dim],u->pos[!dim])>=pos);
-    // determine direction of constraint based on intersection
-    // of segment with scan line
-    double p;
-    // set nodeLeft based on whether the intersection of the potential bend
-    // point
-    // is to the left or right of the node centre
-    bool nodeLeft=node->rect->getCentreD(dim) < s->intersection(pos,p) ;
-    // set ri (the vertex of the node rectangle that is to be 
-    // kept to the left of the segment
-    if(dim==cola::HORIZONTAL) {
-        ri=pos < node->rect->getCentreY()
-             ? (nodeLeft ? EdgePoint::BR : EdgePoint::BL)
-             : (nodeLeft ? EdgePoint::TR : EdgePoint::TL);
-    } else {
-        ri=pos < node->rect->getCentreX()
-             ? (nodeLeft ? EdgePoint::TL : EdgePoint::BL)
-             : (nodeLeft ? EdgePoint::TR : EdgePoint::BR);
-    }
-    if(node==u->node  && ri==u->rectIntersect) {
-        // constraint is redundant because the potential bend point is
-        // already a real bend associated with the start EdgePoint of this
-        // segment !
-        throw RedundantStraightConstraint();
-    }
-    if(node==v->node  && ri==v->rectIntersect) {
-        // constraint is redundant - end EdgePoint of this segment!
-        throw RedundantStraightConstraint();
-    }
+    EdgePoint *u=s->start, *v=s->end;
+    
     // no heap allocations before this point so that the above throw does not 
     // cause a memory leak
 
-    double g=u->offset()+p*(v->offset()-u->offset());
+    double g=u->offset()+segmentPos*(v->offset()-u->offset());
     if(nodeLeft) {
-        g-=r->length(dim)/2.0;
+        g-=node->rect->length(dim)/2.0;
     } else {
-        g+=r->length(dim)/2.0;
+        g+=node->rect->length(dim)/2.0;
     }
     const VarPos *uv=&u->node->varPos, *vv=&v->node->varPos, *wv=&node->varPos;
-    c=new TriConstraint(uv,vv,wv,p,g,nodeLeft);
+    c=new TriConstraint(uv,vv,wv,segmentPos,g,nodeLeft);
 }
 /**
  * create a constraint between the two segments joined by this

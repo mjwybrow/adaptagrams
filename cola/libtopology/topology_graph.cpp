@@ -19,6 +19,11 @@ namespace topology {
     EdgePoint::~EdgePoint() {
         deleteBendConstraint();
     }
+    void EdgePoint::getBendConstraint(vector<TopologyConstraint*>* ts) {
+        if(bendConstraint) {
+            ts->push_back(bendConstraint);
+        }
+    }
     void EdgePoint::setPos() {
         double &x=pos[0],&y=pos[1];
         Rectangle* r=node->rect;
@@ -96,6 +101,7 @@ inline double crossProduct(
             double* upos = u->pos;
             double* wpos = w->pos;
 
+            /*
             // monotonicity:
             if(!( upos[0]<=pos[0] && pos[0]<=wpos[0]
                 ||upos[0]>=pos[0] && pos[0]>=wpos[0])) {
@@ -106,7 +112,7 @@ inline double crossProduct(
             {
                 fail=2;
             }
-
+            */
             // ensure clockwise winding order
             switch(rectIntersect) {
                 case TR:
@@ -153,6 +159,13 @@ inline double crossProduct(
 
         } 
         return true;
+    }
+    void Segment::
+    getStraightConstraints(vector<TopologyConstraint*>* ts) const {
+        size_t n = ts->size();
+        ts->resize(n+straightConstraints.size());
+        copy(straightConstraints.begin(),straightConstraints.end(),
+                ts->begin()+n);
     }
     void Segment::deleteStraightConstraints() {
         for_each(straightConstraints.begin(),straightConstraints.end(),

@@ -58,20 +58,6 @@ ostream& operator<< (ostream& os, const TriConstraint& c) {
     return os;
 }
 /**
- * Functor which creates a new StraightConstraint in the target Segment
- * for a given StraightConstraint in some Segment being replaced by
- * target.
- */
-struct TransferStraightConstraint {
-    TransferStraightConstraint(Segment* target)
-        : target(target) {}
-    void operator() (StraightConstraint* s) {
-        target->straightConstraints.push_back(
-                new StraightConstraint(target,s->node,s->pos));
-    }
-    Segment* target;
-};
-/**
  * The bend has become straight, remove bend
  */
 void BendConstraint::satisfy() {
@@ -93,14 +79,11 @@ void BendConstraint::satisfy() {
     if(e->lastSegment==s2) {
         e->lastSegment=s;
     }
-    // transfer each StraightConstraint from s1 and s2 to newSegment.
-    TransferStraightConstraint transfer(s);
-    for_each(s1->straightConstraints.begin(),
-             s1->straightConstraints.end(),
-             transfer);
-    for_each(s2->straightConstraints.begin(),
-             s2->straightConstraints.end(),
-             transfer);
+    // transfer each StraightConstraint from s1 and s2 to new Segment s.
+    Segment::TransferStraightConstraint transfer = 
+        bind1st(mem_fun(&Segment::transferStraightConstraint),s);
+    s1->forEachStraightConstraint(transfer);
+    s2->forEachStraightConstraint(transfer);
     // update each BendConstraint involving bendPoint
     if(start->bendConstraint!=NULL) {
         delete start->bendConstraint;
@@ -111,8 +94,7 @@ void BendConstraint::satisfy() {
         end->bendConstraint = new BendConstraint(end);
     }
     // create a new StraightConstraint to replace the BendConstraint
-    s->straightConstraints.push_back(new StraightConstraint(
-                s, bendPoint->node, bendPoint->pos[!dim]));
+    s->createStraightConstraint(bendPoint->node, bendPoint->pos[!dim]);
              
     e->nSegments--;
     delete bendPoint;
@@ -150,13 +132,11 @@ struct transferStraightConstraintChoose {
             double min1=min(target1->start->pos[!dim],target1->end->pos[!dim]);
             double max1=max(target1->start->pos[!dim],target1->end->pos[!dim]);
             if(c->pos>=min1 && c->pos<=max1) {
-                target1->straightConstraints.push_back(
-                        new StraightConstraint(target1,c->node,c->pos));
+                target1->transferStraightConstraint(c);
             } else {
                 assert(c->pos>=min(target2->start->pos[!dim],target2->end->pos[!dim]));
                 assert(c->pos<=max(target2->start->pos[!dim],target2->end->pos[!dim]));
-                target2->straightConstraints.push_back(
-                        new StraightConstraint(target2,c->node,c->pos));
+                target2->transferStraightConstraint(c);
             }
         }
     }
@@ -207,9 +187,7 @@ void StraightConstraint::satisfy() {
     // transfer other StraightConstraint constraints 
     // from s to s1 or s2 depending on which side of p they are on.
     transferStraightConstraintChoose transfer(s1,s2,pos,this);
-    for_each(segment->straightConstraints.begin(),
-             segment->straightConstraints.end(),
-             transfer);
+    segment->forEachStraightConstraint(transfer);
     // BendConstraint constraints associated with segment->end and 
     // segment->start need to be updated
     if(start->bendConstraint) {
@@ -240,27 +218,10 @@ struct buildRoute {
     straightener::Route* r;
     unsigned& n;
 };
-struct getTopologyConstraints {
-    getTopologyConstraints(vector<TopologyConstraint*>& ts) : ts(ts) {}
-    void operator() (const Segment* s) {
-        for(vector<StraightConstraint*>::const_iterator 
-            t=s->straightConstraints.begin();
-            t!=s->straightConstraints.end();++t) {
-            assert(*t!=NULL);
-            ts.push_back(*t);
-        }
-        // bendConstraints may be absent if the segment is horizontal
-        if(s->end->bendConstraint!=NULL) {
-            ts.push_back(s->end->bendConstraint);
-        }
-    }
-    vector<TopologyConstraint*>& ts;
-};
 void TopologyConstraints::
-constraints(std::vector<TopologyConstraint*> & ts) const {
-    for(Edges::const_iterator e=edges.begin();e!=edges.end();++e) {
-        (*e)->forEachSegment(getTopologyConstraints(ts));
-    }
+constraints(std::vector<TopologyConstraint*>& ts) const {
+    for_each(edges.begin(),edges.end(),bind2nd(
+                mem_fun(&Edge::getTopologyConstraints),&ts));
 }
 
 struct PrintEdgePoint {

@@ -116,18 +116,23 @@ namespace topology {
     public:
         Segment* segment;
         const Node* node;
-        const double pos;
         EdgePoint::RectIntersect ri;
+        const double pos;
         /** 
          * create a constraint between a segment and one corner of a node such
          * that the constraint is activated when the segment needs to be bent
          * (divided into two new segments)
          * @param s the segment
          * @param node the node
-         * @param pos the position of the scan line along which the constraint
-         * lies
+         * @param ri the vertex of the node causing this constraint
+         * @param scanPos the position of the scan line along which the
+         * constraint lies
+         * @param segmentPos the ratio (s->start,scanPos)/(s->start,s->end)
          */
-        StraightConstraint(Segment* s, const Node* node, double pos);
+        StraightConstraint(Segment* s, 
+                const Node* node, const EdgePoint::RectIntersect ri,
+                const double scanPos, const double segmentPos,
+                const bool nodeLeft);
         void satisfy();
         std::string toString();
     };
@@ -152,9 +157,7 @@ namespace topology {
             vpsc::Variables& vs,
             vpsc::Constraints& cs);
         ~TopologyConstraints();
-        void violated(std::vector<TopologyConstraint*> & ts) const;
         void constraints(std::vector<TopologyConstraint*> & ts) const;
-        TopologyConstraint* mostViolated() const;
         void computeForces(valarray<double>& g, cola::SparseMap& h);
         double computeStress() const;
         bool gradientProjection(valarray<double>& g, 

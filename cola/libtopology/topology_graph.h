@@ -20,6 +20,7 @@ namespace straightener {
 namespace topology {
     extern cola::Dim dim;
     class Segment;
+    class TopologyConstraint;
     class BendConstraint;
     class StraightConstraint;
     class Edge;
@@ -80,6 +81,7 @@ namespace topology {
          *  will be assigned (not immediately) a bendConstraint
          */
         BendConstraint* bendConstraint;
+        void getBendConstraint(std::vector<TopologyConstraint*>* ts);
         /// delete the bendConstraint and reset pointer to NULL
         void deleteBendConstraint();
         /**
@@ -146,6 +148,37 @@ namespace topology {
             assert(length()!=0);
         }
         /**
+         * add a new StraightConstraint to this segment (if necessary)
+         * @param node the node with which the constraint is associated
+         * @param pos the scanPos, i.e. the position in the scan dimension
+         * of the opening or closing of node.
+         * @return true if a constraint was created
+         */
+        bool createStraightConstraint(const Node* node, double pos);
+        /** 
+         * creates a copy of the StraightConstraint in our own
+         * straightConstraints list.  
+         * @param s the StraightConstraint to be copied across
+         */
+        void transferStraightConstraint(StraightConstraint* s);
+        /**
+         * this typedef can be used to declare a wrapper functor
+         * for transferStraightConstraint
+         */
+        typedef std::binder1st<
+            std::mem_fun1_t<void, Segment, StraightConstraint*> 
+            > TransferStraightConstraint;
+        /**
+         * TransferStraightConstraint might for example be applied to
+         * forEachStraightConstraint
+         */
+        template <typename T>
+        void forEachStraightConstraint(T f) {
+            for_each(straightConstraints.begin(),straightConstraints.end(),f);
+        }
+        void getStraightConstraints(std::vector<TopologyConstraint*>* ts) 
+            const;
+        /**
          * clean up topologyConstraints
          */
         void deleteStraightConstraints();
@@ -157,9 +190,6 @@ namespace topology {
         EdgePoint* start;
         /// the end point of the segment
         EdgePoint* end;
-        /// a set of topology constraints (left-/right-/above-/below-of
-        /// relationships / between this segment and nodes
-        std::vector<StraightConstraint*> straightConstraints;
         /// @return the EdgePoint at the minimum extent of this segment on the scan axis
         EdgePoint* getMin() const {
             if(start->pos[!dim] <= end->pos[!dim]) {
@@ -207,6 +237,10 @@ namespace topology {
          * Compute the euclidean distance between #start and #end.
          */
         double length() const;
+    private:
+        /// a set of topology constraints (left-/right-/above-/below-of
+        /// relationships / between this segment and nodes
+        std::vector<StraightConstraint*> straightConstraints;
     };
     /// do nothing operator used in ForEach
     template <typename T>
@@ -352,6 +386,15 @@ namespace topology {
          * @return a list of the coordinates along the edge route
          */
         straightener::Route* getRoute() const;
+        void getTopologyConstraints(std::vector<TopologyConstraint*>* ts) 
+        const {
+            forEach(
+                    std::bind2nd(
+                        std::mem_fun(&EdgePoint::getBendConstraint),ts),
+                    std::bind2nd(
+                        std::mem_fun(&Segment::getStraightConstraints),ts),
+                    false);
+        }
         bool assertConvexBends() const;
         bool cycle() const {
             return firstSegment->start==lastSegment->end;
