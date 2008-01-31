@@ -401,24 +401,6 @@ BendConstraint(EdgePoint* v)
           *vv=&v->node->varPos, *wv=&w->node->varPos;
     c=new TriConstraint(uv,vv,wv,p,g,leftOf);
 }
-struct CreateBendConstraints {
-    void operator() (EdgePoint* p) {
-        Segment* in = p->inSegment, * out = p->outSegment;
-        double v = p->pos[!dim];
-        if(p->bendConstraint==NULL 
-                // dont want to create bend constraint twice if
-                // edge is cyclical
-           && in!=NULL && out!=NULL // or if this is the end of an edge
-        // don't generate BendConstraints for segments parallel to scan line
-           && in->start->pos[!dim]!=v && v!=out->end->pos[!dim]) {
-            // edges shouldn't double back!
-            assert(p->assertConvexBend());
-            // if it's a valid bend point then create a TopologyConstraint
-            // that becomes active when the bend straightens
-            p->bendConstraint = new BendConstraint(p);
-        }
-    }
-};
 struct CreateSegmentEvents {
     CreateSegmentEvents(vector<Event*>& events) : events(events) {}
     void operator() (Segment* s) {
@@ -485,7 +467,8 @@ TopologyConstraints(
         events.push_back(close);
     }
     for(Edges::const_iterator e=edges.begin();e!=edges.end();++e) {
-        (*e)->forEach(CreateBendConstraints(),CreateSegmentEvents(events),true);
+        (*e)->forEach(mem_fun(&EdgePoint::createBendConstraint),
+                CreateSegmentEvents(events),true);
     }
     // process events in top to bottom order
     sort(events.begin(),events.end(),CompareEvents());

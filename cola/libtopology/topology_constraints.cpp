@@ -84,15 +84,12 @@ void BendConstraint::satisfy() {
         bind1st(mem_fun(&Segment::transferStraightConstraint),s);
     s1->forEachStraightConstraint(transfer);
     s2->forEachStraightConstraint(transfer);
-    // update each BendConstraint involving bendPoint
-    if(start->bendConstraint!=NULL) {
-        delete start->bendConstraint;
-        start->bendConstraint = new BendConstraint(start);
-    }
-    if(end->bendConstraint!=NULL) {
-        delete end->bendConstraint;
-        end->bendConstraint = new BendConstraint(end);
-    }
+
+    // update the BendConstraints associated with the end EdgePoints of
+    // the new segment
+    start->createBendConstraint();
+    end->createBendConstraint();
+
     // create a new StraightConstraint to replace the BendConstraint
     s->createStraightConstraint(bendPoint->node, bendPoint->pos[!dim]);
              
@@ -182,7 +179,7 @@ void StraightConstraint::satisfy() {
         e->lastSegment=s2;
     }
     // create BendConstraint to replace this StraightConstraint
-    bend->bendConstraint = new BendConstraint(bend);
+    bend->createBendConstraint();
 
     // transfer other StraightConstraint constraints 
     // from s to s1 or s2 depending on which side of p they are on.
@@ -190,14 +187,8 @@ void StraightConstraint::satisfy() {
     segment->forEachStraightConstraint(transfer);
     // BendConstraint constraints associated with segment->end and 
     // segment->start need to be updated
-    if(start->bendConstraint) {
-        delete start->bendConstraint;
-        start->bendConstraint = new BendConstraint(start);
-    }
-    if(end->bendConstraint) {
-        delete end->bendConstraint;
-        end->bendConstraint = new BendConstraint(end);
-    }
+    start->createBendConstraint();
+    end->createBendConstraint();
              
     e->nSegments++;
     delete segment;

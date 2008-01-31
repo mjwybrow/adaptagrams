@@ -81,7 +81,10 @@ namespace topology {
          *  will be assigned (not immediately) a bendConstraint
          */
         BendConstraint* bendConstraint;
+        /// append bendConstraint (if not null) to ts
         void getBendConstraint(std::vector<TopologyConstraint*>* ts);
+        /// return true if constraint created
+        bool createBendConstraint();
         /// delete the bendConstraint and reset pointer to NULL
         void deleteBendConstraint();
         /**
@@ -176,6 +179,9 @@ namespace topology {
         void forEachStraightConstraint(T f) {
             for_each(straightConstraints.begin(),straightConstraints.end(),f);
         }
+        /**
+         * append straightConstraints to ts
+         */
         void getStraightConstraints(std::vector<TopologyConstraint*>* ts) 
             const;
         /**
@@ -393,7 +399,7 @@ namespace topology {
                         std::mem_fun(&EdgePoint::getBendConstraint),ts),
                     std::bind2nd(
                         std::mem_fun(&Segment::getStraightConstraints),ts),
-                    false);
+                    true);
         }
         bool assertConvexBends() const;
         bool cycle() const {

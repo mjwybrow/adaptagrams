@@ -19,6 +19,23 @@ namespace topology {
     EdgePoint::~EdgePoint() {
         deleteBendConstraint();
     }
+    bool EdgePoint::createBendConstraint() {
+        // edges shouldn't double back!
+        assert(assertConvexBend());
+        // don't generate BendConstraints for Edge end points
+        // or for segments parallel to scan line
+        double v = pos[!dim];
+        if(isEnd()
+         ||inSegment->start->pos[!dim]==v
+         ||outSegment->end->pos[!dim]==v) {
+            return false;
+        }
+        if(bendConstraint) {
+            delete bendConstraint;
+        }
+        bendConstraint = new BendConstraint(this);
+        return true;
+    }
     void EdgePoint::getBendConstraint(vector<TopologyConstraint*>* ts) {
         if(bendConstraint) {
             ts->push_back(bendConstraint);
@@ -67,12 +84,7 @@ namespace topology {
      * ends.
      */
     bool EdgePoint::isEnd() const {
-        Edge* e = outSegment->edge;
-        if(outSegment == e->firstSegment || inSegment == e->lastSegment) {
-            if(e->firstSegment->start==e->lastSegment->end) {
-                // it's a cycle (as in a cluster boundary)
-                return false;
-            }
+        if(outSegment==NULL || inSegment==NULL) {
             return true;
         }
         return false;
@@ -168,8 +180,7 @@ inline double crossProduct(
                 ts->begin()+n);
     }
     void Segment::deleteStraightConstraints() {
-        for_each(straightConstraints.begin(),straightConstraints.end(),
-            delete_object());
+        forEachStraightConstraint(delete_object());
         straightConstraints.clear();
     }
     /**
