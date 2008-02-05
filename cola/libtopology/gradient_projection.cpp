@@ -124,6 +124,8 @@ gradientProjection(valarray<double>& g, cola::SparseMap& h, const
     assert(g.size()==n);
     assert(h.n==n);
     assert(assertConvexBends(edges));
+    assert(assertNoSegmentRectIntersection(nodes,edges));
+    assert(assertFeasible());
     //printInstance(g);
     bool interrupted=false;
     computeForces(g,h);
@@ -148,8 +150,7 @@ gradientProjection(valarray<double>& g, cola::SparseMap& h, const
     for(unsigned i=0;i<n;++i) {
         vpsc::Variable* v=vs[i];
         Node* node=nodes[i];
-        node->varPos.initial = node->rect->getCentreD(dim);
-        node->varPos.desired = v->finalPosition;
+        node->updateVarPos(v->finalPosition);
     }
     double minTAlpha=DBL_MAX;
     TopologyConstraint* minT=NULL;
@@ -167,22 +168,19 @@ gradientProjection(valarray<double>& g, cola::SparseMap& h, const
             minT=t;
         }
     }
-    assert(assertConvexBends(edges));
     if(minTAlpha<1) {
         interrupted=true;
         FILE_LOG(logDEBUG1)<<"violated topology constraint! alpha="<<minTAlpha;
     }
     for(Nodes::iterator i=nodes.begin();i!=nodes.end();++i) {
         Node* v=*i;
-        double p=interrupted ? v->varPos.posOnLine(minTAlpha)
-                             : v->varPos.desired;
-        v->rect->moveCentreD(dim,p);
+        v->moveRect(interrupted,minTAlpha);
     }
     assert(noOverlaps());
-    assert(assertConvexBends(edges));
     for(Edges::iterator e=edges.begin();e!=edges.end();++e) {
         (*e)->forEachEdgePoint(mem_fun(&EdgePoint::setPos),true);
     }
+    assert(assertConvexBends(edges));
     // rectangle and edge point positions updated to variables.
     FILE_LOG(logDEBUG)<<" moves done.";
     if(interrupted) {
@@ -191,7 +189,9 @@ gradientProjection(valarray<double>& g, cola::SparseMap& h, const
         // is split
         minT->satisfy();
     }
+    assert(assertFeasible());
     assert(assertConvexBends(edges));
+    assert(assertNoSegmentRectIntersection(nodes,edges));
     FILE_LOG(logDEBUG)<<"TopologyConstraints::steepestDescent... done";
     return interrupted;
 }

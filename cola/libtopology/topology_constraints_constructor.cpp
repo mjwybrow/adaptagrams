@@ -58,8 +58,8 @@ struct Event {
  * scan direction) of the rectangle associated with each node
  */
 struct NodeEvent : Event {
-    Node const *node;
-    NodeEvent(bool open, double pos, Node const *v)
+    Node *node;
+    NodeEvent(bool open, double pos, Node *v)
         : Event(open,pos), node(v) {
     }
     ~NodeEvent(){}
@@ -77,7 +77,7 @@ struct NodeEvent : Event {
 struct NodeOpen : NodeEvent {
     /// position in openNodes
     OpenNodes::iterator openListIndex;
-    NodeOpen(Node const *node) 
+    NodeOpen(Node *node) 
         : NodeEvent(true,node->rect->getMinD(!dim),node) {
     }
     void process() {
@@ -271,9 +271,10 @@ TriConstraint::TriConstraint(
         double p, double g, bool left)
     : u(u), v(v), w(w), p(p), g(g), leftOf(left) 
 {
+    assert(slackAtInitial()>-1e-7);
 }
 
-bool Segment::createStraightConstraint(const Node* node, const double pos) {
+bool Segment::createStraightConstraint(Node* node, double pos) {
     // segments orthogonal to scan direction need no constraints
     if(start->pos[!dim]-end->pos[!dim]==0) {
         return false;
@@ -336,7 +337,7 @@ void Segment::transferStraightConstraint(StraightConstraint* s) {
  */
 StraightConstraint::StraightConstraint(
         Segment* s,
-        const Node* node,
+        Node* node,
         const EdgePoint::RectIntersect ri,
         const double scanPos,
         const double segmentPos,
@@ -347,17 +348,17 @@ StraightConstraint::StraightConstraint(
 
     EdgePoint *u=s->start, *v=s->end;
     
-    // no heap allocations before this point so that the above throw does not 
-    // cause a memory leak
-
     double g=u->offset()+segmentPos*(v->offset()-u->offset());
     if(nodeLeft) {
         g-=node->rect->length(dim)/2.0;
     } else {
         g+=node->rect->length(dim)/2.0;
     }
-    const VarPos *uv=&u->node->varPos, *vv=&v->node->varPos, *wv=&node->varPos;
+    const VarPos *uv=u->node->updateVarPos(), 
+                 *vv=v->node->updateVarPos(), 
+                 *wv=node->updateVarPos();
     c=new TriConstraint(uv,vv,wv,segmentPos,g,nodeLeft);
+    assertFeasible();
 }
 /**
  * create a constraint between the two segments joined by this
@@ -397,9 +398,11 @@ BendConstraint(EdgePoint* v)
             leftOf=true;
         }
     }
-    const VarPos *uv=&u->node->varPos, 
-          *vv=&v->node->varPos, *wv=&w->node->varPos;
+    const VarPos *uv=u->node->updateVarPos(),
+                 *vv=v->node->updateVarPos(), 
+                 *wv=w->node->updateVarPos();
     c=new TriConstraint(uv,vv,wv,p,g,leftOf);
+    assertFeasible();
 }
 struct CreateSegmentEvents {
     CreateSegmentEvents(vector<Event*>& events) : events(events) {}
@@ -452,6 +455,7 @@ TopologyConstraints(
     FILE_LOG(logDEBUG)<<"TopologyConstraints::TopologyConstraints():dim="<<axisDim;
 
     assert(noOverlaps());
+    assert(assertNoSegmentRectIntersection(nodes,edges));
 
     dim = axisDim;
 
@@ -475,6 +479,7 @@ TopologyConstraints(
     for_each(events.begin(),events.end(),mem_fun(&Event::process));
     assert(openSegments.empty());
     assert(openNodes.empty());
+    assert(assertFeasible());
     FILE_LOG(logDEBUG)<<"TopologyConstraints::TopologyConstraints()... done.";
 }
 

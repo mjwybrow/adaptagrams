@@ -84,10 +84,11 @@ namespace topology {
          */
         virtual void satisfy() = 0;
         /// for log messages
-        virtual std::string toString() = 0;
+        virtual std::string toString() const = 0;
         virtual ~TopologyConstraint() {
             delete c;
         }
+        void assertFeasible() const;
     protected:
         TopologyConstraint() : c(NULL) { }
     };
@@ -106,7 +107,7 @@ namespace topology {
          */
         BendConstraint(EdgePoint* bendPoint);
         void satisfy();
-        std::string toString();
+        std::string toString() const;
     };
     /**
      * A constraint between a Node and a Segment that is activated when
@@ -115,7 +116,7 @@ namespace topology {
     class StraightConstraint : public TopologyConstraint {
     public:
         Segment* segment;
-        const Node* node;
+        Node* node;
         EdgePoint::RectIntersect ri;
         const double pos;
         /** 
@@ -130,11 +131,11 @@ namespace topology {
          * @param segmentPos the ratio (s->start,scanPos)/(s->start,s->end)
          */
         StraightConstraint(Segment* s, 
-                const Node* node, const EdgePoint::RectIntersect ri,
+                Node* node, const EdgePoint::RectIntersect ri,
                 const double scanPos, const double segmentPos,
                 const bool nodeLeft);
         void satisfy();
-        std::string toString();
+        std::string toString() const;
     };
     /**
      * desired positions which should override those computed by applying forces
@@ -166,6 +167,7 @@ namespace topology {
                 cola::SparseMap& h, 
                 const DesiredPositions& d);
         double reachedDesired(const DesiredPositions& d);
+        bool assertFeasible();
         void printInstance(valarray<double>& g) const;
         bool noOverlaps() const;
     private:
@@ -174,6 +176,8 @@ namespace topology {
         vpsc::Variables& vs;
         vpsc::Constraints& cs;
     };
+    bool assertNoSegmentRectIntersection(
+            const Nodes& nodes, const Edges& edges);
 } // namespace topology
 #endif // TOPOLOGY_CONSTRAINTS_H
 // vim: cindent ts=4 sw=4 et tw=0 wm=0

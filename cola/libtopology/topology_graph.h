@@ -36,13 +36,12 @@ namespace topology {
      * Each node is associated with a rectangle and solver variables
      * for the x and y axes
      */
-    struct Node {
+    class Node {
+    public:
         /// the index of the associated node / variable / rectangle
         const unsigned id;
         /// the bounding box of the associated node
         vpsc::Rectangle* rect;
-        /// variable positions used by solver
-        VarPos varPos;
         /** 
          * when an edge path is being defined externally with a vector of EdgePoint,
          * a variable would not be specified.
@@ -50,6 +49,11 @@ namespace topology {
          * @param r
          */
         Node(unsigned id, vpsc::Rectangle* r);
+        const VarPos* updateVarPos(double desired=-1);
+        void moveRect(bool interrupted, double alpha);
+    private:
+        /// variable positions used by solver
+        VarPos varPos;
     };
     typedef std::vector<Node*> Nodes;
     /**
@@ -60,7 +64,7 @@ namespace topology {
     class EdgePoint {
     public:
         /// the node / variable / rectangle associated with this EdgePoint
-        const Node* node;
+        Node* node;
         /** the position, computed based on rectIntersect and rectangle position and boundary
          *  @param dim the axis (either horizontal or vertical) of the coordinate to return
          */
@@ -90,7 +94,7 @@ namespace topology {
         /**
          * the constructor sets up the position 
          */
-        EdgePoint(const Node* n, RectIntersect i) 
+        EdgePoint(Node* n, RectIntersect i) 
                 : node(n), rectIntersect(i)
                 , inSegment(NULL), outSegment(NULL) 
                 , bendConstraint(NULL)
@@ -157,7 +161,7 @@ namespace topology {
          * of the opening or closing of node.
          * @return true if a constraint was created
          */
-        bool createStraightConstraint(const Node* node, double pos);
+        bool createStraightConstraint(Node* node, double pos);
         /** 
          * creates a copy of the StraightConstraint in our own
          * straightConstraints list.  

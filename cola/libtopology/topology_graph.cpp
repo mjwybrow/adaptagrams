@@ -10,6 +10,16 @@ namespace topology {
     Node::Node(unsigned id, vpsc::Rectangle* r)
         : id(id), rect(r) 
     { }
+    const VarPos* Node::updateVarPos(double desired) {
+        varPos.initial=rect->getCentreD(dim);     
+        varPos.desired=desired;
+        return &varPos;
+    }
+    void Node::moveRect(bool interrupted, double alpha) {
+        double p=interrupted ? varPos.posOnLine(alpha)
+                             : varPos.desired;
+        rect->moveCentreD(dim,p);
+    }
     void EdgePoint::deleteBendConstraint() {
         if(bendConstraint) {
             delete bendConstraint;
@@ -89,6 +99,11 @@ namespace topology {
         }
         return false;
     }
+inline void normalise(double& x, double& y) {
+    double l=sqrt(x*x+y*y);
+    x/=l;
+    y/=l;
+}
 /**
  * CrossProduct of three points: If the result is 0, the points are collinear; 
  * if it is positive, the three points (in order) constitute a "left turn", 
@@ -98,7 +113,12 @@ inline double crossProduct(
         double x0, double y0,
         double x1, double y1,
         double x2, double y2) {
-    return (x1-x0)*(y2-y0)-(x2-x0)*(y1-y0);
+    //return (x1-x0)*(y2-y0)-(x2-x0)*(y1-y0);
+    double ux=x1-x0, uy=y1-y0;
+    double vx=x2-x0, vy=y2-y0;
+    normalise(ux,uy);
+    normalise(vx,vy);
+    return ux*vy-uy*vx;
 }
 
     bool EdgePoint::assertConvexBend() const {
@@ -160,11 +180,11 @@ inline double crossProduct(
             }
             if(fail==0) return true;
             printf("  convexity bend point test failed, condition=%d:\n",fail);
-            printf("    u(nid=%d,ri=%d)=(%f,%f)\n",
+            printf("    (nid=%d,ri=%d):u={%f,%f}\n",
                     u->node->id,u->rectIntersect,upos[0],upos[1]);
-            printf("    v(nid=%d,ri=%d)=(%f,%f)\n",
+            printf("    (nid=%d,ri=%d):v={%f,%f}\n",
                     node->id,rectIntersect,pos[0],pos[1]);
-            printf("    w(nid=%d,ri=%d)=(%f,%f)\n",
+            printf("    (nid=%d,ri=%d):w={%f,%f}\n",
                     w->node->id,w->rectIntersect,wpos[0],wpos[1]);
             printf("    turn cross product=%e\n",cp);
             assert(false);

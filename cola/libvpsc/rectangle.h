@@ -71,26 +71,26 @@ public:
    }
 	double getMaxX() const { return maxX+xBorder; }
 	double getMaxY() const { return maxY+yBorder; }
-	double getMinX() const { return minX; }
-	double getMinY() const { return minY; }
+	double getMinX() const { return minX-xBorder; }
+	double getMinY() const { return minY-yBorder; }
 	double getMinD(unsigned const d) const {
 		return ( d == 0 ? getMinX() : getMinY() );
 	}
 	double getMaxD(unsigned const d) const {
 		return ( d == 0 ? getMaxX() : getMaxY() );
 	}
-	double getCentreX() const { return minX+width()/2.0; }
-	double getCentreY() const { return minY+height()/2.0; }
+	double getCentreX() const { return getMinX()+width()/2.0; }
+	double getCentreY() const { return getMinY()+height()/2.0; }
     double getCentreD(unsigned const d) const {
         return getMinD(d)+length(d)/2.0;
     }
-	double width() const { return getMaxX()-minX; }
-	double height() const { return getMaxY()-minY; }
+	double width() const { return getMaxX()-getMinX(); }
+	double height() const { return getMaxY()-getMinY(); }
 	double length(unsigned const d) const {
 		return ( d == 0 ? width() : height() );
 	}
-	void set_width(double w) { maxX = minX + w; }
-	void set_height(double h) { maxY = minY + h; }
+	void set_width(double w) { maxX = minX + w - 2.0*xBorder; }
+	void set_height(double h) { maxY = minY + h - 2.0*yBorder; }
 	static void setXBorder(double x) {xBorder=x;}
 	static void setYBorder(double y) {yBorder=y;}
 	void moveCentreD(const unsigned d, double p) {
@@ -111,12 +111,12 @@ public:
 		moveCentreY(y);
 	}
 	void moveMinX(double x) {
-		maxX=x+width()-xBorder;
-		minX=x;
+		maxX=x+width()-2.0*xBorder;
+		minX=x+xBorder;
 	}
 	void moveMinY(double y) {
-		maxY=y+height()-yBorder;
-		minY=y;
+		maxY=y+height()-2.0*yBorder;
+		minY=y+yBorder;
 	}
 	double overlapD(const unsigned d, Rectangle* r) {
 		if(d==0) {
@@ -127,19 +127,19 @@ public:
 	}
 	double overlapX(Rectangle *r) const {
 		double ux=getCentreX(), vx=r->getCentreX();
-		if (ux <= vx && r->minX < getMaxX())
-			return getMaxX() - r->minX;
-		if (vx <= ux && minX < r->getMaxX())
-			return r->getMaxX() - minX;
+		if (ux <= vx && r->getMinX() < getMaxX())
+			return getMaxX() - r->getMinX();
+		if (vx <= ux && getMinX() < r->getMaxX())
+			return r->getMaxX() - getMinX();
 		return 0;
 	}
 	double overlapY(Rectangle *r) const {
 		double uy=getCentreY(), vy=r->getCentreY();
-		if (uy <= vy && r->minY < getMaxY()) {
-			return getMaxY() - r->minY;
+		if (uy <= vy && r->getMinY() < getMaxY()) {
+			return getMaxY() - r->getMinY();
 		}
-		if (vy <= uy && minY < r->getMaxY()) {
-			return r->getMaxY() - minY;
+		if (vy <= uy && getMinY() < r->getMaxY()) {
+			return r->getMaxY() - getMinY();
 		}
 		return 0;
 	}
@@ -158,7 +158,7 @@ public:
 	// to intersect.
 	void lineIntersections(double x1, double y1, double x2, double y2, RectangleIntersections &ri) const;
 	bool inside(double x, double y) const {
-		return x>minX && x<maxX && y>minY && y<maxY;
+		return x>getMinX() && x<getMaxX() && y>getMinY() && y<getMaxY();
 	}
 	// checks if line segment is strictly overlapping.
 	// That is, if any point on the line is inside the rectangle.
@@ -174,7 +174,9 @@ public:
 					return false;
 				}
 			}
-			assert(1==2);
+			printf("Rectangle/Segment intersection!\n");
+			printf("segment: {%f,%f},{%f,%f}\n",x1,y1,x2,y2);
+			printf("rect: {%f,%f},{%f,%f}\n",getMinX(),getMinY(),getMaxX(),getMaxY());
 			return true;
 		}
 		return false;

@@ -100,7 +100,7 @@ void BendConstraint::satisfy() {
     FILE_LOG(logDEBUG)<<"BendConstraint::satisfy()...done.";
 }
 string BendConstraint::
-toString() {
+toString() const {
     stringstream s;
     s << "BendConstraint: bendPoint=(" << bendPoint->pos[0] << "," << bendPoint->pos[1] << ")";
     return s.str();
@@ -193,8 +193,11 @@ void StraightConstraint::satisfy() {
     e->nSegments++;
     delete segment;
 }
+void TopologyConstraint::assertFeasible() const {
+    assert(c->slackAtInitial()>-1e-7);
+}
 string StraightConstraint::
-toString() {
+toString() const {
     stringstream s;
     s << "StraightConstraint: pos=" << pos;
     return s.str();
@@ -235,6 +238,43 @@ printInstance(valarray<double>& g) const {
         (*e)->forEachEdgePoint(PrintEdgePoint());
         printf("t.addEdge(%f);\n",(*e)->idealLength);
     }
+}
+struct NoIntersection {
+    NoIntersection(const Nodes& nodes) : nodes(nodes) {}
+    void operator()(const Segment* s) {
+        for(Nodes::const_iterator v=nodes.begin();v!=nodes.end();++v) {
+            if(s->start->node==*v) {
+                continue;
+            }
+            if(s->end->node==*v) {
+                continue;
+            }
+            assert(!(*v)->rect->overlaps(s->start->pos[0],s->start->pos[1],s->end->pos[0],s->end->pos[1]));
+        }
+    }
+    const Nodes& nodes;
+};
+bool assertNoSegmentRectIntersection(const Nodes& nodes, const Edges& edges) {
+    double xBorder=vpsc::Rectangle::xBorder, yBorder=vpsc::Rectangle::yBorder;
+    vpsc::Rectangle::setXBorder(xBorder-0.001);
+    vpsc::Rectangle::setYBorder(yBorder-0.001);
+    for(Edges::const_iterator e=edges.begin();e!=edges.end();++e) {
+        (*e)->forEachSegment(NoIntersection(nodes));
+    }
+    vpsc::Rectangle::setXBorder(xBorder);
+    vpsc::Rectangle::setYBorder(yBorder);
+    return true;
+}
+bool TopologyConstraints::
+assertFeasible() {
+    for(Nodes::iterator i=nodes.begin();i!=nodes.end();++i) {
+        Node* v=*i;
+        v->updateVarPos();
+    }
+    vector<TopologyConstraint*> ts;
+    constraints(ts);
+    for_each(ts.begin(),ts.end(),mem_fun(&TopologyConstraint::assertFeasible));
+    return true;
 }
 } // namespace topology
 // vim: cindent ts=4 sw=4 et tw=80 wm=5 

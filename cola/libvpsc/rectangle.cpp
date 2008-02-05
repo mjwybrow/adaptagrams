@@ -313,25 +313,25 @@ void Rectangle::
 lineIntersections(double x1, double y1, double x2, double y2, RectangleIntersections &ri) const {
     Vector intersection;
     LineSegment l(Vector(x1,y1),Vector(x2,y2));
-    LineSegment top(Vector(minX,maxY),Vector(maxX,maxY));
+    LineSegment top(Vector(getMinX(),getMaxY()),Vector(getMaxX(),getMaxY()));
     if(!checkIntersection(
             l.Intersect(top,intersection),intersection,
             ri,ri.top,ri.topX,ri.topY)) {
         return;
     }
-    LineSegment bottom(Vector(minX,minY),Vector(maxX,minY));
+    LineSegment bottom(Vector(getMinX(),getMinY()),Vector(getMaxX(),getMinY()));
     if(!checkIntersection(
             l.Intersect(bottom,intersection),intersection,
             ri,ri.bottom,ri.bottomX,ri.bottomY)) {
         return;
     }
-    LineSegment left(Vector(minX,minY),Vector(minX,maxY));
+    LineSegment left(Vector(getMinX(),getMinY()),Vector(getMinX(),getMaxY()));
     if(!checkIntersection(
             l.Intersect(left,intersection),intersection,
             ri,ri.left,ri.leftX,ri.leftY)) {
         return;
     }
-    LineSegment right(Vector(maxX,minY),Vector(maxX,maxY));
+    LineSegment right(Vector(getMaxX(),getMinY()),Vector(getMaxX(),getMaxY()));
     if(!checkIntersection(
             l.Intersect(right,intersection),intersection,
             ri,ri.right,ri.rightX,ri.rightY)) {
