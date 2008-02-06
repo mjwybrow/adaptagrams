@@ -75,6 +75,9 @@ bool Point::operator!=(const Point& rhs) const
 }
 
 
+#if 0
+// Currently unused.
+
 // Returns true iff the point c lies on the closed segment ab.
 //
 // Based on the code of 'Between'.
@@ -97,6 +100,7 @@ static const bool inBetween(const Point& a, const Point& b, const Point& c)
                 ((b.y < c.y) && (c.y < a.y)));
     }
 }
+#endif
 
 
 // Returns true if the segment cd intersects the segment ab, blocking
@@ -108,15 +112,15 @@ bool segmentIntersect(const Point& a, const Point& b, const Point& c,
         const Point& d)
 {
     int ab_c = vecDir(a, b, c);
-    if ((ab_c == 0) && inBetween(a, b, c))
+    if (ab_c == 0)
     {
-        return true;
+        return false;
     }
 
     int ab_d = vecDir(a, b, d);
-    if ((ab_d == 0) && inBetween(a, b, d))
+    if (ab_d == 0)
     {
-        return true;
+        return false;
     }
 
     // It's ok for either of the points a or b to be on the line cd,
