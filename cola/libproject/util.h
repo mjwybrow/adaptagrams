@@ -7,7 +7,7 @@
 #ifdef NDEBUG 
 #define LIBPROJECT_ASSERT(expr)  static_cast<void>(0)
 #else // Not NDEBUG
-#ifdef USE_CASSERT
+#if defined(USE_CASSERT) || !defined(__ASSERT_FUNCTION)
 #define LIBPROJECT_ASSERT(expr)  assert(expr)
 #else // Not USE_CASSERT
 #define LIBPROJECT_ASSERT(expr) \
