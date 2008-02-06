@@ -175,7 +175,7 @@ inline double crossProduct(
             // angle must be a "right turn"
             double cp
                 = crossProduct(upos[0],upos[1],pos[0],pos[1],wpos[0],wpos[1]);
-            if(cp>1e-7) {
+            if(cp>1e-5) {
                 fail=3;
             }
             if(fail==0) return true;

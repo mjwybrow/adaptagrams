@@ -70,6 +70,10 @@ namespace topology {
          * amount of slack at desired positions of variables
          */
         double slackAtDesired() const;
+        /**
+         * checks initial positions
+         */
+        bool assertFeasible() const;
     private:
         double slack(const double, const double, const double) const;
     };
@@ -88,7 +92,12 @@ namespace topology {
         virtual ~TopologyConstraint() {
             delete c;
         }
-        void assertFeasible() const;
+        /** 
+         * checks the underlying TriConstraint to ensure that it is feasible
+         * at the initial positions of its constituent variables.  Note that
+         * these initial positions must be up-to-date before hand.
+         */
+        bool assertFeasible() const;
     protected:
         TopologyConstraint() : c(NULL) { }
     };

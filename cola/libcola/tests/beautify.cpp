@@ -19,10 +19,12 @@ static const unsigned BRANCHFACTOR = 3;
 static const double EXTRAEDGEPROB = 0.1;
 */
 
+/*
 // |V|=26, |E|=61
 static const unsigned DAGDEPTH = 3;
 static const unsigned BRANCHFACTOR = 4;
 static const double EXTRAEDGEPROB = 0.1;
+*/
 
 /*
 // |V|=62, |E|=85
@@ -33,11 +35,11 @@ static const double EXTRAEDGEPROB = 0.01;
 static const unsigned DAGDEPTH = 5;
 static const unsigned BRANCHFACTOR = 4;
 static const double EXTRAEDGEPROB = 0.005;
+*/
 // |V|=258, |E|=310
 static const unsigned DAGDEPTH = 6;
 static const unsigned BRANCHFACTOR = 4;
 static const double EXTRAEDGEPROB = 0.002;
-*/
 
 void makeEdge(unsigned u, unsigned v, 
         vector<Edge> &edges, CompoundConstraints &cy) {
@@ -173,9 +175,9 @@ void makeFeasible(vpsc::Rectangles& rs, vector<cola::Edge>& edges,
         shapePoly.ps[1] = Avoid::Point(X,Y);
         shapePoly.ps[2] = Avoid::Point(x,Y);
         shapePoly.ps[3] = Avoid::Point(x,y);
-        if(i==4||i==13||i==9) {
-            printf("rect[%d]:{%f,%f,%f,%f}\n",i,x,y,X,Y);
-        }
+        //if(i==4||i==13||i==9) {
+            //printf("rect[%d]:{%f,%f,%f,%f}\n",i,x,y,X,Y);
+        //}
         unsigned int shapeID = i + 1;
         Avoid::ShapeRef *shapeRef = new Avoid::ShapeRef(router, shapeID,
                 shapePoly);
@@ -232,8 +234,9 @@ int main() {
     unsigned V;
     CompoundConstraints cx,cy;
 
-    //srand(time(NULL));
-    srand(5);
+    int seed = time(NULL);
+    printf("random seed=%d\n",seed);
+    srand(seed);
     vector<Edge> es = random_dag(DAGDEPTH,BRANCHFACTOR,V,cx,cy);
     double defaultEdgeLength=40;
 
@@ -263,7 +266,7 @@ int main() {
     */
     clock_t unconstrainedstarttime=clock();
 	ConstrainedFDLayout alg2(rs,es,defaultEdgeLength,NULL,test);
-    //alg2.setYConstraints(&cy);
+    alg2.setYConstraints(&cy);
 	alg2.run();
     double totaltime=0;
     double unconstrainedtime=double(clock()-unconstrainedstarttime)/double(CLOCKS_PER_SEC);

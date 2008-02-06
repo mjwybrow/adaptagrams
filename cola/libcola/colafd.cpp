@@ -259,6 +259,8 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
     double stress;
     setupVarsAndConstraints(n,ccs,vs,cs);
     if(topologyRoutes) {
+		Rectangle::setXBorder(0);
+		Rectangle::setYBorder(0);
         if(dim==cola::HORIZONTAL) {
             Rectangle::setXBorder(0);
         }

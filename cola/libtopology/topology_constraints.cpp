@@ -193,8 +193,13 @@ void StraightConstraint::satisfy() {
     e->nSegments++;
     delete segment;
 }
-void TopologyConstraint::assertFeasible() const {
-    assert(c->slackAtInitial()>-1e-7);
+bool TriConstraint::assertFeasible() const {
+    assert(p>1e7||slackAtInitial()>-1e-3);
+    return true;
+}
+bool TopologyConstraint::assertFeasible() const {
+    assert(c->assertFeasible());
+    return true;
 }
 string StraightConstraint::
 toString() const {

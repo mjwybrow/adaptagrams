@@ -271,7 +271,7 @@ TriConstraint::TriConstraint(
         double p, double g, bool left)
     : u(u), v(v), w(w), p(p), g(g), leftOf(left) 
 {
-    assert(slackAtInitial()>-1e-7);
+    assert(assertFeasible());
 }
 
 bool Segment::createStraightConstraint(Node* node, double pos) {
@@ -379,7 +379,12 @@ BendConstraint(EdgePoint* v)
     EdgePoint* u=v->inSegment->start, * w=v->outSegment->end;
     // because all of our nodes are boxes we do not expect consecutive
     // segments to change horizontal or vertical direction
-    FILE_LOG(logDEBUG1)<<"u="<<u->pos[!dim]<<" v="<<v->pos[!dim]<<" w="<<w->pos[!dim];
+    FILE_LOG(logDEBUG1)<<"u: id="<<u->node->id
+        <<", ri="<<u->rectIntersect<<", x="<<u->pos[0]<<", y="<<u->pos[1];
+    FILE_LOG(logDEBUG1)<<"v: id="<<v->node->id
+        <<", ri="<<v->rectIntersect<<", x="<<v->pos[0]<<", y="<<v->pos[1];
+    FILE_LOG(logDEBUG1)<<"w: id="<<w->node->id
+        <<", ri="<<w->rectIntersect<<", x="<<w->pos[0]<<", y="<<w->pos[1];
     assert(v->assertConvexBend());
     double p;
     /*double i=*/
