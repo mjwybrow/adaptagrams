@@ -1,0 +1,291 @@
+#include<iostream>
+#include<vector>
+#include <cmath>
+#include <time.h>
+#include <valarray>
+#include <libavoid/libavoid.h>
+#include <libavoid/router.h>
+#include <libtopology/topology_constraints.h>
+
+#include "graphlayouttest.h"
+
+using namespace std;
+using namespace cola;
+
+/*
+// |V|=12, |E|=23
+static const unsigned DAGDEPTH = 3;
+static const unsigned BRANCHFACTOR = 3;
+static const double EXTRAEDGEPROB = 0.1;
+*/
+
+// |V|=26, |E|=61
+static const unsigned DAGDEPTH = 3;
+static const unsigned BRANCHFACTOR = 4;
+static const double EXTRAEDGEPROB = 0.1;
+
+/*
+// |V|=62, |E|=85
+static const unsigned DAGDEPTH = 4;
+static const unsigned BRANCHFACTOR = 4;
+static const double EXTRAEDGEPROB = 0.01;
+// |V|=131, |E|=166
+static const unsigned DAGDEPTH = 5;
+static const unsigned BRANCHFACTOR = 4;
+static const double EXTRAEDGEPROB = 0.005;
+// |V|=258, |E|=310
+static const unsigned DAGDEPTH = 6;
+static const unsigned BRANCHFACTOR = 4;
+static const double EXTRAEDGEPROB = 0.002;
+*/
+
+void makeEdge(unsigned u, unsigned v, 
+        vector<Edge> &edges, CompoundConstraints &cy) {
+    edges.push_back(make_pair(u,v));
+    cy.push_back(new SeparationConstraint(u,v,20));
+}
+vector<Edge> random_dag(unsigned depth, unsigned maxbranch, unsigned &V,
+        CompoundConstraints &cx, CompoundConstraints &cy) {
+	vector<Edge> edges;
+    unsigned lstart=0, lend=1;
+    V=0;
+	for(unsigned i=0;i<depth;i++) {
+        for(unsigned j=lstart;j<lend;j++) {
+            //makeEdge(j,++V,edges,cy);
+            //makeEdge(j,++V,edges,cy);
+            for(unsigned k=0;k<maxbranch;k++) {
+                double r=(double)rand()/(double)RAND_MAX;
+                if(r < 0.5) {
+                    makeEdge(j,++V,edges,cy);
+                }
+            }
+        }
+        lstart=lend;
+        lend=V+1;
+    }
+    V++;
+    /*
+    DFS::Graph dfs(V,edges);
+    for(unsigned i=1;i<dfs.order.size();i++) {
+        cx.push_back(
+                new SeparationConstraint(dfs.order[i-1],dfs.order[i],0.5));
+    }
+    */
+    for(unsigned i=0;i<V;++i) {
+        for(unsigned j=i+1;j<V;++j) {
+            double r=(double)rand()/(double)RAND_MAX;
+            if(r < EXTRAEDGEPROB) {
+                makeEdge(i,j,edges,cy);
+            }
+        }
+    }
+    /*
+    for(unsigned i=0;i<dfs.leaves.size();i++) {
+        for(unsigned j=1;j<dfs.leaves[i].size();j++) {
+            cx.push_back( new SeparationConstraint(dfs.leaves[i][j-1],dfs.leaves[i][j],10));
+        }
+    }
+    */
+	return edges;
+}
+void removeoverlaps(vpsc::Rectangles &rs, bool bothaxes) {
+	double xBorder=0, yBorder=0;
+    static const double EXTRA_GAP=1e-5;
+	unsigned n=rs.size();
+	try {
+		// The extra gap avoids numerical imprecision problems
+		Rectangle::setXBorder(xBorder+EXTRA_GAP);
+		Rectangle::setYBorder(yBorder+EXTRA_GAP);
+        vpsc::Variables vs(n);
+		unsigned i=0;
+		for(Variables::iterator v=vs.begin();v!=vs.end();++v,++i) {
+			*v=new Variable(i,0,1);
+		}
+        vpsc::Constraints cs;
+        vpsc::generateXConstraints(rs,vs,cs,bothaxes);
+        vpsc::IncSolver vpsc_x(vs,cs);
+		vpsc_x.solve();
+        vpsc::Rectangles::iterator r=rs.begin();
+		for(Variables::iterator v=vs.begin();v!=vs.end();++v,++r) {
+			assert((*v)->finalPosition==(*v)->finalPosition);
+			(*r)->moveCentreX((*v)->finalPosition);
+		}
+		assert(r==rs.end());
+		for_each(cs.begin(),cs.end(),delete_object());
+		cs.clear();
+        if(bothaxes) {
+            // Removing the extra gap here ensures things that were moved to be adjacent to one another above are not considered overlapping
+            Rectangle::setXBorder(Rectangle::xBorder-EXTRA_GAP);
+            vpsc::generateYConstraints(rs,vs,cs);
+            vpsc::IncSolver vpsc_y(vs,cs);
+            vpsc_y.solve();
+            r=rs.begin();
+            for(Variables::iterator v=vs.begin();v!=vs.end();++v,++r) {
+                (*r)->moveCentreY((*v)->finalPosition);
+            }
+            for_each(cs.begin(),cs.end(),delete_object());
+            cs.clear();
+            Rectangle::setYBorder(Rectangle::yBorder-EXTRA_GAP);
+            vpsc::generateXConstraints(rs,vs,cs,false);
+            vpsc::IncSolver vpsc_x2(vs,cs);
+            vpsc_x2.solve();
+            r=rs.begin();
+            for(Variables::iterator v=vs.begin();v!=vs.end();++v,++r) {
+                (*r)->moveCentreX((*v)->finalPosition);
+            }
+            for_each(cs.begin(),cs.end(),delete_object());
+        }
+		for_each(vs.begin(),vs.end(),delete_object());
+	} catch (char *str) {
+		std::cerr<<str<<std::endl;
+		for(vpsc::Rectangles::iterator r=rs.begin();r!=rs.end();++r) {
+			std::cerr << **r <<std::endl;
+		}
+	}
+}
+/*
+ * Make feasible:
+ *   - remove overlaps between rectangular boundaries of nodes/clusters
+ *     (respecting structural constraints)
+ *   - perform routing (preserve previous topology using rubber banding)
+ */
+void makeFeasible(vpsc::Rectangles& rs, vector<cola::Edge>& edges,
+    std::vector<topology::Edge*>& routes,
+    std::vector<topology::Node*>& topologyNodes, double defaultEdgeLength) {
+    printf("Removing overlaps...\n");
+    removeoverlaps(rs,false);
+    printf("done.\n");
+    printf("Running libavoid to compute routes...\n");
+    clock_t libavoidstarttime=clock();
+    // find feasible routes for edges
+    Avoid::Router *router = new Avoid::Router();
+    double g=0.0001; // make shape that libavoid sees slightly smaller
+    for(unsigned i=0;i<rs.size();++i) {
+        vpsc::Rectangle* r=rs[i];
+        double x=r->getMinX()+g;
+        double X=r->getMaxX()-g;
+        double y=r->getMinY()+g;
+        double Y=r->getMaxY()-g;
+        // Create the ShapeRef:
+        Avoid::Polygn shapePoly = Avoid::newPoly(4);
+        // AntiClockwise!
+        shapePoly.ps[0] = Avoid::Point(X,y);
+        shapePoly.ps[1] = Avoid::Point(X,Y);
+        shapePoly.ps[2] = Avoid::Point(x,Y);
+        shapePoly.ps[3] = Avoid::Point(x,y);
+        if(i==4||i==13||i==9) {
+            printf("rect[%d]:{%f,%f,%f,%f}\n",i,x,y,X,Y);
+        }
+        unsigned int shapeID = i + 1;
+        Avoid::ShapeRef *shapeRef = new Avoid::ShapeRef(router, shapeID,
+                shapePoly);
+        // ShapeRef constructor makes a copy of polygon so we can free it:
+        Avoid::freePoly(shapePoly);
+        router->addShape(shapeRef);
+    }
+    for(unsigned i=0;i<edges.size();++i) {
+        cola::Edge e=edges[i];
+        Avoid::ConnRef *connRef;
+        unsigned int connID = i + rs.size() + 1;
+        Rectangle* r0=rs[e.first], *r1=rs[e.second];
+        Avoid::Point srcPt(r0->getCentreX(),r0->getCentreY());
+        Avoid::Point dstPt(r1->getCentreX(),r1->getCentreY());
+        connRef = new Avoid::ConnRef(router, connID, srcPt, dstPt);
+        connRef->updateEndPoint(Avoid::VertID::src, srcPt);
+        connRef->updateEndPoint(Avoid::VertID::tar, dstPt);
+        connRef->generatePath();
+        Avoid::PolyLine& route = connRef->route();
+        vector<topology::EdgePoint*> eps;
+        eps.push_back( new topology::EdgePoint( topologyNodes[e.first], 
+                    topology::EdgePoint::CENTRE));
+        for(int j=1;j<route.pn-1;j++) {
+            Avoid::Point& p = route.ps[j];
+            const unsigned nodeID=p.id-1;
+            topology::Node* node=topologyNodes[nodeID];
+            topology::EdgePoint::RectIntersect ri;
+            switch(p.vn) {
+                case 0: ri=topology::EdgePoint::BR; 
+                        break;
+                case 1: ri=topology::EdgePoint::TR; 
+                        break;
+                case 2: ri=topology::EdgePoint::TL;
+                        break;
+                case 3: ri=topology::EdgePoint::BL; 
+                        break;
+                default: ri=topology::EdgePoint::CENTRE;
+            }
+            eps.push_back(new topology::EdgePoint(node,ri));
+        }
+        eps.push_back(new topology::EdgePoint(topologyNodes[e.second],
+                    topology::EdgePoint::CENTRE));
+        topology::Edge* edgeRoute=new topology::Edge(defaultEdgeLength, eps);
+        edgeRoute->assertConvexBends();
+        routes.push_back(edgeRoute);
+
+    }
+    assert(topology::assertNoSegmentRectIntersection(topologyNodes,routes));
+    double libavoidtime=double(clock()-libavoidstarttime)/double(CLOCKS_PER_SEC);
+    cout << "done. Libavoid ran in " << libavoidtime << " seconds" << endl;
+    delete router;
+}
+int main() {
+    unsigned V;
+    CompoundConstraints cx,cy;
+
+    //srand(time(NULL));
+    srand(5);
+    vector<Edge> es = random_dag(DAGDEPTH,BRANCHFACTOR,V,cx,cy);
+    double defaultEdgeLength=40;
+
+    cout << "V="<<V<<endl;
+    cout << "E="<<es.size()<<endl;
+    double width=1000;
+    double height=1000;
+    vector<pair<double,double> > startpos(V);
+    for(unsigned i=0;i<V;i++) {
+        double x=getRand(width), y=getRand(height);
+        startpos[i]=make_pair(x,y);
+    }
+	vector<vpsc::Rectangle*> rs;
+    vector<topology::Node*> topologyNodes;
+    vector<topology::Edge*> routes;
+	for(unsigned i=0;i<V;i++) {
+		double x=getRand(width), y=getRand(height);
+        vpsc::Rectangle* r =new vpsc::Rectangle(x,x+30,y,y+10);
+		rs.push_back(r);
+        topologyNodes.push_back(new topology::Node(i,r));
+	}
+	CheckProgress test(0.0001,100);
+    /*
+    ConstrainedMajorizationLayout alg(rs,es,NULL,defaultEdgeLength,NULL,test);
+    //alg.setYConstraints(&cy);
+	alg.run();
+    */
+    clock_t unconstrainedstarttime=clock();
+	ConstrainedFDLayout alg2(rs,es,defaultEdgeLength,NULL,test);
+    //alg2.setYConstraints(&cy);
+	alg2.run();
+    double totaltime=0;
+    double unconstrainedtime=double(clock()-unconstrainedstarttime)/double(CLOCKS_PER_SEC);
+    totaltime+=unconstrainedstarttime;
+    cout<<"unconstrained layout ran in "<<unconstrainedtime<<" seconds"<<endl;
+    clock_t makefeasiblestarttime=clock();
+    makeFeasible(rs,es,routes,topologyNodes,defaultEdgeLength);
+    double makefeasibletime=double(clock()-makefeasiblestarttime)/double(CLOCKS_PER_SEC);
+    totaltime+=makefeasibletime;
+    cout<<"makefeasible ran in "<<makefeasibletime<<" seconds"<<endl;
+    clock_t beautifystarttime=clock();
+    test.reset();
+    alg2.setTopology(&topologyNodes, &routes);
+    writeFile(topologyNodes,routes,"beautify1.svg");
+	alg2.run();
+    double beautifytime=double(clock()-beautifystarttime)/double(CLOCKS_PER_SEC);
+    totaltime+=beautifytime;
+    cout<<"beautify ran in "<<beautifytime<<" seconds"<<endl;
+    cout<<"TOTAL="<<totaltime<<endl;
+    writeFile(topologyNodes,routes,"beautify2.svg");
+	for(unsigned i=0;i<V;i++) {
+		delete rs[i];
+	}
+}
+// vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:encoding=utf-8:textwidth=99 :

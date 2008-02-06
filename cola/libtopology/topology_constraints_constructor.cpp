@@ -422,8 +422,8 @@ bool TopologyConstraints::noOverlaps() const {
     const double e=1e-7;
     for(Nodes::const_iterator i=nodes.begin();i!=nodes.end();++i) {
         const Node* u=*i;
-        for(Nodes::const_iterator i=nodes.begin();i!=nodes.end();++i) {
-            const Node* v=*i;
+        for(Nodes::const_iterator j=nodes.begin();j!=nodes.end();++j) {
+            const Node* v=*j;
             if(u==v) continue;
             /*
             cout<<"checking overlap ru="<<*u->rect<<" rv="<<*v->rect<<endl;
