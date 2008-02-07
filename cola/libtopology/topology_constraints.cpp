@@ -193,6 +193,12 @@ void StraightConstraint::satisfy() {
     e->nSegments++;
     delete segment;
 }
+/**
+ * asserts that this TriConstraint is feasible at the initial positions of
+ * variables.  Note that we don't apply this check for massive p because this
+ * most likely indicates a segment that is near parallel to the scanline and
+ * hence will never be violated anyway.
+ */
 bool TriConstraint::assertFeasible() const {
     assert(p>1e7||slackAtInitial()>-1e-3);
     return true;
