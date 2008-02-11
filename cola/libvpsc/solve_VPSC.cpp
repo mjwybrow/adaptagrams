@@ -41,11 +41,11 @@ IncSolver::IncSolver(vector<Variable*> const &vs, vector<Constraint *> const &cs
 	}
 }
 Solver::Solver(vector<Variable*> const &vs, vector<Constraint*> const &cs) : m(cs.size()), cs(cs), n(vs.size()), vs(vs) {
-    for(unsigned i=0;i<n;i++) {
+    for(unsigned i=0;i<n;++i) {
         vs[i]->in.clear();
         vs[i]->out.clear();
     }
-    for(unsigned i=0;i<m;i++) {
+    for(unsigned i=0;i<m;++i) {
         Constraint *c=cs[i];
         c->left->out.push_back(c);
         c->right->in.push_back(c);

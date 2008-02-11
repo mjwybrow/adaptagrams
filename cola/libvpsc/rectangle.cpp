@@ -54,9 +54,12 @@ struct Node {
 	double pos;
 	Node *firstAbove, *firstBelow;
 	NodeSet *leftNeighbours, *rightNeighbours;
-	Node(Variable *v, Rectangle *r, double p) : v(v),r(r),pos(p) {
-		firstAbove=firstBelow=NULL;
-		leftNeighbours=rightNeighbours=NULL;
+	Node(Variable *v, Rectangle *r, double p) 
+        : v(v),r(r),pos(p),
+          firstAbove(NULL), firstBelow(NULL),
+          leftNeighbours(NULL), rightNeighbours(NULL)
+     
+    {
 		assert(r->width()<1e40);
 	}
 	~Node() {
@@ -64,9 +67,11 @@ struct Node {
 		delete rightNeighbours;
 	}
 	void addLeftNeighbour(Node *u) {
+        assert(leftNeighbours!=NULL);
 		leftNeighbours->insert(u);
 	}
 	void addRightNeighbour(Node *u) {
+        assert(rightNeighbours!=NULL);
 		rightNeighbours->insert(u);
 	}
 	void setNeighbours(NodeSet *left, NodeSet *right) {
@@ -162,6 +167,7 @@ int compare_events(const void *a, const void *b) {
  */
 void generateXConstraints(vector<Rectangle*> const & rs, vector<Variable*> const &vars, vector<Constraint*> &cs, const bool useNeighbourLists) {
 	const unsigned n = rs.size();
+    assert(vars.size()==n);
 	events=new Event*[2*n];
 	unsigned i,ctr=0;
 	for(i=0;i<n;i++) {
@@ -536,6 +542,7 @@ void removeoverlaps(Rectangles& rs, const set<unsigned>& fixed) {
 			std::cerr << **r <<std::endl;
 		}
 	}
+    assertNoOverlaps(rs);
 }
 void assertNoOverlaps(const Rectangles& rs) {
 	for(Rectangles::const_iterator i=rs.begin();i!=rs.end();++i) {
