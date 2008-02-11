@@ -8,7 +8,8 @@ libtopology_a_SOURCES = topology_graph.cpp\
 			gradient_projection.cpp\
 			topology_graph.h\
 			topology_constraints.h\
-			topology_constraints_constructor.cpp
+			topology_constraints_constructor.cpp\
+			resize.cpp
 
 
 libtopologyincludedir = ${includedir}/libtopology

@@ -33,6 +33,15 @@ Rectangle::Rectangle(double x, double X, double y, double Y,bool allowOverlap)
 	assert(x<=X);
 	assert(y<=Y);
 }
+void Rectangle::reset(unsigned d, double x, double X) {
+    if(d==0) {
+        minX=x;
+        maxX=X;
+    } else {
+        minY=x;
+        maxY=X;
+    }
+}
 
 struct Node;
 struct CmpNodePos { bool operator()(const Node* u, const Node* v) const; };
@@ -453,12 +462,24 @@ void Rectangle::routeAround(double x1, double y1, double x2, double y2,
     xs.push_back(x2);
     ys.push_back(y2);
 }
-/** 
+/* 
  * moves all the rectangles to remove all overlaps.  Heuristic
  * attempts to move by as little as possible.
  * no overlaps guaranteed.
+ * @param rs the rectangles which will be moved to remove overlap
  */
-void removeoverlaps(Rectangles &rs) {
+void removeoverlaps(Rectangles& rs) {
+    const set<unsigned> fixed;
+    removeoverlaps(rs,fixed);
+}
+/* 
+ * moves all the rectangles to remove all overlaps.  Heuristic
+ * attempts to move by as little as possible.
+ * no overlaps guaranteed.
+ * @param rs the rectangles which will be moved to remove overlap
+ * @param fixed a set of indices to rectangles which should not be moved
+ */
+void removeoverlaps(Rectangles& rs, const set<unsigned>& fixed) {
 	const double xBorder=Rectangle::xBorder, yBorder=Rectangle::yBorder;
     const double EXTRA_GAP=1e-7;
 	unsigned n=rs.size();
@@ -469,7 +490,11 @@ void removeoverlaps(Rectangles &rs) {
 		Variables vs(n);
 		unsigned i=0;
 		for(Variables::iterator v=vs.begin();v!=vs.end();++v,++i) {
-			*v=new Variable(i,0,1);
+            double weight=1;
+            if(fixed.find(i)!=fixed.end()) {
+                weight=10000;
+            }
+			*v=new Variable(i,0,weight);
 		}
 		Constraints cs;
 		generateXConstraints(rs,vs,cs,true);
