@@ -175,8 +175,9 @@ inline std::string NowTime()
     std::sprintf(result, "%s.%03ld", buffer, (long)tv.tv_usec / 1000); 
     return result;
 }
-} // namespace cola
 
 #endif //WIN32
+
+} // namespace cola
 
 #endif //__COLA_LOG_H__

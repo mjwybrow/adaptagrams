@@ -31,7 +31,40 @@ using std::valarray;
 //! Edges are simply a pair of indices to entries in the Node vector
 typedef std::pair<unsigned, unsigned> Edge;
 
-/**
+class Lock {
+public:
+    Lock(unsigned id, double X, double Y) : id(id), x(X), y(Y) {
+    }
+    unsigned getID() const {
+        return id;
+    }
+    double pos(Dim dim) const {
+        return dim==HORIZONTAL?x:y;
+    }
+private:
+    unsigned id;
+    double x;
+    double y;
+};
+typedef vector<Lock> Locks;
+
+class Resize {
+public:
+    Resize(unsigned id, double x, double y, double w, double h)
+        : id(id), target(x,x+w,y,y+h) {}
+    unsigned getID() const {
+        return id;
+    }
+    const Rectangle* getTarget() const {
+        return &target;
+    }
+private:
+    unsigned id;
+    Rectangle target;
+};
+typedef vector<Resize> Resizes;
+
+/** 
  * provides a functor that is called before each iteration in the main loop of
  * the ConstrainedMajorizationLayout::run() method.
  * Keeps a local copy of the x and y GradientProjection instances.
@@ -40,25 +73,15 @@ typedef std::pair<unsigned, unsigned> Edge;
  * If the operator() returns false the subsequent iterations are
  * abandoned... ie layout ends immediately.  You can make it return true
  * e.g. when a user-interrupt is detected.
- */ 
-struct Lock {
-    unsigned id;
-    double pos[2];
-    Lock(unsigned id, double x, double y) : id(id) {
-        pos[0]=x; 
-        pos[1]=y; 
-    }
-};
-typedef vector<Lock> Locks;
-/** 
- * provides a functor for callback before each iteration
  */
 class PreIteration {
 public:
-    PreIteration(Locks& locks) : locks(locks), changed(true) {}
+    PreIteration(Locks& locks, Resizes& resizes) 
+        : locks(locks), resizes(resizes), changed(true) {}
     virtual ~PreIteration() {}
     virtual bool operator()()=0;
     Locks& locks;
+    Resizes& resizes;
     bool changed;
 private:
 };
@@ -386,6 +409,7 @@ private:
             const double oldStress, 
             double stepsize
             /*,topology::TopologyConstraints *s=NULL*/);
+    void handleResizes(const Resizes&);
     void move();
     bool noForces(double, double, unsigned) const;
     void computeForces(const Dim dim, SparseMap &H, valarray<double> &g);

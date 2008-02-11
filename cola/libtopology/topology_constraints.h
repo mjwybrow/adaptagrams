@@ -14,7 +14,7 @@
 #include <libcola/commondefs.h>
 #include "topology_graph.h"
 #include <vector>
-#include <set>
+#include <map>
 #include <list>
 namespace vpsc {
     class Constraint;
@@ -167,12 +167,13 @@ namespace topology {
             vpsc::Variables& vs,
             vpsc::Constraints& cs);
         ~TopologyConstraints();
+        bool solve();
         void constraints(std::vector<TopologyConstraint*> & ts) const;
         void computeForces(valarray<double>& g, cola::SparseMap& h);
         double computeStress() const;
-        bool gradientProjection(valarray<double>& g, 
+        void gradientProjection(valarray<double>& g, 
                 cola::SparseMap& h);
-        bool gradientProjection(valarray<double>& g, 
+        void gradientProjection(valarray<double>& g, 
                 cola::SparseMap& h, 
                 const DesiredPositions& d);
         double reachedDesired(const DesiredPositions& d);
@@ -185,8 +186,30 @@ namespace topology {
         vpsc::Variables& vs;
         vpsc::Constraints& cs;
     };
+    /**
+     * Asserts that there are no intersections between any of the segments
+     * in edges and rectangles in nodes
+     * @param nodes containing rectangles
+     * @param edges containing segments
+     * @return true if assertions succeed
+     */
     bool assertNoSegmentRectIntersection(
             const Nodes& nodes, const Edges& edges);
+    /**
+     * Details new dimensions for a given rectangle.
+     */
+    struct ResizeInfo {
+        Node* orig;
+        const vpsc::Rectangle* targetRect;
+        ResizeInfo(Node* v, const vpsc::Rectangle* target)
+            : orig(v), 
+              targetRect(target),
+              centreNode(NULL),
+              rhsNode(NULL) { };
+        Node *centreNode, *rhsNode;
+    };
+    typedef std::map<unsigned, ResizeInfo> ResizeMap;
+    void applyResizes(Nodes& nodes, Edges& edges, ResizeMap& resizes);
 } // namespace topology
 #endif // TOPOLOGY_CONSTRAINTS_H
 // vim: cindent ts=4 sw=4 et tw=0 wm=0

@@ -41,7 +41,7 @@ void dumpSquareMatrix(unsigned n, T** L) {
     }
 }
 ConstrainedFDLayout::ConstrainedFDLayout(
-        vector<Rectangle*>& rs,
+        vector<vpsc::Rectangle*>& rs,
         vector<Edge> const & es,
         double const idealLength,
         std::valarray<double> const * eweights,
@@ -58,8 +58,8 @@ ConstrainedFDLayout::ConstrainedFDLayout(
       topologyNodes(NULL),
       topologyRoutes(NULL)
 {
-    //FILELog::ReportingLevel() = logDEBUG1;
-    FILELog::ReportingLevel() = logERROR;
+    FILELog::ReportingLevel() = logDEBUG1;
+    //FILELog::ReportingLevel() = logERROR;
     boundingBoxes.resize(n);
     copy(rs.begin(),rs.end(),boundingBoxes.begin());
     done.reset();
@@ -97,9 +97,12 @@ void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis) {
         if(preIteration) {
             if(!(*preIteration)()) {
                 break;
-            } else {
-                //printf("preIteration->changed=%d\n",preIteration->changed);
-                firstPass=preIteration->changed;
+            }
+            //printf("preIteration->changed=%d\n",preIteration->changed);
+            firstPass=preIteration->changed;
+            if(preIteration->resizes.size()>0) {
+                FILE_LOG(logDEBUG) << " Resize event!";
+                handleResizes(preIteration->resizes);
             }
         }
         if(xAxis) {
@@ -115,62 +118,9 @@ void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis) {
             stress=applyForcesAndConstraints(VERTICAL,stress);
         }
         firstPass=false;
+        FILE_LOG(logDEBUG) << "stress="<<stress;
     } while(!done(stress,X,Y));
     FILE_LOG(logDEBUG) << "ConstrainedFDLayout::run done.";
-}
-void removeoverlaps(vpsc::Rectangles &rs) {
-	double xBorder=0, yBorder=0;
-    static const double EXTRA_GAP=1e-5;
-	unsigned n=rs.size();
-	try {
-		// The extra gap avoids numerical imprecision problems
-		Rectangle::setXBorder(xBorder+EXTRA_GAP);
-		Rectangle::setYBorder(yBorder+EXTRA_GAP);
-        vpsc::Variables vs(n);
-		unsigned i=0;
-		for(Variables::iterator v=vs.begin();v!=vs.end();++v,++i) {
-			*v=new Variable(i,0,1);
-		}
-        vpsc::Constraints cs;
-        vpsc::generateXConstraints(rs,vs,cs,true);
-        vpsc::IncSolver vpsc_x(vs,cs);
-		vpsc_x.solve();
-        vpsc::Rectangles::iterator r=rs.begin();
-		for(Variables::iterator v=vs.begin();v!=vs.end();++v,++r) {
-			assert((*v)->finalPosition==(*v)->finalPosition);
-			(*r)->moveCentreX((*v)->finalPosition);
-		}
-		assert(r==rs.end());
-		for_each(cs.begin(),cs.end(),delete_object());
-		cs.clear();
-		// Removing the extra gap here ensures things that were moved to be adjacent to
-		// one another above are not considered overlapping
-		Rectangle::setXBorder(Rectangle::xBorder-EXTRA_GAP);
-        vpsc::generateYConstraints(rs,vs,cs);
-        vpsc::IncSolver vpsc_y(vs,cs);
-		vpsc_y.solve();
-		r=rs.begin();
-		for(Variables::iterator v=vs.begin();v!=vs.end();++v,++r) {
-			(*r)->moveCentreY((*v)->finalPosition);
-		}
-		for_each(cs.begin(),cs.end(),delete_object());
-		cs.clear();
-		Rectangle::setYBorder(Rectangle::yBorder-EXTRA_GAP);
-        vpsc::generateXConstraints(rs,vs,cs,false);
-        vpsc::IncSolver vpsc_x2(vs,cs);
-		vpsc_x2.solve();
-		r=rs.begin();
-		for(Variables::iterator v=vs.begin();v!=vs.end();++v,++r) {
-			(*r)->moveCentreX((*v)->finalPosition);
-		}
-		for_each(cs.begin(),cs.end(),delete_object());
-		for_each(vs.begin(),vs.end(),delete_object());
-	} catch (char *str) {
-		std::cerr<<str<<std::endl;
-		for(vpsc::Rectangles::iterator r=rs.begin();r!=rs.end();++r) {
-			std::cerr << **r <<std::endl;
-		}
-	}
 }
 void setupVarsAndConstraints(unsigned n, const CompoundConstraints* ccs,
         vpsc::Variables& vs, vpsc::Constraints& cs) {
@@ -227,6 +177,22 @@ void checkUnsatisfiable(const vpsc::Constraints& cs,
         }
     }
 }
+
+void ConstrainedFDLayout::handleResizes(const Resizes& resizeList) {
+    if(topologyNodes==NULL) {
+        assert(topologyRoutes==NULL);
+        return;
+    }
+    assert(topologyRoutes!=NULL);
+    // all shapes to be resized are wrapped in a ResizeInfo and
+    // placed in a lookup table, resizes, indexed by id
+    topology::ResizeMap resizes;
+    for(Resizes::const_iterator r=resizeList.begin();r!=resizeList.end();++r) {
+        topology::ResizeInfo ri((*topologyNodes)[r->getID()],r->getTarget());
+        resizes.insert(make_pair(r->getID(),ri));
+    }
+    topology::applyResizes(*topologyNodes, *topologyRoutes, resizes);
+}
 /**
  * The following computes an unconstrained solution then uses Projection to
  * make this solution feasible with respect to constraints by moving things as
@@ -248,9 +214,9 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
     if(preIteration) {
         for(vector<Lock>::iterator l=preIteration->locks.begin();
                 l!=preIteration->locks.end();l++) {
-            des.push_back(make_pair(l->id,l->pos[dim]));
-            FILE_LOG(logDEBUG1)<<"desi: v["<<l->id<<"]=("<<l->pos[0]
-                <<","<<l->pos[1]<<")";
+            des.push_back(make_pair(l->getID(),l->pos(dim)));
+            FILE_LOG(logDEBUG1)<<"desi: v["<<l->getID()<<"]=("<<l->pos(HORIZONTAL)
+                <<","<<l->pos(VERTICAL)<<")";
         }
     }
     vpsc::Variables vs;
@@ -259,10 +225,11 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
     double stress;
     setupVarsAndConstraints(n,ccs,vs,cs);
     if(topologyRoutes) {
-		Rectangle::setXBorder(0);
-		Rectangle::setYBorder(0);
+        FILE_LOG(logDEBUG1) << "applying topology preserving layout...\n";
+		vpsc::Rectangle::setXBorder(0);
+		vpsc::Rectangle::setYBorder(0);
         if(dim==cola::HORIZONTAL) {
-            Rectangle::setXBorder(0);
+            vpsc::Rectangle::setXBorder(0);
         }
         topology::TopologyConstraints t(dim,*topologyNodes,*topologyRoutes,
                 vs,cs);
@@ -271,11 +238,12 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
         do {
             SparseMap HMap(n);
             computeForces(dim,HMap,g);
-            interrupted=t.gradientProjection(g,HMap,des);
+            t.gradientProjection(g,HMap,des);
+            interrupted=t.solve();
             loopBreaker--;
         } while(interrupted&&loopBreaker>0);
-		Rectangle::setXBorder(0);
-		Rectangle::setYBorder(0);
+		vpsc::Rectangle::setXBorder(0);
+		vpsc::Rectangle::setYBorder(0);
         for(topology::Nodes::iterator i=topologyNodes->begin();
                 i!=topologyNodes->end();++i) {
             topology::Node* v=*i;
@@ -301,7 +269,7 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
     if(unsatisfiable.size()==2) {
         checkUnsatisfiable(cs,unsatisfiable[dim]);
     }
-    FILE_LOG(logDEBUG) << "ConstrainedFDLayout::applyForcesAndConstraints... done.";
+    FILE_LOG(logDEBUG) << "ConstrainedFDLayout::applyForcesAndConstraints... done, stress="<<stress;
     for_each(vs.begin(),vs.end(),delete_object());
     for_each(cs.begin(),cs.end(),delete_object());
     return stress;
@@ -335,7 +303,7 @@ double ConstrainedFDLayout::applyDescentVector(
         coords=oldCoords;
         stepsize*=0.5;
     }
-    return oldStress;
+    return computeStress();
 }
 /**
  * When considering a given pair of nodes we, in some circumstances, do not want to
@@ -434,10 +402,10 @@ double ConstrainedFDLayout::computeStress() const {
         if ((*preIteration)()) {
             for(vector<Lock>::iterator l=preIteration->locks.begin();
                     l!=preIteration->locks.end();l++) {
-                double dx=l->pos[0]-X[l->id], dy=l->pos[1]-Y[l->id];
+                double dx=l->pos(HORIZONTAL)-X[l->getID()], dy=l->pos(VERTICAL)-Y[l->getID()];
                 double s=10000*(dx*dx+dy*dy);
                 stress+=s;
-                FILE_LOG(logDEBUG2)<<"d("<<l->id<<")="<<s;
+                FILE_LOG(logDEBUG2)<<"d("<<l->getID()<<")="<<s;
             }
         }
     }

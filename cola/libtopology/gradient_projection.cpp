@@ -94,7 +94,7 @@ struct TopologyConstraintInterrupt : InterruptException {
     TopologyConstraint* violated;
     double alpha;
 };
-bool TopologyConstraints::
+void TopologyConstraints::
 gradientProjection(valarray<double>& g, cola::SparseMap& h) {
     DesiredPositions d;
     return gradientProjection(g,h,d);
@@ -116,18 +116,14 @@ bool assertConvexBends(const Edges& edges) {
     }
     return true;
 }
-bool TopologyConstraints::
+void TopologyConstraints::
 gradientProjection(valarray<double>& g, cola::SparseMap& h, const
         DesiredPositions& d) 
 {
-    FILE_LOG(logDEBUG)<<"TopologyConstraints::steepestDescent... dim="<<dim;
+    FILE_LOG(logDEBUG)<<"TopologyConstraints::gradientProjection... dim="<<dim;
     assert(g.size()==n);
     assert(h.n==n);
-    assert(assertConvexBends(edges));
-    assert(assertNoSegmentRectIntersection(nodes,edges));
-    assert(assertFeasible());
     //printInstance(g);
-    bool interrupted=false;
     computeForces(g,h);
     cola::SparseMatrix H(h);
     double stepSize = computeStepSize(H,g,g);
@@ -143,6 +139,12 @@ gradientProjection(valarray<double>& g, cola::SparseMap& h, const
         v->weight=1e10;
         FILE_LOG(logDEBUG1)<<"override desi="<<v->desiredPosition;
     }
+}
+bool TopologyConstraints::solve() {
+    FILE_LOG(logDEBUG)<<"TopologyConstraints::solve... dim="<<dim;
+    assert(assertConvexBends(edges));
+    assert(assertNoSegmentRectIntersection(nodes,edges));
+    assert(assertFeasible());
     vector<TopologyConstraint*> ts;
     constraints(ts);
     vpsc::IncSolver s(vs,cs);
@@ -168,6 +170,7 @@ gradientProjection(valarray<double>& g, cola::SparseMap& h, const
             minT=t;
         }
     }
+    bool interrupted=false;
     if(minTAlpha<1) {
         interrupted=true;
         FILE_LOG(logDEBUG1)<<"violated topology constraint! alpha="<<minTAlpha;

@@ -286,8 +286,8 @@ void ConstrainedMajorizationLayout::run(bool x, bool y) {
             if ((*preIteration)()) {
                 for(vector<Lock>::iterator l=preIteration->locks.begin();
                         l!=preIteration->locks.end();l++) {
-                    unsigned id=l->id;
-                    double x=l->pos[0], y=l->pos[1];
+                    unsigned id=l->getID();
+                    double x=l->pos(HORIZONTAL), y=l->pos(VERTICAL);
                     X[id]=x;
                     Y[id]=y;
                     if(stickyNodes) {
@@ -324,8 +324,8 @@ void ConstrainedMajorizationLayout::run(bool x, bool y) {
         if(preIteration && constrainedLayout) {
             for(vector<Lock>::iterator l=preIteration->locks.begin();
                     l!=preIteration->locks.end();l++) {
-                gpX->unfixPos(l->id);
-                gpY->unfixPos(l->id);
+                gpX->unfixPos(l->getID());
+                gpY->unfixPos(l->getID());
             }
         }
     } while(!done(compute_stress(Dij),X,Y));
