@@ -1,6 +1,6 @@
 INCLUDES = -I$(top_srcdir) $(CAIROMM_CFLAGS)
 common_LDADD = $(top_builddir)/libcola/libcola.a $(top_builddir)/libvpsc/libvpsc.a $(top_builddir)/libtopology/libtopology.a $(top_builddir)/libproject/libproject.a $(CAIROMM_LIBS)
-check_PROGRAMS = unconstrained constrained containment shortest_paths connected_components large_graph convex_hull scale_free trees random_graph large_graph nodedragging topology boundary planar beautify resize
+check_PROGRAMS = unconstrained constrained containment shortest_paths connected_components large_graph convex_hull scale_free trees random_graph large_graph nodedragging topology boundary planar beautify #resize
 
 shortest_paths_LDADD = $(top_builddir)/libcola/libcola.a
 shortest_paths_SOURCES = shortest_paths.cpp
@@ -16,8 +16,8 @@ boundary_LDADD = $(common_LDADD)
 boundary_SOURCES = boundary.cpp 
 nodedragging_LDADD = $(common_LDADD)
 nodedragging_SOURCES = nodedragging.cpp 
-resize_LDADD = $(common_LDADD)
-resize_SOURCES = resize.cpp 
+#resize_LDADD = $(common_LDADD)
+#resize_SOURCES = resize.cpp 
 planar_LDADD = $(common_LDADD)
 planar_SOURCES = planar.cpp 
 connected_components_LDADD = $(common_LDADD)
