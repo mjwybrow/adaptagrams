@@ -17,6 +17,7 @@
 #include "solve_VPSC.h"
 #include "csolve_VPSC.h"
 using namespace vpsc;
+using namespace std;
 extern "C" {
 Variable* newVariable(int id, double desiredPos, double weight) {
 	return new Variable(id,desiredPos,weight);
@@ -25,24 +26,24 @@ Constraint* newConstraint(Variable* left, Variable* right, double gap) {
 	return new Constraint(left,right,gap);
 }
 Solver* newSolver(int n, Variable* vs[], int m, Constraint* cs[]) {
-	std::vector<Variable*> vars(n);
+	vector<Variable*> vars(n);
 	copy(vs,vs+n,vars.begin());
-	std::vector<Constraint*> vcs(m);
+	vector<Constraint*> vcs(m);
 	copy(cs,cs+m,vcs.begin());
 	return new Solver(vars,vcs);
 }
 Solver* newIncSolver(int n, Variable* vs[], int m, Constraint* cs[]) {
-	std::vector<Variable*> vars(n);
+	vector<Variable*> vars(n);
 	copy(vs,vs+n,vars.begin());
-	std::vector<Constraint*> vcs(m);
+	vector<Constraint*> vcs(m);
 	copy(cs,cs+m,vcs.begin());
 	return (Solver*)new vpsc::IncSolver(vars,vcs);
 }
 
 int genXConstraints(int n, boxf* bb, Variable** vs, Constraint*** cs,int transitiveClosure) {
-	std::vector<Rectangle*> rs(n);
-	std::vector<Variable*> vars(n);
-	std::vector<Constraint*> lcs;
+	vector<Rectangle*> rs(n);
+	vector<Variable*> vars(n);
+	vector<Constraint*> lcs;
 	for(int i=0;i<n;i++) {
 		rs[i]=new Rectangle(bb[i].LL.x,bb[i].UR.x,bb[i].LL.y,bb[i].UR.y);
 		vars[i]=vs[i];
@@ -56,9 +57,9 @@ int genXConstraints(int n, boxf* bb, Variable** vs, Constraint*** cs,int transit
 	return lcs.size();
 }
 int genYConstraints(int n, boxf* bb, Variable** vs, Constraint*** cs) {
-	std::vector<Rectangle*> rs(n);
-	std::vector<Variable*> vars(n);
-	std::vector<Constraint*> lcs;
+	vector<Rectangle*> rs(n);
+	vector<Variable*> vars(n);
+	vector<Constraint*> lcs;
 	for(int i=0;i<n;i++) {
 		rs[i]=new Rectangle(bb[i].LL.x,bb[i].UR.x,bb[i].LL.y,bb[i].UR.y);
 		vars[i]=vs[i];
@@ -91,7 +92,7 @@ void satisfyVPSC(Solver* vpsc) {
 	try {
 		vpsc->satisfy();
 	} catch(const char *e) {
-		std::cerr << e << std::endl;
+		cerr << e << endl;
 		exit(1);
 	}
 }

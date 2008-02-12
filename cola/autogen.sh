@@ -5,7 +5,7 @@
 # libcola/output_svg.cpp in the build) is Cairo (cairographics.org).
 # It's only used by a few examples so you can easily build the core libraries
 # without it.
-# The following sequence builds from scratch, or just do: bash README
+# The following sequence builds from scratch:
 aclocal
 #libtoolize
 autoconf

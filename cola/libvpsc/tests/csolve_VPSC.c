@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <malloc.h>
-#include "csolve_VPSC.h"
+#include <libvpsc/csolve_VPSC.h>
 
 int main(int argc, char **argv) {
 	Variable* v1 = newVariable(1, 1.0, 1.0);
