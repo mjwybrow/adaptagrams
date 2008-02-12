@@ -6,26 +6,9 @@
 #include <libvpsc/variable.h>
 #include <libvpsc/constraint.h>
 #include <libvpsc/solve_VPSC.h>
-#define EXTRA_GAP 0.0001
 using namespace std;
 using namespace vpsc;
 
-unsigned countOverlaps(vector<Rectangle *> &rs, unsigned n) {
-	unsigned overlaps=0;
-	for(unsigned i=0;i<n-1;i++) {
-		for(unsigned j=i+1;j<n;j++) {
-			if(rs[i]->overlapX(rs[j])>EXTRA_GAP&&rs[i]->overlapY(rs[j])>EXTRA_GAP) {
-				/*
-				cout << "Overlap found between: " << endl;
-				cout << "    " << *rs[i] << endl;
-				cout << "    " << *rs[j] << endl;
-				*/
-				overlaps++;
-			}
-		}
-	}
-	return overlaps;
-}
 inline double getRand(double range) {
 	return range*rand()/RAND_MAX;
 }
@@ -37,22 +20,22 @@ void printRects(vector<Rectangle*> &rs) {
 }
 void generateRandomRects(unsigned n, vector<Rectangle*> &rs) {
 	rs.resize(n);
-	double const rect_size = 5;
-	double const fld_size = sqrt(rect_size * n / 2.0);
+	static double const rect_size = 5;
+	static double const min_rect_size = 1e-4;
+	static double const fld_size = sqrt(rect_size * n / 2.0);
 	double coords[4];
 	for (unsigned i = 0; i < n; ++i) {
 		for (unsigned d = 0; d < 2; ++d) {
 			//unsigned const end = 1 + (rand() % (fld_size - 1));
 			//unsigned const start = rand() % end;
 			double const start = getRand(fld_size);
-			double const end = start + getRand(rect_size);
+			double const end = start + min_rect_size
+			       	+ getRand(rect_size);
 			coords[2 * d] = start;
 			coords[2 * d + 1] = end;
 		} 
 		rs[i]=new Rectangle(coords[0],coords[1],coords[2],coords[3]);
 	}
-	//double k = (double)countOverlaps(rs,n)/n;
-	//cout << "    k="<< k << endl;
 }
 vector<Rectangle*>& generateRects(double coords[][4], unsigned n,vector<Rectangle *>& rs) {
 	rs.resize(n);
@@ -71,15 +54,6 @@ void test(vector<Rectangle *> &rs, double &cost, double &duration) {
 	clock_t starttime = clock();
 	removeoverlaps(rs);
 	duration = (double)(clock() - starttime)/CLOCKS_PER_SEC;
-	/*
-	if(countOverlaps(rs,n)!=0){
-		std::cerr<<"************FAIL**************"<<std::endl;
-		for(unsigned i=0;i<n;i++) {
-			std::cerr << *ors[i]<<std::endl;
-		}
-		exit(1);
-	}
-	*/
 	cost = 0;
 	for(unsigned i=0;i<n;i++) {
 		double dx=rs[i]->getCentreX()-ors[i]->getCentreX();
