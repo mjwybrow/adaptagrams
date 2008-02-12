@@ -511,7 +511,7 @@ void removeoverlaps(Rectangles& rs) {
  */
 void removeoverlaps(Rectangles& rs, const set<unsigned>& fixed, bool thirdPass) {
 	const double xBorder=Rectangle::xBorder, yBorder=Rectangle::yBorder;
-    static const double EXTRA_GAP=1e-7;
+    static const double EXTRA_GAP=1e-3;
     static const size_t ARRAY_UNUSED=1;
 	unsigned n=rs.size();
 	try {
