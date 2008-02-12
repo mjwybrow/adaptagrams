@@ -30,8 +30,10 @@ std::ostream& operator <<(std::ostream &os, const Rectangle &r) {
 
 Rectangle::Rectangle(double x, double X, double y, double Y,bool allowOverlap) 
 : minX(x),maxX(X),minY(y),maxY(Y),overlap(allowOverlap) {
-	assert(x<=X);
-	assert(y<=Y);
+	assert(x<X);
+	assert(y<Y);
+    assert(getMinX()<getMaxX());
+    assert(getMinY()<getMaxY());
 }
 void Rectangle::reset(unsigned d, double x, double X) {
     if(d==0) {
@@ -88,14 +90,13 @@ struct Node {
 	}
 };
 bool CmpNodePos::operator() (const Node* u, const Node* v) const {
+    assert(!isNaN(u->pos));
+    assert(!isNaN(v->pos));
 	if (u->pos < v->pos) {
 		return true;
 	}
 	if (v->pos < u->pos) {
 		return false;
-	}
-	if (isNaN(u->pos) != isNaN(v->pos)) {
-		return isNaN(u->pos) != 0; // magmy20070424: Avoid warning "forcing value to bool' under MS VC++
 	}
 	return u < v;
 }
@@ -204,8 +205,8 @@ void generateXConstraints(vector<Rectangle*> const & rs, vector<Variable*> const
 				}
 			}
 		} else {
+            size_t result;
 			// Close event
-			int r;
 			if(useNeighbourLists) {
 				for(NodeSet::iterator i=v->leftNeighbours->begin();
 					i!=v->leftNeighbours->end();i++
@@ -213,7 +214,8 @@ void generateXConstraints(vector<Rectangle*> const & rs, vector<Variable*> const
 					Node *u=*i;
 					double sep = (v->r->width()+u->r->width())/2.0;
 					cs.push_back(new Constraint(u->v,v->v,sep));
-					r=u->rightNeighbours->erase(v);
+					result=u->rightNeighbours->erase(v);
+                    assert(result==1);
 				}
 				
 				for(NodeSet::iterator i=v->rightNeighbours->begin();
@@ -222,7 +224,8 @@ void generateXConstraints(vector<Rectangle*> const & rs, vector<Variable*> const
 					Node *u=*i;
 					double sep = (v->r->width()+u->r->width())/2.0;
 					cs.push_back(new Constraint(v->v,u->v,sep));
-					r=u->leftNeighbours->erase(v);
+					result=u->leftNeighbours->erase(v);
+                    assert(result==1);
 				}
 			} else {
 				Node *l=v->firstAbove, *r=v->firstBelow;
@@ -237,11 +240,13 @@ void generateXConstraints(vector<Rectangle*> const & rs, vector<Variable*> const
 					r->firstAbove=v->firstAbove;
 				}
 			}
-			r=scanline.erase(v);
+			result=scanline.erase(v);
+            assert(result==1);
 			delete v;
 		}
 		delete e;
 	}
+    assert(scanline.size()==0);
 	delete [] events;
 }
 
@@ -253,19 +258,23 @@ void generateYConstraints(const Rectangles& rs, const Variables& vars, Constrain
     assert(vars.size()==n);
 	events=new Event*[2*n];
 	unsigned ctr=0;
-    Rectangles::const_iterator ri=rs.begin();
-    Variables::const_iterator vi=vars.begin();
-    for(;ri!=rs.end()&&vi!=vars.end();++ri,++vi) {
+    Rectangles::const_iterator ri=rs.begin(), re=rs.end();
+    Variables::const_iterator vi=vars.begin(), ve=vars.end();
+    for(;ri!=re&&vi!=ve;++ri,++vi) {
         Rectangle* r=*ri;
         Variable* v=*vi;
 		v->desiredPosition=r->getCentreY();
 		Node *node = new Node(v,r,r->getCentreY());
+        assert(r->getMinX()<r->getMaxX());
 		events[ctr++]=new Event(Open,node,r->getMinX());
 		events[ctr++]=new Event(Close,node,r->getMaxX());
 	}
     assert(ri==rs.end()&&vi==vars.end());
 	qsort((Event*)events, (size_t)2*n, sizeof(Event*), compare_events );
 	NodeSet scanline;
+#ifndef NDEBUG
+    size_t deletes=0;
+#endif
 	for(unsigned i=0;i<2*n;i++) {
 		Event *e=events[i];
 		Node *v=e->v;
@@ -296,11 +305,18 @@ void generateYConstraints(const Rectangles& rs, const Variables& vars, Constrain
 				cs.push_back(new Constraint(v->v,r->v,sep));
 				r->firstAbove=v->firstAbove;
 			}
+#ifndef NDEBUG
+            deletes++;
+            size_t erased=
+#endif
 			scanline.erase(v);
+            assert(erased==1);
 			delete v;
 		}
 		delete e;
 	}
+    assert(scanline.size()==0);
+    assert(deletes==n);
 	delete [] events;
 }
 #include "linesegment.h"
@@ -478,37 +494,51 @@ void removeoverlaps(Rectangles& rs) {
     const set<unsigned> fixed;
     removeoverlaps(rs,fixed);
 }
-/* 
- * moves all the rectangles to remove all overlaps.  Heuristic
- * attempts to move by as little as possible.
- * no overlaps guaranteed.
+#define ISNOTNAN(d) (d)==(d)
+/** 
+ * Moves rectangles to remove all overlaps.  A heuristic
+ * attempts to move by as little as possible.  The heuristic is
+ * that the overlaps are removed horizontally and then vertically,
+ * each pass being a quadratic program in which the total squared movement
+ * is minimised subject to non-overlap constraints.  An optional third
+ * horizontal pass (in addition to the first horizontal pass and the second
+ * vertical pass) can be applied wherein the x-positions of rectangles are reset to their
+ * original positions and overlap removal repeated.  This may avoid some
+ * unnecessary movement. 
  * @param rs the rectangles which will be moved to remove overlap
  * @param fixed a set of indices to rectangles which should not be moved
+ * @param thirdPass optionally run the third horizontal pass described above.
  */
-void removeoverlaps(Rectangles& rs, const set<unsigned>& fixed) {
+void removeoverlaps(Rectangles& rs, const set<unsigned>& fixed, bool thirdPass) {
 	const double xBorder=Rectangle::xBorder, yBorder=Rectangle::yBorder;
-    const double EXTRA_GAP=1e-7;
+    static const double EXTRA_GAP=1e-7;
+    static const size_t ARRAY_UNUSED=1;
 	unsigned n=rs.size();
 	try {
 		// The extra gap avoids numerical imprecision problems
 		Rectangle::setXBorder(xBorder+EXTRA_GAP);
 		Rectangle::setYBorder(yBorder+EXTRA_GAP);
 		Variables vs(n);
+        Variables::iterator v;
 		unsigned i=0;
-		for(Variables::iterator v=vs.begin();v!=vs.end();++v,++i) {
+        double initX[thirdPass?n:ARRAY_UNUSED];
+		for(v=vs.begin();v!=vs.end();++v,++i) {
             double weight=1;
             if(fixed.find(i)!=fixed.end()) {
                 weight=10000;
             }
 			*v=new Variable(i,0,weight);
+            if(thirdPass) {
+                initX[i]=rs[i]->getCentreX();
+            }
 		}
 		Constraints cs;
 		generateXConstraints(rs,vs,cs,true);
 		Solver vpsc_x(vs,cs);
 		vpsc_x.solve();
 		Rectangles::iterator r=rs.begin();
-		for(Variables::iterator v=vs.begin();v!=vs.end();++v,++r) {
-			assert((*v)->finalPosition==(*v)->finalPosition);
+		for(v=vs.begin();v!=vs.end();++v,++r) {
+			assert(ISNOTNAN((*v)->finalPosition));
 			(*r)->moveCentreX((*v)->finalPosition);
 		}
 		assert(r==rs.end());
@@ -521,19 +551,35 @@ void removeoverlaps(Rectangles& rs, const set<unsigned>& fixed) {
 		Solver vpsc_y(vs,cs);
 		vpsc_y.solve();
 		r=rs.begin();
-		for(Variables::iterator v=vs.begin();v!=vs.end();++v,++r) {
+		for(v=vs.begin();v!=vs.end();++v,++r) {
+			assert(ISNOTNAN((*v)->finalPosition));
 			(*r)->moveCentreY((*v)->finalPosition);
 		}
 		for_each(cs.begin(),cs.end(),delete_object());
 		cs.clear();
-		Rectangle::setYBorder(yBorder);
-		generateXConstraints(rs,vs,cs,false);
-		Solver vpsc_x2(vs,cs);
-		vpsc_x2.solve();
-		r=rs.begin();
-		for(Variables::iterator v=vs.begin();v!=vs.end();++v,++r) {
-			(*r)->moveCentreX((*v)->finalPosition);
-		}
+        Rectangle::setYBorder(yBorder);
+        if(thirdPass) {
+            // we reset x positions to their original values
+            // and apply a third pass horizontally so that
+            // rectangles which were moved unnecessarily in the
+            // first horizontal pass (i.e. their overlap
+            // was later resolved vertically) have an
+            // opportunity now to stay put.
+            Rectangle::setXBorder(xBorder+EXTRA_GAP);
+            r=rs.begin();
+            for(v=vs.begin();v!=vs.end();++v,++r) {
+                (*r)->moveCentreX(initX[(*v)->id]);
+            }
+            generateXConstraints(rs,vs,cs,false);
+            Solver vpsc_x2(vs,cs);
+            vpsc_x2.solve();
+            r=rs.begin();
+            for(v=vs.begin();v!=vs.end();++v,++r) {
+                assert(ISNOTNAN((*v)->finalPosition));
+                (*r)->moveCentreX((*v)->finalPosition);
+            }
+        }
+		Rectangle::setXBorder(xBorder);
 		for_each(cs.begin(),cs.end(),delete_object());
 		for_each(vs.begin(),vs.end(),delete_object());
 	} catch (char *str) {

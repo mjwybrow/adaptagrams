@@ -31,6 +31,9 @@ using std::valarray;
 //! Edges are simply a pair of indices to entries in the Node vector
 typedef std::pair<unsigned, unsigned> Edge;
 
+/**
+ * A Lock specifies a required position for a Node
+ */
 class Lock {
 public:
     Lock(unsigned id, double X, double Y) : id(id), x(X), y(Y) {
@@ -48,6 +51,9 @@ private:
 };
 typedef vector<Lock> Locks;
 
+/**
+ * A Resize specifies a required bounding box for a node
+ */
 class Resize {
 public:
     Resize(unsigned id, double x, double y, double w, double h)
@@ -69,22 +75,46 @@ typedef vector<Resize> Resizes;
  * the ConstrainedMajorizationLayout::run() method.
  * Keeps a local copy of the x and y GradientProjection instances.
  * Override the operator() for things like locking the position of nodes
- * just for the duration of the iteration.
+ * for the duration of the iteration.
  * If the operator() returns false the subsequent iterations are
  * abandoned... ie layout ends immediately.  You can make it return true
  * e.g. when a user-interrupt is detected.
  */
 class PreIteration {
 public:
-    PreIteration(Locks& locks, Resizes& resizes) 
+    /**
+     * @param locks a list of nodes (by id) and positions at which
+     * they should be locked.
+     * @param resizes a list of nodes (by id) and required dimensions
+     * for their bounding rects.
+     */
+    PreIteration(
+            Locks& locks,
+            Resizes& resizes) 
         : locks(locks), resizes(resizes), changed(true) {}
+    /**
+     * @param locks a list of nodes (by id) and positions at which
+     * they should be locked.
+     */
+    PreIteration(Locks& locks) 
+        : locks(locks), 
+          resizes(PreIteration::__resizesNotUsed), changed(true) {}
+    /**
+     * @param resizes a list of nodes (by id) and required dimensions
+     * for their bounding rects.
+     */
+    PreIteration(Resizes& resizes) 
+        : locks(__locksNotUsed), resizes(resizes), changed(true) {}
     virtual ~PreIteration() {}
-    virtual bool operator()()=0;
+    virtual bool operator()() { return true; }
     Locks& locks;
     Resizes& resizes;
     bool changed;
 private:
+    static Locks __locksNotUsed;
+    static Resizes __resizesNotUsed;
 };
+
 /** 
  * provides a functor for callback after each iteration
  * You can either call ConstrainedMajorizationLayout with an instance of this class setting the
@@ -362,13 +392,6 @@ public:
             this->ccsy=ccsy;
         }
     }
-    void setAvoidOverlaps(bool avoidOverlaps) {
-        if(avoidOverlaps) {
-            printf("setAvoidOverlaps\n");
-            constrainedX=constrainedY=true;
-        }
-        this->avoidOverlaps=avoidOverlaps;
-    }
     void setTopology(vector<topology::Node*>* tnodes, vector<topology::Edge*>* routes) {
         //printf("setTopology...\n");
         topologyNodes=tnodes;
@@ -421,7 +444,6 @@ private:
     double fc,fs;
     bool constrainedX, constrainedY;
     CompoundConstraints *ccsx, *ccsy;
-    bool avoidOverlaps;
     double** D;
     unsigned** G;
     vector<topology::Node*>* topologyNodes;

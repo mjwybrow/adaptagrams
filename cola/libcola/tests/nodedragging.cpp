@@ -38,9 +38,6 @@ topology::Node* addNode(
 void addToPath(topology::EdgePoints& ps, topology::Node *v, topology::EdgePoint::RectIntersect i) {
     ps.push_back(new topology::EdgePoint(v,i));
 }
-struct SetDesiredPos : public PreIteration {
-    SetDesiredPos(Locks& locks) : PreIteration(locks) {}
-};
 struct Test : TestConvergence {
     Test(const double d,const unsigned i,topology::Nodes& vs, topology::Edges& es) : TestConvergence(d,i), vs(vs), es(es), iter(1) {}
     bool operator()(const double new_stress, valarray<double> & X, valarray<double> & Y) {
@@ -89,15 +86,14 @@ void nodeDragging() {
     Locks locks;
     locks.push_back(Lock(0,rs[0]->getCentreX(), rs[0]->getCentreY()));
     Lock& lock=locks[0];
-    SetDesiredPos preIteration(locks);
+    PreIteration preIteration(locks);
     Test test(0.00001,100,vs,tes);
     ConstrainedFDLayout alg(rs,es,idealLength,NULL,test,&preIteration);
     alg.setTopology(&vs,&tes);
 
     double step=1;
     for(unsigned i=0;i<100;i++) {
-        lock.pos[0]=rs[0]->getCentreX()+step;
-        lock.pos[1]=rs[0]->getCentreY()-step;
+        lock=Lock(0,rs[0]->getCentreX()+step,rs[0]->getCentreY()-step);
         alg.run(true,true);
     }
     double finalStress=alg.computeStress();

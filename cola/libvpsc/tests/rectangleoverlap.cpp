@@ -10,59 +10,6 @@
 using namespace std;
 using namespace vpsc;
 
-void mremoveoverlaps(Rectangles &rs) {
-	double xBorder=0, yBorder=0;
-	unsigned n=rs.size();
-	try {
-		// The extra gap avoids numerical imprecision problems
-		Rectangle::setXBorder(xBorder+EXTRA_GAP);
-		Rectangle::setYBorder(yBorder+EXTRA_GAP);
-		Variables vs(n);
-		unsigned i=0;
-		for(Variables::iterator v=vs.begin();v!=vs.end();++v,++i) {
-			*v=new Variable(i,0,1);
-		}
-		Constraints cs;
-		generateXConstraints(rs,vs,cs,true);
-		Solver vpsc_x(vs,cs);
-		vpsc_x.solve();
-		Rectangles::iterator r=rs.begin();
-		for(Variables::iterator v=vs.begin();v!=vs.end();++v,++r) {
-			assert((*v)->finalPosition==(*v)->finalPosition);
-			(*r)->moveCentreX((*v)->finalPosition);
-		}
-		assert(r==rs.end());
-		for_each(cs.begin(),cs.end(),delete_object());
-		cs.clear();
-		// Removing the extra gap here ensures things that were moved to be adjacent to
-		// one another above are not considered overlapping
-		Rectangle::setXBorder(Rectangle::xBorder-EXTRA_GAP);
-		generateYConstraints(rs,vs,cs);
-		Solver vpsc_y(vs,cs);
-		vpsc_y.solve();
-		r=rs.begin();
-		for(Variables::iterator v=vs.begin();v!=vs.end();++v,++r) {
-			(*r)->moveCentreY((*v)->finalPosition);
-		}
-		for_each(cs.begin(),cs.end(),delete_object());
-		cs.clear();
-		Rectangle::setYBorder(Rectangle::yBorder-EXTRA_GAP);
-		generateXConstraints(rs,vs,cs,false);
-		Solver vpsc_x2(vs,cs);
-		vpsc_x2.solve();
-		r=rs.begin();
-		for(Variables::iterator v=vs.begin();v!=vs.end();++v,++r) {
-			(*r)->moveCentreX((*v)->finalPosition);
-		}
-		for_each(cs.begin(),cs.end(),delete_object());
-		for_each(vs.begin(),vs.end(),delete_object());
-	} catch (char *str) {
-		std::cerr<<str<<std::endl;
-		for(Rectangles::iterator r=rs.begin();r!=rs.end();++r) {
-			std::cerr << **r <<std::endl;
-		}
-	}
-}
 unsigned countOverlaps(vector<Rectangle *> &rs, unsigned n) {
 	unsigned overlaps=0;
 	for(unsigned i=0;i<n-1;i++) {
@@ -81,6 +28,12 @@ unsigned countOverlaps(vector<Rectangle *> &rs, unsigned n) {
 }
 inline double getRand(double range) {
 	return range*rand()/RAND_MAX;
+}
+void printRects(vector<Rectangle*> &rs) {
+	printf("Set of %d rectangles:\n",rs.size());
+	for(unsigned i=0;i<rs.size();++i) {
+		cout << *rs[i] << endl;
+	}
 }
 void generateRandomRects(unsigned n, vector<Rectangle*> &rs) {
 	rs.resize(n);
@@ -116,7 +69,7 @@ void test(vector<Rectangle *> &rs, double &cost, double &duration) {
 	}
 
 	clock_t starttime = clock();
-	mremoveoverlaps(rs);
+	removeoverlaps(rs);
 	duration = (double)(clock() - starttime)/CLOCKS_PER_SEC;
 	/*
 	if(countOverlaps(rs,n)!=0){
@@ -180,7 +133,7 @@ double test7[][4]={	{ 341.594, 388.459, 373.491, 518.168 },
 { 200.178, 275.606, 364.968, 466.787 } };	
 unsigned n7=10;
 double test8[][4]={{12.807,15.7566,14.9478,16.7924},
-{7.76228,11.6532,4.75249,4.75249},
+{7.76228,11.6532,4.75249,4.75349},
 {7.84596,10.1387,15.465,16.7709},
 {1.80748,3.0357,5.9983,6.16279},
 {6.46447,7.47249,12.8694,13.4378},
@@ -631,7 +584,7 @@ double test11[][4]={{2.20847,5.99613,25.7684,29.5065},
 {5.14479,8.31779,3.92878,7.65693},
 {14.6057,18.2633,0.667969,4.59677},
 {5.62784,8.67939,17.3137,19.4264},
-{10.9244,13.5481,-1.29955,-1.29955},
+{10.9244,13.5481,-1.29955,-1.29945},
 {5.76759,6.30746,-3.722,-3.5131},
 {7.13259,9.6258,8.33774,11.5161},
 {1.05144,1.32443,10.359,10.9074},
@@ -694,6 +647,7 @@ int main() {
 		for(int repeat=repeats;repeat--;) {
 			vector<Rectangle*> rs;
 			generateRandomRects(i,rs);
+			//printRects(rs);
 			test(rs,c,t);
 			disp+=c;
 			time+=t;

@@ -46,7 +46,7 @@ void scale_free(const unsigned n = 50) {
     for(unsigned i=0;i<n;i++) {
         if(d[i]==0) {
             double maxP=0;
-            unsigned end;
+            unsigned end=0;
             for(unsigned j=0;j<n;j++) {
                 if(j==i) continue;
                 double p=(double)d[j]/(double)sumdegree;

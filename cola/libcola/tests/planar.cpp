@@ -251,7 +251,7 @@ t.addToPath(3,(topology::EdgePoint::RectIntersect)4);
 t.addEdge(70.000000);
     writeFile(t.vs,t.tes,"planar-000.svg");
     Test test(0.00001,100,t.vs,t.tes);
-    ConstrainedFDLayout alg(t.rs,t.es,NULL,70.0,NULL,test,NULL);
+    ConstrainedFDLayout alg(t.rs,t.es,70.0,NULL,test,NULL);
     alg.setTopology(&t.vs,&t.tes);
     alg.run(true,true);
     double finalStress=alg.computeStress();

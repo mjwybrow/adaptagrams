@@ -1,13 +1,13 @@
 #include <iostream>
 #include <vector>
 #include <set>
+#include <libvpsc/rectangle.h>
 #include <libcola/cola.h>
 #include <libcola/connected_components.h>
 #include "graphlayouttest.h"
 
 using namespace std;
 using namespace cola;
-using vpsc::Rectangle;
 
 int main() {
 	const unsigned V = 7;
@@ -21,11 +21,11 @@ int main() {
 	const std::size_t E = sizeof(edge_array) / sizeof(Edge);
 	vector<Edge> es(edge_array,edge_array+E);
 	vector<Component*> cs;
-	vector<Rectangle*> rs;
+	vpsc::Rectangles rs;
 	double width=100,height=100;
 	for(unsigned i=0;i<V;i++) {
 		double x=getRand(width), y=getRand(height);
-		rs.push_back(new Rectangle(x,x+5,y,y+5));
+		rs.push_back(new vpsc::Rectangle(x,x+5,y,y+5));
 	}
 	connectedComponents(rs,es,cs);
 	set<unsigned> result_c1(cs[0]->node_ids.begin(),cs[0]->node_ids.end());

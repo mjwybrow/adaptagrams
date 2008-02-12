@@ -18,6 +18,8 @@ void delete_vector(vector<T*> &v) {
     for_each(v.begin(),v.end(),delete_object());
     v.clear();
 }
+Resizes PreIteration::__resizesNotUsed;
+Locks PreIteration::__locksNotUsed;
 inline double dotProd(valarray<double> x, valarray<double> y) {
     assert(x.size()==y.size());
     double dp=0;
@@ -54,7 +56,6 @@ ConstrainedFDLayout::ConstrainedFDLayout(
       preIteration(preIteration),
       constrainedX(false), constrainedY(false),
       ccsx(NULL), ccsy(NULL),
-      avoidOverlaps(false),
       topologyNodes(NULL),
       topologyRoutes(NULL)
 {

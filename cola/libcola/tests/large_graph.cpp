@@ -60,7 +60,7 @@ int main() {
         double x=getRand(width), y=getRand(height);
         startpos[i]=make_pair(x,y);
     }
-    const char *testname="large_graph";
+    //const char *testname="large_graph";
     //run_test(startpos,es,defaultEdgeLength,cx,cy,CG,false,testname,"cg");
     //run_test(startpos,es,defaultEdgeLength,cx,cy,IP,false,testname,"ip");
     //run_test(startpos,es,defaultEdgeLength,cx,cy,UGP,false,testname,"ugp");

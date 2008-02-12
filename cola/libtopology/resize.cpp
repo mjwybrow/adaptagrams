@@ -7,7 +7,9 @@
 namespace topology {
 using namespace std;
 using namespace vpsc;
-static const double dummyRectThickness=1e-4;
+static const double DUMMY_RECT_THICKNESS=1e-4;
+static const double DEFAULT_WEIGHT = 1.0;
+static const double FIXED_WEIGHT = 10000;
 
 template <class Container, class Op>
 void mapf(Container& c, Op op) {
@@ -33,20 +35,19 @@ struct TransformNode {
         : dim(dim), targets(targets), resizes(resizes), 
           revertMap(revertMap), vs(vs) {}
     Node* operator() (Node* u) {
-        Rectangle *initialRect=new Rectangle(*u->rect),
-                        *targetRect=targets[u->id];
+        Rectangle *initialRect = new Rectangle(*u->rect),
+                  *targetRect = targets[u->id];
         ResizeMap::const_iterator ri=resizes.find(u->id);
         double desiredCentre, weight;
-        if(ri==resizes.end()) {
+        if(ri==resizes.end()) { // no resize
             desiredCentre=targetRect->getCentreD(dim);
-            weight=1.0;
-        } else {
+            weight=DEFAULT_WEIGHT;
+        } else { // resizing!
             double m=initialRect->getMinD(dim);
-            initialRect->reset(dim,m,m+dummyRectThickness);
-            desiredCentre=targetRect->getMinD(dim)+dummyRectThickness/2.0;
-            weight=10000;
+            initialRect->reset(dim,m,m+DUMMY_RECT_THICKNESS);
+            desiredCentre=targetRect->getMinD(dim)+DUMMY_RECT_THICKNESS/2.0;
+            weight=FIXED_WEIGHT;
         }
-        //double initialCentre=initialRect->getCentreD(dim);
         vs.push_back(new Variable(u->id,desiredCentre,weight));
         Node* v = new topology::Node(u->id,initialRect);
         revertMap[v] = u;
@@ -72,20 +73,21 @@ struct CreateCentreRightDummyNodes {
         const Rectangle* ro=ri.orig->rect;
         const double M=ro->getMaxD(dim),
                      c=ro->getCentreD(dim),
-                     w2=dummyRectThickness/2.0;
+                     w2=DUMMY_RECT_THICKNESS/2.0;
         Rectangle *centreRect=new Rectangle(*ro), *rhsRect=new Rectangle(*ro);
         centreRect->reset(dim,c-w2,c+w2);
-        rhsRect->reset(dim,M-dummyRectThickness,M);
+        rhsRect->reset(dim,M-DUMMY_RECT_THICKNESS,M);
         unsigned j=nodes.size();
         ri.centreNode=new topology::Node(j,centreRect);
         revertMap[ri.centreNode]=ri.orig;
         nodes.push_back(ri.centreNode);
-        vs.push_back(new Variable(j,ri.targetRect->getCentreD(dim),10000));
+        vs.push_back(new Variable(j,ri.targetRect->getCentreD(dim),FIXED_WEIGHT));
         j++;
         ri.rhsNode=new topology::Node(j,rhsRect);
         revertMap[ri.rhsNode]=ri.orig;
         nodes.push_back(ri.rhsNode);
-        vs.push_back(new Variable(j,ri.targetRect->getMaxD(dim)-dummyRectThickness/2.0,10000));
+        double desiredPos=ri.targetRect->getMaxD(dim)-DUMMY_RECT_THICKNESS/2.0;
+        vs.push_back(new Variable(j,desiredPos,FIXED_WEIGHT));
     }
     const cola::Dim dim;
     Nodes& nodes;
@@ -153,8 +155,7 @@ struct RevertNodes {
         e->forEachEdgePoint(*this);
     }
     void operator() (EdgePoint* p) {
-        Node* u=p->node;
-        p->node=revertMap[u];
+        p->node=revertMap[p->node];
     }
     RevertMap& revertMap;
 };
@@ -275,8 +276,8 @@ struct CreateTargetRect {
             fixed.insert(v->id); // resized rectangles are required to stay
                                  // where they have been placed
             target=new Rectangle(*r->second.targetRect);
-            assert(target->width() > 3.0*dummyRectThickness);
-            assert(target->height() > 3.0*dummyRectThickness);
+            assert(target->width() > 3.0*DUMMY_RECT_THICKNESS);
+            assert(target->height() > 3.0*DUMMY_RECT_THICKNESS);
         }
         return target;
     }

@@ -12,7 +12,7 @@ public:
     vector<unsigned> node_ids;
     vector<Rectangle*> rects;
     vector<Edge> edges;
-    CompoundConstraints cx, cy;
+    //CompoundConstraints cx, cy;
     ~Component();
     void moveRectangles(double x, double y);
     Rectangle* getBoundingBox();
@@ -21,8 +21,8 @@ public:
 void connectedComponents(
     const vector<Rectangle*> &rs,
     const vector<Edge> &es,
-    const CompoundConstraints &cx,
-    const CompoundConstraints &cy, 
+    //const CompoundConstraints &cx,
+    //const CompoundConstraints &cy, 
     vector<Component*> &components);
 
 // move the contents of each component so that the components do not

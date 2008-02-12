@@ -15,6 +15,7 @@
 #include <vector>
 #include <set>
 #include <cassert>
+#include <cmath>
 
 namespace vpsc {
 enum Dim { HORIZONTAL, VERTICAL };
@@ -60,7 +61,23 @@ struct RectangleIntersections {
 class Rectangle {   
     friend std::ostream& operator <<(std::ostream &os, const Rectangle &r);
 public:
+    /**
+     * xBorder and yBorder can be set to add a border to the boundary of the
+     * rectangle.  In other words, the size of the rectangle returned by the
+     * getters (getMinX, getMaxX, etc) will be slightly larger than the
+     * internal representation.  This is useful in situations where we need the
+     * size considered in one axis to be slightly different to that considered
+     * in the other axis for example, to avoid numerical precision problems in
+     * the axis-by-axis overlap removal process.
+     */
     static double xBorder,yBorder;
+    /**
+     * @param x minimum horizontal value
+     * @param X maximum horizontal value
+     * @param y minimum vertical value
+     * @param Y maximum vertical value
+     * @param allowOverlap not used currently
+     */
     Rectangle(double x, double X, double y, double Y,
             bool allowOverlap=false);
     Rectangle(Rectangle const &Other)
@@ -80,20 +97,37 @@ public:
     double getMaxY() const { return maxY+yBorder; }
     double getMinX() const { return minX-xBorder; }
     double getMinY() const { return minY-yBorder; }
+    /**
+     * @param d axis: 0=horizontal 1=vertical
+     */
     double getMinD(unsigned const d) const {
+        assert(d==0||d==1);
         return ( d == 0 ? getMinX() : getMinY() );
     }
+    /**
+     * @param d axis: 0=horizontal 1=vertical
+     */
     double getMaxD(unsigned const d) const {
+        assert(d==0||d==1);
         return ( d == 0 ? getMaxX() : getMaxY() );
     }
     double getCentreX() const { return getMinX()+width()/2.0; }
     double getCentreY() const { return getMinY()+height()/2.0; }
+    /**
+     * @param d axis: 0=horizontal 1=vertical
+     */
     double getCentreD(unsigned const d) const {
+        assert(d==0||d==1);
         return getMinD(d)+length(d)/2.0;
     }
     double width() const { return getMaxX()-getMinX(); }
     double height() const { return getMaxY()-getMinY(); }
+    /**
+     * @param d axis: 0=width 1=height
+     * @return width or height
+     */
     double length(unsigned const d) const {
+        assert(d==0||d==1);
         return ( d == 0 ? width() : height() );
     }
     void set_width(double w) { maxX = minX + w - 2.0*xBorder; }
@@ -101,11 +135,9 @@ public:
     static void setXBorder(double x) {xBorder=x;}
     static void setYBorder(double y) {yBorder=y;}
     void moveCentreD(const unsigned d, double p) {
-        if(d == 0) {
-            moveCentreX(p);
-        } else {
-            moveCentreY(p);
-        }
+        assert(d==0||d==1);
+        if(d == 0) { moveCentreX(p);
+        } else { moveCentreY(p); }
     }
     void moveCentreX(double x) {
         moveMinX(x-width()/2.0);
@@ -118,12 +150,16 @@ public:
         moveCentreY(y);
     }
     void moveMinX(double x) {
-        maxX=x+width()-2.0*xBorder;
+        double w=width();
         minX=x+xBorder;
+        maxX=x+w-xBorder;
+        assert(fabs(width()-w)<1e-9);
     }
     void moveMinY(double y) {
-        maxY=y+height()-2.0*yBorder;
+        double h=height();
+        maxY=y+h-yBorder;
         minY=y+yBorder;
+        assert(fabs(height()-h)<1e-9);
     }
     double overlapD(const unsigned d, Rectangle* r) {
         if(d==0) {
@@ -214,13 +250,20 @@ void generateYConstraints(std::vector<Rectangle*> const & rs, std::vector<Variab
  */
 void removeoverlaps(Rectangles& rs);
 /** 
- * Moves all the rectangles to remove all overlaps.  Heuristic
- * attempts to move by as little as possible.
- * no overlaps guaranteed.
+ * Moves rectangles to remove all overlaps.  A heuristic
+ * attempts to move by as little as possible.  The heuristic is
+ * that the overlaps are removed horizontally and then vertically,
+ * each pass being a quadratic program in which the total squared movement
+ * is minimised subject to non-overlap constraints.  An optional third
+ * horizontal pass (in addition to the first horizontal pass and the second
+ * vertical pass) can be applied wherein the x-positions of rectangles are reset to their
+ * original positions and overlap removal repeated.  This may avoid some
+ * unnecessary movement. 
  * @param rs the rectangles which will be moved to remove overlap
  * @param fixed a set of indices to rectangles which should not be moved
+ * @param thirdPass optionally run the third horizontal pass described above.
  */
-void removeoverlaps(Rectangles& rs, const std::set<unsigned>& fixed);
+void removeoverlaps(Rectangles& rs, const std::set<unsigned>& fixed, bool thirdPass=true);
 
 void assertNoOverlaps(const Rectangles& rs);
 
