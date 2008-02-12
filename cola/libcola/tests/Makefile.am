@@ -1,6 +1,6 @@
-INCLUDES = -I$(top_srcdir) -I/usr/include/cairo -I/usr/include/cairomm-1.0
-common_LDADD = $(top_builddir)/libcola/libcola.a $(top_builddir)/libvpsc/libvpsc.a $(top_builddir)/libtopology/libtopology.a $(top_builddir)/libproject/libproject.a
-check_PROGRAMS = sparse_matrix unconstrained constrained containment shortest_paths connected_components large_graph convex_hull scale_free trees random_graph large_graph nodedragging topology boundary planar beautify resize
+INCLUDES = -I$(top_srcdir) $(CAIROMM_CFLAGS)
+common_LDADD = $(top_builddir)/libcola/libcola.a $(top_builddir)/libvpsc/libvpsc.a $(top_builddir)/libtopology/libtopology.a $(top_builddir)/libproject/libproject.a $(CAIROMM_LIBS)
+check_PROGRAMS = unconstrained constrained containment shortest_paths connected_components large_graph convex_hull scale_free trees random_graph large_graph nodedragging topology boundary planar beautify resize
 
 shortest_paths_LDADD = $(top_builddir)/libcola/libcola.a
 shortest_paths_SOURCES = shortest_paths.cpp
@@ -22,8 +22,9 @@ planar_LDADD = $(common_LDADD)
 planar_SOURCES = planar.cpp 
 connected_components_LDADD = $(common_LDADD)
 connected_components_SOURCES = connected_components.cpp
-sparse_matrix_LDADD = $(top_srcdir)/libcola/libcola.a $(top_srcdir)/libvpsc/libvpsc.a
-sparse_matrix_SOURCES = sparse_matrix.cpp
+# test Requires boost
+#sparse_matrix_LDADD = $(top_srcdir)/libcola/libcola.a $(top_srcdir)/libvpsc/libvpsc.a
+#sparse_matrix_SOURCES = sparse_matrix.cpp
 convex_hull_SOURCES = convex_hull.cpp
 convex_hull_LDADD = $(common_LDADD) -lcairo -lcairomm-1.0
 #unsatisfiable_LDADD = $(top_builddir)/libcola/libcola.a $(top_builddir)/libvpsc/libvpsc.a

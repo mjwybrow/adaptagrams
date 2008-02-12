@@ -49,4 +49,7 @@ PKG_CHECK_MODULES(CAIROMM,cairomm-1.0,cairomm=yes,cairomm=no)
 if test "x$cairomm" = "xno"; then
 	AC_MSG_ERROR([libcairomm-1.0 not installed!])
 fi
+AC_SUBST(CAIROMM_CFLAGS)
+AC_SUBST(CAIROMM_LIBS)
+
 AC_OUTPUT(Makefile libcola/Makefile libcola/tests/Makefile libvpsc/Makefile libvpsc/tests/Makefile libproject/Makefile libproject/tests/Makefile libtopology/Makefile libtopology/tests/Makefile libavoid/Makefile)

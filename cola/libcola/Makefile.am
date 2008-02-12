@@ -1,4 +1,4 @@
-INCLUDES = -I$(top_srcdir) -I/usr/include/cairo -I/usr/include/cairomm-1.0 
+INCLUDES = -I$(top_srcdir) $(CAIROMM_CFLAGS)
 
 lib_LIBRARIES = libcola.a
 
