@@ -1,6 +1,0 @@
-Building:
-	libtoolize
-	automake -a
-	./configure
-	make check
-

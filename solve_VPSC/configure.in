@@ -1,8 +1,0 @@
-AC_INIT(libvpsc/solve_VPSC.cpp)
-AM_INIT_AUTOMAKE(libvpsc,1.0)
-AC_PROG_LIBTOOL
-AC_PROG_CXX
-AC_PROG_CC
-AC_PROG_INSTALL
-#AC_DEFINE(RECTANGLE_OVERLAP_LOGGING)
-AC_OUTPUT(Makefile libvpsc/Makefile tests/Makefile)
