@@ -43,8 +43,8 @@ namespace topology {
      */
     class TriConstraint {
     public:
-        /// Variables are directly entered into the libproject solver
-        const VarPos *u, *v, *w;
+        /// A TriConstraint is associated with the positions of 3 nodes
+        const Node *u, *v, *w;
         /// p is the parameter for the constraint line, g is the offset constant
         double p, g;
         /** 
@@ -53,9 +53,9 @@ namespace topology {
          */
         bool leftOf;
         TriConstraint(
-                const VarPos *u, 
-                const VarPos *v, 
-                const VarPos *w, 
+                const Node *u, 
+                const Node *v, 
+                const Node *w, 
                 double p, double g, bool left);
         /** 
          * @return the maximum move we can make along the line from initial to
@@ -69,7 +69,7 @@ namespace topology {
         /**
          * amount of slack at desired positions of variables
          */
-        double slackAtDesired() const;
+        double slackAtFinal() const;
         /**
          * checks initial positions
          */
@@ -164,7 +164,6 @@ namespace topology {
             const cola::Dim dim, 
             Nodes& nodes,
             Edges& edges,
-            vpsc::Variables& vs,
             vpsc::Constraints& cs);
         ~TopologyConstraints();
         bool solve();
@@ -177,13 +176,12 @@ namespace topology {
                 cola::SparseMap& h, 
                 const DesiredPositions& d);
         double reachedDesired(const DesiredPositions& d);
-        bool assertFeasible();
+        bool assertFeasible() const;
         void printInstance(valarray<double>& g) const;
         bool noOverlaps() const;
     private:
         Nodes& nodes;
         Edges& edges;
-        vpsc::Variables& vs;
         vpsc::Constraints& cs;
     };
     /**

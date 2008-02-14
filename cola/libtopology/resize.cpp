@@ -12,11 +12,10 @@ static const double DEFAULT_WEIGHT = 1.0;
 static const double FIXED_WEIGHT = 10000;
 
 template <class Container, class Op>
-void mapf(Container& c, Op op) {
+void feach(Container& c, Op op) {
     for_each(c.begin(),c.end(),op);
 }
 
-typedef map<Node*, Node*> RevertMap;
 
 /**
  * Functor that creates a copy of the specified Node and creates a
@@ -30,69 +29,65 @@ typedef map<Node*, Node*> RevertMap;
  * target.
  */
 struct TransformNode {
-    TransformNode(const cola::Dim dim, const Rectangles& targets,
-            const ResizeMap& resizes, RevertMap& revertMap, Variables& vs)
-        : dim(dim), targets(targets), resizes(resizes), 
-          revertMap(revertMap), vs(vs) {}
+    TransformNode( const Rectangles& targets,
+            const ResizeMap& resizes)
+        : targets(targets), resizes(resizes) {}
     Node* operator() (Node* u) {
-        Rectangle *initialRect = new Rectangle(*u->rect),
-                  *targetRect = targets[u->id];
-        ResizeMap::const_iterator ri=resizes.find(u->id);
+        const Rectangle *targetRect = targets[u->id];
+        Rectangle *initialRect = new Rectangle(*u->rect);
+        ResizeMap::const_iterator ri = resizes.find(u->id);
         double desiredCentre, weight;
         if(ri==resizes.end()) { // no resize
-            desiredCentre=targetRect->getCentreD(dim);
-            weight=DEFAULT_WEIGHT;
+            desiredCentre = targetRect->getCentreD(dim);
+            weight = DEFAULT_WEIGHT;
         } else { // resizing!
-            double m=initialRect->getMinD(dim);
-            initialRect->reset(dim,m,m+DUMMY_RECT_THICKNESS);
-            desiredCentre=targetRect->getMinD(dim)+DUMMY_RECT_THICKNESS/2.0;
-            weight=FIXED_WEIGHT;
+            double m = initialRect->getMinD(dim);
+            initialRect->reset(dim, m, m+DUMMY_RECT_THICKNESS);
+            desiredCentre = targetRect->getMinD(dim)+DUMMY_RECT_THICKNESS/2.0;
+            weight = FIXED_WEIGHT;
         }
-        vs.push_back(new Variable(u->id,desiredCentre,weight));
-        Node* v = new topology::Node(u->id,initialRect);
-        revertMap[v] = u;
-        return v;
+        return new topology::Node(u->id, initialRect,
+                new Variable(u->id,desiredCentre,weight));
     }
-    const cola::Dim dim;
     const Rectangles& targets;
     const ResizeMap& resizes;
-    RevertMap& revertMap;
-    Variables& vs;
 };
 /**
  * Functor which, for the specified Resizeinfo, creates a centre and
  * right dummy node and associated variables.
  */
 struct CreateCentreRightDummyNodes {
-    CreateCentreRightDummyNodes(const cola::Dim dim, Nodes& nodes, 
-            RevertMap& revertMap, Variables& vs)
-        : dim(dim), nodes(nodes), revertMap(revertMap), vs(vs) {}
+    CreateCentreRightDummyNodes(
+            const Rectangles& targets,
+            Nodes& nodes)
+        : targets(targets), nodes(nodes) {}
     void operator() (pair<const unsigned,ResizeInfo>& p) {
+        // dummy nodes will have the same id as the original
         ResizeInfo& ri=p.second;
-        assert(p.first==ri.orig->id);
-        const Rectangle* ro=ri.orig->rect;
-        const double M=ro->getMaxD(dim),
-                     c=ro->getCentreD(dim),
-                     w2=DUMMY_RECT_THICKNESS/2.0;
-        Rectangle *centreRect=new Rectangle(*ro), *rhsRect=new Rectangle(*ro);
-        centreRect->reset(dim,c-w2,c+w2);
-        rhsRect->reset(dim,M-DUMMY_RECT_THICKNESS,M);
-        unsigned j=nodes.size();
-        ri.centreNode=new topology::Node(j,centreRect);
-        revertMap[ri.centreNode]=ri.orig;
+        const unsigned id=ri.orig->id;
+        assert(p.first==id);
+        const Rectangle *ro=ri.orig->rect,
+                        *target=targets[id];
+        static const double w2=DUMMY_RECT_THICKNESS/2.0;
+        // Centre
+        const double cpos=ro->getCentreD(dim);
+        Rectangle *centreRect=new Rectangle(*ro);
+        centreRect->reset(dim,cpos-w2,cpos+w2);
+        ri.centreNode=new topology::Node(id,centreRect,
+                new Variable(nodes.size(),
+                    target->getCentreD(dim),FIXED_WEIGHT));
         nodes.push_back(ri.centreNode);
-        vs.push_back(new Variable(j,ri.targetRect->getCentreD(dim),FIXED_WEIGHT));
-        j++;
-        ri.rhsNode=new topology::Node(j,rhsRect);
-        revertMap[ri.rhsNode]=ri.orig;
+        // Right
+        const double rpos=ro->getMaxD(dim);
+        Rectangle *rhsRect=new Rectangle(*ro);
+        rhsRect->reset(dim,rpos-DUMMY_RECT_THICKNESS,rpos);
+        double desiredPos=target->getMaxD(dim)-DUMMY_RECT_THICKNESS/2.0;
+        ri.rhsNode=new topology::Node(id,rhsRect,
+                new Variable(nodes.size(),desiredPos,FIXED_WEIGHT));
         nodes.push_back(ri.rhsNode);
-        double desiredPos=ri.targetRect->getMaxD(dim)-DUMMY_RECT_THICKNESS/2.0;
-        vs.push_back(new Variable(j,desiredPos,FIXED_WEIGHT));
     }
-    const cola::Dim dim;
+    const Rectangles& targets;
     Nodes& nodes;
-    RevertMap& revertMap;
-    Variables& vs;
 };
 /**
  * Functor to reassign EdgePoint Node pointers.  
@@ -103,9 +98,9 @@ struct CreateCentreRightDummyNodes {
  * in the new Node list.
  */
 struct SubstituteNodes {
-    SubstituteNodes(cola::Dim dim, ResizeMap& resizes, 
-            const Nodes& nodes) 
-        : resizes(resizes), nodes(nodes) {}
+    SubstituteNodes(ResizeMap& resizes, 
+            const Nodes& tn) 
+        : resizes(resizes), tn(tn) {}
     void operator() (Edge* e) {
         e->forEachEdgePoint(*this);
     }
@@ -115,16 +110,16 @@ struct SubstituteNodes {
         enum Pos {LHS, RHS, CEN} pos;
         if(ri!=resizes.end()) {
             switch(p->rectIntersect) {
-                case topology::EdgePoint::TL:
+                case EdgePoint::TL:
                     pos=dim==cola::HORIZONTAL?LHS:RHS;
                     break;
-                case topology::EdgePoint::BL:
+                case EdgePoint::BL:
                     pos=LHS;
                     break;
-                case topology::EdgePoint::TR:
+                case EdgePoint::TR:
                     pos=RHS;
                     break;
-                case topology::EdgePoint::BR:
+                case EdgePoint::BR:
                     pos=dim==cola::HORIZONTAL?RHS:LHS;
                     break;
                 default:
@@ -132,7 +127,7 @@ struct SubstituteNodes {
             }
             switch(pos) {
                 case LHS:
-                    p->node=nodes[id];
+                    p->node=tn[id];
                     break;
                 case RHS:
                     p->node=ri->second.rhsNode;
@@ -142,43 +137,38 @@ struct SubstituteNodes {
                     p->node=ri->second.centreNode;
             }
         } else {
-            p->node=nodes[id];
+            p->node=tn[id];
         }
     }
     ResizeMap& resizes;
-    const topology::Nodes& nodes;
+    const topology::Nodes& tn;
 };
 struct RevertNodes {
-    RevertNodes(cola::Dim dim, RevertMap& revertMap) 
-        : revertMap(revertMap) {}
+    RevertNodes(Nodes& orig) 
+        : orig(orig) {}
     void operator() (Edge* e) {
         e->forEachEdgePoint(*this);
     }
     void operator() (EdgePoint* p) {
-        p->node=revertMap[p->node];
+        p->node=orig[p->node->id];
     }
-    RevertMap& revertMap;
+    Nodes& orig;
 };
 struct CopyPositions {
-    CopyPositions(const cola::Dim dim, Nodes::const_iterator i)
-        : dim(dim), i(i) {}
+    CopyPositions(const Nodes& tn, const ResizeMap& rm)
+        : tn(tn), rm(rm) {}
     void operator() (Node* v) {
-        assert(i.base()!=NULL); // fails if target container is bigger than source
-        const Node* u=*i++;
-        v->rect->moveCentreD(dim,u->rect->getCentreD(dim));
+        ResizeMap::const_iterator j=rm.find(v->id);
+        if(j==rm.end()) {
+            v->rect->moveCentreD(dim,tn[v->id]->rect->getCentreD(dim));
+        } else {
+            const Rectangle *l=tn[v->id]->rect,
+                            *r=j->second.rhsNode->rect;
+            v->rect->reset(dim,l->getMinD(dim),r->getMaxD(dim));
+        }
     }
-    const cola::Dim dim;
-    Nodes::const_iterator i;
-};
-struct ResizeRects {
-    ResizeRects(const cola::Dim dim)
-        : dim(dim) {}
-    void operator() (pair<const unsigned,ResizeInfo>& p) {
-        ResizeInfo& ri=p.second; 
-        assert(p.first==ri.orig->id);
-        ri.orig->rect->reset(dim,ri.targetRect->getMinD(dim),ri.targetRect->getMaxD(dim));
-    }
-    const cola::Dim dim;
+    const Nodes& tn;
+    const ResizeMap& rm;
 };
 struct DeleteTempNode {
     void operator() (Node* v) {
@@ -187,23 +177,61 @@ struct DeleteTempNode {
     }
 };
 #ifndef NDEBUG
-bool checkTargets(
-        const cola::Dim dim,
+bool approx_equals(double a, double b) {
+    return fabs(a-b)<1e-6;
+}
+static const double DISPLACEMENT_ERROR=1e-3;
+bool checkDesired(
         const Nodes& nodes, 
         const Rectangles& targets, 
-        const ResizeMap& resizeMap,
-        const RevertMap& revertMap) {
+        const ResizeMap& resizeMap) {
     for(Nodes::const_iterator i=nodes.begin();i!=nodes.end();++i) {
-        const Node* u=*i;
-        const Rectangle* t=targets[u->id];
-        ResizeMap::const_iterator j=resizeMap.find(u->id);
-        if(j!=resizeMap.end()) {
-            const Rectangle *l=u->rect,
+        const Node* v=*i;
+        const unsigned id=v->id;
+        const Rectangle* t=targets[id];
+        ResizeMap::const_iterator j=resizeMap.find(id);
+        if(j==resizeMap.end()) {
+            assert(approx_equals(v->var->desiredPosition,
+                        t->getCentreD(dim)));
+        }
+    }
+    for(ResizeMap::const_iterator j=resizeMap.begin();j!=resizeMap.end();++j) {
+        const unsigned id=j->first;
+        const ResizeInfo& ri=j->second;
+        assert(ri.orig->id==id);
+        const Node *ln=nodes[id], *cn=ri.centreNode, *rn=ri.rhsNode;
+        assert(ln->id==id);
+        assert(cn->id==id);
+        assert(rn->id==id);
+        const Rectangle* t=targets[id];
+        const double lp=t->getMinD(dim)+DUMMY_RECT_THICKNESS/2.0,
+                     cp=t->getCentreD(dim),
+                     rp=t->getMaxD(dim)-DUMMY_RECT_THICKNESS/2.0;
+        assert(approx_equals(lp,ln->var->desiredPosition));
+        assert(approx_equals(cp,cn->var->desiredPosition));
+        assert(approx_equals(rp,rn->var->desiredPosition));
+    }
+    return true;
+}
+bool checkFinal(
+        const Nodes& nodes, 
+        const Rectangles& targets, 
+        const ResizeMap& resizeMap) {
+    static const double DISPLACEMENT_ERROR=1e-3;
+    for(Nodes::const_iterator i=nodes.begin();i!=nodes.end();++i) {
+        const Node* v=*i;
+        const Rectangle* t=targets[v->id];
+        ResizeMap::const_iterator j=resizeMap.find(v->id);
+        if(j==resizeMap.end()) {
+            assert(fabs(v->rect->getCentreD(dim)-t->getCentreD(dim))<DISPLACEMENT_ERROR);
+        } else {
+            const Rectangle *l=nodes[v->id]->rect,
                             *c=j->second.centreNode->rect,
                             *r=j->second.rhsNode->rect;
-            assert(fabs(l->getMinD(dim)-t->getMinD(dim))<1e-5);
-            assert(fabs(r->getMaxD(dim)-t->getMaxD(dim))<1e-5);
-            assert(fabs(c->getCentreD(dim)-t->getCentreD(dim))<1e-5);
+            assert(fabs(l->getMinD(dim)-t->getMinD(dim))<DISPLACEMENT_ERROR);
+            assert(fabs(r->getMaxD(dim)-t->getMaxD(dim))<DISPLACEMENT_ERROR);
+            assert(fabs(c->getCentreD(dim)-t->getCentreD(dim))
+                    <DISPLACEMENT_ERROR);
         }
     }
     return true;
@@ -218,7 +246,7 @@ bool checkTargets(
  * @param edges to be rerouted around nodes
  * @param resizes ResizeInfo for specific nodes
  */
-void resizeAxis(const cola::Dim dim, const Rectangles& targets,
+void resizeAxis(const Rectangles& targets,
         Nodes& nodes, Edges& edges, ResizeMap& resizes) {
     //  - create copy tn of topologyNodes with resize rects replaced with
     //    three nodes: one for the lhs of rect, one for centre and one for rhs.
@@ -230,34 +258,44 @@ void resizeAxis(const cola::Dim dim, const Rectangles& targets,
     Nodes tn(nodes.size());
     Variables vs;
     Constraints cs;
-    RevertMap revertMap;
+
+    assert(assertConvexBends(edges));
+    assert(assertNoSegmentRectIntersection(nodes,edges));
+
     transform(nodes.begin(),nodes.end(),tn.begin(),
-            TransformNode(dim,targets,resizes,revertMap,vs));
-    mapf(resizes, CreateCentreRightDummyNodes(dim,tn,revertMap,vs));
+            TransformNode(targets,resizes));
+    feach(resizes, CreateCentreRightDummyNodes(targets,tn));
     assert(tn.size()==nodes.size()+2*resizes.size());
-    assert(vs.size()==tn.size());
-    assert(revertMap.size()==tn.size());
 
     // update topologyRoutes with references to resized nodes replaced with
     // correct references to lhs/rhs nodes
-    mapf(edges,SubstituteNodes(dim,resizes,tn));
+    feach(edges,SubstituteNodes(resizes,tn));
+
+    assert(assertConvexBends(edges));
+    assert(assertNoSegmentRectIntersection(tn,edges));
 
     // move nodes and reroute
-    topology::TopologyConstraints t(dim,tn,edges,vs,cs);
-    while(t.solve()) {}
-    assert(checkTargets(dim,tn,targets,resizes,revertMap));
+    topology::TopologyConstraints t(dim,tn,edges,cs);
+    assert(checkDesired(tn,targets,resizes));
+#ifndef NDEBUG
+    unsigned loopCtr=0;
+#endif
+    while(t.solve()) { assert(++loopCtr<1000); }
+    //assert(checkFinal(tn,targets,resizes));
     
     // reposition and resize original nodes
-    mapf(nodes,CopyPositions(dim,tn.begin()));
-    mapf(resizes,ResizeRects(dim));
+    feach(nodes,CopyPositions(tn,resizes));
 
     // revert topologyRoutes back to original nodes
-    mapf(edges,RevertNodes(dim,revertMap));
+    feach(edges,RevertNodes(nodes));
+
+    assert(assertConvexBends(edges));
+    assert(assertNoSegmentRectIntersection(nodes,edges));
 
     // clean up
-    mapf(tn,DeleteTempNode());
-    mapf(vs,delete_object());
-    mapf(cs,delete_object());
+    feach(tn,DeleteTempNode());
+    feach(vs,delete_object());
+    feach(cs,delete_object());
 }
 /**
  * Functor that for a given node, if that node is in the resizes lookup,
@@ -299,9 +337,11 @@ void applyResizes(Nodes& nodes, Edges& edges, ResizeMap& resizes) {
     set<unsigned> fixed;
     transform(nodes.begin(),nodes.end(),targets.begin(),CreateTargetRect(resizes,fixed));
     removeoverlaps(targets,fixed);
-    resizeAxis(cola::HORIZONTAL, targets, nodes, edges, resizes);
-    resizeAxis(cola::VERTICAL, targets, nodes, edges, resizes);
-    mapf(targets,delete_object());
+    dim=cola::HORIZONTAL;
+    resizeAxis(targets, nodes, edges, resizes);
+    dim=cola::VERTICAL;
+    resizeAxis(targets, nodes, edges, resizes);
+    feach(targets,delete_object());
 }
 } // namespace topology
 // vim: cindent ts=4 sw=4 et tw=0 wm=0

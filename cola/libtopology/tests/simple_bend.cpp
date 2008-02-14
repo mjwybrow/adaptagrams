@@ -68,14 +68,10 @@ void simple(void test(Nodes&, EdgePoints&, DesiredPositions&,string&)){
 
     writeFile(nodes,es,"simple-"+name+"-0.svg");
 
-    vpsc::Variables vs;
     vpsc::Constraints cs;
-    for(unsigned i=0;i<V;++i) {
-        vs.push_back(new vpsc::Variable(i));
-    }
 
     { // scope for t, so that t gets destroyed before es
-        TopologyConstraints t(cola::HORIZONTAL,nodes,es,vs,cs);
+        TopologyConstraints t(cola::HORIZONTAL,nodes,es,cs);
 
         // test computeStress
         double stress=t.computeStress();
@@ -98,14 +94,9 @@ void simple(void test(Nodes&, EdgePoints&, DesiredPositions&,string&)){
         }
     }
 
-    for(Nodes::iterator i=nodes.begin();i!=nodes.end();++i) {
-        Node* v=*i;
-        delete v->rect;
-        delete v;
-    }
-    for_each(es.begin(),es.end(),delete_object());
+    for_each(nodes.begin(),nodes.end(),delete_node());
     for_each(cs.begin(),cs.end(),delete_object());
-    for_each(vs.begin(),vs.end(),delete_object());
+    for_each(es.begin(),es.end(),delete_object());
 }
 
 int main() {

@@ -67,7 +67,7 @@ struct NodeEvent : Event {
      * topology constraints are generated for the opening and closing edges of each node
      * and every open segment at pos
      */
-    void createTopologyConstraint();
+    void createStraightConstraint();
 };
 /**
  * at node openings the node is placed in the list of #openNodes and a
@@ -96,7 +96,7 @@ struct NodeOpen : NodeEvent {
         assert(r.second);
 
         openListIndex = r.first;
-        createTopologyConstraint();
+        createStraightConstraint();
     }
     string toString() {
         stringstream s;
@@ -115,13 +115,10 @@ struct NodeClose : NodeEvent {
      * delete it and remove it from the list of OpenNodes.
      */
     NodeOpen* opening;
-    vpsc::Variables& vs;
     vpsc::Constraints& cs;
-    NodeClose(Node* node, NodeOpen* o, 
-            vpsc::Variables& vs, vpsc::Constraints& cs)
+    NodeClose(Node* node, NodeOpen* o, vpsc::Constraints& cs)
         : NodeEvent(false,node->rect->getMaxD(!dim),node)
         , opening(o)
-        , vs(vs)
         , cs(cs) {
         assert(opening->node == node);
     }
@@ -135,7 +132,7 @@ struct NodeClose : NodeEvent {
                 g+=1e-7;
             //}
             //assert(l->getPosition() + g <= r->getPosition());
-            cs.push_back(new vpsc::Constraint(vs[left->id], vs[right->id], g));
+            cs.push_back(new vpsc::Constraint(left->var, right->var, g));
         //}
     }
     /**
@@ -154,8 +151,8 @@ struct NodeClose : NodeEvent {
         }
         openNodes.erase(nodePos);
         delete opening;
-        // create topology constraint from scanpos in every open edge to node
-        createTopologyConstraint();
+        // create StraightConstraint from scanpos in every open edge to node
+        createStraightConstraint();
         delete this;
     }
     string toString() {
@@ -170,7 +167,7 @@ struct NodeClose : NodeEvent {
 struct SegmentEvent : Event {
     Segment *s;
     SegmentEvent(bool open, EdgePoint* v, Segment *s)
-        : Event(open,v->pos[!dim]), s(s) {}
+        : Event(open,v->pos(!dim)), s(s) {}
 };
 /**
  * at a segment open we add the segment to the list of open segments
@@ -216,14 +213,14 @@ struct SegmentClose : SegmentEvent {
  * Create topology constraint from scanpos in every open segment to node.
  * Segments must not be on-top-of rectangles.
  */
-void NodeEvent::createTopologyConstraint() {
-    FILE_LOG(logDEBUG)<<"NodeEvent::createTopologyConstraint():node@"<<node<<" pos="<<pos;
+void NodeEvent::createStraightConstraint() {
+    FILE_LOG(logDEBUG)<<"NodeEvent::createStraightConstraint():node@"<<node<<" pos="<<pos;
     for(OpenSegments::iterator j=openSegments.begin(); j!=openSegments.end();++j) {
         Segment* s=(*j)->s;
         if(!s->edge->cycle()) {
             // skip if edge is attached to this node
-            if(s->edge->firstSegment->start->node==node 
-                    || s->edge->lastSegment->end->node==node) {
+            if(s->edge->firstSegment->start->node->id==node->id
+                    || s->edge->lastSegment->end->node->id==node->id) {
                 continue;
             }
         }
@@ -265,9 +262,9 @@ struct CompareEvents {
     }
 };
 TriConstraint::TriConstraint(
-        const VarPos *u, 
-        const VarPos *v, 
-        const VarPos *w, 
+        const Node *u, 
+        const Node *v, 
+        const Node *w, 
         double p, double g, bool left)
     : u(u), v(v), w(w), p(p), g(g), leftOf(left) 
 {
@@ -276,15 +273,15 @@ TriConstraint::TriConstraint(
 
 bool Segment::createStraightConstraint(Node* node, double pos) {
     // segments orthogonal to scan direction need no constraints
-    if(start->pos[!dim]-end->pos[!dim]==0) {
+    if(start->pos(!dim)-end->pos(!dim)==0) {
         return false;
     }
     FILE_LOG(logDEBUG)<<"Segment::createStraightConstraint, pos="<<pos;
     // segment must overlap in the scan dimension with the potential bend point
-    assert(min(end->pos[!dim],start->pos[!dim])<=pos);
-    assert(max(end->pos[!dim],start->pos[!dim])>=pos);
+    assert(min(end->pos(!dim),start->pos(!dim))<=pos);
+    assert(max(end->pos(!dim),start->pos(!dim))>=pos);
     vpsc::Rectangle* r=node->rect;
-    FILE_LOG(logDEBUG1)<<"Segment: from "<<start->pos[!dim]<<" to "<<end->pos[!dim];
+    FILE_LOG(logDEBUG1)<<"Segment: from "<<start->pos(!dim)<<" to "<<end->pos(!dim);
     FILE_LOG(logDEBUG1)<<"Node: rect "<<*r;
     // determine direction of constraint based on intersection of segment with
     // scan line, i.e. set nodeLeft based on whether the intersection of the
@@ -303,13 +300,13 @@ bool Segment::createStraightConstraint(Node* node, double pos) {
              ? (nodeLeft ? EdgePoint::TL : EdgePoint::BL)
              : (nodeLeft ? EdgePoint::TR : EdgePoint::BR);
     }
-    if(node==start->node  && ri==start->rectIntersect) {
+    if(node->id==start->node->id  && ri==start->rectIntersect) {
         // constraint is redundant because the potential bend point is
         // already a real bend associated with the start EdgePoint of this
         // segment !
         return false;
     }
-    if(node==end->node  && ri==end->rectIntersect) {
+    if(node->id==end->node->id  && ri==end->rectIntersect) {
         // constraint is redundant - end EdgePoint of this segment!
         return false;
     }
@@ -354,10 +351,7 @@ StraightConstraint::StraightConstraint(
     } else {
         g+=node->rect->length(dim)/2.0;
     }
-    const VarPos *uv=u->node->updateVarPos(), 
-                 *vv=v->node->updateVarPos(), 
-                 *wv=node->updateVarPos();
-    c=new TriConstraint(uv,vv,wv,segmentPos,g,nodeLeft);
+    c=new TriConstraint(u->node,v->node,node,segmentPos,g,nodeLeft);
     assertFeasible();
 }
 /**
@@ -370,7 +364,7 @@ BendConstraint::
 BendConstraint(EdgePoint* v) 
     : bendPoint(v) 
 {
-    FILE_LOG(logDEBUG)<<"BendConstraint ctor, pos="<<v->pos[!dim];
+    FILE_LOG(logDEBUG)<<"BendConstraint ctor, pos="<<v->pos(!dim);
     assert(v->inSegment!=NULL);
     assert(v->outSegment!=NULL);
     // v must be a bend point around some node
@@ -380,17 +374,17 @@ BendConstraint(EdgePoint* v)
     // because all of our nodes are boxes we do not expect consecutive
     // segments to change horizontal or vertical direction
     FILE_LOG(logDEBUG1)<<"u: id="<<u->node->id
-        <<", ri="<<u->rectIntersect<<", x="<<u->pos[0]<<", y="<<u->pos[1];
+        <<", ri="<<u->rectIntersect<<", x="<<u->posX()<<", y="<<u->posY();
     FILE_LOG(logDEBUG1)<<"v: id="<<v->node->id
-        <<", ri="<<v->rectIntersect<<", x="<<v->pos[0]<<", y="<<v->pos[1];
+        <<", ri="<<v->rectIntersect<<", x="<<v->posX()<<", y="<<v->posY();
     FILE_LOG(logDEBUG1)<<"w: id="<<w->node->id
-        <<", ri="<<w->rectIntersect<<", x="<<w->pos[0]<<", y="<<w->pos[1];
+        <<", ri="<<w->rectIntersect<<", x="<<w->posX()<<", y="<<w->posY();
     assert(v->assertConvexBend());
     double p;
     /*double i=*/
-    v->inSegment->intersection(w->pos[!dim],p);
+    v->inSegment->intersection(w->pos(!dim),p);
     double g=u->offset()+p*(v->offset()-u->offset())-w->offset();
-    // we could set leftOf=w->pos[dim] < i, but that isn't a good idea
+    // we could set leftOf=w->pos(dim) < i, but that isn't a good idea
     // when the two segments are already straight!
     // So we choose leftOf based on the rectangle intersect of v
     bool leftOf=false;
@@ -403,17 +397,14 @@ BendConstraint(EdgePoint* v)
             leftOf=true;
         }
     }
-    const VarPos *uv=u->node->updateVarPos(),
-                 *vv=v->node->updateVarPos(), 
-                 *wv=w->node->updateVarPos();
-    c=new TriConstraint(uv,vv,wv,p,g,leftOf);
+    c=new TriConstraint(u->node,v->node,w->node,p,g,leftOf);
     assertFeasible();
 }
 struct CreateSegmentEvents {
     CreateSegmentEvents(vector<Event*>& events) : events(events) {}
     void operator() (Segment* s) {
         // don't generate events for segments parallel to scan line
-        if(s->start->pos[!dim]!=s->end->pos[!dim]) {
+        if(s->start->pos(!dim)!=s->end->pos(!dim)) {
             SegmentOpen *open=new SegmentOpen(s);
             SegmentClose *close=new SegmentClose(s,open);
             events.push_back(open);
@@ -447,12 +438,10 @@ TopologyConstraints(
     const cola::Dim axisDim,
     Nodes& nodes,
     Edges& edges,
-    vpsc::Variables& vs,
     vpsc::Constraints& cs
 ) : n(nodes.size())
   , nodes(nodes)
   , edges(edges) 
-  , vs(vs)
   , cs(cs)
 {
     FILELog::ReportingLevel() = logERROR;
@@ -471,7 +460,7 @@ TopologyConstraints(
     for(Nodes::const_iterator i=nodes.begin();i!=nodes.end();++i) {
         Node* v=*i;
         NodeOpen *open=new NodeOpen(v);
-        NodeClose *close=new NodeClose(v,open,vs,cs);
+        NodeClose *close=new NodeClose(v,open,cs);
         events.push_back(open);
         events.push_back(close);
     }

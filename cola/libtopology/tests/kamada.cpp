@@ -167,12 +167,8 @@ makeEdge(es,eps);
     const size_t V = nodes.size();
     writeFile(nodes,es,"kamada-0.svg");
 
-    vpsc::Variables vs;
-    for(unsigned i=0;i<V;++i) {
-        vs.push_back(new vpsc::Variable(i));
-    }
     vpsc::Constraints cs;
-    TopologyConstraints t(cola::HORIZONTAL,nodes,es,vs,cs);
+    TopologyConstraints t(cola::HORIZONTAL,nodes,es,cs);
 
     // test computeStress
     double stress=t.computeStress();
@@ -190,13 +186,9 @@ makeEdge(es,eps);
         writeFile(nodes,es,ss.str().c_str());
     }
 
-    for(Nodes::iterator i=nodes.begin();i!=nodes.end();++i) {
-        Node* v=*i;
-        delete v->rect;
-        delete v;
-    }
+    for_each(cs.begin(),cs.end(),delete_object());
+    for_each(nodes.begin(),nodes.end(),delete_node());
     for_each(es.begin(),es.end(),delete_object());
-    for_each(vs.begin(),vs.end(),delete_object());
 }
 
 int main() {

@@ -10,15 +10,15 @@ using namespace std;
 namespace topology {
 /** 
  * @return the maximum move we can make along the line from initial to
- * desired positions without violating this constraint
+ * final positions without violating this constraint
  */
 double TriConstraint::maxSafeAlpha() const {
-    double u1=u->initial;
-    double u2=u->desired;
-    double v1=v->initial;
-    double v2=v->desired;
-    double w1=w->initial;
-    double w2=w->desired;
+    double u1=u->initialPos();
+    double u2=u->finalPos();
+    double v1=v->initialPos();
+    double v2=v->finalPos();
+    double w1=w->initialPos();
+    double w2=w->finalPos();
     double numerator=w1 - g - u1 + p*(u1-v1);
     // There are a number of situations where the following can
     // be 0!
@@ -34,20 +34,20 @@ double TriConstraint::slack(const double ux, const double vx, const double wx) c
     return leftOf ? rhs - lhs
                   : lhs - rhs;
 }
-double TriConstraint::slackAtDesired() const {
+double TriConstraint::slackAtFinal() const {
     return 
-        slack(u->desired, 
-              v->desired, 
-              w->desired);
+        slack(u->finalPos(), 
+              v->finalPos(), 
+              w->finalPos());
 }
 double TriConstraint::slackAtInitial () const {
-    return slack(u->initial, v->initial, w->initial);
+    return slack(u->initialPos(), v->initialPos(), w->initialPos());
 }
 
 ostream& operator<< (ostream& os, const TriConstraint& c) {
-    double ux = c.u->desired
-         , vx = c.v->desired
-         , wx = c.w->desired;
+    double ux = c.u->finalPos()
+         , vx = c.v->finalPos()
+         , wx = c.w->finalPos();
     os << "TriConstraint@" << &c 
        << ": u=" << ux 
        <<  " v=" << vx
@@ -91,7 +91,7 @@ void BendConstraint::satisfy() {
     end->createBendConstraint();
 
     // create a new StraightConstraint to replace the BendConstraint
-    s->createStraightConstraint(bendPoint->node, bendPoint->pos[!dim]);
+    s->createStraightConstraint(bendPoint->node, bendPoint->pos(!dim));
              
     e->nSegments--;
     delete bendPoint;
@@ -102,7 +102,7 @@ void BendConstraint::satisfy() {
 string BendConstraint::
 toString() const {
     stringstream s;
-    s << "BendConstraint: bendPoint=(" << bendPoint->pos[0] << "," << bendPoint->pos[1] << ")";
+    s << "BendConstraint: bendPoint=(" << bendPoint->posX() << "," << bendPoint->posY() << ")";
     return s.str();
 }
 /**
@@ -126,13 +126,13 @@ struct transferStraightConstraintChoose {
      */
     void operator() (StraightConstraint* c) {
         if(c!=ignore) {
-            double min1=min(target1->start->pos[!dim],target1->end->pos[!dim]);
-            double max1=max(target1->start->pos[!dim],target1->end->pos[!dim]);
+            double min1=min(target1->start->pos(!dim),target1->end->pos(!dim));
+            double max1=max(target1->start->pos(!dim),target1->end->pos(!dim));
             if(c->pos>=min1 && c->pos<=max1) {
                 target1->transferStraightConstraint(c);
             } else {
-                assert(c->pos>=min(target2->start->pos[!dim],target2->end->pos[!dim]));
-                assert(c->pos<=max(target2->start->pos[!dim],target2->end->pos[!dim]));
+                assert(c->pos>=min(target2->start->pos(!dim),target2->end->pos(!dim)));
+                assert(c->pos<=max(target2->start->pos(!dim),target2->end->pos(!dim)));
                 target2->transferStraightConstraint(c);
             }
         }
@@ -217,8 +217,8 @@ struct buildRoute {
     buildRoute(straightener::Route* r, unsigned& n) : r(r), n(n) {}
     void operator() (const Segment* s) {
         EdgePoint* u=s->end;
-        r->xs[n]=u->pos[0];
-        r->ys[n++]=u->pos[1];
+        r->xs[n]=u->posX();
+        r->ys[n++]=u->posY();
     }
     straightener::Route* r;
     unsigned& n;
@@ -250,38 +250,8 @@ printInstance(valarray<double>& g) const {
         printf("t.addEdge(%f);\n",(*e)->idealLength);
     }
 }
-struct NoIntersection {
-    NoIntersection(const Nodes& nodes) : nodes(nodes) {}
-    void operator()(const Segment* s) {
-        for(Nodes::const_iterator v=nodes.begin();v!=nodes.end();++v) {
-            if(s->start->node==*v) {
-                continue;
-            }
-            if(s->end->node==*v) {
-                continue;
-            }
-            assert(!(*v)->rect->overlaps(s->start->pos[0],s->start->pos[1],s->end->pos[0],s->end->pos[1]));
-        }
-    }
-    const Nodes& nodes;
-};
-bool assertNoSegmentRectIntersection(const Nodes& nodes, const Edges& edges) {
-    double xBorder=vpsc::Rectangle::xBorder, yBorder=vpsc::Rectangle::yBorder;
-    vpsc::Rectangle::setXBorder(xBorder-0.001);
-    vpsc::Rectangle::setYBorder(yBorder-0.001);
-    for(Edges::const_iterator e=edges.begin();e!=edges.end();++e) {
-        (*e)->forEachSegment(NoIntersection(nodes));
-    }
-    vpsc::Rectangle::setXBorder(xBorder);
-    vpsc::Rectangle::setYBorder(yBorder);
-    return true;
-}
 bool TopologyConstraints::
-assertFeasible() {
-    for(Nodes::iterator i=nodes.begin();i!=nodes.end();++i) {
-        Node* v=*i;
-        v->updateVarPos();
-    }
+assertFeasible() const {
     vector<TopologyConstraint*> ts;
     constraints(ts);
     for_each(ts.begin(),ts.end(),mem_fun(&TopologyConstraint::assertFeasible));

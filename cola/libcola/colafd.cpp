@@ -59,8 +59,8 @@ ConstrainedFDLayout::ConstrainedFDLayout(
       topologyNodes(NULL),
       topologyRoutes(NULL)
 {
-    FILELog::ReportingLevel() = logDEBUG1;
-    //FILELog::ReportingLevel() = logERROR;
+    //FILELog::ReportingLevel() = logDEBUG1;
+    FILELog::ReportingLevel() = logERROR;
     boundingBoxes.resize(n);
     copy(rs.begin(),rs.end(),boundingBoxes.begin());
     done.reset();
@@ -232,8 +232,8 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
         if(dim==cola::HORIZONTAL) {
             vpsc::Rectangle::setXBorder(0);
         }
-        topology::TopologyConstraints t(dim,*topologyNodes,*topologyRoutes,
-                vs,cs);
+        topology::setNodeVariables(*topologyNodes,vs);
+        topology::TopologyConstraints t(dim,*topologyNodes,*topologyRoutes,cs);
         bool interrupted;
         int loopBreaker=10;
         do {

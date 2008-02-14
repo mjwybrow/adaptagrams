@@ -41,7 +41,6 @@ struct TestCase {
     DesiredPositions des;
     valarray<double> g;
     EdgePoints ps;
-    vpsc::Variables vs;
     vpsc::Constraints cs;
     cola::Dim dim;
     unsigned iterations;
@@ -54,7 +53,7 @@ struct TestCase {
             g.resize(nodes.size());
             g=0;
         }
-        TopologyConstraints t(dim,nodes,es,vs,cs);
+        TopologyConstraints t(dim,nodes,es,cs);
         // test computeStress
         double stress=t.computeStress();
         printf("Stress=%f\n",stress);
@@ -73,10 +72,10 @@ struct TestCase {
     ~TestCase() {
         for_each(es.begin(),es.end(),delete_object());
         for_each(cs.begin(),cs.end(),delete_object());
-        for_each(vs.begin(),vs.end(),delete_object());
         for(Nodes::iterator i=nodes.begin();i!=nodes.end();++i) {
             Node* v=*i;
             delete v->rect;
+            delete v->var;
             delete v;
         }
     }
@@ -89,9 +88,9 @@ struct TestCase {
     }
     Node* addNode(double x, double y, double w, double h) {
         vpsc::Rectangle* r = new vpsc::Rectangle(x,x+w,y,y+h);
-        Node *v = new Node(nodes.size(), r);
+        const unsigned id = nodes.size();
+        Node *v = new Node(id, r, new vpsc::Variable(id));
         nodes.push_back(v);
-        vs.push_back(new vpsc::Variable(vs.size()));
         return v;
     }
     void addEdge(double idealLength) {

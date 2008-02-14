@@ -21,8 +21,8 @@ namespace topology {
 double len(const EdgePoint* u, const EdgePoint* v, 
         double& dx, double& dy,
         double& dx2, double& dy2) {
-    dx=u->pos[0]-v->pos[0];
-    dy=u->pos[1]-v->pos[1];
+    dx=u->posX()-v->posX();
+    dy=u->posY()-v->posY();
     dx2=dx*dx;
     dy2=dy*dy;
     return sqrt(dx2+dy2);

@@ -24,7 +24,7 @@ using std::vector;
 
 namespace vpsc {
 std::ostream& operator <<(std::ostream &os, const Rectangle &r) {
-	os << "{"<<r.minX<<","<<r.maxX<<","<<r.minY<<","<<r.maxY<<"},";
+	os << "Rectangle("<<r.minX<<","<<r.maxX<<","<<r.minY<<","<<r.maxY<<"),";
 	return os;
 }
 
@@ -588,18 +588,24 @@ void removeoverlaps(Rectangles& rs, const set<unsigned>& fixed, bool thirdPass) 
 			std::cerr << **r <<std::endl;
 		}
 	}
-    assertNoOverlaps(rs);
+    assert(assertNoOverlaps(rs));
 }
-void assertNoOverlaps(const Rectangles& rs) {
-	for(Rectangles::const_iterator i=rs.begin();i!=rs.end();++i) {
-		for(Rectangles::const_iterator j=i+1;j!=rs.end();++j) {
-			Rectangle *u=*i, *v=*j;
-			if(u->overlapX(v)>0) {
-				assert(u->overlapY(v)==0);
-			}
+#ifndef NDEBUG
+bool assertNoOverlaps(const Rectangles& rs) {
+    Rectangle *u, *v;
+    Rectangles::const_iterator i=rs.begin(), j, e=rs.end();
+	for(;i!=e;++i) {
+        u=*i;
+		for(j=i+1;j!=e;++j) {
+			v=*j;
+            if(u->overlapX(v)>0) {
+                assert(u->overlapY(v)==0);
+            }
 		}
 	}
+    return true;
 }
+#endif
 
 }
 /*

@@ -110,12 +110,6 @@ struct PrintPoint {
     }
 };
 
-bool assertConvexBends(const Edges& edges) {
-    for(Edges::const_iterator e=edges.begin();e!=edges.end();++e) {
-        assert((*e)->assertConvexBends());
-    }
-    return true;
-}
 void TopologyConstraints::
 gradientProjection(valarray<double>& g, cola::SparseMap& h, const
         DesiredPositions& d) 
@@ -128,16 +122,13 @@ gradientProjection(valarray<double>& g, cola::SparseMap& h, const
     cola::SparseMatrix H(h);
     double stepSize = computeStepSize(H,g,g);
     FILE_LOG(logDEBUG1)<<"stepSize="<<stepSize;
-    for(unsigned i=0;i<n;++i) {
-        double x=nodes[i]->rect->getCentreD(dim);
-        vpsc::Variable* v=vs[i];
-        v->desiredPosition=x-g[i]*stepSize;
+    for(Nodes::iterator i=nodes.begin();i!=nodes.end();++i) {
+        Node* v=*i;
+        v->setDesiredPos(v->initialPos()-g[v->id]*stepSize);
     }
     for(DesiredPositions::const_iterator i=d.begin();i!=d.end();++i) {
-        vpsc::Variable* v = vs[i->first];
-        v->desiredPosition=i->second;
-        v->weight=1e10;
-        FILE_LOG(logDEBUG1)<<"override desi="<<v->desiredPosition;
+        Node* v=nodes[i->first];
+        v->setDesiredPos(i->second,1e10);
     }
 }
 bool TopologyConstraints::solve() {
@@ -147,13 +138,10 @@ bool TopologyConstraints::solve() {
     assert(assertFeasible());
     vector<TopologyConstraint*> ts;
     constraints(ts);
+    vpsc::Variables vs(nodes.size());
+    transform(nodes.begin(),nodes.end(),vs.begin(),mem_fun(&Node::getVar));
     vpsc::IncSolver s(vs,cs);
     s.solve();
-    for(unsigned i=0;i<n;++i) {
-        vpsc::Variable* v=vs[i];
-        Node* node=nodes[i];
-        node->updateVarPos(v->finalPosition);
-    }
     double minTAlpha=DBL_MAX;
     TopologyConstraint* minT=NULL;
     // find minimum feasible alpha over all topology constraints
@@ -161,11 +149,11 @@ bool TopologyConstraints::solve() {
             i!=ts.end();++i) {
         TopologyConstraint* t=*i;
         double tAlpha=t->c->maxSafeAlpha();
-        double slackAtDesired=t->c->slackAtDesired();
+        double slackAtFinal=t->c->slackAtFinal();
         FILE_LOG(logDEBUG1)<<"Checking topology constraint! alpha="<<tAlpha
-            <<"\n  slack at desired="<<slackAtDesired;
+            <<"\n  slack at desired="<<slackAtFinal;
         FILE_LOG(logDEBUG1)<<t->toString();
-        if(slackAtDesired<0 && tAlpha<minTAlpha) {
+        if(slackAtFinal<0 && tAlpha<minTAlpha) {
             minTAlpha=tAlpha;
             minT=t;
         }
@@ -180,9 +168,6 @@ bool TopologyConstraints::solve() {
         v->moveRect(interrupted,minTAlpha);
     }
     assert(noOverlaps());
-    for(Edges::iterator e=edges.begin();e!=edges.end();++e) {
-        (*e)->forEachEdgePoint(mem_fun(&EdgePoint::setPos),true);
-    }
     assert(assertConvexBends(edges));
     // rectangle and edge point positions updated to variables.
     FILE_LOG(logDEBUG)<<" moves done.";

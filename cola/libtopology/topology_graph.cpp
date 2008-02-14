@@ -7,18 +7,38 @@
 using namespace std;
 using vpsc::Rectangle;
 namespace topology {
-    Node::Node(unsigned id, vpsc::Rectangle* r)
-        : id(id), rect(r) 
+    void setNodeVariables(Nodes& ns, std::vector<vpsc::Variable*>& vs) {
+        assert(ns.size()<=vs.size());
+        std::vector<vpsc::Variable*>::iterator v=vs.begin();
+        for(Nodes::iterator i=ns.begin();i!=ns.end();++i,++v) {
+            (*i)->var=(*v);
+        }
+    }
+    Node::Node(unsigned id, vpsc::Rectangle* r, vpsc::Variable* v)
+        : id(id), rect(r), var(v) 
     { }
-    const VarPos* Node::updateVarPos(double desired) {
-        varPos.initial=rect->getCentreD(dim);     
-        varPos.desired=desired;
-        return &varPos;
+    Node::Node(unsigned id, vpsc::Rectangle* r)
+        : id(id), rect(r), var(NULL) 
+    { }
+    void Node::setDesiredPos(double d, double weight) {
+        var->desiredPosition=d;
+        var->weight=weight;
     }
     void Node::moveRect(bool interrupted, double alpha) {
-        double p=interrupted ? varPos.posOnLine(alpha)
-                             : varPos.desired;
+        double p=interrupted ? posOnLine(alpha)
+                             : finalPos();
         rect->moveCentreD(dim,p);
+    }
+    double Node::initialPos() const {
+        return rect->getCentreD(dim);
+    }
+    double Node::finalPos() const {
+        return var->finalPosition;
+    }
+    double Node::posOnLine(double alpha) const {
+        double i=initialPos();
+        double d=finalPos()-i;
+        return i+alpha*d; 
     }
     void EdgePoint::deleteBendConstraint() {
         if(bendConstraint) {
@@ -34,10 +54,10 @@ namespace topology {
         assert(assertConvexBend());
         // don't generate BendConstraints for Edge end points
         // or for segments parallel to scan line
-        double v = pos[!dim];
+        double v = pos(!dim);
         if(isEnd()
-         ||inSegment->start->pos[!dim]==v
-         ||outSegment->end->pos[!dim]==v) {
+         ||inSegment->start->pos(!dim)==v
+         ||outSegment->end->pos(!dim)==v) {
             return false;
         }
         if(bendConstraint) {
@@ -51,30 +71,28 @@ namespace topology {
             ts->push_back(bendConstraint);
         }
     }
-    void EdgePoint::setPos() {
-        double &x=pos[0],&y=pos[1];
+    double EdgePoint::pos(unsigned dim) const {
+        double p;
         Rectangle* r=node->rect;
         switch(rectIntersect) {
             case TL:
-                x=r->getMinX();
-                y=r->getMaxY();
+                p=dim==cola::HORIZONTAL?
+                    r->getMinX():r->getMaxY();
                 break;
             case TR:
-                x=r->getMaxX();
-                y=r->getMaxY();
+                p=r->getMaxD(dim);
                 break;
             case BL:
-                x=r->getMinX();
-                y=r->getMinY();
+                p=r->getMinD(dim);
                 break;
             case BR:
-                x=r->getMaxX();
-                y=r->getMinY();
+                p=dim==cola::HORIZONTAL?
+                    r->getMaxX():r->getMinY();
                 break;
             default:
-                x=r->getCentreX();
-                y=r->getCentreY();
+                p=r->getCentreD(dim);
         }
+        return p;
     }
     double EdgePoint::offset() const {
         if(rectIntersect==CENTRE) {
@@ -130,8 +148,10 @@ inline double crossProduct(
                     !(u->node->id==w->node->id
                         &&u->rectIntersect==w->rectIntersect));
 
-            double* upos = u->pos;
-            double* wpos = w->pos;
+            double uposition[2] = {u->posX(),u->posY()};
+            double wposition[2] = {w->posX(),w->posY()};
+            double vpos[2] = {posX(),posY()};
+            double *upos=uposition, *wpos=wposition;
 
             /*
             // monotonicity:
@@ -174,7 +194,7 @@ inline double crossProduct(
             }
             // angle must be a "right turn"
             double cp
-                = crossProduct(upos[0],upos[1],pos[0],pos[1],wpos[0],wpos[1]);
+                = crossProduct(upos[0],upos[1],vpos[0],vpos[1],wpos[0],wpos[1]);
             if(cp>1e-5) {
                 fail=3;
             }
@@ -183,7 +203,7 @@ inline double crossProduct(
             printf("    (nid=%d,ri=%d):u={%f,%f}\n",
                     u->node->id,u->rectIntersect,upos[0],upos[1]);
             printf("    (nid=%d,ri=%d):v={%f,%f}\n",
-                    node->id,rectIntersect,pos[0],pos[1]);
+                    node->id,rectIntersect,vpos[0],vpos[1]);
             printf("    (nid=%d,ri=%d):w={%f,%f}\n",
                     w->node->id,w->rectIntersect,wpos[0],wpos[1]);
             printf("    turn cross product=%e\n",cp);
@@ -210,16 +230,16 @@ inline double crossProduct(
         deleteStraightConstraints();
     }
     double Segment::length() const {
-        double dx = end->pos[0] - start->pos[0];
-        double dy = end->pos[1] - start->pos[1];
+        double dx = end->posX() - start->posX();
+        double dy = end->posY() - start->posY();
         return sqrt(dx*dx + dy*dy);
     }
 
     struct copyEdgePointsToRoute {
         copyEdgePointsToRoute(straightener::Route* r) : x(r->xs), y(r->ys) {}
         void operator() (const EdgePoint* p) {
-            *x++=p->pos[0];
-            *y++=p->pos[1];
+            *x++=p->posX();
+            *y++=p->posY();
         }
         double *x, *y;
     };
@@ -248,7 +268,8 @@ inline double crossProduct(
         PointToString(stringstream& ss) : ss(ss) {}
         void operator()(const EdgePoint* p) {
             ss << "EP@" << p <<": pos=("
-               << p->pos[0]<<","<<p->pos[1]<<")"<<endl;
+               << p->posX()<<","
+               << p->posY()<<")"<<endl;
         }
         stringstream& ss;
     };
@@ -272,6 +293,57 @@ inline double crossProduct(
     void Edge::getPath(ConstEdgePoints& vs) const {
         forEachEdgePoint(buildPath(vs));
     }
+    bool assertConvexBends(const Edges& es) {
+        for_each(es.begin(),es.end(),mem_fun(&Edge::assertConvexBends));
+        return true;
+    }
+#ifndef NDEBUG
+    struct NoIntersection {
+        NoIntersection(const Nodes& vs) : vs(vs) {}
+        void operator()(const Segment* s) {
+            for(Nodes::const_iterator v=vs.begin();v!=vs.end();++v) {
+                if(s->start->node->id==(*v)->id || s->end->node->id==(*v)->id) {
+                    continue;
+                }
+                if(s->start->node==s->end->node) {
+                    assert(s->start->rectIntersect==EdgePoint::BL
+                            &&s->end->rectIntersect==EdgePoint::BR
+                         ||s->start->rectIntersect==EdgePoint::BR
+                            &&s->end->rectIntersect==EdgePoint::BL
+                         ||s->start->rectIntersect==EdgePoint::BL
+                            &&s->end->rectIntersect==EdgePoint::TL
+                         ||s->start->rectIntersect==EdgePoint::TL
+                            &&s->end->rectIntersect==EdgePoint::BL
+                         ||s->start->rectIntersect==EdgePoint::BR
+                            &&s->end->rectIntersect==EdgePoint::TR
+                         ||s->start->rectIntersect==EdgePoint::TR
+                            &&s->end->rectIntersect==EdgePoint::BR
+                         ||s->start->rectIntersect==EdgePoint::TL
+                            &&s->end->rectIntersect==EdgePoint::TR
+                         ||s->start->rectIntersect==EdgePoint::TR
+                            &&s->end->rectIntersect==EdgePoint::TL);
+                    continue;
+                }
+                double sx=s->start->posX(), sy=s->start->posY(),
+                       ex=s->end->posX(), ey=s->end->posY();
+                double xBorder=Rectangle::xBorder, yBorder=Rectangle::yBorder;
+                Rectangle::setXBorder(xBorder-1e-6);
+                Rectangle::setYBorder(yBorder-1e-6);
+                assert(!(*v)->rect->overlaps(sx,sy,ex,ey));
+                Rectangle::setXBorder(xBorder);
+                Rectangle::setYBorder(yBorder);
+            }
+        }
+        const Nodes& vs;
+    };
+    bool assertNoSegmentRectIntersection(
+            const Nodes& vs, const Edges& es) {
+        for(Edges::const_iterator e=es.begin();e!=es.end();++e) {
+            (*e)->forEachSegment(NoIntersection(vs));
+        }
+        return true;
+    }
+#endif
 } // namespace topology
 
 // vim: cindent ts=4 sw=4 et tw=0 wm=0

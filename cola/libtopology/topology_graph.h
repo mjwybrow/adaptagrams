@@ -13,6 +13,7 @@
 #include "util.h"
 namespace vpsc {
     class Rectangle;
+    class Variable;
 }
 namespace straightener {
     class Route;
@@ -24,14 +25,6 @@ namespace topology {
     class BendConstraint;
     class StraightConstraint;
     class Edge;
-    struct VarPos {
-        double initial;
-        double desired;
-        double posOnLine(double alpha) const {
-            double d=desired-initial;
-            return initial+alpha*d; 
-        }
-    };
     /**
      * Each node is associated with a rectangle and solver variables
      * for the x and y axes
@@ -42,20 +35,25 @@ namespace topology {
         const unsigned id;
         /// the bounding box of the associated node
         vpsc::Rectangle* rect;
+        Node(unsigned id, vpsc::Rectangle*, vpsc::Variable*);
         /** 
-         * when an edge path is being defined externally with a vector of EdgePoint,
-         * a variable would not be specified.
+         * When an edge path is being defined externally with a vector of
+         * EdgePoint, a variable would not be specified.
          * @param id
          * @param r
          */
-        Node(unsigned id, vpsc::Rectangle* r);
-        const VarPos* updateVarPos(double desired=-1);
+        Node(unsigned id, vpsc::Rectangle*);
         void moveRect(bool interrupted, double alpha);
-    private:
+        void setDesiredPos(double d, double weight=1.0);
+        double initialPos() const;
+        double finalPos() const;
+        double posOnLine(double alpha) const;
+        vpsc::Variable* getVar() const { return var; }
         /// variable positions used by solver
-        VarPos varPos;
+        vpsc::Variable* var;
     };
     typedef std::vector<Node*> Nodes;
+    void setNodeVariables(Nodes& ns, std::vector<vpsc::Variable*>& vs);
     /**
      * An EdgePoint is a point along an edge path.  It must correspond to either the middle
      * of a Node (the start/end of the edge) or to a corner of a Node (a bend point around
@@ -65,10 +63,6 @@ namespace topology {
     public:
         /// the node / variable / rectangle associated with this EdgePoint
         Node* node;
-        /** the position, computed based on rectIntersect and rectangle position and boundary
-         *  @param dim the axis (either horizontal or vertical) of the coordinate to return
-         */
-        double pos[2];
         /// where the node lies on the rectangle
         enum RectIntersect { 
             TR, ///< top right corner
@@ -92,15 +86,26 @@ namespace topology {
         /// delete the bendConstraint and reset pointer to NULL
         void deleteBendConstraint();
         /**
-         * the constructor sets up the position 
+         * Constructor associates the point with a node vertex but
+         * not an edge.
          */
         EdgePoint(Node* n, RectIntersect i) 
                 : node(n), rectIntersect(i)
                 , inSegment(NULL), outSegment(NULL) 
                 , bendConstraint(NULL)
         {
-            setPos();
         }
+        /** 
+         * @param dim the axis (either horizontal or
+         * vertical) of the coordinate to return
+         * @return the position, computed based on rectIntersect and rectangle
+         * vertices of the node
+         */
+        double pos(unsigned dim) const;
+        /// @return x position
+        double posX() const { return pos(cola::HORIZONTAL); }
+        /// @return y position
+        double posY() const { return pos(cola::VERTICAL); }
         /**
          * for any two EdgePoint the following should always be false!
          * @param e an EdgePoint (not this one)
@@ -120,10 +125,6 @@ namespace topology {
          * the horizontal or vertical directions.
          */
         bool assertConvexBend() const;
-        /**
-         * update the position from the position of the associated rectangle
-         */
-        void setPos();
         /**
          * @return offset from centre of node
          */
@@ -200,16 +201,19 @@ namespace topology {
         EdgePoint* start;
         /// the end point of the segment
         EdgePoint* end;
-        /// @return the EdgePoint at the minimum extent of this segment on the scan axis
+        /**
+         * @return the EdgePoint at the minimum extent of this segment on the
+         * scan axis
+         */
         EdgePoint* getMin() const {
-            if(start->pos[!dim] <= end->pos[!dim]) {
+            if(start->pos(!dim) <= end->pos(!dim)) {
                 return start;
             }
             return end;
         }
         /// @return the EdgePoint on the maximum extent of this segment on the scan axis
         EdgePoint* getMax() const {
-            if(start->pos[!dim] > end->pos[!dim]) {
+            if(start->pos(!dim) > end->pos(!dim)) {
                 return start;
             }
             return end;
@@ -220,7 +224,7 @@ namespace topology {
          * @return true if point does lie in the scan range
          */
         bool intersects(double pos) const {
-            if(pos>=getMin()->pos[!dim] && pos<=getMax()->pos[!dim]) {
+            if(pos>=getMin()->pos(!dim) && pos<=getMax()->pos(!dim)) {
                 return true;
             }
             return false;
@@ -236,8 +240,8 @@ namespace topology {
          * this edge segment
          */
         double intersection(double pos, double &p) const {
-            double ux=start->pos[dim] , vx=end->pos[dim],
-                   uy=start->pos[!dim], vy=end->pos[!dim];
+            double ux=start->pos(dim) , vx=end->pos(dim),
+                   uy=start->pos(!dim), vy=end->pos(!dim);
             double denom = vy - uy;
             assert(denom!=0); // must not be parallel to scanline!
             p = (pos - uy)/denom;
@@ -412,7 +416,11 @@ namespace topology {
         std::string toString() const;
     };
     typedef std::vector<Edge*> Edges;
-    double compute_stress(const Edges& es);
+    double compute_stress(const Edges&);
+#ifndef NDEBUG
+    bool assertConvexBends(const Edges&);
+    bool assertNoSegmentRectIntersection(const Nodes&, const Edges&);
+#endif
 } // namespace topology
 #endif // TOPOLOGY_GRAPH_H
 

@@ -29,62 +29,109 @@ using namespace topology;
 struct Create {
     Create() : ctr(0) {}
     Node* operator() (vpsc::Rectangle* r) {
-        return new Node(ctr++,r);
-    }
-    vpsc::Variable* operator() (Node* v) {
-        return new vpsc::Variable(v->id);
+        return new Node(ctr,r,new vpsc::Variable(ctr++));
     }
     unsigned ctr;
 };
-void randomTest() {
+void testRectangles(vpsc::Rectangles& rs) {
+    rs.push_back(new vpsc::Rectangle(5,15,14,52));
+    rs.push_back(new vpsc::Rectangle(5,10,14,23));
+    rs.push_back(new vpsc::Rectangle(5,35,13,39));
+    rs.push_back(new vpsc::Rectangle(2,10,6,34));
+    rs.push_back(new vpsc::Rectangle(5,9,2,22));
+    rs.push_back(new vpsc::Rectangle(11,13,8,24));
+    rs.push_back(new vpsc::Rectangle(7,35,10,27));
+    rs.push_back(new vpsc::Rectangle(9,39,8,10));
+    rs.push_back(new vpsc::Rectangle(11,38,11,20));
+    rs.push_back(new vpsc::Rectangle(9,47,5,55));
+}
+void testCase() {
     string name("nooverlap");
+    Edges es;
     vpsc::Rectangles rs;
-    const size_t V = 10;
-    generateRandomRects(V,rs);
+    testRectangles(rs);
+    const size_t V = rs.size();
+    
     removeoverlaps(rs);
     assertNoOverlaps(rs);
     Nodes nodes(V);
     transform(rs.begin(),rs.end(),nodes.begin(),Create());
 
-    //writeFile(nodes,es,name+"-0.svg");
+    writeFile(nodes,es,name+"-0.svg");
 
-    vpsc::Variables vs(V);
-    transform(nodes.begin(),nodes.end(),vs.begin(),Create());
-
-    for(int dim=0;dim<2;dim++) {
+    try {
         vpsc::Constraints cs;
         Edges es; // not used in this test
-        TopologyConstraints t(static_cast<cola::Dim>(dim),nodes,es,vs,cs);
-        for(unsigned i=0;i<V;++i) {
-            vpsc::Rectangle* r=rs[i];
-            r->moveCentreD(dim,getRand(5));
-            vs[i]->desiredPosition=r->getCentreD(dim);
+        TopologyConstraints t(static_cast<cola::Dim>(dim),nodes,es,cs);
+        for(Nodes::iterator v=nodes.begin();v!=nodes.end();++v) {
+            (*v)->var->desiredPosition=getRand(5);
         }
-        //writeFile(nodes,es,name+"-1.svg");
-        vpsc::Solver vpsc(vs,cs);
-        vpsc.solve();
-        vpsc::Variables::iterator j=vs.begin();
-        for(unsigned i=0;i<V;++i) {
-            vpsc::Rectangle* r=rs[i];
-            r->moveCentreD(dim,vs[i]->finalPosition);
-        }
+        t.solve();
+        writeFile(nodes,es,name+"-1.svg");
 
-        //writeFile(nodes,es,name+"-2.svg");
         assertNoOverlaps(rs);
+
         for_each(cs.begin(),cs.end(),delete_object());
+    } catch(const char *e) {
+        fprintf(stderr,"ERROR: %s\n",e);
     }
 
-    for_each(vs.begin(),vs.end(),delete_object());
-    for_each(nodes.begin(),nodes.end(),delete_object());
-    for_each(rs.begin(),rs.end(),delete_object());
+    for_each(nodes.begin(),nodes.end(),delete_node());
+}
+void randomTest(cola::Dim dim) {
+    string name("nooverlap");
+    const size_t V = 10;
+    vpsc::Rectangles rs, rs_bak;
+    generateRandomRects(V,rs);
+    for(vpsc::Rectangles::iterator i=rs.begin();i!=rs.end();++i) {
+        rs_bak.push_back(new vpsc::Rectangle(**i));
+    }
+    static const double EXTRA_GAP=1e-10;
+    vpsc::Rectangle::setXBorder(EXTRA_GAP);
+    vpsc::Rectangle::setYBorder(EXTRA_GAP);
+    removeoverlaps(rs);
+    assertNoOverlaps(rs);
+    Nodes nodes(V);
+    transform(rs.begin(),rs.end(),nodes.begin(),Create());
+
+    try {
+        vpsc::Constraints cs;
+        Edges es; // not used in this test
+        TopologyConstraints t(dim,nodes,es,cs);
+        for(Nodes::iterator v=nodes.begin();v!=nodes.end();++v) {
+            (*v)->var->desiredPosition=getRand(5);
+        }
+        t.solve();
+        vpsc::Rectangle::setXBorder(0);
+        vpsc::Rectangle::setYBorder(0);
+
+        noRectOverlaps(rs);
+
+        for_each(cs.begin(),cs.end(),delete_object());
+    } catch(const char *e) {
+        fprintf(stderr,"ERROR: %s\n",e);
+        printf("original:");
+        for(vpsc::Rectangles::iterator i=rs_bak.begin();i!=rs_bak.end();++i) {
+            cout << **i << endl;
+        }
+        printf("overlapping:");
+        for(vpsc::Rectangles::iterator i=rs.begin();i!=rs.end();++i) {
+            cout << **i << endl;
+        }
+    }
+
+    for_each(nodes.begin(),nodes.end(),delete_node());
 }
 
 int main() {
-    for(unsigned i=0;i<10000;++i) {
+    //testCase();
+    //return 0;
+    for(unsigned i=0;i<100000;++i) {
         if(!(i%1000)) {
             printf(" completed %d instances...\n",i);
         }
-        randomTest();
+        randomTest(cola::HORIZONTAL);
+        randomTest(cola::VERTICAL);
     }
     return 0;
 }

@@ -59,13 +59,9 @@ void split() {
 
     const size_t V = nodes.size();
 
-    vpsc::Variables vs;
     vpsc::Constraints cs;
-    for(unsigned i=0;i<V;++i) {
-        vs.push_back(new vpsc::Variable(i));
-    }
     { // scope for t, so that t gets destroyed before es
-        TopologyConstraints t(cola::HORIZONTAL,nodes,es,vs,cs);
+        TopologyConstraints t(cola::HORIZONTAL,nodes,es,cs);
         writeFile(nodes,es,"split-0.svg");
 
         // test computeStress
@@ -85,14 +81,9 @@ void split() {
         }
     }
 
-    for(Nodes::iterator i=nodes.begin();i!=nodes.end();++i) {
-        Node* v=*i;
-        delete v->rect;
-        delete v;
-    }
+    for_each(nodes.begin(),nodes.end(),delete_node());
     for_each(es.begin(),es.end(),delete_object());
     for_each(cs.begin(),cs.end(),delete_object());
-    for_each(vs.begin(),vs.end(),delete_object());
 }
 
 int main() {

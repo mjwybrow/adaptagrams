@@ -27,14 +27,34 @@ void generateRandomRects(unsigned n, vpsc::Rectangles &rs) {
 
 Node* addNode(Nodes& vs, double x, double y, double w, double h) {
     vpsc::Rectangle* r = new vpsc::Rectangle(x,x+w,y,y+h);
-    Node *v = new Node(vs.size(), r);
+    Node *v = new Node(vs.size(), r, new vpsc::Variable(vs.size()));
     vs.push_back(v);
     return v;
 }
+struct delete_node {
+	void operator() (Node* v) {
+        delete v->rect;
+        delete v->var;
+        delete v;
+    }
+};
 void addToPath(EdgePoints& ps, Node *v, topology::EdgePoint::RectIntersect i) {
     ps.push_back(new EdgePoint(v,i));
 }
 
+void noRectOverlaps(const vpsc::Rectangles& rs) {
+	for(vpsc::Rectangles::const_iterator i=rs.begin();i!=rs.end();++i) {
+		for(vpsc::Rectangles::const_iterator j=i+1;j!=rs.end();++j) {
+            vpsc::Rectangle *u=*i, *v=*j;
+            double xoverlap=u->overlapX(v);
+            double yoverlap=u->overlapY(v);
+			if(xoverlap>0 && yoverlap>0) {
+                printf("Overlap=%f,%f\n",xoverlap,yoverlap);
+                throw "OVERLAP FOUND!";
+			}
+		}
+	}
+}
 void writeFile(const Nodes& vs, const Edges& es, const string& outputFileName) {
     const unsigned n=vs.size();
     vector<cola::Edge> cedges;
@@ -79,3 +99,4 @@ void check(const TopologyConstraints& t, valarray<double>& g, cola::SparseMap& h
         printf("\n");
     }
 }
+// vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:encoding=utf-8:textwidth=80 :
