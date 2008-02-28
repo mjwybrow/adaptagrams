@@ -23,6 +23,8 @@ using std::set;
 using std::vector;
 
 namespace vpsc {
+
+double Rectangle::xBorder=0, Rectangle::yBorder=0;
 std::ostream& operator <<(std::ostream &os, const Rectangle &r) {
 	os << "Rectangle("<<r.minX<<","<<r.maxX<<","<<r.minY<<","<<r.maxY<<"),";
 	return os;
@@ -104,8 +106,8 @@ bool CmpNodePos::operator() (const Node* u, const Node* v) const {
 NodeSet* getLeftNeighbours(NodeSet &scanline,Node *v) {
 	NodeSet *leftv = new NodeSet;
 	NodeSet::iterator i=scanline.find(v);
-	while(i--!=scanline.begin()) {
-		Node *u=*(i);
+	while(i!=scanline.begin()) {
+		Node *u=*(--i);
 		if(u->r->overlapX(v->r)<=0) {
 			leftv->insert(u);
 			return leftv;
@@ -192,8 +194,8 @@ void generateXConstraints(vector<Rectangle*> const & rs, vector<Variable*> const
 				);
 			} else {
 				NodeSet::iterator it=scanline.find(v);
-				if(it--!=scanline.begin()) {
-					Node *u=*it;
+				if(it!=scanline.begin()) {
+					Node *u=*(--it);
 					v->firstAbove=u;
 					u->firstBelow=v;
 				}
@@ -281,8 +283,8 @@ void generateYConstraints(const Rectangles& rs, const Variables& vars, Constrain
 		if(e->type==Open) {
 			scanline.insert(v);
 			NodeSet::iterator it=scanline.find(v);
-			if(it--!=scanline.begin()) {
-				Node *u=*it;
+			if(it!=scanline.begin()) {
+				Node *u=*(--it);
 				v->firstAbove=u;
 				u->firstBelow=v;
 			}

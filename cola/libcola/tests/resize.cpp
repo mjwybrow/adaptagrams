@@ -58,8 +58,8 @@ struct Test : TestConvergence {
 
 void resize() {
 //printf(
-//"tests interaction with layout and solver.  We have a number of disconnected"
-//"shapes.  One shape is 'dragged' through the others.  Overlaps should be"
+//"tests resizing of a shape.  We have a number of disconnected"
+//"shapes.  One shape is 'enlarged'.  Overlaps should be"
 //"avoided."
 //"\n");
     const unsigned V = 9;

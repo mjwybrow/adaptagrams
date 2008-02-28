@@ -126,7 +126,7 @@ void randomTest(cola::Dim dim) {
 int main() {
     //testCase();
     //return 0;
-    for(unsigned i=0;i<100000;++i) {
+    for(unsigned i=0;i<10000;++i) {
         if(!(i%1000)) {
             printf(" completed %d instances...\n",i);
         }

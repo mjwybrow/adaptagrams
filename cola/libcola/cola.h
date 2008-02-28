@@ -89,22 +89,15 @@ public:
      * for their bounding rects.
      */
     PreIteration(
-            Locks& locks,
-            Resizes& resizes) 
-        : locks(locks), resizes(resizes), changed(true) {}
-    /**
-     * @param locks a list of nodes (by id) and positions at which
-     * they should be locked.
-     */
-    PreIteration(Locks& locks) 
-        : locks(locks), 
-          resizes(PreIteration::__resizesNotUsed), changed(true) {}
-    /**
-     * @param resizes a list of nodes (by id) and required dimensions
-     * for their bounding rects.
-     */
+            Locks& locks=__locksNotUsed,
+            Resizes& resizes=__resizesNotUsed) 
+        : locks(locks)
+        , resizes(resizes) 
+        , changed(true) {}
     PreIteration(Resizes& resizes) 
-        : locks(__locksNotUsed), resizes(resizes), changed(true) {}
+        : locks(__locksNotUsed)
+        , resizes(resizes)
+        , changed(true) {}
     virtual ~PreIteration() {}
     virtual bool operator()() { return true; }
     Locks& locks;
@@ -365,10 +358,10 @@ public:
      * @param preIteration an operation called before each iteration
      */
     ConstrainedFDLayout(
-        vector<Rectangle*>& rs,
-        vector<Edge> const & es,
-        double const idealLength,
-        std::valarray<double> const * eweights=NULL,
+        const vector<Rectangle*>& rs,
+        const vector<Edge>& es,
+        const double idealLength,
+        const std::valarray<double>* eweights=NULL,
         TestConvergence& done=defaultTest,
         PreIteration* preIteration=NULL);
     void run(bool x=true, bool y=true);
@@ -377,8 +370,6 @@ public:
      */
     void setXConstraints(CompoundConstraints* ccsx) {
         if(ccsx->size()>0) {
-            printf("setXConstraints\n");
-            constrainedX=true;
             this->ccsx=ccsx;
         }
     }
@@ -387,8 +378,6 @@ public:
      */
     void setYConstraints(CompoundConstraints* ccsy) {
         if(ccsy->size()>0) {
-            printf("setYConstraints\n");
-            constrainedY=true;
             this->ccsy=ccsy;
         }
     }
@@ -396,7 +385,6 @@ public:
         //printf("setTopology...\n");
         topologyNodes=tnodes;
         topologyRoutes=routes;
-        constrainedX=constrainedY=true;
     }
     /**
      * These lists will have info about unsatisfiable constraints
@@ -423,32 +411,38 @@ private:
     valarray<double> X, Y;
     vector<Rectangle*> boundingBoxes;
     double applyForcesAndConstraints(const Dim dim,const double oldStress);
-    double computeStepSize(SparseMatrix const & H, valarray<double> const & g,
-            valarray<double> const & d) const;
+    double computeStepSize(const SparseMatrix& H, const valarray<double>& g,
+            const valarray<double>& d) const;
+    void computeDescentVectorOnBothAxes(const bool xaxis, const bool yaxis,
+            double stress, valarray<double>& x0, valarray<double>& x1);
+    void moveTo(const Dim dim, valarray<double>& target);
     double applyDescentVector(
-            valarray<double> const & d,
-            valarray<double> const & oldCoords,
+            const valarray<double>& d,
+            const valarray<double>& oldCoords,
             valarray<double> &coords, 
             const double oldStress, 
             double stepsize
             /*,topology::TopologyConstraints *s=NULL*/);
+    void computePathLengths(
+            const vector<Edge>& es,
+            const double idealLength,
+            const std::valarray<double> * eweights);
     void handleResizes(const Resizes&);
-    void move();
+    void setPosition(valarray<double>& pos);
+    void moveBoundingBoxes();
     bool noForces(double, double, unsigned) const;
     void computeForces(const Dim dim, SparseMap &H, valarray<double> &g);
     vector<vector<unsigned> > neighbours;
     vector<vector<double> > neighbourLengths;
     TestConvergence& done;
     PreIteration* preIteration;
-    double avgLength;
-    double fc,fs;
-    bool constrainedX, constrainedY;
     CompoundConstraints *ccsx, *ccsy;
     double** D;
     unsigned** G;
     vector<topology::Node*>* topologyNodes;
     vector<topology::Edge*>* topologyRoutes;
     vector<UnsatisfiableConstraintInfos*> unsatisfiable;
+    bool rungekutta;
 };
 
 }

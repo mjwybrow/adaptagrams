@@ -257,5 +257,55 @@ assertFeasible() const {
     for_each(ts.begin(),ts.end(),mem_fun(&TopologyConstraint::assertFeasible));
     return true;
 }
+bool TopologyConstraints::solve() {
+    FILE_LOG(logDEBUG)<<"TopologyConstraints::solve... dim="<<dim;
+    assert(assertConvexBends(edges));
+    assert(assertNoSegmentRectIntersection(nodes,edges));
+    assert(assertFeasible());
+    vector<TopologyConstraint*> ts;
+    constraints(ts);
+    vpsc::IncSolver s(vs,cs);
+    s.solve();
+    double minTAlpha=DBL_MAX;
+    TopologyConstraint* minT=NULL;
+    // find minimum feasible alpha over all topology constraints
+    for(vector<TopologyConstraint*>::iterator i=ts.begin();
+            i!=ts.end();++i) {
+        TopologyConstraint* t=*i;
+        double tAlpha=t->c->maxSafeAlpha();
+        double slackAtFinal=t->c->slackAtFinal();
+        FILE_LOG(logDEBUG1)<<"Checking topology constraint! alpha="<<tAlpha
+            <<"\n  slack at desired="<<slackAtFinal;
+        FILE_LOG(logDEBUG1)<<t->toString();
+        if(slackAtFinal<0 && tAlpha<minTAlpha) {
+            minTAlpha=tAlpha;
+            minT=t;
+        }
+    }
+    bool interrupted=false;
+    if(minTAlpha<1) {
+        interrupted=true;
+        FILE_LOG(logDEBUG1)<<"violated topology constraint! alpha="<<minTAlpha;
+    }
+    for(Nodes::iterator i=nodes.begin();i!=nodes.end();++i) {
+        Node* v=*i;
+        v->moveRect(interrupted,minTAlpha);
+    }
+    assert(noOverlaps());
+    assert(assertConvexBends(edges));
+    // rectangle and edge point positions updated to variables.
+    FILE_LOG(logDEBUG)<<" moves done.";
+    if(interrupted) {
+        // now we satisfy the violated topology constraint, i.e. a bend point
+        // that has become straight is removed or a segment that needs to bend
+        // is split
+        minT->satisfy();
+    }
+    assert(assertFeasible());
+    assert(assertConvexBends(edges));
+    assert(assertNoSegmentRectIntersection(nodes,edges));
+    FILE_LOG(logDEBUG)<<"TopologyConstraints::steepestDescent... done";
+    return interrupted;
+}
 } // namespace topology
 // vim: cindent ts=4 sw=4 et tw=80 wm=5 

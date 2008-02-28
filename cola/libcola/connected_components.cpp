@@ -1,8 +1,8 @@
-#include "commondefs.h"       // magmy20070405: Added
+#include "commondefs.h"  
 
 #include <map>
 #include <list>
-#include <libvpsc/remove_rectangle_overlap.h>
+#include <libvpsc/rectangle.h>
 #include "connected_components.h"
 using namespace std;
 
@@ -127,7 +127,7 @@ namespace cola {
             origX[i]=bbs[i]->getCentreX();
             origY[i]=bbs[i]->getCentreY();
         }
-        removeRectangleOverlap(n,bbs,0,0);
+        removeoverlaps(bbs);
         for(unsigned i=0;i<n;i++) {
             components[i]->moveRectangles(
                     bbs[i]->getCentreX()-origX[i],

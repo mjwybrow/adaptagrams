@@ -143,8 +143,8 @@ struct NodeClose : NodeEvent {
         FILE_LOG(logDEBUG) << "NodeClose::process()";
         OpenNodes::iterator nodePos=opening->openListIndex;
         OpenNodes::iterator right=nodePos, left=nodePos;
-        if(left--!=openNodes.begin()) {
-            createNonOverlapConstraint(left->second->node,node);
+        if(left!=openNodes.begin()) {
+            createNonOverlapConstraint((--left)->second->node,node);
         }
         if((++right)!=openNodes.end()) {
             createNonOverlapConstraint(node,right->second->node);
@@ -438,10 +438,12 @@ TopologyConstraints(
     const cola::Dim axisDim,
     Nodes& nodes,
     Edges& edges,
+    vpsc::Variables& vs,
     vpsc::Constraints& cs
 ) : n(nodes.size())
   , nodes(nodes)
   , edges(edges) 
+  , vs(vs)
   , cs(cs)
 {
     FILELog::ReportingLevel() = logERROR;

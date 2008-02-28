@@ -235,7 +235,8 @@ namespace topology {
          * assertion error.
          * @param pos position of scanline
          * @param p distance along line from start to end at which intersection
-         * occurs (where 0 is at the start and 1 is at the end).
+         * occurs (where 0 is at the start and 1 is at the end -- though
+         * note that p will be outside this range for BendConstraints).
          * @return position along scanline of intersection with the line along
          * this edge segment
          */

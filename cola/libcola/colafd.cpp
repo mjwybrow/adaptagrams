@@ -43,10 +43,10 @@ void dumpSquareMatrix(unsigned n, T** L) {
     }
 }
 ConstrainedFDLayout::ConstrainedFDLayout(
-        vector<vpsc::Rectangle*>& rs,
-        vector<Edge> const & es,
-        double const idealLength,
-        std::valarray<double> const * eweights,
+        const vector<vpsc::Rectangle*>& rs,
+        const vector<Edge> & es,
+        const double idealLength,
+        const std::valarray<double> * eweights,
         TestConvergence& done,
         PreIteration* preIteration)
     : n(rs.size()),
@@ -54,10 +54,10 @@ ConstrainedFDLayout::ConstrainedFDLayout(
       Y(valarray<double>(n)),
       done(done),
       preIteration(preIteration),
-      constrainedX(false), constrainedY(false),
       ccsx(NULL), ccsy(NULL),
       topologyNodes(NULL),
-      topologyRoutes(NULL)
+      topologyRoutes(NULL),
+      rungekutta(true)
 {
     //FILELog::ReportingLevel() = logDEBUG1;
     FILELog::ReportingLevel() = logERROR;
@@ -75,6 +75,13 @@ ConstrainedFDLayout::ConstrainedFDLayout(
         D[i]=new double[n];
         G[i]=new unsigned[n];
     }
+    computePathLengths(es,idealLength,eweights);
+}
+void ConstrainedFDLayout::computePathLengths(
+        const vector<Edge>& es,
+        const double idealLength,
+        const std::valarray<double>* eweights) 
+{
     shortest_paths::johnsons(n,G,es);
     shortest_paths::johnsons(n,D,es,eweights);
     //dumpSquareMatrix<unsigned>(n,G);
@@ -89,36 +96,76 @@ ConstrainedFDLayout::ConstrainedFDLayout(
     }
 }
 
+typedef valarray<double> Position;
+void getPosition(Position& X, Position& Y, Position& pos) {
+    unsigned n=X.size();
+    assert(Y.size()==n);
+    assert(pos.size()==2*n);
+    for(unsigned i=0;i<n;++i) {
+        pos[i]=X[i];
+        pos[i+n]=Y[i];
+    }
+}
+/**
+ * moves all rectangles to the desired position while respecting
+ * constraints.
+ * @param pos target positions of both axes
+ */
+void ConstrainedFDLayout::setPosition(Position& pos) {
+    assert(Y.size()==X.size());
+    assert(pos.size()==2*X.size());
+    moveTo(HORIZONTAL,pos);
+    moveTo(VERTICAL,pos);
+}
+void ConstrainedFDLayout::computeDescentVectorOnBothAxes(
+        const bool xAxis, const bool yAxis,
+        double stress, Position& x0, Position& x1) {
+    setPosition(x0);
+    if(xAxis) {
+        applyForcesAndConstraints(HORIZONTAL,stress);
+    }
+    if(yAxis) {
+        applyForcesAndConstraints(VERTICAL,stress);
+    }
+    getPosition(X,Y,x1);
+}
+
 void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis) {
     FILE_LOG(logDEBUG) << "ConstrainedFDLayout::run...";
     if(n==0) return;
     double stress=DBL_MAX;
-    bool firstPass=true;
     do {
         if(preIteration) {
             if(!(*preIteration)()) {
                 break;
             }
             //printf("preIteration->changed=%d\n",preIteration->changed);
-            firstPass=preIteration->changed;
+            if(preIteration->changed) {
+                stress=DBL_MAX;
+            }
             if(preIteration->resizes.size()>0) {
                 FILE_LOG(logDEBUG) << " Resize event!";
                 handleResizes(preIteration->resizes);
             }
         }
-        if(xAxis) {
-            if (firstPass) {
-                stress=DBL_MAX;
-            }
-            stress=applyForcesAndConstraints(HORIZONTAL,stress);
+        unsigned N=2*n;
+        Position x0(N),x1(N);
+        getPosition(X,Y,x0);
+        if(rungekutta) {
+            Position a(N),b(N),c(N),d(N),ia(N),ib(N);
+            computeDescentVectorOnBothAxes(xAxis,yAxis,stress,x0,a);
+            ia=x0+(a-x0)/2.0;
+            computeDescentVectorOnBothAxes(xAxis,yAxis,stress,ia,b);
+            ib=x0+(b-x0)/2.0;
+            computeDescentVectorOnBothAxes(xAxis,yAxis,stress,ib,c);
+            computeDescentVectorOnBothAxes(xAxis,yAxis,stress,c,d);
+            x1=a+2.0*b+2.0*c+d;
+            x1/=6.0;
+        } else {
+            computeDescentVectorOnBothAxes(xAxis,yAxis,stress,x0,x1);
         }
-        if(yAxis) {
-            if (firstPass) {
-                stress=DBL_MAX;
-            }
-            stress=applyForcesAndConstraints(VERTICAL,stress);
-        }
-        firstPass=false;
+        setPosition(x1);
+        stress=computeStress();
         FILE_LOG(logDEBUG) << "stress="<<stress;
     } while(!done(stress,X,Y));
     FILE_LOG(logDEBUG) << "ConstrainedFDLayout::run done.";
@@ -148,6 +195,14 @@ void updateCompoundConstraints(const CompoundConstraints* ccs) {
         }
     }
 }
+void project(vpsc::Variables& vs, vpsc::Constraints& cs, valarray<double>& coords) {
+    unsigned n=coords.size();
+    vpsc::IncSolver s(vs,cs);
+    s.solve();
+    for(unsigned i=0;i<n;++i) {
+        coords[i]=vs[i]->finalPosition;
+    }
+}
 void project(vpsc::Variables& vs, vpsc::Constraints& cs, const topology::DesiredPositions& des, valarray<double>& coords) {
     unsigned n=coords.size();
     assert(vs.size()>=n);
@@ -163,11 +218,7 @@ void project(vpsc::Variables& vs, vpsc::Constraints& cs, const topology::Desired
         v->desiredPosition = d->second;
         v->weight=10000;
     }
-    vpsc::IncSolver s(vs,cs);
-    s.solve();
-    for(unsigned i=0;i<n;++i) {
-        coords[i]=vs[i]->finalPosition;
-    }
+    project(vs,cs,coords);
 }
 void checkUnsatisfiable(const vpsc::Constraints& cs, 
         UnsatisfiableConstraintInfos* unsatisfiable) {
@@ -180,6 +231,7 @@ void checkUnsatisfiable(const vpsc::Constraints& cs,
 }
 
 void ConstrainedFDLayout::handleResizes(const Resizes& resizeList) {
+    FILE_LOG(logDEBUG) << "ConstrainedFDLayout::handleResizes()...";
     if(topologyNodes==NULL) {
         assert(topologyRoutes==NULL);
         return;
@@ -192,7 +244,56 @@ void ConstrainedFDLayout::handleResizes(const Resizes& resizeList) {
         topology::ResizeInfo ri((*topologyNodes)[r->getID()],r->getTarget());
         resizes.insert(make_pair(r->getID(),ri));
     }
-    topology::applyResizes(*topologyNodes, *topologyRoutes, resizes);
+    vpsc::Variables xvs, yvs;
+    vpsc::Constraints xcs, ycs;
+    setupVarsAndConstraints(n,ccsx,xvs,xcs);
+    setupVarsAndConstraints(n,ccsy,yvs,ycs);
+    topology::applyResizes(*topologyNodes, *topologyRoutes, resizes,
+            xvs, xcs, yvs, ycs);
+    for_each(xvs.begin(), xvs.end(), delete_object());
+    for_each(yvs.begin(), yvs.end(), delete_object());
+    for_each(xcs.begin(), xcs.end(), delete_object());
+    for_each(ycs.begin(), ycs.end(), delete_object());
+    FILE_LOG(logDEBUG) << "ConstrainedFDLayout::handleResizes()... done.";
+}
+/**
+ * move positions of nodes in specified axis while respecting constraints
+ * @param dim axis
+ * @param target array of desired positions (for both axes)
+ */
+void ConstrainedFDLayout::moveTo(const Dim dim, Position& target) {
+    assert(target.size()==2*n);
+    FILE_LOG(logDEBUG) << "ConstrainedFDLayout::moveTo(): dim="<<dim;
+    valarray<double> &coords = (dim==HORIZONTAL)?X:Y;
+    vpsc::Variables vs;
+    vpsc::Constraints cs;
+    CompoundConstraints* ccs=dim==HORIZONTAL?ccsx:ccsy;
+    setupVarsAndConstraints(n,ccs,vs,cs);
+    for(unsigned i=0, j=(dim==HORIZONTAL?0:n);i<n;++i,++j) {
+        Variable* v=vs[i];
+        v->desiredPosition = target[j];
+    }
+    if(topologyRoutes) {
+        topology::setNodeVariables(*topologyNodes,vs);
+        topology::TopologyConstraints t(dim,*topologyNodes,*topologyRoutes,vs,cs);
+        bool interrupted;
+        int loopBreaker=100;
+        do {
+            interrupted=t.solve();
+            loopBreaker--;
+        } while(interrupted&&loopBreaker>0);
+        for(topology::Nodes::iterator i=topologyNodes->begin();
+                i!=topologyNodes->end();++i) {
+            topology::Node* v=*i;
+            coords[v->id]=v->rect->getCentreD(dim);
+        }
+    } else {
+        project(vs,cs,coords);
+        moveBoundingBoxes();
+    }
+    updateCompoundConstraints(ccs);
+    for_each(vs.begin(),vs.end(),delete_object());
+    for_each(cs.begin(),cs.end(),delete_object());
 }
 /**
  * The following computes an unconstrained solution then uses Projection to
@@ -204,13 +305,6 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
     FILE_LOG(logDEBUG) << "ConstrainedFDLayout::applyForcesAndConstraints(): dim="<<dim;
     valarray<double> g(n);
     valarray<double> &coords = (dim==HORIZONTAL)?X:Y;
-    /*
-    printf("g=[");
-    for(unsigned i=0;i<n;i++) {
-        printf("%f ",g[i]);
-    }
-    printf("]\n");
-    */
     topology::DesiredPositions des;
     if(preIteration) {
         for(vector<Lock>::iterator l=preIteration->locks.begin();
@@ -226,14 +320,14 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
     double stress;
     setupVarsAndConstraints(n,ccs,vs,cs);
     if(topologyRoutes) {
-        FILE_LOG(logDEBUG1) << "applying topology preserving layout...\n";
+        FILE_LOG(logDEBUG1) << "applying topology preserving layout...";
 		vpsc::Rectangle::setXBorder(0);
 		vpsc::Rectangle::setYBorder(0);
         if(dim==cola::HORIZONTAL) {
             vpsc::Rectangle::setXBorder(0);
         }
         topology::setNodeVariables(*topologyNodes,vs);
-        topology::TopologyConstraints t(dim,*topologyNodes,*topologyRoutes,cs);
+        topology::TopologyConstraints t(dim,*topologyNodes,*topologyRoutes,vs,cs);
         bool interrupted;
         int loopBreaker=10;
         do {
@@ -264,7 +358,7 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
         stepsize=max(0.,min(stepsize,1.));
         //printf(" dim=%d beta: ",dim);
         stress = applyDescentVector(d,oldCoords,coords,oldStress,stepsize);
-        move();
+        moveBoundingBoxes();
     }
     updateCompoundConstraints(ccs);
     if(unsatisfiable.size()==2) {
@@ -417,7 +511,7 @@ double ConstrainedFDLayout::computeStress() const {
     }
     return stress;
 }
-void ConstrainedFDLayout::move() {
+void ConstrainedFDLayout::moveBoundingBoxes() {
     for(unsigned i=0;i<n;i++) {
         boundingBoxes[i]->moveCentre(X[i],Y[i]);
     }

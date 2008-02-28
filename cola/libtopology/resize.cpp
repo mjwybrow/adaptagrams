@@ -7,7 +7,8 @@
 namespace topology {
 using namespace std;
 using namespace vpsc;
-static const double DUMMY_RECT_THICKNESS=1e-4;
+static const double DW=1e-4;
+static const double DW2=DW/2.0;
 static const double DEFAULT_WEIGHT = 1.0;
 static const double FIXED_WEIGHT = 10000;
 
@@ -21,73 +22,72 @@ void feach(Container& c, Op op) {
  * Functor that creates a copy of the specified Node and creates a
  * new Rectangle and a Variable associated with the node.
  * If the node appears in the resizes lookup the rectangle is reduced
- * to a sliver of the left hand side (or bottom depending on dim) of the
- * original rect and the desired position of the variable is the left
- * side of the target rect.
- * If not in the resizes list, the rectangle is simply a copy of
- * the initial rectangle and the desired position is the centre of the
- * target.
+ * to a sliver in the middle of the original rect.
+ * In either case the desired position is the centre of the target.
  */
 struct TransformNode {
     TransformNode( const Rectangles& targets,
-            const ResizeMap& resizes)
-        : targets(targets), resizes(resizes) {}
+            const ResizeMap& resizes, Variables& vs)
+        : targets(targets), resizes(resizes), vs(vs) {}
     Node* operator() (Node* u) {
         const Rectangle *targetRect = targets[u->id];
-        Rectangle *initialRect = new Rectangle(*u->rect);
+        Rectangle *rect = new Rectangle(*u->rect);
         ResizeMap::const_iterator ri = resizes.find(u->id);
-        double desiredCentre, weight;
+        Variable* var = vs[u->id];
+        var->desiredPosition = targetRect->getCentreD(dim);
         if(ri==resizes.end()) { // no resize
-            desiredCentre = targetRect->getCentreD(dim);
-            weight = DEFAULT_WEIGHT;
+            var->weight = DEFAULT_WEIGHT;
         } else { // resizing!
-            double m = initialRect->getMinD(dim);
-            initialRect->reset(dim, m, m+DUMMY_RECT_THICKNESS);
-            desiredCentre = targetRect->getMinD(dim)+DUMMY_RECT_THICKNESS/2.0;
-            weight = FIXED_WEIGHT;
+            const double c=rect->getCentreD(dim);
+            rect->reset(dim, c - DW2, c + DW2);
+            var->weight = FIXED_WEIGHT;
         }
-        return new topology::Node(u->id, initialRect,
-                new Variable(u->id,desiredCentre,weight));
+        return new topology::Node(u->id, rect, var);
     }
     const Rectangles& targets;
     const ResizeMap& resizes;
+    Variables& vs;
 };
 /**
  * Functor which, for the specified Resizeinfo, creates a centre and
  * right dummy node and associated variables.
  */
-struct CreateCentreRightDummyNodes {
-    CreateCentreRightDummyNodes(
+struct CreateLeftRightDummyNodes {
+    CreateLeftRightDummyNodes(
             const Rectangles& targets,
-            Nodes& nodes)
-        : targets(targets), nodes(nodes) {}
-    void operator() (pair<const unsigned,ResizeInfo>& p) {
+            Nodes& nodes,
+            Variables& vs)
+        : targets(targets), nodes(nodes), vs(vs) {}
+    void operator() (pair<const unsigned, ResizeInfo>& p) {
         // dummy nodes will have the same id as the original
         ResizeInfo& ri=p.second;
         const unsigned id=ri.orig->id;
         assert(p.first==id);
         const Rectangle *ro=ri.orig->rect,
-                        *target=targets[id];
-        static const double w2=DUMMY_RECT_THICKNESS/2.0;
-        // Centre
-        const double cpos=ro->getCentreD(dim);
-        Rectangle *centreRect=new Rectangle(*ro);
-        centreRect->reset(dim,cpos-w2,cpos+w2);
-        ri.centreNode=new topology::Node(id,centreRect,
-                new Variable(nodes.size(),
-                    target->getCentreD(dim),FIXED_WEIGHT));
-        nodes.push_back(ri.centreNode);
+                        *targetRect=targets[id];
+
+        // LEFT
+        const double l = ro->getMinD(dim);
+        Rectangle *lhsRect=new Rectangle(*ro);
+        lhsRect->reset(dim, l, l + DW);
+        Variable* lv = new Variable(vs.size(),
+                targetRect->getMinD(dim) + DW2, FIXED_WEIGHT);
+        vs.push_back(lv);
+        ri.lhsNode=new topology::Node(id,lhsRect,lv);
+        nodes.push_back(ri.lhsNode);
         // Right
-        const double rpos=ro->getMaxD(dim);
+        const double r = ro->getMaxD(dim);
         Rectangle *rhsRect=new Rectangle(*ro);
-        rhsRect->reset(dim,rpos-DUMMY_RECT_THICKNESS,rpos);
-        double desiredPos=target->getMaxD(dim)-DUMMY_RECT_THICKNESS/2.0;
-        ri.rhsNode=new topology::Node(id,rhsRect,
-                new Variable(nodes.size(),desiredPos,FIXED_WEIGHT));
+        rhsRect->reset(dim, r - DW, r);
+        Variable* rv = new Variable(vs.size(), 
+                targetRect->getMaxD(dim) - DW2, FIXED_WEIGHT);
+        vs.push_back(rv);
+        ri.rhsNode=new topology::Node(id, rhsRect, rv);
         nodes.push_back(ri.rhsNode);
     }
     const Rectangles& targets;
     Nodes& nodes;
+    Variables& vs;
 };
 /**
  * Functor to reassign EdgePoint Node pointers.  
@@ -127,14 +127,14 @@ struct SubstituteNodes {
             }
             switch(pos) {
                 case LHS:
-                    p->node=tn[id];
+                    p->node=ri->second.lhsNode;
                     break;
                 case RHS:
                     p->node=ri->second.rhsNode;
                     break;
                 default:
                     assert(p->rectIntersect==topology::EdgePoint::CENTRE);
-                    p->node=ri->second.centreNode;
+                    p->node=tn[id];
             }
         } else {
             p->node=tn[id];
@@ -162,7 +162,7 @@ struct CopyPositions {
         if(j==rm.end()) {
             v->rect->moveCentreD(dim,tn[v->id]->rect->getCentreD(dim));
         } else {
-            const Rectangle *l=tn[v->id]->rect,
+            const Rectangle *l=j->second.lhsNode->rect,
                             *r=j->second.rhsNode->rect;
             v->rect->reset(dim,l->getMinD(dim),r->getMaxD(dim));
         }
@@ -199,14 +199,14 @@ bool checkDesired(
         const unsigned id=j->first;
         const ResizeInfo& ri=j->second;
         assert(ri.orig->id==id);
-        const Node *ln=nodes[id], *cn=ri.centreNode, *rn=ri.rhsNode;
+        const Node *ln=ri.lhsNode, *cn=nodes[id], *rn=ri.rhsNode;
         assert(ln->id==id);
         assert(cn->id==id);
         assert(rn->id==id);
         const Rectangle* t=targets[id];
-        const double lp=t->getMinD(dim)+DUMMY_RECT_THICKNESS/2.0,
-                     cp=t->getCentreD(dim),
-                     rp=t->getMaxD(dim)-DUMMY_RECT_THICKNESS/2.0;
+        const double lp = t->getMinD(dim) + DW2,
+                     cp = t->getCentreD(dim),
+                     rp = t->getMaxD(dim) - DW2;
         assert(approx_equals(lp,ln->var->desiredPosition));
         assert(approx_equals(cp,cn->var->desiredPosition));
         assert(approx_equals(rp,rn->var->desiredPosition));
@@ -223,10 +223,11 @@ bool checkFinal(
         const Rectangle* t=targets[v->id];
         ResizeMap::const_iterator j=resizeMap.find(v->id);
         if(j==resizeMap.end()) {
-            assert(fabs(v->rect->getCentreD(dim)-t->getCentreD(dim))<DISPLACEMENT_ERROR);
+            assert(fabs(v->rect->getCentreD(dim)-t->getCentreD(dim))
+                    <DISPLACEMENT_ERROR);
         } else {
-            const Rectangle *l=nodes[v->id]->rect,
-                            *c=j->second.centreNode->rect,
+            const Rectangle *l=j->second.lhsNode->rect,
+                            *c=nodes[v->id]->rect,
                             *r=j->second.rhsNode->rect;
             assert(fabs(l->getMinD(dim)-t->getMinD(dim))<DISPLACEMENT_ERROR);
             assert(fabs(r->getMaxD(dim)-t->getMaxD(dim))<DISPLACEMENT_ERROR);
@@ -247,7 +248,10 @@ bool checkFinal(
  * @param resizes ResizeInfo for specific nodes
  */
 void resizeAxis(const Rectangles& targets,
-        Nodes& nodes, Edges& edges, ResizeMap& resizes) {
+        Nodes& nodes, Edges& edges, ResizeMap& resizes, 
+        Variables& vs, Constraints& cs) {
+    assert(vs.size()>=nodes.size());
+
     //  - create copy tn of topologyNodes with resize rects replaced with
     //    three nodes: one for the lhs of rect, one for centre and one for rhs.
     //    lhs node goes at position of replaced node, the others are appended
@@ -256,15 +260,13 @@ void resizeAxis(const Rectangles& targets,
     //    of resized rect and symmetric for rhs node, centre node's desired
     //    pos it at the centre
     Nodes tn(nodes.size());
-    Variables vs;
-    Constraints cs;
 
     assert(assertConvexBends(edges));
     assert(assertNoSegmentRectIntersection(nodes,edges));
 
     transform(nodes.begin(),nodes.end(),tn.begin(),
-            TransformNode(targets,resizes));
-    feach(resizes, CreateCentreRightDummyNodes(targets,tn));
+            TransformNode(targets,resizes,vs));
+    feach(resizes, CreateLeftRightDummyNodes(targets,tn,vs));
     assert(tn.size()==nodes.size()+2*resizes.size());
 
     // update topologyRoutes with references to resized nodes replaced with
@@ -275,7 +277,7 @@ void resizeAxis(const Rectangles& targets,
     assert(assertNoSegmentRectIntersection(tn,edges));
 
     // move nodes and reroute
-    topology::TopologyConstraints t(dim,tn,edges,cs);
+    topology::TopologyConstraints t(dim,tn,edges,vs,cs);
     assert(checkDesired(tn,targets,resizes));
 #ifndef NDEBUG
     unsigned loopCtr=0;
@@ -294,8 +296,6 @@ void resizeAxis(const Rectangles& targets,
 
     // clean up
     feach(tn,DeleteTempNode());
-    feach(vs,delete_object());
-    feach(cs,delete_object());
 }
 /**
  * Functor that for a given node, if that node is in the resizes lookup,
@@ -314,8 +314,8 @@ struct CreateTargetRect {
             fixed.insert(v->id); // resized rectangles are required to stay
                                  // where they have been placed
             target=new Rectangle(*r->second.targetRect);
-            assert(target->width() > 3.0*DUMMY_RECT_THICKNESS);
-            assert(target->height() > 3.0*DUMMY_RECT_THICKNESS);
+            assert(target->width() > 3.0*DW);
+            assert(target->height() > 3.0*DW);
         }
         return target;
     }
@@ -328,8 +328,14 @@ struct CreateTargetRect {
  * @param nodes topology node definitions to be resized
  * @param edges edges to be reroutes
  * @param resizes list of resizes to be applied to nodes
+ * @param xvs horizontal vars list
+ * @param xcs horizontal constraints
+ * @param yvs vertical vars
+ * @param ycs vertical constraints
  */
-void applyResizes(Nodes& nodes, Edges& edges, ResizeMap& resizes) {
+void applyResizes(Nodes& nodes, Edges& edges, ResizeMap& resizes,
+        Variables& xvs, Constraints& xcs, 
+        Variables& yvs, Constraints& ycs) {
     // targets will hold an overlap free placement of the resized rectangles
     Rectangles targets(nodes.size());
     // rectangles that are resized should be fixed when finding overlap free placement
@@ -338,9 +344,9 @@ void applyResizes(Nodes& nodes, Edges& edges, ResizeMap& resizes) {
     transform(nodes.begin(),nodes.end(),targets.begin(),CreateTargetRect(resizes,fixed));
     removeoverlaps(targets,fixed);
     dim=cola::HORIZONTAL;
-    resizeAxis(targets, nodes, edges, resizes);
+    resizeAxis(targets, nodes, edges, resizes, xvs, xcs);
     dim=cola::VERTICAL;
-    resizeAxis(targets, nodes, edges, resizes);
+    resizeAxis(targets, nodes, edges, resizes, yvs, ycs);
     feach(targets,delete_object());
 }
 } // namespace topology

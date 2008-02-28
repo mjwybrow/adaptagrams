@@ -164,6 +164,7 @@ namespace topology {
             const cola::Dim dim, 
             Nodes& nodes,
             Edges& edges,
+            vpsc::Variables& vs,
             vpsc::Constraints& cs);
         ~TopologyConstraints();
         bool solve();
@@ -182,6 +183,7 @@ namespace topology {
     private:
         Nodes& nodes;
         Edges& edges;
+        vpsc::Variables& vs;
         vpsc::Constraints& cs;
     };
     /**
@@ -197,17 +199,19 @@ namespace topology {
      * Details new dimensions for a given rectangle.
      */
     struct ResizeInfo {
-        Node* orig;
+        const Node* orig;
         const vpsc::Rectangle* targetRect;
         ResizeInfo(Node* v, const vpsc::Rectangle* target)
             : orig(v), 
               targetRect(target),
-              centreNode(NULL),
+              lhsNode(NULL),
               rhsNode(NULL) { };
-        Node *centreNode, *rhsNode;
+        Node *lhsNode, *rhsNode;
     };
     typedef std::map<unsigned, ResizeInfo> ResizeMap;
-    void applyResizes(Nodes& nodes, Edges& edges, ResizeMap& resizes);
+    void applyResizes(Nodes& nodes, Edges& edges, ResizeMap& resizes,
+            vpsc::Variables& xvs, vpsc::Constraints& xcs, 
+            vpsc::Variables& yvs, vpsc::Constraints& ycs);
 } // namespace topology
 #endif // TOPOLOGY_CONSTRAINTS_H
 // vim: cindent ts=4 sw=4 et tw=0 wm=0

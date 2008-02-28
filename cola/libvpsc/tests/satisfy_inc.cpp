@@ -463,7 +463,7 @@ new Constraint(a[3],a[4],3)};
 	//double expected[]={-1,2,5,5,8};
 	unsigned int n = sizeof(a)/sizeof(Variable*);
 	unsigned int m = sizeof(c)/sizeof(Constraint*);
-	dumpMatlabProblem(n,a,m,c);
+	//dumpMatlabProblem(n,a,m,c);
         std::vector<Variable*> aa(a,a+n);
         std::vector<Constraint*> cc(c,c+m);
 	IncSolver vpsc(aa,cc);
@@ -497,9 +497,41 @@ new Constraint(a[3],a[4],3)};
 	//double expected[]={-1,2,5,5,8};
 	unsigned int n = sizeof(a)/sizeof(Variable*);
 	unsigned int m = sizeof(c)/sizeof(Constraint*);
-	dumpMatlabProblem(n,a,m,c);
+	//dumpMatlabProblem(n,a,m,c);
 	assert(checkResult(n,a,m,c,NULL));
 	cout << "Test 12... done." << endl;
+}
+void test13() {
+	cout << "Test 13..." << endl;
+	Variable *a[] = {
+new Variable(0,0.485024,1,1),
+new Variable(1,3.52714,1,1),
+new Variable(2,4.01263,1,1),
+new Variable(3,4.58524,1,1),
+new Variable(4,5.40796,1,1)};
+
+	Constraint *c[] = {
+new Constraint(a[0],a[4],3),
+new Constraint(a[0],a[4],3),
+new Constraint(a[0],a[4],3),
+new Constraint(a[0],a[2],3),
+new Constraint(a[1],a[3],3),
+new Constraint(a[1],a[3],3),
+new Constraint(a[1],a[2],3),
+new Constraint(a[2],a[4],3),
+new Constraint(a[2],a[4],3),
+new Constraint(a[2],a[4],3),
+new Constraint(a[2],a[3],3),
+new Constraint(a[3],a[4],3),
+new Constraint(a[3],a[4],3),
+new Constraint(a[3],a[4],3)};
+
+	//double expected[]={-1,2,5,5,8};
+	unsigned int n = sizeof(a)/sizeof(Variable*);
+	unsigned int m = sizeof(c)/sizeof(Constraint*);
+	//dumpMatlabProblem(n,a,m,c);
+	assert(checkResult(n,a,m,c,NULL));
+	cout << "Test 13... done." << endl;
 }
 
 // n=number vars
@@ -512,7 +544,7 @@ void rand_test(unsigned n, unsigned m) {
 	}
 	for(unsigned i=0;i<n-1;i++) {
 		for(int j=0;j<getRand(m)+1;j++) {
-			int e = i + getRand(n-1-i)+1;
+			int e = static_cast<int>(i + getRand(n-1-i)+1);
 			cs.push_back(new Constraint(a[i],a[e],3));
 		}
 	}
@@ -520,20 +552,18 @@ void rand_test(unsigned n, unsigned m) {
 	for(unsigned i=0;i<cs.size();i++) {
 		acs[i]=cs[i];
 	}
-	/*
-	cout<<"digraph g {"<<endl;
-	for(CS::iterator i(cs.begin());i!=cs.end();i++) {
-		Constraint *c=*i;
-		cout << c->left->id << "->" << c->right->id << ";" << endl;
-	}
-	cout<<"}"<<endl;
-	*/
 	try {
 		if(!checkResult(n,a,cs.size(),acs)) {
 			throw "Check failed!";
 		}
 	} catch (char const *msg) {
 		cout << msg << endl;
+		cout<<"digraph g {"<<endl;
+		for(CS::iterator i(cs.begin());i!=cs.end();i++) {
+			Constraint *c=*i;
+			cout << c->left->id << "->" << c->right->id << ";" << endl;
+		}
+		cout<<"}"<<endl;
 		for(unsigned i=0;i<n;i++) {
 			if(i!=0) cout << "," << endl;
 			cout << "new Variable("<<i<<","<<a[i]->desiredPosition<< ",1,"
@@ -582,8 +612,7 @@ void rand_test(unsigned n, unsigned m) {
 }
 int main() {
 	srand(time(NULL));
-	/*
-	test1();
+	test10();
 	test2();
 	test3();
 	test4();
@@ -595,14 +624,14 @@ int main() {
 	test10();
 	test11();
 	test12();
+	test13();
 	for(int i=0;i<1000;i++) {
 		if(i%100==0) cout << "i=" << i << endl;
 		rand_test(100,3);
 	}
-	*/
 	for(int i=0;i<10000;i++) {
 		if(i%100==0) cout << "i=" << i << endl;
-		rand_test(10,3);
+		rand_test(5,3);
 	}
 	return 0;
 }

@@ -31,7 +31,8 @@ using namespace std;
 
 namespace vpsc {
 
-static const double ZERO_UPPERBOUND=-0.0000001;
+static const double ZERO_UPPERBOUND=-1e-10;
+static const double LAGRANGIAN_TOLERANCE=-1e-4;
 
 IncSolver::IncSolver(vector<Variable*> const &vs, vector<Constraint *> const &cs) 
 	: Solver(vs,cs) {
@@ -137,7 +138,7 @@ void Solver::refine() {
 		for(set<Block*>::const_iterator i=bs->begin();i!=bs->end();++i) {
 			Block *b=*i;
 			Constraint *c=b->findMinLM();
-			if(c!=NULL && c->lm<0) {
+			if(c!=NULL && c->lm<LAGRANGIAN_TOLERANCE) {
 #ifdef LIBVPSC_LOGGING
 				ofstream f(LOGFILE,ios::app);
 				f<<"Split on constraint: "<<*c<<endl;
@@ -212,8 +213,9 @@ bool IncSolver::satisfy() {
 	//long splitCtr = 0;
 	Constraint* v = NULL;
     //CBuffer buffer(inactive);
-	//while((v=buffer.mostViolated())&&(v->equality || v->slack() < ZERO_UPPERBOUND)) {
-	while((v=mostViolated(inactive))&&(v->equality || v->slack() < ZERO_UPPERBOUND)) {
+	while((v=mostViolated(inactive))
+            &&(v->equality || v->slack() < ZERO_UPPERBOUND && !v->active)) 
+    {
 		assert(!v->active);
 		Block *lb = v->left->block, *rb = v->right->block;
 		if(lb != rb) {
@@ -236,6 +238,7 @@ bool IncSolver::satisfy() {
                 Constraint* splitConstraint
                     =lb->splitBetween(v->left,v->right,lb,rb);
                 if(splitConstraint!=NULL) {
+                    assert(!splitConstraint->active);
 			        inactive.push_back(splitConstraint);
                 } else {
                     v->unsatisfiable=true;
@@ -245,7 +248,8 @@ bool IncSolver::satisfy() {
                 e.path.push_back(v);
                 throw e;
             }
-			if(v->slack()>-ZERO_UPPERBOUND) {
+			if(v->slack()>=0) {
+                assert(!v->active);
                 // v was satisfied by the above split!
                 inactive.push_back(v);
                 bs->insert(lb);
@@ -308,7 +312,7 @@ void IncSolver::splitBlocks() {
 	for(set<Block*>::const_iterator i(bs->begin());i!=bs->end();++i) {
 		Block* b = *i;
 		Constraint* v=b->findMinLM();
-		if(v!=NULL && v->lm < ZERO_UPPERBOUND) {
+		if(v!=NULL && v->lm < LAGRANGIAN_TOLERANCE) {
 			assert(!v->equality);
 #ifdef LIBVPSC_LOGGING
 			f<<"    found split point: "<<*v<<" lm="<<v->lm<<endl;
@@ -326,6 +330,7 @@ void IncSolver::splitBlocks() {
 			bs->insert(l);
 			bs->insert(r);
 			b->deleted=true;
+            assert(!v->active);
 			inactive.push_back(v);
 #ifdef LIBVPSC_LOGGING
 			f<<"  new blocks: "<<*l<<" and "<<*r<<endl;
@@ -366,7 +371,7 @@ Constraint* IncSolver::mostViolated(Constraints &l) {
 	// move the last element over the deletePoint and resize
 	// downwards.  There is always at least 1 element in the
 	// vector because of search.
-	if(deletePoint != end && (minSlack<ZERO_UPPERBOUND||v->equality)) {
+	if(deletePoint != end && (minSlack < ZERO_UPPERBOUND && !v->active || v->equality)) {
 		*deletePoint = l[l.size()-1];
 		l.resize(l.size()-1);
 	}
