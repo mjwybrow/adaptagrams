@@ -53,7 +53,9 @@ struct TestCase {
             g.resize(nodes.size());
             g=0;
         }
-        TopologyConstraints t(dim,nodes,es,cs);
+        vpsc::Variables vs;
+        getVariables(nodes,vs);
+        TopologyConstraints t(dim,nodes,es,vs,cs);
         // test computeStress
         double stress=t.computeStress();
         printf("Stress=%f\n",stress);

@@ -34,7 +34,6 @@ Node* addNode(Nodes& vs, double x, double y, double w, double h) {
 struct delete_node {
 	void operator() (Node* v) {
         delete v->rect;
-        delete v->var;
         delete v;
     }
 };

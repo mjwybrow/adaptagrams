@@ -167,8 +167,10 @@ makeEdge(es,eps);
     const size_t V = nodes.size();
     writeFile(nodes,es,"kamada-0.svg");
 
+    vpsc::Variables vs;
     vpsc::Constraints cs;
-    TopologyConstraints t(cola::HORIZONTAL,nodes,es,cs);
+    getVariables(nodes,vs);
+    TopologyConstraints t(cola::HORIZONTAL,nodes,es,vs,cs);
 
     // test computeStress
     double stress=t.computeStress();

@@ -56,13 +56,15 @@ void testCase() {
     assertNoOverlaps(rs);
     Nodes nodes(V);
     transform(rs.begin(),rs.end(),nodes.begin(),Create());
+    vpsc::Variables vs;
+    getVariables(nodes,vs);
 
     writeFile(nodes,es,name+"-0.svg");
 
     try {
         vpsc::Constraints cs;
         Edges es; // not used in this test
-        TopologyConstraints t(static_cast<cola::Dim>(dim),nodes,es,cs);
+        TopologyConstraints t(static_cast<cola::Dim>(dim),nodes,es,vs,cs);
         for(Nodes::iterator v=nodes.begin();v!=nodes.end();++v) {
             (*v)->var->desiredPosition=getRand(5);
         }
@@ -77,6 +79,7 @@ void testCase() {
     }
 
     for_each(nodes.begin(),nodes.end(),delete_node());
+    for_each(vs.begin(),vs.end(),delete_object());
 }
 void randomTest(cola::Dim dim) {
     string name("nooverlap");
@@ -93,11 +96,13 @@ void randomTest(cola::Dim dim) {
     assertNoOverlaps(rs);
     Nodes nodes(V);
     transform(rs.begin(),rs.end(),nodes.begin(),Create());
+    vpsc::Variables vs;
+    getVariables(nodes,vs);
 
     try {
         vpsc::Constraints cs;
         Edges es; // not used in this test
-        TopologyConstraints t(dim,nodes,es,cs);
+        TopologyConstraints t(dim,nodes,es,vs,cs);
         for(Nodes::iterator v=nodes.begin();v!=nodes.end();++v) {
             (*v)->var->desiredPosition=getRand(5);
         }
@@ -121,6 +126,7 @@ void randomTest(cola::Dim dim) {
     }
 
     for_each(nodes.begin(),nodes.end(),delete_node());
+    for_each(vs.begin(),vs.end(),delete_object());
 }
 
 int main() {

@@ -160,6 +160,14 @@ namespace topology {
     class TopologyConstraints {
     public:
         const size_t n;
+        /**
+         * @param dim HORIZONTAL or VERTICAL
+         * @param nodes topology nodes
+         * @param edges topology edges
+         * @param vs list of variables, the first n variables must correspond to the variables in nodes, however extra variables are allowed at the end
+         * @param cs constraints on variables, list will be appended with
+         * automatically generated non-overlap constraints
+         */
         TopologyConstraints(
             const cola::Dim dim, 
             Nodes& nodes,
@@ -186,6 +194,14 @@ namespace topology {
         vpsc::Variables& vs;
         vpsc::Constraints& cs;
     };
+    /**
+     * The following just copies variables in ns into vs.  May be useful
+     * in calling the TopologyConstraints constructor if you're not interested
+     * in constructing your own list of variables in advance.
+     * @param ns source list of nodes
+     * @param vs target list (we expect this to be 0 and resize to ns.size())
+     */
+    void getVariables(Nodes& ns, vpsc::Variables& vs);
     /**
      * Asserts that there are no intersections between any of the segments
      * in edges and rectangles in nodes

@@ -18,13 +18,13 @@ void setNodeVariables(Nodes& ns, std::vector<vpsc::Variable*>& vs) {
 Node::Node(unsigned id, vpsc::Rectangle* r, vpsc::Variable* v)
     : id(id), rect(r), var(v) 
 { 
-    assert(initialPos()>0);
+    assert(initialPos()>-10000);
     assert(initialPos()<10000);
 }
 Node::Node(unsigned id, vpsc::Rectangle* r)
     : id(id), rect(r), var(NULL) 
 {
-    assert(initialPos()>0);
+    assert(initialPos()>-10000);
     assert(initialPos()<10000);
 }
 void Node::setDesiredPos(double d, double weight) {

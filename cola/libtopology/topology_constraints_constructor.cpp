@@ -433,6 +433,24 @@ bool TopologyConstraints::noOverlaps() const {
     }
     return true;
 }
+
+struct GetVariable {
+    vpsc::Variable* operator() (Node* n) {
+        return n->var;
+    }
+};
+void getVariables(Nodes& ns, vpsc::Variables& vs) {
+    assert(vs.size()==0);
+    vs.resize(ns.size());
+    transform(ns.begin(),ns.end(),vs.begin(),GetVariable());
+}
+
+struct CheckNodeVar {
+    bool operator() (Node* n, vpsc::Variable* v) {
+        return n->var == v;
+    }
+};
+
 TopologyConstraints::
 TopologyConstraints( 
     const cola::Dim axisDim,
@@ -450,6 +468,8 @@ TopologyConstraints(
     //FILELog::ReportingLevel() = logDEBUG1;
     FILE_LOG(logDEBUG)<<"TopologyConstraints::TopologyConstraints():dim="<<axisDim;
 
+    assert(vs.size()>=n);
+    assert(equal(nodes.begin(),nodes.end(),vs.begin(),CheckNodeVar()));
     assert(noOverlaps());
     assert(assertNoSegmentRectIntersection(nodes,edges));
 
