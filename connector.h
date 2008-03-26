@@ -50,6 +50,8 @@ class ConnRef
         void freeRoute(void);
         void calcRouteDist(void);
         void updateEndPoint(const unsigned int type, const Point& point);
+        bool updateEndPoint(const unsigned int type, const VertID& pointID, 
+                Point *pointSuggestion = NULL);
         void setEndPointId(const unsigned int type, const unsigned int id);
         unsigned int getSrcShapeId(void);
         unsigned int getDstShapeId(void);
@@ -98,6 +100,8 @@ class ConnRef
         bool _hateCrossings;
 };
 
+
+extern bool validateBendPoint(VertInf *aInf, VertInf *bInf, VertInf *cInf);
 
 }
 

@@ -385,8 +385,11 @@ void Router::newBlockingShape(Polygn *poly, int pid)
             Point e2 = points.second;
             bool blocked = false;
 
-            bool ep_in_poly1 = !(eID1.isShape) ? inPoly(*poly, e1) : false;
-            bool ep_in_poly2 = !(eID2.isShape) ? inPoly(*poly, e2) : false;
+            bool countBorder = false;
+            bool ep_in_poly1 = !(eID1.isShape) ? 
+                    inPoly(*poly, e1, countBorder) : false;
+            bool ep_in_poly2 = !(eID2.isShape) ? 
+                    inPoly(*poly, e2, countBorder) : false;
             if (ep_in_poly1 || ep_in_poly2)
             {
                 // Don't check edges that have a connector endpoint
@@ -394,10 +397,14 @@ void Router::newBlockingShape(Polygn *poly, int pid)
                 continue;
             }
 
+            bool seenIntersectionAtEndpoint = false;
             for (int pt_i = 0; pt_i < poly->pn; pt_i++)
             {
                 int pt_n = (pt_i == (poly->pn - 1)) ? 0 : pt_i + 1;
-                if (segmentIntersect(e1, e2, poly->ps[pt_i], poly->ps[pt_n]))
+                Point& pi = poly->ps[pt_i];
+                Point& pn = poly->ps[pt_n];
+                if (segmentShapeIntersect(e1, e2, pi, pn, 
+                        seenIntersectionAtEndpoint))
                 {
                     blocked = true;
                     break;
@@ -493,11 +500,14 @@ void Router::generateContains(VertInf *pt)
 {
     contains[pt->id].clear();
 
+    // Don't count points on the border as being inside.
+    bool countBorder = false;
+
     ShapeRefList::iterator finish = shapeRefs.end();
     for (ShapeRefList::iterator i = shapeRefs.begin(); i != finish; ++i)
     {
         Polygn poly = copyPoly(*i);
-        if (inPoly(poly, pt->point))
+        if (inPoly(poly, pt->point, countBorder))
         {
             contains[pt->id].insert((*i)->id());
         }
@@ -508,10 +518,13 @@ void Router::generateContains(VertInf *pt)
 
 void Router::adjustContainsWithAdd(const Polygn& poly, const int p_shape)
 {
+    // Don't count points on the border as being inside.
+    bool countBorder = false;
+
     for (VertInf *k = vertices.connsBegin(); k != vertices.shapesBegin();
             k = k->lstNext)
     {
-        if (inPoly(poly, k->point))
+        if (inPoly(poly, k->point, countBorder))
         {
             contains[k->id].insert(p_shape);
         }

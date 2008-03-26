@@ -403,8 +403,11 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
         start = src;
     }
 
-    if (lineRef->router()->RubberBandRouting && (start != src))
+    Router *router = lineRef->router();
+    if (router->RubberBandRouting && (start != src))
     {
+        assert(router->IgnoreRegions == true);
+        
         PolyLine& currRoute = lineRef->route();
         VertInf *last = NULL;
         int rIndx = 0;
@@ -414,8 +417,10 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
             bool isShape = (rIndx > 0);
             VertID vID(pnt.id, isShape, pnt.vn);
 
+#ifdef PATHDEBUG
             printf("/// %d %d %d\n", pnt.id, (int) isShape, pnt.vn);
-            VertInf *curr = lineRef->router()->vertices.getVertexByID(vID);
+#endif
+            VertInf *curr = router->vertices.getVertexByID(vID);
             assert(curr != NULL);
 
             Node = ANode(curr);
@@ -541,6 +546,16 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
 
             VertInf *prevInf = BestNode.inf->pathNext;
 
+            if ((router->RubberBandRouting == false) && 
+                  (validateBendPoint(prevInf, BestNode.inf, Node.inf) == false))
+            {
+                // The bendpoint is not valid, i.e., is a zigzag corner, so...
+                continue;
+                // For RubberBand routing we want to allow these routes and
+                // unwind them later, otherwise instead or unwinding, paths
+                // can go the *really* long way round.
+            }
+
             Node.g = BestNode.g + cost(lineRef, edgeDist, prevInf,
                     BestNode.inf, Node.inf);
 
@@ -557,13 +572,14 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
             // Check to see if already on PENDING
             for (unsigned int i = 0; i < PENDING.size(); i++)
             {
-                if (Node.inf == PENDING.at(i).inf)
+                ANode& ati = PENDING.at(i);
+                if (Node.inf == ati.inf)
                 {   // If already on PENDING
-                    if (Node.g < PENDING.at(i).g)
+                    if (Node.g < ati.g)
                     {
-                        PENDING.at(i).g = Node.g;
-                        PENDING.at(i).f = Node.g + PENDING.at(i).h;
-                        PENDING.at(i).pp = Node.pp;
+                        ati.g = Node.g;
+                        ati.f = Node.g + ati.h;
+                        ati.pp = Node.pp;
                     }
                     bNodeFound = true;
                     break;
@@ -574,15 +590,16 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
                 // Check to see if already on DONE
                 for (unsigned int i = 0; i < DONE.size(); i++)
                 {
-                    if (Node.inf == DONE.at(i).inf)
+                    ANode& ati = DONE.at(i);
+                    if (Node.inf == ati.inf)
                     {
                         // If on DONE, Which has lower gone?
-                        if (Node.g < DONE.at(i).g)
+                        if (Node.g < ati.g)
                         {
-                            DONE.at(i).g = Node.g;
-                            DONE.at(i).f = Node.g + DONE.at(i).h;
-                            DONE.at(i).pp = Node.pp;
-                            DONE.at(i).inf->pathNext = Node.pp;
+                            ati.g = Node.g;
+                            ati.f = Node.g + ati.h;
+                            ati.pp = Node.pp;
+                            ati.inf->pathNext = Node.pp;
                         }
                         bNodeFound = true;
                         break;

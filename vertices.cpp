@@ -427,10 +427,10 @@ void VertInfList::removeVertex(VertInf *vert)
 }
 
 
-VertInf *VertInfList::getVertexByID(VertID &id)
+VertInf *VertInfList::getVertexByID(const VertID& id)
 {
     VertInf *last = end();
-    for (VertInf *curr = _firstConnVert; curr != last; curr = curr->lstNext)
+    for (VertInf *curr = connsBegin(); curr != last; curr = curr->lstNext)
     {
         if (curr->id == id)
         {

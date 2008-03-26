@@ -44,12 +44,18 @@ extern double totalLength(const Polygn& poly);
 extern double angle(const Point& a, const Point& b, const Point& c);
 extern bool segmentIntersect(const Point& a, const Point& b,
         const Point& c, const Point& d);
-extern bool inPoly(const Polygn& poly, const Point& q);
+extern bool segmentShapeIntersect(const Point& e1, const Point& e2, 
+        const Point& s1, const Point& s2, bool& seenIntersectionAtEndpoint);
+extern bool inPoly(const Polygn& poly, const Point& q, bool countBorder = true);
 extern bool inPolyGen(const Polygn& poly, const Point& q);
 extern bool inValidRegion(bool IgnoreRegions, const Point& a0,
         const Point& a1, const Point& a2, const Point& b);
 extern int cornerSide(const Point &c1, const Point &c2, const Point &c3,
         const Point& p);
+extern bool pointOnLine(const Point& a, const Point& b, const Point& c);
+
+// To be used only when the points are known to be colinear.
+extern bool inBetween(const Point& a, const Point& b, const Point& c);
 
 
 // Direction from vector.
@@ -66,11 +72,11 @@ static inline int vecDir(const Point& a, const Point& b, const Point& c)
     double area2 = ((b.x - a.x) * (c.y - a.y)) -
                    ((c.x - a.x) * (b.y - a.y));
     
-    if (area2 < -0.001)
+    if (area2 < 0)
     {
         return -1;
     }
-    else if (area2 > 0.001)
+    else if (area2 > 0)
     {
         return 1;
     }

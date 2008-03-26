@@ -95,7 +95,7 @@ class VertInfList
         VertInfList();
         void addVertex(VertInf *vert);
         void removeVertex(VertInf *vert);
-        VertInf *getVertexByID(VertID &id);
+        VertInf *getVertexByID(const VertID& id);
         VertInf *shapesBegin(void);
         VertInf *connsBegin(void);
         VertInf *end(void);

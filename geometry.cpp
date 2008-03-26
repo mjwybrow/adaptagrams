@@ -75,14 +75,12 @@ bool Point::operator!=(const Point& rhs) const
 }
 
 
-#if 0
-// Currently unused.
-
 // Returns true iff the point c lies on the closed segment ab.
+// To be used when the points are known to be colinear.
 //
 // Based on the code of 'Between'.
 //
-static const bool inBetween(const Point& a, const Point& b, const Point& c)
+bool inBetween(const Point& a, const Point& b, const Point& c)
 {
     // We only call this when we know the points are collinear,
     // otherwise we should be checking this here.
@@ -100,7 +98,14 @@ static const bool inBetween(const Point& a, const Point& b, const Point& c)
                 ((b.y < c.y) && (c.y < a.y)));
     }
 }
-#endif
+
+
+// Returns true iff the point c lies on the closed segment ab.
+//
+bool pointOnLine(const Point& a, const Point& b, const Point& c)
+{
+    return (vecDir(a, b, c) == 0) && inBetween(a, b, c);
+}
 
 
 // Returns true if the segment cd intersects the segment ab, blocking
@@ -136,6 +141,37 @@ bool segmentIntersect(const Point& a, const Point& b, const Point& c,
     // since, unlike them, our vecDir is equivilent to 'AreaSign'
     // rather than 'Area2'.
     return (((ab_c * ab_d) < 0) && ((cd_a * cd_b) < 0));
+}
+
+
+// Returns true if the segment e1-e2 intersects the shape boundary 
+// segment s1-s2, blocking visibility.
+//
+bool segmentShapeIntersect(const Point& e1, const Point& e2, const Point& s1,
+        const Point& s2, bool& seenIntersectionAtEndpoint)
+{
+    if (segmentIntersect(e1, e2, s1, s2))
+    {
+        // Basic intersection of segments.
+        return true;
+    }
+    else if ( (((s2 == e1) || pointOnLine(s1, s2, e1)) && 
+               (vecDir(s1, s2, e2) != 0)) 
+              ||
+              (((s2 == e2) || pointOnLine(s1, s2, e2)) &&
+               (vecDir(s1, s2, e1) != 0)) )
+    {
+        // Segments intersect at the endpoint of one of the segments.  We
+        // allow this once, but the second one blocks visibility.  Otherwise
+        // shapes butted up against each other could have visibility through
+        // shapes.
+        if (seenIntersectionAtEndpoint)
+        {
+            return true;
+        }
+        seenIntersectionAtEndpoint = true;
+    }
+    return false;
 }
 
 
@@ -285,18 +321,27 @@ double angle(const Point& a, const Point& b, const Point& c)
 // This is a fast version that only works for convex shapes.  The
 // other version (inPolyGen) is more general.
 //
-bool inPoly(const Polygn& poly, const Point& q)
+bool inPoly(const Polygn& poly, const Point& q, bool countBorder)
 {
     int n = poly.pn;
     Point *P = poly.ps;
+    bool onBorder = false;
     for (int i = 0; i < n; i++)
     {
         // point index; i1 = i-1 mod n
         int prev = (i + n - 1) % n;
-        if (vecDir(P[prev], P[i], q) == -1)
+        int dir = vecDir(P[prev], P[i], q);
+        if (dir == -1)
         {
+            // Point is outside
             return false;
         }
+        // Record if point was on a boundary.
+        onBorder |= (dir == 0);
+    }
+    if (!countBorder && onBorder)
+    {
+        return false;
     }
     return true;
 }
