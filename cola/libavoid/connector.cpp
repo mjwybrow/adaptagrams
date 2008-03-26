@@ -183,6 +183,85 @@ void ConnRef::updateEndPoint(const unsigned int type, const Point& point)
 }
 
 
+bool ConnRef::updateEndPoint(const unsigned int type, const VertID& pointID,
+        Point *pointSuggestion)
+{
+    VertInf *vInf = _router->vertices.getVertexByID(pointID);
+    if (vInf == NULL)
+    {
+        return false;
+    }
+    Point& point = vInf->point;
+    if (pointSuggestion)
+    {
+        if (dist(point, *pointSuggestion) > 0.5)
+        {
+            return false;
+        }
+    }
+
+    //printf("updateEndPoint(%d,(pid=%d,vn=%d,(%f,%f)))\n",
+    //        type, point.id, point.vn, point.x, point.y);
+    assert((type == (unsigned int) VertID::src) ||
+           (type == (unsigned int) VertID::tar));
+    
+    // XXX: This was commented out.  Is there a case where it isn't true? 
+    assert(_router->IncludeEndpoints);
+
+    if (!_initialised)
+    {
+        makeActive();
+        _initialised = true;
+    }
+    
+    VertInf *altered = NULL;
+    VertInf *partner = NULL;
+    bool isShape = false;
+
+    if (type == (unsigned int) VertID::src)
+    {
+        if (_srcVert)
+        {
+            _srcVert->Reset(point);
+        }
+        else
+        {
+            _srcVert = new VertInf(_router, VertID(_id, isShape, type), point);
+            _router->vertices.addVertex(_srcVert);
+        }
+        
+        altered = _srcVert;
+        partner = _dstVert;
+    }
+    else // if (type == (unsigned int) VertID::dst)
+    {
+        if (_dstVert)
+        {
+            _dstVert->Reset(point);
+        }
+        else
+        {
+            _dstVert = new VertInf(_router, VertID(_id, isShape, type), point);
+            _router->vertices.addVertex(_dstVert);
+        }
+        
+        altered = _dstVert;
+        partner = _srcVert;
+    }
+    
+    bool isConn = true;
+    altered->removeFromGraph(isConn);
+
+    // Give this visibility just to the point it is over.
+    EdgeInf *edge = new EdgeInf(altered, vInf);
+    // XXX: We should be able to set this to zero, but can't due to 
+    //      assumptions elsewhere in the code.
+    edge->setDist(0.001);
+
+    return true;
+}
+
+
 void ConnRef::setEndPointId(const unsigned int type, const unsigned int id)
 {
     if (type == (unsigned int) VertID::src)
@@ -392,12 +471,96 @@ int ConnRef::generatePath(Point p0, Point p1)
 }
 
 
+// Validates a bend point on a path to check it does not form a zigzag corner.
+// a, b, c are consecutive points on the path.  d and e are b's neighbours,
+// forming the shape corner d-b-e.
+//
+bool validateBendPoint(VertInf *aInf, VertInf *bInf, VertInf *cInf)
+{
+    bool bendOkay = true;
+
+    if ((aInf == NULL) || (cInf == NULL))
+    {
+        // Not a bendpoint, i.e., the end of the connector, so don't test.
+        return bendOkay;
+    }
+
+    assert(bInf != NULL);
+    VertInf *dInf = bInf->shPrev;
+    VertInf *eInf = bInf->shNext;
+    assert(dInf != NULL);
+    assert(eInf != NULL);
+
+    Point& a = aInf->point;
+    Point& b = bInf->point;
+    Point& c = cInf->point;
+    Point& d = dInf->point;
+    Point& e = eInf->point;
+
+    if ((a == b) || (b == c))
+    {
+        return bendOkay;
+    }
+
+#ifdef PATHDEBUG
+    printf("a=(%g, %g)\n", a.x, a.y);
+    printf("b=(%g, %g)\n", b.x, b.y);
+    printf("c=(%g, %g)\n", c.x, c.y);
+    printf("d=(%g, %g)\n", d.x, d.y);
+    printf("e=(%g, %g)\n", e.x, e.y);
+#endif
+    // Check angle:
+    int abc = vecDir(a, b, c);
+    int abe = vecDir(a, b, e);
+    int abd = vecDir(a, b, d);
+    int cbe = vecDir(c, b, e);
+    int cbd = vecDir(c, b, d);
+#ifdef PATHDEBUG
+    printf("(abc == %d) && (abe == %d) && (abd == %d) &&\n"
+            "(cbe == %d) && (cbd == %d) &&\n", 
+            abc, abe, abd, cbe, cbd);
+#endif
+   
+    if (abc == 0)
+    {
+        // The three consecutive point on the path are in a line.
+        if (!inBetween(a, c, b))
+        {
+            // Path doubles back on itself.
+            bendOkay = false;
+        }
+    }
+    else // (abc != 0)
+    {
+        if ((abe != 0) && (abe != abc))
+        {
+            bendOkay = false;
+        }
+        else if ((abd != 0) && (abd != abc))
+        {
+            bendOkay = false;
+        }
+        else if (abd == cbd)
+        {
+            bendOkay = false;
+        }
+        else if (abe == cbe)
+        {
+            bendOkay = false;
+        }
+    }
+    return bendOkay;
+}
+
+
 int ConnRef::generatePath(void)
 {
     if (!_false_path && !_needs_reroute_flag) {
         // This connector is up to date.
         return (int) false;
     }
+
+    //assert(_srcVert->point != _dstVert->point);
 
     _false_path = false;
     _needs_reroute_flag = false;
@@ -411,6 +574,9 @@ int ConnRef::generatePath(void)
     PolyLine& currRoute = route();
     if (_router->RubberBandRouting)
     {
+        assert(_router->IgnoreRegions == true);
+
+#ifdef PATHDEBUG
         printf("\n");
         _srcVert->id.print(stdout);
         printf(": %g, %g\n", _srcVert->point.x, _srcVert->point.y);
@@ -421,6 +587,7 @@ int ConnRef::generatePath(void)
             printf("%g, %g  ", currRoute.ps[i].x, currRoute.ps[i].y);
         }
         printf("\n");
+#endif
         if (currRoute.pn > 2)
         {
             if (_srcVert->point == currRoute.ps[0])
@@ -441,29 +608,24 @@ int ConnRef::generatePath(void)
     while (!found)
     {
         makePath(this, flag);
-        VertInf *prior = NULL, *before = NULL;
         for (VertInf *i = tar; i != NULL; i = i->pathNext)
         {
-            if (i == _startVert)
-            {
-                before = prior;
-            }
-
             if (i == _srcVert)
             {
                 found = true;
                 break;
             }
-            prior = i;
         }
         if (!found)
         {
-            printf("BACK\n");
-            existingPathStart--;
-            if (existingPathStart < 1)
+            if (existingPathStart == 0)
             {
                 break;
             }
+#ifdef PATHDEBUG
+            printf("BACK\n");
+#endif
+            existingPathStart--;
             Point& pnt = currRoute.ps[existingPathStart];
             bool isShape = (existingPathStart > 0);
             VertID vID(pnt.id, isShape, pnt.vn);
@@ -471,61 +633,43 @@ int ConnRef::generatePath(void)
             _startVert = _router->vertices.getVertexByID(vID);
             assert(_startVert);
         }
-        else
+        else if (_router->RubberBandRouting)
         {
-            VertInf *aInf = _startVert->pathNext;
-            VertInf *bInf = _startVert;
-            VertInf *cInf = before;
-            VertInf *dInf = (bInf) ? bInf->shPrev : NULL;
+            // found.
+            bool unwind = false;
 
-            if (aInf && bInf && cInf && dInf)
+#ifdef PATHDEBUG
+            printf("\n\n\nSTART:\n\n");
+#endif
+            VertInf *prior = NULL;
+            for (VertInf *curr = tar; curr != _startVert->pathNext; 
+                    curr = curr->pathNext)
             {
-                Point& a = aInf->point;
-                Point& b = bInf->point;
-                Point& c = cInf->point;
-                Point& d = dInf->point;
-
-                // found.
-                bool unwind = false;
-                // Check angle:
-                int abc = vecDir(a, b, c);           
-                int abd = vecDir(a, b, d);
-                
-                if (a == d)
-                {
-                    Point& d = bInf->shNext->point;
-                    abc = vecDir(a, b, c);           
-                    abd = vecDir(a, b, d);
-                }
-                if (d == c)
-                {
-                    Point& d = bInf->shNext->point;
-                    abc = vecDir(b, c, a);           
-                    abd = vecDir(b, c, d);
-                }
-
-                if ((abc != 0) && (abc == -abd))
+                if (!validateBendPoint(curr->pathNext, curr, prior))
                 {
                     unwind = true;
+                    break;
                 }
-
-                if (unwind)
+                prior = curr;
+            }
+            if (unwind)
+            {
+#ifdef PATHDEBUG
+                printf("BACK II\n");
+#endif
+                if (existingPathStart == 0)
                 {
-                    printf("BACK II\n");
-                    if (existingPathStart < 1)
-                    {
-                        break;
-                    }
-                    existingPathStart--;
-                    Point& pnt = currRoute.ps[existingPathStart];
-                    bool isShape = (existingPathStart > 0);
-                    VertID vID(pnt.id, isShape, pnt.vn);
-
-                    _startVert = _router->vertices.getVertexByID(vID);
-                    assert(_startVert);
-
-                    found = false;
+                    break;
                 }
+                existingPathStart--;
+                Point& pnt = currRoute.ps[existingPathStart];
+                bool isShape = (existingPathStart > 0);
+                VertID vID(pnt.id, isShape, pnt.vn);
+
+                _startVert = _router->vertices.getVertexByID(vID);
+                assert(_startVert);
+
+                found = false;
             }
         }
     }
@@ -539,7 +683,6 @@ int ConnRef::generatePath(void)
         pathlen++;
         if (i == NULL)
         {
-            printf("GRRRR\n");
             db_printf("Warning: Path not found...\n");
             pathlen = 2;
             tar->pathNext = _srcVert;
@@ -596,6 +739,15 @@ int ConnRef::generatePath(void)
         unInitialise();
     }
    
+#ifdef PATHDEBUG
+    printf("Output route:\n");
+    for (int i = 0; i < output_route.pn; ++i)
+    {
+        printf("%g, %g  ", output_route.ps[i].x, output_route.ps[i].y);
+    }
+    printf("\n\n");
+#endif
+ 
     return (int) result;
 }
 

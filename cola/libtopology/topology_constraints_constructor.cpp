@@ -217,13 +217,13 @@ void NodeEvent::createStraightConstraint() {
     FILE_LOG(logDEBUG)<<"NodeEvent::createStraightConstraint():node@"<<node<<" pos="<<pos;
     for(OpenSegments::iterator j=openSegments.begin(); j!=openSegments.end();++j) {
         Segment* s=(*j)->s;
-        if(!s->edge->cycle()) {
-            // skip if edge is attached to this node
-            if(s->edge->firstSegment->start->node->id==node->id
-                    || s->edge->lastSegment->end->node->id==node->id) {
-                continue;
-            }
-        }
+        if(s->start->node->id==node->id 
+                && s->start->rectIntersect==EdgePoint::CENTRE
+        || s->end->node->id==node->id
+                && s->end->rectIntersect==EdgePoint::CENTRE) {
+            // skip if segment is attached to this node
+            continue;
+        } 
         s->createStraightConstraint(node,pos);
     }
 }
@@ -445,12 +445,6 @@ void getVariables(Nodes& ns, vpsc::Variables& vs) {
     transform(ns.begin(),ns.end(),vs.begin(),GetVariable());
 }
 
-struct CheckNodeVar {
-    bool operator() (Node* n, vpsc::Variable* v) {
-        return n->var == v;
-    }
-};
-
 TopologyConstraints::
 TopologyConstraints( 
     const cola::Dim axisDim,
@@ -469,7 +463,6 @@ TopologyConstraints(
     FILE_LOG(logDEBUG)<<"TopologyConstraints::TopologyConstraints():dim="<<axisDim;
 
     assert(vs.size()>=n);
-    assert(equal(nodes.begin(),nodes.end(),vs.begin(),CheckNodeVar()));
     assert(noOverlaps());
     assert(assertNoSegmentRectIntersection(nodes,edges));
 

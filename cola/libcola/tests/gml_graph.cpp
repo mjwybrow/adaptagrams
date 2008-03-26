@@ -203,6 +203,7 @@ int main() {
     //alg.setXConstraints(&cx);
     //alg.setYConstraints(&cy);
     alg.run();
+    /*
     vector<ColourRGBA> colours(V);
     list<unsigned> &p=partitions[string("FF3333")];
     for(list<unsigned>::iterator i=p.begin();i!=p.end();i++) {
@@ -219,8 +220,9 @@ int main() {
         //colours[*i]=ColourRGBA((unsigned)24,157,0,255);
         colours[*i]=ColourRGBA(0,0,0,1.);
     }
+    */
     OutputFile of(rs,es,NULL,"gml_graph-constrained.svg",false,true);
-    of.colours=&colours;
+    //of.colours=&colours;
     of.generate();
     for(unsigned i=0;i<V;i++) {
         delete rs[i];

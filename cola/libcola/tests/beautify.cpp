@@ -3,6 +3,7 @@
 #include <cmath>
 #include <time.h>
 #include <valarray>
+#include <fstream>
 #include <libavoid/libavoid.h>
 #include <libavoid/router.h>
 #include <libtopology/topology_constraints.h>
@@ -31,15 +32,17 @@ static const double EXTRAEDGEPROB = 0.1;
 static const unsigned DAGDEPTH = 4;
 static const unsigned BRANCHFACTOR = 4;
 static const double EXTRAEDGEPROB = 0.01;
+*/
 // |V|=131, |E|=166
 static const unsigned DAGDEPTH = 5;
 static const unsigned BRANCHFACTOR = 4;
 static const double EXTRAEDGEPROB = 0.005;
-*/
+/*
 // |V|=258, |E|=310
 static const unsigned DAGDEPTH = 6;
 static const unsigned BRANCHFACTOR = 4;
 static const double EXTRAEDGEPROB = 0.002;
+*/
 
 void makeEdge(unsigned u, unsigned v, 
         vector<Edge> &edges, CompoundConstraints &cy) {
@@ -48,6 +51,7 @@ void makeEdge(unsigned u, unsigned v,
 }
 vector<Edge> random_dag(unsigned depth, unsigned maxbranch, unsigned &V,
         CompoundConstraints &cx, CompoundConstraints &cy) {
+    printf("DAG depth=%d\nmaxbranch=%d\nextraedgeprob%f\n",depth,maxbranch,EXTRAEDGEPROB);
 	vector<Edge> edges;
     unsigned lstart=0, lend=1;
     V=0;
@@ -145,6 +149,13 @@ void removeoverlaps(vpsc::Rectangles &rs, bool bothaxes) {
 		}
 	}
 }
+void writeTextFile(vector<cola::Edge>& edges) {  
+    ofstream outfile("new.txt",ofstream::binary);
+    for(vector<cola::Edge>::iterator e=edges.begin();e!=edges.end();++e) {
+        outfile<<"node"<<e->first<<",node"<<e->second<<endl;
+    }
+    outfile.close();
+}
 /*
  * Make feasible:
  *   - remove overlaps between rectangular boundaries of nodes/clusters
@@ -161,7 +172,7 @@ void makeFeasible(vpsc::Rectangles& rs, vector<cola::Edge>& edges,
     clock_t libavoidstarttime=clock();
     // find feasible routes for edges
     Avoid::Router *router = new Avoid::Router();
-    double g=0.0001; // make shape that libavoid sees slightly smaller
+    double g=0; // make shape that libavoid sees slightly smaller
     for(unsigned i=0;i<rs.size();++i) {
         vpsc::Rectangle* r=rs[i];
         double x=r->getMinX()+g;
@@ -220,7 +231,7 @@ void makeFeasible(vpsc::Rectangles& rs, vector<cola::Edge>& edges,
         }
         eps.push_back(new topology::EdgePoint(topologyNodes[e.second],
                     topology::EdgePoint::CENTRE));
-        topology::Edge* edgeRoute=new topology::Edge(defaultEdgeLength, eps);
+        topology::Edge* edgeRoute=new topology::Edge(i,defaultEdgeLength, eps);
         edgeRoute->assertConvexBends();
         routes.push_back(edgeRoute);
 
@@ -235,6 +246,7 @@ int main() {
     CompoundConstraints cx,cy;
 
     int seed = time(NULL);
+    seed = 1206411144;
     printf("random seed=%d\n",seed);
     srand(seed);
     vector<Edge> es = random_dag(DAGDEPTH,BRANCHFACTOR,V,cx,cy);
@@ -265,6 +277,7 @@ int main() {
 	alg.run();
     */
     clock_t unconstrainedstarttime=clock();
+    writeTextFile(es);
 	ConstrainedFDLayout alg2(rs,es,defaultEdgeLength,NULL,test);
     alg2.setYConstraints(&cy);
 	alg2.run();

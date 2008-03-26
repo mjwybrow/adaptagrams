@@ -53,11 +53,15 @@ namespace topology {
         vpsc::Variable* var;
     };
     typedef std::vector<Node*> Nodes;
+    /**
+     * let n=ns.size(), where n<=vs.size(), 
+     * for i<n we set the variable for ns[i] to be vs[i].
+     */
     void setNodeVariables(Nodes& ns, std::vector<vpsc::Variable*>& vs);
     /**
-     * An EdgePoint is a point along an edge path.  It must correspond to either the middle
-     * of a Node (the start/end of the edge) or to a corner of a Node (a bend point around
-     * an edge).
+     * An EdgePoint is a point along an edge path.  It must correspond to
+     * either the middle of a Node (the start/end of the edge) or to a corner
+     * of a Node (a bend point around an edge).
      */
     class EdgePoint {
     public:
@@ -298,6 +302,8 @@ namespace topology {
      */
     class Edge {
     public:
+        /// id specified by user.  Can be used to match to external edge.
+        unsigned id;
         /// the ideal length which the layout should try to obtain for this edge
         double idealLength;
         /**
@@ -314,8 +320,9 @@ namespace topology {
         /**
          * Construct an edge from a list of EdgePoint in sequence
          */
-        Edge(double idealLength, EdgePoints &vs) 
-            : idealLength(idealLength)
+        Edge(unsigned id, double idealLength, EdgePoints &vs) 
+            : id(id)
+            , idealLength(idealLength)
             , firstSegment(NULL), lastSegment(NULL)
             , nSegments(0) 
         {

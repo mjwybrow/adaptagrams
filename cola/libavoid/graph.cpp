@@ -232,8 +232,11 @@ void EdgeInf::checkVis(void)
         cone1 = inValidRegion(_router->IgnoreRegions, i->shPrev->point,
                 iPoint, i->shNext->point, jPoint);
     }
-    else
+    else if (_router->IgnoreRegions == false)
     {
+        // If Ignoring regions then this case is already caught by 
+        // the invalid regions, so only check it when not ignoring
+        // regions.
         ShapeSet& ss = _router->contains[iID];
 
         if ((jID.isShape) && (ss.find(jID.objID) != ss.end()))
@@ -253,8 +256,11 @@ void EdgeInf::checkVis(void)
             cone2 = inValidRegion(_router->IgnoreRegions, j->shPrev->point,
                     jPoint, j->shNext->point, iPoint);
         }
-        else
+        else if (_router->IgnoreRegions == false)
         {
+            // If Ignoring regions then this case is already caught by 
+            // the invalid regions, so only check it when not ignoring
+            // regions.
             ShapeSet& ss = _router->contains[jID];
 
             if ((iID.isShape) && (ss.find(iID.objID) != ss.end()))
@@ -316,26 +322,33 @@ int EdgeInf::firstBlocker(void)
     }
 
     VertInf *last = _router->vertices.end();
+    unsigned int lastId = 0;
+    bool seenIntersectionAtEndpoint = false;
     for (VertInf *k = _router->vertices.shapesBegin(); k != last; )
     {
         VertID kID = k->id;
-        if ((ss.find(kID.objID) != ss.end()))
+        if (kID.objID != lastId)
         {
-            unsigned int shapeID = kID.objID;
-            db_printf("Endpoint is inside shape %u so ignore shape edges.\n",
-                    kID.objID);
-            // One of the endpoints is inside this shape so ignore it.
-            while ((k != last) && (k->id.objID == shapeID))
+            if ((ss.find(kID.objID) != ss.end()))
             {
-                // And skip the other vertices from this shape.
-                k = k->lstNext;
+                unsigned int shapeID = kID.objID;
+                db_printf("Endpoint is inside shape %u so ignore shape "
+                        "edges.\n", kID.objID);
+                // One of the endpoints is inside this shape so ignore it.
+                while ((k != last) && (k->id.objID == shapeID))
+                {
+                    // And skip the other vertices from this shape.
+                    k = k->lstNext;
+                }
+                continue;
             }
-            continue;
+            seenIntersectionAtEndpoint = false;
+            lastId = kID.objID;
         }
         Point& kPoint = k->point;
         Point& kPrevPoint = k->shPrev->point;
-
-        if (segmentIntersect(pti, ptj, kPrevPoint, kPoint))
+        if (segmentShapeIntersect(pti, ptj, kPrevPoint, kPoint, 
+                    seenIntersectionAtEndpoint))
         {
             ss.clear();
             return kID.objID;

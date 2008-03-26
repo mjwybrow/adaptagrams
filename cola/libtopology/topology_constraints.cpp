@@ -200,7 +200,7 @@ void StraightConstraint::satisfy() {
  * hence will never be violated anyway.
  */
 bool TriConstraint::assertFeasible() const {
-    assert(p>1e7||slackAtInitial()>-1e-3);
+    assert(fabs(p)>1e7||slackAtInitial()>-1e-3);
     return true;
 }
 bool TopologyConstraint::assertFeasible() const {
@@ -306,6 +306,35 @@ bool TopologyConstraints::solve() {
     assert(assertNoSegmentRectIntersection(nodes,edges));
     FILE_LOG(logDEBUG)<<"TopologyConstraints::steepestDescent... done";
     return interrupted;
+}
+/**
+ * a Functor for use in a sum_over a collection of edges
+ * which computes the total stress based on the difference in total
+ * pathLength for each edge and idealLength.
+ * More precisely the stress for a given edge \f$e\f$ is:
+ * \f[
+ *   \sigma(e) \left( d_e - \sum_{s \in S(e)} |s| \right)^2
+ * \f]
+ */
+struct ComputeStress {
+    double operator()(const Edge* e) {
+        double d = e->idealLength;
+        double weight=1.0/(d*d);
+        double dl=d-e->pathLength();
+        if(dl>0) return 0;
+        double s=weight*dl*dl;
+        //FILE_LOG(logDEBUG1)<<"e("<<e->firstSegment->start->node->id<<","<<e->lastSegment->end->node->id<<")="<<s<<std::endl;
+        return s;
+    }
+};
+/**
+ * compute the stress:
+ * \f[
+ *   \sigma = \sum_{e \in E} \left( d_e - \sum_{s \in S(e)} |s| \right)^2
+ * \f]
+ */
+double computeStress(const Edges& es) {
+    return sum_over(es.begin(),es.end(),0.0,ComputeStress());
 }
 } // namespace topology
 // vim: cindent ts=4 sw=4 et tw=80 wm=5 

@@ -1,4 +1,4 @@
-#include "commondefs.h"  
+#include "commondefs.h"       // magmy20070405: Added
 
 #include <map>
 #include <list>

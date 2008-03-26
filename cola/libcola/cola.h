@@ -126,17 +126,17 @@ public:
     virtual ~TestConvergence() {}
 
     virtual bool operator()(const double new_stress, valarray<double> & X, valarray<double> & Y) {
+        iterations++;
         //std::cout<<"iteration="<<iterations<<", old_stress="<<old_stress<<", new_stress="<<new_stress<<std::endl;
         if (old_stress == DBL_MAX) {
             old_stress = new_stress;
-            return ++iterations >= maxiterations;
+            return iterations >= maxiterations;
         }
         // converged if relative decrease in stress falls below threshold
         // or if stress increases (shouldn't happen for straight majorization)
         bool converged = 
             (old_stress - new_stress) / (new_stress + 1e-10) < tolerance
-             || 
-            ++iterations > maxiterations;
+             || iterations > maxiterations;
         old_stress = new_stress;
         return converged;
     }
@@ -438,7 +438,7 @@ private:
     PreIteration* preIteration;
     CompoundConstraints *ccsx, *ccsy;
     double** D;
-    unsigned** G;
+    unsigned short** G;
     vector<topology::Node*>* topologyNodes;
     vector<topology::Edge*>* topologyRoutes;
     vector<UnsatisfiableConstraintInfos*> unsatisfiable;

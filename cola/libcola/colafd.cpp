@@ -70,30 +70,68 @@ ConstrainedFDLayout::ConstrainedFDLayout(
         Y[i]=r->getCentreY();
     }
     D=new double*[n];
-    G=new unsigned*[n];
+    G=new unsigned short*[n];
     for(unsigned i=0;i<n;i++) {
         D[i]=new double[n];
-        G[i]=new unsigned[n];
+        G[i]=new unsigned short[n];
     }
     computePathLengths(es,idealLength,eweights);
 }
+/**
+ * Sets up the D and G matrices.  D is the required euclidean distances
+ * between pairs of nodes based on the shortest paths between them (using
+ * idealLength*eweights[edge] as the edge length, if eweights array 
+ * is provided otherwise just idealLength).  G is a matrix of unsigned ints
+ * such that G[u][v]=
+ *   0 if there are no forces required between u and v 
+ *     (for example, if u and v are in unconnected components)
+ *   1 if attractive forces are required between u and v
+ *     (i.e. if u and v are immediately connected by an edge and there is
+ *      no topology route between u and v (for which an attractive force
+ *      is computed elsewhere))
+ *   2 if no attractive force is required between u and v but there is
+ *     a connected path between them.
+ */
 void ConstrainedFDLayout::computePathLengths(
         const vector<Edge>& es,
         const double idealLength,
         const std::valarray<double>* eweights) 
 {
-    shortest_paths::johnsons(n,G,es);
     shortest_paths::johnsons(n,D,es,eweights);
-    //dumpSquareMatrix<unsigned>(n,G);
     //dumpSquareMatrix<double>(n,D);
     for(unsigned i=0;i<n;i++) {
         for(unsigned j=0;j<n;j++) {
             if(i==j) continue;
-            if(!eweights) {
+            double& d=D[i][j];
+            unsigned short& p=G[i][j];
+            p=2;
+            if(d==numeric_limits<double>::max()) {
+                // i and j are in disconnected subgraphs
+                p=0;
+            } else if(!eweights) {
                 D[i][j]*=idealLength;
             }
         }
     }
+    for(vector<Edge>::const_iterator e=es.begin();e!=es.end();++e) {
+        unsigned u=e->first, v=e->second; 
+        G[u][v]=G[v][u]=1;
+    }
+    // we don't need to compute attractive forces between nodes connected
+    // by an edge if there is a topologyRoute between them (since the
+    // p-stress force will be used instead)
+    if(topologyRoutes) {
+        for(vector<topology::Edge*>::iterator i=topologyRoutes->begin();
+                i!=topologyRoutes->end();++i) {
+            topology::Edge* e=*i;
+            if(!e->cycle()) {
+                unsigned u=e->firstSegment->start->node->id,
+                         v=e->lastSegment->end->node->id;
+                G[u][v]=G[v][u]=2;
+            }
+        }
+    }
+    //dumpSquareMatrix<short>(n,G);
 }
 
 typedef valarray<double> Position;
@@ -203,7 +241,7 @@ void project(vpsc::Variables& vs, vpsc::Constraints& cs, valarray<double>& coord
         coords[i]=vs[i]->finalPosition;
     }
 }
-void project(vpsc::Variables& vs, vpsc::Constraints& cs, const topology::DesiredPositions& des, valarray<double>& coords) {
+void setVariableDesiredPositions(vpsc::Variables& vs, vpsc::Constraints& cs, const topology::DesiredPositions& des, valarray<double>& coords) {
     unsigned n=coords.size();
     assert(vs.size()>=n);
     for(unsigned i=0;i<n;++i) {
@@ -218,7 +256,6 @@ void project(vpsc::Variables& vs, vpsc::Constraints& cs, const topology::Desired
         v->desiredPosition = d->second;
         v->weight=10000;
     }
-    project(vs,cs,coords);
 }
 void checkUnsatisfiable(const vpsc::Constraints& cs, 
         UnsatisfiableConstraintInfos* unsatisfiable) {
@@ -333,17 +370,28 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
         do {
             SparseMap HMap(n);
             computeForces(dim,HMap,g);
-            t.gradientProjection(g,HMap,des);
+            valarray<double> oldCoords=coords;
+            t.computeForces(g,HMap);
+            cola::SparseMatrix H(HMap);
+            applyDescentVector(g,oldCoords,coords,oldStress,
+                    computeStepSize(H,g,g));
+            setVariableDesiredPositions(vs,cs,des,coords);
             interrupted=t.solve();
+            unsigned vptr=0;
+            for(topology::Nodes::iterator i=topologyNodes->begin();
+                    i!=topologyNodes->end();++i,++vptr) {
+                topology::Node* v=*i;
+                coords[v->id]=v->rect->getCentreD(dim);
+            }
+            for(;vptr<coords.size();vptr++) {
+                double d = vs[vptr]->finalPosition;
+                coords[vptr]=d;
+                boundingBoxes[vptr]->moveCentreD(dim,d);
+            }
             loopBreaker--;
         } while(interrupted&&loopBreaker>0);
 		vpsc::Rectangle::setXBorder(0);
 		vpsc::Rectangle::setYBorder(0);
-        for(topology::Nodes::iterator i=topologyNodes->begin();
-                i!=topologyNodes->end();++i) {
-            topology::Node* v=*i;
-            coords[v->id]=v->rect->getCentreD(dim);
-        }
         stress=computeStress();
     } else {
         SparseMap HMap(n);
@@ -351,7 +399,8 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
         SparseMatrix H(HMap);
         valarray<double> oldCoords=coords;
         applyDescentVector(g,oldCoords,coords,oldStress,computeStepSize(H,g,g));
-        project(vs,cs,des,coords);
+        setVariableDesiredPositions(vs,cs,des,coords);
+        project(vs,cs,coords);
         valarray<double> d(n);
         d=oldCoords-coords;
         double stepsize=computeStepSize(H,g,d);
@@ -400,30 +449,6 @@ double ConstrainedFDLayout::applyDescentVector(
     }
     return computeStress();
 }
-/**
- * When considering a given pair of nodes we, in some circumstances, do not want to
- * compute forces between them.
- * Specifically, if nodes are further apart than their desired separation (l>d) and:
- *  - they are not immediately connected (g>1); or
- *  - they are immediately connected but we have topology routes (in which case
- *    the attractive force will be computed over the path length rather than
- *    the euclidean separation).
- * @param l actual separation between the pair of nodes
- * @param d desired separation between them
- * @param g graph path length between them
- * @return true if forces should NOT be computed
- */
-bool ConstrainedFDLayout::noForces(double l, double d, unsigned g) const {
-    if(l>d) {
-        // we don't want long range attractive forces between 
-        // not immediately connected nodes
-        if(g>1) return true;
-        // if we compute forces over topological edge paths then they replace
-        // short range repulsive forces between adjacent nodes
-        if(topologyRoutes && g==1) return true;
-    }
-    return false;
-}
         
 void ConstrainedFDLayout::computeForces(
         const Dim dim,
@@ -437,13 +462,13 @@ void ConstrainedFDLayout::computeForces(
         double Huu=0;
         for(unsigned v=0;v<n;v++) {
             if(u==v) continue;
-            unsigned p = G[u][v];
+            unsigned short p = G[u][v];
             // no forces between disconnected parts of the graph
-            if(p==numeric_limits<unsigned>::max()) continue;
+            if(p==0) continue;
             double rx=X[u]-X[v], ry=Y[u]-Y[v];
             double l=sqrt(rx*rx+ry*ry);
             double d=D[u][v];
-            if(noForces(l,d,p)) continue;
+            if(l>d && p>1) continue; // attractive forces not required
             double d2=d*d;
             /* force apart zero distances */
             if (l < 1e-30) {
@@ -479,13 +504,13 @@ double ConstrainedFDLayout::computeStress() const {
     double stress=0;
     for(unsigned u=0;u<n-1;u++) {
         for(unsigned v=u+1;v<n;v++) {
-            unsigned p=G[u][v];
+            unsigned short p=G[u][v];
             // no forces between disconnected parts of the graph
-            if(p==numeric_limits<unsigned>::max()) continue;
+            if(p==0) continue;
             double rx=X[u]-X[v], ry=Y[u]-Y[v];
             double l=sqrt(rx*rx+ry*ry);
             double d=D[u][v];
-            if(noForces(l,d,p)) continue;
+            if(l>d && p>1) continue; // no attractive forces required
             double d2=d*d;
             double rl=d-l;
             double s=rl*rl/d2;
@@ -505,7 +530,7 @@ double ConstrainedFDLayout::computeStress() const {
         }
     }
     if(topologyRoutes) {
-        double s=topology::compute_stress(*topologyRoutes);
+        double s=topology::computeStress(*topologyRoutes);
         FILE_LOG(logDEBUG2)<<"s(topology)="<<s;
         stress+=s;
     }

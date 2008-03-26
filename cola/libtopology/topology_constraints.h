@@ -164,7 +164,10 @@ namespace topology {
          * @param dim HORIZONTAL or VERTICAL
          * @param nodes topology nodes
          * @param edges topology edges
-         * @param vs list of variables, the first n variables must correspond to the variables in nodes, however extra variables are allowed at the end
+         * @param vs canonical list of variables to feed into constraint
+         * solver, this must include all the variables
+         * associated with nodes (ie. vs.size()>=nodes.size()) though they
+         * do not have to appear in the same order.
          * @param cs constraints on variables, list will be appended with
          * automatically generated non-overlap constraints
          */
@@ -178,13 +181,6 @@ namespace topology {
         bool solve();
         void constraints(std::vector<TopologyConstraint*> & ts) const;
         void computeForces(valarray<double>& g, cola::SparseMap& h);
-        double computeStress() const;
-        void gradientProjection(valarray<double>& g, 
-                cola::SparseMap& h);
-        void gradientProjection(valarray<double>& g, 
-                cola::SparseMap& h, 
-                const DesiredPositions& d);
-        double reachedDesired(const DesiredPositions& d);
         bool assertFeasible() const;
         void printInstance(valarray<double>& g) const;
         bool noOverlaps() const;
@@ -228,6 +224,13 @@ namespace topology {
     void applyResizes(Nodes& nodes, Edges& edges, ResizeMap& resizes,
             vpsc::Variables& xvs, vpsc::Constraints& xcs, 
             vpsc::Variables& yvs, vpsc::Constraints& ycs);
+    /**
+     * compute the p-stress over a set of edge paths:
+     * \f[
+     *   \sigma = \sum_{e \in E} \left( d_e - \sum_{s \in S(e)} |s| \right)^2
+     * \f]
+     */
+    double computeStress(const Edges& es);
 } // namespace topology
 #endif // TOPOLOGY_CONSTRAINTS_H
 // vim: cindent ts=4 sw=4 et tw=0 wm=0

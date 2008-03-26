@@ -246,6 +246,12 @@ bool checkFinal(
  * @param nodes to be moved and/or resized
  * @param edges to be rerouted around nodes
  * @param resizes ResizeInfo for specific nodes
+ * @param vs canonical list of variables passed into solver.  Note that
+ * the first nodes.size() variables are used for each corresponding node.  
+ * Note also that new variables for the dummy nodes will be appended to this
+ * list and will need to be cleaned up later.
+ * @param cs canonical list of constraints over variables.  Note that new
+ * non-overlap constraints may be appended to the end of this list.
  */
 void resizeAxis(const Rectangles& targets,
         Nodes& nodes, Edges& edges, ResizeMap& resizes, 
@@ -268,6 +274,7 @@ void resizeAxis(const Rectangles& targets,
             TransformNode(targets,resizes,vs));
     feach(resizes, CreateLeftRightDummyNodes(targets,tn,vs));
     assert(tn.size()==nodes.size()+2*resizes.size());
+    assert(vs.size()>=tn.size());
 
     // update topologyRoutes with references to resized nodes replaced with
     // correct references to lhs/rhs nodes
