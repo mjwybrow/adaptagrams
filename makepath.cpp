@@ -546,7 +546,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
 
             VertInf *prevInf = BestNode.inf->pathNext;
 
-            if ((router->RubberBandRouting == false) && 
+            if ((!router->RubberBandRouting || (start == src)) && 
                   (validateBendPoint(prevInf, BestNode.inf, Node.inf) == false))
             {
                 // The bendpoint is not valid, i.e., is a zigzag corner, so...
