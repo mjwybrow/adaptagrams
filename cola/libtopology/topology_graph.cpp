@@ -334,9 +334,8 @@ struct NoIntersection {
             double sx=s->start->posX(), sy=s->start->posY(),
                    ex=s->end->posX(), ey=s->end->posY();
             double xBorder=Rectangle::xBorder, yBorder=Rectangle::yBorder;
-            Rectangle::setXBorder(xBorder-1e-4);
-            Rectangle::setYBorder(yBorder-1e-4);
-            //printf("testing intersection: node id=%d\n",(*v)->id);
+            Rectangle::setXBorder(xBorder-1e-6);
+            Rectangle::setYBorder(yBorder-1e-6);
             assert(!(*v)->rect->overlaps(sx,sy,ex,ey));
             Rectangle::setXBorder(xBorder);
             Rectangle::setYBorder(yBorder);

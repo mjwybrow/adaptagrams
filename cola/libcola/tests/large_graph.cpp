@@ -17,11 +17,35 @@
 #include<fstream>
 #include<vector>
 #include<valarray>
+#include <libvpsc/linesegment.h>
 #include "graphlayouttest.h"
 
 using namespace std;
 using namespace cola;
 
+int countCrossings(vpsc::Rectangles& rs, vector<cola::Edge>& es) {
+    int crossings=0;
+    for(unsigned i=0;i<es.size()-1;++i) {
+        for(unsigned j=i+1;j<es.size();++j) {
+            Edge e1=es[i], e2=es[j];
+            Rectangle *e1a=rs[e1.first], 
+                      *e1b=rs[e1.second], 
+                      *e2a=rs[e2.first], 
+                      *e2b=rs[e2.second];
+            linesegment::LineSegment s1(
+                    linesegment::Vector(e1a->getCentreX(),e1a->getCentreY()),
+                    linesegment::Vector(e1b->getCentreX(),e1b->getCentreY()));
+            linesegment::LineSegment s2(
+                    linesegment::Vector(e2a->getCentreX(),e2a->getCentreY()),
+                    linesegment::Vector(e2b->getCentreX(),e2b->getCentreY()));
+            linesegment::Vector point;
+            if(s1.Intersect(s2,point)==linesegment::LineSegment::INTERSECTING) {
+                ++crossings;
+            }
+        }
+    }
+    return crossings;
+}
 int main() {
     const char *fname="data/1138_bus.txt"; //"data/dg_850.txt";
     ifstream f(fname);
@@ -40,7 +64,7 @@ int main() {
              end = atoi(endlabel.c_str());
         es.push_back(make_pair(start,end));
         cy.push_back(
-            new SeparationConstraint(start,end,defaultEdgeLength/3));
+            new SeparationConstraint(end,start,defaultEdgeLength/3));
         V=max(V,max(start,end));
     }
     V++;
@@ -73,13 +97,18 @@ int main() {
 		double x=getRand(width), y=getRand(height);
 		rs.push_back(new vpsc::Rectangle(x,x+5,y,y+5));
 	}
-	CheckProgress test(0.0001,20);
+    cout<<"Initial crossings="<<countCrossings(rs,es)<<endl;
+	CheckProgress test(0.0001,200);
     ConstrainedMajorizationLayout alg(rs,es,NULL,defaultEdgeLength,NULL,test);
-    //alg.setYConstraints(&cy);
+    alg.setYConstraints(&cy);
 	alg.run();
+    cout<<"Majorization crossings="<<countCrossings(rs,es)<<endl;
+	OutputFile output1(rs,es,NULL,"large_graph-majorization.pdf");
+    output1.generate();
 	ConstrainedFDLayout alg2(rs,es,defaultEdgeLength,NULL,test);
-    //alg2.setYConstraints(&cy);
+    alg2.setYConstraints(&cy);
 	alg2.run();
+    cout<<"PStress crossings="<<countCrossings(rs,es)<<endl;
 	OutputFile output(rs,es,NULL,"large_graph.pdf");
 	output.generate();
 	for(unsigned i=0;i<V;i++) {

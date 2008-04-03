@@ -246,7 +246,7 @@ int main() {
     CompoundConstraints cx,cy;
 
     int seed = time(NULL);
-    seed = 1206411144;
+    //seed = 1206411144; // assertion fails
     printf("random seed=%d\n",seed);
     srand(seed);
     vector<Edge> es = random_dag(DAGDEPTH,BRANCHFACTOR,V,cx,cy);
