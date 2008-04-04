@@ -61,7 +61,7 @@ ostream& operator<< (ostream& os, const TriConstraint& c) {
  * The bend has become straight, remove bend
  */
 void BendConstraint::satisfy() {
-    FILE_LOG(logDEBUG)<<"BendConstraint::satisfy()...";
+    FILE_LOG(logDEBUG)<<"BendConstraint::satisfy()... edge id="<<getEdgeID()<<" node id="<<bendPoint->node->id;
     Segment* s1 = bendPoint->inSegment,
            * s2 = bendPoint->outSegment;
     Edge* e = s1->edge;
@@ -268,6 +268,7 @@ bool TopologyConstraints::solve() {
     s.solve();
     double minTAlpha=DBL_MAX;
     TopologyConstraint* minT=NULL;
+    //printEdges(edges);
     // find minimum feasible alpha over all topology constraints
     for(vector<TopologyConstraint*>::iterator i=ts.begin();
             i!=ts.end();++i) {
@@ -275,7 +276,7 @@ bool TopologyConstraints::solve() {
         double tAlpha=t->c->maxSafeAlpha();
         double slackAtFinal=t->c->slackAtFinal();
         FILE_LOG(logDEBUG1)<<"Checking topology constraint! alpha="<<tAlpha
-            <<"\n  slack at desired="<<slackAtFinal;
+            <<"  slack at desired="<<slackAtFinal;
         FILE_LOG(logDEBUG1)<<t->toString();
         if(slackAtFinal<0 && tAlpha<minTAlpha) {
             minTAlpha=tAlpha;
@@ -301,6 +302,7 @@ bool TopologyConstraints::solve() {
         // is split
         minT->satisfy();
     }
+    //printEdges(edges);
     assert(assertFeasible());
     assert(assertConvexBends(edges));
     assert(assertNoSegmentRectIntersection(nodes,edges));

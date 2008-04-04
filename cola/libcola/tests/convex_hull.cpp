@@ -62,17 +62,18 @@ int drawCairo(const string& fname,
 
 int main(int argc, char** argv) {
 	valarray<double> X, Y;
-	Hull hull,expectedHull;
+	Hull h,expectedHull;
     tworects(X,Y,expectedHull);
-	convexHull(X,Y,hull);
+    hull::convex(X,Y,h);
+    printf("hull size=%d\n",h.size());
     pair<Hull::iterator,Hull::iterator> r
-        =mismatch(hull.begin(),hull.end(),expectedHull.begin());
-    assert(r.first==hull.end());
-    drawCairo("convex_tworects.svg",X,Y,hull);
+        =mismatch(h.begin(),h.end(),expectedHull.begin());
+    assert(r.first==h.end());
+    drawCairo("convex_tworects.svg",X,Y,h);
 
     randTest(20,X,Y);
-	convexHull(X,Y,hull);
-    drawCairo("convex_hull_random.svg",X,Y,hull);
+    hull::convex(X,Y,h);
+    drawCairo("convex_hull_random.svg",X,Y,h);
 }
 
 /***********CAIRO CODE***************************************************/

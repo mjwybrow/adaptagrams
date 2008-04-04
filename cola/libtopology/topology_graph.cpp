@@ -274,15 +274,28 @@ bool Edge::assertConvexBends() const {
 struct PointToString {
     PointToString(stringstream& ss) : ss(ss) {}
     void operator()(const EdgePoint* p) {
-        ss << "EP@" << p <<": pos=("
-           << p->posX()<<","
-           << p->posY()<<")"<<endl;
+        ss << *p->node->rect << "," <<endl;
     }
     stringstream& ss;
 };
+struct SegmentToString {
+    SegmentToString(stringstream& ss) : ss(ss) {}
+    void operator()(const Segment* s) {
+        ss << s->toString() <<",";
+    }
+    stringstream& ss;
+};
+string Segment::toString() const {
+    stringstream ss;
+    ss << "Hue[0.77]," << "Line[{{"<<start->posX()<<","<<start->posY()<<"},{"
+        << end->posX()<<","<<end->posY()<<"}}]";
+    return ss.str();
+}
 string Edge::toString() const {
     stringstream ss;
-    forEachEdgePoint(PointToString(ss));
+    ss << "Show[Graphics[{";
+    forEach(PointToString(ss),SegmentToString(ss));
+    ss << "}]]" << endl;
     return ss.str();
 }
 struct buildPath {
@@ -336,7 +349,11 @@ struct NoIntersection {
             double xBorder=Rectangle::xBorder, yBorder=Rectangle::yBorder;
             Rectangle::setXBorder(xBorder-1e-6);
             Rectangle::setYBorder(yBorder-1e-6);
-            assert(!(*v)->rect->overlaps(sx,sy,ex,ey));
+            if((*v)->rect->overlaps(sx,sy,ex,ey)) {
+                printf("ERROR: Segment on edge id=%d overlaps Node id=%d\n",
+                        s->edge->id,(*v)->id);
+                assert(false);
+            }
             Rectangle::setXBorder(xBorder);
             Rectangle::setYBorder(yBorder);
         }
@@ -349,6 +366,11 @@ bool assertNoSegmentRectIntersection(
         (*e)->forEachSegment(NoIntersection(vs));
     }
     return true;
+}
+void printEdges(const Edges& es) {
+    for(Edges::const_iterator e=es.begin();e!=es.end();++e) {
+        cout<<(*e)->toString()<<endl;
+    }
 }
 #endif
 } // namespace topology

@@ -252,6 +252,7 @@ namespace topology {
             p = (pos - uy)/denom;
             return ux + p * (vx-ux);
         }
+        std::string toString() const;
         /**
          * Compute the euclidean distance between #start and #end.
          */
@@ -425,6 +426,7 @@ namespace topology {
     };
     typedef std::vector<Edge*> Edges;
     double compute_stress(const Edges&);
+    void printEdges(const Edges&);
 #ifndef NDEBUG
     bool assertConvexBends(const Edges&);
     bool assertNoSegmentRectIntersection(const Nodes&, const Edges&);

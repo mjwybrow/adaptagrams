@@ -59,7 +59,6 @@ struct RectangleIntersections {
     }
 };
 class Rectangle {   
-    friend std::ostream& operator <<(std::ostream &os, const Rectangle &r);
 public:
     /**
      * xBorder and yBorder can be set to add a border to the boundary of the
@@ -218,8 +217,8 @@ public:
                 }
             }
             printf("Rectangle/Segment intersection!\n");
-            printf("segment: {%f,%f},{%f,%f}\n",x1,y1,x2,y2);
-            printf("rect: {%f,%f},{%f,%f}\n",getMinX(),getMinY(),getMaxX(),getMaxY());
+            printf("Line[{{%f,%f},{%f,%f}}],\n",x1,y1,x2,y2);
+            printf("Rectangle[{%f,%f},{%f,%f}]\n",getMinX(),getMinY(),getMaxX(),getMaxY());
             return true;
         }
         return false;

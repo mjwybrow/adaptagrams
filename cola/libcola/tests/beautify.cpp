@@ -33,16 +33,16 @@ static const unsigned DAGDEPTH = 4;
 static const unsigned BRANCHFACTOR = 4;
 static const double EXTRAEDGEPROB = 0.01;
 */
+/*
 // |V|=131, |E|=166
 static const unsigned DAGDEPTH = 5;
 static const unsigned BRANCHFACTOR = 4;
 static const double EXTRAEDGEPROB = 0.005;
-/*
+*/
 // |V|=258, |E|=310
 static const unsigned DAGDEPTH = 6;
 static const unsigned BRANCHFACTOR = 4;
 static const double EXTRAEDGEPROB = 0.002;
-*/
 
 void makeEdge(unsigned u, unsigned v, 
         vector<Edge> &edges, CompoundConstraints &cy) {
@@ -148,6 +148,8 @@ void removeoverlaps(vpsc::Rectangles &rs, bool bothaxes) {
 			std::cerr << **r <<std::endl;
 		}
 	}
+    Rectangle::setXBorder(xBorder);
+    Rectangle::setYBorder(yBorder);
 }
 void writeTextFile(vector<cola::Edge>& edges) {  
     ofstream outfile("new.txt",ofstream::binary);
@@ -246,7 +248,6 @@ int main() {
     CompoundConstraints cx,cy;
 
     int seed = time(NULL);
-    //seed = 1206411144; // assertion fails
     printf("random seed=%d\n",seed);
     srand(seed);
     vector<Edge> es = random_dag(DAGDEPTH,BRANCHFACTOR,V,cx,cy);

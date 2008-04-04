@@ -89,6 +89,7 @@ namespace topology {
         virtual void satisfy() = 0;
         /// for log messages
         virtual std::string toString() const = 0;
+        virtual unsigned getEdgeID() const = 0;
         virtual ~TopologyConstraint() {
             delete c;
         }
@@ -117,6 +118,11 @@ namespace topology {
         BendConstraint(EdgePoint* bendPoint);
         void satisfy();
         std::string toString() const;
+        unsigned getEdgeID() const {
+            assert(bendPoint->inSegment!=NULL);
+            assert(bendPoint->outSegment!=NULL);
+            return bendPoint->inSegment->edge->id;
+        }
     };
     /**
      * A constraint between a Node and a Segment that is activated when
@@ -145,6 +151,9 @@ namespace topology {
                 const bool nodeLeft);
         void satisfy();
         std::string toString() const;
+        unsigned getEdgeID() const {
+            return segment->edge->id;
+        }
     };
     /**
      * desired positions which should override those computed by applying forces

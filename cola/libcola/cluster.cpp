@@ -60,7 +60,7 @@ namespace cola {
         }
         */
         vector<unsigned> hull;
-        convexHull(X,Y,hull);
+        hull::convex(X,Y,hull);
         hullX.resize(hull.size());
         hullY.resize(hull.size());
         hullRIDs.resize(hull.size());

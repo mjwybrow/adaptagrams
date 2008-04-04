@@ -214,7 +214,7 @@ struct SegmentClose : SegmentEvent {
  * Segments must not be on-top-of rectangles.
  */
 void NodeEvent::createStraightConstraint() {
-    FILE_LOG(logDEBUG)<<"NodeEvent::createStraightConstraint():node@"<<node<<" pos="<<pos;
+    FILE_LOG(logDEBUG)<<"NodeEvent::createStraightConstraint():node->id="<<node->id<<" pos="<<pos;
     for(OpenSegments::iterator j=openSegments.begin(); j!=openSegments.end();++j) {
         Segment* s=(*j)->s;
         if(s->start->node->id==node->id 
@@ -241,21 +241,21 @@ struct CompareEvents {
             // Let closes come before opens when at the same position
             if(!a->open && b->open) return true;
             if(a->open && !b->open) return false;
-            // Segment opens at the same position as node opens, node
+            // Segment opens at the same position as node opens, segment
             // comes first
             if(a->open && b->open) {
                 if(dynamic_cast<SegmentOpen*>(b) 
-                   && dynamic_cast<NodeOpen*>(a)) return true;
+                   && dynamic_cast<NodeOpen*>(a)) return false;
                 if(dynamic_cast<SegmentOpen*>(a) 
-                   && dynamic_cast<NodeOpen*>(b)) return false;
+                   && dynamic_cast<NodeOpen*>(b)) return true;
             }
-            // Segment closes at the same position as node closes, segment
+            // Segment closes at the same position as node closes, node
             // comes first
             if(!a->open && !b->open) {
                 if(dynamic_cast<SegmentClose*>(a) &&
-                   dynamic_cast<NodeClose*>(b)) return true;
+                   dynamic_cast<NodeClose*>(b)) return false;
                 if(dynamic_cast<SegmentClose*>(b) &&
-                   dynamic_cast<NodeClose*>(a)) return false;
+                   dynamic_cast<NodeClose*>(a)) return true;
             }
         }
         return false;
@@ -276,7 +276,7 @@ bool Segment::createStraightConstraint(Node* node, double pos) {
     if(start->pos(!dim)-end->pos(!dim)==0) {
         return false;
     }
-    FILE_LOG(logDEBUG)<<"Segment::createStraightConstraint, pos="<<pos;
+    FILE_LOG(logDEBUG)<<"Segment::createStraightConstraint, node->id="<<node->id<<", edge->id="<<edge->id<<" pos="<<pos;
     // segment must overlap in the scan dimension with the potential bend point
     assert(min(end->pos(!dim),start->pos(!dim))<=pos);
     assert(max(end->pos(!dim),start->pos(!dim))>=pos);
@@ -341,8 +341,7 @@ StraightConstraint::StraightConstraint(
         const bool nodeLeft) 
     : segment(s), node(node), ri(ri), pos(scanPos)
 {
-    FILE_LOG(logDEBUG)<<"StraightConstraint ctor: pos="<<pos;
-
+    FILE_LOG(logDEBUG)<<"StraightConstraint ctor: pos="<<pos<<" edge id="<<s->edge->id<<" node id="<<node->id;
     EdgePoint *u=s->start, *v=s->end;
     
     double g=u->offset()+segmentPos*(v->offset()-u->offset());

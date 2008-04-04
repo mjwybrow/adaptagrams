@@ -26,7 +26,7 @@ namespace vpsc {
 
 double Rectangle::xBorder=0, Rectangle::yBorder=0;
 std::ostream& operator <<(std::ostream &os, const Rectangle &r) {
-	os << "Rectangle("<<r.minX<<","<<r.maxX<<","<<r.minY<<","<<r.maxY<<"),";
+	os << "Hue[0.17],Rectangle[{"<<r.getMinX()<<","<<r.getMinY()<<"},{"<<r.getMaxX()<<","<<r.getMaxY()<<"}]";
 	return os;
 }
 
