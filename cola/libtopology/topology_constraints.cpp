@@ -169,6 +169,9 @@ void StraightConstraint::satisfy() {
              * bend = new EdgePoint(node,ri);
     assert(!zigzag(bend,end->outSegment));
     assert(!zagzig(bend,start->inSegment));
+    // shouldn't have straight constraints between end segments and the
+    // nodes to which they are connected.
+    assert(!segment->connectedToNode(node));
     
     Segment* s1 = new Segment(e,start,bend);
     Segment* s2 = new Segment(e,bend,end);

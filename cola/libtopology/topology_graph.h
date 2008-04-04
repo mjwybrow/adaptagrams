@@ -167,10 +167,11 @@ namespace topology {
          * @return true if a constraint was created
          */
         bool createStraightConstraint(Node* node, double pos);
-        /** 
+        /**
          * creates a copy of the StraightConstraint in our own
-         * straightConstraints list.  
-         * @param s the StraightConstraint to be copied across
+         * straightConstraints list, but only if this segment is not directly
+         * connected to the centre of the StraightConstraint node.  @param s
+         * the StraightConstraint to be copied across
          */
         void transferStraightConstraint(StraightConstraint* s);
         /**
@@ -257,6 +258,10 @@ namespace topology {
          * Compute the euclidean distance between #start and #end.
          */
         double length() const;
+        /**
+         * does this segment have Node v as a CENTRE start or end point?
+         */
+        bool connectedToNode(const Node* v) const;
     private:
         /// a set of topology constraints (left-/right-/above-/below-of
         /// relationships / between this segment and nodes

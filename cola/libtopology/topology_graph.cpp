@@ -219,6 +219,15 @@ bool EdgePoint::assertConvexBend() const {
     } 
     return true;
 }
+bool Segment::connectedToNode(const Node* v) const {
+    if (start->rectIntersect == EdgePoint::CENTRE && start->node->id == v->id) {
+        return true;
+    }
+    if (end->rectIntersect == EdgePoint::CENTRE && end->node->id == v->id) {
+        return true;
+    }
+    return false;
+}
 void Segment::
 getStraightConstraints(vector<TopologyConstraint*>* ts) const {
     size_t n = ts->size();

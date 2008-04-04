@@ -272,6 +272,9 @@ TriConstraint::TriConstraint(
 }
 
 bool Segment::createStraightConstraint(Node* node, double pos) {
+    // no straight constraints between a node directly connected by its CENTRE 
+    // to this segment.
+    assert(!connectedToNode(node));
     // segments orthogonal to scan direction need no constraints
     if(start->pos(!dim)-end->pos(!dim)==0) {
         return false;
@@ -317,11 +320,14 @@ bool Segment::createStraightConstraint(Node* node, double pos) {
 
 /**
  * creates a copy of the StraightConstraint in our own straightConstraints
- * list.
+ * list, but only if this segment is not directly connected to the centre
+ * of the StraightConstraint node.
  * @param s the StraightConstraint to be copied across
  */
 void Segment::transferStraightConstraint(StraightConstraint* s) {
-    createStraightConstraint(s->node,s->pos);
+    if(!connectedToNode(s->node)) {
+        createStraightConstraint(s->node,s->pos);
+    }
 }
 /**
  * create a constraint between a segment and a node that is
