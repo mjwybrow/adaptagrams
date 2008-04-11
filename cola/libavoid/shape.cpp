@@ -223,8 +223,8 @@ void ShapeRef::removeFromGraph(void)
         
         // For each vertex.
         EdgeInfList& visList = tmp->visList;
-        EdgeInfList::iterator finish = visList.end();
-        EdgeInfList::iterator edge;
+        EdgeInfList::const_iterator finish = visList.end();
+        EdgeInfList::const_iterator edge;
         while ((edge = visList.begin()) != finish)
         {
             // Remove each visibility edge

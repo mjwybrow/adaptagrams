@@ -43,7 +43,6 @@ namespace topology {
          * @param r
          */
         Node(unsigned id, vpsc::Rectangle*);
-        void moveRect(bool interrupted, double alpha);
         void setDesiredPos(double d, double weight=1.0);
         double initialPos() const;
         double finalPos() const;
@@ -252,6 +251,10 @@ namespace topology {
             assert(denom!=0); // must not be parallel to scanline!
             p = (pos - uy)/denom;
             return ux + p * (vx-ux);
+        }
+        double intersection(double pos) const {
+            double p;
+            return intersection(pos,p);
         }
         std::string toString() const;
         /**

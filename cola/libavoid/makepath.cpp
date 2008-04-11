@@ -110,7 +110,7 @@ double cost(ConnRef *lineRef, const double dist, VertInf *inf1,
         Point& a1 = inf2->point;
         Point& a2 = inf3->point;
 
-        ConnRefList::iterator curr, finish = router->connRefs.end();
+        ConnRefList::const_iterator curr, finish = router->connRefs.end();
         for (curr = router->connRefs.begin(); curr != finish; ++curr)
         {
             ConnRef *connRef = *curr;
@@ -295,8 +295,8 @@ static void dijkstraPath(ConnRef *lineRef, VertInf *src, VertInf *tar)
         }
 
         EdgeInfList& visList = k->visList;
-        EdgeInfList::iterator finish = visList.end();
-        for (EdgeInfList::iterator edge = visList.begin(); edge != finish;
+        EdgeInfList::const_iterator finish = visList.end();
+        for (EdgeInfList::const_iterator edge = visList.begin(); edge != finish;
                 ++edge)
         {
             VertInf *t = (*edge)->otherVert(k);
@@ -323,8 +323,8 @@ static void dijkstraPath(ConnRef *lineRef, VertInf *src, VertInf *tar)
         }
         EdgeInfList& invisList = k->invisList;
         finish = invisList.end();
-        for (EdgeInfList::iterator edge = invisList.begin(); edge != finish;
-                ++edge)
+        for (EdgeInfList::const_iterator edge = invisList.begin(); 
+                edge != finish; ++edge)
         {
             VertInf *t = (*edge)->otherVert(k);
             VertID tID = t->id;
@@ -525,8 +525,8 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
 
         // Check adjacent points in graph
         EdgeInfList& visList = BestNode.inf->visList;
-        EdgeInfList::iterator finish = visList.end();
-        for (EdgeInfList::iterator edge = visList.begin(); edge != finish;
+        EdgeInfList::const_iterator finish = visList.end();
+        for (EdgeInfList::const_iterator edge = visList.begin(); edge != finish;
                 ++edge)
         {
             Node.inf = (*edge)->otherVert(BestNode.inf);
@@ -700,7 +700,6 @@ void makePath(ConnRef *lineRef, bool *flag)
         }
 
 #if 0
-        PointMap::iterator t;
         for (VertInf *t = vertices.connsBegin(); t != vertices.end();
                 t = t->lstNext)
         {

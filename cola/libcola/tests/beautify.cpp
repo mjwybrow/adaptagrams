@@ -13,12 +13,10 @@
 using namespace std;
 using namespace cola;
 
-/*
 // |V|=12, |E|=23
 static const unsigned DAGDEPTH = 3;
 static const unsigned BRANCHFACTOR = 3;
-static const double EXTRAEDGEPROB = 0.1;
-*/
+static const double EXTRAEDGEPROB = 0.5;
 
 /*
 // |V|=26, |E|=61
@@ -39,15 +37,17 @@ static const unsigned DAGDEPTH = 5;
 static const unsigned BRANCHFACTOR = 4;
 static const double EXTRAEDGEPROB = 0.005;
 */
+/*
 // |V|=258, |E|=310
 static const unsigned DAGDEPTH = 6;
 static const unsigned BRANCHFACTOR = 4;
 static const double EXTRAEDGEPROB = 0.002;
+*/
 
 void makeEdge(unsigned u, unsigned v, 
         vector<Edge> &edges, CompoundConstraints &cy) {
     edges.push_back(make_pair(u,v));
-    cy.push_back(new SeparationConstraint(u,v,20));
+    cy.push_back(new SeparationConstraint(u,v,5));
 }
 vector<Edge> random_dag(unsigned depth, unsigned maxbranch, unsigned &V,
         CompoundConstraints &cx, CompoundConstraints &cy) {
@@ -248,10 +248,12 @@ int main() {
     CompoundConstraints cx,cy;
 
     int seed = time(NULL);
+    //seed=1207906420;
+    seed=1207920674;
     printf("random seed=%d\n",seed);
     srand(seed);
     vector<Edge> es = random_dag(DAGDEPTH,BRANCHFACTOR,V,cx,cy);
-    double defaultEdgeLength=40;
+    double defaultEdgeLength=10;
 
     cout << "V="<<V<<endl;
     cout << "E="<<es.size()<<endl;

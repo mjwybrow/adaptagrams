@@ -19,10 +19,17 @@ double TriConstraint::maxSafeAlpha() const {
     double v2=v->finalPos();
     double w1=w->initialPos();
     double w2=w->finalPos();
+    if(slackAtFinal()>=0) {
+        return 1;
+    }
     double numerator=w1 - g - u1 + p*(u1-v1);
     // There are a number of situations where the following can
-    // be 0!
+    // be 0:
+    //   - no movement
+    //   - rotation
     double denominator=u2-u1 + p*(u1-u2 + v2-v1) + w1-w2;
+    FILE_LOG(logDEBUG1)<<"TriConstraint::maxSafeAlpha(): num="<<numerator<<" den="<<denominator;
+    FILE_LOG(logDEBUG1)<<"  u1="<<u1<<" u2="<<u2<<" v1="<<v1<<" v2="<<v2<<" w1="<<w1<<" w2="<<w2;
     if(denominator==0) {
         return 1;
     }
@@ -269,7 +276,7 @@ bool TopologyConstraints::solve() {
     constraints(ts);
     vpsc::IncSolver s(vs,cs);
     s.solve();
-    double minTAlpha=DBL_MAX;
+    double minTAlpha=1;
     TopologyConstraint* minT=NULL;
     //printEdges(edges);
     // find minimum feasible alpha over all topology constraints
@@ -277,29 +284,23 @@ bool TopologyConstraints::solve() {
             i!=ts.end();++i) {
         TopologyConstraint* t=*i;
         double tAlpha=t->c->maxSafeAlpha();
-        double slackAtFinal=t->c->slackAtFinal();
-        FILE_LOG(logDEBUG1)<<"Checking topology constraint! alpha="<<tAlpha
-            <<"  slack at desired="<<slackAtFinal;
+        FILE_LOG(logDEBUG1)<<"Checking topology constraint! alpha="<<tAlpha;
         FILE_LOG(logDEBUG1)<<t->toString();
-        if(slackAtFinal<0 && tAlpha<minTAlpha) {
+        assert(tAlpha>0);
+        if(tAlpha<minTAlpha) {
             minTAlpha=tAlpha;
             minT=t;
         }
     }
-    bool interrupted=false;
-    if(minTAlpha<1) {
-        interrupted=true;
-        FILE_LOG(logDEBUG1)<<"violated topology constraint! alpha="<<minTAlpha;
-    }
     for(Nodes::iterator i=nodes.begin();i!=nodes.end();++i) {
         Node* v=*i;
-        v->moveRect(interrupted,minTAlpha);
+        v->rect->moveCentreD(dim,v->posOnLine(minTAlpha));
     }
     assert(noOverlaps());
     assert(assertConvexBends(edges));
     // rectangle and edge point positions updated to variables.
     FILE_LOG(logDEBUG)<<" moves done.";
-    if(interrupted) {
+    if(minT) {
         // now we satisfy the violated topology constraint, i.e. a bend point
         // that has become straight is removed or a segment that needs to bend
         // is split
@@ -310,7 +311,7 @@ bool TopologyConstraints::solve() {
     assert(assertConvexBends(edges));
     assert(assertNoSegmentRectIntersection(nodes,edges));
     FILE_LOG(logDEBUG)<<"TopologyConstraints::steepestDescent... done";
-    return interrupted;
+    return minT!=NULL;
 }
 /**
  * a Functor for use in a sum_over a collection of edges

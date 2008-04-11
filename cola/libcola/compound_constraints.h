@@ -201,7 +201,7 @@ public:
         : leftMargin(lm), rightMargin(rm), 
           actualLeftMargin(0), actualRightMargin(0),
           leftWeight(w), rightWeight(w), vl(NULL), vr(NULL) { }
-    PageBoundaryConstraints(double lm, double rm, double lw, double rw) // magmy20070509: New constructor with separate edge weights
+    PageBoundaryConstraints(double lm, double rm, double lw, double rw)
         : leftMargin(lm), rightMargin(rm), 
           actualLeftMargin(0), actualRightMargin(0),
           leftWeight(lw), rightWeight(rw), vl(NULL), vr(NULL) { }
@@ -210,6 +210,7 @@ public:
     void updatePosition() {
         if(vl) actualLeftMargin = vl->finalPosition;
         if(vr) actualRightMargin = vr->finalPosition;
+        //printf("updatePosition(): actualLeftMargin=%f, actualRightMargin=%f\n",actualLeftMargin,actualRightMargin);
     }
     double getActualLeftMargin() {
         return actualLeftMargin;
@@ -223,8 +224,8 @@ private:
     double rightMargin;
     double actualLeftMargin;
     double actualRightMargin;
-    double leftWeight;        // magmy20070508: Split weight member into separate weights for left and right
-    double rightWeight;       // - " -
+    double leftWeight;    
+    double rightWeight;  
     vpsc::Variable *vl, *vr;
 };
 /**

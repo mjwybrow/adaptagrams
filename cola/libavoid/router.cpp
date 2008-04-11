@@ -122,9 +122,7 @@ void Router::delShape(ShapeRef *shape)
     {
         if ((*it)->shape->id() == pid)
         {
-            MoveInfoList::iterator doomed = it;
-            ++it;
-            moveList.erase(doomed);
+            it = moveList.erase(it);
         }
         else
         {
@@ -168,8 +166,8 @@ void Router::moveShape(ShapeRef *shape, Polygn *newPoly, const bool first_move)
     // shape multiple times before rerouting connectors.
     bool alreadyThere = false;
     unsigned int id = shape->id();
-    MoveInfoList::iterator finish = moveList.end();
-    for (MoveInfoList::iterator it = moveList.begin(); it != finish; ++it)
+    MoveInfoList::const_iterator finish = moveList.end();
+    for (MoveInfoList::const_iterator it = moveList.begin(); it != finish; ++it)
     {
         if ((*it)->shape->id() == id)
         {
@@ -208,8 +206,8 @@ void Router::processMoves(void)
         return;
     }
 
-    MoveInfoList::iterator curr;
-    MoveInfoList::iterator finish = moveList.end();
+    MoveInfoList::const_iterator curr;
+    MoveInfoList::const_iterator finish = moveList.end();
     for (curr = moveList.begin(); curr != finish; ++curr)
     {
         MoveInfo *moveInf = *curr;
@@ -316,8 +314,8 @@ void Router::processMoves(void)
 void Router::attachedConns(IntList &conns, const unsigned int shapeId,
         const unsigned int type)
 {
-    ConnRefList::iterator fin = connRefs.end();
-    for (ConnRefList::iterator i = connRefs.begin(); i != fin; ++i) {
+    ConnRefList::const_iterator fin = connRefs.end();
+    for (ConnRefList::const_iterator i = connRefs.begin(); i != fin; ++i) {
 
         if ((type & runningTo) && ((*i)->_dstId == shapeId)) {
             conns.push_back((*i)->_id);
@@ -334,8 +332,8 @@ void Router::attachedConns(IntList &conns, const unsigned int shapeId,
 void Router::attachedShapes(IntList &shapes, const unsigned int shapeId,
         const unsigned int type)
 {
-    ConnRefList::iterator fin = connRefs.end();
-    for (ConnRefList::iterator i = connRefs.begin(); i != fin; ++i) {
+    ConnRefList::const_iterator fin = connRefs.end();
+    for (ConnRefList::const_iterator i = connRefs.begin(); i != fin; ++i) {
         if ((type & runningTo) && ((*i)->_dstId == shapeId)) {
             if ((*i)->_srcId != 0)
             {
@@ -358,8 +356,8 @@ void Router::attachedShapes(IntList &shapes, const unsigned int shapeId,
     // happened to alert connectors that they need to be rerouted.
 void Router::callbackAllInvalidConnectors(void)
 {
-    ConnRefList::iterator fin = connRefs.end();
-    for (ConnRefList::iterator i = connRefs.begin(); i != fin; ++i) {
+    ConnRefList::const_iterator fin = connRefs.end();
+    for (ConnRefList::const_iterator i = connRefs.begin(); i != fin; ++i) {
         (*i)->handleInvalid();
     }
 }
@@ -503,8 +501,8 @@ void Router::generateContains(VertInf *pt)
     // Don't count points on the border as being inside.
     bool countBorder = false;
 
-    ShapeRefList::iterator finish = shapeRefs.end();
-    for (ShapeRefList::iterator i = shapeRefs.begin(); i != finish; ++i)
+    ShapeRefList::const_iterator finish = shapeRefs.end();
+    for (ShapeRefList::const_iterator i = shapeRefs.begin(); i != finish; ++i)
     {
         Polygn poly = copyPoly(*i);
         if (inPoly(poly, pt->point, countBorder))
@@ -561,8 +559,8 @@ void Router::markConnectors(ShapeRef *shape)
 
     assert(SelectiveReroute);
 
-    ConnRefList::iterator end = connRefs.end();
-    for (ConnRefList::iterator it = connRefs.begin(); it != end; ++it)
+    ConnRefList::const_iterator end = connRefs.end();
+    for (ConnRefList::const_iterator it = connRefs.begin(); it != end; ++it)
     {
         ConnRef *conn = (*it);
 

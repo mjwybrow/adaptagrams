@@ -306,10 +306,20 @@ void ConstrainedFDLayout::moveTo(const Dim dim, Position& target) {
     vpsc::Constraints cs;
     CompoundConstraints* ccs=dim==HORIZONTAL?ccsx:ccsy;
     setupVarsAndConstraints(n,ccs,vs,cs);
+    topology::DesiredPositions des;
+    if(preIteration) {
+        for(vector<Lock>::iterator l=preIteration->locks.begin();
+                l!=preIteration->locks.end();l++) {
+            des.push_back(make_pair(l->getID(),l->pos(dim)));
+            FILE_LOG(logDEBUG1)<<"desi: v["<<l->getID()<<"]=("<<l->pos(HORIZONTAL)
+                <<","<<l->pos(VERTICAL)<<")";
+        }
+    }
     for(unsigned i=0, j=(dim==HORIZONTAL?0:n);i<n;++i,++j) {
         Variable* v=vs[i];
         v->desiredPosition = target[j];
     }
+    setVariableDesiredPositions(vs,cs,des,coords);
     if(topologyRoutes) {
         topology::setNodeVariables(*topologyNodes,vs);
         topology::TopologyConstraints t(dim,*topologyNodes,*topologyRoutes,vs,cs);

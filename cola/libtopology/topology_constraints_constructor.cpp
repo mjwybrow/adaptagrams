@@ -67,7 +67,8 @@ struct NodeEvent : Event {
      * topology constraints are generated for the opening and closing edges of each node
      * and every open segment at pos
      */
-    void createStraightConstraint();
+    void createStraightConstraints(
+            const Node* leftNeighbour, const Node* rightNeighbour);
 };
 /**
  * at node openings the node is placed in the list of #openNodes and a
@@ -94,9 +95,16 @@ struct NodeOpen : NodeEvent {
             printf("  id1=%d, id2=%d\n",n1->id, n2->id);
         }
         assert(r.second);
-
         openListIndex = r.first;
-        createStraightConstraint();
+        OpenNodes::iterator right=openListIndex, left=openListIndex;
+        Node *leftNeighbour=NULL, *rightNeighbour=NULL;
+        if(left!=openNodes.begin()) {
+            leftNeighbour=(--left)->second->node;
+        }
+        if((++right)!=openNodes.end()) {
+            rightNeighbour=right->second->node;
+        }
+        createStraightConstraints(leftNeighbour,rightNeighbour);
     }
     string toString() {
         stringstream s;
@@ -143,16 +151,20 @@ struct NodeClose : NodeEvent {
         FILE_LOG(logDEBUG) << "NodeClose::process()";
         OpenNodes::iterator nodePos=opening->openListIndex;
         OpenNodes::iterator right=nodePos, left=nodePos;
+        Node *leftNeighbour=NULL, *rightNeighbour=NULL;
         if(left!=openNodes.begin()) {
-            createNonOverlapConstraint((--left)->second->node,node);
+            leftNeighbour=(--left)->second->node;
+            createNonOverlapConstraint(leftNeighbour,node);
         }
         if((++right)!=openNodes.end()) {
-            createNonOverlapConstraint(node,right->second->node);
+            rightNeighbour=right->second->node;
+            createNonOverlapConstraint(node,rightNeighbour);
         }
         openNodes.erase(nodePos);
         delete opening;
-        // create StraightConstraint from scanpos in every open edge to node
-        createStraightConstraint();
+        // create StraightConstraint from scanpos in every open edge 
+        // visible before left and right from node
+        createStraightConstraints(leftNeighbour,rightNeighbour);
         delete this;
     }
     string toString() {
@@ -213,8 +225,15 @@ struct SegmentClose : SegmentEvent {
  * Create topology constraint from scanpos in every open segment to node.
  * Segments must not be on-top-of rectangles.
  */
-void NodeEvent::createStraightConstraint() {
+void NodeEvent::createStraightConstraints(
+        const Node* leftNeighbour, const Node* rightNeighbour) {
     FILE_LOG(logDEBUG)<<"NodeEvent::createStraightConstraint():node->id="<<node->id<<" pos="<<pos;
+    const double leftLimit=leftNeighbour?
+        leftNeighbour->rect->getMaxD(dim):
+        -DBL_MAX;
+    const double rightLimit=rightNeighbour?
+        rightNeighbour->rect->getMinD(dim):
+        DBL_MAX;
     for(OpenSegments::iterator j=openSegments.begin(); j!=openSegments.end();++j) {
         Segment* s=(*j)->s;
         if(s->start->node->id==node->id 
@@ -224,6 +243,11 @@ void NodeEvent::createStraightConstraint() {
             // skip if segment is attached to this node
             continue;
         } 
+        // skip if segment is not visible from this node
+        double p = s->intersection(pos);
+        if(p<leftLimit||p>rightLimit) { 
+            continue;
+        }
         s->createStraightConstraint(node,pos);
     }
 }
@@ -238,9 +262,9 @@ struct CompareEvents {
         } else if(a->pos==b->pos) {
             // we don't support zero height/width nodes and events should not
             // have been generated for segments parallel to the scan line.
-            // Let closes come before opens when at the same position
-            if(!a->open && b->open) return true;
-            if(a->open && !b->open) return false;
+            // Even so, let opens come before closes when at the same position
+            if(!a->open && b->open) return false;
+            if(a->open && !b->open) return true;
             // Segment opens at the same position as node opens, segment
             // comes first
             if(a->open && b->open) {
@@ -275,14 +299,19 @@ bool Segment::createStraightConstraint(Node* node, double pos) {
     // no straight constraints between a node directly connected by its CENTRE 
     // to this segment.
     assert(!connectedToNode(node));
+    const double top = max(end->pos(!dim),start->pos(!dim)), 
+                 bottom = min(end->pos(!dim),start->pos(!dim));
     // segments orthogonal to scan direction need no constraints
-    if(start->pos(!dim)-end->pos(!dim)==0) {
+    // neither do segments that terminate just outside pos
+    if(top==bottom
+     ||top<=pos
+     ||bottom>=pos) {
         return false;
     }
     FILE_LOG(logDEBUG)<<"Segment::createStraightConstraint, node->id="<<node->id<<", edge->id="<<edge->id<<" pos="<<pos;
     // segment must overlap in the scan dimension with the potential bend point
-    assert(min(end->pos(!dim),start->pos(!dim))<=pos);
-    assert(max(end->pos(!dim),start->pos(!dim))>=pos);
+    assert(bottom<pos);
+    assert(top>pos);
     vpsc::Rectangle* r=node->rect;
     FILE_LOG(logDEBUG1)<<"Segment: from "<<start->pos(!dim)<<" to "<<end->pos(!dim);
     FILE_LOG(logDEBUG1)<<"Node: rect "<<*r;

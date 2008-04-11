@@ -31,11 +31,6 @@ void Node::setDesiredPos(double d, double weight) {
     var->desiredPosition=d;
     var->weight=weight;
 }
-void Node::moveRect(bool interrupted, double alpha) {
-    double p=interrupted ? posOnLine(alpha)
-                         : finalPos();
-    rect->moveCentreD(dim,p);
-}
 double Node::initialPos() const {
     return rect->getCentreD(dim);
 }
