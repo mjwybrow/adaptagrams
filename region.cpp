@@ -776,13 +776,13 @@ bool Region::unsafeToMerge(unsigned int dir)
         if (_blocks != _down->_blocks)
         {
             printf("\n  _blocks:\n    ");
-            for (ShapeList::iterator i = _blocks.begin(); i != _blocks.end();
-                    ++i)
+            for (ShapeList::const_iterator i = _blocks.begin(); 
+                    i != _blocks.end(); ++i)
             {
                 printf("%d ", *i);
             }
             printf("\n  _down->_blocks:\n    ");
-            for (ShapeList::iterator i = _down->_blocks.begin();
+            for (ShapeList::const_iterator i = _down->_blocks.begin();
                     i != _down->_blocks.end(); ++i)
             {
                 printf("%d ", *i);
@@ -805,13 +805,13 @@ bool Region::unsafeToMerge(unsigned int dir)
         if (_blocks !=  _right->_blocks)
         {
             printf("\n  _blocks:\n    ");
-            for (ShapeList::iterator i = _blocks.begin(); i != _blocks.end();
-                    ++i)
+            for (ShapeList::const_iterator i = _blocks.begin(); 
+                    i != _blocks.end(); ++i)
             {
                 printf("%d ", *i);
             }
             printf("\n  _right->_blocks:\n    ");
-            for (ShapeList::iterator i = _right->_blocks.begin();
+            for (ShapeList::const_iterator i = _right->_blocks.begin();
                     i != _right->_blocks.end(); ++i)
             {
                 printf("%d ", *i);

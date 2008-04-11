@@ -73,8 +73,8 @@ static void computeCompleteVis(Router *router)
 
 void DestroyVisGraph(Router *router)
 {
-    ShapeRefList::iterator sFinish = router->shapeRefs.end();
-    ShapeRefList::iterator sCurr;
+    ShapeRefList::const_iterator sFinish = router->shapeRefs.end();
+    ShapeRefList::const_iterator sCurr;
     
     while ((sCurr = router->shapeRefs.begin()) != sFinish)
     {
@@ -84,8 +84,8 @@ void DestroyVisGraph(Router *router)
         delete shape;
     }
     
-    ConnRefList::iterator cFinish = router->connRefs.end();
-    ConnRefList::iterator cCurr;
+    ConnRefList::const_iterator cFinish = router->connRefs.end();
+    ConnRefList::const_iterator cCurr;
     
     while ((cCurr = router->connRefs.begin())!= cFinish)
     {

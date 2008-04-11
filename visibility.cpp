@@ -195,7 +195,7 @@ class PointPair
 };
 
 
-typedef std::list<PointPair > VertList;
+typedef std::set<PointPair > VertSet;
 
 
 class EdgePair
@@ -260,7 +260,7 @@ class EdgePair
 typedef std::set<EdgePair> EdgeSet;
 
 
-static bool ppCompare(PointPair& pp1, PointPair& pp2)
+bool operator<(const PointPair& pp1, const PointPair& pp2)
 {
     if (pp1.angle == pp2.angle)
     {
@@ -305,7 +305,7 @@ static bool sweepVisible(EdgeSet& T, VertInf *currInf, VertInf *lastInf,
     if (!lastInf || (lastAngle != centerAngle))
     {
         // Nothing before it on the current ray
-        EdgeSet::iterator closestIt = T.begin();
+        EdgeSet::const_iterator closestIt = T.begin();
         if (closestIt != T.end())
         {
 
@@ -331,8 +331,8 @@ static bool sweepVisible(EdgeSet& T, VertInf *currInf, VertInf *lastInf,
         {
             // Check if there is an edge in T that blocks the ray
             // between lastInf and currInf.
-            EdgeSet::iterator tfin = T.end();
-            for (EdgeSet::iterator l = T.begin(); l != tfin; ++l)
+            EdgeSet::const_iterator tfin = T.end();
+            for (EdgeSet::const_iterator l = T.begin(); l != tfin; ++l)
             {
                 Point &e1 = (*l).vInf1->point;
                 Point &e2 = (*l).vInf2->point;
@@ -363,7 +363,7 @@ void vertexSweep(VertInf *vert)
 
     // List of shape (and maybe endpt) vertices, except p
     // Sort list, around
-    VertList v;
+    VertSet v;
 
     // Initialise the vertex list
     VertInf *beginVert = router->vertices.connsBegin();
@@ -379,7 +379,7 @@ void vertexSweep(VertInf *vert)
         if (inf->id.isShape)
         {
             // Add shape vertex
-            v.push_back(inf);
+            v.insert(inf);
         }
         else
         {
@@ -388,7 +388,7 @@ void vertexSweep(VertInf *vert)
                 if (centerID.isShape)
                 {
                     // Add endpoint vertex
-                    v.push_back(inf);
+                    v.insert(inf);
                 }
                 else
                 {
@@ -398,14 +398,12 @@ void vertexSweep(VertInf *vert)
                             (centerID.vn == 1) ? 2 : 1);
                     if (inf->id == partnerID)
                     {
-                        v.push_back(inf);
+                        v.insert(inf);
                     }
                 }
             }
         }
     }
-    // TODO: This should be done with a sorted data type and insertion sort.
-    v.sort(ppCompare);
 
     EdgeSet e;
     ShapeSet& ss = router->contains[centerID];
@@ -465,9 +463,9 @@ void vertexSweep(VertInf *vert)
     int      lastBlocker = 0;
 
     isBoundingShape isBounding(router->contains[centerID]);
-    VertList::iterator vfst = v.begin();
-    VertList::iterator vfin = v.end();
-    for (VertList::iterator t = vfst; t != vfin; ++t)
+    VertSet::const_iterator vfst = v.begin();
+    VertSet::const_iterator vfin = v.end();
+    for (VertSet::const_iterator t = vfst; t != vfin; ++t)
     {
         VertInf *currInf = (*t).vInf;
         VertID& currID = currInf->id;
@@ -480,6 +478,9 @@ void vertexSweep(VertInf *vert)
 
         Sint16 cx = (int) currPt.x;
         Sint16 cy = (int) currPt.y;
+
+        int canx = 151;
+        int cany = 55;
 #endif
 
         double currDist = dist(centerPt, currPt);
@@ -541,7 +542,8 @@ void vertexSweep(VertInf *vert)
             if (currVisible)
             {
 #ifdef LINEDEBUG
-                lineRGBA(avoid_screen, ppx, ppy, cx, cy, 255, 0, 0, 32);
+                lineRGBA(router->avoid_screen, ppx + canx, ppy + cany,
+                        cx + canx, cy + cany, 255, 0, 0, 75);
 #endif
                 db_printf("\tSetting visibility edge... \n\t\t");
                 edge->setDist(currDist);
@@ -570,7 +572,7 @@ void vertexSweep(VertInf *vert)
             EdgePair prevPair = EdgePair(currInf, currInf->shPrev,
                     currDist, centerAngle);
 
-            EdgeSet::iterator ePtr;
+            EdgeSet::const_iterator ePtr;
             if (prevDir == BEHIND)
             {
                 // XXX: Strangely e.find does not return the correct results.
@@ -618,7 +620,7 @@ void vertexSweep(VertInf *vert)
         }
 
 #ifdef LINEDEBUG
-        SDL_Flip(avoid_screen);
+        SDL_Flip(router->avoid_screen);
 #endif
     }
 }

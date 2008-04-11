@@ -426,8 +426,8 @@ EdgeInf *EdgeInf::existingEdge(VertInf *i, VertInf *j)
     }
 
     EdgeInfList& visList = selected->visList;
-    EdgeInfList::iterator finish = visList.end();
-    for (EdgeInfList::iterator edge = visList.begin(); edge != finish;
+    EdgeInfList::const_iterator finish = visList.end();
+    for (EdgeInfList::const_iterator edge = visList.begin(); edge != finish;
             ++edge)
     {
         if ((*edge)->isBetween(i, j))
@@ -447,7 +447,7 @@ EdgeInf *EdgeInf::existingEdge(VertInf *i, VertInf *j)
 
     EdgeInfList& invisList = selected->invisList;
     finish = invisList.end();
-    for (EdgeInfList::iterator edge = invisList.begin(); edge != finish;
+    for (EdgeInfList::const_iterator edge = invisList.begin(); edge != finish;
             ++edge)
     {
         if ((*edge)->isBetween(i, j))
