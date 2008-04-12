@@ -227,25 +227,25 @@ struct SegmentClose : SegmentEvent {
  */
 void NodeEvent::createStraightConstraints(
         const Node* leftNeighbour, const Node* rightNeighbour) {
-    FILE_LOG(logDEBUG)<<"NodeEvent::createStraightConstraint():node->id="<<node->id<<" pos="<<pos;
-    const double leftLimit=leftNeighbour?
-        leftNeighbour->rect->getMaxD(dim):
-        -DBL_MAX;
-    const double rightLimit=rightNeighbour?
-        rightNeighbour->rect->getMinD(dim):
-        DBL_MAX;
+    FILE_LOG(logDEBUG)<<"NodeEvent::createStraightConstraints():node->id="<<node->id<<" pos="<<pos;
+    const double 
+        leftLimit=leftNeighbour?leftNeighbour->rect->getCentreD(dim):-DBL_MAX,
+        rightLimit=rightNeighbour?rightNeighbour->rect->getCentreD(dim):DBL_MAX;
     for(OpenSegments::iterator j=openSegments.begin(); j!=openSegments.end();++j) {
         Segment* s=(*j)->s;
         if(s->start->node->id==node->id 
                 && s->start->rectIntersect==EdgePoint::CENTRE
         || s->end->node->id==node->id
                 && s->end->rectIntersect==EdgePoint::CENTRE) {
-            // skip if segment is attached to this node
+            FILE_LOG(logDEBUG1)<<"  Not creating because segment is attached to this node!";
             continue;
         } 
-        // skip if segment is not visible from this node
-        double p = s->intersection(pos);
-        if(p<leftLimit||p>rightLimit) { 
+        const double p = s->intersection(pos);
+        if(p<leftLimit&&pos>leftNeighbour->rect->getMinD(!dim)&&
+                pos<leftNeighbour->rect->getMaxD(!dim)
+           ||p>rightLimit&&pos>rightNeighbour->rect->getMinD(!dim)&&
+                pos<rightNeighbour->rect->getMaxD(!dim)) { 
+            FILE_LOG(logDEBUG1)<<"  Skipping because segment is not visible from this node!";
             continue;
         }
         s->createStraightConstraint(node,pos);
@@ -302,16 +302,14 @@ bool Segment::createStraightConstraint(Node* node, double pos) {
     const double top = max(end->pos(!dim),start->pos(!dim)), 
                  bottom = min(end->pos(!dim),start->pos(!dim));
     // segments orthogonal to scan direction need no constraints
-    // neither do segments that terminate just outside pos
-    if(top==bottom
-     ||top<=pos
-     ||bottom>=pos) {
+    FILE_LOG(logDEBUG)<<"Segment::createStraightConstraint, node->id="<<node->id<<", edge->id="<<edge->id<<" pos="<<pos;
+    if(top==bottom) {
+        FILE_LOG(logDEBUG1)<<"  Not creating because segment is orthogonal to scan direction!";
         return false;
     }
-    FILE_LOG(logDEBUG)<<"Segment::createStraightConstraint, node->id="<<node->id<<", edge->id="<<edge->id<<" pos="<<pos;
     // segment must overlap in the scan dimension with the potential bend point
-    assert(bottom<pos);
-    assert(top>pos);
+    assert(bottom<=pos);
+    assert(top>=pos);
     vpsc::Rectangle* r=node->rect;
     FILE_LOG(logDEBUG1)<<"Segment: from "<<start->pos(!dim)<<" to "<<end->pos(!dim);
     FILE_LOG(logDEBUG1)<<"Node: rect "<<*r;

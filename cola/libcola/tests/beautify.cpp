@@ -249,7 +249,14 @@ int main() {
 
     int seed = time(NULL);
     //seed=1207906420;
-    seed=1207920674;
+    //seed=1207920674;
+    //seed=1207982613;
+    //seed=1207984219;
+    //seed=1207984299;
+    //seed=1207984743;
+    //seed=1207985027; // very short edge which seems to cause problems
+    //seed=1207986026; // error if we don't check neighbour is actually on scanline when determining visibility when generating straight constraints
+    //seed=1207991731;
     printf("random seed=%d\n",seed);
     srand(seed);
     vector<Edge> es = random_dag(DAGDEPTH,BRANCHFACTOR,V,cx,cy);

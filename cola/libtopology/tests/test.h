@@ -98,4 +98,45 @@ void check(const TopologyConstraints& t, valarray<double>& g, cola::SparseMap& h
         printf("\n");
     }
 }
+void setVariableDesiredPositions(vpsc::Variables& vs, const topology::DesiredPositions& des, valarray<double>& coords) {
+    unsigned n=coords.size();
+    assert(vs.size()>=n);
+    for(unsigned i=0;i<n;++i) {
+        vpsc::Variable* v=vs[i];
+        v->desiredPosition = coords[i];
+        v->weight=1;
+    }
+    for(topology::DesiredPositions::const_iterator d=des.begin();
+            d!=des.end();++d) {
+        assert(d->first<vs.size());
+        vpsc::Variable* v=vs[d->first];
+        v->desiredPosition = d->second;
+        v->weight=10000;
+    }
+}
+inline double dotProd(valarray<double> x, valarray<double> y) {
+    assert(x.size()==y.size());
+    double dp=0;
+    for(unsigned i=0;i<x.size();i++) {
+        dp+=x[i]*y[i]; 
+    }
+    return dp;
+}
+double computeStepSize(
+        cola::SparseMatrix const &H, 
+        valarray<double> const &g, 
+        valarray<double> const &d)
+{
+    assert(g.size()==d.size());
+    assert(g.size()==H.rowSize());
+    // stepsize = g'd / (d' H d)
+    double numerator = dotProd(g,d);
+    valarray<double> Hd(d.size());
+    H.rightMultiply(d,Hd);
+    double denominator = dotProd(d,Hd);
+    //assert(numerator>=0);
+    //assert(denominator>=0);
+    if(denominator==0) return 0;
+    return numerator/denominator;
+}
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:encoding=utf-8:textwidth=80 :

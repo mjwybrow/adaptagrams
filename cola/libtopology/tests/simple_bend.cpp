@@ -56,6 +56,46 @@ void test4(Nodes& vs, EdgePoints& ps, DesiredPositions& d, string& name) {
     addToPath(ps,vs[1],(topology::EdgePoint::RectIntersect)4);
     d.push_back(make_pair(0,339.000000));
 }
+//
+// more challenging tests:
+//
+//  - zero length edges
+//  - edges parallel to scan line
+//
+// 4 rectangles arranged and touching two above two below.  Additional
+// rectangle on top and another below connected with an edge running between
+// the other four.  Move the rectangles so that they slide across each other.
+//  ---
+//  | |
+//  ---
+//    \
+//  ---|---
+//  |  |  |
+//  ---|---
+//   ---|---
+//   |  |  |->
+//   ---|---
+//      \  
+//     -----
+//     |   |
+//     -----
+void test5(Nodes& vs, EdgePoints& ps, DesiredPositions& d, string& name) {
+    name=string("test5");
+    //double gradient[]={0,3.03652e-19,-3.03652e-19,}
+    addNode(vs,0,0,10,10);
+    addNode(vs,40,50,10,10);
+    addNode(vs,10,20,10,9.9999999999);
+    addNode(vs,20,20,10,9.9999999999);
+    addNode(vs,15,30,10,10);
+    addNode(vs,25,30,10,10);
+    addToPath(ps,vs[0],(topology::EdgePoint::RectIntersect)4);
+    addToPath(ps,vs[2],(topology::EdgePoint::RectIntersect)1);
+    addToPath(ps,vs[3],(topology::EdgePoint::RectIntersect)3);
+    addToPath(ps,vs[4],(topology::EdgePoint::RectIntersect)1);
+    addToPath(ps,vs[5],(topology::EdgePoint::RectIntersect)3);
+    addToPath(ps,vs[1],(topology::EdgePoint::RectIntersect)4);
+    d.push_back(make_pair(2,40));
+}
 void simple(void test(Nodes&, EdgePoints&, DesiredPositions&,string&)){
     Nodes nodes;
     EdgePoints ps;
@@ -64,7 +104,7 @@ void simple(void test(Nodes&, EdgePoints&, DesiredPositions&,string&)){
     test(nodes,ps,d,name);
     const size_t V = nodes.size();
     Edges es;
-    es.push_back(new Edge(210,ps));
+    es.push_back(new Edge(0,210,ps));
 
     writeFile(nodes,es,"simple-"+name+"-0.svg");
 
@@ -76,20 +116,26 @@ void simple(void test(Nodes&, EdgePoints&, DesiredPositions&,string&)){
         TopologyConstraints t(cola::HORIZONTAL,nodes,es,vs,cs);
 
         // test computeStress
-        double stress=t.computeStress();
+        double stress=computeStress(es);
         printf("Stress=%f\n",stress);
         //assert(fabs(expectedStress-stress)<1e-4);
 
-        double gradient[]={0,3.03652e-19,-3.03652e-19};
         valarray<double> g(V);
-        for(unsigned i=0;i<V;i++) {
-            g[i]=gradient[i];
+        valarray<double> x(V);
+        for(unsigned i=0;i<V;++i) {
+            x[i]=nodes[i]->rect->getCentreX();
         }
         cola::SparseMap h(V);
-        for(unsigned i=1;i<2;i++) {
-            //g=0;
+        for(unsigned i=1;i<10;i++) {
+            g=0;
+            /*
             h.clear();
-            t.gradientProjection(g,h,d);
+            t.computeForces(g,h);
+            cola::SparseMatrix H(h);
+            x-=computeStepSize(H,g,g)*g;
+            */
+            setVariableDesiredPositions(vs,d,x);
+            bool interrupted=t.solve();
             stringstream ss;
             ss << "simple-" << name << "-" << i << ".svg";
             writeFile(nodes,es,ss.str());
@@ -103,10 +149,13 @@ void simple(void test(Nodes&, EdgePoints&, DesiredPositions&,string&)){
 }
 
 int main() {
+    /*
     simple(test1);
     simple(test2);
     simple(test3);
     simple(test4);
+    */
+    simple(test5);
     return 0;
 }
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:encoding=utf-8:textwidth=80 :

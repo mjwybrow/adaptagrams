@@ -142,7 +142,10 @@ inline double crossProduct(
 }
 
 bool EdgePoint::assertConvexBend() const {
-    if(inSegment && outSegment) {
+    const double eps=1e-7;
+    if(inSegment && outSegment 
+       && inSegment->length()>eps && outSegment->length()>eps) 
+    {
         int fail=0;
         EdgePoint* u=inSegment->start;
         EdgePoint* w=outSegment->end;
@@ -155,18 +158,16 @@ bool EdgePoint::assertConvexBend() const {
         double vpos[2] = {posX(),posY()};
         double *upos=uposition, *wpos=wposition;
 
-        /*
         // monotonicity:
-        if(!( upos[0]<=pos[0] && pos[0]<=wpos[0]
-            ||upos[0]>=pos[0] && pos[0]>=wpos[0])) {
+        if(!( upos[0]<=vpos[0]+eps && vpos[0]<=wpos[0]+eps
+            ||upos[0]>=vpos[0]-eps && vpos[0]>=wpos[0]-eps)) {
             fail=1;
         }
-        if(!( upos[1]<=pos[1] && pos[1]<=wpos[1]
-            ||upos[1]>=pos[1] && pos[1]>=wpos[1]) )
+        if(!( upos[1]<=vpos[1]+eps && vpos[1]<=wpos[1]+eps
+            ||upos[1]>=vpos[1]-eps && vpos[1]>=wpos[1]-eps) )
         {
             fail=2;
         }
-        */
         // ensure clockwise winding order
         switch(rectIntersect) {
             case TR:
@@ -203,11 +204,11 @@ bool EdgePoint::assertConvexBend() const {
         if(fail==0) return true;
         printf("  convexity bend point test failed, condition=%d:\n",fail);
         printf("    (nid=%d,ri=%d):u={%f,%f}\n",
-                u->node->id,u->rectIntersect,upos[0],upos[1]);
+                u->node->id,u->rectIntersect,uposition[0],uposition[1]);
         printf("    (nid=%d,ri=%d):v={%f,%f}\n",
                 node->id,rectIntersect,vpos[0],vpos[1]);
         printf("    (nid=%d,ri=%d):w={%f,%f}\n",
-                w->node->id,w->rectIntersect,wpos[0],wpos[1]);
+                w->node->id,w->rectIntersect,wposition[0],wposition[1]);
         printf("    turn cross product=%e\n",cp);
         assert(false);
 

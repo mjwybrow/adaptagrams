@@ -13,13 +13,15 @@ namespace topology {
  * final positions without violating this constraint
  */
 double TriConstraint::maxSafeAlpha() const {
-    double u1=u->initialPos();
-    double u2=u->finalPos();
-    double v1=v->initialPos();
-    double v2=v->finalPos();
-    double w1=w->initialPos();
-    double w2=w->finalPos();
-    if(slackAtFinal()>=0) {
+    const double u1=u->initialPos(),
+                 u2=u->finalPos(),
+                 v1=v->initialPos(),
+                 v2=v->finalPos(),
+                 w1=w->initialPos(),
+                 w2=w->finalPos(),
+                 fSlack=slackAtFinal();
+    if(fSlack>=0) {
+        FILE_LOG(logDEBUG1)<<"TriConstraint::maxSafeAlpha(): slackAtFinal="<<slackAtFinal();
         return 1;
     }
     double numerator=w1 - g - u1 + p*(u1-v1);
@@ -33,11 +35,22 @@ double TriConstraint::maxSafeAlpha() const {
     if(denominator==0) {
         return 1;
     }
-    return numerator/denominator;
+    double msa = numerator/denominator;
+    if(msa<0) {
+        const double iSlack = slackAtInitial();
+        assert(iSlack>=fSlack);
+        FILE_LOG(logDEBUG1)<<"  tiny negative msa rounded to 0!";
+        // we know that fSlack is negative, we do not actually move by
+        // negative amounts, but the returning the following ensures that
+        // the most violated constraint will be processed first
+        msa = fSlack;
+    }
+    return msa;
 }
 double TriConstraint::slack(const double ux, const double vx, const double wx) const {
     const double lhs = wx;
     const double rhs = ux+p*(vx-ux)+g;
+    FILE_LOG(logDEBUG)<<"  TriConstraint::slack("<<ux<<","<<vx<<","<<wx<<"):leftOf="<<leftOf<<",lhs="<<lhs<<",rhs="<<rhs;
     return leftOf ? rhs - lhs
                   : lhs - rhs;
 }
@@ -220,7 +233,7 @@ bool TopologyConstraint::assertFeasible() const {
 string StraightConstraint::
 toString() const {
     stringstream s;
-    s << "StraightConstraint: pos=" << pos;
+    s << "StraightConstraint: node id="<<node->id<<", segment=("<<segment->start->node->id<<":"<<segment->start->rectIntersect<<","<<segment->end->node->id<<":"<<segment->end->rectIntersect<<") pos=" << pos;
     return s.str();
 }
 struct buildRoute {
@@ -283,18 +296,19 @@ bool TopologyConstraints::solve() {
     for(vector<TopologyConstraint*>::iterator i=ts.begin();
             i!=ts.end();++i) {
         TopologyConstraint* t=*i;
+        FILE_LOG(logDEBUG1)<<"Checking topology constraint:"<<t->toString();
         double tAlpha=t->c->maxSafeAlpha();
-        FILE_LOG(logDEBUG1)<<"Checking topology constraint! alpha="<<tAlpha;
-        FILE_LOG(logDEBUG1)<<t->toString();
-        assert(tAlpha>0);
+        FILE_LOG(logDEBUG1)<<"                              alpha="<<tAlpha;
         if(tAlpha<minTAlpha) {
             minTAlpha=tAlpha;
             minT=t;
         }
     }
-    for(Nodes::iterator i=nodes.begin();i!=nodes.end();++i) {
-        Node* v=*i;
-        v->rect->moveCentreD(dim,v->posOnLine(minTAlpha));
+    if(minTAlpha>0) {
+        for(Nodes::iterator i=nodes.begin();i!=nodes.end();++i) {
+            Node* v=*i;
+            v->rect->moveCentreD(dim,v->posOnLine(minTAlpha));
+        }
     }
     assert(noOverlaps());
     assert(assertConvexBends(edges));
@@ -310,7 +324,7 @@ bool TopologyConstraints::solve() {
     assert(assertFeasible());
     assert(assertConvexBends(edges));
     assert(assertNoSegmentRectIntersection(nodes,edges));
-    FILE_LOG(logDEBUG)<<"TopologyConstraints::steepestDescent... done";
+    FILE_LOG(logDEBUG)<<"TopologyConstraints::solve... done";
     return minT!=NULL;
 }
 /**
