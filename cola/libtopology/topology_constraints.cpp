@@ -41,7 +41,7 @@ double TriConstraint::maxSafeAlpha() const {
         assert(iSlack>=fSlack);
         FILE_LOG(logDEBUG1)<<"  tiny negative msa rounded to 0!";
         // we know that fSlack is negative, we do not actually move by
-        // negative amounts, but the returning the following ensures that
+        // negative amounts, but returning the following ensures that
         // the most violated constraint will be processed first
         msa = fSlack;
     }
