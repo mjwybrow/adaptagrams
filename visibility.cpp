@@ -166,6 +166,7 @@ class PointPair
             double y = vInf->point.y - centerPoint.y;
 
             angle = pos_to_angle(x, y);
+            distance = dist(centerPoint, vInf->point);
         }
         bool operator==(const PointPair& rhs) const
         {
@@ -174,6 +175,16 @@ class PointPair
                 return true;
             }
             return false;
+        }
+        bool operator<(const PointPair& rhs) const
+        {
+            if (angle == rhs.angle)
+            {
+                // If the points are colinear, then order them in increasing
+                // distance from the point we are sweeping around.
+                return distance < rhs.distance;
+            }
+            return angle < rhs.angle;
         }
         static double pos_to_angle(double x, double y)
         {
@@ -192,6 +203,7 @@ class PointPair
 
         VertInf    *vInf;
         double     angle;
+        double     distance;
 };
 
 
@@ -258,19 +270,6 @@ class EdgePair
 };
 
 typedef std::set<EdgePair> EdgeSet;
-
-
-bool operator<(const PointPair& pp1, const PointPair& pp2)
-{
-    if (pp1.angle == pp2.angle)
-    {
-        // If the points are colinear, then order them in increasing
-        // distance from the point we are sweeping around.
-        return dist(centerPoint, pp1.vInf->point) <
-                dist(centerPoint, pp2.vInf->point);
-    }
-    return pp1.angle < pp2.angle;
-}
 
 
 #define AHEAD    1
@@ -408,7 +407,7 @@ void vertexSweep(VertInf *vert)
     EdgeSet e;
     ShapeSet& ss = router->contains[centerID];
 
-    // And edge to T that intersect the initial ray.
+    // Add edge to T that intersect the initial ray.
     VertInf *last = router->vertices.end();
     for (VertInf *k = router->vertices.shapesBegin(); k != last; )
     {
@@ -483,8 +482,8 @@ void vertexSweep(VertInf *vert)
         int cany = 55;
 #endif
 
-        double currDist = dist(centerPt, currPt);
-        db_printf("Dist: %.1f.\n", currDist);
+        const double& currDist = (*t).distance;
+        db_printf("Dist: %g.\n", currDist);
 
         EdgeInf *edge = EdgeInf::existingEdge(centerInf, currInf);
         if (edge == NULL)
