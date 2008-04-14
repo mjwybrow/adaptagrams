@@ -40,7 +40,8 @@ Tim Dwyer 24/11/07
 #include <limits>
 #include <stdexcept>
 #include <sstream>
-#include "QuadProg++.hh"
+#include "QuadProg++.h"
+
 
 // Utility functions for updating some data needed by the solution method 
 void compute_d(double d[], double *J[], double np[], int n);
@@ -73,7 +74,8 @@ void print_ivector(char* name, int v[], int n);
  * when the stack frame returns.
  */
 struct MatrixStorage {
-  MatrixStorage(double *M[], int n) : M(M), n(n) {
+  MatrixStorage(double** &M, int m, int n) : M(M), n(n) {
+    M=new double*[m];
     for(int i=0;i<n;i++) {
       M[i]=new double[n];
     }
@@ -82,9 +84,20 @@ struct MatrixStorage {
     for(int i=0;i<n;i++) {
       delete [] M[i];
     }
+	delete [] M;
   }
-  double **M;
+  double** &M;
   int n;
+};
+template <typename T>
+struct VectorStorage {
+	VectorStorage(T* &v, int n) : v(v) {
+		v=new T[n];
+	}
+	~VectorStorage() {
+		delete [] v;
+	}
+	T* &v;
 };
 
 
@@ -96,16 +109,18 @@ double solve_quadprog(double *G[], double g0[], int n,
 {
   int i, j, k, l; /* indices */
   int ip, me, mi; 
-  double *R[n], s[m + p], z[n], r[m + p], d[n], *J[n], np[n], u[m + p];
-  double x_old[n], u_old[m + p];
+  double **R,*s,*z,*r,*d,**J,*np,*u,*x_old,*u_old;
   double f_value, psi, c1, c2, sum, ss, R_norm;
   const double inf = std::numeric_limits<double>::infinity();
   double t, t1, t2; /* t is the step lenght, which is the minimum of the partial step length t1 
     * and the full step length t2 */
-  int A[m + p], A_old[m + p], iai[m + p], q;
+  int *A, *A_old, *iai, q;
   int iq, iter = 0;
-  bool iaexcl[m + p];
-  MatrixStorage smartPtr(R,n), smartPrt(J,n);
+  bool *iaexcl;
+  MatrixStorage _R(R,n,n), _J(J,n,n);
+  VectorStorage<double> _s(s,m+p), _z(z,n), _r(r,m+p), _d(d,n), _np(np,n), _u(u,m+p), _x_old(x_old,n), _u_old(u_old,m+p);
+  VectorStorage<int> _A(A,m+p), _A_old(A_old,m+p), _iai(iai,m+p);
+  VectorStorage<bool> _iaexcl(iaexcl,m+p);
   
   me = p; /* number of equality constraints */
   mi = m; /* number of inequality constraints */
@@ -701,7 +716,8 @@ void cholesky_decomposition(double *A[], int n)
 
 void cholesky_solve(double *L[], double x[], double b[], int n)
 {
-  double y[n];
+  double *y;
+  VectorStorage<double> _y(y,n);
   
   /* Solve L * y = b */
   forward_elimination(L, y, b, n);

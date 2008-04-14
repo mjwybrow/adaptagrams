@@ -1,6 +1,6 @@
 #include <cassert>
 #include "treeqp.h"
-#include "quadprogpp/QuadProg++.hh"
+#include "quadprogpp\QuadProg++.h"
 using namespace std;
 /**
  * Solve problem using a conventional quadratic programming solver.
@@ -18,8 +18,8 @@ using namespace std;
  */
 void treeQPSolve(Terms &ts, Constraints &cs, vector<double> &result) {
     const unsigned n=result.size();
-    double *A[n],
-           b[n];
+    double **A=new double*[n],
+           *b=new double[n];
     for(unsigned i=0;i<n;i++) {
         A[i]=new double[n];
         fill(A[i],A[i]+n,0);
@@ -44,8 +44,8 @@ void treeQPSolve(Terms &ts, Constraints &cs, vector<double> &result) {
         b[c]+=-bt;
     }
     const unsigned m=cs.size();
-    double *C[n],
-           c[m];
+    double **C=new double*[n],
+           *c=new double[m];
     for(unsigned i=0;i<n;i++) {
         C[i]=new double[m];
         fill(C[i],C[i]+m,0);
@@ -59,7 +59,7 @@ void treeQPSolve(Terms &ts, Constraints &cs, vector<double> &result) {
         C[r][i]=1;
         c[i]=-cs[i]->g;
     }
-    double x[n];
+    double *x=new double[n];
     solve_quadprog(A, b, n, NULL, NULL, 0, C, c, m, x);
     result.resize(n);
     copy(x,x+n,result.begin());
@@ -67,6 +67,11 @@ void treeQPSolve(Terms &ts, Constraints &cs, vector<double> &result) {
         delete [] A[i];
         delete [] C[i];
     }
+	delete [] A;
+	delete [] b;
+	delete [] C;
+	delete [] c;
+	delete [] x;
 }
 /*
  * vim: set cindent 
