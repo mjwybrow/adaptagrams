@@ -52,89 +52,60 @@
 #include "QuadProg++.hh"
 
 int main (int argc, char *const argv[]) {
-	double G[MATRIX_DIM][MATRIX_DIM], g0[MATRIX_DIM], 
-		CE[MATRIX_DIM][MATRIX_DIM], ce0[MATRIX_DIM], 
-		CI[MATRIX_DIM][MATRIX_DIM], ci0[MATRIX_DIM], 
-		x[MATRIX_DIM];
-	int n, m, p;
-	double sum = 0.0;
-	char ch;
+  int n=2, m=1, p=3;
+  double sum = 0.0;
+  char ch;
+  double *G[n], g0[n], 
+    *CE[n], ce0[m], 
+    *CI[n], ci0[p], 
+    x[n];
   
-  n = 2;
-  {
-		std::istringstream is("4, -2,"
-													"-2, 4 ");
+  std::istringstream Gis("4, -2,"
+                         "-2, 4 ");
+  std::istringstream g0is("6.0, 0.0 ");
+  std::istringstream CEis("1.0, "
+                          "1.0 ");
+  std::istringstream CIis("1.0, 0.0, 1.0, "
+                          "0.0, 1.0, 1.0 ");
+  std::istringstream ce0is("-3.0 ");
+  std::istringstream ci0is("0.0, 0.0, -2.0 ");
 
-		for (int i = 0; i < n; i++)	
-			for (int j = 0; j < n; j++)
-				is >> G[i][j] >> ch;
-	}
-	
-  {
-		std::istringstream is("6.0, 0.0 ");
-
-		for (int i = 0; i < n; i++)
-			is >> g0[i] >> ch;
-	}
-  
-  m = 1;
-	{
-		std::istringstream is("1.0, "
-													"1.0 ");
-
-		for (int i = 0; i < n; i++)
-			for (int j = 0; j < m; j++)
-				is >> CE[i][j] >> ch;
-	} 
-  
-	{
-		std::istringstream is("-3.0 ");
-		
-		for (int j = 0; j < m; j++)
-			is >> ce0[j] >> ch;
+  for (int i = 0; i < n; i++) {
+    G[i]=new double[n];
+    g0is >> g0[i] >> ch;
+    for (int j = 0; j < n; j++)
+      Gis >> G[i][j] >> ch;
+    CE[i]=new double[m];
+    for (int j = 0; j < m; j++)
+      CEis >> CE[i][j] >> ch;
+    CI[i]=new double[p];
+    for (int j = 0; j < p; j++)
+      CIis >> CI[i][j] >> ch;
   }
-	
-	p = 3;
-  {
-		std::istringstream is("1.0, 0.0, 1.0, "
-													"0.0, 1.0, 1.0 ");
-  
-		for (int i = 0; i < n; i++)
-			for (int j = 0; j < p; j++)
-				is >> CI[i][j] >> ch;
-	}
-  
-  {
-		std::istringstream is("0.0, 0.0, -2.0 ");
-
-		for (int j = 0; j < p; j++)
-			is >> ci0[j] >> ch;
-	}
+  for (int j = 0; j < m; j++)
+    ce0is >> ce0[j] >> ch;
+  for (int j = 0; j < p; j++)
+    ci0is >> ci0[j] >> ch;
 
   std::cout << "f: " << solve_quadprog(G, g0, n, CE, ce0, m, CI, ci0, p, x) << std::endl;
-	std::cout << "x: ";
+  std::cout << "x: ";
   for (int i = 0; i < n; i++)
     std::cout << x[i] << ' ';
-	std::cout << std::endl;	
+  std::cout << std::endl; 
 
-	/* FOR DOUBLE CHECKING COST since in the solve_quadprog routine the matrix G is modified */
-	
-	{
-    std::istringstream is("4, -2,"
-													"-2, 4 ");
-	
-		for (int i = 0; i < n; i++)
-			for (int j = 0; j < n; j++)
-				is >> G[i][j] >> ch;
-	}
-	
-	for (int i = 0; i < n; i++)
-		for (int j = 0; j < n; j++)
-			sum += x[i] * G[i][j] * x[j];
-	sum *= 0.5;
-	
-	std::cout << "Double checking cost: ";
-	for (int i = 0; i < n; i++)
-		sum += g0[i] * x[i];
-	std::cout << sum << std::endl;
+  /* FOR DOUBLE CHECKING COST since in the solve_quadprog routine the matrix G is modified */
+  
+  for (int i = 0; i < n; i++)
+    for (int j = 0; j < n; j++)
+      Gis >> G[i][j] >> ch;
+  
+  for (int i = 0; i < n; i++)
+    for (int j = 0; j < n; j++)
+      sum += x[i] * G[i][j] * x[j];
+  sum *= 0.5;
+  
+  std::cout << "Double checking cost: ";
+  for (int i = 0; i < n; i++)
+    sum += g0[i] * x[i];
+  std::cout << sum << std::endl;
 }

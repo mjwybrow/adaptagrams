@@ -10,7 +10,8 @@ static_LDADD = $(LIBPROJECT)
 random_SOURCES = random.cpp $(testutil_SOURCES)
 random_LDADD = $(LIBPROJECT)
 quadprogpptest_SOURCES = quadprogpp/main.cc\
-		     quadprogpp/QuadProg++.cc
+			 quadprogpp/QuadProg++.hh\
+		     	 quadprogpp/QuadProg++.cc
 
 TESTS = $(check_PROGRAMS)
 
