@@ -49,7 +49,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include "QuadProg++.hh"
+#include "QuadProg++.h"
 
 int main (int argc, char *const argv[]) {
   int n=2, m=1, p=3;

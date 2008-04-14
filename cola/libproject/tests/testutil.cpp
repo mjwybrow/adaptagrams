@@ -8,7 +8,7 @@
 #include <libproject/project.h>
 #include <libproject/util.h>
 #include "testutil.h"
-#include "quadprogpp/QuadProg++.hh"
+#include "quadprogpp/QuadProg++.h"
 
 using namespace project;
 using namespace std;

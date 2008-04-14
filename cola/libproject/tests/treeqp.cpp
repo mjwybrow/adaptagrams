@@ -1,6 +1,6 @@
 #include <cassert>
 #include "treeqp.h"
-#include "quadprogpp\QuadProg++.h"
+#include "quadprogpp/QuadProg++.h"
 using namespace std;
 /**
  * Solve problem using a conventional quadratic programming solver.

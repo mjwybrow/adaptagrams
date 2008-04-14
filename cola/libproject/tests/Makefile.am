@@ -12,7 +12,7 @@ random_LDADD = $(LIBPROJECT)
 treeqptest_SOURCES = treeqptest.cpp treeqp.cpp $(testutil_SOURCES)
 treeqptest_LDADD = $(LIBPROJECT)
 quadprogpptest_SOURCES = quadprogpp/main.cc\
-			 quadprogpp/QuadProg++.hh\
+			 quadprogpp/QuadProg++.h\
 		     	 quadprogpp/QuadProg++.cc
 
 TESTS = $(check_PROGRAMS)
