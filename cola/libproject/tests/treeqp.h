@@ -7,28 +7,28 @@
  * them.
  */
 struct Term {
-    const unsigned p, c;
-    const double w, o; 
+    unsigned p, c;
+    double w, o; 
     Term(unsigned p, unsigned c, double w, double o) 
         : p(p), c(c), w(w), o(o) {
     }
 };
-typedef std::vector<Term*> Terms;
+typedef std::vector<Term> Terms;
 /**
  * we solve the goal subject to constraints of the form 
  *   x_l+g<=x_r or x_l+g=x_r
  */
 struct Constraint {
-    const unsigned l, r;
+    unsigned l, r;
     /// gap required between variables
-    const double g;
+    double g;
     /// true if this is an equality constraint, otherwise it's an inequality
-    const bool eq;
+    bool eq;
     Constraint(unsigned l, unsigned r, double g, bool eq) 
         : l(l), r(r), g(g), eq(eq) {
     }
 };
-typedef std::vector<Constraint*> Constraints;
+typedef std::vector<Constraint> Constraints;
 /**
  * Solve problem using a conventional quadratic programming solver.
  * We use Luca Di Gaspero's GPLed QuadProg++ program 

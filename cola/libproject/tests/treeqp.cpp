@@ -29,8 +29,7 @@ void treeQPSolve(Terms &ts, Constraints &cs, vector<double> &result) {
     // requires first variable to be at 0 and forces positive definiteness
     A[0][0]=2.0;
 
-    for(Terms::iterator i=ts.begin(), e=ts.end(); i!=e; ++i) {
-        Term *t=*i;
+    for(Terms::iterator t=ts.begin(), e=ts.end(); t!=e; ++t) {
         const unsigned p=t->p, c=t->c;
         assert(p<n);
         assert(c<n);
@@ -51,13 +50,13 @@ void treeQPSolve(Terms &ts, Constraints &cs, vector<double> &result) {
         fill(C[i],C[i]+m,0);
     }
     for(unsigned i=0;i<m;i++) {
-        const unsigned l=cs[i]->l, r=cs[i]->r;
+        const unsigned l=cs[i].l, r=cs[i].r;
         assert(l!=r);
         assert(l<n);
         assert(r<n);
         C[l][i]=-1;
         C[r][i]=1;
-        c[i]=-cs[i]->g;
+        c[i]=-cs[i].g;
     }
     double *x=new double[n];
     solve_quadprog(A, b, n, NULL, NULL, 0, C, c, m, x);
