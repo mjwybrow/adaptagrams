@@ -240,7 +240,7 @@ void NodeEvent::createStraightConstraints(
             FILE_LOG(logDEBUG1)<<"  Not creating because segment is attached to this node!";
             continue;
         } 
-        const double p = s->intersection(pos);
+        const double p = s->forwardIntersection(pos);
         if(p<leftLimit&&pos>leftNeighbour->rect->getMinD(!dim)&&
                 pos<leftNeighbour->rect->getMaxD(!dim)
            ||p>rightLimit&&pos>rightNeighbour->rect->getMinD(!dim)&&
@@ -301,15 +301,15 @@ bool Segment::createStraightConstraint(Node* node, double pos) {
     assert(!connectedToNode(node));
     const double top = max(end->pos(!dim),start->pos(!dim)), 
                  bottom = min(end->pos(!dim),start->pos(!dim));
-    // segments orthogonal to scan direction need no constraints
+    // segments orthogonal to scan direction need no StraightConstraints
     FILE_LOG(logDEBUG)<<"Segment::createStraightConstraint, node->id="<<node->id<<", edge->id="<<edge->id<<" pos="<<pos;
     if(top==bottom) {
         FILE_LOG(logDEBUG1)<<"  Not creating because segment is orthogonal to scan direction!";
         return false;
     }
     // segment must overlap in the scan dimension with the potential bend point
-    assert(bottom<=pos);
-    assert(top>=pos);
+    //assert(bottom<=pos);
+    //assert(top>=pos);
     vpsc::Rectangle* r=node->rect;
     FILE_LOG(logDEBUG1)<<"Segment: from "<<start->pos(!dim)<<" to "<<end->pos(!dim);
     FILE_LOG(logDEBUG1)<<"Node: rect "<<*r;
@@ -317,7 +317,7 @@ bool Segment::createStraightConstraint(Node* node, double pos) {
     // scan line, i.e. set nodeLeft based on whether the intersection of the
     // potential bend point is to the left or right of the node centre
     double p;
-    bool nodeLeft=r->getCentreD(dim) < intersection(pos,p) ;
+    bool nodeLeft=r->getCentreD(dim) < forwardIntersection(pos,p) ;
     // set ri (the vertex of the node rectangle that is to be 
     // kept to the left of the segment
     EdgePoint::RectIntersect ri;
@@ -402,23 +402,8 @@ BendConstraint(EdgePoint* v)
     // v must be a bend point around some node
     assert(!v->isEnd());
     assert(v->rectIntersect!=EdgePoint::CENTRE);
-    EdgePoint* u=v->inSegment->start, * w=v->outSegment->end;
-    // because all of our nodes are boxes we do not expect consecutive
-    // segments to change horizontal or vertical direction
-    FILE_LOG(logDEBUG1)<<"u: id="<<u->node->id
-        <<", ri="<<u->rectIntersect<<", x="<<u->posX()<<", y="<<u->posY();
-    FILE_LOG(logDEBUG1)<<"v: id="<<v->node->id
-        <<", ri="<<v->rectIntersect<<", x="<<v->posX()<<", y="<<v->posY();
-    FILE_LOG(logDEBUG1)<<"w: id="<<w->node->id
-        <<", ri="<<w->rectIntersect<<", x="<<w->posX()<<", y="<<w->posY();
+    EdgePoint *u=v->inSegment->start, *w=v->outSegment->end;
     assert(v->assertConvexBend());
-    double p;
-    /*double i=*/
-    v->inSegment->intersection(w->pos(!dim),p);
-    double g=u->offset()+p*(v->offset()-u->offset())-w->offset();
-    // we could set leftOf=w->pos(dim) < i, but that isn't a good idea
-    // when the two segments are already straight!
-    // So we choose leftOf based on the rectangle intersect of v
     bool leftOf=false;
     if(dim==cola::HORIZONTAL) {
         if(v->rectIntersect==EdgePoint::TR || v->rectIntersect==EdgePoint::BR) {
@@ -429,7 +414,25 @@ BendConstraint(EdgePoint* v)
             leftOf=true;
         }
     }
-    c=new TriConstraint(u->node,v->node,w->node,p,g,leftOf);
+    FILE_LOG(logDEBUG1)<<"u: id="<<u->node->id
+        <<", ri="<<u->rectIntersect<<", x="<<u->posX()<<", y="<<u->posY();
+    FILE_LOG(logDEBUG1)<<"v: id="<<v->node->id
+        <<", ri="<<v->rectIntersect<<", x="<<v->posX()<<", y="<<v->posY();
+    FILE_LOG(logDEBUG1)<<"w: id="<<w->node->id
+        <<", ri="<<w->rectIntersect<<", x="<<w->posX()<<", y="<<w->posY();
+    // bend constraint will be more accurate if the reference segment is the
+    // one most orthogonal to scan line.
+    double p;
+    if(v->inSegment->length(!dim)>v->outSegment->length(!dim)) {
+        v->inSegment->forwardIntersection(w->pos(!dim),p);
+        double g=u->offset()+p*(v->offset()-u->offset())-w->offset();
+        c=new TriConstraint(u->node,v->node,w->node,p,g,leftOf);
+    } else {
+        v->outSegment->reverseIntersection(u->pos(!dim),p);
+        double g=w->offset()+p*(v->offset()-w->offset())-u->offset();
+        c=new TriConstraint(w->node,v->node,u->node,p,g,leftOf);
+        FILE_LOG(logDEBUG1)<<"  Reverse bend constraint!";
+    }
     assertFeasible();
 }
 struct CreateSegmentEvents {
@@ -490,8 +493,8 @@ TopologyConstraints(
   , vs(vs)
   , cs(cs)
 {
-    FILELog::ReportingLevel() = logERROR;
-    //FILELog::ReportingLevel() = logDEBUG1;
+    //FILELog::ReportingLevel() = logERROR;
+    FILELog::ReportingLevel() = logDEBUG;
     FILE_LOG(logDEBUG)<<"TopologyConstraints::TopologyConstraints():dim="<<axisDim;
 
     assert(vs.size()>=n);
@@ -504,15 +507,15 @@ TopologyConstraints(
 
     // scan vertically to create horizontal topology constraints
     // place Segment opening/closing and Rectangle opening/closing into event queue
-    for(Nodes::const_iterator i=nodes.begin();i!=nodes.end();++i) {
+    for(Nodes::const_iterator i=nodes.begin(), e=nodes.end();i!=e;++i) {
         Node* v=*i;
         NodeOpen *open=new NodeOpen(v);
         NodeClose *close=new NodeClose(v,open,cs);
         events.push_back(open);
         events.push_back(close);
     }
-    for(Edges::const_iterator e=edges.begin();e!=edges.end();++e) {
-        (*e)->forEach(mem_fun(&EdgePoint::createBendConstraint),
+    for(Edges::const_iterator i=edges.begin(),e=edges.end();i!=e;++i) {
+        (*i)->forEach(mem_fun(&EdgePoint::createBendConstraint),
                 CreateSegmentEvents(events),true);
     }
     // process events in top to bottom order
@@ -526,8 +529,8 @@ TopologyConstraints(
 
 TopologyConstraints::
 ~TopologyConstraints() {
-    for(Edges::const_iterator e=edges.begin();e!=edges.end();++e) {
-        (*e)->forEach(mem_fun(&EdgePoint::deleteBendConstraint),
+    for(Edges::const_iterator i=edges.begin(),e=edges.end();i!=e;++i) {
+        (*i)->forEach(mem_fun(&EdgePoint::deleteBendConstraint),
                 mem_fun(&Segment::deleteStraightConstraints),true);
     }
 }

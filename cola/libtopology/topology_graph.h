@@ -244,19 +244,30 @@ namespace topology {
          * @return position along scanline of intersection with the line along
          * this edge segment
          */
-        double intersection(double pos, double &p) const {
-            double ux=start->pos(dim) , vx=end->pos(dim),
-                   uy=start->pos(!dim), vy=end->pos(!dim);
+        double forwardIntersection(double pos, double &p) const {
+            return intersection(pos, start, end, p);
+        }
+        double reverseIntersection(double pos, double &p) const {
+            return intersection(pos, end, start, p);
+        }
+        double forwardIntersection(double pos) const {
+            double p;
+            return forwardIntersection(pos,p);
+        }
+        double intersection(const double pos,
+            const EdgePoint* s, const EdgePoint* e, double& p) const {
+            double ux=s->pos(dim) , vx=e->pos(dim),
+                   uy=s->pos(!dim), vy=e->pos(!dim);
             double denom = vy - uy;
             assert(denom!=0); // must not be parallel to scanline!
             p = (pos - uy)/denom;
             return ux + p * (vx-ux);
         }
-        double intersection(double pos) const {
-            double p;
-            return intersection(pos,p);
-        }
         std::string toString() const;
+        /**
+         * Compute the length in the specified dimension.
+         */
+        double length(unsigned dim) const;
         /**
          * Compute the euclidean distance between #start and #end.
          */

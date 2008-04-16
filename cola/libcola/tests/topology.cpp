@@ -112,11 +112,12 @@ void randomMove(int i) {
         addNode(vs,*i);
     }
     topology::Edges tes;
-    for(vector<Edge>::iterator e=es.begin();e!=es.end();++e) {
+    unsigned eID=0;
+    for(vector<Edge>::iterator e=es.begin();e!=es.end();++e, ++eID) {
         topology::EdgePoints ps;
         addToPath(ps,vs[e->first],topology::EdgePoint::CENTRE);
         addToPath(ps,vs[e->second],topology::EdgePoint::CENTRE);
-        tes.push_back(new topology::Edge(idealLength, ps));
+        tes.push_back(new topology::Edge(eID, idealLength, ps));
     }
     writeFile(vs,tes,"topology-000.svg");
     Locks locks;

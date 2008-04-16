@@ -2,6 +2,7 @@
 #include <libvpsc/rectangle.h>
 #include <libcola/cola.h>
 #include <libcola/straightener.h>
+#include "topology_log.h"
 #include "topology_graph.h"
 #include "topology_constraints.h"
 using namespace std;
@@ -55,15 +56,11 @@ bool EdgePoint::createBendConstraint() {
     // edges shouldn't double back!
     assert(assertConvexBend());
     // don't generate BendConstraints for Edge end points
-    // or for segments parallel to scan line
-    double v = pos(!dim);
     if(bendConstraint) {
         delete bendConstraint;
         bendConstraint=NULL;
     }
-    if(isEnd()
-     ||inSegment->start->pos(!dim)==v
-     ||outSegment->end->pos(!dim)==v) {
+    if(isEnd()) {
         return false;
     }
     bendConstraint = new BendConstraint(this);
@@ -133,12 +130,14 @@ inline double crossProduct(
         double x0, double y0,
         double x1, double y1,
         double x2, double y2) {
-    //return (x1-x0)*(y2-y0)-(x2-x0)*(y1-y0);
+    return (x1-x0)*(y2-y0)-(x2-x0)*(y1-y0);
+    /*
     double ux=x1-x0, uy=y1-y0;
     double vx=x2-x0, vy=y2-y0;
     normalise(ux,uy);
     normalise(vx,vy);
     return ux*vy-uy*vx;
+    */
 }
 
 bool EdgePoint::assertConvexBend() const {
@@ -153,41 +152,90 @@ bool EdgePoint::assertConvexBend() const {
                 !(u->node->id==w->node->id
                     &&u->rectIntersect==w->rectIntersect));
 
-        double uposition[2] = {u->posX(),u->posY()};
-        double wposition[2] = {w->posX(),w->posY()};
-        double vpos[2] = {posX(),posY()};
-        double *upos=uposition, *wpos=wposition;
+        if(w->posX()==posX()&&u->posX()==posX()) {
+            assert( u->posY()<=posY()+eps && posY()<=w->posY()+eps
+                  ||u->posY()>=posY()-eps && posY()>=w->posY()-eps);
+            return true;
+        }
+        if(w->posY()==posY()&&u->posY()==posY()) {
+            assert( u->posX()<=posX()+eps && posX()<=w->posX()+eps
+                  ||u->posX()>=posX()-eps && posX()>=w->posX()-eps);
+            return true;
+        }
 
         // monotonicity:
-        if(!( upos[0]<=vpos[0]+eps && vpos[0]<=wpos[0]+eps
-            ||upos[0]>=vpos[0]-eps && vpos[0]>=wpos[0]-eps)) {
+        if(!( u->posX()<=posX()+eps && posX()<=w->posX()+eps
+            ||u->posX()>=posX()-eps && posX()>=w->posX()-eps)) {
             fail=1;
         }
-        if(!( upos[1]<=vpos[1]+eps && vpos[1]<=wpos[1]+eps
-            ||upos[1]>=vpos[1]-eps && vpos[1]>=wpos[1]-eps) )
+        if(!( u->posY()<=posY()+eps && posY()<=w->posY()+eps
+            ||u->posY()>=posY()-eps && posY()>=w->posY()-eps) )
         {
             fail=2;
         }
-        // ensure clockwise winding order
+        // cp>0: left turn, cp<0: right turn
+        double cp = crossProduct(u->posX(),u->posY(),posX(),posY(),w->posX(),w->posY());
+        double dx = w->posX() - u->posX(), dy = w->posY() - u->posY();
+        // ensure tight turn
         switch(rectIntersect) {
             case TR:
-                if(upos[0]>wpos[0]||upos[0]==wpos[0]&&upos[1]<wpos[1]) {
-                    swap(upos,wpos);
+                if(dx>0) { // ux<wx
+                    if(dy>0) { // uy<wy
+                        fail=3;
+                    } else if(cp>eps) {
+                        fail=4;
+                    }
+                } else { // ux>=wx
+                    if(dy<0) {
+                        fail=5;
+                    } else if(cp<-eps) {
+                        fail=6;
+                    }
                 }
                 break;
             case BR:
-                if(upos[0]<wpos[0]||upos[0]==wpos[0]&&upos[1]<wpos[1]) {
-                    swap(upos,wpos);
+                if(dx>0) { // ux<wx
+                    if(dy<0) {
+                        fail=7;
+                    } else if(cp<-eps) {
+                        fail=8;
+                    }
+                } else { // ux>=wx
+                    if(dy>0) {
+                        fail=9;
+                    } else if(cp>eps) {
+                        fail=10;
+                    }
                 }
                 break;
             case BL:
-                if(upos[0]<wpos[0]||upos[0]==wpos[0]&&upos[1]>wpos[1]) {
-                    swap(upos,wpos);
+                if(dx>0) { //ux<wx
+                    if(dy>0) {
+                        fail=11;
+                    } else if(cp<-eps) {
+                        fail=12;
+                    }
+                } else { //ux>=wx
+                    if(dy<0) {
+                        fail=13;
+                    } else if(cp>eps) {
+                        fail=14;
+                    }
                 }
                 break;
             case TL:
-                if(upos[0]>wpos[0]||upos[0]==wpos[0]&&upos[1]>wpos[1]) {
-                    swap(upos,wpos);
+                if(dx>0) { // ux<wx
+                    if(dy<0) { // uy>wy
+                        fail=15;
+                    } else if(cp>eps) {
+                        fail=16;
+                    }
+                } else { // ux>=wx
+                    if(dy>0) {
+                        fail=17;
+                    } else if(cp<-eps) {
+                        fail=18;
+                    }
                 }
                 break;
             default:
@@ -195,20 +243,14 @@ bool EdgePoint::assertConvexBend() const {
                 // corners of a rectangle!
                 assert(false);
         }
-        // angle must be a "right turn"
-        double cp
-            = crossProduct(upos[0],upos[1],vpos[0],vpos[1],wpos[0],wpos[1]);
-        if(cp>1e-5) {
-            fail=3;
-        }
         if(fail==0) return true;
-        printf("  convexity bend point test failed, condition=%d:\n",fail);
+        printf("  convexity bend point test failed, condition=%d, dx=%f, dy=%f, cp=%f:\n",fail,dx,dy,cp);
         printf("    (nid=%d,ri=%d):u={%f,%f}\n",
-                u->node->id,u->rectIntersect,uposition[0],uposition[1]);
+                u->node->id,u->rectIntersect,u->posX(),u->posY());
         printf("    (nid=%d,ri=%d):v={%f,%f}\n",
-                node->id,rectIntersect,vpos[0],vpos[1]);
+                node->id,rectIntersect,posX(),posY());
         printf("    (nid=%d,ri=%d):w={%f,%f}\n",
-                w->node->id,w->rectIntersect,wposition[0],wposition[1]);
+                w->node->id,w->rectIntersect,w->posX(),w->posY());
         printf("    turn cross product=%e\n",cp);
         assert(false);
 
@@ -240,6 +282,9 @@ void Segment::deleteStraightConstraints() {
  */
 Segment::~Segment() {
     deleteStraightConstraints();
+}
+double Segment::length(unsigned dim) const {
+    return fabs(end->pos(dim)-start->pos(dim));
 }
 double Segment::length() const {
     double dx = end->posX() - start->posX();

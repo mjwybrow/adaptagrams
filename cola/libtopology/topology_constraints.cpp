@@ -50,7 +50,7 @@ double TriConstraint::maxSafeAlpha() const {
 double TriConstraint::slack(const double ux, const double vx, const double wx) const {
     const double lhs = wx;
     const double rhs = ux+p*(vx-ux)+g;
-    FILE_LOG(logDEBUG)<<"  TriConstraint::slack("<<ux<<","<<vx<<","<<wx<<"):leftOf="<<leftOf<<",lhs="<<lhs<<",rhs="<<rhs;
+    FILE_LOG(logDEBUG1)<<"  TriConstraint::slack("<<ux<<","<<vx<<","<<wx<<"):leftOf="<<leftOf<<",lhs="<<lhs<<",rhs="<<rhs;
     return leftOf ? rhs - lhs
                   : lhs - rhs;
 }
@@ -304,6 +304,14 @@ bool TopologyConstraints::solve() {
             minT=t;
         }
     }
+#ifndef NDEBUG
+    if(minT) {
+        FILE_LOG(logDEBUG)<<"                 minT="<<minT->toString();
+        FILE_LOG(logDEBUG)<<"                 minTAlpha="<<minTAlpha;
+    } else {
+        FILE_LOG(logDEBUG)<<" No violated constraints!";
+    }
+#endif
     if(minTAlpha>0) {
         for(Nodes::iterator i=nodes.begin();i!=nodes.end();++i) {
             Node* v=*i;
