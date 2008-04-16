@@ -453,7 +453,6 @@ bool inPolyGen(const Polygn& argpoly, const Point& q)
 int segmentIntersectPoint(const Point& a1, const Point& a2,
         const Point& b1, const Point& b2, double *x, double *y) 
 {
-
     double Ax,Bx,Cx,Ay,By,Cy,d,e,f,num,offset;
     double x1lo,x1hi,y1lo,y1hi;
 
@@ -503,14 +502,13 @@ int segmentIntersectPoint(const Point& a1, const Point& a2,
         if (y1hi < b1.y || b2.y < y1lo) return DONT_INTERSECT;
     }
 
-
     Cx = a1.x - b1.x;
     Cy = a1.y - b1.y;
     // alpha numerator:
     d = By*Cx - Bx*Cy;
     // Both denominator:
     f = Ay*Bx - Ax*By;
-    // aplha tests:
+    // alpha tests:
     if (f > 0)
     {
         if (d < 0 || d > f) return DONT_INTERSECT;
@@ -531,6 +529,46 @@ int segmentIntersectPoint(const Point& a1, const Point& a2,
     {
         if (e > 0 || e < f) return DONT_INTERSECT;
     }
+
+    // compute intersection coordinates:
+
+    if (f == 0) return PARALLEL;
+    
+    // Numerator:
+    num = d*Ax;
+    // Round direction:
+    offset = SAME_SIGNS(num,f) ? f/2 : -f/2;
+    // Intersection X:
+    *x = a1.x + (num+offset) / f;
+
+    num = d*Ay;
+    offset = SAME_SIGNS(num,f) ? f/2 : -f/2;
+    // Intersection Y:
+    *y = a1.y + (num+offset) / f;
+
+    return DO_INTERSECT;
+}
+
+
+// Line Segment Intersection
+// Original code by Franklin Antonio 
+//
+int rayIntersectPoint(const Point& a1, const Point& a2,
+        const Point& b1, const Point& b2, double *x, double *y) 
+{
+    double Ax,Bx,Cx,Ay,By,Cy,d,f,num,offset;
+
+    Ay = a2.y - a1.y;
+    By = b1.y - b2.y;
+    Ax = a2.x - a1.x;
+    Bx = b1.x - b2.x;
+
+    Cx = a1.x - b1.x;
+    Cy = a1.y - b1.y;
+    // alpha numerator:
+    d = By*Cx - Bx*Cy;
+    // Both denominator:
+    f = Ay*Bx - Ax*By;
 
     // compute intersection coordinates:
 
