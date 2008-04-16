@@ -511,27 +511,30 @@ bool validateBendPoint(VertInf *aInf, VertInf *bInf, VertInf *cInf)
 #endif
     // Check angle:
     int abc = vecDir(a, b, c);
-    int abe = vecDir(a, b, e);
-    int abd = vecDir(a, b, d);
-    int cbe = vecDir(c, b, e);
-    int cbd = vecDir(c, b, d);
 #ifdef PATHDEBUG
-    printf("(abc == %d) && (abe == %d) && (abd == %d) &&\n"
-            "(cbe == %d) && (cbd == %d) &&\n", 
-            abc, abe, abd, cbe, cbd);
+    printf("(abc == %d) ", abc);
+    printf("&& (abe == %d) && (abd == %d) &&\n(cbe == %d) && (cbd == %d)\n",
+            abe, abd, cbe, cbd);
 #endif
    
     if (abc == 0)
     {
         // The three consecutive point on the path are in a line.
-        if (!inBetween(a, c, b))
-        {
-            // Path doubles back on itself.
-            bendOkay = false;
-        }
+        // Thus, there should always be an as-short path that just
+        // skips this bend point.
+        bendOkay = false;
     }
     else // (abc != 0)
     {
+        int abe = vecDir(a, b, e);
+        int abd = vecDir(a, b, d);
+        int cbe = vecDir(c, b, e);
+        int cbd = vecDir(c, b, d);
+#ifdef PATHDEBUG
+        printf("&& (abe == %d) && (abd == %d) &&\n(cbe == %d) && (cbd == %d)",
+                abe, abd, cbe, cbd);
+#endif
+
         if ((abe != 0) && (abe != abc))
         {
             bendOkay = false;
@@ -549,6 +552,9 @@ bool validateBendPoint(VertInf *aInf, VertInf *bInf, VertInf *cInf)
             bendOkay = false;
         }
     }
+#ifdef PATHDEBUG
+    printf("\n");
+#endif
     return bendOkay;
 }
 
