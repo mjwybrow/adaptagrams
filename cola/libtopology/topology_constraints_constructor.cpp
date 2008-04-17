@@ -276,8 +276,7 @@ struct CompareEvents {
             // Segment closes at same pos as Node opens, Segment first
             if(aSC&&bNO) return true;
             if(bSC&&aNO) return false;
-            // Segment opens at the same position as Node closes,
-            // Node close comes first
+            // Segment opens at the same position as Node closes, Node first
             if(aSO&&bNC) return false;
             if(bSO&&aNC) return true;
             // Segment opens at the same position as node opens, segment
@@ -350,13 +349,11 @@ bool Segment::createStraightConstraint(Node* node, double pos) {
              : (nodeLeft ? EdgePoint::TR : EdgePoint::BR);
     }
     if(node->id==start->node->id  && ri==start->rectIntersect) {
-        // constraint is redundant because the potential bend point is
-        // already a real bend associated with the start EdgePoint of this
-        // segment !
+        FILE_LOG(logDEBUG1)<<"Not creating StraightConstraint because bend point is already a real bend associated with the start EdgePoint of this segment!";
         return false;
     }
     if(node->id==end->node->id  && ri==end->rectIntersect) {
-        // constraint is redundant - end EdgePoint of this segment!
+        FILE_LOG(logDEBUG1)<<"Not creating StraightConstraint because bend point is already a real bend associated with the end EdgePoint of this segment!";
         return false;
     }
     straightConstraints.push_back(
@@ -395,6 +392,12 @@ StraightConstraint::StraightConstraint(
 {
     FILE_LOG(logDEBUG)<<"StraightConstraint ctor: pos="<<pos<<" edge id="<<s->edge->id<<" node id="<<node->id;
     EdgePoint *u=s->start, *v=s->end;
+    FILE_LOG(logDEBUG1)<<"s->start: id="<<u->node->id
+        <<", ri="<<u->rectIntersect<<", x="<<u->posX()<<", y="<<u->posY();
+    FILE_LOG(logDEBUG1)<<"node:     id="<<node->id
+        <<", ri="<<ri<<", scanpos="<<scanPos;
+    FILE_LOG(logDEBUG1)<<"s->end:   id="<<v->node->id
+        <<", ri="<<v->rectIntersect<<", x="<<v->posX()<<", y="<<v->posY();
     
     double g=u->offset()+segmentPos*(v->offset()-u->offset());
     if(nodeLeft) {
@@ -500,11 +503,14 @@ void getVariables(Nodes& ns, vpsc::Variables& vs) {
 }
 struct CreateBendConstraints {
     void operator() (EdgePoint* p) {
+        double eps=1e-7;
         if(p->inSegment && p->outSegment) {
             EdgePoint *o=p->inSegment->start, *q=p->outSegment->end;
             if(o->pos(!dim)==p->pos(!dim) && p->pos(!dim)==q->pos(!dim)) {
-                assert(o->pos(dim)<p->pos(dim)&&p->pos(dim)<q->pos(dim)
-                     ||o->pos(dim)>p->pos(dim)&&p->pos(dim)>q->pos(dim));
+                assert(o->pos(dim)<p->pos(dim)+eps
+                       &&p->pos(dim)<q->pos(dim)+eps
+                     ||o->pos(dim)>p->pos(dim)-eps
+                       &&p->pos(dim)>q->pos(dim)-eps);
                 FILE_LOG(logDEBUG)<<"EdgePoint collinear in scan dimension!";
                 FILE_LOG(logDEBUG)<<"  need to prune";
                 pruneList.push_back(p);

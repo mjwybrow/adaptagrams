@@ -84,8 +84,8 @@ void test5(Nodes& vs, EdgePoints& ps, DesiredPositions& d, string& name) {
     //double gradient[]={0,3.03652e-19,-3.03652e-19,}
     addNode(vs,0,0,10,10);
     addNode(vs,40,50,10,10);
-    addNode(vs,10,20,10,9.9999999999);
-    addNode(vs,20,20,10,9.9999999999);
+    addNode(vs,10,20,10,10);
+    addNode(vs,20,20,10,10);
     addNode(vs,15,30,10,10);
     addNode(vs,25,30,10,10);
     addToPath(ps,vs[0],(topology::EdgePoint::RectIntersect)4);

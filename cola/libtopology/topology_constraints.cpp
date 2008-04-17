@@ -96,39 +96,69 @@ toString() const {
     return s.str();
 }
 /**
- * functor that transfers the constraints from one segment to one of two new
- * segments depending which intersects with pos in the scan axis.
+ * functor that transfers each StraightConstraint associated with a segment
+ * to be replaced, to either of the two new segments.
+ * Choice is made depending on which of the segments the scan pos of the
+ * constraint intersects with.
+ * Note that if the scan pos is at the join of the two new segments then
+ * the choice is made based the side of the node associated with the constraint.
  */
 struct transferStraightConstraintChoose {
     /**
      * @param target1 the first of two possible target segments for the transfer
-     * @param target2 the second of two possible target segments for the transfer
-     * @param pos scan position
+     * @param target2 the second of two possible target segments for the
+     * transfer
      * @param ignore the constraint which, in being satisfied, caused this
      * transfer and which should therefore not be transfered.
      */
     transferStraightConstraintChoose(Segment* target1, Segment* target2,
-            double pos, StraightConstraint* ignore)
-        : target1(target1), target2(target2)
-        , pos(pos), ignore(ignore) {}
+            StraightConstraint* ignore)
+        : ignore(ignore) 
+    {
+        double min1=min(target1->start->pos(!dim),target1->end->pos(!dim));
+        double max1=max(target1->start->pos(!dim),target1->end->pos(!dim));
+        double min2=min(target2->start->pos(!dim),target2->end->pos(!dim));
+        double max2=max(target2->start->pos(!dim),target2->end->pos(!dim));
+        if(min1<max2) {
+            assert(max1==min2);
+            lSeg = target1;
+            rSeg = target2;
+            lMin = min1;
+            mid = max1;
+            rMax = max2;
+        } else {
+            assert(max2==min1);
+            lSeg = target2;
+            rSeg = target1;
+            lMin = min2;
+            mid = max2;
+            rMax = max1;
+        }
+    }
     /**
      * @param c constraint to transfer to target1 or target2
      */
     void operator() (StraightConstraint* c) {
         if(c!=ignore) {
-            double min1=min(target1->start->pos(!dim),target1->end->pos(!dim));
-            double max1=max(target1->start->pos(!dim),target1->end->pos(!dim));
-            if(c->pos>=min1 && c->pos<=max1) {
-                target1->transferStraightConstraint(c);
-            } else {
-                assert(c->pos>=min(target2->start->pos(!dim),target2->end->pos(!dim)));
-                assert(c->pos<=max(target2->start->pos(!dim),target2->end->pos(!dim)));
-                target2->transferStraightConstraint(c);
+            Segment* dest=rSeg;
+            if(c->pos<mid) {
+                dest = lSeg;
+            } else if(c->pos==mid) {
+                if(dim==cola::HORIZONTAL && 
+                     ( c->ri==EdgePoint::TL
+                     ||c->ri==EdgePoint::TR)
+                 ||dim==cola::VERTICAL &&
+                     ( c->ri==EdgePoint::TR
+                     ||c->ri==EdgePoint::BR)) 
+                {
+                    dest=lSeg;
+                }
             }
+            dest->transferStraightConstraint(c);
         }
     }
-    Segment* target1, * target2;
-    double pos;
+    Segment* lSeg, * rSeg;
+    double lMin, mid, rMax;
     StraightConstraint* ignore;
 };
 bool sameCorner(const EdgePoint* a, const EdgePoint* b) {
@@ -152,11 +182,12 @@ bool zagzig(const EdgePoint* a, const Segment* s) {
  * Segment needs to bend
  */
 void StraightConstraint::satisfy() {
-    FILE_LOG(logDEBUG)<<"StraightConstraint::satisfy()";
+    FILE_LOG(logDEBUG)<<"StraightConstraint::satisfy():";
     Edge* e = segment->edge;
     EdgePoint* start = segment->start,
              * end = segment->end,
              * bend = new EdgePoint(node,ri);
+    FILE_LOG(logDEBUG1)<<"  u=("<<start->node->id<<":"<<start->rectIntersect<<"), v=("<<node->id<<":"<<ri<<"), w=("<<end->node->id<<":"<<end->rectIntersect<<")";
     assert(!zigzag(bend,end->outSegment));
     assert(!zagzig(bend,start->inSegment));
     // shouldn't have straight constraints between end segments and the
@@ -176,7 +207,7 @@ void StraightConstraint::satisfy() {
 
     // transfer other StraightConstraint constraints 
     // from s to s1 or s2 depending on which side of p they are on.
-    transferStraightConstraintChoose transfer(s1,s2,pos,this);
+    transferStraightConstraintChoose transfer(s1,s2,this);
     segment->forEachStraightConstraint(transfer);
     // BendConstraint constraints associated with segment->end and 
     // segment->start need to be updated

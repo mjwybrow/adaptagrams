@@ -149,6 +149,8 @@ namespace topology {
     public:
         /**
          * Create segment for a given edge between two EdgePoints.
+         * Note that segments can be zero length, for example between 
+         * opposite corners of two rectangles.
          * @param edge the edge to which this segment belongs
          * @param start the EdgePoint at the start of the segment
          * @param end the EdgePoint at the end of the segment
@@ -162,7 +164,6 @@ namespace topology {
             assert(!start->uniqueCheck(end));
             start->outSegment=this;
             end->inSegment=this;
-            assert(length()!=0);
         }
         /**
          * add a new StraightConstraint to this segment (if necessary)

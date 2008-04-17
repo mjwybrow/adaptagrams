@@ -1,4 +1,5 @@
 #include <sstream>
+#include <stdexcept>
 #include <libvpsc/rectangle.h>
 #include <libcola/cola.h>
 #include <libcola/straightener.h>
@@ -180,120 +181,118 @@ bool EdgePoint::assertConvexBend() const {
     if(inSegment && outSegment 
        && inSegment->length()>eps && outSegment->length()>eps) 
     {
-        assert( rectIntersect!=CENTRE );
-        int fail=0;
         EdgePoint* u=inSegment->start;
         EdgePoint* w=outSegment->end;
-        assert(
-                !(u->node->id==w->node->id
-                    &&u->rectIntersect==w->rectIntersect));
-
-        /*
-        if(w->posX()==posX()&&u->posX()==posX()) {
-            assert( u->posY()<=posY()+eps && posY()<=w->posY()+eps
-                  ||u->posY()>=posY()-eps && posY()>=w->posY()-eps);
-            return true;
-        }
-        if(w->posY()==posY()&&u->posY()==posY()) {
-            assert( u->posX()<=posX()+eps && posX()<=w->posX()+eps
-                  ||u->posX()>=posX()-eps && posX()>=w->posX()-eps);
-            return true;
-        }
-        */
-
-        // monotonicity:
-        if(!( u->posX()<=posX()+eps && posX()<=w->posX()+eps
-            ||u->posX()>=posX()-eps && posX()>=w->posX()-eps)) {
-            fail=1;
-        }
-        if(!( u->posY()<=posY()+eps && posY()<=w->posY()+eps
-            ||u->posY()>=posY()-eps && posY()>=w->posY()-eps) )
-        {
-            fail=2;
-        }
         // cp>0: left turn, cp<0: right turn
         double cp = crossProduct(u->posX(),u->posY(),posX(),posY(),w->posX(),w->posY());
         double dx = w->posX() - u->posX(), dy = w->posY() - u->posY();
-        // ensure tight turn
-        if(fabs(dx)>eps && fabs(dy)>eps) {
-            switch(rectIntersect) {
-                case TR:
-                    if(dx>0) { // ux<wx
-                        if(dy>0) { // uy<wy
-                            fail=3;
-                        } else if(cp>eps) {
-                            fail=4;
-                        }
-                    } else { // ux>=wx
-                        if(dy<0) {
-                            fail=5;
-                        } else if(cp<-eps) {
-                            fail=6;
-                        }
-                    }
-                    break;
-                case BR:
-                    if(dx>0) { // ux<wx
-                        if(dy<0) {
-                            fail=7;
-                        } else if(cp<-eps) {
-                            fail=8;
-                        }
-                    } else { // ux>=wx
-                        if(dy>0) {
-                            fail=9;
-                        } else if(cp>eps) {
-                            fail=10;
-                        }
-                    }
-                    break;
-                case BL:
-                    if(dx>0) { //ux<wx
-                        if(dy>0) {
-                            fail=11;
-                        } else if(cp<-eps) {
-                            fail=12;
-                        }
-                    } else { //ux>=wx
-                        if(dy<0) {
-                            fail=13;
-                        } else if(cp>eps) {
-                            fail=14;
-                        }
-                    }
-                    break;
-                case TL:
-                    if(dx>0) { // ux<wx
-                        if(dy<0) { // uy>wy
-                            fail=15;
-                        } else if(cp>eps) {
-                            fail=16;
-                        }
-                    } else { // ux>=wx
-                        if(dy>0) {
-                            fail=17;
-                        } else if(cp<-eps) {
-                            fail=18;
-                        }
-                    }
-                    break;
-                default:
-                    // a bend point must be associated with one of the
-                    // corners of a rectangle!
-                    assert(false);
+        try {
+            if( rectIntersect==CENTRE ) {
+                throw runtime_error("Bend point is CENTRE connected!");
             }
+            if( u->node->id==node->id && u->rectIntersect==rectIntersect ) {
+                throw runtime_error("Consecutive end points the same!");
+            }
+            if(w->node->id==node->id&&w->rectIntersect==rectIntersect) {
+                throw runtime_error("Consecutive end points the same!");
+            }
+            if(u->node->id==w->node->id&&u->rectIntersect==w->rectIntersect) {
+                throw runtime_error("Two points on same edge the same!");
+            }
+            // monotonicity:
+            if(!( u->posX()<=posX()+eps && posX()<=w->posX()+eps
+                ||u->posX()>=posX()-eps && posX()>=w->posX()-eps)) {
+                throw runtime_error("3 consecutive points not monotonically increasing in X!\n");
+            }
+            if(!( u->posY()<=posY()+eps && posY()<=w->posY()+eps
+                ||u->posY()>=posY()-eps && posY()>=w->posY()-eps) )
+            {
+                throw runtime_error("3 consecutive points not monotonically increasing in Y!\n");
+            }
+            // ensure tight turn
+            if(fabs(dx)>eps && fabs(dy)>eps) {
+                switch(rectIntersect) {
+                    case TR:
+                        if(dx>0) { // ux<wx
+                            if(dy>0) { // uy<wy
+                                throw runtime_error("turn not tight: C1");
+                            } else if(cp>eps) {
+                                throw runtime_error("turn not tight: C2");
+                            }
+                        } else { // ux>=wx
+                            if(dy<0) {
+                                throw runtime_error("turn not tight: C3");
+                            } else if(cp<-eps) {
+                                throw runtime_error("turn not tight: C4");
+                            }
+                        }
+                        break;
+                    case BR:
+                        if(dx>0) { // ux<wx
+                            if(dy<0) {
+                                throw runtime_error("turn not tight: C5");
+                            } else if(cp<-eps) {
+                                throw runtime_error("turn not tight: C6");
+                            }
+                        } else { // ux>=wx
+                            if(dy>0) {
+                                throw runtime_error("turn not tight: C7");
+                            } else if(cp>eps) {
+                                throw runtime_error("turn not tight: C8");
+                            }
+                        }
+                        break;
+                    case BL:
+                        if(dx>0) { //ux<wx
+                            if(dy>0) {
+                                throw runtime_error("turn not tight: C9");
+                            } else if(cp<-eps) {
+                                throw runtime_error("turn not tight: C10");
+                            }
+                        } else { //ux>=wx
+                            if(dy<0) {
+                                throw runtime_error("turn not tight: C11");
+                            } else if(cp>eps) {
+                                throw runtime_error("turn not tight: C12");
+                            }
+                        }
+                        break;
+                    case TL:
+                        if(dx>0) { // ux<wx
+                            if(dy<0) { // uy>wy
+                                throw runtime_error("turn not tight: C13");
+                            } else if(cp>eps) {
+                                throw runtime_error("turn not tight: C14");
+                            }
+                        } else { // ux>=wx
+                            if(dy>0) {
+                                throw runtime_error("turn not tight: C15");
+                            } else if(cp<-eps) {
+                                throw runtime_error("turn not tight: C16");
+                            }
+                        }
+                        break;
+                    default:
+                        // a bend point must be associated with one of the
+                        // corners of a rectangle!
+                        assert(false);
+                }
+            }
+        } catch(runtime_error e) {
+            printf("  convexity bend point test failed: %s, dx=%f, dy=%f, cp=%f:\n",e.what(),dx,dy,cp);
+            printf("    (nid=%d,ri=%d):u={%f,%f}\n",
+                    u->node->id,u->rectIntersect,u->posX(),u->posY());
+            printf("    (nid=%d,ri=%d):v={%f,%f}\n",
+                    node->id,rectIntersect,posX(),posY());
+            printf("    (nid=%d,ri=%d):w={%f,%f}\n",
+                    w->node->id,w->rectIntersect,w->posX(),w->posY());
+            printf("    turn cross product=%e\n",cp);
+            cout<<"Show[Graphics[{"<<endl;
+            cout<<*u->node->rect<<","<<*node->rect<<","<<*w->node->rect<<","<<endl;
+            cout<<inSegment->toString()<<","<<outSegment->toString()<<endl;
+            cout<<"}]]"<<endl;
+            assert(false);
         }
-        if(fail==0) return true;
-        printf("  convexity bend point test failed, condition=%d, dx=%f, dy=%f, cp=%f:\n",fail,dx,dy,cp);
-        printf("    (nid=%d,ri=%d):u={%f,%f}\n",
-                u->node->id,u->rectIntersect,u->posX(),u->posY());
-        printf("    (nid=%d,ri=%d):v={%f,%f}\n",
-                node->id,rectIntersect,posX(),posY());
-        printf("    (nid=%d,ri=%d):w={%f,%f}\n",
-                w->node->id,w->rectIntersect,w->posX(),w->posY());
-        printf("    turn cross product=%e\n",cp);
-        assert(false);
-
     } 
     return true;
 }

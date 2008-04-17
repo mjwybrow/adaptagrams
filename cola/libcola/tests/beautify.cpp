@@ -262,6 +262,7 @@ int main() {
     //seed=1208316284;
     //seed=1208319019;
     //seed=1208321702;
+    seed=1208390913;
     printf("random seed=%d\n",seed);
     srand(seed);
     vector<Edge> es = random_dag(DAGDEPTH,BRANCHFACTOR,V,cx,cy);
