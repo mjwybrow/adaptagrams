@@ -132,6 +132,12 @@ namespace topology {
          * @return offset from centre of node
          */
         double offset() const;
+        /**
+         * remove this point from the edge replacing its in and out
+         * segments with a single new Segment.
+         * @return the replacement Segment
+         */
+        Segment* prune();
     };
     typedef std::vector<EdgePoint*> EdgePoints;
     typedef std::vector<const EdgePoint*> ConstEdgePoints;
@@ -397,6 +403,8 @@ namespace topology {
          * apply an operation to every EdgePoint associated with this edge
          * @param o operation (a function or functor that takes a pointer to
          * an EdgePoint as an argument)
+         * @param noCycle if the edge is a cycle don't apply o to the 
+         * start/end point twice.
          */
         template <typename T>
         void forEachEdgePoint(T o, bool noCycle=false) {
@@ -405,6 +413,8 @@ namespace topology {
         /**
          * a version of forEachEdgePoint for const edges
          * @param o an operation on a const EdgePoint
+         * @param noCycle if the edge is a cycle apply o to the 
+         * start/end point only once.
          */
         template <typename T>
         void forEachEdgePoint(T o, bool noCycle=false) const {

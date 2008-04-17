@@ -260,28 +260,47 @@ struct CompareEvents {
         if(a->pos < b->pos) {
             return true;
         } else if(a->pos==b->pos) {
-            // we don't support zero height/width nodes and events should not
-            // have been generated for segments parallel to the scan line.
-            // Even so, let opens come before closes when at the same position
-            if(!a->open && b->open) return false;
-            if(a->open && !b->open) return true;
+            NodeOpen *aNO=dynamic_cast<NodeOpen*>(a),
+                     *bNO=dynamic_cast<NodeOpen*>(b);
+            NodeClose *aNC=dynamic_cast<NodeClose*>(a),
+                      *bNC=dynamic_cast<NodeClose*>(b);
+            SegmentOpen *aSO=dynamic_cast<SegmentOpen*>(a),
+                     *bSO=dynamic_cast<SegmentOpen*>(b);
+            SegmentClose *aSC=dynamic_cast<SegmentClose*>(a),
+                      *bSC=dynamic_cast<SegmentClose*>(b);
+
+            // segment opens before closes so that we handle
+            // segments parallel to the scan line properly
+            if(aSO&&bSC) return true;
+            if(aSC&&bSO) return false;
+            // Segment closes at same pos as Node opens, Segment first
+            if(aSC&&bNO) return true;
+            if(bSC&&aNO) return false;
+            // Segment opens at the same position as Node closes,
+            // Node close comes first
+            if(aSO&&bNC) return false;
+            if(bSO&&aNC) return true;
             // Segment opens at the same position as node opens, segment
             // comes first
-            if(a->open && b->open) {
-                if(dynamic_cast<SegmentOpen*>(b) 
-                   && dynamic_cast<NodeOpen*>(a)) return false;
-                if(dynamic_cast<SegmentOpen*>(a) 
-                   && dynamic_cast<NodeOpen*>(b)) return true;
-            }
+            if(aSO&&bNO) return true;
+            if(bSO&&aNO) return false;
             // Segment closes at the same position as node closes, node
             // comes first
-            if(!a->open && !b->open) {
-                if(dynamic_cast<SegmentClose*>(a) &&
-                   dynamic_cast<NodeClose*>(b)) return false;
-                if(dynamic_cast<SegmentClose*>(b) &&
-                   dynamic_cast<NodeClose*>(a)) return true;
+            if(aSC&&bNC) return false;
+            if(bSC&&aNC) return true;
+
+            // close nodes before we open new ones so we don't generate
+            // unnecessary non-overlap constraints
+            if(aNO&&bNC) {
+                assert(aNO->node!=bNC->node); // no zero height nodes thanks!
+                return false;
+            }
+            if(aNC&&bNO) {
+                assert(aNC->node!=bNO->node); 
+                return true;
             }
         }
+        // Transitivity of equivalence
         return false;
     }
 };
@@ -311,7 +330,7 @@ bool Segment::createStraightConstraint(Node* node, double pos) {
     //assert(bottom<=pos);
     //assert(top>=pos);
     vpsc::Rectangle* r=node->rect;
-    FILE_LOG(logDEBUG1)<<"Segment: from "<<start->pos(!dim)<<" to "<<end->pos(!dim);
+    FILE_LOG(logDEBUG1)<<"Segment: from {"<<start->pos(dim)<<","<<start->pos(!dim)<<"},{"<<end->pos(dim)<<","<<end->pos(!dim)<<"}";
     FILE_LOG(logDEBUG1)<<"Node: rect "<<*r;
     // determine direction of constraint based on intersection of segment with
     // scan line, i.e. set nodeLeft based on whether the intersection of the
@@ -479,6 +498,29 @@ void getVariables(Nodes& ns, vpsc::Variables& vs) {
     vs.resize(ns.size());
     transform(ns.begin(),ns.end(),vs.begin(),GetVariable());
 }
+struct CreateBendConstraints {
+    void operator() (EdgePoint* p) {
+        if(p->inSegment && p->outSegment) {
+            EdgePoint *o=p->inSegment->start, *q=p->outSegment->end;
+            if(o->pos(!dim)==p->pos(!dim) && p->pos(!dim)==q->pos(!dim)) {
+                assert(o->pos(dim)<p->pos(dim)&&p->pos(dim)<q->pos(dim)
+                     ||o->pos(dim)>p->pos(dim)&&p->pos(dim)>q->pos(dim));
+                FILE_LOG(logDEBUG)<<"EdgePoint collinear in scan dimension!";
+                FILE_LOG(logDEBUG)<<"  need to prune";
+                pruneList.push_back(p);
+            } else {
+                p->createBendConstraint();
+            }
+        }
+    }
+    void prune() {
+        for(list<EdgePoint*>::iterator i=pruneList.begin(), e=pruneList.end();
+                i!=e; ++i) {
+            (*i)->prune();
+        }
+    }
+    list<EdgePoint*> pruneList;
+};
 
 TopologyConstraints::
 TopologyConstraints( 
@@ -493,10 +535,9 @@ TopologyConstraints(
   , vs(vs)
   , cs(cs)
 {
-    //FILELog::ReportingLevel() = logERROR;
-    FILELog::ReportingLevel() = logDEBUG;
+    FILELog::ReportingLevel() = logERROR;
+    //FILELog::ReportingLevel() = logDEBUG1;
     FILE_LOG(logDEBUG)<<"TopologyConstraints::TopologyConstraints():dim="<<axisDim;
-
     assert(vs.size()>=n);
     assert(noOverlaps());
     assert(assertNoSegmentRectIntersection(nodes,edges));
@@ -514,9 +555,13 @@ TopologyConstraints(
         events.push_back(open);
         events.push_back(close);
     }
+    CreateBendConstraints cbc;
     for(Edges::const_iterator i=edges.begin(),e=edges.end();i!=e;++i) {
-        (*i)->forEach(mem_fun(&EdgePoint::createBendConstraint),
-                CreateSegmentEvents(events),true);
+        (*i)->forEachEdgePoint(cbc,true);
+    }
+    cbc.prune();
+    for(Edges::const_iterator i=edges.begin(),e=edges.end();i!=e;++i) {
+        (*i)->forEachSegment(CreateSegmentEvents(events));
     }
     // process events in top to bottom order
     sort(events.begin(),events.end(),CompareEvents());

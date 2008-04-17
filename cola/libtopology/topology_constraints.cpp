@@ -82,41 +82,11 @@ ostream& operator<< (ostream& os, const TriConstraint& c) {
  */
 void BendConstraint::satisfy() {
     FILE_LOG(logDEBUG)<<"BendConstraint::satisfy()... edge id="<<getEdgeID()<<" node id="<<bendPoint->node->id;
-    Segment* s1 = bendPoint->inSegment,
-           * s2 = bendPoint->outSegment;
-    Edge* e = s1->edge;
-    EdgePoint* start = s1->start,
-             * end = s2->end;
-    Segment* s = new Segment(e,start,end);
-    if(e->lastSegment==s1 && e->firstSegment==s2) {
-        FILE_LOG(logDEBUG)<<"  handling cyclical boundary.";
-        e->firstSegment=s;
-        e->lastSegment=start->inSegment;
-    }
-    if(e->firstSegment==s1) {
-        e->firstSegment=s;
-    }
-    if(e->lastSegment==s2) {
-        e->lastSegment=s;
-    }
-    // transfer each StraightConstraint from s1 and s2 to new Segment s.
-    Segment::TransferStraightConstraint transfer = 
-        bind1st(mem_fun(&Segment::transferStraightConstraint),s);
-    s1->forEachStraightConstraint(transfer);
-    s2->forEachStraightConstraint(transfer);
-
-    // update the BendConstraints associated with the end EdgePoints of
-    // the new segment
-    start->createBendConstraint();
-    end->createBendConstraint();
-
+    Node* node=bendPoint->node;
+    double pos=bendPoint->pos(!dim);
+    Segment* s=bendPoint->prune();
     // create a new StraightConstraint to replace the BendConstraint
-    s->createStraightConstraint(bendPoint->node, bendPoint->pos(!dim));
-             
-    e->nSegments--;
-    delete bendPoint;
-    delete s1;
-    delete s2;
+    s->createStraightConstraint(node, pos);
     FILE_LOG(logDEBUG)<<"BendConstraint::satisfy()...done.";
 }
 string BendConstraint::
@@ -322,7 +292,7 @@ bool TopologyConstraints::solve() {
     assert(assertConvexBends(edges));
     // rectangle and edge point positions updated to variables.
     FILE_LOG(logDEBUG)<<" moves done.";
-    if(minT) {
+    if(minTAlpha<1 && minT) {
         // now we satisfy the violated topology constraint, i.e. a bend point
         // that has become straight is removed or a segment that needs to bend
         // is split

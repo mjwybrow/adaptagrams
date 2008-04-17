@@ -52,14 +52,49 @@ void EdgePoint::deleteBendConstraint() {
 EdgePoint::~EdgePoint() {
     deleteBendConstraint();
 }
+Segment* EdgePoint::prune() {
+    Edge* e = inSegment->edge;
+    EdgePoint* start = inSegment->start,
+             * end = outSegment->end;
+    Segment* s = new Segment(e,start,end);
+    if(e->lastSegment==inSegment && e->firstSegment==outSegment) {
+        FILE_LOG(logDEBUG)<<"  handling cyclical boundary.";
+        e->firstSegment=s;
+        e->lastSegment=start->inSegment;
+    }
+    if(e->firstSegment==inSegment) {
+        e->firstSegment=s;
+    }
+    if(e->lastSegment==outSegment) {
+        e->lastSegment=s;
+    }
+    // transfer each StraightConstraint from inSegment and outSegment
+    // to new Segment s.
+    Segment::TransferStraightConstraint transfer = 
+        bind1st(mem_fun(&Segment::transferStraightConstraint),s);
+    inSegment->forEachStraightConstraint(transfer);
+    outSegment->forEachStraightConstraint(transfer);
+
+    // update the BendConstraints associated with the end EdgePoints of
+    // the new segment
+    start->createBendConstraint();
+    end->createBendConstraint();
+
+    e->nSegments--;
+    delete this;
+    delete inSegment;
+    delete outSegment;
+    return s;
+}
 bool EdgePoint::createBendConstraint() {
     // edges shouldn't double back!
     assert(assertConvexBend());
-    // don't generate BendConstraints for Edge end points
+    // we replace any existing bend constraint
     if(bendConstraint) {
         delete bendConstraint;
         bendConstraint=NULL;
     }
+    // don't generate BendConstraints for Edge end points
     if(isEnd()) {
         return false;
     }
@@ -145,6 +180,7 @@ bool EdgePoint::assertConvexBend() const {
     if(inSegment && outSegment 
        && inSegment->length()>eps && outSegment->length()>eps) 
     {
+        assert( rectIntersect!=CENTRE );
         int fail=0;
         EdgePoint* u=inSegment->start;
         EdgePoint* w=outSegment->end;
@@ -152,6 +188,7 @@ bool EdgePoint::assertConvexBend() const {
                 !(u->node->id==w->node->id
                     &&u->rectIntersect==w->rectIntersect));
 
+        /*
         if(w->posX()==posX()&&u->posX()==posX()) {
             assert( u->posY()<=posY()+eps && posY()<=w->posY()+eps
                   ||u->posY()>=posY()-eps && posY()>=w->posY()-eps);
@@ -162,6 +199,7 @@ bool EdgePoint::assertConvexBend() const {
                   ||u->posX()>=posX()-eps && posX()>=w->posX()-eps);
             return true;
         }
+        */
 
         // monotonicity:
         if(!( u->posX()<=posX()+eps && posX()<=w->posX()+eps
@@ -177,71 +215,73 @@ bool EdgePoint::assertConvexBend() const {
         double cp = crossProduct(u->posX(),u->posY(),posX(),posY(),w->posX(),w->posY());
         double dx = w->posX() - u->posX(), dy = w->posY() - u->posY();
         // ensure tight turn
-        switch(rectIntersect) {
-            case TR:
-                if(dx>0) { // ux<wx
-                    if(dy>0) { // uy<wy
-                        fail=3;
-                    } else if(cp>eps) {
-                        fail=4;
+        if(fabs(dx)>eps && fabs(dy)>eps) {
+            switch(rectIntersect) {
+                case TR:
+                    if(dx>0) { // ux<wx
+                        if(dy>0) { // uy<wy
+                            fail=3;
+                        } else if(cp>eps) {
+                            fail=4;
+                        }
+                    } else { // ux>=wx
+                        if(dy<0) {
+                            fail=5;
+                        } else if(cp<-eps) {
+                            fail=6;
+                        }
                     }
-                } else { // ux>=wx
-                    if(dy<0) {
-                        fail=5;
-                    } else if(cp<-eps) {
-                        fail=6;
+                    break;
+                case BR:
+                    if(dx>0) { // ux<wx
+                        if(dy<0) {
+                            fail=7;
+                        } else if(cp<-eps) {
+                            fail=8;
+                        }
+                    } else { // ux>=wx
+                        if(dy>0) {
+                            fail=9;
+                        } else if(cp>eps) {
+                            fail=10;
+                        }
                     }
-                }
-                break;
-            case BR:
-                if(dx>0) { // ux<wx
-                    if(dy<0) {
-                        fail=7;
-                    } else if(cp<-eps) {
-                        fail=8;
+                    break;
+                case BL:
+                    if(dx>0) { //ux<wx
+                        if(dy>0) {
+                            fail=11;
+                        } else if(cp<-eps) {
+                            fail=12;
+                        }
+                    } else { //ux>=wx
+                        if(dy<0) {
+                            fail=13;
+                        } else if(cp>eps) {
+                            fail=14;
+                        }
                     }
-                } else { // ux>=wx
-                    if(dy>0) {
-                        fail=9;
-                    } else if(cp>eps) {
-                        fail=10;
+                    break;
+                case TL:
+                    if(dx>0) { // ux<wx
+                        if(dy<0) { // uy>wy
+                            fail=15;
+                        } else if(cp>eps) {
+                            fail=16;
+                        }
+                    } else { // ux>=wx
+                        if(dy>0) {
+                            fail=17;
+                        } else if(cp<-eps) {
+                            fail=18;
+                        }
                     }
-                }
-                break;
-            case BL:
-                if(dx>0) { //ux<wx
-                    if(dy>0) {
-                        fail=11;
-                    } else if(cp<-eps) {
-                        fail=12;
-                    }
-                } else { //ux>=wx
-                    if(dy<0) {
-                        fail=13;
-                    } else if(cp>eps) {
-                        fail=14;
-                    }
-                }
-                break;
-            case TL:
-                if(dx>0) { // ux<wx
-                    if(dy<0) { // uy>wy
-                        fail=15;
-                    } else if(cp>eps) {
-                        fail=16;
-                    }
-                } else { // ux>=wx
-                    if(dy>0) {
-                        fail=17;
-                    } else if(cp<-eps) {
-                        fail=18;
-                    }
-                }
-                break;
-            default:
-                // a bend point must be associated with one of the
-                // corners of a rectangle!
-                assert(false);
+                    break;
+                default:
+                    // a bend point must be associated with one of the
+                    // corners of a rectangle!
+                    assert(false);
+            }
         }
         if(fail==0) return true;
         printf("  convexity bend point test failed, condition=%d, dx=%f, dy=%f, cp=%f:\n",fail,dx,dy,cp);
