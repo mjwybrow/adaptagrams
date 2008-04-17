@@ -50,7 +50,7 @@ double gRule2(
         len(b,c,dybc,dxbc,dybc2,dxbc2);
     double p=0;
     if(lab!=0) {
-        p+=dxab/lab;
+        p=dxab/lab;
     }
     if(lbc!=0) {
         p-=dxbc/lbc;
@@ -80,12 +80,12 @@ double hRuleD2(
         len(v,w,dyvw,dxvw,dyvw2,dxvw2);
     double p1=0, p2=0;
     if(dxuv!=0) {
-        p1+=dxuv2/(luv*luv*luv) - 1/luv;
-        p2+=dxuv/luv;
+        p1=dxuv2/(luv*luv*luv) - 1/luv;
+        p2=dxuv/luv;
     }
     if(dxvw!=0) {
         p1+=dxvw2/(lvw*lvw*lvw) - 1/lvw;
-        p2+=dxvw/lvw;
+        p2-=dxvw/lvw;
     }
     return dl*p1+p2*p2;
 }
@@ -101,9 +101,7 @@ double hRule2(
         len(v,w,dyvw,dxvw,dyvw2,dxvw2);
     double p=0;
     if(luv!=0) {
-        p=-dl*dxuv2/(luv*luv*luv)
-        +dl/luv
-        -dxuv2/(luv*luv);
+        p= - dl*dxuv2/(luv*luv*luv) + dl/luv - dxuv2/(luv*luv);
         if(lvw!=0) {
             p+=dxuv*dxvw/(luv*lvw);
         }
@@ -123,9 +121,7 @@ double hRule3(
         len(v,w,dyvw,dxvw,dyvw2,dxvw2);
     double p=0;
     if(lvw!=0) {
-        p=-dl*dxvw2/(lvw*lvw*lvw)
-        -dxvw2/(lvw*lvw)
-        +dl/lvw;
+        p= - dl*dxvw2/(lvw*lvw*lvw) - dxvw2/(lvw*lvw) + dl/lvw;
         if(luv!=0) {
             p+=dxuv*dxvw/(luv*lvw);
         }

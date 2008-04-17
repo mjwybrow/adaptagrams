@@ -513,8 +513,6 @@ bool validateBendPoint(VertInf *aInf, VertInf *bInf, VertInf *cInf)
     int abc = vecDir(a, b, c);
 #ifdef PATHDEBUG
     printf("(abc == %d) ", abc);
-    printf("&& (abe == %d) && (abd == %d) &&\n(cbe == %d) && (cbd == %d)\n",
-            abe, abd, cbe, cbd);
 #endif
    
     if (abc == 0)
@@ -727,6 +725,16 @@ int ConnRef::generatePath(void)
         path[j].id = i->id.objID;
         path[j].vn = i->id.vn;
         j--;
+
+        if (i->pathNext && (i->pathNext->point == i->point))
+        {
+            if (i->pathNext->id.isShape && i->id.isShape)
+            {
+                // Check for consecutive points on opposite 
+                // corners of two touching shapes.
+                assert(abs(i->pathNext->id.objID - i->id.objID) != 2);
+            }
+        }
     }
     path[0] = _srcVert->point;
     path[0].id = _srcVert->id.objID;
