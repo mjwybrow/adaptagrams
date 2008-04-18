@@ -279,6 +279,7 @@ namespace topology {
          * Compute the euclidean distance between #start and #end.
          */
         double length() const;
+        void assertNonZeroLength() const;
         /**
          * does this segment have Node v as a CENTRE start or end point?
          */
@@ -457,9 +458,22 @@ namespace topology {
     typedef std::vector<Edge*> Edges;
     double compute_stress(const Edges&);
     void printEdges(const Edges&);
+/**
+ * CrossProduct of three points: If the result is 0, the points are collinear; 
+ * if it is positive, the three points (in order) constitute a "left turn", 
+ * otherwise a "right turn".
+ */
+inline double crossProduct(
+        double x0, double y0,
+        double x1, double y1,
+        double x2, double y2) {
+    return (x1-x0)*(y2-y0)-(x2-x0)*(y1-y0);
+}
+
 #ifndef NDEBUG
     bool assertConvexBends(const Edges&);
     bool assertNoSegmentRectIntersection(const Nodes&, const Edges&);
+    bool assertNoZeroLengthEdgeSegments(const Edges& es);
 #endif
 } // namespace topology
 #endif // TOPOLOGY_GRAPH_H

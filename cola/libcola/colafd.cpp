@@ -376,16 +376,16 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const doubl
         topology::setNodeVariables(*topologyNodes,vs);
         topology::TopologyConstraints t(dim,*topologyNodes,*topologyRoutes,vs,cs);
         bool interrupted;
-        int loopBreaker=10;
+        int loopBreaker=100;
+        SparseMap HMap(n);
+        computeForces(dim,HMap,g);
+        valarray<double> oldCoords=coords;
+        t.computeForces(g,HMap);
+        cola::SparseMatrix H(HMap);
+        applyDescentVector(g,oldCoords,coords,oldStress,
+                computeStepSize(H,g,g));
+        setVariableDesiredPositions(vs,cs,des,coords);
         do {
-            SparseMap HMap(n);
-            computeForces(dim,HMap,g);
-            valarray<double> oldCoords=coords;
-            t.computeForces(g,HMap);
-            cola::SparseMatrix H(HMap);
-            applyDescentVector(g,oldCoords,coords,oldStress,
-                    computeStepSize(H,g,g));
-            setVariableDesiredPositions(vs,cs,des,coords);
             interrupted=t.solve();
             unsigned vptr=0;
             for(topology::Nodes::iterator i=topologyNodes->begin();

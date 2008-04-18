@@ -20,14 +20,14 @@ void setNodeVariables(Nodes& ns, std::vector<vpsc::Variable*>& vs) {
 Node::Node(unsigned id, vpsc::Rectangle* r, vpsc::Variable* v)
     : id(id), rect(r), var(v) 
 { 
-    assert(initialPos()>-10000);
-    assert(initialPos()<10000);
+    assert(initialPos()>-100000);
+    assert(initialPos()<100000);
 }
 Node::Node(unsigned id, vpsc::Rectangle* r)
     : id(id), rect(r), var(NULL) 
 {
-    assert(initialPos()>-10000);
-    assert(initialPos()<10000);
+    assert(initialPos()>-100000);
+    assert(initialPos()<100000);
 }
 void Node::setDesiredPos(double d, double weight) {
     var->desiredPosition=d;
@@ -157,25 +157,6 @@ inline void normalise(double& x, double& y) {
     x/=l;
     y/=l;
 }
-/**
- * CrossProduct of three points: If the result is 0, the points are collinear; 
- * if it is positive, the three points (in order) constitute a "left turn", 
- * otherwise a "right turn".
- */
-inline double crossProduct(
-        double x0, double y0,
-        double x1, double y1,
-        double x2, double y2) {
-    return (x1-x0)*(y2-y0)-(x2-x0)*(y1-y0);
-    /*
-    double ux=x1-x0, uy=y1-y0;
-    double vx=x2-x0, vy=y2-y0;
-    normalise(ux,uy);
-    normalise(vx,vy);
-    return ux*vy-uy*vx;
-    */
-}
-
 bool EdgePoint::assertConvexBend() const {
     const double eps=1e-7;
     if(inSegment && outSegment 
@@ -325,6 +306,12 @@ Segment::~Segment() {
 double Segment::length(unsigned dim) const {
     return fabs(end->pos(dim)-start->pos(dim));
 }
+void Segment::assertNonZeroLength() const {
+    if(length()==0) {
+        printf("segment length=%f\n",length());
+    }
+    //assert(length()>0);
+}
 double Segment::length() const {
     double dx = end->posX() - start->posX();
     double dy = end->posY() - start->posY();
@@ -453,6 +440,12 @@ bool assertNoSegmentRectIntersection(
         const Nodes& vs, const Edges& es) {
     for(Edges::const_iterator e=es.begin();e!=es.end();++e) {
         (*e)->forEachSegment(NoIntersection(vs));
+    }
+    return true;
+}
+bool assertNoZeroLengthEdgeSegments(const Edges& es) {
+    for(Edges::const_iterator e=es.begin();e!=es.end();++e) {
+        (*e)->forEachSegment(mem_fun(&Segment::assertNonZeroLength));
     }
     return true;
 }

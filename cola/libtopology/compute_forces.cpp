@@ -235,6 +235,7 @@ computeForces(valarray<double>& gradient, cola::SparseMap& hessian) {
         // first and last entries
         // gradient
         u=path[0]; v=path[1];
+        assert(v->inSegment->length()>0);
         double h=weight*hRuleD1(u,v,dl);
         H(u,u)+=h;
         double g1=weight*dl*gRule1(u,v);
@@ -253,6 +254,8 @@ computeForces(valarray<double>& gradient, cola::SparseMap& hessian) {
         // remaining diagonal entries
         for(unsigned j=1;j<n-1;j++) {
             u=path[j-1], v=path[j], w=path[j+1];
+            assert(v->inSegment->length()>0);
+            assert(w->inSegment->length()>0);
             H(v,v)+=weight*hRuleD2(u,v,w,dl);
             g[v]+=weight*dl*gRule2(u,v,w);
         }

@@ -501,31 +501,48 @@ void getVariables(Nodes& ns, vpsc::Variables& vs) {
     vs.resize(ns.size());
     transform(ns.begin(),ns.end(),vs.begin(),GetVariable());
 }
-struct CreateBendConstraints {
+inline bool validTurn(EdgePoint* u, EdgePoint* v, EdgePoint* w) {
+    double cp = crossProduct(u->posX(),u->posY(),v->posX(),v->posY(),
+            w->posX(),w->posY());
+    if(cp==0) { // colinear: can safely remove v
+        return true;
+    }
+    // r is the shape that v turns around
+    Rectangle* r=v->node->rect;
+    double rx = r->getCentreX(), ry = r->getCentreY();
+    double cpr = crossProduct(u->posX(),u->posY(),v->posX(),v->posY(),rx,ry);
+    if(cp*cpr>0 && cp<=cpr) {
+        return true;
+    }
+    return false;
+}
+struct PruneDegenerate {
+    PruneDegenerate(list<EdgePoint*>& pruneList) : pruneList(pruneList){}
     void operator() (EdgePoint* p) {
-        double eps=1e-7;
         if(p->inSegment && p->outSegment) {
             EdgePoint *o=p->inSegment->start, *q=p->outSegment->end;
-            if(o->pos(!dim)==p->pos(!dim) && p->pos(!dim)==q->pos(!dim)) {
-                assert(o->pos(dim)<p->pos(dim)+eps
-                       &&p->pos(dim)<q->pos(dim)+eps
-                     ||o->pos(dim)>p->pos(dim)-eps
-                       &&p->pos(dim)>q->pos(dim)-eps);
+            double inSegLen = p->inSegment->length(), 
+                   outSegLen = p->outSegment->length();
+            if(inSegLen>0 && outSegLen>0
+                    && o->pos(!dim)==p->pos(!dim) 
+                    && p->pos(!dim)==q->pos(!dim)) {
                 FILE_LOG(logDEBUG)<<"EdgePoint collinear in scan dimension!";
                 FILE_LOG(logDEBUG)<<"  need to prune";
                 pruneList.push_back(p);
-            } else {
-                p->createBendConstraint();
+            } 
+            if(inSegLen==0 && o->inSegment
+                    && !validTurn(o->inSegment->start,p,q)) {
+                assert(validTurn(o->inSegment->start,o,q));
+                FILE_LOG(logDEBUG)<<"Pruning node after 0 length segment!";
+                pruneList.push_back(p);
+            } else if(outSegLen==0 && q->outSegment
+                    && !validTurn(o,p,q->outSegment->end)) {
+                assert(validTurn(o,q,q->outSegment->end));
+                pruneList.push_back(p);
             }
         }
     }
-    void prune() {
-        for(list<EdgePoint*>::iterator i=pruneList.begin(), e=pruneList.end();
-                i!=e; ++i) {
-            (*i)->prune();
-        }
-    }
-    list<EdgePoint*> pruneList;
+    list<EdgePoint*>& pruneList;
 };
 
 TopologyConstraints::
@@ -561,13 +578,18 @@ TopologyConstraints(
         events.push_back(open);
         events.push_back(close);
     }
-    CreateBendConstraints cbc;
+    list<EdgePoint*> pruneList;
     for(Edges::const_iterator i=edges.begin(),e=edges.end();i!=e;++i) {
-        (*i)->forEachEdgePoint(cbc,true);
+        (*i)->forEachEdgePoint(PruneDegenerate(pruneList),true);
     }
-    cbc.prune();
+    for(list<EdgePoint*>::iterator i=pruneList.begin(), e=pruneList.end();
+            i!=e; ++i) {
+        (*i)->prune();
+    }
+    assert(assertNoZeroLengthEdgeSegments(edges));
     for(Edges::const_iterator i=edges.begin(),e=edges.end();i!=e;++i) {
-        (*i)->forEachSegment(CreateSegmentEvents(events));
+        (*i)->forEach(mem_fun(&EdgePoint::createBendConstraint),
+                CreateSegmentEvents(events),true);
     }
     // process events in top to bottom order
     sort(events.begin(),events.end(),CompareEvents());
