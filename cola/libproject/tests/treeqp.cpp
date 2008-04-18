@@ -16,7 +16,7 @@ using namespace std;
  * @param cs constraints
  * @param result the solution vector
  */
-void treeQPSolve(Terms &ts, Constraints &cs, vector<double> &result) {
+void treeQPSolve(Terms &ts, EqualityConstraints &ecs, InequalityConstraints &ics, vector<double> &result) {
     const unsigned n=result.size();
     double **A=new double*[n],
            *b=new double[n];
@@ -42,34 +42,68 @@ void treeQPSolve(Terms &ts, Constraints &cs, vector<double> &result) {
         b[p]+=bt;
         b[c]+=-bt;
     }
-    const unsigned m=cs.size();
-    double **C=new double*[n],
-           *c=new double[m];
+    // equality constraints:
+    const unsigned me=ecs.size();
+    double **CE=new double*[n],
+           *ce=new double[me];
     for(unsigned i=0;i<n;i++) {
-        C[i]=new double[m];
-        fill(C[i],C[i]+m,0);
+        CE[i]=new double[me];
+        fill(CE[i],CE[i]+me,0);
     }
-    for(unsigned i=0;i<m;i++) {
-        const unsigned l=cs[i].l, r=cs[i].r;
+    for(unsigned i=0;i<me;i++) {
+        EqualityConstraint& ec=ecs[i];
+        const unsigned l=ec.l, r=ec.r;
+        const double g=ec.g;
         assert(l!=r);
         assert(l<n);
         assert(r<n);
-        C[l][i]=-1;
-        C[r][i]=1;
-        c[i]=-cs[i].g;
+        if(ec.threeVars) {
+            const unsigned p=ec.p;
+            assert(p<n);
+            CE[p][i]=0.5; 
+            CE[l][i]=-0.5; 
+            CE[r][i]=-0.5; 
+            ce[i]=-g/2.0;
+        } else {
+            CE[l][i]=-1;
+            CE[r][i]=1;
+            ce[i]=-g;
+        }
     }
+
+    // inequality constraints:
+    const unsigned mi=ics.size();
+    double **CI=new double*[n],
+           *ci=new double[mi];
+    for(unsigned i=0;i<n;i++) {
+        CI[i]=new double[mi];
+        fill(CI[i],CI[i]+mi,0);
+    }
+    for(unsigned i=0;i<mi;i++) {
+        const unsigned l=ics[i].l, r=ics[i].r;
+        assert(l!=r);
+        assert(l<n);
+        assert(r<n);
+        CI[l][i]=-1;
+        CI[r][i]=1;
+        ci[i]=-ics[i].g;
+    }
+
     double *x=new double[n];
-    solve_quadprog(A, b, n, NULL, NULL, 0, C, c, m, x);
+    solve_quadprog(A, b, n, CE, ce, me, CI, ci, mi, x);
     result.resize(n);
     copy(x,x+n,result.begin());
     for(unsigned i=0;i<n;i++) {
         delete [] A[i];
-        delete [] C[i];
+        delete [] CE[i];
+        delete [] CI[i];
     }
 	delete [] A;
 	delete [] b;
-	delete [] C;
-	delete [] c;
+	delete [] CE;
+	delete [] CI;
+	delete [] ce;
+	delete [] ci;
 	delete [] x;
 }
 /*

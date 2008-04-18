@@ -14,21 +14,37 @@ struct Term {
     }
 };
 typedef std::vector<Term> Terms;
-/**
- * we solve the goal subject to constraints of the form 
- *   x_l+g<=x_r or x_l+g=x_r
+/** 
+ * we solve the goal subject to equality constraints of the form
+ *   x_l+g=x_r or x_p=(x_l+x_r+g)/2
  */
-struct Constraint {
-    unsigned l, r;
+struct EqualityConstraint {
+    unsigned l, r, p;
     /// gap required between variables
     double g;
     /// true if this is an equality constraint, otherwise it's an inequality
-    bool eq;
-    Constraint(unsigned l, unsigned r, double g, bool eq) 
-        : l(l), r(r), g(g), eq(eq) {
+    bool threeVars;
+    EqualityConstraint(unsigned l, unsigned r, double g)
+        : l(l), r(r), p(0), g(g), threeVars(false) {
+    }
+    EqualityConstraint(unsigned p, unsigned l, unsigned r, double g) 
+        : l(l), r(r), p(p), g(g), threeVars(true) {
     }
 };
-typedef std::vector<Constraint> Constraints;
+typedef std::vector<EqualityConstraint> EqualityConstraints;
+/**
+ * we solve the goal subject to inequality constraint of the form 
+ *   x_l+g<=x_r 
+ */
+struct InequalityConstraint {
+    unsigned l, r;
+    /// gap required between variables
+    double g;
+    InequalityConstraint(unsigned l, unsigned r, double g)
+        : l(l), r(r), g(g) {
+    }
+};
+typedef std::vector<InequalityConstraint> InequalityConstraints;
 /**
  * Solve problem using a conventional quadratic programming solver.
  * We use Luca Di Gaspero's GPLed QuadProg++ program 
@@ -43,4 +59,8 @@ typedef std::vector<Constraint> Constraints;
  * @param cs constraints
  * @param result the solution vector
  */
-void treeQPSolve(Terms &ts, Constraints &cs, std::vector<double> &result);
+void treeQPSolve(Terms &ts, EqualityConstraints &ecs, InequalityConstraints &ics, std::vector<double> &result);
+/*
+ * vim: set cindent 
+ * vim: ts=4 sw=4 et tw=0 wm=0
+ */
