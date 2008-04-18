@@ -510,9 +510,8 @@ inline bool validTurn(EdgePoint* u, EdgePoint* v, EdgePoint* w) {
     // r is the shape that v turns around
     Rectangle* r=v->node->rect;
     double rx = r->getCentreX(), ry = r->getCentreY();
-    double cpuvr = crossProduct(u->posX(),u->posY(),v->posX(),v->posY(),rx,ry);
     double cpvwr = crossProduct(v->posX(),v->posY(),w->posX(),w->posY(),rx,ry);
-    if(cpuvw*cpuvr>0 && cpuvw*cpvwr>0) {
+    if(cpuvw*cpvwr>0) {
         return true;
     }
     return false;
