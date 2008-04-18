@@ -502,16 +502,17 @@ void getVariables(Nodes& ns, vpsc::Variables& vs) {
     transform(ns.begin(),ns.end(),vs.begin(),GetVariable());
 }
 inline bool validTurn(EdgePoint* u, EdgePoint* v, EdgePoint* w) {
-    double cp = crossProduct(u->posX(),u->posY(),v->posX(),v->posY(),
+    double cpuvw = crossProduct(u->posX(),u->posY(),v->posX(),v->posY(),
             w->posX(),w->posY());
-    if(cp==0) { // colinear: can safely remove v
+    if(cpuvw==0) { // colinear: can safely remove v
         return true;
     }
     // r is the shape that v turns around
     Rectangle* r=v->node->rect;
     double rx = r->getCentreX(), ry = r->getCentreY();
-    double cpr = crossProduct(u->posX(),u->posY(),v->posX(),v->posY(),rx,ry);
-    if(cp*cpr>0 && cp<=cpr) {
+    double cpuvr = crossProduct(u->posX(),u->posY(),v->posX(),v->posY(),rx,ry);
+    double cpvwr = crossProduct(v->posX(),v->posY(),w->posX(),w->posY(),rx,ry);
+    if(cpuvw*cpuvr>0 && cpuvw*cpvwr>0) {
         return true;
     }
     return false;
