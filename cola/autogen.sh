@@ -6,7 +6,7 @@
 # It's only used by a few examples so you can easily build the core libraries
 # without it.
 # The following sequence builds from scratch:
-aclocal
+aclocal $ACLOCAL_FLAGS
 #libtoolize
 autoconf
 automake -a --add-missing
