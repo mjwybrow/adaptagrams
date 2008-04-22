@@ -5,7 +5,7 @@
  * Copyright (C) 2004-2008  Michael Wybrow <mjwybrow@users.sourceforge.net>
  *
  * --------------------------------------------------------------------
- * The visibilitySweep technique is based upon the method described
+ * The Visibility Sweep technique is based upon the method described
  * in Section 5.2 of:
  *     Lee, D.-T. (1978). Proximity and reachability in the plane.,
  *     PhD thesis, Department of Electrical Engineering, 
@@ -324,37 +324,67 @@ class isBoundingShape
 };
 
 
-static bool sweepVisible(SweepEdgeList& T, VertInf *currInf, int *blocker)
+static bool sweepVisible(SweepEdgeList& T, const PointPair& point, int *blocker)
 {
-#ifdef LINEDEBUG
-    Router *router = currInf->_router;
-    int canx = 151;
-    int cany = 55;
-#endif
-    
     if (T.empty())
     {
         // No blocking edges.
         return true;
     }
 
-    // Nothing before it on the current ray
+    Router *router = point.vInf->_router;
+    bool visible = true;
+
     SweepEdgeList::const_iterator closestIt = T.begin();
+    SweepEdgeList::const_iterator end = T.end();
+    if (! point.vInf->id.isShape)
+    {
+        // It's a connector endpoint, so we have to ignore 
+        // edges of containing shapes for determining visibility.
+        ShapeSet& rss = router->contains[point.vInf->id];
+        while (closestIt != end)
+        {
+            if (rss.find(closestIt->vInf1->id.objID) == rss.end())
+            {
+                // This is not a containing edge so do the normal 
+                // test and then stop.
+                if (point.distance > closestIt->angleDist)
+                {
+                    visible =  false;
+                }
+                break;
+            }
+            // This was a containing edge, so consider the next along.
+            ++closestIt;
+        }
+    }
+    else
+    {
+        // Just test to see if this point is closer than the closest 
+        // edge blocking this ray.
+        if (point.distance > closestIt->angleDist)
+        {
+            visible =  false;
+        }
+    }
 
-    Point &e1 = (*closestIt).vInf1->point;
-    Point &e2 = (*closestIt).vInf2->point;
-
-#ifdef LINEDEBUG
-    lineRGBA(router->avoid_screen, e1.x + canx, e1.y + cany,
-            e2.x + canx, e2.y + cany, 0, 0, 225, 255);
-#endif
-
-    if (segmentIntersect(centerInf->point, currInf->point, e1, e2))
+    if (!visible)
     {
         *blocker = (*closestIt).vInf1->id.objID;
-        return false;
+#ifdef LINEDEBUG
+        Point &e1 = (*closestIt).vInf1->point;
+        Point &e2 = (*closestIt).vInf2->point;
+
+        if (router->avoid_screen)
+        {
+            int canx = 151;
+            int cany = 55;
+            lineRGBA(router->avoid_screen, e1.x + canx, e1.y + cany,
+                    e2.x + canx, e2.y + cany, 0, 0, 225, 255);
+        }
+#endif
     }
-    return true;
+    return visible;
 }
 
 
@@ -373,9 +403,6 @@ void vertexSweep(VertInf *vert)
     // List of shape (and maybe endpt) vertices, except p
     // Sort list, around
     VertSet v;
-
-    VertSet::const_iterator closestVertex = v.end();
-    double closestVertexDistance = DBL_MAX;
 
     // Initialise the vertex list
     VertInf *beginVert = router->vertices.connsBegin();
@@ -416,16 +443,6 @@ void vertexSweep(VertInf *vert)
                         insertedVertex = v.insert(inf);
                     }
                 }
-            }
-        }
-
-        if (insertedVertex.second)
-        {
-            // A vertex was inserted.
-            if (insertedVertex.first->distance < closestVertexDistance)
-            {
-                closestVertex = insertedVertex.first;
-                closestVertexDistance = insertedVertex.first->distance;
             }
         }
     }
@@ -517,7 +534,7 @@ void vertexSweep(VertInf *vert)
 
         // Check visibility.
         int blocker = 0;
-        bool currVisible = sweepVisible(e, currInf, &blocker);
+        bool currVisible = sweepVisible(e, *t, &blocker);
 
         if (!(centerID.isShape) && isBounding(*t))
         {
@@ -561,8 +578,11 @@ void vertexSweep(VertInf *vert)
                 if (currVisible)
                 {
 #ifdef LINEDEBUG
-                    lineRGBA(router->avoid_screen, ppx + canx, ppy + cany,
-                            cx + canx, cy + cany, 255, 0, 0, 75);
+                    if (router->avoid_screen)
+                    {
+                        lineRGBA(router->avoid_screen, ppx + canx, ppy + cany,
+                                cx + canx, cy + cany, 255, 0, 0, 75);
+                    }
 #endif
                     db_printf("\tSetting visibility edge... \n\t\t");
                     edge->setDist(currDist);
@@ -614,7 +634,10 @@ void vertexSweep(VertInf *vert)
             }
         }
 #ifdef LINEDEBUG
-        SDL_Flip(router->avoid_screen);
+        if (router->avoid_screen)
+        {
+            SDL_Flip(router->avoid_screen);
+        }
 #endif
     }
 }
