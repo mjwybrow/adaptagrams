@@ -53,6 +53,7 @@ class EdgeInf
         void addConn(bool *flag);
         void addCycleBlocker(void);
         void addBlocker(int b);
+        bool added(void);
 
         std::pair<VertID, VertID> ids(void);
         std::pair<Point, Point> points(void);

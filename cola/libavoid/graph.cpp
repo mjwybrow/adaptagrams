@@ -135,6 +135,12 @@ void EdgeInf::setDist(double dist)
 }
 
 
+bool EdgeInf::added(void)
+{
+    return _added;
+}
+
+
 void EdgeInf::alertConns(void)
 {
     FlagList::iterator finish = _conns.end();
