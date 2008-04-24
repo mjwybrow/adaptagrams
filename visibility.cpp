@@ -270,11 +270,14 @@ class EdgePair
                         centerPoint, p.vInf->point, &(pp.x), &(pp.y));
                 if (result != DO_INTERSECT) 
                 {
-                    // Written this way to avoid a compiler warning for
-                    // not using the result variable if NDEBUG is set.
-                    assert(result == DO_INTERSECT);
+                    // This can happen with points that appear to have the
+                    // same angle but at are at slightly different positions
+                    angleDist = std::min(dist1, dist2);
                 }
-                angleDist = dist(pp, centerPoint);
+                else
+                {
+                    angleDist = dist(pp, centerPoint);
+                }
             }
 
             return angleDist;
@@ -477,7 +480,7 @@ void vertexSweep(VertInf *vert)
         VertInf *kPrev = k->shPrev;
         VertInf *kNext = k->shNext;
         if (kPrev && (kPrev != centerInf) && 
-                (vecDir(centerInf->point, xaxis, kPrev->point) == BEHIND))
+                (vecDir(centerInf->point, xaxis, kPrev->point) == AHEAD))
         {
             if (segmentIntersect(centerInf->point, xaxis, kPrev->point, 
                         k->point))
@@ -487,7 +490,7 @@ void vertexSweep(VertInf *vert)
             }
         }
         else if (kNext && (kNext != centerInf) && 
-                (vecDir(centerInf->point, xaxis, kNext->point) == BEHIND))
+                (vecDir(centerInf->point, xaxis, kNext->point) == AHEAD))
         {
             if (segmentIntersect(centerInf->point, xaxis, kNext->point, 
                         k->point))
