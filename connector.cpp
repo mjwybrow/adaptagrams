@@ -757,7 +757,8 @@ int ConnRef::generatePath(void)
     printf("Output route:\n");
     for (int i = 0; i < output_route.pn; ++i)
     {
-        printf("%g, %g  ", output_route.ps[i].x, output_route.ps[i].y);
+        printf("[%d,%d] %g, %g   ", output_route.ps[i].id, output_route.ps[i].vn,
+                output_route.ps[i].x, output_route.ps[i].y);
     }
     printf("\n\n");
 #endif
