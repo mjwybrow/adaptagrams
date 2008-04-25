@@ -324,7 +324,8 @@ class isBoundingShape
 };
 
 
-static bool sweepVisible(SweepEdgeList& T, const PointPair& point, int *blocker)
+static bool sweepVisible(SweepEdgeList& T, const PointPair& point, 
+        std::set<unsigned int>& onBorderIDs, int *blocker)
 {
     if (T.empty())
     {
@@ -345,6 +346,7 @@ static bool sweepVisible(SweepEdgeList& T, const PointPair& point, int *blocker)
             // If the ray intersects just the endpoint of a 
             // blocking edge then ignore that edge.
             ++closestIt;
+            continue;
         }
         break;
     }
@@ -368,6 +370,14 @@ static bool sweepVisible(SweepEdgeList& T, const PointPair& point, int *blocker)
                 {
                     visible = false;
                 }
+                else if ((point.distance == closestIt->angleDist) && 
+                        onBorderIDs.find(closestIt->vInf1->id.objID) != 
+                                onBorderIDs.end())
+                {
+                    // Touching, but centerPoint is on another edge of
+                    // shape shape, so count as blocking.
+                    visible = false;
+                }
                 break;
             }
             // This was a containing edge, so consider the next along.
@@ -381,6 +391,14 @@ static bool sweepVisible(SweepEdgeList& T, const PointPair& point, int *blocker)
         if (point.distance > closestIt->angleDist)
         {
             visible =  false;
+        }
+        else if ((point.distance == closestIt->angleDist) && 
+                onBorderIDs.find(closestIt->vInf1->id.objID) != 
+                        onBorderIDs.end())
+        {
+            // Touching, but centerPoint is on another edge of
+            // shape shape, so count as blocking.
+            visible = false;
         }
     }
 
@@ -468,6 +486,7 @@ void vertexSweep(VertInf *vert)
             }
         }
     }
+    std::set<unsigned int> onBorderIDs;
 
     // Add edges to T that intersect the initial ray.
     SweepEdgeList e;
@@ -493,6 +512,12 @@ void vertexSweep(VertInf *vert)
                 EdgePair intPair = EdgePair(*t, kPrev);
                 e.push_back(intPair);
             }
+            if ((vecDir(kPrev->point, k->point, centerInf->point) == 0) &&
+                    inBetween(kPrev->point, k->point, centerInf->point))
+            {
+                // Record that centerPoint is on an obstacle line.
+                onBorderIDs.insert(k->id.objID);
+            }
         }
         else if (kNext && (kNext != centerInf) && 
                 (vecDir(centerInf->point, xaxis, kNext->point) == AHEAD))
@@ -502,6 +527,12 @@ void vertexSweep(VertInf *vert)
             {
                 EdgePair intPair = EdgePair(*t, kNext);
                 e.push_back(intPair);
+            }
+            if ((vecDir(kNext->point, k->point, centerInf->point) == 0) &&
+                    inBetween(kNext->point, k->point, centerInf->point))
+            {
+                // Record that centerPoint is on an obstacle line.
+                onBorderIDs.insert(k->id.objID);
             }
         }
     }
@@ -548,7 +579,7 @@ void vertexSweep(VertInf *vert)
 
         // Check visibility.
         int blocker = 0;
-        bool currVisible = sweepVisible(e, *t, &blocker);
+        bool currVisible = sweepVisible(e, *t, onBorderIDs, &blocker);
 
         bool cone1 = true, cone2 = true;
         if (centerID.isShape)
