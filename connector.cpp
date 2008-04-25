@@ -518,36 +518,36 @@ bool validateBendPoint(VertInf *aInf, VertInf *bInf, VertInf *cInf)
     if (abc == 0)
     {
         // The three consecutive point on the path are in a line.
-        // Thus, there should always be an as-short path that just
+        // Thus, there should always be an equally short path that
         // skips this bend point.
         bendOkay = false;
     }
     else // (abc != 0)
     {
+        assert(vecDir(d, b, e) > 0);
         int abe = vecDir(a, b, e);
         int abd = vecDir(a, b, d);
-        int cbe = vecDir(c, b, e);
-        int cbd = vecDir(c, b, d);
+        int bce = vecDir(b, c, e);
+        int bcd = vecDir(b, c, d);
 #ifdef PATHDEBUG
-        printf("&& (abe == %d) && (abd == %d) &&\n(cbe == %d) && (cbd == %d)",
-                abe, abd, cbe, cbd);
+        printf("&& (abe == %d) && (abd == %d) &&\n(bce == %d) && (bcd == %d)",
+                abe, abd, bce, bcd);
 #endif
 
-        if ((abe != 0) && (abe != abc))
+        bendOkay = false;
+        if (abe > 0)
         {
-            bendOkay = false;
+            if ((abc > 0) && (abd >= 0) && (bce >= 0))
+            {
+                bendOkay = true;
+            }
         }
-        else if ((abd != 0) && (abd != abc))
+        else if (abd < 0)
         {
-            bendOkay = false;
-        }
-        else if (abd == cbd)
-        {
-            bendOkay = false;
-        }
-        else if (abe == cbe)
-        {
-            bendOkay = false;
+            if ((abc < 0) && (abe <= 0) && (bcd <= 0))
+            {
+                bendOkay = true;
+            }
         }
     }
 #ifdef PATHDEBUG
