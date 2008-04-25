@@ -255,15 +255,20 @@ class EdgePair
             }
             return true;
         }
+        void setNegativeAngle(void)
+        {
+            angle = -1.0;
+        }
         double setCurrAngle(const PointPair& p)
         {
-            if (p.vInf->point == vInf2->point)
+            if (angle == p.angle)
             {
-                angle = p.angle;
+                assert(p.angle != -1.0);
                 angleDist = p.distance;
             }
-            else if (angle != p.angle)
+            else 
             {
+                assert(p.angle > angle);
                 angle = p.angle;
                 Point pp;
                 int result = rayIntersectPoint(vInf1->point, vInf2->point,
@@ -499,6 +504,10 @@ void vertexSweep(VertInf *vert)
                 e.push_back(intPair);
             }
         }
+    }
+    for (SweepEdgeList::iterator c = e.begin(); c != e.end(); ++c)
+    {
+        (*c).setNegativeAngle();
     }
 
 
