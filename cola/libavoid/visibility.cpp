@@ -261,12 +261,17 @@ class EdgePair
         }
         double setCurrAngle(const PointPair& p)
         {
-            if (angle == p.angle)
+            if (p.vInf->point == vInf1->point)
             {
-                assert(p.angle != -1.0);
-                angleDist = p.distance;
+                angleDist = dist1;
+                angle = p.angle;
             }
-            else 
+            else if (p.vInf->point == vInf2->point)
+            {
+                angleDist = dist2;
+                angle = p.angle;
+            }
+            else if (p.angle != angle)
             {
                 assert(p.angle > angle);
                 angle = p.angle;
