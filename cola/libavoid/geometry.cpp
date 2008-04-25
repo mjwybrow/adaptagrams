@@ -453,7 +453,7 @@ bool inPolyGen(const Polygn& argpoly, const Point& q)
 int segmentIntersectPoint(const Point& a1, const Point& a2,
         const Point& b1, const Point& b2, double *x, double *y) 
 {
-    double Ax,Bx,Cx,Ay,By,Cy,d,e,f,num,offset;
+    double Ax,Bx,Cx,Ay,By,Cy,d,e,f,num;
     double x1lo,x1hi,y1lo,y1hi;
 
     Ax = a2.x - a1.x;
@@ -536,15 +536,12 @@ int segmentIntersectPoint(const Point& a1, const Point& a2,
     
     // Numerator:
     num = d*Ax;
-    // Round direction:
-    offset = SAME_SIGNS(num,f) ? f/2 : -f/2;
     // Intersection X:
-    *x = a1.x + (num+offset) / f;
+    *x = a1.x + (num) / f;
 
     num = d*Ay;
-    offset = SAME_SIGNS(num,f) ? f/2 : -f/2;
     // Intersection Y:
-    *y = a1.y + (num+offset) / f;
+    *y = a1.y + (num) / f;
 
     return DO_INTERSECT;
 }
@@ -556,7 +553,7 @@ int segmentIntersectPoint(const Point& a1, const Point& a2,
 int rayIntersectPoint(const Point& a1, const Point& a2,
         const Point& b1, const Point& b2, double *x, double *y) 
 {
-    double Ax,Bx,Cx,Ay,By,Cy,d,f,num,offset;
+    double Ax,Bx,Cx,Ay,By,Cy,d,f,num;
 
     Ay = a2.y - a1.y;
     By = b1.y - b2.y;
@@ -576,15 +573,12 @@ int rayIntersectPoint(const Point& a1, const Point& a2,
     
     // Numerator:
     num = d*Ax;
-    // Round direction:
-    offset = SAME_SIGNS(num,f) ? f/2 : -f/2;
     // Intersection X:
-    *x = a1.x + (num+offset) / f;
+    *x = a1.x + (num) / f;
 
     num = d*Ay;
-    offset = SAME_SIGNS(num,f) ? f/2 : -f/2;
     // Intersection Y:
-    *y = a1.y + (num+offset) / f;
+    *y = a1.y + (num) / f;
 
     return DO_INTERSECT;
 }

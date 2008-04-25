@@ -219,6 +219,7 @@ public:
             printf("Rectangle/Segment intersection!\n");
             printf("Line[{{%f,%f},{%f,%f}}],\n",x1,y1,x2,y2);
             printf("Rectangle[{%f,%f},{%f,%f}]\n",getMinX(),getMinY(),getMaxX(),getMaxY());
+            ri.print();
             return true;
         }
         return false;
