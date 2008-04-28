@@ -14,7 +14,7 @@ using namespace project;
 using namespace std;
 
 /**
- * float comparisons (i.e. \f$a=b\$f) in our tests are actually \$f|a-b|<epsilon\$f.
+ * float comparisons (i.e. \f$a=b\f$) in our tests are actually \f$|a-b|<epsilon\f$.
  */
 const double testEpsilon = 1e-10;
 
