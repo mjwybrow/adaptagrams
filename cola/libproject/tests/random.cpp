@@ -52,7 +52,7 @@ const char* randomProblem(Variables &vs, Constraints &cs) {
         }
     }
     //printf("minConstraints=%u,|V|=%u,|C|=%u\n",minConstraints,(unsigned)vs.size(),(unsigned)cs.size());
-    return __ASSERT_FUNCTION;
+    return "randomProblem";
 }
 int main() {
     //srand(time(NULL));

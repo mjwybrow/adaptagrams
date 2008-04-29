@@ -19,7 +19,7 @@ vs.push_back(new Variable(Initial(0.644455),Desired(2.642579)));
 vs.push_back(new Variable(Initial(1.456425),Desired(2.615846)));
 cs.push_back(new Constraint(vs[0],vs[2],0.973464));
 cs.push_back(new Constraint(vs[1],vs[2],0.367541));
-return __ASSERT_FUNCTION;
+return "t1";
 }
 
 /**
@@ -31,7 +31,7 @@ vs.push_back(new Variable(Initial(0.966096),Desired(1.295395)));//soln=1.295395
 vs.push_back(new Variable(Initial(1.348192),Desired(1.385243)));//soln=1.734292
 cs.push_back(new Constraint(vs[0],vs[2],0.793396));
 cs.push_back(new Constraint(vs[1],vs[2],0.320881));
-return __ASSERT_FUNCTION;
+return "t2";
 }
 
 /**
@@ -46,7 +46,7 @@ vs.push_back(new Variable(Initial(1.891515),Desired(1.840865)));//soln=3.184411
 cs.push_back(new Constraint(vs[0],vs[4],1.023242));
 cs.push_back(new Constraint(vs[2],vs[3],0.025524));
 cs.push_back(new Constraint(vs[3],vs[4],0.399988));
-return __ASSERT_FUNCTION;
+return "t3";
 }
 
 /**
@@ -60,7 +60,7 @@ cs.push_back(new Constraint(vs[0],vs[2],0.198559));
 cs.push_back(new Constraint(vs[1],vs[2],0.719010));
 cs.push_back(new Constraint(vs[0],vs[1],0.078566));
 cs.push_back(new Constraint(vs[0],vs[1],0.076233));
-return __ASSERT_FUNCTION;
+return "t4";
 }
 const char* t5(Variables& vs, Constraints &cs) {
 vs.push_back(new Variable(0,Initial(190),Desired(190),Weight(1e+10)));
@@ -86,7 +86,7 @@ Constraint(vs[5],vs[7],34);
 Constraint(vs[7],vs[2],34);
 Constraint(vs[5],vs[3],34);
 Constraint(vs[3],vs[2],34);
-return __ASSERT_FUNCTION;
+return "t5";
 }
 
 int main() {

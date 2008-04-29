@@ -4,9 +4,6 @@
  */
 #include <map>
 #include <cassert>
-#ifdef NDEBUG
-#define __ASSERT_FUNCTION "XXXXXXXXXXXXCompiled with NDEBUG: function info not availableXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-#endif // NDEBUG
 /**
  * Solve a project problem using a conventional quadratic programming solver.
  * We use Luca Di Gaspero's GPLed QuadProg++ program 
