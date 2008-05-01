@@ -82,9 +82,9 @@ Segment* EdgePoint::prune() {
     end->createBendConstraint();
 
     e->nSegments--;
-    delete this;
     delete inSegment;
     delete outSegment;
+    delete this;
     return s;
 }
 bool EdgePoint::createBendConstraint() {
