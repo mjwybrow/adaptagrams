@@ -13,6 +13,8 @@
 
 #include <set>
 #include <cassert>
+#include <cstdlib>
+#include <algorithm>
 #include "solve_VPSC.h"
 #include "rectangle.h"
 #include "constraint.h"

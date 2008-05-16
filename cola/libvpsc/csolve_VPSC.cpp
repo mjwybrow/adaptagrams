@@ -10,6 +10,7 @@
  */
 #include <iostream>
 #include <cassert>
+#include <cstdlib>
 #include <vector>
 #include "variable.h"
 #include "constraint.h"

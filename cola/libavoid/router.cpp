@@ -20,6 +20,7 @@
  * 
 */
 
+#include <cstdlib>
 #include "libavoid/shape.h"
 #include "libavoid/router.h"
 #include "libavoid/visibility.h"

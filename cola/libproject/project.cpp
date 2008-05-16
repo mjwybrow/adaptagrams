@@ -12,10 +12,12 @@
  * Released under GNU LGPL.  Read the file 'COPYING' for more information.
  */
 
+#include <algorithm>
 #include <numeric>
 #include <cmath>
 #include <cfloat>
 #include <cassert>
+#include <iterator>
 #include "util.h"
 #include "project.h"
 #include "project_log.h"

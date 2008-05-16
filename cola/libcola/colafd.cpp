@@ -1,6 +1,7 @@
 #include "commondefs.h"
 
 #include <cmath>
+#include <limits>  // numeric_limits
 #include "cola.h"
 #include "shortest_paths.h"
 #include "straightener.h"

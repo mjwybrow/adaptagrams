@@ -3,7 +3,9 @@
 // vim: ts=4 sw=4 et tw=0 wm=0
 #include <float.h>
 #include <cassert>
+#include <algorithm>
 #include <iostream>
+#include <limits>
 #include <libvpsc/pairing_heap.h>
 using namespace std;
 namespace shortest_paths {
