@@ -149,7 +149,7 @@ public:
 };
 
 //! default instance of TestConvergence used if no other is specified
-static TestConvergence defaultTest(0.0001,100);
+extern TestConvergence defaultTest;
 
 /**
  * The following class implements the Constrained Majorization graph Layout algorithm.

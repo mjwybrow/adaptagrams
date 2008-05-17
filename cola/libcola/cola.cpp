@@ -12,6 +12,8 @@ using straightener::generateClusterBoundaries;  // magmy20070405: Added
 
 namespace cola {
 
+TestConvergence defaultTest(0.0001,100);
+
 ConstrainedMajorizationLayout
 ::ConstrainedMajorizationLayout(
         vector<Rectangle*>& rs,
