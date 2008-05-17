@@ -234,7 +234,7 @@ private:
 };
 
 typedef std::vector<Rectangle*> Rectangles;
-std::ostream& operator<< (std::ostream& os, const Rectangle& r);
+std::ostream& operator<<(std::ostream& os, vpsc::Rectangle const &r);
 
 class Variable;
 class Constraint;
