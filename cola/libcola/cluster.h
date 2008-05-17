@@ -1,7 +1,12 @@
 #ifndef COLA_CLUSTER_H
 #define COLA_CLUSTER_H
+
 #include "commondefs.h"
+#include <libvpsc/rectangle.h>
+#include <libvpsc/variable.h>
+
 namespace cola {
+
 using vpsc::Rectangle;
 using vpsc::Variable;
 using std::vector;
