@@ -25,7 +25,6 @@ namespace topology {
  */
 namespace cola {
 using vpsc::Rectangle;
-using std::valarray;
 
 //! Edges are simply a pair of indices to entries in the Node vector
 typedef std::pair<unsigned, unsigned> Edge;
@@ -124,7 +123,7 @@ public:
     { reset(); }
     virtual ~TestConvergence() {}
 
-    virtual bool operator()(const double new_stress, valarray<double> & X, valarray<double> & Y) {
+    virtual bool operator()(const double new_stress, std::valarray<double> & X, std::valarray<double> & Y) {
         iterations++;
         //std::cout<<"iteration="<<iterations<<", old_stress="<<old_stress<<", new_stress="<<new_stress<<std::endl;
         if (old_stress == DBL_MAX) {
@@ -195,8 +194,8 @@ public:
      * sticky nodes causes nodes to spring back to (startX,startY) when unconstrained
      */
     void setStickyNodes(const double stickyWeight, 
-            valarray<double> const & startX,
-            valarray<double> const & startY);
+            std::valarray<double> const & startX,
+            std::valarray<double> const & startY);
 
     /**
      * scaling speeds up the solver by conditioning the quadratic terms matrix.
@@ -275,14 +274,14 @@ private:
             (X[i] - X[j]) * (X[i] - X[j]) +
             (Y[i] - Y[j]) * (Y[i] - Y[j]));
     }
-    double compute_stress(valarray<double> const & Dij);
-    void majorize(valarray<double> const & Dij,GradientProjection* gp, valarray<double>& coords, valarray<double> const & startCoords);
-    void newton(valarray<double> const & Dij,GradientProjection* gp, valarray<double>& coords, valarray<double> const & startCoords);
+    double compute_stress(std::valarray<double> const & Dij);
+    void majorize(std::valarray<double> const & Dij,GradientProjection* gp, std::valarray<double>& coords, std::valarray<double> const & startCoords);
+    void newton(std::valarray<double> const & Dij,GradientProjection* gp, std::valarray<double>& coords, std::valarray<double> const & startCoords);
     unsigned n; //!< number of nodes
-    //valarray<double> degrees;
-    valarray<double> lap2; //!< graph laplacian
-    valarray<double> Q; //!< quadratic terms matrix used in computations
-    valarray<double> Dij; //!< all pairs shortest path distances
+    //std::valarray<double> degrees;
+    std::valarray<double> lap2; //!< graph laplacian
+    std::valarray<double> Q; //!< quadratic terms matrix used in computations
+    std::valarray<double> Dij; //!< all pairs shortest path distances
     double tol; //!< convergence tolerance
     TestConvergence& done; //!< functor used to determine if layout is finished
     PreIteration* preIteration; //!< client can use this to create locks on nodes
@@ -291,11 +290,11 @@ private:
      * positions (at time of ConstrainedMajorizationLayout instantiation)
      * stored in startX, startY
      */
-    valarray<double> X, Y;
+    std::valarray<double> X, Y;
     bool stickyNodes;
     double stickyWeight;
-    valarray<double> startX;
-    valarray<double> startY;
+    std::valarray<double> startX;
+    std::valarray<double> startY;
     double edge_length;
     bool constrainedLayout;
     bool nonOverlappingClusters;
@@ -407,18 +406,18 @@ public:
     double computeStress() const;
 private:
     unsigned n; // number of nodes
-    valarray<double> X, Y;
+    std::valarray<double> X, Y;
     std::vector<Rectangle*> boundingBoxes;
     double applyForcesAndConstraints(const Dim dim,const double oldStress);
-    double computeStepSize(const SparseMatrix& H, const valarray<double>& g,
-            const valarray<double>& d) const;
+    double computeStepSize(const SparseMatrix& H, const std::valarray<double>& g,
+            const std::valarray<double>& d) const;
     void computeDescentVectorOnBothAxes(const bool xaxis, const bool yaxis,
-            double stress, valarray<double>& x0, valarray<double>& x1);
-    void moveTo(const Dim dim, valarray<double>& target);
+            double stress, std::valarray<double>& x0, std::valarray<double>& x1);
+    void moveTo(const Dim dim, std::valarray<double>& target);
     double applyDescentVector(
-            const valarray<double>& d,
-            const valarray<double>& oldCoords,
-            valarray<double> &coords, 
+            const std::valarray<double>& d,
+            const std::valarray<double>& oldCoords,
+            std::valarray<double> &coords, 
             const double oldStress, 
             double stepsize
             /*,topology::TopologyConstraints *s=NULL*/);
@@ -427,10 +426,10 @@ private:
             const double idealLength,
             const std::valarray<double> * eweights);
     void handleResizes(const Resizes&);
-    void setPosition(valarray<double>& pos);
+    void setPosition(std::valarray<double>& pos);
     void moveBoundingBoxes();
     bool noForces(double, double, unsigned) const;
-    void computeForces(const Dim dim, SparseMap &H, valarray<double> &g);
+    void computeForces(const Dim dim, SparseMap &H, std::valarray<double> &g);
     std::vector<std::vector<unsigned> > neighbours;
     std::vector<std::vector<double> > neighbourLengths;
     TestConvergence& done;
