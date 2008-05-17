@@ -25,7 +25,6 @@ namespace topology {
  */
 namespace cola {
 using vpsc::Rectangle;
-using std::vector;
 using std::valarray;
 
 //! Edges are simply a pair of indices to entries in the Node vector
@@ -49,7 +48,7 @@ private:
     double x;
     double y;
 };
-typedef vector<Lock> Locks;
+typedef std::vector<Lock> Locks;
 
 /**
  * A Resize specifies a required bounding box for a node
@@ -68,7 +67,7 @@ private:
     unsigned id;
     Rectangle target;
 };
-typedef vector<Resize> Resizes;
+typedef std::vector<Resize> Resizes;
 
 /** 
  * provides a functor that is called before each iteration in the main loop of
@@ -161,8 +160,8 @@ static TestConvergence defaultTest(0.0001,100);
 class ConstrainedMajorizationLayout {
 public:
     ConstrainedMajorizationLayout(
-        vector<Rectangle*>& rs,
-        vector<Edge> const & es,
+        std::vector<Rectangle*>& rs,
+        std::vector<Edge> const & es,
         RootCluster* clusterHierarchy,
         double const idealLength,
         std::valarray<double> const * eweights=NULL,
@@ -235,10 +234,10 @@ public:
      * bendWeight controls how hard we try to straighten existing bends
      * potBendWeight controls how much we try to keep straight edges straight
      */
-    void setStraightenEdges(vector<straightener::Edge*>* straightenEdges, 
+    void setStraightenEdges(std::vector<straightener::Edge*>* straightenEdges, 
             double bendWeight = 0.01, double potBendWeight = 0.1,
             bool xSkipping = true) {
-        for(vector<straightener::Edge*>::const_iterator e=straightenEdges->begin();
+        for(std::vector<straightener::Edge*>::const_iterator e=straightenEdges->begin();
                 e!=straightenEdges->end();e++) {
             (*e)->rerouteAround(boundingBoxes);
         }
@@ -266,7 +265,7 @@ public:
      * run the layout algorithm in either the x-dim the y-dim or both
      */
     void run(bool x=true, bool y=true);
-    void straighten(vector<straightener::Edge*>&, Dim);
+    void straighten(std::vector<straightener::Edge*>&, Dim);
     void setConstrainedLayout(bool c) {
         constrainedLayout=c;
     }
@@ -287,7 +286,7 @@ private:
     double tol; //!< convergence tolerance
     TestConvergence& done; //!< functor used to determine if layout is finished
     PreIteration* preIteration; //!< client can use this to create locks on nodes
-    vector<Rectangle*> boundingBoxes; //!< node bounding boxes
+    std::vector<Rectangle*> boundingBoxes; //!< node bounding boxes
     /** stickyNodes controls whether nodes are attracted to their starting
      * positions (at time of ConstrainedMajorizationLayout instantiation)
      * stored in startX, startY
@@ -325,7 +324,7 @@ private:
     CompoundConstraints *ccsx, *ccsy;
     UnsatisfiableConstraintInfos *unsatisfiableX, *unsatisfiableY;
     NonOverlapConstraints avoidOverlaps;
-    vector<straightener::Edge*>* straightenEdges;
+    std::vector<straightener::Edge*>* straightenEdges;
     
     double bendWeight, potBendWeight;
     /** determines whether we should leave some overlaps to be resolved
@@ -342,7 +341,7 @@ private:
     bool majorization;
 };
 
-Rectangle bounds(vector<Rectangle*>& rs);
+Rectangle bounds(std::vector<Rectangle*>& rs);
 
 
 class ConstrainedFDLayout {
@@ -358,8 +357,8 @@ public:
      * @param preIteration an operation called before each iteration
      */
     ConstrainedFDLayout(
-        const vector<Rectangle*>& rs,
-        const vector<Edge>& es,
+        const std::vector<Rectangle*>& rs,
+        const std::vector<Edge>& es,
         const double idealLength,
         const std::valarray<double>* eweights=NULL,
         TestConvergence& done=defaultTest,
@@ -381,7 +380,7 @@ public:
             this->ccsy=ccsy;
         }
     }
-    void setTopology(vector<topology::Node*>* tnodes, vector<topology::Edge*>* routes) {
+    void setTopology(std::vector<topology::Node*>* tnodes, std::vector<topology::Edge*>* routes) {
         //printf("setTopology...\n");
         topologyNodes=tnodes;
         topologyRoutes=routes;
@@ -409,7 +408,7 @@ public:
 private:
     unsigned n; // number of nodes
     valarray<double> X, Y;
-    vector<Rectangle*> boundingBoxes;
+    std::vector<Rectangle*> boundingBoxes;
     double applyForcesAndConstraints(const Dim dim,const double oldStress);
     double computeStepSize(const SparseMatrix& H, const valarray<double>& g,
             const valarray<double>& d) const;
@@ -424,7 +423,7 @@ private:
             double stepsize
             /*,topology::TopologyConstraints *s=NULL*/);
     void computePathLengths(
-            const vector<Edge>& es,
+            const std::vector<Edge>& es,
             const double idealLength,
             const std::valarray<double> * eweights);
     void handleResizes(const Resizes&);
@@ -432,16 +431,16 @@ private:
     void moveBoundingBoxes();
     bool noForces(double, double, unsigned) const;
     void computeForces(const Dim dim, SparseMap &H, valarray<double> &g);
-    vector<vector<unsigned> > neighbours;
-    vector<vector<double> > neighbourLengths;
+    std::vector<std::vector<unsigned> > neighbours;
+    std::vector<std::vector<double> > neighbourLengths;
     TestConvergence& done;
     PreIteration* preIteration;
     CompoundConstraints *ccsx, *ccsy;
     double** D;
     unsigned short** G;
-    vector<topology::Node*>* topologyNodes;
-    vector<topology::Edge*>* topologyRoutes;
-    vector<UnsatisfiableConstraintInfos*> unsatisfiable;
+    std::vector<topology::Node*>* topologyNodes;
+    std::vector<topology::Edge*>* topologyRoutes;
+    std::vector<UnsatisfiableConstraintInfos*> unsatisfiable;
     bool rungekutta;
 };
 
