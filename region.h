@@ -23,6 +23,8 @@
 #ifndef AVOID_REGION_H
 #define AVOID_REGION_H
 
+#include <list>
+#include "libavoid/shape.h"
 
 namespace Avoid {
 
