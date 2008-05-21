@@ -347,7 +347,12 @@ private:
 
 Rectangle bounds(std::vector<Rectangle*>& rs);
 
-
+/**
+ * This class implements a constrained layout method based on a non-linear
+ * gradient projection technique, conceptually it's similar to a force
+ * directed method like Fruchterman-Reingold-but using a more principled
+ * goal function and optimisation techniques.
+ */
 class ConstrainedFDLayout {
 public:
     /**
