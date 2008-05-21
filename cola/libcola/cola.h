@@ -39,7 +39,7 @@ public:
     unsigned getID() const {
         return id;
     }
-    double pos(Dim dim) const {
+    double pos(cola::Dim dim) const {
         return dim==HORIZONTAL?x:y;
     }
 private:
@@ -117,12 +117,17 @@ private:
 class TestConvergence {
 public:
     double old_stress;
-    TestConvergence(const double tolerance = 1e-4, const unsigned maxiterations = 100)
-        : tolerance(tolerance),
+    TestConvergence(const double tol = 1e-4, const unsigned maxiterations = 100)
+        : tolerance(tol),
           maxiterations(maxiterations)
     { reset(); }
     virtual ~TestConvergence() {}
 
+private:
+    TestConvergence(TestConvergence const &);
+    TestConvergence &operator=(TestConvergence const &);
+
+public:
     virtual bool operator()(const double new_stress, std::valarray<double> & X, std::valarray<double> & Y) {
         iterations++;
         //std::cout<<"iteration="<<iterations<<", old_stress="<<old_stress<<", new_stress="<<new_stress<<std::endl;
@@ -264,7 +269,7 @@ public:
      * run the layout algorithm in either the x-dim the y-dim or both
      */
     void run(bool x=true, bool y=true);
-    void straighten(std::vector<straightener::Edge*>&, Dim);
+    void straighten(std::vector<straightener::Edge*>&, cola::Dim);
     void setConstrainedLayout(bool c) {
         constrainedLayout=c;
     }

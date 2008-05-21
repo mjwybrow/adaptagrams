@@ -1,3 +1,5 @@
+#include "libtopology/topology_graph.h"
+using namespace topology;
 
 template <typename T>
 T getRand(T range) {
@@ -25,19 +27,19 @@ void generateRandomRects(unsigned n, vpsc::Rectangles &rs) {
 	}
 }
 
-Node* addNode(Nodes& vs, double x, double y, double w, double h) {
+topology::Node* addNode(Nodes& vs, double x, double y, double w, double h) {
     vpsc::Rectangle* r = new vpsc::Rectangle(x,x+w,y,y+h);
-    Node *v = new Node(vs.size(), r, new vpsc::Variable(vs.size()));
+    topology::Node *v = new topology::Node(vs.size(), r, new vpsc::Variable(vs.size()));
     vs.push_back(v);
     return v;
 }
 struct delete_node {
-	void operator() (Node* v) {
+	void operator() (topology::Node* v) {
         delete v->rect;
         delete v;
     }
 };
-void addToPath(EdgePoints& ps, Node *v, topology::EdgePoint::RectIntersect i) {
+void addToPath(EdgePoints& ps, topology::Node *v, topology::EdgePoint::RectIntersect i) {
     ps.push_back(new EdgePoint(v,i));
 }
 
@@ -54,7 +56,7 @@ void noRectOverlaps(const vpsc::Rectangles& rs) {
 		}
 	}
 }
-void writeFile(const Nodes& vs, const Edges& es, const string& outputFileName) {
+void writeFile(const topology::Nodes& vs, const Edges& es, const string& outputFileName) {
     const unsigned n=vs.size();
     vector<cola::Edge> cedges;
 

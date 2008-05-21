@@ -13,6 +13,7 @@
 #define TOPOLOGY_CONSTRAINTS_H
 #include <libcola/commondefs.h>
 #include "topology_graph.h"
+#include <valarray>
 #include <vector>
 #include <map>
 #include <list>
@@ -31,7 +32,6 @@ namespace cola {
  */
 namespace topology {
     extern cola::Dim dim;
-    using std::valarray;
     class StraightConstraint;
     class Edge;
     /**
@@ -189,9 +189,9 @@ namespace topology {
         ~TopologyConstraints();
         bool solve();
         void constraints(std::vector<TopologyConstraint*> & ts) const;
-        void computeForces(valarray<double>& g, cola::SparseMap& h);
+        void computeForces(std::valarray<double>& g, cola::SparseMap& h);
         bool assertFeasible() const;
-        void printInstance(valarray<double>& g) const;
+        void printInstance(std::valarray<double>& g) const;
         bool noOverlaps() const;
     private:
         Nodes& nodes;

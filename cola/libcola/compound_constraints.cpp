@@ -2,6 +2,9 @@
 #include <libvpsc/constraint.h>
 #include "cola.h"
 #include "compound_constraints.h"
+
+using std::vector;
+
 namespace cola {
 struct GenerateVariables {
     GenerateVariables(Variables& vars) : vars(vars) {}

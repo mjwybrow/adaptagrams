@@ -8,12 +8,10 @@ namespace vpsc {
     class Variable;
 }
 namespace cola {
-using std::make_pair;
-using std::vector;
-	
-typedef vector<vpsc::Constraint*> Constraints;
-typedef vector<vpsc::Variable*> Variables;
-typedef vector<std::pair<unsigned,double> > OffsetList;
+
+typedef std::vector<vpsc::Constraint*> Constraints;
+typedef std::vector<vpsc::Variable*> Variables;
+typedef std::vector<std::pair<unsigned,double> > OffsetList;
 
 /** 
  * A compound constraint is a conceptual, diagramming application oriented
@@ -47,7 +45,7 @@ public:
     virtual void updatePosition() {};
     virtual ~CompoundConstraint() {}
 };
-typedef vector<CompoundConstraint*> CompoundConstraints;
+typedef std::vector<CompoundConstraint*> CompoundConstraints;
 
 /**
  * generate all the variables and constraints for a collection of CompoundConstraint
@@ -149,8 +147,8 @@ public:
     unsigned right;
     void generateVariables(Variables& vars) { }
 	void generateSeparationConstraints( Variables& vs, Constraints& cs);
-    void generateTopologyConstraints(const Dim k, vector<vpsc::Rectangle*> const & rs, 
-            vector<vpsc::Variable*> const & vars, vector<vpsc::Constraint*> & cs);
+    void generateTopologyConstraints(const cola::Dim k, std::vector<vpsc::Rectangle*> const & rs, 
+            std::vector<vpsc::Variable*> const & vars, std::vector<vpsc::Constraint*> & cs);
     vpsc::Constraint* vpscConstraint;
 private:
     void rectBounds(const Dim k, vpsc::Rectangle const *r, 
@@ -168,7 +166,7 @@ public:
 	void generateSeparationConstraints( Variables& vs, Constraints& gcs);
     void setSeparation(double sep) { this->sep = sep; }
     Constraints cs;
-    vector<std::pair<AlignmentConstraint*,AlignmentConstraint*> > acs;
+    std::vector<std::pair<AlignmentConstraint*,AlignmentConstraint*> > acs;
     void *indicator;
     double sep;
     bool equality;
@@ -187,7 +185,7 @@ public:
         this->sep = sep;
     }
     Constraints cs;
-    vector<std::pair<AlignmentConstraint*,AlignmentConstraint*> > acs;
+    std::vector<std::pair<AlignmentConstraint*,AlignmentConstraint*> > acs;
     void *indicator;
     double sep;
 };
@@ -237,7 +235,7 @@ struct UnsatisfiableConstraintInfo {
     unsigned vlid, vrid;
     double gap;
 };
-typedef vector<UnsatisfiableConstraintInfo*> UnsatisfiableConstraintInfos;
+typedef std::vector<UnsatisfiableConstraintInfo*> UnsatisfiableConstraintInfos;
 } // namespace cola
 #endif // _COMPOUND_CONSTRAINTS_H
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4 :

@@ -5,9 +5,12 @@
  * \author Tim Dwyer
  * \date Dec 2007
  */
+#include <valarray>
 #include <libcola/sparse_matrix.h>
 #include "topology_constraints.h"
 #include "topology_log.h"
+using std::valarray;
+
 namespace topology {
 /**
  * @param u an EdgePoint
