@@ -63,7 +63,9 @@ std::ostream& operator <<(std::ostream &os, const PairingHeap<T,TCompare> &b);
 template <class T, class TCompare = std::less<T> >
 class PairingHeap
 {
-	friend std::ostream& operator << <T,TCompare> (std::ostream &os, const PairingHeap<T,TCompare> &b);
+#ifndef SWIG
+	friend std::ostream& operator<< <T,TCompare> (std::ostream &os, const PairingHeap<T,TCompare> &b);
+#endif
 public:
 	PairingHeap() : root(NULL), counter(0) { }
 	PairingHeap(const PairingHeap & rhs) { 

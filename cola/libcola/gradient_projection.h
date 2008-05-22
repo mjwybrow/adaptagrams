@@ -20,7 +20,6 @@ namespace straightener {
     class Node;
 }
 namespace cola {
-using std::valarray;
 
 enum SolveWithMosek { Off, Inner, Outer };
 
@@ -28,7 +27,7 @@ class GradientProjection {
 public:
 	GradientProjection(
         const Dim k,
-		valarray<double> *denseQ,
+		std::valarray<double> *denseQ,
 		const double tol,
 		const unsigned max_iterations,
         CompoundConstraints const *ccs,
@@ -94,7 +93,7 @@ public:
         numStaticVars=vars.size();
         //solver=setupVPSC();
 	}
-    static void dumpSquareMatrix(valarray<double> const &L) {
+    static void dumpSquareMatrix(std::valarray<double> const &L) {
         unsigned n=(unsigned)floor(sqrt(L.size()));
         printf("Matrix %dX%d\n{",n,n);
         for(unsigned i=0;i<n;i++) {
@@ -121,7 +120,7 @@ public:
             delete vars[i];
         }
     }
-	unsigned solve(valarray<double> const & b, valarray<double> & x);
+	unsigned solve(std::valarray<double> const & b, std::valarray<double> & x);
     void unfixPos(unsigned i) {
         if(vars[i]->fixedDesiredPosition) {
             vars[i]->weight=1;
@@ -140,29 +139,29 @@ public:
 		cola::SparseMatrix const * Q, 
         vector<SeparationConstraint*> const & ccs,
         vector<straightener::Node*> const & snodes);
-    valarray<double> const & getFullResult() const {
+    std::valarray<double> const & getFullResult() const {
         return result;
     }
 private:
     vpsc::IncSolver* setupVPSC();
-    double computeCost(valarray<double> const &b,
-        valarray<double> const &x) const;
+    double computeCost(std::valarray<double> const &b,
+        std::valarray<double> const &x) const;
     double computeSteepestDescentVector(
-        valarray<double> const &b, valarray<double> const &place,
-        valarray<double> &g) const;
+        std::valarray<double> const &b, std::valarray<double> const &place,
+        std::valarray<double> &g) const;
     double computeScaledSteepestDescentVector(
-        valarray<double> const &b, valarray<double> const &place,
-        valarray<double> &g) const;
+        std::valarray<double> const &b, std::valarray<double> const &place,
+        std::valarray<double> &g) const;
     double computeStepSize(
-        valarray<double> const & g, valarray<double> const & d) const;
-    bool runSolver(valarray<double> & result);
+        std::valarray<double> const & g, std::valarray<double> const & d) const;
+    bool runSolver(std::valarray<double> & result);
     void destroyVPSC(vpsc::IncSolver *vpsc);
     Dim k;
     unsigned numStaticVars; // number of variables that persist
                               // throughout iterations
     const unsigned denseSize; // denseQ has denseSize^2 entries
-	valarray<double> *denseQ; // dense square graph laplacian matrix
-	valarray<double> scaledDenseQ; // scaled dense square graph laplacian matrix
+	std::valarray<double> *denseQ; // dense square graph laplacian matrix
+	std::valarray<double> scaledDenseQ; // scaled dense square graph laplacian matrix
     std::vector<vpsc::Rectangle*>* rs;
     CompoundConstraints const *ccs;
     UnsatisfiableConstraintInfos *unsatisfiableConstraints;
@@ -177,7 +176,7 @@ private:
                                 iterations */
     Constraints lcs; /* local constraints - only for current iteration */
     Constraints cs; /* working list of constraints: gcs +lcs */
-    valarray<double> result;
+    std::valarray<double> result;
 #ifdef MOSEK_AVAILABLE
     MosekEnv* menv;
 #endif

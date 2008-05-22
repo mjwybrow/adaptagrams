@@ -10,7 +10,6 @@ namespace cola {
 using vpsc::Rectangle;
 using vpsc::Variable;
 using std::vector;
-using std::valarray;
 
 class Cluster;
 
@@ -24,7 +23,7 @@ public:
     double internalEdgeWeightFactor;
     vector<unsigned> nodes;
     Clusters clusters;
-    valarray<double> hullX, hullY;
+    std::valarray<double> hullX, hullY;
     Cluster();
     virtual ~Cluster() {}
     void updatePosition();
@@ -63,8 +62,8 @@ public:
 class ConvexCluster : public Cluster {
 public:
     void computeBoundary(vector<Rectangle*> const & rs);
-    valarray<unsigned> hullRIDs;
-    valarray<unsigned char> hullCorners;
+    std::valarray<unsigned> hullRIDs;
+    std::valarray<unsigned char> hullCorners;
 };
 } // namespace cola
 
