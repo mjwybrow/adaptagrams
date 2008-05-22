@@ -1,3 +1,9 @@
+JAVA_HOME = /usr/lib/jvm/java-6-sun-1.6.0.06
+PLATFORM = linux
+OSXLINK = g++ -dynamiclib -framework JavaVM 
+LINUXLINK = g++ -shared
+LINK = $(LINUXLINK)
+
 all: cola.jnilib colajava.jar
 
 cola_wrap.cxx swig-worked: cola.i
@@ -7,10 +13,10 @@ cola_wrap.cxx swig-worked: cola.i
 	touch swig-worked
 
 cola_wrap.o: cola_wrap.cxx swig-worked
-	g++ `pkg-config --cflags cairomm-1.0` -I. -I/System/Library/Frameworks/JavaVM.framework/Headers -c cola_wrap.cxx
+	g++ `pkg-config --cflags cairomm-1.0` -I. -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/$(PLATFORM) -c cola_wrap.cxx
 
 cola.jnilib: cola_wrap.o
-	g++ -dynamiclib -framework JavaVM -L/Users/sboyd/Documents/Work/BiologicalPathways/cola/libcola/ -L/Users/sboyd/Documents/Work/BiologicalPathways/cola/libproject/ -L/Users/sboyd/Documents/Work/BiologicalPathways/cola/libtopology/ -L/Users/sboyd/Documents/Work/BiologicalPathways/cola/libavoid/ -L/Users/sboyd/Documents/Work/BiologicalPathways/cola/libvpsc/ -o cola.jnilib cola_wrap.o -lcola -lproject -ltopology -lavoid -lvpsc
+	$(LINK) -o cola.jnilib cola_wrap.o libcola/libcola.a libproject/libproject.a libtopology/libtopology.a libavoid/libavoid.a libvpsc/libvpsc.a
 
 colajava.jar: colajava swig-worked
 	jar -cf colajava.jar colajava
