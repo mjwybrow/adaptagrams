@@ -8,7 +8,8 @@ all: cola.jnilib colajava.jar
 
 cola_wrap.cxx swig-worked: cola.i
 	rm -f swig-worked
-	rm -rf colajava/*
+	rm -rf colajava
+	mkdir colajava
 	swig -c++ -java -package colajava -outdir colajava cola.i
 	touch swig-worked
 
