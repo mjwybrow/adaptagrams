@@ -173,11 +173,6 @@ inline std::string NowTime()
 
 #include <sys/time.h>
 
-/* I've no idea why the following is necessary, given that we already #include <sys/time.h>.  -- pjrm */
-extern "C" {
-extern int	gettimeofday(struct timeval * __restrict, void * __restrict);
-}
-
 inline std::string NowTime()
 {
     char buffer[11];
