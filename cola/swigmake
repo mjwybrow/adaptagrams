@@ -1,5 +1,5 @@
-JAVA_HOME = /usr/lib/jvm/java-6-sun-1.6.0.06
-PLATFORM = linux
+JAVA_INCLUDE = -I/usr/lib/jvm/java-6-sun-1.6.0.06/include -I/usr/lib/jvm/java-6-sun-1.6.0.06/include/linux
+#JAVA_INCLUDE = -I/System/Library/Frameworks/JavaVM.framework/Headers
 OSXLINK = g++ -dynamiclib -framework JavaVM -o cola.jnilib
 LINUXLINK = g++ -shared -o libcolajni.so
 LINK = $(LINUXLINK)
@@ -13,7 +13,7 @@ cola_wrap.cxx swig-worked: cola.i
 	touch swig-worked
 
 cola_wrap.o: cola_wrap.cxx swig-worked
-	g++ `pkg-config --cflags cairomm-1.0` -I. -I$(JAVA_HOME)/include -I$(JAVA_HOME)/include/$(PLATFORM) -c cola_wrap.cxx
+	g++ `pkg-config --cflags cairomm-1.0` -I. $(JAVA_INCLUDE) -c cola_wrap.cxx
 
 cola.jnilib: cola_wrap.o
 	$(LINK) cola_wrap.o libcola/libcola.a libproject/libproject.a libtopology/libtopology.a libavoid/libavoid.a libvpsc/libvpsc.a
