@@ -17,23 +17,48 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
+ *
 */
 
+#ifndef AVOID_CLUSTER_H
+#define AVOID_CLUSTER_H
 
-#ifndef AVOID_STATIC_H
-#define AVOID_STATIC_H
+#include <list>
 
-#include "libavoid/geomtypes.h"
+#include "libavoid/geometry.h"
 
 
 namespace Avoid {
 
 class Router;
+class ClusterRef;
+typedef std::list<ClusterRef *> ClusterRefList;
 
+
+class ClusterRef
+{
+    public:
+        ClusterRef(Router *router, unsigned int id, Polygn& poly);
+        ~ClusterRef();
+        void setNewPoly(Polygn& poly);
+        unsigned int id(void);
+        Polygn& poly(void);
+        Router *router(void);
+        void makeActive(void);
+        void makeInactive(void);
+
+    private:
+        Router *_router;
+        unsigned int _id;
+        Polygn _poly;
+        bool _active;
+        ClusterRefList::iterator _pos;
+};
 
 
 }
 
 
 #endif
+
+

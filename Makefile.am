@@ -10,7 +10,7 @@ libavoid_a_SOURCES = connector.cpp\
 			router.cpp\
 			polyutil.cpp\
 			shape.cpp\
-			static.cpp\
+			cluster.cpp\
 			timer.cpp\
 			visibility.cpp\
 			region.cpp\

@@ -36,6 +36,7 @@
 #include <limits.h>
 #include <math.h>
 
+
 namespace Avoid {
 
 
@@ -59,6 +60,157 @@ static double angleBetween(const Point& p1, const Point& p2, const Point& p3)
     Point v2(p3.x - p2.x, p3.y - p2.y);
 
     return fabs(atan2(CrossLength(v1, v2), Dot(v1, v2)));
+}
+
+
+// Works out if the segment (inf2->point)--(inf3->point) really crosses polygn.
+// This does not not count non-crossing shared paths as crossings.
+// polygn can be either a connector (isConn = true) or a cluster
+// boundary (isConn = false).
+//
+static bool realCrossing(Avoid::PolyLine& polygn, int j, bool isConn,
+        VertInf *inf1, VertInf *inf2, VertInf *inf3)
+{
+    Point& a1 = inf2->point;
+    Point& a2 = inf3->point;
+
+    assert(!isConn || (j >= 1));
+
+    Avoid::Point& b1 = polygn.ps[(j - 1 + polygn.pn) % polygn.pn];
+    Avoid::Point& b2 = polygn.ps[j];
+
+    if (((a1 == b1) && (a2 == b2)) ||
+        ((a2 == b1) && (a1 == b2)))
+    {
+        // Route along same segment: no penalty.  We detect
+        // crossovers when we see the segments diverge.
+        return false;
+    }
+
+    if ((a2 == b2) || (a2 == b1) || (b2 == a1))
+    {
+        // Each crossing that is at a vertex in the 
+        // visibility graph gets noticed four times.
+        // We ignore three of these cases.
+        // This also catches the case of a shared path,
+        // but this is one that terminates at a common
+        // endpoint, so we don't care about it.
+        return false;
+    }
+
+    if (a1 == b1)
+    {
+        if (isConn && (j == 1))
+        {
+            // common source point.
+            return false;
+        }
+        Avoid::Point& b0 = polygn.ps[(j - 2 + polygn.pn) % polygn.pn];
+        // The segments share an endpoint -- a1==b1.
+        if (a2 == b0)
+        {
+            // a2 is not a split, continue.
+            return false;
+        }
+        
+        // If here, then we know that a2 != b2
+        // And a2 and its pair in b are a split.
+        assert(a2 != b2);
+
+        if (inf2->pathNext == NULL)
+        {
+            return false;
+        }
+        Avoid::Point& a0 = inf1->point;
+
+        if ((a0 == b0) || (a0 == b2))
+        {
+            //printf("Shared path... ");
+            bool normal = (a0 == b0) ? true : false;
+            // Determine direction we have to look through
+            // the points of connector b.
+            int dir = normal ? -1 : 1;
+            
+            int traceJ = j - 1 + dir;
+            
+            int endCornerSide = Avoid::cornerSide(
+                    a0, a1, a2, normal ? b2 : b0);
+
+            
+            VertInf *traceInf1 = inf2->pathNext;
+            VertInf *traceInf2 = inf2;
+            VertInf *traceInf3 = inf3;
+            while (traceInf1 &&
+                    (!isConn || ((traceJ >= 0) && (traceJ < polygn.pn))) &&
+                    (traceInf1->point == 
+                            polygn.ps[(traceJ + polygn.pn) % polygn.pn]))
+            {
+                traceInf3 = traceInf2;
+                traceInf2 = traceInf1;
+                traceInf1 = traceInf1->pathNext;
+                traceJ += dir;
+            }
+            
+            if (!traceInf1 ||
+                    (isConn && ((traceJ < 0) || (traceJ >= polygn.pn))))
+            {
+                //printf("common source or destination.\n");
+                // The connectors have a shared path, but it
+                // comes from a common source point.
+                // XXX: There might be a better way to
+                //      check this by asking the connectors
+                //      for the IDs of the attached shapes.
+                return false;
+            }
+            
+            int startCornerSide = Avoid::cornerSide(
+                    traceInf1->point, traceInf2->point, traceInf3->point, 
+                    polygn.ps[(traceJ + polygn.pn) % polygn.pn]);
+            
+            if (endCornerSide != startCornerSide)
+            {
+                //printf("crosses.\n");
+                return true;
+            }
+            else
+            {
+                //printf("doesn't cross.\n");
+            }
+        }
+        else
+        {
+            // The connectors cross or touch at this point.
+            //printf("Cross or touch at point... ");
+        
+            int side1 = Avoid::cornerSide(a0, a1, a2, b0);
+            int side2 = Avoid::cornerSide(a0, a1, a2, b2);
+
+            if (side1 != side2)
+            {
+                //printf("cross.\n");
+                // The connectors cross at this point.
+                return true;
+            }
+            else
+            {
+                //printf("touch.\n");
+                // The connectors touch at this point.
+            }
+        }
+        return false;
+    }
+    else
+    {
+        double xc, yc;
+        int intersectResult = Avoid::segmentIntersectPoint(
+                a1, a2, b1, b2, &xc, &yc);
+
+        if (intersectResult == Avoid::DO_INTERSECT)
+        {
+            return true;
+        }
+        return false;
+    }
 }
 
 
@@ -105,11 +257,27 @@ double cost(ConnRef *lineRef, const double dist, VertInf *inf1,
         }
     }
 
+    if (! router->clusterRefs.empty() )
+    {
+        // There are clusters so do cluster routing.
+        for (ClusterRefList::const_iterator cl = router->clusterRefs.begin(); 
+                cl != router->clusterRefs.end(); ++cl)
+        {
+            Polygn& cBoundary = (*cl)->poly();
+            assert(cBoundary.ps[0] != cBoundary.ps[cBoundary.pn - 1]);
+            bool isConn = false;
+            for (int j = 0; j < cBoundary.pn; ++j)
+            {
+                if (realCrossing(cBoundary, j, isConn, inf1, inf2, inf3))
+                {
+                    result += router->cluster_crossing_penalty;
+                }
+            }
+        }
+    }
+
     if (lineRef->doesHateCrossings() && (router->crossing_penalty > 0))
     {
-        Point& a1 = inf2->point;
-        Point& a2 = inf3->point;
-
         ConnRefList::const_iterator curr, finish = router->connRefs.end();
         for (curr = router->connRefs.begin(); curr != finish; ++curr)
         {
@@ -120,136 +288,10 @@ double cost(ConnRef *lineRef, const double dist, VertInf *inf1,
                 continue;
             }
             Avoid::PolyLine& route2 = connRef->route();
+            bool isConn = true;
             for (int j = 1; j < route2.pn; ++j)
             {
-                Avoid::Point& b1 = route2.ps[j - 1];
-                Avoid::Point& b2 = route2.ps[j];
-            
-                if (((a1 == b1) && (a2 == b2)) ||
-                    ((a2 == b1) && (a1 == b2)))
-                {
-                    // Route along same segment: no penalty.  We detect
-                    // crossovers when we see the segments diverge.
-                    continue;
-                }
-
-                if ((a2 == b2) || (a2 == b1) || (b2 == a1))
-                {
-                    // Each crossing that is at a vertex in the 
-                    // visibility graph gets noticed four times.
-                    // We ignore three of these cases.
-                    // This also catches the case of a shared path,
-                    // but this is one that terminates at a common
-                    // endpoint, so we don't care about it.
-                    continue;
-                }
-
-                if (a1 == b1)
-                {
-                    if (j == 1)
-                    {
-                        // common source point.
-                        continue;
-                    }
-                    Avoid::Point& b0 = route2.ps[j - 2];
-                    // The segments share an endpoint -- a1==b1.
-                    if (a2 == b0)
-                    {
-                        // a2 is not a split, continue.
-                        continue;
-                    }
-                    
-                    // If here, then we know that a2 != b2
-                    // And a2 and its pair in b are a split.
-                    assert(a2 != b2);
-
-                    if (inf2->pathNext == NULL)
-                    {
-                        continue;
-                    }
-                    Avoid::Point& a0 = inf1->point;
-
-                    if ((a0 == b0) || (a0 == b2))
-                    {
-                        //printf("Shared path... ");
-                        bool normal = (a0 == b0) ? true : false;
-                        // Determine direction we have to look through
-                        // the points of connector b.
-                        int dir = normal ? -1 : 1;
-                        
-                        int traceJ = j - 1 + dir;
-                        
-                        int endCornerSide = Avoid::cornerSide(
-                                a0, a1, a2, normal ? b2 : b0);
-
-                        
-                        VertInf *traceInf1 = inf2->pathNext;
-                        VertInf *traceInf2 = inf2;
-                        VertInf *traceInf3 = inf3;
-                        while (traceInf1 &&
-                                (traceJ >= 0) && (traceJ < route2.pn) &&
-                                (traceInf1->point == route2.ps[traceJ]))
-                        {
-                            traceInf3 = traceInf2;
-                            traceInf2 = traceInf1;
-                            traceInf1 = traceInf1->pathNext;
-                            traceJ += dir;
-                        }
-                        
-                        if (!traceInf1 ||
-                                (traceJ < 0) || (traceJ >= route2.pn))
-                        {
-                            //printf("common source or destination.\n");
-                            // The connectors have a shared path, but it
-                            // comes from a common source point.
-                            // XXX: There might be a better way to
-                            //      check this by asking the connectors
-                            //      for the IDs of the attached shapes.
-                            continue;
-                        }
-                        
-                        int startCornerSide = Avoid::cornerSide(
-                                traceInf1->point, traceInf2->point,
-                                traceInf3->point, route2.ps[traceJ]);
-                        
-                        if (endCornerSide != startCornerSide)
-                        {
-                            //printf("crosses.\n");
-                            result += router->crossing_penalty;
-                        }
-                        else
-                        {
-                            //printf("doesn't cross.\n");
-                        }
-                    }
-                    else
-                    {
-                        // The connectors cross or touch at this point.
-                        //printf("Cross or touch at point... ");
-                    
-                        int side1 = Avoid::cornerSide(a0, a1, a2, b0);
-                        int side2 = Avoid::cornerSide(a0, a1, a2, b2);
-
-                        if (side1 != side2)
-                        {
-                            //printf("cross.\n");
-                            // The connectors cross at this point.
-                            result += router->crossing_penalty;
-                        }
-                        else
-                        {
-                            //printf("touch.\n");
-                            // The connectors touch at this point.
-                        }
-                    }
-                    continue;
-                }
-
-                double xc, yc;
-                int intersectResult = Avoid::segmentIntersectPoint(
-                        a1, a2, b1, b2, &xc, &yc);
-
-                if (intersectResult == Avoid::DO_INTERSECT)
+                if (realCrossing(route2, j, isConn, inf1, inf2, inf3))
                 {
                     result += router->crossing_penalty;
                 }
@@ -652,8 +694,10 @@ void makePath(ConnRef *lineRef, bool *flag)
     VertInf *tar = lineRef->dst();
     VertInf *start = lineRef->start();
 
-    // If the connector hates crossings then we want to examine direct paths:
-    bool examineDirectPath = lineRef->doesHateCrossings();
+    // If the connector hates crossings or there are cluster presnet,
+    // then we want to examine direct paths:
+    bool examineDirectPath = lineRef->doesHateCrossings() || 
+            !(router->clusterRefs.empty());
     
     // TODO: Could be more efficient here.
     EdgeInf *directEdge = EdgeInf::existingEdge(src, tar);

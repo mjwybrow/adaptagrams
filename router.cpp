@@ -64,6 +64,7 @@ Router::Router()
     , segmt_penalty(0)
     , angle_penalty(0)
     , crossing_penalty(200)
+    , cluster_crossing_penalty(4000)
     // Algorithm options:
     , UseAStarSearch(true)
     , IgnoreRegions(true)
@@ -303,6 +304,27 @@ void Router::processMoves(void)
 }
 
 
+void Router::addCluster(ClusterRef *cluster)
+{
+    cluster->makeActive();
+    
+    unsigned int pid = cluster->id();
+    Polygn poly = cluster->poly();
+
+    adjustClustersWithAdd(poly, pid);
+}
+
+
+void Router::delCluster(ClusterRef *cluster)
+{
+    cluster->makeInactive();
+    
+    unsigned int pid = cluster->id();
+    
+    adjustClustersWithDel(pid);
+}
+
+
 //----------------------------------------------------------------------------
 
 // XXX: attachedShapes and attachedConns both need to be rewritten
@@ -498,19 +520,53 @@ void Router::checkAllMissingEdges(void)
 void Router::generateContains(VertInf *pt)
 {
     contains[pt->id].clear();
+    enclosingClusters[pt->id].clear();
 
     // Don't count points on the border as being inside.
     bool countBorder = false;
 
+    // Compute enclosing shapes.
     ShapeRefList::const_iterator finish = shapeRefs.end();
     for (ShapeRefList::const_iterator i = shapeRefs.begin(); i != finish; ++i)
     {
-        Polygn poly = copyPoly(*i);
-        if (inPoly(poly, pt->point, countBorder))
+        if (inPoly((*i)->poly(), pt->point, countBorder))
         {
             contains[pt->id].insert((*i)->id());
         }
-        freePoly(poly);
+    }
+
+    // Computer enclosing Clusters
+    ClusterRefList::const_iterator clFinish = clusterRefs.end();
+    for (ClusterRefList::const_iterator i = clusterRefs.begin(); 
+            i != clFinish; ++i)
+    {
+        if (inPolyGen((*i)->poly(), pt->point))
+        {
+            enclosingClusters[pt->id].insert((*i)->id());
+        }
+    }
+}
+
+
+void Router::adjustClustersWithAdd(const Polygn& poly, const int p_cluster)
+{
+    for (VertInf *k = vertices.connsBegin(); k != vertices.shapesBegin();
+            k = k->lstNext)
+    {
+        if (inPolyGen(poly, k->point))
+        {
+            enclosingClusters[k->id].insert(p_cluster);
+        }
+    }
+}
+
+
+void Router::adjustClustersWithDel(const int p_cluster)
+{
+    for (ContainsMap::iterator k = enclosingClusters.begin();
+            k != enclosingClusters.end(); ++k)
+    {
+        (*k).second.erase(p_cluster);
     }
 }
 
