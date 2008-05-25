@@ -35,6 +35,9 @@ namespace Avoid {
 
 static void computeCompleteVis(Router *router);
 
+static void CreateVisGraph(Router *router, Polygn **obstacles,
+        int n_obstacles);
+static void DestroyVisGraph(Router *router);
 
 // This should only be used for the static algorithm.
 //
@@ -43,6 +46,8 @@ static void computeCompleteVis(Router *router);
 //
 void CreateVisGraph(Router *router, Polygn **obs, int n_obs)
 {
+    assert(router->vertices.connsBegin() == NULL);
+
     for (int poly_i = 0; poly_i < n_obs; poly_i++)
     {
         unsigned int id = obs[poly_i]->id;

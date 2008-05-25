@@ -20,58 +20,77 @@
  * 
 */
 
-#include <cassert>
-#include <cstdlib>
-
+#include "libavoid/cluster.h"
+#include "libavoid/router.h"
 #include "libavoid/polyutil.h"
-#include "libavoid/geomtypes.h"
-#include "libavoid/vertices.h"
-#include "libavoid/shape.h"
+
 
 namespace Avoid {
 
 
-Polygn newPoly(int size)
+ClusterRef::ClusterRef(Router *router, unsigned int id, Polygn& ply)
+    : _router(router)
+    , _id(id)
+    , _poly(copyPoly(ply))
+    , _active(false)
 {
-    Polygn newpoly;
-
-    newpoly.pn = size;
-    newpoly.ps = (Point *) calloc(size, sizeof(Point));
-    if (!newpoly.ps)
-    {
-        fprintf(stderr,
-                "Error: Unable to allocate Point array in Avoid::newPoly\n");
-        abort();
-    }
-    return newpoly;
+    assert(id > 0);
 }
 
 
-Polygn copyPoly(Polygn poly)
+ClusterRef::~ClusterRef()
 {
-    Polygn newpoly = newPoly(poly.pn);
-
-    newpoly.id = poly.id;
-    for (int i = 0; i < poly.pn; i++)
-    {
-        newpoly.ps[i] = poly.ps[i];
-    }
-    return newpoly;
+    freePoly(_poly);
 }
 
 
-void freePoly(Polygn& poly)
+void ClusterRef::makeActive(void)
 {
-    std::free(poly.ps);
+    assert(!_active);
+    
+    // Add to connRefs list.
+    _pos = _router->clusterRefs.insert(_router->clusterRefs.begin(), this);
+
+    _active = true;
 }
 
 
-void freePtrPoly(Polygn *poly)
+void ClusterRef::makeInactive(void)
 {
-    std::free(poly->ps);
-    std::free(poly);
+    assert(_active);
+    
+    // Remove from connRefs list.
+    _router->clusterRefs.erase(_pos);
+
+    _active = false;
+}
+    
+
+void ClusterRef::setNewPoly(Polygn& poly)
+{
+    freePoly(_poly);
+    _poly = copyPoly(poly);
+}
+
+
+unsigned int ClusterRef::id(void)
+{
+    return _id;
+}
+
+
+Polygn& ClusterRef::poly(void)
+{
+    return _poly;
+}
+
+
+Router *ClusterRef::router(void)
+{
+    return _router;
 }
 
 
 }
+
 

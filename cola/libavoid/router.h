@@ -27,6 +27,7 @@
 //#define LINEDEBUG
 
 #include "libavoid/shape.h"
+#include "libavoid/cluster.h"
 #include "libavoid/graph.h"
 #include "libavoid/timer.h"
 #include <list>
@@ -56,16 +57,19 @@ class Router {
 
         ShapeRefList shapeRefs;
         ConnRefList connRefs;
+        ClusterRefList clusterRefs;
         EdgeList visGraph;
         EdgeList invisGraph;
         ContainsMap contains;
         VertInfList vertices;
+        ContainsMap enclosingClusters;
         
         bool PartialTime;
         bool SimpleRouting;
         double segmt_penalty;
         double angle_penalty;
         double crossing_penalty;
+        double cluster_crossing_penalty;
 
 
         bool UseAStarSearch;
@@ -91,6 +95,9 @@ class Router {
                 const bool first_move = false);
         void processMoves(void);
         
+        void addCluster(ClusterRef *cluster);
+        void delCluster(ClusterRef *cluster);
+
         void attachedConns(IntList &conns, const unsigned int shapeId,
                 const unsigned int type);
         void attachedShapes(IntList &shapes, const unsigned int shapeId,
@@ -105,6 +112,8 @@ class Router {
         void checkAllMissingEdges(void);
         void adjustContainsWithAdd(const Polygn& poly, const int p_shape);
         void adjustContainsWithDel(const int p_shape);
+        void adjustClustersWithAdd(const Polygn& poly, const int p_cluster);
+        void adjustClustersWithDel(const int p_cluster);
         void callbackAllInvalidConnectors(void);
 
         MoveInfoList moveList;

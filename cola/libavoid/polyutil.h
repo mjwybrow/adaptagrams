@@ -31,7 +31,6 @@ namespace Avoid {
 
 extern Polygn newPoly(int size);
 extern Polygn copyPoly(Polygn);
-extern Polygn copyPoly(ShapeRef *shape);
 extern void freePoly(Polygn&);
 extern void freePtrPoly(Polygn *argpoly);
 
