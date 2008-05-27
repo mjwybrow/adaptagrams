@@ -66,7 +66,7 @@ namespace topology {
     public:
         /// the node / variable / rectangle associated with this EdgePoint
         Node* node;
-        /// where the node lies on the rectangle
+        /// where the EdgePoint lies on the rectangle
         enum RectIntersect { 
             TR, ///< top right corner
             BR, ///< bottom right corner
@@ -84,7 +84,7 @@ namespace topology {
         BendConstraint* bendConstraint;
         /// append bendConstraint (if not null) to ts
         void getBendConstraint(std::vector<TopologyConstraint*>* ts);
-        /// return true if constraint created
+        /// @return true if constraint created
         bool createBendConstraint();
         /// delete the bendConstraint and reset pointer to NULL
         void deleteBendConstraint();
@@ -109,6 +109,25 @@ namespace topology {
         double posX() const { return pos(cola::HORIZONTAL); }
         /// @return y position
         double posY() const { return pos(cola::VERTICAL); }
+        /** 
+         *  @return where the EdgePoint on the rectangle as a vertex index
+         *  for libavoid.
+         */
+        unsigned short rectIntersectAsVertexNumber(void) const
+        {
+            switch(rectIntersect) {
+                case topology::EdgePoint::BR:
+                    return 0;
+                case topology::EdgePoint::TR: 
+                    return 1;
+                case topology::EdgePoint::TL:
+                    return 2;
+                case topology::EdgePoint::BL: 
+                    return 3;
+                default: 
+                    return 4;
+            }
+        }
         /**
          * for any two EdgePoint the following should always be false!
          * @param e an EdgePoint (not this one)

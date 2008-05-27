@@ -266,6 +266,50 @@ double cost(ConnRef *lineRef, const double dist, VertInf *inf1,
             Polygn& cBoundary = (*cl)->poly();
             assert(cBoundary.ps[0] != cBoundary.ps[cBoundary.pn - 1]);
             bool isConn = false;
+#if 0
+            // Expensive check to make sure points on the boundary of the 
+            // cluster match their corresponding shape corner positions.
+            //
+            for (int j = 0; j < cBoundary.pn; ++j)
+            {
+                if (router->vertices.getVertexByPos(cBoundary.ps[j]) == NULL)
+                {
+                    if (cBoundary.ps[j].id > 0)
+                    {
+                        for (ShapeRefList::const_iterator sh = 
+                                router->shapeRefs.begin();
+                                sh != router->shapeRefs.end(); ++sh) 
+                        {
+                            if ((*sh)->id() == cBoundary.ps[j].id)
+                            {
+                                Polygn poly = (*sh)->poly();
+                                fprintf(stderr, "\tShape vertices:\n");
+                                int i = cBoundary.ps[j].vn;
+                                {
+                                    cBoundary.ps[j].x = poly.ps[i].x;
+                                    cBoundary.ps[j].y = poly.ps[i].y;
+                                    printf("\t[%f, %f]\n", poly.ps[i].x,
+                                            poly.ps[i].y);
+                                }
+                                printf("\n");
+                            }
+                        }
+                    }
+                }
+            }
+            for (int j = 0; j < cBoundary.pn; ++j)
+            {
+                if (router->vertices.getVertexByPos(cBoundary.ps[j]) == NULL)
+                {
+                    fprintf(stderr, 
+                           "ERROR:\tlibavoid: Cluster boundary point "
+                           "doesn't match any shape vertex:\n"
+                           "\t(%f, %f)\n",
+                            cBoundary.ps[j].x, cBoundary.ps[j].y);
+                }
+            }
+#endif
+
             for (int j = 0; j < cBoundary.pn; ++j)
             {
                 if (realCrossing(cBoundary, j, isConn, inf1, inf2, inf3))
@@ -561,6 +605,9 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
         // If at destination, break and create path below
         if (BestNode.inf == tar)
         {
+#ifdef PATHDEBUG
+            printf("Cost: %g\n", BestNode.f);
+#endif
             //bPathFound = true; // arrived at destination...
             break;
         }

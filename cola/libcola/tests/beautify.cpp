@@ -13,11 +13,12 @@
 using namespace std;
 using namespace cola;
 
+/*
 // |V|=12, |E|=23
 static const unsigned DAGDEPTH = 3;
 static const unsigned BRANCHFACTOR = 3;
 static const double EXTRAEDGEPROB = 0.5;
-
+*/
 /*
 // |V|=26, |E|=61
 static const unsigned DAGDEPTH = 3;
@@ -37,12 +38,11 @@ static const unsigned DAGDEPTH = 5;
 static const unsigned BRANCHFACTOR = 4;
 static const double EXTRAEDGEPROB = 0.005;
 */
-/*
+
 // |V|=258, |E|=310
 static const unsigned DAGDEPTH = 6;
 static const unsigned BRANCHFACTOR = 4;
 static const double EXTRAEDGEPROB = 0.002;
-*/
 
 void makeEdge(unsigned u, unsigned v, 
         vector<Edge> &edges, CompoundConstraints &cy) {
@@ -174,6 +174,8 @@ void makeFeasible(vpsc::Rectangles& rs, vector<cola::Edge>& edges,
     clock_t libavoidstarttime=clock();
     // find feasible routes for edges
     Avoid::Router *router = new Avoid::Router();
+    // Use rotational sweep for point visibility
+    router->UseLeesAlgorithm = true;
     double g=0; // make shape that libavoid sees slightly smaller
     for(unsigned i=0;i<rs.size();++i) {
         vpsc::Rectangle* r=rs[i];
