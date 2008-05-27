@@ -441,6 +441,20 @@ VertInf *VertInfList::getVertexByID(const VertID& id)
 }
 
 
+VertInf *VertInfList::getVertexByPos(const Point& p)
+{
+    VertInf *last = end();
+    for (VertInf *curr = shapesBegin(); curr != last; curr = curr->lstNext)
+    {
+        if (curr->point == p)
+        {
+            return curr;
+        }
+    }
+    return NULL;
+}
+
+
 VertInf *VertInfList::shapesBegin(void)
 {
     return _firstShapeVert;
