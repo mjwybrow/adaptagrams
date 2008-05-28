@@ -176,6 +176,8 @@ void makeFeasible(vpsc::Rectangles& rs, vector<cola::Edge>& edges,
     Avoid::Router *router = new Avoid::Router();
     // Use rotational sweep for point visibility
     router->UseLeesAlgorithm = true;
+    // Don't use invisibility graph.
+    router->InvisibilityGrph = false;
     double g=0; // make shape that libavoid sees slightly smaller
     for(unsigned i=0;i<rs.size();++i) {
         vpsc::Rectangle* r=rs[i];
