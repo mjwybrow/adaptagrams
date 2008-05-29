@@ -186,4 +186,64 @@ void writeFile(const topology::Nodes& vs, const topology::Edges& es, const strin
     for_each(routes.begin(),routes.end(),delete_object());
 }
 
+void writeDunnartFile(const topology::Nodes& vs, const vector<std::pair<unsigned int, unsigned int> >& es, const string& outputFileName) {
+    FILE *fp = fopen(outputFileName.c_str(), "w");
+    assert (fp != NULL);
+
+    fprintf(fp, "<svg xmlns:dunnart=\"http://www.csse.monash.edu.au/~mwybrow/dunnart.dtd\">\n");
+    for(unsigned int i = 0; i < vs.size(); ++i) {
+        vpsc::Rectangle *rect = vs[i]->rect;
+    
+        int id = i + 1;
+        fprintf(fp, "<rect id=\"%d\" dunnart:label=\"\" dunnart:width=\"20\" "
+               "dunnart:height=\"20\" dunnart:xPos=\"%f\" "
+               "dunnart:yPos=\"%f\" dunnart:type=\"rect\" />\n", id, 
+               rect->getCentreX(), rect->getCentreY());
+    }
+
+    for(unsigned int i = 0; i < es.size(); ++i) {
+        const std::pair<unsigned int, unsigned int>& edge = es[i];
+   
+        int id = i + 1 + vs.size();
+        fprintf(fp,  "<path id=\"%d\" dunnart:srcID=\"%d\" "
+                "dunnart:srcFlags=\"544\" dunnart:dstID=\"%d\" "
+                "dunnart:dstFlags=\"544\" dunnart:directed=\"1\" "
+                "dunnart:type=\"connAvoidPoly\" />\n", id,
+                edge.first + 1, edge.second + 1);
+    }
+
+    fprintf(fp, "</svg>\n");
+
+    fclose(fp);
+
+#if 0
+    for(unsigned i=0;i<es.size();i++) {
+        cedges.push_back(make_pair(1,2));
+    }
+
+    vector<straightener::Route*> routes;
+    for(topology::Edges::const_iterator e=es.begin();e!=es.end();++e) {
+        routes.push_back((*e)->getRoute());
+    }
+
+    vector<string> labels(n);
+    for(unsigned i=0;i<n;++i) {
+        stringstream ss;
+        ss << i;
+        labels[i]=ss.str();
+    }
+
+    vector<vpsc::Rectangle*> rs;
+    for(topology::Nodes::const_iterator i=vs.begin();i!=vs.end();++i) {
+	    rs.push_back((*i)->rect);
+    }
+    OutputFile of(rs,cedges,NULL,outputFileName,true,false);
+    of.setLabels(labels);
+    of.routes=&routes;
+    of.generate();
+
+    for_each(routes.begin(),routes.end(),delete_object());
+#endif
+}
+
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:encoding=utf-8:textwidth=99 :

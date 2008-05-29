@@ -39,10 +39,16 @@ static const unsigned BRANCHFACTOR = 4;
 static const double EXTRAEDGEPROB = 0.005;
 */
 
-// |V|=258, |E|=310
 static const unsigned DAGDEPTH = 6;
 static const unsigned BRANCHFACTOR = 4;
 static const double EXTRAEDGEPROB = 0.002;
+/*
+// |V|=343, |E|=487
+seed=1208390913;
+static const unsigned DAGDEPTH = 6;
+static const unsigned BRANCHFACTOR = 4;
+static const double EXTRAEDGEPROB = 0.002;
+*/
 
 void makeEdge(unsigned u, unsigned v, 
         vector<Edge> &edges, CompoundConstraints &cy) {
@@ -266,11 +272,10 @@ int main() {
     //seed=1208316284;
     //seed=1208319019;
     //seed=1208321702;
-    seed=1208390913;
     printf("random seed=%d\n",seed);
     srand(seed);
     vector<Edge> es = random_dag(DAGDEPTH,BRANCHFACTOR,V,cx,cy);
-    double defaultEdgeLength=10;
+    double defaultEdgeLength=40;
 
     cout << "V="<<V<<endl;
     cout << "E="<<es.size()<<endl;
@@ -290,7 +295,7 @@ int main() {
 		rs.push_back(r);
         topologyNodes.push_back(new topology::Node(i,r));
 	}
-	CheckProgress test(0.0001,100);
+	CheckProgress test(0.01,100);
     /*
     ConstrainedMajorizationLayout alg(rs,es,NULL,defaultEdgeLength,NULL,test);
     //alg.setYConstraints(&cy);
@@ -314,11 +319,17 @@ int main() {
     test.reset();
     alg2.setTopology(&topologyNodes, &routes);
     writeFile(topologyNodes,routes,"beautify1.svg");
+    char dunnartfile[50];
+    sprintf(dunnartfile, "v%de%d.svg", V, (int) es.size());
+    writeDunnartFile(topologyNodes,es,dunnartfile);
+    
 	alg2.run();
     double beautifytime=double(clock()-beautifystarttime)/double(CLOCKS_PER_SEC);
     totaltime+=beautifytime;
     cout<<"beautify ran in "<<beautifytime<<" seconds"<<endl;
     cout<<"TOTAL="<<totaltime<<endl;
+    cout <<"---------------------------------------------"<< endl;
+    cout <<V<<" & "<<es.size()<<" & "<<unconstrainedtime<<" & "<<makefeasibletime<<" & "<<beautifytime<<" & "<<totaltime<<" \\\\ % Seed: "<< seed <<endl;
     writeFile(topologyNodes,routes,"beautify2.svg");
 	for(unsigned i=0;i<V;i++) {
 		delete rs[i];
