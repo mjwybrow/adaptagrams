@@ -1,4 +1,3 @@
-#include <tr1/functional>
 #include <libvpsc/rectangle.h>
 #include <libvpsc/constraint.h>
 #include <libcola/cola.h>
