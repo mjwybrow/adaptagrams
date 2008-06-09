@@ -34,7 +34,8 @@
 #include <algorithm>
 #include <vector>
 #include <limits.h>
-#include <math.h>
+#define _USE_MATH_DEFINES
+#include <cmath>
 
 
 namespace Avoid {
@@ -417,7 +418,7 @@ static void dijkstraPath(ConnRef *lineRef, VertInf *src, VertInf *tar)
 
             // Only check shape verticies, or endpoints.
             if ((t->pathDist < 0) &&
-                    ((tID.objID == src->id.objID) || tID.isShape > 0))
+                    ((tID.objID == src->id.objID) || tID.isShape ))
             {
                 if ((min == NULL) || (t->pathDist > min->pathDist))
                 {
