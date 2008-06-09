@@ -1,14 +1,14 @@
-#include "commondefs.h"                         // magmy20070405: Added
-
+#include "commondefs.h"
 #include <cmath>
 #include "cola.h"
 #include "conjugate_gradient.h"
 #include "straightener.h"
 #include "shortest_paths.h"
-using std::min;
-using std::max;
-using std::copy;
-using straightener::generateClusterBoundaries;  // magmy20070405: Added
+#include "cluster.h"
+
+using namespace std;
+using namespace vpsc;
+using straightener::generateClusterBoundaries;
 
 namespace cola {
 

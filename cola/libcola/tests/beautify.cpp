@@ -12,6 +12,7 @@
 
 using namespace std;
 using namespace cola;
+using namespace vpsc;
 
 /*
 // |V|=12, |E|=23
@@ -123,7 +124,7 @@ void removeoverlaps(vpsc::Rectangles &rs, bool bothaxes) {
 			(*r)->moveCentreX((*v)->finalPosition);
 		}
 		assert(r==rs.end());
-		for_each(cs.begin(),cs.end(),delete_object());
+		for_each(cs.begin(),cs.end(),vpsc::delete_object());
 		cs.clear();
         if(bothaxes) {
             // Removing the extra gap here ensures things that were moved to be adjacent to one another above are not considered overlapping
@@ -135,7 +136,7 @@ void removeoverlaps(vpsc::Rectangles &rs, bool bothaxes) {
             for(Variables::iterator v=vs.begin();v!=vs.end();++v,++r) {
                 (*r)->moveCentreY((*v)->finalPosition);
             }
-            for_each(cs.begin(),cs.end(),delete_object());
+            for_each(cs.begin(),cs.end(),vpsc::delete_object());
             cs.clear();
             Rectangle::setYBorder(Rectangle::yBorder-EXTRA_GAP);
             vpsc::generateXConstraints(rs,vs,cs,false);
@@ -145,9 +146,9 @@ void removeoverlaps(vpsc::Rectangles &rs, bool bothaxes) {
             for(Variables::iterator v=vs.begin();v!=vs.end();++v,++r) {
                 (*r)->moveCentreX((*v)->finalPosition);
             }
-            for_each(cs.begin(),cs.end(),delete_object());
+            for_each(cs.begin(),cs.end(),vpsc::delete_object());
         }
-		for_each(vs.begin(),vs.end(),delete_object());
+		for_each(vs.begin(),vs.end(),vpsc::delete_object());
 	} catch (char *str) {
 		std::cerr<<str<<std::endl;
 		for(vpsc::Rectangles::iterator r=rs.begin();r!=rs.end();++r) {

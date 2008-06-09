@@ -1,3 +1,4 @@
+#include <libvpsc/rectangle.h>
 #include <libvpsc/variable.h>
 #include <libvpsc/constraint.h>
 #include <libvpsc/solve_VPSC.h>
@@ -537,7 +538,7 @@ new Constraint(a[3],a[4],3)};
 // n=number vars
 // m=max constraints per var
 void rand_test(unsigned n, unsigned m) {
-	Variable *a[n];
+	Variable **a=new Variable*[n];
 	CS cs;
 	for(unsigned i=0;i<n;i++) {
 		a[i]=new Variable(i,getRand(10),1,1);//getRand(10));
@@ -548,7 +549,7 @@ void rand_test(unsigned n, unsigned m) {
 			cs.push_back(new Constraint(a[i],a[e],3));
 		}
 	}
-	Constraint *acs[cs.size()];
+	Constraint **acs=new Constraint*[cs.size()];
 	for(unsigned i=0;i<cs.size();i++) {
 		acs[i]=cs[i];
 	}
@@ -609,6 +610,10 @@ void rand_test(unsigned n, unsigned m) {
 		throw "test failed!";
 	}
 	*/
+	for_each(a,a+n,delete_object());
+	delete [] a;
+	for_each(cs.begin(),cs.end(),delete_object());
+	delete [] acs;
 }
 int main() {
 	srand(time(NULL));

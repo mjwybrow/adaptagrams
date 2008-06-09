@@ -605,9 +605,9 @@ namespace straightener {
             std::vector<vpsc::Rectangle*> const & rs,
             cola::FixedList const & fixed,
             std::vector<Edge*> const & edges, 
-            cola::Variables const & vs,
-            cola::Variables & lvs,
-            cola::Constraints & lcs,
+            vpsc::Variables const & vs,
+            vpsc::Variables & lvs,
+            vpsc::Constraints & lcs,
             std::valarray<double> &oldCoords,
             std::valarray<double> &oldG) 
         : strength(strength),

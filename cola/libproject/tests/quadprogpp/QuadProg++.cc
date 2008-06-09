@@ -68,37 +68,6 @@ void print_rmatrix(char* name, double *A[], int n, int m);
 void print_vector(char* name, double v[], int n);
 void print_ivector(char* name, int v[], int n);
 
-/**
- * The following assigns memory for a square matrix of size n.
- * Declared on the stack it will work as a smart pointer to cleanup
- * when the stack frame returns.
- */
-struct MatrixStorage {
-  MatrixStorage(double** &M, int m, int n) : M(M), n(n) {
-    M=new double*[m];
-    for(int i=0;i<n;i++) {
-      M[i]=new double[n];
-    }
-  }
-  ~MatrixStorage() {
-    for(int i=0;i<n;i++) {
-      delete [] M[i];
-    }
-	delete [] M;
-  }
-  double** &M;
-  int n;
-};
-template <typename T>
-struct VectorStorage {
-	VectorStorage(T* &v, int n) : v(v) {
-		v=new T[n];
-	}
-	~VectorStorage() {
-		delete [] v;
-	}
-	T* &v;
-};
 
 
 // The Solving function, implementing the Goldfarb-Idnani method

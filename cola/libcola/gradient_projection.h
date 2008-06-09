@@ -6,7 +6,7 @@
 #include <libvpsc/constraint.h>
 #include <libvpsc/rectangle.h>
 #include <iostream>
-#include <math.h>
+#include <cmath>
 #include <valarray>
 #include "commondefs.h"
 #include "compound_constraints.h"
@@ -34,67 +34,11 @@ public:
         UnsatisfiableConstraintInfos *unsatisfiableConstraints,
         NonOverlapConstraints nonOverlapConstraints = None,
         RootCluster* clusterHierarchy = NULL,
-        std::vector<vpsc::Rectangle*>* rs = NULL,
+		vpsc::Rectangles* rs = NULL,
         const bool scaling = false,
-        SolveWithMosek solveWithMosek = Off) 
-            : k(k), 
-              denseSize(unsigned(floor(sqrt(denseQ->size())))),
-              denseQ(denseQ), 
-              rs(rs),
-              ccs(ccs),
-              unsatisfiableConstraints(unsatisfiableConstraints),
-              nonOverlapConstraints(nonOverlapConstraints),
-              clusterHierarchy(clusterHierarchy),
-              tolerance(tol), 
-              max_iterations(max_iterations),
-              sparseQ(NULL),
-              solveWithMosek(solveWithMosek),
-              scaling(scaling)
-    {
-        printf("GP Instance: scaling=%d, mosek=%d\n",scaling,solveWithMosek);
-        for(unsigned i=0;i<denseSize;i++) {
-            vars.push_back(new vpsc::Variable(i,1,1));
-        }
-        if(scaling) {
-            scaledDenseQ.resize(denseSize*denseSize);
-            for(unsigned i=0;i<denseSize;i++) {
-                vars[i]->scale=1./sqrt(fabs((*denseQ)[i*denseSize+i]));
-            }
-            // the following computes S'QS for Q=denseQ
-            // and S is diagonal matrix of scale factors
-            for(unsigned i=0;i<denseSize;i++) {
-                for(unsigned j=0;j<denseSize;j++) {
-                    scaledDenseQ[i*denseSize+j]=(*denseQ)[i*denseSize+j]*vars[i]->scale
-                        *vars[j]->scale;
-                }
-            }
-            this->denseQ = &scaledDenseQ;
-        }
-        //dumpSquareMatrix(*this->denseQ);
-        //dumpSquareMatrix(scaledDenseQ);
-
-        if(ccs) {
-            for(CompoundConstraints::const_iterator c=ccs->begin();
-                    c!=ccs->end();++c) {
-                (*c)->generateVariables(vars);
-                OrthogonalEdgeConstraint* e=dynamic_cast<OrthogonalEdgeConstraint*>(*c);
-                if(e) {
-                    orthogonalEdges.push_back(e);
-                }
-            }
-            for(CompoundConstraints::const_iterator c=ccs->begin();
-                    c!=ccs->end();++c) {
-                (*c)->generateSeparationConstraints(vars,gcs);
-            }
-        }
-        if(clusterHierarchy) {
-            clusterHierarchy->createVars(k,*rs,vars);
-        }
-        numStaticVars=vars.size();
-        //solver=setupVPSC();
-	}
+        SolveWithMosek solveWithMosek = Off);
     static void dumpSquareMatrix(std::valarray<double> const &L) {
-        unsigned n=(unsigned)floor(sqrt(L.size()));
+        unsigned n=static_cast<unsigned>(floor(sqrt(static_cast<double>(L.size()))));
         printf("Matrix %dX%d\n{",n,n);
         for(unsigned i=0;i<n;i++) {
             printf("{");
@@ -112,7 +56,7 @@ public:
     }
     ~GradientProjection() {
         //destroyVPSC(solver);
-        for(Constraints::iterator i(gcs.begin()); i!=gcs.end(); i++) {
+        for(vpsc::Constraints::iterator i(gcs.begin()); i!=gcs.end(); i++) {
             delete *i;
         }
         gcs.clear();
@@ -137,8 +81,8 @@ public:
     }
     void straighten(
 		cola::SparseMatrix const * Q, 
-        vector<SeparationConstraint*> const & ccs,
-        vector<straightener::Node*> const & snodes);
+		std::vector<SeparationConstraint*> const & ccs,
+		std::vector<straightener::Node*> const & snodes);
     std::valarray<double> const & getFullResult() const {
         return result;
     }
@@ -170,12 +114,12 @@ private:
     double tolerance;
     unsigned max_iterations;
     cola::SparseMatrix const * sparseQ; // sparse components of goal function
-	Variables vars; // all variables
+	vpsc::Variables vars; // all variables
                           // computations
-    Constraints gcs; /* global constraints - persist throughout all
+    vpsc::Constraints gcs; /* global constraints - persist throughout all
                                 iterations */
-    Constraints lcs; /* local constraints - only for current iteration */
-    Constraints cs; /* working list of constraints: gcs +lcs */
+    vpsc::Constraints lcs; /* local constraints - only for current iteration */
+    vpsc::Constraints cs; /* working list of constraints: gcs +lcs */
     std::valarray<double> result;
 #ifdef MOSEK_AVAILABLE
     MosekEnv* menv;
@@ -183,7 +127,7 @@ private:
     vpsc::IncSolver* solver;
     SolveWithMosek solveWithMosek;
     const bool scaling;
-    vector<OrthogonalEdgeConstraint*> orthogonalEdges;
+	std::vector<OrthogonalEdgeConstraint*> orthogonalEdges;
 };
 } // namespace cola
 

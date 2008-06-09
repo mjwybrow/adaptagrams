@@ -1,5 +1,5 @@
-/* File : beautify.i */
-%module beautify
+/* File : cola.i */
+%module cola
 
 %{
 #include <vector>

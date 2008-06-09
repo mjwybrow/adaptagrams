@@ -55,10 +55,15 @@ int main (int argc, char *const argv[]) {
   int n=2, m=1, p=3;
   double sum = 0.0;
   char ch;
-  double *G[n], g0[n], 
-    *CE[n], ce0[m], 
-    *CI[n], ci0[p], 
-    x[n];
+  double **G, *g0, **CE, *ce0, **CI, *ci0, *x;
+  
+  MatrixStorage _G(G,n,n);
+  VectorStorage<double> _g(g0,n);
+  MatrixStorage _CE(CE,n,m);
+  VectorStorage<double> _ce(ce0,m);
+  MatrixStorage _CI(CI,n,p);
+  VectorStorage<double> _ci(ci0,p);
+  VectorStorage<double> _x(x,n);
   
   std::istringstream Gis("4, -2,"
                          "-2, 4 ");

@@ -1,7 +1,7 @@
 #include "commondefs.h"
-
+#include <vector>
 #include <cmath>
-#include <limits>  // numeric_limits
+#include <limits>
 #include "cola.h"
 #include "shortest_paths.h"
 #include "straightener.h"
@@ -44,12 +44,12 @@ void dumpSquareMatrix(unsigned n, T** L) {
     }
 }
 ConstrainedFDLayout::ConstrainedFDLayout(
-        const vector<vpsc::Rectangle*>& rs,
-        const vector<Edge> & es,
+	const vpsc::Rectangles & rs,
+	const std::vector< Edge > & es, 
         const double idealLength,
         const std::valarray<double> * eweights,
-        TestConvergence& done,
-        PreIteration* preIteration)
+		TestConvergence& done,
+		PreIteration* preIteration)
     : n(rs.size()),
       X(valarray<double>(n)),
       Y(valarray<double>(n)),
@@ -65,10 +65,10 @@ ConstrainedFDLayout::ConstrainedFDLayout(
     boundingBoxes.resize(n);
     copy(rs.begin(),rs.end(),boundingBoxes.begin());
     done.reset();
-    for(unsigned i=0;i<n;i++) {
-        vpsc::Rectangle *r=rs[i];
-        X[i]=r->getCentreX();
-        Y[i]=r->getCentreY();
+	unsigned i=0;
+	for(vpsc::Rectangles::const_iterator ri=rs.begin();ri!=rs.end();++ri,++i) {
+        X[i]=(*ri)->getCentreX();
+        Y[i]=(*ri)->getCentreY();
     }
     D=new double*[n];
     G=new unsigned short*[n];
@@ -106,7 +106,7 @@ void ConstrainedFDLayout::computePathLengths(
             double& d=D[i][j];
             unsigned short& p=G[i][j];
             p=2;
-            if(d==numeric_limits<double>::max()) {
+            if(d==DBL_MAX) {
                 // i and j are in disconnected subgraphs
                 p=0;
             } else if(!eweights) {
@@ -317,7 +317,7 @@ void ConstrainedFDLayout::moveTo(const Dim dim, Position& target) {
         }
     }
     for(unsigned i=0, j=(dim==HORIZONTAL?0:n);i<n;++i,++j) {
-        Variable* v=vs[i];
+		vpsc::Variable* v=vs[i];
         v->desiredPosition = target[j];
     }
     setVariableDesiredPositions(vs,cs,des,coords);

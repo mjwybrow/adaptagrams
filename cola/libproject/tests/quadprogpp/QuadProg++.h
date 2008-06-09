@@ -78,6 +78,37 @@ the previously hard-coded limit on problem size.
 Tim Dwyer 24/11/07
 */
 
+/**
+ * The following assigns memory for a square matrix of size n.
+ * Declared on the stack it will work as a smart pointer to cleanup
+ * when the stack frame returns.
+ */
+struct MatrixStorage {
+  MatrixStorage(double** &M, int m, int n) : M(M), m(m) {
+    M=new double*[m];
+    for(int i=0;i<m;i++) {
+      M[i]=new double[n];
+    }
+  }
+  ~MatrixStorage() {
+    for(int i=0;i<m;i++) {
+      delete [] M[i];
+    }
+	delete [] M;
+  }
+  double** &M;
+  int m;
+};
+template <typename T>
+struct VectorStorage {
+	VectorStorage(T* &v, int n) : v(v) {
+		v=new T[n];
+	}
+	~VectorStorage() {
+		delete [] v;
+	}
+	T* &v;
+};
 double solve_quadprog(double *G[], double g0[], int n, 
                       double *CE[], double ce0[], int p, 
                       double *CI[], double ci0[], int m,

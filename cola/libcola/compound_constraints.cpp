@@ -7,26 +7,26 @@ using std::vector;
 
 namespace cola {
 struct GenerateVariables {
-    GenerateVariables(Variables& vars) : vars(vars) {}
+    GenerateVariables(vpsc::Variables& vars) : vars(vars) {}
     void operator() (CompoundConstraint* c) {
         c->generateVariables(vars);
     }
-    Variables& vars;
+    vpsc::Variables& vars;
 };
 struct GenerateSeparationConstraints {
-    GenerateSeparationConstraints(Variables& vars, Constraints& cs) : vars(vars), cs(cs) {}
+    GenerateSeparationConstraints(vpsc::Variables& vars, vpsc::Constraints& cs) : vars(vars), cs(cs) {}
     void operator() (CompoundConstraint* c) {
         c->generateSeparationConstraints(vars,cs);
     }
-    Variables& vars;
-    Constraints& cs;
+    vpsc::Variables& vars;
+    vpsc::Constraints& cs;
 };
-void generateVariablesAndConstriants(CompoundConstraints& ccs, Variables& vars, Constraints& cs) {
+void generateVariablesAndConstriants(CompoundConstraints& ccs, vpsc::Variables& vars, vpsc::Constraints& cs) {
 	for_each(ccs.begin(),ccs.end(),GenerateVariables(vars));
 	for_each(ccs.begin(),ccs.end(),GenerateSeparationConstraints(vars,cs));
 }
 void BoundaryConstraint::
-generateSeparationConstraints( Variables& vars, Constraints& cs) 
+generateSeparationConstraints( vpsc::Variables& vars, vpsc::Constraints& cs) 
 {
     for(OffsetList::iterator o=leftOffsets.begin();
             o!=leftOffsets.end(); o++) {
@@ -42,9 +42,9 @@ generateSeparationConstraints( Variables& vars, Constraints& cs)
     }
 }
 void AlignmentConstraint::
-generateVariables(Variables& vars) {
+generateVariables(vpsc::Variables& vars) {
     variable = new vpsc::Variable(vars.size(),position,0.0001);
-    if(fixed) {
+    if(isFixed) {
         variable->fixedDesiredPosition=true;
         variable->weight=100000;
     }
@@ -52,8 +52,8 @@ generateVariables(Variables& vars) {
 }
 void AlignmentConstraint::
 generateSeparationConstraints(
-            Variables& vars, 
-            Constraints& cs) {
+            vpsc::Variables& vars, 
+            vpsc::Constraints& cs) {
     assert(variable!=NULL);
     for(OffsetList::iterator o=offsets.begin();
             o!=offsets.end(); o++) {
@@ -65,8 +65,8 @@ generateSeparationConstraints(
 }
 void SeparationConstraint::
 generateSeparationConstraints(
-            Variables& vs, 
-            Constraints& cs) {
+            vpsc::Variables& vs, 
+            vpsc::Constraints& cs) {
     if(al) {
         left=al->variable->id;
     }
@@ -84,12 +84,12 @@ setSeparation(double gap) {
     }
 }
 void OrthogonalEdgeConstraint::
-generateSeparationConstraints( Variables& vs, Constraints& cs) {
+generateSeparationConstraints( vpsc::Variables& vs, vpsc::Constraints& cs) {
     vpscConstraint = new vpsc::Constraint(vs[left],vs[right],0,true);
     cs.push_back(vpscConstraint);
 }
 void OrthogonalEdgeConstraint::
-generateTopologyConstraints(const Dim k, vector<vpsc::Rectangle*> const & rs, 
+generateTopologyConstraints(const Dim k, const vpsc::Rectangles& rs, 
         vector<vpsc::Variable*> const & vars, vector<vpsc::Constraint*> & cs) {
     double lBound, rBound, pos;
     if(k==HORIZONTAL) {
@@ -136,7 +136,7 @@ rectBounds(const Dim k, vpsc::Rectangle const *r,
     }
 }
 void MultiSeparationConstraint::
-generateSeparationConstraints( Variables& vs, Constraints& gcs) {
+generateSeparationConstraints( vpsc::Variables& vs, vpsc::Constraints& gcs) {
     for(vector<std::pair<
             AlignmentConstraint*,AlignmentConstraint*> >::iterator iac
             =acs.begin(); iac!=acs.end();++iac) {
@@ -150,7 +150,7 @@ generateSeparationConstraints( Variables& vs, Constraints& gcs) {
     }
 }
 void DistributionConstraint::
-generateSeparationConstraints( Variables& vars, Constraints& gcs) {
+generateSeparationConstraints( vpsc::Variables& vars, vpsc::Constraints& gcs) {
     cs.clear();
     for(vector<std::pair<
             AlignmentConstraint*,AlignmentConstraint*> >::iterator iac
@@ -183,7 +183,7 @@ generateSeparationConstraints( Variables& vars, Constraints& gcs) {
     }
 }
 void PageBoundaryConstraints::
-generateVariables(Variables& vars) { 
+generateVariables(vpsc::Variables& vars) { 
     // create 2 dummy vars, based on the dimension we are in
     if(leftWeight) {
         vars.push_back(vl=new vpsc::Variable(vars.size(), leftMargin, leftWeight));
@@ -196,8 +196,8 @@ generateVariables(Variables& vars) {
 }
 void PageBoundaryConstraints::
 generateSeparationConstraints(
-        Variables& vs, 
-        Constraints& cs) {
+        vpsc::Variables& vs, 
+        vpsc::Constraints& cs) {
 
     // for each of the "real" variables, create a constraint that puts that var
     // between our two new dummy vars, depending on the dimension.

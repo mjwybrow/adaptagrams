@@ -41,6 +41,7 @@ static double getRunTime() {
     clock_t time = clock()-lastTime;
     return (double)time/(double)CLOCKS_PER_SEC;
 }
+#ifdef __DONT_COMPILE
 int
 main()
 {
@@ -57,7 +58,7 @@ main()
     cout << "  Test graph |V|="<<V<<",|E|="<<E<<endl;
     valarray<double> weights(E);
     for(unsigned i=0;i<E;i++) {
-	    weights[i]=round(((double)rand()/(double)RAND_MAX)*10);
+	    weights[i]=round((static_cast<double>(rand())/static_cast<double>(RAND_MAX))*10);
 #ifdef TEST_AGAINST_BOOST
 	    add_edge(es[i].first,es[i].second,weights[i],g);
 #endif
@@ -115,3 +116,4 @@ main()
 #endif
     return 0;
 }
+#endif // __DONT_COMPILE

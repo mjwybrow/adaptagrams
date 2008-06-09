@@ -525,7 +525,7 @@ void removeoverlaps(Rectangles& rs, const set<unsigned>& fixed, bool thirdPass) 
 		Variables vs(n);
         Variables::iterator v;
 		unsigned i=0;
-        double initX[thirdPass?n:ARRAY_UNUSED];
+		vector<double> initX(thirdPass?n:ARRAY_UNUSED);
 		for(v=vs.begin();v!=vs.end();++v,++i) {
             double weight=1;
             if(fixed.find(i)!=fixed.end()) {

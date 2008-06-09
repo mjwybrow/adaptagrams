@@ -34,24 +34,24 @@ const double testEpsilon = 1e-10;
  */
 void qps(Variables &vs, Constraints &cs, vector<double> &result) {
     const unsigned n=vs.size();
-    double *G[n],
-           g[n];
+    double **G, *g;
+	MatrixStorage _G(G,n,n);
+	VectorStorage<double> _g(g,n);
     VMap vmap;
     for(unsigned i=0;i<n;i++) {
         Variable *v=vs[i];
         vmap[v]=i;
         g[i]=-2.0*v->getWeight()*v->getDesiredPosition();
-        G[i]=new double[n];
         for(unsigned j=0;j<n;j++) {
             G[i][j]=
                 i==j ? (2.0*v->getWeight()) : 0;
         }
     }
     const unsigned m=cs.size();
-    double *C[n],
-           c[m];
+    double **C, *c;
+	MatrixStorage _C(C,n,m);
+	VectorStorage<double> _c(c,m);
     for(unsigned i=0;i<n;i++) {
-        C[i]=new double[m];
         fill(C[i],C[i]+m,0);
     }
     for(unsigned i=0;i<m;i++) {
@@ -61,14 +61,11 @@ void qps(Variables &vs, Constraints &cs, vector<double> &result) {
         C[r][i]=1;
         c[i]=-cs[i]->g;
     }
-    double x[n];
+    double *x;
+	VectorStorage<double> _x(x,n);
     solve_quadprog(G, g, n, NULL, NULL, 0, C, c, m, x);
     result.resize(n);
     copy(x,x+n,result.begin());
-    for(unsigned i=0;i<n;i++) {
-        delete [] G[i];
-        delete [] C[i];
-    }
 }
 
 /**
@@ -143,10 +140,13 @@ void test(const char* (*t)(Variables&, Constraints&), bool silentPass) {
     const char *tn=t(vs,cs);
 
     // extract the test function name
+    /*
     unsigned l=strlen(tn)-12-44;
-    char testName[l+1];
+    char *testName = new char[l+1];
     strncpy(testName,tn+12,l);
     testName[l]=0;
+    */
+    const char *testName=tn;
     
     // store initial positions
     vector<double> XI(vs.size());

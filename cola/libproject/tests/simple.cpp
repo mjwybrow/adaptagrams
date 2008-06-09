@@ -9,6 +9,7 @@
 #include <iostream>
 #include <cassert>
 #include <cmath>
+#include <algorithm>
 #include <libproject/project.h>
 #include <libproject/util.h>
 

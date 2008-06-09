@@ -24,6 +24,8 @@
 #include <cstdlib>
 #include <algorithm>
 #include <cassert>
+#include <limits>
+#include <cfloat>
 #include <cmath>
 
 #include "libavoid/shape.h"
@@ -35,7 +37,7 @@ namespace Avoid {
 Region *centerRegion = NULL;
 
 static const BBox screenBBox =
-        {Point(-INFINITY, -INFINITY), Point(INFINITY, INFINITY)};
+{Point(-DBL_MAX, -DBL_MAX), Point(DBL_MAX, DBL_MAX)};
 
 
 Region::Region()

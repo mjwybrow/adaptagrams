@@ -109,7 +109,7 @@ void EdgePoint::getBendConstraint(vector<TopologyConstraint*>* ts) {
 }
 double EdgePoint::pos(unsigned dim) const {
     double p;
-    Rectangle* r=node->rect;
+	vpsc::Rectangle* r=node->rect;
     switch(rectIntersect) {
         case TL:
             p=dim==cola::HORIZONTAL?

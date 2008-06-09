@@ -6,26 +6,92 @@
  * Tim Dwyer, 2006
  **********************************************************/
 
-#include "commondefs.h" // magmy20070405: Added
-
-#include <math.h>
-#include <stdlib.h>
+#include <iostream>
+#include <cmath>
 #include <time.h>
-#include <stdio.h>
-#include <float.h>
 #include <cassert>
 #include <libvpsc/solve_VPSC.h>
 #include <libvpsc/variable.h>
 #include <libvpsc/constraint.h>
+#include "cluster.h"
 #include "gradient_projection.h"
 #include "straightener.h"
-#include <iostream>
+#include "commondefs.h"
 //#define CHECK_CONVERGENCE_BY_COST 1
 
 using namespace std;
 using namespace vpsc;
 namespace cola {
+GradientProjection::GradientProjection(
+    const Dim k,
+	std::valarray<double> *denseQ,
+	const double tol,
+	const unsigned max_iterations,
+    CompoundConstraints const *ccs,
+    UnsatisfiableConstraintInfos *unsatisfiableConstraints,
+    NonOverlapConstraints nonOverlapConstraints,
+    RootCluster* clusterHierarchy,
+	vpsc::Rectangles* rs,
+    const bool scaling,
+    SolveWithMosek solveWithMosek) 
+        : k(k), 
+          denseSize(static_cast<unsigned>((floor(sqrt(static_cast<double>(denseQ->size())))))),
+          denseQ(denseQ), 
+          rs(rs),
+          ccs(ccs),
+          unsatisfiableConstraints(unsatisfiableConstraints),
+          nonOverlapConstraints(nonOverlapConstraints),
+          clusterHierarchy(clusterHierarchy),
+          tolerance(tol), 
+          max_iterations(max_iterations),
+          sparseQ(NULL),
+          solveWithMosek(solveWithMosek),
+          scaling(scaling)
+{
+    printf("GP Instance: scaling=%d, mosek=%d\n",scaling,solveWithMosek);
+    for(unsigned i=0;i<denseSize;i++) {
+        vars.push_back(new vpsc::Variable(i,1,1));
+    }
+    if(scaling) {
+        scaledDenseQ.resize(denseSize*denseSize);
+        for(unsigned i=0;i<denseSize;i++) {
+            vars[i]->scale=1./sqrt(fabs((*denseQ)[i*denseSize+i]));
+        }
+        // the following computes S'QS for Q=denseQ
+        // and S is diagonal matrix of scale factors
+        for(unsigned i=0;i<denseSize;i++) {
+            for(unsigned j=0;j<denseSize;j++) {
+                scaledDenseQ[i*denseSize+j]=(*denseQ)[i*denseSize+j]*vars[i]->scale
+                    *vars[j]->scale;
+            }
+        }
+        this->denseQ = &scaledDenseQ;
+    }
+    //dumpSquareMatrix(*this->denseQ);
+    //dumpSquareMatrix(scaledDenseQ);
 
+    if(ccs) {
+        for(CompoundConstraints::const_iterator c=ccs->begin();
+                c!=ccs->end();++c) {
+            (*c)->generateVariables(vars);
+            OrthogonalEdgeConstraint* e=dynamic_cast<OrthogonalEdgeConstraint*>(*c);
+            if(e) {
+                orthogonalEdges.push_back(e);
+            }
+        }
+        for(CompoundConstraints::const_iterator c=ccs->begin();
+                c!=ccs->end();++c) {
+            (*c)->generateSeparationConstraints(vars,gcs);
+        }
+    }
+	/*
+    if(clusterHierarchy) {
+        clusterHierarchy->createVars(k,*rs,vars);
+    }
+	*/
+    numStaticVars=vars.size();
+    //solver=setupVPSC();
+}
 static inline double dotProd(valarray<double> const & a, valarray<double> const & b) {
     double p = 0;
     for (unsigned i=0; i<a.size(); i++) {
@@ -280,8 +346,7 @@ IncSolver* GradientProjection::setupVPSC() {
     if(nonOverlapConstraints!=None) {
         if(clusterHierarchy) {
             //printf("Setup up cluster constraints, dim=%d--------------\n",k);
-            clusterHierarchy->
-                generateNonOverlapConstraints(k,nonOverlapConstraints,*rs,vars,lcs);
+            //clusterHierarchy->generateNonOverlapConstraints(k,nonOverlapConstraints,*rs,vars,lcs);
         } else {
             for(vector<OrthogonalEdgeConstraint*>::iterator i=orthogonalEdges.begin();i!=orthogonalEdges.end();i++) {
                 OrthogonalEdgeConstraint* e=*i;

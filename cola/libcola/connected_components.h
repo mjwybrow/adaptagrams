@@ -9,25 +9,25 @@ namespace cola {
 // and a list of edges - node indices relative to this component
 class Component {
 public:
-    vector<unsigned> node_ids;
-    vector<Rectangle*> rects;
-    vector<Edge> edges;
+	std::vector<unsigned> node_ids;
+	std::vector<vpsc::Rectangle*> rects;
+	std::vector<cola::Edge> edges;
     //CompoundConstraints cx, cy;
     ~Component();
     void moveRectangles(double x, double y);
-    Rectangle* getBoundingBox();
+	vpsc::Rectangle* getBoundingBox();
 };
 // for a graph of n nodes, return connected components
 void connectedComponents(
-    const vector<Rectangle*> &rs,
-    const vector<Edge> &es,
+    const std::vector<vpsc::Rectangle*> &rs,
+    const std::vector<cola::Edge> &es,
     //const CompoundConstraints &cx,
     //const CompoundConstraints &cy, 
-    vector<Component*> &components);
+    std::vector<Component*> &components);
 
 // move the contents of each component so that the components do not
 // overlap.
-void separateComponents(const vector<Component*> &components);
+void separateComponents(const std::vector<Component*> &components);
 
 } // namespace cola
 

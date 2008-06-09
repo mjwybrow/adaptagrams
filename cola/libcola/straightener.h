@@ -166,9 +166,9 @@ public:
             vector<vpsc::Rectangle*> const & rs,
             cola::FixedList const & fixed,
             vector<Edge*> const & edges, 
-            cola::Variables const & vs,
-            cola::Variables & lvs,
-            cola::Constraints & lcs,
+            vpsc::Variables const & vs,
+            vpsc::Variables & lvs,
+            vpsc::Constraints & lcs,
             valarray<double> & oldCoords,
             valarray<double> & oldG);
     ~Straightener();
@@ -188,8 +188,8 @@ private:
     const cola::Dim dim;
     cola::FixedList const & fixed;
     vector<Edge*> const & edges;
-    cola::Variables const & vs;
-    cola::Variables & lvs;
+    vpsc::Variables const & vs;
+    vpsc::Variables & lvs;
     vector<Node*> nodes;
     double len(const unsigned u, const unsigned v, 
             double& dx, double& dy,

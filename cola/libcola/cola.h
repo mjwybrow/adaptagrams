@@ -24,7 +24,6 @@ namespace topology {
  * The cola namespace delineates the interface to the libcola constraint layout library
  */
 namespace cola {
-using vpsc::Rectangle;
 
 //! Edges are simply a pair of indices to entries in the Node vector
 typedef std::pair<unsigned, unsigned> Edge;
@@ -59,12 +58,12 @@ public:
     unsigned getID() const {
         return id;
     }
-    const Rectangle* getTarget() const {
+	const vpsc::Rectangle* getTarget() const {
         return &target;
     }
 private:
     unsigned id;
-    Rectangle target;
+	vpsc::Rectangle target;
 };
 typedef std::vector<Resize> Resizes;
 
@@ -164,8 +163,8 @@ extern TestConvergence defaultTest;
 class ConstrainedMajorizationLayout {
 public:
     ConstrainedMajorizationLayout(
-        std::vector<Rectangle*>& rs,
-        std::vector<Edge> const & es,
+		std::vector<vpsc::Rectangle*>& rs,
+		std::vector<Edge> const & es,
         RootCluster* clusterHierarchy,
         double const idealLength,
         std::valarray<double> const * eweights=NULL,
@@ -290,7 +289,7 @@ private:
     double tol; //!< convergence tolerance
     TestConvergence& done; //!< functor used to determine if layout is finished
     PreIteration* preIteration; //!< client can use this to create locks on nodes
-    std::vector<Rectangle*> boundingBoxes; //!< node bounding boxes
+	std::vector<vpsc::Rectangle*> boundingBoxes; //!< node bounding boxes
     /** stickyNodes controls whether nodes are attracted to their starting
      * positions (at time of ConstrainedMajorizationLayout instantiation)
      * stored in startX, startY
@@ -345,7 +344,7 @@ private:
     bool majorization;
 };
 
-Rectangle bounds(std::vector<Rectangle*>& rs);
+vpsc::Rectangle bounds(std::vector<vpsc::Rectangle*>& rs);
 
 /**
  * This class implements a constrained layout method based on a non-linear
@@ -366,8 +365,8 @@ public:
      * @param preIteration an operation called before each iteration
      */
     ConstrainedFDLayout(
-        const std::vector<Rectangle*>& rs,
-        const std::vector<Edge>& es,
+		const vpsc::Rectangles& rs,
+		const std::vector<cola::Edge>& es,
         const double idealLength,
         const std::valarray<double>* eweights=NULL,
         TestConvergence& done=defaultTest,
@@ -417,7 +416,7 @@ public:
 private:
     unsigned n; // number of nodes
     std::valarray<double> X, Y;
-    std::vector<Rectangle*> boundingBoxes;
+	std::vector<vpsc::Rectangle*> boundingBoxes;
     double applyForcesAndConstraints(const Dim dim,const double oldStress);
     double computeStepSize(const SparseMatrix& H, const std::valarray<double>& g,
             const std::valarray<double>& d) const;

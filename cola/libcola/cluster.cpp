@@ -1,11 +1,9 @@
-#include "commondefs.h"             // magmy20070405: Added
-
+#include <libvpsc/rectangle.h> 
+#include "commondefs.h"
 #include "cola.h"
 #include "convex_hull.h"
-
-#include <libvpsc/rectangle.h>      // magmy20070405: Added
-using vpsc::generateXConstraints;   // magmy20070405: Added
-using vpsc::generateYConstraints;   // magmy20070405: Added
+using vpsc::generateXConstraints;
+using vpsc::generateYConstraints;
 
 namespace cola {
     using namespace std;
@@ -14,7 +12,7 @@ namespace cola {
         : varWeight(0.0001), internalEdgeWeightFactor(1.), bounds(-1,1,-1,1), border(7)
       {}
 
-    void Cluster::computeBoundingRect(vector<Rectangle*> const & rs) {
+    void Cluster::computeBoundingRect(const vpsc::Rectangles& rs) {
         double minX=DBL_MAX, maxX=-DBL_MAX, minY=DBL_MAX, maxY=-DBL_MAX;
         for(vector<Cluster*>::const_iterator i=clusters.begin(); i!=clusters.end(); i++) {
             (*i)->computeBoundingRect(rs);
@@ -31,10 +29,10 @@ namespace cola {
             minY=min(r->getMinY(),minY);
             maxY=max(r->getMaxY(),maxY);
         }
-        bounds=Rectangle(minX,maxX,minY,maxY);
+        bounds=vpsc::Rectangle(minX,maxX,minY,maxY);
     }
 
-    void ConvexCluster::computeBoundary(vector<Rectangle*> const & rs) {
+    void ConvexCluster::computeBoundary(vector<vpsc::Rectangle*> const & rs) {
         unsigned n=4*nodes.size();
         valarray<double> X(n);
         valarray<double> Y(n);
@@ -72,7 +70,7 @@ namespace cola {
             hullCorners[j]=hull[j]%4;
         }
     }
-    void RectangularCluster::computeBoundary(vector<Rectangle*> const & rs) {
+    void RectangularCluster::computeBoundary(const vpsc::Rectangles& rs) {
         double xMin=DBL_MAX, xMax=-DBL_MAX, yMin=DBL_MAX, yMax=-DBL_MAX;
         for(unsigned i=0;i<nodes.size();i++) {
             xMin=std::min(xMin,rs[nodes[i]]->getMinX());
@@ -91,67 +89,67 @@ namespace cola {
         hullX[0]=xMax;
         hullY[0]=yMin;
     }
-    void RootCluster::computeBoundary(vector<Rectangle*> const & rs) {
+    void RootCluster::computeBoundary(const vpsc::Rectangles& rs) {
         for(unsigned i=0;i<clusters.size();i++) {
             clusters[i]->computeBoundary(rs);
         }
     }
-    vpsc::Rectangle Cluster::getMinRect( const Dim dim, Rectangle const & bounds) {
+    vpsc::Rectangle Cluster::getMinRect( const Dim dim, const vpsc::Rectangle& bounds) {
         if(dim==HORIZONTAL) {
             length=bounds.width();
             vMin=vXMin;
             vMin->desiredPosition=bounds.getMinX();
-            return Rectangle(bounds.getMinX()-border,
+            return vpsc::Rectangle(bounds.getMinX()-border,
                              bounds.getMinX()+border,
                              bounds.getMinY(),bounds.getMaxY());
         } else {
             length=bounds.height();
             vMin=vYMin;
             vMin->desiredPosition=bounds.getMinY();
-            return Rectangle(bounds.getMinX(),bounds.getMaxX(),
+            return vpsc::Rectangle(bounds.getMinX(),bounds.getMaxX(),
                              bounds.getMinY()-border,
                              bounds.getMinY()+border);
         }
     }
-    vpsc::Rectangle Cluster::getMaxRect( const Dim dim, Rectangle const & bounds) {
+    vpsc::Rectangle Cluster::getMaxRect( const Dim dim, vpsc::Rectangle const & bounds) {
         if(dim==HORIZONTAL) {
             vMax=vXMax;
             vMax->desiredPosition=bounds.getMaxX();
-            return Rectangle(bounds.getMaxX()-border, bounds.getMaxX()+border,
+            return vpsc::Rectangle(bounds.getMaxX()-border, bounds.getMaxX()+border,
                              bounds.getMinY(), bounds.getMaxY());
         } else {
             vMax=vYMax;
             vMax->desiredPosition=bounds.getMaxY();
-            return Rectangle(bounds.getMinX(), bounds.getMaxX(),
+            return vpsc::Rectangle(bounds.getMinX(), bounds.getMaxX(),
                              bounds.getMaxY()-border, bounds.getMaxY()+border);
         }
     }
     void Cluster::createVars(
             const Dim dim,
-            vector<vpsc::Rectangle*> const & rs, 
-            vector<vpsc::Variable*>& vars) {
+			const vpsc::Rectangles& rs, 
+			vpsc::Variables& vars) {
         assert(clusters.size()>0||nodes.size()>0);
         for(vector<Cluster*>::iterator i=clusters.begin();i!=clusters.end();i++) {
             (*i)->createVars(dim,rs,vars);
         }
         if(dim==HORIZONTAL) {
-            vars.push_back(vXMin=new Variable(
+            vars.push_back(vXMin=new vpsc::Variable(
                         vars.size(),bounds.getMinX(),varWeight));
-            vars.push_back(vXMax=new Variable(
+            vars.push_back(vXMax=new vpsc::Variable(
                         vars.size(),bounds.getMaxX(),varWeight));
         } else {
-            vars.push_back(vYMin=new Variable(
+            vars.push_back(vYMin=new vpsc::Variable(
                         vars.size(),bounds.getMinY(),varWeight));
-            vars.push_back(vYMax=new Variable(
+            vars.push_back(vYMax=new vpsc::Variable(
                         vars.size(),bounds.getMaxX(),varWeight));
         }
     }
     void Cluster::generateNonOverlapConstraints(
             const Dim dim,
             const NonOverlapConstraints nonOverlapConstraints,
-            vector<Rectangle*> const& rs,
-            vector<vpsc::Variable*> const& vars,
-            vector<vpsc::Constraint*> & cs) {
+			const vpsc::Rectangles& rs,
+			const vpsc::Variables& vars,
+            vpsc::Constraints& cs) {
         assert(clusters.size()>0||nodes.size()>0);
         for(unsigned i=0;i<clusters.size();i++) {
             Cluster* c=clusters[i];
@@ -163,8 +161,8 @@ namespace cola {
         // One var/rect for each node, one for each child cluster, one for
         // the LHS of this cluster and one for the RHS.
         unsigned n=nodes.size()+clusters.size()+2;
-        vector<vpsc::Variable*> lvs(n);
-        vector<Rectangle*> lrs(n);
+        vpsc::Variables lvs(n);
+        vpsc::Rectangles lrs(n);
         unsigned vctr=0;
         for(vector<unsigned>::iterator i=nodes.begin();i!=nodes.end();i++) {
             lvs[vctr]=vars[*i];
@@ -181,7 +179,7 @@ namespace cola {
             //printf("  adding cluster %d, w=%f, h=%f\n",c->vMin->id,lrs[vctr]->width(),lrs[vctr]->height());
             vctr++;
         }
-        Rectangle rMin=getMinRect(dim,bounds), 
+        vpsc::Rectangle rMin=getMinRect(dim,bounds), 
                   rMax=getMaxRect(dim,bounds);
         lvs[vctr]=vMin;
         lrs[vctr++]=&rMin;
@@ -193,11 +191,11 @@ namespace cola {
         double hAdjust=0;
         if(dim==HORIZONTAL) {
             hAdjust=1;
-            Rectangle::setXBorder(0.001);
+            vpsc::Rectangle::setXBorder(0.001);
             // use rs->size() rather than n because some of the variables may
             // be dummy vars with no corresponding rectangle
             generateXConstraints(lrs,lvs,tmp_cs,nonOverlapConstraints==Both?true:false); 
-            Rectangle::setXBorder(0);
+            vpsc::Rectangle::setXBorder(0);
         } else {
             generateYConstraints(lrs,lvs,tmp_cs); 
         }

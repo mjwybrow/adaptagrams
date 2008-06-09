@@ -1,19 +1,15 @@
 #ifndef COLA_CLUSTER_H
 #define COLA_CLUSTER_H
 
-#include "commondefs.h"
 #include <libvpsc/rectangle.h>
 #include <libvpsc/variable.h>
+#include "commondefs.h"
 
 namespace cola {
 
-using vpsc::Rectangle;
-using vpsc::Variable;
-using std::vector;
-
 class Cluster;
 
-typedef vector<Cluster*> Clusters;
+typedef std::vector<Cluster*> Clusters;
 
 // A cluster defines a hierarchical partitioning over the nodes
 // which should be kept disjoint by the layout somehow
@@ -21,19 +17,19 @@ class Cluster {
 public:
     double varWeight;
     double internalEdgeWeightFactor;
-    vector<unsigned> nodes;
+	std::vector<unsigned> nodes;
     Clusters clusters;
     std::valarray<double> hullX, hullY;
     Cluster();
     virtual ~Cluster() {}
     void updatePosition();
-    virtual void computeBoundary(vector<Rectangle*> const & rs) = 0;
-    vpsc::Rectangle getMinRect( const Dim dim, Rectangle const & bounds);
-    vpsc::Rectangle getMaxRect( const Dim dim, Rectangle const & bounds);
-    void computeBoundingRect(vector<Rectangle*> const & rs);
-    Rectangle bounds;
-    void createVars(const Dim dim, vector<Rectangle*> const & rs, vector<Variable*>& vars);
-    Variable *vXMin, *vXMax, *vYMin, *vYMax;
+	virtual void computeBoundary(const vpsc::Rectangles& rs) = 0;
+	vpsc::Rectangle getMinRect( const Dim dim, const vpsc::Rectangle& bounds);
+	vpsc::Rectangle getMaxRect( const Dim dim, const vpsc::Rectangle& bounds);
+    void computeBoundingRect(const vpsc::Rectangles& rs);
+	vpsc::Rectangle bounds;
+    void createVars(const Dim dim, const vpsc::Rectangles& rs, vpsc::Variables& vars);
+	vpsc::Variable *vXMin, *vXMax, *vYMin, *vYMax;
     void generateNonOverlapConstraints(
             const Dim dim,
             const NonOverlapConstraints nonOverlapConstraints,
@@ -47,21 +43,21 @@ public:
      */
     double area(const vpsc::Rectangles& rs);
 private:
-    Variable *vMin, *vMax;
+	vpsc::Variable *vMin, *vMax;
     double length;
     double border;
 };
 class RectangularCluster : public Cluster {
 public:
-    void computeBoundary(vector<Rectangle*> const & rs);
+	void computeBoundary(const vpsc::Rectangles& rs);
 };
 class RootCluster : public Cluster {
 public:
-    void computeBoundary(vector<Rectangle*> const & rs);
+	void computeBoundary(const vpsc::Rectangles& rs);
 };
 class ConvexCluster : public Cluster {
 public:
-    void computeBoundary(vector<Rectangle*> const & rs);
+    void computeBoundary(const vpsc::Rectangles& rs);
     std::valarray<unsigned> hullRIDs;
     std::valarray<unsigned char> hullCorners;
 };

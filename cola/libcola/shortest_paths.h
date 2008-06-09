@@ -5,7 +5,7 @@
 #include <vector>
 #include <valarray>
 template <class T>
-struct PairNode;        // magmy20070405: Changed from class to struct to match actual definition
+struct PairNode;
 
 namespace shortest_paths {
 using namespace std;

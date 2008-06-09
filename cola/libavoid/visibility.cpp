@@ -39,8 +39,8 @@
 #include "libavoid/graph.h"
 #include "libavoid/geometry.h"
 #include "libavoid/router.h"
-
-#include <math.h>
+#define _USE_MATH_DEFINES
+#include <cmath>
 
 #ifdef LINEDEBUG
   #include "SDL_gfxPrimitives.h"
