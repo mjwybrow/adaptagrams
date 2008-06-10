@@ -188,6 +188,7 @@ void test(const char* (*t)(Variables&, Constraints&), bool silentPass) {
     }
     for_each(vs.begin(),vs.end(),delete_object());
     for_each(cs.begin(),cs.end(),delete_object());
+	delete testName;
 }
 
 /*
