@@ -1,0 +1,103 @@
+<html>
+<head><title>libavoid Documentation</title>
+<style>
+pre { border: dotted 1px #900; padding: 5px; background-color: #ffe; }
+body { padding-top: 10px; padding-left: 60px; padding-right: 60px; }
+</style
+</head>
+<body>
+<h1>libavoid Documentation</h1>
+
+<p>Last updated for libavoid repository $Revision: 34 $.</p>
+
+<p><i>Note: This interface may change over the coming months, prior to the first official release, as orthogonal routing and other features are added to libavoid.</i></p>
+
+<p>libavoid is a C++ library.  Its code is all within the <code>Avoid::</code> namespace.</p>
+
+<p>First, you must create an instance of the router.  Your program may want to have a separate instances of the router for each separate document it has open, for example.
+<pre>Avoid::Router *router = new Avoid::Router();</pre></p>
+
+<p>To add a shape (obstacle) to the router, you first create a <code>ShapeRef</code> by giving a polygon representing the convex hull boundary of the shape and an ID for the shape.
+<pre>// Create the ShapeRef:
+Avoid::Polygn shapePoly = Avoid::newPoly(3);
+shapePoly.ps[0] = Avoid::Point(1, 1);
+shapePoly.ps[1] = Avoid::Point(2.5, 1.5);
+shapePoly.ps[2] = Avoid::Point(1.5, 2.5);
+unsigned int shapeID = 1;
+Avoid::ShapeRef *shapeRef = new Avoid::ShapeRef(router, shapeID, shapePoly);
+// ShapeRef constructor makes a copy of polygon so we can free it:
+Avoid::freePoly(shapePoly);</pre></p>
+
+<p>To actually add the shape to the router (and cause rerouting of connectors it intersects) you do the following:
+<pre>router-&gt;addShape(shapeRef);</pre></p>
+
+<p>Conversely, to delete a shape from the router (and reroute connectors that then have a better path) you do the following.  Note: <code>delShape()</code> frees the <code>ShapeRef</code> passed to it.
+<pre>router-&gt;delShape(shapeRef);</pre></p>
+
+<p>To move or resize a shape already in the router, you do the following:
+<pre>router-&gt;moveShape(shapeRef, &newPolygon);</pre></p>
+
+<p>In its default mode the router will queue multiple shape movements and perform the changes to the visibility graph in an optimised order.  Thus you make several calls to <code>router-&gt;movShape()</code> for different shapes and then tell the router to process the moves.  This tend to be useful in interactive applications where the user may drag a group of shapes at once.
+<pre>router-&gt;moveShape(shapeRef1, newPolygon1);
+router-&gt;moveShape(shapeRef2, newPolygon2);
+router-&gt;processMoves();
+</pre></p>
+
+<p>Alternatively, you can make the router perform the operations immediately when <code>router-&gt;movShape()</code> if the following option has been set previously:
+<pre>router-&gt;ConsolidateMoves = false;</pre></p>
+
+<p>To add a new connector to the router, you do the following:
+<pre>unsigned int connID = 2;
+Avoid::Point srcPt(1.2, 0.5);
+Avoid::Point dstPt(3, 4);
+Avoid::ConnRef *connRef = new Avoid::ConnRef(router, connID, srcPt, dstPt);
+connRef->updateEndPoint(Avoid::VertID::src, srcPt);
+connRef->updateEndPoint(Avoid::VertID::tar, dstPt);</pre></p>
+
+<p>To remove a connector from the router:
+<pre>connRef-&gt;removeFromGraph();
+// Delete the shapeRef if its no longer needed.
+delete connRef;</pre></p>
+
+<p>You can set a function to be called when the connector needs to be redrawn.  When called, this function will be passed the pointer given as a second argument to <code>setCallback</code>:
+<pre>void connCallback(void *ptr)
+{
+    Avoid::ConnRef *connRef = (Avoid::ConnRef *) ptr; 
+
+    printf("Connector %u needs rerouting!\n", connRef-&gt;id());
+}
+
+connRef-&gt;setCallback(connCallback, connRef);</pre></p>
+
+<p>The callback will be triggered by movement, addition and deletion of shapes.  Adjusting the connector endpoints will not trigger it since if you're altering the endpoints you probably want to trigger the rerouting yourself.  You can check if a connector needs to be rerouted:
+<pre>if (connRef-&gt;needsReroute()) ...</pre></p>
+
+<p>If you want to trigger the callback for a connector after moving its endpoints (or when it is first created you can do this via:
+<pre>connRef->handleInvalid();</pre></p>
+
+<p>To generate a new path for a connector you do the following:
+<pre>connRef-&gt;generatePath();
+Avoid::PolyLine route = connRef-&gt;route();
+for (int i = 0; i &lt; route.pn; ++i) 
+{
+    printf("%f, %f\n", route.ps[i].x, route.ps[i].y);
+}</pre></p>       
+
+<p>You can update the endpoints of a connector with:
+<pre>Avoid::Point dstPt(6, 3);
+connRef-&gt;updateEndPoint(Avoid::VertID::tar, dstPt);</pre></p>
+
+<p>See also a short example: <a href="example.cpp">example.cpp</a></p>
+
+<p>libavoid has many other features and capabilities, that will be documented soon.</p>
+
+<!--
+connRef->setEndPointId(Avoid::VertID::tar, itemId);
+connRef-&gt;updateEndPoint(Avoid::VertID::src, srcPt);</pre></p>
+connRef-&gt;updateEndPoint(Avoid::VertID::tar, dstPt);</pre></p>
+connRef->generatePath(src, dst);
+connRef->makePathInvalid();
+connRef-&gt;calcRouteDist();
+-->
+
+</body>

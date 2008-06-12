@@ -1,39 +1,64 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
+  <title>Adaptagrams: Tools for Adaptive Diagrams</title>
   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
   <meta name="keywords" content="diagramming, layout, diagrams, graph layout"/>
   <meta name="description" content="Adaptagrams project page"/>
 </head>
 <body>
-You must have an SVG capable browser such as <a href="http://www.spreadfirefox.com/?q=affiliates&amp;id=213509&amp;t=218"><img border="0" alt="Firefox 2" title="Firefox 2" src="http://sfx-images.mozilla.org/affiliates/Buttons/firefox2/ff2o80x15.gif"/></a> to see the images on this page.
-<embed src="adaptagrams.svg" type="image/svg+xml" align="left" name="adaptagramslogo" width=40%" height="40%"/>
-<p>A library of tools and reusable code for adaptive diagramming applications, eg: drawing tools, automated document and diagram layout, smart presentation software, graph drawing, chart layout, etc.</p>
-<p>So far the AdaptaGrams <a href="http://sourceforge.net/svn/?group_id=154331">repository</a> includes:</p>
-<p> <b>libvpsc</b> - a solver for the Variable Placement with Separation Constraints
-problem.  This is a quadratic programming problem inwhich the squared
-differences between a placement vector and some ideal placement are minimised
-subject to a set of separation constraints.  This is very useful in a number of
-layout problems. 
-</p>
-<p><b>libcola</b> - a library for constraint graph layout.  Specifically, force-directed layout using the stress-majorization method subject to separation constraints.  Applications include layout with non-overlapping nodes and clusters, directed graph layout and layout preserving the crossing properties of a given starting layout.
-</p>
-<p>
-Check out the C++ source code from the subversion repository using:
-</p>
+<p align="center"><embed src="adaptagrams-wide.svg" type="image/svg+xml" align="left" name="Adaptagrams Logo" width="100%" height="18%"/></p>
+<p>&nbsp;</p>
+
+<p>Adaptagrams is a library of tools and reusable code for adaptive diagramming
+applications, for example: drawing tools, automated document and diagram
+layout, smart presentation software, graph drawing, chart layout, etc.</p>
+
+<p>Currently, the Adaptagrams <a
+href="http://sourceforge.net/svn/?group_id=154331">repository</a> includes:</p>
+<ul>
+<li><b>libvpsc</b> &mdash; a solver for the Variable Placement with Separation
+Constraints problem.  This is a quadratic programming problem in which the
+squared differences between a placement vector and some ideal placement are
+minimised subject to a set of separation constraints.  This is very useful in a
+number of layout problems.  </li>
+<li><b>libcola</b> &mdash; a library for constraint graph layout.
+Specifically, force-directed layout using the stress-majorization method
+subject to separation constraints.  Applications include layout with
+non-overlapping nodes and clusters, directed graph layout and layout preserving
+the crossing properties of a given starting layout.  </li>
+<li><b><a href="libavoid/">libavoid</a></b> &mdash; a cross-platform C++ library providing fast,
+object-avoiding connector routing for use in interactive diagram editors.</li>
+</ul>
+
+<p>These libraries are collectively known as <code>cola</code> (for
+<b>Co</b>nstraint <b>La</b>yout).  To check out the C++ source code for
+<code>cola</code> from the subversion repository, do the following: </p>
+
 <p> <tt>
 svn co https://adaptagrams.svn.sourceforge.net/svnroot/adaptagrams/trunk/cola
 </tt> </p>
-<p>
-All code in the AdaptaGrams repository is released into open source under the terms of the <a href="http://www.gnu.org/licenses/lgpl.html">LGPL</a>.  Software using the above libraries includes: <a href="http://www.inkscape.org">Inkscape</a>, <a href="http://www.graphviz.org">Graphviz</a> and <a href="http://www.csse.monash.edu.au/~mwybrow/dunnart">Dunnart</a>.
-</p>
-<p>The AdaptaGrams repository is maintained by <a href="http://www.csse.monash.edu.au/~tdwyer">Tim Dwyer</a>.  A number of papers describing the algorithms used in these libraries are listed <a href="http://www.csse.monash.edu.au/~tdwyer">here</a>.
-</p>
-<p>Below is an example showing a biological pathway laid-out using the algorithms in libcola (you must have a web browser that can display <a href="http://www.w3.org/Graphics/SVG/">SVG</a> to view the
-diagrams on this page - try <a href="http://www.mozilla.com/firefox">Firefox</a>):<p>
-<embed src="SucroseBreakdownDicots-flowlayout.svg" type="image/svg+xml" align="left" name="metabolic pathway" width="100%" height="60%"/>
-<p>Below: network of research collaboration amongst members of the Centre for Research on Intelligent Systems at Monash University (you must have a web browser that can display <a href="http://www.w3.org/Graphics/SVG/">SVG</a> to view the
-diagrams on this page - try <a href="http://www.mozilla.com/firefox">Firefox</a>):<p>
-<embed src="research_collaboration.svg" type="image/svg+xml" align="left" name="research collaboration network" width="100%" height="60%"/>
+
+<p> All code in the Adaptagrams repository is released as open source under the
+terms of the <a href="http://www.gnu.org/licenses/lgpl.html">LGPL</a>.
+Software using the above libraries include: <a
+href="http://www.inkscape.org">Inkscape</a>, <a
+href="http://www.graphviz.org">Graphviz</a> and <a
+href="http://www.csse.monash.edu.au/~mwybrow/dunnart">Dunnart</a>.  </p>
+
+<p>The Adaptagrams code is written and maintained by <a
+href="http://www.csse.monash.edu.au/~tdwyer/">Tim Dwyer</a> and <a
+href="http://www.csse.monash.edu.au/~mwybrow/">Michael Wybrow</a>.  A number of
+papers describing the algorithms used in these libraries are listed <a
+href="http://www.csse.monash.edu.au/~tdwyer/">here</a> and <a
+href="http://www.csse.monash.edu.au/~mwybrow/#publications">here</a>.  </p>
+
+<h2>Examples</h2>
+
+<p>You must have an <a href="http://www.w3.org/Graphics/SVG/">SVG</a> capable browser such as <a href="http://www.spreadfirefox.com/?q=affiliates&amp;id=213509&amp;t=218"><img border="0" alt="Firefox 2" title="Firefox 2" src="http://sfx-images.mozilla.org/affiliates/Buttons/firefox2/ff2o80x15.gif"/></a> to see the images on this page.</p>
+<p>Below is an example showing a biological pathway laid-out using the algorithms in libcola:</p>
+<p><embed src="SucroseBreakdownDicots-flowlayout.svg" type="image/svg+xml" align="left" name="metabolic pathway" width="100%" height="60%"/>
+<p>Below: network of research collaboration amongst members of the Centre for Research on Intelligent Systems at Monash University:
+<p><embed src="research_collaboration.svg" type="image/svg+xml" align="left" name="research collaboration network" width="100%" height="60%"/>
 <script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
 </script>
 <script type="text/javascript">
