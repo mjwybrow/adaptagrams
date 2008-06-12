@@ -85,6 +85,7 @@ public:
         ,  minY(Other.minY)
         ,  maxY(Other.maxY)
         ,  overlap(Other.overlap) { }
+    Rectangle() {}
     /**
      * reset the dimensions in one axis
      * @param d axis (0==X, 1==Y)

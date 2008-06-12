@@ -5,6 +5,7 @@
 #include <vector>
 #include <libcola/cola.h>
 #include <libvpsc/rectangle.h>
+#include <libcola/compound_constraints.h>
 /* Includes the header in the wrapper code */
 
 /*using namespace Avoid;*/
@@ -14,20 +15,27 @@ using namespace topology;
 %}
 
 %ignore cola::PreIteration::operator();
-%ignore cola::TestConvergence::operator();
+//%ignore cola::TestConvergence::operator();
 %ignore operator<<(std::ostream &os, vpsc::Rectangle const &r);
 %ignore vpsc::Rectangle::setXBorder(double);
 %ignore vpsc::Rectangle::setYBorder(double);
 %ignore Avoid::point::operator==(Avoid::point const &) const;
 %ignore Avoid::point::operator!=(Avoid::point const &) const;
+%ignore cola::Resize::Resize();
 
 %include "std_vector.i"
 %include "std_pair.i"
 
-%template(CompoundConstraintsVector) std::vector<int>;
 %template(EdgeVector) std::vector<cola::Edge>;
 %template(ColaEdge) std::pair<unsigned,unsigned>;
+%template(OffsetPair) std::pair<unsigned,double>;
+%template(OffsetList) std::vector<std::pair<unsigned,double> >;
 %template(RectPtrVector) std::vector<vpsc::Rectangle*>;
+%template(CompoundConstraintsVector) std::vector<cola::CompoundConstraint*>;
+%template(ColaLocks) std::vector<cola::Lock>;
+%template(ColaResizes) std::vector<cola::Resize>;
+
+%rename(testoperator) cola::TestConvergence::operator();
 
 //%rename straightener::Edge StraightenerEdge;
 
@@ -36,7 +44,6 @@ using namespace topology;
 %include "libvpsc/rectangle.h"
 %include "libcola/compound_constraints.h"
 
-/*%include "libtopology/topology_graph.h"*/
 
 /*
 %include "libavoid/connector.h"

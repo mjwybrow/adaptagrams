@@ -1,8 +1,8 @@
-JAVA_INCLUDE = -I/usr/lib/jvm/java-6-sun-1.6.0.06/include -I/usr/lib/jvm/java-6-sun-1.6.0.06/include/linux
-#JAVA_INCLUDE = -I/System/Library/Frameworks/JavaVM.framework/Headers
+#JAVA_INCLUDE = -I/usr/lib/jvm/java-6-sun-1.6.0.06/include -I/usr/lib/jvm/java-6-sun-1.6.0.06/include/linux
+JAVA_INCLUDE = -I/System/Library/Frameworks/JavaVM.framework/Headers
 OSXLINK = g++ -dynamiclib -framework JavaVM -o cola.jnilib
 LINUXLINK = g++ -shared -o libcolajni.so
-LINK = $(LINUXLINK)
+LINK = $(OSXLINK)
 
 all: cola.jnilib colajava.jar
 

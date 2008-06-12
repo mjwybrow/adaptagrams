@@ -33,6 +33,7 @@ typedef std::pair<unsigned, unsigned> Edge;
  */
 class Lock {
 public:
+    Lock() {}
     Lock(unsigned id, double X, double Y) : id(id), x(X), y(Y) {
     }
     unsigned getID() const {
@@ -46,13 +47,14 @@ private:
     double x;
     double y;
 };
-typedef std::vector<Lock> Locks;
+typedef std::vector<cola::Lock> Locks;
 
 /**
  * A Resize specifies a required bounding box for a node
  */
 class Resize {
 public:
+    Resize() {}
     Resize(unsigned id, double x, double y, double w, double h)
         : id(id), target(x,x+w,y,y+h) {}
     unsigned getID() const {
@@ -65,7 +67,7 @@ private:
     unsigned id;
 	vpsc::Rectangle target;
 };
-typedef std::vector<Resize> Resizes;
+typedef std::vector<cola::Resize> Resizes;
 
 /** 
  * provides a functor that is called before each iteration in the main loop of
@@ -173,14 +175,14 @@ public:
     /**
      * Horizontal alignment constraints
      */
-    void setXConstraints(CompoundConstraints* ccsx) {
+    void setXConstraints(cola::CompoundConstraints* ccsx) {
         constrainedLayout = true;
         this->ccsx=ccsx;
     }
     /**
      * Vertical alignment constraints
      */
-    void setYConstraints(CompoundConstraints* ccsy) {
+    void setYConstraints(cola::CompoundConstraints* ccsy) {
         constrainedLayout = true;
         this->ccsy=ccsy;
     }
@@ -324,7 +326,7 @@ private:
     RootCluster *clusterHierarchy;
     straightener::LinearConstraints *linearConstraints;
     GradientProjection *gpX, *gpY;
-    CompoundConstraints *ccsx, *ccsy;
+    cola::CompoundConstraints *ccsx, *ccsy;
     UnsatisfiableConstraintInfos *unsatisfiableX, *unsatisfiableY;
     NonOverlapConstraints avoidOverlaps;
     std::vector<straightener::Edge*>* straightenEdges;
@@ -372,10 +374,11 @@ public:
         TestConvergence& done=defaultTest,
         PreIteration* preIteration=NULL);
     void run(bool x=true, bool y=true);
+    void runOnce(bool x=true, bool y=true);
     /**
      * Horizontal alignment constraints
      */
-    void setXConstraints(CompoundConstraints* ccsx) {
+    void setXConstraints(cola::CompoundConstraints* ccsx) {
         if(ccsx->size()>0) {
             this->ccsx=ccsx;
         }
@@ -383,7 +386,7 @@ public:
     /**
      * Vertical alignment constraints
      */
-    void setYConstraints(CompoundConstraints* ccsy) {
+    void setYConstraints(cola::CompoundConstraints* ccsy) {
         if(ccsy->size()>0) {
             this->ccsy=ccsy;
         }
@@ -443,7 +446,7 @@ private:
     std::vector<std::vector<double> > neighbourLengths;
     TestConvergence& done;
     PreIteration* preIteration;
-    CompoundConstraints *ccsx, *ccsy;
+    cola::CompoundConstraints *ccsx, *ccsy;
     double** D;
     unsigned short** G;
     std::vector<topology::Node*>* topologyNodes;

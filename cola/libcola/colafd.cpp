@@ -69,6 +69,7 @@ ConstrainedFDLayout::ConstrainedFDLayout(
 	for(vpsc::Rectangles::const_iterator ri=rs.begin();ri!=rs.end();++ri,++i) {
         X[i]=(*ri)->getCentreX();
         Y[i]=(*ri)->getCentreY();
+	FILE_LOG(logDEBUG) << *r;
     }
     D=new double*[n];
     G=new unsigned short*[n];
@@ -178,7 +179,7 @@ void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis) {
             if(!(*preIteration)()) {
                 break;
             }
-            //printf("preIteration->changed=%d\n",preIteration->changed);
+            printf("preIteration->changed=%d\n",preIteration->changed);
             if(preIteration->changed) {
                 stress=DBL_MAX;
             }
@@ -207,7 +208,31 @@ void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis) {
         stress=computeStress();
         FILE_LOG(logDEBUG) << "stress="<<stress;
     } while(!done(stress,X,Y));
+    for(unsigned i=0;i<n;i++) {
+        vpsc::Rectangle *r=boundingBoxes[i];
+	FILE_LOG(logDEBUG) << *r;
+    }
     FILE_LOG(logDEBUG) << "ConstrainedFDLayout::run done.";
+}
+void ConstrainedFDLayout::runOnce(const bool xAxis, const bool yAxis) {
+    if(n==0) return;
+    double stress=DBL_MAX;
+    unsigned N=2*n;
+    Position x0(N),x1(N);
+    getPosition(X,Y,x0);
+	if(rungekutta) {
+		Position a(N),b(N),c(N),d(N),ia(N),ib(N);
+        computeDescentVectorOnBothAxes(xAxis,yAxis,stress,x0,a);
+        ia=x0+(a-x0)/2.0;
+        computeDescentVectorOnBothAxes(xAxis,yAxis,stress,ia,b);
+        ib=x0+(b-x0)/2.0;
+        computeDescentVectorOnBothAxes(xAxis,yAxis,stress,ib,c);
+        computeDescentVectorOnBothAxes(xAxis,yAxis,stress,c,d);
+        x1=a+2.0*b+2.0*c+d;
+        x1/=6.0;
+	} else {
+        computeDescentVectorOnBothAxes(xAxis,yAxis,stress,x0,x1);
+    }
 }
 void setupVarsAndConstraints(unsigned n, const CompoundConstraints* ccs,
         vpsc::Variables& vs, vpsc::Constraints& cs) {
