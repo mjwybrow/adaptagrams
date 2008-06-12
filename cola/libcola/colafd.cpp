@@ -69,7 +69,7 @@ ConstrainedFDLayout::ConstrainedFDLayout(
 	for(vpsc::Rectangles::const_iterator ri=rs.begin();ri!=rs.end();++ri,++i) {
         X[i]=(*ri)->getCentreX();
         Y[i]=(*ri)->getCentreY();
-	FILE_LOG(logDEBUG) << *r;
+        FILE_LOG(logDEBUG) << *ri;
     }
     D=new double*[n];
     G=new unsigned short*[n];
