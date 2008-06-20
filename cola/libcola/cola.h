@@ -392,7 +392,6 @@ public:
         }
     }
     void setTopology(std::vector<topology::Node*>* tnodes, std::vector<topology::Edge*>* routes) {
-        //printf("setTopology...\n");
         topologyNodes=tnodes;
         topologyRoutes=routes;
     }

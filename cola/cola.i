@@ -6,6 +6,7 @@
 #include <libcola/cola.h>
 #include <libvpsc/rectangle.h>
 #include <libcola/compound_constraints.h>
+#include <libtopology/topology_graph.h>
 /* Includes the header in the wrapper code */
 
 /*using namespace Avoid;*/
@@ -19,9 +20,29 @@ using namespace topology;
 %ignore operator<<(std::ostream &os, vpsc::Rectangle const &r);
 %ignore vpsc::Rectangle::setXBorder(double);
 %ignore vpsc::Rectangle::setYBorder(double);
+%ignore vpsc::assertNoOverlaps(const Rectangles& rs);
 %ignore Avoid::point::operator==(Avoid::point const &) const;
 %ignore Avoid::point::operator!=(Avoid::point const &) const;
 %ignore cola::Resize::Resize();
+%ignore topology::Segment;
+%ignore topology::EdgePoint::inSegment;
+%ignore topology::EdgePoint::outSegment;
+%ignore topology::EdgePoint::bendConstraint;
+%ignore topology::EdgePoint::prune();
+%ignore topology::EdgePoint::getBendConstraint(std::vector<TopologyConstraint*>* ts);
+%ignore topology::EdgePoint::createBendConstraint();
+%ignore topology::EdgePoint::deleteBendConstraint();
+%ignore topology::Edge::firstSegment;
+%ignore topology::Edge::lastSegment;
+%ignore topology::Edge::getTopologyConstraints(std::vector<TopologyConstraint*>* ts) const;
+%ignore topology::Edge::getRoute() const;
+%ignore topology::Edge::toString() const;
+%ignore topology::Edge::toString() const;
+%ignore topology::assertConvexBends(const Edges&);
+%ignore topology::assertNoSegmentRectIntersection(const Nodes&, const Edges&);
+%ignore topology::assertNoZeroLengthEdgeSegments(const Edges& es);
+%ignore topology::compute_stress(const Edges&);
+%ignore topology::printEdges(const Edges&);
 
 %include "std_vector.i"
 %include "std_pair.i"
@@ -34,6 +55,10 @@ using namespace topology;
 %template(CompoundConstraintsVector) std::vector<cola::CompoundConstraint*>;
 %template(ColaLocks) std::vector<cola::Lock>;
 %template(ColaResizes) std::vector<cola::Resize>;
+%template(TopologyEdgePointPtrVector) std::vector<topology::EdgePoint*>;
+%template(TopologyEdgePointConstPtrVector) std::vector<const topology::EdgePoint*>;
+%template(TopologyEdgePtrVector) std::vector<topology::Edge*>;
+%template(TopologyNodePtrVector) std::vector<topology::Node*>;
 
 %rename(testoperator) cola::TestConvergence::operator();
 
@@ -43,6 +68,7 @@ using namespace topology;
 %include "libcola/cola.h"
 %include "libvpsc/rectangle.h"
 %include "libcola/compound_constraints.h"
+%include "libtopology/topology_graph.h"
 
 
 /*
