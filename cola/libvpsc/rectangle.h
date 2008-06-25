@@ -18,7 +18,10 @@
 #include <cmath>
 
 namespace vpsc {
-enum Dim { HORIZONTAL, VERTICAL };
+enum Dim { HORIZONTAL=0, VERTICAL=1 };
+inline Dim conjugate(Dim d) {
+	return static_cast<Dim>(!d);
+}
 /* records the positions and sides through which a particular line intersects with a rectangle
  */
 struct RectangleIntersections {

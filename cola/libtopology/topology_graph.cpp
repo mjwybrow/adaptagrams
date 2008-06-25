@@ -107,12 +107,12 @@ void EdgePoint::getBendConstraint(vector<TopologyConstraint*>* ts) {
         ts->push_back(bendConstraint);
     }
 }
-double EdgePoint::pos(unsigned dim) const {
+double EdgePoint::pos(vpsc::Dim dim) const {
     double p;
 	vpsc::Rectangle* r=node->rect;
     switch(rectIntersect) {
         case TL:
-            p=dim==cola::HORIZONTAL?
+            p=dim==vpsc::HORIZONTAL?
                 r->getMinX():r->getMaxY();
             break;
         case TR:
@@ -122,7 +122,7 @@ double EdgePoint::pos(unsigned dim) const {
             p=r->getMinD(dim);
             break;
         case BR:
-            p=dim==cola::HORIZONTAL?
+            p=dim==vpsc::HORIZONTAL?
                 r->getMaxX():r->getMinY();
             break;
         default:
@@ -135,8 +135,8 @@ double EdgePoint::offset() const {
         return 0;
     }
     double o = node->rect->length(dim)/2.0;
-    if(dim==cola::HORIZONTAL && (rectIntersect == TL || rectIntersect == BL)
-     ||dim==cola::VERTICAL && (rectIntersect == BL || rectIntersect == BR)) {
+    if(dim==vpsc::HORIZONTAL && (rectIntersect == TL || rectIntersect == BL)
+     ||dim==vpsc::VERTICAL && (rectIntersect == BL || rectIntersect == BR)) {
             return -o;
         }
         return o;
@@ -303,7 +303,7 @@ void Segment::deleteStraightConstraints() {
 Segment::~Segment() {
     deleteStraightConstraints();
 }
-double Segment::length(unsigned dim) const {
+double Segment::length(vpsc::Dim dim) const {
     return fabs(end->pos(dim)-start->pos(dim));
 }
 void Segment::assertNonZeroLength() const {

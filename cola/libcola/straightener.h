@@ -63,10 +63,10 @@ struct DebugLine {
 class ScanObject {
 public:
     const unsigned id;
-    double getMin(cola::Dim d) const {
+    double getMin(vpsc::Dim d) const {
         return min[d];
     }
-    double getMax(cola::Dim d) const {
+    double getMax(vpsc::Dim d) const {
         return max[d];
     }
     ScanObject(unsigned id) : id(id) {}
@@ -162,7 +162,7 @@ class Straightener {
 public:
     Straightener(
             const double strength,
-            const cola::Dim dim,
+            const vpsc::Dim dim,
             vector<vpsc::Rectangle*> const & rs,
             cola::FixedList const & fixed,
             vector<Edge*> const & edges, 
@@ -185,7 +185,7 @@ public:
     unsigned N;
 private:
     double strength;
-    const cola::Dim dim;
+    const vpsc::Dim dim;
     cola::FixedList const & fixed;
     vector<Edge*> const & edges;
     vpsc::Variables const & vs;
@@ -244,8 +244,8 @@ public:
     Node(unsigned id, const double x, const double y) :
         ScanObject(id),cluster(NULL),
         edge(NULL),dummy(false),scan(false),active(true),open(false) {
-            pos[cola::HORIZONTAL]=x;
-            pos[cola::VERTICAL]=y;
+            pos[vpsc::HORIZONTAL]=x;
+            pos[vpsc::VERTICAL]=y;
             for(unsigned i=0;i<2;i++) {
                 length[i]=4;
                 min[i]=pos[i]-length[i]/2.0;
@@ -259,14 +259,14 @@ public:
     }
 
 private:
-    friend void sortNeighbours(const cola::Dim dim, Node * v, Node * l, Node * r, 
+    friend void sortNeighbours(const vpsc::Dim dim, Node * v, Node * l, Node * r, 
         const double conjpos, vector<Edge*> const & openEdges, 
         vector<Node *>& L, vector<Node *>& nodes);
     Node(const unsigned id, const double x, const double y, Edge* e) : 
         ScanObject(id),cluster(NULL),
         edge(e),dummy(true),scan(false),active(false)  {
-            pos[cola::HORIZONTAL]=x;
-            pos[cola::VERTICAL]=y;
+            pos[vpsc::HORIZONTAL]=x;
+            pos[vpsc::VERTICAL]=y;
             for(unsigned i=0;i<2;i++) {
                 length[i]=4;
                 min[i]=pos[i]-length[i]/2.0;
@@ -348,14 +348,14 @@ double pathLength(Edge const * e, vector<Node*> const & nodes);
 double computeStressFromRoutes(double strength, vector<Edge*> & edges);
 typedef vector<LinearConstraint*> LinearConstraints;
 void generateConstraints(
-        const cola::Dim dim, 
+        const vpsc::Dim dim, 
         vector<Node*> & nodes, 
         vector<Edge*> const & edges, 
         vector<cola::SeparationConstraint*>& cs,
         bool xSkipping);
 void nodePath(Edge& e, vector<Node*>& nodes, vector<unsigned>& path);
 void generateClusterBoundaries(
-        const cola::Dim dim,
+        const vpsc::Dim dim,
         vector<Node*> & nodes,
         vector<Edge*> & edges,
         vector<vpsc::Rectangle*> const & rs,

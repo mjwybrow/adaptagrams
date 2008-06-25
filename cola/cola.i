@@ -3,8 +3,9 @@
 
 %{
 #include <vector>
-#include <libcola/cola.h>
 #include <libvpsc/rectangle.h>
+#include <libcola/cola.h>
+#include <libcola/cluster.h>
 #include <libcola/compound_constraints.h>
 #include <libtopology/topology_graph.h>
 /* Includes the header in the wrapper code */
@@ -59,17 +60,19 @@ using namespace topology;
 %template(TopologyEdgePointConstPtrVector) std::vector<const topology::EdgePoint*>;
 %template(TopologyEdgePtrVector) std::vector<topology::Edge*>;
 %template(TopologyNodePtrVector) std::vector<topology::Node*>;
+%template(UnsignedVector) std::vector<unsigned>;
+%template(ClusterVector) std::vector<cola::Cluster*>;
 
 %rename(testoperator) cola::TestConvergence::operator();
 
 //%rename straightener::Edge StraightenerEdge;
 
 /* Parse the header file to generate wrappers */
-%include "libcola/cola.h"
 %include "libvpsc/rectangle.h"
+%include "libcola/cola.h"
+%include "libcola/cluster.h"
 %include "libcola/compound_constraints.h"
 %include "libtopology/topology_graph.h"
-
 
 /*
 %include "libavoid/connector.h"

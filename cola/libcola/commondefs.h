@@ -30,7 +30,6 @@ namespace cola {
  *         depending on which leads to less displacement
  */
 enum NonOverlapConstraints { None, Horizontal, Both };
-enum Dim { HORIZONTAL, VERTICAL };
 class FixedList {
 public:
     FixedList(const unsigned n) : array(std::valarray<bool>(n)),allFixed(false) 

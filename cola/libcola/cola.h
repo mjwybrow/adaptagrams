@@ -39,8 +39,8 @@ public:
     unsigned getID() const {
         return id;
     }
-    double pos(cola::Dim dim) const {
-        return dim==HORIZONTAL?x:y;
+    double pos(vpsc::Dim dim) const {
+		return dim==vpsc::HORIZONTAL?x:y;
     }
 private:
     unsigned id;
@@ -270,7 +270,7 @@ public:
      * run the layout algorithm in either the x-dim the y-dim or both
      */
     void run(bool x=true, bool y=true);
-    void straighten(std::vector<straightener::Edge*>&, cola::Dim);
+    void straighten(std::vector<straightener::Edge*>&, vpsc::Dim);
     void setConstrainedLayout(bool c) {
         constrainedLayout=c;
     }
@@ -419,12 +419,12 @@ private:
     unsigned n; // number of nodes
     std::valarray<double> X, Y;
 	std::vector<vpsc::Rectangle*> boundingBoxes;
-    double applyForcesAndConstraints(const Dim dim,const double oldStress);
+	double applyForcesAndConstraints(const vpsc::Dim dim,const double oldStress);
     double computeStepSize(const SparseMatrix& H, const std::valarray<double>& g,
             const std::valarray<double>& d) const;
     void computeDescentVectorOnBothAxes(const bool xaxis, const bool yaxis,
             double stress, std::valarray<double>& x0, std::valarray<double>& x1);
-    void moveTo(const Dim dim, std::valarray<double>& target);
+    void moveTo(const vpsc::Dim dim, std::valarray<double>& target);
     double applyDescentVector(
             const std::valarray<double>& d,
             const std::valarray<double>& oldCoords,
@@ -440,7 +440,7 @@ private:
     void setPosition(std::valarray<double>& pos);
     void moveBoundingBoxes();
     bool noForces(double, double, unsigned) const;
-    void computeForces(const Dim dim, SparseMap &H, std::valarray<double> &g);
+    void computeForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);
     std::vector<std::vector<unsigned> > neighbours;
     std::vector<std::vector<double> > neighbourLengths;
     TestConvergence& done;
@@ -454,6 +454,7 @@ private:
     bool rungekutta;
 };
 
+void removeClusterOverlapFast(RootCluster& clusterHierarchy, vpsc::Rectangles& rs);
 }
 #endif				// COLA_H
 

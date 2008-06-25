@@ -27,7 +27,7 @@
 //#define LINEDEBUG
 
 #include "libavoid/shape.h"
-#include "libavoid/cluster.h"
+#include "libavoid/viscluster.h"
 #include "libavoid/graph.h"
 #include "libavoid/timer.h"
 #include <list>

@@ -10,16 +10,16 @@
 #ifndef TOPOLOGY_GRAPH_H
 #define TOPOLOGY_GRAPH_H
 #include <vector>
+#include <libvpsc/rectangle.h>
 #include "util.h"
 namespace vpsc {
-    class Rectangle;
-    class Variable;
+	class Variable;
 }
 namespace straightener {
     class Route;
 }
 namespace topology {
-    extern cola::Dim dim;
+    extern vpsc::Dim dim;
     class Segment;
     class TopologyConstraint;
     class BendConstraint;
@@ -104,11 +104,11 @@ namespace topology {
          * @return the position, computed based on rectIntersect and rectangle
          * vertices of the node
          */
-        double pos(unsigned dim) const;
+		double pos(vpsc::Dim dim) const;
         /// @return x position
-        double posX() const { return pos(cola::HORIZONTAL); }
+        double posX() const { return pos(vpsc::HORIZONTAL); }
         /// @return y position
-        double posY() const { return pos(cola::VERTICAL); }
+        double posY() const { return pos(vpsc::VERTICAL); }
         /** 
          *  @return where the EdgePoint on the rectangle as a vertex index
          *  for libavoid.
@@ -236,14 +236,14 @@ namespace topology {
          * scan axis
          */
         EdgePoint* getMin() const {
-            if(start->pos(!dim) <= end->pos(!dim)) {
+			if(start->pos(vpsc::conjugate(dim)) <= end->pos(vpsc::conjugate(dim))) {
                 return start;
             }
             return end;
         }
         /// @return the EdgePoint on the maximum extent of this segment on the scan axis
         EdgePoint* getMax() const {
-            if(start->pos(!dim) > end->pos(!dim)) {
+            if(start->pos(vpsc::conjugate(dim)) > end->pos(vpsc::conjugate(dim))) {
                 return start;
             }
             return end;
@@ -254,7 +254,7 @@ namespace topology {
          * @return true if point does lie in the scan range
          */
         bool intersects(double pos) const {
-            if(pos>=getMin()->pos(!dim) && pos<=getMax()->pos(!dim)) {
+            if(pos>=getMin()->pos(vpsc::conjugate(dim)) && pos<=getMax()->pos(vpsc::conjugate(dim))) {
                 return true;
             }
             return false;
@@ -283,7 +283,7 @@ namespace topology {
         double intersection(const double pos,
             const EdgePoint* s, const EdgePoint* e, double& p) const {
             double ux=s->pos(dim) , vx=e->pos(dim),
-                   uy=s->pos(!dim), vy=e->pos(!dim);
+                   uy=s->pos(vpsc::conjugate(dim)), vy=e->pos(vpsc::conjugate(dim));
             double denom = vy - uy;
             assert(denom!=0); // must not be parallel to scanline!
             p = (pos - uy)/denom;
@@ -293,7 +293,7 @@ namespace topology {
         /**
          * Compute the length in the specified dimension.
          */
-        double length(unsigned dim) const;
+		double length(vpsc::Dim dim) const;
         /**
          * Compute the euclidean distance between #start and #end.
          */

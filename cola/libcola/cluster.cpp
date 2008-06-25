@@ -1,7 +1,7 @@
-#include <libvpsc/rectangle.h> 
 #include "commondefs.h"
 #include "cola.h"
 #include "convex_hull.h"
+#include "cluster.h"
 using vpsc::generateXConstraints;
 using vpsc::generateYConstraints;
 
@@ -32,7 +32,7 @@ namespace cola {
         bounds=vpsc::Rectangle(minX,maxX,minY,maxY);
     }
 
-    void ConvexCluster::computeBoundary(vector<vpsc::Rectangle*> const & rs) {
+	void ConvexCluster::computeBoundary(const vpsc::Rectangles& rs) {
         unsigned n=4*nodes.size();
         valarray<double> X(n);
         valarray<double> Y(n);
@@ -94,8 +94,8 @@ namespace cola {
             clusters[i]->computeBoundary(rs);
         }
     }
-    vpsc::Rectangle Cluster::getMinRect( const Dim dim, const vpsc::Rectangle& bounds) {
-        if(dim==HORIZONTAL) {
+	vpsc::Rectangle Cluster::getMinRect( const vpsc::Dim dim, const vpsc::Rectangle& bounds) {
+        if(dim==vpsc::HORIZONTAL) {
             length=bounds.width();
             vMin=vXMin;
             vMin->desiredPosition=bounds.getMinX();
@@ -111,8 +111,8 @@ namespace cola {
                              bounds.getMinY()+border);
         }
     }
-    vpsc::Rectangle Cluster::getMaxRect( const Dim dim, vpsc::Rectangle const & bounds) {
-        if(dim==HORIZONTAL) {
+	vpsc::Rectangle Cluster::getMaxRect( const vpsc::Dim dim, vpsc::Rectangle const & bounds) {
+        if(dim==vpsc::HORIZONTAL) {
             vMax=vXMax;
             vMax->desiredPosition=bounds.getMaxX();
             return vpsc::Rectangle(bounds.getMaxX()-border, bounds.getMaxX()+border,
@@ -125,14 +125,14 @@ namespace cola {
         }
     }
     void Cluster::createVars(
-            const Dim dim,
+			const vpsc::Dim dim,
 			const vpsc::Rectangles& rs, 
 			vpsc::Variables& vars) {
         assert(clusters.size()>0||nodes.size()>0);
         for(vector<Cluster*>::iterator i=clusters.begin();i!=clusters.end();i++) {
             (*i)->createVars(dim,rs,vars);
         }
-        if(dim==HORIZONTAL) {
+        if(dim==vpsc::HORIZONTAL) {
             vars.push_back(vXMin=new vpsc::Variable(
                         vars.size(),bounds.getMinX(),varWeight));
             vars.push_back(vXMax=new vpsc::Variable(
@@ -145,7 +145,7 @@ namespace cola {
         }
     }
     void Cluster::generateNonOverlapConstraints(
-            const Dim dim,
+			const vpsc::Dim dim,
             const NonOverlapConstraints nonOverlapConstraints,
 			const vpsc::Rectangles& rs,
 			const vpsc::Variables& vars,
@@ -189,7 +189,7 @@ namespace cola {
         //printf("Processing cluster: vars=%d,%d length=%f\n",vMin->id,vMax->id,length);
         vector<vpsc::Constraint*> tmp_cs;
         double hAdjust=0;
-        if(dim==HORIZONTAL) {
+        if(dim==vpsc::HORIZONTAL) {
             hAdjust=1;
             vpsc::Rectangle::setXBorder(0.001);
             // use rs->size() rather than n because some of the variables may
@@ -241,5 +241,6 @@ namespace cola {
         }
         return a;
     }
+
 } // namespace cola
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=8:softtabstop=4:encoding=utf-8:textwidth=99 :

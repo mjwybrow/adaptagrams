@@ -154,18 +154,18 @@ void getPosition(Position& X, Position& Y, Position& pos) {
 void ConstrainedFDLayout::setPosition(Position& pos) {
     assert(Y.size()==X.size());
     assert(pos.size()==2*X.size());
-    moveTo(HORIZONTAL,pos);
-    moveTo(VERTICAL,pos);
+    moveTo(vpsc::HORIZONTAL,pos);
+    moveTo(vpsc::VERTICAL,pos);
 }
 void ConstrainedFDLayout::computeDescentVectorOnBothAxes(
         const bool xAxis, const bool yAxis,
         double stress, Position& x0, Position& x1) {
     setPosition(x0);
     if(xAxis) {
-        applyForcesAndConstraints(HORIZONTAL,stress);
+        applyForcesAndConstraints(vpsc::HORIZONTAL,stress);
     }
     if(yAxis) {
-        applyForcesAndConstraints(VERTICAL,stress);
+        applyForcesAndConstraints(vpsc::VERTICAL,stress);
     }
     getPosition(X,Y,x1);
 }
@@ -324,24 +324,24 @@ void ConstrainedFDLayout::handleResizes(const Resizes& resizeList) {
  * @param dim axis
  * @param target array of desired positions (for both axes)
  */
-void ConstrainedFDLayout::moveTo(const Dim dim, Position& target) {
+void ConstrainedFDLayout::moveTo(const vpsc::Dim dim, Position& target) {
     assert(target.size()==2*n);
     FILE_LOG(logDEBUG) << "ConstrainedFDLayout::moveTo(): dim="<<dim;
-    valarray<double> &coords = (dim==HORIZONTAL)?X:Y;
+    valarray<double> &coords = (dim==vpsc::HORIZONTAL)?X:Y;
     vpsc::Variables vs;
     vpsc::Constraints cs;
-    CompoundConstraints* ccs=dim==HORIZONTAL?ccsx:ccsy;
+    CompoundConstraints* ccs=dim==vpsc::HORIZONTAL?ccsx:ccsy;
     setupVarsAndConstraints(n,ccs,vs,cs);
     topology::DesiredPositions des;
     if(preIteration) {
         for(vector<Lock>::iterator l=preIteration->locks.begin();
                 l!=preIteration->locks.end();l++) {
             des.push_back(make_pair(l->getID(),l->pos(dim)));
-            FILE_LOG(logDEBUG1)<<"desi: v["<<l->getID()<<"]=("<<l->pos(HORIZONTAL)
-                <<","<<l->pos(VERTICAL)<<")";
+            FILE_LOG(logDEBUG1)<<"desi: v["<<l->getID()<<"]=("<<l->pos(vpsc::HORIZONTAL)
+                <<","<<l->pos(vpsc::VERTICAL)<<")";
         }
     }
-    for(unsigned i=0, j=(dim==HORIZONTAL?0:n);i<n;++i,++j) {
+    for(unsigned i=0, j=(dim==vpsc::HORIZONTAL?0:n);i<n;++i,++j) {
 		vpsc::Variable* v=vs[i];
         v->desiredPosition = target[j];
     }
@@ -374,29 +374,29 @@ void ConstrainedFDLayout::moveTo(const Dim dim, Position& target) {
  * little as possible.  If "meta-constraints" such as avoidOverlaps or edge
  * straightening are required then dummy variables will be generated.
  */
-double ConstrainedFDLayout::applyForcesAndConstraints(const Dim dim, const double oldStress) {
+double ConstrainedFDLayout::applyForcesAndConstraints(const vpsc::Dim dim, const double oldStress) {
     FILE_LOG(logDEBUG) << "ConstrainedFDLayout::applyForcesAndConstraints(): dim="<<dim;
     valarray<double> g(n);
-    valarray<double> &coords = (dim==HORIZONTAL)?X:Y;
+    valarray<double> &coords = (dim==vpsc::HORIZONTAL)?X:Y;
     topology::DesiredPositions des;
     if(preIteration) {
         for(vector<Lock>::iterator l=preIteration->locks.begin();
                 l!=preIteration->locks.end();l++) {
             des.push_back(make_pair(l->getID(),l->pos(dim)));
-            FILE_LOG(logDEBUG1)<<"desi: v["<<l->getID()<<"]=("<<l->pos(HORIZONTAL)
-                <<","<<l->pos(VERTICAL)<<")";
+            FILE_LOG(logDEBUG1)<<"desi: v["<<l->getID()<<"]=("<<l->pos(vpsc::HORIZONTAL)
+                <<","<<l->pos(vpsc::VERTICAL)<<")";
         }
     }
     vpsc::Variables vs;
     vpsc::Constraints cs;
-    CompoundConstraints* ccs=dim==HORIZONTAL?ccsx:ccsy;
+    CompoundConstraints* ccs=dim==vpsc::HORIZONTAL?ccsx:ccsy;
     double stress;
     setupVarsAndConstraints(n,ccs,vs,cs);
     if(topologyRoutes) {
         FILE_LOG(logDEBUG1) << "applying topology preserving layout...";
 		vpsc::Rectangle::setXBorder(0);
 		vpsc::Rectangle::setYBorder(0);
-        if(dim==cola::HORIZONTAL) {
+        if(dim==vpsc::HORIZONTAL) {
             vpsc::Rectangle::setXBorder(0);
         }
         topology::setNodeVariables(*topologyNodes,vs);
@@ -487,7 +487,7 @@ double ConstrainedFDLayout::applyDescentVector(
 }
         
 void ConstrainedFDLayout::computeForces(
-        const Dim dim,
+		const vpsc::Dim dim,
         SparseMap &H,
         valarray<double> &g) {
     if(n==1) return;
@@ -510,8 +510,8 @@ void ConstrainedFDLayout::computeForces(
             if (l < 1e-30) {
                 l=0.1;
             }
-            double dx=dim==HORIZONTAL?rx:ry;
-            double dy=dim==HORIZONTAL?ry:rx;
+            double dx=dim==vpsc::HORIZONTAL?rx:ry;
+            double dy=dim==vpsc::HORIZONTAL?ry:rx;
             g[u]+=dx*(l-d)/(d2*l);
             Huu-=H(u,v)=(d*dy*dy/(l*l*l)-1)/d2;
         }
@@ -558,7 +558,7 @@ double ConstrainedFDLayout::computeStress() const {
         if ((*preIteration)()) {
             for(vector<Lock>::iterator l=preIteration->locks.begin();
                     l!=preIteration->locks.end();l++) {
-                double dx=l->pos(HORIZONTAL)-X[l->getID()], dy=l->pos(VERTICAL)-Y[l->getID()];
+                double dx=l->pos(vpsc::HORIZONTAL)-X[l->getID()], dy=l->pos(vpsc::VERTICAL)-Y[l->getID()];
                 double s=10000*(dx*dx+dy*dy);
                 stress+=s;
                 FILE_LOG(logDEBUG2)<<"d("<<l->getID()<<")="<<s;

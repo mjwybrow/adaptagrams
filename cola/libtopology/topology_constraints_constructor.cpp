@@ -16,7 +16,7 @@
 using namespace std;
 using vpsc::Rectangle;
 namespace topology {
-cola::Dim dim;
+vpsc::Dim dim;
 struct SegmentOpen;
 struct NodeOpen;
 typedef list<SegmentOpen*> OpenSegments;
@@ -136,7 +136,7 @@ struct NodeClose : NodeEvent {
         //if(overlap>1e-5) {
             double g = left->rect->length(dim) + right->rect->length(dim);
             g/=2.0;
-            //if(dim==cola::HORIZONTAL) {
+            //if(dim==vpsc::HORIZONTAL) {
                 g+=1e-7;
             //}
             //assert(l->getPosition() + g <= r->getPosition());
@@ -179,7 +179,7 @@ struct NodeClose : NodeEvent {
 struct SegmentEvent : Event {
     Segment *s;
     SegmentEvent(bool open, EdgePoint* v, Segment *s)
-        : Event(open,v->pos(!dim)), s(s) {}
+		: Event(open,v->pos(vpsc::conjugate(dim))), s(s) {}
 };
 /**
  * at a segment open we add the segment to the list of open segments
@@ -317,8 +317,8 @@ bool Segment::createStraightConstraint(Node* node, double pos) {
     // no straight constraints between a node directly connected by its CENTRE 
     // to this segment.
     assert(!connectedToNode(node));
-    const double top = max(end->pos(!dim),start->pos(!dim)), 
-                 bottom = min(end->pos(!dim),start->pos(!dim));
+	const double top = max(end->pos(vpsc::conjugate(dim)),start->pos(vpsc::conjugate(dim))), 
+                 bottom = min(end->pos(vpsc::conjugate(dim)),start->pos(vpsc::conjugate(dim)));
     // segments orthogonal to scan direction need no StraightConstraints
     FILE_LOG(logDEBUG)<<"Segment::createStraightConstraint, node->id="<<node->id<<", edge->id="<<edge->id<<" pos="<<pos;
     if(top==bottom) {
@@ -329,7 +329,7 @@ bool Segment::createStraightConstraint(Node* node, double pos) {
     //assert(bottom<=pos);
     //assert(top>=pos);
     vpsc::Rectangle* r=node->rect;
-    FILE_LOG(logDEBUG1)<<"Segment: from {"<<start->pos(dim)<<","<<start->pos(!dim)<<"},{"<<end->pos(dim)<<","<<end->pos(!dim)<<"}";
+	FILE_LOG(logDEBUG1)<<"Segment: from {"<<start->pos(dim)<<","<<start->pos(vpsc::conjugate(dim))<<"},{"<<end->pos(dim)<<","<<end->pos(vpsc::conjugate(dim))<<"}";
     FILE_LOG(logDEBUG1)<<"Node: rect "<<*r;
     // determine direction of constraint based on intersection of segment with
     // scan line, i.e. set nodeLeft based on whether the intersection of the
@@ -339,7 +339,7 @@ bool Segment::createStraightConstraint(Node* node, double pos) {
     // set ri (the vertex of the node rectangle that is to be 
     // kept to the left of the segment
     EdgePoint::RectIntersect ri;
-    if(dim==cola::HORIZONTAL) {
+    if(dim==vpsc::HORIZONTAL) {
         ri=pos < r->getCentreY()
              ? (nodeLeft ? EdgePoint::BR : EdgePoint::BL)
              : (nodeLeft ? EdgePoint::TR : EdgePoint::TL);
@@ -418,7 +418,7 @@ BendConstraint::
 BendConstraint(EdgePoint* v) 
     : bendPoint(v) 
 {
-    FILE_LOG(logDEBUG)<<"BendConstraint ctor, pos="<<v->pos(!dim);
+	FILE_LOG(logDEBUG)<<"BendConstraint ctor, pos="<<v->pos(vpsc::conjugate(dim));
     assert(v->inSegment!=NULL);
     assert(v->outSegment!=NULL);
     // v must be a bend point around some node
@@ -427,7 +427,7 @@ BendConstraint(EdgePoint* v)
     EdgePoint *u=v->inSegment->start, *w=v->outSegment->end;
     assert(v->assertConvexBend());
     bool leftOf=false;
-    if(dim==cola::HORIZONTAL) {
+    if(dim==vpsc::HORIZONTAL) {
         if(v->rectIntersect==EdgePoint::TR || v->rectIntersect==EdgePoint::BR) {
             leftOf=true;
         }
@@ -445,12 +445,12 @@ BendConstraint(EdgePoint* v)
     // bend constraint will be more accurate if the reference segment is the
     // one most orthogonal to scan line.
     double p;
-    if(v->inSegment->length(!dim)>v->outSegment->length(!dim)) {
-        v->inSegment->forwardIntersection(w->pos(!dim),p);
+	if(v->inSegment->length(vpsc::conjugate(dim))>v->outSegment->length(vpsc::conjugate(dim))) {
+		v->inSegment->forwardIntersection(w->pos(vpsc::conjugate(dim)),p);
         double g=u->offset()+p*(v->offset()-u->offset())-w->offset();
         c=new TriConstraint(u->node,v->node,w->node,p,g,leftOf);
     } else {
-        v->outSegment->reverseIntersection(u->pos(!dim),p);
+        v->outSegment->reverseIntersection(u->pos(vpsc::conjugate(dim)),p);
         double g=w->offset()+p*(v->offset()-w->offset())-u->offset();
         c=new TriConstraint(w->node,v->node,u->node,p,g,leftOf);
         FILE_LOG(logDEBUG1)<<"  Reverse bend constraint!";
@@ -461,7 +461,7 @@ struct CreateSegmentEvents {
     CreateSegmentEvents(vector<Event*>& events) : events(events) {}
     void operator() (Segment* s) {
         // don't generate events for segments parallel to scan line
-        if(s->start->pos(!dim)!=s->end->pos(!dim)) {
+        if(s->start->pos(vpsc::conjugate(dim))!=s->end->pos(vpsc::conjugate(dim))) {
             SegmentOpen *open=new SegmentOpen(s);
             SegmentClose *close=new SegmentClose(s,open);
             events.push_back(open);
@@ -525,8 +525,8 @@ struct PruneDegenerate {
             double inSegLen = p->inSegment->length(), 
                    outSegLen = p->outSegment->length();
             if(inSegLen>0 && outSegLen>0
-                    && o->pos(!dim)==p->pos(!dim) 
-                    && p->pos(!dim)==q->pos(!dim)) {
+                    && o->pos(vpsc::conjugate(dim))==p->pos(vpsc::conjugate(dim)) 
+                    && p->pos(vpsc::conjugate(dim))==q->pos(vpsc::conjugate(dim))) {
                 FILE_LOG(logDEBUG)<<"EdgePoint collinear in scan dimension!";
                 FILE_LOG(logDEBUG)<<"  need to prune";
                 pruneList.push_back(p);
@@ -548,7 +548,7 @@ struct PruneDegenerate {
 
 TopologyConstraints::
 TopologyConstraints( 
-    const cola::Dim axisDim,
+    const vpsc::Dim axisDim,
     Nodes& nodes,
     Edges& edges,
     vpsc::Variables& vs,

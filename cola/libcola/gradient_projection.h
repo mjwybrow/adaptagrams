@@ -26,7 +26,7 @@ enum SolveWithMosek { Off, Inner, Outer };
 class GradientProjection {
 public:
 	GradientProjection(
-        const Dim k,
+		const vpsc::Dim k,
 		std::valarray<double> *denseQ,
 		const double tol,
 		const unsigned max_iterations,
@@ -76,7 +76,7 @@ public:
         vars[i]->desiredPosition=pos;
         vars[i]->fixedDesiredPosition=true;
     }
-    const Dim getDimension() const {
+	const vpsc::Dim getDimension() const {
         return k;
     }
     void straighten(
@@ -100,7 +100,7 @@ private:
         std::valarray<double> const & g, std::valarray<double> const & d) const;
     bool runSolver(std::valarray<double> & result);
     void destroyVPSC(vpsc::IncSolver *vpsc);
-    Dim k;
+	vpsc::Dim k;
     unsigned numStaticVars; // number of variables that persist
                               // throughout iterations
     const unsigned denseSize; // denseQ has denseSize^2 entries

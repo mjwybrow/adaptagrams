@@ -31,7 +31,7 @@ namespace cola {
  * topology preserving layout.
  */
 namespace topology {
-    extern cola::Dim dim;
+    extern vpsc::Dim dim;
     class StraightConstraint;
     class Edge;
     /**
@@ -181,7 +181,7 @@ namespace topology {
          * automatically generated non-overlap constraints
          */
         TopologyConstraints(
-            const cola::Dim dim, 
+            const vpsc::Dim dim, 
             Nodes& nodes,
             Edges& edges,
             vpsc::Variables& vs,

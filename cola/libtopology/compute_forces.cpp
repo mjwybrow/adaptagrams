@@ -32,7 +32,7 @@ double len(const EdgePoint* u, const EdgePoint* v,
 }
 double gRule1(const EdgePoint* a, const EdgePoint* b) {
     double dxab, dyab, dxab2, dyab2;
-    double lab=dim==cola::HORIZONTAL?
+    double lab=dim==vpsc::HORIZONTAL?
         len(a,b,dxab,dyab,dxab2,dyab2):
         len(a,b,dyab,dxab,dyab2,dxab2);
     assert(lab!=0);
@@ -41,12 +41,12 @@ double gRule1(const EdgePoint* a, const EdgePoint* b) {
 double gRule2(
         const EdgePoint* a, const EdgePoint* b, const EdgePoint* c) {
     double dxab, dyab, dxab2, dyab2;
-    double lab=dim==cola::HORIZONTAL?
+    double lab=dim==vpsc::HORIZONTAL?
         len(a,b,dxab,dyab,dxab2,dyab2):
         len(a,b,dyab,dxab,dyab2,dxab2);
     assert(lab!=0);
     double dxbc, dybc, dxbc2, dybc2;
-    double lbc=dim==cola::HORIZONTAL?
+    double lbc=dim==vpsc::HORIZONTAL?
         len(b,c,dxbc,dybc,dxbc2,dybc2):
         len(b,c,dybc,dxbc,dybc2,dxbc2);
     assert(lbc!=0);
@@ -54,7 +54,7 @@ double gRule2(
 }
 double hRuleD1(const EdgePoint* u, const EdgePoint* v, const double dl) {
     double dx, dy, dx2, dy2;
-    double l=dim==cola::HORIZONTAL?
+    double l=dim==vpsc::HORIZONTAL?
         len(u,v,dx,dy,dx2,dy2):
         len(u,v,dy,dx,dy2,dx2);
     assert(l!=0);
@@ -63,12 +63,12 @@ double hRuleD1(const EdgePoint* u, const EdgePoint* v, const double dl) {
 double hRuleD2(
         const EdgePoint* u, const EdgePoint* v, const EdgePoint* w, const double dl) {
     double dxuv, dyuv, dxuv2, dyuv2;
-    double luv=dim==cola::HORIZONTAL?
+    double luv=dim==vpsc::HORIZONTAL?
         len(u,v,dxuv,dyuv,dxuv2,dyuv2):
         len(u,v,dyuv,dxuv,dyuv2,dxuv2);
     assert(luv!=0);
     double dxvw, dyvw, dxvw2, dyvw2;
-    double lvw=dim==cola::HORIZONTAL?
+    double lvw=dim==vpsc::HORIZONTAL?
         len(v,w,dxvw,dyvw,dxvw2,dyvw2):
         len(v,w,dyvw,dxvw,dyvw2,dxvw2);
     assert(lvw!=0);
@@ -79,12 +79,12 @@ double hRuleD2(
 double hRule2(
         const EdgePoint* u, const EdgePoint* v, const EdgePoint* w, const double dl) {
     double dxuv, dyuv, dxuv2, dyuv2;
-    double luv=dim==cola::HORIZONTAL?
+    double luv=dim==vpsc::HORIZONTAL?
         len(u,v,dxuv,dyuv,dxuv2,dyuv2):
         len(u,v,dyuv,dxuv,dyuv2,dxuv2);
     assert(luv!=0);
     double dxvw, dyvw, dxvw2, dyvw2;
-    double lvw=dim==cola::HORIZONTAL?
+    double lvw=dim==vpsc::HORIZONTAL?
         len(v,w,dxvw,dyvw,dxvw2,dyvw2):
         len(v,w,dyvw,dxvw,dyvw2,dxvw2);
     assert(lvw!=0);
@@ -97,12 +97,12 @@ double hRule3(
         const EdgePoint* u, const EdgePoint* v, const EdgePoint* w, 
         const double dl) {
     double dxuv, dyuv, dxuv2, dyuv2;
-    double luv=dim==cola::HORIZONTAL?
+    double luv=dim==vpsc::HORIZONTAL?
         len(u,v,dxuv,dyuv,dxuv2,dyuv2):
         len(u,v,dyuv,dxuv,dyuv2,dxuv2);
     assert(luv!=0);
     double dxvw, dyvw, dxvw2, dyvw2;
-    double lvw=dim==cola::HORIZONTAL?
+    double lvw=dim==vpsc::HORIZONTAL?
         len(v,w,dxvw,dyvw,dxvw2,dyvw2):
         len(v,w,dyvw,dxvw,dyvw2,dxvw2);
     assert(lvw!=0);
@@ -114,12 +114,12 @@ double hRule3(
 double hRule4(const EdgePoint* a, const EdgePoint* b, 
         const EdgePoint* c, const EdgePoint* d) {
     double dxab, dyab, dxab2, dyab2;
-    double lab=dim==cola::HORIZONTAL?
+    double lab=dim==vpsc::HORIZONTAL?
         len(a,b,dxab,dyab,dxab2,dyab2):
         len(a,b,dyab,dxab,dyab2,dxab2);
     assert(lab!=0);
     double dxcd, dycd, dxcd2, dycd2;
-    double lcd=dim==cola::HORIZONTAL?
+    double lcd=dim==vpsc::HORIZONTAL?
         len(c,d,dxcd,dycd,dxcd2,dycd2):
         len(c,d,dycd,dxcd,dycd2,dxcd2);
     assert(lcd!=0);
@@ -128,17 +128,17 @@ double hRule4(const EdgePoint* a, const EdgePoint* b,
 double hRule56(const EdgePoint* u, const EdgePoint* v, 
         const EdgePoint* a, const EdgePoint* b, const EdgePoint* c) {
     double dxuv, dyuv, dxuv2, dyuv2;
-    double luv=dim==cola::HORIZONTAL?
+    double luv=dim==vpsc::HORIZONTAL?
         len(u,v,dxuv,dyuv,dxuv2,dyuv2):
         len(u,v,dyuv,dxuv,dyuv2,dxuv2);
     assert(luv!=0);
     double dxab, dyab, dxab2, dyab2;
-    double lab=dim==cola::HORIZONTAL?
+    double lab=dim==vpsc::HORIZONTAL?
         len(a,b,dxab,dyab,dxab2,dyab2):
         len(a,b,dyab,dxab,dyab2,dxab2);
     assert(lab!=0);
     double dxbc, dybc, dxbc2, dybc2;
-    double lbc=dim==cola::HORIZONTAL?
+    double lbc=dim==vpsc::HORIZONTAL?
         len(b,c,dxbc,dybc,dxbc2,dybc2):
         len(b,c,dybc,dxbc,dybc2,dxbc2);
     assert(lbc!=0);
@@ -147,17 +147,17 @@ double hRule56(const EdgePoint* u, const EdgePoint* v,
 double hRule7(const EdgePoint* a, const EdgePoint* b, 
         const EdgePoint* c, const EdgePoint* d, const double dl) {
     double dxab, dyab, dxab2, dyab2;
-    double lab=dim==cola::HORIZONTAL?
+    double lab=dim==vpsc::HORIZONTAL?
         len(a,b,dxab,dyab,dxab2,dyab2):
         len(a,b,dyab,dxab,dyab2,dxab2);
     assert(lab!=0);
     double dxbc, dybc, dxbc2, dybc2;
-    double lbc=dim==cola::HORIZONTAL?
+    double lbc=dim==vpsc::HORIZONTAL?
         len(b,c,dxbc,dybc,dxbc2,dybc2):
         len(b,c,dybc,dxbc,dybc2,dxbc2);
     assert(lbc!=0);
     double dxcd, dycd, dxcd2, dycd2;
-    double lcd=dim==cola::HORIZONTAL?
+    double lcd=dim==vpsc::HORIZONTAL?
         len(c,d,dxcd,dycd,dxcd2,dycd2):
         len(c,d,dycd,dxcd,dycd2,dxcd2);
     assert(lcd!=0);
@@ -167,22 +167,22 @@ double hRule7(const EdgePoint* a, const EdgePoint* b,
 double hRule8(const EdgePoint* u, const EdgePoint* v, const EdgePoint* w,
         const EdgePoint* a, const EdgePoint* b, const EdgePoint* c) {
     double dxuv, dyuv, dxuv2, dyuv2;
-    double luv=dim==cola::HORIZONTAL?
+    double luv=dim==vpsc::HORIZONTAL?
         len(u,v,dxuv,dyuv,dxuv2,dyuv2):
         len(u,v,dyuv,dxuv,dyuv2,dxuv2);
     assert(luv!=0);
     double dxvw, dyvw, dxvw2, dyvw2;
-    double lvw=dim==cola::HORIZONTAL?
+    double lvw=dim==vpsc::HORIZONTAL?
         len(v,w,dxvw,dyvw,dxvw2,dyvw2):
         len(v,w,dyvw,dxvw,dyvw2,dxvw2);
     assert(lvw!=0);
     double dxab, dyab, dxab2, dyab2;
-    double lab=dim==cola::HORIZONTAL?
+    double lab=dim==vpsc::HORIZONTAL?
         len(a,b,dxab,dyab,dxab2,dyab2):
         len(a,b,dyab,dxab,dyab2,dxab2);
     assert(lab!=0);
     double dxbc, dybc, dxbc2, dybc2;
-    double lbc=dim==cola::HORIZONTAL?
+    double lbc=dim==vpsc::HORIZONTAL?
         len(b,c,dxbc,dybc,dxbc2,dybc2):
         len(b,c,dybc,dxbc,dybc2,dxbc2);
     assert(lbc!=0);

@@ -50,7 +50,7 @@ typedef std::vector<CompoundConstraint*> CompoundConstraints;
 /**
  * generate all the variables and constraints for a collection of CompoundConstraint
  */
-void generateVariablesAndConstriants(CompoundConstraints& ccs, vpsc::Variables& vars, vpsc::Constraints& cs);
+void generateVariablesAndConstraints(CompoundConstraints& ccs, vpsc::Variables& vars, vpsc::Constraints& cs);
 /**
  * A boundary constraint gives a bounding line (position stored in the variable)
  * and a set of nodes required to be to the left of that boundary and
@@ -147,11 +147,11 @@ public:
     unsigned right;
     void generateVariables(vpsc::Variables& vars) { }
 	void generateSeparationConstraints( vpsc::Variables& vs, vpsc::Constraints& cs);
-    void generateTopologyConstraints(const cola::Dim k, std::vector<vpsc::Rectangle*> const & rs, 
+    void generateTopologyConstraints(const vpsc::Dim k, std::vector<vpsc::Rectangle*> const & rs, 
             std::vector<vpsc::Variable*> const & vars, std::vector<vpsc::Constraint*> & cs);
     vpsc::Constraint* vpscConstraint;
 private:
-    void rectBounds(const Dim k, vpsc::Rectangle const *r, 
+	void rectBounds(const vpsc::Dim k, vpsc::Rectangle const *r, 
             double & cmin, double & cmax, double & centre, double & l) const;
 };
 

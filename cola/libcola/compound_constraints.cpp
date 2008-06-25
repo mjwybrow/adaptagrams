@@ -21,7 +21,7 @@ struct GenerateSeparationConstraints {
     vpsc::Variables& vars;
     vpsc::Constraints& cs;
 };
-void generateVariablesAndConstriants(CompoundConstraints& ccs, vpsc::Variables& vars, vpsc::Constraints& cs) {
+void generateVariablesAndConstraints(CompoundConstraints& ccs, vpsc::Variables& vars, vpsc::Constraints& cs) {
 	for_each(ccs.begin(),ccs.end(),GenerateVariables(vars));
 	for_each(ccs.begin(),ccs.end(),GenerateSeparationConstraints(vars,cs));
 }
@@ -89,10 +89,10 @@ generateSeparationConstraints( vpsc::Variables& vs, vpsc::Constraints& cs) {
     cs.push_back(vpscConstraint);
 }
 void OrthogonalEdgeConstraint::
-generateTopologyConstraints(const Dim k, const vpsc::Rectangles& rs, 
+generateTopologyConstraints(const vpsc::Dim k, const vpsc::Rectangles& rs, 
         vector<vpsc::Variable*> const & vars, vector<vpsc::Constraint*> & cs) {
     double lBound, rBound, pos;
-    if(k==HORIZONTAL) {
+	if(k==vpsc::HORIZONTAL) {
         lBound = rs[left]->getCentreY();
         rBound = rs[right]->getCentreY();
         pos = rs[left]->getCentreX();
@@ -120,10 +120,10 @@ generateTopologyConstraints(const Dim k, const vpsc::Rectangles& rs,
     }
 }
 void OrthogonalEdgeConstraint::
-rectBounds(const Dim k, vpsc::Rectangle const *r, 
+rectBounds(const vpsc::Dim k, vpsc::Rectangle const *r, 
     double & cmin, double & cmax, double & centre, double & l
 ) const {
-    if(k==HORIZONTAL) {
+	if(k==vpsc::HORIZONTAL) {
         cmin = r->getMinY();
         cmax = r->getMaxY();
         centre = r->getCentreX();

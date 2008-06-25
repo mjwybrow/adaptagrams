@@ -20,7 +20,7 @@
  * 
 */
 
-#include "libavoid/cluster.h"
+#include "libavoid/viscluster.h"
 #include "libavoid/router.h"
 #include "libavoid/polyutil.h"
 

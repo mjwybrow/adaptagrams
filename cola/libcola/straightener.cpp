@@ -283,7 +283,7 @@ namespace straightener {
      * The new dummy nodes are also added to the end of the canonical
      * node list: nodes.
      */
-    void sortNeighbours(const cola::Dim dim, Node * v, Node * l, Node * r, 
+    void sortNeighbours(const vpsc::Dim dim, Node * v, Node * l, Node * r, 
             const double conjpos, vector<Edge*> const & openEdges, 
             vector<Node *>& L,vector<Node *>& nodes) {
         double minpos=-DBL_MAX, maxpos=DBL_MAX;
@@ -296,7 +296,7 @@ namespace straightener {
         for(unsigned i=0;i<openEdges.size();i++) {
             Edge *e=openEdges[i];
             vector<double> bs;
-            if(dim==cola::HORIZONTAL) {
+            if(dim==vpsc::HORIZONTAL) {
                 e->xpos(conjpos,bs);
             } else {
                 e->ypos(conjpos,bs);
@@ -320,7 +320,7 @@ namespace straightener {
             // nodes associated with the same edge within some
             // range of (pos,conjpos), rather than creating new ones.
             // Would require some sort of quad-tree structure
-            Node* d=dim==cola::HORIZONTAL?
+            Node* d=dim==vpsc::HORIZONTAL?
                 new Node(nodes.size(),pos,conjpos,e):
                 new Node(nodes.size(),conjpos,pos,e);
             L.push_back(d);
@@ -341,7 +341,7 @@ namespace straightener {
             if(e->startNode==v->id||e->endNode==v->id) continue;
             //if(r!=NULL&&(e->startNode==r->id||e->endNode==r->id)) continue;
             //cerr << "edge("<<e->startNode<<","<<e->endNode<<",pts="<<e->pts<<")"<<endl;
-            Node* d=dim==cola::HORIZONTAL?
+            Node* d=dim==vpsc::HORIZONTAL?
                 new Node(nodes.size(),pos,conjpos,e):
                 new Node(nodes.size(),conjpos,pos,e);
             L.push_back(d);
@@ -351,7 +351,7 @@ namespace straightener {
             L.push_back(r);
         }
     }
-    static double overlap(cola::Dim k, Node const *u, Node const *v) {
+    static double overlap(vpsc::Dim k, Node const *u, Node const *v) {
 		if (u->pos[k] <= v->pos[k] && v->getMin(k) < u->getMax(k))
 			return u->getMax(k) - v->getMin(k);
 		if (v->pos[k] <= u->pos[k] && u->getMin(k) < v->getMax(k))
@@ -374,12 +374,12 @@ namespace straightener {
 
     template <typename T>
     Event* createEvent(
-            const cola::Dim dim, 
+            const vpsc::Dim dim, 
             const EventType type,
             T *v,
             double border) {
-        double pos = (type==Open) ? v->getMin((cola::Dim)!dim)-border 
-                                  : v->getMax((cola::Dim)!dim)+border ;
+        double pos = (type==Open) ? v->getMin((vpsc::Dim)!dim)-border 
+                                  : v->getMax((vpsc::Dim)!dim)+border ;
         return new Event(type,v,pos);
     }
     /**
@@ -392,7 +392,7 @@ namespace straightener {
      * nodes/edges.
      */
     void generateConstraints(
-            const cola::Dim dim, 
+            const vpsc::Dim dim, 
             vector<Node*> & nodes, 
             vector<Edge*> const & edges, 
             vector<cola::SeparationConstraint*>& cs,
@@ -400,7 +400,7 @@ namespace straightener {
         vector<Event*> events;
         double nodeFudge=-0.01, edgeFudge=0;
 #ifdef STRAIGHTENER_DEBUG
-        cout << (dim==cola::HORIZONTAL
+        cout << (dim==vpsc::HORIZONTAL
             ?"scanning top to bottom..."
             :"scanning left to right...")
             << endl;
@@ -438,9 +438,9 @@ namespace straightener {
                     // step left to find the first node to the left of v
                     while(it--!=openNodes.begin()) {
                         if(!xSkipping
-                                || dim!=cola::HORIZONTAL
-                                || overlap(cola::HORIZONTAL,*it,v) <= 0
-                                || overlap(cola::HORIZONTAL,*it,v) <= overlap(cola::VERTICAL,*it,v)) {
+                                || dim!=vpsc::HORIZONTAL
+                                || overlap(vpsc::HORIZONTAL,*it,v) <= 0
+                                || overlap(vpsc::HORIZONTAL,*it,v) <= overlap(vpsc::VERTICAL,*it,v)) {
                             l=*it;
                             break;
                         }
@@ -451,9 +451,9 @@ namespace straightener {
                     it=openNodes.upper_bound(v);
                     while(it!=openNodes.end()) {
                         if(!xSkipping
-                                || dim!=cola::HORIZONTAL
-                                || overlap(cola::HORIZONTAL,v,*it) <= 0
-                                || overlap(cola::HORIZONTAL,v,*it) <= overlap(cola::VERTICAL,v,*it)) {
+                                || dim!=vpsc::HORIZONTAL
+                                || overlap(vpsc::HORIZONTAL,v,*it) <= 0
+                                || overlap(vpsc::HORIZONTAL,v,*it) <= overlap(vpsc::VERTICAL,v,*it)) {
                             r=*it;
                             break;
                         }
@@ -537,7 +537,7 @@ namespace straightener {
      *   create a chain of dummy nodes for cluster boundary
      */
     void generateClusterBoundaries(
-		    const cola::Dim dim,
+		    const vpsc::Dim dim,
 		    vector<straightener::Node*> & nodes,
             vector<straightener::Edge*> & edges,
             vector<vpsc::Rectangle*> const & rs,
@@ -601,7 +601,7 @@ namespace straightener {
     }
     Straightener::Straightener(
             const double strength,
-            const cola::Dim dim,
+            const vpsc::Dim dim,
             std::vector<vpsc::Rectangle*> const & rs,
             cola::FixedList const & fixed,
             std::vector<Edge*> const & edges, 
@@ -672,11 +672,11 @@ namespace straightener {
                 double dx2=dx*dx, dy2=dy*dy;
                 double l=sqrt(dx2+dy2);
                 if(l<0.0000001) continue;
-                double f=dim==cola::HORIZONTAL?dx:dy;
+                double f=dim==vpsc::HORIZONTAL?dx:dy;
                 f*=strength/l;
                 if(!fixed.check(u)) { g[u]+=f; }
                 if(!fixed.check(v)) { g[v]-=f; }
-                double h=dim==cola::HORIZONTAL?dy2:dx2;
+                double h=dim==vpsc::HORIZONTAL?dy2:dx2;
                 h*=strength/(l*l*l);
                 H(u,u)+=h;
                 H(v,v)+=h;
@@ -693,7 +693,7 @@ namespace straightener {
             for(unsigned j=1;j<path.size();j++) {
                 unsigned u=path[j-1], v=path[j];
                 double x1,x2,y1,y2;
-                if(dim==cola::HORIZONTAL) {
+                if(dim==vpsc::HORIZONTAL) {
                     x1=coords[u];
                     x2=coords[v];
                     y1=nodes[u]->pos[1];

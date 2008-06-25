@@ -7,9 +7,6 @@
 
 namespace cola {
 
-class Cluster;
-
-typedef std::vector<Cluster*> Clusters;
 
 // A cluster defines a hierarchical partitioning over the nodes
 // which should be kept disjoint by the layout somehow
@@ -18,20 +15,19 @@ public:
     double varWeight;
     double internalEdgeWeightFactor;
 	std::vector<unsigned> nodes;
-    Clusters clusters;
+    std::vector<Cluster*> clusters;
     std::valarray<double> hullX, hullY;
     Cluster();
     virtual ~Cluster() {}
-    void updatePosition();
 	virtual void computeBoundary(const vpsc::Rectangles& rs) = 0;
-	vpsc::Rectangle getMinRect( const Dim dim, const vpsc::Rectangle& bounds);
-	vpsc::Rectangle getMaxRect( const Dim dim, const vpsc::Rectangle& bounds);
+	vpsc::Rectangle getMinRect( const vpsc::Dim dim, const vpsc::Rectangle& bounds);
+	vpsc::Rectangle getMaxRect( const vpsc::Dim dim, const vpsc::Rectangle& bounds);
     void computeBoundingRect(const vpsc::Rectangles& rs);
 	vpsc::Rectangle bounds;
-    void createVars(const Dim dim, const vpsc::Rectangles& rs, vpsc::Variables& vars);
+	void createVars(const vpsc::Dim dim, const vpsc::Rectangles& rs, vpsc::Variables& vars);
 	vpsc::Variable *vXMin, *vXMax, *vYMin, *vYMax;
     void generateNonOverlapConstraints(
-            const Dim dim,
+			const vpsc::Dim dim,
             const NonOverlapConstraints nonOverlapConstraints,
             const vpsc::Rectangles& rs,
             const vpsc::Variables& vars,
@@ -47,6 +43,7 @@ private:
     double length;
     double border;
 };
+typedef std::vector<Cluster*> Clusters;
 class RectangularCluster : public Cluster {
 public:
 	void computeBoundary(const vpsc::Rectangles& rs);
@@ -61,6 +58,8 @@ public:
     std::valarray<unsigned> hullRIDs;
     std::valarray<unsigned char> hullCorners;
 };
+
+
 } // namespace cola
 
 #endif // COLA_CLUSTER_H

@@ -83,7 +83,7 @@ ostream& operator<< (ostream& os, const TriConstraint& c) {
 void BendConstraint::satisfy() {
     FILE_LOG(logDEBUG)<<"BendConstraint::satisfy()... edge id="<<getEdgeID()<<" node id="<<bendPoint->node->id;
     Node* node=bendPoint->node;
-    double pos=bendPoint->pos(!dim);
+    double pos=bendPoint->pos(vpsc::conjugate(dim));
     Segment* s=bendPoint->prune();
     // create a new StraightConstraint to replace the BendConstraint
     s->createStraightConstraint(node, pos);
@@ -115,10 +115,10 @@ struct transferStraightConstraintChoose {
             StraightConstraint* ignore)
         : ignore(ignore) 
     {
-        double min1=min(target1->start->pos(!dim),target1->end->pos(!dim));
-        double max1=max(target1->start->pos(!dim),target1->end->pos(!dim));
-        double min2=min(target2->start->pos(!dim),target2->end->pos(!dim));
-        double max2=max(target2->start->pos(!dim),target2->end->pos(!dim));
+        double min1=min(target1->start->pos(vpsc::conjugate(dim)),target1->end->pos(vpsc::conjugate(dim)));
+        double max1=max(target1->start->pos(vpsc::conjugate(dim)),target1->end->pos(vpsc::conjugate(dim)));
+        double min2=min(target2->start->pos(vpsc::conjugate(dim)),target2->end->pos(vpsc::conjugate(dim)));
+        double max2=max(target2->start->pos(vpsc::conjugate(dim)),target2->end->pos(vpsc::conjugate(dim)));
         if(min1<max2) {
             assert(max1==min2);
             lSeg = target1;
@@ -144,10 +144,10 @@ struct transferStraightConstraintChoose {
             if(c->pos<mid) {
                 dest = lSeg;
             } else if(c->pos==mid) {
-                if(dim==cola::HORIZONTAL && 
+                if(dim==vpsc::HORIZONTAL && 
                      ( c->ri==EdgePoint::TL
                      ||c->ri==EdgePoint::TR)
-                 ||dim==cola::VERTICAL &&
+                 ||dim==vpsc::VERTICAL &&
                      ( c->ri==EdgePoint::TR
                      ||c->ri==EdgePoint::BR)) 
                 {

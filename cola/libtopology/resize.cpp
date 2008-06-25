@@ -110,7 +110,7 @@ struct SubstituteNodes {
         if(ri!=resizes.end()) {
             switch(p->rectIntersect) {
                 case EdgePoint::TL:
-                    pos=dim==cola::HORIZONTAL?LHS:RHS;
+                    pos=dim==vpsc::HORIZONTAL?LHS:RHS;
                     break;
                 case EdgePoint::BL:
                     pos=LHS;
@@ -119,7 +119,7 @@ struct SubstituteNodes {
                     pos=RHS;
                     break;
                 case EdgePoint::BR:
-                    pos=dim==cola::HORIZONTAL?RHS:LHS;
+                    pos=dim==vpsc::HORIZONTAL?RHS:LHS;
                     break;
                 default:
                     pos=CEN;
@@ -349,9 +349,9 @@ void applyResizes(Nodes& nodes, Edges& edges, ResizeMap& resizes,
     set<unsigned> fixed;
     transform(nodes.begin(),nodes.end(),targets.begin(),CreateTargetRect(resizes,fixed));
     removeoverlaps(targets,fixed);
-    dim=cola::HORIZONTAL;
+    dim=vpsc::HORIZONTAL;
     resizeAxis(targets, nodes, edges, resizes, xvs, xcs);
-    dim=cola::VERTICAL;
+    dim=vpsc::VERTICAL;
     resizeAxis(targets, nodes, edges, resizes, yvs, ycs);
     feach(targets,delete_object());
 }
