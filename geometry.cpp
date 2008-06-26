@@ -2,7 +2,7 @@
  * vim: ts=4 sw=4 et tw=0 wm=0
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
- * Copyright (C) 2004-2006  Michael Wybrow <mjwybrow@users.sourceforge.net>
+ * Copyright (C) 2004-2008  Michael Wybrow <mjwybrow@users.sourceforge.net>
  *
  * --------------------------------------------------------------------
  * Much of the code in this module is based on code published with
@@ -249,20 +249,9 @@ int cornerSide(const Point &c1, const Point &c2, const Point &c3,
     int s12p = vecDir(c1, c2, p);
     int s23p = vecDir(c2, c3, p);
 
-    if (s12p == 0)
-    {
-        // Case of p being somewhere on c1-c2.
-        return s23p;
-    }
-    if (s23p == 0)
-    {
-        // Case of p being somewhere on c2-c3.
-        return s12p;
-    }
-
     if (s123 == 1)
     {
-        if ((s12p == 1) && (s23p == 1))
+        if ((s12p >= 0) && (s23p >= 0))
         {
             return 1;
         }
@@ -270,13 +259,14 @@ int cornerSide(const Point &c1, const Point &c2, const Point &c3,
     }
     else if (s123 == -1)
     {
-        if ((s12p == -1) && (s23p == -1))
+        if ((s12p <= -1) && (s23p <= 0))
         {
             return -1;
         }
         return 1;
     }
-    // Case of c3 being somewhere on c1-c2.
+
+    // c1-c2-c3 are colinear, so just return vecDir from c1-c2
     return s12p;
 }
 

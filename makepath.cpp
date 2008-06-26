@@ -2,7 +2,7 @@
  * vim: ts=4 sw=4 et tw=0 wm=0
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
- * Copyright (C) 2004-2006  Michael Wybrow <mjwybrow@users.sourceforge.net>
+ * Copyright (C) 2004-2008  Michael Wybrow <mjwybrow@users.sourceforge.net>
  *
  * --------------------------------------------------------------------
  * The dijkstraPath function is based on code published and described
@@ -31,6 +31,7 @@
 #include "libavoid/connector.h"
 #include "libavoid/graph.h"
 #include "libavoid/router.h"
+#include "libavoid/polyutil.h"
 #include <algorithm>
 #include <vector>
 #include <limits.h>
@@ -64,156 +65,27 @@ static double angleBetween(const Point& p1, const Point& p2, const Point& p3)
 }
 
 
-// Works out if the segment (inf2->point)--(inf3->point) really crosses polygn.
-// This does not not count non-crossing shared paths as crossings.
-// polygn can be either a connector (isConn = true) or a cluster
-// boundary (isConn = false).
+// Construct a temporary Polygn path given several VertInf's for a connector.
 //
-static bool realCrossing(Avoid::PolyLine& polygn, int j, bool isConn,
-        VertInf *inf1, VertInf *inf2, VertInf *inf3)
+static Polygn constructPolygnPath(VertInf *inf1, VertInf *inf2, VertInf *inf3)
 {
-    Point& a1 = inf2->point;
-    Point& a2 = inf3->point;
-
-    assert(!isConn || (j >= 1));
-
-    Avoid::Point& b1 = polygn.ps[(j - 1 + polygn.pn) % polygn.pn];
-    Avoid::Point& b2 = polygn.ps[j];
-
-    if (((a1 == b1) && (a2 == b2)) ||
-        ((a2 == b1) && (a1 == b2)))
+    Polygn connRoute;
+    int routeSize = 2;
+    for (VertInf *curr = inf1; curr != NULL; curr = curr->pathNext)
     {
-        // Route along same segment: no penalty.  We detect
-        // crossovers when we see the segments diverge.
-        return false;
+        routeSize += 1;
     }
-
-    if ((a2 == b2) || (a2 == b1) || (b2 == a1))
+    connRoute = newPoly(routeSize);
+    connRoute.ps[routeSize - 1] = inf3->point;
+    connRoute.ps[routeSize - 2] = inf2->point;
+    routeSize -= 3;
+    for (VertInf *curr = inf1; curr != NULL; curr = curr->pathNext)
     {
-        // Each crossing that is at a vertex in the 
-        // visibility graph gets noticed four times.
-        // We ignore three of these cases.
-        // This also catches the case of a shared path,
-        // but this is one that terminates at a common
-        // endpoint, so we don't care about it.
-        return false;
+        connRoute.ps[routeSize] = curr->point;
+        routeSize -= 1;
     }
-
-    if (a1 == b1)
-    {
-        if (isConn && (j == 1))
-        {
-            // common source point.
-            return false;
-        }
-        Avoid::Point& b0 = polygn.ps[(j - 2 + polygn.pn) % polygn.pn];
-        // The segments share an endpoint -- a1==b1.
-        if (a2 == b0)
-        {
-            // a2 is not a split, continue.
-            return false;
-        }
-        
-        // If here, then we know that a2 != b2
-        // And a2 and its pair in b are a split.
-        assert(a2 != b2);
-
-        if (inf2->pathNext == NULL)
-        {
-            return false;
-        }
-        Avoid::Point& a0 = inf1->point;
-
-        if ((a0 == b0) || (a0 == b2))
-        {
-            //printf("Shared path... ");
-            bool normal = (a0 == b0) ? true : false;
-            // Determine direction we have to look through
-            // the points of connector b.
-            int dir = normal ? -1 : 1;
-            
-            int traceJ = j - 1 + dir;
-            
-            int endCornerSide = Avoid::cornerSide(
-                    a0, a1, a2, normal ? b2 : b0);
-
-            
-            VertInf *traceInf1 = inf2->pathNext;
-            VertInf *traceInf2 = inf2;
-            VertInf *traceInf3 = inf3;
-            while (traceInf1 &&
-                    (!isConn || ((traceJ >= 0) && (traceJ < polygn.pn))) &&
-                    (traceInf1->point == 
-                            polygn.ps[(traceJ + polygn.pn) % polygn.pn]))
-            {
-                traceInf3 = traceInf2;
-                traceInf2 = traceInf1;
-                traceInf1 = traceInf1->pathNext;
-                traceJ += dir;
-            }
-            
-            if (!traceInf1 ||
-                    (isConn && ((traceJ < 0) || (traceJ >= polygn.pn))))
-            {
-                //printf("common source or destination.\n");
-                // The connectors have a shared path, but it
-                // comes from a common source point.
-                // XXX: There might be a better way to
-                //      check this by asking the connectors
-                //      for the IDs of the attached shapes.
-                return false;
-            }
-            
-            int startCornerSide = Avoid::cornerSide(
-                    traceInf1->point, traceInf2->point, traceInf3->point, 
-                    polygn.ps[(traceJ + polygn.pn) % polygn.pn]);
-            
-            if (endCornerSide != startCornerSide)
-            {
-                //printf("crosses.\n");
-                return true;
-            }
-            else
-            {
-                //printf("doesn't cross.\n");
-            }
-        }
-        else
-        {
-            // The connectors cross or touch at this point.
-            //printf("Cross or touch at point... ");
-        
-            int side1 = Avoid::cornerSide(a0, a1, a2, b0);
-            int side2 = Avoid::cornerSide(a0, a1, a2, b2);
-
-            if (side1 != side2)
-            {
-                //printf("cross.\n");
-                // The connectors cross at this point.
-                return true;
-            }
-            else
-            {
-                //printf("touch.\n");
-                // The connectors touch at this point.
-            }
-        }
-        return false;
-    }
-    else
-    {
-        double xc, yc;
-        int intersectResult = Avoid::segmentIntersectPoint(
-                a1, a2, b1, b2, &xc, &yc);
-
-        if (intersectResult == Avoid::DO_INTERSECT)
-        {
-            return true;
-        }
-        return false;
-    }
+    return connRoute;
 }
-
 
 // Given the two points for a new segment of a path (inf2 & inf3)
 // as well as the distance between these points (dist), as well as
@@ -224,6 +96,8 @@ double cost(ConnRef *lineRef, const double dist, VertInf *inf1,
         VertInf *inf2, VertInf *inf3)
 {
     double result = dist;
+    Polygn connRoute;
+    connRoute.ps = NULL;
 
     Router *router = inf2->_router;
     if (inf2->pathNext != NULL)
@@ -260,6 +134,10 @@ double cost(ConnRef *lineRef, const double dist, VertInf *inf1,
 
     if (! router->clusterRefs.empty() )
     {
+        if (connRoute.ps == NULL)
+        {
+            connRoute = constructPolygnPath(inf1, inf2, inf3);
+        }
         // There are clusters so do cluster routing.
         for (ClusterRefList::const_iterator cl = router->clusterRefs.begin(); 
                 cl != router->clusterRefs.end(); ++cl)
@@ -267,62 +145,60 @@ double cost(ConnRef *lineRef, const double dist, VertInf *inf1,
             Polygn& cBoundary = (*cl)->poly();
             assert(cBoundary.ps[0] != cBoundary.ps[cBoundary.pn - 1]);
             bool isConn = false;
-#if 0
-            // Expensive check to make sure points on the boundary of the 
-            // cluster match their corresponding shape corner positions.
+#if 0 
+            // Expensive correction to make sure points on the boundary of 
+            // the cluster match their corresponding shape corner positions.
             //
+            // XXX: This is still ineffecient, and shouldn't even be necessary.
+            //      Eventually, the boundary should just reference the shape
+            //      points, so that it will always be accurate.
             for (int j = 0; j < cBoundary.pn; ++j)
             {
-                if (router->vertices.getVertexByPos(cBoundary.ps[j]) == NULL)
+                if (cBoundary.ps[j].id > 0)
                 {
-                    if (cBoundary.ps[j].id > 0)
+                    for (ShapeRefList::const_iterator sh = 
+                            router->shapeRefs.begin();
+                            sh != router->shapeRefs.end(); ++sh) 
                     {
-                        for (ShapeRefList::const_iterator sh = 
-                                router->shapeRefs.begin();
-                                sh != router->shapeRefs.end(); ++sh) 
+                        Polygn poly = (*sh)->poly();
+                        int i = cBoundary.ps[j].vn;
+                        if (((*sh)->id() == cBoundary.ps[j].id) &&
+                                (cBoundary.ps[j] != poly.ps[i]))
                         {
-                            if ((*sh)->id() == cBoundary.ps[j].id)
-                            {
-                                Polygn poly = (*sh)->poly();
-                                fprintf(stderr, "\tShape vertices:\n");
-                                int i = cBoundary.ps[j].vn;
-                                {
-                                    cBoundary.ps[j].x = poly.ps[i].x;
-                                    cBoundary.ps[j].y = poly.ps[i].y;
-                                    printf("\t[%f, %f]\n", poly.ps[i].x,
-                                            poly.ps[i].y);
-                                }
-                                printf("\n");
-                            }
+                            fprintf(stderr, 
+                                    "WARNING: libavoid: Adjusting Cluster "
+                                    "boundary point to match shape vertex:\n"
+                                    "\t was: (%g, %g) id %d vn %d\n"
+                                    "\t now: (%g, %g)\n",
+                                    cBoundary.ps[j].x, cBoundary.ps[j].y, 
+                                    cBoundary.ps[j].id, cBoundary.ps[j].vn,
+                                    poly.ps[i].x, poly.ps[i].y);
+                            cBoundary.ps[j].x = poly.ps[i].x;
+                            cBoundary.ps[j].y = poly.ps[i].y;
                         }
                     }
                 }
             }
+#endif 
             for (int j = 0; j < cBoundary.pn; ++j)
             {
-                if (router->vertices.getVertexByPos(cBoundary.ps[j]) == NULL)
-                {
-                    fprintf(stderr, 
-                           "ERROR:\tlibavoid: Cluster boundary point "
-                           "doesn't match any shape vertex:\n"
-                           "\t(%f, %f)\n",
-                            cBoundary.ps[j].x, cBoundary.ps[j].y);
-                }
+                // Cluster boundary points should correspond to shape 
+                // vertices and hence already be in the list of vertices.
+                assert(router->vertices.getVertexByPos(cBoundary.ps[j])!=NULL);
             }
-#endif
 
-            for (int j = 0; j < cBoundary.pn; ++j)
-            {
-                if (realCrossing(cBoundary, j, isConn, inf1, inf2, inf3))
-                {
-                    result += router->cluster_crossing_penalty;
-                }
-            }
+            int crossings = countRealCrossings(cBoundary, isConn, 
+                    connRoute, connRoute.pn - 1, true);
+            result += (crossings * router->cluster_crossing_penalty);
         }
     }
 
     if (lineRef->doesHateCrossings() && (router->crossing_penalty > 0))
     {
+        if (connRoute.ps == NULL)
+        {
+            connRoute = constructPolygnPath(inf1, inf2, inf3);
+        }
         ConnRefList::const_iterator curr, finish = router->connRefs.end();
         for (curr = router->connRefs.begin(); curr != finish; ++curr)
         {
@@ -334,16 +210,17 @@ double cost(ConnRef *lineRef, const double dist, VertInf *inf1,
             }
             Avoid::PolyLine& route2 = connRef->route();
             bool isConn = true;
-            for (int j = 1; j < route2.pn; ++j)
-            {
-                if (realCrossing(route2, j, isConn, inf1, inf2, inf3))
-                {
-                    result += router->crossing_penalty;
-                }
-            }
+            
+            int crossings = countRealCrossings(route2, isConn, 
+                    connRoute, connRoute.pn - 1, true);
+            result += (crossings * router->crossing_penalty);
         }
     }
-    
+    if (connRoute.ps != NULL)
+    {
+        freePoly(connRoute);
+    }
+
     return result;
 }
 
@@ -773,7 +650,8 @@ void makePath(ConnRef *lineRef, bool *flag)
     {
         // Mark the path endpoints as not being able to see
         // each other.  This is true if we are here.
-        if (!(router->IncludeEndpoints) && router->InvisibilityGrph)
+        if (!(router->IncludeEndpoints) && router->InvisibilityGrph &&
+                !examineDirectPath)
         {
             if (!directEdge)
             {

@@ -2,7 +2,7 @@
  * vim: ts=4 sw=4 et tw=0 wm=0
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
- * Copyright (C) 2004-2006  Michael Wybrow <mjwybrow@users.sourceforge.net>
+ * Copyright (C) 2004-2008  Michael Wybrow <mjwybrow@users.sourceforge.net>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -27,6 +27,7 @@
 #include "libavoid/geometry.h"
 #include "libavoid/shape.h"
 #include <list>
+#include <vector>
 
 
 namespace Avoid {
@@ -101,6 +102,28 @@ class ConnRef
 };
 
 
+class DynamicPolygn
+{
+    public:
+        DynamicPolygn(Avoid::Polygn& poly) :
+            id(poly.id),
+            ps(poly.pn),
+            pn(poly.pn)
+        {
+            for (int i = 0; i < poly.pn; ++i)
+            {
+                ps[i] = poly.ps[i];
+            }
+        }
+
+        int id;
+        std::vector<Avoid::Point> ps;
+        int pn;
+};
+
+
+extern int countRealCrossings(Avoid::DynamicPolygn poly, bool polyIsConn,
+        Avoid::DynamicPolygn conn, int cIndex, bool checkForBranchingSegments);
 extern bool validateBendPoint(VertInf *aInf, VertInf *bInf, VertInf *cInf);
 
 }

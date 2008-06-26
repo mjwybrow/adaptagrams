@@ -2,7 +2,7 @@
  * vim: ts=4 sw=4 et tw=0 wm=0
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
- * Copyright (C) 2004-2006  Michael Wybrow <mjwybrow@users.sourceforge.net>
+ * Copyright (C) 2004-2008  Michael Wybrow <mjwybrow@users.sourceforge.net>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -777,6 +777,235 @@ void ConnRef::setHateCrossings(bool value)
 bool ConnRef::doesHateCrossings(void)
 {
     return _hateCrossings;
+}
+
+
+// Works out if the segment conn[cIndex-1]--conn[cIndex] really crosses poly.
+// This does not not count non-crossing shared paths as crossings.
+// poly can be either a connector (polyIsConn = true) or a cluster
+// boundary (polyIsConn = false).
+//
+int countRealCrossings(Avoid::DynamicPolygn poly, bool polyIsConn,
+        Avoid::DynamicPolygn conn, int cIndex, bool checkForBranchingSegments)
+{
+    // Break up overlapping parallel segments that are not the same edge in 
+    // the visibility graph, i.e., where one segment is a subsegment of another.
+    if (checkForBranchingSegments)
+    {
+        for (std::vector<Avoid::Point>::iterator i = conn.ps.begin(); 
+                i != conn.ps.end(); ++i)
+        {
+            if (i == conn.ps.begin())
+            {
+                // Skip the first point.
+                // There are points-1 segments in a connector.
+                continue;
+            }
+            Point& c0 = *(i - 1);
+            Point& c1 = *i;
+
+            for (std::vector<Avoid::Point>::iterator j = poly.ps.begin(); 
+                    j != poly.ps.end(); )
+            {
+                if (polyIsConn && (j == poly.ps.begin()))
+                {
+                    // Skip the first point.
+                    // There are points-1 segments in a connector.
+                    ++j;
+                    continue;
+                }
+                Point& p1 = (j == poly.ps.begin()) ? poly.ps.back() : *(j - 1);
+                Point& p0 = *j;
+
+                // Check the first point of every segment but the first one.
+                if (((i - 1) == conn.ps.begin()) && pointOnLine(p0, p1, c0))
+                {
+                    //printf("add to poly %g %g\n", c0.x, c0.y);
+
+                    j = poly.ps.insert(j, c0);
+                    --j;
+                    continue;
+                }
+                if (pointOnLine(p0, p1, c1))
+                {
+                    //printf("add to poly %g %g\n", c1.x, c1.y);
+
+                    j = poly.ps.insert(j, c1);
+                    --j;
+                    continue;
+                }
+
+                // Check the first point of every segment but the first one.
+                if ((j == poly.ps.begin()) && pointOnLine(c0, c1, p0))
+                {
+                    //printf("add to conn %g %g\n", p0.x, p0.y);
+
+                    i = conn.ps.insert(i, p0);
+                    --i;
+                    break;
+                }
+                if (pointOnLine(c0, c1, p1))
+                {
+                    //printf("add to conn %g %g\n", p1.x, p1.y);
+
+                    i = conn.ps.insert(i, p1);
+                    --i;
+                    break;
+                }
+                ++j;
+            }
+        }
+        cIndex += (int) (conn.ps.size() - conn.pn);
+        poly.pn = (int) poly.ps.size();
+        conn.pn = (int) conn.ps.size();
+    }
+
+    assert(cIndex >= 1);
+
+    int crossingCount = 0;
+
+    Avoid::Point& a1 = conn.ps[cIndex - 1];
+    Avoid::Point& a2 = conn.ps[cIndex];
+    //printf("a1: %g %g\n", a1.x, a1.y);
+    //printf("a2: %g %g\n", a2.x, a2.y);
+
+    for (int j = ((polyIsConn) ? 1 : 0); j < poly.pn; ++j)
+    {
+        Avoid::Point& b1 = poly.ps[(j - 1 + poly.pn) % poly.pn];
+        Avoid::Point& b2 = poly.ps[j];
+        //printf("b1: %g %g\n", b1.x, b1.y);
+        //printf("b2: %g %g\n", b2.x, b2.y);
+
+        if (((a1 == b1) && (a2 == b2)) ||
+            ((a2 == b1) && (a1 == b2)))
+        {
+            // Route along same segment: no penalty.  We detect
+            // crossovers when we see the segments diverge.
+            continue;
+        }
+
+        if ((a2 == b2) || (a2 == b1) || (b2 == a1))
+        {
+            // Each crossing that is at a vertex in the 
+            // visibility graph gets noticed four times.
+            // We ignore three of these cases.
+            // This also catches the case of a shared path,
+            // but this is one that terminates at a common
+            // endpoint, so we don't care about it.
+            continue;
+        }
+    
+        //assert(!pointOnLine(b1, b2, a1));
+        if (a1 == b1)
+        {
+            if (polyIsConn && (j == 1))
+            {
+                // common source point.
+                continue;
+            }
+            Avoid::Point& b0 = poly.ps[(j - 2 + poly.pn) % poly.pn];
+            // The segments share an endpoint -- a1==b1.
+            if (a2 == b0)
+            {
+                // a2 is not a split, continue.
+                continue;
+            }
+            
+            // If here, then we know that a2 != b2
+            // And a2 and its pair in b are a split.
+            assert(a2 != b2);
+
+            if (cIndex < 2)
+            {
+                // There is no a0;
+                continue;
+            }
+            Avoid::Point& a0 = conn.ps[cIndex - 2];
+            
+            //printf("a0: %g %g\n", a0.x, a0.y);
+            //printf("b0: %g %g\n", b0.x, b0.y);
+
+            if ( (a0 == b2) || (a0 == b0) )
+            {
+                //printf("Shared path... ");
+                bool normal = (a0 == b2) ? false : true;
+                // Determine direction we have to look through
+                // the points of connector b.
+                int dir = normal ? -1 : 1;
+                
+                int traceI = cIndex - 2;
+                int traceJ = j - 1 + dir;
+                
+                int endCornerSide = Avoid::cornerSide(a0, a1, a2, 
+                        normal ? b2 : b0);
+
+                while (traceI >= 0 &&
+                    (!polyIsConn || ((traceJ >= 0) && (traceJ < poly.pn))) &&
+                    (conn.ps[traceI] == poly.ps[(traceJ + poly.pn) % poly.pn]))
+                {
+                    traceI--;
+                    traceJ += dir;
+                }
+                
+                if ((traceI < 0) ||
+                        (polyIsConn && ((traceJ < 0) || (traceJ >= poly.pn))))
+                {
+                    //printf("common source or destination.\n");
+                    // The connectors have a shared path, but it
+                    // comes from a common source point.
+                    // XXX: There might be a better way to
+                    //      check this by asking the connectors
+                    //      for the IDs of the attached shapes.
+                    continue;
+                }
+               
+                int startCornerSide = Avoid::cornerSide(
+                        conn.ps[traceI], conn.ps[traceI + 1],
+                        conn.ps[traceI + 2], 
+                        poly.ps[(traceJ + poly.pn) % poly.pn]);
+                            
+                if (endCornerSide != startCornerSide)
+                {
+                    //printf("shared path crosses.\n");
+                    crossingCount += 1;
+                }
+            }
+            else
+            {
+                // The connectors cross or touch at this point.
+                //printf("Cross or touch at point... \n");
+            
+                int side1 = Avoid::cornerSide(a0, a1, a2, b0);
+                int side2 = Avoid::cornerSide(a0, a1, a2, b2);
+                if (side1 != side2)
+                {
+                    // The connectors cross at this point.
+                    //printf("cross.\n");
+                    crossingCount += 1;
+                }
+                else
+                {
+                    //printf("touch.\n");
+                    // The connectors touch at this point.
+                }
+            }
+        }
+        else
+        {
+            Point cPt;
+            int intersectResult = Avoid::segmentIntersectPoint(
+                    a1, a2, b1, b2, &(cPt.x), &(cPt.y));
+
+            if (intersectResult == Avoid::DO_INTERSECT)
+            {
+                //printf("crossing lines:\n");
+                //printf("cPt: %g %g\n", cPt.x, cPt.y);
+                crossingCount += 1;
+            }
+        }
+    }
+    //printf("crossingcount %d\n", crossingCount);
+    return crossingCount;
 }
 
 
