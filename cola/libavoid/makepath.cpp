@@ -145,7 +145,7 @@ double cost(ConnRef *lineRef, const double dist, VertInf *inf1,
             Polygn& cBoundary = (*cl)->poly();
             assert(cBoundary.ps[0] != cBoundary.ps[cBoundary.pn - 1]);
             bool isConn = false;
-#if 0 
+#if 1
             // Expensive correction to make sure points on the boundary of 
             // the cluster match their corresponding shape corner positions.
             //
@@ -334,13 +334,13 @@ class ANode
         }
 };
 
+
+// This returns the opposite result so that when used with stl::make_heap, 
+// the head node of the heap will be the smallest value, rather than the 
+// largest.  This saves us from having to sort the heap (and then reorder
+// it back into a heap) when getting the next node to examine.  This way we
+// get better complexity -- logarithmic pushs and pops to the heap.
 bool operator<(const ANode &a, const ANode &b)
-{
-    return a.f < b.f;
-}
-
-
-bool operator>(const ANode &a, const ANode &b)
 {
     return a.f > b.f;
 }
@@ -451,10 +451,9 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
 
     while (!PENDING.empty())
     {
-        // Ascending sort based on overloaded operators below
-        sort_heap(PENDING.begin(), PENDING.end());
-
-        // Set the Node with lowest f value to BESTNODE
+        // Set the Node with lowest f value to BESTNODE.
+        // Since the ANode operator< is reversed, the head of the
+        // heap is the node with the lowest f value.
         BestNode = PENDING.front();
 
         // Pop off the heap.  Actually this moves the
@@ -462,8 +461,6 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
         // is not actually removed since the pop is to
         // the heap and not the container.
         pop_heap(PENDING.begin(), PENDING.end());
-
-
         // Remove node from right (the value we pop_heap'd)
         PENDING.pop_back();
 
@@ -547,6 +544,8 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
                         ati.g = Node.g;
                         ati.f = Node.g + ati.h;
                         ati.pp = Node.pp;
+                        
+                        make_heap( PENDING.begin(), PENDING.end() );
                     }
                     bNodeFound = true;
                     break;
@@ -580,26 +579,24 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
                 PENDING.push_back(Node);
                 // Push NewNode onto heap
                 push_heap( PENDING.begin(), PENDING.end() );
-                // Re-Assert heap, or will be short by one
-                make_heap( PENDING.begin(), PENDING.end() );
 
 #if 0
+                using std::cout; using std::endl;
                 // Display PENDING and DONE containers (For Debugging)
                 cout << "PENDING:   ";
-                for (int i = 0; i < PENDING.size(); i++)
+                for (unsigned int i = 0; i < PENDING.size(); i++)
                 {
-                    cout << PENDING.at(i).x << "," << PENDING.at(i).y << ",";
-                    cout << PENDING.at(i).g << "," << PENDING.at(i).h << "  ";
+                    cout << PENDING.at(i).g << "," << PENDING.at(i).h << ",";
+                    cout << PENDING.at(i).inf << "," << PENDING.at(i).pp << "  ";
                 }
                 cout << endl;
                 cout << "DONE:   ";
-                for (int i = 0; i < DONE.size(); i++)
+                for (unsigned int i = 0; i < DONE.size(); i++)
                 {
-                    cout << DONE.at(i).x << "," << DONE.at(i).y << ",";
-                    cout << DONE.at(i).g << "," << DONE.at(i).h << "  ";
+                    cout << DONE.at(i).g << "," << DONE.at(i).h << ",";
+                    cout << DONE.at(i).inf << "," << DONE.at(i).pp << "  ";
                 }
                 cout << endl << endl;
-                int ch = _getch();
 #endif
             }
         }

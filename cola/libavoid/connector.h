@@ -121,9 +121,11 @@ class DynamicPolygn
         int pn;
 };
 
+typedef std::set<Avoid::Point> PointSet;
 
 extern int countRealCrossings(Avoid::DynamicPolygn poly, bool polyIsConn,
-        Avoid::DynamicPolygn conn, int cIndex, bool checkForBranchingSegments);
+        Avoid::DynamicPolygn conn, int cIndex, bool checkForBranchingSegments,
+        PointSet *crossingPoints = NULL);
 extern bool validateBendPoint(VertInf *aInf, VertInf *bInf, VertInf *cInf);
 
 }

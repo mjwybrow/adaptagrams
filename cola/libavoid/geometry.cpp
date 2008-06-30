@@ -75,6 +75,18 @@ bool Point::operator!=(const Point& rhs) const
 }
 
 
+// Just defined to allow std::set<Point>.  Not particularly meaningful!
+bool Point::operator<(const Point& rhs) const
+{
+    if (x == rhs.x)
+    {
+        return (y < rhs.y);
+    }
+    return (x < rhs.x);
+}
+
+
+
 // Returns true iff the point c lies on the closed segment ab.
 // To be used when the points are known to be colinear.
 //

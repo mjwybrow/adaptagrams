@@ -36,6 +36,7 @@ class Point
         Point(const double xv, const double yv);
         bool operator==(const Point& rhs) const;
         bool operator!=(const Point& rhs) const;
+        bool operator<(const Point& rhs) const;
 
         double x;
         double y;
