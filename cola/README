@@ -1,13 +1,52 @@
- We use gnu automake to build.  I've tried to make the contents of the
- repository as platform agnostic as possible, so you'll need to call
- aclocal, autoconf, and automake before configure.
- A somewhat transient dependency (depending on whether I include
- libcola/output_svg.cpp in the build) is Cairo (cairographics.org).
- It's only used by a few examples so you can easily build the core libraries
- without it.
+Adaptagrams
+-----------
 
-run autogen.sh
+Adaptagrams is a library of tools and reusable code for adaptive diagramming
+applications, for example: drawing tools, automated document and diagram
+layout, smart presentation software, graph drawing, chart layout, etc.
 
-to compile from scratch.
+Currently, the Adaptagrams repository includes:
 
- Tim Dwyer - 16/03/2007 (www.csse.monash.edu.au/~tdwyer)
+    libvpsc   — a solver for the Variable Placement with Separation 
+		Constraints problem. This is a quadratic programming 
+		problem in which the squared differences between a 
+		placement vector and some ideal placement are minimised 
+		subject to a set of separation constraints. This is very 
+		useful in a number of layout problems.  
+    libcola   — a library for constraint graph layout.  Specifically, 
+    		force-directed layout using the stress-majorization 
+		method subject to separation constraints. Applications 
+		include layout with non-overlapping nodes and clusters, 
+		directed graph layout and layout preserving the crossing 
+		properties of a given starting layout.  
+    libavoid  — a cross-platform C++ library providing fast, 
+    		object-avoiding connector routing for use in interactive 
+		diagram editors.  
+
+These libraries are collectively known as cola (for Constraint Layout). The
+newest version of the C++ source code for cola can be found in the 
+Adaptagrams subversion repository:
+    https://adaptagrams.svn.sourceforge.net/svnroot/adaptagrams/trunk/cola
+
+All code in the Adaptagrams repository is released as open source under the
+terms of the LGPL, see the LICENSE file. Software using the above libraries 
+include: Inkscape, Graphviz and Dunnart.
+
+The Adaptagrams code is written and maintained by 
+    Tim Dwyer  <t-tdwyer@microsoft.com>   and
+    Michael Wybrow  <Michael.Wybrow@infotech.monash.edu.au>
+
+
+Building
+--------
+
+We use gnu automake to build.  I've tried to make the contents of the
+repository as platform agnostic as possible, so you'll need to call aclocal,
+autoconf, and automake before configure.
+ 
+A somewhat transient dependency (depending on whether I include
+libcola/output_svg.cpp in the build) is Cairo (cairographics.org).  It's only
+used by a few examples so you can easily build the core libraries without it.
+
+Run "autogen.sh" to compile from scratch.
+
