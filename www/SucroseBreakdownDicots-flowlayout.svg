@@ -9,15 +9,17 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   height="100%"
+   version="1.0"
+   baseProfile="full"
    viewBox="126 113 964 503"
    id="svg2"
    sodipodi:version="0.32"
    inkscape:version="0.45+devel"
-   width="100%"
    sodipodi:docname="SucroseBreakdownDicots-flowlayout.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
-   version="1.0">
+   preserveAspectRatio="xMidYMid"
+   width="100%"
+   height="100%">
   <metadata
      id="metadata255">
     <rdf:RDF>
