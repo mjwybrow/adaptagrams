@@ -188,8 +188,18 @@ class PointPair
         }
         static double pos_to_angle(double x, double y)
         {
+            if (y == 0)
+            {
+                return ((x < 0) ? 180 : 0);
+            }
+            else if (x == 0)
+            {
+                return ((y < 0) ? 270 : 90);
+            }
+            
             double ang = atan(y / x);
             ang = (ang * 180) / M_PI;
+
             if (x < 0)
             {
                 ang += 180;
