@@ -125,7 +125,7 @@ typedef std::set<Avoid::Point> PointSet;
 
 extern int countRealCrossings(Avoid::DynamicPolygn poly, bool polyIsConn,
         Avoid::DynamicPolygn conn, int cIndex, bool checkForBranchingSegments,
-        PointSet *crossingPoints = NULL);
+        PointSet *crossingPoints = NULL, bool *touches = NULL);
 extern bool validateBendPoint(VertInf *aInf, VertInf *bInf, VertInf *cInf);
 
 }

@@ -787,7 +787,7 @@ bool ConnRef::doesHateCrossings(void)
 //
 int countRealCrossings(Avoid::DynamicPolygn poly, bool polyIsConn,
         Avoid::DynamicPolygn conn, int cIndex, bool checkForBranchingSegments,
-        PointSet *crossingPoints)
+        PointSet *crossingPoints, bool *touches)
 {
     // Break up overlapping parallel segments that are not the same edge in 
     // the visibility graph, i.e., where one segment is a subsegment of another.
@@ -974,6 +974,11 @@ int countRealCrossings(Avoid::DynamicPolygn poly, bool polyIsConn,
                         crossingPoints->insert(a1);
                     }
                 }
+
+                if (touches)
+                {
+                    *touches = true;
+                }
             }
             else
             {
@@ -992,10 +997,10 @@ int countRealCrossings(Avoid::DynamicPolygn poly, bool polyIsConn,
                         crossingPoints->insert(a1);
                     }
                 }
-                else
+
+                if (touches)
                 {
-                    //printf("touch.\n");
-                    // The connectors touch at this point.
+                    *touches = true;
                 }
             }
         }
