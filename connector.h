@@ -2,7 +2,9 @@
  * vim: ts=4 sw=4 et tw=0 wm=0
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
- * Copyright (C) 2004-2008  Michael Wybrow <mjwybrow@users.sourceforge.net>
+ *
+ * Copyright (C) 2004-2007  Michael Wybrow <mjwybrow@users.sourceforge.net>
+ * Copyright (C) 2008  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -15,8 +17,9 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * License along with this library in the file LICENSE; if not, 
+ * write to the Free Software Foundation, Inc., 59 Temple Place, 
+ * Suite 330, Boston, MA  02111-1307  USA
  * 
 */
 
@@ -37,6 +40,39 @@ static const int ConnType_PolyLine   = 1;
 static const int ConnType_Orthogonal = 2;
 
 
+class DynamicPolygn
+{
+    public:
+        DynamicPolygn()
+        {
+            clear();
+        }
+        DynamicPolygn(const Avoid::Polygn& poly) :
+            id(poly.id),
+            ps(poly.pn),
+            pn(poly.pn)
+        {
+            for (int i = 0; i < poly.pn; ++i)
+            {
+                ps[i] = poly.ps[i];
+            }
+        }
+        void clear(void)
+        {
+            ps.clear();
+            pn = 0;
+        }
+        bool empty(void)
+        {
+            return (pn == 0);
+        }
+
+        int id;
+        std::vector<Avoid::Point> ps;
+        int pn;
+};
+
+
 class ConnRef
 {
     public:
@@ -46,7 +82,9 @@ class ConnRef
         ~ConnRef();
         
         void setType(unsigned int type);
-        PolyLine& route(void);
+        const PolyLine& route(void);
+        void set_route(const PolyLine& route);
+        DynamicPolygn& display_route(void);
         bool needsReroute(void);
         void freeRoute(void);
         void calcRouteDist(void);
@@ -90,6 +128,7 @@ class ConnRef
         bool _false_path;
         bool _active;
         PolyLine _route;
+        DynamicPolygn _display_route;
         double _route_dist;
         ConnRefList::iterator _pos;
         VertInf *_srcVert;
@@ -101,31 +140,47 @@ class ConnRef
         bool _hateCrossings;
 };
 
+class PointRep;
+typedef std::set<PointRep *> PointRepSet;
+typedef std::list<PointRep *> PointRepList;
 
-class DynamicPolygn
+class PointRep
 {
     public:
-        DynamicPolygn(Avoid::Polygn& poly) :
-            id(poly.id),
-            ps(poly.pn),
-            pn(poly.pn)
+        PointRep(Point *p)
+            : point(p)
         {
-            for (int i = 0; i < poly.pn; ++i)
-            {
-                ps[i] = poly.ps[i];
-            }
         }
+        bool follow_inner(PointRep *target);
 
-        int id;
-        std::vector<Avoid::Point> ps;
-        int pn;
+        Point *point;
+        // inner_set: Set of pointers to the PointReps 'inner' of 
+        // this one, at this corner.
+        PointRepSet inner_set;
 };
 
+
+class PtOrder
+{
+    public:
+        PtOrder()
+        {
+        }
+        ~PtOrder();
+        bool addPoints(Point *innerArg, Point *outerArg, bool swapped);
+        void sort(void);
+
+        PointRepList connList;
+};
+
+typedef std::map<VertID,PtOrder> PtOrderMap;
 typedef std::set<Avoid::Point> PointSet;
 
-extern int countRealCrossings(Avoid::DynamicPolygn poly, bool polyIsConn,
-        Avoid::DynamicPolygn conn, int cIndex, bool checkForBranchingSegments,
-        PointSet *crossingPoints = NULL, bool *touches = NULL);
+
+extern int countRealCrossings(Avoid::DynamicPolygn& poly, bool polyIsConn,
+        Avoid::DynamicPolygn& conn, int cIndex, bool checkForBranchingSegments,
+        PointSet *crossingPoints = NULL, PtOrderMap *pointOrders = NULL,
+        bool *touches = NULL);
 extern bool validateBendPoint(VertInf *aInf, VertInf *bInf, VertInf *cInf);
 
 }

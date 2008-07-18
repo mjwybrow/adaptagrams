@@ -2,7 +2,9 @@
  * vim: ts=4 sw=4 et tw=0 wm=0
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
- * Copyright (C) 2004-2008  Michael Wybrow <mjwybrow@users.sourceforge.net>
+ *
+ * Copyright (C) 2004-2007  Michael Wybrow <mjwybrow@users.sourceforge.net>
+ * Copyright (C) 2008  Monash University
  *
  * --------------------------------------------------------------------
  * The dijkstraPath function is based on code published and described
@@ -20,9 +22,10 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
+ * License along with this library in the file LICENSE; if not, 
+ * write to the Free Software Foundation, Inc., 59 Temple Place, 
+ * Suite 330, Boston, MA  02111-1307  USA
+ * 
 */
 
 #include "libavoid/vertices.h"
@@ -186,9 +189,11 @@ double cost(ConnRef *lineRef, const double dist, VertInf *inf1,
                 // vertices and hence already be in the list of vertices.
                 assert(router->vertices.getVertexByPos(cBoundary.ps[j])!=NULL);
             }
-
-            int crossings = countRealCrossings(cBoundary, isConn, 
-                    connRoute, connRoute.pn - 1, true);
+            
+            DynamicPolygn dynamic_c_boundary(cBoundary);
+            DynamicPolygn dynamic_conn_route(connRoute);
+            int crossings = countRealCrossings(dynamic_c_boundary, isConn, 
+                    dynamic_conn_route, connRoute.pn - 1, true);
             result += (crossings * router->cluster_crossing_penalty);
         }
     }
@@ -208,11 +213,13 @@ double cost(ConnRef *lineRef, const double dist, VertInf *inf1,
             {
                 continue;
             }
-            Avoid::PolyLine& route2 = connRef->route();
+            const Avoid::PolyLine& route2 = connRef->route();
             bool isConn = true;
             
-            int crossings = countRealCrossings(route2, isConn, 
-                    connRoute, connRoute.pn - 1, true);
+            DynamicPolygn dynamic_route2(route2);
+            DynamicPolygn dynamic_conn_route(connRoute);
+            int crossings = countRealCrossings(dynamic_route2, isConn, 
+                    dynamic_conn_route, connRoute.pn - 1, true);
             result += (crossings * router->crossing_penalty);
         }
     }
@@ -372,7 +379,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
     {
         assert(router->IgnoreRegions == true);
         
-        PolyLine& currRoute = lineRef->route();
+        const PolyLine& currRoute = lineRef->route();
         VertInf *last = NULL;
         int rIndx = 0;
         while (last != start)
