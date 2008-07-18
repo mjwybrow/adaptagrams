@@ -1,3 +1,28 @@
+/*
+ * vim: ts=4 sw=4 et tw=0 wm=0
+ *
+ * libvpsc - A solver for the problem of Variable Placement with 
+ *           Separation Constraints.
+ *
+ * Copyright (C) 2005-2008  Monash University
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library in the file LICENSE; if not, 
+ * write to the Free Software Foundation, Inc., 59 Temple Place, 
+ * Suite 330, Boston, MA  02111-1307  USA
+ *
+*/
+
 #ifndef __ISNAN_H__
 #define __ISNAN_H__
 
@@ -14,10 +39,10 @@
  *
  * Copyright (C) 2004 authors
  *
- * Released under GNU LGPL, read the file 'COPYING' for more information
+ * Released under GNU LGPL, read the file 'LICENSE' for more information
  *
- * 2005 modification hereby placed in public domain.  Probably supercedes the 2004 copyright
- * for the code itself.
+ * 2005 modification hereby placed in public domain.  Probably supercedes 
+ * the 2004 copyright for the code itself.
  */
 
 #include <math.h>
