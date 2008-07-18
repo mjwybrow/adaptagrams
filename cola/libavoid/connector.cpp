@@ -916,6 +916,20 @@ void PtOrder::sort(void)
 }
 
 
+// Returns a vertex number representing a point on the line between 
+// two shape corners, represented by p0 and p1.
+//
+static int midVextexNumber(const Point& p0, const Point& p1)
+{
+    int vn_mid = std::min(p0.vn, p1.vn);
+    if ((std::max(p0.vn, p1.vn) == 3) && (vn_mid == 0))
+    {
+        vn_mid = 3; // Next vn is effectively 4.
+    }
+    return vn_mid + 4;
+}
+
+
 // Works out if the segment conn[cIndex-1]--conn[cIndex] really crosses poly.
 // This does not not count non-crossing shared paths as crossings.
 // poly can be either a connector (polyIsConn = true) or a cluster
@@ -954,11 +968,13 @@ int countRealCrossings(Avoid::DynamicPolygn& poly, bool polyIsConn,
                 Point& p1 = (j == poly.ps.begin()) ? poly.ps.back() : *(j - 1);
                 Point& p0 = *j;
 
+                int vn_mid = midVextexNumber(p0, p1);
                 // Check the first point of every segment but the first one.
                 if (((i - 1) == conn.ps.begin()) && pointOnLine(p0, p1, c0))
                 {
                     //printf("add to poly %g %g\n", c0.x, c0.y);
 
+                    c0.vn = vn_mid;
                     j = poly.ps.insert(j, c0);
                     --j;
                     continue;
@@ -967,16 +983,20 @@ int countRealCrossings(Avoid::DynamicPolygn& poly, bool polyIsConn,
                 {
                     //printf("add to poly %g %g\n", c1.x, c1.y);
 
+                    c1.vn = vn_mid;
                     j = poly.ps.insert(j, c1);
                     --j;
                     continue;
                 }
 
+
+                vn_mid = midVextexNumber(c0, c1);
                 // Check the first point of every segment but the first one.
                 if ((j == poly.ps.begin()) && pointOnLine(c0, c1, p0))
                 {
                     //printf("add to conn %g %g\n", p0.x, p0.y);
 
+                    p0.vn = vn_mid;
                     i = conn.ps.insert(i, p0);
                     --i;
                     break;
@@ -985,6 +1005,7 @@ int countRealCrossings(Avoid::DynamicPolygn& poly, bool polyIsConn,
                 {
                     //printf("add to conn %g %g\n", p1.x, p1.y);
 
+                    p1.vn = vn_mid;
                     i = conn.ps.insert(i, p1);
                     --i;
                     break;
@@ -1076,7 +1097,7 @@ int countRealCrossings(Avoid::DynamicPolygn& poly, bool polyIsConn,
                 int endCornerSide = Avoid::cornerSide(a0, a1, a2, 
                         normal ? b2 : b0);
                 int prevTurnDir = vecDir(a0, a1, a2);
-                bool reversed = (endCornerSide == prevTurnDir);
+                bool reversed = (endCornerSide != -prevTurnDir);
                 bool orderSwapped;
                 if (pointOrders)
                 {
@@ -1177,7 +1198,7 @@ int countRealCrossings(Avoid::DynamicPolygn& poly, bool polyIsConn,
                 if (pointOrders)
                 {
                     int turnDir = vecDir(a0, a1, a2);
-                    bool reversed = (side1 == turnDir);
+                    bool reversed = (side1 != -turnDir);
                     VertID vID(b1.id, true, b1.vn);
                     (*pointOrders)[vID].addPoints(&b1, &a1, reversed);
                 }
