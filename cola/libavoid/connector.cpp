@@ -2,7 +2,9 @@
  * vim: ts=4 sw=4 et tw=0 wm=0
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
- * Copyright (C) 2004-2008  Michael Wybrow <mjwybrow@users.sourceforge.net>
+ *
+ * Copyright (C) 2004-2007  Michael Wybrow <mjwybrow@users.sourceforge.net>
+ * Copyright (C) 2008  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -15,8 +17,9 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * License along with this library in the file LICENSE; if not, 
+ * write to the Free Software Foundation, Inc., 59 Temple Place, 
+ * Suite 330, Boston, MA  02111-1307  USA
  * 
 */
 
@@ -319,9 +322,42 @@ void ConnRef::freeRoute(void)
 }
     
 
-PolyLine& ConnRef::route(void)
+const PolyLine& ConnRef::route(void)
 {
     return _route;
+}
+
+
+void ConnRef::set_route(const PolyLine& route)
+{
+    if (&_route == &route)
+    {
+        fprintf(stderr, 
+                "ERROR:\tTrying to update libavoid route with itself.\n");
+        return;
+    }
+
+    if (_route.ps)
+    {
+        std::free(_route.ps);
+        _route.ps = NULL;
+    }
+    int bytesize = route.pn * sizeof(Point);
+    _route.pn = route.pn;
+    _route.ps = (Point *) malloc(bytesize);
+    memcpy(_route.ps, route.ps, bytesize);
+
+    _display_route.clear();
+}
+
+
+DynamicPolygn& ConnRef::display_route(void)
+{
+    if (_display_route.empty())
+    {
+        _display_route = DynamicPolygn(_route);
+    }
+    return _display_route;
 }
 
 
@@ -576,7 +612,7 @@ int ConnRef::generatePath(void)
     bool *flag = &(_needs_reroute_flag);
    
     int existingPathStart = 0;
-    PolyLine& currRoute = route();
+    const PolyLine& currRoute = route();
     if (_router->RubberBandRouting)
     {
         assert(_router->IgnoreRegions == true);
@@ -744,9 +780,10 @@ int ConnRef::generatePath(void)
     // Would clear visibility for endpoints here if required.
 
     freeRoute();
-    PolyLine& output_route = route();
+    PolyLine& output_route = _route;
     output_route.pn = pathlen;
     output_route.ps = path;
+    _display_route.clear();
  
     if ( !(_router->IncludeEndpoints) )
     {
@@ -780,14 +817,113 @@ bool ConnRef::doesHateCrossings(void)
 }
 
 
+PtOrder::~PtOrder()
+{
+    // Free the PointRep list.
+    PointRepList::iterator curr = connList.begin();
+    while (curr != connList.end())
+    {
+        PointRep *doomed = *curr;
+        curr = connList.erase(curr);
+        delete doomed;
+    }
+}
+
+bool PointRep::follow_inner(PointRep *target)
+{
+    if (this == target)
+    {
+        return true;
+    }
+    else
+    {
+        for (PointRepSet::iterator curr = inner_set.begin(); 
+                curr != inner_set.end(); ++curr)
+        {
+            if ((*curr)->follow_inner(target))
+            {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+
+bool PtOrder::addPoints(Point *innerArg, Point *outerArg, bool swapped)
+{
+    Point *inner = (swapped) ? outerArg : innerArg;
+    Point *outer = (swapped) ? innerArg : outerArg;
+    assert( inner != outer);
+
+    PointRep *innerPtr = NULL;
+    PointRep *outerPtr = NULL;
+    for (PointRepList::iterator curr = connList.begin(); 
+            curr != connList.end(); ++curr)
+    {
+        if ((*curr)->point == inner)
+        {
+            innerPtr = *curr;
+        }
+        if ((*curr)->point == outer)
+        {
+            outerPtr = *curr;
+        }
+    }
+    
+    if (innerPtr == NULL)
+    {
+        innerPtr = new PointRep(inner);
+        connList.push_back(innerPtr);
+    }
+    
+    if (outerPtr == NULL)
+    {
+        outerPtr = new PointRep(outer);
+        connList.push_back(outerPtr);
+    }
+    assert(innerPtr->inner_set.find(outerPtr) == innerPtr->inner_set.end());
+    bool cycle = innerPtr->follow_inner(outerPtr);
+    if (cycle)
+    {
+        // Must reverse to avoid a cycle.
+        innerPtr->inner_set.insert(outerPtr);
+    }
+    else
+    {
+        outerPtr->inner_set.insert(innerPtr);
+    }
+    return cycle;
+}
+
+
+// Assuming that addPoints has been called for each pair of points in the 
+// shared path at that corner, then the contents of inner_set can be used 
+// to determine the correct ordering.
+static bool pointRepLessThan(PointRep *r1, PointRep *r2)
+{
+    int r1less = r1->inner_set.size();
+    int r2less = r2->inner_set.size();
+    assert(r1less != r2less);
+
+    return (r1less > r2less);
+}
+
+
+void PtOrder::sort(void)
+{
+    connList.sort(pointRepLessThan);
+}
+
+
 // Works out if the segment conn[cIndex-1]--conn[cIndex] really crosses poly.
 // This does not not count non-crossing shared paths as crossings.
 // poly can be either a connector (polyIsConn = true) or a cluster
 // boundary (polyIsConn = false).
 //
-int countRealCrossings(Avoid::DynamicPolygn poly, bool polyIsConn,
-        Avoid::DynamicPolygn conn, int cIndex, bool checkForBranchingSegments,
-        PointSet *crossingPoints, bool *touches)
+int countRealCrossings(Avoid::DynamicPolygn& poly, bool polyIsConn,
+        Avoid::DynamicPolygn& conn, int cIndex, bool checkForBranchingSegments,
+        PointSet *crossingPoints, PtOrderMap *pointOrders, bool *touches)
 {
     // Break up overlapping parallel segments that are not the same edge in 
     // the visibility graph, i.e., where one segment is a subsegment of another.
@@ -939,11 +1075,47 @@ int countRealCrossings(Avoid::DynamicPolygn poly, bool polyIsConn,
                 
                 int endCornerSide = Avoid::cornerSide(a0, a1, a2, 
                         normal ? b2 : b0);
-
+                int prevTurnDir = vecDir(a0, a1, a2);
+                bool reversed = (endCornerSide == prevTurnDir);
+                bool orderSwapped;
+                if (pointOrders)
+                {
+                    VertID vID(a1.id, true, a1.vn);
+                    orderSwapped = (*pointOrders)[vID].addPoints(
+                            &b1, &a1, reversed);
+                    if (orderSwapped)
+                    {
+                        // Reverse the order for later points.
+                        reversed = !reversed;
+                    }
+                }
                 while (traceI >= 0 &&
                     (!polyIsConn || ((traceJ >= 0) && (traceJ < poly.pn))) &&
                     (conn.ps[traceI] == poly.ps[(traceJ + poly.pn) % poly.pn]))
                 {
+                    if (pointOrders)
+                    {
+                        Avoid::Point& an = conn.ps[traceI];
+                        Avoid::Point& bn = 
+                                poly.ps[(traceJ + poly.pn) % poly.pn];
+                        int currTurnDir = (traceI > 0) ?  
+                                vecDir(conn.ps[traceI - 1], an,
+                                       conn.ps[traceI + 1]) : 0;
+                        VertID vID(an.id, true, an.vn);
+                        if ( (currTurnDir == (-1 * prevTurnDir)) &&
+                                (currTurnDir != 0) && (prevTurnDir != 0) )
+                        {
+                            // The connector turns the opposite way around 
+                            // this shape as the previous bend on the path,
+                            // so reverse the order so that the inner path
+                            // become the outer path and vice verca.
+                            reversed = !reversed;
+                        }
+                        orderSwapped = (*pointOrders)[vID].addPoints(
+                                &bn, &an, reversed);
+                        assert(!orderSwapped);
+                        prevTurnDir = currTurnDir;
+                    }
                     traceI--;
                     traceJ += dir;
                 }
@@ -1001,6 +1173,13 @@ int countRealCrossings(Avoid::DynamicPolygn poly, bool polyIsConn,
                 if (touches)
                 {
                     *touches = true;
+                }
+                if (pointOrders)
+                {
+                    int turnDir = vecDir(a0, a1, a2);
+                    bool reversed = (side1 == turnDir);
+                    VertID vID(b1.id, true, b1.vn);
+                    (*pointOrders)[vID].addPoints(&b1, &a1, reversed);
                 }
             }
         }
