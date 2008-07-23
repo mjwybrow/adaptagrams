@@ -45,10 +45,10 @@ public:
     Cluster();
     virtual ~Cluster() {}
 	virtual void computeBoundary(const vpsc::Rectangles& rs) = 0;
-	vpsc::Rectangle getMinRect( const vpsc::Dim dim, const vpsc::Rectangle& bounds);
-	vpsc::Rectangle getMaxRect( const vpsc::Dim dim, const vpsc::Rectangle& bounds);
     void computeBoundingRect(const vpsc::Rectangles& rs);
 	vpsc::Rectangle bounds;
+	void setDesiredBounds(const vpsc::Rectangle bounds);
+	void unsetDesiredBounds();
 	void createVars(const vpsc::Dim dim, const vpsc::Rectangles& rs, vpsc::Variables& vars);
 	vpsc::Variable *vXMin, *vXMax, *vYMin, *vYMax;
     void generateNonOverlapConstraints(
@@ -63,7 +63,15 @@ public:
      * including space between nodes/clusters)
      */
     double area(const vpsc::Rectangles& rs);
+	/**
+	 * sets bounds based on the finalPositions of vMin and vMax.
+	 */
+	void updateBounds(const vpsc::Dim dim);
 private:
+	bool desiredBoundsSet;
+	vpsc::Rectangle desiredBounds;
+	vpsc::Rectangle getMinRect( const vpsc::Dim dim, const vpsc::Rectangle& bounds);
+	vpsc::Rectangle getMaxRect( const vpsc::Dim dim, const vpsc::Rectangle& bounds);
 	vpsc::Variable *vMin, *vMax;
     double length;
     double border;

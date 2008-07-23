@@ -395,7 +395,7 @@ public:
 		const vpsc::Rectangles& rs,
 		const std::vector<cola::Edge>& es,
         const double idealLength,
-        const std::valarray<double>* eweights=NULL,
+        const double* eweights=NULL,
         TestConvergence& done=defaultTest,
         PreIteration* preIteration=NULL);
     void run(bool x=true, bool y=true);
@@ -479,7 +479,18 @@ private:
     bool rungekutta;
 };
 
-void removeClusterOverlapFast(RootCluster& clusterHierarchy, vpsc::Rectangles& rs);
+/**
+ * find shortest path lengths from node s to all other nodes.
+ * @param s starting node
+ * @param n total number of nodes
+ * @param d n vector of path lengths
+ * @param es edge pairs
+ * @param eweights edge weights
+ */
+void dijkstra(const unsigned s, const unsigned n, double* d, 
+			  const std::vector<cola::Edge>& es, const double* eweights);
+
+void removeClusterOverlapFast(RootCluster& clusterHierarchy, vpsc::Rectangles& rs, Locks& locks);
 }
 #endif				// COLA_H
 

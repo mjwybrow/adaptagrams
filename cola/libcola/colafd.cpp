@@ -68,24 +68,25 @@ void dumpSquareMatrix(unsigned n, T** L) {
         printf("%c\n",c);
     }
 }
+
 ConstrainedFDLayout::ConstrainedFDLayout(
 	const vpsc::Rectangles & rs,
 	const std::vector< Edge > & es, 
-        const double idealLength,
-        const std::valarray<double> * eweights,
-		TestConvergence& done,
-		PreIteration* preIteration)
-    : n(rs.size()),
-      X(valarray<double>(n)),
-      Y(valarray<double>(n)),
-      done(done),
-      preIteration(preIteration),
-      ccsx(NULL), ccsy(NULL),
-      topologyNodes(NULL),
-      topologyRoutes(NULL),
-      rungekutta(true)
+    const double idealLength,
+    const double* eweights,
+	TestConvergence& done,
+	PreIteration* preIteration)
+: n(rs.size()),
+  X(valarray<double>(n)),
+  Y(valarray<double>(n)),
+  done(done),
+  preIteration(preIteration),
+  ccsx(NULL), ccsy(NULL),
+  topologyNodes(NULL),
+  topologyRoutes(NULL),
+  rungekutta(true)
 {
-    //FILELog::ReportingLevel() = logDEBUG1;
+	//FILELog::ReportingLevel() = logDEBUG1;
     FILELog::ReportingLevel() = logERROR;
     boundingBoxes.resize(n);
     copy(rs.begin(),rs.end(),boundingBoxes.begin());
@@ -102,8 +103,22 @@ ConstrainedFDLayout::ConstrainedFDLayout(
         D[i]=new double[n];
         G[i]=new unsigned short[n];
     }
-    computePathLengths(es,idealLength,eweights);
+
+	if(eweights == NULL) {
+		computePathLengths(es,idealLength,NULL);
+	} else {
+		valarray<double> eweightsArray(eweights,es.size());
+		computePathLengths(es,idealLength,&eweightsArray);
+	}	
 }
+
+void dijkstra(const unsigned s, const unsigned n, double* d, 
+        const vector<Edge>& es, const double* eweights)
+{
+	const valarray<double> eweightsArray(eweights, es.size());
+	shortest_paths::dijkstra(s,n,d,es,&eweightsArray);
+}
+
 /**
  * Sets up the D and G matrices.  D is the required euclidean distances
  * between pairs of nodes based on the shortest paths between them (using

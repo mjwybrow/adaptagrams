@@ -147,6 +147,7 @@ void dijkstra(
     dijkstra_init(vs,es,eweights);
     dijkstra(s,vs,d);
 }
+
 template <typename T>
 void johnsons(
         unsigned const n,

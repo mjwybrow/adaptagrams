@@ -63,6 +63,23 @@ using namespace topology;
 %template(UnsignedVector) std::vector<unsigned>;
 %template(ClusterVector) std::vector<cola::Cluster*>;
 
+%inline %{
+double *a;
+void doubleArraySet(double *a, int i, double val) {
+   a[i] = val;
+}
+double doubleArrayGet(const double *a, int i) {
+   return a[i];
+}
+double *newDoubleArray(int size) {
+   return new double[size];
+}
+void deleteDoubleArray(double* a) {
+   delete a;
+}
+%}
+
+
 %rename(testoperator) cola::TestConvergence::operator();
 
 //%rename straightener::Edge StraightenerEdge;

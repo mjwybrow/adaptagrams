@@ -499,37 +499,65 @@ Rectangle bounds(vector<Rectangle*>& rs) {
     return Rectangle(left, right, top, bottom);
 }
 
-	void removeClusterOverlap(RootCluster& clusterHierarchy, vpsc::Rectangles& rs, vpsc::Dim dim) {
+	void removeClusterOverlap(RootCluster& clusterHierarchy, vpsc::Rectangles& rs, Locks& locks, vpsc::Dim dim) {
 		if(clusterHierarchy.nodes.size()>0 || clusterHierarchy.clusters.size()>0) {
 			vpsc::Variables vars;
 			vpsc::Constraints cs;
 			for(unsigned i=0;i<rs.size();i++) {
 				vars.push_back(new vpsc::Variable(i, rs[i]->getCentreD(dim)));
 			}
+			
 			clusterHierarchy.computeBoundingRect(rs);
 			clusterHierarchy.createVars(dim,rs,vars);
 			clusterHierarchy.generateNonOverlapConstraints(dim, cola::Both, rs, vars, cs);
+			
+			/*
+			if(dim==vpsc::HORIZONTAL) {
+				vpsc::Rectangle::setXBorder(0.001);
+				// use rs->size() rather than n because some of the variables may
+				// be dummy vars with no corresponding rectangle
+				generateXConstraints(rs,vars,cs,true); 
+				vpsc::Rectangle::setXBorder(0);
+			} else {
+				generateYConstraints(rs,vars,cs); 
+			}
+			*/
+            for(Locks::iterator l=locks.begin();
+                    l!=locks.end();l++) {
+                unsigned id=l->getID();
+                double x=l->pos(HORIZONTAL), y=l->pos(VERTICAL);
+				Variable* v=vars[id];
+				v->desiredPosition = (dim==vpsc::HORIZONTAL)?x:y;
+				v->weight = 1000;
+            }
 			vpsc::Solver s(vars,cs);
 			try {
 				s.satisfy();
 			} catch(const char* e) {
 				cerr << "ERROR from solver in GraphData::removeOverlap : " << e << endl;
 			}
+			clusterHierarchy.updateBounds(dim);
+			/*
 			for(unsigned i=0;i<cs.size();++i) {
 				if(cs[i]->unsatisfiable) {
 					cout << "Unsatisfiable constraint: " << *cs[i] << endl;
 				}
 			}
+			*/
 			for(unsigned i=0;i<rs.size();i++) {
 				rs[i]->moveCentreD(dim,vars[i]->finalPosition);
 			}
+            for(Locks::iterator l=locks.begin();
+                    l!=locks.end();l++) {
+                unsigned id=l->getID();
+            }
 			for_each(vars.begin(),vars.end(),delete_object());
 			for_each(cs.begin(),cs.end(),delete_object());
 		}
 	}
-	void removeClusterOverlapFast(RootCluster& clusterHierarchy, vpsc::Rectangles& rs) {
-		removeClusterOverlap(clusterHierarchy, rs, vpsc::HORIZONTAL);
-		removeClusterOverlap(clusterHierarchy, rs, vpsc::VERTICAL);
+	void removeClusterOverlapFast(RootCluster& clusterHierarchy, vpsc::Rectangles& rs, Locks& locks) {
+		removeClusterOverlap(clusterHierarchy, rs, locks, vpsc::HORIZONTAL);
+		removeClusterOverlap(clusterHierarchy, rs, locks, vpsc::VERTICAL);
 	}
 
 } // namespace cola

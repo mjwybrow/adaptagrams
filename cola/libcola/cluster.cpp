@@ -34,9 +34,15 @@ namespace cola {
     using namespace std;
 
     Cluster::Cluster()
-        : varWeight(0.0001), internalEdgeWeightFactor(1.), bounds(-1,1,-1,1), border(7)
+        : varWeight(0.0001), internalEdgeWeightFactor(1.), bounds(-1,1,-1,1), border(7), desiredBoundsSet(false), desiredBounds(-1,1,-1,1)
       {}
-
+	void Cluster::setDesiredBounds(const vpsc::Rectangle db) {
+		desiredBoundsSet=true;
+		desiredBounds=db;
+	}
+	void Cluster::unsetDesiredBounds() {
+		desiredBoundsSet=false;
+	}
     void Cluster::computeBoundingRect(const vpsc::Rectangles& rs) {
         double minX=DBL_MAX, maxX=-DBL_MAX, minY=DBL_MAX, maxY=-DBL_MAX;
         for(vector<Cluster*>::const_iterator i=clusters.begin(); i!=clusters.end(); i++) {
@@ -119,6 +125,16 @@ namespace cola {
             clusters[i]->computeBoundary(rs);
         }
     }
+	void Cluster::updateBounds(const vpsc::Dim dim) {
+		if(dim==vpsc::HORIZONTAL) {
+			bounds=vpsc::Rectangle(vMin->finalPosition,vMax->finalPosition,bounds.getMinY(),bounds.getMaxY());
+		} else {
+			bounds=vpsc::Rectangle(bounds.getMinX(),bounds.getMaxX(),vMin->finalPosition,vMax->finalPosition);
+		}
+        for(unsigned i=0;i<clusters.size();i++) {
+            clusters[i]->updateBounds(dim);
+        }
+	}
 	vpsc::Rectangle Cluster::getMinRect( const vpsc::Dim dim, const vpsc::Rectangle& bounds) {
         if(dim==vpsc::HORIZONTAL) {
             length=bounds.width();
@@ -158,15 +174,25 @@ namespace cola {
             (*i)->createVars(dim,rs,vars);
         }
         if(dim==vpsc::HORIZONTAL) {
+			double desiredMinX = bounds.getMinX(), desiredMaxX = bounds.getMaxX();
+			if(desiredBoundsSet) {
+				desiredMinX = desiredBounds.getMinX();
+				desiredMaxX = desiredBounds.getMaxX();
+			}
             vars.push_back(vXMin=new vpsc::Variable(
-                        vars.size(),bounds.getMinX(),varWeight));
+                        vars.size(),desiredMinX,varWeight));
             vars.push_back(vXMax=new vpsc::Variable(
-                        vars.size(),bounds.getMaxX(),varWeight));
+                        vars.size(),desiredMaxX,varWeight));
         } else {
+			double desiredMinY = bounds.getMinY(), desiredMaxY = bounds.getMaxY();
+			if(desiredBoundsSet) {
+				desiredMinY = desiredBounds.getMinY();
+				desiredMaxY = desiredBounds.getMaxY();
+			}
             vars.push_back(vYMin=new vpsc::Variable(
-                        vars.size(),bounds.getMinY(),varWeight));
+                        vars.size(),desiredMinY,varWeight));
             vars.push_back(vYMax=new vpsc::Variable(
-                        vars.size(),bounds.getMaxX(),varWeight));
+                        vars.size(),desiredMaxY,varWeight));
         }
     }
     void Cluster::generateNonOverlapConstraints(
