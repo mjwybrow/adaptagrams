@@ -64,7 +64,6 @@ using namespace topology;
 %template(ClusterVector) std::vector<cola::Cluster*>;
 
 %inline %{
-double *a;
 void doubleArraySet(double *a, int i, double val) {
    a[i] = val;
 }
