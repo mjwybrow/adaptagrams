@@ -45,7 +45,7 @@ class ClusterRef
         ~ClusterRef();
         void setNewPoly(Polygn& poly);
         unsigned int id(void);
-        Polygn& poly(void);
+        ReferencingPolygn& poly(void);
         Router *router(void);
         void makeActive(void);
         void makeInactive(void);
@@ -53,7 +53,7 @@ class ClusterRef
     private:
         Router *_router;
         unsigned int _id;
-        Polygn _poly;
+        ReferencingPolygn _poly;
         bool _active;
         ClusterRefList::iterator _pos;
 };

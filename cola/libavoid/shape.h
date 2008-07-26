@@ -47,7 +47,7 @@ class ShapeRef
         VertInf *firstVert(void);
         VertInf *lastVert(void);
         unsigned int id(void);
-        Polygn poly(void);
+        const Polygn& poly(void);
         Router *router(void);
         void boundingBox(BBox& bbox);
 

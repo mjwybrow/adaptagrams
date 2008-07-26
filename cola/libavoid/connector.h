@@ -40,39 +40,6 @@ static const int ConnType_PolyLine   = 1;
 static const int ConnType_Orthogonal = 2;
 
 
-class DynamicPolygn
-{
-    public:
-        DynamicPolygn()
-        {
-            clear();
-        }
-        DynamicPolygn(const Avoid::Polygn& poly) :
-            id(poly.id),
-            ps(poly.pn),
-            pn(poly.pn)
-        {
-            for (int i = 0; i < poly.pn; ++i)
-            {
-                ps[i] = poly.ps[i];
-            }
-        }
-        void clear(void)
-        {
-            ps.clear();
-            pn = 0;
-        }
-        bool empty(void)
-        {
-            return (pn == 0);
-        }
-
-        int id;
-        std::vector<Avoid::Point> ps;
-        int pn;
-};
-
-
 class ConnRef
 {
     public:
@@ -181,6 +148,8 @@ extern int countRealCrossings(Avoid::DynamicPolygn& poly, bool polyIsConn,
         Avoid::DynamicPolygn& conn, int cIndex, bool checkForBranchingSegments,
         PointSet *crossingPoints = NULL, PtOrderMap *pointOrders = NULL,
         bool *touches = NULL);
+extern void splitBranchingSegments(Avoid::DynamicPolygn& poly, bool polyIsConn,
+        Avoid::DynamicPolygn& conn);
 extern bool validateBendPoint(VertInf *aInf, VertInf *bInf, VertInf *cInf);
 
 }

@@ -34,7 +34,7 @@ namespace Avoid {
 ClusterRef::ClusterRef(Router *router, unsigned int id, Polygn& ply)
     : _router(router)
     , _id(id)
-    , _poly(copyPoly(ply))
+    , _poly(ply, router)
     , _active(false)
 {
     assert(id > 0);
@@ -43,7 +43,6 @@ ClusterRef::ClusterRef(Router *router, unsigned int id, Polygn& ply)
 
 ClusterRef::~ClusterRef()
 {
-    freePoly(_poly);
 }
 
 
@@ -71,8 +70,7 @@ void ClusterRef::makeInactive(void)
 
 void ClusterRef::setNewPoly(Polygn& poly)
 {
-    freePoly(_poly);
-    _poly = copyPoly(poly);
+    _poly = ReferencingPolygn(poly, _router);
 }
 
 
@@ -82,7 +80,7 @@ unsigned int ClusterRef::id(void)
 }
 
 
-Polygn& ClusterRef::poly(void)
+ReferencingPolygn& ClusterRef::poly(void)
 {
     return _poly;
 }

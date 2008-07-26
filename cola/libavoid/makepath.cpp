@@ -145,51 +145,16 @@ double cost(ConnRef *lineRef, const double dist, VertInf *inf1,
         for (ClusterRefList::const_iterator cl = router->clusterRefs.begin(); 
                 cl != router->clusterRefs.end(); ++cl)
         {
-            Polygn& cBoundary = (*cl)->poly();
-            assert(cBoundary.ps[0] != cBoundary.ps[cBoundary.pn - 1]);
-            bool isConn = false;
-#if 1
-            // Expensive correction to make sure points on the boundary of 
-            // the cluster match their corresponding shape corner positions.
-            //
-            // XXX: This is still ineffecient, and shouldn't even be necessary.
-            //      Eventually, the boundary should just reference the shape
-            //      points, so that it will always be accurate.
-            for (int j = 0; j < cBoundary.pn; ++j)
-            {
-                if (cBoundary.ps[j].id > 0)
-                {
-                    for (ShapeRefList::const_iterator sh = 
-                            router->shapeRefs.begin();
-                            sh != router->shapeRefs.end(); ++sh) 
-                    {
-                        Polygn poly = (*sh)->poly();
-                        int i = cBoundary.ps[j].vn;
-                        if (((*sh)->id() == cBoundary.ps[j].id) &&
-                                (cBoundary.ps[j] != poly.ps[i]))
-                        {
-                            fprintf(stderr, 
-                                    "WARNING: libavoid: Adjusting Cluster "
-                                    "boundary point to match shape vertex:\n"
-                                    "\t was: (%g, %g) id %d vn %d\n"
-                                    "\t now: (%g, %g)\n",
-                                    cBoundary.ps[j].x, cBoundary.ps[j].y, 
-                                    cBoundary.ps[j].id, cBoundary.ps[j].vn,
-                                    poly.ps[i].x, poly.ps[i].y);
-                            cBoundary.ps[j].x = poly.ps[i].x;
-                            cBoundary.ps[j].y = poly.ps[i].y;
-                        }
-                    }
-                }
-            }
-#endif 
-            for (int j = 0; j < cBoundary.pn; ++j)
+            ReferencingPolygn& cBoundary = (*cl)->poly();
+            assert(cBoundary.ps[0] != cBoundary.ps[cBoundary.size() - 1]);
+            for (int j = 0; j < cBoundary.size(); ++j)
             {
                 // Cluster boundary points should correspond to shape 
                 // vertices and hence already be in the list of vertices.
-                assert(router->vertices.getVertexByPos(cBoundary.ps[j])!=NULL);
+                assert(router->vertices.getVertexByPos(cBoundary.at(j))!=NULL);
             }
             
+            bool isConn = false;
             DynamicPolygn dynamic_c_boundary(cBoundary);
             DynamicPolygn dynamic_conn_route(connRoute);
             int crossings = countRealCrossings(dynamic_c_boundary, isConn, 
@@ -214,8 +179,8 @@ double cost(ConnRef *lineRef, const double dist, VertInf *inf1,
                 continue;
             }
             const Avoid::PolyLine& route2 = connRef->route();
-            bool isConn = true;
             
+            bool isConn = true;
             DynamicPolygn dynamic_route2(route2);
             DynamicPolygn dynamic_conn_route(connRoute);
             int crossings = countRealCrossings(dynamic_route2, isConn, 

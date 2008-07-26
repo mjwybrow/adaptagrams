@@ -115,7 +115,8 @@ class Router {
         void checkAllMissingEdges(void);
         void adjustContainsWithAdd(const Polygn& poly, const int p_shape);
         void adjustContainsWithDel(const int p_shape);
-        void adjustClustersWithAdd(const Polygn& poly, const int p_cluster);
+        void adjustClustersWithAdd(const PolygnInterface& poly, 
+                const int p_cluster);
         void adjustClustersWithDel(const int p_cluster);
         void callbackAllInvalidConnectors(void);
 

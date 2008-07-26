@@ -50,7 +50,7 @@ extern bool segmentIntersect(const Point& a, const Point& b,
 extern bool segmentShapeIntersect(const Point& e1, const Point& e2, 
         const Point& s1, const Point& s2, bool& seenIntersectionAtEndpoint);
 extern bool inPoly(const Polygn& poly, const Point& q, bool countBorder = true);
-extern bool inPolyGen(const Polygn& poly, const Point& q);
+extern bool inPolyGen(const PolygnInterface& poly, const Point& q);
 extern bool inValidRegion(bool IgnoreRegions, const Point& a0,
         const Point& a1, const Point& a2, const Point& b);
 extern int cornerSide(const Point &c1, const Point &c2, const Point &c3,

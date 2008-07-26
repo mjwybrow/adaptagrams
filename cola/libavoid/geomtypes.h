@@ -27,6 +27,9 @@
 #ifndef AVOID_GEOMTYPES_H
 #define AVOID_GEOMTYPES_H
 
+#include <vector>
+#include <utility>
+
 
 namespace Avoid
 {
@@ -52,12 +55,33 @@ class Point
 typedef Point Vector;
 
 
-typedef struct
+class PolygnInterface
 {
-    int id;
-    Point *ps;
-    int pn;
-} Polygn;
+    public:
+        PolygnInterface() { }
+        virtual ~PolygnInterface() { }
+        virtual void clear(void) = 0;
+        virtual const bool empty(void) const = 0;
+        virtual const int size(void) const = 0;
+        virtual int id(void) const = 0;
+        virtual const Point& at(int index) const = 0;
+};
+
+
+class Polygn : public PolygnInterface
+{
+    public:
+        Polygn();
+        void clear(void);
+        const bool empty(void) const;
+        const int size(void) const;
+        int id(void) const;
+        const Point& at(int index) const;
+
+        int _id;
+        Point *ps;
+        int pn;
+};
 
 typedef Polygn PolyLine;
 
@@ -69,6 +93,47 @@ typedef struct
 } Edge;
 
 typedef Edge BBox;
+
+
+class Router;
+
+// A Polygn which just references its points from other Polygns.
+// This is used to represent cluster boundaries made up of shape corners.
+//
+class ReferencingPolygn : public PolygnInterface
+{
+    public:
+        ReferencingPolygn();
+        ReferencingPolygn(const Polygn& poly, const Router *router);
+        void clear(void);
+        const bool empty(void) const;
+        const int size(void) const;
+        int id(void) const;
+        const Point& at(int index) const;
+
+        int _id;
+        std::vector<std::pair<const Polygn *, unsigned short> > ps;
+};
+
+
+// A dynamic version of Polygn, to which points can be easily added 
+// and removed.
+//
+class DynamicPolygn : public PolygnInterface
+{
+    public:
+        DynamicPolygn();
+        DynamicPolygn(const Polygn& poly);
+        DynamicPolygn(ReferencingPolygn& poly);
+        void clear(void);
+        const bool empty(void) const;
+        const int size(void) const;
+        int id(void) const;
+        const Point& at(int index) const;
+
+        int _id;
+        std::vector<Point> ps;
+};
 
 
 }

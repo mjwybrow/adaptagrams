@@ -14,7 +14,7 @@ libavoid_a_SOURCES = connector.cpp\
 			timer.cpp\
 			visibility.cpp\
 			region.cpp\
-			router.h\
+			geomtypes.cpp\
 			libavoid.h
 
 libavoidincludedir = ${includedir}/libavoid
