@@ -185,7 +185,7 @@ unsigned int ShapeRef::id(void)
 }
 
 
-Polygn ShapeRef::poly(void)
+const Polygn& ShapeRef::poly(void)
 {
     return _poly;
 }

@@ -50,14 +50,14 @@ Polygn newPoly(int size)
 }
 
 
-Polygn copyPoly(Polygn poly)
+Polygn copyPoly(const PolygnInterface& poly)
 {
-    Polygn newpoly = newPoly(poly.pn);
+    Polygn newpoly = newPoly(poly.size());
 
-    newpoly.id = poly.id;
-    for (int i = 0; i < poly.pn; i++)
+    newpoly._id = poly.id();
+    for (int i = 0; i < poly.size(); ++i)
     {
-        newpoly.ps[i] = poly.ps[i];
+        newpoly.ps[i] = poly.at(i);
     }
     return newpoly;
 }

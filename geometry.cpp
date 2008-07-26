@@ -42,53 +42,6 @@
 namespace Avoid {
 
 
-Point::Point() :
-    id(0),
-    vn(0)
-{
-}
-
-
-Point::Point(const double xv, const double yv) :
-    x(xv),
-    y(yv),
-    id(0),
-    vn(0)
-{
-}
-
-
-bool Point::operator==(const Point& rhs) const
-{
-    if ((x == rhs.x) && (y == rhs.y))
-    {
-        return true;
-    }
-    return false;
-}
-
-
-bool Point::operator!=(const Point& rhs) const
-{
-    if ((x != rhs.x) || (y != rhs.y))
-    {
-        return true;
-    }
-    return false;
-}
-
-
-// Just defined to allow std::set<Point>.  Not particularly meaningful!
-bool Point::operator<(const Point& rhs) const
-{
-    if (x == rhs.x)
-    {
-        return (y < rhs.y);
-    }
-    return (x < rhs.x);
-}
-
-
 
 // Returns true iff the point c lies on the closed segment ab.
 // To be used when the points are known to be colinear.
@@ -274,7 +227,7 @@ int cornerSide(const Point &c1, const Point &c2, const Point &c3,
     }
     else if (s123 == -1)
     {
-        if ((s12p <= -1) && (s23p <= 0))
+        if ((s12p <= 0) && (s23p <= 0))
         {
             return -1;
         }
@@ -357,7 +310,7 @@ bool inPoly(const Polygn& poly, const Point& q, bool countBorder)
 //
 // Based on the code of 'InPoly'.
 //
-bool inPolyGen(const Polygn& argpoly, const Point& q)
+bool inPolyGen(const PolygnInterface& argpoly, const Point& q)
 {
     // Numbers of right and left edge/ray crossings.
     int Rcross = 0;

@@ -759,8 +759,16 @@ int ConnRef::generatePath(void)
             _false_path = true;
         }
         path[j] = i->point;
-        path[j].id = i->id.objID;
-        path[j].vn = i->id.vn;
+        if (i->id.isShape)
+        {
+            path[j].id = i->id.objID;
+            path[j].vn = i->id.vn;
+        }
+        else
+        {
+            path[j].id = _id;
+            path[j].vn = 8;
+        }
         j--;
 
         if (i->pathNext && (i->pathNext->point == i->point))
@@ -774,8 +782,11 @@ int ConnRef::generatePath(void)
         }
     }
     path[0] = _srcVert->point;
-    path[0].id = _srcVert->id.objID;
-    path[0].vn = _srcVert->id.vn;
+    // Use topbit to differentiate between start and end point of connector.
+    // They need unique IDs for nudging.
+    unsigned int topbit = 1 << 31;
+    path[0].id = _id | topbit; 
+    path[0].vn = 8;
 
     // Would clear visibility for endpoints here if required.
 
@@ -800,7 +811,7 @@ int ConnRef::generatePath(void)
     }
     printf("\n\n");
 #endif
- 
+
     return (int) result;
 }
 
@@ -919,14 +930,168 @@ void PtOrder::sort(void)
 // Returns a vertex number representing a point on the line between 
 // two shape corners, represented by p0 and p1.
 //
-static int midVextexNumber(const Point& p0, const Point& p1)
+static int midVertexNumber(const Point& p0, const Point& p1, const Point& c)
 {
-    int vn_mid = std::min(p0.vn, p1.vn);
-    if ((std::max(p0.vn, p1.vn) == 3) && (vn_mid == 0))
+    if (c.vn != 8)
     {
-        vn_mid = 3; // Next vn is effectively 4.
+        // The split point is a shape corner, so doesn't need its 
+        // vertex number adjusting.
+        return c.vn;
     }
-    return vn_mid + 4;
+    if ((p0.vn >= 4) && (p0.vn < 8))
+    {
+        // The point next to this has the correct nudging direction,
+        // so use that.
+        return p0.vn;
+    }
+    if ((p1.vn >= 4) && (p1.vn < 8))
+    {
+        // The point next to this has the correct nudging direction,
+        // so use that.
+        return p1.vn;
+    }
+    if ((p0.vn < 4) && (p1.vn < 4))
+    {
+        if (p0.vn != p1.vn)
+        {
+            return p0.vn;
+        }
+        // Splitting between two ordinary shape corners.
+        int vn_mid = std::min(p0.vn, p1.vn);
+        if ((std::max(p0.vn, p1.vn) == 3) && (vn_mid == 0))
+        {
+            vn_mid = 3; // Next vn is effectively 4.
+        }
+        return vn_mid + 4;
+    }
+    assert((p0.x == p1.x) || (p0.y == p1.y));
+    if (p0.vn != 8)
+    {
+        if (p0.x == p1.x)
+        {
+            if ((p0.vn == 2) || (p0.vn == 3))
+            {
+                return 6;
+            }
+            return 4;
+        }
+        else
+        {
+            if ((p0.vn == 0) || (p0.vn == 3))
+            {
+                return 7;
+            }
+            return 5;
+        }
+    }
+    else if (p1.vn != 8)
+    {
+        if (p0.x == p1.x)
+        {
+            if ((p1.vn == 2) || (p1.vn == 3))
+            {
+                return 6;
+            }
+            return 4;
+        }
+        else
+        {
+            if ((p1.vn == 0) || (p1.vn == 3))
+            {
+                return 7;
+            }
+            return 5;
+        }
+    }
+
+    // Shouldn't both be new (8) points.
+    fprintf(stderr, "midVertexNumber(): p0.vn and p1.vn both equal 8\n");
+    fprintf(stderr, "p0.vn %d p1.vn %d\n", p0.vn, p1.vn);
+    return 8;
+}
+
+
+// Break up overlapping parallel segments that are not the same edge in 
+// the visibility graph, i.e., where one segment is a subsegment of another.
+void splitBranchingSegments(Avoid::DynamicPolygn& poly, bool polyIsConn,
+        Avoid::DynamicPolygn& conn)
+{
+    for (std::vector<Avoid::Point>::iterator i = conn.ps.begin(); 
+            i != conn.ps.end(); ++i)
+    {
+        if (i == conn.ps.begin())
+        {
+            // Skip the first point.
+            // There are points-1 segments in a connector.
+            continue;
+        }
+        Point& c0 = *(i - 1);
+        Point& c1 = *i;
+
+        for (std::vector<Avoid::Point>::iterator j = poly.ps.begin(); 
+                j != poly.ps.end(); )
+        {
+            if (polyIsConn && (j == poly.ps.begin()))
+            {
+                // Skip the first point.
+                // There are points-1 segments in a connector.
+                ++j;
+                continue;
+            }
+            Point& p0 = (j == poly.ps.begin()) ? poly.ps.back() : *(j - 1);
+            Point& p1 = *j;
+
+            // Check the first point of the first segment.
+            if (((i - 1) == conn.ps.begin()) && pointOnLine(p0, p1, c0))
+            {
+                //printf("add to poly %g %g\n", c0.x, c0.y);
+
+                c0.vn = midVertexNumber(p0, p1, c0);
+                j = poly.ps.insert(j, c0);
+                if (j != poly.ps.begin())
+                {
+                    --j;
+                }
+                continue;
+            }
+            // And the second point of every segment.
+            if (pointOnLine(p0, p1, c1))
+            {
+                //printf("add to poly %g %g\n", c1.x, c1.y);
+
+                c1.vn = midVertexNumber(p0, p1, c1);
+                j = poly.ps.insert(j, c1);
+                if (j != poly.ps.begin())
+                {
+                    --j;
+                }
+                continue;
+            }
+
+            // Check the first point of the first segment.
+            if (polyIsConn && 
+                    ((j - 1) == poly.ps.begin()) && pointOnLine(c0, c1, p0))
+            {
+                //printf("add to conn %g %g\n", p0.x, p0.y);
+
+                p0.vn = midVertexNumber(c0, c1, p0);
+                i = conn.ps.insert(i, p0);
+                --i;
+                break;
+            }
+            // And the second point of every segment.
+            if (pointOnLine(c0, c1, p1))
+            {
+                //printf("add to conn %g %g\n", p1.x, p1.y);
+
+                p1.vn = midVertexNumber(c0, c1, p1);
+                i = conn.ps.insert(i, p1);
+                --i;
+                break;
+            }
+            ++j;
+        }
+    }
 }
 
 
@@ -939,85 +1104,13 @@ int countRealCrossings(Avoid::DynamicPolygn& poly, bool polyIsConn,
         Avoid::DynamicPolygn& conn, int cIndex, bool checkForBranchingSegments,
         PointSet *crossingPoints, PtOrderMap *pointOrders, bool *touches)
 {
-    // Break up overlapping parallel segments that are not the same edge in 
-    // the visibility graph, i.e., where one segment is a subsegment of another.
     if (checkForBranchingSegments)
     {
-        for (std::vector<Avoid::Point>::iterator i = conn.ps.begin(); 
-                i != conn.ps.end(); ++i)
-        {
-            if (i == conn.ps.begin())
-            {
-                // Skip the first point.
-                // There are points-1 segments in a connector.
-                continue;
-            }
-            Point& c0 = *(i - 1);
-            Point& c1 = *i;
-
-            for (std::vector<Avoid::Point>::iterator j = poly.ps.begin(); 
-                    j != poly.ps.end(); )
-            {
-                if (polyIsConn && (j == poly.ps.begin()))
-                {
-                    // Skip the first point.
-                    // There are points-1 segments in a connector.
-                    ++j;
-                    continue;
-                }
-                Point& p1 = (j == poly.ps.begin()) ? poly.ps.back() : *(j - 1);
-                Point& p0 = *j;
-
-                int vn_mid = midVextexNumber(p0, p1);
-                // Check the first point of every segment but the first one.
-                if (((i - 1) == conn.ps.begin()) && pointOnLine(p0, p1, c0))
-                {
-                    //printf("add to poly %g %g\n", c0.x, c0.y);
-
-                    c0.vn = vn_mid;
-                    j = poly.ps.insert(j, c0);
-                    --j;
-                    continue;
-                }
-                if (pointOnLine(p0, p1, c1))
-                {
-                    //printf("add to poly %g %g\n", c1.x, c1.y);
-
-                    c1.vn = vn_mid;
-                    j = poly.ps.insert(j, c1);
-                    --j;
-                    continue;
-                }
-
-
-                vn_mid = midVextexNumber(c0, c1);
-                // Check the first point of every segment but the first one.
-                if ((j == poly.ps.begin()) && pointOnLine(c0, c1, p0))
-                {
-                    //printf("add to conn %g %g\n", p0.x, p0.y);
-
-                    p0.vn = vn_mid;
-                    i = conn.ps.insert(i, p0);
-                    --i;
-                    break;
-                }
-                if (pointOnLine(c0, c1, p1))
-                {
-                    //printf("add to conn %g %g\n", p1.x, p1.y);
-
-                    p1.vn = vn_mid;
-                    i = conn.ps.insert(i, p1);
-                    --i;
-                    break;
-                }
-                ++j;
-            }
-        }
-        cIndex += (int) (conn.ps.size() - conn.pn);
-        poly.pn = (int) poly.ps.size();
-        conn.pn = (int) conn.ps.size();
+        int conn_pn = conn.size();
+        splitBranchingSegments(poly, polyIsConn, conn);
+        // cIndex is going to be the last, so take into account added points.
+        cIndex += (conn.size() - conn_pn);
     }
-
     assert(cIndex >= 1);
 
     int crossingCount = 0;
@@ -1027,9 +1120,9 @@ int countRealCrossings(Avoid::DynamicPolygn& poly, bool polyIsConn,
     //printf("a1: %g %g\n", a1.x, a1.y);
     //printf("a2: %g %g\n", a2.x, a2.y);
 
-    for (int j = ((polyIsConn) ? 1 : 0); j < poly.pn; ++j)
+    for (int j = ((polyIsConn) ? 1 : 0); j < poly.size(); ++j)
     {
-        Avoid::Point& b1 = poly.ps[(j - 1 + poly.pn) % poly.pn];
+        Avoid::Point& b1 = poly.ps[(j - 1 + poly.size()) % poly.size()];
         Avoid::Point& b2 = poly.ps[j];
         //printf("b1: %g %g\n", b1.x, b1.y);
         //printf("b2: %g %g\n", b2.x, b2.y);
@@ -1053,7 +1146,6 @@ int countRealCrossings(Avoid::DynamicPolygn& poly, bool polyIsConn,
             continue;
         }
     
-        //assert(!pointOnLine(b1, b2, a1));
         if (a1 == b1)
         {
             if (polyIsConn && (j == 1))
@@ -1061,7 +1153,7 @@ int countRealCrossings(Avoid::DynamicPolygn& poly, bool polyIsConn,
                 // common source point.
                 continue;
             }
-            Avoid::Point& b0 = poly.ps[(j - 2 + poly.pn) % poly.pn];
+            Avoid::Point& b0 = poly.ps[(j - 2 + poly.size()) % poly.size()];
             // The segments share an endpoint -- a1==b1.
             if (a2 == b0)
             {
@@ -1110,15 +1202,21 @@ int countRealCrossings(Avoid::DynamicPolygn& poly, bool polyIsConn,
                         reversed = !reversed;
                     }
                 }
-                while (traceI >= 0 &&
-                    (!polyIsConn || ((traceJ >= 0) && (traceJ < poly.pn))) &&
-                    (conn.ps[traceI] == poly.ps[(traceJ + poly.pn) % poly.pn]))
+                while ((traceI >= 0) &&
+                    (!polyIsConn || ((traceJ >= 0) && (traceJ < poly.size()))) )
                 {
+                    int indexJ = (traceJ + (2 * poly.size())) % poly.size();
+                    assert(indexJ >= 0);
+                    assert(indexJ < poly.size());
+                    if (conn.ps[traceI] != poly.ps[indexJ])
+                    {
+                        // Points don't match, so break out of loop.
+                        break;
+                    }
                     if (pointOrders)
                     {
                         Avoid::Point& an = conn.ps[traceI];
-                        Avoid::Point& bn = 
-                                poly.ps[(traceJ + poly.pn) % poly.pn];
+                        Avoid::Point& bn = poly.ps[indexJ];
                         int currTurnDir = (traceI > 0) ?  
                                 vecDir(conn.ps[traceI - 1], an,
                                        conn.ps[traceI + 1]) : 0;
@@ -1140,9 +1238,14 @@ int countRealCrossings(Avoid::DynamicPolygn& poly, bool polyIsConn,
                     traceI--;
                     traceJ += dir;
                 }
-                
-                if ((traceI < 0) ||
-                        (polyIsConn && ((traceJ < 0) || (traceJ >= poly.pn))))
+            
+                if (touches)
+                {
+                    *touches = true;
+                }
+
+                if ((traceI < 0) || (polyIsConn && ((traceJ < 0) || 
+                        (traceJ >= poly.size()))))
                 {
                     //printf("common source or destination.\n");
                     // The connectors have a shared path, but it
@@ -1156,7 +1259,7 @@ int countRealCrossings(Avoid::DynamicPolygn& poly, bool polyIsConn,
                 int startCornerSide = Avoid::cornerSide(
                         conn.ps[traceI], conn.ps[traceI + 1],
                         conn.ps[traceI + 2], 
-                        poly.ps[(traceJ + poly.pn) % poly.pn]);
+                        poly.ps[(traceJ + poly.size()) % poly.size()]);
                             
                 if (endCornerSide != startCornerSide)
                 {
@@ -1166,11 +1269,6 @@ int countRealCrossings(Avoid::DynamicPolygn& poly, bool polyIsConn,
                     {
                         crossingPoints->insert(a1);
                     }
-                }
-
-                if (touches)
-                {
-                    *touches = true;
                 }
             }
             else
@@ -1212,6 +1310,13 @@ int countRealCrossings(Avoid::DynamicPolygn& poly, bool polyIsConn,
 
             if (intersectResult == Avoid::DO_INTERSECT)
             {
+                if ((a1 == cPt) || (a2 == cPt) || (b1 == cPt) || (b2 == cPt))
+                {
+                    // XXX: This shouldn't actually happen, because these
+                    //      points should be added as bends to each line by
+                    //      splitBranchingSegments().  Thus, lets ignore them.
+                    return crossingCount;
+                }                
                 //printf("crossing lines:\n");
                 //printf("cPt: %g %g\n", cPt.x, cPt.y);
                 crossingCount += 1;

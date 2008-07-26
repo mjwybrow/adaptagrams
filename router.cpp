@@ -312,7 +312,7 @@ void Router::addCluster(ClusterRef *cluster)
     cluster->makeActive();
     
     unsigned int pid = cluster->id();
-    Polygn poly = cluster->poly();
+    ReferencingPolygn& poly = cluster->poly();
 
     adjustClustersWithAdd(poly, pid);
 }
@@ -551,7 +551,8 @@ void Router::generateContains(VertInf *pt)
 }
 
 
-void Router::adjustClustersWithAdd(const Polygn& poly, const int p_cluster)
+void Router::adjustClustersWithAdd(const PolygnInterface& poly, 
+        const int p_cluster)
 {
     for (VertInf *k = vertices.connsBegin(); k != vertices.shapesBegin();
             k = k->lstNext)
