@@ -767,7 +767,7 @@ int ConnRef::generatePath(void)
         else
         {
             path[j].id = _id;
-            path[j].vn = 8;
+            path[j].vn = kUnassignedVertexNumber;
         }
         j--;
 
@@ -786,7 +786,7 @@ int ConnRef::generatePath(void)
     // They need unique IDs for nudging.
     unsigned int topbit = 1 << 31;
     path[0].id = _id | topbit; 
-    path[0].vn = 8;
+    path[0].vn = kUnassignedVertexNumber;
 
     // Would clear visibility for endpoints here if required.
 
@@ -932,19 +932,19 @@ void PtOrder::sort(void)
 //
 static int midVertexNumber(const Point& p0, const Point& p1, const Point& c)
 {
-    if (c.vn != 8)
+    if (c.vn != kUnassignedVertexNumber)
     {
         // The split point is a shape corner, so doesn't need its 
         // vertex number adjusting.
         return c.vn;
     }
-    if ((p0.vn >= 4) && (p0.vn < 8))
+    if ((p0.vn >= 4) && (p0.vn < kUnassignedVertexNumber))
     {
         // The point next to this has the correct nudging direction,
         // so use that.
         return p0.vn;
     }
-    if ((p1.vn >= 4) && (p1.vn < 8))
+    if ((p1.vn >= 4) && (p1.vn < kUnassignedVertexNumber))
     {
         // The point next to this has the correct nudging direction,
         // so use that.
@@ -965,7 +965,7 @@ static int midVertexNumber(const Point& p0, const Point& p1, const Point& c)
         return vn_mid + 4;
     }
     assert((p0.x == p1.x) || (p0.y == p1.y));
-    if (p0.vn != 8)
+    if (p0.vn != kUnassignedVertexNumber)
     {
         if (p0.x == p1.x)
         {
@@ -984,7 +984,7 @@ static int midVertexNumber(const Point& p0, const Point& p1, const Point& c)
             return 5;
         }
     }
-    else if (p1.vn != 8)
+    else if (p1.vn != kUnassignedVertexNumber)
     {
         if (p0.x == p1.x)
         {
@@ -1004,10 +1004,11 @@ static int midVertexNumber(const Point& p0, const Point& p1, const Point& c)
         }
     }
 
-    // Shouldn't both be new (8) points.
-    fprintf(stderr, "midVertexNumber(): p0.vn and p1.vn both equal 8\n");
+    // Shouldn't both be new (kUnassignedVertexNumber) points.
+    fprintf(stderr, "midVertexNumber(): p0.vn and p1.vn both = "
+            "kUnassignedVertexNumber\n");
     fprintf(stderr, "p0.vn %d p1.vn %d\n", p0.vn, p1.vn);
-    return 8;
+    return kUnassignedVertexNumber;
 }
 
 

@@ -51,6 +51,8 @@ class Point
 
 };
 
+static const unsigned short kUnassignedVertexNumber = 8;
+
 
 typedef Point Vector;
 
