@@ -137,8 +137,8 @@ void VertID::db_print(void) const
 }
 
 
-const int VertID::src = 1;
-const int VertID::tar = 2;
+const unsigned short VertID::src = 1;
+const unsigned short VertID::tar = 2;
 
 
 ostream& operator<<(ostream& os, const VertID& vID)
@@ -432,10 +432,24 @@ void VertInfList::removeVertex(VertInf *vert)
 
 VertInf *VertInfList::getVertexByID(const VertID& id)
 {
+    VertID searchID = id;
+    if (searchID.vn == kUnassignedVertexNumber)
+    {
+        unsigned int topbit = 1 << 31;
+        if (searchID.objID & topbit)
+        {
+            searchID.objID = searchID.objID & ~topbit;
+            searchID.vn = VertID::src;
+        }
+        else
+        {
+            searchID.vn = VertID::tar;
+        }
+    }
     VertInf *last = end();
     for (VertInf *curr = connsBegin(); curr != last; curr = curr->lstNext)
     {
-        if (curr->id == id)
+        if (curr->id == searchID)
         {
             return curr;
         }

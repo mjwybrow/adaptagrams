@@ -47,8 +47,8 @@ class VertID
         bool isShape;
         unsigned short vn;
 
-        static const int src;
-        static const int tar;
+        static const unsigned short src;
+        static const unsigned short tar;
 
         VertID();
         VertID(unsigned int id, bool s, int n);
