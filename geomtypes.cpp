@@ -386,6 +386,8 @@ DynamicPolygn DynamicPolygn::curvedPolyline(const double curve_amount) const
     {
         // There is only a single segment, do nothing.
         curved = *this;
+        curved.ts.push_back('M');
+        curved.ts.push_back('L');
         return curved;
     }
 
