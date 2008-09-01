@@ -24,6 +24,8 @@
 */
 
 
+#include <cmath>
+
 #include "libavoid/geomtypes.h"
 #include "libavoid/shape.h"
 #include "libavoid/router.h"
@@ -223,6 +225,7 @@ DynamicPolygn::DynamicPolygn(ReferencingPolygn& poly)
 void DynamicPolygn::clear(void)
 {
     ps.clear();
+    ts.clear();
 }
 
 
@@ -249,6 +252,185 @@ const Point& DynamicPolygn::at(int index) const
     assert(index < size());
 
     return ps[index];
+}
+
+
+static const unsigned int SHORTEN_NONE  = 0;
+static const unsigned int SHORTEN_START = 1;
+static const unsigned int SHORTEN_END   = 2;
+static const unsigned int SHORTEN_BOTH  = SHORTEN_START | SHORTEN_END;
+
+static void shorten_line(double& x1, double& y1, double& x2, double& y2, 
+        const unsigned int mode, const double shorten_length)
+{
+    if (mode == SHORTEN_NONE)
+    {
+        return;
+    }
+    
+    double rise = y1 - y2;
+    double run = x1 - x2;
+    double disty = fabs(rise);
+    double distx = fabs(run);
+
+    // Handle case where shorten length is greater than that for the
+    // line segment.
+    if ((mode == SHORTEN_BOTH) &&
+            (((distx > disty) && ((shorten_length * 2) > distx)) ||
+             ((disty >= distx) && ((shorten_length * 2) > disty))))
+    {
+        x1 = x2 = x1 - (run / 2); 
+        y1 = y2 = y1 - (rise / 2); 
+        return;
+    }
+    else if ((mode == SHORTEN_START) && 
+            (((distx > disty) && (shorten_length > distx)) ||
+             ((disty >= distx) && (shorten_length > disty))))
+    {
+        x1 = x2;
+        y1 = y2;
+        return;
+    }
+    else if ((mode == SHORTEN_END) && 
+            (((distx > disty) && (shorten_length > distx)) ||
+             ((disty >= distx) && (shorten_length > disty))))
+    {
+        x2 = x1;
+        y2 = y1;
+        return;
+    }
+
+    // Handle orthogonal line segments.
+    if (x1 == x2)
+    {
+        // Vertical
+        int sign = (y1 < y2) ? 1: -1;
+        
+        if (mode & SHORTEN_START)
+        {
+            y1 += (sign * shorten_length);
+        }
+        if (mode & SHORTEN_END)
+        {
+            y2 -= (sign * shorten_length);
+        }
+        return;
+    }
+    else if (y1 == y2)
+    {
+        // Horizontal
+        int sign = (x1 < x2) ? 1: -1;
+        
+        if (mode & SHORTEN_START)
+        {
+            x1 += (sign * shorten_length);
+        }
+        if (mode & SHORTEN_END)
+        {
+            x2 -= (sign * shorten_length);
+        }
+        return;
+    }
+    
+    int xpos = 1;
+    int ypos = 1;
+    if (x1 < x2)
+    {
+        xpos = -1;
+    }
+    if (y1 < y2)
+    {
+        ypos = -1;
+    }
+    
+    double tangent = rise / run;
+   
+    if (mode & SHORTEN_END)
+    {
+        if (disty > distx)
+        {
+            y2 += shorten_length * ypos;
+            x2 += shorten_length * ypos * (1 / tangent);
+        }
+        else if (disty < distx)
+        {
+            y2 += shorten_length * xpos * tangent;
+            x2 += shorten_length * xpos;
+        }
+    }
+
+    if (mode & SHORTEN_START)
+    {
+        if (disty > distx)
+        {
+            y1 -= shorten_length * ypos;
+            x1 -= shorten_length * ypos * (1 / tangent);
+        }
+        else if (disty < distx)
+        {
+            y1 -= shorten_length * xpos * tangent;
+            x1 -= shorten_length * xpos;
+        }
+    }
+}
+
+
+#define mid(a, b) ((a < b) ? a + ((b - a) / 2) : b + ((a - b) / 2))
+
+DynamicPolygn DynamicPolygn::curvedPolyline(const double curve_amount) const
+{
+    DynamicPolygn curved;
+
+    int num_of_points = size();
+    if (num_of_points <= 2)
+    {
+        // There is only a single segment, do nothing.
+        curved = *this;
+        return curved;
+    }
+
+    curved._id = _id;
+    curved.ps.push_back(ps[0]);
+    curved.ts.push_back('M');
+   
+    double last_x = 0;
+    double last_y = 0;
+    for (int j = 1; j < size(); ++j)
+    {
+        double x1 = ps[j - 1].x;
+        double y1 = ps[j - 1].y;
+        double x2 = ps[j].x;
+        double y2 = ps[j].y;
+
+        double old_x = x1;
+        double old_y = y1;
+        
+        unsigned int mode = SHORTEN_BOTH;
+        if (j == 1)
+        {
+            mode = SHORTEN_END;
+        }
+        else if (j == (size() - 1))
+        {
+            mode = SHORTEN_START;
+        }
+        shorten_line(x1, y1, x2, y2, mode, curve_amount);
+
+        if (j > 1)
+        {
+            curved.ts.insert(curved.ts.end(), 3, 'C');
+            curved.ps.push_back(Point(mid(last_x, old_x), mid(last_y, old_y)));
+            curved.ps.push_back(Point(mid(x1, old_x), mid(y1, old_y)));
+            curved.ps.push_back(Point(x1, y1));
+        }
+        curved.ts.push_back('L');
+        curved.ps.push_back(Point(x2, y2));
+            
+        last_x = x2;
+        last_y = y2;
+    }
+    
+    return curved;
 }
 
 

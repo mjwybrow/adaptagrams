@@ -132,9 +132,13 @@ class DynamicPolygn : public PolygnInterface
         const int size(void) const;
         int id(void) const;
         const Point& at(int index) const;
+        DynamicPolygn curvedPolyline(const double curve_amount) const;
 
         int _id;
         std::vector<Point> ps;
+        // If used, denotes whether the corresponding point in ps is 
+        // a move-to operation or a Bezier curve-to. 
+        std::vector<char> ts;
 };
 
 
