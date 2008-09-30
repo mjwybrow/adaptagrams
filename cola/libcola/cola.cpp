@@ -74,7 +74,6 @@ ConstrainedMajorizationLayout
 
     done.reset();
 
-    assert(!eLengths||eLengths->size()==es.size()); 
     assert(!straightenEdges||straightenEdges->size()==es.size());
 
     double** D=new double*[n];
