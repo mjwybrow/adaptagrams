@@ -42,10 +42,10 @@ TestConvergence defaultTest(0.0001,100);
 ConstrainedMajorizationLayout
 ::ConstrainedMajorizationLayout(
         vector<Rectangle*>& rs,
-        vector<Edge> const & es,
+        const vector<Edge>& es,
         RootCluster *clusterHierarchy,
-        double const idealLength,
-        std::valarray<double> const * eweights,
+        const double idealLength,
+        const double * eLengths,
         TestConvergence& done,
         PreIteration* preIteration)
     : n(rs.size()),
@@ -74,15 +74,20 @@ ConstrainedMajorizationLayout
 
     done.reset();
 
-    assert(!eweights||eweights->size()==es.size()); 
+    assert(!eLengths||eLengths->size()==es.size()); 
     assert(!straightenEdges||straightenEdges->size()==es.size());
 
     double** D=new double*[n];
     for(unsigned i=0;i<n;i++) {
         D[i]=new double[n];
     }
-    shortest_paths::johnsons(n,D,es,eweights);
-    //shortest_paths::neighbours(n,D,es,eweights);
+	if(eLengths==NULL) {
+		shortest_paths::johnsons(n,D,es);
+	} else {
+		valarray<double> eLengthsArray(eLengths,es.size());
+		shortest_paths::johnsons(n,D,es,&eLengthsArray);
+	}
+    //shortest_paths::neighbours(n,D,es,eLengths);
     edge_length = idealLength;
     if(clusterHierarchy) {
         for(Clusters::const_iterator i=clusterHierarchy->clusters.begin();
@@ -357,6 +362,84 @@ void ConstrainedMajorizationLayout::run(bool x, bool y) {
         }
     } while(!done(compute_stress(Dij),X,Y));
 }
+double ConstrainedMajorizationLayout::computeStress() {
+	return compute_stress(Dij);
+}
+void ConstrainedMajorizationLayout::runOnce(bool x, bool y) {
+    if(constrainedLayout) {
+        vector<vpsc::Rectangle*>* pbb = boundingBoxes.empty()?NULL:&boundingBoxes;
+        SolveWithMosek mosek = Off;
+        if(externalSolver) mosek=Outer;
+        // scaling doesn't currently work with straighten edges because sparse
+        // matrix used with dummy nodes is not properly scaled at the moment.
+        if(straightenEdges) setScaling(false);
+        gpX=new GradientProjection(
+            HORIZONTAL,&lap2,tol,100,ccsx,unsatisfiableX,
+            avoidOverlaps,clusterHierarchy,pbb,scaling,mosek);
+        gpY=new GradientProjection(
+            VERTICAL,&lap2,tol,100,ccsy,unsatisfiableY,
+            avoidOverlaps,clusterHierarchy,pbb,scaling,mosek);
+    }
+    if(n>0) {
+        // to enforce clusters with non-intersecting, convex boundaries we
+        // could create cluster boundaries here with chains of dummy nodes (a
+        // dummy node for each vertex of the convex hull) connected by dummy
+        // straightenEdges and we'd then continue on to straightenEdges below.
+        // This should work assuming we already have a feasible (i.e. non
+        // overlapping cluster) state.  The former could be enforced by an
+        // earlier stage involving simple rectangular cluster boundaries.
+        vector<straightener::Edge*> cedges;
+        if(!straightenEdges && nonOverlappingClusters) {
+            straightenEdges = &cedges;
+        }
+        if(preIteration) {
+            if ((*preIteration)()) {
+                for(vector<Lock>::iterator l=preIteration->locks.begin();
+                        l!=preIteration->locks.end();l++) {
+                    unsigned id=l->getID();
+                    double x=l->pos(HORIZONTAL), y=l->pos(VERTICAL);
+                    X[id]=x;
+                    Y[id]=y;
+                    if(stickyNodes) {
+                        startX[id]=x;
+                        startY[id]=y;
+                    }
+                    boundingBoxes[id]->moveCentre(x,y);
+                    if(constrainedLayout) {
+                        gpX->fixPos(id,X[id]); 
+                        gpY->fixPos(id,Y[id]);
+                    }
+                }
+            } else { return; }
+        }
+        /* Axis-by-axis optimization: */
+        if(straightenEdges) {
+            if(x) straighten(*straightenEdges,HORIZONTAL);
+            if(y) straighten(*straightenEdges,VERTICAL);
+        } else {
+            if(majorization) {
+                if(x) majorize(Dij,gpX,X,startX);
+                if(y) majorize(Dij,gpY,Y,startY);
+            } else {
+                if(x) newton(Dij,gpX,X,startX);
+                if(y) newton(Dij,gpY,Y,startY);
+            }
+        }
+        if(clusterHierarchy) {
+            for(Clusters::iterator c=clusterHierarchy->clusters.begin();
+                    c!=clusterHierarchy->clusters.end();c++) {
+                (*c)->computeBoundary(boundingBoxes);
+            }
+        }
+        if(preIteration && constrainedLayout) {
+            for(vector<Lock>::iterator l=preIteration->locks.begin();
+                    l!=preIteration->locks.end();l++) {
+                gpX->unfixPos(l->getID());
+                gpY->unfixPos(l->getID());
+            }
+        }
+    } 
+}
 void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedges, Dim dim) {
     GradientProjection * gp;
     valarray<double>* coords;
@@ -530,9 +613,17 @@ Rectangle bounds(vector<Rectangle*>& rs) {
 				v->desiredPosition = (dim==vpsc::HORIZONTAL)?x:y;
 				v->weight = 1000;
             }
+			/*
 			vpsc::Solver s(vars,cs);
 			try {
 				s.satisfy();
+			} catch(const char* e) {
+				cerr << "ERROR from solver in GraphData::removeOverlap : " << e << endl;
+			}
+			*/
+			vpsc::IncSolver s(vars,cs);
+			try {
+				s.solve();
 			} catch(const char* e) {
 				cerr << "ERROR from solver in GraphData::removeOverlap : " << e << endl;
 			}

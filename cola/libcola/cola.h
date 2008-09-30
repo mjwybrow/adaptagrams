@@ -94,6 +94,17 @@ private:
 };
 typedef std::vector<cola::Resize> Resizes;
 
+/**
+ * Setting a desired position for a node adds a term to the goal function
+ * drawing the node towards that desired position
+ */
+struct DesiredPosition {
+	unsigned id;
+	double x;
+	double y;
+	double weight;
+};
+typedef std::vector<cola::DesiredPosition> DesiredPositions;
 /** 
  * provides a functor that is called before each iteration in the main loop of
  * the ConstrainedMajorizationLayout::run() method.
@@ -193,8 +204,8 @@ public:
 		std::vector<vpsc::Rectangle*>& rs,
 		std::vector<Edge> const & es,
         RootCluster* clusterHierarchy,
-        double const idealLength,
-        std::valarray<double> const * eweights=NULL,
+        const double idealLength,
+        const double* eLengths=NULL,
         TestConvergence& done=defaultTest,
         PreIteration* preIteration=NULL);
     /**
@@ -295,10 +306,15 @@ public:
      * run the layout algorithm in either the x-dim the y-dim or both
      */
     void run(bool x=true, bool y=true);
+	/**
+	 * run one iteration only
+	 */
+    void runOnce(bool x=true, bool y=true);
     void straighten(std::vector<straightener::Edge*>&, vpsc::Dim);
     void setConstrainedLayout(bool c) {
         constrainedLayout=c;
     }
+	double computeStress();
 private:
     double euclidean_distance(unsigned i, unsigned j) {
         return sqrt(
@@ -384,10 +400,10 @@ public:
     /**
      * @param rs bounding boxes of nodes passed in at their initial positions
      * @param es simple pair edges, giving indices of the start and end nodes
-     * @param idealLength is a scalar modifier of ideal edge lengths in eweights
-     * @param eweights individual ideal lengths for edges, actual ideal length of the
-     * ith edge is idealLength*eweights[i], if eweights is NULL then just idealLength
-     * is used (ie eweights[i] is assumed to be 1).
+     * @param idealLength is a scalar modifier of ideal edge lengths in eLengths
+     * @param eLengths individual ideal lengths for edges, actual ideal length of the
+     * ith edge is idealLength*eLengths[i], if eLengths is NULL then just idealLength
+     * is used (ie eLengths[i] is assumed to be 1).
      * @param done a test of convergence operation called at the end of each iteration
      * @param preIteration an operation called before each iteration
      */
@@ -395,7 +411,7 @@ public:
 		const vpsc::Rectangles& rs,
 		const std::vector<cola::Edge>& es,
         const double idealLength,
-        const double* eweights=NULL,
+        const double* eLengths=NULL,
         TestConvergence& done=defaultTest,
         PreIteration* preIteration=NULL);
     void run(bool x=true, bool y=true);
@@ -420,6 +436,9 @@ public:
         topologyNodes=tnodes;
         topologyRoutes=routes;
     }
+	void setDesiredPositions(std::vector<DesiredPosition>* desiredPositions) {
+		this->desiredPositions = desiredPositions;
+	}
     /**
      * These lists will have info about unsatisfiable constraints
      * after each iteration of constrained layout
@@ -460,7 +479,7 @@ private:
     void computePathLengths(
             const std::vector<Edge>& es,
             const double idealLength,
-            const std::valarray<double> * eweights);
+            const std::valarray<double> * eLengths);
     void handleResizes(const Resizes&);
     void setPosition(std::valarray<double>& pos);
     void moveBoundingBoxes();
@@ -477,6 +496,7 @@ private:
     std::vector<topology::Edge*>* topologyRoutes;
     std::vector<UnsatisfiableConstraintInfos*> unsatisfiable;
     bool rungekutta;
+	std::vector<DesiredPosition>* desiredPositions;
 };
 
 /**
@@ -485,10 +505,10 @@ private:
  * @param n total number of nodes
  * @param d n vector of path lengths
  * @param es edge pairs
- * @param eweights edge weights
+ * @param eLengths edge weights
  */
 void dijkstra(const unsigned s, const unsigned n, double* d, 
-			  const std::vector<cola::Edge>& es, const double* eweights);
+			  const std::vector<cola::Edge>& es, const double* eLengths);
 
 void removeClusterOverlapFast(RootCluster& clusterHierarchy, vpsc::Rectangles& rs, Locks& locks);
 }

@@ -67,6 +67,11 @@ struct CounterClockwiseOrder {
     std::valarray<double> const & X; 
     std::valarray<double> const & Y; 
 };
+void convex(const unsigned n, const double* X, const double* Y, vector<unsigned> & h) {
+	const valarray<double> XA(X,n);
+	const valarray<double> YA(Y,n);
+	convex(XA,YA,h);
+}
 /**
  * Implementation of Graham's scan convex hull finding algorithm.
  * X and Y give the horizontal and vertical positions of the pointset.
@@ -96,7 +101,7 @@ void convex(valarray<double> const & X, valarray<double> const & Y, vector<unsig
     sort(points.begin(),points.end(),order);
     // now we maintain a stack in h, adding points while each successive
     // point is a "left turn", backtracking if we make a right turn.
-    h.clear();
+	h.clear();
     h.push_back(p0);
     h.push_back(points[0]);
     for(unsigned i=1;i<points.size();i++) {

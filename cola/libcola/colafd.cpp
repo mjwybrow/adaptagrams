@@ -73,7 +73,7 @@ ConstrainedFDLayout::ConstrainedFDLayout(
 	const vpsc::Rectangles & rs,
 	const std::vector< Edge > & es, 
     const double idealLength,
-    const double* eweights,
+    const double* eLengths,
 	TestConvergence& done,
 	PreIteration* preIteration)
 : n(rs.size()),
@@ -84,7 +84,8 @@ ConstrainedFDLayout::ConstrainedFDLayout(
   ccsx(NULL), ccsy(NULL),
   topologyNodes(NULL),
   topologyRoutes(NULL),
-  rungekutta(true)
+  rungekutta(true),
+  desiredPositions(NULL)
 {
 	//FILELog::ReportingLevel() = logDEBUG1;
     FILELog::ReportingLevel() = logERROR;
@@ -104,25 +105,25 @@ ConstrainedFDLayout::ConstrainedFDLayout(
         G[i]=new unsigned short[n];
     }
 
-	if(eweights == NULL) {
+	if(eLengths == NULL) {
 		computePathLengths(es,idealLength,NULL);
 	} else {
-		valarray<double> eweightsArray(eweights,es.size());
-		computePathLengths(es,idealLength,&eweightsArray);
+		valarray<double> eLengthsArray(eLengths,es.size());
+		computePathLengths(es,idealLength,&eLengthsArray);
 	}	
 }
 
 void dijkstra(const unsigned s, const unsigned n, double* d, 
-        const vector<Edge>& es, const double* eweights)
+        const vector<Edge>& es, const double* eLengths)
 {
-	const valarray<double> eweightsArray(eweights, es.size());
-	shortest_paths::dijkstra(s,n,d,es,&eweightsArray);
+	const valarray<double> eLengthsArray(eLengths, es.size());
+	shortest_paths::dijkstra(s,n,d,es,&eLengthsArray);
 }
 
 /**
  * Sets up the D and G matrices.  D is the required euclidean distances
  * between pairs of nodes based on the shortest paths between them (using
- * idealLength*eweights[edge] as the edge length, if eweights array 
+ * idealLength*eLengths[edge] as the edge length, if eLengths array 
  * is provided otherwise just idealLength).  G is a matrix of unsigned ints
  * such that G[u][v]=
  *   0 if there are no forces required between u and v 
@@ -137,9 +138,9 @@ void dijkstra(const unsigned s, const unsigned n, double* d,
 void ConstrainedFDLayout::computePathLengths(
         const vector<Edge>& es,
         const double idealLength,
-        const std::valarray<double>* eweights) 
+        const std::valarray<double>* eLengths) 
 {
-    shortest_paths::johnsons(n,D,es,eweights);
+    shortest_paths::johnsons(n,D,es,eLengths);
     //dumpSquareMatrix<double>(n,D);
     for(unsigned i=0;i<n;i++) {
         for(unsigned j=0;j<n;j++) {
@@ -150,7 +151,7 @@ void ConstrainedFDLayout::computePathLengths(
             if(d==DBL_MAX) {
                 // i and j are in disconnected subgraphs
                 p=0;
-            } else if(!eweights) {
+            } else if(!eLengths) {
                 D[i][j]*=idealLength;
             }
         }
@@ -557,6 +558,17 @@ void ConstrainedFDLayout::computeForces(
         }
         H(u,u)=Huu;
     }
+	if(desiredPositions) {
+		for(DesiredPositions::const_iterator p=desiredPositions->begin();
+			p!=desiredPositions->end();++p) {
+			unsigned i = p->id;
+			double d=(dim==vpsc::HORIZONTAL)
+				?p->x-X[i]:p->y-Y[i];
+			d*=p->weight;
+			g[i]-=d;
+			H(i,i)+=p->weight;
+		}
+	}
 }
 double ConstrainedFDLayout::computeStepSize(
         SparseMatrix const &H, 
@@ -610,6 +622,13 @@ double ConstrainedFDLayout::computeStress() const {
         FILE_LOG(logDEBUG2)<<"s(topology)="<<s;
         stress+=s;
     }
+	if(desiredPositions) {
+		for(DesiredPositions::const_iterator p = desiredPositions->begin();
+			p!=desiredPositions->end();++p) {
+			double dx = X[p->id] - p->x, dy = Y[p->id] - p->y;
+			stress+=0.5*p->weight*(dx*dx+dy*dy);
+		}
+	}
     return stress;
 }
 void ConstrainedFDLayout::moveBoundingBoxes() {

@@ -29,7 +29,8 @@
 #include <valarray>
 
 namespace hull {
-void convex(std::valarray<double> const & X, std::valarray<double> const & Y, std::vector<unsigned> & hull);
+void convex(const unsigned n, const double* X, const double* Y, std::vector<unsigned> & hull);
+void convex(const std::valarray<double> & X, const std::valarray<double> & Y, std::vector<unsigned> & hull);
 }
 
 #endif // CONVEX_HULL_H
