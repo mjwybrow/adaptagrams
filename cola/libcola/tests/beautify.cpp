@@ -245,7 +245,7 @@ void makeFeasible(vpsc::Rectangles& rs, vector<cola::Edge>& edges,
         connRef->updateEndPoint(Avoid::VertID::src, srcPt);
         connRef->updateEndPoint(Avoid::VertID::tar, dstPt);
         connRef->generatePath();
-        Avoid::PolyLine& route = connRef->route();
+        const Avoid::Polygn& route = connRef->route();
         vector<topology::EdgePoint*> eps;
         eps.push_back( new topology::EdgePoint( topologyNodes[e.first], 
                     topology::EdgePoint::CENTRE));
