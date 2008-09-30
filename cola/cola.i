@@ -6,12 +6,14 @@
 #include <libvpsc/rectangle.h>
 #include <libcola/cola.h>
 #include <libcola/cluster.h>
+#include <libcola/convex_hull.h>
 #include <libcola/compound_constraints.h>
 #include <libtopology/topology_graph.h>
 /* Includes the header in the wrapper code */
 
 /*using namespace Avoid;*/
 using namespace cola;
+using namespace hull;
 using namespace vpsc;
 using namespace topology;
 %}
@@ -56,6 +58,7 @@ using namespace topology;
 %template(CompoundConstraintsVector) std::vector<cola::CompoundConstraint*>;
 %template(ColaLocks) std::vector<cola::Lock>;
 %template(ColaResizes) std::vector<cola::Resize>;
+%template(ColaDesiredPositions) std::vector<cola::DesiredPosition>;
 %template(TopologyEdgePointPtrVector) std::vector<topology::EdgePoint*>;
 %template(TopologyEdgePointConstPtrVector) std::vector<const topology::EdgePoint*>;
 %template(TopologyEdgePtrVector) std::vector<topology::Edge*>;
@@ -87,6 +90,7 @@ void deleteDoubleArray(double* a) {
 %include "libvpsc/rectangle.h"
 %include "libcola/cola.h"
 %include "libcola/cluster.h"
+%include "libcola/convex_hull.h"
 %include "libcola/compound_constraints.h"
 %include "libtopology/topology_graph.h"
 
