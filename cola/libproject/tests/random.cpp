@@ -49,7 +49,8 @@ static unsigned minConstraints = (unsigned)((double)numVars * 1.5);
  *   - all constraints active
  *   - constraint DAG is a simple chain
  */
-const char* randomProblem(Variables &vs, Constraints &cs) {
+void randomProblem(string& name, Variables &vs, Constraints &cs) {
+    name = "randomProblem";
     double range=(double)numVars;
     double rpos=getRand(range/numVars);
     VMap vmap;
@@ -78,7 +79,6 @@ const char* randomProblem(Variables &vs, Constraints &cs) {
         }
     }
     //printf("minConstraints=%u,|V|=%u,|C|=%u\n",minConstraints,(unsigned)vs.size(),(unsigned)cs.size());
-    return "randomProblem";
 }
 int main() {
     //srand(time(NULL));

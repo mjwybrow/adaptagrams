@@ -85,5 +85,5 @@ double getRand(const double max);
  * @param t pointer to a function that will populate a list of variables and a list
  * of constraints.
  */
-void test(const char* (*t)(project::Variables&, project::Constraints&),
+void test(void (*t)(std::string&, project::Variables&, project::Constraints&),
 		bool silentPass = false);

@@ -158,21 +158,13 @@ bool approxEquals(double a, double b) {
  * @param t pointer to a function that will populate a list of variables and a list
  * of constraints.
  */
-void test(const char* (*t)(Variables&, Constraints&), bool silentPass) {
+void test(void (*t)(string&, Variables&, Constraints&), bool silentPass) {
     Variables vs;
     Constraints cs;
+    string tn;
 
     // call given function to generate the problem instance
-    const char *tn=t(vs,cs);
-
-    // extract the test function name
-    /*
-    unsigned l=strlen(tn)-12-44;
-    char *testName = new char[l+1];
-    strncpy(testName,tn+12,l);
-    testName[l]=0;
-    */
-    const char *testName=tn;
+    t(tn,vs,cs);
     
     // store initial positions
     vector<double> XI(vs.size());
@@ -204,17 +196,16 @@ void test(const char* (*t)(Variables&, Constraints&), bool silentPass) {
             }
         }
         if(!silentPass) {
-            printf("PASS: %s\n",testName);
+            printf("PASS: %s\n",tn.c_str());
         }
     } catch(CriticalFailure &f) {
         f.print();
         printProblem(vs,XI,cs,vmap);
-        fprintf(stderr,"FAIL: %s\n",testName);
+        fprintf(stderr,"FAIL: %s\n",tn.c_str());
         exit(1);
     }
     for_each(vs.begin(),vs.end(),delete_object());
     for_each(cs.begin(),cs.end(),delete_object());
-	delete testName;
 }
 
 /*
