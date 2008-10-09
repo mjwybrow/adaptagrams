@@ -25,7 +25,7 @@
 
 
 #include <cmath>
-
+#include <cstdlib>
 #include "libavoid/geomtypes.h"
 #include "libavoid/shape.h"
 #include "libavoid/router.h"

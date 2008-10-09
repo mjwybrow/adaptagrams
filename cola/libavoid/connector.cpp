@@ -24,6 +24,7 @@
 */
 
 #include <cstdlib>
+#include <cstring>
 #include "libavoid/graph.h"
 #include "libavoid/connector.h"
 #include "libavoid/makepath.h"
