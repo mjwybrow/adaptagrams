@@ -1030,6 +1030,15 @@ void splitBranchingSegments(Avoid::DynamicPolygn& poly, bool polyIsConn,
         Point& c0 = *(i - 1);
         Point& c1 = *i;
 
+        // XXX When doing the pointOnLine test we allow the points to be 
+        // slightly non-collinear.  This addresses a problem with clustered
+        // routing where connectors could otherwise route cheaply through
+        // shape corners that were not quite on the cluster boundary, but
+        // reported to be on there by the line segment intersection code,
+        // which I suspect is not numerically accurate enough.  This occured
+        // for points that only differed by about 10^-12 in the y-dimension.
+        double tolerance = 0.00001;
+        
         for (std::vector<Avoid::Point>::iterator j = poly.ps.begin(); 
                 j != poly.ps.end(); )
         {
@@ -1044,10 +1053,11 @@ void splitBranchingSegments(Avoid::DynamicPolygn& poly, bool polyIsConn,
             Point& p1 = *j;
 
             // Check the first point of the first segment.
-            if (((i - 1) == conn.ps.begin()) && pointOnLine(p0, p1, c0))
+            if (((i - 1) == conn.ps.begin()) && 
+                    pointOnLine(p0, p1, c0, tolerance))
             {
                 //printf("add to poly %g %g\n", c0.x, c0.y);
-
+                
                 c0.vn = midVertexNumber(p0, p1, c0);
                 j = poly.ps.insert(j, c0);
                 if (j != poly.ps.begin())
@@ -1057,10 +1067,10 @@ void splitBranchingSegments(Avoid::DynamicPolygn& poly, bool polyIsConn,
                 continue;
             }
             // And the second point of every segment.
-            if (pointOnLine(p0, p1, c1))
+            if (pointOnLine(p0, p1, c1, tolerance))
             {
                 //printf("add to poly %g %g\n", c1.x, c1.y);
-
+                
                 c1.vn = midVertexNumber(p0, p1, c1);
                 j = poly.ps.insert(j, c1);
                 if (j != poly.ps.begin())
@@ -1071,8 +1081,8 @@ void splitBranchingSegments(Avoid::DynamicPolygn& poly, bool polyIsConn,
             }
 
             // Check the first point of the first segment.
-            if (polyIsConn && 
-                    ((j - 1) == poly.ps.begin()) && pointOnLine(c0, c1, p0))
+            if (polyIsConn && ((j - 1) == poly.ps.begin()) && 
+                        pointOnLine(c0, c1, p0, tolerance))
             {
                 //printf("add to conn %g %g\n", p0.x, p0.y);
 
@@ -1082,7 +1092,7 @@ void splitBranchingSegments(Avoid::DynamicPolygn& poly, bool polyIsConn,
                 break;
             }
             // And the second point of every segment.
-            if (pointOnLine(c0, c1, p1))
+            if (pointOnLine(c0, c1, p1, tolerance))
             {
                 //printf("add to conn %g %g\n", p1.x, p1.y);
 
@@ -1317,6 +1327,10 @@ int countRealCrossings(Avoid::DynamicPolygn& poly, bool polyIsConn,
                     // XXX: This shouldn't actually happen, because these
                     //      points should be added as bends to each line by
                     //      splitBranchingSegments().  Thus, lets ignore them.
+                    assert(a1 != cPt);
+                    assert(a2 != cPt);
+                    assert(b1 != cPt);
+                    assert(b2 != cPt);
                     return crossingCount;
                 }                
                 //printf("crossing lines:\n");

@@ -70,9 +70,10 @@ bool inBetween(const Point& a, const Point& b, const Point& c)
 
 // Returns true iff the point c lies on the closed segment ab.
 //
-bool pointOnLine(const Point& a, const Point& b, const Point& c)
+bool pointOnLine(const Point& a, const Point& b, const Point& c, 
+        const double tolerance)
 {
-    return (vecDir(a, b, c) == 0) && inBetween(a, b, c);
+    return (vecDir(a, b, c, tolerance) == 0) && inBetween(a, b, c);
 }
 
 
