@@ -55,7 +55,8 @@ extern bool inValidRegion(bool IgnoreRegions, const Point& a0,
         const Point& a1, const Point& a2, const Point& b);
 extern int cornerSide(const Point &c1, const Point &c2, const Point &c3,
         const Point& p);
-extern bool pointOnLine(const Point& a, const Point& b, const Point& c);
+extern bool pointOnLine(const Point& a, const Point& b, const Point& c,
+        const double tolerance = 0.0);
 
 // To be used only when the points are known to be colinear.
 extern bool inBetween(const Point& a, const Point& b, const Point& c);
@@ -70,16 +71,22 @@ extern bool inBetween(const Point& a, const Point& b, const Point& c);
 //
 // Based on the code of 'AreaSign'.
 //
-static inline int vecDir(const Point& a, const Point& b, const Point& c)
+// The 'maybeZero' argument can be used to adjust the tolerance of the 
+// function.  It will be most accurate when 'maybeZero' == 0.0, the default.
+//
+static inline int vecDir(const Point& a, const Point& b, const Point& c, 
+        const double maybeZero = 0.0)
 {
+    assert(maybeZero >= 0);
+
     double area2 = ((b.x - a.x) * (c.y - a.y)) -
                    ((c.x - a.x) * (b.y - a.y));
     
-    if (area2 < 0)
+    if (area2 < (-maybeZero))
     {
         return -1;
     }
-    else if (area2 > 0)
+    else if (area2 > maybeZero)
     {
         return 1;
     }
