@@ -66,9 +66,9 @@ struct TestCase {
     valarray<double> g;
     EdgePoints ps;
     vpsc::Constraints cs;
-    cola::Dim dim;
+    vpsc::Dim dim;
     unsigned iterations;
-    TestCase() : dim(cola::HORIZONTAL), iterations(10) { }
+    TestCase() : dim(vpsc::HORIZONTAL), iterations(10) { }
 
     void run() {
         writeFile(nodes,es,"triangle-000.svg");
@@ -81,7 +81,7 @@ struct TestCase {
         getVariables(nodes,vs);
         TopologyConstraints t(dim,nodes,es,vs,cs);
         // test computeStress
-        double stress=t.computeStress();
+        double stress=computeStress(es);
         printf("Stress=%f\n",stress);
         //assert(fabs(expectedStress-stress)<1e-4);
 

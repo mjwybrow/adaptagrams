@@ -88,7 +88,7 @@ void split() {
     getVariables(nodes,vs);
     { // scope for t, so that t gets destroyed before es
 
-        TopologyConstraints t(cola::HORIZONTAL,nodes,es,vs,cs);
+        TopologyConstraints t(vpsc::HORIZONTAL,nodes,es,vs,cs);
         writeFile(nodes,es,"split-0.svg");
 
         // test computeStress

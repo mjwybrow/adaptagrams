@@ -194,7 +194,7 @@ makeEdge(es,eps);
     vpsc::Variables vs;
     vpsc::Constraints cs;
     getVariables(nodes,vs);
-    TopologyConstraints t(cola::HORIZONTAL,nodes,es,vs,cs);
+    TopologyConstraints t(vpsc::HORIZONTAL,nodes,es,vs,cs);
 
     // test computeStress
     double stress=t.computeStress();

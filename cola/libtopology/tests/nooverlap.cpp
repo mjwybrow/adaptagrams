@@ -88,7 +88,7 @@ void testCase() {
     try {
         vpsc::Constraints cs;
         Edges es; // not used in this test
-        TopologyConstraints t(static_cast<cola::Dim>(dim),nodes,es,vs,cs);
+        TopologyConstraints t(static_cast<vpsc::Dim>(dim),nodes,es,vs,cs);
         for(Nodes::iterator v=nodes.begin();v!=nodes.end();++v) {
             (*v)->var->desiredPosition=getRand(5);
         }
@@ -105,7 +105,7 @@ void testCase() {
     for_each(nodes.begin(),nodes.end(),delete_node());
     for_each(vs.begin(),vs.end(),delete_object());
 }
-void randomTest(cola::Dim dim) {
+void randomTest(vpsc::Dim dim) {
     string name("nooverlap");
     const size_t V = 10;
     vpsc::Rectangles rs, rs_bak;
@@ -160,8 +160,8 @@ int main() {
         if(!(i%1000)) {
             printf(" completed %d instances...\n",i);
         }
-        randomTest(cola::HORIZONTAL);
-        randomTest(cola::VERTICAL);
+        randomTest(vpsc::HORIZONTAL);
+        randomTest(vpsc::VERTICAL);
     }
     return 0;
 }
