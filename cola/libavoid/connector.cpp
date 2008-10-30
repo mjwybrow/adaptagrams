@@ -1307,8 +1307,26 @@ int countRealCrossings(Avoid::DynamicPolygn& poly, bool polyIsConn,
                 }
                 if (pointOrders)
                 {
-                    int turnDir = vecDir(a0, a1, a2);
-                    bool reversed = (side1 != -turnDir);
+                    int turnDirA = vecDir(a0, a1, a2); 
+                    int turnDirB = vecDir(b0, b1, b2); 
+                    bool reversed = (side1 != -turnDirA); 
+                    if (side1 != side2) 
+                    { 
+                        // Interesting case where a connector routes round the 
+                        // edge of a shape and intersects a connector which is 
+                        // connected to a port on the edge of the shape. 
+                        if (turnDirA == 0) 
+                        { 
+                            // We'll make B the outer by preference,  
+                            // because the points of A are collinear. 
+                            reversed = false; 
+                        } 
+                        else if (turnDirB == 0) 
+                        { 
+                            reversed = true; 
+                        } 
+                        assert((turnDirB != 0) || (turnDirA != 0)); 
+                    }
                     VertID vID(b1.id, true, b1.vn);
                     (*pointOrders)[vID].addPoints(&b1, &a1, reversed);
                 }

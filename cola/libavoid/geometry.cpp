@@ -52,9 +52,9 @@ bool inBetween(const Point& a, const Point& b, const Point& c)
 {
     // We only call this when we know the points are collinear,
     // otherwise we should be checking this here.
-    assert(vecDir(a, b, c) == 0);
+    assert(vecDir(a, b, c, 0.0001) == 0);
 
-    if (a.x != b.x)
+    if ((fabs(a.x - b.x) > 1) && (a.x != b.x))
     {
         // not vertical
         return (((a.x < c.x) && (c.x < b.x)) ||
