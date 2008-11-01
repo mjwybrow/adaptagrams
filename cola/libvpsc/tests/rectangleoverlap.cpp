@@ -25,6 +25,7 @@
 
 #include <iostream>
 #include <cassert>
+#include <cstdlib>
 #include <math.h>
 #include <time.h>
 #include <libvpsc/rectangle.h>
@@ -38,7 +39,7 @@ inline double getRand(double range) {
 	return range*rand()/RAND_MAX;
 }
 void printRects(vector<Rectangle*> &rs) {
-	printf("Set of %d rectangles:\n",rs.size());
+	printf("Set of %d rectangles:\n",(int)rs.size());
 	for(unsigned i=0;i<rs.size();++i) {
 		cout << *rs[i] << endl;
 	}
