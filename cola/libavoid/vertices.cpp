@@ -435,7 +435,7 @@ VertInf *VertInfList::getVertexByID(const VertID& id)
     VertID searchID = id;
     if (searchID.vn == kUnassignedVertexNumber)
     {
-        unsigned int topbit = 1 << 31;
+        unsigned int topbit = ((unsigned int) 1) << 31;
         if (searchID.objID & topbit)
         {
             searchID.objID = searchID.objID & ~topbit;
