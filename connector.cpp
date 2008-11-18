@@ -785,7 +785,7 @@ int ConnRef::generatePath(void)
     path[0] = _srcVert->point;
     // Use topbit to differentiate between start and end point of connector.
     // They need unique IDs for nudging.
-    unsigned int topbit = 1 << 31;
+    unsigned int topbit = ((unsigned int) 1) << 31;
     path[0].id = _id | topbit; 
     path[0].vn = kUnassignedVertexNumber;
 
