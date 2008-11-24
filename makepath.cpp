@@ -93,7 +93,7 @@ static Polygon constructPolygonPath(VertInf *inf1, VertInf *inf2, VertInf *inf3)
 // possibly the previous point (inf1) [from inf1--inf2], return a
 // cost associated with this route.
 //
-double cost(ConnRef *lineRef, const double dist, VertInf *inf1,
+static double cost(ConnRef *lineRef, const double dist, VertInf *inf1,
         VertInf *inf2, VertInf *inf3)
 {
     double result = dist;
@@ -154,8 +154,10 @@ double cost(ConnRef *lineRef, const double dist, VertInf *inf1,
             bool isConn = false;
             Polygon dynamic_c_boundary(cBoundary);
             Polygon dynamic_conn_route(connRoute);
+            const bool finalSegment = (inf3 == lineRef->dst());
             int crossings = countRealCrossings(dynamic_c_boundary, isConn, 
-                    dynamic_conn_route, connRoute.size() - 1, true);
+                    dynamic_conn_route, connRoute.size() - 1, true, 
+                    finalSegment);
             result += (crossings * router->cluster_crossing_penalty);
         }
     }
