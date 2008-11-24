@@ -41,11 +41,11 @@ typedef std::list<ClusterRef *> ClusterRefList;
 class ClusterRef
 {
     public:
-        ClusterRef(Router *router, unsigned int id, Polygn& poly);
+        ClusterRef(Router *router, unsigned int id, Polygon& poly);
         ~ClusterRef();
-        void setNewPoly(Polygn& poly);
+        void setNewPoly(Polygon& poly);
         unsigned int id(void);
-        ReferencingPolygn& poly(void);
+        ReferencingPolygon& poly(void);
         Router *router(void);
         void makeActive(void);
         void makeInactive(void);
@@ -53,7 +53,7 @@ class ClusterRef
     private:
         Router *_router;
         unsigned int _id;
-        ReferencingPolygn _poly;
+        ReferencingPolygon _poly;
         bool _active;
         ClusterRefList::iterator _pos;
 };

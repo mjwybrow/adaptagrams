@@ -35,7 +35,6 @@
 
 #include "libavoid/graph.h"
 #include "libavoid/geometry.h"
-#include "libavoid/polyutil.h"
 
 #include <math.h>
 
@@ -251,10 +250,10 @@ double dist(const Point& a, const Point& b)
 }
 
 // Returns the total length of all line segments in the polygon
-double totalLength(const Polygn& poly)
+double totalLength(const Polygon& poly)
 {
     double l = 0;
-    for (int i = 0; i < poly.pn-1; ++i) {
+    for (int i = 0; i < poly.size()-1; ++i) {
         l += dist(poly.ps[i], poly.ps[i+1]);
     }
     return l;
@@ -280,10 +279,10 @@ double angle(const Point& a, const Point& b, const Point& c)
 // This is a fast version that only works for convex shapes.  The
 // other version (inPolyGen) is more general.
 //
-bool inPoly(const Polygn& poly, const Point& q, bool countBorder)
+bool inPoly(const Polygon& poly, const Point& q, bool countBorder)
 {
-    int n = poly.pn;
-    Point *P = poly.ps;
+    int n = poly.size();
+    const std::vector<Point>& P = poly.ps;
     bool onBorder = false;
     for (int i = 0; i < n; i++)
     {
@@ -311,16 +310,16 @@ bool inPoly(const Polygn& poly, const Point& q, bool countBorder)
 //
 // Based on the code of 'InPoly'.
 //
-bool inPolyGen(const PolygnInterface& argpoly, const Point& q)
+bool inPolyGen(const PolygonInterface& argpoly, const Point& q)
 {
     // Numbers of right and left edge/ray crossings.
     int Rcross = 0;
     int Lcross = 0;
 
     // Copy the argument polygon
-    Polygn poly = copyPoly(argpoly);
-    Point *P = poly.ps;
-    int    n = poly.pn;
+    Polygon poly = argpoly;
+    std::vector<Point>& P = poly.ps;
+    int    n = poly.size();
 
     // Shift so that q is the origin. This is done for pedogical clarity.
     for (int i = 0; i < n; ++i)
@@ -336,7 +335,6 @@ bool inPolyGen(const PolygnInterface& argpoly, const Point& q)
         if ((P[i].x == 0) && (P[i].y == 0))
         {
             // We count a vertex as inside.
-            freePoly(poly);
             return true;
         }
 
@@ -379,7 +377,6 @@ bool inPolyGen(const PolygnInterface& argpoly, const Point& q)
             }
         }
     }
-    freePoly(poly);
 
     // q on the edge if left and right cross are not the same parity.
     if ( (Rcross % 2) != (Lcross % 2) )

@@ -51,7 +51,7 @@ class ConnRef
         void setType(unsigned int type);
         const PolyLine& route(void);
         void set_route(const PolyLine& route);
-        DynamicPolygn& display_route(void);
+        Polygon& display_route(void);
         bool needsReroute(void);
         void freeRoute(void);
         void calcRouteDist(void);
@@ -95,7 +95,7 @@ class ConnRef
         bool _false_path;
         bool _active;
         PolyLine _route;
-        DynamicPolygn _display_route;
+        Polygon _display_route;
         double _route_dist;
         ConnRefList::iterator _pos;
         VertInf *_srcVert;
@@ -144,12 +144,12 @@ typedef std::map<VertID,PtOrder> PtOrderMap;
 typedef std::set<Avoid::Point> PointSet;
 
 
-extern int countRealCrossings(Avoid::DynamicPolygn& poly, bool polyIsConn,
-        Avoid::DynamicPolygn& conn, int cIndex, bool checkForBranchingSegments,
+extern int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
+        Avoid::Polygon& conn, int cIndex, bool checkForBranchingSegments,
         PointSet *crossingPoints = NULL, PtOrderMap *pointOrders = NULL,
         bool *touches = NULL);
-extern void splitBranchingSegments(Avoid::DynamicPolygn& poly, bool polyIsConn,
-        Avoid::DynamicPolygn& conn);
+extern void splitBranchingSegments(Avoid::Polygon& poly, bool polyIsConn,
+        Avoid::Polygon& conn);
 extern bool validateBendPoint(VertInf *aInf, VertInf *bInf, VertInf *cInf);
 
 }

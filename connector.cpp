@@ -57,8 +57,7 @@ ConnRef::ConnRef(Router *router, const unsigned int id)
     assert(id > 0);
 
     // TODO: Store endpoints and details.
-    _route.pn = 0;
-    _route.ps = NULL;
+    _route.clear();
 }
 
 
@@ -82,8 +81,7 @@ ConnRef::ConnRef(Router *router, const unsigned int id,
 {
     assert(id > 0);
 
-    _route.pn = 0;
-    _route.ps = NULL;
+    _route.clear();
 
     if (_router->IncludeEndpoints)
     {
@@ -314,12 +312,7 @@ void ConnRef::makeInactive(void)
 
 void ConnRef::freeRoute(void)
 {
-    if (_route.ps)
-    {
-        _route.pn = 0;
-        std::free(_route.ps);
-        _route.ps = NULL;
-    }
+    _route.clear();
 }
     
 
@@ -338,25 +331,17 @@ void ConnRef::set_route(const PolyLine& route)
         return;
     }
 
-    if (_route.ps)
-    {
-        std::free(_route.ps);
-        _route.ps = NULL;
-    }
-    int bytesize = route.pn * sizeof(Point);
-    _route.pn = route.pn;
-    _route.ps = (Point *) malloc(bytesize);
-    memcpy(_route.ps, route.ps, bytesize);
+    _route.ps = route.ps;
 
     _display_route.clear();
 }
 
 
-DynamicPolygn& ConnRef::display_route(void)
+Polygon& ConnRef::display_route(void)
 {
     if (_display_route.empty())
     {
-        _display_route = DynamicPolygn(_route);
+        _display_route = Polygon(_route);
     }
     return _display_route;
 }
@@ -365,9 +350,9 @@ DynamicPolygn& ConnRef::display_route(void)
 void ConnRef::calcRouteDist(void)
 {
     _route_dist = 0;
-    for (int i = 1; i < _route.pn; i++)
+    for (int i = 1; i < _route.size(); ++i)
     {
-        _route_dist += dist(_route.ps[i], _route.ps[i - 1]);
+        _route_dist += dist(_route.at(i), _route.at(i - 1));
     }
 }
 
@@ -630,13 +615,13 @@ int ConnRef::generatePath(void)
         }
         printf("\n");
 #endif
-        if (currRoute.pn > 2)
+        if (currRoute.size() > 2)
         {
             if (_srcVert->point == currRoute.ps[0])
             {
-                existingPathStart = currRoute.pn - 2;
+                existingPathStart = currRoute.size() - 2;
                 assert(existingPathStart != 0);
-                Point& pnt = currRoute.ps[existingPathStart];
+                const Point& pnt = currRoute.at(existingPathStart);
                 bool isShape = true;
                 VertID vID(pnt.id, isShape, pnt.vn);
 
@@ -668,7 +653,7 @@ int ConnRef::generatePath(void)
             printf("BACK\n");
 #endif
             existingPathStart--;
-            Point& pnt = currRoute.ps[existingPathStart];
+            const Point& pnt = currRoute.at(existingPathStart);
             bool isShape = (existingPathStart > 0);
             VertID vID(pnt.id, isShape, pnt.vn);
 
@@ -704,7 +689,7 @@ int ConnRef::generatePath(void)
                     break;
                 }
                 existingPathStart--;
-                Point& pnt = currRoute.ps[existingPathStart];
+                const Point& pnt = currRoute.at(existingPathStart);
                 bool isShape = (existingPathStart > 0);
                 VertID vID(pnt.id, isShape, pnt.vn);
 
@@ -744,7 +729,7 @@ int ConnRef::generatePath(void)
             exit(1);
         }
     }
-    Point *path = (Point *) malloc(pathlen * sizeof(Point));
+    std::vector<Point> path(pathlen);
 
     int j = pathlen - 1;
     for (VertInf *i = tar; i != _srcVert; i = i->pathNext)
@@ -793,7 +778,6 @@ int ConnRef::generatePath(void)
 
     freeRoute();
     PolyLine& output_route = _route;
-    output_route.pn = pathlen;
     output_route.ps = path;
     _display_route.clear();
  
@@ -1015,8 +999,8 @@ static int midVertexNumber(const Point& p0, const Point& p1, const Point& c)
 
 // Break up overlapping parallel segments that are not the same edge in 
 // the visibility graph, i.e., where one segment is a subsegment of another.
-void splitBranchingSegments(Avoid::DynamicPolygn& poly, bool polyIsConn,
-        Avoid::DynamicPolygn& conn)
+void splitBranchingSegments(Avoid::Polygon& poly, bool polyIsConn,
+        Avoid::Polygon& conn)
 {
     for (std::vector<Avoid::Point>::iterator i = conn.ps.begin(); 
             i != conn.ps.end(); ++i)
@@ -1112,8 +1096,8 @@ void splitBranchingSegments(Avoid::DynamicPolygn& poly, bool polyIsConn,
 // poly can be either a connector (polyIsConn = true) or a cluster
 // boundary (polyIsConn = false).
 //
-int countRealCrossings(Avoid::DynamicPolygn& poly, bool polyIsConn,
-        Avoid::DynamicPolygn& conn, int cIndex, bool checkForBranchingSegments,
+int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
+        Avoid::Polygon& conn, int cIndex, bool checkForBranchingSegments,
         PointSet *crossingPoints, PtOrderMap *pointOrders, bool *touches)
 {
     if (checkForBranchingSegments)

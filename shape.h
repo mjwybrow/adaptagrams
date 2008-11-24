@@ -41,13 +41,13 @@ typedef std::list<ShapeRef *> ShapeRefList;
 class ShapeRef
 {
     public:
-        ShapeRef(Router *router, unsigned int id, Polygn& poly);
+        ShapeRef(Router *router, unsigned int id, Polygon& poly);
         ~ShapeRef();
-        void setNewPoly(Polygn& poly);
+        void setNewPoly(Polygon& poly);
         VertInf *firstVert(void);
         VertInf *lastVert(void);
         unsigned int id(void);
-        const Polygn& poly(void);
+        const Polygon& poly(void);
         Router *router(void);
         void boundingBox(BBox& bbox);
 
@@ -63,7 +63,7 @@ class ShapeRef
     private:
         Router *_router;
         unsigned int _id;
-        Polygn _poly;
+        Polygon _poly;
         bool _active;
         bool _inMoveList;
         ShapeRefList::iterator _pos;

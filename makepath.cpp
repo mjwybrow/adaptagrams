@@ -34,7 +34,6 @@
 #include "libavoid/connector.h"
 #include "libavoid/graph.h"
 #include "libavoid/router.h"
-#include "libavoid/polyutil.h"
 #include <algorithm>
 #include <vector>
 #include <limits.h>
@@ -68,17 +67,16 @@ static double angleBetween(const Point& p1, const Point& p2, const Point& p3)
 }
 
 
-// Construct a temporary Polygn path given several VertInf's for a connector.
+// Construct a temporary Polygon path given several VertInf's for a connector.
 //
-static Polygn constructPolygnPath(VertInf *inf1, VertInf *inf2, VertInf *inf3)
+static Polygon constructPolygonPath(VertInf *inf1, VertInf *inf2, VertInf *inf3)
 {
-    Polygn connRoute;
     int routeSize = 2;
     for (VertInf *curr = inf1; curr != NULL; curr = curr->pathNext)
     {
         routeSize += 1;
     }
-    connRoute = newPoly(routeSize);
+    Polygon connRoute(routeSize);
     connRoute.ps[routeSize - 1] = inf3->point;
     connRoute.ps[routeSize - 2] = inf2->point;
     routeSize -= 3;
@@ -99,8 +97,7 @@ double cost(ConnRef *lineRef, const double dist, VertInf *inf1,
         VertInf *inf2, VertInf *inf3)
 {
     double result = dist;
-    Polygn connRoute;
-    connRoute.ps = NULL;
+    Polygon connRoute;
 
     Router *router = inf2->_router;
     if (inf2->pathNext != NULL)
@@ -137,15 +134,15 @@ double cost(ConnRef *lineRef, const double dist, VertInf *inf1,
 
     if (! router->clusterRefs.empty() )
     {
-        if (connRoute.ps == NULL)
+        if (connRoute.empty())
         {
-            connRoute = constructPolygnPath(inf1, inf2, inf3);
+            connRoute = constructPolygonPath(inf1, inf2, inf3);
         }
         // There are clusters so do cluster routing.
         for (ClusterRefList::const_iterator cl = router->clusterRefs.begin(); 
                 cl != router->clusterRefs.end(); ++cl)
         {
-            ReferencingPolygn& cBoundary = (*cl)->poly();
+            ReferencingPolygon& cBoundary = (*cl)->poly();
             assert(cBoundary.ps[0] != cBoundary.ps[cBoundary.size() - 1]);
             for (int j = 0; j < cBoundary.size(); ++j)
             {
@@ -155,19 +152,19 @@ double cost(ConnRef *lineRef, const double dist, VertInf *inf1,
             }
             
             bool isConn = false;
-            DynamicPolygn dynamic_c_boundary(cBoundary);
-            DynamicPolygn dynamic_conn_route(connRoute);
+            Polygon dynamic_c_boundary(cBoundary);
+            Polygon dynamic_conn_route(connRoute);
             int crossings = countRealCrossings(dynamic_c_boundary, isConn, 
-                    dynamic_conn_route, connRoute.pn - 1, true);
+                    dynamic_conn_route, connRoute.size() - 1, true);
             result += (crossings * router->cluster_crossing_penalty);
         }
     }
 
     if (lineRef->doesHateCrossings() && (router->crossing_penalty > 0))
     {
-        if (connRoute.ps == NULL)
+        if (connRoute.empty())
         {
-            connRoute = constructPolygnPath(inf1, inf2, inf3);
+            connRoute = constructPolygonPath(inf1, inf2, inf3);
         }
         ConnRefList::const_iterator curr, finish = router->connRefs.end();
         for (curr = router->connRefs.begin(); curr != finish; ++curr)
@@ -181,16 +178,12 @@ double cost(ConnRef *lineRef, const double dist, VertInf *inf1,
             const Avoid::PolyLine& route2 = connRef->route();
             
             bool isConn = true;
-            DynamicPolygn dynamic_route2(route2);
-            DynamicPolygn dynamic_conn_route(connRoute);
+            Polygon dynamic_route2(route2);
+            Polygon dynamic_conn_route(connRoute);
             int crossings = countRealCrossings(dynamic_route2, isConn, 
-                    dynamic_conn_route, connRoute.pn - 1, true);
+                    dynamic_conn_route, connRoute.size() - 1, true);
             result += (crossings * router->crossing_penalty);
         }
-    }
-    if (connRoute.ps != NULL)
-    {
-        freePoly(connRoute);
     }
 
     return result;
@@ -349,7 +342,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
         int rIndx = 0;
         while (last != start)
         {
-            Point& pnt = currRoute.ps[rIndx];
+            const Point& pnt = currRoute.at(rIndx);
             bool isShape = (rIndx > 0);
             VertID vID(pnt.id, isShape, pnt.vn);
 

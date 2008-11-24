@@ -94,7 +94,7 @@ class Router {
 
         void addShape(ShapeRef *shape);
         void delShape(ShapeRef *shape);
-        void moveShape(ShapeRef *shape, Polygn *newPoly,
+        void moveShape(ShapeRef *shape, const Polygon& newPoly,
                 const bool first_move = false);
         void processMoves(void);
         
@@ -110,12 +110,12 @@ class Router {
         void generateContains(VertInf *pt);
         void printInfo(void);
     private:
-        void newBlockingShape(Polygn *poly, int pid);
+        void newBlockingShape(Polygon *poly, int pid);
         void checkAllBlockedEdges(int pid);
         void checkAllMissingEdges(void);
-        void adjustContainsWithAdd(const Polygn& poly, const int p_shape);
+        void adjustContainsWithAdd(const Polygon& poly, const int p_shape);
         void adjustContainsWithDel(const int p_shape);
-        void adjustClustersWithAdd(const PolygnInterface& poly, 
+        void adjustClustersWithAdd(const PolygonInterface& poly, 
                 const int p_cluster);
         void adjustClustersWithDel(const int p_cluster);
         void callbackAllInvalidConnectors(void);

@@ -81,64 +81,21 @@ bool Point::operator<(const Point& rhs) const
 }
 
 
-Polygn::Polygn()
-    : PolygnInterface()
-{
-}
-
-
-void Polygn::clear(void)
-{
-    if (ps != NULL)
-    {
-        std::free(ps);
-        ps = NULL;
-        pn = 0;
-    }
-}
-
-
-const bool Polygn::empty(void) const
-{
-    return (pn == 0);
-}
-
-
-const int Polygn::size(void) const
-{
-    return pn;
-}
-
-
-int Polygn::id(void) const
-{
-    return _id;
-}
-
-
-const Point& Polygn::at(int index) const
-{
-    assert(index < size());
-    
-    return ps[index];
-}
-
-
-ReferencingPolygn::ReferencingPolygn(const Polygn& poly, const Router *router)
-    : PolygnInterface(),
+ReferencingPolygon::ReferencingPolygon(const Polygon& poly, const Router *router)
+    : PolygonInterface(),
       _id(poly._id),
-      ps(poly.pn)
+      ps(poly.size())
 {
     assert(router != NULL);
-    for (int i = 0; i < poly.pn; ++i)
+    for (int i = 0; i < poly.size(); ++i)
     {
-        const Polygn *polyPtr = NULL;
+        const Polygon *polyPtr = NULL;
         for (ShapeRefList::const_iterator sh = router->shapeRefs.begin();
                 sh != router->shapeRefs.end(); ++sh) 
         {
             if ((*sh)->id() == poly.ps[i].id)
             {
-                const Polygn& poly = (*sh)->poly();
+                const Polygon& poly = (*sh)->poly();
                 polyPtr = &poly;
                 break;
             }
@@ -149,70 +106,65 @@ ReferencingPolygn::ReferencingPolygn(const Polygn& poly, const Router *router)
 }
 
 
-ReferencingPolygn::ReferencingPolygn()
-    : PolygnInterface()
+ReferencingPolygon::ReferencingPolygon()
+    : PolygonInterface()
 {
     clear();
 }
 
 
-void ReferencingPolygn::clear(void)
+void ReferencingPolygon::clear(void)
 {
     ps.clear();
 }
 
 
-const bool ReferencingPolygn::empty(void) const
+const bool ReferencingPolygon::empty(void) const
 {
     return ps.empty();
 }
 
 
-const int ReferencingPolygn::size(void) const
+const int ReferencingPolygon::size(void) const
 {
     return ps.size();
 }
 
 
-int ReferencingPolygn::id(void) const
+int ReferencingPolygon::id(void) const
 {
     return _id;
 }
 
 
-const Point& ReferencingPolygn::at(int index) const 
+const Point& ReferencingPolygon::at(int index) const 
 {
     assert(index < size());
-    const Polygn& poly = *(ps[index].first);
+    const Polygon& poly = *(ps[index].first);
     unsigned short poly_index = ps[index].second;
-    assert(poly_index < poly.pn);
+    assert(poly_index < poly.size());
 
     return poly.ps[poly_index];
 }
 
 
-DynamicPolygn::DynamicPolygn()
-    : PolygnInterface()
+Polygon::Polygon()
+    : PolygonInterface()
 {
     clear();
 }
 
 
-DynamicPolygn::DynamicPolygn(const Polygn& poly)
-    : PolygnInterface(),
-      _id(poly._id),
-      ps(poly.pn)
+Polygon::Polygon(const int pn)
+    : PolygonInterface(),
+      ps(pn)
 {
-    for (int i = 0; i < poly.pn; ++i)
-    {
-        ps[i] = poly.ps[i];
-    }
 }
 
 
-DynamicPolygn::DynamicPolygn(ReferencingPolygn& poly)
-    : PolygnInterface(),
-      _id(poly._id),
+Polygon::Polygon(const PolygonInterface& poly)
+    : PolygonInterface(),
+      _id(poly.id()),
       ps(poly.size())
 {
     for (int i = 0; i < poly.size(); ++i)
@@ -222,32 +174,32 @@ DynamicPolygn::DynamicPolygn(ReferencingPolygn& poly)
 }
 
 
-void DynamicPolygn::clear(void)
+void Polygon::clear(void)
 {
     ps.clear();
     ts.clear();
 }
 
 
-const bool DynamicPolygn::empty(void) const
+const bool Polygon::empty(void) const
 {
     return ps.empty();
 }
 
 
-const int DynamicPolygn::size(void) const
+const int Polygon::size(void) const
 {
     return ps.size();
 }
 
 
-int DynamicPolygn::id(void) const
+int Polygon::id(void) const
 {
     return _id;
 }
 
 
-const Point& DynamicPolygn::at(int index) const
+const Point& Polygon::at(int index) const
 {
     assert(index < size());
 
@@ -260,6 +212,11 @@ static const unsigned int SHORTEN_START = 1;
 static const unsigned int SHORTEN_END   = 2;
 static const unsigned int SHORTEN_BOTH  = SHORTEN_START | SHORTEN_END;
 
+// shorten_line():
+//     Given the two endpoints of a line segment, this function adjusts the
+//     endpoints of the line to shorten the line by shorten_length at either
+//     or both ends.
+//
 static void shorten_line(double& x1, double& y1, double& x2, double& y2, 
         const unsigned int mode, const double shorten_length)
 {
@@ -273,7 +230,7 @@ static void shorten_line(double& x1, double& y1, double& x2, double& y2,
     double disty = fabs(rise);
     double distx = fabs(run);
 
-    // Handle case where shorten length is greater than that for the
+    // Handle case where shorten length is greater than the length of the
     // line segment.
     if ((mode == SHORTEN_BOTH) &&
             (((distx > disty) && ((shorten_length * 2) > distx)) ||
@@ -332,16 +289,8 @@ static void shorten_line(double& x1, double& y1, double& x2, double& y2,
         return;
     }
     
-    int xpos = 1;
-    int ypos = 1;
-    if (x1 < x2)
-    {
-        xpos = -1;
-    }
-    if (y1 < y2)
-    {
-        ypos = -1;
-    }
+    int xpos = (x1 < x2) ? -1 : 1;
+    int ypos = (y1 < y2) ? -1 : 1;
     
     double tangent = rise / run;
    
@@ -377,9 +326,19 @@ static void shorten_line(double& x1, double& y1, double& x2, double& y2,
 
 #define mid(a, b) ((a < b) ? a + ((b - a) / 2) : b + ((a - b) / 2))
 
-DynamicPolygn DynamicPolygn::curvedPolyline(const double curve_amount) const
+
+// curvedPolyline():
+//     Returns a curved approximation of this multi-segment PolyLine, with 
+//     the corners replaced by smooth Bezier curves.  curve_amount describes
+//     how large to make the curves.
+//     The ts value for each point in the returned Polygon describes the 
+//     drawing operation: 'M' (move) marks the first point, a line segment 
+//     is marked with an 'L' and three 'C's (along with the previous point) 
+//     describe the control points of a Bezier curve.
+//
+Polygon Polygon::curvedPolyline(const double curve_amount) const
 {
-    DynamicPolygn curved;
+    Polygon curved;
 
     int num_of_points = size();
     if (num_of_points <= 2)

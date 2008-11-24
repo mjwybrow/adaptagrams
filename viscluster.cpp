@@ -25,13 +25,12 @@
 
 #include "libavoid/viscluster.h"
 #include "libavoid/router.h"
-#include "libavoid/polyutil.h"
 
 
 namespace Avoid {
 
 
-ClusterRef::ClusterRef(Router *router, unsigned int id, Polygn& ply)
+ClusterRef::ClusterRef(Router *router, unsigned int id, Polygon& ply)
     : _router(router)
     , _id(id)
     , _poly(ply, router)
@@ -68,9 +67,9 @@ void ClusterRef::makeInactive(void)
 }
     
 
-void ClusterRef::setNewPoly(Polygn& poly)
+void ClusterRef::setNewPoly(Polygon& poly)
 {
-    _poly = ReferencingPolygn(poly, _router);
+    _poly = ReferencingPolygon(poly, _router);
 }
 
 
@@ -80,7 +79,7 @@ unsigned int ClusterRef::id(void)
 }
 
 
-ReferencingPolygn& ClusterRef::poly(void)
+ReferencingPolygon& ClusterRef::poly(void)
 {
     return _poly;
 }

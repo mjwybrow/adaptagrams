@@ -57,35 +57,17 @@ static const unsigned short kUnassignedVertexNumber = 8;
 typedef Point Vector;
 
 
-class PolygnInterface
+class PolygonInterface
 {
     public:
-        PolygnInterface() { }
-        virtual ~PolygnInterface() { }
+        PolygonInterface() { }
+        virtual ~PolygonInterface() { }
         virtual void clear(void) = 0;
         virtual const bool empty(void) const = 0;
         virtual const int size(void) const = 0;
         virtual int id(void) const = 0;
         virtual const Point& at(int index) const = 0;
 };
-
-
-class Polygn : public PolygnInterface
-{
-    public:
-        Polygn();
-        void clear(void);
-        const bool empty(void) const;
-        const int size(void) const;
-        int id(void) const;
-        const Point& at(int index) const;
-
-        int _id;
-        Point *ps;
-        int pn;
-};
-
-typedef Polygn PolyLine;
 
 
 typedef struct
@@ -98,47 +80,51 @@ typedef Edge BBox;
 
 
 class Router;
-
-// A Polygn which just references its points from other Polygns.
-// This is used to represent cluster boundaries made up of shape corners.
-//
-class ReferencingPolygn : public PolygnInterface
-{
-    public:
-        ReferencingPolygn();
-        ReferencingPolygn(const Polygn& poly, const Router *router);
-        void clear(void);
-        const bool empty(void) const;
-        const int size(void) const;
-        int id(void) const;
-        const Point& at(int index) const;
-
-        int _id;
-        std::vector<std::pair<const Polygn *, unsigned short> > ps;
-};
+class ReferencingPolygon;
 
 
-// A dynamic version of Polygn, to which points can be easily added 
+// A dynamic Polygon, to which points can be easily added 
 // and removed.
 //
-class DynamicPolygn : public PolygnInterface
+class Polygon : public PolygonInterface
 {
     public:
-        DynamicPolygn();
-        DynamicPolygn(const Polygn& poly);
-        DynamicPolygn(ReferencingPolygn& poly);
+        Polygon();
+        Polygon(const int pn);
+        Polygon(const PolygonInterface& poly);
         void clear(void);
         const bool empty(void) const;
         const int size(void) const;
         int id(void) const;
         const Point& at(int index) const;
-        DynamicPolygn curvedPolyline(const double curve_amount) const;
+        Polygon curvedPolyline(const double curve_amount) const;
 
         int _id;
         std::vector<Point> ps;
         // If used, denotes whether the corresponding point in ps is 
         // a move-to operation or a Bezier curve-to. 
         std::vector<char> ts;
+};
+
+
+typedef Polygon PolyLine;
+
+// A Polygon which just references its points from other Polygons.
+// This is used to represent cluster boundaries made up of shape corners.
+//
+class ReferencingPolygon : public PolygonInterface
+{
+    public:
+        ReferencingPolygon();
+        ReferencingPolygon(const Polygon& poly, const Router *router);
+        void clear(void);
+        const bool empty(void) const;
+        const int size(void) const;
+        int id(void) const;
+        const Point& at(int index) const;
+
+        int _id;
+        std::vector<std::pair<const Polygon *, unsigned short> > ps;
 };
 
 

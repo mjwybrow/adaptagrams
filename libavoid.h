@@ -27,7 +27,6 @@
 #define AVOID_LIBAVOID_H
 
 #include "libavoid/geomtypes.h"
-#include "libavoid/polyutil.h"
 #include "libavoid/connector.h"
 #include "libavoid/graph.h"
 #include "libavoid/debug.h"
