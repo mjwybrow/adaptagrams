@@ -19,14 +19,12 @@ body { padding-top: 10px; padding-left: 60px; padding-right: 60px; }
 
 <p>To add a shape (obstacle) to the router, you first create a <code>ShapeRef</code> by giving a polygon representing the convex hull boundary of the shape and an ID for the shape.
 <pre>// Create the ShapeRef:
-Avoid::Polygn shapePoly = Avoid::newPoly(3);
+Avoid::Polygon shapePoly(3);
 shapePoly.ps[0] = Avoid::Point(1, 1);
 shapePoly.ps[1] = Avoid::Point(2.5, 1.5);
 shapePoly.ps[2] = Avoid::Point(1.5, 2.5);
 unsigned int shapeID = 1;
-Avoid::ShapeRef *shapeRef = new Avoid::ShapeRef(router, shapeID, shapePoly);
-// ShapeRef constructor makes a copy of polygon so we can free it:
-Avoid::freePoly(shapePoly);</pre></p>
+Avoid::ShapeRef *shapeRef = new Avoid::ShapeRef(router, shapeID, shapePoly);</pre></p>
 
 <p>To actually add the shape to the router (and cause rerouting of connectors it intersects) you do the following:
 <pre>router-&gt;addShape(shapeRef);</pre></p>
@@ -35,7 +33,7 @@ Avoid::freePoly(shapePoly);</pre></p>
 <pre>router-&gt;delShape(shapeRef);</pre></p>
 
 <p>To move or resize a shape already in the router, you do the following:
-<pre>router-&gt;moveShape(shapeRef, &newPolygon);</pre></p>
+<pre>router-&gt;moveShape(shapeRef, newPolygon);</pre></p>
 
 <p>In its default mode the router will queue multiple shape movements and perform the changes to the visibility graph in an optimised order.  Thus you make several calls to <code>router-&gt;movShape()</code> for different shapes and then tell the router to process the moves.  This tend to be useful in interactive applications where the user may drag a group of shapes at once.
 <pre>router-&gt;moveShape(shapeRef1, newPolygon1);

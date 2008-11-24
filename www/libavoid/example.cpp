@@ -50,14 +50,13 @@ int main(void)
     Avoid::Router *router = new Avoid::Router();
     
     // Create the ShapeRef:
-    Avoid::Polygn shapePoly = Avoid::newPoly(3);
+    Avoid::Polygon shapePoly(3);
     shapePoly.ps[0] = Avoid::Point(1, 1);
     shapePoly.ps[1] = Avoid::Point(2.5, 1.5);
     shapePoly.ps[2] = Avoid::Point(1.5, 2.5);
     unsigned int shapeID = 1;
     Avoid::ShapeRef *shapeRef = new Avoid::ShapeRef(router, shapeID, shapePoly);
     // ShapeRef constructor makes a copy of polygon so we can free it:
-    Avoid::freePoly(shapePoly);
 
     unsigned int connID = 2;
     Avoid::Point srcPt(1.2, 0.5);
@@ -81,12 +80,11 @@ int main(void)
     connRef->handleInvalid();
 
     printf("\nMoving shape right by 0.5.\n");
-    Avoid::Polygn newPoly = Avoid::newPoly(3);
+    Avoid::Polygon newPoly(3);
     newPoly.ps[0] = Avoid::Point(1.5, 1);
     newPoly.ps[1] = Avoid::Point(3, 1.5);
     newPoly.ps[2] = Avoid::Point(2, 2.5);
-    router->moveShape(shapeRef, &newPoly);
-    Avoid::freePoly(newPoly);
+    router->moveShape(shapeRef, newPoly);
     router->processMoves();
 
     return 0;
