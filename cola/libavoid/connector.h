@@ -39,6 +39,11 @@ namespace Avoid {
 static const int ConnType_PolyLine   = 1;
 static const int ConnType_Orthogonal = 2;
 
+static const double ATTACH_POS_TOP = 0;
+static const double ATTACH_POS_CENTER = 0.5;
+static const double ATTACH_POS_BOTTOM = 1;
+static const double ATTACH_POS_LEFT = ATTACH_POS_TOP;
+static const double ATTACH_POS_RIGHT = ATTACH_POS_BOTTOM;
 
 class ConnRef
 {
@@ -56,6 +61,9 @@ class ConnRef
         void freeRoute(void);
         void calcRouteDist(void);
         void updateEndPoint(const unsigned int type, const Point& point);
+        void updateEndPoint(const unsigned int type, ShapeRef *shapeRef, 
+                const double x_position = ATTACH_POS_CENTER, 
+                const double y_position = ATTACH_POS_CENTER);
         bool updateEndPoint(const unsigned int type, const VertID& pointID, 
                 Point *pointSuggestion = NULL);
         void setEndPointId(const unsigned int type, const unsigned int id);
@@ -87,6 +95,7 @@ class ConnRef
         friend void Router::markConnectors(ShapeRef *shape);
         
     private:
+        void common_updateEndPoint(const unsigned int type, const Point& point);
         Router *_router;
         unsigned int _id;
         unsigned int _type;
@@ -146,8 +155,9 @@ typedef std::set<Avoid::Point> PointSet;
 
 extern int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
         Avoid::Polygon& conn, int cIndex, bool checkForBranchingSegments,
-        PointSet *crossingPoints = NULL, PtOrderMap *pointOrders = NULL,
-        bool *touches = NULL);
+        const bool finalSegment = false, PointSet *crossingPoints = NULL, 
+        PtOrderMap *pointOrders = NULL, bool *touches = NULL, 
+        bool *touchesAtEndpoint = NULL);
 extern void splitBranchingSegments(Avoid::Polygon& poly, bool polyIsConn,
         Avoid::Polygon& conn);
 extern bool validateBendPoint(VertInf *aInf, VertInf *bInf, VertInf *cInf);

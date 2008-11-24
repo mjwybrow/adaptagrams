@@ -25,6 +25,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <cfloat>
 #include "libavoid/graph.h"
 #include "libavoid/connector.h"
 #include "libavoid/makepath.h"
@@ -127,9 +128,10 @@ void ConnRef::setType(unsigned int type)
 }
 
 
-void ConnRef::updateEndPoint(const unsigned int type, const Point& point)
+void ConnRef::common_updateEndPoint(const unsigned int type, const Point& point)
 {
-    //printf("updateEndPoint(%d,(pid=%d,vn=%d,(%f,%f)))\n",type,point.id,point.vn,point.x,point.y);
+    //printf("updateEndPoint(%d,(pid=%d,vn=%d,(%f,%f)))\n",
+    //      type,point.id,point.vn,point.x,point.y);
     assert((type == (unsigned int) VertID::src) ||
            (type == (unsigned int) VertID::tar));
     
@@ -180,9 +182,91 @@ void ConnRef::updateEndPoint(const unsigned int type, const Point& point)
     // XXX: Seems to be faster to just remove the edges and recreate
     bool isConn = true;
     altered->removeFromGraph(isConn);
+}
+
+
+void ConnRef::updateEndPoint(const unsigned int type, const Point& point)
+{
+    common_updateEndPoint(type, point);
+
     bool knownNew = true;
     bool genContains = true;
-    vertexVisibility(altered, partner, knownNew, genContains);
+    if (type == (unsigned int) VertID::src)
+    {
+        vertexVisibility(_srcVert, _dstVert, knownNew, genContains);
+    }
+    else
+    {
+        vertexVisibility(_dstVert, _srcVert, knownNew, genContains);
+    }
+}
+
+
+void ConnRef::updateEndPoint(const unsigned int type, ShapeRef *shapeRef, 
+        const double x_position, const double y_position)
+{
+    assert(shapeRef);
+    const Polygon& poly = shapeRef->poly();
+
+    double x_min = DBL_MAX;
+    double x_max = -DBL_MAX;
+    double y_min = DBL_MAX;
+    double y_max = -DBL_MAX;
+    for (int i = 0; i < poly.size(); ++i)
+    {
+        x_min = std::min(x_min, poly.ps[i].x);
+        x_max = std::max(x_max, poly.ps[i].x);
+        y_min = std::min(y_min, poly.ps[i].y);
+        y_max = std::max(y_max, poly.ps[i].y);
+    }
+
+    Point point;
+
+    point.id = _id;
+    point.vn = kUnassignedVertexNumber;
+    if (x_position == ATTACH_POS_LEFT)
+    {
+        point.x = x_min;
+        point.vn = 6;
+    }
+    else if (x_position == ATTACH_POS_RIGHT)
+    {
+        point.x = x_max;
+        point.vn = 4;
+    }
+    else
+    {
+        point.x = x_min + (x_position * (x_max - x_min));
+    }
+
+    if (y_position == ATTACH_POS_TOP)
+    {
+        point.y = y_max;
+        point.vn = 5;
+    }
+    else if (y_position == ATTACH_POS_BOTTOM)
+    {
+        point.y = y_min;
+        point.vn = 7;
+    }
+    else
+    {
+        point.y = y_min + (y_position * (y_max - y_min));
+        point.vn = kUnassignedVertexNumber;
+    }
+
+    common_updateEndPoint(type, point);
+    
+    bool knownNew = true;
+    bool genContains = true;
+    if (type == VertID::src)
+    {
+        vertexVisibility(_srcVert, _dstVert, knownNew, genContains);
+    }
+    else
+    {
+        vertexVisibility(_dstVert, _srcVert, knownNew, genContains);
+    }
 }
 
 
@@ -203,60 +287,11 @@ bool ConnRef::updateEndPoint(const unsigned int type, const VertID& pointID,
         }
     }
 
-    //printf("updateEndPoint(%d,(pid=%d,vn=%d,(%f,%f)))\n",
-    //        type, point.id, point.vn, point.x, point.y);
-    assert((type == (unsigned int) VertID::src) ||
-           (type == (unsigned int) VertID::tar));
-    
-    // XXX: This was commented out.  Is there a case where it isn't true? 
-    assert(_router->IncludeEndpoints);
-
-    if (!_initialised)
-    {
-        makeActive();
-        _initialised = true;
-    }
-    
-    VertInf *altered = NULL;
-    VertInf *partner = NULL;
-    bool isShape = false;
-
-    if (type == (unsigned int) VertID::src)
-    {
-        if (_srcVert)
-        {
-            _srcVert->Reset(point);
-        }
-        else
-        {
-            _srcVert = new VertInf(_router, VertID(_id, isShape, type), point);
-            _router->vertices.addVertex(_srcVert);
-        }
-        
-        altered = _srcVert;
-        partner = _dstVert;
-    }
-    else // if (type == (unsigned int) VertID::dst)
-    {
-        if (_dstVert)
-        {
-            _dstVert->Reset(point);
-        }
-        else
-        {
-            _dstVert = new VertInf(_router, VertID(_id, isShape, type), point);
-            _router->vertices.addVertex(_dstVert);
-        }
-        
-        altered = _dstVert;
-        partner = _srcVert;
-    }
-    
-    bool isConn = true;
-    altered->removeFromGraph(isConn);
+    common_updateEndPoint(type, point);
 
     // Give this visibility just to the point it is over.
-    EdgeInf *edge = new EdgeInf(altered, vInf);
+    EdgeInf *edge = new EdgeInf(
+            (type == VertID::src) ? _srcVert : _dstVert, vInf);
     // XXX: We should be able to set this to zero, but can't due to 
     //      assumptions elsewhere in the code.
     edge->setDist(0.001);
@@ -1011,8 +1046,6 @@ void splitBranchingSegments(Avoid::Polygon& poly, bool polyIsConn,
             // There are points-1 segments in a connector.
             continue;
         }
-        Point& c0 = *(i - 1);
-        Point& c1 = *i;
 
         // XXX When doing the pointOnLine test we allow the points to be 
         // slightly non-collinear.  This addresses a problem with clustered
@@ -1033,6 +1066,9 @@ void splitBranchingSegments(Avoid::Polygon& poly, bool polyIsConn,
                 ++j;
                 continue;
             }
+            Point& c0 = *(i - 1);
+            Point& c1 = *i;
+
             Point& p0 = (j == poly.ps.begin()) ? poly.ps.back() : *(j - 1);
             Point& p1 = *j;
 
@@ -1072,8 +1108,6 @@ void splitBranchingSegments(Avoid::Polygon& poly, bool polyIsConn,
 
                 p0.vn = midVertexNumber(c0, c1, p0);
                 i = conn.ps.insert(i, p0);
-                --i;
-                break;
             }
             // And the second point of every segment.
             if (pointOnLine(c0, c1, p1, tolerance))
@@ -1082,8 +1116,6 @@ void splitBranchingSegments(Avoid::Polygon& poly, bool polyIsConn,
 
                 p1.vn = midVertexNumber(c0, c1, p1);
                 i = conn.ps.insert(i, p1);
-                --i;
-                break;
             }
             ++j;
         }
@@ -1098,7 +1130,8 @@ void splitBranchingSegments(Avoid::Polygon& poly, bool polyIsConn,
 //
 int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
         Avoid::Polygon& conn, int cIndex, bool checkForBranchingSegments,
-        PointSet *crossingPoints, PtOrderMap *pointOrders, bool *touches)
+        const bool finalSegment, PointSet *crossingPoints, 
+        PtOrderMap *pointOrders, bool *touches, bool *touchesAtEndpoint)
 {
     if (checkForBranchingSegments)
     {
@@ -1108,8 +1141,11 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
         cIndex += (conn.size() - conn_pn);
     }
     assert(cIndex >= 1);
+    assert(cIndex < conn.size());
 
     int crossingCount = 0;
+    std::vector<Avoid::Point *> c_path;
+    std::vector<Avoid::Point *> p_path;
 
     Avoid::Point& a1 = conn.ps[cIndex - 1];
     Avoid::Point& a2 = conn.ps[cIndex];
@@ -1123,15 +1159,25 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
         //printf("b1: %g %g\n", b1.x, b1.y);
         //printf("b2: %g %g\n", b2.x, b2.y);
 
-        if (((a1 == b1) && (a2 == b2)) ||
-            ((a2 == b1) && (a1 == b2)))
-        {
-            // Route along same segment: no penalty.  We detect
-            // crossovers when we see the segments diverge.
-            continue;
-        }
+        p_path.clear();
+        c_path.clear();
+        bool converging = false;
 
-        if ((a2 == b2) || (a2 == b1) || (b2 == a1))
+        if ( ((a1 == b1) && (a2 == b2)) ||
+             ((a2 == b1) && (a1 == b2)) )
+        {
+            if (finalSegment)
+            {
+                converging = true;
+            }
+            else
+            {
+                // Route along same segment: no penalty.  We detect
+                // crossovers when we see the segments diverge.
+                continue;
+            }
+        }
+        else if ((a2 == b1) || (a2 == b2) || (b2 == a1))
         {
             // Each crossing that is at a vertex in the 
             // visibility graph gets noticed four times.
@@ -1142,80 +1188,152 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
             continue;
         }
     
-        if (a1 == b1)
+        if ((a1 == b1) || converging)
         {
-            if (polyIsConn && (j == 1))
+            if (!converging)
             {
-                // common source point.
-                continue;
-            }
-            Avoid::Point& b0 = poly.ps[(j - 2 + poly.size()) % poly.size()];
-            // The segments share an endpoint -- a1==b1.
-            if (a2 == b0)
-            {
-                // a2 is not a split, continue.
-                continue;
+                if (polyIsConn && (j == 1))
+                {
+                    // Can't be the end of a shared path or crossing path 
+                    // since the common point is the first point of the 
+                    // connector path.  This is not a shared path at all.
+                    continue;
+                }
+
+                Avoid::Point& b0 = poly.ps[(j - 2 + poly.size()) % poly.size()];
+                // The segments share an endpoint -- a1==b1.
+                if (a2 == b0)
+                {
+                    // a2 is not a split, continue.
+                    continue;
+                }
             }
             
-            // If here, then we know that a2 != b2
+            // If here and not converging, then we know that a2 != b2
             // And a2 and its pair in b are a split.
-            assert(a2 != b2);
+            assert(converging || (a2 != b2));
 
-            if (cIndex < 2)
-            {
-                // There is no a0;
-                continue;
-            }
-            Avoid::Point& a0 = conn.ps[cIndex - 2];
+            bool shared_path = false;
             
-            //printf("a0: %g %g\n", a0.x, a0.y);
-            //printf("b0: %g %g\n", b0.x, b0.y);
-
-            if ( (a0 == b2) || (a0 == b0) )
+            bool p_dir_back;
+            int p_dir;
+            int trace_c;
+            int trace_p;
+            if (converging)
             {
-                //printf("Shared path... ");
-                bool normal = (a0 == b2) ? false : true;
                 // Determine direction we have to look through
                 // the points of connector b.
-                int dir = normal ? -1 : 1;
-                
-                int traceI = cIndex - 2;
-                int traceJ = j - 1 + dir;
-                
-                int endCornerSide = Avoid::cornerSide(a0, a1, a2, 
-                        normal ? b2 : b0);
-                int prevTurnDir = vecDir(a0, a1, a2);
-                bool reversed = (endCornerSide != -prevTurnDir);
-                bool orderSwapped;
-                if (pointOrders)
+                p_dir_back = (a2 == b2) ? true : false;
+                p_dir = p_dir_back ? -1 : 1;
+                trace_c = cIndex;
+                trace_p = j;
+                if (!p_dir_back)
                 {
-                    VertID vID(a1.id, true, a1.vn);
-                    orderSwapped = (*pointOrders)[vID].addPoints(
-                            &b1, &a1, reversed);
-                    if (orderSwapped)
+                    if (finalSegment)
                     {
-                        // Reverse the order for later points.
-                        reversed = !reversed;
+                        trace_p--;
+                    }
+                    else
+                    {   
+                        trace_c--;
                     }
                 }
-                while ((traceI >= 0) &&
-                    (!polyIsConn || ((traceJ >= 0) && (traceJ < poly.size()))) )
+
+                shared_path = true;
+            }
+            else if (cIndex >= 2)
+            {
+                Avoid::Point& b0 = poly.ps[(j - 2 + poly.size()) % poly.size()];
+                Avoid::Point& a0 = conn.ps[cIndex - 2];
+            
+                //printf("a0: %g %g\n", a0.x, a0.y);
+                //printf("b0: %g %g\n", b0.x, b0.y);
+
+                if ((a0 == b2) || (a0 == b0))
                 {
-                    int indexJ = (traceJ + (2 * poly.size())) % poly.size();
-                    assert(indexJ >= 0);
-                    assert(indexJ < poly.size());
-                    if (conn.ps[traceI] != poly.ps[indexJ])
+                    // Determine direction we have to look through
+                    // the points of connector b.
+                    p_dir_back = (a0 == b0) ? true : false;
+                    p_dir = p_dir_back ? -1 : 1;
+                    trace_c = cIndex;
+                    trace_p = p_dir_back ? j : j - 2;
+                    
+                    shared_path = true;
+                }
+            }    
+
+            if (shared_path)
+            {
+                // Build the shared path, including the diverging points at
+                // each end if the connector does not end at a common point.
+                while ( (trace_c >= 0) && (!polyIsConn || 
+                            ((trace_p >= 0) && (trace_p < poly.size()))) )
+                {
+                    int index_p = (trace_p + (2 * poly.size())) % poly.size();
+                    assert(index_p >= 0);
+                    assert(index_p < poly.size());
+                    c_path.push_back(&conn.ps[trace_c]);
+                    p_path.push_back(&poly.ps[index_p]);
+                    if ((c_path.size() > 1) && 
+                            (conn.ps[trace_c] != poly.ps[index_p]))
                     {
                         // Points don't match, so break out of loop.
                         break;
                     }
-                    if (pointOrders)
+                    trace_c--;
+                    trace_p += p_dir;
+                }
+
+                // Are there diverging points at the ends of the shared path.
+                bool front_same = (*(c_path.front()) == *(p_path.front()));
+                bool back_same  = (*(c_path.back())  == *(p_path.back()));
+
+                int size = c_path.size();
+                
+                int prevTurnDir = -1;
+                int startCornerSide = 1;
+                int endCornerSide = 1;
+                bool reversed = false;
+                if (!front_same)
+                {
+                    // If there is a divergence at the beginning, 
+                    // then order the shared path based on this.
+                    prevTurnDir = vecDir(*c_path[0], *c_path[1], *c_path[2]);
+                    startCornerSide = Avoid::cornerSide(*c_path[0], *c_path[1], 
+                            *c_path[2], *p_path[0]);
+                    reversed = (startCornerSide != -prevTurnDir);
+                }
+                if (!back_same)
+                {
+                    // If there is a divergence at the end of the path, 
+                    // then order the shared path based on this.
+                    prevTurnDir = vecDir(*c_path[size - 3],
+                            *c_path[size - 2], *c_path[size - 1]);
+                    endCornerSide = Avoid::cornerSide(*c_path[size - 3], 
+                            *c_path[size - 2], *c_path[size - 1], 
+                            *p_path[size - 1]);
+                    reversed = (endCornerSide != -prevTurnDir);
+                }
+                else
+                {
+                    endCornerSide = startCornerSide;
+                }
+                if (front_same)
+                {
+                    startCornerSide = endCornerSide;
+                }
+                    
+                if (pointOrders)
+                {
+                    // Return the ordering for the shared path.
+                    int adj_size = (c_path.size() - ((back_same) ? 0 : 1));
+                    for (int i = (front_same) ? 0 : 1; i < adj_size; ++i)
                     {
-                        Avoid::Point& an = conn.ps[traceI];
-                        Avoid::Point& bn = poly.ps[indexJ];
-                        int currTurnDir = (traceI > 0) ?  
-                                vecDir(conn.ps[traceI - 1], an,
-                                       conn.ps[traceI + 1]) : 0;
+                        Avoid::Point& an = *(c_path[i]);
+                        Avoid::Point& bn = *(p_path[i]);
+                        int currTurnDir = (i > 0) ?  
+                                vecDir(*c_path[i - 1], an,
+                                       *c_path[i + 1]) : 0;
                         VertID vID(an.id, true, an.vn);
                         if ( (currTurnDir == (-1 * prevTurnDir)) &&
                                 (currTurnDir != 0) && (prevTurnDir != 0) )
@@ -1223,54 +1341,46 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
                             // The connector turns the opposite way around 
                             // this shape as the previous bend on the path,
                             // so reverse the order so that the inner path
-                            // become the outer path and vice verca.
+                            // become the outer path and vice versa.
                             reversed = !reversed;
                         }
-                        orderSwapped = (*pointOrders)[vID].addPoints(
+                        bool orderSwapped = (*pointOrders)[vID].addPoints(
                                 &bn, &an, reversed);
-                        assert(!orderSwapped);
+                        if (orderSwapped)
+                        {
+                            // Reverse the order for later points.
+                            reversed = !reversed;
+                        }
                         prevTurnDir = currTurnDir;
                     }
-                    traceI--;
-                    traceJ += dir;
-                }
-            
-                if (touches)
-                {
-                    *touches = true;
                 }
 
-                if ((traceI < 0) || (polyIsConn && ((traceJ < 0) || 
-                        (traceJ >= poly.size()))))
-                {
-                    //printf("common source or destination.\n");
-                    // The connectors have a shared path, but it
-                    // comes from a common source point.
-                    // XXX: There might be a better way to
-                    //      check this by asking the connectors
-                    //      for the IDs of the attached shapes.
-                    continue;
-                }
-               
-                int startCornerSide = Avoid::cornerSide(
-                        conn.ps[traceI], conn.ps[traceI + 1],
-                        conn.ps[traceI + 2], 
-                        poly.ps[(traceJ + poly.size()) % poly.size()]);
-                            
                 if (endCornerSide != startCornerSide)
                 {
+                    // Mark that the shared path crosses.
                     //printf("shared path crosses.\n");
                     crossingCount += 1;
                     if (crossingPoints)
                     {
-                        crossingPoints->insert(a1);
+                        crossingPoints->insert(*c_path[1]);
                     }
                 }
+                if (touches)
+                {
+                    *touches = true;
+                }
             }
-            else
+            else if (cIndex >= 2)
             {
                 // The connectors cross or touch at this point.
                 //printf("Cross or touch at point... \n");
+                if ((cIndex < 2) || (polyIsConn && (j < 2)))
+                {
+                    fprintf(stderr, "ERRROR BAD\n");
+                    abort();
+                }
+                Avoid::Point& b0 = poly.ps[(j - 2 + poly.size()) % poly.size()];
+                Avoid::Point& a0 = conn.ps[cIndex - 2];
             
                 int side1 = Avoid::cornerSide(a0, a1, a2, b0);
                 int side2 = Avoid::cornerSide(a0, a1, a2, b2);
@@ -1318,13 +1428,17 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
         }
         else
         {
+            // No endpoint is shared between these two line segments,
+            // so just calculate normal segment intersection.
+
             Point cPt;
             int intersectResult = Avoid::segmentIntersectPoint(
                     a1, a2, b1, b2, &(cPt.x), &(cPt.y));
 
             if (intersectResult == Avoid::DO_INTERSECT)
             {
-                if ((a1 == cPt) || (a2 == cPt) || (b1 == cPt) || (b2 == cPt))
+                if (!polyIsConn && 
+                        ((a1 == cPt) || (a2 == cPt) || (b1 == cPt) || (b2 == cPt)))
                 {
                     // XXX: This shouldn't actually happen, because these
                     //      points should be added as bends to each line by
@@ -1333,7 +1447,7 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
                     assert(a2 != cPt);
                     assert(b1 != cPt);
                     assert(b2 != cPt);
-                    return crossingCount;
+                    continue;
                 }                
                 //printf("crossing lines:\n");
                 //printf("cPt: %g %g\n", cPt.x, cPt.y);
