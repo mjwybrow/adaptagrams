@@ -24,14 +24,13 @@
 */
 
 #include <cstdlib>
+#include <math.h>
 #include "libavoid/shape.h"
 #include "libavoid/router.h"
 #include "libavoid/visibility.h"
 #include "libavoid/connector.h"
-#include "libavoid/polyutil.h"
 #include "libavoid/debug.h"
 #include "libavoid/region.h"
-#include "math.h"
 
 //#define ORTHOGONAL_ROUTING
 
@@ -45,17 +44,16 @@ static const unsigned int infoMov = 3;
 
 class MoveInfo {
     public:
-        MoveInfo(ShapeRef *s, Polygn *p, bool fM)
+        MoveInfo(ShapeRef *s, const Polygon& p, bool fM)
             : shape(s)
-            , newPoly(copyPoly(*p))
+            , newPoly(p)
             , firstMove(fM)
         { }
         ~MoveInfo()
         {
-            freePoly(newPoly);
         }
         ShapeRef *shape;
-        Polygn newPoly;
+        Polygon newPoly;
         bool firstMove;
 };
 
@@ -93,7 +91,7 @@ void Router::addShape(ShapeRef *shape)
     shape->makeActive();
 
     unsigned int pid = shape->id();
-    Polygn poly = shape->poly();
+    Polygon poly = shape->poly();
 
     adjustContainsWithAdd(poly, pid);
     
@@ -165,7 +163,8 @@ void Router::delShape(ShapeRef *shape)
 }
 
 
-void Router::moveShape(ShapeRef *shape, Polygn *newPoly, const bool first_move)
+void Router::moveShape(ShapeRef *shape, const Polygon& newPoly, 
+        const bool first_move)
 {
     // Sanely cope with the case where the user requests moving the same
     // shape multiple times before rerouting connectors.
@@ -184,8 +183,7 @@ void Router::moveShape(ShapeRef *shape, Polygn *newPoly, const bool first_move)
             }
             // Just update the MoveInfo with the second polygon, but
             // leave the firstMove setting alone.
-            freePoly((*it)->newPoly);
-            (*it)->newPoly = copyPoly(*newPoly);
+            (*it)->newPoly = newPoly;
             alreadyThere = true;
         }
     }
@@ -217,7 +215,7 @@ void Router::processMoves(void)
     {
         MoveInfo *moveInf = *curr;
         ShapeRef *shape = moveInf->shape;
-        Polygn *newPoly = &(moveInf->newPoly);
+        Polygon *newPoly = &(moveInf->newPoly);
         bool first_move = moveInf->firstMove;
 
         unsigned int pid = shape->id();
@@ -271,7 +269,7 @@ void Router::processMoves(void)
     {
         MoveInfo *moveInf = moveList.front();
         ShapeRef *shape = moveInf->shape;
-        Polygn *newPoly = &(moveInf->newPoly);
+        Polygon *newPoly = &(moveInf->newPoly);
 
         unsigned int pid = shape->id();
         bool notPartialTime = !(PartialFeedback && PartialTime);
@@ -312,7 +310,7 @@ void Router::addCluster(ClusterRef *cluster)
     cluster->makeActive();
     
     unsigned int pid = cluster->id();
-    ReferencingPolygn& poly = cluster->poly();
+    ReferencingPolygon& poly = cluster->poly();
 
     adjustClustersWithAdd(poly, pid);
 }
@@ -389,7 +387,7 @@ void Router::callbackAllInvalidConnectors(void)
 }
 
 
-void Router::newBlockingShape(Polygn *poly, int pid)
+void Router::newBlockingShape(Polygon *poly, int pid)
 {
     // o  Check all visibility edges to see if this one shape
     //    blocks them.
@@ -422,9 +420,9 @@ void Router::newBlockingShape(Polygn *poly, int pid)
             }
 
             bool seenIntersectionAtEndpoint = false;
-            for (int pt_i = 0; pt_i < poly->pn; pt_i++)
+            for (int pt_i = 0; pt_i < poly->size(); pt_i++)
             {
-                int pt_n = (pt_i == (poly->pn - 1)) ? 0 : pt_i + 1;
+                int pt_n = (pt_i == (poly->size() - 1)) ? 0 : pt_i + 1;
                 Point& pi = poly->ps[pt_i];
                 Point& pn = poly->ps[pt_n];
                 if (segmentShapeIntersect(e1, e2, pi, pn, 
@@ -551,7 +549,7 @@ void Router::generateContains(VertInf *pt)
 }
 
 
-void Router::adjustClustersWithAdd(const PolygnInterface& poly, 
+void Router::adjustClustersWithAdd(const PolygonInterface& poly, 
         const int p_cluster)
 {
     for (VertInf *k = vertices.connsBegin(); k != vertices.shapesBegin();
@@ -575,7 +573,7 @@ void Router::adjustClustersWithDel(const int p_cluster)
 }
 
 
-void Router::adjustContainsWithAdd(const Polygn& poly, const int p_shape)
+void Router::adjustContainsWithAdd(const Polygon& poly, const int p_shape)
 {
     // Don't count points on the border as being inside.
     bool countBorder = false;
@@ -625,7 +623,7 @@ void Router::markConnectors(ShapeRef *shape)
     {
         ConnRef *conn = (*it);
 
-        if (conn->_route.pn == 0)
+        if (conn->_route.empty())
         {
             // Ignore uninitialised connectors.
             continue;
@@ -637,7 +635,7 @@ void Router::markConnectors(ShapeRef *shape)
         }
 
         Point start = conn->_route.ps[0];
-        Point end = conn->_route.ps[conn->_route.pn - 1];
+        Point end = conn->_route.ps[conn->_route.size() - 1];
 
         double conndist = conn->_route_dist;
 

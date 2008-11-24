@@ -218,7 +218,7 @@ void makeFeasible(vpsc::Rectangles& rs, vector<cola::Edge>& edges,
         double y=r->getMinY()+g;
         double Y=r->getMaxY()-g;
         // Create the ShapeRef:
-        Avoid::Polygn shapePoly = Avoid::newPoly(4);
+        Avoid::Polygon shapePoly(4);
         // AntiClockwise!
         shapePoly.ps[0] = Avoid::Point(X,y);
         shapePoly.ps[1] = Avoid::Point(X,Y);
@@ -231,7 +231,6 @@ void makeFeasible(vpsc::Rectangles& rs, vector<cola::Edge>& edges,
         Avoid::ShapeRef *shapeRef = new Avoid::ShapeRef(router, shapeID,
                 shapePoly);
         // ShapeRef constructor makes a copy of polygon so we can free it:
-        Avoid::freePoly(shapePoly);
         router->addShape(shapeRef);
     }
     for(unsigned i=0;i<edges.size();++i) {
@@ -245,12 +244,12 @@ void makeFeasible(vpsc::Rectangles& rs, vector<cola::Edge>& edges,
         connRef->updateEndPoint(Avoid::VertID::src, srcPt);
         connRef->updateEndPoint(Avoid::VertID::tar, dstPt);
         connRef->generatePath();
-        const Avoid::Polygn& route = connRef->route();
+        const Avoid::Polygon& route = connRef->route();
         vector<topology::EdgePoint*> eps;
         eps.push_back( new topology::EdgePoint( topologyNodes[e.first], 
                     topology::EdgePoint::CENTRE));
-        for(int j=1;j<route.pn-1;j++) {
-            Avoid::Point& p = route.ps[j];
+        for(int j=1;j<route.size()-1;j++) {
+            const Avoid::Point& p = route.ps[j];
             const unsigned nodeID=p.id-1;
             topology::Node* node=topologyNodes[nodeID];
             topology::EdgePoint::RectIntersect ri;

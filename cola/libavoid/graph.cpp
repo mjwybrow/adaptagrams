@@ -27,7 +27,6 @@
 #include "libavoid/graph.h"
 #include "libavoid/connector.h"
 #include "libavoid/geometry.h"
-#include "libavoid/polyutil.h"
 #include "libavoid/timer.h"
 #include "libavoid/vertices.h"
 #include "libavoid/router.h"

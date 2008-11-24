@@ -8,7 +8,6 @@ libavoid_a_SOURCES = connector.cpp\
 			graph.cpp\
 			makepath.cpp\
 			router.cpp\
-			polyutil.cpp\
 			shape.cpp\
 			viscluster.cpp\
 			timer.cpp\
@@ -18,4 +17,4 @@ libavoid_a_SOURCES = connector.cpp\
 			libavoid.h
 
 libavoidincludedir = ${includedir}/libavoid
-libavoidinclude_HEADERS = connector.h  geomtypes.h  makepath.h  router.h  timer.h debug.h      graph.h      polyutil.h  shape.h   vertices.h geometry.h   libavoid.h   region.h    static.h  visibility.h viscluster.h
+libavoidinclude_HEADERS = connector.h  geomtypes.h  makepath.h  router.h  timer.h debug.h      graph.h      shape.h   vertices.h geometry.h   libavoid.h   region.h    static.h  visibility.h viscluster.h

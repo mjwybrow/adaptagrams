@@ -44,14 +44,14 @@ namespace Avoid {
 
 
 extern double dist(const Point& a, const Point& b);
-extern double totalLength(const Polygn& poly);
+extern double totalLength(const Polygon& poly);
 extern double angle(const Point& a, const Point& b, const Point& c);
 extern bool segmentIntersect(const Point& a, const Point& b,
         const Point& c, const Point& d);
 extern bool segmentShapeIntersect(const Point& e1, const Point& e2, 
         const Point& s1, const Point& s2, bool& seenIntersectionAtEndpoint);
-extern bool inPoly(const Polygn& poly, const Point& q, bool countBorder = true);
-extern bool inPolyGen(const PolygnInterface& poly, const Point& q);
+extern bool inPoly(const Polygon& poly, const Point& q, bool countBorder = true);
+extern bool inPolyGen(const PolygonInterface& poly, const Point& q);
 extern bool inValidRegion(bool IgnoreRegions, const Point& a0,
         const Point& a1, const Point& a2, const Point& b);
 extern int cornerSide(const Point &c1, const Point &c2, const Point &c3,

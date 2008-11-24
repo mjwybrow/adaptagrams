@@ -28,17 +28,16 @@
 #include "libavoid/shape.h"
 #include "libavoid/graph.h"  // For alertConns
 #include "libavoid/vertices.h"
-#include "libavoid/polyutil.h"
 #include "libavoid/router.h"
 
 
 namespace Avoid {
 
 
-ShapeRef::ShapeRef(Router *router, unsigned int id, Polygn& ply)
+ShapeRef::ShapeRef(Router *router, unsigned int id, Polygon& ply)
     : _router(router)
     , _id(id)
-    , _poly(copyPoly(ply))
+    , _poly(ply)
     , _active(false)
     , _inMoveList(false)
     , _firstVert(NULL)
@@ -51,7 +50,7 @@ ShapeRef::ShapeRef(Router *router, unsigned int id, Polygn& ply)
     
     VertInf *last = NULL;
     VertInf *node = NULL;
-    for (int pt_i = 0; pt_i < _poly.pn; pt_i++)
+    for (int pt_i = 0; pt_i < _poly.size(); pt_i++)
     {
         node = new VertInf(_router, i, _poly.ps[pt_i]);
 
@@ -93,18 +92,16 @@ ShapeRef::~ShapeRef()
     }
     while (it != _firstVert);
     _firstVert = _lastVert = NULL;
-
-    freePoly(_poly);
 }
 
 
-void ShapeRef::setNewPoly(Polygn& poly)
+void ShapeRef::setNewPoly(Polygon& poly)
 {
     assert(_firstVert != NULL);
-    assert(_poly.pn == poly.pn);
+    assert(_poly.size() == poly.size());
     
     VertInf *curr = _firstVert;
-    for (int pt_i = 0; pt_i < _poly.pn; pt_i++)
+    for (int pt_i = 0; pt_i < _poly.size(); pt_i++)
     {
         assert(curr->visListSize == 0);
         assert(curr->invisListSize == 0);
@@ -118,8 +115,7 @@ void ShapeRef::setNewPoly(Polygn& poly)
     }
     assert(curr == _firstVert);
         
-    freePoly(_poly);
-    _poly = copyPoly(poly);
+    _poly = poly;
 }
 
 
@@ -185,7 +181,7 @@ unsigned int ShapeRef::id(void)
 }
 
 
-const Polygn& ShapeRef::poly(void)
+const Polygon& ShapeRef::poly(void)
 {
     return _poly;
 }
@@ -199,13 +195,13 @@ Router *ShapeRef::router(void)
 
 void ShapeRef::boundingBox(BBox& bbox)
 {
-    assert(_poly.pn > 0);
+    assert(!_poly.empty());
 
     bbox.a = bbox.b = _poly.ps[0];
     Point& a = bbox.a;
     Point& b = bbox.b;
 
-    for (int i = 1; i < _poly.pn; ++i)
+    for (int i = 1; i < _poly.size(); ++i)
     {
         const Point& p = _poly.ps[i];
 
