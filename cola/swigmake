@@ -6,14 +6,11 @@ LINK = $(OSXLINK)
 
 all: cola.jnilib colajava.jar
 
-cola_wrap.cxx swig-worked: cola.i
-	rm -f swig-worked
-	rm -rf colajava
-	mkdir colajava
+swig-worked: clean cola.i
 	swig -c++ -java -package colajava -outdir colajava cola.i
 	touch swig-worked
 
-cola_wrap.o: cola_wrap.cxx swig-worked
+cola_wrap.o: swig-worked
 	g++ `pkg-config --cflags cairomm-1.0` -I. $(JAVA_INCLUDE) -c cola_wrap.cxx
 
 cola.jnilib: cola_wrap.o
@@ -23,10 +20,12 @@ colajava.jar: colajava swig-worked
 	jar -cf colajava.jar colajava
 
 realclean: clean
+
 clean: mostlyclean
 	rm -f cola.jnilib
 
 mostlyclean:
+	rm -f swig-worked
 	rm -f cola_wrap.o cola_wrap.cxx colajava.jar
 	rm -rf colajava/*
 
