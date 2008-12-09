@@ -25,8 +25,9 @@ using namespace topology;
 %ignore vpsc::Rectangle::setXBorder(double);
 %ignore vpsc::Rectangle::setYBorder(double);
 %ignore vpsc::assertNoOverlaps(const Rectangles& rs);
-%ignore Avoid::point::operator==(Avoid::point const &) const;
-%ignore Avoid::point::operator!=(Avoid::point const &) const;
+%ignore Avoid::Point::operator==(const Point&) const;
+%ignore Avoid::Point::operator!=(const Point&) const;
+%ignore Avoid::Point::operator<(const Point&) const;
 %ignore cola::Resize::Resize();
 %ignore topology::Segment;
 %ignore topology::EdgePoint::inSegment;
@@ -86,6 +87,8 @@ void deleteDoubleArray(double* a) {
 %rename(testoperator) cola::TestConvergence::operator();
 
 %rename(Avoid_Edge) Avoid::Edge;
+
+%rename(getVarOrig) topology::Node::getVar() const;
 
 //%rename straightener::Edge StraightenerEdge;
 
