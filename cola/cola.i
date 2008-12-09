@@ -9,9 +9,10 @@
 #include <libcola/convex_hull.h>
 #include <libcola/compound_constraints.h>
 #include <libtopology/topology_graph.h>
+#include <libavoid/libavoid.h>
 /* Includes the header in the wrapper code */
 
-/*using namespace Avoid;*/
+using namespace Avoid;
 using namespace cola;
 using namespace hull;
 using namespace vpsc;
@@ -84,6 +85,8 @@ void deleteDoubleArray(double* a) {
 
 %rename(testoperator) cola::TestConvergence::operator();
 
+%rename(Avoid_Edge) Avoid::Edge;
+
 //%rename straightener::Edge StraightenerEdge;
 
 /* Parse the header file to generate wrappers */
@@ -94,18 +97,16 @@ void deleteDoubleArray(double* a) {
 %include "libcola/compound_constraints.h"
 %include "libtopology/topology_graph.h"
 
-/*
 %include "libavoid/connector.h"
-%include "libavoid/debug.h"
 %include "libavoid/geometry.h"
 %include "libavoid/geomtypes.h"
-%include "libavoid/graph.h"
-%include "libavoid/libavoid.h"
-%include "libavoid/makepath.h"
-%include "libavoid/polyutil.h"
-%include "libavoid/region.h"
 %include "libavoid/router.h"
 %include "libavoid/shape.h"
+/*
+%include "libavoid/libavoid.h"
+%include "libavoid/debug.h"
+%include "libavoid/graph.h"
+%include "libavoid/region.h"
 %include "libavoid/static.h"
 %include "libavoid/timer.h"
 %include "libavoid/visibility.h"
