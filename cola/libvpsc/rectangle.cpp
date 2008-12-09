@@ -294,7 +294,7 @@ void generateYConstraints(const Rectangles& rs, const Variables& vars, Constrain
 		events[ctr++]=new Event(Open,node,r->getMinX());
 		events[ctr++]=new Event(Close,node,r->getMaxX());
 	}
-    assert(ri==rs.end()&&vi==vars.end());
+    assert(ri==rs.end());
 	qsort((Event*)events, (size_t)2*n, sizeof(Event*), compare_events );
 	NodeSet scanline;
 #ifndef NDEBUG
