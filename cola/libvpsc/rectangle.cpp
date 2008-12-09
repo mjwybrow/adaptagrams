@@ -193,7 +193,7 @@ int compare_events(const void *a, const void *b) {
  */
 void generateXConstraints(vector<Rectangle*> const & rs, vector<Variable*> const &vars, vector<Constraint*> &cs, const bool useNeighbourLists) {
 	const unsigned n = rs.size();
-    assert(vars.size()==n);
+    assert(vars.size()>=n);
 	events=new Event*[2*n];
 	unsigned i,ctr=0;
 	for(i=0;i<n;i++) {
