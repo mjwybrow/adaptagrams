@@ -501,10 +501,11 @@ Constraint *Block::findMinLMBetween(Variable* const lv, Variable* const rv) {
 	compute_dfdv(vars->front(),NULL);
 	Constraint *min_lm=NULL;
 	split_path(rv,lv,NULL,min_lm);
-	if(min_lm==NULL) {
+#if 0
+    if(min_lm==NULL) {
 		split_path(rv,lv,NULL,min_lm,true);
 	}
-	/*
+#else
 	if(min_lm==NULL) {
 		fprintf(stderr,"Couldn't find split point!\n");
 		UnsatisfiableException e;
@@ -512,7 +513,7 @@ Constraint *Block::findMinLMBetween(Variable* const lv, Variable* const rv) {
 		throw e;
 	}
 	assert(min_lm!=NULL);
-	*/
+#endif
 	return min_lm;
 }
 

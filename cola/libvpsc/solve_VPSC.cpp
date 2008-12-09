@@ -263,7 +263,14 @@ bool IncSolver::satisfy() {
                 }
             } catch(UnsatisfiableException e) {
                 e.path.push_back(v);
-                throw e;
+                std::cerr << "Unsatisfiable:" << std::endl;
+                for(std::vector<Constraint*>::iterator r=e.path.begin();
+                        r!=e.path.end();++r)
+                {
+                    std::cerr << **r <<std::endl;
+                }
+                v->unsatisfiable=true;
+                continue;
             }
 			if(v->slack()>=0) {
                 assert(!v->active);
