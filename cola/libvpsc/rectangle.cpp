@@ -280,7 +280,7 @@ void generateXConstraints(vector<Rectangle*> const & rs, vector<Variable*> const
  */
 void generateYConstraints(const Rectangles& rs, const Variables& vars, Constraints& cs) {
 	const unsigned n = rs.size();
-    assert(vars.size()==n);
+    assert(vars.size()>=n);
 	events=new Event*[2*n];
 	unsigned ctr=0;
     Rectangles::const_iterator ri=rs.begin(), re=rs.end();
