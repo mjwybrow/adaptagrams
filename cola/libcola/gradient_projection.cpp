@@ -84,7 +84,7 @@ GradientProjection::GradientProjection(
             vars[i]->scale=1./sqrt(fabs((*denseQ)[i*denseSize+i]));
             // XXX: Scale can sometimes be set to infinity here when 
             //      there are nodes not connected to any other node.
-            //      Thus we just set the scale for this variable to 1.
+            //      Thus we just set the scale for such a variable to 1.
             if (__NOTNAN(vars[i]->scale))
             {
                 vars[i]->scale = 1;
