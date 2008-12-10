@@ -43,6 +43,8 @@
 #include "commondefs.h"
 //#define CHECK_CONVERGENCE_BY_COST 1
 
+#define __NOTNAN(p) (p)==(p)
+
 using namespace std;
 using namespace vpsc;
 namespace cola {
@@ -80,6 +82,13 @@ GradientProjection::GradientProjection(
         scaledDenseQ.resize(denseSize*denseSize);
         for(unsigned i=0;i<denseSize;i++) {
             vars[i]->scale=1./sqrt(fabs((*denseQ)[i*denseSize+i]));
+            // XXX: Scale can sometimes be set to infinity here when 
+            //      there are nodes not connected to any other node.
+            //      Thus we just set the scale for this variable to 1.
+            if (__NOTNAN(vars[i]->scale))
+            {
+                //vars[i]->scale = 1;
+            }
         }
         // the following computes S'QS for Q=denseQ
         // and S is diagonal matrix of scale factors
