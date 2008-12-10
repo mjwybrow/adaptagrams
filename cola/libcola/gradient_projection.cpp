@@ -87,7 +87,7 @@ GradientProjection::GradientProjection(
             //      Thus we just set the scale for this variable to 1.
             if (__NOTNAN(vars[i]->scale))
             {
-                //vars[i]->scale = 1;
+                vars[i]->scale = 1;
             }
         }
         // the following computes S'QS for Q=denseQ
