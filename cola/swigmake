@@ -1,12 +1,19 @@
-#JAVA_INCLUDE = -I/usr/lib/jvm/java-6-sun-1.6.0.06/include -I/usr/lib/jvm/java-6-sun-1.6.0.06/include/linux
-JAVA_INCLUDE = -I/System/Library/Frameworks/JavaVM.framework/Headers
-OSXLINK = g++ -dynamiclib -framework JavaVM -o libcolajni.dylib
-LINUXLINK = g++ -shared -o libcolajni.so
-LINK = $(OSXLINK)
+
+OSNAME:=$(shell uname -s)
+
+ifeq ($(OSNAME),Darwin)
+	JAVA_INCLUDE = -I/System/Library/Frameworks/JavaVM.framework/Headers
+	LINK = g++ -dynamiclib -framework JavaVM -o libcolajni.dylib
+else ifeq ($(OSNAME),Linux)
+	JAVA_INCLUDE = -I/usr/lib/jvm/java-6-sun-1.6.0.06/include \
+		       -I/usr/lib/jvm/java-6-sun-1.6.0.06/include/linux
+	LINK = g++ -shared -o libcolajni.so
+endif
 
 all: cola.jnilib colajava.jar
 
 swig-worked: clean cola.i
+	mkdir -p colajava
 	swig -c++ -java -package colajava -outdir colajava cola.i
 	touch swig-worked
 
