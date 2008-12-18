@@ -8,6 +8,7 @@
 #include <libcola/cluster.h>
 #include <libcola/convex_hull.h>
 #include <libcola/compound_constraints.h>
+#include <libcola/exceptions.h>
 #include <libtopology/topology_graph.h>
 #include <libavoid/libavoid.h>
 /* Includes the header in the wrapper code */
@@ -98,6 +99,7 @@ void deleteDoubleArray(double* a) {
 %include "libcola/cluster.h"
 %include "libcola/convex_hull.h"
 %include "libcola/compound_constraints.h"
+%include "libcola/exceptions.h"
 %include "libtopology/topology_graph.h"
 
 %include "libavoid/connector.h"
