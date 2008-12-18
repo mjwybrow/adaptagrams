@@ -27,6 +27,7 @@
 #include <libvpsc/constraint.h>
 #include "cola.h"
 #include "compound_constraints.h"
+#include "exceptions.h"
 
 using std::vector;
 
@@ -98,6 +99,10 @@ generateSeparationConstraints(
     if(ar) {
         right=ar->variable->id;
     }
+    if (!vs[left] || !vs[right])
+    {
+        throw InvalidConstraint(this);
+    }
     vpscConstraint = new vpsc::Constraint(vs[left],vs[right],gap,equality);
     cs.push_back(vpscConstraint);
 }
@@ -168,6 +173,10 @@ generateSeparationConstraints( vpsc::Variables& vs, vpsc::Constraints& gcs) {
         AlignmentConstraint *c1, *c2;
         c1=iac->first;
         c2=iac->second;
+        if (!c1->variable || !c2->variable)
+        {
+            throw InvalidConstraint(this);
+        }
         vpsc::Constraint* c = new vpsc::Constraint(
             c1->variable,c2->variable,sep,equality);
         gcs.push_back(c);
@@ -183,7 +192,10 @@ generateSeparationConstraints( vpsc::Variables& vars, vpsc::Constraints& gcs) {
         AlignmentConstraint *c1, *c2;
         c1=iac->first;
         c2=iac->second;
-        assert(c1->variable!=NULL);
+        if (!c1->variable || !c2->variable)
+        {
+            throw InvalidConstraint(this);
+        }
         vpsc::Constraint* c=new vpsc::Constraint(
                 c1->variable,c2->variable,sep,true);
         gcs.push_back(c);
