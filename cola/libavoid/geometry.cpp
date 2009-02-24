@@ -20,18 +20,19 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
+ * See the file LICENSE.LGPL distributed with the library.
+ *
+ * Licensees holding a valid commercial license may use this file in
+ * accordance with the commercial license agreement provided with the 
+ * library.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library in the file LICENSE; if not, 
- * write to the Free Software Foundation, Inc., 59 Temple Place, 
- * Suite 330, Boston, MA  02111-1307  USA
- * 
+ * Author(s):   Michael Wybrow <mjwybrow@users.sourceforge.net>
 */
+
 
 #include "libavoid/graph.h"
 #include "libavoid/geometry.h"
