@@ -6,11 +6,6 @@
  * Copyright (C) 2004-2007  Michael Wybrow <mjwybrow@users.sourceforge.net>
  * Copyright (C) 2008-2009  Monash University
  *
- * --------------------------------------------------------------------
- * The dijkstraPath function is based on code published and described
- * in "Algorithms in C" (Second Edition), 1990, by Robert Sedgewick.
- * --------------------------------------------------------------------
- *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -190,88 +185,6 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf1,
     }
 
     return result;
-}
-
-
-// Returns the best path from src to tar using the cost function.
-//
-// The path is worked out via Dijkstra's algorithm, and is encoded via
-// pathNext links in each of the VerInfs along the path.
-//
-// Based on the code of 'matrixpfs'.
-//
-static void dijkstraPath(ConnRef *lineRef, VertInf *src, VertInf *tar)
-{
-    Router *router = src->_router;
-
-    double unseen = (double) INT_MAX;
-
-    // initialize arrays
-    VertInf *finish = router->vertices.end();
-    for (VertInf *t = router->vertices.connsBegin(); t != finish; t = t->lstNext)
-    {
-        t->pathNext = NULL;
-        t->pathDist = -unseen;
-    }
-
-    VertInf *min = src;
-    while (min != tar)
-    {
-        VertInf *k = min;
-        min = NULL;
-
-        k->pathDist *= -1;
-        if (k->pathDist == unseen)
-        {
-            k->pathDist = 0;
-        }
-
-        EdgeInfList& visList = k->visList;
-        EdgeInfList::const_iterator finish = visList.end();
-        for (EdgeInfList::const_iterator edge = visList.begin(); edge != finish;
-                ++edge)
-        {
-            VertInf *t = (*edge)->otherVert(k);
-            VertID tID = t->id;
-
-            // Only check shape verticies, or endpoints.
-            if ((t->pathDist < 0) &&
-                    ((tID.objID == src->id.objID) || tID.isShape))
-            {
-                double kt_dist = (*edge)->getDist();
-                double priority = k->pathDist +
-                        cost(lineRef, kt_dist, k->pathNext, k, t);
-
-                if ((kt_dist != 0) && (t->pathDist < -priority))
-                {
-                    t->pathDist = -priority;
-                    t->pathNext = k;
-                }
-                if ((min == NULL) || (t->pathDist > min->pathDist))
-                {
-                    min = t;
-                }
-            }
-        }
-        EdgeInfList& invisList = k->invisList;
-        finish = invisList.end();
-        for (EdgeInfList::const_iterator edge = invisList.begin(); 
-                edge != finish; ++edge)
-        {
-            VertInf *t = (*edge)->otherVert(k);
-            VertID tID = t->id;
-
-            // Only check shape verticies, or endpoints.
-            if ((t->pathDist < 0) &&
-                    ((tID.objID == src->id.objID) || tID.isShape ))
-            {
-                if ((min == NULL) || (t->pathDist > min->pathDist))
-                {
-                    min = t;
-                }
-            }
-        }
-    }
 }
 
 
@@ -625,14 +538,7 @@ void makePath(ConnRef *lineRef, bool *flag)
             directEdge->addBlocker(0);
         }
 
-        if (router->UseAStarSearch)
-        {
-            aStarPath(lineRef, src, tar, start);
-        }
-        else
-        {
-            dijkstraPath(lineRef, src, tar);
-        }
+        aStarPath(lineRef, src, tar, start);
 
 #if 0
         for (VertInf *t = vertices.connsBegin(); t != vertices.end();
