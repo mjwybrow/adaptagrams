@@ -75,8 +75,6 @@ class Router {
         double crossing_penalty;
         double cluster_crossing_penalty;
 
-
-        bool UseAStarSearch;
         bool IgnoreRegions;
         bool SelectiveReroute;
         bool IncludeEndpoints;

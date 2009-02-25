@@ -68,7 +68,6 @@ Router::Router()
     , crossing_penalty(200)
     , cluster_crossing_penalty(4000)
     // Algorithm options:
-    , UseAStarSearch(true)
     , IgnoreRegions(true)
     , SelectiveReroute(true)
     , IncludeEndpoints(true)
