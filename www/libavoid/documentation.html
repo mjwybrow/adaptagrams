@@ -75,8 +75,8 @@ connRef-&gt;setCallback(connCallback, connRef);</pre></p>
 
 <p>To generate a new path for a connector you do the following:
 <pre>connRef-&gt;generatePath();
-Avoid::PolyLine route = connRef-&gt;route();
-for (int i = 0; i &lt; route.pn; ++i) 
+const Avoid::PolyLine route = connRef-&gt;route();
+for (int i = 0; i &lt; route.ps.size(); ++i) 
 {
     printf("%f, %f\n", route.ps[i].x, route.ps[i].y);
 }</pre></p>       

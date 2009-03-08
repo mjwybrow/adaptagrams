@@ -3,21 +3,23 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  * Copyright (C) 2004-2007  Michael Wybrow <mjwybrow@users.sourceforge.net>
+ * Copyright (C) 2009  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
+ * See the file LICENSE.LGPL distributed with the library.
+ *
+ * Licensees holding a valid commercial license may use this file in
+ * accordance with the commercial license agreement provided with the 
+ * library.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * 
+ * Author(s):   Michael Wybrow <mjwybrow@users.sourceforge.net>
 */
 
 #include "libavoid.h"
@@ -33,9 +35,9 @@ static void connCallback(void *ptr)
     if (connRef->needsReroute())
     {
         connRef->generatePath();
-        Avoid::PolyLine& route = connRef->route();
+        const Avoid::PolyLine& route = connRef->route();
         printf("New path: ");
-        for (int i = 0; i < route.pn; ++i) 
+        for (int i = 0; i < route.ps.size(); ++i) 
         {
             printf("%s(%f, %f)", (i > 0) ? "-" : "", 
                     route.ps[i].x, route.ps[i].y);
