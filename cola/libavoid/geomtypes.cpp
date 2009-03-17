@@ -4,7 +4,7 @@
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
  * Copyright (C) 2004-2007  Michael Wybrow <mjwybrow@users.sourceforge.net>
- * Copyright (C) 2008  Monash University
+ * Copyright (C) 2008-2009  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -25,10 +25,13 @@
 
 
 #include <cmath>
+#include <cfloat>
 #include <cstdlib>
+
 #include "libavoid/geomtypes.h"
 #include "libavoid/shape.h"
 #include "libavoid/router.h"
+
 
 namespace Avoid
 {
@@ -145,6 +148,41 @@ const Point& ReferencingPolygon::at(int index) const
     assert(poly_index < poly.size());
 
     return poly.ps[poly_index];
+}
+
+
+void PolygonInterface::getBoundingRect(double *minX, double *minY,
+        double *maxX, double *maxY) const
+{
+    double progressiveMinX = DBL_MAX;
+    double progressiveMinY = DBL_MAX;
+    double progressiveMaxX = -DBL_MAX;
+    double progressiveMaxY = -DBL_MAX;
+
+    for (int i = 0; i < size(); ++i)
+    {
+        progressiveMinX = std::min(progressiveMinX, at(i).x);
+        progressiveMinY = std::min(progressiveMinY, at(i).y);
+        progressiveMaxX = std::max(progressiveMaxX, at(i).x);
+        progressiveMaxY = std::max(progressiveMaxY, at(i).y);
+    }
+
+    if (minX)
+    {
+        *minX = progressiveMinX;
+    }
+    if (maxX)
+    {
+        *maxX = progressiveMaxX;
+    }
+    if (minY)
+    {
+        *minY = progressiveMinY;
+    }
+    if (maxY)
+    {
+        *maxY = progressiveMaxY;
+    }
 }
 
 
@@ -338,8 +376,28 @@ static void shorten_line(double& x1, double& y1, double& x2, double& y2,
 //
 Polygon Polygon::curvedPolyline(const double curve_amount) const
 {
-    Polygon curved;
+    Polygon simplified = *this;
+    std::vector<Point>::iterator it = simplified.ps.begin();
+    if (it != simplified.ps.end()) ++it;
 
+    // Combine colinear line segments into single segments:
+    for (int j = 2; j < simplified.size(); )
+    {
+        if (vecDir(simplified.ps[j - 2], simplified.ps[j - 1], 
+                simplified.ps[j]) == 0)
+        {
+            // These three points make up two colinear segments, so just
+            // compine them into a single segment.
+            it = simplified.ps.erase(it);
+        }
+        else
+        {
+            ++j;
+            ++it;
+        }
+    }
+
+    Polygon curved;
     int num_of_points = size();
     if (num_of_points <= 2)
     {
@@ -350,18 +408,19 @@ Polygon Polygon::curvedPolyline(const double curve_amount) const
         return curved;
     }
 
+    // Build the curved polyline:
     curved._id = _id;
     curved.ps.push_back(ps[0]);
     curved.ts.push_back('M');
    
     double last_x = 0;
     double last_y = 0;
-    for (int j = 1; j < size(); ++j)
+    for (int j = 1; j < simplified.size(); ++j)
     {
-        double x1 = ps[j - 1].x;
-        double y1 = ps[j - 1].y;
-        double x2 = ps[j].x;
-        double y2 = ps[j].y;
+        double x1 = simplified.ps[j - 1].x;
+        double y1 = simplified.ps[j - 1].y;
+        double x2 = simplified.ps[j].x;
+        double y2 = simplified.ps[j].y;
 
         double old_x = x1;
         double old_y = y1;

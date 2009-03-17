@@ -4,7 +4,7 @@
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
  * Copyright (C) 2004-2007  Michael Wybrow <mjwybrow@users.sourceforge.net>
- * Copyright (C) 2008  Monash University
+ * Copyright (C) 2008-2009  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -39,22 +39,22 @@ namespace Avoid {
 
     
 ConnRef::ConnRef(Router *router, const unsigned int id)
-    : _router(router)
-    , _id(id)
-    , _type(ConnType_PolyLine)
-    , _srcId(0)
-    , _dstId(0)
-    , _needs_reroute_flag(true)
-    , _false_path(false)
-    , _active(false)
-    , _route_dist(0)
-    , _srcVert(NULL)
-    , _dstVert(NULL)
-    , _startVert(NULL)
-    , _initialised(false)
-    , _callback(NULL)
-    , _connector(NULL)
-    , _hateCrossings(false)
+    : _router(router),
+      _id(id),
+      _type(ConnType_PolyLine),
+      _srcId(0),
+      _dstId(0),
+      _needs_reroute_flag(true),
+      _false_path(false),
+      _active(false),
+      _route_dist(0),
+      _srcVert(NULL),
+      _dstVert(NULL),
+      _startVert(NULL),
+      _initialised(false),
+      _callback(NULL),
+      _connector(NULL),
+      _hateCrossings(false)
 {
     assert(id > 0);
 
@@ -65,21 +65,21 @@ ConnRef::ConnRef(Router *router, const unsigned int id)
 
 ConnRef::ConnRef(Router *router, const unsigned int id,
         const Point& src, const Point& dst)
-    : _router(router)
-    , _id(id)
-    , _type(ConnType_PolyLine)
-    , _srcId(0)
-    , _dstId(0)
-    , _needs_reroute_flag(true)
-    , _false_path(false)
-    , _active(false)
-    , _route_dist(0)
-    , _srcVert(NULL)
-    , _dstVert(NULL)
-    , _initialised(false)
-    , _callback(NULL)
-    , _connector(NULL)
-    , _hateCrossings(false)
+    : _router(router),
+      _id(id),
+      _type(ConnType_PolyLine),
+      _srcId(0),
+      _dstId(0),
+      _needs_reroute_flag(true),
+      _false_path(false),
+      _active(false),
+      _route_dist(0),
+      _srcVert(NULL),
+      _dstVert(NULL),
+      _initialised(false),
+      _callback(NULL),
+      _connector(NULL),
+      _hateCrossings(false)
 {
     assert(id > 0);
 
@@ -120,6 +120,12 @@ ConnRef::~ConnRef()
     {
         makeInactive();
     }
+}
+
+
+const unsigned int ConnRef::type(void) const
+{
+    return _type;
 }
 
 
@@ -282,7 +288,7 @@ bool ConnRef::updateEndPoint(const unsigned int type, const VertID& pointID,
     Point& point = vInf->point;
     if (pointSuggestion)
     {
-        if (dist(point, *pointSuggestion) > 0.5)
+        if (euclideanDist(point, *pointSuggestion) > 0.5)
         {
             return false;
         }
@@ -385,6 +391,9 @@ Polygon& ConnRef::display_route(void)
 
 void ConnRef::calcRouteDist(void)
 {
+    double (*dist)(const Point& a, const Point& b) = 
+            (_type == ConnType_PolyLine) ? euclideanDist : manhattanDist;
+
     _route_dist = 0;
     for (int i = 1; i < _route.size(); ++i)
     {
@@ -511,22 +520,66 @@ Router *ConnRef::router(void)
 
 int ConnRef::generatePath(Point p0, Point p1)
 {
-    if (!_false_path && !_needs_reroute_flag) {
-        // This connector is up to date.
-        return (int) false;
-    }
-
-    if ( !(_router->IncludeEndpoints) )
+    VertInf *origSrc = _srcVert, *origDst = _dstVert;
+    // XXX This is hacky
+    if (_router->OrthogonalRouting)
     {
-        lateSetup(p0, p1);
-        
-        bool knownNew = true;
-        bool genContains = true;
-        vertexVisibility(_srcVert, _dstVert, knownNew, genContains);
-        vertexVisibility(_dstVert, _srcVert, knownNew, genContains);
+        _type = ConnType_Orthogonal;
+        unsigned int srcShapeId = *(_router->contains[_srcVert->id].begin());
+        unsigned int dstShapeId = *(_router->contains[_dstVert->id].begin());
+        //printf("Orig ids %d %d\n", srcShapeId, dstShapeId);
+        VertInf *curr = _router->orthogVertices.connsBegin();
+        while (curr != NULL)
+        {
+            if ((_srcVert->id.vn != 40) && (curr->point.id == srcShapeId) &&
+                    (curr->point.vn == 40))
+            {
+                _srcVert = curr;
+            }
+            if ((_dstVert->id.vn != 40) && (curr->point.id == dstShapeId) &&
+                    (curr->point.vn == 40))
+            {
+                _dstVert = curr;
+            }
+            if ((_srcVert->id.vn == 40) && (_dstVert->id.vn == 40))
+            {
+                break;
+            }
+            curr = curr->lstNext;
+        }
+        //fprintf(stderr, "----- 1 ");
+        //_srcVert->id.print(stderr);
+        //fprintf(stderr, "\n----- 2 ");
+        //_dstVert->id.print(stderr);
+        //fprintf(stderr, "\n");
+    }
+    else
+    {
+        if (!_false_path && !_needs_reroute_flag) {
+            // This connector is up to date.
+            return (int) false;
+        }
+
+        if ( !(_router->IncludeEndpoints) )
+        {
+            lateSetup(p0, p1);
+            
+            bool knownNew = true;
+            bool genContains = true;
+            vertexVisibility(_srcVert, _dstVert, knownNew, genContains);
+            vertexVisibility(_dstVert, _srcVert, knownNew, genContains);
+        }
     }
 
-    return generatePath();
+    int result = generatePath();
+
+    if (_router->OrthogonalRouting)
+    {
+        _srcVert = origSrc;
+        _dstVert = origDst;
+    }
+
+    return result;
 }
 
 
@@ -645,7 +698,7 @@ int ConnRef::generatePath(void)
         printf(": %g, %g\n", _srcVert->point.x, _srcVert->point.y);
         tar->id.print(stdout);
         printf(": %g, %g\n", tar->point.x, tar->point.y);
-        for (int i = 0; i < currRoute.pn; ++i)
+        for (unsigned int i = 0; i < currRoute.ps.size(); ++i)
         {
             printf("%g, %g  ", currRoute.ps[i].x, currRoute.ps[i].y);
         }
@@ -749,7 +802,7 @@ int ConnRef::generatePath(void)
             db_printf("Warning: Path not found...\n");
             pathlen = 2;
             tar->pathNext = _srcVert;
-            if (_router->InvisibilityGrph)
+            if ((_type == ConnType_PolyLine) && _router->InvisibilityGrph)
             {
                 // TODO:  Could we know this edge already?
                 EdgeInf *edge = EdgeInf::existingEdge(_srcVert, tar);
@@ -825,7 +878,7 @@ int ConnRef::generatePath(void)
    
 #ifdef PATHDEBUG
     printf("Output route:\n");
-    for (int i = 0; i < output_route.pn; ++i)
+    for (unsigned int i = 0; i < output_route.ps.size(); ++i)
     {
         printf("[%d,%d] %g, %g   ", output_route.ps[i].id, output_route.ps[i].vn,
                 output_route.ps[i].x, output_route.ps[i].y);

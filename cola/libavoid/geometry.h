@@ -4,7 +4,7 @@
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
  * Copyright (C) 2004-2007  Michael Wybrow <mjwybrow@users.sourceforge.net>
- * Copyright (C) 2008  Monash University
+ * Copyright (C) 2008-2009  Monash University
  *
  * --------------------------------------------------------------------
  * Much of the code in this module is based on code published with
@@ -43,7 +43,8 @@
 namespace Avoid {
 
 
-extern double dist(const Point& a, const Point& b);
+extern double euclideanDist(const Point& a, const Point& b);
+extern double manhattanDist(const Point& a, const Point& b);
 extern double totalLength(const Polygon& poly);
 extern double angle(const Point& a, const Point& b, const Point& c);
 extern bool segmentIntersect(const Point& a, const Point& b,

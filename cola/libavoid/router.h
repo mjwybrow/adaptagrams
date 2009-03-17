@@ -63,8 +63,10 @@ class Router {
         ClusterRefList clusterRefs;
         EdgeList visGraph;
         EdgeList invisGraph;
+        EdgeList visOrthogGraph;
         ContainsMap contains;
         VertInfList vertices;
+        VertInfList orthogVertices;
         ContainsMap enclosingClusters;
         
         bool PartialTime;
@@ -75,14 +77,22 @@ class Router {
         double crossing_penalty;
         double cluster_crossing_penalty;
 
+        // Overall modes:
+        bool PolyLineRouting;
+        bool OrthogonalRouting;
+
+        // Poly-line routing options:
         bool IgnoreRegions;
-        bool SelectiveReroute;
         bool IncludeEndpoints;
         bool UseLeesAlgorithm;
         bool InvisibilityGrph;
+       
+        // General routing options:
+        bool SelectiveReroute;
         bool ConsolidateMoves;
         bool PartialFeedback;
         bool RubberBandRouting;
+        
 
         // Instrumentation:
         Timer timers;

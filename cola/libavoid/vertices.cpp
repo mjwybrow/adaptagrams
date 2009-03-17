@@ -4,7 +4,7 @@
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
  * Copyright (C) 2004-2007  Michael Wybrow <mjwybrow@users.sourceforge.net>
- * Copyright (C) 2008  Monash University
+ * Copyright (C) 2008-2009  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -158,6 +158,7 @@ VertInf::VertInf(Router *router, const VertID& vid, const Point& vpoint)
     , shPrev(NULL)
     , shNext(NULL)
     , visListSize(0)
+    , orthogVisListSize(0)
     , invisListSize(0)
     , pathNext(NULL)
     , pathDist(0)
@@ -190,6 +191,14 @@ void VertInf::removeFromGraph(const bool isConnVert)
     {
         // Remove each visibility edge
         (*edge)->alertConns();
+        delete (*edge);
+    }
+
+    EdgeInfList& orthogVisList = tmp->orthogVisList;
+    finish = orthogVisList.end();
+    while ((edge = orthogVisList.begin()) != finish)
+    {
+        // Remove each orthogonal visibility edge.
         delete (*edge);
     }
 

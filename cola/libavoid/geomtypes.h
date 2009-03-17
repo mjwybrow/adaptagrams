@@ -4,7 +4,7 @@
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
  * Copyright (C) 2004-2007  Michael Wybrow <mjwybrow@users.sourceforge.net>
- * Copyright (C) 2008  Monash University
+ * Copyright (C) 2008-2009  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -67,6 +67,8 @@ class PolygonInterface
         virtual const int size(void) const = 0;
         virtual int id(void) const = 0;
         virtual const Point& at(int index) const = 0;
+        void getBoundingRect(double *minX, double *minY,
+                double *maxX, double *maxY) const;
 };
 
 
