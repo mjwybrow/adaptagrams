@@ -24,6 +24,9 @@
 */
 
 
+//#define ORTHOGONAL_ROUTING
+
+
 #include <cstdlib>
 #include <math.h>
 #include "libavoid/shape.h"
@@ -31,9 +34,9 @@
 #include "libavoid/visibility.h"
 #include "libavoid/connector.h"
 #include "libavoid/debug.h"
-#include "libavoid/region.h"
-
-//#define ORTHOGONAL_ROUTING
+#ifdef ORTHOGONAL_ROUTING
+#include "libavoid/orthogonal.h"
+#endif
 
 namespace Avoid {
 
@@ -60,24 +63,33 @@ class MoveInfo {
 
 
 Router::Router()
-    : PartialTime(false)
-    , SimpleRouting(false)
-    , ClusteredRouting(true)
-    , segmt_penalty(0)
-    , angle_penalty(0)
-    , crossing_penalty(200)
-    , cluster_crossing_penalty(4000)
-    // Algorithm options:
-    , IgnoreRegions(true)
-    , SelectiveReroute(true)
-    , IncludeEndpoints(true)
-    , UseLeesAlgorithm(false)
-    , InvisibilityGrph(true)
-    , ConsolidateMoves(true)
-    , PartialFeedback(false)
-    , RubberBandRouting(false)
-    // Instrumentation:
-    , st_checked_edges(0)
+    : visOrthogGraph(true),
+      PartialTime(false),
+      SimpleRouting(false),
+      ClusteredRouting(true),
+      segmt_penalty(0),
+      angle_penalty(0),
+      crossing_penalty(200),
+      cluster_crossing_penalty(4000),
+      // Mode options:
+      PolyLineRouting(true),
+#ifdef ORTHOGONAL_ROUTING
+      OrthogonalRouting(true),
+#else
+      OrthogonalRouting(false),
+#endif
+      // Poly-line algorithm options:
+      IgnoreRegions(true),
+      IncludeEndpoints(true),
+      UseLeesAlgorithm(false),
+      InvisibilityGrph(true),
+      // General algorithm options:
+      SelectiveReroute(true),
+      ConsolidateMoves(true),
+      PartialFeedback(false),
+      RubberBandRouting(false),
+      // Instrumentation:
+      st_checked_edges(0)
 #ifdef LINEDEBUG
     , avoid_screen(NULL)
 #endif
@@ -98,10 +110,6 @@ void Router::addShape(ShapeRef *shape)
     // o  Check all visibility edges to see if this one shape
     //    blocks them.
     newBlockingShape(&poly, pid);
-
-#ifdef ORTHOGONAL_ROUTING
-    Region::addShape(shape);
-#endif
 
     // o  Calculate visibility for the new vertices.
     if (UseLeesAlgorithm)
@@ -143,10 +151,6 @@ void Router::delShape(ShapeRef *shape)
 
     adjustContainsWithDel(pid);
     
-#ifdef ORTHOGONAL_ROUTING
-    Region::removeShape(shape);
-#endif
-
     delete shape;
     
     // o  Check all edges that were blocked by this shape.
@@ -203,12 +207,27 @@ void Router::moveShape(ShapeRef *shape, const Polygon& newPoly,
 
 void Router::processMoves(void)
 {
+#ifdef ORTHOGONAL_ROUTING
+    if (OrthogonalRouting && (visOrthogGraph.size() == 0))
+    {
+        generateStaticOrthogonalVisGraph(this);
+    }
+#endif
+
     // If SimpleRouting, then don't update yet.
     if (moveList.empty() || SimpleRouting)
     {
         return;
     }
 
+#ifdef ORTHOGONAL_ROUTING
+    if (OrthogonalRouting)
+    {
+        visOrthogGraph.clear();
+        generateStaticOrthogonalVisGraph(this);
+    }
+#endif
+    
     MoveInfoList::const_iterator curr;
     MoveInfoList::const_iterator finish = moveList.end();
     for (curr = moveList.begin(); curr != finish; ++curr)
@@ -231,10 +250,6 @@ void Router::processMoves(void)
 
         adjustContainsWithDel(pid);
         
-#ifdef ORTHOGONAL_ROUTING
-        Region::removeShape(shape);
-#endif
-
         shape->setNewPoly(*newPoly);
 
         adjustContainsWithAdd(*newPoly, pid);
@@ -276,10 +291,6 @@ void Router::processMoves(void)
 
         // Restore this shape for visibility.
         shape->makeActive();
-
-#ifdef ORTHOGONAL_ROUTING
-        Region::addShape(shape);
-#endif
 
         // o  Check all visibility edges to see if this one shape
         //    blocks them.
@@ -779,8 +790,8 @@ void Router::markConnectors(ShapeRef *shape)
             }
             //printf("(%.1f, %.1f)\n", xp.x, xp.y);
 
-            e1 = dist(start, xp);
-            e2 = dist(xp, end);
+            e1 = euclideanDist(start, xp);
+            e2 = euclideanDist(xp, end);
             estdist = e1 + e2;
 
 

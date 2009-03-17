@@ -4,7 +4,7 @@
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
  * Copyright (C) 2004-2007  Michael Wybrow <mjwybrow@users.sourceforge.net>
- * Copyright (C) 2008  Monash University
+ * Copyright (C) 2008-2009  Monash University
  *
  * --------------------------------------------------------------------
  * The Visibility Sweep technique is based upon the method described
@@ -169,7 +169,7 @@ class PointPair
             double y = vInf->point.y - centerPoint.y;
 
             angle = pos_to_angle(x, y);
-            distance = dist(centerPoint, vInf->point);
+            distance = euclideanDist(centerPoint, vInf->point);
         }
         bool operator<(const PointPair& rhs) const
         {
@@ -232,7 +232,7 @@ class EdgePair
                 vInf1(p1.vInf), 
                 vInf2(v),
                 dist1(p1.distance),
-                dist2(dist(vInf2->point, centerPoint)),
+                dist2(euclideanDist(vInf2->point, centerPoint)),
                 angle(p1.angle),
                 angleDist(p1.distance)
         {
@@ -299,7 +299,7 @@ class EdgePair
                 }
                 else
                 {
-                    angleDist = dist(pp, centerPoint);
+                    angleDist = euclideanDist(pp, centerPoint);
                 }
             }
 

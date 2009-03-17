@@ -4,7 +4,7 @@
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
  * Copyright (C) 2004-2007  Michael Wybrow <mjwybrow@users.sourceforge.net>
- * Copyright (C) 2008  Monash University
+ * Copyright (C) 2008-2009  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -83,6 +83,8 @@ class VertInf
         VertInf *shNext;
         EdgeInfList visList;
         unsigned int visListSize;
+        EdgeInfList orthogVisList;
+        unsigned int orthogVisListSize;
         EdgeInfList invisList;
         unsigned int invisListSize;
         VertInf *pathNext;

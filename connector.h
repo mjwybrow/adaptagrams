@@ -4,7 +4,7 @@
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
  * Copyright (C) 2004-2007  Michael Wybrow <mjwybrow@users.sourceforge.net>
- * Copyright (C) 2008  Monash University
+ * Copyright (C) 2008-2009  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -37,8 +37,8 @@
 namespace Avoid {
 
 
-static const int ConnType_PolyLine   = 1;
-static const int ConnType_Orthogonal = 2;
+static const unsigned int ConnType_PolyLine   = 1;
+static const unsigned int ConnType_Orthogonal = 2;
 
 static const double ATTACH_POS_TOP = 0;
 static const double ATTACH_POS_CENTER = 0.5;
@@ -54,6 +54,7 @@ class ConnRef
                 const Point& src, const Point& dst);
         ~ConnRef();
         
+        const unsigned int type(void) const;
         void setType(unsigned int type);
         const PolyLine& route(void);
         void set_route(const PolyLine& route);
@@ -101,6 +102,7 @@ class ConnRef
         unsigned int _id;
         unsigned int _type;
         unsigned int _srcId, _dstId;
+        bool _orthogonal;
         bool _needs_reroute_flag;
         bool _false_path;
         bool _active;

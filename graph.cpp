@@ -4,7 +4,7 @@
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
  * Copyright (C) 2004-2007  Michael Wybrow <mjwybrow@users.sourceforge.net>
- * Copyright (C) 2008  Monash University
+ * Copyright (C) 2008-2009  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -39,16 +39,17 @@ using std::pair;
 namespace Avoid {
 
 
-EdgeInf::EdgeInf(VertInf *v1, VertInf *v2)
-    : lstPrev(NULL)
-    , lstNext(NULL)
-    , _blocker(0)
-    , _router(NULL)
-    , _added(false)
-    , _visible(false)
-    , _v1(v1)
-    , _v2(v2)
-    , _dist(-1)
+EdgeInf::EdgeInf(VertInf *v1, VertInf *v2, const bool orthogonal)
+    : lstPrev(NULL),
+      lstNext(NULL),
+      _blocker(0),
+      _router(NULL),
+      _added(false),
+      _visible(false),
+      _orthogonal(orthogonal),
+      _v1(v1),
+      _v2(v2),
+      _dist(-1)
 {
     // Not passed NULL values.
     assert(v1 && v2);
@@ -74,21 +75,33 @@ void EdgeInf::makeActive(void)
 {
     assert(_added == false);
 
-    if (_visible)
+    if (_orthogonal)
     {
-        _router->visGraph.addEdge(this);
-        _pos1 = _v1->visList.insert(_v1->visList.begin(), this);
-        _v1->visListSize++;
-        _pos2 = _v2->visList.insert(_v2->visList.begin(), this);
-        _v2->visListSize++;
+        assert(_visible);
+        _router->visOrthogGraph.addEdge(this);
+        _pos1 = _v1->orthogVisList.insert(_v1->orthogVisList.begin(), this);
+        _v1->orthogVisListSize++;
+        _pos2 = _v2->orthogVisList.insert(_v2->orthogVisList.begin(), this);
+        _v2->orthogVisListSize++;
     }
-    else // if (invisible)
+    else
     {
-        _router->invisGraph.addEdge(this);
-        _pos1 = _v1->invisList.insert(_v1->invisList.begin(), this);
-        _v1->invisListSize++;
-        _pos2 = _v2->invisList.insert(_v2->invisList.begin(), this);
-        _v2->invisListSize++;
+        if (_visible)
+        {
+            _router->visGraph.addEdge(this);
+            _pos1 = _v1->visList.insert(_v1->visList.begin(), this);
+            _v1->visListSize++;
+            _pos2 = _v2->visList.insert(_v2->visList.begin(), this);
+            _v2->visListSize++;
+        }
+        else // if (invisible)
+        {
+            _router->invisGraph.addEdge(this);
+            _pos1 = _v1->invisList.insert(_v1->invisList.begin(), this);
+            _v1->invisListSize++;
+            _pos2 = _v2->invisList.insert(_v2->invisList.begin(), this);
+            _v2->invisListSize++;
+        }
     }
     _added = true;
 }
@@ -98,21 +111,33 @@ void EdgeInf::makeInactive(void)
 {
     assert(_added == true);
 
-    if (_visible)
+    if (_orthogonal)
     {
-        _router->visGraph.removeEdge(this);
-        _v1->visList.erase(_pos1);
-        _v1->visListSize--;
-        _v2->visList.erase(_pos2);
-        _v2->visListSize--;
+        assert(_visible);
+        _router->visOrthogGraph.removeEdge(this);
+        _v1->orthogVisList.erase(_pos1);
+        _v1->orthogVisListSize--;
+        _v2->orthogVisList.erase(_pos2);
+        _v2->orthogVisListSize--;
     }
-    else // if (invisible)
+    else
     {
-        _router->invisGraph.removeEdge(this);
-        _v1->invisList.erase(_pos1);
-        _v1->invisListSize--;
-        _v2->invisList.erase(_pos2);
-        _v2->invisListSize--;
+        if (_visible)
+        {
+            _router->visGraph.removeEdge(this);
+            _v1->visList.erase(_pos1);
+            _v1->visListSize--;
+            _v2->visList.erase(_pos2);
+            _v2->visListSize--;
+        }
+        else // if (invisible)
+        {
+            _router->invisGraph.removeEdge(this);
+            _v1->invisList.erase(_pos1);
+            _v1->invisListSize--;
+            _v2->invisList.erase(_pos2);
+            _v2->invisListSize--;
+        }
     }
     _blocker = 0;
     _conns.clear();
@@ -127,6 +152,7 @@ void EdgeInf::setDist(double dist)
     if (_added && !_visible)
     {
         makeInactive();
+        assert(!_added);
     }
     if (!_added)
     {
@@ -175,6 +201,7 @@ void EdgeInf::addBlocker(int b)
     if (_added && _visible)
     {
         makeInactive();
+        assert(!_added);
     }
     if (!_added)
     {
@@ -289,7 +316,7 @@ void EdgeInf::checkVis(void)
         db_printf("\tSetting visibility edge... \n\t\t");
         db_print();
 
-        double d = dist(iPoint, jPoint);
+        double d = euclideanDist(iPoint, jPoint);
 
         setDist(d);
 
@@ -380,6 +407,14 @@ bool EdgeInf::isBetween(VertInf *i, VertInf *j)
 }
 
 
+    // Returns true if this edge is a vertical or horizontal line segment.
+bool EdgeInf::isOrthogonal(void) const
+{
+    return ((_v1->point.x == _v2->point.x) || 
+            (_v1->point.y == _v2->point.y));
+}
+
+
 VertInf *EdgeInf::otherVert(VertInf *vert)
 {
     assert((vert == _v1) || (vert == _v2));
@@ -421,19 +456,14 @@ EdgeInf *EdgeInf::checkEdgeVisibility(VertInf *i, VertInf *j, bool knownNew)
 }
 
 
+    // XXX: This function is ineffecient, and shouldn't even really be
+    //      required.
 EdgeInf *EdgeInf::existingEdge(VertInf *i, VertInf *j)
 {
     VertInf *selected = NULL;
 
-    if (i->visListSize <= j->visListSize)
-    {
-        selected = i;
-    }
-    else
-    {
-        selected = j;
-    }
-
+    // Look through poly-line visibility edges.
+    selected = (i->visListSize <= j->visListSize) ? i : j;
     EdgeInfList& visList = selected->visList;
     EdgeInfList::const_iterator finish = visList.end();
     for (EdgeInfList::const_iterator edge = visList.begin(); edge != finish;
@@ -445,15 +475,21 @@ EdgeInf *EdgeInf::existingEdge(VertInf *i, VertInf *j)
         }
     }
 
-    if (i->invisListSize <= j->invisListSize)
+    // Look through orthogonal visbility edges.
+    selected = (i->orthogVisListSize <= j->orthogVisListSize) ? i : j;
+    EdgeInfList& orthogVisList = selected->orthogVisList;
+    finish = orthogVisList.end();
+    for (EdgeInfList::const_iterator edge = orthogVisList.begin(); 
+            edge != finish; ++edge)
     {
-        selected = i;
-    }
-    else
-    {
-        selected = j;
+        if ((*edge)->isBetween(i, j))
+        {
+            return (*edge);
+        }
     }
 
+    // Look through poly-line invisbility edges.
+    selected = (i->invisListSize <= j->invisListSize) ? i : j;
     EdgeInfList& invisList = selected->invisList;
     finish = invisList.end();
     for (EdgeInfList::const_iterator edge = invisList.begin(); edge != finish;
@@ -472,16 +508,42 @@ EdgeInf *EdgeInf::existingEdge(VertInf *i, VertInf *j)
 //===========================================================================
 
 
-EdgeList::EdgeList()
-    : _firstEdge(NULL)
-    , _lastEdge(NULL)
-    , _count(0)
+EdgeList::EdgeList(bool orthogonal)
+    : _orthogonal(orthogonal),
+      _firstEdge(NULL),
+      _lastEdge(NULL),
+      _count(0)
 {
+}
+
+
+EdgeList::~EdgeList()
+{
+    clear();
+}
+
+
+void EdgeList::clear(void)
+{
+    while (_firstEdge)
+    {
+        delete _firstEdge;
+    }
+    assert(_count == 0);
+    _lastEdge = NULL;
+}
+
+
+int EdgeList::size(void) const
+{
+    return _count;
 }
 
 
 void EdgeList::addEdge(EdgeInf *edge)
 {
+    assert(!_orthogonal || edge->isOrthogonal());
+    
     if (_firstEdge == NULL)
     {
         assert(_lastEdge == NULL);

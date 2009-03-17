@@ -238,6 +238,9 @@ bool operator<(const ANode &a, const ANode &b)
 static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar, 
         VertInf *start)
 {
+    double (*dist)(const Point& a, const Point& b) = 
+        (lineRef->type() == ConnType_PolyLine) ? euclideanDist : manhattanDist;
+
     std::vector<ANode> PENDING;     // STL Vectors chosen because of rapid
     std::vector<ANode> DONE;        // insertions/deletions at back,
     ANode Node, BestNode;           // Temporary Node and BestNode
@@ -351,10 +354,10 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
 
 #if 0
         printf("Considering... ");
-        BestNode.ID->print(stdout);
+        BestNode.inf->id.print(stdout);
         printf(" - g: %3.1f h: %3.1f f: %3.1f back: ", BestNode.g, BestNode.h,
                 BestNode.f);
-        BestNode.pp.print(stdout);
+        //BestNode.pp->id.print(stdout);
         printf("\n");
 #endif
 
@@ -369,7 +372,8 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
         }
 
         // Check adjacent points in graph
-        EdgeInfList& visList = BestNode.inf->visList;
+        EdgeInfList& visList = (lineRef->type() == ConnType_PolyLine) ?
+                BestNode.inf->visList : BestNode.inf->orthogVisList;
         EdgeInfList::const_iterator finish = visList.end();
         for (EdgeInfList::const_iterator edge = visList.begin(); edge != finish;
                 ++edge)
@@ -391,7 +395,8 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
 
             VertInf *prevInf = BestNode.inf->pathNext;
 
-            if ((!router->RubberBandRouting || (start == src)) && 
+            if (!router->OrthogonalRouting &&
+                  (!router->RubberBandRouting || (start == src)) && 
                   (validateBendPoint(prevInf, BestNode.inf, Node.inf) == false))
             {
                 // The bendpoint is not valid, i.e., is a zigzag corner, so...
@@ -504,7 +509,8 @@ void makePath(ConnRef *lineRef, bool *flag)
     
     // TODO: Could be more efficient here.
     EdgeInf *directEdge = EdgeInf::existingEdge(src, tar);
-    if ((start == src) && !(router->IncludeEndpoints) && directVis(src, tar))
+    if ((start == src) && !(router->IncludeEndpoints) && 
+            !(router->OrthogonalRouting) && directVis(src, tar))
     {
         Point p = src->point;
         Point q = tar->point;
@@ -513,13 +519,14 @@ void makePath(ConnRef *lineRef, bool *flag)
 
         directEdge = new EdgeInf(src, tar);
         tar->pathNext = src;
-        directEdge->setDist(dist(p, q));
+        directEdge->setDist(euclideanDist(p, q));
         directEdge->addConn(flag);
 
         return;
     }
     else if ((start == src) && router->IncludeEndpoints && directEdge &&
-            (directEdge->getDist() > 0) && !examineDirectPath)
+            !(router->OrthogonalRouting) && (directEdge->getDist() > 0) && 
+            !examineDirectPath)
     {
         tar->pathNext = src;
         directEdge->addConn(flag);

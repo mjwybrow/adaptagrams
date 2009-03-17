@@ -4,7 +4,7 @@
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
  * Copyright (C) 2004-2007  Michael Wybrow <mjwybrow@users.sourceforge.net>
- * Copyright (C) 2008  Monash University
+ * Copyright (C) 2008-2009  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -47,7 +47,7 @@ typedef std::list<bool *> FlagList;
 class EdgeInf
 {
     public:
-        EdgeInf(VertInf *v1, VertInf *v2);
+        EdgeInf(VertInf *v1, VertInf *v2, const bool orthogonal = false);
         ~EdgeInf();
         inline double getDist(void)
         {
@@ -59,6 +59,7 @@ class EdgeInf
         void addCycleBlocker(void);
         void addBlocker(int b);
         bool added(void);
+        bool isOrthogonal(void) const;
 
         std::pair<VertID, VertID> ids(void);
         std::pair<Point, Point> points(void);
@@ -76,6 +77,7 @@ class EdgeInf
         Router *_router;
         bool _added;
         bool _visible;
+        bool _orthogonal;
         VertInf *_v1;
         VertInf *_v2;
         EdgeInfList::iterator _pos1;
@@ -93,12 +95,17 @@ class EdgeInf
 class EdgeList
 {
     public:
-        EdgeList();
-        void addEdge(EdgeInf *edge);
-        void removeEdge(EdgeInf *edge);
+        friend class EdgeInf;
+        EdgeList(bool orthogonal = false);
+        ~EdgeList();
+        void clear(void);
         EdgeInf *begin(void);
         EdgeInf *end(void);
+        int size(void) const;
     private:
+        void addEdge(EdgeInf *edge);
+        void removeEdge(EdgeInf *edge);
+        bool _orthogonal;
         EdgeInf *_firstEdge;
         EdgeInf *_lastEdge;
         unsigned int _count;

@@ -4,7 +4,7 @@
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
  * Copyright (C) 2004-2007  Michael Wybrow <mjwybrow@users.sourceforge.net>
- * Copyright (C) 2008  Monash University
+ * Copyright (C) 2008-2009  Monash University
  *
  * --------------------------------------------------------------------
  * Much of the code in this module is based on code published with
@@ -240,7 +240,25 @@ int cornerSide(const Point &c1, const Point &c2, const Point &c3,
 }
 
 
-// Returns the distance between points a and b.
+// Returns the Euclidean distance between points a and b.
+//
+double euclideanDist(const Point& a, const Point& b)
+{
+    double xdiff = a.x - b.x;
+    double ydiff = a.y - b.y;
+
+    return sqrt((xdiff * xdiff) + (ydiff * ydiff));
+}
+
+// Returns the Manhattan distance between points a and b.
+//
+double manhattanDist(const Point& a, const Point& b)
+{
+    return fabs(a.x - b.x) + fabs(a.y - b.y);
+}
+
+
+// Returns the Euclidean distance between points a and b.
 //
 double dist(const Point& a, const Point& b)
 {

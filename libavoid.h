@@ -4,7 +4,7 @@
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
  * Copyright (C) 2004-2007  Michael Wybrow <mjwybrow@users.sourceforge.net>
- * Copyright (C) 2008  Monash University
+ * Copyright (C) 2008-2009  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -36,7 +36,6 @@
 #include "libavoid/vertices.h"
 #include "libavoid/visibility.h"
 #include "libavoid/static.h"
-#include "libavoid/region.h"
 #include "libavoid/router.h"
 
 #endif
