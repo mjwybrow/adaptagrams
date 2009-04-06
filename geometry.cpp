@@ -3,8 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2007  Michael Wybrow <mjwybrow@users.sourceforge.net>
- * Copyright (C) 2008-2009  Monash University
+ * Copyright (C) 2004-2009  Monash University
  *
  * --------------------------------------------------------------------
  * Much of the code in this module is based on code published with
@@ -44,7 +43,7 @@ namespace Avoid {
 
 
 // Returns true iff the point c lies on the closed segment ab.
-// To be used when the points are known to be colinear.
+// To be used when the points are known to be collinear.
 //
 // Based on the code of 'Between'.
 //
@@ -235,7 +234,7 @@ int cornerSide(const Point &c1, const Point &c2, const Point &c3,
         return 1;
     }
 
-    // c1-c2-c3 are colinear, so just return vecDir from c1-c2
+    // c1-c2-c3 are collinear, so just return vecDir from c1-c2
     return s12p;
 }
 

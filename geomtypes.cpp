@@ -3,8 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2007  Michael Wybrow <mjwybrow@users.sourceforge.net>
- * Copyright (C) 2008-2009  Monash University
+ * Copyright (C) 2004-2009  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -39,7 +38,7 @@ namespace Avoid
     
 Point::Point() :
     id(0),
-    vn(8)
+    vn(kUnassignedVertexNumber)
 {
 }
 
@@ -48,7 +47,7 @@ Point::Point(const double xv, const double yv) :
     x(xv),
     y(yv),
     id(0),
-    vn(8)
+    vn(kUnassignedVertexNumber)
 {
 }
 
@@ -98,7 +97,7 @@ ReferencingPolygon::ReferencingPolygon(const Polygon& poly, const Router *router
         {
             if ((*sh)->id() == poly.ps[i].id)
             {
-                const Polygon& poly = (*sh)->poly();
+                const Polygon& poly = (*sh)->polygon();
                 polyPtr = &poly;
                 break;
             }
@@ -362,6 +361,16 @@ static void shorten_line(double& x1, double& y1, double& x2, double& y2,
 }
 
 
+void Polygon::translate(const double xDist, const double yDist)
+{
+    for (int i = 0; i < size(); ++i)
+    {
+        ps[i].x += xDist;
+        ps[i].y += yDist;
+    }
+}
+
+
 #define mid(a, b) ((a < b) ? a + ((b - a) / 2) : b + ((a - b) / 2))
 
 
@@ -380,13 +389,13 @@ Polygon Polygon::curvedPolyline(const double curve_amount) const
     std::vector<Point>::iterator it = simplified.ps.begin();
     if (it != simplified.ps.end()) ++it;
 
-    // Combine colinear line segments into single segments:
+    // Combine collinear line segments into single segments:
     for (int j = 2; j < simplified.size(); )
     {
         if (vecDir(simplified.ps[j - 2], simplified.ps[j - 1], 
                 simplified.ps[j]) == 0)
         {
-            // These three points make up two colinear segments, so just
+            // These three points make up two collinear segments, so just
             // compine them into a single segment.
             it = simplified.ps.erase(it);
         }
@@ -451,6 +460,38 @@ Polygon Polygon::curvedPolyline(const double curve_amount) const
     }
     
     return curved;
+}
+
+
+Rectangle::Rectangle(const Point& topLeft, const Point bottomRight) :
+    Polygon(4)
+{
+    double xMin = std::min(topLeft.x, bottomRight.x);
+    double xMax = std::max(topLeft.x, bottomRight.x);
+    double yMin = std::min(topLeft.y, bottomRight.y);
+    double yMax = std::max(topLeft.y, bottomRight.y);
+
+    ps[0] = Point(xMax, yMin);
+    ps[1] = Point(xMax, yMax);
+    ps[2] = Point(xMin, yMax);
+    ps[3] = Point(xMin, yMin);
+}
+
+
+Rectangle::Rectangle(const Point& centre, const double width, 
+        const double height)
+{
+    double halfWidth  = width / 2.0;
+    double halfHeight = height / 2.0;
+    double xMin = centre.x - halfWidth;
+    double xMax = centre.x + halfWidth;
+    double yMin = centre.y - halfHeight;
+    double yMax = centre.y + halfHeight;
+
+    ps[0] = Point(xMax, yMin);
+    ps[1] = Point(xMax, yMax);
+    ps[2] = Point(xMin, yMax);
+    ps[3] = Point(xMin, yMin);
 }
 
 

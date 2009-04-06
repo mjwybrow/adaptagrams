@@ -3,8 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2007  Michael Wybrow <mjwybrow@users.sourceforge.net>
- * Copyright (C) 2008-2009  Monash University
+ * Copyright (C) 2004-2009  Monash University
  *
  * --------------------------------------------------------------------
  * The Visibility Sweep technique is based upon the method described
@@ -176,7 +175,7 @@ class PointPair
             // Firstly order by angle.
             if (angle == rhs.angle)
             {
-                // If the points are colinear, then order them in increasing
+                // If the points are collinear, then order them in increasing
                 // distance from the point we are sweeping around.
                 if (distance == rhs.distance)
                 {

@@ -3,8 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2007  Michael Wybrow <mjwybrow@users.sourceforge.net>
- * Copyright (C) 2008  Monash University
+ * Copyright (C) 2004-2008  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -23,6 +22,9 @@
  * Author(s):   Michael Wybrow <mjwybrow@users.sourceforge.net>
 */
 
+//! @file    shape.h
+//! @brief   Contains the interface for the ShapeRef class.
+
 
 #ifndef AVOID_SHAPE_H
 #define AVOID_SHAPE_H
@@ -39,17 +41,57 @@ class ShapeRef;
 typedef std::list<ShapeRef *> ShapeRefList;
 
 
+//! @brief   The ShapeRef class represents a shape object.
+//!
+//! Shapes are obstacles that connectors must be routed around.  They can be 
+//! placed into a Router scene and can be repositioned or resized (via
+//! Router::moveShape()).
+//! 
+//! Usually, it is expected that you would create a ShapeRef for each shape 
+//! in your diagram and keep that reference in your own shape class.
+//!
 class ShapeRef
 {
     public:
-        ShapeRef(Router *router, unsigned int id, Polygon& poly);
+        //! @brief  Shape reference constructor.
+        //!
+        //! Creates a shape obect reference, but does not yet place it into the
+        //! Router scene.
+        //!
+        //! The poly argument will usually be the boundary of the shape in your 
+        //! application with additional buffer of several pixels on each side.
+        //! Specifying such a buffer results in connectors leaving a small 
+        //! amount of space around shapes, rather than touching them on the 
+        //! corners or edges.
+        //!
+        //! If an ID is not specified, then one will be assigned to the shape.
+        //! If assigning an ID yourself, note that it should be a unique 
+        //! positive integer.  Also, IDs are given to all objects in a scene,
+        //! so the same ID cannot be given to a shape and a connector for 
+        //! example.
+        //!
+        //! @param[in]  router  The router scene to place the shape into.
+        //! @param[in]  poly    A Polygon representing the boundary of the 
+        //!                     shape.
+        //! @param[in]  id      A unique positive integer ID for the shape.  
+        ShapeRef(Router *router, Polygon& poly, const unsigned int id = 0);
+        //! @brief  Shape reference destructor.
+        //!
         ~ShapeRef();
+        
+        //! @brief   Returns the ID of this shape.
+        //! @returns The ID of the shape. 
+        unsigned int id(void) const;
+        //! @brief   Returns a reference to the polygon boundary of this shape.
+        //! @returns A reference to the polygon boundary of the shape.
+        const Polygon& polygon(void) const;
+        //! @brief   Returns a pointer to the router scene this shape is in.
+        //! @returns A pointer to the router scene for this shape.
+        Router *router(void) const;
+        
         void setNewPoly(Polygon& poly);
         VertInf *firstVert(void);
         VertInf *lastVert(void);
-        unsigned int id(void);
-        const Polygon& poly(void);
-        Router *router(void);
         void boundingBox(BBox& bbox);
 
         void makeActive(void);

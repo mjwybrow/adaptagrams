@@ -3,8 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2007  Michael Wybrow <mjwybrow@users.sourceforge.net>
- * Copyright (C) 2008-2009  Monash University
+ * Copyright (C) 2004-2009  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -111,18 +110,22 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf1,
 
             double rad = M_PI - angleBetween(p1, p2, p3);
 
-            // Make `xval' between 0--10 then take its log so small
-            // angles are not penalised as much as large ones.
-            //
-            double xval = rad * 10 / M_PI;
-            double yval = xval * log10(xval + 1) / 10.5;
-            result += (angle_penalty * yval);
-            //printf("deg from straight: %g\tpenalty: %g\n",
-            //        rad * 180 / M_PI, (angle_penalty * yval));
-
-            // Don't penalise as an extra segment if there is no turn.
-            if (rad > 0.0005)
+            if ((rad > 0) && (rad < M_PI))
             {
+                // Make `xval' between 0--10 then take its log so small
+                // angles are not penalised as much as large ones.
+                //
+                double xval = rad * 10 / M_PI;
+                double yval = xval * log10(xval + 1) / 10.5;
+                result += (angle_penalty * yval);
+                //printf("deg from straight: %g\tpenalty: %g\n",
+                //        rad * 180 / M_PI, (angle_penalty * yval));
+            }
+
+            if ((rad > 0) && (rad < M_PI))
+            {
+                // Only penalise as an extra segment if the two 
+                // segments are not collinear.
                 result += segmt_penalty;
             }
         }
@@ -138,7 +141,7 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf1,
         for (ClusterRefList::const_iterator cl = router->clusterRefs.begin(); 
                 cl != router->clusterRefs.end(); ++cl)
         {
-            ReferencingPolygon& cBoundary = (*cl)->poly();
+            ReferencingPolygon& cBoundary = (*cl)->polygon();
             assert(cBoundary.ps[0] != cBoundary.ps[cBoundary.size() - 1]);
             for (int j = 0; j < cBoundary.size(); ++j)
             {
@@ -223,7 +226,35 @@ class ANode
 // get better complexity -- logarithmic pushs and pops to the heap.
 bool operator<(const ANode &a, const ANode &b)
 {
+    if (a.f == b.f)
+    {
+        if (a.g == b.g)
+        {
+            return a.inf > b.inf;
+        }
+        // Tiebreaker, use less costly existing path.
+        return a.g > b.g;
+    }
     return a.f > b.f;
+}
+
+
+static double estimatedCost(ConnRef *lineRef, const Point& a, const Point& b)
+{
+    if (lineRef->type() == ConnType_PolyLine)
+    {
+        return euclideanDist(a, b);
+    }
+    else // Orthogonal
+    {
+        // XXX: This currently just takes into account the compulsory
+        //      bend but will have to by updated when port direction 
+        //      information is available.
+        double bend_penalty = ((a.x != b.x) || (a.y != b.y)) ?
+                lineRef->router()->segmt_penalty : 0;
+
+        return manhattanDist(a, b) + bend_penalty;
+    }
 }
 
 
@@ -275,7 +306,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
             if (!last)
             {
                 Node.g = 0;
-                Node.h = dist(Node.inf->point, tar->point);
+                Node.h = estimatedCost(lineRef, Node.inf->point, tar->point);
                 Node.f = Node.g + Node.h;
                 Node.pp = NULL;
             }
@@ -289,7 +320,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
                         BestNode.inf, Node.inf);
 
                 // Calculate the Heuristic.
-                Node.h = dist(Node.inf->point, tar->point);
+                Node.h = estimatedCost(lineRef, Node.inf->point, tar->point);
 
                 // The A* formula
                 Node.f = Node.g + Node.h;
@@ -318,7 +349,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
         // Create the start node
         Node = ANode(src);
         Node.g = 0;
-        Node.h = dist(Node.inf->point, tar->point);
+        Node.h = estimatedCost(lineRef, Node.inf->point, tar->point);
         Node.f = Node.g + Node.h;
         // Set a null parent, so cost function knows this is the first segment.
         Node.pp = NULL;
@@ -410,7 +441,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
                     BestNode.inf, Node.inf);
 
             // Calculate the Heuristic.
-            Node.h = dist(Node.inf->point, tar->point);
+            Node.h = estimatedCost(lineRef, Node.inf->point, tar->point);
 
             // The A* formula
             Node.f = Node.g + Node.h;

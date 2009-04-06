@@ -3,8 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2007  Michael Wybrow <mjwybrow@users.sourceforge.net>
- * Copyright (C) 2008-2009  Monash University
+ * Copyright (C) 2004-2009  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -23,15 +22,19 @@
  * Author(s):   Michael Wybrow <mjwybrow@users.sourceforge.net>
 */
 
+//! @file    shape.h
+//! @brief   Contains the interface for the ConnRef class.
+
 
 #ifndef AVOID_CONNECTOR_H
 #define AVOID_CONNECTOR_H
 
+#include <list>
+#include <vector>
+
 #include "libavoid/router.h"
 #include "libavoid/geometry.h"
 #include "libavoid/shape.h"
-#include <list>
-#include <vector>
 
 
 namespace Avoid {
@@ -46,20 +49,115 @@ static const double ATTACH_POS_BOTTOM = 1;
 static const double ATTACH_POS_LEFT = ATTACH_POS_TOP;
 static const double ATTACH_POS_RIGHT = ATTACH_POS_BOTTOM;
 
+
+//! @brief   The ConnRef class represents a connector object.
+//!
+//! Connectors are a (possible multi-segment) line between two points.
+//! They are routed intelligently so as not to overlap any of the shape
+//! objects in the Router scene.
+//! 
+//! Routing penalties can be applied, resulting in more aesthetically pleasing
+//! connector paths with fewer segments or less severe bend-points.
+//!
+//! You can set a function to be called when the connector needs to be 
+//! rerouted and redrawn.  Alternatively, you can query the connector's
+//! needsReroute() function to determine this manually.
+//!
+//! Usually, it is expected that you would create a ConnRef for each connector 
+//! in your diagram and keep that reference in your own connector class.
+//!
 class ConnRef
 {
     public:
-        ConnRef(Router *router, const unsigned int id);
-        ConnRef(Router *router, const unsigned int id,
-                const Point& src, const Point& dst);
+        //! @brief Constructs a connector with no endpoints specified.
+        //!
+        //! @param[in]  router  The router scene to place the connector into.
+        //! @param[in]  id      A unique positive integer ID for the connector.  
+        //!
+        //! If an ID is not specified, then one will be assigned to the shape.
+        //! If assigning an ID yourself, note that it should be a unique 
+        //! positive integer.  Also, IDs are given to all objects in a scene,
+        //! so the same ID cannot be given to a shape and a connector for 
+        //! example.
+        //!
+        ConnRef(Router *router, const unsigned int id = 0);
+        //! @brief Constructs a connector with endpoints specified.
+        //!
+        //! @param[in]  router  The router scene to place the connector into.
+        //! @param[in]  id      A unique positive integer ID for the connector.
+        //! @param[in]  src     The source endpoint of the connector.
+        //! @param[in]  dst     The destination endpoint of the connector.
+        //!
+        //! If an ID is not specified, then one will be assigned to the shape.
+        //! If assigning an ID yourself, note that it should be a unique 
+        //! positive integer.  Also, IDs are given to all objects in a scene,
+        //! so the same ID cannot be given to a shape and a connector for 
+        //! example.
+        //!
+        ConnRef(Router *router, const Point& src, const Point& dst,
+                const unsigned int id = 0);
+        //! @brief  Destuctor.
         ~ConnRef();
+        
+        //! @brief   Returns the ID of this connector.
+        //! @returns The ID of the connector. 
+        unsigned int id(void) const;
+        //! @brief   Returns a pointer to the router scene this connector is in.
+        //! @returns A pointer to the router scene for this connector.
+        Router *router(void) const;
+        //! @brief   Returns an indication of whether this connector needs to
+        //!          be rerouted.
+        //!
+        //! If the connector requires rerouting, then generatePath() can be 
+        //! called to produce a new route, and route() can be called to get
+        //! a reference to the new route.
+        //!
+        //! @returns Returns true if the connector requires rerouting, or false
+        //!          if it does not.
+        bool needsReroute(void) const;
+        //! @brief   Returns a reference to the current route for the connector.
+        //! @returns The PolyLine route for the connector.
+        //! @note    You can obtain a modified version of this poly-line 
+        //!          route with curved corners added by calling 
+        //!          PolyLine::curvedPolyline().
+        const PolyLine& route(void) const;
+        //! @brief   Sets a callback function that will called to indicate that
+        //!          the connector need rerouting.
+        //!
+        //! The cb function will be called when shapes are added to, removed 
+        //! from or moved about on the page.  The pointer ptr will be passed 
+        //! as an argument to the callback function.
+        //!
+        //! @param[in]  cb   A pointer to the callback function.
+        //! @param[in]  ptr  A generic pointer that will be passed to the 
+        //!                  callback function.
+        void setCallback(void (*cb)(void *), void *ptr);
+        //! @brief   Generates a new route for the connector.
+        //!
+        //! This function does nothing if the connector does not require
+        //! rerouting.
+        //! 
+        //! If a valid route can not be found, then the route produced will 
+        //! just be a single segment connecting the source and destination 
+        //! endpoints.
+        //! 
+        //! @returns Returns true if a valid (object-avoiding) route was 
+        //!          found, or false if a valid route was not found.
+        bool generatePath(void);
+        
+        
+        // @brief   Returns the source endpoint vertex in the visibility graph.
+        // @returns The source endpoint vertex.
+        VertInf *src(void);
+        // @brief   Returns the destination endpoint vertex in the 
+        //          visibility graph.
+        // @returns The destination endpoint vertex.
+        VertInf *dst(void);
         
         const unsigned int type(void) const;
         void setType(unsigned int type);
-        const PolyLine& route(void);
         void set_route(const PolyLine& route);
         Polygon& display_route(void);
-        bool needsReroute(void);
         void freeRoute(void);
         void calcRouteDist(void);
         void updateEndPoint(const unsigned int type, const Point& point);
@@ -74,19 +172,13 @@ class ConnRef
         void makeActive(void);
         void makeInactive(void);
         void lateSetup(const Point& src, const Point& dst);
-        unsigned int id(void);
-        VertInf *src(void);
-        VertInf *dst(void);
         VertInf *start(void);
         void removeFromGraph(void);
         bool isInitialised(void);
         void unInitialise(void);
-        void setCallback(void (*cb)(void *), void *ptr);
         void handleInvalid(void);
-        int generatePath(void);
-        int generatePath(Point p0, Point p1);
+        bool generatePath(Point p0, Point p1);
         void makePathInvalid(void);
-        Router *router(void);
         void setHateCrossings(bool value);
         bool doesHateCrossings(void);
         
@@ -118,6 +210,7 @@ class ConnRef
         void *_connector;
         bool _hateCrossings;
 };
+
 
 class PointRep;
 typedef std::set<PointRep *> PointRepSet;
