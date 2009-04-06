@@ -3,8 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2007  Michael Wybrow <mjwybrow@users.sourceforge.net>
- * Copyright (C) 2008-2009  Monash University
+ * Copyright (C) 2004-2009  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -81,7 +80,7 @@ Router::Router()
       // Poly-line algorithm options:
       IgnoreRegions(true),
       IncludeEndpoints(true),
-      UseLeesAlgorithm(false),
+      UseLeesAlgorithm(true),
       InvisibilityGrph(true),
       // General algorithm options:
       SelectiveReroute(true),
@@ -89,10 +88,11 @@ Router::Router()
       PartialFeedback(false),
       RubberBandRouting(false),
       // Instrumentation:
-      st_checked_edges(0)
+      st_checked_edges(0),
 #ifdef LINEDEBUG
-    , avoid_screen(NULL)
+      avoid_screen(NULL),
 #endif
+      _largestAssignedId(0)
 { }
 
 
@@ -103,7 +103,7 @@ void Router::addShape(ShapeRef *shape)
     shape->makeActive();
 
     unsigned int pid = shape->id();
-    Polygon poly = shape->poly();
+    Polygon poly = shape->polygon();
 
     adjustContainsWithAdd(poly, pid);
     
@@ -124,7 +124,7 @@ void Router::addShape(ShapeRef *shape)
 }
 
 
-void Router::delShape(ShapeRef *shape)
+void Router::removeShape(ShapeRef *shape)
 {
     unsigned int pid = shape->id();
 
@@ -164,6 +164,15 @@ void Router::delShape(ShapeRef *shape)
         checkAllMissingEdges();
     }
     callbackAllInvalidConnectors();
+}
+
+
+void Router::moveShape(ShapeRef *shape, const double xDiff, const double yDiff)
+{
+    Polygon newPoly = shape->polygon();
+    newPoly.translate(xDiff, yDiff);
+
+    moveShape(shape, newPoly);
 }
 
 
@@ -321,7 +330,7 @@ void Router::addCluster(ClusterRef *cluster)
     cluster->makeActive();
     
     unsigned int pid = cluster->id();
-    ReferencingPolygon& poly = cluster->poly();
+    ReferencingPolygon& poly = cluster->polygon();
 
     adjustClustersWithAdd(poly, pid);
 }
@@ -334,6 +343,71 @@ void Router::delCluster(ClusterRef *cluster)
     unsigned int pid = cluster->id();
     
     adjustClustersWithDel(pid);
+}
+
+
+unsigned int Router::assignId(const unsigned int suggestedId)
+{
+    // If the suggestedId is zero, then we assign the object the next
+    // smallest unassigned ID, otherwise we trust the ID given is unique.
+    unsigned int assignedId = (suggestedId == 0) ? 
+            (_largestAssignedId + 1) : suggestedId;
+    
+    // Have the router record if this ID is larger than the _largestAssignedId.
+    _largestAssignedId = std::max(_largestAssignedId, assignedId);
+
+    // If assertions are enabled, then we check that this ID really is unique.
+    assert(idIsUnique(assignedId));
+
+    return assignedId;
+}
+
+
+    // Returns whether the given ID is unique among all objects known by the
+    // router.  Outputs a warning if the ID is found ore than once. 
+    // It is expected this is only going to be called from assertions while
+    // debugging, so efficiency is not an issue and we just iterate over all
+    // objects.
+bool Router::idIsUnique(const unsigned int id) const 
+{
+    unsigned int count = 0;
+
+    // Examine shapes.
+    for (ShapeRefList::const_iterator i = shapeRefs.begin(); 
+            i != shapeRefs.end(); ++i) 
+    {
+        if ((*i)->id() == id)
+        {
+            count++;
+        }
+    }
+
+    // Examine connectors.
+    for (ConnRefList::const_iterator i = connRefs.begin(); 
+            i != connRefs.end(); ++i) 
+    {
+        if ((*i)->id() == id)
+        {
+            count++;
+        }
+    }
+
+    // Examine clusters.
+    for (ClusterRefList::const_iterator i = clusterRefs.begin(); 
+            i != clusterRefs.end(); ++i) 
+    {
+        if ((*i)->id() == id)
+        {
+            count++;
+        }
+    }
+
+    if (count > 1)
+    {
+        fprintf(stderr, "Warning:\tlibavoid object ID %d not unique.\n", id);
+        return false;
+    }
+    return true;
 }
 
 
@@ -541,7 +615,7 @@ void Router::generateContains(VertInf *pt)
     ShapeRefList::const_iterator finish = shapeRefs.end();
     for (ShapeRefList::const_iterator i = shapeRefs.begin(); i != finish; ++i)
     {
-        if (inPoly((*i)->poly(), pt->point, countBorder))
+        if (inPoly((*i)->polygon(), pt->point, countBorder))
         {
             contains[pt->id].insert((*i)->id());
         }
@@ -552,7 +626,7 @@ void Router::generateContains(VertInf *pt)
     for (ClusterRefList::const_iterator i = clusterRefs.begin(); 
             i != clFinish; ++i)
     {
-        if (inPolyGen((*i)->poly(), pt->point))
+        if (inPolyGen((*i)->polygon(), pt->point))
         {
             enclosingClusters[pt->id].insert((*i)->id());
         }

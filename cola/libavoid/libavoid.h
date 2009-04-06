@@ -3,8 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2007  Michael Wybrow <mjwybrow@users.sourceforge.net>
- * Copyright (C) 2008-2009  Monash University
+ * Copyright (C) 2004-2009  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -23,6 +22,41 @@
  * Author(s):   Michael Wybrow <mjwybrow@users.sourceforge.net>
 */
 
+//! @file  libavoid.h
+//! @brief Standard libavoid include file which includes all libavoid 
+//!        header files.
+
+
+//! @mainpage 
+//!
+//! <h2>libavoid Information</h2>
+//!
+//! libavoid is a cross-platform C++ library providing fast, object-avoiding 
+//! connector routing for use in interactive diagram editors.
+//!
+//! libavoid is part of the 
+//! <a href="http://adaptagrams.sourceforge.net/">Adaptagrams project</a>. 
+//! There are no official releases yet, though the code is stable and 
+//! available from the Adaptagrams 
+//! <a href="http://sourceforge.net/scm/?type=svn&group_id=154331">SVN 
+//! repository</a>. Once orthogonal routing has been added, and the API is
+//! finailised, an offical release will be made. 
+//!
+//! libavoid is written by Michael Wybrow, a member of the Adaptive
+//! Diagrams and Documents lab at Monash University, Australia.
+//!
+//! The algorithms used for the connector routing are described in:
+//! -  M. Wybrow, K. Marriott, and P.J. Stuckey. Incremental connector routing.
+//!    In Proceedings of 13th International Symposium on Graph Drawing, 
+//!    LNCS 3843, pages 446—457. Springer-Verlag, 2006. 
+//!    [<a href="http://dx.doi.org/10.1007/11618058_40">DOI</a>]
+//! 
+//! libavoid is currently used in the following software:
+//! -  Dunnart, a prototype research constraint-based diagram editor, and
+//! -  Inkscape, the popular Open Source vector graphics editor.
+
+//! @namespace Avoid
+//! @brief The namespace used by code in the libavoid library.
 
 #ifndef AVOID_LIBAVOID_H
 #define AVOID_LIBAVOID_H

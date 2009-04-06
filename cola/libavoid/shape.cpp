@@ -3,8 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2007  Michael Wybrow <mjwybrow@users.sourceforge.net>
- * Copyright (C) 2008  Monash University
+ * Copyright (C) 2004-2008  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -35,16 +34,15 @@
 namespace Avoid {
 
 
-ShapeRef::ShapeRef(Router *router, unsigned int id, Polygon& ply)
+ShapeRef::ShapeRef(Router *router, Polygon& ply, const unsigned int id)
     : _router(router)
-    , _id(id)
     , _poly(ply)
     , _active(false)
     , _inMoveList(false)
     , _firstVert(NULL)
     , _lastVert(NULL)
 {
-    assert(id > 0);
+    _id = router->assignId(id);
 
     bool isShape = true;
     VertID i = VertID(id, isShape, 0);
@@ -176,19 +174,19 @@ VertInf *ShapeRef::lastVert(void)
 }
 
 
-unsigned int ShapeRef::id(void)
+unsigned int ShapeRef::id(void) const
 {
     return _id;
 }
 
 
-const Polygon& ShapeRef::poly(void)
+const Polygon& ShapeRef::polygon(void) const
 {
     return _poly;
 }
 
 
-Router *ShapeRef::router(void)
+Router *ShapeRef::router(void) const
 {
     return _router;
 }

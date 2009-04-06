@@ -3,8 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2007  Michael Wybrow <mjwybrow@users.sourceforge.net>
- * Copyright (C) 2008  Monash University
+ * Copyright (C) 2004-2008  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -33,11 +32,10 @@ namespace Avoid {
 
 ClusterRef::ClusterRef(Router *router, unsigned int id, Polygon& ply)
     : _router(router)
-    , _id(id)
     , _poly(ply, router)
     , _active(false)
 {
-    assert(id > 0);
+    _id = router->assignId(id);
 }
 
 
@@ -80,7 +78,7 @@ unsigned int ClusterRef::id(void)
 }
 
 
-ReferencingPolygon& ClusterRef::poly(void)
+ReferencingPolygon& ClusterRef::polygon(void)
 {
     return _poly;
 }

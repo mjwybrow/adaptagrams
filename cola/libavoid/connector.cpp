@@ -3,8 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2007  Michael Wybrow <mjwybrow@users.sourceforge.net>
- * Copyright (C) 2008-2009  Monash University
+ * Copyright (C) 2004-2009  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -27,6 +26,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <cfloat>
+
 #include "libavoid/graph.h"
 #include "libavoid/connector.h"
 #include "libavoid/makepath.h"
@@ -40,7 +40,6 @@ namespace Avoid {
     
 ConnRef::ConnRef(Router *router, const unsigned int id)
     : _router(router),
-      _id(id),
       _type(ConnType_PolyLine),
       _srcId(0),
       _dstId(0),
@@ -56,17 +55,16 @@ ConnRef::ConnRef(Router *router, const unsigned int id)
       _connector(NULL),
       _hateCrossings(false)
 {
-    assert(id > 0);
+    _id = router->assignId(id);
 
     // TODO: Store endpoints and details.
     _route.clear();
 }
 
 
-ConnRef::ConnRef(Router *router, const unsigned int id,
-        const Point& src, const Point& dst)
+ConnRef::ConnRef(Router *router, const Point& src, const Point& dst,
+        const unsigned int id)
     : _router(router),
-      _id(id),
       _type(ConnType_PolyLine),
       _srcId(0),
       _dstId(0),
@@ -81,7 +79,7 @@ ConnRef::ConnRef(Router *router, const unsigned int id,
       _connector(NULL),
       _hateCrossings(false)
 {
-    assert(id > 0);
+    _id = router->assignId(id);
 
     _route.clear();
 
@@ -213,7 +211,7 @@ void ConnRef::updateEndPoint(const unsigned int type, ShapeRef *shapeRef,
         const double x_position, const double y_position)
 {
     assert(shapeRef);
-    const Polygon& poly = shapeRef->poly();
+    const Polygon& poly = shapeRef->polygon();
 
     double x_min = DBL_MAX;
     double x_max = -DBL_MAX;
@@ -358,7 +356,7 @@ void ConnRef::freeRoute(void)
 }
     
 
-const PolyLine& ConnRef::route(void)
+const PolyLine& ConnRef::route(void) const
 {
     return _route;
 }
@@ -402,7 +400,7 @@ void ConnRef::calcRouteDist(void)
 }
 
 
-bool ConnRef::needsReroute(void)
+bool ConnRef::needsReroute(void) const
 {
     return (_false_path || _needs_reroute_flag);
 }
@@ -422,7 +420,7 @@ void ConnRef::lateSetup(const Point& src, const Point& dst)
 }
 
 
-unsigned int ConnRef::id(void)
+unsigned int ConnRef::id(void) const
 {
     return _id;
 }
@@ -512,13 +510,13 @@ void ConnRef::makePathInvalid(void)
 }
 
 
-Router *ConnRef::router(void)
+Router *ConnRef::router(void) const
 {
     return _router;
 }
 
 
-int ConnRef::generatePath(Point p0, Point p1)
+bool ConnRef::generatePath(Point p0, Point p1)
 {
     VertInf *origSrc = _srcVert, *origDst = _dstVert;
     // XXX This is hacky
@@ -571,7 +569,7 @@ int ConnRef::generatePath(Point p0, Point p1)
         }
     }
 
-    int result = generatePath();
+    bool result = generatePath();
 
     if (_router->OrthogonalRouting)
     {
@@ -669,11 +667,11 @@ bool validateBendPoint(VertInf *aInf, VertInf *bInf, VertInf *cInf)
 }
 
 
-int ConnRef::generatePath(void)
+bool ConnRef::generatePath(void)
 {
     if (!_false_path && !_needs_reroute_flag) {
         // This connector is up to date.
-        return (int) false;
+        return false;
     }
 
     //assert(_srcVert->point != _dstVert->point);
@@ -886,7 +884,7 @@ int ConnRef::generatePath(void)
     printf("\n\n");
 #endif
 
-    return (int) result;
+    return result;
 }
 
 

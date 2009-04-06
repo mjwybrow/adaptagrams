@@ -3,8 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2007  Michael Wybrow <mjwybrow@users.sourceforge.net>
- * Copyright (C) 2008-2009  Monash University
+ * Copyright (C) 2004-2009  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -22,6 +21,9 @@
  *
  * Author(s):   Michael Wybrow <mjwybrow@users.sourceforge.net>
 */
+
+//! @file    router.h
+//! @brief   Contains the interface for the Router class.
 
 
 #ifndef AVOID_ROUTER_H
@@ -54,8 +56,14 @@ static const unsigned int runningFrom = 2;
 static const unsigned int runningToAndFrom = runningTo | runningFrom;
 
 
+//! @brief   The Router class represents a libavoid router instance.
+//!
+//! Usually you would keep a separate Router instance for each diagram
+//! or layout you have open in your application.
+//
 class Router {
     public:
+        //! Constructor for router instance.
         Router();
 
         ShapeRefList shapeRefs;
@@ -89,6 +97,15 @@ class Router {
        
         // General routing options:
         bool SelectiveReroute;
+        
+        //! @brief Controls whether shape movement actions are performed 
+        //!        immediately or are consolidated.
+        //!
+        //! If true (the default), then moveShape() operations are queued and
+        //! performed together efficiently when processMoves() is called.  If
+        //! set to false, then movement actions are performed immediately by 
+        //! the moveShape() function.
+        //
         bool ConsolidateMoves;
         bool PartialFeedback;
         bool RubberBandRouting;
@@ -101,10 +118,65 @@ class Router {
         SDL_Surface *avoid_screen;
 #endif
 
+        //! @brief Add a shape to the router scene.
+        //!
+        //! This shape will be considered to be an obstacle. Calling this 
+        //! function will cause connectors intersecting the added shape to
+        //! be marked as needing to be rerouted.
+        //!
+        //! @param[in]  shape  Pointer reference to the shape being added.
+        //
         void addShape(ShapeRef *shape);
-        void delShape(ShapeRef *shape);
+
+        //! @brief Remove a shape from the router scene.
+        //!
+        //! Connectors that could have a better (usually shorter) path after
+        //! the removal of this shape will be marked as needing to be rerouted.
+        //!
+        //! @param[in]  shape  Pointer reference to the shape being removed.
+        //
+        void removeShape(ShapeRef *shape);
+
+        //! @brief Move or resize an existing shape within the router scene.
+        //!
+        //! A new polygon for the shape can be given to effectively move or 
+        //! resize the shape with the scene.  Connectors that intersect the 
+        //! new shape polygon, or that could have a better (usually shorter)
+        //! path after the change, will be marked as needing to be rerouted.
+        //!
+        //! @param[in]  shape       Pointer reference to the shape being 
+        //!                         moved/resized.
+        //! @param[in]  newPoly     The new polygon boundry for the shape.
+        //! @param[in]  first_move  This option is used for some advanced 
+        //!                         (currently undocumented) behaviour and 
+        //!                         it should be ignored for the moment.
+        //
         void moveShape(ShapeRef *shape, const Polygon& newPoly,
                 const bool first_move = false);
+
+        //! @brief Move an existing shape within the router scene by a relative
+        //!        distance.
+        //!         
+        //! Connectors that intersect the shape's new position, or that could 
+        //! have a better (usually shorter) path after the change, will be 
+        //! marked as needing to be rerouted.
+        //!
+        //! @param[in]  shape       Pointer reference to the shape being moved.
+        //! @param[in]  xDiff       The distance to move the shape in the 
+        //!                         x dimension.
+        //! @param[in]  yDiff       The distance to move the shape in the 
+        //!                         y dimension.
+        //
+        void moveShape(ShapeRef *shape, const double xDiff, const double yDiff);
+
+        //! @brief Process all queued shape move/resize actions efficiently.
+        //!
+        //! In the default mode of the Router (where ConsolidateMoves = true),
+        //! this function will efficiently process all move actions registered
+        //! by calls to moveShape() since the last call to processMoves().
+        //!
+        //! If ConsolidateMoves = false, then this function does nothing.
+        //
         void processMoves(void);
         
         void addCluster(ClusterRef *cluster);
@@ -118,6 +190,7 @@ class Router {
         void markConnectors(ShapeRef *shape);
         void generateContains(VertInf *pt);
         void printInfo(void);
+        unsigned int assignId(const unsigned int suggestedId);
     private:
         void newBlockingShape(Polygon *poly, int pid);
         void checkAllBlockedEdges(int pid);
@@ -128,8 +201,10 @@ class Router {
                 const int p_cluster);
         void adjustClustersWithDel(const int p_cluster);
         void callbackAllInvalidConnectors(void);
+        bool idIsUnique(const unsigned int id) const;
 
         MoveInfoList moveList;
+        unsigned int _largestAssignedId;
 };
 
 }

@@ -228,8 +228,8 @@ void makeFeasible(vpsc::Rectangles& rs, vector<cola::Edge>& edges,
             //printf("rect[%d]:{%f,%f,%f,%f}\n",i,x,y,X,Y);
         //}
         unsigned int shapeID = i + 1;
-        Avoid::ShapeRef *shapeRef = new Avoid::ShapeRef(router, shapeID,
-                shapePoly);
+        Avoid::ShapeRef *shapeRef = new Avoid::ShapeRef(router, shapePoly,
+                shapeID);
         // ShapeRef constructor makes a copy of polygon so we can free it:
         router->addShape(shapeRef);
     }
@@ -240,7 +240,7 @@ void makeFeasible(vpsc::Rectangles& rs, vector<cola::Edge>& edges,
         Rectangle* r0=rs[e.first], *r1=rs[e.second];
         Avoid::Point srcPt(r0->getCentreX(),r0->getCentreY());
         Avoid::Point dstPt(r1->getCentreX(),r1->getCentreY());
-        connRef = new Avoid::ConnRef(router, connID, srcPt, dstPt);
+        connRef = new Avoid::ConnRef(router, srcPt, dstPt, connID);
         connRef->updateEndPoint(Avoid::VertID::src, srcPt);
         connRef->updateEndPoint(Avoid::VertID::tar, dstPt);
         connRef->generatePath();
