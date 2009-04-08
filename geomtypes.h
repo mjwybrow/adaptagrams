@@ -113,12 +113,12 @@ class PolygonInterface
         //! @brief  Returns true if this polygon is empty.
         virtual const bool empty(void) const = 0;
         //! @brief  Returns the number of points in this polygon.
-        virtual const int size(void) const = 0;
+        virtual const size_t size(void) const = 0;
         //! @brief  Returns the ID value associated with this polygon.
         virtual int id(void) const = 0;
         //! @brief  Returns a specific point in the polygon.
         //! @param[in]  index  The array index of the point to be returned.
-        virtual const Point& at(int index) const = 0;
+        virtual const Point& at(size_t index) const = 0;
         //! @brief  Returns the bounding rectangle that contains this polygon.
         //!
         //! If a NULL pointer is passed for any of the arguments, then that
@@ -187,12 +187,12 @@ class Polygon : public PolygonInterface
         //! @brief  Returns true if this polygon is empty.
         const bool empty(void) const;
         //! @brief  Returns the number of points in this polygon.
-        const int size(void) const;
+        const size_t size(void) const;
         //! @brief  Returns the ID value associated with this polygon.
         int id(void) const;
         //! @brief  Returns a specific point in the polygon.
         //! @param[in]  index  The array index of the point to be returned.
-        const Point& at(int index) const;
+        const Point& at(size_t index) const;
         //! @brief  Returns a curved approximation of this multi-segment 
         //!         PolyLine, with the corners replaced by smooth Bezier 
         //!         curves.
@@ -244,9 +244,9 @@ class ReferencingPolygon : public PolygonInterface
         ReferencingPolygon(const Polygon& poly, const Router *router);
         void clear(void);
         const bool empty(void) const;
-        const int size(void) const;
+        const size_t size(void) const;
         int id(void) const;
-        const Point& at(int index) const;
+        const Point& at(size_t index) const;
 
         int _id;
         std::vector<std::pair<const Polygon *, unsigned short> > ps;

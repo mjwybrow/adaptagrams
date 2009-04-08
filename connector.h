@@ -50,6 +50,30 @@ static const double ATTACH_POS_LEFT = ATTACH_POS_TOP;
 static const double ATTACH_POS_RIGHT = ATTACH_POS_BOTTOM;
 
 
+//! @brief  The ConnEnd class represents different possible endpoints for 
+//!         connectors.
+//!
+//! Currently this class just allows free-floating endpoints, but in future
+//! will be capable of representing attachments to connection points on shapes.
+//! 
+class ConnEnd 
+{
+    public:
+        //! @brief Constructs a ConnEnd from a free-floating point.
+        //!
+        //! @param[in]  point  The position of the connector endpoint.
+        //!
+        ConnEnd(const Point& point);
+        //! @brief Returns the position of this connector endpoint
+        //!
+        //! @return The position of this connector endpoint.
+        const Point& point(void) const;
+
+    private:
+        Point _point;
+};
+
+
 //! @brief   The ConnRef class represents a connector object.
 //!
 //! Connectors are a (possible multi-segment) line between two points.
@@ -94,11 +118,25 @@ class ConnRef
         //! so the same ID cannot be given to a shape and a connector for 
         //! example.
         //!
-        ConnRef(Router *router, const Point& src, const Point& dst,
+        ConnRef(Router *router, const ConnEnd& src, const ConnEnd& dst,
                 const unsigned int id = 0);
         //! @brief  Destuctor.
         ~ConnRef();
         
+        //! @brief  Sets both new source and destination endpoints for this 
+        //!         connector.
+        //!
+        //! @param[in]  srcPoint  New source endpoint for the connector.
+        //! @param[in]  dstPoint  New destination endpoint for the connector.
+        void setEndpoints(const ConnEnd& srcPoint, const ConnEnd& dstPoint);
+        //! @brief  Sets just a new source endpoint for this connector.
+        //!
+        //! @param[in]  srcPoint  New source endpoint for the connector.
+        void setSourceEndpoint(const ConnEnd& srcPoint);
+        //! @brief  Sets just a new destination endpoint for this connector.
+        //!
+        //! @param[in]  dstPoint  New destination endpoint for the connector.
+        void setDestEndpoint(const ConnEnd& dstPoint);
         //! @brief   Returns the ID of this connector.
         //! @returns The ID of the connector. 
         unsigned int id(void) const;
@@ -132,6 +170,12 @@ class ConnRef
         //! @param[in]  ptr  A generic pointer that will be passed to the 
         //!                  callback function.
         void setCallback(void (*cb)(void *), void *ptr);
+        //! @brief  Calls the callback function for this connector if the 
+        //!         connector route has been invalidated.
+        //!
+        //! Does nothing if a callback function has not been set via the 
+        //! setCallback() function.
+        void performReroutingCallback(void);
         //! @brief   Generates a new route for the connector.
         //!
         //! This function does nothing if the connector does not require
@@ -144,8 +188,8 @@ class ConnRef
         //! @returns Returns true if a valid (object-avoiding) route was 
         //!          found, or false if a valid route was not found.
         bool generatePath(void);
-        
-        
+       
+
         // @brief   Returns the source endpoint vertex in the visibility graph.
         // @returns The source endpoint vertex.
         VertInf *src(void);
@@ -176,7 +220,6 @@ class ConnRef
         void removeFromGraph(void);
         bool isInitialised(void);
         void unInitialise(void);
-        void handleInvalid(void);
         bool generatePath(Point p0, Point p1);
         void makePathInvalid(void);
         void setHateCrossings(bool value);
@@ -250,7 +293,7 @@ typedef std::set<Avoid::Point> PointSet;
 
 
 extern int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
-        Avoid::Polygon& conn, int cIndex, bool checkForBranchingSegments,
+        Avoid::Polygon& conn, size_t cIndex, bool checkForBranchingSegments,
         const bool finalSegment = false, PointSet *crossingPoints = NULL, 
         PtOrderMap *pointOrders = NULL, bool *touches = NULL, 
         bool *touchesAtEndpoint = NULL);
