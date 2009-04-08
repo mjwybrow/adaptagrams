@@ -89,7 +89,7 @@ ReferencingPolygon::ReferencingPolygon(const Polygon& poly, const Router *router
       ps(poly.size())
 {
     assert(router != NULL);
-    for (int i = 0; i < poly.size(); ++i)
+    for (size_t i = 0; i < poly.size(); ++i)
     {
         const Polygon *polyPtr = NULL;
         for (ShapeRefList::const_iterator sh = router->shapeRefs.begin();
@@ -127,7 +127,7 @@ const bool ReferencingPolygon::empty(void) const
 }
 
 
-const int ReferencingPolygon::size(void) const
+const size_t ReferencingPolygon::size(void) const
 {
     return ps.size();
 }
@@ -139,7 +139,7 @@ int ReferencingPolygon::id(void) const
 }
 
 
-const Point& ReferencingPolygon::at(int index) const 
+const Point& ReferencingPolygon::at(size_t index) const 
 {
     assert(index < size());
     const Polygon& poly = *(ps[index].first);
@@ -158,7 +158,7 @@ void PolygonInterface::getBoundingRect(double *minX, double *minY,
     double progressiveMaxX = -DBL_MAX;
     double progressiveMaxY = -DBL_MAX;
 
-    for (int i = 0; i < size(); ++i)
+    for (size_t i = 0; i < size(); ++i)
     {
         progressiveMinX = std::min(progressiveMinX, at(i).x);
         progressiveMinY = std::min(progressiveMinY, at(i).y);
@@ -204,7 +204,7 @@ Polygon::Polygon(const PolygonInterface& poly)
       _id(poly.id()),
       ps(poly.size())
 {
-    for (int i = 0; i < poly.size(); ++i)
+    for (size_t i = 0; i < poly.size(); ++i)
     {
         ps[i] = poly.at(i);
     }
@@ -224,7 +224,7 @@ const bool Polygon::empty(void) const
 }
 
 
-const int Polygon::size(void) const
+const size_t Polygon::size(void) const
 {
     return ps.size();
 }
@@ -236,7 +236,7 @@ int Polygon::id(void) const
 }
 
 
-const Point& Polygon::at(int index) const
+const Point& Polygon::at(size_t index) const
 {
     assert(index < size());
 
@@ -363,7 +363,7 @@ static void shorten_line(double& x1, double& y1, double& x2, double& y2,
 
 void Polygon::translate(const double xDist, const double yDist)
 {
-    for (int i = 0; i < size(); ++i)
+    for (size_t i = 0; i < size(); ++i)
     {
         ps[i].x += xDist;
         ps[i].y += yDist;
@@ -390,7 +390,7 @@ Polygon Polygon::curvedPolyline(const double curve_amount) const
     if (it != simplified.ps.end()) ++it;
 
     // Combine collinear line segments into single segments:
-    for (int j = 2; j < simplified.size(); )
+    for (size_t j = 2; j < simplified.size(); )
     {
         if (vecDir(simplified.ps[j - 2], simplified.ps[j - 1], 
                 simplified.ps[j]) == 0)
@@ -424,7 +424,7 @@ Polygon Polygon::curvedPolyline(const double curve_amount) const
    
     double last_x = 0;
     double last_y = 0;
-    for (int j = 1; j < simplified.size(); ++j)
+    for (size_t j = 1; j < simplified.size(); ++j)
     {
         double x1 = simplified.ps[j - 1].x;
         double y1 = simplified.ps[j - 1].y;

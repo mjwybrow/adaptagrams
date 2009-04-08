@@ -38,6 +38,18 @@
 namespace Avoid {
 
     
+ConnEnd::ConnEnd(const Point& point) :
+    _point(point)
+{
+}
+
+
+const Point& ConnEnd::point(void) const
+{
+    return _point;
+}
+
+
 ConnRef::ConnRef(Router *router, const unsigned int id)
     : _router(router),
       _type(ConnType_PolyLine),
@@ -62,7 +74,7 @@ ConnRef::ConnRef(Router *router, const unsigned int id)
 }
 
 
-ConnRef::ConnRef(Router *router, const Point& src, const Point& dst,
+ConnRef::ConnRef(Router *router, const ConnEnd& src, const ConnEnd& dst,
         const unsigned int id)
     : _router(router),
       _type(ConnType_PolyLine),
@@ -86,13 +98,15 @@ ConnRef::ConnRef(Router *router, const Point& src, const Point& dst,
     if (_router->IncludeEndpoints)
     {
         bool isShape = false;
-        _srcVert = new VertInf(_router, VertID(id, isShape, 1), src);
-        _dstVert = new VertInf(_router, VertID(id, isShape, 2), dst);
+        _srcVert = new VertInf(_router, VertID(id, isShape, 1), src.point());
+        _dstVert = new VertInf(_router, VertID(id, isShape, 2), dst.point());
         _router->vertices.addVertex(_srcVert);
         _router->vertices.addVertex(_dstVert);
         makeActive();
         _initialised = true;
     }
+    updateEndPoint(Avoid::VertID::src, src.point());
+    updateEndPoint(Avoid::VertID::tar, dst.point());
 }
 
 
@@ -168,7 +182,7 @@ void ConnRef::common_updateEndPoint(const unsigned int type, const Point& point)
         altered = _srcVert;
         partner = _dstVert;
     }
-    else // if (type == (unsigned int) VertID::dst)
+    else // if (type == (unsigned int) VertID::tar)
     {
         if (_dstVert)
         {
@@ -187,6 +201,25 @@ void ConnRef::common_updateEndPoint(const unsigned int type, const Point& point)
     // XXX: Seems to be faster to just remove the edges and recreate
     bool isConn = true;
     altered->removeFromGraph(isConn);
+}
+
+
+void ConnRef::setEndpoints(const ConnEnd& srcPoint, const ConnEnd& dstPoint)
+{
+    updateEndPoint(VertID::src, srcPoint.point());
+    updateEndPoint(VertID::tar, dstPoint.point());
+}
+
+
+void ConnRef::setSourceEndpoint(const ConnEnd& srcPoint)
+{
+    updateEndPoint(VertID::src, srcPoint.point());
+}
+
+
+void ConnRef::setDestEndpoint(const ConnEnd& dstPoint)
+{
+    updateEndPoint(VertID::tar, dstPoint.point());
 }
 
 
@@ -217,7 +250,7 @@ void ConnRef::updateEndPoint(const unsigned int type, ShapeRef *shapeRef,
     double x_max = -DBL_MAX;
     double y_min = DBL_MAX;
     double y_max = -DBL_MAX;
-    for (int i = 0; i < poly.size(); ++i)
+    for (size_t i = 0; i < poly.size(); ++i)
     {
         x_min = std::min(x_min, poly.ps[i].x);
         x_max = std::max(x_max, poly.ps[i].x);
@@ -393,7 +426,7 @@ void ConnRef::calcRouteDist(void)
             (_type == ConnType_PolyLine) ? euclideanDist : manhattanDist;
 
     _route_dist = 0;
-    for (int i = 1; i < _route.size(); ++i)
+    for (size_t i = 1; i < _route.size(); ++i)
     {
         _route_dist += dist(_route.at(i), _route.at(i - 1));
     }
@@ -494,7 +527,7 @@ void ConnRef::setCallback(void (*cb)(void *), void *ptr)
 }
 
 
-void ConnRef::handleInvalid(void)
+void ConnRef::performReroutingCallback(void)
 {
     if (_false_path || _needs_reroute_flag) {
         if (_callback) {
@@ -985,8 +1018,8 @@ bool PtOrder::addPoints(Point *innerArg, Point *outerArg, bool swapped)
 // to determine the correct ordering.
 static bool pointRepLessThan(PointRep *r1, PointRep *r2)
 {
-    int r1less = r1->inner_set.size();
-    int r2less = r2->inner_set.size();
+    size_t r1less = r1->inner_set.size();
+    size_t r2less = r2->inner_set.size();
     assert(r1less != r2less);
 
     return (r1less > r2less);
@@ -1181,13 +1214,13 @@ void splitBranchingSegments(Avoid::Polygon& poly, bool polyIsConn,
 // boundary (polyIsConn = false).
 //
 int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
-        Avoid::Polygon& conn, int cIndex, bool checkForBranchingSegments,
+        Avoid::Polygon& conn, size_t cIndex, bool checkForBranchingSegments,
         const bool finalSegment, PointSet *crossingPoints, 
         PtOrderMap *pointOrders, bool *touches, bool *touchesAtEndpoint)
 {
     if (checkForBranchingSegments)
     {
-        int conn_pn = conn.size();
+        size_t conn_pn = conn.size();
         splitBranchingSegments(poly, polyIsConn, conn);
         // cIndex is going to be the last, so take into account added points.
         cIndex += (conn.size() - conn_pn);
@@ -1204,7 +1237,7 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
     //printf("a1: %g %g\n", a1.x, a1.y);
     //printf("a2: %g %g\n", a2.x, a2.y);
 
-    for (int j = ((polyIsConn) ? 1 : 0); j < poly.size(); ++j)
+    for (size_t j = ((polyIsConn) ? 1 : 0); j < poly.size(); ++j)
     {
         Avoid::Point& b1 = poly.ps[(j - 1 + poly.size()) % poly.size()];
         Avoid::Point& b2 = poly.ps[j];
@@ -1267,10 +1300,14 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
 
             bool shared_path = false;
             
+            // Initial values here don't matter. They are only used after 
+            // being set to sensible values, but we set them to stop a MSVC
+            // warning.
             bool p_dir_back;
-            int p_dir;
-            int trace_c;
-            int trace_p;
+            int p_dir = 0;
+            size_t trace_c = 0;
+            size_t trace_p = 0;
+            
             if (converging)
             {
                 // Determine direction we have to look through
@@ -1316,12 +1353,15 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
 
             if (shared_path)
             {
+                // Shouldn't be here if p_dir is still equal to zero.
+                assert(p_dir != 0);
+
                 // Build the shared path, including the diverging points at
                 // each end if the connector does not end at a common point.
                 while ( (trace_c >= 0) && (!polyIsConn || 
                             ((trace_p >= 0) && (trace_p < poly.size()))) )
                 {
-                    int index_p = (trace_p + (2 * poly.size())) % poly.size();
+                    size_t index_p = (trace_p + (2 * poly.size())) % poly.size();
                     assert(index_p >= 0);
                     assert(index_p < poly.size());
                     c_path.push_back(&conn.ps[trace_c]);
@@ -1340,7 +1380,7 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
                 bool front_same = (*(c_path.front()) == *(p_path.front()));
                 bool back_same  = (*(c_path.back())  == *(p_path.back()));
 
-                int size = c_path.size();
+                size_t size = c_path.size();
                 
                 int prevTurnDir = -1;
                 int startCornerSide = 1;
@@ -1378,8 +1418,9 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
                 if (pointOrders)
                 {
                     // Return the ordering for the shared path.
-                    int adj_size = (c_path.size() - ((back_same) ? 0 : 1));
-                    for (int i = (front_same) ? 0 : 1; i < adj_size; ++i)
+                    assert(c_path.size() > 0 || back_same);
+                    size_t adj_size = (c_path.size() - ((back_same) ? 0 : 1));
+                    for (size_t i = (front_same) ? 0 : 1; i < adj_size; ++i)
                     {
                         Avoid::Point& an = *(c_path[i]);
                         Avoid::Point& bn = *(p_path[i]);

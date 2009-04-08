@@ -49,7 +49,7 @@ ShapeRef::ShapeRef(Router *router, Polygon& ply, const unsigned int id)
     
     VertInf *last = NULL;
     VertInf *node = NULL;
-    for (int pt_i = 0; pt_i < _poly.size(); pt_i++)
+    for (size_t pt_i = 0; pt_i < _poly.size(); ++pt_i)
     {
         node = new VertInf(_router, i, _poly.ps[pt_i]);
 
@@ -100,7 +100,7 @@ void ShapeRef::setNewPoly(Polygon& poly)
     assert(_poly.size() == poly.size());
     
     VertInf *curr = _firstVert;
-    for (int pt_i = 0; pt_i < _poly.size(); pt_i++)
+    for (size_t pt_i = 0; pt_i < _poly.size(); ++pt_i)
     {
         assert(curr->visListSize == 0);
         assert(curr->invisListSize == 0);
@@ -200,7 +200,7 @@ void ShapeRef::boundingBox(BBox& bbox)
     Point& a = bbox.a;
     Point& b = bbox.b;
 
-    for (int i = 1; i < _poly.size(); ++i)
+    for (size_t i = 1; i < _poly.size(); ++i)
     {
         const Point& p = _poly.ps[i];
 

@@ -61,7 +61,7 @@ class MoveInfo {
 };
 
 
-Router::Router()
+Router::Router(const unsigned int flags)
     : visOrthogGraph(true),
       PartialTime(false),
       SimpleRouting(false),
@@ -467,7 +467,7 @@ void Router::callbackAllInvalidConnectors(void)
 {
     ConnRefList::const_iterator fin = connRefs.end();
     for (ConnRefList::const_iterator i = connRefs.begin(); i != fin; ++i) {
-        (*i)->handleInvalid();
+        (*i)->performReroutingCallback();
     }
 }
 
@@ -505,7 +505,7 @@ void Router::newBlockingShape(Polygon *poly, int pid)
             }
 
             bool seenIntersectionAtEndpoint = false;
-            for (int pt_i = 0; pt_i < poly->size(); pt_i++)
+            for (size_t pt_i = 0; pt_i < poly->size(); ++pt_i)
             {
                 int pt_n = (pt_i == (poly->size() - 1)) ? 0 : pt_i + 1;
                 Point& pi = poly->ps[pt_i];

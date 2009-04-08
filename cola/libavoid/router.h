@@ -50,6 +50,18 @@ typedef std::list<unsigned int> IntList;
 class MoveInfo;
 typedef std::list<MoveInfo *> MoveInfoList;
 
+//! @brief  Flags that can be passed to the router during initialisation 
+//!         to specify options.
+enum RouterFlag
+{
+        //! @brief  This option specifies that the router should maintain the
+        //!         structures necessary to allow poly-line connector routing.
+        PolyLineRouting = 1,
+        //! @brief  This option specifies that the router should maintain the
+        //!         structures necessary to allow orthogonal connector routing.
+        OrthogonalRouting = 2
+};
+
 
 static const unsigned int runningTo = 1;
 static const unsigned int runningFrom = 2;
@@ -63,8 +75,11 @@ static const unsigned int runningToAndFrom = runningTo | runningFrom;
 //
 class Router {
     public:
-        //! Constructor for router instance.
-        Router();
+        //! @brief  Constructor for router instance.
+        //!
+        //! @param[in]  flags  One or more Avoid::RouterFlag options to 
+        //!                    control the behaviour of the router.
+        Router(const unsigned int flags);
 
         ShapeRefList shapeRefs;
         ConnRefList connRefs;
@@ -191,6 +206,7 @@ class Router {
         void generateContains(VertInf *pt);
         void printInfo(void);
         unsigned int assignId(const unsigned int suggestedId);
+
     private:
         void newBlockingShape(Polygon *poly, int pid);
         void checkAllBlockedEdges(int pid);

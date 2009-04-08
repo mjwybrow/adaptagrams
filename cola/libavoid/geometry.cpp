@@ -271,8 +271,9 @@ double dist(const Point& a, const Point& b)
 double totalLength(const Polygon& poly)
 {
     double l = 0;
-    for (int i = 0; i < poly.size()-1; ++i) {
-        l += dist(poly.ps[i], poly.ps[i+1]);
+    for (size_t i = 1; i < poly.size(); ++i) 
+    {
+        l += dist(poly.ps[i-1], poly.ps[i]);
     }
     return l;
 }

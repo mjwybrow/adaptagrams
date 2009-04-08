@@ -52,4 +52,4 @@ fi
 AC_SUBST(CAIROMM_CFLAGS)
 AC_SUBST(CAIROMM_LIBS)
 
-AC_OUTPUT(Makefile libcola/Makefile libcola/tests/Makefile libvpsc/Makefile libvpsc/tests/Makefile libproject/Makefile libproject/tests/Makefile libtopology/Makefile libtopology/tests/Makefile libavoid/Makefile)
+AC_OUTPUT(Makefile libcola/Makefile libcola/tests/Makefile libvpsc/Makefile libvpsc/tests/Makefile libproject/Makefile libproject/tests/Makefile libtopology/Makefile libtopology/tests/Makefile libavoid/Makefile libavoid/tests/Makefile)

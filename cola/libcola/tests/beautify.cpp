@@ -205,7 +205,7 @@ void makeFeasible(vpsc::Rectangles& rs, vector<cola::Edge>& edges,
     printf("Running libavoid to compute routes...\n");
     clock_t libavoidstarttime=clock();
     // find feasible routes for edges
-    Avoid::Router *router = new Avoid::Router();
+    Avoid::Router *router = new Avoid::Router(Avoid::PolyLineRouting);
     // Use rotational sweep for point visibility
     router->UseLeesAlgorithm = true;
     // Don't use invisibility graph.
@@ -248,7 +248,7 @@ void makeFeasible(vpsc::Rectangles& rs, vector<cola::Edge>& edges,
         vector<topology::EdgePoint*> eps;
         eps.push_back( new topology::EdgePoint( topologyNodes[e.first], 
                     topology::EdgePoint::CENTRE));
-        for(int j=1;j<route.size()-1;j++) {
+        for(size_t j=1;j<route.size()-1;j++) {
             const Avoid::Point& p = route.ps[j];
             const unsigned nodeID=p.id-1;
             topology::Node* node=topologyNodes[nodeID];

@@ -227,6 +227,14 @@ typedef std::set<PointPair > VertSet;
 class EdgePair
 {
     public:
+        EdgePair() :
+            vInf1(NULL), vInf2(NULL), dist1(0.0), dist2(0.0), angle(0.0),
+            angleDist(0.0)
+        {
+            // The default constuctor should never be called.  
+            // This is defined to appease the MSVC compiler.
+            abort();
+        }
         EdgePair(const PointPair& p1, VertInf *v) : 
                 vInf1(p1.vInf), 
                 vInf2(v),
@@ -322,11 +330,11 @@ typedef std::list<EdgePair> SweepEdgeList;
 class isBoundingShape
 {
     public:
-        // constructor remembers the value provided
-        isBoundingShape(ShapeSet& set)
-        : ss(set)
+        // Class instance remembers the ShapeSet.
+        isBoundingShape(ShapeSet& set) : 
+            ss(set)
         { }
-        // the following is an overloading of the function call operator
+        // The following is an overloading of the function call operator.
         bool operator () (const PointPair& pp)
         {
             if (pp.vInf->id.isShape &&
@@ -337,6 +345,12 @@ class isBoundingShape
             return false;
         }
     private:
+        // MSVC wants to generate the assignment operator and the default 
+        // constructor, but fails.  Therefore we declare them private and 
+        // don't implement them.
+        isBoundingShape & operator=(isBoundingShape const &);
+        isBoundingShape();
+
         ShapeSet& ss;
 };
 

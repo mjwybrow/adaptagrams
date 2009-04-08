@@ -143,7 +143,7 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf1,
         {
             ReferencingPolygon& cBoundary = (*cl)->polygon();
             assert(cBoundary.ps[0] != cBoundary.ps[cBoundary.size() - 1]);
-            for (int j = 0; j < cBoundary.size(); ++j)
+            for (size_t j = 0; j < cBoundary.size(); ++j)
             {
                 // Cluster boundary points should correspond to shape 
                 // vertices and hence already be in the list of vertices.
