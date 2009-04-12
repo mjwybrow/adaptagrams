@@ -15,7 +15,7 @@ body { padding-top: 10px; padding-left: 60px; padding-right: 60px; }
 <p>libavoid is a C++ library.  Its code is all within the <code>Avoid::</code> namespace.</p>
 
 <p>First, you must create an instance of the router. 
-<pre>Avoid::Router *router = new Avoid::Router(Avoid::OrthogonalRouting);</pre></p>
+<pre>Avoid::Router *router = new Avoid::Router(Avoid::PolyLineRouting);</pre></p>
 
 <p>To add a shape (obstacle) to the router, you first create a <code>ShapeRef</code> by giving the bounding box of the obstacle.
 <pre>// Create the ShapeRef:
