@@ -100,10 +100,6 @@ class Router {
         double crossing_penalty;
         double cluster_crossing_penalty;
 
-        // Overall modes:
-        bool PolyLineRouting;
-        bool OrthogonalRouting;
-
         // Poly-line routing options:
         bool IgnoreRegions;
         bool IncludeEndpoints;
@@ -206,6 +202,9 @@ class Router {
         void generateContains(VertInf *pt);
         void printInfo(void);
         unsigned int assignId(const unsigned int suggestedId);
+        void regenerateStaticBuiltGraph(void);
+        void setStaticGraphInvalidated(const bool invalidated);
+        unsigned int defaultConnType(void) const;
 
     private:
         void newBlockingShape(Polygon *poly, int pid);
@@ -221,6 +220,13 @@ class Router {
 
         MoveInfoList moveList;
         unsigned int _largestAssignedId;
+
+    public:
+        // Overall modes:
+        bool _polyLineRouting;
+        bool _orthogonalRouting;
+
+        bool _staticGraphInvalidated;
 };
 
 }

@@ -13,10 +13,11 @@ libavoid_a_SOURCES = connector.cpp\
 			timer.cpp\
 			visibility.cpp\
 			geomtypes.cpp\
+			orthogonal.cpp\
 			libavoid.h
 
 libavoidincludedir = ${includedir}/libavoid
-libavoidinclude_HEADERS = connector.h  geomtypes.h  makepath.h  router.h  timer.h debug.h      graph.h      shape.h   vertices.h geometry.h   libavoid.h   static.h  visibility.h viscluster.h
+libavoidinclude_HEADERS = connector.h  geomtypes.h  makepath.h  router.h  timer.h debug.h      graph.h      shape.h   vertices.h geometry.h   libavoid.h   static.h  visibility.h viscluster.h orthogonal.h
 
 SUBDIRS = tests
 

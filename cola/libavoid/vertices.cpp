@@ -504,6 +504,18 @@ VertInf *VertInfList::end(void)
 }
 
 
+unsigned int VertInfList::connsSize(void) const
+{
+    return _connVertices;
+}
+
+
+unsigned int VertInfList::shapesSize(void) const
+{
+    return _shapeVertices;
+}
+
+
 }
 
 
