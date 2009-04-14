@@ -198,48 +198,53 @@ class ANode
         double g;        // Gone
         double h;        // Heuristic
         double f;        // Formula f = g + h
+        int bend;
         VertInf *pp;
 
         ANode(VertInf *vinf)
-            : inf(vinf)
-            , g(0)
-            , h(0)
-            , f(0)
-            , pp(NULL)
+            : inf(vinf),
+              g(0),
+              h(0),
+              f(0),
+              bend(0),
+              pp(NULL)
         {
         }
         ANode()
-            : inf(NULL)
-            , g(0)
-            , h(0)
-            , f(0)
-            , pp(NULL)
+            : inf(NULL),
+              g(0),
+              h(0),
+              f(0),
+              bend(0),
+              pp(NULL)
         {
         }
 };
 
 
-// This returns the opposite result so that when used with stl::make_heap, 
+// This returns the opposite result (>) so that when used with stl::make_heap, 
 // the head node of the heap will be the smallest value, rather than the 
 // largest.  This saves us from having to sort the heap (and then reorder
 // it back into a heap) when getting the next node to examine.  This way we
 // get better complexity -- logarithmic pushs and pops to the heap.
+//
 bool operator<(const ANode &a, const ANode &b)
 {
-    if (a.f == b.f)
+    if (a.f != b.f)
     {
-        if (a.g == b.g)
-        {
-            return a.inf > b.inf;
-        }
-        // Tiebreaker, use less costly existing path.
-        return a.g > b.g;
+        return a.f > b.f;
     }
-    return a.f > b.f;
+    if (a.bend != b.bend)
+    {
+        // Tiebreaker, use less costly existing path.
+        return a.bend > b.bend;
+    }
+    return a.g > b.g;
 }
 
 
-static double estimatedCost(ConnRef *lineRef, const Point& a, const Point& b)
+static double estimatedCost(ConnRef *lineRef, const Point *last, 
+        const Point& a, const Point& b)
 {
     if (lineRef->type() == ConnType_PolyLine)
     {
@@ -248,10 +253,44 @@ static double estimatedCost(ConnRef *lineRef, const Point& a, const Point& b)
     else // Orthogonal
     {
         // XXX: This currently just takes into account the compulsory
-        //      bend but will have to by updated when port direction 
+        //      bend but will have to be updated when port direction 
         //      information is available.
-        double bend_penalty = ((a.x != b.x) || (a.y != b.y)) ?
-                lineRef->router()->segmt_penalty : 0;
+        double bend_penalty = 0;
+        double xmove = b.x - a.x;
+        double ymove = b.y - a.y;
+        if (last)
+        {
+            int num_penalties = 0;
+            double last_xmove = a.x - last->x;
+            double last_ymove = a.y - last->y;
+            if ((last_xmove == 0) && (xmove != 0))
+            {
+                num_penalties = 1;
+                if (!(((last_ymove > 0) && (ymove < 0)) ||
+                      ((last_ymove < 0) && (ymove > 0))))
+                {
+                    // Coat-hanger
+                    num_penalties += 1;
+                }
+            }
+            else if ((last_ymove == 0) && (ymove != 0))
+            {
+                num_penalties = 1;
+                if (!(((last_xmove > 0) && (xmove < 0)) ||
+                      ((last_xmove < 0) && (xmove > 0))))
+                {
+                    // Coat-hanger
+                    num_penalties += 1;
+                }
+            }
+            bend_penalty += num_penalties * lineRef->router()->segmt_penalty;
+        }
+        //bend_penalty += ((xmove != 0) && (ymove != 0)) ?
+        //        lineRef->router()->segmt_penalty : 0;
+        
+        // XXX: I'm not sure this is correct yet... needs more testing,
+        //      so leave with zero penalty for the moment.
+        bend_penalty = 0;
 
         return manhattanDist(a, b) + bend_penalty;
     }
@@ -269,8 +308,10 @@ static double estimatedCost(ConnRef *lineRef, const Point& a, const Point& b)
 static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar, 
         VertInf *start)
 {
+    bool isOrthogonal = (lineRef->type() == ConnType_Orthogonal);
+
     double (*dist)(const Point& a, const Point& b) = 
-        (lineRef->type() == ConnType_PolyLine) ? euclideanDist : manhattanDist;
+        (isOrthogonal) ? manhattanDist : euclideanDist;
 
     std::vector<ANode> PENDING;     // STL Vectors chosen because of rapid
     std::vector<ANode> DONE;        // insertions/deletions at back,
@@ -306,8 +347,10 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
             if (!last)
             {
                 Node.g = 0;
-                Node.h = estimatedCost(lineRef, Node.inf->point, tar->point);
+                Node.h = estimatedCost(lineRef, NULL, Node.inf->point, 
+                        tar->point);
                 Node.f = Node.g + Node.h;
+                Node.bend = 0;
                 Node.pp = NULL;
             }
             else
@@ -320,10 +363,15 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
                         BestNode.inf, Node.inf);
 
                 // Calculate the Heuristic.
-                Node.h = estimatedCost(lineRef, Node.inf->point, tar->point);
+                Node.h = estimatedCost(lineRef, &(BestNode.inf->point),
+                        Node.inf->point, tar->point);
 
                 // The A* formula
                 Node.f = Node.g + Node.h;
+                
+                Node.bend = BestNode.pp ? abs(vecDir(BestNode.pp->point,
+                            BestNode.inf->point, curr->point)) : 0;
+
                 // Point parent to last BestNode (pushed onto DONE)
                 Node.pp = BestNode.inf;
             }
@@ -349,9 +397,10 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
         // Create the start node
         Node = ANode(src);
         Node.g = 0;
-        Node.h = estimatedCost(lineRef, Node.inf->point, tar->point);
+        Node.h = estimatedCost(lineRef, NULL, Node.inf->point, tar->point);
         Node.f = Node.g + Node.h;
         // Set a null parent, so cost function knows this is the first segment.
+        Node.bend = 0;
         Node.pp = NULL;
 
         // Populate the PENDING container with the first location
@@ -403,7 +452,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
         }
 
         // Check adjacent points in graph
-        EdgeInfList& visList = (lineRef->type() == ConnType_PolyLine) ?
+        EdgeInfList& visList = (!isOrthogonal) ?
                 BestNode.inf->visList : BestNode.inf->orthogVisList;
         EdgeInfList::const_iterator finish = visList.end();
         for (EdgeInfList::const_iterator edge = visList.begin(); edge != finish;
@@ -426,7 +475,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
 
             VertInf *prevInf = BestNode.inf->pathNext;
 
-            if (!router->OrthogonalRouting &&
+            if (!router->_orthogonalRouting &&
                   (!router->RubberBandRouting || (start == src)) && 
                   (validateBendPoint(prevInf, BestNode.inf, Node.inf) == false))
             {
@@ -441,10 +490,15 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
                     BestNode.inf, Node.inf);
 
             // Calculate the Heuristic.
-            Node.h = estimatedCost(lineRef, Node.inf->point, tar->point);
+            Node.h = estimatedCost(lineRef, &(BestNode.inf->point),
+                    Node.inf->point, tar->point);
 
             // The A* formula
             Node.f = Node.g + Node.h;
+
+            Node.bend = BestNode.pp ? abs(vecDir(BestNode.pp->point,
+                        BestNode.inf->point, Node.inf->point)) : 0;
+
             // Point parent to last BestNode (pushed onto DONE)
             Node.pp = BestNode.inf;
 
@@ -461,6 +515,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
                         ati.g = Node.g;
                         ati.f = Node.g + ati.h;
                         ati.pp = Node.pp;
+                        ati.bend = Node.bend;
                         
                         make_heap( PENDING.begin(), PENDING.end() );
                     }
@@ -482,6 +537,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
                             ati.g = Node.g;
                             ati.f = Node.g + ati.h;
                             ati.pp = Node.pp;
+                            ati.bend = Node.bend;
                             ati.inf->pathNext = Node.pp;
                         }
                         bNodeFound = true;
@@ -528,6 +584,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
 //
 void makePath(ConnRef *lineRef, bool *flag)
 {
+    bool isOrthogonal = (lineRef->type() == ConnType_Orthogonal);
     Router *router = lineRef->router();
     VertInf *src = lineRef->src();
     VertInf *tar = lineRef->dst();
@@ -541,7 +598,7 @@ void makePath(ConnRef *lineRef, bool *flag)
     // TODO: Could be more efficient here.
     EdgeInf *directEdge = EdgeInf::existingEdge(src, tar);
     if ((start == src) && !(router->IncludeEndpoints) && 
-            !(router->OrthogonalRouting) && directVis(src, tar))
+            !isOrthogonal && directVis(src, tar))
     {
         Point p = src->point;
         Point q = tar->point;
@@ -556,7 +613,7 @@ void makePath(ConnRef *lineRef, bool *flag)
         return;
     }
     else if ((start == src) && router->IncludeEndpoints && directEdge &&
-            !(router->OrthogonalRouting) && (directEdge->getDist() > 0) && 
+            !isOrthogonal && (directEdge->getDist() > 0) && 
             !examineDirectPath)
     {
         tar->pathNext = src;

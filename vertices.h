@@ -105,6 +105,8 @@ class VertInfList
         VertInf *shapesBegin(void);
         VertInf *connsBegin(void);
         VertInf *end(void);
+        unsigned int connsSize(void) const;
+        unsigned int shapesSize(void) const;
         void stats(void)
         {
             printf("Conns %d, shapes %d\n", _connVertices, _shapeVertices);

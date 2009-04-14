@@ -23,9 +23,6 @@
 */
 
 
-//#define ORTHOGONAL_ROUTING
-
-
 #include <cstdlib>
 #include <math.h>
 #include "libavoid/shape.h"
@@ -33,9 +30,7 @@
 #include "libavoid/visibility.h"
 #include "libavoid/connector.h"
 #include "libavoid/debug.h"
-#ifdef ORTHOGONAL_ROUTING
 #include "libavoid/orthogonal.h"
-#endif
 
 namespace Avoid {
 
@@ -70,13 +65,6 @@ Router::Router(const unsigned int flags)
       angle_penalty(0),
       crossing_penalty(200),
       cluster_crossing_penalty(4000),
-      // Mode options:
-      PolyLineRouting(true),
-#ifdef ORTHOGONAL_ROUTING
-      OrthogonalRouting(true),
-#else
-      OrthogonalRouting(false),
-#endif
       // Poly-line algorithm options:
       IgnoreRegions(true),
       IncludeEndpoints(true),
@@ -92,10 +80,24 @@ Router::Router(const unsigned int flags)
 #ifdef LINEDEBUG
       avoid_screen(NULL),
 #endif
-      _largestAssignedId(0)
-{ }
+      _largestAssignedId(0),
+      // Mode options:
+      _polyLineRouting(false),
+      _orthogonalRouting(false),
+      _staticGraphInvalidated(true)
+{
+    // At least one of the Routing modes must be set.
+    assert(flags & (PolyLineRouting | OrthogonalRouting));
 
-
+    if (flags & PolyLineRouting)
+    {
+        _polyLineRouting = true;
+    }
+    if (flags & OrthogonalRouting)
+    {
+        _orthogonalRouting = true;
+    }
+}
 
 
 void Router::addShape(ShapeRef *shape)
@@ -120,6 +122,7 @@ void Router::addShape(ShapeRef *shape)
     {
         shapeVis(shape);
     }
+    _staticGraphInvalidated = true;
     callbackAllInvalidConnectors();
 }
 
@@ -163,6 +166,7 @@ void Router::removeShape(ShapeRef *shape)
         // check all edges not in graph
         checkAllMissingEdges();
     }
+    _staticGraphInvalidated = true;
     callbackAllInvalidConnectors();
 }
 
@@ -214,29 +218,36 @@ void Router::moveShape(ShapeRef *shape, const Polygon& newPoly,
 }
 
 
+void Router::setStaticGraphInvalidated(const bool invalidated)
+{
+    _staticGraphInvalidated = invalidated;
+}
+
+
+void Router::regenerateStaticBuiltGraph(void)
+{
+    // Here we do talks involved in updating the static-built visibility 
+    // graph (if necessary) before we do any routing.
+    if (_staticGraphInvalidated)
+    {
+        if (_orthogonalRouting)
+        {
+            visOrthogGraph.clear();
+            generateStaticOrthogonalVisGraph(this);
+        }
+        _staticGraphInvalidated = false;
+    }
+}
+
+
 void Router::processMoves(void)
 {
-#ifdef ORTHOGONAL_ROUTING
-    if (OrthogonalRouting && (visOrthogGraph.size() == 0))
-    {
-        generateStaticOrthogonalVisGraph(this);
-    }
-#endif
-
     // If SimpleRouting, then don't update yet.
     if (moveList.empty() || SimpleRouting)
     {
         return;
     }
 
-#ifdef ORTHOGONAL_ROUTING
-    if (OrthogonalRouting)
-    {
-        visOrthogGraph.clear();
-        generateStaticOrthogonalVisGraph(this);
-    }
-#endif
-    
     MoveInfoList::const_iterator curr;
     MoveInfoList::const_iterator finish = moveList.end();
     for (curr = moveList.begin(); curr != finish; ++curr)
@@ -321,6 +332,7 @@ void Router::processMoves(void)
         moveList.pop_front();
         delete moveInf;
     }
+    _staticGraphInvalidated = true;
     callbackAllInvalidConnectors();
 }
 
@@ -884,6 +896,16 @@ void Router::markConnectors(ShapeRef *shape)
 
         }
     }
+}
+
+
+unsigned int Router::defaultConnType(void) const
+{
+    if (_orthogonalRouting)
+    {
+        return ConnType_Orthogonal;
+    }
+    return ConnType_PolyLine;
 }
 
 

@@ -52,7 +52,7 @@ const Point& ConnEnd::point(void) const
 
 ConnRef::ConnRef(Router *router, const unsigned int id)
     : _router(router),
-      _type(ConnType_PolyLine),
+      _type(router->defaultConnType()),
       _srcId(0),
       _dstId(0),
       _needs_reroute_flag(true),
@@ -77,7 +77,7 @@ ConnRef::ConnRef(Router *router, const unsigned int id)
 ConnRef::ConnRef(Router *router, const ConnEnd& src, const ConnEnd& dst,
         const unsigned int id)
     : _router(router),
-      _type(ConnType_PolyLine),
+      _type(router->defaultConnType()),
       _srcId(0),
       _dstId(0),
       _needs_reroute_flag(true),
@@ -149,7 +149,7 @@ void ConnRef::setType(unsigned int type)
 
 void ConnRef::common_updateEndPoint(const unsigned int type, const Point& point)
 {
-    //printf("updateEndPoint(%d,(pid=%d,vn=%d,(%f,%f)))\n",
+    //printf("common_updateEndPoint(%d,(pid=%d,vn=%d,(%f,%f)))\n",
     //      type,point.id,point.vn,point.x,point.y);
     assert((type == (unsigned int) VertID::src) ||
            (type == (unsigned int) VertID::tar));
@@ -201,6 +201,8 @@ void ConnRef::common_updateEndPoint(const unsigned int type, const Point& point)
     // XXX: Seems to be faster to just remove the edges and recreate
     bool isConn = true;
     altered->removeFromGraph(isConn);
+
+    _router->setStaticGraphInvalidated(true);
 }
 
 
@@ -551,64 +553,27 @@ Router *ConnRef::router(void) const
 
 bool ConnRef::generatePath(Point p0, Point p1)
 {
-    VertInf *origSrc = _srcVert, *origDst = _dstVert;
-    // XXX This is hacky
-    if (_router->OrthogonalRouting)
-    {
-        _type = ConnType_Orthogonal;
-        unsigned int srcShapeId = *(_router->contains[_srcVert->id].begin());
-        unsigned int dstShapeId = *(_router->contains[_dstVert->id].begin());
-        //printf("Orig ids %d %d\n", srcShapeId, dstShapeId);
-        VertInf *curr = _router->orthogVertices.connsBegin();
-        while (curr != NULL)
-        {
-            if ((_srcVert->id.vn != 40) && (curr->point.id == srcShapeId) &&
-                    (curr->point.vn == 40))
-            {
-                _srcVert = curr;
-            }
-            if ((_dstVert->id.vn != 40) && (curr->point.id == dstShapeId) &&
-                    (curr->point.vn == 40))
-            {
-                _dstVert = curr;
-            }
-            if ((_srcVert->id.vn == 40) && (_dstVert->id.vn == 40))
-            {
-                break;
-            }
-            curr = curr->lstNext;
-        }
-        //fprintf(stderr, "----- 1 ");
-        //_srcVert->id.print(stderr);
-        //fprintf(stderr, "\n----- 2 ");
-        //_dstVert->id.print(stderr);
-        //fprintf(stderr, "\n");
-    }
-    else
+    // XXX Code to determine when connectors really need to be rerouted
+    //     does not yet work for orthogonal connectors.
+    if (type() != ConnType_Orthogonal)
     {
         if (!_false_path && !_needs_reroute_flag) {
             // This connector is up to date.
             return (int) false;
         }
+    }
 
-        if ( !(_router->IncludeEndpoints) )
-        {
-            lateSetup(p0, p1);
-            
-            bool knownNew = true;
-            bool genContains = true;
-            vertexVisibility(_srcVert, _dstVert, knownNew, genContains);
-            vertexVisibility(_dstVert, _srcVert, knownNew, genContains);
-        }
+    if ( !(_router->IncludeEndpoints) )
+    {
+        lateSetup(p0, p1);
+        
+        bool knownNew = true;
+        bool genContains = true;
+        vertexVisibility(_srcVert, _dstVert, knownNew, genContains);
+        vertexVisibility(_dstVert, _srcVert, knownNew, genContains);
     }
 
     bool result = generatePath();
-
-    if (_router->OrthogonalRouting)
-    {
-        _srcVert = origSrc;
-        _dstVert = origDst;
-    }
 
     return result;
 }
@@ -706,6 +671,9 @@ bool ConnRef::generatePath(void)
         // This connector is up to date.
         return false;
     }
+    
+    // Updating the orthogonal visibility graph if necessary. 
+    _router->regenerateStaticBuiltGraph();
 
     //assert(_srcVert->point != _dstVert->point);
 
