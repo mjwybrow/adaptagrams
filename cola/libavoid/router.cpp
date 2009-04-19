@@ -519,7 +519,7 @@ void Router::newBlockingShape(Polygon *poly, int pid)
             bool seenIntersectionAtEndpoint = false;
             for (size_t pt_i = 0; pt_i < poly->size(); ++pt_i)
             {
-                int pt_n = (pt_i == (poly->size() - 1)) ? 0 : pt_i + 1;
+                size_t pt_n = (pt_i == (poly->size() - 1)) ? 0 : pt_i + 1;
                 Point& pi = poly->ps[pt_i];
                 Point& pn = poly->ps[pt_n];
                 if (segmentShapeIntersect(e1, e2, pi, pn, 

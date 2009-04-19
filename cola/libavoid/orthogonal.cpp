@@ -147,8 +147,9 @@ int compare_events(const void *a, const void *b)
 
 // Temporary structure used to store the possible horizontal visibility 
 // lines arising from the vertical sweep.
-struct LineSegment 
+class LineSegment 
 {
+public:
     LineSegment(const double& b, const double& f, const double& p, 
             bool ss = false, VertInf *bvi = NULL, VertInf *fvi = NULL)
         : begin(b),
@@ -208,6 +209,12 @@ struct LineSegment
     bool shapeSide;
     VertInf *beginVertInf;
     VertInf *finishVertInf;
+private:
+	// MSVC wants to generate the assignment operator and the default 
+	// constructor, but fails.  Therefore we declare them private and 
+	// don't implement them.
+	LineSegment & operator=(LineSegment const &);
+	LineSegment();
 };
 typedef std::list<LineSegment> SegmentList;
 
@@ -430,10 +437,10 @@ static void mergeSegments(Router *router, SegmentList& segments,
 
 void generateStaticOrthogonalVisGraph(Router *router)
 {
-    const unsigned n = router->shapeRefs.size();
+    const size_t n = router->shapeRefs.size();
     const unsigned cpn = router->vertices.connsSize();
     // Set up the events for the vertical sweep.
-    unsigned int totalEvents = (2 * n) + cpn;
+    size_t totalEvents = (2 * n) + cpn;
     events = new Event*[totalEvents];
     unsigned ctr = 0;
     ShapeRefList::iterator shRefIt = router->shapeRefs.begin();
@@ -622,7 +629,7 @@ void generateStaticOrthogonalVisGraph(Router *router)
             NodeSet::iterator it = insertIt;
             if (it != scanline.begin()) 
             {
-                double pos;
+                double pos = DBL_MAX;
                 do
                 {
                     v->firstAbove = (it != scanline.begin()) ? *(--it) : NULL;
@@ -637,7 +644,7 @@ void generateStaticOrthogonalVisGraph(Router *router)
             it = insertIt;
             if (it != scanline.end()) 
             {
-                double pos;
+                double pos = -DBL_MAX;
                 do
                 {
                     ++it;
@@ -839,7 +846,7 @@ void generateStaticOrthogonalVisGraph(Router *router)
             NodeSet::iterator it = insertIt;
             if (it != scanline.begin()) 
             {
-                double pos;
+                double pos = DBL_MAX;
                 do
                 {
                     v->firstAbove = (it != scanline.begin()) ? *(--it) : NULL;
@@ -854,7 +861,7 @@ void generateStaticOrthogonalVisGraph(Router *router)
             it = insertIt;
             if (it != scanline.end()) 
             {
-                double pos;
+                double pos = -DBL_MAX;
                 do
                 {
                     ++it;

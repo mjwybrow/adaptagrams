@@ -407,7 +407,7 @@ Polygon Polygon::curvedPolyline(const double curve_amount) const
     }
 
     Polygon curved;
-    int num_of_points = size();
+    size_t num_of_points = size();
     if (num_of_points <= 2)
     {
         // There is only a single segment, do nothing.
