@@ -100,6 +100,36 @@ Router::Router(const unsigned int flags)
 }
 
 
+Router::~Router()
+{
+    // Delete remaining connectors.
+    ConnRefList::iterator conn = connRefs.begin();
+    while (conn != connRefs.end())
+    {
+        db_printf("Deleting connector %u in ~Router()\n", (*conn)->id());
+        delete *conn;
+        conn = connRefs.begin();
+    }
+
+    // Remove remaining shapes.
+    ShapeRefList::iterator shape = shapeRefs.begin();
+    while (shape != shapeRefs.end())
+    {
+        ShapeRef *shapePtr = *shape;
+        db_printf("Deleting shape %u in ~Router()\n", shapePtr->id());
+        shapePtr->removeFromGraph();
+        shapePtr->makeInactive();
+        delete shapePtr;
+        shape = shapeRefs.begin();
+    }
+
+    assert(connRefs.size() == 0);
+    assert(shapeRefs.size() == 0);
+    assert(visGraph.size() == 0);
+    assert(invisGraph.size() == 0);
+}
+
+
 void Router::addShape(ShapeRef *shape)
 {
     shape->makeActive();
@@ -153,8 +183,8 @@ void Router::removeShape(ShapeRef *shape)
     }
 
     adjustContainsWithDel(pid);
-    
-    delete shape;
+
+    shape->makeInactive();
     
     // o  Check all edges that were blocked by this shape.
     if (InvisibilityGrph)

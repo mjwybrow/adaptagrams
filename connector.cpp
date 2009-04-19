@@ -112,6 +112,8 @@ ConnRef::ConnRef(Router *router, const ConnEnd& src, const ConnEnd& dst,
 
 ConnRef::~ConnRef()
 {
+    removeFromGraph();
+
     freeRoute();
 
     if (_srcVert)
@@ -128,10 +130,7 @@ ConnRef::~ConnRef()
         _dstVert = NULL;
     }
 
-    if (_active)
-    {
-        makeInactive();
-    }
+    makeInactive();
 }
 
 
@@ -516,6 +515,15 @@ void ConnRef::removeFromGraph(void)
         while ((edge = invisList.begin()) != finish)
         {
             // Remove each invisibility edge
+            delete (*edge);
+        }
+
+        EdgeInfList& orthogList = tmp->orthogVisList;
+        finish = orthogList.end();
+        while ((edge = orthogList.begin()) != finish)
+        {
+            // Remove each orthogonal visibility edge
+            (*edge)->alertConns();
             delete (*edge);
         }
     }

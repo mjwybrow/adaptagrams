@@ -81,6 +81,13 @@ class Router {
         //!                    control the behaviour of the router.
         Router(const unsigned int flags);
 
+        //! @brief  Destructor for router instance.
+        //!
+        //! @note   Destroying a router instance will delete all remaining
+        //!         shapes and connectors, thereby invalidating any existing
+        //!         pointers to them.
+        ~Router();
+
         ShapeRefList shapeRefs;
         ConnRefList connRefs;
         ClusterRefList clusterRefs;
