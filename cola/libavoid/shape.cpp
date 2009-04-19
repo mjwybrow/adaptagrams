@@ -79,8 +79,6 @@ ShapeRef::~ShapeRef()
 {
     assert(_firstVert != NULL);
     
-    makeInactive();
-
     VertInf *it = _firstVert;
     do
     {
@@ -235,6 +233,15 @@ void ShapeRef::removeFromGraph(void)
         while ((edge = invisList.begin()) != finish)
         {
             // Remove each invisibility edge
+            delete (*edge);
+        }
+
+        EdgeInfList& orthogList = tmp->orthogVisList;
+        finish = orthogList.end();
+        while ((edge = orthogList.begin()) != finish)
+        {
+            // Remove each orthogonal visibility edge
+            (*edge)->alertConns();
             delete (*edge);
         }
     }

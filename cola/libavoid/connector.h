@@ -219,7 +219,6 @@ class ConnRef
         VertInf *start(void);
         void removeFromGraph(void);
         bool isInitialised(void);
-        void unInitialise(void);
         bool generatePath(Point p0, Point p1);
         void makePathInvalid(void);
         void setHateCrossings(bool value);
@@ -232,6 +231,7 @@ class ConnRef
         friend void Router::markConnectors(ShapeRef *shape);
         
     private:
+        void unInitialise(void);
         void common_updateEndPoint(const unsigned int type, const Point& point);
         Router *_router;
         unsigned int _id;
