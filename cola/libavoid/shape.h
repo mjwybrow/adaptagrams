@@ -77,6 +77,8 @@ class ShapeRef
         ShapeRef(Router *router, Polygon& poly, const unsigned int id = 0);
         //! @brief  Shape reference destructor.
         //!
+        //! This will call Router::removeShape() for this shape, if this has
+        //! not already be called.
         ~ShapeRef();
         
         //! @brief   Returns the ID of this shape.

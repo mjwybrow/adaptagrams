@@ -77,6 +77,12 @@ ShapeRef::ShapeRef(Router *router, Polygon& ply, const unsigned int id)
 
 ShapeRef::~ShapeRef()
 {
+    if (_active)
+    {
+        // Destroying a shape without calling removeShape(), so do it now.
+        _router->removeShape(this);
+    }
+
     assert(_firstVert != NULL);
     
     VertInf *it = _firstVert;
