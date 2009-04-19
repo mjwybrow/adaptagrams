@@ -300,13 +300,13 @@ double angle(const Point& a, const Point& b, const Point& c)
 //
 bool inPoly(const Polygon& poly, const Point& q, bool countBorder)
 {
-    int n = poly.size();
+    size_t n = poly.size();
     const std::vector<Point>& P = poly.ps;
     bool onBorder = false;
-    for (int i = 0; i < n; i++)
+    for (size_t i = 0; i < n; i++)
     {
         // point index; i1 = i-1 mod n
-        int prev = (i + n - 1) % n;
+        size_t prev = (i + n - 1) % n;
         int dir = vecDir(P[prev], P[i], q);
         if (dir == -1)
         {
@@ -338,17 +338,17 @@ bool inPolyGen(const PolygonInterface& argpoly, const Point& q)
     // Copy the argument polygon
     Polygon poly = argpoly;
     std::vector<Point>& P = poly.ps;
-    int    n = poly.size();
+    size_t    n = poly.size();
 
     // Shift so that q is the origin. This is done for pedogical clarity.
-    for (int i = 0; i < n; ++i)
+    for (size_t i = 0; i < n; ++i)
     {
         P[i].x = P[i].x - q.x;
         P[i].y = P[i].y - q.y;
     }
 
     // For each edge e=(i-1,i), see if crosses ray.
-    for (int i = 0; i < n; ++i)
+    for (size_t i = 0; i < n; ++i)
     {
         // First see if q=(0,0) is a vertex.
         if ((P[i].x == 0) && (P[i].y == 0))
@@ -358,7 +358,7 @@ bool inPolyGen(const PolygonInterface& argpoly, const Point& q)
         }
 
         // point index; i1 = i-1 mod n
-        int i1 = ( i + n - 1 ) % n;
+        size_t i1 = ( i + n - 1 ) % n;
 
         // if e "straddles" the x-axis...
         // The commented-out statement is logically equivalent to the one

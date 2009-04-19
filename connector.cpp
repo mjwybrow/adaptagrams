@@ -685,7 +685,7 @@ bool ConnRef::generatePath(void)
 
     bool *flag = &(_needs_reroute_flag);
    
-    int existingPathStart = 0;
+    size_t existingPathStart = 0;
     const PolyLine& currRoute = route();
     if (_router->RubberBandRouting)
     {
