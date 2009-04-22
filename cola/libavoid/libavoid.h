@@ -69,7 +69,6 @@
 #include "libavoid/makepath.h"
 #include "libavoid/vertices.h"
 #include "libavoid/visibility.h"
-#include "libavoid/static.h"
 #include "libavoid/router.h"
 
 #endif
