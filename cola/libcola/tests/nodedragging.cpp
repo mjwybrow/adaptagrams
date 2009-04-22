@@ -102,7 +102,7 @@ void nodeDragging() {
     double idealLength=60;
     // set up topology graph
     topology::Nodes vs;
-    for(vector<Rectangle*>::iterator i = rs.begin(); i!=rs.end();++i) {
+    for(vector<vpsc::Rectangle*>::iterator i = rs.begin(); i!=rs.end();++i) {
         addNode(vs,*i);
     }
     topology::Edges tes;
