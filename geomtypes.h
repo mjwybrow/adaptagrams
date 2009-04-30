@@ -106,7 +106,7 @@ class PolygonInterface
     public:
         //! @brief  Constructor.
         PolygonInterface() { }
-        //! @brief  Destuctor..
+        //! @brief  Destructor.
         virtual ~PolygonInterface() { }
         //! @brief  Resets this to the empty polygon.
         virtual void clear(void) = 0;
@@ -201,15 +201,16 @@ class Polygon : public PolygonInterface
         //! curves produced.  Hence, you would usually specify a curve_amount
         //! in similar size to the space buffer around obstacles in the scene.
         //! This way the curves will cut the corners around shapes but still
-        //! run in this buffer space.
+        //! run within this buffer space.
         //!
-        //! @param  curve_amount  Describes how large to make the curves.
-        //! @return The ts value for each point in the returned Polygon 
-        //!         describes the drawing operation: 'M' (move) marks the 
-        //!         first point, a line segment is marked with an 'L' and 
-        //!         three 'C's (along with the previous point) describe the 
-        //!         control points of a Bezier curve.
-        //!
+        //! @param  curve_amount  Describes the distance along the end of each 
+        //!         line segment to turn into a curve.
+        //! @return A new polyline (polygon) representing the curved path.
+        //!         Its points represent endpoints of line segments and 
+        //!         Bezier spline control points.  The Polygon::ts vector for
+        //!         this returned polygon is populated with a character for 
+        //!         each point describing its type.
+        //! @sa     ts
         Polygon curvedPolyline(const double curve_amount) const;
         //! @brief  Translates the polygon position by a relative amount.
         //!
@@ -222,7 +223,19 @@ class Polygon : public PolygonInterface
         //! @brief  A vector of the points that make up the Polygon.
         std::vector<Point> ps;
         //! @brief  If used, denotes whether the corresponding point in ps is 
-        //!         a move-to operation or a Bezier curve-to. 
+        //!         a move-to operation or a Bezier curve-to.
+        //! 
+        //! Each character describes the drawing operation for the 
+        //! corresponding point in the ps vector.  Possible values are:
+        //!  -  'M': A moveto operation, marks the first point;
+        //!  -  'L': A lineto operation, is a line from the previous point to
+        //!     the current point; or
+        //!  -  'C': A curveto operation, three consecutive 'C' points 
+        //!     (along with the previous point) describe the control points 
+        //!     of a Bezier curve.
+        //!
+        //! @note   This vector will currently only be populated for polygons 
+        //!         returned by curvedPolyline().  
         std::vector<char> ts;
 };
 
