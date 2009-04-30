@@ -88,6 +88,7 @@ void deleteDoubleArray(double* a) {
 %rename(testoperator) cola::TestConvergence::operator();
 
 %rename(Avoid_Edge) Avoid::Edge;
+%rename(Avoid_Rectangle) Avoid::Rectangle;
 
 %rename(getVarOrig) topology::Node::getVar() const;
 
