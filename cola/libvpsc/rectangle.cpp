@@ -417,12 +417,12 @@ void Rectangle::routeAround(double x1, double y1, double x2, double y2,
          bottom1=eq(y1,minY), bottom2=eq(y2,minY);
     bool left1=eq(x1,minX), left2=eq(x2,minX), 
          right1=eq(x1,maxX), right2=eq(x2,maxX);
-    bool leftright = left1 && right2 || right1 && left2;
-    bool topbottom = top1 && bottom2 || bottom1 && top2;
-    bool lefttop = left1 && top2 || top1 && left2;
-    bool righttop = right1 && top2 || top1 && right2;
-    bool leftbottom = left1 && bottom2 || bottom1 && left2;
-    bool rightbottom = right1 && bottom2 || bottom1 && right2;
+    bool leftright = (left1 && right2) || (right1 && left2);
+    bool topbottom = (top1 && bottom2) || (bottom1 && top2);
+    bool lefttop = (left1 && top2) || (top1 && left2);
+    bool righttop = (right1 && top2) || (top1 && right2);
+    bool leftbottom = (left1 && bottom2) || (bottom1 && left2);
+    bool rightbottom = (right1 && bottom2) || (bottom1 && right2);
     if(lefttop) {
         xs.push_back(minX);
         ys.push_back(maxY);
