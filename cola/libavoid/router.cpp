@@ -138,19 +138,22 @@ void Router::addShape(ShapeRef *shape)
     Polygon poly = shape->polygon();
 
     adjustContainsWithAdd(poly, pid);
-    
-    // o  Check all visibility edges to see if this one shape
-    //    blocks them.
-    newBlockingShape(&poly, pid);
 
-    // o  Calculate visibility for the new vertices.
-    if (UseLeesAlgorithm)
+    if (_polyLineRouting)
     {
-        shapeVisSweep(shape);
-    }
-    else
-    {
-        shapeVis(shape);
+        // o  Check all visibility edges to see if this one shape
+        //    blocks them.
+        newBlockingShape(&poly, pid);
+
+        // o  Calculate visibility for the new vertices.
+        if (UseLeesAlgorithm)
+        {
+            shapeVisSweep(shape);
+        }
+        else
+        {
+            shapeVis(shape);
+        }
     }
     _staticGraphInvalidated = true;
     callbackAllInvalidConnectors();
@@ -186,15 +189,18 @@ void Router::removeShape(ShapeRef *shape)
 
     shape->makeInactive();
     
-    // o  Check all edges that were blocked by this shape.
-    if (InvisibilityGrph)
+    if (_polyLineRouting)
     {
-        checkAllBlockedEdges(pid);
-    }
-    else
-    {
-        // check all edges not in graph
-        checkAllMissingEdges();
+        // o  Check all edges that were blocked by this shape.
+        if (InvisibilityGrph)
+        {
+            checkAllBlockedEdges(pid);
+        }
+        else
+        {
+            // check all edges not in graph
+            checkAllMissingEdges();
+        }
     }
     _staticGraphInvalidated = true;
     callbackAllInvalidConnectors();
@@ -224,8 +230,7 @@ void Router::moveShape(ShapeRef *shape, const Polygon& newPoly,
         {
             if (!SimpleRouting)
             {
-                fprintf(stderr,
-                        "warning: multiple moves requested for shape %d.\n",
+                db_printf("warning: multiple moves requested for shape %d.\n",
                         (int) id);
             }
             // Just update the MoveInfo with the second polygon, but
@@ -312,22 +317,25 @@ void Router::processMoves(void)
         
     }
     
-    if (InvisibilityGrph)
+    if (_polyLineRouting)
     {
-        for (curr = moveList.begin(); curr != finish; ++curr)
+        if (InvisibilityGrph)
         {
-            MoveInfo *moveInf = *curr;
-            ShapeRef *shape = moveInf->shape;
-            unsigned int pid = shape->id();
-            
-            // o  Check all edges that were blocked by this shape.
-            checkAllBlockedEdges(pid);
+            for (curr = moveList.begin(); curr != finish; ++curr)
+            {
+                MoveInfo *moveInf = *curr;
+                ShapeRef *shape = moveInf->shape;
+                unsigned int pid = shape->id();
+                
+                // o  Check all edges that were blocked by this shape.
+                checkAllBlockedEdges(pid);
+            }
         }
-    }
-    else
-    {
-        // check all edges not in graph
-        checkAllMissingEdges();
+        else
+        {
+            // check all edges not in graph
+            checkAllMissingEdges();
+        }
     }
 
     while ( ! moveList.empty() )
@@ -342,21 +350,24 @@ void Router::processMoves(void)
         // Restore this shape for visibility.
         shape->makeActive();
 
-        // o  Check all visibility edges to see if this one shape
-        //    blocks them.
-        if (notPartialTime)
+        if (_polyLineRouting)
         {
-            newBlockingShape(newPoly, pid);
-        }
+            // o  Check all visibility edges to see if this one shape
+            //    blocks them.
+            if (notPartialTime)
+            {
+                newBlockingShape(newPoly, pid);
+            }
 
-        // o  Calculate visibility for the new vertices.
-        if (UseLeesAlgorithm)
-        {
-            shapeVisSweep(shape);
-        }
-        else
-        {
-            shapeVis(shape);
+            // o  Calculate visibility for the new vertices.
+            if (UseLeesAlgorithm)
+            {
+                shapeVisSweep(shape);
+            }
+            else
+            {
+                shapeVis(shape);
+            }
         }
         
         moveList.pop_front();
@@ -446,7 +457,7 @@ bool Router::idIsUnique(const unsigned int id) const
 
     if (count > 1)
     {
-        fprintf(stderr, "Warning:\tlibavoid object ID %d not unique.\n", id);
+        db_printf("Warning:\tlibavoid object ID %d not unique.\n", id);
         return false;
     }
     return true;
@@ -466,12 +477,14 @@ void Router::attachedConns(IntList &conns, const unsigned int shapeId,
         const unsigned int type)
 {
     ConnRefList::const_iterator fin = connRefs.end();
-    for (ConnRefList::const_iterator i = connRefs.begin(); i != fin; ++i) {
-
-        if ((type & runningTo) && ((*i)->_dstId == shapeId)) {
+    for (ConnRefList::const_iterator i = connRefs.begin(); i != fin; ++i) 
+    {
+        if ((type & runningTo) && ((*i)->_dstId == shapeId)) 
+        {
             conns.push_back((*i)->_id);
         }
-        else if ((type & runningFrom) && ((*i)->_srcId == shapeId)) {
+        else if ((type & runningFrom) && ((*i)->_srcId == shapeId)) 
+        {
             conns.push_back((*i)->_id);
         }
     }
@@ -484,15 +497,18 @@ void Router::attachedShapes(IntList &shapes, const unsigned int shapeId,
         const unsigned int type)
 {
     ConnRefList::const_iterator fin = connRefs.end();
-    for (ConnRefList::const_iterator i = connRefs.begin(); i != fin; ++i) {
-        if ((type & runningTo) && ((*i)->_dstId == shapeId)) {
+    for (ConnRefList::const_iterator i = connRefs.begin(); i != fin; ++i) 
+    {
+        if ((type & runningTo) && ((*i)->_dstId == shapeId)) 
+        {
             if ((*i)->_srcId != 0)
             {
                 // Only if there is a shape attached to the other end.
                 shapes.push_back((*i)->_srcId);
             }
         }
-        else if ((type & runningFrom) && ((*i)->_srcId == shapeId)) {
+        else if ((type & runningFrom) && ((*i)->_srcId == shapeId)) 
+        {
             if ((*i)->_dstId != 0)
             {
                 // Only if there is a shape attached to the other end.
@@ -504,11 +520,12 @@ void Router::attachedShapes(IntList &shapes, const unsigned int shapeId,
 
 
     // It's intended this function is called after shape movement has 
-    // happened to alert connectors that they need to be rerouted.
+    // happened, to alert connectors that they need to be rerouted.
 void Router::callbackAllInvalidConnectors(void)
 {
     ConnRefList::const_iterator fin = connRefs.end();
-    for (ConnRefList::const_iterator i = connRefs.begin(); i != fin; ++i) {
+    for (ConnRefList::const_iterator i = connRefs.begin(); i != fin; ++i) 
+    {
         (*i)->performReroutingCallback();
     }
 }
@@ -815,12 +832,12 @@ void Router::markConnectors(ShapeRef *shape)
                 Point n_p2(p2.x - p1.x, p2.y - p1.y);
                 Point n_start(start.x - p1.x, start.y - p1.y);
                 Point n_end(end.x - p1.x, end.y - p1.y);
-                //printf("n_p2:    (%.1f, %.1f)\n", n_p2.x, n_p2.y);
-                //printf("n_start: (%.1f, %.1f)\n", n_start.x, n_start.y);
-                //printf("n_end:   (%.1f, %.1f)\n", n_end.x, n_end.y);
+                //db_printf("n_p2:    (%.1f, %.1f)\n", n_p2.x, n_p2.y);
+                //db_printf("n_start: (%.1f, %.1f)\n", n_start.x, n_start.y);
+                //db_printf("n_end:   (%.1f, %.1f)\n", n_end.x, n_end.y);
 
                 double theta = 0 - atan2(n_p2.y, n_p2.x);
-                //printf("theta = %.2f\n", theta * (180 / PI));
+                //db_printf("theta = %.2f\n", theta * (180 / PI));
 
                 Point r_p1(0, 0);
                 Point r_p2 = n_p2;
@@ -836,13 +853,13 @@ void Router::markConnectors(ShapeRef *shape)
                 start.y = cosv * n_start.y + sinv * n_start.x;
                 end.x = cosv * n_end.x - sinv * n_end.y;
                 end.y = cosv * n_end.y + sinv * n_end.x;
-                //printf("r_p2:    (%.1f, %.1f)\n", r_p2.x, r_p2.y);
-                //printf("r_start: (%.1f, %.1f)\n", start.x, start.y);
-                //printf("r_end:   (%.1f, %.1f)\n", end.x, end.y);
+                //db_printf("r_p2:    (%.1f, %.1f)\n", r_p2.x, r_p2.y);
+                //db_printf("r_start: (%.1f, %.1f)\n", start.x, start.y);
+                //db_printf("r_end:   (%.1f, %.1f)\n", end.x, end.y);
 
                 if (((int) r_p2.y) != 0)
                 {
-                    printf("r_p2.y: %f != 0\n", r_p2.y);
+                    db_printf("r_p2.y: %f != 0\n", r_p2.y);
                     abort();
                 }
                 // This might be slightly off.
@@ -885,13 +902,13 @@ void Router::markConnectors(ShapeRef *shape)
                 x = ((b*c) + (a*d)) / (b + d);
             }
 
-            //printf("%.1f, %.1f, %.1f, %.1f\n", a, b, c, d);
-            //printf("x = %.1f\n", x);
+            //db_printf("%.1f, %.1f, %.1f, %.1f\n", a, b, c, d);
+            //db_printf("x = %.1f\n", x);
 
             x = std::max(min, x);
             x = std::min(max, x);
 
-            //printf("x = %.1f\n", x);
+            //db_printf("x = %.1f\n", x);
 
             Point xp;
             if (p1.x == p2.x)
@@ -904,20 +921,20 @@ void Router::markConnectors(ShapeRef *shape)
                 xp.x = x;
                 xp.y = offy;
             }
-            //printf("(%.1f, %.1f)\n", xp.x, xp.y);
+            //db_printf("(%.1f, %.1f)\n", xp.x, xp.y);
 
             e1 = euclideanDist(start, xp);
             e2 = euclideanDist(xp, end);
             estdist = e1 + e2;
 
 
-            //printf("is %.1f < %.1f\n", estdist, conndist);
+            //db_printf("is %.1f < %.1f\n", estdist, conndist);
             if (estdist < conndist)
             {
 #ifdef SELECTIVE_DEBUG
                 //double angle = AngleAFromThreeSides(dist(start, end),
                 //        e1, e2);
-                printf("[%3d] - Possible better path found (%.1f < %.1f)\n",
+                db_printf("[%3d] - Possible better path found (%.1f < %.1f)\n",
                         conn->_id, estdist, conndist);
 #endif
                 conn->_needs_reroute_flag = true;

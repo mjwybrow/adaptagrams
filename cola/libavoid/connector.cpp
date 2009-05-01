@@ -148,7 +148,7 @@ void ConnRef::setType(unsigned int type)
 
 void ConnRef::common_updateEndPoint(const unsigned int type, const Point& point)
 {
-    //printf("common_updateEndPoint(%d,(pid=%d,vn=%d,(%f,%f)))\n",
+    //db_printf("common_updateEndPoint(%d,(pid=%d,vn=%d,(%f,%f)))\n",
     //      type,point.id,point.vn,point.x,point.y);
     assert((type == (unsigned int) VertID::src) ||
            (type == (unsigned int) VertID::tar));
@@ -228,15 +228,18 @@ void ConnRef::updateEndPoint(const unsigned int type, const Point& point)
 {
     common_updateEndPoint(type, point);
 
-    bool knownNew = true;
-    bool genContains = true;
-    if (type == (unsigned int) VertID::src)
+    if (_router->_polyLineRouting)
     {
-        vertexVisibility(_srcVert, _dstVert, knownNew, genContains);
-    }
-    else
-    {
-        vertexVisibility(_dstVert, _srcVert, knownNew, genContains);
+        bool knownNew = true;
+        bool genContains = true;
+        if (type == (unsigned int) VertID::src)
+        {
+            vertexVisibility(_srcVert, _dstVert, knownNew, genContains);
+        }
+        else
+        {
+            vertexVisibility(_dstVert, _srcVert, knownNew, genContains);
+        }
     }
 }
 
@@ -296,15 +299,18 @@ void ConnRef::updateEndPoint(const unsigned int type, ShapeRef *shapeRef,
 
     common_updateEndPoint(type, point);
     
-    bool knownNew = true;
-    bool genContains = true;
-    if (type == VertID::src)
+    if (_router->_polyLineRouting)
     {
-        vertexVisibility(_srcVert, _dstVert, knownNew, genContains);
-    }
-    else
-    {
-        vertexVisibility(_dstVert, _srcVert, knownNew, genContains);
+        bool knownNew = true;
+        bool genContains = true;
+        if (type == VertID::src)
+        {
+            vertexVisibility(_srcVert, _dstVert, knownNew, genContains);
+        }
+        else
+        {
+            vertexVisibility(_dstVert, _srcVert, knownNew, genContains);
+        }
     }
 }
 
@@ -400,8 +406,7 @@ void ConnRef::set_route(const PolyLine& route)
 {
     if (&_route == &route)
     {
-        fprintf(stderr, 
-                "ERROR:\tTrying to update libavoid route with itself.\n");
+        db_printf("Error:\tTrying to update libavoid route with itself.\n");
         return;
     }
 
@@ -539,8 +544,10 @@ void ConnRef::setCallback(void (*cb)(void *), void *ptr)
 
 void ConnRef::performReroutingCallback(void)
 {
-    if (_false_path || _needs_reroute_flag) {
-        if (_callback) {
+    if (_false_path || _needs_reroute_flag) 
+    {
+        if (_callback) 
+        {
             _callback(_connector);
         }
     }
@@ -565,9 +572,10 @@ bool ConnRef::generatePath(Point p0, Point p1)
     //     does not yet work for orthogonal connectors.
     if (type() != ConnType_Orthogonal)
     {
-        if (!_false_path && !_needs_reroute_flag) {
+        if (!_false_path && !_needs_reroute_flag) 
+        {
             // This connector is up to date.
-            return (int) false;
+            return false;
         }
     }
 
@@ -575,10 +583,13 @@ bool ConnRef::generatePath(Point p0, Point p1)
     {
         lateSetup(p0, p1);
         
-        bool knownNew = true;
-        bool genContains = true;
-        vertexVisibility(_srcVert, _dstVert, knownNew, genContains);
-        vertexVisibility(_dstVert, _srcVert, knownNew, genContains);
+        if (_router->_polyLineRouting)
+        {
+            bool knownNew = true;
+            bool genContains = true;
+            vertexVisibility(_srcVert, _dstVert, knownNew, genContains);
+            vertexVisibility(_dstVert, _srcVert, knownNew, genContains);
+        }
     }
 
     bool result = generatePath();
@@ -619,16 +630,16 @@ bool validateBendPoint(VertInf *aInf, VertInf *bInf, VertInf *cInf)
     }
 
 #ifdef PATHDEBUG
-    printf("a=(%g, %g)\n", a.x, a.y);
-    printf("b=(%g, %g)\n", b.x, b.y);
-    printf("c=(%g, %g)\n", c.x, c.y);
-    printf("d=(%g, %g)\n", d.x, d.y);
-    printf("e=(%g, %g)\n", e.x, e.y);
+    db_printf("a=(%g, %g)\n", a.x, a.y);
+    db_printf("b=(%g, %g)\n", b.x, b.y);
+    db_printf("c=(%g, %g)\n", c.x, c.y);
+    db_printf("d=(%g, %g)\n", d.x, d.y);
+    db_printf("e=(%g, %g)\n", e.x, e.y);
 #endif
     // Check angle:
     int abc = vecDir(a, b, c);
 #ifdef PATHDEBUG
-    printf("(abc == %d) ", abc);
+    db_printf("(abc == %d) ", abc);
 #endif
    
     if (abc == 0)
@@ -646,7 +657,7 @@ bool validateBendPoint(VertInf *aInf, VertInf *bInf, VertInf *cInf)
         int bce = vecDir(b, c, e);
         int bcd = vecDir(b, c, d);
 #ifdef PATHDEBUG
-        printf("&& (abe == %d) && (abd == %d) &&\n(bce == %d) && (bcd == %d)",
+        db_printf("&& (abe == %d) && (abd == %d) &&\n(bce == %d) && (bcd == %d)",
                 abe, abd, bce, bcd);
 #endif
 
@@ -667,7 +678,7 @@ bool validateBendPoint(VertInf *aInf, VertInf *bInf, VertInf *cInf)
         }
     }
 #ifdef PATHDEBUG
-    printf("\n");
+    db_printf("\n");
 #endif
     return bendOkay;
 }
@@ -675,7 +686,8 @@ bool validateBendPoint(VertInf *aInf, VertInf *bInf, VertInf *cInf)
 
 bool ConnRef::generatePath(void)
 {
-    if (!_false_path && !_needs_reroute_flag) {
+    if (!_false_path && !_needs_reroute_flag) 
+    {
         // This connector is up to date.
         return false;
     }
@@ -700,16 +712,16 @@ bool ConnRef::generatePath(void)
         assert(_router->IgnoreRegions == true);
 
 #ifdef PATHDEBUG
-        printf("\n");
-        _srcVert->id.print(stdout);
-        printf(": %g, %g\n", _srcVert->point.x, _srcVert->point.y);
-        tar->id.print(stdout);
-        printf(": %g, %g\n", tar->point.x, tar->point.y);
-        for (unsigned int i = 0; i < currRoute.ps.size(); ++i)
+        db_printf("\n");
+        _srcVert->id.db_print();
+        db_printf(": %g, %g\n", _srcVert->point.x, _srcVert->point.y);
+        tar->id.db_print();
+        db_printf(": %g, %g\n", tar->point.x, tar->point.y);
+        for (size_t i = 0; i < currRoute.ps.size(); ++i)
         {
-            printf("%g, %g  ", currRoute.ps[i].x, currRoute.ps[i].y);
+            db_printf("%g, %g  ", currRoute.ps[i].x, currRoute.ps[i].y);
         }
-        printf("\n");
+        db_printf("\n");
 #endif
         if (currRoute.size() > 2)
         {
@@ -725,8 +737,8 @@ bool ConnRef::generatePath(void)
             }
         }
     }
-    //printf("GO\n");
-    //printf("src: %X strt: %X dst: %x\n", (int) _srcVert, (int) _startVert, (int) _dstVert);
+    //db_printf("GO\n");
+    //db_printf("src: %X strt: %X dst: %x\n", (int) _srcVert, (int) _startVert, (int) _dstVert);
     bool found = false;
     while (!found)
     {
@@ -746,7 +758,7 @@ bool ConnRef::generatePath(void)
                 break;
             }
 #ifdef PATHDEBUG
-            printf("BACK\n");
+            db_printf("BACK\n");
 #endif
             existingPathStart--;
             const Point& pnt = currRoute.at(existingPathStart);
@@ -762,7 +774,7 @@ bool ConnRef::generatePath(void)
             bool unwind = false;
 
 #ifdef PATHDEBUG
-            printf("\n\n\nSTART:\n\n");
+            db_printf("\n\n\nSTART:\n\n");
 #endif
             VertInf *prior = NULL;
             for (VertInf *curr = tar; curr != _startVert->pathNext; 
@@ -778,7 +790,7 @@ bool ConnRef::generatePath(void)
             if (unwind)
             {
 #ifdef PATHDEBUG
-                printf("BACK II\n");
+                db_printf("BACK II\n");
 #endif
                 if (existingPathStart == 0)
                 {
@@ -819,9 +831,9 @@ bool ConnRef::generatePath(void)
             result = false;
             break;
         }
-        if (pathlen > 100)
+        if (pathlen > 200)
         {
-            fprintf(stderr, "ERROR: Should never be here...\n");
+            db_printf("Error: Apparent infinite connector path detected.\n");
             exit(1);
         }
     }
@@ -830,7 +842,7 @@ bool ConnRef::generatePath(void)
     int j = pathlen - 1;
     for (VertInf *i = tar; i != _srcVert; i = i->pathNext)
     {
-        if (_router->InvisibilityGrph)
+        if (_router->InvisibilityGrph && _router->_polyLineRouting)
         {
             // TODO: Again, we could know this edge without searching.
             EdgeInf *edge = EdgeInf::existingEdge(i, i->pathNext);
@@ -884,13 +896,14 @@ bool ConnRef::generatePath(void)
     }
    
 #ifdef PATHDEBUG
-    printf("Output route:\n");
-    for (unsigned int i = 0; i < output_route.ps.size(); ++i)
+    db_printf("Output route:\n");
+    for (size_t i = 0; i < output_route.ps.size(); ++i)
     {
-        printf("[%d,%d] %g, %g   ", output_route.ps[i].id, output_route.ps[i].vn,
-                output_route.ps[i].x, output_route.ps[i].y);
+        db_printf("[%d,%d] %g, %g   ", output_route.ps[i].id, 
+                output_route.ps[i].vn, output_route.ps[i].x, 
+                output_route.ps[i].y);
     }
-    printf("\n\n");
+    db_printf("\n\n");
 #endif
 
     return result;
@@ -1086,9 +1099,9 @@ static int midVertexNumber(const Point& p0, const Point& p1, const Point& c)
     }
 
     // Shouldn't both be new (kUnassignedVertexNumber) points.
-    fprintf(stderr, "midVertexNumber(): p0.vn and p1.vn both = "
+    db_printf("midVertexNumber(): p0.vn and p1.vn both = "
             "kUnassignedVertexNumber\n");
-    fprintf(stderr, "p0.vn %d p1.vn %d\n", p0.vn, p1.vn);
+    db_printf("p0.vn %d p1.vn %d\n", p0.vn, p1.vn);
     return kUnassignedVertexNumber;
 }
 
@@ -1137,7 +1150,7 @@ void splitBranchingSegments(Avoid::Polygon& poly, bool polyIsConn,
             if (((i - 1) == conn.ps.begin()) && 
                     pointOnLine(p0, p1, c0, tolerance))
             {
-                //printf("add to poly %g %g\n", c0.x, c0.y);
+                //db_printf("add to poly %g %g\n", c0.x, c0.y);
                 
                 c0.vn = midVertexNumber(p0, p1, c0);
                 j = poly.ps.insert(j, c0);
@@ -1150,7 +1163,7 @@ void splitBranchingSegments(Avoid::Polygon& poly, bool polyIsConn,
             // And the second point of every segment.
             if (pointOnLine(p0, p1, c1, tolerance))
             {
-                //printf("add to poly %g %g\n", c1.x, c1.y);
+                //db_printf("add to poly %g %g\n", c1.x, c1.y);
                 
                 c1.vn = midVertexNumber(p0, p1, c1);
                 j = poly.ps.insert(j, c1);
@@ -1165,7 +1178,7 @@ void splitBranchingSegments(Avoid::Polygon& poly, bool polyIsConn,
             if (polyIsConn && ((j - 1) == poly.ps.begin()) && 
                         pointOnLine(c0, c1, p0, tolerance))
             {
-                //printf("add to conn %g %g\n", p0.x, p0.y);
+                //db_printf("add to conn %g %g\n", p0.x, p0.y);
 
                 p0.vn = midVertexNumber(c0, c1, p0);
                 i = conn.ps.insert(i, p0);
@@ -1173,7 +1186,7 @@ void splitBranchingSegments(Avoid::Polygon& poly, bool polyIsConn,
             // And the second point of every segment.
             if (pointOnLine(c0, c1, p1, tolerance))
             {
-                //printf("add to conn %g %g\n", p1.x, p1.y);
+                //db_printf("add to conn %g %g\n", p1.x, p1.y);
 
                 p1.vn = midVertexNumber(c0, c1, p1);
                 i = conn.ps.insert(i, p1);
@@ -1210,15 +1223,15 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
 
     Avoid::Point& a1 = conn.ps[cIndex - 1];
     Avoid::Point& a2 = conn.ps[cIndex];
-    //printf("a1: %g %g\n", a1.x, a1.y);
-    //printf("a2: %g %g\n", a2.x, a2.y);
+    //db_printf("a1: %g %g\n", a1.x, a1.y);
+    //db_printf("a2: %g %g\n", a2.x, a2.y);
 
     for (size_t j = ((polyIsConn) ? 1 : 0); j < poly.size(); ++j)
     {
         Avoid::Point& b1 = poly.ps[(j - 1 + poly.size()) % poly.size()];
         Avoid::Point& b2 = poly.ps[j];
-        //printf("b1: %g %g\n", b1.x, b1.y);
-        //printf("b2: %g %g\n", b2.x, b2.y);
+        //db_printf("b1: %g %g\n", b1.x, b1.y);
+        //db_printf("b2: %g %g\n", b2.x, b2.y);
 
         p_path.clear();
         c_path.clear();
@@ -1311,8 +1324,8 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
                 Avoid::Point& b0 = poly.ps[(j - 2 + poly.size()) % poly.size()];
                 Avoid::Point& a0 = conn.ps[cIndex - 2];
             
-                //printf("a0: %g %g\n", a0.x, a0.y);
-                //printf("b0: %g %g\n", b0.x, b0.y);
+                //db_printf("a0: %g %g\n", a0.x, a0.y);
+                //db_printf("b0: %g %g\n", b0.x, b0.y);
 
                 if ((a0 == b2) || (a0 == b0))
                 {
@@ -1427,7 +1440,7 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
                 if (endCornerSide != startCornerSide)
                 {
                     // Mark that the shared path crosses.
-                    //printf("shared path crosses.\n");
+                    //db_printf("shared path crosses.\n");
                     crossingCount += 1;
                     if (crossingPoints)
                     {
@@ -1442,10 +1455,10 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
             else if (cIndex >= 2)
             {
                 // The connectors cross or touch at this point.
-                //printf("Cross or touch at point... \n");
+                //db_printf("Cross or touch at point... \n");
                 if ((cIndex < 2) || (polyIsConn && (j < 2)))
                 {
-                    fprintf(stderr, "ERRROR BAD\n");
+                    db_printf("Error:\tCrossing shouldn't be at endpoint.\n");
                     abort();
                 }
                 Avoid::Point& b0 = poly.ps[(j - 2 + poly.size()) % poly.size()];
@@ -1456,7 +1469,7 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
                 if (side1 != side2)
                 {
                     // The connectors cross at this point.
-                    //printf("cross.\n");
+                    //db_printf("cross.\n");
                     crossingCount += 1;
                     if (crossingPoints)
                     {
@@ -1518,8 +1531,8 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
                     assert(b2 != cPt);
                     continue;
                 }                
-                //printf("crossing lines:\n");
-                //printf("cPt: %g %g\n", cPt.x, cPt.y);
+                //db_printf("crossing lines:\n");
+                //db_printf("cPt: %g %g\n", cPt.x, cPt.y);
                 crossingCount += 1;
                 if (crossingPoints)
                 {
@@ -1528,7 +1541,7 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
             }
         }
     }
-    //printf("crossingcount %d\n", crossingCount);
+    //db_printf("crossingcount %d\n", crossingCount);
     return crossingCount;
 }
 

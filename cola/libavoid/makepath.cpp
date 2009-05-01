@@ -23,18 +23,19 @@
 */
 
 
-#include "libavoid/vertices.h"
-#include "libavoid/makepath.h"
-#include "libavoid/geometry.h"
-#include "libavoid/connector.h"
-#include "libavoid/graph.h"
-#include "libavoid/router.h"
 #include <algorithm>
 #include <vector>
 #include <limits.h>
 #define _USE_MATH_DEFINES
 #include <cmath>
 
+#include "libavoid/vertices.h"
+#include "libavoid/makepath.h"
+#include "libavoid/geometry.h"
+#include "libavoid/connector.h"
+#include "libavoid/graph.h"
+#include "libavoid/router.h"
+#include "libavoid/debug.h"
 
 namespace Avoid {
 
@@ -118,7 +119,7 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf1,
                 double xval = rad * 10 / M_PI;
                 double yval = xval * log10(xval + 1) / 10.5;
                 result += (angle_penalty * yval);
-                //printf("deg from straight: %g\tpenalty: %g\n",
+                //db_printf("deg from straight: %g\tpenalty: %g\n",
                 //        rad * 180 / M_PI, (angle_penalty * yval));
             }
 
@@ -338,7 +339,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
             VertID vID(pnt.id, isShape, pnt.vn);
 
 #ifdef PATHDEBUG
-            printf("/// %d %d %d\n", pnt.id, (int) isShape, pnt.vn);
+            db_printf("/// %d %d %d\n", pnt.id, (int) isShape, pnt.vn);
 #endif
             VertInf *curr = router->vertices.getVertexByID(vID);
             assert(curr != NULL);
@@ -433,19 +434,19 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
         DONE.push_back(BestNode);
 
 #if 0
-        printf("Considering... ");
-        BestNode.inf->id.print(stdout);
-        printf(" - g: %3.1f h: %3.1f f: %3.1f back: ", BestNode.g, BestNode.h,
-                BestNode.f);
-        //BestNode.pp->id.print(stdout);
-        printf("\n");
+        db_printf("Considering... ");
+        BestNode.inf->id.db_print();
+        db_printf(" - g: %3.1f h: %3.1f f: %3.1f back: ", 
+                BestNode.g, BestNode.h, BestNode.f);
+        //BestNode.pp->id.db_print();
+        db_printf("\n");
 #endif
 
         // If at destination, break and create path below
         if (BestNode.inf == tar)
         {
 #ifdef PATHDEBUG
-            printf("Cost: %g\n", BestNode.f);
+            db_printf("Cost: %g\n", BestNode.f);
 #endif
             //bPathFound = true; // arrived at destination...
             break;
@@ -640,10 +641,10 @@ void makePath(ConnRef *lineRef, bool *flag)
                 t = t->lstNext)
         {
 
-            t->id.print();
-            printf(" -> ");
-            t->pathNext->id.print();
-            printf("\n");
+            t->id.db_print();
+            db_printf(" -> ");
+            t->pathNext->id.db_print();
+            db_printf("\n");
         }
 #endif
     }

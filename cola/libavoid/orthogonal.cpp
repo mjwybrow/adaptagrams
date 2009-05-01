@@ -264,7 +264,7 @@ static void mergeSegments(Router *router, SegmentList& segments,
         ++next;
         if ((next != segments.end()) && (*next == horiLine))
         {
-            //printf("SKIP %x %x %x %x\n", horiLine.beginVertInf, 
+            //db_printf("SKIP %x %x %x %x\n", horiLine.beginVertInf, 
             //        horiLine.finishVertInf, next->beginVertInf,
             //        next->finishVertInf);
             if (next->finishVertInf == NULL)
