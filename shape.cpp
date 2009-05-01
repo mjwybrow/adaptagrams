@@ -29,6 +29,7 @@
 #include "libavoid/graph.h"  // For alertConns
 #include "libavoid/vertices.h"
 #include "libavoid/router.h"
+#include "libavoid/debug.h"
 
 
 namespace Avoid {
@@ -262,8 +263,8 @@ void ShapeRef::markForMove(void)
     }
     else
     {
-        fprintf(stderr, "WARNING: two moves queued for same shape prior to "
-                "rerouting.\n         This is not safe.\n");
+        db_printf("WARNING: two moves queued for same shape prior to rerouting."
+                "\n         This is not safe.\n");
     }
 }
 

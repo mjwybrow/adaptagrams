@@ -30,6 +30,7 @@ using std::abort;
 #include <climits>
 
 #include "libavoid/timer.h"
+#include "libavoid/debug.h"
 
 namespace Avoid {
 
@@ -78,7 +79,7 @@ void Timer::Start(void)
 {
     if (running)
     {
-        fprintf(stderr, "ERROR: Timer already running in Timer::Start()\n");
+        db_printf("ERROR: Timer already running in Timer::Start()\n");
         abort();
     }
     cStart[type] = clock();  // CPU time
@@ -90,7 +91,7 @@ void Timer::Stop(void)
 {
     if (!running)
     {
-        fprintf(stderr, "ERROR: Timer not running in Timer::Stop()\n");
+        db_printf("ERROR: Timer not running in Timer::Stop()\n");
         abort();
     }
     clock_t cStop = clock();      // CPU time
@@ -111,7 +112,7 @@ void Timer::Stop(void)
     
     if (cDiff > LONG_MAX)
     {
-        fprintf(stderr, "Error: cDiff overflow in Timer:Stop()\n");
+        db_printf("Error: cDiff overflow in Timer:Stop()\n");
         abort();
     }
 
@@ -158,7 +159,7 @@ void Timer::Print(const int t)
    bigclock_t pavg = toMsec(toAvg(cPath[t], cTally[t]));
    double max = toMsec(cMax[t]); 
    double pmax = toMsec(cPathMax[t]);
-   printf("\t%lld %d %lld %.0f %lld %d %lld %.0f %lld\n",
+   db_printf("\t%lld %d %lld %.0f %lld %d %lld %.0f %lld\n",
            cTotal[t], cTally[t], avg, max,
            cPath[t], cPathTally[t], pavg, pmax, pind);
 }
