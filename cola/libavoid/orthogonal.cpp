@@ -23,9 +23,11 @@
 */
 
 
-#include <set>
-#include <stdlib.h>
+#include <cstdlib>
 #include <cfloat>
+#include <set>
+#include <list>
+#include <algorithm>
 
 #include "libavoid/router.h"
 #include "libavoid/geomtypes.h"
@@ -44,67 +46,100 @@ struct Node
     ShapeRef *v;
     VertInf *c;
     double pos;
+    double min[2], max[2];
     Node *firstAbove, *firstBelow;
-    NodeSet *leftNeighbours, *rightNeighbours;
+    NodeSet::iterator iter;
+
     Node(ShapeRef *v, double p)
-        : v(v),c(NULL),pos(p),
-          firstAbove(NULL), firstBelow(NULL),
-          leftNeighbours(NULL), rightNeighbours(NULL)
+        : v(v),
+          c(NULL),
+          pos(p),
+          firstAbove(NULL),
+          firstBelow(NULL)
     {   
         //assert(r->width()<1e40);
+        v->polygon().getBoundingRect(&min[0], &min[1], &max[0], &max[1]);
     }   
     Node(VertInf *c, double p)
-        : v(NULL),c(c),pos(p),
-          firstAbove(NULL), firstBelow(NULL),
-          leftNeighbours(NULL), rightNeighbours(NULL)
-    {   
+        : v(NULL),
+          c(c),
+          pos(p),
+          firstAbove(NULL),
+          firstBelow(NULL)
+    {
+        min[0] = max[0] = c->point.x;
+        min[1] = max[1] = c->point.y;
     }   
     ~Node() 
     {
-        delete leftNeighbours; 
-        delete rightNeighbours;
     }   
-    void addLeftNeighbour(Node *u) 
+    double firstPointAbove(unsigned int dim)
     {
-        assert(leftNeighbours!=NULL);
-        leftNeighbours->insert(u);
-    }   
-    void addRightNeighbour(Node *u) 
-    {
-        assert(rightNeighbours!=NULL);
-        rightNeighbours->insert(u);
-    }   
-    void setNeighbours(NodeSet *left, NodeSet *right) 
-    {
-        leftNeighbours=left; 
-        rightNeighbours=right;
-        for (NodeSet::iterator i=left->begin();i!=left->end();++i)
+        Node *curr = firstAbove;
+        while (curr && (curr->max[dim] >= pos))
         {
-            Node *v=*(i);    
-            v->addRightNeighbour(this);
+            curr = curr->firstAbove;
         }
-        for (NodeSet::iterator i=right->begin();i!=right->end();++i) 
+        
+        if (curr)
         {
-            Node *v=*(i);    
-            v->addLeftNeighbour(this);
+            return curr->max[dim];
         }
+        return -DBL_MAX;
+    }
+    double firstPointBelow(unsigned int dim)
+    {
+        Node *curr = firstBelow;
+        while (curr && (curr->min[dim] <= pos))
+        {
+            curr = curr->firstBelow;
+        }
+        
+        if (curr)
+        {
+            return curr->min[dim];
+        }
+        return DBL_MAX;
+    }
+    // This is a bit inefficient, but we won't need to do it once we have 
+    // connection points.
+    bool isInsideShapeX(void)
+    {
+        for (Node *curr = firstBelow; curr; curr = curr->firstBelow)
+        {
+            if ((curr->min[0] < pos) && (pos < curr->max[0]))
+            {
+                return true;
+            }
+        }
+        for (Node *curr = firstAbove; curr; curr = curr->firstAbove)
+        {
+            if ((curr->min[0] < pos) && (pos < curr->max[0]))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 };
 
 
 bool CmpNodePos::operator() (const Node* u, const Node* v) const 
 {
-    //assert(!isNaN(u->pos));
-    //assert(!isNaN(v->pos));
     if (u->pos != v->pos) 
     {
         return u->pos < v->pos;
     }
-    return u->v < v->v;
-}       
+    
+    // Use the pointers to the base objects to differentiate them.
+    void *up = (u->v) ? (void *) u->v : (void *) u->c;
+    void *vp = (v->v) ? (void *) v->v : (void *) v->c;
+    return up < vp;
+}
+
 
 // Note: Open must come first.
-typedef enum {Open = 1, Centre = 2, ConnPoint = 3, Close = 4} EventType;
+typedef enum {Open = 1, ConnPoint = 2, Close = 3} EventType;
 
 struct Event
 {
@@ -135,15 +170,47 @@ int compare_events(const void *a, const void *b)
     }
     assert(ea->v != eb->v);
     return ea->v - eb->v;
-#if 0
-    else if (isNaN(ea->pos) != isNaN(ea->pos)) 
-    {
-        /* See comment in CmpNodePos. */
-        return ( isNaN(ea->pos) ? -1 : 1 );
-    }
-#endif
 }
 
+
+struct PosVertInf
+{
+    PosVertInf(double p, VertInf *vI = NULL)
+        : pos(p),
+          vert(vI)
+    {
+    }
+    
+    bool operator<(const PosVertInf& rhs) const 
+    {
+        if (pos != rhs.pos)
+        {
+            return pos < rhs.pos;
+        }
+        return vert < rhs.vert;
+    }
+
+    double pos;
+    VertInf *vert;
+};
+
+
+struct CmpVertInfHori { 
+        bool operator()(const VertInf* u, const VertInf* v) const
+        {
+            if (u->point.x != v->point.x)
+            {
+                return u->point.x < v->point.x;
+            }
+            else if (u->point.y != v->point.y)
+            {
+                return u->point.y < v->point.y;
+            }
+            return u < v;
+        }
+};
+
+typedef std::set<VertInf *> VertSet;
 
 // Temporary structure used to store the possible horizontal visibility 
 // lines arising from the vertical sweep.
@@ -155,9 +222,7 @@ public:
         : begin(b),
           finish(f),
           pos(p),
-          shapeSide(false),
-          beginVertInf(bvi),
-          finishVertInf(fvi)
+          shapeSide(false)
     {
         //assert( begin <= finish);
         if (begin > finish)
@@ -168,22 +233,21 @@ public:
             begin = finish;
             finish = temp;
 
-            VertInf *tempVI = beginVertInf;
-            beginVertInf = finishVertInf;
-            finishVertInf = tempVI;
+            VertInf *tempVI = bvi;
+            bvi = fvi;
+            fvi = tempVI;
+        }
+
+        if (bvi)
+        {
+            vertInfs.insert(bvi);
+        }
+        if (fvi)
+        {
+            vertInfs.insert(fvi);
         }
     }
-    
-    bool operator==(const LineSegment& rhs) const 
-    {
-        return ((begin == rhs.begin) && (pos == rhs.pos) &&
-                (finish == rhs.finish) && 
-                (!beginVertInf || !rhs.beginVertInf || 
-                        (beginVertInf == rhs.beginVertInf)) &&
-                (!finishVertInf || !rhs.finishVertInf || 
-                        (finishVertInf == rhs.finishVertInf)));
-    }
-
+ 
     // Order by begin, pos, finish.
     bool operator<(const LineSegment& rhs) const 
     {
@@ -203,79 +267,345 @@ public:
         return false;
     }
 
+    bool operator==(const LineSegment& rhs) const
+    {
+        if ((begin == rhs.begin) && (pos == rhs.pos) &&
+                (finish == rhs.finish))
+        {
+            // Lines are exactly equal.
+            return true;
+        }
+        
+        if (pos == rhs.pos)
+        {
+            if (((begin >= rhs.begin) && (begin <= rhs.finish)) ||
+                ((rhs.begin >= begin) && (rhs.begin <= finish)) )
+            {
+                // They are colinear and overlap by some amount.
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void mergeVertInfs(const LineSegment& segment)
+    {
+        begin = std::min(begin, segment.begin);
+        finish = std::max(finish, segment.finish);
+        vertInfs.insert(segment.vertInfs.begin(), segment.vertInfs.end());
+    }
+    
+    VertInf *beginVertInf(void) const
+    {
+        if (vertInfs.empty())
+        {
+            return NULL;
+        }
+        return *vertInfs.begin();
+    }
+    VertInf *finishVertInf(void) const
+    {
+        if (vertInfs.empty())
+        {
+            return NULL;
+        }
+        return *vertInfs.rbegin();
+    }
+
+    VertInf * commitPositionX(Router *router, double posX)
+    {
+        VertInf *found = NULL;
+        for (VertSet::iterator v = vertInfs.begin();
+                v != vertInfs.end(); ++v)
+        {
+            if ((*v)->point.x == posX)
+            {
+                found = *v;
+                break;
+            }
+        }
+        if (!found)
+        {
+            found = new VertInf(router, VertID(0, true, 0), Point(posX, pos));
+            vertInfs.insert(found);
+        }
+        return found;
+    }
+    // Set begin endpoint vertex if none has been assigned.
+    void commitBegin(Router *router, VertInf *vert = NULL)
+    {
+        if (vert)
+        {
+            vertInfs.insert(vert);
+        }
+
+        if (vertInfs.empty() ||
+                ((*vertInfs.begin())->point.x != begin))
+        {
+            vertInfs.insert(new
+                    VertInf(router, VertID(0, true, 0), Point(begin, pos)));
+        }
+    }
+
+    // Set begin endpoint vertex if none has been assigned.
+    void commitFinish(Router *router, VertInf *vert = NULL)
+    {
+        if (vert)
+        {
+            vertInfs.insert(vert);
+        }
+
+        if (vertInfs.empty() ||
+                ((*vertInfs.rbegin())->point.x != finish))
+        {
+            vertInfs.insert(new
+                    VertInf(router, VertID(0, true, 0), Point(finish, pos)));
+        }
+    }
+
+    // Converts points list to visibility ends.  Returns the last point 
+    // considered.
+    VertSet::iterator addSegmentsUpTo(Router *router, double finishPos)
+    {
+        const bool orthogonal = true;
+        VertSet::iterator vert, last;
+        for (vert = last = vertInfs.begin(); vert != vertInfs.end();)
+        {
+            if ((*vert)->point.x > finishPos)
+            {
+                // We're done.
+                break;
+            }
+            
+            VertSet::iterator firstPrev = last;
+            while ((*last)->point.x != (*vert)->point.x)
+            {
+                assert(vert != last);
+                // Assert points are not at the same position.
+                assert((*vert)->point.x != (*last)->point.x);
+               
+                if ( !((*vert)->id.isShape || (*last)->id.isShape))
+                {
+                    // Here we have a pair of two endpoints that are both
+                    // connector endpoints and both are inside a shape.
+                    
+                    // Give vert visibility back to the the first 
+                    // non-connector-endpoint vertex (the side of the shape).
+                    VertSet::iterator side = last;
+                    while (!(*side)->id.isShape)
+                    {
+                        if (side == vertInfs.begin())
+                        {
+                            break;
+                        }
+                        --side;
+                    }
+                    if ((*side)->id.isShape)
+                    {
+                        EdgeInf *edge = 
+                                new EdgeInf((*side), (*vert), orthogonal);
+                        edge->setDist((*vert)->point.x - (*side)->point.x);
+                    }
+
+                    // Give last visibility back to the the first 
+                    // non-connector-endpoint vertex (the side of the shape).
+                    side = vert;
+                    while ((side != vertInfs.end()) && !(*side)->id.isShape)
+                    {
+                        ++side;
+                    }
+                    if (side != vertInfs.end())
+                    {
+                        EdgeInf *edge = 
+                                new EdgeInf((*last), (*side), orthogonal);
+                        edge->setDist((*side)->point.x - (*last)->point.x);
+                    }
+                }
+                else
+                {
+                    // The normal case.
+                    EdgeInf *edge = new EdgeInf(*last, *vert, orthogonal);
+                    edge->setDist((*vert)->point.x - (*last)->point.x);
+                }
+                
+                ++last;
+            }
+
+            ++vert;
+
+            if ((vert != vertInfs.end()) &&
+                    ((*last)->point.x == (*vert)->point.x))
+            {
+                // Still looking at same pair, just reset prev number pointer.
+                last = firstPrev;
+            }
+            else
+            {
+                // vert has moved to the beginning of a number number group.
+                // Last is now in the right place, so do nothing.
+            }
+        }
+        // Returns the first of the last second set of vertices.
+        return last;
+    }
+
+    // Add visibility edge(s) for this segment.  There may be multiple if 
+    // one of the endpoints is shared by multiple connector endpoints.
+    void addEdgeHorizontal(Router *router)
+    {
+        commitBegin(router);
+        commitFinish(router);
+        
+        addSegmentsUpTo(router, finish);
+    }
+
+    // Add visibility edge(s) for this segment up until an intersection.
+    // Then, move the segment beginning to the intersection point, so we
+    // later only consider the remainder of the segment.
+    // There may be multiple segments added to the graph if the beginning 
+    // endpoint of the segment is shared by multiple connector endpoints.
+    VertSet addEdgeHorizontalTillIntersection(Router *router, 
+            LineSegment& vertLine)
+    {
+        VertSet intersectionSet;
+
+        commitBegin(router);
+
+        // Does a vertex already exist for this point.
+        commitPositionX(router, vertLine.pos);
+   
+        // Generate segments and set end iterator to the first point 
+        // at the intersection position.
+        VertSet::iterator restBegin = addSegmentsUpTo(router, vertLine.pos);
+
+        // Add the intersections points to intersectionSet.
+        VertSet::iterator restEnd = restBegin;
+        while ((restEnd != vertInfs.end()) && 
+                (*restEnd)->point.x == vertLine.pos)
+        {
+            ++restEnd;
+        }
+        intersectionSet.insert(restBegin, restEnd);
+
+        // Adjust segment to remove processed portion.
+        begin = vertLine.pos;
+        vertInfs.erase(vertInfs.begin(), restBegin);
+
+        return intersectionSet;
+    }
+                
+    // Insert vertical breakpoints.
+    void insertBreakpointsBegin(Router *router, LineSegment& vertLine,
+            std::set<PosVertInf>& breakPoints)
+    {
+        VertInf *vert = NULL;
+        if (pos == vertLine.begin && vertLine.beginVertInf())
+        {
+            vert = vertLine.beginVertInf();
+        }
+        else if (pos == vertLine.finish && vertLine.finishVertInf())
+        {
+            vert = vertLine.finishVertInf();
+        }
+        commitBegin(router, vert);
+
+        for (VertSet::iterator v = vertInfs.begin();
+                v != vertInfs.end(); ++v)
+        {
+            if ((*v)->point.x == begin)
+            {
+                breakPoints.insert(PosVertInf(pos, *v));
+            }
+        }
+    }
+
+    // Insert vertical breakpoints.
+    void insertBreakpointsFinish(Router *router, LineSegment& vertLine,
+            std::set<PosVertInf>& breakPoints)
+    {
+        VertInf *vert = NULL;
+        if (pos == vertLine.begin && vertLine.beginVertInf())
+        {
+            vert = vertLine.beginVertInf();
+        }
+        else if (pos == vertLine.finish && vertLine.finishVertInf())
+        {
+            vert = vertLine.finishVertInf();
+        }
+        commitFinish(router, vert);
+
+        for (VertSet::iterator v = vertInfs.begin();
+                v != vertInfs.end(); ++v)
+        {
+            if ((*v)->point.x == finish)
+            {
+                breakPoints.insert(PosVertInf(pos, *v));
+            }
+        }
+    }
+
     double begin;
     double finish;
     double pos;
     bool shapeSide;
-    VertInf *beginVertInf;
-    VertInf *finishVertInf;
+    
+    std::set<VertInf *,CmpVertInfHori> vertInfs;
 private:
 	// MSVC wants to generate the assignment operator and the default 
 	// constructor, but fails.  Therefore we declare them private and 
 	// don't implement them.
-	LineSegment & operator=(LineSegment const &);
-	LineSegment();
+    LineSegment & operator=(LineSegment const &);
+    LineSegment();
 };
+
 typedef std::list<LineSegment> SegmentList;
 
-
-struct PosVertInf
+class SegmentListWrapper
 {
-    PosVertInf(double p, VertInf *vI = NULL)
-        : pos(p),
-          vert(vI)
-    {
-    }
-    
-    bool operator<(const PosVertInf& rhs) const 
-    {
-        return pos < rhs.pos;
-    }
+    public:
+        LineSegment *insert(LineSegment segment)
+        {
+            for (SegmentList::iterator curr = _list.begin();
+                    curr != _list.end(); ++curr)
+            {
+                if (*curr == segment)
+                {
+                    // Merge this with existing line.
+                    curr->mergeVertInfs(segment);
+                    // So don't need to add this line.
+                    return &(*curr);
+                }
+            }
+            // Add this line.
+            _list.push_back(segment);
 
-    double pos;
-    VertInf *vert;
+            return &(_list.back());
+        }
+        SegmentList& list(void)
+        {
+            return _list;
+        }
+    private:
+        SegmentList _list;
 };
 
 
 // Given a router instance and a set of possible horizontal segments, and a
 // possible vertical visibility segments, compute and add edges to the
 // orthogonal visibility graph for all the visibility edges.
-static void mergeSegments(Router *router, SegmentList& segments, 
+static void intersectSegments(Router *router, SegmentList& segments, 
         LineSegment& vertLine)
 {
-    const bool orthogonal = true;
-    // XXX: Are there possibly duplicates in SegmentList?
-    //
-    // Do some sorting.
     std::set<PosVertInf> breakPoints;
-    assert(vertLine.beginVertInf == NULL);
-    assert(vertLine.finishVertInf == NULL);
+    assert(vertLine.beginVertInf() == NULL);
+    assert(vertLine.finishVertInf() == NULL);
     for (SegmentList::iterator it = segments.begin(); it != segments.end(); )
     {
         LineSegment& horiLine = *it;
 
         if (horiLine.begin == horiLine.finish)
         {
-            // Skip this point segment.
-            it = segments.erase(it);
-            continue;
-        }
-        SegmentList::iterator next = it;
-        ++next;
-        if ((next != segments.end()) && (*next == horiLine))
-        {
-            //db_printf("SKIP %x %x %x %x\n", horiLine.beginVertInf, 
-            //        horiLine.finishVertInf, next->beginVertInf,
-            //        next->finishVertInf);
-            if (next->finishVertInf == NULL)
-            {
-                next->finishVertInf = horiLine.finishVertInf;
-            }
-            if (next->beginVertInf == NULL)
-            {
-                next->beginVertInf = horiLine.beginVertInf;
-            }
-            // Skip this point segment.
+            // Skip point segments.
             it = segments.erase(it);
             continue;
         }
@@ -285,24 +615,12 @@ static void mergeSegments(Router *router, SegmentList& segments,
 
         if (horiLine.finish < vertLine.pos)
         {
-            // XXX Is this even needed?
+            // XXX Can this case ever occur?
 
             if (inVertSegRegion)
             {
                 // Add horizontal visibility segment.
-                if (!horiLine.beginVertInf)
-                {
-                    horiLine.beginVertInf = new VertInf(router, 
-                            VertID(0, true, 0), 
-                            Point(horiLine.begin, horiLine.pos));
-                }
-                VertInf *vI2 = horiLine.finishVertInf ? horiLine.finishVertInf :
-                        new VertInf(router, 
-                        VertID(0, true, 0),
-                        Point(horiLine.finish, horiLine.pos));
-                EdgeInf *edge = new EdgeInf(horiLine.beginVertInf, vI2, 
-                        orthogonal);
-                edge->setDist(horiLine.finish - horiLine.begin);
+                horiLine.addEdgeHorizontal(router);
             }
 
             // We've now swept past this horizontal segment, so delete.
@@ -319,27 +637,7 @@ static void mergeSegments(Router *router, SegmentList& segments,
         {
             if (inVertSegRegion)
             {
-                if (!horiLine.beginVertInf)
-                {
-                    if (horiLine.pos == vertLine.begin && vertLine.beginVertInf)
-                    {
-                        horiLine.beginVertInf = vertLine.beginVertInf;
-                    }
-                    else if (horiLine.pos == vertLine.finish && 
-                            vertLine.finishVertInf)
-                    {
-                        horiLine.beginVertInf = vertLine.finishVertInf;
-                    }
-                    else
-                    {
-                        horiLine.beginVertInf = new VertInf(router, 
-                                VertID(0, true, 0), 
-                                Point(horiLine.begin, horiLine.pos));
-                    }
-                }
-
-                breakPoints.insert(
-                        PosVertInf(horiLine.pos, horiLine.beginVertInf));
+                horiLine.insertBreakpointsBegin(router, vertLine, breakPoints);
             }
         }
         else if (horiLine.finish == vertLine.pos)
@@ -347,21 +645,9 @@ static void mergeSegments(Router *router, SegmentList& segments,
             if (inVertSegRegion)
             {
                 // Add horizontal visibility segment.
-                if (!horiLine.beginVertInf)
-                {
-                    horiLine.beginVertInf = new VertInf(router, 
-                            VertID(0, true, 0), 
-                            Point(horiLine.begin, horiLine.pos));
-                }
-                VertInf *vI2 = horiLine.finishVertInf ? horiLine.finishVertInf :
-                        new VertInf(router, 
-                        VertID(0, true, 0),
-                        Point(horiLine.finish, horiLine.pos));
-                EdgeInf *edge = new EdgeInf(horiLine.beginVertInf, vI2,
-                        orthogonal);
-                edge->setDist(horiLine.finish - horiLine.begin);
+                horiLine.addEdgeHorizontal(router);
             
-                breakPoints.insert(PosVertInf(horiLine.pos, vI2));
+                horiLine.insertBreakpointsFinish(router, vertLine, breakPoints);
                 
                 // And we've now finished with the segment, so delete.
                 it = segments.erase(it);
@@ -376,61 +662,321 @@ static void mergeSegments(Router *router, SegmentList& segments,
             if (inVertSegRegion)
             {
                 // Add horizontal visibility segment.
-                if (!horiLine.beginVertInf)
+                VertSet intersectionVerts = 
+                        horiLine.addEdgeHorizontalTillIntersection(
+                            router, vertLine);
+
+                for (VertSet::iterator v = intersectionVerts.begin();
+                        v != intersectionVerts.end(); ++v)
                 {
-                    horiLine.beginVertInf = new VertInf(router, 
-                            VertID(0, true, 0), 
-                            Point(horiLine.begin, horiLine.pos));
+                    breakPoints.insert(PosVertInf(horiLine.pos, *v));
                 }
-                VertInf *vI2 = new VertInf(router, 
-                        VertID(0, true, 0),
-                        Point(vertLine.pos, horiLine.pos));
-                EdgeInf *edge = 
-                        new EdgeInf(horiLine.beginVertInf, vI2, orthogonal);
-                edge->setDist(vertLine.pos - horiLine.begin);
-            
-                horiLine.begin = vertLine.pos;
-                horiLine.beginVertInf = vI2;
-                
-                breakPoints.insert(
-                        PosVertInf(horiLine.pos, horiLine.beginVertInf));
             }
         }
         ++it;
     }
     if ((breakPoints.begin())->pos != vertLine.begin)
     {
-        // Add begin point if it din't intersect another line.
-        breakPoints.insert(PosVertInf(vertLine.begin, vertLine.beginVertInf));
-    }
-    if ((--breakPoints.end())->pos != vertLine.finish)
-    {
-        // Add finish point if it din't intersect another line.
-        breakPoints.insert(PosVertInf(vertLine.finish, vertLine.finishVertInf));
-    }
-
-    std::set<PosVertInf>::iterator prev = breakPoints.begin();
-    std::set<PosVertInf>::iterator curr = prev;
-    VertInf *prevInf = NULL;
-    ++curr;
-    for (; curr != breakPoints.end(); ++curr, ++prev)
-    {
-        // Add vertical visibility segment.
-        if (prevInf == NULL)
+        if (!vertLine.beginVertInf())
         {
-            prevInf = (prev->vert) ? prev->vert : 
-                    new VertInf(router, VertID(0, true, 0), 
-                    Point(vertLine.pos, prev->pos));
+            // Add begin point if it didn't intersect another line.
+            VertInf *vert = new VertInf(router, VertID(0, true, 0), 
+                    Point(vertLine.pos, vertLine.begin));
+            breakPoints.insert(PosVertInf(vertLine.begin, vert));
         }
-        assert((prev->vert == NULL) || (prevInf == prev->vert));
+    }
+    if ((breakPoints.rbegin())->pos != vertLine.finish)
+    {
+        if (!vertLine.finishVertInf())
+        {
+            // Add finish point if it didn't intersect another line.
+            VertInf *vert = new VertInf(router, VertID(0, true, 0), 
+                    Point(vertLine.pos, vertLine.finish));
+            breakPoints.insert(PosVertInf(vertLine.finish, vert));
+        }
+    }
 
-        //assert((curr == breakPoints.end()) || (curr->vert));
-        VertInf *currInf = curr->vert ? curr->vert : 
-                new VertInf(router, VertID(0, true, 0),
-                    Point(vertLine.pos, curr->pos));
-        EdgeInf *edge = new EdgeInf(prevInf, currInf, orthogonal);
-        edge->setDist(curr->pos - prev->pos);
-        prevInf = currInf;
+    // Split breakPoints set into visibility segments.
+    // XXX: Perhaps make addSegmentsUpTo generic and use that code.
+    const bool orthogonal = true;
+    std::set<PosVertInf>::iterator vert, last;
+    for (vert = last = breakPoints.begin(); vert != breakPoints.end();)
+    {
+        std::set<PosVertInf>::iterator firstPrev = last;
+        while (last->vert->point.y != vert->vert->point.y)
+        {
+            assert(vert != last);
+            // Assert points are not at the same position.
+            assert(vert->vert->point.y != last->vert->point.y);
+
+            if ( !(vert->vert->id.isShape || last->vert->id.isShape))
+            {
+                // Here we have a pair of two endpoints that are both
+                // connector endpoints and both are inside a shape.
+                
+                // Give vert visibility back to the the first 
+                // non-connector-endpoint vertex (the side of the shape).
+                std::set<PosVertInf>::iterator side = last;
+                while (!side->vert->id.isShape)
+                {
+                    if (side == breakPoints.begin())
+                    {
+                        break;
+                    }
+                    --side;
+                }
+                if (side->vert->id.isShape)
+                {
+                    EdgeInf *edge = 
+                            new EdgeInf(side->vert, vert->vert, orthogonal);
+                    edge->setDist(vert->vert->point.y - side->vert->point.y);
+                }
+
+                // Give last visibility back to the the first 
+                // non-connector-endpoint vertex (the side of the shape).
+                side = vert;
+                while ((side != breakPoints.end()) && !side->vert->id.isShape)
+                {
+                    ++side;
+                }
+                if (side != breakPoints.end())
+                {
+                    EdgeInf *edge = 
+                            new EdgeInf(last->vert, side->vert, orthogonal);
+                    edge->setDist(side->vert->point.y - last->vert->point.y);
+                }
+            }
+            else
+            {
+                // The normal case.
+                EdgeInf *edge = new EdgeInf(last->vert, vert->vert, orthogonal);
+                edge->setDist(vert->vert->point.y - last->vert->point.y);
+            }
+
+            ++last;
+        }
+
+        ++vert;
+
+        if ((vert != breakPoints.end()) &&
+                (last->vert->point.y == vert->vert->point.y))
+        {
+            // Still looking at same pair, just reset prev number pointer.
+            last = firstPrev;
+        }
+        else
+        {
+            // vert has moved to the beginning of a number number group.
+            // Last is now in the right place, so do nothing.
+        }
+    }
+}
+
+
+// Processes an event for the vertical sweep used for computing the static 
+// orthogonal visibility graph.  This adds possible visibility sgments to 
+// the segments list.
+// The first pass is adding the event to the scanline, the second is for
+// processing the event and the third for removing it from the scanline.
+static void processEventVert(Router *router, NodeSet& scanline, 
+        SegmentListWrapper& segments, Event *e, unsigned int pass)
+{
+    Node *v = e->v;
+    
+    if ( ((pass == 1) && (e->type == Open)) ||
+         ((pass == 2) && (e->type == ConnPoint)) )
+    {
+        std::pair<NodeSet::iterator, bool> result = scanline.insert(v);
+        v->iter = result.first;
+        assert(result.second);
+
+        NodeSet::iterator it = v->iter;
+        // Work out neighbours
+        if (it != scanline.begin()) 
+        {
+            Node *u = *(--it);
+            v->firstAbove = u;
+            u->firstBelow = v;
+        }
+        it = v->iter;
+        if (++it != scanline.end()) 
+        {
+            Node *u = *it;
+            v->firstBelow = u;
+            u->firstAbove = v;
+        }
+    }
+    
+    if (pass == 2)
+    {
+        if ((e->type == Open) || (e->type == Close))
+        {
+            // Shape corners.
+            double minShape = v->min[0];
+            double maxShape = v->max[0];
+            // As far as we can see.
+            double minLimit = v->firstPointAbove(0);
+            double maxLimit = v->firstPointBelow(0);
+
+            // Only difference between Open and Close is whether the line
+            // segments are at the top or bottom of the shape.  Decide here.
+            double lineY = (e->type == Open) ? v->min[1] : v->max[1];
+
+            // Insert possible visibility segments.
+            VertInf *vI1 = new VertInf(router, VertID(0, true, 0), 
+                        Point(minShape, lineY));
+            VertInf *vI2 = new VertInf(router, VertID(0, true, 0), 
+                        Point(maxShape, lineY));
+            segments.insert(LineSegment(minLimit, minShape, lineY,
+                        true, NULL, vI1));
+            segments.insert(LineSegment(minShape, maxShape, lineY, 
+                        true, vI1, vI2));
+            segments.insert(LineSegment(maxShape, maxLimit, lineY,
+                        true, vI2, NULL));
+        }
+        else if (e->type == ConnPoint)
+        {
+            // Connection point.
+            VertInf *centreVert = e->v->c;
+            Point& cp = centreVert->point;
+
+            // As far as we can see.
+            double minLimit = v->firstPointAbove(0);
+            double maxLimit = v->firstPointBelow(0);
+
+            LineSegment *line1 = segments.insert(
+                  LineSegment(minLimit, cp.x, e->pos, true, NULL, centreVert));
+            LineSegment *line2 = segments.insert(
+                  LineSegment(cp.x, maxLimit, e->pos, true, centreVert, NULL));
+            
+            if (!v->isInsideShapeX())
+            {
+                // This is not contained within a shape so add a normal
+                // visibility graph point here too (since paths won't route
+                // *through* connector endpoint vertices).
+                VertInf *cent = new VertInf(router, VertID(0, true, 0), cp);
+                line1->vertInfs.insert(cent);
+                line2->vertInfs.insert(cent);
+            }
+        }
+    }
+    
+    if ( ((pass == 3) && (e->type == Close)) ||
+         ((pass == 2) && (e->type == ConnPoint)) )
+    {
+        // Clean up neighbour pointers.
+        Node *l = v->firstAbove, *r = v->firstBelow;
+        if (l != NULL) 
+        {
+            l->firstBelow = v->firstBelow;
+        }
+        if (r != NULL)
+        {
+            r->firstAbove = v->firstAbove;
+        }
+
+        if (e->type == ConnPoint)
+        {
+            scanline.erase(v->iter);
+            delete v;
+        }
+        else  // if (e->type == Close)
+        {
+            size_t result;
+            result = scanline.erase(v);
+            assert(result == 1);
+            delete v;
+        }
+    }
+}
+
+
+// Processes an event for the vertical sweep used for computing the static 
+// orthogonal visibility graph.  This adds possible visibility sgments to 
+// the segments list.
+// The first pass is adding the event to the scanline, the second is for
+// processing the event and the third for removing it from the scanline.
+static void processEventHori(Router *router, NodeSet& scanline, 
+        SegmentListWrapper& segments, Event *e, unsigned int pass)
+{
+    Node *v = e->v;
+    
+    if ( ((pass == 1) && (e->type == Open)) ||
+         ((pass == 2) && (e->type == ConnPoint)) )
+    {
+        std::pair<NodeSet::iterator, bool> result = scanline.insert(v);
+        v->iter = result.first;
+        assert(result.second);
+
+        NodeSet::iterator it = v->iter;
+        // Work out neighbours
+        if (it != scanline.begin()) 
+        {
+            Node *u = *(--it);
+            v->firstAbove = u;
+            u->firstBelow = v;
+        }
+        it = v->iter;
+        if (++it != scanline.end()) 
+        {
+            Node *u = *it;
+            v->firstBelow = u;
+            u->firstAbove = v;
+        }
+    }
+    
+    if (pass == 2)
+    {
+        if ((e->type == Open) || (e->type == Close))
+        {
+            // As far as we can see.
+            double minLimit = v->firstPointAbove(1);
+            double maxLimit = v->firstPointBelow(1);
+
+            // Only difference between Open and Close is whether the line
+            // segments are at the left or right of the shape.  Decide here.
+            double lineX = (e->type == Open) ? v->min[0] : v->max[0];
+
+            LineSegment vertSeg = LineSegment(minLimit, maxLimit, lineX);
+            segments.insert(vertSeg);
+        }
+        else if (e->type == ConnPoint)
+        {
+            // As far as we can see.
+            double minLimit = v->firstPointAbove(1);
+            double maxLimit = v->firstPointBelow(1);
+            
+            LineSegment vertSeg = LineSegment(minLimit, maxLimit, e->pos);
+            segments.insert(vertSeg);
+        }
+    }
+    
+    if ( ((pass == 3) && (e->type == Close)) ||
+         ((pass == 2) && (e->type == ConnPoint)) )
+    {
+        // Clean up neighbour pointers.
+        Node *l = v->firstAbove, *r = v->firstBelow;
+        if (l != NULL) 
+        {
+            l->firstBelow = v->firstBelow;
+        }
+        if (r != NULL)
+        {
+            r->firstAbove = v->firstAbove;
+        }
+
+        if (e->type == ConnPoint)
+        {
+            scanline.erase(v->iter);
+            delete v;
+        }
+        else  // if (e->type == Close)
+        {
+            size_t result;
+            result = scanline.erase(v);
+            assert(result == 1);
+            delete v;
+        }
     }
 }
 
@@ -454,10 +1000,6 @@ void generateStaticOrthogonalVisGraph(Router *router)
         events[ctr++] = new Event(Open, v, minY);
         events[ctr++] = new Event(Close, v, maxY);
 
-        // Centre point.
-        //double midY = minY + ((maxY - minY) / 2);
-        //events[ctr++] = new Event(Centre, v, midY);
-        
         ++shRefIt;
     }
     for (VertInf *curr = router->vertices.connsBegin(); 
@@ -471,212 +1013,48 @@ void generateStaticOrthogonalVisGraph(Router *router)
     }
     qsort((Event*)events, (size_t) totalEvents, sizeof(Event*), compare_events);
 
-    // Process the vertical sweep
-    SegmentList segments;
+    // Process the vertical sweep.
+    // We do multiple passes over sections of the list so we can add relevant
+    // entries to the scanline that might follow, before process them.
+    SegmentListWrapper segments;
     NodeSet scanline;
-    for (unsigned i = 0; i < totalEvents; ++i)
+    NodeSet addedOpen;
+    NodeSet addedCentre;
+    double thisPos = events[0]->pos;
+    unsigned int posStartIndex = 0;
+    unsigned int posFinishIndex = 0;
+    for (unsigned i = 0; i <= totalEvents; ++i)
     {
         Event *e = events[i];
-        Node *v = e->v;
-        if (e->type == Open) 
+
+        // If we have finished the current scanline or all events, then we
+        // process the events on the current scanline in a couple of passes.
+        if ((i == totalEvents) || (e->pos != thisPos))
         {
-            //fprintf(stderr, "1Open %g\n", e->pos); fflush(stderr);
-                
-            // Work out neighbours
-            NodeSet::iterator it = scanline.insert(v).first;
-            if (it != scanline.begin()) 
+            posFinishIndex = i;
+            for (int pass = 2; pass <= 3; ++pass)
             {
-                Node *u = *(--it);
-                v->firstAbove = u;
-                u->firstBelow = v;
-                ++it;
-            }
-            if (++it != scanline.end()) 
-            {
-                Node *u = *it;
-                v->firstBelow = u;
-                u->firstAbove = v;
-            }
-
-            // If we are the last event or the next event is not an open,
-            // then we are the last in a series of Opens, so we process all
-            // these Open events.
-            bool lastOpen = ((i == totalEvents) || 
-                    (events[i]->pos != events[i + 1]->pos) ||
-                    (events[i + 1]->type != Open));
-            if (lastOpen)
-            {
-                unsigned j = i;
-                do
+                for (unsigned j = posStartIndex; j < posFinishIndex; ++j)
                 {
-                    Node *u = e->v;
-                    double minX[3], minY[3], maxX[3];
-                    maxX[0] = -DBL_MAX;
-                    minX[2] = DBL_MAX;
-                    u->v->polygon().getBoundingRect(
-                            &minX[1], &minY[1], &maxX[1], NULL);
-                    if (u->firstAbove)
-                    {
-                        u->firstAbove->v->polygon().getBoundingRect(
-                                NULL, NULL, &maxX[0], NULL);
-                    }
-                    if (u->firstBelow)
-                    {
-                        u->firstBelow->v->polygon().getBoundingRect(
-                                &minX[2], NULL, NULL, NULL);
-                    }
-                    // Insert possible visibility segments.
-                    VertInf *vI1 = new VertInf(router, VertID(0, true, 0), 
-                                Point(minX[1], minY[1]));
-                    VertInf *vI2 = new VertInf(router, VertID(0, true, 0), 
-                                Point(maxX[1], minY[1]));
-                    segments.push_back(LineSegment(maxX[0], minX[1], minY[1],
-                                true, NULL, vI1));
-                    segments.push_back(
-                            LineSegment(minX[1], maxX[1], minY[1], true,
-                                vI1, vI2));
-                    segments.push_back(LineSegment(maxX[1], minX[2], minY[1],
-                                true, vI2, NULL));
-
-                    if (j == 0) 
-                    {
-                        break;
-                    }
-                    e = events[--j];
+                    processEventVert(router, scanline, segments, 
+                            events[j], pass);
                 }
-                while ((e->type == Open) && (e->pos == events[j + 1]->pos));
             }
+
+            if (i == totalEvents)
+            {
+                // We have cleaned up, so we can now break out of loop.
+                break;
+            }
+
+            thisPos = e->pos;
+            posStartIndex = i;
         }
-        else if (e->type == Close) 
-        {
-            //fprintf(stderr, "1Close %g\n", e->pos); fflush(stderr);
-            // If the previous event is not a Close, then we are the first 
-            // in a (possible) series of Closes, so we process all these 
-            // Close events. (There will always be open events before this.)
-            bool firstClose = ((events[i]->pos != events[i - 1]->pos) ||
-                    (events[i - 1]->type != Close));
-            if (firstClose)
-            {
-                unsigned j = i;
-                do
-                {
-                    Node *u = e->v;
-                    double minX[3], maxY[3], maxX[3];
-                    maxX[0] = -DBL_MAX;
-                    minX[2] = DBL_MAX;
-                    u->v->polygon().getBoundingRect(
-                            &minX[1], NULL, &maxX[1], &maxY[1]);
-                    if (u->firstAbove)
-                    {
-                        u->firstAbove->v->polygon().getBoundingRect(
-                                NULL, NULL, &maxX[0], NULL);
-                    }
-                    if (u->firstBelow)
-                    {
-                        u->firstBelow->v->polygon().getBoundingRect(
-                                &minX[2], NULL, NULL, NULL);
-                    }
-                    // Insert possible visibility segments.
-                    VertInf *vI1 = new VertInf(router, VertID(0, true, 0), 
-                                Point(minX[1], maxY[1]));
-                    VertInf *vI2 = new VertInf(router, VertID(0, true, 0), 
-                                Point(maxX[1], maxY[1]));
-                    segments.push_back(LineSegment(maxX[0], minX[1], maxY[1],
-                                true, NULL, vI1));
-                    segments.push_back(
-                            LineSegment(minX[1], maxX[1], maxY[1], true,
-                                vI1, vI2));
-                    segments.push_back(LineSegment(maxX[1], minX[2], maxY[1],
-                                true, vI2, NULL));
 
-                    if ((j + 1) == totalEvents) 
-                    {
-                        break;
-                    }
-                    e = events[++j];
-                }
-                while ((e->type == Close) && (e->pos == events[j - 1]->pos));
-            } 
-            
-            // Close event
-            size_t result;
-            Node *l = v->firstAbove, *r = v->firstBelow;
-            if (l != NULL) 
-            {
-                l->firstBelow=v->firstBelow;
-            }
-            if (r != NULL)
-            {
-                r->firstAbove=v->firstAbove;
-            }
-            result = scanline.erase(v);
-            assert(result == 1);
-            delete v;
-        }
-        else if (e->type == ConnPoint) 
-        {
-            // Centre point:
-            VertInf *centreVert = e->v->c;
-            Point& cp = centreVert->point;
-
-            // Work out neighbours
-            //
-            // Note: We can't just use the immediate neghbour, because that
-            //       might actually be a shape we are inside, thus keep 
-            //       look at consecutive neighbours till we find a boundry 
-            //       on the correct side.
-            NodeSet::iterator insertIt = scanline.insert(v).first;
-            NodeSet::iterator it = insertIt;
-            if (it != scanline.begin()) 
-            {
-                double pos = DBL_MAX;
-                do
-                {
-                    v->firstAbove = (it != scanline.begin()) ? *(--it) : NULL;
-                    if (v->firstAbove)
-                    {
-                        v->firstAbove->v->polygon().getBoundingRect(
-                                NULL, NULL, &pos, NULL);
-                    }
-                }
-                while (it != scanline.begin() && pos >= v->c->point.x);
-            }
-            it = insertIt;
-            if (it != scanline.end()) 
-            {
-                double pos = -DBL_MAX;
-                do
-                {
-                    ++it;
-                    v->firstBelow = (it != scanline.end()) ? *(it) : NULL;
-                    if (v->firstBelow)
-                    {
-                        v->firstBelow->v->polygon().getBoundingRect(
-                                &pos, NULL, NULL, NULL);
-                    }
-                }
-                while (it != scanline.end() && pos <= v->c->point.x);
-            }
-
-            double minX = -DBL_MAX, maxX = DBL_MAX;
-            if (v->firstAbove)
-            {
-                v->firstAbove->v->polygon().getBoundingRect(
-                        NULL, NULL, &minX, NULL);
-            }
-            if (v->firstBelow)
-            {
-                v->firstBelow->v->polygon().getBoundingRect(
-                        &maxX, NULL, NULL, NULL);
-            }
-            // Insert possible visibility segments.
-            segments.push_back(
-                    LineSegment(minX, cp.x, e->pos, true, NULL, centreVert));
-            segments.push_back(
-                    LineSegment(cp.x, maxX, e->pos, true, centreVert, NULL));
-            
-            scanline.erase(insertIt);
-        }
+        // Do the first sweep event handling -- building the correct 
+        // structure of the scanline.
+        const int pass = 1;
+        processEventVert(router, scanline, segments, e, pass);
     }
     assert(scanline.size() == 0);
     for (unsigned i = 0; i < totalEvents; ++i)
@@ -684,9 +1062,10 @@ void generateStaticOrthogonalVisGraph(Router *router)
         delete events[i];
     }
 
-    segments.sort();
+    segments.list().sort();
 
     // Set up the events for the horizontal sweep.
+    SegmentListWrapper vertSegments;
     ctr = 0;
     shRefIt = router->shapeRefs.begin();
     for (unsigned i = 0; i < n; i++)
@@ -713,184 +1092,49 @@ void generateStaticOrthogonalVisGraph(Router *router)
     qsort((Event*)events, (size_t) totalEvents, sizeof(Event*), compare_events);
 
     // Process the horizontal sweep
-    for (unsigned i = 0; i < totalEvents; ++i)
+    thisPos = events[0]->pos;
+    posStartIndex = 0;
+    posFinishIndex = 0;
+    for (unsigned i = 0; i <= totalEvents; ++i)
     {
         Event *e = events[i];
-        Node *v = e->v;
-        if (e->type == Open) 
+
+        // If we have finished the current scanline or all events, then we
+        // process the events on the current scanline in a couple of passes.
+        if ((i == totalEvents) || (e->pos != thisPos))
         {
-            //fprintf(stderr, "Open  %g %X\n", v->pos, (int) v); fflush(stderr);
-
-            // Work out neighbours
-            NodeSet::iterator it = scanline.insert(v).first;
-            if (it != scanline.begin()) 
+            posFinishIndex = i;
+            for (int pass = 2; pass <= 3; ++pass)
             {
-                Node *u = *(--it);
-                v->firstAbove = u;
-                u->firstBelow = v;
-                ++it;
-            }
-            if (++it != scanline.end()) 
-            {
-                Node *u = *it;
-                v->firstBelow = u;
-                u->firstAbove = v;
-            }
-
-            // If we are the last event or the next event is not an open,
-            // then we are the last in a series of Opens, so we process all
-            // these Open events.
-            bool lastOpen = ((i == totalEvents) || 
-                    (events[i]->pos != events[i + 1]->pos) ||
-                    (events[i + 1]->type != Open));
-            if (lastOpen)
-            {
-                unsigned j = i;
-                do
+                for (unsigned j = posStartIndex; j < posFinishIndex; ++j)
                 {
-                    Node *u = e->v;
-                    double minY[3], minX[3], maxY[3];
-                    maxY[0] = -DBL_MAX;
-                    minY[2] = DBL_MAX;
-                    u->v->polygon().getBoundingRect(
-                            &minX[1], &minY[1], NULL, &maxY[1]);
-                    if (u->firstAbove)
-                    {
-                        u->firstAbove->v->polygon().getBoundingRect(
-                                NULL, NULL, NULL, &maxY[0]);
-                    }
-                    if (u->firstBelow)
-                    {
-                        u->firstBelow->v->polygon().getBoundingRect(
-                                NULL, &minY[2], NULL, NULL);
-                    }
-                    LineSegment vertSeg = LineSegment(maxY[0], minY[2], minX[1]);
-                    mergeSegments(router, segments, vertSeg);
-
-                    if (j == 0) 
-                    {
-                        break;
-                    }
-                    e = events[--j];
+                    processEventHori(router, scanline, vertSegments, 
+                            events[j], pass);
                 }
-                while ((e->type == Open) && (e->pos == events[j + 1]->pos));
             }
-        }
-        else if (e->type == Close) 
-        {
-            //fprintf(stderr, "Close %g %X\n", v->pos, (int) v); fflush(stderr);
-
-            // If the previous event is not a Close, then we are the first 
-            // in a (possible) series of Closes, so we process all these 
-            // Close events. (There will always be open events before this.)
-            bool firstClose = ((events[i]->pos != events[i - 1]->pos) ||
-                    (events[i - 1]->type != Close));
-            if (firstClose)
-            {
-                unsigned j = i;
-                do
-                {
-                    Node *u = e->v;
-                    double minY[3], maxX[3], maxY[3];
-                    maxY[0] = -DBL_MAX;
-                    minY[2] = DBL_MAX;
-                    u->v->polygon().getBoundingRect(
-                            NULL, &minY[1], &maxX[1], &maxY[1]);
-                    if (u->firstAbove)
-                    {
-                        u->firstAbove->v->polygon().getBoundingRect(
-                                NULL, NULL, NULL, &maxY[0]);
-                        }
-                    if (u->firstBelow)
-                    {
-                        u->firstBelow->v->polygon().getBoundingRect(
-                                NULL, &minY[2], NULL, NULL);
-                    }
-                    LineSegment vertSeg = LineSegment(maxY[0], minY[2], maxX[1]);
-                    mergeSegments(router, segments, vertSeg);
-
-                    if ((j + 1) == totalEvents) 
-                    {
-                        break;
-                    }
-                    e = events[++j];
-                }
-                while ((e->type == Close) && (e->pos == events[j - 1]->pos));
-            } 
-
             
-            // Close event
-            size_t result;
-            Node *l = v->firstAbove, *r = v->firstBelow;
-            if (l != NULL) 
+            // Process the merged line segments.
+            for (SegmentList::iterator curr = vertSegments.list().begin();
+                    curr != vertSegments.list().end(); ++curr)
             {
-                l->firstBelow=v->firstBelow;
+                intersectSegments(router, segments.list(), *curr);
             }
-            if (r != NULL)
+            vertSegments.list().clear();
+
+            if (i == totalEvents)
             {
-                r->firstAbove=v->firstAbove;
-            }
-            result = scanline.erase(v);
-            assert(result == 1);
-            delete v;
-        }
-        else if (e->type == ConnPoint)
-        {
-            // Work out neighbours
-            //
-            // Note: We can't just use the immediate neghbour, because that
-            //       might actually be a shape we are inside, thus keep 
-            //       look at consecutive neighbours till we find a boundry 
-            //       on the correct side.
-            NodeSet::iterator insertIt = scanline.insert(v).first;
-            NodeSet::iterator it = insertIt;
-            if (it != scanline.begin()) 
-            {
-                double pos = DBL_MAX;
-                do
-                {
-                    v->firstAbove = (it != scanline.begin()) ? *(--it) : NULL;
-                    if (v->firstAbove)
-                    {
-                        v->firstAbove->v->polygon().getBoundingRect(
-                                NULL, NULL, NULL, &pos);
-                    }
-                }
-                while (it != scanline.begin() && pos >= v->c->point.y);
-            }
-            it = insertIt;
-            if (it != scanline.end()) 
-            {
-                double pos = -DBL_MAX;
-                do
-                {
-                    ++it;
-                    v->firstBelow = (it != scanline.end()) ? *(it) : NULL;
-                    if (v->firstBelow)
-                    {
-                        v->firstBelow->v->polygon().getBoundingRect(
-                                NULL, &pos, NULL, NULL);
-                    }
-                }
-                while (it != scanline.end() && pos <= v->c->point.y);
+                // We have cleaned up, so we can now break out of loop.
+                break;
             }
 
-            double minY = -DBL_MAX, maxY = DBL_MAX;
-            if (v->firstAbove)
-            {
-                v->firstAbove->v->polygon().getBoundingRect(
-                        NULL, NULL, NULL, &minY);
-            }
-            if (v->firstBelow)
-            {
-                v->firstBelow->v->polygon().getBoundingRect(
-                        NULL, &maxY, NULL, NULL);
-            }
-            LineSegment vertSeg = LineSegment(minY, maxY, e->pos);
-            mergeSegments(router, segments, vertSeg);
-            
-            scanline.erase(insertIt);
+            thisPos = e->pos;
+            posStartIndex = i;
         }
+
+        // Do the first sweep event handling -- building the correct 
+        // structure of the scanline.
+        const int pass = 1;
+        processEventHori(router, scanline, vertSegments, e, pass);
     }
     assert(scanline.size() == 0);
     for (unsigned i = 0; i < totalEvents; ++i)
@@ -901,20 +1145,14 @@ void generateStaticOrthogonalVisGraph(Router *router)
 
     // Add portions of the horizontal line that are after the final vertical
     // position we considered.
-    const bool orthogonal = true;
-    for (SegmentList::iterator it = segments.begin(); it != segments.end(); )
+    for (SegmentList::iterator it = segments.list().begin(); 
+            it != segments.list().end(); )
     {
         LineSegment& horiLine = *it;
 
-        VertInf *vI1 = horiLine.beginVertInf ? horiLine.beginVertInf :
-                new VertInf(router, VertID(0, true, 0), 
-                Point(horiLine.begin, horiLine.pos));
-        VertInf *vI2 = new VertInf(router, VertID(0, true, 0),
-                Point(horiLine.finish, horiLine.pos));
-        EdgeInf *edge = new EdgeInf(vI1, vI2, orthogonal);
-        edge->setDist(horiLine.finish - horiLine.begin);
+        horiLine.addEdgeHorizontal(router);
         
-        it = segments.erase(it);
+        it = segments.list().erase(it);
     }
 }
 
