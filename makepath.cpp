@@ -56,6 +56,13 @@ static double CrossLength(const Point& l, const Point& r)
 //
 static double angleBetween(const Point& p1, const Point& p2, const Point& p3)
 {
+    if ((p1.x == p2.x && p1.y == p2.y) || (p2.x == p3.x && p2.y == p3.y))
+    {
+        // If two of the points are the same, then we can't say anything
+        // about the angle between.  Treat them as being collinear.
+        return M_PI;
+    }
+
     Point v1(p1.x - p2.x, p1.y - p2.y);
     Point v2(p3.x - p2.x, p3.y - p2.y);
 
@@ -111,7 +118,7 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf1,
 
             double rad = M_PI - angleBetween(p1, p2, p3);
 
-            if ((rad > 0) && (rad < M_PI))
+            if (rad > 0)
             {
                 // Make `xval' between 0--10 then take its log so small
                 // angles are not penalised as much as large ones.
@@ -123,7 +130,12 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf1,
                 //        rad * 180 / M_PI, (angle_penalty * yval));
             }
 
-            if ((rad > 0) && (rad < M_PI))
+            if (rad == M_PI)
+            {
+                // Needs to double back
+                result += (2 * segmt_penalty);
+            }
+            else if (rad > 0)
             {
                 // Only penalise as an extra segment if the two 
                 // segments are not collinear.
@@ -240,7 +252,7 @@ bool operator<(const ANode &a, const ANode &b)
         // Tiebreaker, use less costly existing path.
         return a.bend > b.bend;
     }
-    return a.g > b.g;
+    return a.pp > b.pp;
 }
 
 
@@ -256,44 +268,37 @@ static double estimatedCost(ConnRef *lineRef, const Point *last,
         // XXX: This currently just takes into account the compulsory
         //      bend but will have to be updated when port direction 
         //      information is available.
-        double bend_penalty = 0;
+        int num_penalties = 0;
         double xmove = b.x - a.x;
         double ymove = b.y - a.y;
-        if (last)
+        if (!last)
         {
-            int num_penalties = 0;
-            double last_xmove = a.x - last->x;
-            double last_ymove = a.y - last->y;
-            if ((last_xmove == 0) && (xmove != 0))
+            // Just two points.
+            if ((xmove != 0) && (ymove != 0))
             {
-                num_penalties = 1;
-                if (!(((last_ymove > 0) && (ymove < 0)) ||
-                      ((last_ymove < 0) && (ymove > 0))))
-                {
-                    // Coat-hanger
-                    num_penalties += 1;
-                }
+                num_penalties += 1;
             }
-            else if ((last_ymove == 0) && (ymove != 0))
-            {
-                num_penalties = 1;
-                if (!(((last_xmove > 0) && (xmove < 0)) ||
-                      ((last_xmove < 0) && (xmove > 0))))
-                {
-                    // Coat-hanger
-                    num_penalties += 1;
-                }
-            }
-            bend_penalty += num_penalties * lineRef->router()->segmt_penalty;
         }
-        //bend_penalty += ((xmove != 0) && (ymove != 0)) ?
-        //        lineRef->router()->segmt_penalty : 0;
-        
-        // XXX: I'm not sure this is correct yet... needs more testing,
-        //      so leave with zero penalty for the moment.
-        bend_penalty = 0;
+        else
+        {
+            // We have three points, so we know the direction of the 
+            // previous segment.
+            double rad = M_PI - angleBetween(*last, a, b);
+            if (rad > (M_PI / 2))            
+            {
+                // Target point is back in the direction of the first point,
+                // so at least two bends are required.
+                num_penalties += 2;
+            }
+            else if (rad > 0)
+            {
+                // To the side, so at least one bend.
+                num_penalties += 1;
+            }
+        }
+        double penalty = num_penalties * lineRef->router()->segmt_penalty;
 
-        return manhattanDist(a, b) + bend_penalty;
+        return manhattanDist(a, b) + penalty;
     }
 }
 
@@ -358,7 +363,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
             {
                 VertInf *prevInf = BestNode.inf;
 
-                double edgeDist  = dist(BestNode.inf->point, curr->point);
+                double edgeDist = dist(BestNode.inf->point, curr->point);
 
                 Node.g = BestNode.g + cost(lineRef, edgeDist, prevInf,
                         BestNode.inf, Node.inf);
@@ -459,7 +464,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
         for (EdgeInfList::const_iterator edge = visList.begin(); edge != finish;
                 ++edge)
         {
-            Node.inf = (*edge)->otherVert(BestNode.inf);
+            Node = ANode((*edge)->otherVert(BestNode.inf));
 
             // Only check shape verticies, or the tar endpoint.
             if (!(Node.inf->id.isShape) && (Node.inf != tar))
@@ -513,12 +518,21 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
                 {   // If already on PENDING
                     if (Node.g < ati.g)
                     {
-                        ati.g = Node.g;
-                        ati.f = Node.g + ati.h;
-                        ati.pp = Node.pp;
-                        ati.bend = Node.bend;
-                        
+                        ati = Node;
+                        ati.inf->pathNext = ati.pp;
+
                         make_heap( PENDING.begin(), PENDING.end() );
+                    }
+                    else if (Node.g == ati.g && (Node.pp != ati.pp))
+                    {
+                        // Allow this as an extra node
+                        //
+                        // This is required because aStar only allows a
+                        // single cost-to-node and set of pointers back
+                        // to the origin, but there may be two true costs
+                        // and routes back for orthogonal paths, depending
+                        // on the orientation of the next explored segment.
+                        break;
                     }
                     bNodeFound = true;
                     break;
@@ -535,11 +549,19 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
                         // If on DONE, Which has lower gone?
                         if (Node.g < ati.g)
                         {
-                            ati.g = Node.g;
-                            ati.f = Node.g + ati.h;
-                            ati.pp = Node.pp;
-                            ati.bend = Node.bend;
-                            ati.inf->pathNext = Node.pp;
+                            ati = Node;
+                            ati.inf->pathNext = ati.pp;
+                        }
+                        else if (Node.g == ati.g && (Node.pp != ati.pp))
+                        {
+                            // Allow this as an extra node.
+                            //
+                            // This is required because aStar only allows a
+                            // single cost-to-node and set of pointers back
+                            // to the origin, but there may be two true costs
+                            // and routes back for orthogonal paths, depending
+                            // on the orientation of the next explored segment.
+                            break;
                         }
                         bNodeFound = true;
                         break;
