@@ -69,9 +69,13 @@ class VertID
 class VertInf
 {
     public:
-        VertInf(Router *router, const VertID& vid, const Point& vpoint);
+        VertInf(Router *router, const VertID& vid, const Point& vpoint,
+                const bool addToRouter = true);
+        ~VertInf();
+        void Reset(const VertID& vid, const Point& vpoint);
         void Reset(const Point& vpoint);
         void removeFromGraph(const bool isConnVert = true);
+        bool orphaned(void);
 
         Router *_router;
         VertID id;
@@ -94,12 +98,17 @@ class VertInf
 bool directVis(VertInf *src, VertInf *dst);
 
 
+// A linked list of all the vertices in the router instance.  All the 
+// connector endpoints are listed first, then all the shape vertices.
+// Dunnny vertices inserted for orthogonal routing are classed as shape
+// vertices but have VertID(0, 0).
+//
 class VertInfList
 {
     public:
         VertInfList();
         void addVertex(VertInf *vert);
-        void removeVertex(VertInf *vert);
+        VertInf *removeVertex(VertInf *vert);
         VertInf *getVertexByID(const VertID& id);
         VertInf *getVertexByPos(const Point& p);
         VertInf *shapesBegin(void);

@@ -32,6 +32,13 @@ namespace Avoid {
 extern void generateStaticOrthogonalVisGraph(Router *router);
 
 
+// An ID given to all dummy vertices inserted to allow creation of the
+// orthogonal visibility graph since the vertices in the orthogonal graph 
+// mostly do not correspond to shape corners or connector endpoints.
+//
+static const VertID dummyOrthogID(0, true, 0);
+
+
 }
 
 #endif

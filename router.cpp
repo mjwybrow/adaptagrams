@@ -123,6 +123,9 @@ Router::~Router()
         shape = shapeRefs.begin();
     }
 
+    // Cleanup orphaned orthogonal graph vertices.
+    destroyOrthogonalVisGraph();
+
     assert(connRefs.size() == 0);
     assert(shapeRefs.size() == 0);
     assert(visGraph.size() == 0);
@@ -259,6 +262,27 @@ void Router::setStaticGraphInvalidated(const bool invalidated)
 }
 
 
+void Router::destroyOrthogonalVisGraph(void)
+{
+    // Remove orthogonal visibility graph edges.
+    visOrthogGraph.clear();
+
+    // Remove the now orphaned vertices.
+    VertInf *curr = vertices.shapesBegin();
+    while (curr)
+    {
+        if (curr->orphaned() && (curr->id == dummyOrthogID))
+        {
+            VertInf *following = vertices.removeVertex(curr);
+            delete curr;
+            curr = following;
+            continue;
+        }
+        curr = curr->lstNext;
+    }
+}
+
+
 void Router::regenerateStaticBuiltGraph(void)
 {
     // Here we do talks involved in updating the static-built visibility 
@@ -267,7 +291,9 @@ void Router::regenerateStaticBuiltGraph(void)
     {
         if (_orthogonalRouting)
         {
-            visOrthogGraph.clear();
+            destroyOrthogonalVisGraph();
+
+            // Regenerate a new visibility graph.
             generateStaticOrthogonalVisGraph(this);
         }
         _staticGraphInvalidated = false;

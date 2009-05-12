@@ -96,7 +96,6 @@ class Router {
         EdgeList visOrthogGraph;
         ContainsMap contains;
         VertInfList vertices;
-        VertInfList orthogVertices;
         ContainsMap enclosingClusters;
         
         bool PartialTime;
@@ -210,6 +209,7 @@ class Router {
         void printInfo(void);
         unsigned int assignId(const unsigned int suggestedId);
         void regenerateStaticBuiltGraph(void);
+        void destroyOrthogonalVisGraph(void);
         void setStaticGraphInvalidated(const bool invalidated);
         unsigned int defaultConnType(void) const;
 

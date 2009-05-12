@@ -195,9 +195,14 @@ struct PosVertInf
 };
 
 
-struct CmpVertInfHori { 
+struct CmpVertInf { 
         bool operator()(const VertInf* u, const VertInf* v) const
         {
+            // Comparator for VertSet, an ordered set of VertInf pointers.
+            // It is assumed vertical sets of points will all have the same
+            // x position and horizontal sets all share a y position, so this
+            // method can be used to sort both these sets.
+            assert((u->point.x == v->point.x) || (u->point.y == v->point.y));
             if (u->point.x != v->point.x)
             {
                 return u->point.x < v->point.x;
@@ -210,7 +215,7 @@ struct CmpVertInfHori {
         }
 };
 
-typedef std::set<VertInf *> VertSet;
+typedef std::set<VertInf *, CmpVertInf> VertSet;
 
 // Temporary structure used to store the possible horizontal visibility 
 // lines arising from the vertical sweep.
@@ -326,7 +331,7 @@ public:
         }
         if (!found)
         {
-            found = new VertInf(router, VertID(0, true, 0), Point(posX, pos));
+            found = new VertInf(router, dummyOrthogID, Point(posX, pos));
             vertInfs.insert(found);
         }
         return found;
@@ -343,7 +348,7 @@ public:
                 ((*vertInfs.begin())->point.x != begin))
         {
             vertInfs.insert(new
-                    VertInf(router, VertID(0, true, 0), Point(begin, pos)));
+                    VertInf(router, dummyOrthogID, Point(begin, pos)));
         }
     }
 
@@ -359,7 +364,7 @@ public:
                 ((*vertInfs.rbegin())->point.x != finish))
         {
             vertInfs.insert(new
-                    VertInf(router, VertID(0, true, 0), Point(finish, pos)));
+                    VertInf(router, dummyOrthogID, Point(finish, pos)));
         }
     }
 
@@ -402,8 +407,7 @@ public:
                     }
                     if ((*side)->id.isShape)
                     {
-                        EdgeInf *edge = 
-                                new EdgeInf((*side), (*vert), orthogonal);
+                        EdgeInf *edge = new EdgeInf(*side, *vert, orthogonal);
                         edge->setDist((*vert)->point.x - (*side)->point.x);
                     }
 
@@ -416,17 +420,21 @@ public:
                     }
                     if (side != vertInfs.end())
                     {
-                        EdgeInf *edge = 
-                                new EdgeInf((*last), (*side), orthogonal);
+                        EdgeInf *edge = new EdgeInf(*last, *side, orthogonal);
                         edge->setDist((*side)->point.x - (*last)->point.x);
                     }
-                }
-                else
-                {
-                    // The normal case.
+
                     EdgeInf *edge = new EdgeInf(*last, *vert, orthogonal);
                     edge->setDist((*vert)->point.x - (*last)->point.x);
                 }
+                
+                // The normal case.
+                //
+                // Note: It's okay to give two connector endpoints visbility 
+                // here since we only consider the partner endpoint as a 
+                // candidate while searching.
+                EdgeInf *edge = new EdgeInf(*last, *vert, orthogonal);
+                edge->setDist((*vert)->point.x - (*last)->point.x);
                 
                 ++last;
             }
@@ -549,7 +557,7 @@ public:
     double pos;
     bool shapeSide;
     
-    std::set<VertInf *,CmpVertInfHori> vertInfs;
+    VertSet vertInfs;
 private:
 	// MSVC wants to generate the assignment operator and the default 
 	// constructor, but fails.  Therefore we declare them private and 
@@ -680,7 +688,7 @@ static void intersectSegments(Router *router, SegmentList& segments,
         if (!vertLine.beginVertInf())
         {
             // Add begin point if it didn't intersect another line.
-            VertInf *vert = new VertInf(router, VertID(0, true, 0), 
+            VertInf *vert = new VertInf(router, dummyOrthogID, 
                     Point(vertLine.pos, vertLine.begin));
             breakPoints.insert(PosVertInf(vertLine.begin, vert));
         }
@@ -690,7 +698,7 @@ static void intersectSegments(Router *router, SegmentList& segments,
         if (!vertLine.finishVertInf())
         {
             // Add finish point if it didn't intersect another line.
-            VertInf *vert = new VertInf(router, VertID(0, true, 0), 
+            VertInf *vert = new VertInf(router, dummyOrthogID, 
                     Point(vertLine.pos, vertLine.finish));
             breakPoints.insert(PosVertInf(vertLine.finish, vert));
         }
@@ -746,12 +754,14 @@ static void intersectSegments(Router *router, SegmentList& segments,
                     edge->setDist(side->vert->point.y - last->vert->point.y);
                 }
             }
-            else
-            {
-                // The normal case.
-                EdgeInf *edge = new EdgeInf(last->vert, vert->vert, orthogonal);
-                edge->setDist(vert->vert->point.y - last->vert->point.y);
-            }
+            
+            // The normal case.
+            //
+            // Note: It's okay to give two connector endpoints visbility 
+            // here since we only consider the partner endpoint as a 
+            // candidate while searching.
+            EdgeInf *edge = new EdgeInf(last->vert, vert->vert, orthogonal);
+            edge->setDist(vert->vert->point.y - last->vert->point.y);
 
             ++last;
         }
@@ -823,9 +833,9 @@ static void processEventVert(Router *router, NodeSet& scanline,
             double lineY = (e->type == Open) ? v->min[1] : v->max[1];
 
             // Insert possible visibility segments.
-            VertInf *vI1 = new VertInf(router, VertID(0, true, 0), 
+            VertInf *vI1 = new VertInf(router, dummyOrthogID, 
                         Point(minShape, lineY));
-            VertInf *vI2 = new VertInf(router, VertID(0, true, 0), 
+            VertInf *vI2 = new VertInf(router, dummyOrthogID, 
                         Point(maxShape, lineY));
             segments.insert(LineSegment(minLimit, minShape, lineY,
                         true, NULL, vI1));
@@ -854,7 +864,7 @@ static void processEventVert(Router *router, NodeSet& scanline,
                 // This is not contained within a shape so add a normal
                 // visibility graph point here too (since paths won't route
                 // *through* connector endpoint vertices).
-                VertInf *cent = new VertInf(router, VertID(0, true, 0), cp);
+                VertInf *cent = new VertInf(router, dummyOrthogID, cp);
                 line1->vertInfs.insert(cent);
                 line2->vertInfs.insert(cent);
             }
@@ -1025,11 +1035,9 @@ void generateStaticOrthogonalVisGraph(Router *router)
     unsigned int posFinishIndex = 0;
     for (unsigned i = 0; i <= totalEvents; ++i)
     {
-        Event *e = events[i];
-
         // If we have finished the current scanline or all events, then we
         // process the events on the current scanline in a couple of passes.
-        if ((i == totalEvents) || (e->pos != thisPos))
+        if ((i == totalEvents) || (events[i]->pos != thisPos))
         {
             posFinishIndex = i;
             for (int pass = 2; pass <= 3; ++pass)
@@ -1047,14 +1055,14 @@ void generateStaticOrthogonalVisGraph(Router *router)
                 break;
             }
 
-            thisPos = e->pos;
+            thisPos = events[i]->pos;
             posStartIndex = i;
         }
 
         // Do the first sweep event handling -- building the correct 
         // structure of the scanline.
         const int pass = 1;
-        processEventVert(router, scanline, segments, e, pass);
+        processEventVert(router, scanline, segments, events[i], pass);
     }
     assert(scanline.size() == 0);
     for (unsigned i = 0; i < totalEvents; ++i)
@@ -1097,11 +1105,9 @@ void generateStaticOrthogonalVisGraph(Router *router)
     posFinishIndex = 0;
     for (unsigned i = 0; i <= totalEvents; ++i)
     {
-        Event *e = events[i];
-
         // If we have finished the current scanline or all events, then we
         // process the events on the current scanline in a couple of passes.
-        if ((i == totalEvents) || (e->pos != thisPos))
+        if ((i == totalEvents) || (events[i]->pos != thisPos))
         {
             posFinishIndex = i;
             for (int pass = 2; pass <= 3; ++pass)
@@ -1127,14 +1133,14 @@ void generateStaticOrthogonalVisGraph(Router *router)
                 break;
             }
 
-            thisPos = e->pos;
+            thisPos = events[i]->pos;
             posStartIndex = i;
         }
 
         // Do the first sweep event handling -- building the correct 
         // structure of the scanline.
         const int pass = 1;
-        processEventHori(router, scanline, vertSegments, e, pass);
+        processEventHori(router, scanline, vertSegments, events[i], pass);
     }
     assert(scanline.size() == 0);
     for (unsigned i = 0; i < totalEvents; ++i)

@@ -92,16 +92,13 @@ ConnRef::ConnRef(Router *router, const ConnEnd& src, const ConnEnd& dst,
       _hateCrossings(false)
 {
     _id = router->assignId(id);
-
     _route.clear();
 
     if (_router->IncludeEndpoints)
     {
         bool isShape = false;
-        _srcVert = new VertInf(_router, VertID(id, isShape, 1), src.point());
-        _dstVert = new VertInf(_router, VertID(id, isShape, 2), dst.point());
-        _router->vertices.addVertex(_srcVert);
-        _router->vertices.addVertex(_dstVert);
+        _srcVert = new VertInf(_router, VertID(_id, isShape, 1), src.point());
+        _dstVert = new VertInf(_router, VertID(_id, isShape, 2), dst.point());
         makeActive();
         _initialised = true;
     }
@@ -170,12 +167,11 @@ void ConnRef::common_updateEndPoint(const unsigned int type, const Point& point)
     {
         if (_srcVert)
         {
-            _srcVert->Reset(point);
+            _srcVert->Reset(VertID(_id, isShape, type), point);
         }
         else
         {
             _srcVert = new VertInf(_router, VertID(_id, isShape, type), point);
-            _router->vertices.addVertex(_srcVert);
         }
         
         altered = _srcVert;
@@ -185,12 +181,11 @@ void ConnRef::common_updateEndPoint(const unsigned int type, const Point& point)
     {
         if (_dstVert)
         {
-            _dstVert->Reset(point);
+            _dstVert->Reset(VertID(_id, isShape, type), point);
         }
         else
         {
             _dstVert = new VertInf(_router, VertID(_id, isShape, type), point);
-            _router->vertices.addVertex(_dstVert);
         }
         
         altered = _dstVert;
@@ -452,8 +447,6 @@ void ConnRef::lateSetup(const Point& src, const Point& dst)
     bool isShape = false;
     _srcVert = new VertInf(_router, VertID(_id, isShape, 1), src);
     _dstVert = new VertInf(_router, VertID(_id, isShape, 2), dst);
-    _router->vertices.addVertex(_srcVert);
-    _router->vertices.addVertex(_dstVert);
     makeActive();
     _initialised = true;
 }
@@ -500,38 +493,8 @@ void ConnRef::unInitialise(void)
 
 void ConnRef::removeFromGraph(void)
 {
-    for (VertInf *iter = _srcVert; iter != NULL; )
-    {
-        VertInf *tmp = iter;
-        iter = (iter == _srcVert) ? _dstVert : NULL;
-        
-        // For each vertex.
-        EdgeInfList& visList = tmp->visList;
-        EdgeInfList::iterator finish = visList.end();
-        EdgeInfList::iterator edge;
-        while ((edge = visList.begin()) != finish)
-        {
-            // Remove each visibility edge
-            delete (*edge);
-        }
-
-        EdgeInfList& invisList = tmp->invisList;
-        finish = invisList.end();
-        while ((edge = invisList.begin()) != finish)
-        {
-            // Remove each invisibility edge
-            delete (*edge);
-        }
-
-        EdgeInfList& orthogList = tmp->orthogVisList;
-        finish = orthogList.end();
-        while ((edge = orthogList.begin()) != finish)
-        {
-            // Remove each orthogonal visibility edge
-            (*edge)->alertConns();
-            delete (*edge);
-        }
-    }
+    _srcVert->removeFromGraph();
+    _dstVert->removeFromGraph();
 }
 
 
@@ -894,7 +857,7 @@ bool ConnRef::generatePath(void)
         assert(_initialised);
         unInitialise();
     }
-   
+
 #ifdef PATHDEBUG
     db_printf("Output route:\n");
     for (size_t i = 0; i < output_route.ps.size(); ++i)

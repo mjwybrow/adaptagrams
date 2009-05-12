@@ -148,7 +148,8 @@ ostream& operator<<(ostream& os, const VertID& vID)
 
 
 
-VertInf::VertInf(Router *router, const VertID& vid, const Point& vpoint)
+VertInf::VertInf(Router *router, const VertID& vid, const Point& vpoint, 
+        const bool addToRouter)
     : _router(router)
     , id(vid)
     , point(vpoint)
@@ -164,12 +165,40 @@ VertInf::VertInf(Router *router, const VertID& vid, const Point& vpoint)
 {
     point.id = vid.objID;
     point.vn = vid.vn;
+
+    if (addToRouter)
+    {
+        _router->vertices.addVertex(this);
+    }
+}
+
+
+VertInf::~VertInf()
+{
+}
+
+
+void VertInf::Reset(const VertID& vid, const Point& vpoint)
+{
+    id = vid;
+    point = vpoint;
+    point.id = id.objID;
+    point.vn = id.vn;
 }
 
 
 void VertInf::Reset(const Point& vpoint)
 {
     point = vpoint;
+    point.id = id.objID;
+    point.vn = id.vn;
+}
+
+
+// Returns true if this vertex is not involved in any (in)visibility graphs.
+bool VertInf::orphaned(void)
+{
+    return (visList.empty() && invisList.empty() && orthogVisList.empty());
 }
 
 
@@ -180,10 +209,7 @@ void VertInf::removeFromGraph(const bool isConnVert)
         assert(!(id.isShape));
     }
 
-    VertInf *tmp = this;
-
     // For each vertex.
-    EdgeInfList& visList = tmp->visList;
     EdgeInfList::const_iterator finish = visList.end();
     EdgeInfList::const_iterator edge;
     while ((edge = visList.begin()) != finish)
@@ -193,7 +219,6 @@ void VertInf::removeFromGraph(const bool isConnVert)
         delete (*edge);
     }
 
-    EdgeInfList& orthogVisList = tmp->orthogVisList;
     finish = orthogVisList.end();
     while ((edge = orthogVisList.begin()) != finish)
     {
@@ -201,7 +226,6 @@ void VertInf::removeFromGraph(const bool isConnVert)
         delete (*edge);
     }
 
-    EdgeInfList& invisList = tmp->invisList;
     finish = invisList.end();
     while ((edge = invisList.begin()) != finish)
     {
@@ -344,10 +368,14 @@ void VertInfList::addVertex(VertInf *vert)
 }
 
 
-void VertInfList::removeVertex(VertInf *vert)
+// Removes a vertex from the list and returns a pointer to the vertex
+// following the removed one.
+VertInf *VertInfList::removeVertex(VertInf *vert)
 {
     // Conditions for correct data structure
     checkVertInfListConditions();
+    
+    VertInf *following = vert->lstNext;
 
     if (!(vert->id.isShape))
     {
@@ -436,6 +464,8 @@ void VertInfList::removeVertex(VertInf *vert)
     vert->lstNext = NULL;
 
     checkVertInfListConditions();
+
+    return following;
 }
 
 

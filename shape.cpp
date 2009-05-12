@@ -46,13 +46,14 @@ ShapeRef::ShapeRef(Router *router, Polygon& ply, const unsigned int id)
     _id = router->assignId(id);
 
     bool isShape = true;
-    VertID i = VertID(id, isShape, 0);
+    VertID i = VertID(_id, isShape, 0);
     
+    const bool addToRouterNow = false;
     VertInf *last = NULL;
     VertInf *node = NULL;
     for (size_t pt_i = 0; pt_i < _poly.size(); ++pt_i)
     {
-        node = new VertInf(_router, i, _poly.ps[pt_i]);
+        node = new VertInf(_router, i, _poly.ps[pt_i], addToRouterNow);
 
         if (!_firstVert)
         {
