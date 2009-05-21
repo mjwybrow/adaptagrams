@@ -36,6 +36,9 @@
 #include "libavoid/graph.h"
 #include "libavoid/router.h"
 #include "libavoid/debug.h"
+#ifdef ASTAR_DEBUG
+  #include <SDL_gfxPrimitives.h>
+#endif
 
 namespace Avoid {
 
@@ -103,7 +106,7 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf1,
     Polygon connRoute;
 
     Router *router = inf2->_router;
-    if (inf2->pathNext != NULL)
+    if (inf1 != NULL)
     {
         double& angle_penalty = router->angle_penalty;
         double& segmt_penalty = router->segmt_penalty;
@@ -211,16 +214,18 @@ class ANode
         double g;        // Gone
         double h;        // Heuristic
         double f;        // Formula f = g + h
-        int bend;
-        VertInf *pp;
+        
+        int prevIndex;   // Index into DONE for the previous ANode.
+        int timeStamp;   // Timestamp used to determine explaration order of
+                         // seemingly equal paths during orthogonal routing.
 
-        ANode(VertInf *vinf)
+        ANode(VertInf *vinf, int time)
             : inf(vinf),
               g(0),
               h(0),
               f(0),
-              bend(0),
-              pp(NULL)
+              prevIndex(-1),
+              timeStamp(time)
         {
         }
         ANode()
@@ -228,8 +233,8 @@ class ANode
               g(0),
               h(0),
               f(0),
-              bend(0),
-              pp(NULL)
+              prevIndex(-1),
+              timeStamp(-1)
         {
         }
 };
@@ -243,16 +248,18 @@ class ANode
 //
 bool operator<(const ANode &a, const ANode &b)
 {
-    if (a.f != b.f)
+    if (fabs(a.f - b.f) > 0.001)
     {
         return a.f > b.f;
     }
-    if (a.bend != b.bend)
+    if (a.timeStamp != b.timeStamp)
     {
-        // Tiebreaker, use less costly existing path.
-        return a.bend > b.bend;
+        // Tiebreaker, if two paths have equal cost, then choose 
+        // the one that goes straight, rather than bends at this point.
+        return a.timeStamp > b.timeStamp;
     }
-    return a.pp > b.pp;
+    assert(a.prevIndex != b.prevIndex);
+    return a.prevIndex > b.prevIndex;
 }
 
 
@@ -303,10 +310,28 @@ static double estimatedCost(ConnRef *lineRef, const Point *last,
 }
 
 
+class CmpVisEdgeRotation 
+{
+    public:
+        CmpVisEdgeRotation(const VertInf* lastPt)
+            : _lastPt(lastPt)
+        {
+        }
+        bool operator() (const EdgeInf* u, const EdgeInf* v) const 
+        {
+            return u->rotationLessThen(_lastPt, v);
+        }
+    private:
+        const VertInf *_lastPt;
+};
+
+
 // Returns the best path from src to tar using the cost function.
 //
 // The path is worked out using the aStar algorithm, and is encoded via
-// pathNext links in each of the VerInfs along the path.
+// prevIndex values for each ANode which point back to the previous ANode's
+// position in the DONE vector.  At completion, this order is written into
+// the pathNext links in each of the VerInfs along the path.
 //
 // The aStar STL code is based on public domain code available on the
 // internet.
@@ -323,6 +348,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
     std::vector<ANode> DONE;        // insertions/deletions at back,
     ANode Node, BestNode;           // Temporary Node and BestNode
     bool bNodeFound = false;        // Flag if node is found in container
+    int timestamp = 1;
 
     if (start == NULL)
     {
@@ -349,19 +375,18 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
             VertInf *curr = router->vertices.getVertexByID(vID);
             assert(curr != NULL);
 
-            Node = ANode(curr);
+            Node = ANode(curr, timestamp++);
             if (!last)
             {
                 Node.g = 0;
                 Node.h = estimatedCost(lineRef, NULL, Node.inf->point, 
                         tar->point);
                 Node.f = Node.g + Node.h;
-                Node.bend = 0;
-                Node.pp = NULL;
             }
             else
             {
-                VertInf *prevInf = BestNode.inf;
+                VertInf *prevInf = (BestNode.prevIndex >= 0) ?
+                        DONE[BestNode.prevIndex].inf : NULL;
 
                 double edgeDist = dist(BestNode.inf->point, curr->point);
 
@@ -375,18 +400,14 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
                 // The A* formula
                 Node.f = Node.g + Node.h;
                 
-                Node.bend = BestNode.pp ? abs(vecDir(BestNode.pp->point,
-                            BestNode.inf->point, curr->point)) : 0;
-
                 // Point parent to last BestNode (pushed onto DONE)
-                Node.pp = BestNode.inf;
+                Node.prevIndex = DONE.size() - 1;
             }
 
             if (curr != start)
             {
                 BestNode = Node;
 
-                BestNode.inf->pathNext = BestNode.pp;
                 DONE.push_back(BestNode);
             }
             else
@@ -401,13 +422,11 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
     else
     {
         // Create the start node
-        Node = ANode(src);
+        Node = ANode(src, timestamp++);
         Node.g = 0;
         Node.h = estimatedCost(lineRef, NULL, Node.inf->point, tar->point);
         Node.f = Node.g + Node.h;
         // Set a null parent, so cost function knows this is the first segment.
-        Node.bend = 0;
-        Node.pp = NULL;
 
         // Populate the PENDING container with the first location
         PENDING.push_back(Node);
@@ -435,16 +454,67 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
         PENDING.pop_back();
 
         // Push the BestNode onto DONE
-        BestNode.inf->pathNext = BestNode.pp;
         DONE.push_back(BestNode);
 
+        VertInf *prevInf = (BestNode.prevIndex >= 0) ?
+                DONE[BestNode.prevIndex].inf : NULL;
 #if 0
         db_printf("Considering... ");
+        db_printf(" %g %g  ", BestNode.inf->point.x, BestNode.inf->point.y);
         BestNode.inf->id.db_print();
-        db_printf(" - g: %3.1f h: %3.1f f: %3.1f back: ", 
-                BestNode.g, BestNode.h, BestNode.f);
-        //BestNode.pp->id.db_print();
+        db_printf(" - g: %3.1f h: %3.1f back: ", BestNode.g, BestNode.h);
+        if (prevInf)
+        {
+            db_printf(" %g %g", prevInf->point.x, prevInf->point.y);
+            //prevInf->id.db_print();
+        }
         db_printf("\n");
+#endif
+
+#if defined(ASTAR_DEBUG)
+        if (router->avoid_screen)
+        {
+            int canx = 151;
+            int cany = 55;
+            int radius = 5;
+            ANode curr;
+            for (curr = BestNode; curr.prevIndex >= 0; 
+                    curr = DONE[curr.prevIndex])
+            {
+                filledCircleRGBA(router->avoid_screen, 
+                        (int) curr.inf->point.x + canx,
+                        (int) curr.inf->point.y + cany, 
+                        radius, 0, 0, 255, 128);
+            }
+            filledCircleRGBA(router->avoid_screen, 
+                    (int) BestNode.inf->point.x + canx,
+                    (int) BestNode.inf->point.y + cany, 
+                    radius, 255, 0, 0, 255);
+
+            SDL_Flip(router->avoid_screen);
+            //SDL_Delay(500);
+
+            filledCircleRGBA(router->avoid_screen, 
+                    (int) BestNode.inf->point.x + canx,
+                    (int) BestNode.inf->point.y + cany, 
+                    radius, 255, 255, 255, 255);
+            filledCircleRGBA(router->avoid_screen, 
+                    (int) BestNode.inf->point.x + canx,
+                    (int) BestNode.inf->point.y + cany, 
+                    radius, 0, 255, 0, 128);
+            for (curr = BestNode; curr.prevIndex >= 0; 
+                    curr = DONE[curr.prevIndex])
+            {
+                filledCircleRGBA(router->avoid_screen, 
+                        (int) curr.inf->point.x + canx,
+                        (int) curr.inf->point.y + cany, 
+                        radius, 255, 255, 255, 255);
+                filledCircleRGBA(router->avoid_screen, 
+                        (int) curr.inf->point.x + canx,
+                        (int) curr.inf->point.y + cany, 
+                        radius, 0, 255, 0, 128);
+            }
+        }
 #endif
 
         // If at destination, break and create path below
@@ -454,20 +524,56 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
             db_printf("Cost: %g\n", BestNode.f);
 #endif
             //bPathFound = true; // arrived at destination...
+            
+            // Correct all the pathNext pointers.
+            ANode curr;
+            int currIndex = DONE.size() - 1;
+            for (curr = BestNode; curr.prevIndex > 0; 
+                    curr = DONE[curr.prevIndex])
+            {
+                assert(curr.prevIndex < currIndex);   
+                curr.inf->pathNext = DONE[curr.prevIndex].inf;
+                currIndex = curr.prevIndex;
+            }
+            // Check that we've gone through the complete path.
+            assert(curr.prevIndex == 0);
+            // Fill in the final pathNext pointer.
+            curr.inf->pathNext = DONE[curr.prevIndex].inf;
+
             break;
         }
 
         // Check adjacent points in graph
         EdgeInfList& visList = (!isOrthogonal) ?
                 BestNode.inf->visList : BestNode.inf->orthogVisList;
+        if (isOrthogonal)
+        {
+            // We would like to explore in a structured way, 
+            // so sort the points in the visList.
+            CmpVisEdgeRotation compare(prevInf);
+            visList.sort(compare);
+        }
         EdgeInfList::const_iterator finish = visList.end();
         for (EdgeInfList::const_iterator edge = visList.begin(); edge != finish;
                 ++edge)
         {
-            Node = ANode((*edge)->otherVert(BestNode.inf));
+            Node = ANode((*edge)->otherVert(BestNode.inf), timestamp++);
+
+            // Set the index to the previous ANode that we reached
+            // this ANode through (the last BestNode pushed onto DONE).
+            Node.prevIndex = DONE.size() - 1;
 
             // Only check shape verticies, or the tar endpoint.
             if (!(Node.inf->id.isShape) && (Node.inf != tar))
+            {
+                continue;
+            }
+
+            VertInf *prevInf = (BestNode.prevIndex >= 0) ?
+                    DONE[BestNode.prevIndex].inf : NULL;
+
+            // Don't bother looking at the segment we just arrived along.
+            if (prevInf && (prevInf == Node.inf))
             {
                 continue;
             }
@@ -478,8 +584,6 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
             {
                 continue;
             }
-
-            VertInf *prevInf = BestNode.inf->pathNext;
 
             if (!router->_orthogonalRouting &&
                   (!router->RubberBandRouting || (start == src)) && 
@@ -502,11 +606,12 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
             // The A* formula
             Node.f = Node.g + Node.h;
 
-            Node.bend = BestNode.pp ? abs(vecDir(BestNode.pp->point,
-                        BestNode.inf->point, Node.inf->point)) : 0;
-
-            // Point parent to last BestNode (pushed onto DONE)
-            Node.pp = BestNode.inf;
+#if 0
+            db_printf("-- Adding: %g %g  ", Node.inf->point.x, 
+                    Node.inf->point.y);
+            Node.inf->id.db_print();
+            db_printf(" - g: %3.1f h: %3.1f \n", Node.g, Node.h);
+#endif
 
             bNodeFound = false;
 
@@ -514,25 +619,15 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
             for (unsigned int i = 0; i < PENDING.size(); i++)
             {
                 ANode& ati = PENDING.at(i);
-                if (Node.inf == ati.inf)
-                {   // If already on PENDING
+                if ((Node.inf == ati.inf) &&
+                        (DONE[Node.prevIndex].inf == DONE[ati.prevIndex].inf))
+                {
+                    // If already on PENDING
                     if (Node.g < ati.g)
                     {
-                        ati = Node;
-                        ati.inf->pathNext = ati.pp;
+                        PENDING[i] = Node;
 
                         make_heap( PENDING.begin(), PENDING.end() );
-                    }
-                    else if (Node.g == ati.g && (Node.pp != ati.pp))
-                    {
-                        // Allow this as an extra node
-                        //
-                        // This is required because aStar only allows a
-                        // single cost-to-node and set of pointers back
-                        // to the origin, but there may be two true costs
-                        // and routes back for orthogonal paths, depending
-                        // on the orientation of the next explored segment.
-                        break;
                     }
                     bNodeFound = true;
                     break;
@@ -544,24 +639,13 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
                 for (unsigned int i = 0; i < DONE.size(); i++)
                 {
                     ANode& ati = DONE.at(i);
-                    if (Node.inf == ati.inf)
+                    if ((Node.inf == ati.inf) && 
+                            (DONE[Node.prevIndex].inf == DONE[ati.prevIndex].inf))
                     {
                         // If on DONE, Which has lower gone?
                         if (Node.g < ati.g)
                         {
-                            ati = Node;
-                            ati.inf->pathNext = ati.pp;
-                        }
-                        else if (Node.g == ati.g && (Node.pp != ati.pp))
-                        {
-                            // Allow this as an extra node.
-                            //
-                            // This is required because aStar only allows a
-                            // single cost-to-node and set of pointers back
-                            // to the origin, but there may be two true costs
-                            // and routes back for orthogonal paths, depending
-                            // on the orientation of the next explored segment.
-                            break;
+                            DONE[i] = Node;
                         }
                         bNodeFound = true;
                         break;
@@ -617,8 +701,6 @@ void makePath(ConnRef *lineRef, bool *flag)
     EdgeInf *directEdge = EdgeInf::existingEdge(src, tar);
     if (isOrthogonal)
     {
-        if (directEdge)
-            printf("HAHA\n");
         if ((start == src) && directEdge && (directEdge->getDist() > 0))
         {
             tar->pathNext = src;

@@ -70,6 +70,106 @@ EdgeInf::~EdgeInf()
 }
 
 
+// Gives an order value between 0 and 3 for the point c, given the last
+// segment was from a to b.  Returns the following value:
+//    0 : Point c is directly backwards from point b.
+//    1 : Point c is straight ahead (collinear).
+//    2 : Point c is a left-hand 90 degree turn.
+//    3 : Point c is a right-hand 90 degree turn.
+//
+static inline int orthogTurnOrder(const Point& a, const Point& b, 
+        const Point& c)
+{
+    //We should only be calling this with orthogonal points, 
+    assert((c.x == b.x) || (c.y == b.y));
+    assert((a.x == b.x) || (a.y == b.y));
+
+    int direction = vecDir(a, b, c);
+
+    if (direction > 0)
+    {
+        // Counterclockwise := left
+        return 2;
+    }
+    else if (direction < 0)
+    {
+        // Clockwise := right
+        return 3;
+    }
+
+    if (b.x == c.x)
+    {
+        if ( ((a.y < b.y) && (c.y < b.y)) || 
+             ((a.y > b.y) && (c.y > b.y)) ) 
+        {
+            // Behind.
+            return 0;
+        }
+    }
+    else
+    {
+        if ( ((a.x < b.x) && (c.x < b.x)) || 
+             ((a.x > b.x) && (c.x > b.x)) ) 
+        {
+            // Behind.
+            return 0;
+        }
+    }
+
+    // Ahead.
+    return 1;
+}
+
+
+// Returns a less than operation for a set exploration order for orthogonal
+// searching.  Forward, then left, then right.  Or if there is no previous 
+// point, then the order is north, east, south, then west.
+// Note: This method assumes the two Edges that share a common point.
+bool EdgeInf::rotationLessThen(const VertInf *lastV, const EdgeInf *rhs) const
+{
+    VertInf *lhsV = NULL, *rhsV = NULL, *commonV = NULL;
+    
+    // Determine common Point and the comparison point on the left- and
+    // the right-hand-side.
+    if (_v1 == rhs->_v1)
+    {
+        commonV = _v1;
+        lhsV = _v2;
+        rhsV = rhs->_v2;
+    }
+    else if (_v1 == rhs->_v2)
+    {
+        commonV = _v1;
+        lhsV = _v2;
+        rhsV = rhs->_v1;
+    }
+    else if (_v2 == rhs->_v1)
+    {
+        commonV = _v2;
+        lhsV = _v1;
+        rhsV = rhs->_v2;
+    }
+    else if (_v2 == rhs->_v2)
+    {
+        commonV = _v2;
+        lhsV = _v1;
+        rhsV = rhs->_v1;
+    }
+
+    const Point& lhsPt = lhsV->point;
+    const Point& rhsPt = rhsV->point;
+    const Point& commonPt = commonV->point;
+    
+    // If no lastPt, use one directly to the left;
+    Point lastPt = (lastV) ? lastV->point : Point(commonPt.x - 10,  commonPt.y);
+
+    int lhsVal = orthogTurnOrder(lastPt, commonPt, lhsPt);
+    int rhsVal = orthogTurnOrder(lastPt, commonPt, rhsPt);
+
+    return lhsVal < rhsVal;
+}
+
+
 void EdgeInf::makeActive(void)
 {
     assert(_added == false);
