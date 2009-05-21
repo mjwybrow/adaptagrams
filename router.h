@@ -29,7 +29,6 @@
 #ifndef AVOID_ROUTER_H
 #define AVOID_ROUTER_H
 
-//#define LINEDEBUG
 
 #include "libavoid/shape.h"
 #include "libavoid/viscluster.h"
@@ -37,8 +36,10 @@
 #include "libavoid/timer.h"
 #include <list>
 #include <utility>
-#ifdef LINEDEBUG       
+
+#if defined(LINEDEBUG) || defined(ASTAR_DEBUG)
     #include <SDL.h>
+    #define LIBAVOID_SDL
 #endif
 
 
@@ -131,7 +132,7 @@ class Router {
         // Instrumentation:
         Timer timers;
         int st_checked_edges;
-#ifdef LINEDEBUG
+#ifdef LIBAVOID_SDL
         SDL_Surface *avoid_screen;
 #endif
 

@@ -1120,6 +1120,7 @@ void generateStaticOrthogonalVisGraph(Router *router)
             }
             
             // Process the merged line segments.
+            vertSegments.list().sort();
             for (SegmentList::iterator curr = vertSegments.list().begin();
                     curr != vertSegments.list().end(); ++curr)
             {
