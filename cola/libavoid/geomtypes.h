@@ -193,6 +193,13 @@ class Polygon : public PolygonInterface
         //! @brief  Returns a specific point in the polygon.
         //! @param[in]  index  The array index of the point to be returned.
         const Point& at(size_t index) const;
+        //! @brief  Returns a simplified Polyline, where all collinear line
+        //!         segments have been collapsed down into single line 
+        //!         segments.
+        //!
+        //! @return A new polyline with a simplified representation.
+        //!
+        Polygon simplify(void) const;
         //! @brief  Returns a curved approximation of this multi-segment 
         //!         PolyLine, with the corners replaced by smooth Bezier 
         //!         curves.

@@ -57,6 +57,7 @@ ConnRef::ConnRef(Router *router, const unsigned int id)
       _dstId(0),
       _needs_reroute_flag(true),
       _false_path(false),
+      _needs_repaint(false),
       _active(false),
       _route_dist(0),
       _srcVert(NULL),
@@ -82,6 +83,7 @@ ConnRef::ConnRef(Router *router, const ConnEnd& src, const ConnEnd& dst,
       _dstId(0),
       _needs_reroute_flag(true),
       _false_path(false),
+      _needs_repaint(false),
       _active(false),
       _route_dist(0),
       _srcVert(NULL),
@@ -196,6 +198,7 @@ void ConnRef::common_updateEndPoint(const unsigned int type, const Point& point)
     bool isConn = true;
     altered->removeFromGraph(isConn);
 
+    makePathInvalid();
     _router->setStaticGraphInvalidated(true);
 }
 
@@ -204,18 +207,24 @@ void ConnRef::setEndpoints(const ConnEnd& srcPoint, const ConnEnd& dstPoint)
 {
     updateEndPoint(VertID::src, srcPoint.point());
     updateEndPoint(VertID::tar, dstPoint.point());
+
+    _router->modifyConnector(this);
 }
 
 
 void ConnRef::setSourceEndpoint(const ConnEnd& srcPoint)
 {
     updateEndPoint(VertID::src, srcPoint.point());
+    
+    _router->modifyConnector(this);
 }
 
 
 void ConnRef::setDestEndpoint(const ConnEnd& dstPoint)
 {
     updateEndPoint(VertID::tar, dstPoint.point());
+    
+    _router->modifyConnector(this);
 }
 
 
@@ -411,11 +420,11 @@ void ConnRef::set_route(const PolyLine& route)
 }
 
 
-Polygon& ConnRef::display_route(void)
+Polygon& ConnRef::displayRoute(void)
 {
     if (_display_route.empty())
     {
-        _display_route = Polygon(_route);
+        _display_route = _route.simplify();
     }
     return _display_route;
 }
@@ -434,9 +443,9 @@ void ConnRef::calcRouteDist(void)
 }
 
 
-bool ConnRef::needsReroute(void) const
+bool ConnRef::needsRepaint(void) const
 {
-    return (_false_path || _needs_reroute_flag);
+    return _needs_repaint;
 }
 
 
@@ -505,14 +514,11 @@ void ConnRef::setCallback(void (*cb)(void *), void *ptr)
 }
 
 
-void ConnRef::performReroutingCallback(void)
+void ConnRef::performCallback(void)
 {
-    if (_false_path || _needs_reroute_flag) 
+    if (_callback) 
     {
-        if (_callback) 
-        {
-            _callback(_connector);
-        }
+        _callback(_connector);
     }
 }
 
@@ -791,7 +797,6 @@ bool ConnRef::generatePath(void)
                 assert(edge != NULL);
                 edge->addCycleBlocker();
             }
-            result = false;
             break;
         }
         if (pathlen > 200)

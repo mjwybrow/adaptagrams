@@ -83,9 +83,9 @@ class ConnEnd
 //! Routing penalties can be applied, resulting in more aesthetically pleasing
 //! connector paths with fewer segments or less severe bend-points.
 //!
-//! You can set a function to be called when the connector needs to be 
-//! rerouted and redrawn.  Alternatively, you can query the connector's
-//! needsReroute() function to determine this manually.
+//! You can set a function to be called when the connector has been rerouted
+//! and needs to be redrawn.  Alternatively, you can query the connector's
+//! needsRepaint() function to determine this manually.
 //!
 //! Usually, it is expected that you would create a ConnRef for each connector 
 //! in your diagram and keep that reference in your own connector class.
@@ -143,24 +143,44 @@ class ConnRef
         //! @brief   Returns a pointer to the router scene this connector is in.
         //! @returns A pointer to the router scene for this connector.
         Router *router(void) const;
-        //! @brief   Returns an indication of whether this connector needs to
-        //!          be rerouted.
+
+        //! @brief   Returns an indication of whether this connector has a 
+        //!          new route and thus needs to be repainted.
         //!
-        //! If the connector requires rerouting, then generatePath() can be 
-        //! called to produce a new route, and route() can be called to get
-        //! a reference to the new route.
+        //! If the connector has been rerouted and need repainting, the  
+        //! route() method can be called to get a reference to the new route.
         //!
-        //! @returns Returns true if the connector requires rerouting, or false
-        //!          if it does not.
-        bool needsReroute(void) const;
+        //! @returns Returns true if the connector requires repainting, or 
+        //!          false if it does not.
+        bool needsRepaint(void) const;
+        
         //! @brief   Returns a reference to the current route for the connector.
+        //!
+        //! This is a "raw" version of the route, where each line segment in
+        //! the route may be made up of multiple collinear line segments.  It
+        //! will also not have post-processing (like curved corners) applied
+        //! to it.  The simplified route for display can be obtained by calling
+        //! displayRoute().
+        //!
         //! @returns The PolyLine route for the connector.
         //! @note    You can obtain a modified version of this poly-line 
         //!          route with curved corners added by calling 
         //!          PolyLine::curvedPolyline().
         const PolyLine& route(void) const;
+        
+        //! @brief   Returns a reference to the current display version of the
+        //!          route for the connector.
+        //! 
+        //! The display version of a route has been simplified to collapse all
+        //! collinear line segments into single segments.  It may also have 
+        //! post-processing applied to the route, such as curved corners or
+        //! nudging.
+        //! 
+        //! @returns The PolyLine display route for the connector.
+        PolyLine& displayRoute(void);
+        
         //! @brief   Sets a callback function that will called to indicate that
-        //!          the connector need rerouting.
+        //!          the connector needs rerouting.
         //!
         //! The cb function will be called when shapes are added to, removed 
         //! from or moved about on the page.  The pointer ptr will be passed 
@@ -170,24 +190,7 @@ class ConnRef
         //! @param[in]  ptr  A generic pointer that will be passed to the 
         //!                  callback function.
         void setCallback(void (*cb)(void *), void *ptr);
-        //! @brief  Calls the callback function for this connector if the 
-        //!         connector route has been invalidated.
-        //!
-        //! Does nothing if a callback function has not been set via the 
-        //! setCallback() function.
-        void performReroutingCallback(void);
-        //! @brief   Generates a new route for the connector.
-        //!
-        //! This function does nothing if the connector does not require
-        //! rerouting.
-        //! 
-        //! If a valid route can not be found, then the route produced will 
-        //! just be a single segment connecting the source and destination 
-        //! endpoints.
-        //! 
-        //! @returns Returns true if a valid (object-avoiding) route was 
-        //!          found, or false if a valid route was not found.
-        bool generatePath(void);
+
        
 
         // @brief   Returns the source endpoint vertex in the visibility graph.
@@ -201,7 +204,6 @@ class ConnRef
         const unsigned int type(void) const;
         void setType(unsigned int type);
         void set_route(const PolyLine& route);
-        Polygon& display_route(void);
         void freeRoute(void);
         void calcRouteDist(void);
         void updateEndPoint(const unsigned int type, const Point& point);
@@ -219,7 +221,6 @@ class ConnRef
         VertInf *start(void);
         void removeFromGraph(void);
         bool isInitialised(void);
-        bool generatePath(Point p0, Point p1);
         void makePathInvalid(void);
         void setHateCrossings(bool value);
         bool doesHateCrossings(void);
@@ -231,6 +232,11 @@ class ConnRef
         friend void Router::markConnectors(ShapeRef *shape);
         
     private:
+        friend class Router;
+
+        void performCallback(void);
+        bool generatePath(void);
+        bool generatePath(Point p0, Point p1);
         void unInitialise(void);
         void common_updateEndPoint(const unsigned int type, const Point& point);
         Router *_router;
@@ -240,6 +246,7 @@ class ConnRef
         bool _orthogonal;
         bool _needs_reroute_flag;
         bool _false_path;
+        bool _needs_repaint;
         bool _active;
         PolyLine _route;
         Polygon _display_route;

@@ -127,6 +127,11 @@ static inline int orthogTurnOrder(const Point& a, const Point& b,
 // Note: This method assumes the two Edges that share a common point.
 bool EdgeInf::rotationLessThen(const VertInf *lastV, const EdgeInf *rhs) const
 {
+    if ((_v1 == rhs->_v1) && (_v2 == rhs->_v2))
+    {
+        // Effectively the same visibility edge, so they are equal.
+        return false;
+    }
     VertInf *lhsV = NULL, *rhsV = NULL, *commonV = NULL;
     
     // Determine common Point and the comparison point on the left- and

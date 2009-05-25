@@ -23,8 +23,8 @@
  *
 */
 
-#include<iostream>
-#include<vector>
+#include <iostream>
+#include <vector>
 #include <cmath>
 #include <time.h>
 #include <valarray>
@@ -243,12 +243,12 @@ void makeFeasible(vpsc::Rectangles& rs, vector<cola::Edge>& edges,
         connRef = new Avoid::ConnRef(router, srcPt, dstPt, connID);
         connRef->updateEndPoint(Avoid::VertID::src, srcPt);
         connRef->updateEndPoint(Avoid::VertID::tar, dstPt);
-        connRef->generatePath();
+        router->processTransaction();
         const Avoid::Polygon& route = connRef->route();
         vector<topology::EdgePoint*> eps;
         eps.push_back( new topology::EdgePoint( topologyNodes[e.first], 
                     topology::EdgePoint::CENTRE));
-        for(size_t j=1;j<route.size()-1;j++) {
+        for(size_t j=1;j+1<route.size();j++) {
             const Avoid::Point& p = route.ps[j];
             const unsigned nodeID=p.id-1;
             topology::Node* node=topologyNodes[nodeID];

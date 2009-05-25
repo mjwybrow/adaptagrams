@@ -40,7 +40,7 @@ The Adaptagrams code is written and maintained by
 Building
 --------
 
-We use gnu automake to build.  I've tried to make the contents of the
+We use gnu automake to build.  We've tried to make the contents of the
 repository as platform agnostic as possible, so you'll need to call aclocal,
 autoconf, and automake before configure.
  
