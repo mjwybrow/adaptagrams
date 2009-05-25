@@ -79,10 +79,13 @@ ShapeRef::ShapeRef(Router *router, Polygon& ply, const unsigned int id)
 
 ShapeRef::~ShapeRef()
 {
+    assert(!_router->shapeInQueuedActionList(this));
+
     if (_active)
     {
         // Destroying a shape without calling removeShape(), so do it now.
         _router->removeShape(this);
+        _router->processTransaction();
     }
 
     assert(_firstVert != NULL);
@@ -100,7 +103,7 @@ ShapeRef::~ShapeRef()
 }
 
 
-void ShapeRef::setNewPoly(Polygon& poly)
+void ShapeRef::setNewPoly(const Polygon& poly)
 {
     assert(_firstVert != NULL);
     assert(_poly.size() == poly.size());

@@ -371,19 +371,7 @@ void Polygon::translate(const double xDist, const double yDist)
 }
 
 
-#define mid(a, b) ((a < b) ? a + ((b - a) / 2) : b + ((a - b) / 2))
-
-
-// curvedPolyline():
-//     Returns a curved approximation of this multi-segment PolyLine, with 
-//     the corners replaced by smooth Bezier curves.  curve_amount describes
-//     how large to make the curves.
-//     The ts value for each point in the returned Polygon describes the 
-//     drawing operation: 'M' (move) marks the first point, a line segment 
-//     is marked with an 'L' and three 'C's (along with the previous point) 
-//     describe the control points of a Bezier curve.
-//
-Polygon Polygon::curvedPolyline(const double curve_amount) const
+Polygon Polygon::simplify(void) const
 {
     Polygon simplified = *this;
     std::vector<Point>::iterator it = simplified.ps.begin();
@@ -405,6 +393,26 @@ Polygon Polygon::curvedPolyline(const double curve_amount) const
             ++it;
         }
     }
+
+    return simplified;
+}
+
+
+#define mid(a, b) ((a < b) ? a + ((b - a) / 2) : b + ((a - b) / 2))
+
+
+// curvedPolyline():
+//     Returns a curved approximation of this multi-segment PolyLine, with 
+//     the corners replaced by smooth Bezier curves.  curve_amount describes
+//     how large to make the curves.
+//     The ts value for each point in the returned Polygon describes the 
+//     drawing operation: 'M' (move) marks the first point, a line segment 
+//     is marked with an 'L' and three 'C's (along with the previous point) 
+//     describe the control points of a Bezier curve.
+//
+Polygon Polygon::curvedPolyline(const double curve_amount) const
+{
+    Polygon simplified = this->simplify();
 
     Polygon curved;
     size_t num_of_points = size();

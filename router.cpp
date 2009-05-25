@@ -35,22 +35,48 @@
 namespace Avoid {
 
 
-static const unsigned int infoAdd = 1;
-static const unsigned int infoDel = 2;
-static const unsigned int infoMov = 3;
+enum ActionType {
+    ShapeMove,
+    ShapeAdd,
+    ShapeRemove,
+    ConnChange
+};
 
-
-class MoveInfo {
+class ActionInfo {
     public:
-        MoveInfo(ShapeRef *s, const Polygon& p, bool fM)
-            : shape(s)
-            , newPoly(p)
-            , firstMove(fM)
-        { }
-        ~MoveInfo()
+        ActionInfo(ActionType t, ShapeRef *s, const Polygon& p, bool fM)
+            : type(t),
+              shape(s),
+              conn(NULL),
+              newPoly(p),
+              firstMove(fM)
+        {
+            assert(type == ShapeMove);
+        }
+        ActionInfo(ActionType t, ShapeRef *s)
+            : type(t),
+              shape(s),
+              conn(NULL)
+        {
+            assert(type != ConnChange);
+        }
+        ActionInfo(ActionType t, ConnRef *c)
+            : type(t),
+              shape(NULL),
+              conn(c)
+        {
+            assert(type == ConnChange);
+        }
+        ~ActionInfo()
         {
         }
+        bool operator==(const ActionInfo& rhs) const
+        {
+            return (type == rhs.type) && (shape == rhs.shape);
+        }
+        ActionType type;
         ShapeRef *shape;
+        ConnRef *conn;
         Polygon newPoly;
         bool firstMove;
 };
@@ -72,7 +98,6 @@ Router::Router(const unsigned int flags)
       InvisibilityGrph(true),
       // General algorithm options:
       SelectiveReroute(true),
-      ConsolidateMoves(true),
       PartialFeedback(false),
       RubberBandRouting(false),
       // Instrumentation:
@@ -81,6 +106,7 @@ Router::Router(const unsigned int flags)
       avoid_screen(NULL),
 #endif
       _largestAssignedId(0),
+      _consolidateActions(true),
       // Mode options:
       _polyLineRouting(false),
       _orthogonalRouting(false),
@@ -133,80 +159,78 @@ Router::~Router()
 }
 
 
+void Router::modifyConnector(ConnRef *conn)
+{
+    ActionInfo modInfo(ConnChange, conn);
+    
+    ActionInfoList::iterator found = 
+            find(actionList.begin(), actionList.end(), modInfo);
+    if (found == actionList.end())
+    {
+        actionList.push_back(modInfo);
+    }
+
+    if (!_consolidateActions)
+    {
+        processTransaction();
+    }
+}
+
+
 void Router::addShape(ShapeRef *shape)
 {
-    shape->makeActive();
+    // There shouldn't be remove events or move events for the same shape
+    // already in the action list.
+    // XXX: Possibly we could handle this by ordering them intelligently.
+    assert(find(actionList.begin(), actionList.end(), 
+                ActionInfo(ShapeRemove, shape)) == actionList.end());
+    assert(find(actionList.begin(), actionList.end(), 
+                ActionInfo(ShapeMove, shape)) == actionList.end());
 
-    unsigned int pid = shape->id();
-    Polygon poly = shape->polygon();
-
-    adjustContainsWithAdd(poly, pid);
-
-    if (_polyLineRouting)
+    ActionInfo addInfo(ShapeAdd, shape);
+    
+    ActionInfoList::iterator found = 
+            find(actionList.begin(), actionList.end(), addInfo);
+    if (found == actionList.end())
     {
-        // o  Check all visibility edges to see if this one shape
-        //    blocks them.
-        newBlockingShape(&poly, pid);
-
-        // o  Calculate visibility for the new vertices.
-        if (UseLeesAlgorithm)
-        {
-            shapeVisSweep(shape);
-        }
-        else
-        {
-            shapeVis(shape);
-        }
+        actionList.push_back(addInfo);
     }
-    _staticGraphInvalidated = true;
-    callbackAllInvalidConnectors();
+
+    if (!_consolidateActions)
+    {
+        processTransaction();
+    }
 }
 
 
 void Router::removeShape(ShapeRef *shape)
 {
-    unsigned int pid = shape->id();
+    // There shouldn't be add events events for the same shape already 
+    // in the action list.
+    // XXX: Possibly we could handle this by ordering them intelligently.
+    assert(find(actionList.begin(), actionList.end(), 
+                ActionInfo(ShapeAdd, shape)) == actionList.end());
 
-    // Delete items that are queued in the movList.
-    for (MoveInfoList::iterator it = moveList.begin(); it != moveList.end(); )
+    // Delete any ShapeMove entries for this shape in the action list.
+    ActionInfoList::iterator found = find(actionList.begin(), 
+            actionList.end(), ActionInfo(ShapeMove, shape));
+    if (found != actionList.end())
     {
-        if ((*it)->shape->id() == pid)
-        {
-            it = moveList.erase(it);
-        }
-        else
-        {
-            ++it;
-        }
+        actionList.erase(found);
     }
 
-    // o  Remove entries related to this shape's vertices
-    shape->removeFromGraph();
-    
-    if (SelectiveReroute)
+    // Add the ShapeRemove entry.
+    ActionInfo remInfo(ShapeRemove, shape);
+    found = find(actionList.begin(), actionList.end(), remInfo);
+    if (found == actionList.end())
     {
-        markConnectors(shape);
+        actionList.push_back(remInfo);
     }
 
-    adjustContainsWithDel(pid);
-
-    shape->makeInactive();
-    
-    if (_polyLineRouting)
+    if (!_consolidateActions)
     {
-        // o  Check all edges that were blocked by this shape.
-        if (InvisibilityGrph)
-        {
-            checkAllBlockedEdges(pid);
-        }
-        else
-        {
-            // check all edges not in graph
-            checkAllMissingEdges();
-        }
+        processTransaction();
     }
-    _staticGraphInvalidated = true;
-    callbackAllInvalidConnectors();
 }
 
 
@@ -222,36 +246,39 @@ void Router::moveShape(ShapeRef *shape, const double xDiff, const double yDiff)
 void Router::moveShape(ShapeRef *shape, const Polygon& newPoly, 
         const bool first_move)
 {
+    // There shouldn't be remove events or add events for the same shape
+    // already in the action list.
+    // XXX: Possibly we could handle this by ordering them intelligently.
+    assert(find(actionList.begin(), actionList.end(), 
+                ActionInfo(ShapeRemove, shape)) == actionList.end());
+    assert(find(actionList.begin(), actionList.end(), 
+                ActionInfo(ShapeAdd, shape)) == actionList.end());
+
+    ActionInfo moveInfo(ShapeMove, shape, newPoly, first_move);
     // Sanely cope with the case where the user requests moving the same
     // shape multiple times before rerouting connectors.
-    bool alreadyThere = false;
-    unsigned int id = shape->id();
-    MoveInfoList::const_iterator finish = moveList.end();
-    for (MoveInfoList::const_iterator it = moveList.begin(); it != finish; ++it)
+    ActionInfoList::iterator found = 
+            find(actionList.begin(), actionList.end(), moveInfo);
+
+    if (found != actionList.end())
     {
-        if ((*it)->shape->id() == id)
+        if (!SimpleRouting)
         {
-            if (!SimpleRouting)
-            {
-                db_printf("warning: multiple moves requested for shape %d.\n",
-                        (int) id);
-            }
-            // Just update the MoveInfo with the second polygon, but
-            // leave the firstMove setting alone.
-            (*it)->newPoly = newPoly;
-            alreadyThere = true;
+            db_printf("warning: multiple moves requested for shape %d "
+                    "within a single transaction.\n", (int) shape->id());
         }
+        // Just update the ActionInfo with the second polygon, but
+        // leave the firstMove setting alone.
+        found->newPoly = newPoly;
+    }
+    else 
+    {
+        actionList.push_back(moveInfo);
     }
 
-    if (!alreadyThere)
+    if (!_consolidateActions)
     {
-        MoveInfo *moveInfo = new MoveInfo(shape, newPoly, first_move);
-        moveList.push_back(moveInfo);
-    }
-
-    if (!ConsolidateMoves)
-    {
-        processMoves();
+        processTransaction();
     }
 }
 
@@ -301,60 +328,93 @@ void Router::regenerateStaticBuiltGraph(void)
 }
 
 
-void Router::processMoves(void)
+bool Router::shapeInQueuedActionList(ShapeRef *shape) const
 {
-    // If SimpleRouting, then don't update yet.
-    if (moveList.empty() || SimpleRouting)
+    bool foundAdd = find(actionList.begin(), actionList.end(), 
+                ActionInfo(ShapeAdd, shape)) != actionList.end();
+    bool foundRem = find(actionList.begin(), actionList.end(), 
+                ActionInfo(ShapeRemove, shape)) != actionList.end();
+    bool foundMove = find(actionList.begin(), actionList.end(), 
+                ActionInfo(ShapeMove, shape)) != actionList.end();
+
+    return (foundAdd || foundRem || foundMove);
+}
+
+
+bool Router::transactionUse(void) const
+{
+    return _consolidateActions;
+}
+
+
+void Router::setTransactionUse(const bool transactions)
+{
+    _consolidateActions = transactions;
+}
+
+
+void Router::processTransaction(void)
+{
+    bool notPartialTime = !(PartialFeedback && PartialTime);
+    bool seenShapeMovesOrDeletes = false;
+
+    // If SimpleRouting, then don't update here.
+    if (actionList.empty() || SimpleRouting)
     {
         return;
     }
 
-    MoveInfoList::const_iterator curr;
-    MoveInfoList::const_iterator finish = moveList.end();
-    for (curr = moveList.begin(); curr != finish; ++curr)
+    ActionInfoList::iterator curr;
+    ActionInfoList::iterator finish = actionList.end();
+    for (curr = actionList.begin(); curr != finish; ++curr)
     {
-        MoveInfo *moveInf = *curr;
-        ShapeRef *shape = moveInf->shape;
-        Polygon *newPoly = &(moveInf->newPoly);
-        bool first_move = moveInf->firstMove;
+        ActionInfo& actInf = *curr;
+        if (!((actInf.type == ShapeRemove) || (actInf.type == ShapeMove)))
+        {
+            // Not a move or remove action, so don't do anything.
+            continue;
+        }
+        seenShapeMovesOrDeletes = true;
+
+        ShapeRef *shape = actInf.shape;
+        bool isMove = (actInf.type == ShapeMove);
+        bool first_move = actInf.firstMove;
 
         unsigned int pid = shape->id();
-        bool notPartialTime = !(PartialFeedback && PartialTime);
 
         // o  Remove entries related to this shape's vertices
         shape->removeFromGraph();
         
-        if (SelectiveReroute && (notPartialTime || first_move))
+        if (SelectiveReroute && (!isMove || notPartialTime || first_move))
         {
             markConnectors(shape);
         }
 
         adjustContainsWithDel(pid);
         
-        shape->setNewPoly(*newPoly);
-
-        adjustContainsWithAdd(*newPoly, pid);
-
         // Ignore this shape for visibility.
         // XXX: We don't really need to do this if we're not using Partial
         //      Feedback.  Without this the blocked edges still route
         //      around the shape until it leaves the connector.
         shape->makeInactive();
-        
     }
     
-    if (_polyLineRouting)
+    if (seenShapeMovesOrDeletes && _polyLineRouting)
     {
         if (InvisibilityGrph)
         {
-            for (curr = moveList.begin(); curr != finish; ++curr)
+            for (curr = actionList.begin(); curr != finish; ++curr)
             {
-                MoveInfo *moveInf = *curr;
-                ShapeRef *shape = moveInf->shape;
-                unsigned int pid = shape->id();
-                
+                ActionInfo& actInf = *curr;
+                if (!((actInf.type == ShapeRemove) || 
+                            (actInf.type == ShapeMove)))
+                {
+                    // Not a move or add action, so don't do anything.
+                    continue;
+                }
+
                 // o  Check all edges that were blocked by this shape.
-                checkAllBlockedEdges(pid);
+                checkAllBlockedEdges(actInf.shape->id());
             }
         }
         else
@@ -364,23 +424,36 @@ void Router::processMoves(void)
         }
     }
 
-    while ( ! moveList.empty() )
+    for (curr = actionList.begin(); curr != finish; ++curr)
     {
-        MoveInfo *moveInf = moveList.front();
-        ShapeRef *shape = moveInf->shape;
-        Polygon *newPoly = &(moveInf->newPoly);
+        ActionInfo& actInf = *curr;
+        if (!((actInf.type == ShapeAdd) || (actInf.type == ShapeMove)))
+        {
+            // Not a move or add action, so don't do anything.
+            continue;
+        }
+
+        ShapeRef *shape = actInf.shape;
+        Polygon& newPoly = actInf.newPoly;
+        bool isMove = (actInf.type == ShapeMove);
 
         unsigned int pid = shape->id();
-        bool notPartialTime = !(PartialFeedback && PartialTime);
 
         // Restore this shape for visibility.
         shape->makeActive();
+        
+        if (isMove)
+        {
+            shape->setNewPoly(newPoly);
+        }
+
+        adjustContainsWithAdd(newPoly, pid);
 
         if (_polyLineRouting)
         {
             // o  Check all visibility edges to see if this one shape
             //    blocks them.
-            if (notPartialTime)
+            if (!isMove || notPartialTime)
             {
                 newBlockingShape(newPoly, pid);
             }
@@ -395,10 +468,10 @@ void Router::processMoves(void)
                 shapeVis(shape);
             }
         }
-        
-        moveList.pop_front();
-        delete moveInf;
     }
+    // Clear the actionList.
+    actionList.clear();
+    
     _staticGraphInvalidated = true;
     callbackAllInvalidConnectors();
 }
@@ -545,19 +618,34 @@ void Router::attachedShapes(IntList &shapes, const unsigned int shapeId,
 }
 
 
-    // It's intended this function is called after shape movement has 
-    // happened, to alert connectors that they need to be rerouted.
+    // It's intended this function is called after visibility changes 
+    // resulting from shape movement have happened.  It will alert 
+    // rerouted connectors (via a callback) that they need to be redrawn.
 void Router::callbackAllInvalidConnectors(void)
 {
+    std::set<ConnRef *> reroutedConns;
     ConnRefList::const_iterator fin = connRefs.end();
     for (ConnRefList::const_iterator i = connRefs.begin(); i != fin; ++i) 
     {
-        (*i)->performReroutingCallback();
+        (*i)->_needs_repaint = false;
+        bool rerouted = (*i)->generatePath();
+        if (rerouted)
+        {
+            reroutedConns.insert(*i);
+        }
+    }
+
+    // Alert connectors that they need redrawing.
+    for (std::set<ConnRef *>::const_iterator i = reroutedConns.begin(); 
+            i != reroutedConns.end(); ++i) 
+    {
+        (*i)->_needs_repaint = true;
+        (*i)->performCallback();
     }
 }
 
 
-void Router::newBlockingShape(Polygon *poly, int pid)
+void Router::newBlockingShape(const Polygon& poly, int pid)
 {
     // o  Check all visibility edges to see if this one shape
     //    blocks them.
@@ -579,9 +667,9 @@ void Router::newBlockingShape(Polygon *poly, int pid)
 
             bool countBorder = false;
             bool ep_in_poly1 = !(eID1.isShape) ? 
-                    inPoly(*poly, e1, countBorder) : false;
+                    inPoly(poly, e1, countBorder) : false;
             bool ep_in_poly2 = !(eID2.isShape) ? 
-                    inPoly(*poly, e2, countBorder) : false;
+                    inPoly(poly, e2, countBorder) : false;
             if (ep_in_poly1 || ep_in_poly2)
             {
                 // Don't check edges that have a connector endpoint
@@ -590,11 +678,11 @@ void Router::newBlockingShape(Polygon *poly, int pid)
             }
 
             bool seenIntersectionAtEndpoint = false;
-            for (size_t pt_i = 0; pt_i < poly->size(); ++pt_i)
+            for (size_t pt_i = 0; pt_i < poly.size(); ++pt_i)
             {
-                size_t pt_n = (pt_i == (poly->size() - 1)) ? 0 : pt_i + 1;
-                Point& pi = poly->ps[pt_i];
-                Point& pn = poly->ps[pt_n];
+                size_t pt_n = (pt_i == (poly.size() - 1)) ? 0 : pt_i + 1;
+                const Point& pi = poly.ps[pt_i];
+                const Point& pn = poly.ps[pt_n];
                 if (segmentShapeIntersect(e1, e2, pi, pn, 
                         seenIntersectionAtEndpoint))
                 {

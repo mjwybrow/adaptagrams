@@ -223,6 +223,7 @@ void VertInf::removeFromGraph(const bool isConnVert)
     while ((edge = orthogVisList.begin()) != finish)
     {
         // Remove each orthogonal visibility edge.
+        (*edge)->alertConns();
         delete (*edge);
     }
 

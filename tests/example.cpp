@@ -32,18 +32,14 @@ static void connCallback(void *ptr)
 
     printf("Connector %u needs rerouting!\n", connRef->id());
 
-    if (connRef->needsReroute())
+    const Avoid::PolyLine& route = connRef->route();
+    printf("New path: ");
+    for (size_t i = 0; i < route.ps.size(); ++i) 
     {
-        connRef->generatePath();
-        const Avoid::PolyLine& route = connRef->route();
-        printf("New path: ");
-        for (size_t i = 0; i < route.ps.size(); ++i) 
-        {
-            printf("%s(%f, %f)", (i > 0) ? "-" : "", 
-                    route.ps[i].x, route.ps[i].y);
-        }
-        printf("\n");
+        printf("%s(%f, %f)", (i > 0) ? "-" : "", 
+                route.ps[i].x, route.ps[i].y);
     }
+    printf("\n");
 }
 
 
@@ -63,21 +59,22 @@ int main(void)
     Avoid::ConnRef *connRef = new Avoid::ConnRef(router, srcPt, dstPt);
     connRef->setCallback(connCallback, connRef);
     // Force inital callback:
-    connRef->performReroutingCallback();
+    router->processTransaction();
 
     printf("\nAdding a shape.\n");
     router->addShape(shapeRef);
+    router->processTransaction();
 
     printf("\nShifting endpoint.\n");
     Avoid::Point dstPt2(6, 4.5);
     connRef->updateEndPoint(Avoid::VertID::tar, dstPt2);
     // It's expected you know the connector needs rerouting, so the callback
     // isn't called.  You can force it to be called though, via:
-    connRef->performReroutingCallback();
+    router->processTransaction();
 
     printf("\nMoving shape right by 0.5.\n");
     router->moveShape(shapeRef, 0.5, 0);
-    router->processMoves();
+    router->processTransaction();
 
     return 0;
 }

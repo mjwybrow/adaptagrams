@@ -91,7 +91,7 @@ class ShapeRef
         //! @returns A pointer to the router scene for this shape.
         Router *router(void) const;
         
-        void setNewPoly(Polygon& poly);
+        void setNewPoly(const Polygon& poly);
         VertInf *firstVert(void);
         VertInf *lastVert(void);
         void boundingBox(BBox& bbox);

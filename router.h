@@ -48,8 +48,10 @@ namespace Avoid {
 class ConnRef;
 typedef std::list<ConnRef *> ConnRefList;
 typedef std::list<unsigned int> IntList;
-class MoveInfo;
-typedef std::list<MoveInfo *> MoveInfoList;
+
+class ActionInfo;
+typedef std::list<ActionInfo> ActionInfoList;
+class ShapeRef;
 
 //! @brief  Flags that can be passed to the router during initialisation 
 //!         to specify options.
@@ -116,15 +118,6 @@ class Router {
         // General routing options:
         bool SelectiveReroute;
         
-        //! @brief Controls whether shape movement actions are performed 
-        //!        immediately or are consolidated.
-        //!
-        //! If true (the default), then moveShape() operations are queued and
-        //! performed together efficiently when processMoves() is called.  If
-        //! set to false, then movement actions are performed immediately by 
-        //! the moveShape() function.
-        //
-        bool ConsolidateMoves;
         bool PartialFeedback;
         bool RubberBandRouting;
         
@@ -136,14 +129,59 @@ class Router {
         SDL_Surface *avoid_screen;
 #endif
 
+        //! @brief Allows setting of the behaviour of the router in regard
+        //!        to transactions.  This controls whether transactions are
+        //!        used to queue changes and process them effeciently at once
+        //!        or they are instead processed immediately.
+        //!
+        //! It is more efficient to perform actions like shape movement,
+        //! addition or deletion as batch tasks, and reroute the necessary
+        //! connectors just once after these actions have been performed.
+        //! For this reason, libavoid allows you to group such actions into
+        //! "transactions" that are processed efficiently when the 
+        //! processTransaction() method is called.
+        //!
+        //! By default, the router will process all actions as tranactions.
+        //! If transactionUse() is set to false, then all actions will get 
+        //! processed immediately, and cause immediate routing callbacks to 
+        //! all affected connectors after each action.
+        //!
+        //! @param[in]  transactions  A boolean value specifying whether to
+        //!                           use transactions.
+        //!
+        void setTransactionUse(const bool transactions);
+
+        //! @brief Reports whether the router groups actions into transactions.
+        //!
+        //! @return A boolean value describing whether transactions are in use.
+        //!
+        //! @sa setTransactionUse
+        //! @sa processTranactions
+        //!
+        bool transactionUse(void) const;
+
+        //! @brief Finishes the current transaction and processes all the 
+        //!        queued object changes efficiently.
+        //!
+        //! This method will efficiently process all moves, additions and
+        //! deletions that have occurred since processTransaction() was 
+        //! last called.
+        //!
+        //! If transactionUse() is false, then all actions will have been 
+        //! processed immediately and this method will do nothing.
+        //!
+        //! @sa setTransactionUse
+        //!
+        void processTransaction(void);
+        
         //! @brief Add a shape to the router scene.
         //!
         //! This shape will be considered to be an obstacle. Calling this 
-        //! function will cause connectors intersecting the added shape to
+        //! method will cause connectors intersecting the added shape to
         //! be marked as needing to be rerouted.
         //!
         //! @param[in]  shape  Pointer reference to the shape being added.
-        //
+        //!
         void addShape(ShapeRef *shape);
 
         //! @brief Remove a shape from the router scene.
@@ -152,7 +190,7 @@ class Router {
         //! the removal of this shape will be marked as needing to be rerouted.
         //!
         //! @param[in]  shape  Pointer reference to the shape being removed.
-        //
+        //!
         void removeShape(ShapeRef *shape);
 
         //! @brief Move or resize an existing shape within the router scene.
@@ -164,11 +202,11 @@ class Router {
         //!
         //! @param[in]  shape       Pointer reference to the shape being 
         //!                         moved/resized.
-        //! @param[in]  newPoly     The new polygon boundry for the shape.
+        //! @param[in]  newPoly     The new polygon boundary for the shape.
         //! @param[in]  first_move  This option is used for some advanced 
         //!                         (currently undocumented) behaviour and 
         //!                         it should be ignored for the moment.
-        //
+        //!
         void moveShape(ShapeRef *shape, const Polygon& newPoly,
                 const bool first_move = false);
 
@@ -184,19 +222,9 @@ class Router {
         //!                         x dimension.
         //! @param[in]  yDiff       The distance to move the shape in the 
         //!                         y dimension.
-        //
+        //!
         void moveShape(ShapeRef *shape, const double xDiff, const double yDiff);
 
-        //! @brief Process all queued shape move/resize actions efficiently.
-        //!
-        //! In the default mode of the Router (where ConsolidateMoves = true),
-        //! this function will efficiently process all move actions registered
-        //! by calls to moveShape() since the last call to processMoves().
-        //!
-        //! If ConsolidateMoves = false, then this function does nothing.
-        //
-        void processMoves(void);
-        
         void addCluster(ClusterRef *cluster);
         void delCluster(ClusterRef *cluster);
 
@@ -213,9 +241,13 @@ class Router {
         void destroyOrthogonalVisGraph(void);
         void setStaticGraphInvalidated(const bool invalidated);
         unsigned int defaultConnType(void) const;
+        bool shapeInQueuedActionList(ShapeRef *shape) const;
 
     private:
-        void newBlockingShape(Polygon *poly, int pid);
+        friend class ConnRef;
+
+        void modifyConnector(ConnRef *conn);
+        void newBlockingShape(const Polygon& poly, int pid);
         void checkAllBlockedEdges(int pid);
         void checkAllMissingEdges(void);
         void adjustContainsWithAdd(const Polygon& poly, const int p_shape);
@@ -226,8 +258,9 @@ class Router {
         void callbackAllInvalidConnectors(void);
         bool idIsUnique(const unsigned int id) const;
 
-        MoveInfoList moveList;
+        ActionInfoList actionList;
         unsigned int _largestAssignedId;
+        bool _consolidateActions;
 
     public:
         // Overall modes:
