@@ -33,9 +33,38 @@
 #include "libavoid/geomtypes.h"
 #include "libavoid/shape.h"
 #include "libavoid/orthogonal.h"
+#include "libavoid/connector.h"
+
+#ifdef LIBAVOID_SDL
+  #include <SDL_gfxPrimitives.h>
+#endif
 
 
 namespace Avoid {
+
+class ShiftSegment 
+{
+    public:
+        ShiftSegment(ConnRef *conn, const size_t low, const size_t high, 
+                bool isSBend)
+            : connRef(conn),
+              indexLow(low),
+              indexHigh(high),
+              sBend(isSBend),
+              minSpaceLimit(-DBL_MAX),
+              maxSpaceLimit(DBL_MAX)
+        {
+        }
+
+        ConnRef *connRef;
+        const size_t indexLow;
+        const size_t indexHigh;
+        const bool sBend;
+        double minSpaceLimit;
+        double maxSpaceLimit;
+};
+typedef std::list<ShiftSegment> ShiftSegmentList;
+
 
 struct Node;
 struct CmpNodePos { bool operator()(const Node* u, const Node* v) const; };
@@ -45,6 +74,7 @@ struct Node
 {
     ShapeRef *v;
     VertInf *c;
+    ShiftSegment *ss;
     double pos;
     double min[2], max[2];
     Node *firstAbove, *firstBelow;
@@ -53,6 +83,7 @@ struct Node
     Node(ShapeRef *v, double p)
         : v(v),
           c(NULL),
+          ss(NULL),
           pos(p),
           firstAbove(NULL),
           firstBelow(NULL)
@@ -63,6 +94,7 @@ struct Node
     Node(VertInf *c, double p)
         : v(NULL),
           c(c),
+          ss(NULL),
           pos(p),
           firstAbove(NULL),
           firstBelow(NULL)
@@ -70,9 +102,78 @@ struct Node
         min[0] = max[0] = c->point.x;
         min[1] = max[1] = c->point.y;
     }   
+    Node(ShiftSegment *ss, double p)
+        : v(NULL),
+          c(NULL),
+          ss(ss),
+          pos(p),
+          firstAbove(NULL),
+          firstBelow(NULL)
+    {
+        // These values shouldn't ever be used, so they don't matter.
+        min[0] = max[0] = min[1] = max[1] = 0;
+    }   
     ~Node() 
     {
     }   
+    double firstObstacleAbove(unsigned int dim)
+    {
+        // XXX Might need to check in other direction too?
+        Node *curr = firstAbove;
+        while (curr && (curr->ss || (curr->max[dim] > pos)))
+        {
+            curr = curr->firstAbove;
+        }
+       
+        if (curr)
+        {
+            return curr->max[dim];
+        }
+        return -DBL_MAX;
+    }
+    double firstObstacleBelow(unsigned int dim)
+    {
+        // XXX Might need to check in other direction too?
+        Node *curr = firstBelow;
+        while (curr && (curr->ss || (curr->min[dim] < pos)))
+        {
+            curr = curr->firstBelow;
+        }
+        
+        if (curr)
+        {
+            return curr->min[dim];
+        }
+        return DBL_MAX;
+    }
+    void markShiftSegmentsAbove(unsigned int dim)
+    {
+        // XXX Might need to check in other direction too?
+        Node *curr = firstAbove;
+        while (curr && (curr->ss || (curr->pos > min[dim])))
+        {
+            if (curr->ss && (curr->pos <= min[dim]))
+            {
+                curr->ss->maxSpaceLimit = 
+                        std::min(min[dim], curr->ss->maxSpaceLimit);
+            }
+            curr = curr->firstAbove;
+        }
+    }
+    void markShiftSegmentsBelow(unsigned int dim)
+    {
+        // XXX Might need to check in other direction too?
+        Node *curr = firstBelow;
+        while (curr && (curr->ss || (curr->pos < max[dim])))
+        {
+            if (curr->ss && (curr->pos >= max[dim]))
+            {
+                curr->ss->minSpaceLimit = 
+                        std::max(max[dim], curr->ss->minSpaceLimit);
+            }
+            curr = curr->firstBelow;
+        }
+    }
     double firstPointAbove(unsigned int dim)
     {
         Node *curr = firstAbove;
@@ -80,7 +181,7 @@ struct Node
         {
             curr = curr->firstAbove;
         }
-        
+       
         if (curr)
         {
             return curr->max[dim];
@@ -132,14 +233,17 @@ bool CmpNodePos::operator() (const Node* u, const Node* v) const
     }
     
     // Use the pointers to the base objects to differentiate them.
-    void *up = (u->v) ? (void *) u->v : (void *) u->c;
-    void *vp = (v->v) ? (void *) v->v : (void *) v->c;
+    void *up = (u->v) ? (void *) u->v : 
+            ((u->c) ? (void *) u->c : (void *) u->ss);
+    void *vp = (v->v) ? (void *) v->v : 
+            ((v->c) ? (void *) v->c : (void *) v->ss);
     return up < vp;
 }
 
 
 // Note: Open must come first.
 typedef enum {Open = 1, ConnPoint = 2, Close = 3} EventType;
+
 
 struct Event
 {
@@ -1028,8 +1132,6 @@ void generateStaticOrthogonalVisGraph(Router *router)
     // entries to the scanline that might follow, before process them.
     SegmentListWrapper segments;
     NodeSet scanline;
-    NodeSet addedOpen;
-    NodeSet addedCentre;
     double thisPos = events[0]->pos;
     unsigned int posStartIndex = 0;
     unsigned int posFinishIndex = 0;
@@ -1161,6 +1263,442 @@ void generateStaticOrthogonalVisGraph(Router *router)
         
         it = segments.list().erase(it);
     }
+}
+
+
+//============================================================================
+//                           Path Adjustment code
+//============================================================================
+
+
+
+
+// Processes an event for the vertical sweep used for computing the static 
+// orthogonal visibility graph.  This adds possible visibility sgments to 
+// the segments list.
+// The first pass is adding the event to the scanline, the second is for
+// processing the event and the third for removing it from the scanline.
+static void processShiftEvent(Router *router, NodeSet& scanline, 
+        ShiftSegmentList& segments, Event *e, unsigned int dim,
+        unsigned int pass)
+{
+    Node *v = e->v;
+    
+    if ((pass == 1) && (e->type == Open))
+    {
+        std::pair<NodeSet::iterator, bool> result = scanline.insert(v);
+        v->iter = result.first;
+        assert(result.second);
+
+        NodeSet::iterator it = v->iter;
+        // Work out neighbours
+        if (it != scanline.begin()) 
+        {
+            Node *u = *(--it);
+            v->firstAbove = u;
+            u->firstBelow = v;
+        }
+        it = v->iter;
+        if (++it != scanline.end()) 
+        {
+            Node *u = *it;
+            v->firstBelow = u;
+            u->firstAbove = v;
+        }
+    }
+    
+    if (pass == 2)
+    {
+        if ((e->type == Open) || (e->type == Close))
+        {
+            if (v->ss)
+            {
+                // As far as we can see.
+                double minLimit = v->firstObstacleAbove(dim);
+                double maxLimit = v->firstObstacleBelow(dim);
+
+                v->ss->minSpaceLimit = 
+                        std::max(minLimit, v->ss->minSpaceLimit);
+                v->ss->maxSpaceLimit = 
+                        std::min(maxLimit, v->ss->maxSpaceLimit);
+            }
+            else
+            {
+                v->markShiftSegmentsAbove(dim);
+                v->markShiftSegmentsBelow(dim);
+            }
+        }
+    }
+    
+    if ((pass == 3) && (e->type == Close))
+    {
+        // Clean up neighbour pointers.
+        Node *l = v->firstAbove, *r = v->firstBelow;
+        if (l != NULL) 
+        {
+            l->firstBelow = v->firstBelow;
+        }
+        if (r != NULL)
+        {
+            r->firstAbove = v->firstAbove;
+        }
+
+        if (e->type == ConnPoint)
+        {
+            scanline.erase(v->iter);
+            delete v;
+        }
+        else  // if (e->type == Close)
+        {
+            size_t result;
+            result = scanline.erase(v);
+            assert(result == 1);
+            delete v;
+        }
+    }
+}
+
+
+extern void centreOrthogonalRoutes(Router *router)
+{
+    if (router->segmt_penalty == 0)
+    {
+        // This code assumes the routes are pretty optimal, so we don't
+        // do this adjustment if the routes have no segment penalty.
+        return;
+    }
+
+    ShiftSegmentList vertSegList;
+    ShiftSegmentList horiSegList;
+    // For each connector.
+    for (ConnRefList::const_iterator curr = router->connRefs.begin(); 
+            curr != router->connRefs.end(); ++curr) 
+    {
+        if ((*curr)->type() != ConnType_Orthogonal)
+        {
+            continue;
+        }
+        Polygon& displayRoute = (*curr)->displayRoute();
+        // Determine all vertical line segments that we are interested in 
+        // shifting. We don't consider the first or last segment of a path.
+        for (size_t i = 2; i < (displayRoute.size() - 1); ++i)
+        {
+            if (displayRoute.at(i - 1).x == displayRoute.at(i).x)
+            {
+                // It's a vertical segment.
+                size_t indexLow = i - 1;
+                size_t indexHigh = i;
+                if (displayRoute.at(i - 1).y > displayRoute.at(i).y)
+                {
+                    indexLow = i;
+                    indexHigh = i - 1;
+                }
+
+                bool isSBend = false;
+                if ( ((displayRoute.at(i - 2).x < displayRoute.at(i).x) &&
+                      (displayRoute.at(i + 1).x > displayRoute.at(i).x)) 
+                      ||
+                     ((displayRoute.at(i - 2).x > displayRoute.at(i).x) &&
+                      (displayRoute.at(i + 1).x < displayRoute.at(i).x)) )
+                {
+                    isSBend = true;
+                }
+                vertSegList.push_back(
+                        ShiftSegment(*curr, indexLow, indexHigh, isSBend));
+            }
+            else if (displayRoute.at(i - 1).y == displayRoute.at(i).y)
+            {
+                // It's a horizontal segment.
+                size_t indexLow = i - 1;
+                size_t indexHigh = i;
+                if (displayRoute.at(i - 1).x > displayRoute.at(i).x)
+                {
+                    indexLow = i;
+                    indexHigh = i - 1;
+                }
+
+                bool isSBend = false;
+                if ( ((displayRoute.at(i - 2).y < displayRoute.at(i).y) &&
+                      (displayRoute.at(i + 1).y > displayRoute.at(i).y)) 
+                      ||
+                     ((displayRoute.at(i - 2).y > displayRoute.at(i).y) &&
+                      (displayRoute.at(i + 1).y < displayRoute.at(i).y)) )
+                {
+                    isSBend = true;
+                }
+                horiSegList.push_back(
+                        ShiftSegment(*curr, indexLow, indexHigh, isSBend));
+            }
+        }
+    }
+    
+    if (vertSegList.empty() && horiSegList.empty())
+    {
+        // There are no orthogonal connectors, so we can just return now.
+        return;
+    }
+
+    // Do a sweep and shift these segments.
+    const size_t n = router->shapeRefs.size();
+    const size_t cpn = vertSegList.size();
+    // Set up the events for the vertical sweep.
+    size_t totalEvents = 2 * (n + cpn);
+    events = new Event*[totalEvents];
+    unsigned ctr = 0;
+    ShapeRefList::iterator shRefIt = router->shapeRefs.begin();
+    for (unsigned i = 0; i < n; i++)
+    {
+        ShapeRef *shRef = *shRefIt;
+        double minX, minY, maxX, maxY;
+        shRef->polygon().getBoundingRect(&minX, &minY, &maxX, &maxY);
+        double midX = minX + ((maxX - minX) / 2);
+        Node *v = new Node(shRef, midX);
+        events[ctr++] = new Event(Open, v, minY);
+        events[ctr++] = new Event(Close, v, maxY);
+
+        ++shRefIt;
+    }
+    for (ShiftSegmentList::iterator curr = vertSegList.begin(); 
+            curr != vertSegList.end(); ++curr)
+    {
+        const Point& lowPt = curr->connRef->displayRoute().at(curr->indexLow);
+        const Point& highPt = curr->connRef->displayRoute().at(curr->indexHigh);
+
+        Node *v = new Node(&(*curr), lowPt.x);
+        events[ctr++] = new Event(Open, v, lowPt.y);
+        events[ctr++] = new Event(Close, v, highPt.y);
+    }
+    qsort((Event*)events, (size_t) totalEvents, sizeof(Event*), compare_events);
+
+    // Process the vertical sweep.
+    // We do multiple passes over sections of the list so we can add relevant
+    // entries to the scanline that might follow, before process them.
+    NodeSet scanline;
+    double thisPos = events[0]->pos;
+    unsigned int posStartIndex = 0;
+    unsigned int posFinishIndex = 0;
+    unsigned int dimension = 0;
+    for (unsigned i = 0; i <= totalEvents; ++i)
+    {
+        // If we have finished the current scanline or all events, then we
+        // process the events on the current scanline in a couple of passes.
+        if ((i == totalEvents) || (events[i]->pos != thisPos))
+        {
+            posFinishIndex = i;
+            for (int pass = 2; pass <= 3; ++pass)
+            {
+                for (unsigned j = posStartIndex; j < posFinishIndex; ++j)
+                {
+                    processShiftEvent(router, scanline, vertSegList, events[j], 
+                            dimension, pass);
+                }
+            }
+
+            if (i == totalEvents)
+            {
+                // We have cleaned up, so we can now break out of loop.
+                break;
+            }
+
+            thisPos = events[i]->pos;
+            posStartIndex = i;
+        }
+
+        // Do the first sweep event handling -- building the correct 
+        // structure of the scanline.
+        const int pass = 1;
+        processShiftEvent(router, scanline, vertSegList, events[i],
+                dimension, pass);
+    }
+    assert(scanline.size() == 0);
+    for (unsigned i = 0; i < totalEvents; ++i)
+    {
+        delete events[i];
+    }
+    delete [] events;
+    
+    // Do the shift for vertical.
+    for (ShiftSegmentList::iterator curr = vertSegList.begin(); 
+            curr != vertSegList.end(); ++curr)
+    {
+        ShiftSegment& ss = *curr;
+        
+        if (ss.sBend)
+        {
+            Point& lowPt = ss.connRef->displayRoute().ps[ss.indexLow];
+            Point& highPt = ss.connRef->displayRoute().ps[ss.indexHigh];
+
+#if 0
+            // Set reasonable outside channel size, rather than infinity.
+            double outside_channel = 30.0;
+            if (ss.minSpaceLimit == -DBL_MAX)
+            {
+                ss.minSpaceLimit = ss.maxSpaceLimit - outside_channel;
+            }
+            if (ss.maxSpaceLimit == DBL_MAX)
+            {
+                ss.maxSpaceLimit = ss.minSpaceLimit + outside_channel;
+            }
+#endif
+
+            double halfWay = ss.minSpaceLimit + 
+                    ((ss.maxSpaceLimit - ss.minSpaceLimit) / 2);
+
+            lowPt.x = halfWay;
+            highPt.x = halfWay;
+
+#if defined(LIBAVOID_SDL)
+            if (router->avoid_screen)
+            {
+                int canx = 151;
+                int cany = 55;
+
+
+                int minX = (int) std::max(-5000.0, ss.minSpaceLimit) + canx;
+                int minY = (int) lowPt.y + cany;
+                int maxX = (int) std::min(5000.0, ss.maxSpaceLimit) + canx;
+                int maxY = (int) highPt.y + cany;
+
+                boxRGBA(router->avoid_screen, minX, minY, maxX, maxY,
+                        255, 0, 0, 64);
+            }
+#endif
+        }
+    }
+
+
+    // Set up the events for the vertical sweep.
+    totalEvents = 2 * (n + horiSegList.size());
+    events = new Event*[totalEvents];
+    // Set up the events for the horizontal sweep.
+    ctr = 0;
+    shRefIt = router->shapeRefs.begin();
+    for (unsigned i = 0; i < n; i++)
+    {
+        ShapeRef *shRef = *shRefIt;
+        double minX, minY, maxX, maxY;
+        shRef->polygon().getBoundingRect(&minX, &minY, &maxX, &maxY);
+        double midY = minY + ((maxY - minY) / 2);
+        Node *v = new Node(shRef, midY);
+        events[ctr++] = new Event(Open, v, minX);
+        events[ctr++] = new Event(Close, v, maxX);
+
+        ++shRefIt;
+    }
+    for (ShiftSegmentList::iterator curr = horiSegList.begin(); 
+            curr != horiSegList.end(); ++curr)
+    {
+        const Point& lowPt = curr->connRef->displayRoute().at(curr->indexLow);
+        const Point& highPt = curr->connRef->displayRoute().at(curr->indexHigh);
+
+        Node *v = new Node(&(*curr), lowPt.y);
+        events[ctr++] = new Event(Open, v, lowPt.x);
+        events[ctr++] = new Event(Close, v, highPt.x);
+    }
+    qsort((Event*)events, (size_t) totalEvents, sizeof(Event*), compare_events);
+
+    // Process the horizontal sweep.
+    // We do multiple passes over sections of the list so we can add relevant
+    // entries to the scanline that might follow, before process them.
+    thisPos = events[0]->pos;
+    posStartIndex = 0;
+    posFinishIndex = 0;
+    dimension = 1;
+    for (unsigned i = 0; i <= totalEvents; ++i)
+    {
+        // If we have finished the current scanline or all events, then we
+        // process the events on the current scanline in a couple of passes.
+        if ((i == totalEvents) || (events[i]->pos != thisPos))
+        {
+            posFinishIndex = i;
+            for (int pass = 2; pass <= 3; ++pass)
+            {
+                for (unsigned j = posStartIndex; j < posFinishIndex; ++j)
+                {
+                    processShiftEvent(router, scanline, horiSegList, events[j], 
+                            dimension, pass);
+                }
+            }
+
+            if (i == totalEvents)
+            {
+                // We have cleaned up, so we can now break out of loop.
+                break;
+            }
+
+            thisPos = events[i]->pos;
+            posStartIndex = i;
+        }
+
+        // Do the first sweep event handling -- building the correct 
+        // structure of the scanline.
+        const int pass = 1;
+        processShiftEvent(router, scanline, horiSegList, events[i], 
+                dimension, pass);
+    }
+    assert(scanline.size() == 0);
+    for (unsigned i = 0; i < totalEvents; ++i)
+    {
+        delete events[i];
+    }
+    delete [] events;
+    
+    // Do the shift for horizontal.
+    for (ShiftSegmentList::iterator curr = horiSegList.begin(); 
+            curr != horiSegList.end(); ++curr)
+    {
+        ShiftSegment& ss = *curr;
+        
+        if (ss.sBend)
+        {
+            Point& lowPt = ss.connRef->displayRoute().ps[ss.indexLow];
+            Point& highPt = ss.connRef->displayRoute().ps[ss.indexHigh];
+
+#if 0
+            // Set reasonable outside channel size, rather than infinity.
+            double outside_channel = 30.0;
+            if (ss.minSpaceLimit == -DBL_MAX)
+            {
+                ss.minSpaceLimit = ss.maxSpaceLimit - outside_channel;
+            }
+            if (ss.maxSpaceLimit == DBL_MAX)
+            {
+                ss.maxSpaceLimit = ss.minSpaceLimit + outside_channel;
+            }
+#endif
+
+            double halfWay = ss.minSpaceLimit + 
+                    ((ss.maxSpaceLimit - ss.minSpaceLimit) / 2);
+
+            lowPt.y = halfWay;
+            highPt.y = halfWay;
+
+#if defined(LIBAVOID_SDL)
+            if (router->avoid_screen)
+            {
+                int canx = 151;
+                int cany = 55;
+
+
+                int minX = (int) lowPt.x + canx;
+                int minY = (int) std::max(-5000.0, ss.minSpaceLimit) + cany;
+                int maxX = (int) highPt.x + canx;
+                int maxY = (int) std::min(5000.0, ss.maxSpaceLimit) + cany;
+
+                boxRGBA(router->avoid_screen, minX, minY, maxX, maxY,
+                        0, 255, 0, 64);
+            }
+#endif
+        }
+    }
+#if defined(LIBAVOID_SDL)
+    if (router->avoid_screen)
+    {
+        SDL_Flip(router->avoid_screen);
+        SDL_Delay(1000);
+    }
+#endif
+
 }
 
 

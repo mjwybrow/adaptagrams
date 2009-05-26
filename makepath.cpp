@@ -254,9 +254,12 @@ bool operator<(const ANode &a, const ANode &b)
     }
     if (a.timeStamp != b.timeStamp)
     {
-        // Tiebreaker, if two paths have equal cost, then choose 
-        // the one that goes straight, rather than bends at this point.
-        return a.timeStamp > b.timeStamp;
+        // Tiebreaker, if two paths have equal cost, then choose the one with
+        // the highest timeStamp.  This corresponds to the furthest point
+        // explored along the straight-line path.  When exploring we give the
+        // directions the following timeStamps; left:1, right:2 and forward:3,
+        // then we always try to explore forward first.
+        return a.timeStamp < b.timeStamp;
     }
     assert(a.prevIndex != b.prevIndex);
     return a.prevIndex > b.prevIndex;
@@ -549,13 +552,13 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
         if (isOrthogonal)
         {
             // We would like to explore in a structured way, 
-            // so sort the points in the visList.
+            // so sort the points in the visList...
             CmpVisEdgeRotation compare(prevInf);
             visList.sort(compare);
         }
         EdgeInfList::const_iterator finish = visList.end();
-        for (EdgeInfList::const_iterator edge = visList.begin(); edge != finish;
-                ++edge)
+        for (EdgeInfList::const_iterator edge = visList.begin(); 
+                edge != finish; ++edge)
         {
             Node = ANode((*edge)->otherVert(BestNode.inf), timestamp++);
 

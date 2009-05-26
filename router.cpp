@@ -23,6 +23,7 @@
 */
 
 
+#include <algorithm>
 #include <cstdlib>
 #include <math.h>
 #include "libavoid/shape.h"
@@ -251,8 +252,13 @@ void Router::moveShape(ShapeRef *shape, const Polygon& newPoly,
     // XXX: Possibly we could handle this by ordering them intelligently.
     assert(find(actionList.begin(), actionList.end(), 
                 ActionInfo(ShapeRemove, shape)) == actionList.end());
-    assert(find(actionList.begin(), actionList.end(), 
-                ActionInfo(ShapeAdd, shape)) == actionList.end());
+    
+    if (find(actionList.begin(), actionList.end(), 
+                ActionInfo(ShapeAdd, shape)) != actionList.end())
+    {
+        // The Add is enough, no need for the Move action too.
+        return;
+    }
 
     ActionInfo moveInfo(ShapeMove, shape, newPoly, first_move);
     // Sanely cope with the case where the user requests moving the same
@@ -409,7 +415,7 @@ void Router::processTransaction(void)
                 if (!((actInf.type == ShapeRemove) || 
                             (actInf.type == ShapeMove)))
                 {
-                    // Not a move or add action, so don't do anything.
+                    // Not a move or remove action, so don't do anything.
                     continue;
                 }
 
@@ -634,6 +640,8 @@ void Router::callbackAllInvalidConnectors(void)
             reroutedConns.insert(*i);
         }
     }
+
+    centreOrthogonalRoutes(this);
 
     // Alert connectors that they need redrawing.
     for (std::set<ConnRef *>::const_iterator i = reroutedConns.begin(); 
