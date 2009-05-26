@@ -73,9 +73,9 @@ EdgeInf::~EdgeInf()
 // Gives an order value between 0 and 3 for the point c, given the last
 // segment was from a to b.  Returns the following value:
 //    0 : Point c is directly backwards from point b.
-//    1 : Point c is straight ahead (collinear).
-//    2 : Point c is a left-hand 90 degree turn.
-//    3 : Point c is a right-hand 90 degree turn.
+//    1 : Point c is a left-hand 90 degree turn.
+//    2 : Point c is a right-hand 90 degree turn.
+//    3 : Point c is straight ahead (collinear).
 //
 static inline int orthogTurnOrder(const Point& a, const Point& b, 
         const Point& c)
@@ -89,12 +89,12 @@ static inline int orthogTurnOrder(const Point& a, const Point& b,
     if (direction > 0)
     {
         // Counterclockwise := left
-        return 2;
+        return 1;
     }
     else if (direction < 0)
     {
         // Clockwise := right
-        return 3;
+        return 2;
     }
 
     if (b.x == c.x)
@@ -117,7 +117,7 @@ static inline int orthogTurnOrder(const Point& a, const Point& b,
     }
 
     // Ahead.
-    return 1;
+    return 3;
 }
 
 

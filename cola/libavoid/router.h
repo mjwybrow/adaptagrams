@@ -37,9 +37,11 @@
 #include <list>
 #include <utility>
 
-#if defined(LINEDEBUG) || defined(ASTAR_DEBUG)
+#if defined(LINEDEBUG) || defined(ASTAR_DEBUG) || defined(LIBAVOID_SDL)
     #include <SDL.h>
-    #define LIBAVOID_SDL
+    #ifndef LIBAVOID_SDL
+        #define LIBAVOID_SDL
+    #endif
 #endif
 
 
