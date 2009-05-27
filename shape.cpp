@@ -117,7 +117,6 @@ void ShapeRef::setNewPoly(const Polygon& poly)
         // Reset with the new polygon point.
         curr->Reset(poly.ps[pt_i]);
         curr->pathNext = NULL;
-        curr->pathDist = 0;
         
         curr = curr->shNext;
     }

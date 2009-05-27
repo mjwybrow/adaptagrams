@@ -64,13 +64,28 @@ class ConnEnd
         //! @param[in]  point  The position of the connector endpoint.
         //!
         ConnEnd(const Point& point);
+
+        //! @brief Constructs a ConnEnd from a free-floating point as well
+        //!        as a set of flags specifying visibility for this point 
+        //!        if it is located inside a shape.
+        //!
+        //! @param[in]  point    The position of the connector endpoint.
+        //! @param[in]  visDirs  One or more Avoid::ConnDirFlag options 
+        //!                      specifying the directions that this point 
+        //!                      should be given visibility if it is inside 
+        //!                      a shape.
+        //!
+        ConnEnd(const Point& point, const ConnDirFlags visDirs);
+        
         //! @brief Returns the position of this connector endpoint
         //!
         //! @return The position of this connector endpoint.
         const Point& point(void) const;
 
+        const ConnDirFlags& directions(void) const;
     private:
         Point _point;
+        ConnDirFlags _directions;
 };
 
 
@@ -211,7 +226,6 @@ class ConnRef
         unsigned int getDstShapeId(void);
         void makeActive(void);
         void makeInactive(void);
-        void lateSetup(const Point& src, const Point& dst);
         VertInf *start(void);
         void removeFromGraph(void);
         bool isInitialised(void);
@@ -228,12 +242,12 @@ class ConnRef
     private:
         friend class Router;
 
-        void updateEndPoint(const unsigned int type, const Point& point);
         void performCallback(void);
         bool generatePath(void);
         bool generatePath(Point p0, Point p1);
         void unInitialise(void);
-        void common_updateEndPoint(const unsigned int type, const Point& point);
+        void updateEndPoint(const unsigned int type, const ConnEnd& connEnd);
+        void common_updateEndPoint(const unsigned int type, const ConnEnd& connEnd);
         Router *_router;
         unsigned int _id;
         unsigned int _type;

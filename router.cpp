@@ -94,7 +94,6 @@ Router::Router(const unsigned int flags)
       cluster_crossing_penalty(4000),
       // Poly-line algorithm options:
       IgnoreRegions(true),
-      IncludeEndpoints(true),
       UseLeesAlgorithm(true),
       InvisibilityGrph(true),
       // General algorithm options:
@@ -744,16 +743,7 @@ void Router::checkAllMissingEdges(void)
 {
     assert(!InvisibilityGrph);
 
-    VertInf *first = NULL;
-
-    if (IncludeEndpoints)
-    {
-        first = vertices.connsBegin();
-    }
-    else
-    {
-        first = vertices.shapesBegin();
-    }
+    VertInf *first = vertices.connsBegin();
 
     VertInf *pend = vertices.end();
     for (VertInf *i = first; i != pend; i = i->lstNext)

@@ -64,9 +64,7 @@ void shapeVis(ShapeRef *shape)
     VertInf *shapeBegin = shape->firstVert();
     VertInf *shapeEnd = shape->lastVert()->lstNext;
 
-    VertInf *pointsBegin = (router->IncludeEndpoints) ?
-            router->vertices.connsBegin() : router->vertices.shapesBegin();
-
+    VertInf *pointsBegin = router->vertices.connsBegin();
     for (VertInf *curr = shapeBegin; curr != shapeEnd; curr = curr->lstNext)
     {
         bool knownNew = true;
@@ -141,7 +139,7 @@ void vertexVisibility(VertInf *point, VertInf *partner, bool knownNew,
         {
             EdgeInf::checkEdgeVisibility(point, k, knownNew);
         }
-        if (router->IncludeEndpoints && partner)
+        if (partner)
         {
             EdgeInf::checkEdgeVisibility(point, partner, knownNew);
         }
@@ -470,8 +468,7 @@ void vertexSweep(VertInf *vert)
 
     // Initialise the vertex list
     ShapeSet& ss = router->contains[centerID];
-    VertInf *beginVert = (router->IncludeEndpoints) ?
-            router->vertices.connsBegin() : router->vertices.shapesBegin();
+    VertInf *beginVert = router->vertices.connsBegin();
     VertInf *endVert = router->vertices.end();
     for (VertInf *inf = beginVert; inf != endVert; inf = inf->lstNext)
     {
@@ -498,7 +495,6 @@ void vertexSweep(VertInf *vert)
         else
         {
             // Add connector endpoint.
-            assert(router->IncludeEndpoints);
             if (centerID.isShape)
             {
                 // Center is a shape vertex, so add all endpoint vertices.

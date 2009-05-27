@@ -721,41 +721,14 @@ void makePath(ConnRef *lineRef, bool *flag)
         bool examineDirectPath = lineRef->doesHateCrossings() || 
                 !(router->clusterRefs.empty());
         
-        if ((start == src) && !(router->IncludeEndpoints) && 
-                directVis(src, tar))
-        {
-            Point p = src->point;
-            Point q = tar->point;
-
-            assert(directEdge == NULL);
-
-            directEdge = new EdgeInf(src, tar);
-            tar->pathNext = src;
-            directEdge->setDist(euclideanDist(p, q));
-            directEdge->addConn(flag);
-
-            return;
-        }
-        else if ((start == src) && router->IncludeEndpoints && directEdge &&
-                (directEdge->getDist() > 0) && !examineDirectPath)
+        if ((start == src) && directEdge && (directEdge->getDist() > 0) && 
+                !examineDirectPath)
         {
             tar->pathNext = src;
             directEdge->addConn(flag);
         }
         else
         {
-            if (!(router->IncludeEndpoints) && router->InvisibilityGrph &&
-                    !examineDirectPath)
-            {
-                // Mark the path endpoints as not being able to see
-                // each other.  This is true if we are here.
-                if (!directEdge)
-                {
-                    directEdge = new EdgeInf(src, tar);
-                }
-                directEdge->addBlocker(0);
-            }
-
             aStarPath(lineRef, src, tar, start);
         }
     }

@@ -38,8 +38,16 @@
 namespace Avoid {
 
     
-ConnEnd::ConnEnd(const Point& point) :
-    _point(point)
+ConnEnd::ConnEnd(const Point& point) 
+    : _point(point),
+      _directions(ConnDirAll)
+{
+}
+
+
+ConnEnd::ConnEnd(const Point& point, const ConnDirFlags visDirs) 
+    : _point(point),
+      _directions(visDirs)
 {
 }
 
@@ -47,6 +55,12 @@ ConnEnd::ConnEnd(const Point& point) :
 const Point& ConnEnd::point(void) const
 {
     return _point;
+}
+
+
+const ConnDirFlags& ConnEnd::directions(void) const
+{
+    return _directions;
 }
 
 
@@ -96,15 +110,15 @@ ConnRef::ConnRef(Router *router, const ConnEnd& src, const ConnEnd& dst,
     _id = router->assignId(id);
     _route.clear();
 
-    if (_router->IncludeEndpoints)
-    {
-        bool isShape = false;
-        _srcVert = new VertInf(_router, VertID(_id, isShape, 1), src.point());
-        _dstVert = new VertInf(_router, VertID(_id, isShape, 2), dst.point());
-        makeActive();
-        _initialised = true;
-    }
-    setEndpoints(src.point(), dst.point());
+    bool isShape = false;
+    _srcVert = new VertInf(_router, VertID(_id, isShape, 1), src.point());
+    _srcVert->visDirections = src.directions();
+    _dstVert = new VertInf(_router, VertID(_id, isShape, 2), dst.point());
+    _dstVert->visDirections = dst.directions();
+    makeActive();
+    _initialised = true;
+    
+    setEndpoints(src, dst);
 }
 
 
@@ -144,16 +158,14 @@ void ConnRef::setType(unsigned int type)
 }
 
 
-void ConnRef::common_updateEndPoint(const unsigned int type, const Point& point)
+void ConnRef::common_updateEndPoint(const unsigned int type, const ConnEnd& connEnd)
 {
+    const Point& point = connEnd.point();
     //db_printf("common_updateEndPoint(%d,(pid=%d,vn=%d,(%f,%f)))\n",
     //      type,point.id,point.vn,point.x,point.y);
     assert((type == (unsigned int) VertID::src) ||
            (type == (unsigned int) VertID::tar));
     
-    // XXX: This was commented out.  Is there a case where it isn't true? 
-    assert(_router->IncludeEndpoints);
-
     if (!_initialised)
     {
         makeActive();
@@ -174,6 +186,7 @@ void ConnRef::common_updateEndPoint(const unsigned int type, const Point& point)
         {
             _srcVert = new VertInf(_router, VertID(_id, isShape, type), point);
         }
+        _srcVert->visDirections = connEnd.directions();
         
         altered = _srcVert;
         partner = _dstVert;
@@ -188,6 +201,7 @@ void ConnRef::common_updateEndPoint(const unsigned int type, const Point& point)
         {
             _dstVert = new VertInf(_router, VertID(_id, isShape, type), point);
         }
+        _dstVert->visDirections = connEnd.directions();
         
         altered = _dstVert;
         partner = _srcVert;
@@ -204,8 +218,8 @@ void ConnRef::common_updateEndPoint(const unsigned int type, const Point& point)
 
 void ConnRef::setEndpoints(const ConnEnd& srcPoint, const ConnEnd& dstPoint)
 {
-    updateEndPoint(VertID::src, srcPoint.point());
-    updateEndPoint(VertID::tar, dstPoint.point());
+    updateEndPoint(VertID::src, srcPoint);
+    updateEndPoint(VertID::tar, dstPoint);
 
     _router->modifyConnector(this);
 }
@@ -213,7 +227,7 @@ void ConnRef::setEndpoints(const ConnEnd& srcPoint, const ConnEnd& dstPoint)
 
 void ConnRef::setEndpoint(const unsigned int type, const ConnEnd& connEnd)
 {
-    updateEndPoint(type, connEnd.point());
+    updateEndPoint(type, connEnd);
     
     _router->modifyConnector(this);
 }
@@ -221,7 +235,7 @@ void ConnRef::setEndpoint(const unsigned int type, const ConnEnd& connEnd)
 
 void ConnRef::setSourceEndpoint(const ConnEnd& srcPoint)
 {
-    updateEndPoint(VertID::src, srcPoint.point());
+    updateEndPoint(VertID::src, srcPoint);
     
     _router->modifyConnector(this);
 }
@@ -229,15 +243,15 @@ void ConnRef::setSourceEndpoint(const ConnEnd& srcPoint)
 
 void ConnRef::setDestEndpoint(const ConnEnd& dstPoint)
 {
-    updateEndPoint(VertID::tar, dstPoint.point());
+    updateEndPoint(VertID::tar, dstPoint);
     
     _router->modifyConnector(this);
 }
 
 
-void ConnRef::updateEndPoint(const unsigned int type, const Point& point)
+void ConnRef::updateEndPoint(const unsigned int type, const ConnEnd& connEnd)
 {
-    common_updateEndPoint(type, point);
+    common_updateEndPoint(type, connEnd);
 
     if (_router->_polyLineRouting)
     {
@@ -307,8 +321,10 @@ void ConnRef::setEndpoint(const unsigned int type, ShapeRef *shapeRef,
         point.y = y_min + (y_position * (y_max - y_min));
         point.vn = kUnassignedVertexNumber;
     }
+    ConnDirFlags visDir = (type == VertID::src) ? _srcVert->visDirections : _dstVert->visDirections;
+    ConnEnd connEnd(point, visDir);
 
-    common_updateEndPoint(type, point);
+    common_updateEndPoint(type, connEnd);
     
     if (_router->_polyLineRouting)
     {
@@ -458,18 +474,6 @@ bool ConnRef::needsRepaint(void) const
 }
 
 
-void ConnRef::lateSetup(const Point& src, const Point& dst)
-{
-    assert(!_initialised);
-
-    bool isShape = false;
-    _srcVert = new VertInf(_router, VertID(_id, isShape, 1), src);
-    _dstVert = new VertInf(_router, VertID(_id, isShape, 2), dst);
-    makeActive();
-    _initialised = true;
-}
-
-
 unsigned int ConnRef::id(void) const
 {
     return _id;
@@ -554,19 +558,6 @@ bool ConnRef::generatePath(Point p0, Point p1)
         {
             // This connector is up to date.
             return false;
-        }
-    }
-
-    if ( !(_router->IncludeEndpoints) )
-    {
-        lateSetup(p0, p1);
-        
-        if (_router->_polyLineRouting)
-        {
-            bool knownNew = true;
-            bool genContains = true;
-            vertexVisibility(_srcVert, _dstVert, knownNew, genContains);
-            vertexVisibility(_dstVert, _srcVert, knownNew, genContains);
         }
     }
 
@@ -823,6 +814,7 @@ bool ConnRef::generatePath(void)
         {
             // TODO: Again, we could know this edge without searching.
             EdgeInf *edge = EdgeInf::existingEdge(i, i->pathNext);
+            assert(edge != NULL);
             edge->addConn(flag);
         }
         else
@@ -866,12 +858,6 @@ bool ConnRef::generatePath(void)
     output_route.ps = path;
     _display_route.clear();
  
-    if ( !(_router->IncludeEndpoints) )
-    {
-        assert(_initialised);
-        unInitialise();
-    }
-
 #ifdef PATHDEBUG
     db_printf("Output route:\n");
     for (size_t i = 0; i < output_route.ps.size(); ++i)

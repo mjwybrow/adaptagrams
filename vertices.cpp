@@ -150,18 +150,18 @@ ostream& operator<<(ostream& os, const VertID& vID)
 
 VertInf::VertInf(Router *router, const VertID& vid, const Point& vpoint, 
         const bool addToRouter)
-    : _router(router)
-    , id(vid)
-    , point(vpoint)
-    , lstPrev(NULL)
-    , lstNext(NULL)
-    , shPrev(NULL)
-    , shNext(NULL)
-    , visListSize(0)
-    , orthogVisListSize(0)
-    , invisListSize(0)
-    , pathNext(NULL)
-    , pathDist(0)
+    : _router(router),
+      id(vid),
+      point(vpoint),
+      lstPrev(NULL),
+      lstNext(NULL),
+      shPrev(NULL),
+      shNext(NULL),
+      visListSize(0),
+      orthogVisListSize(0),
+      invisListSize(0),
+      pathNext(NULL),
+      visDirections(ConnDirNone)
 {
     point.id = vid.objID;
     point.vn = vid.vn;
@@ -279,12 +279,12 @@ bool directVis(VertInf *src, VertInf *dst)
 
 
 VertInfList::VertInfList()
-    : _firstShapeVert(NULL)
-    , _firstConnVert(NULL)
-    , _lastShapeVert(NULL)
-    , _lastConnVert(NULL)
-    , _shapeVertices(0)
-    , _connVertices(0)
+    : _firstShapeVert(NULL),
+      _firstConnVert(NULL),
+      _lastShapeVert(NULL),
+      _lastConnVert(NULL),
+      _shapeVertices(0),
+      _connVertices(0)
 {
 }
 
