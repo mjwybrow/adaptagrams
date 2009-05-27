@@ -34,7 +34,12 @@ namespace cola {
     using namespace std;
 
     Cluster::Cluster()
-        : varWeight(0.0001), internalEdgeWeightFactor(1.), bounds(-1,1,-1,1), border(7), desiredBoundsSet(false), desiredBounds(-1,1,-1,1)
+        : varWeight(0.0001), 
+          internalEdgeWeightFactor(1.), 
+          bounds(-1,1,-1,1),
+          desiredBoundsSet(false), 
+          desiredBounds(-1,1,-1,1),
+          border(7)
       {}
 	void Cluster::setDesiredBounds(const vpsc::Rectangle db) {
 		desiredBoundsSet=true;

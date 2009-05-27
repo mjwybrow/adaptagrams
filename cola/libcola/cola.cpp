@@ -639,7 +639,7 @@ Rectangle bounds(vector<Rectangle*>& rs) {
 			}
             for(Locks::iterator l=locks.begin();
                     l!=locks.end();l++) {
-                unsigned id=l->getID();
+                //unsigned id=l->getID();
             }
 			for_each(vars.begin(),vars.end(),delete_object());
 			for_each(cs.begin(),cs.end(),delete_object());
