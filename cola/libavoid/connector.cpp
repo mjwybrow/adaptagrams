@@ -104,8 +104,7 @@ ConnRef::ConnRef(Router *router, const ConnEnd& src, const ConnEnd& dst,
         makeActive();
         _initialised = true;
     }
-    updateEndPoint(Avoid::VertID::src, src.point());
-    updateEndPoint(Avoid::VertID::tar, dst.point());
+    setEndpoints(src.point(), dst.point());
 }
 
 
@@ -212,6 +211,14 @@ void ConnRef::setEndpoints(const ConnEnd& srcPoint, const ConnEnd& dstPoint)
 }
 
 
+void ConnRef::setEndpoint(const unsigned int type, const ConnEnd& connEnd)
+{
+    updateEndPoint(type, connEnd.point());
+    
+    _router->modifyConnector(this);
+}
+
+
 void ConnRef::setSourceEndpoint(const ConnEnd& srcPoint)
 {
     updateEndPoint(VertID::src, srcPoint.point());
@@ -248,7 +255,7 @@ void ConnRef::updateEndPoint(const unsigned int type, const Point& point)
 }
 
 
-void ConnRef::updateEndPoint(const unsigned int type, ShapeRef *shapeRef, 
+void ConnRef::setEndpoint(const unsigned int type, ShapeRef *shapeRef, 
         const double x_position, const double y_position)
 {
     assert(shapeRef);
@@ -316,10 +323,11 @@ void ConnRef::updateEndPoint(const unsigned int type, ShapeRef *shapeRef,
             vertexVisibility(_dstVert, _srcVert, knownNew, genContains);
         }
     }
+    _router->modifyConnector(this);
 }
 
 
-bool ConnRef::updateEndPoint(const unsigned int type, const VertID& pointID,
+bool ConnRef::setEndpoint(const unsigned int type, const VertID& pointID,
         Point *pointSuggestion)
 {
     VertInf *vInf = _router->vertices.getVertexByID(pointID);
@@ -345,6 +353,7 @@ bool ConnRef::updateEndPoint(const unsigned int type, const VertID& pointID,
     //      assumptions elsewhere in the code.
     edge->setDist(0.001);
 
+    _router->modifyConnector(this);
     return true;
 }
 

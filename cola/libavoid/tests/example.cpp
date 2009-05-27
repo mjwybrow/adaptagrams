@@ -67,7 +67,7 @@ int main(void)
 
     printf("\nShifting endpoint.\n");
     Avoid::Point dstPt2(6, 4.5);
-    connRef->updateEndPoint(Avoid::VertID::tar, dstPt2);
+    connRef->setDestEndpoint(dstPt2);
     // It's expected you know the connector needs rerouting, so the callback
     // isn't called.  You can force it to be called though, via:
     router->processTransaction();

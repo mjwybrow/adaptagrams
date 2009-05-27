@@ -241,8 +241,6 @@ void makeFeasible(vpsc::Rectangles& rs, vector<cola::Edge>& edges,
         Avoid::Point srcPt(r0->getCentreX(),r0->getCentreY());
         Avoid::Point dstPt(r1->getCentreX(),r1->getCentreY());
         connRef = new Avoid::ConnRef(router, srcPt, dstPt, connID);
-        connRef->updateEndPoint(Avoid::VertID::src, srcPt);
-        connRef->updateEndPoint(Avoid::VertID::tar, dstPt);
         router->processTransaction();
         const Avoid::Polygon& route = connRef->route();
         vector<topology::EdgePoint*> eps;
@@ -273,6 +271,7 @@ void makeFeasible(vpsc::Rectangles& rs, vector<cola::Edge>& edges,
         routes.push_back(edgeRoute);
 
     }
+    writeFile(topologyNodes,routes,"beautify0.svg");
     assert(topology::assertNoSegmentRectIntersection(topologyNodes,routes));
     double libavoidtime=double(clock()-libavoidstarttime)/double(CLOCKS_PER_SEC);
     cout << "done. Libavoid ran in " << libavoidtime << " seconds" << endl;

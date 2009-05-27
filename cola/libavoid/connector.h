@@ -206,12 +206,6 @@ class ConnRef
         void set_route(const PolyLine& route);
         void freeRoute(void);
         void calcRouteDist(void);
-        void updateEndPoint(const unsigned int type, const Point& point);
-        void updateEndPoint(const unsigned int type, ShapeRef *shapeRef, 
-                const double x_position = ATTACH_POS_CENTER, 
-                const double y_position = ATTACH_POS_CENTER);
-        bool updateEndPoint(const unsigned int type, const VertID& pointID, 
-                Point *pointSuggestion = NULL);
         void setEndPointId(const unsigned int type, const unsigned int id);
         unsigned int getSrcShapeId(void);
         unsigned int getDstShapeId(void);
@@ -224,16 +218,17 @@ class ConnRef
         void makePathInvalid(void);
         void setHateCrossings(bool value);
         bool doesHateCrossings(void);
-        
-        friend void Router::attachedShapes(IntList &shapes,
-                const unsigned int shapeId, const unsigned int type);
-        friend void Router::attachedConns(IntList &conns,
-                const unsigned int shapeId, const unsigned int type);
-        friend void Router::markConnectors(ShapeRef *shape);
-        
+        void setEndpoint(const unsigned int type, const ConnEnd& srcPoint);
+        bool setEndpoint(const unsigned int type, const VertID& pointID, 
+                Point *pointSuggestion = NULL);
+        void setEndpoint(const unsigned int type, ShapeRef *shapeRef, 
+                const double x_position = ATTACH_POS_CENTER, 
+                const double y_position = ATTACH_POS_CENTER);
+    
     private:
         friend class Router;
 
+        void updateEndPoint(const unsigned int type, const Point& point);
         void performCallback(void);
         bool generatePath(void);
         bool generatePath(Point p0, Point p1);
