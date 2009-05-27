@@ -115,12 +115,15 @@ struct Node
     }   
     ~Node() 
     {
-    }   
-    double firstObstacleAbove(unsigned int dim)
+    }
+    // Find the first Node above in the scanline that is a shape edge,
+    // and does not have an open or close event at this position (meaning
+    // it is just about to be removed).
+    double firstObstacleAbove(unsigned int dim, NodeSet& eventsAtThisPos)
     {
-        // XXX Might need to check in other direction too?
         Node *curr = firstAbove;
-        while (curr && (curr->ss || (curr->max[dim] > pos)))
+        while (curr && (curr->ss || (curr->max[dim] > pos) ||
+                (eventsAtThisPos.find(curr) != eventsAtThisPos.end()) ))
         {
             curr = curr->firstAbove;
         }
@@ -131,11 +134,14 @@ struct Node
         }
         return -DBL_MAX;
     }
-    double firstObstacleBelow(unsigned int dim)
+    // Find the first Node below in the scanline that is a shape edge,
+    // and does not have an open or close event at this position (meaning
+    // it is just about to be removed).
+    double firstObstacleBelow(unsigned int dim, NodeSet& eventsAtThisPos)
     {
-        // XXX Might need to check in other direction too?
         Node *curr = firstBelow;
-        while (curr && (curr->ss || (curr->min[dim] < pos)))
+        while (curr && (curr->ss || (curr->min[dim] < pos) ||
+                (eventsAtThisPos.find(curr) != eventsAtThisPos.end()) ))
         {
             curr = curr->firstBelow;
         }
@@ -146,9 +152,10 @@ struct Node
         }
         return DBL_MAX;
     }
+    // Mark all connector segments above in the scanline as being able 
+    // to see to this shape edge.
     void markShiftSegmentsAbove(unsigned int dim)
     {
-        // XXX Might need to check in other direction too?
         Node *curr = firstAbove;
         while (curr && (curr->ss || (curr->pos > min[dim])))
         {
@@ -160,9 +167,10 @@ struct Node
             curr = curr->firstAbove;
         }
     }
+    // Mark all connector segments below in the scanline as being able 
+    // to see to this shape edge.
     void markShiftSegmentsBelow(unsigned int dim)
     {
-        // XXX Might need to check in other direction too?
         Node *curr = firstBelow;
         while (curr && (curr->ss || (curr->pos < max[dim])))
         {
@@ -715,25 +723,13 @@ static void intersectSegments(Router *router, SegmentList& segments,
     {
         LineSegment& horiLine = *it;
 
-        if (horiLine.begin == horiLine.finish)
-        {
-            // Skip point segments.
-            it = segments.erase(it);
-            continue;
-        }
-
         bool inVertSegRegion = ((vertLine.begin <= horiLine.pos) &&
                                 (vertLine.finish >= horiLine.pos));
 
         if (horiLine.finish < vertLine.pos)
         {
-            // XXX Can this case ever occur?
-
-            if (inVertSegRegion)
-            {
-                // Add horizontal visibility segment.
-                horiLine.addEdgeHorizontal(router);
-            }
+            // Add horizontal visibility segment.
+            horiLine.addEdgeHorizontal(router);
 
             // We've now swept past this horizontal segment, so delete.
             it = segments.erase(it);
@@ -958,19 +954,43 @@ static void processEventVert(Router *router, NodeSet& scanline,
             double minLimit = v->firstPointAbove(0);
             double maxLimit = v->firstPointBelow(0);
 
-            LineSegment *line1 = segments.insert(
-                  LineSegment(minLimit, cp.x, e->pos, true, NULL, centreVert));
-            LineSegment *line2 = segments.insert(
-                  LineSegment(cp.x, maxLimit, e->pos, true, centreVert, NULL));
+            bool inShape = v->isInsideShapeX();
+
+            LineSegment *line1 = NULL, *line2 = NULL;
+            if (!inShape || (centreVert->visDirections & ConnDirLeft))
+            {
+                line1 = segments.insert(LineSegment(minLimit, cp.x, e->pos, 
+                        true, NULL, centreVert));
+            }
+            if (!inShape || (centreVert->visDirections & ConnDirRight))
+            {
+                line2 = segments.insert(LineSegment(cp.x, maxLimit, e->pos, 
+                        true, centreVert, NULL));
+            }
+            if (!line1 && !line2)
+            {
+                // Add a point segment for the centre point.
+                segments.insert(LineSegment(cp.x, cp.x, e->pos, 
+                        true, centreVert, NULL));
+            }
             
-            if (!v->isInsideShapeX())
+            if (!inShape)
             {
                 // This is not contained within a shape so add a normal
                 // visibility graph point here too (since paths won't route
                 // *through* connector endpoint vertices).
-                VertInf *cent = new VertInf(router, dummyOrthogID, cp);
-                line1->vertInfs.insert(cent);
-                line2->vertInfs.insert(cent);
+                if (line1 || line2)
+                {
+                    VertInf *cent = new VertInf(router, dummyOrthogID, cp);
+                    if (line1)
+                    {
+                        line1->vertInfs.insert(cent);
+                    }
+                    if (line2)
+                    {
+                        line2->vertInfs.insert(cent);
+                    }
+                }
             }
         }
     }
@@ -1056,12 +1076,22 @@ static void processEventHori(Router *router, NodeSet& scanline,
         }
         else if (e->type == ConnPoint)
         {
+            // Connection point.
+            VertInf *centreVert = e->v->c;
+            Point& cp = centreVert->point;
+
             // As far as we can see.
             double minLimit = v->firstPointAbove(1);
             double maxLimit = v->firstPointBelow(1);
             
-            LineSegment vertSeg = LineSegment(minLimit, maxLimit, e->pos);
-            segments.insert(vertSeg);
+            if (centreVert->visDirections & ConnDirUp)
+            {
+                segments.insert(LineSegment(minLimit, cp.y, e->pos));
+            }
+            if (centreVert->visDirections & ConnDirDown)
+            {
+                segments.insert(LineSegment(cp.y, maxLimit, e->pos));
+            }
         }
     }
     
@@ -1095,7 +1125,7 @@ static void processEventHori(Router *router, NodeSet& scanline,
 }
 
 
-void generateStaticOrthogonalVisGraph(Router *router)
+extern void generateStaticOrthogonalVisGraph(Router *router)
 {
     const size_t n = router->shapeRefs.size();
     const unsigned cpn = router->vertices.connsSize();
@@ -1273,18 +1303,30 @@ void generateStaticOrthogonalVisGraph(Router *router)
 
 
 
-// Processes an event for the vertical sweep used for computing the static 
-// orthogonal visibility graph.  This adds possible visibility sgments to 
-// the segments list.
-// The first pass is adding the event to the scanline, the second is for
-// processing the event and the third for removing it from the scanline.
+// Processes sweep events used to determine each horizontal and vertical 
+// line segment in a connector's channel of visibility.  
+// Five calls to this function are made at each position by the scanline:
+//   1) Determine all the open and close events that occur at this position.
+//   2) Handle all Edge Close events, ignoring shapes which Close at this pos.
+//   3) Handle all Shape Close events.
+//   4) Handle all Shape Open events.
+//   5) Handle all Edge Open events, ignoring shapes which Open at this pos.
+//
 static void processShiftEvent(Router *router, NodeSet& scanline, 
         ShiftSegmentList& segments, Event *e, unsigned int dim,
-        unsigned int pass)
+        unsigned int pass, NodeSet& eventsAtThisPos)
 {
     Node *v = e->v;
     
-    if ((pass == 1) && (e->type == Open))
+    if (pass == 1)
+    {
+        // On the first pass, build a list of the events (opening or closing)
+        // on this scanline
+        eventsAtThisPos.insert(v);
+    }
+    
+    if ( (!v->ss && (pass == 4) && (e->type == Open)) ||
+         (v->ss && (pass == 5) && (e->type == Open)) )
     {
         std::pair<NodeSet::iterator, bool> result = scanline.insert(v);
         v->iter = result.first;
@@ -1307,30 +1349,31 @@ static void processShiftEvent(Router *router, NodeSet& scanline,
         }
     }
     
-    if (pass == 2)
+    if ( (!v->ss && (pass == 4) && (e->type == Open)) ||
+         (v->ss && (pass == 5) && (e->type == Open)) ||
+         (v->ss && (pass == 2) && (e->type == Close)) ||
+         (!v->ss && (pass == 3) && (e->type == Close)) )
     {
-        if ((e->type == Open) || (e->type == Close))
+        if (v->ss)
         {
-            if (v->ss)
-            {
-                // As far as we can see.
-                double minLimit = v->firstObstacleAbove(dim);
-                double maxLimit = v->firstObstacleBelow(dim);
+            // As far as we can see.
+            double minLimit = v->firstObstacleAbove(dim, eventsAtThisPos);
+            double maxLimit = v->firstObstacleBelow(dim, eventsAtThisPos);
 
-                v->ss->minSpaceLimit = 
-                        std::max(minLimit, v->ss->minSpaceLimit);
-                v->ss->maxSpaceLimit = 
-                        std::min(maxLimit, v->ss->maxSpaceLimit);
-            }
-            else
-            {
-                v->markShiftSegmentsAbove(dim);
-                v->markShiftSegmentsBelow(dim);
-            }
+            v->ss->minSpaceLimit = 
+                    std::max(minLimit, v->ss->minSpaceLimit);
+            v->ss->maxSpaceLimit = 
+                    std::min(maxLimit, v->ss->maxSpaceLimit);
+        }
+        else
+        {
+            v->markShiftSegmentsAbove(dim);
+            v->markShiftSegmentsBelow(dim);
         }
     }
     
-    if ((pass == 3) && (e->type == Close))
+    if ( (v->ss && (pass == 2) && (e->type == Close)) ||
+         (!v->ss && (pass == 3) && (e->type == Close)) )
     {
         // Clean up neighbour pointers.
         Node *l = v->firstAbove, *r = v->firstBelow;
@@ -1478,6 +1521,7 @@ extern void centreOrthogonalRoutes(Router *router)
     unsigned int posStartIndex = 0;
     unsigned int posFinishIndex = 0;
     unsigned int dimension = 0;
+    NodeSet eventsAtThisPos;
     for (unsigned i = 0; i <= totalEvents; ++i)
     {
         // If we have finished the current scanline or all events, then we
@@ -1485,13 +1529,14 @@ extern void centreOrthogonalRoutes(Router *router)
         if ((i == totalEvents) || (events[i]->pos != thisPos))
         {
             posFinishIndex = i;
-            for (int pass = 2; pass <= 3; ++pass)
+            for (int pass = 2; pass <= 5; ++pass)
             {
                 for (unsigned j = posStartIndex; j < posFinishIndex; ++j)
                 {
                     processShiftEvent(router, scanline, vertSegList, events[j], 
-                            dimension, pass);
+                            dimension, pass, eventsAtThisPos);
                 }
+                eventsAtThisPos.clear();
             }
 
             if (i == totalEvents)
@@ -1508,7 +1553,7 @@ extern void centreOrthogonalRoutes(Router *router)
         // structure of the scanline.
         const int pass = 1;
         processShiftEvent(router, scanline, vertSegList, events[i],
-                dimension, pass);
+                dimension, pass, eventsAtThisPos);
     }
     assert(scanline.size() == 0);
     for (unsigned i = 0; i < totalEvents; ++i)
@@ -1611,13 +1656,14 @@ extern void centreOrthogonalRoutes(Router *router)
         if ((i == totalEvents) || (events[i]->pos != thisPos))
         {
             posFinishIndex = i;
-            for (int pass = 2; pass <= 3; ++pass)
+            for (int pass = 2; pass <= 5; ++pass)
             {
                 for (unsigned j = posStartIndex; j < posFinishIndex; ++j)
                 {
                     processShiftEvent(router, scanline, horiSegList, events[j], 
-                            dimension, pass);
+                            dimension, pass, eventsAtThisPos);
                 }
+                eventsAtThisPos.clear();
             }
 
             if (i == totalEvents)
@@ -1634,7 +1680,7 @@ extern void centreOrthogonalRoutes(Router *router)
         // structure of the scanline.
         const int pass = 1;
         processShiftEvent(router, scanline, horiSegList, events[i], 
-                dimension, pass);
+                dimension, pass, eventsAtThisPos);
     }
     assert(scanline.size() == 0);
     for (unsigned i = 0; i < totalEvents; ++i)

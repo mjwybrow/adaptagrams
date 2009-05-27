@@ -30,6 +30,7 @@
 #include <set>
 #include <map>
 #include <iostream>
+
 #include "libavoid/geomtypes.h"
 
 namespace Avoid {
@@ -38,6 +39,34 @@ class EdgeInf;
 class Router;
 
 typedef std::list<EdgeInf *> EdgeInfList;
+
+
+//! @brief  Flags that can be passed to the ConnEnd constructor to specify
+//!         which sides of a shape this point should have visibility to if
+//!         it is located within the shape's area.
+enum ConnDirFlag {
+    ConnDirNone  = 0,
+    //! @brief  This option specifies the point should be given visibility 
+    //!         to the top of the shape that it is located within.
+    ConnDirUp    = 1,
+    //! @brief  This option specifies the point should be given visibility 
+    //!         to the bottom of the shape that it is located within.
+    ConnDirDown  = 2,
+    //! @brief  This option specifies the point should be given visibility 
+    //!         to the left side of the shape that it is located within.
+    ConnDirLeft  = 4,
+    //! @brief  This option specifies the point should be given visibility 
+    //!         to the right side of the shape that it is located within.
+    ConnDirRight = 8,
+    //! @brief  This option, provided for convenience, specifies the point 
+    //!         should be given visibility to all four sides of the shape 
+    //!         that it is located within.
+    ConnDirAll   = 15
+};
+//! @brief  One or more Avoid::ConnDirFlag options.
+//!
+typedef unsigned int ConnDirFlags;
+
 
 
 class VertID
@@ -91,7 +120,7 @@ class VertInf
         EdgeInfList invisList;
         unsigned int invisListSize;
         VertInf *pathNext;
-        double pathDist;
+        ConnDirFlags visDirections;
 };
 
 

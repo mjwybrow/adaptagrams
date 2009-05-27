@@ -59,12 +59,12 @@ class ShapeRef;
 //!         to specify options.
 enum RouterFlag
 {
-        //! @brief  This option specifies that the router should maintain the
-        //!         structures necessary to allow poly-line connector routing.
-        PolyLineRouting = 1,
-        //! @brief  This option specifies that the router should maintain the
-        //!         structures necessary to allow orthogonal connector routing.
-        OrthogonalRouting = 2
+    //! @brief  This option specifies that the router should maintain the
+    //!         structures necessary to allow poly-line connector routing.
+    PolyLineRouting = 1,
+    //! @brief  This option specifies that the router should maintain the
+    //!         structures necessary to allow orthogonal connector routing.
+    OrthogonalRouting = 2
 };
 
 
@@ -113,7 +113,6 @@ class Router {
 
         // Poly-line routing options:
         bool IgnoreRegions;
-        bool IncludeEndpoints;
         bool UseLeesAlgorithm;
         bool InvisibilityGrph;
        
