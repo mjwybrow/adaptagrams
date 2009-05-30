@@ -147,7 +147,9 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf1,
         }
     }
 
-    if (router->ClusteredRouting && !router->clusterRefs.empty() )
+    // XXX: Clustered routing doesn't yet work with orhtogonal connectors.
+    if (router->ClusteredRouting && !router->clusterRefs.empty() &&
+            (lineRef->routingType() != ConnType_Orthogonal))
     {
         if (connRoute.empty())
         {
@@ -269,7 +271,7 @@ bool operator<(const ANode &a, const ANode &b)
 static double estimatedCost(ConnRef *lineRef, const Point *last, 
         const Point& a, const Point& b)
 {
-    if (lineRef->type() == ConnType_PolyLine)
+    if (lineRef->routingType() == ConnType_PolyLine)
     {
         return euclideanDist(a, b);
     }
@@ -342,7 +344,7 @@ class CmpVisEdgeRotation
 static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar, 
         VertInf *start)
 {
-    bool isOrthogonal = (lineRef->type() == ConnType_Orthogonal);
+    bool isOrthogonal = (lineRef->routingType() == ConnType_Orthogonal);
 
     double (*dist)(const Point& a, const Point& b) = 
         (isOrthogonal) ? manhattanDist : euclideanDist;
@@ -694,7 +696,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
 //
 void makePath(ConnRef *lineRef, bool *flag)
 {
-    bool isOrthogonal = (lineRef->type() == ConnType_Orthogonal);
+    bool isOrthogonal = (lineRef->routingType() == ConnType_Orthogonal);
     Router *router = lineRef->router();
     VertInf *src = lineRef->src();
     VertInf *tar = lineRef->dst();

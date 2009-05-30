@@ -146,15 +146,22 @@ ConnRef::~ConnRef()
 }
 
 
-const unsigned int ConnRef::type(void) const
+const ConnType ConnRef::routingType(void) const
 {
     return _type;
 }
 
 
-void ConnRef::setType(unsigned int type)
+void ConnRef::setRoutingType(ConnType type)
 {
-    _type = type;
+    if (_type != type)
+    {
+        _type = type;
+
+        makePathInvalid();
+
+        _router->modifyConnector(this);
+    }
 }
 
 
@@ -289,16 +296,19 @@ void ConnRef::setEndpoint(const unsigned int type, ShapeRef *shapeRef,
 
     Point point;
 
+    // We want to place connection points on the edges of shapes, inside them.
+    double insideOffset = (_type == ConnType_Orthogonal) ? 10 : 0;
+
     point.id = _id;
     point.vn = kUnassignedVertexNumber;
     if (x_position == ATTACH_POS_LEFT)
     {
-        point.x = x_min;
+        point.x = x_min + insideOffset;
         point.vn = 6;
     }
     else if (x_position == ATTACH_POS_RIGHT)
     {
-        point.x = x_max;
+        point.x = x_max - insideOffset;
         point.vn = 4;
     }
     else
@@ -308,12 +318,12 @@ void ConnRef::setEndpoint(const unsigned int type, ShapeRef *shapeRef,
 
     if (y_position == ATTACH_POS_TOP)
     {
-        point.y = y_max;
+        point.y = y_max - insideOffset;
         point.vn = 5;
     }
     else if (y_position == ATTACH_POS_BOTTOM)
     {
-        point.y = y_min;
+        point.y = y_min + insideOffset;
         point.vn = 7;
     }
     else
@@ -321,7 +331,18 @@ void ConnRef::setEndpoint(const unsigned int type, ShapeRef *shapeRef,
         point.y = y_min + (y_position * (y_max - y_min));
         point.vn = kUnassignedVertexNumber;
     }
-    ConnDirFlags visDir = (type == VertID::src) ? _srcVert->visDirections : _dstVert->visDirections;
+
+    // If the vertex already exists, we are just updating its 
+    // position so use the existing visibility directions.
+    ConnDirFlags visDir = ConnDirAll;
+    if (_srcVert && (type == VertID::src))
+    {
+        visDir = _srcVert->visDirections;
+    }
+    else if (_dstVert && (type == VertID::tar))
+    {
+        visDir = _dstVert->visDirections;
+    }
     ConnEnd connEnd(point, visDir);
 
     common_updateEndPoint(type, connEnd);
@@ -552,7 +573,7 @@ bool ConnRef::generatePath(Point p0, Point p1)
 {
     // XXX Code to determine when connectors really need to be rerouted
     //     does not yet work for orthogonal connectors.
-    if (type() != ConnType_Orthogonal)
+    if (_type != ConnType_Orthogonal)
     {
         if (!_false_path && !_needs_reroute_flag) 
         {
@@ -1376,7 +1397,7 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
                     {
                         Avoid::Point& an = *(c_path[i]);
                         Avoid::Point& bn = *(p_path[i]);
-                        int currTurnDir = (i > 0) ?  
+                        int currTurnDir = ((i > 0) && (i < (adj_size - 1))) ?  
                                 vecDir(*c_path[i - 1], an,
                                        *c_path[i + 1]) : 0;
                         VertID vID(an.id, true, an.vn);
@@ -1389,7 +1410,7 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
                             // become the outer path and vice versa.
                             reversed = !reversed;
                         }
-                        bool orderSwapped = (*pointOrders)[vID].addPoints(
+                        bool orderSwapped = (*pointOrders)[an].addPoints(
                                 &bn, &an, reversed);
                         if (orderSwapped)
                         {
@@ -1467,7 +1488,7 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
                         assert((turnDirB != 0) || (turnDirA != 0)); 
                     }
                     VertID vID(b1.id, true, b1.vn);
-                    (*pointOrders)[vID].addPoints(&b1, &a1, reversed);
+                    (*pointOrders)[b1].addPoints(&b1, &a1, reversed);
                 }
             }
         }

@@ -34,6 +34,7 @@
 #include "libavoid/viscluster.h"
 #include "libavoid/graph.h"
 #include "libavoid/timer.h"
+#include "libavoid/connector.h"
 #include <list>
 #include <utility>
 
@@ -47,8 +48,6 @@
 
 namespace Avoid {
 
-class ConnRef;
-typedef std::list<ConnRef *> ConnRefList;
 typedef std::list<unsigned int> IntList;
 
 class ActionInfo;
@@ -241,7 +240,7 @@ class Router {
         void regenerateStaticBuiltGraph(void);
         void destroyOrthogonalVisGraph(void);
         void setStaticGraphInvalidated(const bool invalidated);
-        unsigned int defaultConnType(void) const;
+        ConnType defaultConnType(void) const;
         bool shapeInQueuedActionList(ShapeRef *shape) const;
 
     private:
