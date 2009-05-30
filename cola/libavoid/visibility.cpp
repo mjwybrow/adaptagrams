@@ -477,6 +477,11 @@ void vertexSweep(VertInf *vert)
             // Don't include the center point itself.
             continue;
         }
+        else if (inf->id == dummyOrthogID)
+        {
+            // Don't include orthogonal dummy vertices.
+            continue;
+        }
 
         if (!(centerID.isShape) && (ss.find(inf->id.objID) != ss.end()))
         {

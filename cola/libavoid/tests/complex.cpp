@@ -45,7 +45,8 @@ static void connCallback(void *ptr)
 
 int main(void)
 {
-    Avoid::Router *router = new Avoid::Router(Avoid::OrthogonalRouting);
+    Avoid::Router *router = new Avoid::Router(Avoid::OrthogonalRouting |
+            Avoid::PolyLineRouting);
     
     // Create the ShapeRef:
     Avoid::Polygon shapePoly(3);
@@ -76,6 +77,15 @@ int main(void)
     printf("\nMoving shape right by 0.5.\n");
     router->moveShape(shapeRef, 0.5, 0);
     router->processTransaction();
+
+    printf("\nChanging type to orthogonal.\n");
+    connRef->setRoutingType(Avoid::ConnType_Orthogonal);
+    router->processTransaction();
+
+    printf("\nChanging type back to polyline.\n");
+    connRef->setRoutingType(Avoid::ConnType_PolyLine);
+    router->processTransaction();
+
     delete connRef;
     }
     printf("\nRemoving shape.\n");

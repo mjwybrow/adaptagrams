@@ -1058,9 +1058,9 @@ void Router::markConnectors(ShapeRef *shape)
 }
 
 
-unsigned int Router::defaultConnType(void) const
+ConnType Router::defaultConnType(void) const
 {
-    if (_orthogonalRouting)
+    if (_orthogonalRouting && !_polyLineRouting)
     {
         return ConnType_Orthogonal;
     }

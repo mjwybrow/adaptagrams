@@ -410,7 +410,8 @@ Polygon Polygon::simplify(void) const
 //     is marked with an 'L' and three 'C's (along with the previous point) 
 //     describe the control points of a Bezier curve.
 //
-Polygon Polygon::curvedPolyline(const double curve_amount) const
+Polygon Polygon::curvedPolyline(const double curve_amount,
+        const bool closed) const
 {
     Polygon simplified = this->simplify();
 
@@ -427,29 +428,47 @@ Polygon Polygon::curvedPolyline(const double curve_amount) const
 
     // Build the curved polyline:
     curved._id = _id;
-    curved.ps.push_back(ps[0]);
-    curved.ts.push_back('M');
-   
     double last_x = 0;
     double last_y = 0;
-    for (size_t j = 1; j < simplified.size(); ++j)
+    if (closed)
     {
-        double x1 = simplified.ps[j - 1].x;
-        double y1 = simplified.ps[j - 1].y;
-        double x2 = simplified.ps[j].x;
-        double y2 = simplified.ps[j].y;
+        double x1 = simplified.ps[0].x;
+        double y1 = simplified.ps[0].y;
+        double x2 = simplified.ps[1].x;
+        double y2 = simplified.ps[1].y;
+        shorten_line(x1, y1, x2, y2, SHORTEN_START, curve_amount);
+        curved.ps.push_back(Point(x1, y1));
+        curved.ts.push_back('M');
+    }
+    else
+    {
+        curved.ps.push_back(ps[0]);
+        curved.ts.push_back('M');
+    }
+   
+    size_t simpSize = simplified.size();
+    size_t finish = (closed) ? simpSize + 2 : simpSize;
+    for (size_t j = 1; j < finish; ++j)
+    {
+        double x1 = simplified.ps[(simpSize + j - 1) % simpSize].x;
+        double y1 = simplified.ps[(simpSize + j - 1) % simpSize].y;
+        double x2 = simplified.ps[j % simpSize].x;
+        double y2 = simplified.ps[j % simpSize].y;
 
         double old_x = x1;
         double old_y = y1;
         
         unsigned int mode = SHORTEN_BOTH;
-        if (j == 1)
+        if (!closed)
         {
-            mode = SHORTEN_END;
-        }
-        else if (j == (size() - 1))
-        {
-            mode = SHORTEN_START;
+            if (j == 1)
+            {
+                mode = SHORTEN_END;
+            }
+            else if (j == (size() - 1))
+            {
+                mode = SHORTEN_START;
+            }
         }
         shorten_line(x1, y1, x2, y2, mode, curve_amount);
 
@@ -459,6 +478,13 @@ Polygon Polygon::curvedPolyline(const double curve_amount) const
             curved.ps.push_back(Point(mid(last_x, old_x), mid(last_y, old_y)));
             curved.ps.push_back(Point(mid(x1, old_x), mid(y1, old_y)));
             curved.ps.push_back(Point(x1, y1));
+        }
+        if (closed && (j == (finish - 1)))
+        {
+            // Close the path.
+            curved.ts.push_back('Z');
+            curved.ps.push_back(Point(x1, y1));
+            break;
         }
         curved.ts.push_back('L');
         curved.ps.push_back(Point(x2, y2));

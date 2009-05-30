@@ -211,14 +211,17 @@ class Polygon : public PolygonInterface
         //! run within this buffer space.
         //!
         //! @param  curve_amount  Describes the distance along the end of each 
-        //!         line segment to turn into a curve.
+        //!                       line segment to turn into a curve.
+        //! @param  closed        Describes whether the Polygon should be 
+        //!                       treated as closed.  Defaults to false.
         //! @return A new polyline (polygon) representing the curved path.
         //!         Its points represent endpoints of line segments and 
         //!         Bezier spline control points.  The Polygon::ts vector for
         //!         this returned polygon is populated with a character for 
         //!         each point describing its type.
         //! @sa     ts
-        Polygon curvedPolyline(const double curve_amount) const;
+        Polygon curvedPolyline(const double curve_amount, 
+                const bool closed = false) const;
         //! @brief  Translates the polygon position by a relative amount.
         //!
         //! @param[in]  xDist  Distance to move polygon in the x dimension.
@@ -240,6 +243,7 @@ class Polygon : public PolygonInterface
         //!  -  'C': A curveto operation, three consecutive 'C' points 
         //!     (along with the previous point) describe the control points 
         //!     of a Bezier curve.
+        //!  -  'Z': Closes the path (used for cluster boundaries).
         //!
         //! @note   This vector will currently only be populated for polygons 
         //!         returned by curvedPolyline().  

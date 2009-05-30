@@ -32,16 +32,29 @@
 #include <list>
 #include <vector>
 
-#include "libavoid/router.h"
+#include "libavoid/vertices.h"
 #include "libavoid/geometry.h"
 #include "libavoid/shape.h"
 
 
 namespace Avoid {
 
+class Router;
+class ConnRef;
+typedef std::list<ConnRef *> ConnRefList;
 
-static const unsigned int ConnType_PolyLine   = 1;
-static const unsigned int ConnType_Orthogonal = 2;
+
+//! @brief  Describes the type of routing that is performed for each 
+//!         connector.
+enum ConnType {
+    //! @brief  The connector path will be a shortest-path poly-line that
+    //!         routes around obstacles.
+    ConnType_PolyLine   = 1,
+    //! @brief  The connector path will be a shortest-path orthogonal 
+    //!         poly-line (only vertical and horizontal line segments) that
+    //!         routes around obstacles.
+    ConnType_Orthogonal = 2
+};
 
 static const double ATTACH_POS_TOP = 0;
 static const double ATTACH_POS_CENTER = 0.5;
@@ -205,6 +218,21 @@ class ConnRef
         //! @param[in]  ptr  A generic pointer that will be passed to the 
         //!                  callback function.
         void setCallback(void (*cb)(void *), void *ptr);
+        //! @brief   Returns the type of routing performed for this connector.
+        //! @return  The type of routing performed.
+        //!
+        const ConnType routingType(void) const;
+        //! @brief       Sets the type of routing to be performed for this 
+        //!              connector.
+        //! 
+        //! If a call to this method changes the current type of routing 
+        //! being used for the connector, then it will get rerouted during
+        //! the next processTransaction() call, or immediately if 
+        //! transactions are not being used.
+        //!
+        //! @param type  The type of routing to be performed.
+        //!
+        void setRoutingType(ConnType type);
 
        
 
@@ -216,8 +244,7 @@ class ConnRef
         // @returns The destination endpoint vertex.
         VertInf *dst(void);
         
-        const unsigned int type(void) const;
-        void setType(unsigned int type);
+
         void set_route(const PolyLine& route);
         void freeRoute(void);
         void calcRouteDist(void);
@@ -250,7 +277,7 @@ class ConnRef
         void common_updateEndPoint(const unsigned int type, const ConnEnd& connEnd);
         Router *_router;
         unsigned int _id;
-        unsigned int _type;
+        ConnType _type;
         unsigned int _srcId, _dstId;
         bool _orthogonal;
         bool _needs_reroute_flag;
@@ -304,7 +331,7 @@ class PtOrder
         PointRepList connList;
 };
 
-typedef std::map<VertID,PtOrder> PtOrderMap;
+typedef std::map<Avoid::Point,PtOrder> PtOrderMap;
 typedef std::set<Avoid::Point> PointSet;
 
 
