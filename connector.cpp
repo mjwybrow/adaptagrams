@@ -40,27 +40,124 @@ namespace Avoid {
     
 ConnEnd::ConnEnd(const Point& point) 
     : _point(point),
-      _directions(ConnDirAll)
+      _directions(ConnDirAll),
+      _shapeRef(NULL)
 {
 }
 
 
 ConnEnd::ConnEnd(const Point& point, const ConnDirFlags visDirs) 
     : _point(point),
-      _directions(visDirs)
+      _directions(visDirs),
+      _shapeRef(NULL)
 {
 }
 
-
-const Point& ConnEnd::point(void) const
+ConnEnd::ConnEnd(ShapeRef *shapeRef, const double x_pos, const double y_pos,
+        const double insideOffset, const ConnDirFlags visDirs) 
+    : _directions(visDirs),
+      _shapeRef(shapeRef),
+      _xPosition(x_pos),
+      _yPosition(y_pos),
+      _insideOffset(insideOffset)
 {
-    return _point;
+}
+
+const Point ConnEnd::point(void) const
+{
+    if (_shapeRef)
+    {
+        const Polygon& poly = _shapeRef->polygon();
+
+        double x_min = DBL_MAX;
+        double x_max = -DBL_MAX;
+        double y_min = DBL_MAX;
+        double y_max = -DBL_MAX;
+        for (size_t i = 0; i < poly.size(); ++i)
+        {
+            x_min = std::min(x_min, poly.ps[i].x);
+            x_max = std::max(x_max, poly.ps[i].x);
+            y_min = std::min(y_min, poly.ps[i].y);
+            y_max = std::max(y_max, poly.ps[i].y);
+        }
+
+        Point point;
+
+        // We want to place connection points on the edges of shapes, 
+        // or possibly slightly inside them (if _insideOfset is set).
+
+        point.vn = kUnassignedVertexNumber;
+        if (_xPosition == ATTACH_POS_LEFT)
+        {
+            point.x = x_min + _insideOffset;
+            point.vn = 6;
+        }
+        else if (_xPosition == ATTACH_POS_RIGHT)
+        {
+            point.x = x_max - _insideOffset;
+            point.vn = 4;
+        }
+        else
+        {
+            point.x = x_min + (_xPosition * (x_max - x_min));
+        }
+
+        if (_yPosition == ATTACH_POS_TOP)
+        {
+            point.y = y_max - _insideOffset;
+            point.vn = 5;
+        }
+        else if (_yPosition == ATTACH_POS_BOTTOM)
+        {
+            point.y = y_min + _insideOffset;
+            point.vn = 7;
+        }
+        else
+        {
+            point.y = y_min + (_yPosition * (y_max - y_min));
+            point.vn = kUnassignedVertexNumber;
+        }
+
+        return point;
+    }
+    else
+    {
+        return _point;
+    }
 }
 
 
-const ConnDirFlags& ConnEnd::directions(void) const
+const ConnDirFlags ConnEnd::directions(void) const
 {
-    return _directions;
+    if (_shapeRef)
+    {
+        ConnDirFlags visDir = _directions;
+        if (_directions == ConnDirNone)
+        {
+            // None is set, use the defaults:
+            if (_xPosition == ATTACH_POS_LEFT)
+            {
+                visDir = ConnDirLeft;
+            }
+            else if (_xPosition == ATTACH_POS_RIGHT)
+            {
+                visDir = ConnDirRight;
+            }
+            if (_yPosition == ATTACH_POS_TOP)
+            {
+                visDir = ConnDirDown;
+            }
+            else if (_yPosition == ATTACH_POS_BOTTOM)
+            {
+                visDir = ConnDirUp;
+            }
+        }
+        return visDir;
+    }
+    else
+    {
+        return _directions;
+    }
 }
 
 
@@ -225,34 +322,26 @@ void ConnRef::common_updateEndPoint(const unsigned int type, const ConnEnd& conn
 
 void ConnRef::setEndpoints(const ConnEnd& srcPoint, const ConnEnd& dstPoint)
 {
-    updateEndPoint(VertID::src, srcPoint);
-    updateEndPoint(VertID::tar, dstPoint);
-
-    _router->modifyConnector(this);
+    _router->modifyConnector(this, VertID::src, srcPoint);
+    _router->modifyConnector(this, VertID::tar, dstPoint);
 }
 
 
 void ConnRef::setEndpoint(const unsigned int type, const ConnEnd& connEnd)
 {
-    updateEndPoint(type, connEnd);
-    
-    _router->modifyConnector(this);
+    _router->modifyConnector(this, type, connEnd);
 }
 
 
 void ConnRef::setSourceEndpoint(const ConnEnd& srcPoint)
 {
-    updateEndPoint(VertID::src, srcPoint);
-    
-    _router->modifyConnector(this);
+    _router->modifyConnector(this, VertID::src, srcPoint);
 }
 
 
 void ConnRef::setDestEndpoint(const ConnEnd& dstPoint)
 {
-    updateEndPoint(VertID::tar, dstPoint);
-    
-    _router->modifyConnector(this);
+    _router->modifyConnector(this, VertID::tar, dstPoint);
 }
 
 
@@ -273,94 +362,6 @@ void ConnRef::updateEndPoint(const unsigned int type, const ConnEnd& connEnd)
             vertexVisibility(_dstVert, _srcVert, knownNew, genContains);
         }
     }
-}
-
-
-void ConnRef::setEndpoint(const unsigned int type, ShapeRef *shapeRef, 
-        const double x_position, const double y_position)
-{
-    assert(shapeRef);
-    const Polygon& poly = shapeRef->polygon();
-
-    double x_min = DBL_MAX;
-    double x_max = -DBL_MAX;
-    double y_min = DBL_MAX;
-    double y_max = -DBL_MAX;
-    for (size_t i = 0; i < poly.size(); ++i)
-    {
-        x_min = std::min(x_min, poly.ps[i].x);
-        x_max = std::max(x_max, poly.ps[i].x);
-        y_min = std::min(y_min, poly.ps[i].y);
-        y_max = std::max(y_max, poly.ps[i].y);
-    }
-
-    Point point;
-
-    // We want to place connection points on the edges of shapes, inside them.
-    double insideOffset = (_type == ConnType_Orthogonal) ? 10 : 0;
-
-    point.id = _id;
-    point.vn = kUnassignedVertexNumber;
-    if (x_position == ATTACH_POS_LEFT)
-    {
-        point.x = x_min + insideOffset;
-        point.vn = 6;
-    }
-    else if (x_position == ATTACH_POS_RIGHT)
-    {
-        point.x = x_max - insideOffset;
-        point.vn = 4;
-    }
-    else
-    {
-        point.x = x_min + (x_position * (x_max - x_min));
-    }
-
-    if (y_position == ATTACH_POS_TOP)
-    {
-        point.y = y_max - insideOffset;
-        point.vn = 5;
-    }
-    else if (y_position == ATTACH_POS_BOTTOM)
-    {
-        point.y = y_min + insideOffset;
-        point.vn = 7;
-    }
-    else
-    {
-        point.y = y_min + (y_position * (y_max - y_min));
-        point.vn = kUnassignedVertexNumber;
-    }
-
-    // If the vertex already exists, we are just updating its 
-    // position so use the existing visibility directions.
-    ConnDirFlags visDir = ConnDirAll;
-    if (_srcVert && (type == VertID::src))
-    {
-        visDir = _srcVert->visDirections;
-    }
-    else if (_dstVert && (type == VertID::tar))
-    {
-        visDir = _dstVert->visDirections;
-    }
-    ConnEnd connEnd(point, visDir);
-
-    common_updateEndPoint(type, connEnd);
-    
-    if (_router->_polyLineRouting)
-    {
-        bool knownNew = true;
-        bool genContains = true;
-        if (type == VertID::src)
-        {
-            vertexVisibility(_srcVert, _dstVert, knownNew, genContains);
-        }
-        else
-        {
-            vertexVisibility(_dstVert, _srcVert, knownNew, genContains);
-        }
-    }
-    _router->modifyConnector(this);
 }
 
 
@@ -390,7 +391,7 @@ bool ConnRef::setEndpoint(const unsigned int type, const VertID& pointID,
     //      assumptions elsewhere in the code.
     edge->setDist(0.001);
 
-    _router->modifyConnector(this);
+    _router->processTransaction();
     return true;
 }
 
@@ -452,17 +453,17 @@ const PolyLine& ConnRef::route(void) const
 }
 
 
+
 void ConnRef::set_route(const PolyLine& route)
 {
-    if (&_route == &route)
+    if (&_display_route == &route)
     {
         db_printf("Error:\tTrying to update libavoid route with itself.\n");
         return;
     }
+    _display_route.ps = route.ps;
 
-    _route.ps = route.ps;
-
-    _display_route.clear();
+    //_display_route.clear();
 }
 
 
@@ -470,6 +471,7 @@ Polygon& ConnRef::displayRoute(void)
 {
     if (_display_route.empty())
     {
+        // No displayRoute is set.  Simplify the current route to get it.
         _display_route = _route.simplify();
     }
     return _display_route;
@@ -908,13 +910,16 @@ bool ConnRef::doesHateCrossings(void)
 
 PtOrder::~PtOrder()
 {
-    // Free the PointRep list.
-    PointRepList::iterator curr = connList.begin();
-    while (curr != connList.end())
+    // Free the PointRep lists.
+    for (int dim = 0; dim < 2; ++dim)
     {
-        PointRep *doomed = *curr;
-        curr = connList.erase(curr);
-        delete doomed;
+        PointRepList::iterator curr = connList[dim].begin();
+        while (curr != connList[dim].end())
+        {
+            PointRep *doomed = *curr;
+            curr = connList[dim].erase(curr);
+            delete doomed;
+        }
     }
 }
 
@@ -939,16 +944,17 @@ bool PointRep::follow_inner(PointRep *target)
 }
 
 
-bool PtOrder::addPoints(Point *innerArg, Point *outerArg, bool swapped)
+bool PtOrder::addPoints(const int dim, Point *innerArg, Point *outerArg, 
+        bool swapped)
 {
     Point *inner = (swapped) ? outerArg : innerArg;
     Point *outer = (swapped) ? innerArg : outerArg;
-    assert( inner != outer);
+    assert(inner != outer);
 
     PointRep *innerPtr = NULL;
     PointRep *outerPtr = NULL;
-    for (PointRepList::iterator curr = connList.begin(); 
-            curr != connList.end(); ++curr)
+    for (PointRepList::iterator curr = connList[dim].begin(); 
+            curr != connList[dim].end(); ++curr)
     {
         if ((*curr)->point == inner)
         {
@@ -963,13 +969,13 @@ bool PtOrder::addPoints(Point *innerArg, Point *outerArg, bool swapped)
     if (innerPtr == NULL)
     {
         innerPtr = new PointRep(inner);
-        connList.push_back(innerPtr);
+        connList[dim].push_back(innerPtr);
     }
     
     if (outerPtr == NULL)
     {
         outerPtr = new PointRep(outer);
-        connList.push_back(outerPtr);
+        connList[dim].push_back(outerPtr);
     }
     assert(innerPtr->inner_set.find(outerPtr) == innerPtr->inner_set.end());
     bool cycle = innerPtr->follow_inner(outerPtr);
@@ -999,9 +1005,9 @@ static bool pointRepLessThan(PointRep *r1, PointRep *r2)
 }
 
 
-void PtOrder::sort(void)
+void PtOrder::sort(const int dim)
 {
-    connList.sort(pointRepLessThan);
+    connList[dim].sort(pointRepLessThan);
 }
 
 
@@ -1387,7 +1393,9 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
                 {
                     startCornerSide = endCornerSide;
                 }
-                    
+               
+#if 0
+                prevTurnDir = 0;
                 if (pointOrders)
                 {
                     // Return the ordering for the shared path.
@@ -1420,7 +1428,126 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
                         prevTurnDir = currTurnDir;
                     }
                 }
+#endif
+                prevTurnDir = 0;
+                if (pointOrders)
+                {
+                    // Return the ordering for the shared path.
+                    assert(c_path.size() > 0 || back_same);
+                    size_t adj_size = (c_path.size() - ((back_same) ? 0 : 1));
+                    for (size_t i = (front_same) ? 0 : 1; i < adj_size; ++i)
+                    {
+                        Avoid::Point& an = *(c_path[i]);
+                        Avoid::Point& bn = *(p_path[i]);
+                        if (an != bn) abort();
+                        int currTurnDir = ((i > 0) && (i < (adj_size - 1))) ?  
+                                vecDir(*c_path[i - 1], an,
+                                       *c_path[i + 1]) : 0;
+                        VertID vID(an.id, true, an.vn);
+                        if ( (currTurnDir == (-1 * prevTurnDir)) &&
+                                (currTurnDir != 0) && (prevTurnDir != 0) )
+                        {
+                            // The connector turns the opposite way around 
+                            // this shape as the previous bend on the path,
+                            // so reverse the order so that the inner path
+                            // become the outer path and vice versa.
+                            reversed = !reversed;
+                        }
 
+                        int prevOrientation = -1;
+                        //int nextOrientation = -1;
+
+                        if ((i > 0) && (*(c_path[i - 1]) == *(p_path[i - 1])))
+                        {
+                            if (c_path[i - 1]->y == c_path[i]->y)
+                            {
+                                prevOrientation = 1;
+                            }
+                            else if (c_path[i - 1]->x == c_path[i]->x)
+                            {
+                                prevOrientation = 0;
+                            }
+                        }
+#if 0
+                        if (((i + 1) < c_path.size()) && 
+                                (c_path[i + 1] == p_path[i + 1]))
+                        {
+                            if (c_path[i + 1].y == c_path[i].y)
+                            {
+                                nextOrientation = 1;
+                            }
+                            else if (c_path[i + 1].x == c_path[i].x)
+                            {
+                                nextOrientation = 0;
+                            }
+                        }
+#endif
+
+                        if (prevOrientation != -1)
+                        {
+                            printf("prevOri %d\n", prevOrientation);
+                            printf("1: %X, %X\n", (int) &(bn), (int) &(an));
+                            bool orderSwapped = (*pointOrders)[an].addPoints(
+                                    prevOrientation, &bn, &an, reversed);
+                            if (orderSwapped)
+                            {
+                                // Reverse the order for later points.
+                                reversed = !reversed;
+                            }
+                            Avoid::Point& ap = *(c_path[i - 1]);
+                            Avoid::Point& bp = *(p_path[i - 1]);
+                            if (ap != bp) abort();
+                            printf("2: %X, %X\n", (int) &bp, (int) &ap);
+                            orderSwapped = (*pointOrders)[ap].addPoints(
+                                    prevOrientation, &bp, &ap, reversed);
+                            if (orderSwapped)
+                            {
+                                abort();
+                            }
+                        }
+                        prevTurnDir = currTurnDir;
+                    }
+                }
+#if 0
+                    int ymod = -1;
+                    if ((id.vn == 1) || (id.vn == 2))
+                    {
+                        // bottom.
+                        ymod = +1;
+                    }
+                    
+                    int xmod = -1;
+                    if ((id.vn == 0) || (id.vn == 1))
+                    {
+                        // right.
+                        xmod = +1;
+                    }
+                    if(id.vn > 3)
+                    {
+                        xmod = ymod = 0;
+                        if (id.vn == 4)
+                        {
+                            // right.
+                            xmod = +1;
+                        }
+                        else if (id.vn == 5)
+                        {
+                            // bottom.
+                            ymod = +1;
+                        }
+                        else if (id.vn == 6)
+                        {
+                            // left.
+                            xmod = -1;
+                        }
+                        else if (id.vn == 7)
+                        {
+                            // top.
+                            ymod = -1;
+                        }
+                    }
+#endif
+ 
                 if (endCornerSide != startCornerSide)
                 {
                     // Mark that the shared path crosses.
@@ -1488,7 +1615,7 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
                         assert((turnDirB != 0) || (turnDirA != 0)); 
                     }
                     VertID vID(b1.id, true, b1.vn);
-                    (*pointOrders)[b1].addPoints(&b1, &a1, reversed);
+                    //(*pointOrders)[b1].addPoints(&b1, &a1, reversed);
                 }
             }
         }

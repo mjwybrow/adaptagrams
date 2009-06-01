@@ -14,6 +14,7 @@ libavoid_a_SOURCES = connector.cpp\
 			visibility.cpp\
 			geomtypes.cpp\
 			orthogonal.cpp\
+			vpsc.cpp\
 			libavoid.h
 
 libavoidincludedir = ${includedir}/libavoid
@@ -30,7 +31,8 @@ libavoidinclude_HEADERS = connector.h \
 			libavoid.h \
 			visibility.h \
 			viscluster.h \
-			orthogonal.h
+			orthogonal.h \
+			vpsc.h
 
 SUBDIRS = tests
 

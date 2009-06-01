@@ -31,7 +31,7 @@ namespace Avoid {
 
 extern void generateStaticOrthogonalVisGraph(Router *router);
 
-extern void centreOrthogonalRoutes(Router *router);
+extern void improveOrthogonalRoutes(Router *router);
 
 
 }

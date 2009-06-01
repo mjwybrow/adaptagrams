@@ -89,16 +89,26 @@ class ConnEnd
         //!                      a shape.
         //!
         ConnEnd(const Point& point, const ConnDirFlags visDirs);
-        
+
+        ConnEnd(ShapeRef *shapeRef, const double x_pos, const double y_pos,
+                const double insideOffset = 0.0,
+                const ConnDirFlags visDirs = ConnDirNone);
+
         //! @brief Returns the position of this connector endpoint
         //!
         //! @return The position of this connector endpoint.
-        const Point& point(void) const;
+        const Point point(void) const;
 
-        const ConnDirFlags& directions(void) const;
+        const ConnDirFlags directions(void) const;
     private:
         Point _point;
         ConnDirFlags _directions;
+        
+        // For referencing ConnEnds
+        ShapeRef *_shapeRef;
+        double _xPosition;
+        double _yPosition;
+        double _insideOffset;
 };
 
 
@@ -259,12 +269,9 @@ class ConnRef
         void makePathInvalid(void);
         void setHateCrossings(bool value);
         bool doesHateCrossings(void);
-        void setEndpoint(const unsigned int type, const ConnEnd& srcPoint);
+        void setEndpoint(const unsigned int type, const ConnEnd& connEnd);
         bool setEndpoint(const unsigned int type, const VertID& pointID, 
                 Point *pointSuggestion = NULL);
-        void setEndpoint(const unsigned int type, ShapeRef *shapeRef, 
-                const double x_position = ATTACH_POS_CENTER, 
-                const double y_position = ATTACH_POS_CENTER);
     
     private:
         friend class Router;
@@ -325,10 +332,12 @@ class PtOrder
         {
         }
         ~PtOrder();
-        bool addPoints(Point *innerArg, Point *outerArg, bool swapped);
-        void sort(void);
+        bool addPoints(const int dim, Point *innerArg, Point *outerArg, 
+                bool swapped);
+        void sort(const int dim);
 
-        PointRepList connList;
+        // One for each dimension.
+        PointRepList connList[2];
 };
 
 typedef std::map<Avoid::Point,PtOrder> PtOrderMap;
