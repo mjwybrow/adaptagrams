@@ -83,6 +83,20 @@ bool Point::operator<(const Point& rhs) const
 }
 
 
+double& Point::operator[](const unsigned int dimension)
+{
+    assert((dimension == 0) || (dimension == 1));
+    return ((dimension == 0) ? x : y);
+}
+
+
+const double& Point::operator[](const unsigned int dimension) const
+{
+    assert((dimension == 0) || (dimension == 1));
+    return ((dimension == 0) ? x : y);
+}
+
+
 ReferencingPolygon::ReferencingPolygon(const Polygon& poly, const Router *router)
     : PolygonInterface(),
       _id(poly._id),

@@ -247,6 +247,8 @@ class Router {
         friend class ConnRef;
 
         void modifyConnector(ConnRef *conn);
+        void modifyConnector(ConnRef *conn, unsigned int type,
+                const ConnEnd &connEnd);
         void newBlockingShape(const Polygon& poly, int pid);
         void checkAllBlockedEdges(int pid);
         void checkAllMissingEdges(void);

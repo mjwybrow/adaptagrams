@@ -43,6 +43,8 @@ enum ActionType {
     ConnChange
 };
 
+typedef std::list<std::pair<unsigned int, ConnEnd> > ConnUpdateList;
+
 class ActionInfo {
     public:
         ActionInfo(ActionType t, ShapeRef *s, const Polygon& p, bool fM)
@@ -80,6 +82,7 @@ class ActionInfo {
         ConnRef *conn;
         Polygon newPoly;
         bool firstMove;
+        ConnUpdateList conns;
 };
 
 
@@ -156,6 +159,30 @@ Router::~Router()
     assert(shapeRefs.size() == 0);
     assert(visGraph.size() == 0);
     assert(invisGraph.size() == 0);
+}
+
+
+void Router::modifyConnector(ConnRef *conn, const unsigned int type,
+        const ConnEnd& connEnd)
+{
+    ActionInfo modInfo(ConnChange, conn);
+    
+    ActionInfoList::iterator found = 
+            find(actionList.begin(), actionList.end(), modInfo);
+    if (found == actionList.end())
+    {
+        modInfo.conns.push_back(std::make_pair(type, connEnd));
+        actionList.push_back(modInfo);
+    }
+    else
+    {
+        found->conns.push_back(std::make_pair(type, connEnd));
+    }
+
+    if (!_consolidateActions)
+    {
+        processTransaction();
+    }
 }
 
 
@@ -474,6 +501,21 @@ void Router::processTransaction(void)
             }
         }
     }
+
+    // Update connector endpoints.
+    for (curr = actionList.begin(); curr != finish; ++curr)
+    {
+        ActionInfo& actInf = *curr;
+        if (actInf.type != ConnChange)
+        {
+            continue;
+        }
+        for (ConnUpdateList::iterator conn = actInf.conns.begin();
+                conn != actInf.conns.end(); ++conn)
+        {
+            actInf.conn->updateEndPoint(conn->first, conn->second);
+        }
+    }
     // Clear the actionList.
     actionList.clear();
     
@@ -640,11 +682,10 @@ void Router::callbackAllInvalidConnectors(void)
         }
     }
 
-    centreOrthogonalRoutes(this);
+    improveOrthogonalRoutes(this);
 
     // Alert connectors that they need redrawing.
-    for (std::set<ConnRef *>::const_iterator i = reroutedConns.begin(); 
-            i != reroutedConns.end(); ++i) 
+    for (ConnRefList::const_iterator i = connRefs.begin(); i != fin; ++i) 
     {
         (*i)->_needs_repaint = true;
         (*i)->performCallback();

@@ -77,6 +77,13 @@ class Point
         //!
         bool operator<(const Point& rhs) const;
 
+        //! @brief  Returns the x or y value of the point, given the dimension.
+        //!
+        //! @param[in]  dimension  The dimension:  0 for x, 1 for y.
+        //! @return                The component of the point in that dimension.
+        double& operator[](const unsigned int dimension);
+        const double& operator[](const unsigned int dimension) const;
+        
         //! The x position.
         double x;
         //! The y position.
