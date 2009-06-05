@@ -56,7 +56,7 @@ void Timer::Reset(void)
 }
 
 
-void Timer::Register(const int t, const bool start)
+void Timer::Register(const TimerIndex t, const bool start)
 {
     assert(t != tmNon);
 
@@ -140,11 +140,11 @@ void Timer::Stop(void)
 }
 
 
-void Timer::PrintAll(void)
+void Timer::PrintAll(FILE *fp)
 {
-    for (int i = 0; i < tmCount; i++)
+    for (unsigned int i = 0; i < tmCount; i++)
     {
-        Print(i);
+        Print((TimerIndex) i, fp);
     }
 }
 
@@ -152,14 +152,14 @@ void Timer::PrintAll(void)
 #define toMsec(tot) ((bigclock_t) ((tot) / (((double) CLOCKS_PER_SEC) / 1000)))
 #define toAvg(tot, cnt) ((((cnt) > 0) ? ((long double) (tot)) / (cnt) : 0))
 
-void Timer::Print(const int t)
+void Timer::Print(const TimerIndex t, FILE *fp)
 {
    bigclock_t avg = toMsec(toAvg(cTotal[t], cTally[t]));
    bigclock_t pind = toMsec(toAvg(cPath[t], cPathTally[t]));
    bigclock_t pavg = toMsec(toAvg(cPath[t], cTally[t]));
    double max = toMsec(cMax[t]); 
    double pmax = toMsec(cPathMax[t]);
-   db_printf("\t%lld %d %lld %.0f %lld %d %lld %.0f %lld\n",
+   fprintf(fp, "\t%lld %d %lld %.0f %lld %d %lld %.0f %lld\n",
            cTotal[t], cTally[t], avg, max,
            cPath[t], cPathTally[t], pavg, pmax, pind);
 }

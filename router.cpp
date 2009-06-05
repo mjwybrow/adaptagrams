@@ -352,8 +352,11 @@ void Router::regenerateStaticBuiltGraph(void)
         {
             destroyOrthogonalVisGraph();
 
+            timers.Register(tmOrthogGraph, timerStart);
             // Regenerate a new visibility graph.
             generateStaticOrthogonalVisGraph(this);
+            
+            timers.Stop();
         }
         _staticGraphInvalidated = false;
     }
@@ -672,6 +675,11 @@ void Router::callbackAllInvalidConnectors(void)
 {
     std::set<ConnRef *> reroutedConns;
     ConnRefList::const_iterator fin = connRefs.end();
+    
+    // Updating the orthogonal visibility graph if necessary. 
+    regenerateStaticBuiltGraph();
+
+    timers.Register(tmOrthogRoute, timerStart);
     for (ConnRefList::const_iterator i = connRefs.begin(); i != fin; ++i) 
     {
         (*i)->_needs_repaint = false;
@@ -681,6 +689,7 @@ void Router::callbackAllInvalidConnectors(void)
             reroutedConns.insert(*i);
         }
     }
+    timers.Stop();
 
     improveOrthogonalRoutes(this);
 
@@ -1121,6 +1130,7 @@ void Router::printInfo(void)
     int st_endpoints = 0;
     int st_valid_shape_visedges = 0;
     int st_valid_endpt_visedges = 0;
+    int st_orthogonal_visedges = 0;
     int st_invalid_visedges = 0;
     VertInf *finish = vertices.end();
     for (VertInf *t = vertices.connsBegin(); t != finish; t = t->lstNext)
@@ -1161,9 +1171,15 @@ void Router::printInfo(void)
     {
         st_invalid_visedges++;
     }
+    for (EdgeInf *t = visOrthogGraph.begin(); t != visOrthogGraph.end();
+            t = t->lstNext)
+    {
+        st_orthogonal_visedges++;
+    }
     fprintf(fp, "Number of shapes: %d\n", st_shapes);
     fprintf(fp, "Number of vertices: %d (%d real, %d endpoints)\n",
             st_vertices + st_endpoints, st_vertices, st_endpoints);
+    fprintf(fp, "Number of orhtog_vis_edges: %d\n", st_orthogonal_visedges);
     fprintf(fp, "Number of vis_edges: %d (%d valid [%d normal, %d endpt], "
             "%d invalid)\n", st_valid_shape_visedges + st_invalid_visedges +
             st_valid_endpt_visedges, st_valid_shape_visedges +
@@ -1173,11 +1189,15 @@ void Router::printInfo(void)
     fprintf(fp, "checkVisEdge tally: %d\n", st_checked_edges);
     fprintf(fp, "----------------------\n");
 
-    fprintf(fp, "ADDS:  "); timers.Print(tmAdd);
-    fprintf(fp, "DELS:  "); timers.Print(tmDel);
-    fprintf(fp, "MOVS:  "); timers.Print(tmMov);
-    fprintf(fp, "***S:  "); timers.Print(tmSev);
-    fprintf(fp, "PTHS:  "); timers.Print(tmPth);
+    fprintf(fp, "ADDS:  "); timers.Print(tmAdd, fp);
+    fprintf(fp, "DELS:  "); timers.Print(tmDel, fp);
+    fprintf(fp, "MOVS:  "); timers.Print(tmMov, fp);
+    fprintf(fp, "***S:  "); timers.Print(tmSev, fp);
+    fprintf(fp, "PTHS:  "); timers.Print(tmPth, fp);
+    fprintf(fp, "OrthogGraph:  "); timers.Print(tmOrthogGraph, fp);
+    fprintf(fp, "OrthogRoute:  "); timers.Print(tmOrthogRoute, fp);
+    fprintf(fp, "OrthogCentre:  "); timers.Print(tmOrthogCentre, fp);
+    fprintf(fp, "OrthogNudge:  "); timers.Print(tmOrthogNudge, fp);
     fprintf(fp, "\n");
 }
 

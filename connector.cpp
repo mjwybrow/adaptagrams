@@ -151,6 +151,11 @@ const ConnDirFlags ConnEnd::directions(void) const
             {
                 visDir = ConnDirUp;
             }
+
+            if (visDir == ConnDirNone)
+            {
+                visDir = ConnDirAll;
+            }
         }
         return visDir;
     }
@@ -684,9 +689,6 @@ bool ConnRef::generatePath(void)
         return false;
     }
     
-    // Updating the orthogonal visibility graph if necessary. 
-    _router->regenerateStaticBuiltGraph();
-
     //assert(_srcVert->point != _dstVert->point);
 
     _false_path = false;
@@ -944,6 +946,23 @@ bool PointRep::follow_inner(PointRep *target)
 }
 
 
+int PtOrder::positionFor(const Point& pt, const size_t dim) const
+{
+    int position = 0;
+    for (PointRepList::const_iterator curr = connList[dim].begin(); 
+            curr != connList[dim].end(); ++curr)
+    {
+        if (*((*curr)->point) == pt)
+        {
+            return position;
+        }
+        ++position;
+    }
+    // No found.
+    return -1;
+}
+
+
 bool PtOrder::addPoints(const int dim, Point *innerArg, Point *outerArg, 
         bool swapped)
 {
@@ -977,7 +996,7 @@ bool PtOrder::addPoints(const int dim, Point *innerArg, Point *outerArg,
         outerPtr = new PointRep(outer);
         connList[dim].push_back(outerPtr);
     }
-    assert(innerPtr->inner_set.find(outerPtr) == innerPtr->inner_set.end());
+    // TODO assert(innerPtr->inner_set.find(outerPtr) == innerPtr->inner_set.end());
     bool cycle = innerPtr->follow_inner(outerPtr);
     if (cycle)
     {
@@ -1187,6 +1206,27 @@ void splitBranchingSegments(Avoid::Polygon& poly, bool polyIsConn,
 }
 
 
+static int segDir(const Point& p1, const Point& p2)
+{
+    int result = 1;
+    if (p1.x == p2.x)
+    {
+        if (p2.y < p1.y)
+        {
+            result = -1;
+        }
+    }
+    else if (p1.y == p2.y)
+    {
+        if (p2.x < p1.x)
+        {
+            result = -1;
+        }
+    }
+    return result;
+}
+
+
 // Works out if the segment conn[cIndex-1]--conn[cIndex] really crosses poly.
 // This does not not count non-crossing shared paths as crossings.
 // poly can be either a connector (polyIsConn = true) or a cluster
@@ -1371,7 +1411,8 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
                     // then order the shared path based on this.
                     prevTurnDir = vecDir(*c_path[0], *c_path[1], *c_path[2]);
                     startCornerSide = Avoid::cornerSide(*c_path[0], *c_path[1], 
-                            *c_path[2], *p_path[0]);
+                            *c_path[2], *p_path[0]) 
+                        * segDir(*c_path[1], *c_path[2]);
                     reversed = (startCornerSide != -prevTurnDir);
                 }
                 if (!back_same)
@@ -1382,7 +1423,8 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
                             *c_path[size - 2], *c_path[size - 1]);
                     endCornerSide = Avoid::cornerSide(*c_path[size - 3], 
                             *c_path[size - 2], *c_path[size - 1], 
-                            *p_path[size - 1]);
+                            *p_path[size - 1])
+                        * segDir(*c_path[size - 3], *c_path[size - 2]);
                     reversed = (endCornerSide != -prevTurnDir);
                 }
                 else
@@ -1393,7 +1435,7 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
                 {
                     startCornerSide = endCornerSide;
                 }
-               
+                
 #if 0
                 prevTurnDir = 0;
                 if (pointOrders)
@@ -1432,6 +1474,20 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
                 prevTurnDir = 0;
                 if (pointOrders)
                 {
+                    reversed = false;
+                    size_t startPt = (front_same) ? 0 : 1;
+                    if (!(c_path.size() > (startPt + 1)))
+                    {
+                        // Orthogonal should always have one segment.
+                        abort();
+                    }
+                    if (startCornerSide > 0)
+                    {
+                        reversed = !reversed;
+                    }
+
+
+                    int prevDir = 0;
                     // Return the ordering for the shared path.
                     assert(c_path.size() > 0 || back_same);
                     size_t adj_size = (c_path.size() - ((back_same) ? 0 : 1));
@@ -1440,72 +1496,44 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
                         Avoid::Point& an = *(c_path[i]);
                         Avoid::Point& bn = *(p_path[i]);
                         if (an != bn) abort();
-                        int currTurnDir = ((i > 0) && (i < (adj_size - 1))) ?  
-                                vecDir(*c_path[i - 1], an,
-                                       *c_path[i + 1]) : 0;
-                        VertID vID(an.id, true, an.vn);
-                        if ( (currTurnDir == (-1 * prevTurnDir)) &&
-                                (currTurnDir != 0) && (prevTurnDir != 0) )
-                        {
-                            // The connector turns the opposite way around 
-                            // this shape as the previous bend on the path,
-                            // so reverse the order so that the inner path
-                            // become the outer path and vice versa.
-                            reversed = !reversed;
-                        }
 
-                        int prevOrientation = -1;
-                        //int nextOrientation = -1;
 
+                        int thisDir = prevDir;
                         if ((i > 0) && (*(c_path[i - 1]) == *(p_path[i - 1])))
                         {
-                            if (c_path[i - 1]->y == c_path[i]->y)
-                            {
-                                prevOrientation = 1;
-                            }
-                            else if (c_path[i - 1]->x == c_path[i]->x)
-                            {
-                                prevOrientation = 0;
-                            }
+                            thisDir = segDir(*c_path[i - 1], *c_path[i]);
                         }
-#if 0
-                        if (((i + 1) < c_path.size()) && 
-                                (c_path[i + 1] == p_path[i + 1]))
-                        {
-                            if (c_path[i + 1].y == c_path[i].y)
-                            {
-                                nextOrientation = 1;
-                            }
-                            else if (c_path[i + 1].x == c_path[i].x)
-                            {
-                                nextOrientation = 0;
-                            }
-                        }
-#endif
 
-                        if (prevOrientation != -1)
+                        if (thisDir != prevDir)
                         {
-                            printf("prevOri %d\n", prevOrientation);
-                            printf("1: %X, %X\n", (int) &(bn), (int) &(an));
+                            reversed = !reversed;
+                        }
+                        prevDir = thisDir;
+
+                        if (i > startPt)
+                        {
+                            Avoid::Point& ap = *(c_path[i - 1]);
+                            Avoid::Point& bp = *(p_path[i - 1]);
+                            int orientation = (ap.x == an.x) ? 1 : 0;
+                            //printf("prevOri %d\n", prevOrientation);
+                            //printf("1: %X, %X\n", (int) &(bn), (int) &(an));
                             bool orderSwapped = (*pointOrders)[an].addPoints(
-                                    prevOrientation, &bn, &an, reversed);
+                                    orientation, &bn, &an, reversed);
                             if (orderSwapped)
                             {
                                 // Reverse the order for later points.
                                 reversed = !reversed;
                             }
-                            Avoid::Point& ap = *(c_path[i - 1]);
-                            Avoid::Point& bp = *(p_path[i - 1]);
                             if (ap != bp) abort();
-                            printf("2: %X, %X\n", (int) &bp, (int) &ap);
+                            //printf("2: %X, %X\n", (int) &bp, (int) &ap);
                             orderSwapped = (*pointOrders)[ap].addPoints(
-                                    prevOrientation, &bp, &ap, reversed);
+                                    orientation, &bp, &ap, reversed);
+                            // TODO assert(!orderSwapped)
                             if (orderSwapped)
                             {
                                 abort();
                             }
                         }
-                        prevTurnDir = currTurnDir;
                     }
                 }
 #if 0
@@ -1612,7 +1640,7 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
                         { 
                             reversed = true; 
                         } 
-                        assert((turnDirB != 0) || (turnDirA != 0)); 
+                        // TODO assert((turnDirB != 0) || (turnDirA != 0)); 
                     }
                     VertID vID(b1.id, true, b1.vn);
                     //(*pointOrders)[b1].addPoints(&b1, &a1, reversed);
