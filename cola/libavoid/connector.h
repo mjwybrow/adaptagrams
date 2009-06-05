@@ -335,6 +335,7 @@ class PtOrder
         bool addPoints(const int dim, Point *innerArg, Point *outerArg, 
                 bool swapped);
         void sort(const int dim);
+        int positionFor(const Point& pt, const size_t dim) const;
 
         // One for each dimension.
         PointRepList connList[2];

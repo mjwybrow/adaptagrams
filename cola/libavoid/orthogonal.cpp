@@ -62,10 +62,26 @@ class ShiftSegment
               maxSpaceLimit(CHANNEL_MAX)
         {
         }
+        Point& lowPoint(void)
+        {
+            return connRef->displayRoute().ps[indexLow];
+        }
+        Point& highPoint(void)
+        {
+            return connRef->displayRoute().ps[indexHigh];
+        }
+        const Point& lowPoint(void) const
+        {
+            return connRef->displayRoute().ps[indexLow];
+        }
+        const Point& highPoint(void) const 
+        {
+            return connRef->displayRoute().ps[indexHigh];
+        }
         bool operator<(const ShiftSegment& rhs) const
         {
-            Point& lowPt = connRef->displayRoute().ps[indexLow];
-            Point& rhsLowPt = rhs.connRef->displayRoute().ps[rhs.indexLow];
+            const Point& lowPt = lowPoint();
+            const Point& rhsLowPt = rhs.lowPoint();
             
             if (lowPt[dimension] != rhsLowPt[dimension])
             {
@@ -76,10 +92,10 @@ class ShiftSegment
         bool overlapsWith(const ShiftSegment& rhs, const size_t dim) const
         {
             size_t altDim = (dim + 1) % 2;
-            Point& lowPt = connRef->displayRoute().ps[indexLow];
-            Point& highPt = connRef->displayRoute().ps[indexHigh];
-            Point& rhsLowPt = rhs.connRef->displayRoute().ps[rhs.indexLow];
-            Point& rhsHighPt = rhs.connRef->displayRoute().ps[rhs.indexHigh];
+            const Point& lowPt = lowPoint();
+            const Point& highPt = highPoint();
+            const Point& rhsLowPt = rhs.lowPoint();
+            const Point& rhsHighPt = rhs.highPoint();
             if ( (lowPt[altDim] < rhsHighPt[altDim]) &&
                     (rhsLowPt[altDim] < highPt[altDim]))
             {
@@ -1209,7 +1225,7 @@ extern void generateStaticOrthogonalVisGraph(Router *router)
     // entries to the scanline that might follow, before process them.
     SegmentListWrapper segments;
     NodeSet scanline;
-    double thisPos = events[0]->pos;
+    double thisPos = (totalEvents > 0) ? events[0]->pos : 0;
     unsigned int posStartIndex = 0;
     unsigned int posFinishIndex = 0;
     for (unsigned i = 0; i <= totalEvents; ++i)
@@ -1279,7 +1295,7 @@ extern void generateStaticOrthogonalVisGraph(Router *router)
     qsort((Event*)events, (size_t) totalEvents, sizeof(Event*), compare_events);
 
     // Process the horizontal sweep
-    thisPos = events[0]->pos;
+    thisPos = (totalEvents > 0) ? events[0]->pos : 0;
     posStartIndex = 0;
     posFinishIndex = 0;
     for (unsigned i = 0; i <= totalEvents; ++i)
@@ -1352,12 +1368,11 @@ extern void generateStaticOrthogonalVisGraph(Router *router)
 
 // Processes sweep events used to determine each horizontal and vertical 
 // line segment in a connector's channel of visibility.  
-// Five calls to this function are made at each position by the scanline:
-//   1) Determine all the open and close events that occur at this position.
-//   2-3) Handle all SegClose events, ignoring shapes which Close at this pos.
-//   4-5) Handle all Shape Close events.
-//   6-7) Handle all Shape Open events.
-//   8-9) Handle all SegOpen events, ignoring shapes which Open at this pos.
+// Four calls to this function are made at each position by the scanline:
+//   1) Handle all Close event processing.
+//   2) Remove Close event objects from the scanline.
+//   3) Add Open event objects to the scanline.
+//   4) Handle all Open event processing.
 //
 static void processShiftEvent(Router *router, NodeSet& scanline, 
         ShiftSegmentList& segments, Event *e, size_t dim,
@@ -1514,8 +1529,8 @@ static void buildOrthogonalChannelInfo(Router *router,
     for (ShiftSegmentList::iterator curr = segmentList.begin(); 
             curr != segmentList.end(); ++curr)
     {
-        const Point& lowPt = curr->connRef->displayRoute().at(curr->indexLow);
-        const Point& highPt = curr->connRef->displayRoute().at(curr->indexHigh);
+        const Point& lowPt = curr->lowPoint();
+        const Point& highPt = curr->highPoint();
 
         assert(lowPt[dim] == highPt[dim]);
         assert(lowPt[altDim] < highPt[altDim]);
@@ -1529,7 +1544,7 @@ static void buildOrthogonalChannelInfo(Router *router,
     // We do multiple passes over sections of the list so we can add relevant
     // entries to the scanline that might follow, before process them.
     NodeSet scanline;
-    double thisPos = events[0]->pos;
+    double thisPos = (totalEvents > 0) ? events[0]->pos : 0;
     unsigned int posStartIndex = 0;
     unsigned int posFinishIndex = 0;
     for (unsigned i = 0; i <= totalEvents; ++i)
@@ -1581,8 +1596,8 @@ static void centreOrthogonalChannelRoutes(Router *router,
     {
         ShiftSegment& ss = *curr;
         
-            Point& lowPt = ss.connRef->displayRoute().ps[ss.indexLow];
-            Point& highPt = ss.connRef->displayRoute().ps[ss.indexHigh];
+        Point& lowPt = ss.lowPoint();
+        Point& highPt = ss.highPoint();
 
 #if 0
             // Set reasonable outside channel size, rather than infinity.
@@ -1631,7 +1646,6 @@ static void centreOrthogonalChannelRoutes(Router *router,
 }
 
 
-#if 0
 static void buildOrthogonalNudgingOrderInfo(Router *router, 
         PtOrderMap& pointOrders)
 {
@@ -1701,21 +1715,80 @@ static void buildOrthogonalNudgingOrderInfo(Router *router,
                         checkForBranchingSegments, finalSegment, NULL, 
                         &pointOrders);
             }
-            assert(crossings <= 2);
             if (crossings > 0)
             {
                 crossingsN += crossings;
             }
         }
     }
+    
+    // Sort the point orders.
+    PtOrderMap::iterator finish = pointOrders.end();
+    for (PtOrderMap::iterator it = pointOrders.begin(); it != finish; ++it)
+    {
+        //const VertID& ptID = it->first;
+        PtOrder& order = it->second;
+
+        for (size_t dim = 0; dim < 2; ++dim)
+        {
+            order.sort(dim);
+        }
+    }
 }
+
+
+class CmpLineOrder 
+{
+    public:
+        CmpLineOrder(PtOrderMap& orders, const size_t dim)
+            : orders(orders),
+              dimension(dim)
+        {
+        }
+        bool operator()(const ShiftSegment& lhs, const ShiftSegment& rhs)
+        {
+            Point lhsLow  = lhs.lowPoint(); 
+            Point rhsLow  = rhs.lowPoint(); 
+#ifndef NDEBUG
+            const Point& lhsHigh = lhs.highPoint(); 
+            const Point& rhsHigh = rhs.highPoint(); 
 #endif
+            size_t altDim = (dimension + 1) % 2;
+
+            assert(lhsLow[dimension] == lhsHigh[dimension]);
+            assert(rhsLow[dimension] == rhsHigh[dimension]);
+
+            if (lhsLow[dimension] != rhsLow[dimension])
+            {
+                return lhsLow[dimension] < rhsLow[dimension];
+            }
+            
+            // Need to index using the original point into the map, so find it.
+            Point& unchanged = (lhsLow[altDim] > rhsLow[altDim]) ?
+                    lhsLow : rhsLow;
+
+            // One might be longer than the other, so use common positon.
+            lhsLow[altDim] = std::max(lhsLow[altDim], rhsLow[altDim]);
+            rhsLow[altDim] = lhsLow[altDim];
+
+            PtOrder& lowOrder = orders[unchanged];
+            int lhsPos = lowOrder.positionFor(lhsLow, dimension);
+            int rhsPos = lowOrder.positionFor(rhsLow, dimension);
+            // TODO assert(lhsPos != -1);
+            // TODO assert(rhsPos != -1);
+
+            return lhsPos < rhsPos;
+        }
+
+        PtOrderMap& orders;
+        const size_t dimension;
+};
 
 
 static void nudgeOrthogonalRoutes(Router *router, size_t dimension, 
         PtOrderMap& pointOrders, ShiftSegmentList& segmentList)
 {
-    double nudgeDist = 6;
+    double nudgeDist = 4;
 
     // Do the actual nudging.
     ShiftSegmentList currentRegion;
@@ -1750,7 +1823,8 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                 ++curr;
             }
         }
-        currentRegion.sort();
+        CmpLineOrder lineSort(pointOrders, dimension);
+        currentRegion.sort(lineSort);
         
         // Process these segments.
         Variables vs;
@@ -1763,8 +1837,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             double halfWay = currRegion->minSpaceLimit + 
                     ((currRegion->maxSpaceLimit - 
                       currRegion->minSpaceLimit) / 2);
-            Point& lowPt = currRegion->connRef->displayRoute().ps[
-                    currRegion->indexLow];
+            Point& lowPt = currRegion->lowPoint();
             double idealPos = 
                     (currRegion->sBend) ? halfWay : lowPt[dimension];
 
@@ -1823,10 +1896,8 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             for (ShiftSegmentList::iterator currRegion = currentRegion.begin();
                     currRegion != currentRegion.end(); ++currRegion)
             {
-                Point& lowPt = currRegion->connRef->displayRoute().ps[
-                        currRegion->indexLow];
-                Point& highPt = currRegion->connRef->displayRoute().ps[
-                        currRegion->indexHigh];
+                Point& lowPt = currRegion->lowPoint();
+                Point& highPt = currRegion->highPoint();
                 double newPos = currRegion->variable->finalPosition;
                 //db_printf("Pos: %X, %g\n", (int) currRegion->connRef, newPos);
                 lowPt[dimension] = newPos;
@@ -1841,84 +1912,11 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
         for_each(vs.begin(),vs.end(),delete_object());
         for_each(cs.begin(),cs.end(),delete_object());
     }
-
-#if 0
-    PtOrderMap::iterator finish = pointOrders.end();
-    for (PtOrderMap::iterator it = pointOrders.begin(); it != finish; ++it)
-    {
-        //const VertID& ptID = it->first;
-        PtOrder& order = it->second;
-
-        printf("Nudging[%d] ", dimension);
-        order.sort(dimension);
-        int count = 0;
-        for (PointRepList::iterator curr = order.connList[dimension].begin(); 
-                curr != order.connList[dimension].end(); ++curr)
-        {
-            if ((*curr)->point == NULL)
-            {
-                continue;
-            }
-
-            if (count == 0)
-            {
-                printf("%g, %g : ", (*curr)->point->x, (*curr)->point->y);
-            }
-            const VertID id((*curr)->point->id, false, (*curr)->point->vn);
-            id.print(); printf(" ");
-           
-            if (count > 0)
-            {
-                // If not the first point.
-                Point *connPt = (*curr)->point;
-                printf("%X ", (int) connPt);
-                printf("%g, %g : ", (*curr)->point->x, (*curr)->point->y);
-                if (dimension == 0)
-                {
-                    connPt->x += nudgeDist * (count);
-                }
-                else
-                {
-                    connPt->y += nudgeDist * (count);
-                }
-            }
-            count++;
-        }
-        printf("\n");
-    }
-#endif
 }
 
 
-extern void improveOrthogonalRoutes(Router *router)
+static void simplifyOrthogonalRoutes(Router *router)
 {
-    ShiftSegmentList segLists[2];
-
-    // Centre vertical segments in horizontal space.
-    buildOrthogonalChannelInfo(router, 0, segLists[0]);
-    centreOrthogonalChannelRoutes(router, 0, segLists[0]);
-    
-    // Centre horizontal segments in vertical space.
-    buildOrthogonalChannelInfo(router, 1, segLists[1]);
-    centreOrthogonalChannelRoutes(router, 1, segLists[1]);
-
-    // Centre vertical segments in horizontal space.
-    segLists[0].clear();
-    buildOrthogonalChannelInfo(router, 0, segLists[0]);
-    centreOrthogonalChannelRoutes(router, 0, segLists[0]);
-    
-#if defined(LIBAVOID_SDL)
-    if (router->avoid_screen)
-    {
-        SDL_Flip(router->avoid_screen);
-        SDL_Delay(1000);
-    }
-#endif
-
-    // Build nudging info.
-    PtOrderMap pointOrders;
-    //buildOrthogonalNudgingOrderInfo(router, pointOrders);
-    
     // Simplify routes.
     for (ConnRefList::const_iterator curr = router->connRefs.begin(); 
             curr != router->connRefs.end(); ++curr) 
@@ -1929,15 +1927,55 @@ extern void improveOrthogonalRoutes(Router *router)
         }
         (*curr)->set_route((*curr)->displayRoute().simplify());
     }
+}
+
+
+extern void improveOrthogonalRoutes(Router *router)
+{
+    ShiftSegmentList segLists[2];
+
+    router->timers.Register(tmOrthogCentre, timerStart);
+    // Centre vertical segments in horizontal space.
+    buildOrthogonalChannelInfo(router, 0, segLists[0]);
+    centreOrthogonalChannelRoutes(router, 0, segLists[0]);
+ 
+    // Centre horizontal segments in vertical space.
+    buildOrthogonalChannelInfo(router, 1, segLists[1]);
+    centreOrthogonalChannelRoutes(router, 1, segLists[1]);
+
+    simplifyOrthogonalRoutes(router);
+
+    // Centre vertical segments in horizontal space.
+    segLists[0].clear();
+    buildOrthogonalChannelInfo(router, 0, segLists[0]);
+    centreOrthogonalChannelRoutes(router, 0, segLists[0]);
+    router->timers.Stop();
+   
+#if defined(LIBAVOID_SDL)
+    if (router->avoid_screen)
+    {
+        SDL_Flip(router->avoid_screen);
+        SDL_Delay(1000);
+    }
+#endif
+
+    router->timers.Register(tmOrthogNudge, timerStart);
+    // Build nudging info.
+    PtOrderMap pointOrders;
+    buildOrthogonalNudgingOrderInfo(router, pointOrders);
+
+    // Simplify routes.
+    simplifyOrthogonalRoutes(router);
 
     // Rebuild the horizontal channel information:
     segLists[0].clear();
     buildOrthogonalChannelInfo(router, 0, segLists[0]);
     nudgeOrthogonalRoutes(router, 0, pointOrders, segLists[0]);
-   
+    
     segLists[1].clear();
     buildOrthogonalChannelInfo(router, 1, segLists[1]);
     nudgeOrthogonalRoutes(router, 1, pointOrders, segLists[1]);
+    router->timers.Stop();
 }
 
 

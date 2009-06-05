@@ -49,14 +49,20 @@ namespace Avoid {
 
 typedef unsigned long long int bigclock_t;
 
-static const int tmCount = 5;
-
-static const int tmNon = -1;
-static const int tmAdd = 0;
-static const int tmDel = 1;
-static const int tmMov = 2;
-static const int tmPth = 3;
-static const int tmSev = 4;
+enum TimerIndex 
+{
+    tmNon = 0,
+    tmAdd,
+    tmDel,
+    tmMov,
+    tmPth,
+    tmSev,
+    tmOrthogGraph,
+    tmOrthogRoute,
+    tmOrthogCentre,
+    tmOrthogNudge,
+    tmCount
+};
 
 
 static const bool timerStart = true;
@@ -67,12 +73,12 @@ class Timer
 {
     public:
         Timer();
-        void Register(const int t, const bool start = timerDelay);
+        void Register(const TimerIndex t, const bool start = timerDelay);
         void Start(void);
         void Stop(void);
         void Reset(void);
-        void Print(const int t);
-        void PrintAll(void);
+        void Print(TimerIndex, FILE *fp);
+        void PrintAll(FILE *fp);
 
     private:
         clock_t cStart[tmCount];
@@ -85,7 +91,7 @@ class Timer
 
         bool running;
         long count;
-        int type, lasttype;
+        TimerIndex type, lasttype;
 };
 
 
