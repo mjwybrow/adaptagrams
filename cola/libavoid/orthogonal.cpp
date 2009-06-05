@@ -1690,7 +1690,7 @@ static void buildOrthogonalNudgingOrderInfo(Router *router,
         }
         ConnRef *conn = *curr;
         
-        for (ConnRefList::const_iterator curr2 = router->connRefs.begin(); 
+        for (ConnRefList::const_iterator curr2 = curr; 
                 curr2 != router->connRefs.end(); ++curr2) 
         {
             if ((*curr2)->routingType() != ConnType_Orthogonal)
@@ -1713,7 +1713,7 @@ static void buildOrthogonalNudgingOrderInfo(Router *router,
                 const bool finalSegment = ((i + 1) == route.size());
                 crossings += countRealCrossings(route2, true, route, i, 
                         checkForBranchingSegments, finalSegment, NULL, 
-                        &pointOrders);
+                        &pointOrders, NULL, NULL, conn2, conn);
             }
             if (crossings > 0)
             {
@@ -1772,10 +1772,10 @@ class CmpLineOrder
             rhsLow[altDim] = lhsLow[altDim];
 
             PtOrder& lowOrder = orders[unchanged];
-            int lhsPos = lowOrder.positionFor(lhsLow, dimension);
-            int rhsPos = lowOrder.positionFor(rhsLow, dimension);
-            // TODO assert(lhsPos != -1);
-            // TODO assert(rhsPos != -1);
+            int lhsPos = lowOrder.positionFor(lhs.connRef, dimension);
+            int rhsPos = lowOrder.positionFor(rhs.connRef, dimension);
+            assert(lhsPos != -1);
+            assert(rhsPos != -1);
 
             return lhsPos < rhsPos;
         }
@@ -1960,21 +1960,35 @@ extern void improveOrthogonalRoutes(Router *router)
 #endif
 
     router->timers.Register(tmOrthogNudge, timerStart);
-    // Build nudging info.
-    PtOrderMap pointOrders;
-    buildOrthogonalNudgingOrderInfo(router, pointOrders);
+    {
+        // Build nudging info.
+        PtOrderMap pointOrders;
+        buildOrthogonalNudgingOrderInfo(router, pointOrders);
 
-    // Simplify routes.
-    simplifyOrthogonalRoutes(router);
+        // Simplify routes.
+        simplifyOrthogonalRoutes(router);
 
-    // Rebuild the horizontal channel information:
-    segLists[0].clear();
-    buildOrthogonalChannelInfo(router, 0, segLists[0]);
-    nudgeOrthogonalRoutes(router, 0, pointOrders, segLists[0]);
-    
-    segLists[1].clear();
-    buildOrthogonalChannelInfo(router, 1, segLists[1]);
-    nudgeOrthogonalRoutes(router, 1, pointOrders, segLists[1]);
+        // Rebuild the horizontal channel information:
+        segLists[0].clear();
+        buildOrthogonalChannelInfo(router, 0, segLists[0]);
+        nudgeOrthogonalRoutes(router, 0, pointOrders, segLists[0]);
+    }
+
+    // XXX: we need to build the point orders separately in each
+    // dimension since things move.  There might be a more efficient
+    // way to do this.
+    {
+        // Build nudging info.
+        PtOrderMap pointOrders;
+        buildOrthogonalNudgingOrderInfo(router, pointOrders);
+
+        // Simplify routes.
+        simplifyOrthogonalRoutes(router);
+
+        segLists[1].clear();
+        buildOrthogonalChannelInfo(router, 1, segLists[1]);
+        nudgeOrthogonalRoutes(router, 1, pointOrders, segLists[1]);
+    }
     router->timers.Stop();
 }
 
