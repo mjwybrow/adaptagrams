@@ -946,13 +946,13 @@ bool PointRep::follow_inner(PointRep *target)
 }
 
 
-int PtOrder::positionFor(const Point& pt, const size_t dim) const
+int PtOrder::positionFor(const ConnRef *conn, const size_t dim) const
 {
     int position = 0;
     for (PointRepList::const_iterator curr = connList[dim].begin(); 
             curr != connList[dim].end(); ++curr)
     {
-        if (*((*curr)->point) == pt)
+        if ((*curr)->conn == conn)
         {
             return position;
         }
@@ -963,23 +963,26 @@ int PtOrder::positionFor(const Point& pt, const size_t dim) const
 }
 
 
-bool PtOrder::addPoints(const int dim, Point *innerArg, Point *outerArg, 
-        bool swapped)
+bool PtOrder::addPoints(const int dim, PtConnPtrPair innerArg, 
+        PtConnPtrPair outerArg, bool swapped)
 {
-    Point *inner = (swapped) ? outerArg : innerArg;
-    Point *outer = (swapped) ? innerArg : outerArg;
+    PtConnPtrPair inner = (swapped) ? outerArg : innerArg;
+    PtConnPtrPair outer = (swapped) ? innerArg : outerArg;
     assert(inner != outer);
+
+    //printf("addPoints(%d, [%g, %g]-%X, [%g, %g]-%X)\n", dim,
+    //        inner->x, inner->y, (int) inner, outer->x, outer->y, (int) outer);
 
     PointRep *innerPtr = NULL;
     PointRep *outerPtr = NULL;
     for (PointRepList::iterator curr = connList[dim].begin(); 
             curr != connList[dim].end(); ++curr)
     {
-        if ((*curr)->point == inner)
+        if ((*curr)->point == inner.first)
         {
             innerPtr = *curr;
         }
-        if ((*curr)->point == outer)
+        if ((*curr)->point == outer.first)
         {
             outerPtr = *curr;
         }
@@ -987,13 +990,13 @@ bool PtOrder::addPoints(const int dim, Point *innerArg, Point *outerArg,
     
     if (innerPtr == NULL)
     {
-        innerPtr = new PointRep(inner);
+        innerPtr = new PointRep(inner.first, inner.second);
         connList[dim].push_back(innerPtr);
     }
     
     if (outerPtr == NULL)
     {
-        outerPtr = new PointRep(outer);
+        outerPtr = new PointRep(outer.first, outer.second);
         connList[dim].push_back(outerPtr);
     }
     // TODO assert(innerPtr->inner_set.find(outerPtr) == innerPtr->inner_set.end());
@@ -1211,7 +1214,7 @@ static int segDir(const Point& p1, const Point& p2)
     int result = 1;
     if (p1.x == p2.x)
     {
-        if (p2.y < p1.y)
+        if (p2.y > p1.y)
         {
             result = -1;
         }
@@ -1235,7 +1238,8 @@ static int segDir(const Point& p1, const Point& p2)
 int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
         Avoid::Polygon& conn, size_t cIndex, bool checkForBranchingSegments,
         const bool finalSegment, PointSet *crossingPoints, 
-        PtOrderMap *pointOrders, bool *touches, bool *touchesAtEndpoint)
+        PtOrderMap *pointOrders, bool *touches, bool *touchesAtEndpoint, 
+        ConnRef *polyConnRef, ConnRef *connConnRef)
 {
     if (checkForBranchingSegments)
     {
@@ -1486,7 +1490,6 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
                         reversed = !reversed;
                     }
 
-
                     int prevDir = 0;
                     // Return the ordering for the shared path.
                     assert(c_path.size() > 0 || back_same);
@@ -1514,11 +1517,14 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
                         {
                             Avoid::Point& ap = *(c_path[i - 1]);
                             Avoid::Point& bp = *(p_path[i - 1]);
-                            int orientation = (ap.x == an.x) ? 1 : 0;
+                            int orientation = (ap.x == an.x) ? 0 : 1;
                             //printf("prevOri %d\n", prevOrientation);
                             //printf("1: %X, %X\n", (int) &(bn), (int) &(an));
                             bool orderSwapped = (*pointOrders)[an].addPoints(
-                                    orientation, &bn, &an, reversed);
+                                    orientation, 
+                                    std::make_pair(&bn, polyConnRef), 
+                                    std::make_pair(&an, connConnRef), 
+                                    reversed);
                             if (orderSwapped)
                             {
                                 // Reverse the order for later points.
@@ -1527,12 +1533,11 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
                             if (ap != bp) abort();
                             //printf("2: %X, %X\n", (int) &bp, (int) &ap);
                             orderSwapped = (*pointOrders)[ap].addPoints(
-                                    orientation, &bp, &ap, reversed);
-                            // TODO assert(!orderSwapped)
-                            if (orderSwapped)
-                            {
-                                abort();
-                            }
+                                    orientation, 
+                                    std::make_pair(&bp, polyConnRef), 
+                                    std::make_pair(&ap, connConnRef), 
+                                    reversed);
+                            assert(!orderSwapped);
                         }
                     }
                 }

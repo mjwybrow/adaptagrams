@@ -312,18 +312,23 @@ typedef std::list<PointRep *> PointRepList;
 class PointRep
 {
     public:
-        PointRep(Point *p)
-            : point(p)
+        PointRep(Point *p, const ConnRef *c)
+            : point(p),
+              conn(c)
+
         {
         }
         bool follow_inner(PointRep *target);
 
         Point *point;
+        const ConnRef *conn;
         // inner_set: Set of pointers to the PointReps 'inner' of 
         // this one, at this corner.
         PointRepSet inner_set;
 };
 
+
+typedef std::pair<Point *, ConnRef *> PtConnPtrPair;
 
 class PtOrder
 {
@@ -332,10 +337,10 @@ class PtOrder
         {
         }
         ~PtOrder();
-        bool addPoints(const int dim, Point *innerArg, Point *outerArg, 
-                bool swapped);
+        bool addPoints(const int dim, PtConnPtrPair innerArg, 
+                PtConnPtrPair outerArg, bool swapped);
         void sort(const int dim);
-        int positionFor(const Point& pt, const size_t dim) const;
+        int positionFor(const ConnRef *conn, const size_t dim) const;
 
         // One for each dimension.
         PointRepList connList[2];
@@ -349,7 +354,8 @@ extern int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
         Avoid::Polygon& conn, size_t cIndex, bool checkForBranchingSegments,
         const bool finalSegment = false, PointSet *crossingPoints = NULL, 
         PtOrderMap *pointOrders = NULL, bool *touches = NULL, 
-        bool *touchesAtEndpoint = NULL);
+        bool *touchesAtEndpoint = NULL, ConnRef *polyConnRef = NULL,
+        ConnRef *connConnRef = NULL);
 extern void splitBranchingSegments(Avoid::Polygon& poly, bool polyIsConn,
         Avoid::Polygon& conn);
 extern bool validateBendPoint(VertInf *aInf, VertInf *bInf, VertInf *cInf);
