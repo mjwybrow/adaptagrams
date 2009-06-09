@@ -49,8 +49,7 @@ class ActionInfo {
     public:
         ActionInfo(ActionType t, ShapeRef *s, const Polygon& p, bool fM)
             : type(t),
-              shape(s),
-              conn(NULL),
+              objPtr(s),
               newPoly(p),
               firstMove(fM)
         {
@@ -58,28 +57,36 @@ class ActionInfo {
         }
         ActionInfo(ActionType t, ShapeRef *s)
             : type(t),
-              shape(s),
-              conn(NULL)
+              objPtr(s)
         {
             assert(type != ConnChange);
         }
         ActionInfo(ActionType t, ConnRef *c)
             : type(t),
-              shape(NULL),
-              conn(c)
+              objPtr(c)
         {
             assert(type == ConnChange);
         }
         ~ActionInfo()
         {
         }
+        ShapeRef *shape(void) const
+        {
+            assert((type == ShapeMove) || (type == ShapeAdd) || 
+                    (type == ShapeRemove));
+            return (static_cast<ShapeRef *> (objPtr));
+        }
+        ConnRef *conn(void) const
+        {
+            assert(type == ConnChange);
+            return (static_cast<ConnRef *> (objPtr));
+        }
         bool operator==(const ActionInfo& rhs) const
         {
-            return (type == rhs.type) && (shape == rhs.shape);
+            return (type == rhs.type) && (objPtr == rhs.objPtr);
         }
         ActionType type;
-        ShapeRef *shape;
-        ConnRef *conn;
+        void *objPtr;
         Polygon newPoly;
         bool firstMove;
         ConnUpdateList conns;
@@ -411,7 +418,7 @@ void Router::processTransaction(void)
         }
         seenShapeMovesOrDeletes = true;
 
-        ShapeRef *shape = actInf.shape;
+        ShapeRef *shape = actInf.shape();
         bool isMove = (actInf.type == ShapeMove);
         bool first_move = actInf.firstMove;
 
@@ -449,7 +456,7 @@ void Router::processTransaction(void)
                 }
 
                 // o  Check all edges that were blocked by this shape.
-                checkAllBlockedEdges(actInf.shape->id());
+                checkAllBlockedEdges(actInf.shape()->id());
             }
         }
         else
@@ -468,7 +475,7 @@ void Router::processTransaction(void)
             continue;
         }
 
-        ShapeRef *shape = actInf.shape;
+        ShapeRef *shape = actInf.shape();
         Polygon& newPoly = actInf.newPoly;
         bool isMove = (actInf.type == ShapeMove);
 
@@ -516,7 +523,7 @@ void Router::processTransaction(void)
         for (ConnUpdateList::iterator conn = actInf.conns.begin();
                 conn != actInf.conns.end(); ++conn)
         {
-            actInf.conn->updateEndPoint(conn->first, conn->second);
+            actInf.conn()->updateEndPoint(conn->first, conn->second);
         }
     }
     // Clear the actionList.
