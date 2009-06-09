@@ -85,6 +85,14 @@ class ActionInfo {
         {
             return (type == rhs.type) && (objPtr == rhs.objPtr);
         }
+        bool operator<(const ActionInfo& rhs) const
+        {
+            if (type != rhs.type)
+            {
+                return type < rhs.type;
+            }
+            return objPtr < rhs.objPtr;
+        }
         ActionType type;
         void *objPtr;
         Polygon newPoly;
@@ -406,6 +414,7 @@ void Router::processTransaction(void)
         return;
     }
 
+    actionList.sort();
     ActionInfoList::iterator curr;
     ActionInfoList::iterator finish = actionList.end();
     for (curr = actionList.begin(); curr != finish; ++curr)
