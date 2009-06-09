@@ -1856,19 +1856,19 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                 }
             }
             lastIndex = index;
-            if (currRegion->minSpaceLimit > -DBL_MAX)
+            if (currRegion->minSpaceLimit > -CHANNEL_MAX)
             {
                 vs.push_back(new Variable(1, currRegion->minSpaceLimit, 
                             100000));
                 cs.push_back(new Constraint(vs[vs.size() - 1], vs[index], 
-                            nudgeDist));
+                            0.0));
             }
-            if (currRegion->maxSpaceLimit < DBL_MAX)
+            if (currRegion->maxSpaceLimit < CHANNEL_MAX)
             {
                 vs.push_back(new Variable(1, currRegion->maxSpaceLimit, 
                             100000));
                 cs.push_back(new Constraint(vs[index], vs[vs.size() - 1],
-                            nudgeDist));
+                            0.0));
             }
             lastVar = currRegion->variable;
         }
