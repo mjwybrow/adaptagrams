@@ -1218,5 +1218,168 @@ void Router::printInfo(void)
 }
 
 
+static const double LIMIT = 100000000;
+
+static void reduceRange(double& val)
+{
+    val = std::min(val, LIMIT);
+    val = std::max(val, -LIMIT);
+}
+
+
+void Router::outputInstanceToSVG(void)
+{
+    FILE *fp = fopen("libavoid-debug.svg", "w");
+
+    if (fp == NULL)
+    {
+        return;
+    }
+
+    double minX = LIMIT;
+    double minY = LIMIT;
+    double maxX = -LIMIT;
+    double maxY = -LIMIT;
+
+    VertInf *curr = vertices.connsBegin();
+    while (curr)
+    {
+        Point p = curr->point;
+
+        reduceRange(p.x);
+        reduceRange(p.y);
+        
+        if (p.x > -LIMIT)
+        {
+            minX = std::min(minX, p.x);
+        }
+        if (p.x < LIMIT)
+        {
+            maxX = std::max(maxX, p.x);
+        }
+        if (p.y > -LIMIT)
+        {
+            minY = std::min(minY, p.y);
+        }
+        if (p.y < LIMIT)
+        {
+            maxY = std::max(maxY, p.y);
+        }
+        curr = curr->lstNext;
+    }
+    minX -= 50;
+    minY -= 50;
+    maxX += 50;
+    maxY += 50;
+
+    fprintf(fp, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+    fprintf(fp, "<svg xmlns:inkscape=\"http://www.inkscape.org/namespaces/inkscape\" xmlns=\"http://www.w3.org/2000/svg\" width=\"100%%\" height=\"100%%\" viewBox=\"%g %g %g %g\">\n", minX, minY, maxX - minX, maxY - minY);
+    Avoid::EdgeList& visList = visOrthogGraph;
+    //router->visGraph : 
+
+    fprintf(fp, "<g inkscape:groupmode=\"layer\" "
+            "inkscape:label=\"Shapes\">");
+    ShapeRefList::iterator shRefIt = shapeRefs.begin();
+    while (shRefIt != shapeRefs.end())
+    {
+        ShapeRef *shRef = *shRefIt;
+        double minX, minY, maxX, maxY;
+        shRef->polygon().getBoundingRect(&minX, &minY, &maxX, &maxY);
+    
+        fprintf(fp, "<rect x=\"%g\" y=\"%g\" width=\"%g\" height=\"%g\" "
+                "style=\"stroke-width: 1px; stroke: black; fill: blue; fill-opacity: 0.3;\" />\n",
+                minX, minY, maxX - minX, maxY - minY);
+        ++shRefIt;
+    }
+    fprintf(fp, "</g>\n");
+
+    fprintf(fp, "<g inkscape:groupmode=\"layer\" "
+            "inkscape:label=\"RawConnectors\""
+            " style=\"display: none;\""
+            ">\n");
+    ConnRefList::iterator connRefIt = connRefs.begin();
+    while (connRefIt != connRefs.end())
+    {
+        ConnRef *connRef = *connRefIt;
+    
+        PolyLine route = connRef->route();
+        if (!route.empty())
+        {
+            fprintf(fp, "<path d=\"M %g,%g ", route.ps[0].x, route.ps[0].y);
+            for (size_t i = 1; i < route.size(); ++i)
+            {
+                fprintf(fp, "L %g,%g ", route.ps[i].x, route.ps[i].y);
+            }
+            fprintf(fp, "\" debug=\"src: %d dst: %d\" "
+                    "style=\"fill: none; stroke: black; "
+                    "stroke-width: 1px;\" />\n",
+                    connRef->src()->visDirections,
+                    connRef->dst()->visDirections);
+        }
+        
+        ++connRefIt;
+    }
+    fprintf(fp, "</g>\n");
+
+    fprintf(fp, "<g inkscape:groupmode=\"layer\" "
+            "inkscape:label=\"DisplayConnectors\""
+            " style=\"display: none;\""
+            ">\n");
+    connRefIt = connRefs.begin();
+    while (connRefIt != connRefs.end())
+    {
+        ConnRef *connRef = *connRefIt;
+    
+        PolyLine route = connRef->displayRoute();
+        if (!route.empty())
+        {
+            fprintf(fp, "<path d=\"M %g,%g ", route.ps[0].x, route.ps[0].y);
+            for (size_t i = 1; i < route.size(); ++i)
+            {
+                fprintf(fp, "L %g,%g ", route.ps[i].x, route.ps[i].y);
+            }
+            fprintf(fp, "\" debug=\"src: %d dst: %d\" "
+                    "style=\"fill: none; stroke: black; "
+                    "stroke-width: 1px;\" />\n",
+                    connRef->src()->visDirections,
+                    connRef->dst()->visDirections);
+        }
+        
+        ++connRefIt;
+    }
+    fprintf(fp, "</g>\n");
+
+
+    fprintf(fp, "<g inkscape:groupmode=\"layer\" "
+            "inkscape:label=\"OrthogVisGraph\">");
+    EdgeInf *finish = visList.end();
+    for (EdgeInf *t = visList.begin(); t != finish; t = t->lstNext)
+    {
+        std::pair<Point, Point> ptpair = t->points();
+        Point p1 = ptpair.first;
+        Point p2 = ptpair.second;
+        
+        reduceRange(p1.x);
+        reduceRange(p1.y);
+        reduceRange(p2.x);
+        reduceRange(p2.y);
+        
+        std::pair<VertID, VertID> ids = t->ids();
+
+        fprintf(fp, "<path d=\"M %g,%g L %g,%g\" "
+                "style=\"fill: none; stroke: %s; stroke-width: 1px;\" />\n", 
+                p1.x, p1.y, p2.x, p2.y,
+                (!(ids.first.isShape) || !(ids.second.isShape)) ? "green" : 
+                "red");
+        //filledCircleRGBA(screen, x1, y1, 1, 0, 0, 0, 255);
+        //filledCircleRGBA(screen, x2, y2, 1, 0, 0, 0, 255);
+    }
+    fprintf(fp, "</g>\n");
+
+    fprintf(fp, "</svg>\n");
+    fclose(fp);
+}
+
+
 }
 

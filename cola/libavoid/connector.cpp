@@ -1328,8 +1328,8 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
             // warning.
             bool p_dir_back;
             int p_dir = 0;
-            size_t trace_c = 0;
-            size_t trace_p = 0;
+            int trace_c = 0;
+            int trace_p = 0;
             
             if (converging)
             {
@@ -1337,8 +1337,8 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
                 // the points of connector b.
                 p_dir_back = (a2 == b2) ? true : false;
                 p_dir = p_dir_back ? -1 : 1;
-                trace_c = cIndex;
-                trace_p = j;
+                trace_c = (int) cIndex;
+                trace_p = (int) j;
                 if (!p_dir_back)
                 {
                     if (finalSegment)
@@ -1367,8 +1367,8 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
                     // the points of connector b.
                     p_dir_back = (a0 == b0) ? true : false;
                     p_dir = p_dir_back ? -1 : 1;
-                    trace_c = cIndex;
-                    trace_p = p_dir_back ? j : j - 2;
+                    trace_c = (int) cIndex;
+                    trace_p = (int) (p_dir_back ? j : j - 2);
                     
                     shared_path = true;
                 }
@@ -1382,15 +1382,17 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
                 // Build the shared path, including the diverging points at
                 // each end if the connector does not end at a common point.
                 while ( (trace_c >= 0) && (!polyIsConn || 
-                            ((trace_p >= 0) && (trace_p < poly.size()))) )
+                            ((trace_p >= 0) && (trace_p < (int) poly.size()))) )
                 {
-                    size_t index_p = (trace_p + (2 * poly.size())) % poly.size();
-                    assert(index_p >= 0);
-                    assert(index_p < poly.size());
-                    c_path.push_back(&conn.ps[trace_c]);
+                    // If poly is a cluster boundary, then it is a closed 
+                    // poly-line and so it wraps arounds.
+                    size_t index_p = (size_t)
+                            ((trace_p + (2 * poly.size())) % poly.size());
+                    size_t index_c = (size_t) trace_c;
+                    c_path.push_back(&conn.ps[index_c]);
                     p_path.push_back(&poly.ps[index_p]);
                     if ((c_path.size() > 1) && 
-                            (conn.ps[trace_c] != poly.ps[index_p]))
+                            (conn.ps[index_c] != poly.ps[index_p]))
                     {
                         // Points don't match, so break out of loop.
                         break;

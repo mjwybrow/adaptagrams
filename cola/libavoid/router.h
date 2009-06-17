@@ -236,6 +236,7 @@ class Router {
         void markConnectors(ShapeRef *shape);
         void generateContains(VertInf *pt);
         void printInfo(void);
+        void outputInstanceToSVG(void);
         unsigned int assignId(const unsigned int suggestedId);
         void regenerateStaticBuiltGraph(void);
         void destroyOrthogonalVisGraph(void);
