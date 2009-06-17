@@ -45,7 +45,7 @@
 namespace Avoid {
 
 
-static const double CHANNEL_MAX = 10000;
+static const double CHANNEL_MAX = 100000000;
 
 class ShiftSegment 
 {
@@ -447,7 +447,7 @@ public:
         return false;
     }
 
-    bool operator==(const LineSegment& rhs) const
+    bool overlaps(const LineSegment& rhs) const
     {
         if ((begin == rhs.begin) && (pos == rhs.pos) &&
                 (finish == rhs.finish))
@@ -748,21 +748,39 @@ class SegmentListWrapper
     public:
         LineSegment *insert(LineSegment segment)
         {
+            SegmentList::iterator found = _list.end();
             for (SegmentList::iterator curr = _list.begin();
                     curr != _list.end(); ++curr)
             {
-                if (*curr == segment)
+                if (curr->overlaps(segment))
                 {
-                    // Merge this with existing line.
-                    curr->mergeVertInfs(segment);
-                    // So don't need to add this line.
-                    return &(*curr);
+                    if (found != _list.end())
+                    {
+                        // This is not the first segment that overlaps,
+                        // so we need to merge and then delete an existing
+                        // segment.
+                        curr->mergeVertInfs(*found);
+                        _list.erase(found);
+                        found = curr;
+                    }
+                    else
+                    {
+                        // This is the first overlapping segment, so just 
+                        // merge the new segment with this one.
+                        curr->mergeVertInfs(segment);
+                        found = curr;
+                    }
                 }
             }
-            // Add this line.
-            _list.push_back(segment);
 
-            return &(_list.back());
+            if (found == _list.end())
+            {
+                // Add this line.
+                _list.push_back(segment);
+                return &(_list.back());
+            }
+
+            return &(*found);
         }
         SegmentList& list(void)
         {
@@ -774,7 +792,7 @@ class SegmentListWrapper
 
 
 // Given a router instance and a set of possible horizontal segments, and a
-// possible vertical visibility segments, compute and add edges to the
+// possible vertical visibility segment, compute and add edges to the
 // orthogonal visibility graph for all the visibility edges.
 static void intersectSegments(Router *router, SegmentList& segments, 
         LineSegment& vertLine)
