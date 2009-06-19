@@ -729,14 +729,35 @@ public:
             }
         }
     }
-    void generateVisibilityEdgesFromBreakpointSet(void)
+    void generateVisibilityEdgesFromBreakpointSet(Router *router, size_t dim)
     {
+        if ((breakPoints.begin())->pos != begin)
+        {
+            if (!beginVertInf())
+            {
+                // Add begin point if it didn't intersect another line.
+                VertInf *vert = new VertInf(router, dummyOrthogID, 
+                        Point(pos, begin));
+                breakPoints.insert(PosVertInf(begin, vert));
+            }
+        }
+        if ((breakPoints.rbegin())->pos != finish)
+        {
+            if (!finishVertInf())
+            {
+                // Add finish point if it didn't intersect another line.
+                VertInf *vert = new VertInf(router, dummyOrthogID, 
+                        Point(pos, finish));
+                breakPoints.insert(PosVertInf(finish, vert));
+            }
+        }
+
         const bool orthogonal = true;
         BreakpointSet::iterator vert, last;
         for (vert = last = breakPoints.begin(); vert != breakPoints.end();)
         {
             BreakpointSet::iterator firstPrev = last;
-            while (last->vert->point.y != vert->vert->point.y)
+            while (last->vert->point[dim] != vert->vert->point[dim])
             {
                 assert(vert != last);
                 // Assert points are not at the same position.
@@ -762,8 +783,8 @@ public:
                     {
                         EdgeInf *edge = new 
                                 EdgeInf(side->vert, vert->vert, orthogonal);
-                        edge->setDist(euclideanDist(vert->vert->point, 
-                                    side->vert->point));
+                        edge->setDist(vert->vert->point[dim] - 
+                                side->vert->point[dim]);
                     }
 
                     // Give last visibility back to the the first 
@@ -778,8 +799,8 @@ public:
                     {
                         EdgeInf *edge = new 
                                 EdgeInf(last->vert, side->vert, orthogonal);
-                        edge->setDist(euclideanDist(side->vert->point, 
-                                    last->vert->point));
+                        edge->setDist(side->vert->point[dim] - 
+                                last->vert->point[dim]);
                     }
                 }
                 
@@ -789,8 +810,8 @@ public:
                 // here since we only consider the partner endpoint as a 
                 // candidate while searching.
                 EdgeInf *edge = new EdgeInf(last->vert, vert->vert, orthogonal);
-                edge->setDist(
-                        euclideanDist(vert->vert->point, last->vert->point));
+                edge->setDist(vert->vert->point[dim] - 
+                        last->vert->point[dim]);
 
                 ++last;
             }
@@ -798,7 +819,7 @@ public:
             ++vert;
 
             if ((vert != breakPoints.end()) &&
-                    (last->vert->point.y == vert->vert->point.y))
+                    (last->vert->point[dim] == vert->vert->point[dim]))
             {
                 // Still looking at same pair, just reset prev number pointer.
                 last = firstPrev;
@@ -948,29 +969,10 @@ static void intersectSegments(Router *router, SegmentList& segments,
         }
         ++it;
     }
-    if ((vertLine.breakPoints.begin())->pos != vertLine.begin)
-    {
-        if (!vertLine.beginVertInf())
-        {
-            // Add begin point if it didn't intersect another line.
-            VertInf *vert = new VertInf(router, dummyOrthogID, 
-                    Point(vertLine.pos, vertLine.begin));
-            vertLine.breakPoints.insert(PosVertInf(vertLine.begin, vert));
-        }
-    }
-    if ((vertLine.breakPoints.rbegin())->pos != vertLine.finish)
-    {
-        if (!vertLine.finishVertInf())
-        {
-            // Add finish point if it didn't intersect another line.
-            VertInf *vert = new VertInf(router, dummyOrthogID, 
-                    Point(vertLine.pos, vertLine.finish));
-            vertLine.breakPoints.insert(PosVertInf(vertLine.finish, vert));
-        }
-    }
 
     // Split breakPoints set into visibility segments.
-    vertLine.generateVisibilityEdgesFromBreakpointSet();
+    size_t dimension = 1; // y-dimension
+    vertLine.generateVisibilityEdgesFromBreakpointSet(router, dimension);
 }
 
 
