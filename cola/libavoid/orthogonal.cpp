@@ -390,7 +390,12 @@ struct CmpVertInf {
         }
 };
 
+
 typedef std::set<VertInf *, CmpVertInf> VertSet;
+
+// A set of points to break the line segment, 
+// along with vertices for these points.
+typedef std::set<PosVertInf> BreakpointSet;
 
 // Temporary structure used to store the possible horizontal visibility 
 // lines arising from the vertical sweep.
@@ -678,8 +683,7 @@ public:
     }
                 
     // Insert vertical breakpoints.
-    void insertBreakpointsBegin(Router *router, LineSegment& vertLine,
-            std::set<PosVertInf>& breakPoints)
+    void insertBreakpointsBegin(Router *router, LineSegment& vertLine)
     {
         VertInf *vert = NULL;
         if (pos == vertLine.begin && vertLine.beginVertInf())
@@ -697,14 +701,13 @@ public:
         {
             if ((*v)->point.x == begin)
             {
-                breakPoints.insert(PosVertInf(pos, *v));
+                vertLine.breakPoints.insert(PosVertInf(pos, *v));
             }
         }
     }
 
     // Insert vertical breakpoints.
-    void insertBreakpointsFinish(Router *router, LineSegment& vertLine,
-            std::set<PosVertInf>& breakPoints)
+    void insertBreakpointsFinish(Router *router, LineSegment& vertLine)
     {
         VertInf *vert = NULL;
         if (pos == vertLine.begin && vertLine.beginVertInf())
@@ -722,7 +725,88 @@ public:
         {
             if ((*v)->point.x == finish)
             {
-                breakPoints.insert(PosVertInf(pos, *v));
+                vertLine.breakPoints.insert(PosVertInf(pos, *v));
+            }
+        }
+    }
+    void generateVisibilityEdgesFromBreakpointSet(void)
+    {
+        const bool orthogonal = true;
+        BreakpointSet::iterator vert, last;
+        for (vert = last = breakPoints.begin(); vert != breakPoints.end();)
+        {
+            BreakpointSet::iterator firstPrev = last;
+            while (last->vert->point.y != vert->vert->point.y)
+            {
+                assert(vert != last);
+                // Assert points are not at the same position.
+                assert(vert->vert->point != last->vert->point);
+
+                if ( !(vert->vert->id.isShape || last->vert->id.isShape))
+                {
+                    // Here we have a pair of two endpoints that are both
+                    // connector endpoints and both are inside a shape.
+                    
+                    // Give vert visibility back to the the first 
+                    // non-connector-endpoint vertex (the side of the shape).
+                    BreakpointSet::iterator side = last;
+                    while (!side->vert->id.isShape)
+                    {
+                        if (side == breakPoints.begin())
+                        {
+                            break;
+                        }
+                        --side;
+                    }
+                    if (side->vert->id.isShape)
+                    {
+                        EdgeInf *edge = new 
+                                EdgeInf(side->vert, vert->vert, orthogonal);
+                        edge->setDist(euclideanDist(vert->vert->point, 
+                                    side->vert->point));
+                    }
+
+                    // Give last visibility back to the the first 
+                    // non-connector-endpoint vertex (the side of the shape).
+                    side = vert;
+                    while ((side != breakPoints.end()) && 
+                            !side->vert->id.isShape)
+                    {
+                        ++side;
+                    }
+                    if (side != breakPoints.end())
+                    {
+                        EdgeInf *edge = new 
+                                EdgeInf(last->vert, side->vert, orthogonal);
+                        edge->setDist(euclideanDist(side->vert->point, 
+                                    last->vert->point));
+                    }
+                }
+                
+                // The normal case.
+                //
+                // Note: It's okay to give two connector endpoints visbility 
+                // here since we only consider the partner endpoint as a 
+                // candidate while searching.
+                EdgeInf *edge = new EdgeInf(last->vert, vert->vert, orthogonal);
+                edge->setDist(
+                        euclideanDist(vert->vert->point, last->vert->point));
+
+                ++last;
+            }
+
+            ++vert;
+
+            if ((vert != breakPoints.end()) &&
+                    (last->vert->point.y == vert->vert->point.y))
+            {
+                // Still looking at same pair, just reset prev number pointer.
+                last = firstPrev;
+            }
+            else
+            {
+                // vert has moved to the beginning of a number number group.
+                // Last is now in the right place, so do nothing.
             }
         }
     }
@@ -733,6 +817,7 @@ public:
     bool shapeSide;
     
     VertSet vertInfs;
+    BreakpointSet breakPoints;
 private:
 	// MSVC wants to generate the assignment operator and the default 
 	// constructor, but fails.  Therefore we declare them private and 
@@ -797,7 +882,6 @@ class SegmentListWrapper
 static void intersectSegments(Router *router, SegmentList& segments, 
         LineSegment& vertLine)
 {
-    std::set<PosVertInf> breakPoints;
     assert(vertLine.beginVertInf() == NULL);
     assert(vertLine.finishVertInf() == NULL);
     for (SegmentList::iterator it = segments.begin(); it != segments.end(); )
@@ -826,7 +910,7 @@ static void intersectSegments(Router *router, SegmentList& segments,
         {
             if (inVertSegRegion)
             {
-                horiLine.insertBreakpointsBegin(router, vertLine, breakPoints);
+                horiLine.insertBreakpointsBegin(router, vertLine);
             }
         }
         else if (horiLine.finish == vertLine.pos)
@@ -836,7 +920,7 @@ static void intersectSegments(Router *router, SegmentList& segments,
                 // Add horizontal visibility segment.
                 horiLine.addEdgeHorizontal(router);
             
-                horiLine.insertBreakpointsFinish(router, vertLine, breakPoints);
+                horiLine.insertBreakpointsFinish(router, vertLine);
                 
                 // And we've now finished with the segment, so delete.
                 it = segments.erase(it);
@@ -858,109 +942,35 @@ static void intersectSegments(Router *router, SegmentList& segments,
                 for (VertSet::iterator v = intersectionVerts.begin();
                         v != intersectionVerts.end(); ++v)
                 {
-                    breakPoints.insert(PosVertInf(horiLine.pos, *v));
+                    vertLine.breakPoints.insert(PosVertInf(horiLine.pos, *v));
                 }
             }
         }
         ++it;
     }
-    if ((breakPoints.begin())->pos != vertLine.begin)
+    if ((vertLine.breakPoints.begin())->pos != vertLine.begin)
     {
         if (!vertLine.beginVertInf())
         {
             // Add begin point if it didn't intersect another line.
             VertInf *vert = new VertInf(router, dummyOrthogID, 
                     Point(vertLine.pos, vertLine.begin));
-            breakPoints.insert(PosVertInf(vertLine.begin, vert));
+            vertLine.breakPoints.insert(PosVertInf(vertLine.begin, vert));
         }
     }
-    if ((breakPoints.rbegin())->pos != vertLine.finish)
+    if ((vertLine.breakPoints.rbegin())->pos != vertLine.finish)
     {
         if (!vertLine.finishVertInf())
         {
             // Add finish point if it didn't intersect another line.
             VertInf *vert = new VertInf(router, dummyOrthogID, 
                     Point(vertLine.pos, vertLine.finish));
-            breakPoints.insert(PosVertInf(vertLine.finish, vert));
+            vertLine.breakPoints.insert(PosVertInf(vertLine.finish, vert));
         }
     }
 
     // Split breakPoints set into visibility segments.
-    // XXX: Perhaps make addSegmentsUpTo generic and use that code.
-    const bool orthogonal = true;
-    std::set<PosVertInf>::iterator vert, last;
-    for (vert = last = breakPoints.begin(); vert != breakPoints.end();)
-    {
-        std::set<PosVertInf>::iterator firstPrev = last;
-        while (last->vert->point.y != vert->vert->point.y)
-        {
-            assert(vert != last);
-            // Assert points are not at the same position.
-            assert(vert->vert->point.y != last->vert->point.y);
-
-            if ( !(vert->vert->id.isShape || last->vert->id.isShape))
-            {
-                // Here we have a pair of two endpoints that are both
-                // connector endpoints and both are inside a shape.
-                
-                // Give vert visibility back to the the first 
-                // non-connector-endpoint vertex (the side of the shape).
-                std::set<PosVertInf>::iterator side = last;
-                while (!side->vert->id.isShape)
-                {
-                    if (side == breakPoints.begin())
-                    {
-                        break;
-                    }
-                    --side;
-                }
-                if (side->vert->id.isShape)
-                {
-                    EdgeInf *edge = 
-                            new EdgeInf(side->vert, vert->vert, orthogonal);
-                    edge->setDist(vert->vert->point.y - side->vert->point.y);
-                }
-
-                // Give last visibility back to the the first 
-                // non-connector-endpoint vertex (the side of the shape).
-                side = vert;
-                while ((side != breakPoints.end()) && !side->vert->id.isShape)
-                {
-                    ++side;
-                }
-                if (side != breakPoints.end())
-                {
-                    EdgeInf *edge = 
-                            new EdgeInf(last->vert, side->vert, orthogonal);
-                    edge->setDist(side->vert->point.y - last->vert->point.y);
-                }
-            }
-            
-            // The normal case.
-            //
-            // Note: It's okay to give two connector endpoints visbility 
-            // here since we only consider the partner endpoint as a 
-            // candidate while searching.
-            EdgeInf *edge = new EdgeInf(last->vert, vert->vert, orthogonal);
-            edge->setDist(vert->vert->point.y - last->vert->point.y);
-
-            ++last;
-        }
-
-        ++vert;
-
-        if ((vert != breakPoints.end()) &&
-                (last->vert->point.y == vert->vert->point.y))
-        {
-            // Still looking at same pair, just reset prev number pointer.
-            last = firstPrev;
-        }
-        else
-        {
-            // vert has moved to the beginning of a number number group.
-            // Last is now in the right place, so do nothing.
-        }
-    }
+    vertLine.generateVisibilityEdgesFromBreakpointSet();
 }
 
 
