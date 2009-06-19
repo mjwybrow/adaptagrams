@@ -1,16 +1,16 @@
 libavoid - Fast, Incremental, Object-avoiding Line Router
-Copyright (C) 2004-2007  Michael Wybrow <mjwybrow@users.sourceforge.net>
+
+Copyright (C) 2004-2008  Michael Wybrow <mjwybrow@users.sourceforge.net>
+Copyright (C) 2008-2009  Monash Universiy
 
 A cross-platform C++ library providing fast, object-avoiding connector
 routing for use in interactive diagram editors.
 
+Documentation is available for libavoid through Doxygen.  Install Doxygen and
+run it in the libavoid directory to generate documentation for the interface.
 
-This is an alpha release.  There is currently no documentation due to the
-fact that orthogonal connectors are being worked on as well as other features
-such as connector crossing avoidance.  Once these features are present, 
-documentation will be added for the interface.  At the same time, the build
-system will be cleaned up to use the configure/automake tools, and the first
-"offical" release of libavoid will be made.
+Orthogonal routing capabilities have been added.  These will be refined and
+improved leading up to an official release of he library.
 
 libavoid is currently used in the prototype research diagram editor "Dunnart":
   http://www.csse.monash.edu.au/~mwybrow/dunnart/
