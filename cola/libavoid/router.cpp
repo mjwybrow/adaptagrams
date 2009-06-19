@@ -125,6 +125,7 @@ Router::Router(const unsigned int flags)
 #endif
       _largestAssignedId(0),
       _consolidateActions(true),
+      _orthogonalNudgeDistance(4.0),
       // Mode options:
       _polyLineRouting(false),
       _orthogonalRouting(false),
@@ -561,6 +562,19 @@ void Router::delCluster(ClusterRef *cluster)
     unsigned int pid = cluster->id();
     
     adjustClustersWithDel(pid);
+}
+
+
+void Router::setOrthogonalNudgeDistance(const double dist)
+{
+    assert(dist >= 0);
+    _orthogonalNudgeDistance = dist;
+}
+
+
+double Router::orthogonalNudgeDistance(void) const
+{
+    return _orthogonalNudgeDistance;
 }
 
 
