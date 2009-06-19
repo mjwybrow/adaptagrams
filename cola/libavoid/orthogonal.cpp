@@ -548,13 +548,13 @@ public:
         }
     }
 
-    // Converts points list to visibility ends.  Returns the last point 
-    // considered.
+    // Converts a section of the points list to a set of breakPoints.  
+    // Returns the first of the intersection points occuring at finishPos.
     VertSet::iterator addSegmentsUpTo(Router *router, double finishPos)
     {
-        const bool orthogonal = true;
-        VertSet::iterator vert, last;
-        for (vert = last = vertInfs.begin(); vert != vertInfs.end();)
+        VertSet::iterator firstIntersectionPt = vertInfs.end();
+        for (VertSet::iterator vert = vertInfs.begin(); 
+                vert != vertInfs.end(); ++vert)
         {
             if ((*vert)->point.x > finishPos)
             {
@@ -562,79 +562,16 @@ public:
                 break;
             }
             
-            VertSet::iterator firstPrev = last;
-            while ((*last)->point.x != (*vert)->point.x)
+            breakPoints.insert(PosVertInf((*vert)->point.x, (*vert)));
+
+            if ((firstIntersectionPt == vertInfs.end()) && 
+                    ((*vert)->point.x == finishPos))
             {
-                assert(vert != last);
-                // Assert points are not at the same position.
-                assert((*vert)->point.x != (*last)->point.x);
-               
-                if ( !((*vert)->id.isShape || (*last)->id.isShape))
-                {
-                    // Here we have a pair of two endpoints that are both
-                    // connector endpoints and both are inside a shape.
-                    
-                    // Give vert visibility back to the the first 
-                    // non-connector-endpoint vertex (the side of the shape).
-                    VertSet::iterator side = last;
-                    while (!(*side)->id.isShape)
-                    {
-                        if (side == vertInfs.begin())
-                        {
-                            break;
-                        }
-                        --side;
-                    }
-                    if ((*side)->id.isShape)
-                    {
-                        EdgeInf *edge = new EdgeInf(*side, *vert, orthogonal);
-                        edge->setDist((*vert)->point.x - (*side)->point.x);
-                    }
-
-                    // Give last visibility back to the the first 
-                    // non-connector-endpoint vertex (the side of the shape).
-                    side = vert;
-                    while ((side != vertInfs.end()) && !(*side)->id.isShape)
-                    {
-                        ++side;
-                    }
-                    if (side != vertInfs.end())
-                    {
-                        EdgeInf *edge = new EdgeInf(*last, *side, orthogonal);
-                        edge->setDist((*side)->point.x - (*last)->point.x);
-                    }
-
-                    EdgeInf *edge = new EdgeInf(*last, *vert, orthogonal);
-                    edge->setDist((*vert)->point.x - (*last)->point.x);
-                }
-                
-                // The normal case.
-                //
-                // Note: It's okay to give two connector endpoints visbility 
-                // here since we only consider the partner endpoint as a 
-                // candidate while searching.
-                EdgeInf *edge = new EdgeInf(*last, *vert, orthogonal);
-                edge->setDist((*vert)->point.x - (*last)->point.x);
-                
-                ++last;
-            }
-
-            ++vert;
-
-            if ((vert != vertInfs.end()) &&
-                    ((*last)->point.x == (*vert)->point.x))
-            {
-                // Still looking at same pair, just reset prev number pointer.
-                last = firstPrev;
-            }
-            else
-            {
-                // vert has moved to the beginning of a number number group.
-                // Last is now in the right place, so do nothing.
+                firstIntersectionPt = vert;
             }
         }
-        // Returns the first of the last second set of vertices.
-        return last;
+        // Returns the first of the intersection points at finishPos.
+        return firstIntersectionPt;
     }
 
     // Add visibility edge(s) for this segment.  There may be multiple if 
@@ -735,9 +672,10 @@ public:
         {
             if (!beginVertInf())
             {
+                Point point(pos, pos);
+                point[dim] = begin;
                 // Add begin point if it didn't intersect another line.
-                VertInf *vert = new VertInf(router, dummyOrthogID, 
-                        Point(pos, begin));
+                VertInf *vert = new VertInf(router, dummyOrthogID, point);
                 breakPoints.insert(PosVertInf(begin, vert));
             }
         }
@@ -745,9 +683,10 @@ public:
         {
             if (!finishVertInf())
             {
+                Point point(pos, pos);
+                point[dim] = finish;
                 // Add finish point if it didn't intersect another line.
-                VertInf *vert = new VertInf(router, dummyOrthogID, 
-                        Point(pos, finish));
+                VertInf *vert = new VertInf(router, dummyOrthogID, point);
                 breakPoints.insert(PosVertInf(finish, vert));
             }
         }
@@ -917,6 +856,9 @@ static void intersectSegments(Router *router, SegmentList& segments,
             // Add horizontal visibility segment.
             horiLine.addEdgeHorizontal(router);
 
+            size_t dim = 0; // x-dimension
+            horiLine.generateVisibilityEdgesFromBreakpointSet(router, dim);
+
             // We've now swept past this horizontal segment, so delete.
             it = segments.erase(it);
             continue;
@@ -943,6 +885,9 @@ static void intersectSegments(Router *router, SegmentList& segments,
             
                 horiLine.insertBreakpointsFinish(router, vertLine);
                 
+                size_t dim = 0; // x-dimension
+                horiLine.generateVisibilityEdgesFromBreakpointSet(router, dim);
+
                 // And we've now finished with the segment, so delete.
                 it = segments.erase(it);
                 continue;
@@ -1384,6 +1329,9 @@ extern void generateStaticOrthogonalVisGraph(Router *router)
 
         horiLine.addEdgeHorizontal(router);
         
+        size_t dim = 0; // x-dimension
+        horiLine.generateVisibilityEdgesFromBreakpointSet(router, dim);
+
         it = segments.list().erase(it);
     }
 }
