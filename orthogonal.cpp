@@ -1766,8 +1766,6 @@ class CmpLineOrder
 static void nudgeOrthogonalRoutes(Router *router, size_t dimension, 
         PtOrderMap& pointOrders, ShiftSegmentList& segmentList)
 {
-    double nudgeDist = 4;
-
     // Do the actual nudging.
     ShiftSegmentList currentRegion;
     while (!segmentList.empty())
@@ -1825,8 +1823,8 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             size_t index = vs.size() - 1;
             if (lastVar)
             {
-                cs.push_back(
-                        new Constraint(vs[lastIndex],vs[index],nudgeDist));
+                cs.push_back(new Constraint(vs[lastIndex],vs[index],
+                            router->orthogonalNudgeDistance()));
                 if (vs[lastIndex]->desiredPosition == 
                         vs[index]->desiredPosition)
                 {

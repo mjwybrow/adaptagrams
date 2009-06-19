@@ -225,6 +225,19 @@ class Router {
         //!
         void moveShape(ShapeRef *shape, const double xDiff, const double yDiff);
 
+        //! @brief Sets a spacing distance for overlapping orthogonal 
+        //!        connectors to be nudged apart.
+        //!         
+        //! By default, this distance is set to a value of 4.
+        //!
+        //! This method does not re-trigger postprocessing of connectors.
+        //! The new distance will be used the next time rerouting is performed.
+        //!
+        //! @param[in]  dist  The distance to be used for orthogonal nudging.
+        //!
+        void setOrthogonalNudgeDistance(const double dist);
+        double orthogonalNudgeDistance(void) const;
+
         void addCluster(ClusterRef *cluster);
         void delCluster(ClusterRef *cluster);
 
@@ -264,6 +277,7 @@ class Router {
         ActionInfoList actionList;
         unsigned int _largestAssignedId;
         bool _consolidateActions;
+        double _orthogonalNudgeDistance;
 
     public:
         // Overall modes:
