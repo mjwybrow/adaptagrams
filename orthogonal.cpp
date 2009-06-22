@@ -1810,12 +1810,25 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
         for (ShiftSegmentList::iterator currRegion = currentRegion.begin();
                 currRegion != currentRegion.end(); ++currRegion)
         {
-            double halfWay = currRegion->minSpaceLimit + 
-                    ((currRegion->maxSpaceLimit - 
-                      currRegion->minSpaceLimit) / 2);
             Point& lowPt = currRegion->lowPoint();
-            double idealPos = 
-                    (currRegion->sBend) ? halfWay : lowPt[dimension];
+            
+            // XXX: This case occurs when we have a point outside of shapes
+            // with restricted visibility.  It would outherwise, for these
+            // s-bends, give them an ideal position of halfway to infinity.
+            // This is because the channel does not take into account the
+            // ends of the next and previous segments, because it assumes that
+            // there is a bend due to an obstacle, not a restricted direction.
+            bool outsideSBend = (currRegion->minSpaceLimit == -CHANNEL_MAX) ||
+                    (currRegion->maxSpaceLimit == CHANNEL_MAX);
+
+            double idealPos = lowPt[dimension];
+            if (currRegion->sBend && !outsideSBend)
+            {
+                // For s-bends, take the middle as ideal.
+                idealPos = currRegion->minSpaceLimit +
+                        ((currRegion->maxSpaceLimit -
+                          currRegion->minSpaceLimit) / 2);
+            }
 
             currRegion->variable = new Variable(0, idealPos);
             vs.push_back(currRegion->variable);
