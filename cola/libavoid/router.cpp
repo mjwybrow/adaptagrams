@@ -1291,9 +1291,52 @@ void Router::outputInstanceToSVG(void)
     Avoid::EdgeList& visList = visOrthogGraph;
     //router->visGraph : 
 
-    fprintf(fp, "<g inkscape:groupmode=\"layer\" "
-            "inkscape:label=\"Shapes\">");
+    // Output source code to generate this instance of the router.
+    fprintf(fp, "<!-- Source code to generate this instance:\n");
+    fprintf(fp, "#include \"libavoid/libavoid.h\"\n");
+    fprintf(fp, "using namespace Avoid;\n");
+    fprintf(fp, "int main(void) {\n");
+    fprintf(fp, "    Router *router = new Router(OrthogonalRouting);\n");
+    fprintf(fp, "    router->setOrthogonalNudgeDistance(%g);\n",
+            orthogonalNudgeDistance());
     ShapeRefList::iterator shRefIt = shapeRefs.begin();
+    while (shRefIt != shapeRefs.end())
+    {
+        ShapeRef *shRef = *shRefIt;
+        double minX, minY, maxX, maxY;
+        shRef->polygon().getBoundingRect(&minX, &minY, &maxX, &maxY);
+        fprintf(fp, "    Rectangle rect%u(Point(%g, %g), Point(%g, %g));\n",
+                shRef->id(), minX, minY, maxX, maxY);
+        fprintf(fp, "    ShapeRef *shapeRef%u = new ShapeRef(router, rect%u, "
+                "%u);\n", shRef->id(), shRef->id(), shRef->id());
+        fprintf(fp, "    router->addShape(shapeRef%u);\n", shRef->id());
+        ++shRefIt;
+    }
+    ConnRefList::iterator connRefIt = connRefs.begin();
+    while (connRefIt != connRefs.end())
+    {
+        ConnRef *connRef = *connRefIt;
+        fprintf(fp, "    ConnEnd srcPt%u(Point(%g, %g), %u);\n",
+                connRef->id(), connRef->src()->point.x,
+                connRef->src()->point.y, connRef->src()->visDirections);
+        fprintf(fp, "    ConnEnd dstPt%u(Point(%g, %g), %u);\n",
+                connRef->id(), connRef->dst()->point.x,
+                connRef->dst()->point.y, connRef->dst()->visDirections);
+        fprintf(fp, "    new ConnRef(router, srcPt%u, dstPt%u, %u);\n",
+                connRef->id(), connRef->id(), connRef->id());
+        ++connRefIt;
+    }
+    fprintf(fp, "    router->processTransaction();\n");
+    fprintf(fp, "    router->outputInstanceToSVG();\n");
+    fprintf(fp, "    delete router;\n");
+    fprintf(fp, "    return 0;\n");
+    fprintf(fp, "};\n");
+    fprintf(fp, "-->\n");
+
+    
+    fprintf(fp, "<g inkscape:groupmode=\"layer\" "
+            "inkscape:label=\"Shapes\">\n");
+    shRefIt = shapeRefs.begin();
     while (shRefIt != shapeRefs.end())
     {
         ShapeRef *shRef = *shRefIt;
@@ -1311,7 +1354,7 @@ void Router::outputInstanceToSVG(void)
             "inkscape:label=\"RawConnectors\""
             " style=\"display: none;\""
             ">\n");
-    ConnRefList::iterator connRefIt = connRefs.begin();
+    connRefIt = connRefs.begin();
     while (connRefIt != connRefs.end())
     {
         ConnRef *connRef = *connRefIt;
@@ -1365,7 +1408,7 @@ void Router::outputInstanceToSVG(void)
 
 
     fprintf(fp, "<g inkscape:groupmode=\"layer\" "
-            "inkscape:label=\"OrthogVisGraph\">");
+            "inkscape:label=\"OrthogVisGraph\">\n");
     EdgeInf *finish = visList.end();
     for (EdgeInf *t = visList.begin(); t != finish; t = t->lstNext)
     {
@@ -1385,8 +1428,6 @@ void Router::outputInstanceToSVG(void)
                 p1.x, p1.y, p2.x, p2.y,
                 (!(ids.first.isShape) || !(ids.second.isShape)) ? "green" : 
                 "red");
-        //filledCircleRGBA(screen, x1, y1, 1, 0, 0, 0, 255);
-        //filledCircleRGBA(screen, x2, y2, 1, 0, 0, 0, 255);
     }
     fprintf(fp, "</g>\n");
 
