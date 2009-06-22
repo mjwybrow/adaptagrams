@@ -1297,6 +1297,7 @@ void Router::outputInstanceToSVG(void)
     fprintf(fp, "using namespace Avoid;\n");
     fprintf(fp, "int main(void) {\n");
     fprintf(fp, "    Router *router = new Router(OrthogonalRouting);\n");
+    fprintf(fp, "    router->segmt_penalty = %g;\n", segmt_penalty);
     fprintf(fp, "    router->setOrthogonalNudgeDistance(%g);\n",
             orthogonalNudgeDistance());
     ShapeRefList::iterator shRefIt = shapeRefs.begin();
