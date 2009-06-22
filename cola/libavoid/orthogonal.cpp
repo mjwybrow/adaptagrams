@@ -269,18 +269,18 @@ struct Node
     }
     // This is a bit inefficient, but we won't need to do it once we have 
     // connection points.
-    bool isInsideShapeX(void)
+    bool isInsideShape(size_t dimension)
     {
         for (Node *curr = firstBelow; curr; curr = curr->firstBelow)
         {
-            if ((curr->min[0] < pos) && (pos < curr->max[0]))
+            if ((curr->min[dimension] < pos) && (pos < curr->max[dimension]))
             {
                 return true;
             }
         }
         for (Node *curr = firstAbove; curr; curr = curr->firstAbove)
         {
-            if ((curr->min[0] < pos) && (pos < curr->max[0]))
+            if ((curr->min[dimension] < pos) && (pos < curr->max[dimension]))
             {
                 return true;
             }
@@ -991,8 +991,7 @@ static void processEventVert(Router *router, NodeSet& scanline,
             // As far as we can see.
             double minLimit = v->firstPointAbove(0);
             double maxLimit = v->firstPointBelow(0);
-
-            bool inShape = v->isInsideShapeX();
+            bool inShape = v->isInsideShape(0);
 
             LineSegment *line1 = NULL, *line2 = NULL;
             if (!inShape || (centreVert->visDirections & ConnDirLeft))
@@ -1121,12 +1120,13 @@ static void processEventHori(Router *router, NodeSet& scanline,
             // As far as we can see.
             double minLimit = v->firstPointAbove(1);
             double maxLimit = v->firstPointBelow(1);
+            bool inShape = v->isInsideShape(1);
             
-            if (centreVert->visDirections & ConnDirUp)
+            if (!inShape || (centreVert->visDirections & ConnDirUp))
             {
                 segments.insert(LineSegment(minLimit, cp.y, e->pos));
             }
-            if (centreVert->visDirections & ConnDirDown)
+            if (!inShape || (centreVert->visDirections & ConnDirDown))
             {
                 segments.insert(LineSegment(cp.y, maxLimit, e->pos));
             }
