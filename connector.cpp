@@ -688,6 +688,12 @@ bool ConnRef::generatePath(void)
         // This connector is up to date.
         return false;
     }
+
+    if (!_dstVert || !_srcVert)
+    {
+        // Connector is not fully initialised..
+        return false;
+    }
     
     //assert(_srcVert->point != _dstVert->point);
 

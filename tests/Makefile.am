@@ -1,5 +1,5 @@
 INCLUDES = -I$(top_srcdir)
-check_PROGRAMS = example complex multiconnact inline infinity
+check_PROGRAMS = example complex multiconnact inline infinity latesetup
 
 example_SOURCES = example.cpp
 example_LDADD = $(top_builddir)/libavoid/libavoid.a 
@@ -15,6 +15,9 @@ inline_LDADD = $(top_builddir)/libavoid/libavoid.a
 
 infinity_SOURCES = infinity.cpp
 infinity_LDADD = $(top_builddir)/libavoid/libavoid.a 
+
+latesetup_SOURCES = latesetup.cpp
+latesetup_LDADD = $(top_builddir)/libavoid/libavoid.a 
 
 TESTS = $(check_PROGRAMS)
 
