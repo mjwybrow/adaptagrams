@@ -160,7 +160,7 @@ static Polygon constructPolygonPath(VertInf *inf2, VertInf *inf3,
 // cost associated with this route.
 //
 static double cost(ConnRef *lineRef, const double dist, VertInf *inf2, 
-        VertInf *inf3, std::vector<ANode>& done, size_t inf1Index)
+        VertInf *inf3, std::vector<ANode>& done, int inf1Index)
 {
     VertInf *inf1 = (inf1Index >= 0) ?  done[inf1Index].inf : NULL;
     double result = dist;
