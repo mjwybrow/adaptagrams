@@ -1200,6 +1200,7 @@ void splitBranchingSegments(Avoid::Polygon& poly, bool polyIsConn,
 
                 p0.vn = midVertexNumber(c0, c1, p0);
                 i = conn.ps.insert(i, p0);
+                continue;
             }
             // And the second point of every segment.
             if (pointOnLine(c0, c1, p1, tolerance))
