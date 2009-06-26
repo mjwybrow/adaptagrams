@@ -51,15 +51,15 @@ class ShiftSegment
 {
     public:
         ShiftSegment(ConnRef *conn, const size_t low, const size_t high, 
-                bool isSBend, const size_t dim)
+                bool isSBend, const size_t dim, double minLim, double maxLim)
             : connRef(conn),
               indexLow(low),
               indexHigh(high),
               sBend(isSBend),
               dimension(dim),
               variable(NULL),
-              minSpaceLimit(-CHANNEL_MAX),
-              maxSpaceLimit(CHANNEL_MAX)
+              minSpaceLimit(minLim),
+              maxSpaceLimit(maxLim)
         {
         }
         Point& lowPoint(void)
@@ -1464,17 +1464,37 @@ static void buildOrthogonalChannelInfo(Router *router,
                 assert(displayRoute.at(indexLow)[altDim] < 
                         displayRoute.at(indexHigh)[altDim]);
 
+                double minLim = -CHANNEL_MAX;
+                double maxLim = CHANNEL_MAX;
                 bool isSBend = false;
-                if (((displayRoute.ps[i - 2][dim] < displayRoute.ps[i][dim]) &&
-                     (displayRoute.ps[i + 1][dim] > displayRoute.ps[i][dim])) 
+
+                double prevPos = displayRoute.ps[i - 2][dim];
+                double nextPos = displayRoute.ps[i + 1][dim];
+                if (((prevPos < displayRoute.ps[i][dim]) &&
+                     (nextPos > displayRoute.ps[i][dim])) 
                      ||
-                    ((displayRoute.ps[i - 2][dim] > displayRoute.ps[i][dim]) &&
-                     (displayRoute.ps[i + 1][dim] < displayRoute.ps[i][dim])) )
+                    ((prevPos > displayRoute.ps[i][dim]) &&
+                     (nextPos < displayRoute.ps[i][dim])) )
                 {
                     isSBend = true;
+
+                    // Determine limits if the s-bend is not due to an 
+                    // obstacle.  In this case we need to limit the channel 
+                    // to the span of the adjoining segments to this one.
+                    if ((prevPos < displayRoute.ps[i][dim]) &&
+                        (nextPos > displayRoute.ps[i][dim]))
+                    {
+                        minLim = std::max(minLim, prevPos);
+                        maxLim = std::min(maxLim, nextPos);
+                    }
+                    else
+                    {
+                        minLim = std::max(minLim, nextPos);
+                        maxLim = std::min(maxLim, prevPos);
+                    }
                 }
                 segmentList.push_back(ShiftSegment(*curr, indexLow, 
-                            indexHigh, isSBend, dim));
+                            indexHigh, isSBend, dim, minLim, maxLim));
             }
         }
     }
@@ -1691,7 +1711,7 @@ static void buildOrthogonalNudgingOrderInfo(Router *router,
                 const bool finalSegment = ((i + 1) == route.size());
                 crossings += countRealCrossings(route2, true, route, i, 
                         checkForBranchingSegments, finalSegment, NULL, 
-                        &pointOrders, NULL, NULL, conn2, conn);
+                        &pointOrders, conn2, conn).first;
             }
             if (crossings > 0)
             {
@@ -1812,18 +1832,12 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
         {
             Point& lowPt = currRegion->lowPoint();
             
-            // XXX: This case occurs when we have a point outside of shapes
-            // with restricted visibility.  It would outherwise, for these
-            // s-bends, give them an ideal position of halfway to infinity.
-            // This is because the channel does not take into account the
-            // ends of the next and previous segments, because it assumes that
-            // there is a bend due to an obstacle, not a restricted direction.
-            bool outsideSBend = (currRegion->minSpaceLimit == -CHANNEL_MAX) ||
-                    (currRegion->maxSpaceLimit == CHANNEL_MAX);
-
             double idealPos = lowPt[dimension];
-            if (currRegion->sBend && !outsideSBend)
+            if (currRegion->sBend)
             {
+                assert(currRegion->minSpaceLimit > -CHANNEL_MAX);
+                assert(currRegion->maxSpaceLimit < CHANNEL_MAX);
+                
                 // For s-bends, take the middle as ideal.
                 idealPos = currRegion->minSpaceLimit +
                         ((currRegion->maxSpaceLimit -

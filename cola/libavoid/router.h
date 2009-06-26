@@ -109,6 +109,7 @@ class Router {
         double angle_penalty;
         double crossing_penalty;
         double cluster_crossing_penalty;
+        double shared_path_penalty;
 
         // Poly-line routing options:
         bool IgnoreRegions;
