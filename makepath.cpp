@@ -42,173 +42,6 @@
 
 namespace Avoid {
 
-
-static double Dot(const Point& l, const Point& r)
-{
-    return (l.x * r.x) + (l.y * r.y);
-}
-
-static double CrossLength(const Point& l, const Point& r)
-{
-    return (l.x * r.y) - (l.y * r.x);
-}
-
-
-// Return the angle between the two line segments made by the
-// points p1--p2 and p2--p3.  Return value is in radians.
-//
-static double angleBetween(const Point& p1, const Point& p2, const Point& p3)
-{
-    if ((p1.x == p2.x && p1.y == p2.y) || (p2.x == p3.x && p2.y == p3.y))
-    {
-        // If two of the points are the same, then we can't say anything
-        // about the angle between.  Treat them as being collinear.
-        return M_PI;
-    }
-
-    Point v1(p1.x - p2.x, p1.y - p2.y);
-    Point v2(p3.x - p2.x, p3.y - p2.y);
-
-    return fabs(atan2(CrossLength(v1, v2), Dot(v1, v2)));
-}
-
-
-// Construct a temporary Polygon path given several VertInf's for a connector.
-//
-static Polygon constructPolygonPath(VertInf *inf1, VertInf *inf2, VertInf *inf3)
-{
-    int routeSize = 2;
-    for (VertInf *curr = inf1; curr != NULL; curr = curr->pathNext)
-    {
-        routeSize += 1;
-    }
-    Polygon connRoute(routeSize);
-    connRoute.ps[routeSize - 1] = inf3->point;
-    connRoute.ps[routeSize - 2] = inf2->point;
-    routeSize -= 3;
-    for (VertInf *curr = inf1; curr != NULL; curr = curr->pathNext)
-    {
-        connRoute.ps[routeSize] = curr->point;
-        routeSize -= 1;
-    }
-    return connRoute;
-}
-
-// Given the two points for a new segment of a path (inf2 & inf3)
-// as well as the distance between these points (dist), as well as
-// possibly the previous point (inf1) [from inf1--inf2], return a
-// cost associated with this route.
-//
-static double cost(ConnRef *lineRef, const double dist, VertInf *inf1,
-        VertInf *inf2, VertInf *inf3)
-{
-    double result = dist;
-    Polygon connRoute;
-
-    Router *router = inf2->_router;
-    if (inf1 != NULL)
-    {
-        double& angle_penalty = router->angle_penalty;
-        double& segmt_penalty = router->segmt_penalty;
-
-        // This is not the first segment, so there is a bend
-        // between it and the last one in the existing path.
-        if ((angle_penalty > 0) || (segmt_penalty > 0))
-        {
-            Point p1 = inf1->point;
-            Point p2 = inf2->point;
-            Point p3 = inf3->point;
-
-            double rad = M_PI - angleBetween(p1, p2, p3);
-
-            if (rad > 0)
-            {
-                // Make `xval' between 0--10 then take its log so small
-                // angles are not penalised as much as large ones.
-                //
-                double xval = rad * 10 / M_PI;
-                double yval = xval * log10(xval + 1) / 10.5;
-                result += (angle_penalty * yval);
-                //db_printf("deg from straight: %g\tpenalty: %g\n",
-                //        rad * 180 / M_PI, (angle_penalty * yval));
-            }
-
-            if (rad == M_PI)
-            {
-                // Needs to double back
-                result += (2 * segmt_penalty);
-            }
-            else if (rad > 0)
-            {
-                // Only penalise as an extra segment if the two 
-                // segments are not collinear.
-                result += segmt_penalty;
-            }
-        }
-    }
-
-    // XXX: Clustered routing doesn't yet work with orhtogonal connectors.
-    if (router->ClusteredRouting && !router->clusterRefs.empty() &&
-            (lineRef->routingType() != ConnType_Orthogonal))
-    {
-        if (connRoute.empty())
-        {
-            connRoute = constructPolygonPath(inf1, inf2, inf3);
-        }
-        // There are clusters so do cluster routing.
-        for (ClusterRefList::const_iterator cl = router->clusterRefs.begin(); 
-                cl != router->clusterRefs.end(); ++cl)
-        {
-            ReferencingPolygon& cBoundary = (*cl)->polygon();
-            assert(cBoundary.ps[0] != cBoundary.ps[cBoundary.size() - 1]);
-            for (size_t j = 0; j < cBoundary.size(); ++j)
-            {
-                // Cluster boundary points should correspond to shape 
-                // vertices and hence already be in the list of vertices.
-                assert(router->vertices.getVertexByPos(cBoundary.at(j))!=NULL);
-            }
-            
-            bool isConn = false;
-            Polygon dynamic_c_boundary(cBoundary);
-            Polygon dynamic_conn_route(connRoute);
-            const bool finalSegment = (inf3 == lineRef->dst());
-            int crossings = countRealCrossings(dynamic_c_boundary, isConn, 
-                    dynamic_conn_route, connRoute.size() - 1, true, 
-                    finalSegment);
-            result += (crossings * router->cluster_crossing_penalty);
-        }
-    }
-
-    if (lineRef->doesHateCrossings() && (router->crossing_penalty > 0))
-    {
-        if (connRoute.empty())
-        {
-            connRoute = constructPolygonPath(inf1, inf2, inf3);
-        }
-        ConnRefList::const_iterator curr, finish = router->connRefs.end();
-        for (curr = router->connRefs.begin(); curr != finish; ++curr)
-        {
-            ConnRef *connRef = *curr;
-
-            if (connRef->id() == lineRef->id())
-            {
-                continue;
-            }
-            const Avoid::PolyLine& route2 = connRef->route();
-            
-            bool isConn = true;
-            Polygon dynamic_route2(route2);
-            Polygon dynamic_conn_route(connRoute);
-            int crossings = countRealCrossings(dynamic_route2, isConn, 
-                    dynamic_conn_route, connRoute.size() - 1, true);
-            result += (crossings * router->crossing_penalty);
-        }
-    }
-
-    return result;
-}
-
-
 class ANode
 {
     public:
@@ -265,6 +98,210 @@ bool operator<(const ANode &a, const ANode &b)
     }
     assert(a.prevIndex != b.prevIndex);
     return a.prevIndex > b.prevIndex;
+}
+
+
+static double Dot(const Point& l, const Point& r)
+{
+    return (l.x * r.x) + (l.y * r.y);
+}
+
+static double CrossLength(const Point& l, const Point& r)
+{
+    return (l.x * r.y) - (l.y * r.x);
+}
+
+
+// Return the angle between the two line segments made by the
+// points p1--p2 and p2--p3.  Return value is in radians.
+//
+static double angleBetween(const Point& p1, const Point& p2, const Point& p3)
+{
+    if ((p1.x == p2.x && p1.y == p2.y) || (p2.x == p3.x && p2.y == p3.y))
+    {
+        // If two of the points are the same, then we can't say anything
+        // about the angle between.  Treat them as being collinear.
+        return M_PI;
+    }
+
+    Point v1(p1.x - p2.x, p1.y - p2.y);
+    Point v2(p3.x - p2.x, p3.y - p2.y);
+
+    return fabs(atan2(CrossLength(v1, v2), Dot(v1, v2)));
+}
+
+
+// Construct a temporary Polygon path given several VertInf's for a connector.
+//
+static Polygon constructPolygonPath(VertInf *inf2, VertInf *inf3, 
+        std::vector<ANode>& done, int inf1Index)
+{
+    int routeSize = 2;
+    for (int curr = inf1Index; curr >= 0; curr = done[curr].prevIndex)
+    {
+        routeSize += 1;
+    }
+    Polygon connRoute(routeSize);
+    connRoute.ps[routeSize - 1] = inf3->point;
+    connRoute.ps[routeSize - 2] = inf2->point;
+    routeSize -= 3;
+    for (int curr = inf1Index; curr >= 0; curr = done[curr].prevIndex)
+    {
+        connRoute.ps[routeSize] = done[curr].inf->point;
+        routeSize -= 1;
+    }
+    return connRoute;
+}
+
+
+// Given the two points for a new segment of a path (inf2 & inf3)
+// as well as the distance between these points (dist), as well as
+// possibly the previous point (inf1) [from inf1--inf2], return a
+// cost associated with this route.
+//
+static double cost(ConnRef *lineRef, const double dist, VertInf *inf2, 
+        VertInf *inf3, std::vector<ANode>& done, size_t inf1Index)
+{
+    VertInf *inf1 = (inf1Index >= 0) ?  done[inf1Index].inf : NULL;
+    double result = dist;
+    Polygon connRoute;
+
+    Router *router = inf2->_router;
+    if (inf1 != NULL)
+    {
+        double& angle_penalty = router->angle_penalty;
+        double& segmt_penalty = router->segmt_penalty;
+
+        // This is not the first segment, so there is a bend
+        // between it and the last one in the existing path.
+        if ((angle_penalty > 0) || (segmt_penalty > 0))
+        {
+            Point p1 = inf1->point;
+            Point p2 = inf2->point;
+            Point p3 = inf3->point;
+
+            double rad = M_PI - angleBetween(p1, p2, p3);
+
+            if (rad > 0)
+            {
+                // Make `xval' between 0--10 then take its log so small
+                // angles are not penalised as much as large ones.
+                //
+                double xval = rad * 10 / M_PI;
+                double yval = xval * log10(xval + 1) / 10.5;
+                result += (angle_penalty * yval);
+                //db_printf("deg from straight: %g\tpenalty: %g\n",
+                //        rad * 180 / M_PI, (angle_penalty * yval));
+            }
+
+            if (rad == M_PI)
+            {
+                // Needs to double back
+                result += (2 * segmt_penalty);
+            }
+            else if (rad > 0)
+            {
+                // Only penalise as an extra segment if the two 
+                // segments are not collinear.
+                result += segmt_penalty;
+            }
+        }
+    }
+
+    // XXX: Clustered routing doesn't yet work with orhtogonal connectors.
+    if (router->ClusteredRouting && !router->clusterRefs.empty() &&
+            (lineRef->routingType() != ConnType_Orthogonal))
+    {
+        if (connRoute.empty())
+        {
+            connRoute = constructPolygonPath(inf2, inf3, done, inf1Index);
+        }
+        // There are clusters so do cluster routing.
+        for (ClusterRefList::const_iterator cl = router->clusterRefs.begin(); 
+                cl != router->clusterRefs.end(); ++cl)
+        {
+            ReferencingPolygon& cBoundary = (*cl)->polygon();
+            assert(cBoundary.ps[0] != cBoundary.ps[cBoundary.size() - 1]);
+            for (size_t j = 0; j < cBoundary.size(); ++j)
+            {
+                // Cluster boundary points should correspond to shape 
+                // vertices and hence already be in the list of vertices.
+                assert(router->vertices.getVertexByPos(cBoundary.at(j))!=NULL);
+            }
+            
+            bool isConn = false;
+            Polygon dynamic_c_boundary(cBoundary);
+            Polygon dynamic_conn_route(connRoute);
+            const bool finalSegment = (inf3 == lineRef->dst());
+            CrossingsInfoPair crossings = countRealCrossings(
+                    dynamic_c_boundary, isConn, dynamic_conn_route, 
+                    connRoute.size() - 1, true, finalSegment);
+            result += (crossings.first * router->cluster_crossing_penalty);
+        }
+    }
+
+    if (router->shared_path_penalty > 0)
+    {
+        // Penalises shared paths, except if the connectors shared an endpoint.
+        if (connRoute.empty())
+        {
+            connRoute = constructPolygonPath(inf2, inf3, done, inf1Index);
+        }
+        ConnRefList::const_iterator curr, finish = router->connRefs.end();
+        for (curr = router->connRefs.begin(); curr != finish; ++curr)
+        {
+            ConnRef *connRef = *curr;
+
+            if (connRef->id() == lineRef->id())
+            {
+                continue;
+            }
+            const Avoid::PolyLine& route2 = connRef->displayRoute();
+            
+            bool isConn = true;
+            Polygon dynamic_route2(route2);
+            Polygon dynamic_conn_route(connRoute);
+            CrossingsInfoPair crossings = countRealCrossings(
+                    dynamic_route2, isConn, dynamic_conn_route, 
+                    connRoute.size() - 1, true);
+
+            if ((crossings.second & CROSSING_SHARES_PATH) &&
+                    !(crossings.second & CROSSING_SHARES_PATH_AT_END))
+            {
+                // Penalise unecessary shared paths in the middle of
+                // connectors.
+                result += router->shared_path_penalty;
+            }
+        }
+    }
+    if (lineRef->doesHateCrossings() && (router->crossing_penalty > 0))
+    {
+        if (connRoute.empty())
+        {
+            connRoute = constructPolygonPath(inf2, inf3, done, inf1Index);
+        }
+        ConnRefList::const_iterator curr, finish = router->connRefs.end();
+        for (curr = router->connRefs.begin(); curr != finish; ++curr)
+        {
+            ConnRef *connRef = *curr;
+
+            if (connRef->id() == lineRef->id())
+            {
+                continue;
+            }
+            const Avoid::PolyLine& route2 = connRef->route();
+            
+            bool isConn = true;
+            Polygon dynamic_route2(route2);
+            Polygon dynamic_conn_route(connRoute);
+            CrossingsInfoPair crossings = countRealCrossings(
+                    dynamic_route2, isConn, dynamic_conn_route, 
+                    connRoute.size() - 1, true);
+            result += (crossings.first * router->crossing_penalty);
+        }
+    }
+
+    return result;
 }
 
 
@@ -390,13 +427,10 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
             }
             else
             {
-                VertInf *prevInf = (BestNode.prevIndex >= 0) ?
-                        DONE[BestNode.prevIndex].inf : NULL;
-
                 double edgeDist = dist(BestNode.inf->point, curr->point);
 
-                Node.g = BestNode.g + cost(lineRef, edgeDist, prevInf,
-                        BestNode.inf, Node.inf);
+                Node.g = BestNode.g + cost(lineRef, edgeDist, BestNode.inf, 
+                        Node.inf, DONE, BestNode.prevIndex);
 
                 // Calculate the Heuristic.
                 Node.h = estimatedCost(lineRef, &(BestNode.inf->point),
@@ -601,8 +635,8 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
                 // can go the *really* long way round.
             }
 
-            Node.g = BestNode.g + cost(lineRef, edgeDist, prevInf,
-                    BestNode.inf, Node.inf);
+            Node.g = BestNode.g + cost(lineRef, edgeDist, BestNode.inf, 
+                    Node.inf, DONE, BestNode.prevIndex);
 
             // Calculate the Heuristic.
             Node.h = estimatedCost(lineRef, &(BestNode.inf->point),

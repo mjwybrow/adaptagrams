@@ -350,12 +350,18 @@ typedef std::map<Avoid::Point,PtOrder> PtOrderMap;
 typedef std::set<Avoid::Point> PointSet;
 
 
-extern int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
-        Avoid::Polygon& conn, size_t cIndex, bool checkForBranchingSegments,
-        const bool finalSegment = false, PointSet *crossingPoints = NULL, 
-        PtOrderMap *pointOrders = NULL, bool *touches = NULL, 
-        bool *touchesAtEndpoint = NULL, ConnRef *polyConnRef = NULL,
-        ConnRef *connConnRef = NULL);
+const unsigned int CROSSING_NONE = 0;
+const unsigned int CROSSING_TOUCHES = 1;
+const unsigned int CROSSING_SHARES_PATH = 2;
+const unsigned int CROSSING_SHARES_PATH_AT_END = 4;
+
+typedef std::pair<int, unsigned int> CrossingsInfoPair;
+
+extern CrossingsInfoPair countRealCrossings( Avoid::Polygon& poly, 
+        bool polyIsConn, Avoid::Polygon& conn, size_t cIndex, 
+        bool checkForBranchingSegments, const bool finalSegment = false, 
+        PointSet *crossingPoints = NULL, PtOrderMap *pointOrders = NULL, 
+        ConnRef *polyConnRef = NULL, ConnRef *connConnRef = NULL);
 extern void splitBranchingSegments(Avoid::Polygon& poly, bool polyIsConn,
         Avoid::Polygon& conn);
 extern bool validateBendPoint(VertInf *aInf, VertInf *bInf, VertInf *cInf);

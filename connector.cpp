@@ -1241,12 +1241,13 @@ static int segDir(const Point& p1, const Point& p2)
 // poly can be either a connector (polyIsConn = true) or a cluster
 // boundary (polyIsConn = false).
 //
-int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
-        Avoid::Polygon& conn, size_t cIndex, bool checkForBranchingSegments,
-        const bool finalSegment, PointSet *crossingPoints, 
-        PtOrderMap *pointOrders, bool *touches, bool *touchesAtEndpoint, 
+CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly, 
+        bool polyIsConn, Avoid::Polygon& conn, size_t cIndex, 
+        bool checkForBranchingSegments, const bool finalSegment, 
+        PointSet *crossingPoints, PtOrderMap *pointOrders, 
         ConnRef *polyConnRef, ConnRef *connConnRef)
 {
+    unsigned int crossingFlags = CROSSING_NONE;
     if (checkForBranchingSegments)
     {
         size_t conn_pn = conn.size();
@@ -1382,6 +1383,7 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
 
             if (shared_path)
             {
+                crossingFlags |= CROSSING_SHARES_PATH;
                 // Shouldn't be here if p_dir is still equal to zero.
                 assert(p_dir != 0);
 
@@ -1448,6 +1450,11 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
                     startCornerSide = endCornerSide;
                 }
                 
+                if (front_same || back_same)
+                {
+                    crossingFlags |= CROSSING_SHARES_PATH_AT_END;
+                }
+
 #if 0
                 prevTurnDir = 0;
                 if (pointOrders)
@@ -1599,10 +1606,7 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
                         crossingPoints->insert(*c_path[1]);
                     }
                 }
-                if (touches)
-                {
-                    *touches = true;
-                }
+                crossingFlags |= CROSSING_TOUCHES;
             }
             else if (cIndex >= 2)
             {
@@ -1629,10 +1633,7 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
                     }
                 }
 
-                if (touches)
-                {
-                    *touches = true;
-                }
+                crossingFlags |= CROSSING_TOUCHES;
                 if (pointOrders)
                 {
                     int turnDirA = vecDir(a0, a1, a2); 
@@ -1694,7 +1695,7 @@ int countRealCrossings(Avoid::Polygon& poly, bool polyIsConn,
         }
     }
     //db_printf("crossingcount %d\n", crossingCount);
-    return crossingCount;
+    return std::make_pair(crossingCount, crossingFlags);
 }
 
 

@@ -110,6 +110,7 @@ Router::Router(const unsigned int flags)
       angle_penalty(0),
       crossing_penalty(200),
       cluster_crossing_penalty(4000),
+      shared_path_penalty(0),
       // Poly-line algorithm options:
       IgnoreRegions(true),
       UseLeesAlgorithm(true),
