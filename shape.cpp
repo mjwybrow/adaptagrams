@@ -130,7 +130,7 @@ void ShapeRef::makeActive(void)
 {
     assert(!_active);
     
-    // Add to connRefs list.
+    // Add to shapeRefs list.
     _pos = _router->shapeRefs.insert(_router->shapeRefs.begin(), this);
 
     // Add points to vertex list.
@@ -152,7 +152,7 @@ void ShapeRef::makeInactive(void)
 {
     assert(_active);
     
-    // Remove from connRefs list.
+    // Remove from shapeRefs list.
     _router->shapeRefs.erase(_pos);
 
     // Remove points from vertex list.
