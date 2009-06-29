@@ -1586,64 +1586,6 @@ static void buildOrthogonalChannelInfo(Router *router,
 }
 
 
-static void centreOrthogonalChannelRoutes(Router *router, 
-        const size_t dim, ShiftSegmentList& segmentList)
-{
-    for (ShiftSegmentList::iterator curr = segmentList.begin(); 
-            curr != segmentList.end(); ++curr)
-    {
-        ShiftSegment& ss = *curr;
-        
-        Point& lowPt = ss.lowPoint();
-        Point& highPt = ss.highPoint();
-
-#if 0
-            // Set reasonable outside channel size, rather than infinity.
-            double outside_channel = 30.0;
-            if (ss.minSpaceLimit == -DBL_MAX)
-            {
-                ss.minSpaceLimit = ss.maxSpaceLimit - outside_channel;
-            }
-            if (ss.maxSpaceLimit == DBL_MAX)
-            {
-                ss.maxSpaceLimit = ss.minSpaceLimit + outside_channel;
-            }
-#endif
-
-
-        if (ss.sBend && (ss.minSpaceLimit > -CHANNEL_MAX) &&
-                (ss.maxSpaceLimit < CHANNEL_MAX))
-        {
-            double halfWay = ss.minSpaceLimit + 
-                    ((ss.maxSpaceLimit - ss.minSpaceLimit) / 2);
-
-            lowPt[dim] = halfWay;
-            highPt[dim] = halfWay;
-        }
-
-#if defined(LIBAVOID_SDL)
-            if (router->avoid_screen)
-            {
-                Point can(151, 55);
-
-                Point min;
-                Point max;
-
-                size_t altDim = (dim + 1) % 2;
-                min[altDim] = lowPt[altDim] + can[altDim];
-                min[dim] = std::max(-5000.0, ss.minSpaceLimit) + can[dim];
-                max[altDim] = highPt[altDim] + can[altDim];
-                max[dim] = std::min(5000.0, ss.maxSpaceLimit) + can[dim];
-
-                boxRGBA(router->avoid_screen, (int) min.x, (int) min.y, 
-                        (int) max.x, (int) max.y, 
-                        ((dim) ? 0 : 255), ((dim) ? 255 : 0), 0, 64);
-            }
-#endif
-    }
-}
-
-
 static void buildOrthogonalNudgingOrderInfo(Router *router, 
         PtOrderMap& pointOrders)
 {
@@ -1935,62 +1877,26 @@ static void simplifyOrthogonalRoutes(Router *router)
 
 extern void improveOrthogonalRoutes(Router *router)
 {
-    ShiftSegmentList segLists[2];
-
-    router->timers.Register(tmOrthogCentre, timerStart);
-    // Centre vertical segments in horizontal space.
-    buildOrthogonalChannelInfo(router, 0, segLists[0]);
-    centreOrthogonalChannelRoutes(router, 0, segLists[0]);
- 
-    // Centre horizontal segments in vertical space.
-    buildOrthogonalChannelInfo(router, 1, segLists[1]);
-    centreOrthogonalChannelRoutes(router, 1, segLists[1]);
-
+    // Simplify routes.
     simplifyOrthogonalRoutes(router);
 
-    // Centre vertical segments in horizontal space.
-    segLists[0].clear();
-    buildOrthogonalChannelInfo(router, 0, segLists[0]);
-    centreOrthogonalChannelRoutes(router, 0, segLists[0]);
-    router->timers.Stop();
-   
-#if defined(LIBAVOID_SDL)
-    if (router->avoid_screen)
-    {
-        SDL_Flip(router->avoid_screen);
-        SDL_Delay(1000);
-    }
-#endif
-
     router->timers.Register(tmOrthogNudge, timerStart);
+    for (size_t dimension = 0; dimension < 2; ++dimension)
     {
         // Build nudging info.
+        // XXX: We need to build the point orders separately in each
+        //      dimension since things move.  There is probably a more 
+        //      efficient way to do this.
         PtOrderMap pointOrders;
         buildOrthogonalNudgingOrderInfo(router, pointOrders);
 
         // Simplify routes.
         simplifyOrthogonalRoutes(router);
 
-        // Rebuild the horizontal channel information:
-        segLists[0].clear();
-        buildOrthogonalChannelInfo(router, 0, segLists[0]);
-        nudgeOrthogonalRoutes(router, 0, pointOrders, segLists[0]);
-    }
-
-    // XXX: we need to build the point orders separately in each
-    // dimension since things move.  There might be a more efficient
-    // way to do this.
-    {
-        // Build nudging info.
-        PtOrderMap pointOrders;
-        buildOrthogonalNudgingOrderInfo(router, pointOrders);
-
-        // Simplify routes.
-        simplifyOrthogonalRoutes(router);
-
-        segLists[1].clear();
-        buildOrthogonalChannelInfo(router, 1, segLists[1]);
-        nudgeOrthogonalRoutes(router, 1, pointOrders, segLists[1]);
+        // Do the centering and nudging.
+        ShiftSegmentList segLists;
+        buildOrthogonalChannelInfo(router, dimension, segLists);
+        nudgeOrthogonalRoutes(router, dimension, pointOrders, segLists);
     }
     router->timers.Stop();
 }

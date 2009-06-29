@@ -16,10 +16,10 @@ int main(void) {
     router->addShape(shapeRef942733064);
     ConnEnd srcPt100850179(Point(51925, 50800), 4);
     ConnEnd dstPt100850179(Point(51500, 50650), 8);
-    new ConnRef(router, srcPt100850179, dstPt100850179, 100850179);
     ConnEnd srcPt240732432(Point(51925, 50650), 4);
     ConnEnd dstPt240732432(Point(51800, 50800), 1);
     new ConnRef(router, srcPt240732432, dstPt240732432, 240732432);
+    new ConnRef(router, srcPt100850179, dstPt100850179, 100850179);
     router->processTransaction();
     router->outputInstanceToSVG();
     delete router;
