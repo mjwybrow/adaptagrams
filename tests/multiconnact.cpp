@@ -69,6 +69,7 @@ int main(void)
     connRef2->setEndpoints(Avoid::Point(775,625), Avoid::Point(350,475));
     router->processTransaction();
 
+    delete router;
     return 0;
 }
 
