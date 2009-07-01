@@ -27,13 +27,15 @@
 /* Cycle detector that returns a list of 
  * edges involved in cycles in a digraph.
 */
-#include "commondefs.h"       // magmy20070405: Added
 
 #include <iostream>
 #include <stack>
 #include <vector>
 #include <cassert>
-#include "cycle_detector.h"   // magmy20070405: Changed from <...> to "..."
+
+#include "commondefs.h"
+#include "cycle_detector.h"
+
 
 using namespace std;
 using namespace cola;

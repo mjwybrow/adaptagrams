@@ -29,7 +29,9 @@
 #include <map>
 #include <vector>
 #include <stack>
-#include "cola.h"    // magmy20070405: Changed from <...> to "..."
+
+#include "cola.h"
+
 
 namespace cycle_detector  {
   typedef std::vector<cola::Edge> Edges;

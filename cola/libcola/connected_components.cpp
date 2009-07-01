@@ -23,12 +23,14 @@
  *
 */
 
-#include "commondefs.h"       // magmy20070405: Added
 
 #include <map>
 #include <list>
-#include <libvpsc/rectangle.h>
+
+#include "libvpsc/rectangle.h"
+#include "commondefs.h"
 #include "connected_components.h"
+
 using namespace std;
 using namespace vpsc;
 namespace cola {

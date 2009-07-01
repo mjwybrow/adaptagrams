@@ -25,12 +25,13 @@
  *
 */
 
-#include "commondefs.h"       // magmy20070405: Added
 
-#include <math.h>
-#include <stdlib.h>
-#include <valarray>
+#include <cmath>
+#include <cstdlib>
 #include <cassert>
+#include <valarray>
+
+#include "commondefs.h"
 #include "conjugate_gradient.h"
 
 /* lifted wholely from wikipedia.  Well, apart from the bug in the wikipedia version. */
@@ -46,9 +47,9 @@ matrix_times_vector(valarray<double> const &matrix, /* m * n */
     unsigned m = result.size();
     assert(m*n == matrix.size());
 #   if defined(_MSC_VER)
-    // magmy20070405: The following lines show how operator[] is defined for valarray under MSVC
+    // magmy: The following lines show how operator[] is defined for valarray under MSVC
     // _Ty valarray<_Ty>::operator[](size_t _Off) const;
-	 // _Ty &valarray<_Ty>::operator[](size_t _Off);
+	// _Ty &valarray<_Ty>::operator[](size_t _Off);
     // As a consequence, it is not possible to take the address of a constant valarray[n].
     // This looks like a bug in the Microsoft's <valarray> file.
     // Below is a workaround

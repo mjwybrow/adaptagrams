@@ -31,7 +31,6 @@
    Compiler options:
       /Zc:forScope
 */ 
-// magmy20070405: Added for MSVC
 #if defined(_MSC_VER)
 // Microsoft Visual C++ (MS VC) specific code goes here
 #include <float.h>
