@@ -47,7 +47,6 @@
 #include <float.h>
 #include <libcola/cola.h>
 #include <libtopology/topology_graph.h>
-#include <libproject/project.h>
 #include "graphlayouttest.h"
 using namespace std;
 using namespace cola;

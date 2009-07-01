@@ -31,7 +31,6 @@
 #include <fstream>
 #include <libavoid/libavoid.h>
 #include <libavoid/router.h>
-#include <libtopology/topology_constraints.h>
 
 #include "graphlayouttest.h"
 
@@ -282,7 +281,7 @@ int main() {
     CompoundConstraints cx,cy;
 
     int seed = time(NULL);
-    //seed=1207906420;
+    seed=1207906420;
     //seed=1207920674;
     //seed=1207982613;
     //seed=1207984219;
