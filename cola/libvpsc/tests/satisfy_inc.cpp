@@ -32,7 +32,6 @@
 #include <time.h>
 #include <math.h>
 #include <cassert>
-#include <libvpsc/mosek_quad_solve.h>
 
 using namespace std;
 using namespace vpsc;
