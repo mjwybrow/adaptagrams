@@ -127,8 +127,6 @@ void deleteDoubleArray(double* a) {
 %include "libcola/output_svg.h"
 %include "libcola/shortest_paths.h"
 %include "libcola/sparse_matrix.h"
-%include "libproject/project.h"
-%include "libproject/variable.h"
 %include "libtopology/topology_constraints.h"
 %include "libtopology/topology_graph.h"
 %include "libtopology/topology_log.h"
