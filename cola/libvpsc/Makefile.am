@@ -8,7 +8,6 @@ libvpsc_a_SOURCES = block.cpp\
 	constraint.cpp\
 	rectangle.cpp\
 	solve_VPSC.cpp\
-	csolve_VPSC.cpp\
 	variable.cpp\
 	cbuffer.cpp\
 	isnan.h\
@@ -18,7 +17,6 @@ libvpsc_a_SOURCES = block.cpp\
 	rectangle.h\
 	pairingheap/PairingHeap.h\
 	solve_VPSC.h\
-	csolve_VPSC.h\
 	variable.h\
 	cbuffer.h\
 	mosek_quad_solve.h\
@@ -30,7 +28,6 @@ libvpscincludedir = ${includedir}/libvpsc
 libvpscinclude_HEADERS = solve_VPSC.h \
 	block.h\
 	constraint.h\
-	csolve_VPSC.h\
 	exceptions.h\
 	rectangle.h\
 	variable.h
