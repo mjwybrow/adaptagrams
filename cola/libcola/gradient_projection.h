@@ -50,6 +50,17 @@ enum SolveWithMosek { Off, Inner, Outer };
 
 class GradientProjection {
 public:
+    /**
+     * GradientProjection solves a linear system 
+     *   Qx=b
+     * subject to separation constraints.
+     * The usual use-case is with a dense square matrix (denseQ).
+     * However, certain CompoundConstraints and also clusters add dummy 
+     * variables and simple goal terms which populate a sparse matrix 
+     * sparseQ (constructed in this constructor).
+     * A motivated person could rewrite the constructor to allow 
+     * arbitrary sparse terms (if they had a use for it).
+     */
 	GradientProjection(
 		const vpsc::Dim k,
 		std::valarray<double> *denseQ,

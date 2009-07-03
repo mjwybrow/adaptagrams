@@ -198,6 +198,11 @@ void ConstrainedFDLayout::setPosition(Position& pos) {
     moveTo(vpsc::HORIZONTAL,pos);
     moveTo(vpsc::VERTICAL,pos);
 }
+/**
+ * Layout is performed by minimizing the P-stress goal function iteratively.
+ * At each iteration taking a step in the steepest-descent direction.
+ * x0 is the current position, x1 is the x0 - descentvector.
+ */
 void ConstrainedFDLayout::computeDescentVectorOnBothAxes(
         const bool xAxis, const bool yAxis,
         double stress, Position& x0, Position& x1) {
@@ -211,6 +216,12 @@ void ConstrainedFDLayout::computeDescentVectorOnBothAxes(
     getPosition(X,Y,x1);
 }
 
+/**
+ * run() implements the main layout loop, taking descent steps until
+ * stress is no-longer significantly reduced.
+ * done is a callback used to check stress but also to report updated 
+ * positions.
+ */
 void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis) {
     FILE_LOG(logDEBUG) << "ConstrainedFDLayout::run...";
     if(n==0) return;
@@ -255,6 +266,10 @@ void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis) {
     }
     FILE_LOG(logDEBUG) << "ConstrainedFDLayout::run done.";
 }
+/**
+ * Same as run, but only applies one iteration.  This may be useful
+ * where it's too hard to implement a call-back (e.g. in java apps)
+ */
 void ConstrainedFDLayout::runOnce(const bool xAxis, const bool yAxis) {
     if(n==0) return;
     double stress=DBL_MAX;
@@ -527,6 +542,12 @@ double ConstrainedFDLayout::applyDescentVector(
     return computeStress();
 }
         
+/**
+ * Computes:
+ *  - the matrix of second derivatives (the Hessian) H, used in 
+ *    calculating stepsize; and
+ *  - the vector g, the negative gradient (steepest-descent) direction.
+ */
 void ConstrainedFDLayout::computeForces(
 		const vpsc::Dim dim,
         SparseMap &H,
@@ -570,6 +591,10 @@ void ConstrainedFDLayout::computeForces(
 		}
 	}
 }
+/**
+ * Returns the optimal step-size in the direction d, given gradient g and 
+ * hessian H.
+ */
 double ConstrainedFDLayout::computeStepSize(
         SparseMatrix const &H, 
         valarray<double> const &g, 
@@ -587,6 +612,11 @@ double ConstrainedFDLayout::computeStepSize(
     if(denominator==0) return 0;
     return numerator/denominator;
 }
+/**
+ * Just computes the cost (Stress) at the current X,Y position
+ * used to test termination.
+ * This method will call preIteration if one is set.
+ */
 double ConstrainedFDLayout::computeStress() const {
     FILE_LOG(logDEBUG)<<"ConstrainedFDLayout::computeStress()";
     double stress=0;
