@@ -24,24 +24,6 @@
 
 #include "libavoid/libavoid.h"
 
-    
-
-static void connCallback(void *ptr)
-{
-    Avoid::ConnRef *connRef = (Avoid::ConnRef *) ptr; 
-
-    printf("Connector %u needs rerouting!\n", connRef->id());
-
-    const Avoid::PolyLine& route = connRef->route();
-    printf("New path: ");
-    for (size_t i = 0; i < route.ps.size(); ++i) 
-    {
-        printf("%s(%f, %f)", (i > 0) ? "-" : "", 
-                route.ps[i].x, route.ps[i].y);
-    }
-    printf("\n");
-}
-
 using Avoid::ConnDirUp;
 using Avoid::ConnDirDown;
 using Avoid::ConnDirLeft;

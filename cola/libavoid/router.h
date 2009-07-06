@@ -71,6 +71,51 @@ static const unsigned int runningTo = 1;
 static const unsigned int runningFrom = 2;
 static const unsigned int runningToAndFrom = runningTo | runningFrom;
 
+//! @brief  Types of penalty cases that can be used to improve the quality 
+//!         of the connector routes produced.
+enum PenaltyType
+{
+    //! @brief  This penalty is applied for each segment in the connector 
+    //!         path beyond the first.  This should always normally be set
+    //!         when doing orthogonal routing to prevent step-like connector
+    //!         paths.
+    segmentPenalty = 0,
+    //! @brief  This penalty is applied in its full amount to tight acute 
+    //!         bends in the connector path.  A smaller portion of the penalty
+    //!         is applied for slight bends, i.e., where the bend is close to
+    //!         180 degrees.  This is useful for polyline routing where there
+    //!         is some evidence that tighter corners are worse for 
+    //!         readability, but that slight bends might not be so bad, 
+    //!         especially when smoothed by curves.
+    anglePenalty,
+    //! @brief  This penalty is applied whenever a connector path crosses 
+    //!         another connector path.  It takes shared paths into 
+    //!         consideration and the penalty is only applied if there
+    //!         is an actual crossing.
+    //! @note   This penalty is still experimental!  It is not recommended
+    //!         for normal use.
+    crossingPenalty,
+    //! @brief  This penalty is applied whenever a connector path crosses 
+    //!         a cluster boundary.
+    //! @note   This penalty is still experimental!  It is not recommended
+    //!         for normal use.
+    clusterCrossingPenalty,
+    //! @brief  This penalty is applied whenever a connector path shares 
+    //!         some segments with an immovable portion of an existing 
+    //!         connector route (such as the first or last segment of a
+    //!         connector).
+    //! @note   This penalty is still experimental!  It is not recommended
+    //!         for normal use.
+    fixedSharedPathPenalty,
+    // Used for determining the size of the penalty array.  
+    // This should always we the last value in the enum.
+    lastPenaltyMarker
+};
+
+
+static const double noPenalty = 0;
+static const double chooseSensiblePenalty = -1;
+
 
 //! @brief   The Router class represents a libavoid router instance.
 //!
@@ -105,11 +150,6 @@ class Router {
         bool PartialTime;
         bool SimpleRouting;
         bool ClusteredRouting;
-        double segmt_penalty;
-        double angle_penalty;
-        double crossing_penalty;
-        double cluster_crossing_penalty;
-        double shared_path_penalty;
 
         // Poly-line routing options:
         bool IgnoreRegions;
@@ -157,7 +197,7 @@ class Router {
         //! @return A boolean value describing whether transactions are in use.
         //!
         //! @sa setTransactionUse
-        //! @sa processTranactions
+        //! @sa processTransaction
         //!
         bool transactionUse(void) const;
 
@@ -231,13 +271,48 @@ class Router {
         //!         
         //! By default, this distance is set to a value of 4.
         //!
-        //! This method does not re-trigger postprocessing of connectors.
+        //! This method does not re-trigger post-processing of connectors.
         //! The new distance will be used the next time rerouting is performed.
         //!
         //! @param[in]  dist  The distance to be used for orthogonal nudging.
         //!
         void setOrthogonalNudgeDistance(const double dist);
+
+        //! @brief   Returns the spacing distance that overlapping orthogonal
+        //!          connecotrs are nudged apart.
+        //!
+        //! @return  The current spacing distance used for orthogonal nudging.
+        //!
         double orthogonalNudgeDistance(void) const;
+
+        //! @brief  Sets or removes penalty values that are applied during 
+        //!         connector routing.
+        //!
+        //! By default, libavoid will produce shortest path routes between
+        //! the source and destination points for each connector.  There are
+        //! several penalties that can be applied during this stage to 
+        //! improve the aesthetics of the routes generated.  These different
+        //! penalties are specified and explained by the PenaltyType enum.
+        //! 
+        //! If a value of zero or Avoid::noPenalty is given then the penalty 
+        //! for this case will be removed.  If no penalty argument (or a 
+        //! negative value) is specified when calling this method, then a 
+        //! sensible penalty value will be automatically chosen.
+        //!
+        //! @param[in] penType  The type of penalty, a PenaltyType.
+        //! @param[in] penVal   The value to be applied for each occurance
+        //!                     of the penalty case.  
+        //!
+        void setRoutingPenalty(const PenaltyType penType, 
+                const double penVal = chooseSensiblePenalty);
+
+        //! @brief  Returns the current penalty value for a particular 
+        //!         routing penalty case.
+        //!
+        //! @param[in] penType  The type of penalty, a PenaltyType.
+        //! @return  The penalty value for the specified penalty case.
+        //!
+        double routingPenalty(const PenaltyType penType) const;
 
         void addCluster(ClusterRef *cluster);
         void delCluster(ClusterRef *cluster);
@@ -257,6 +332,7 @@ class Router {
         void setStaticGraphInvalidated(const bool invalidated);
         ConnType defaultConnType(void) const;
         bool shapeInQueuedActionList(ShapeRef *shape) const;
+        double& penaltyRef(const PenaltyType penType);
 
     private:
         friend class ConnRef;
@@ -279,6 +355,7 @@ class Router {
         unsigned int _largestAssignedId;
         bool _consolidateActions;
         double _orthogonalNudgeDistance;
+        double _routingPenalties[lastPenaltyMarker];
 
     public:
         // Overall modes:

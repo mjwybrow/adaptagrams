@@ -78,6 +78,26 @@ class ShiftSegment
         {
             return connRef->displayRoute().ps[indexHigh];
         }
+        const bool lowC(void) const
+        {
+            // This is true if this is a cBend and its adjoining points
+            // are at lower positions.
+            if (!sBend && (maxSpaceLimit == lowPoint()[dimension]))
+            {
+                return true;
+            }
+            return false;
+        }
+        const bool highC(void) const
+        {
+            // This is true if this is a cBend and its adjoining points
+            // are at higher positions.
+            if (!sBend && (minSpaceLimit == lowPoint()[dimension]))
+            {
+                return true;
+            }
+            return false;
+        }
         bool operator<(const ShiftSegment& rhs) const
         {
             const Point& lowPt = lowPoint();
@@ -239,34 +259,71 @@ struct Node
             curr = curr->firstBelow;
         }
     }
-    double firstPointAbove(size_t dim)
+    bool findFirstPointAboveAndBelow(const size_t dim, double& firstAbovePos,
+            double& firstBelowPos)
     {
+        bool clearVisibility = true;
+        firstAbovePos = -DBL_MAX;
+        firstBelowPos = DBL_MAX;
+
+        // Find the first blocking edge above this point.  Don't count the
+        // edges as we are travelling out of shapes we are inside, but then
+        // mark clearVisibility as false.
         Node *curr = firstAbove;
-        while (curr && (curr->max[dim] >= pos))
+        while (curr && (curr->max[dim] > min[dim]))
         {
+            clearVisibility = false;
             curr = curr->firstAbove;
         }
-       
         if (curr)
         {
-            return curr->max[dim];
-        }
-        return -DBL_MAX;
-    }
-    double firstPointBelow(size_t dim)
-    {
-        Node *curr = firstBelow;
-        while (curr && (curr->min[dim] <= pos))
-        {
-            curr = curr->firstBelow;
+            firstAbovePos = curr->max[dim];
         }
         
+        // Find the first blocking edge below this point.  Don't count the
+        // edges as we are travelling out of shapes we are inside, but then
+        // mark clearVisibility as false.
+        curr = firstBelow;
+        while (curr && (curr->min[dim] < max[dim]))
+        {
+            clearVisibility = false;
+            curr = curr->firstBelow;
+        }
         if (curr)
         {
-            return curr->min[dim];
+            firstBelowPos = curr->min[dim];
         }
-        return DBL_MAX;
+
+        return clearVisibility;
     }
+    double firstPointAbove(size_t dim) 
+    { 
+        Node *curr = firstAbove; 
+        while (curr && (curr->max[dim] >= pos)) 
+        { 
+            curr = curr->firstAbove; 
+        } 
+        
+        if (curr) 
+        { 
+            return curr->max[dim]; 
+        } 
+        return -DBL_MAX; 
+    } 
+    double firstPointBelow(size_t dim) 
+    { 
+        Node *curr = firstBelow; 
+        while (curr && (curr->min[dim] <= pos)) 
+        { 
+            curr = curr->firstBelow; 
+        } 
+         
+        if (curr) 
+        { 
+            return curr->min[dim]; 
+        } 
+        return DBL_MAX; 
+    } 
     // This is a bit inefficient, but we won't need to do it once we have 
     // connection points.
     bool isInsideShape(size_t dimension)
@@ -329,6 +386,7 @@ struct Event
 };
 
 Event **events;
+
 
 // Used for quicksort.  Must return <0, 0, or >0.
 int compare_events(const void *a, const void *b)
@@ -409,19 +467,7 @@ public:
           pos(p),
           shapeSide(false)
     {
-        //assert( begin <= finish);
-        if (begin > finish)
-        {
-            // XXX: This shouldn't be necessary.  
-            //      Is it due to a bug in the sweep code?
-            double temp = begin;
-            begin = finish;
-            finish = temp;
-
-            VertInf *tempVI = bvi;
-            bvi = fvi;
-            fvi = tempVI;
-        }
+        assert(begin < finish);
 
         if (bvi)
         {
@@ -430,6 +476,17 @@ public:
         if (fvi)
         {
             vertInfs.insert(fvi);
+        }
+    }
+    LineSegment(const double& bf, const double& p, VertInf *bfvi = NULL)
+        : begin(bf),
+          finish(bf),
+          pos(p),
+          shapeSide(false)
+    {
+        if (bfvi)
+        {
+            vertInfs.insert(bfvi);
         }
     }
  
@@ -963,8 +1020,8 @@ static void processEventVert(Router *router, NodeSet& scanline,
             double minShape = v->min[0];
             double maxShape = v->max[0];
             // As far as we can see.
-            double minLimit = v->firstPointAbove(0);
-            double maxLimit = v->firstPointBelow(0);
+            double minLimit, maxLimit;
+            v->findFirstPointAboveAndBelow(0, minLimit, maxLimit);
 
             // Only difference between Open and Close is whether the line
             // segments are at the top or bottom of the shape.  Decide here.
@@ -975,6 +1032,7 @@ static void processEventVert(Router *router, NodeSet& scanline,
                         Point(minShape, lineY));
             VertInf *vI2 = new VertInf(router, dummyOrthogID, 
                         Point(maxShape, lineY));
+                
             segments.insert(LineSegment(minLimit, minShape, lineY,
                         true, NULL, vI1));
             segments.insert(LineSegment(minShape, maxShape, lineY, 
@@ -1007,8 +1065,7 @@ static void processEventVert(Router *router, NodeSet& scanline,
             if (!line1 && !line2)
             {
                 // Add a point segment for the centre point.
-                segments.insert(LineSegment(cp.x, cp.x, e->pos, 
-                        true, centreVert, NULL));
+                segments.insert(LineSegment(cp.x, e->pos, centreVert));
             }
             
             if (!inShape)
@@ -1101,8 +1158,8 @@ static void processEventHori(Router *router, NodeSet& scanline,
         if ((e->type == Open) || (e->type == Close))
         {
             // As far as we can see.
-            double minLimit = v->firstPointAbove(1);
-            double maxLimit = v->firstPointBelow(1);
+            double minLimit, maxLimit;
+            v->findFirstPointAboveAndBelow(1, minLimit, maxLimit);
 
             // Only difference between Open and Close is whether the line
             // segments are at the left or right of the shape.  Decide here.
@@ -1430,7 +1487,7 @@ static void processShiftEvent(Router *router, NodeSet& scanline,
 static void buildOrthogonalChannelInfo(Router *router, 
         const size_t dim, ShiftSegmentList& segmentList)
 {
-    if (router->segmt_penalty == 0)
+    if (router->routingPenalty(segmentPenalty) == 0)
     {
         // This code assumes the routes are pretty optimal, so we don't
         // do this adjustment if the routes have no segment penalty.
@@ -1493,6 +1550,21 @@ static void buildOrthogonalChannelInfo(Router *router,
                         maxLim = std::min(maxLim, prevPos);
                     }
                 }
+                else
+                {
+                    // isCBend: Both adjoining segments are in the same
+                    // direction.  We indicate this for later by setting 
+                    // the maxLim or minLim to the segment position.
+                    if (prevPos < displayRoute.ps[i][dim])
+                    {
+                        minLim = displayRoute.ps[i][dim];
+                    }
+                    else
+                    {
+                        maxLim = displayRoute.ps[i][dim];
+                    }
+                }
+
                 segmentList.push_back(ShiftSegment(*curr, indexLow, 
                             indexHigh, isSBend, dim, minLim, maxLim));
             }
@@ -1586,9 +1658,27 @@ static void buildOrthogonalChannelInfo(Router *router,
 }
 
 
+static void simplifyOrthogonalRoutes(Router *router)
+{
+    // Simplify routes.
+    for (ConnRefList::const_iterator curr = router->connRefs.begin(); 
+            curr != router->connRefs.end(); ++curr) 
+    {
+        if ((*curr)->routingType() != ConnType_Orthogonal)
+        {
+            continue;
+        }
+        (*curr)->set_route((*curr)->displayRoute().simplify());
+    }
+}
+
+
 static void buildOrthogonalNudgingOrderInfo(Router *router, 
         PtOrderMap& pointOrders)
 {
+    // Simplify routes.
+    simplifyOrthogonalRoutes(router);
+
     int crossingsN = 0;
 
     // Do segment splitting.
@@ -1707,15 +1797,32 @@ class CmpLineOrder
             Point& unchanged = (lhsLow[altDim] > rhsLow[altDim]) ?
                     lhsLow : rhsLow;
 
-            // One might be longer than the other, so use common positon.
-            lhsLow[altDim] = std::max(lhsLow[altDim], rhsLow[altDim]);
-            rhsLow[altDim] = lhsLow[altDim];
-
             PtOrder& lowOrder = orders[unchanged];
             int lhsPos = lowOrder.positionFor(lhs.connRef, dimension);
             int rhsPos = lowOrder.positionFor(rhs.connRef, dimension);
             assert(lhsPos != -1);
             assert(rhsPos != -1);
+            if ((lhsPos == -1) || (rhsPos == -1))
+            {
+                // This makes sure all the C-bends stay at the edges of 
+                // the channel, wrapping around their obstacles.
+                if (lhs.lowC())
+                {
+                    return true;
+                }
+                else if (lhs.highC())
+                {
+                    return false;
+                }
+                else if (rhs.lowC())
+                {
+                    return false;
+                }
+                else if (rhs.highC())
+                {
+                    return true;
+                }
+            }
 
             return lhsPos < rhsPos;
         }
@@ -1769,6 +1876,8 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
         Constraints cs;
         Variable *lastVar = NULL;
         size_t lastIndex = 0;
+        //printf("-------------------------------------------------------\n");
+        //printf("Nudge -- size: %d\n", currentRegion.size());
         for (ShiftSegmentList::iterator currRegion = currentRegion.begin();
                 currRegion != currentRegion.end(); ++currRegion)
         {
@@ -1788,6 +1897,9 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
 
             currRegion->variable = new Variable(0, idealPos);
             vs.push_back(currRegion->variable);
+            //printf("line  %.15f  pos: %g   min: %g  max: %g\n",
+            //        lowPt[dimension], idealPos, currRegion->minSpaceLimit,
+            //        currRegion->maxSpaceLimit);
 
             size_t index = vs.size() - 1;
             if (lastVar)
@@ -1797,7 +1909,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                 if (vs[lastIndex]->desiredPosition == 
                         vs[index]->desiredPosition)
                 {
-                    vs[index]->desiredPosition  += 0.1;
+                    vs[index]->desiredPosition  += 0.0001;
                 }
             }
             lastIndex = index;
@@ -1822,8 +1934,8 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             printf("-vs[%d]=%f\n",i,vs[i]->desiredPosition);
         }
 #endif
-        Solver f(vs,cs);
-        f.satisfy();
+        IncSolver f(vs,cs);
+        f.solve();
         bool satisfied = true;
         for (size_t i = 0; i < vs.size(); ++i) 
         {
@@ -1844,7 +1956,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                 Point& lowPt = currRegion->lowPoint();
                 Point& highPt = currRegion->highPoint();
                 double newPos = currRegion->variable->finalPosition;
-                //db_printf("Pos: %X, %g\n", (int) currRegion->connRef, newPos);
+                //printf("Pos: %X, %g\n", (int) currRegion->connRef, newPos);
                 lowPt[dimension] = newPos;
                 highPt[dimension] = newPos;
             }
@@ -1860,26 +1972,8 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
 }
 
 
-static void simplifyOrthogonalRoutes(Router *router)
-{
-    // Simplify routes.
-    for (ConnRefList::const_iterator curr = router->connRefs.begin(); 
-            curr != router->connRefs.end(); ++curr) 
-    {
-        if ((*curr)->routingType() != ConnType_Orthogonal)
-        {
-            continue;
-        }
-        (*curr)->set_route((*curr)->displayRoute().simplify());
-    }
-}
-
-
 extern void improveOrthogonalRoutes(Router *router)
 {
-    // Simplify routes.
-    simplifyOrthogonalRoutes(router);
-
     router->timers.Register(tmOrthogNudge, timerStart);
     for (size_t dimension = 0; dimension < 2; ++dimension)
     {

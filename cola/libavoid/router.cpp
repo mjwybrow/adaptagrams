@@ -106,11 +106,6 @@ Router::Router(const unsigned int flags)
       PartialTime(false),
       SimpleRouting(false),
       ClusteredRouting(true),
-      segmt_penalty(0),
-      angle_penalty(0),
-      crossing_penalty(200),
-      cluster_crossing_penalty(4000),
-      shared_path_penalty(0),
       // Poly-line algorithm options:
       IgnoreRegions(true),
       UseLeesAlgorithm(true),
@@ -143,6 +138,13 @@ Router::Router(const unsigned int flags)
     {
         _orthogonalRouting = true;
     }
+
+    for (size_t p = 0; p < lastPenaltyMarker; ++p)
+    {
+        _routingPenalties[p] = 0.0;
+    }
+    _routingPenalties[crossingPenalty] = 200;
+    _routingPenalties[clusterCrossingPenalty] = 4000;
 }
 
 
@@ -1149,6 +1151,55 @@ ConnType Router::defaultConnType(void) const
 }
 
 
+void Router::setRoutingPenalty(const PenaltyType penType, const double penVal)
+{
+    assert(penType < lastPenaltyMarker);
+    if (penVal < 0)
+    {
+        // Set some sensible penalty.
+        switch (penType)
+        {
+            case segmentPenalty:
+                _routingPenalties[penType] = 50;
+                break;
+            case fixedSharedPathPenalty:
+                _routingPenalties[penType] = 110;
+                break;
+            case anglePenalty:
+                _routingPenalties[penType] = 50;
+                break;
+            case crossingPenalty:
+                _routingPenalties[penType] = 200;
+                break;
+            case clusterCrossingPenalty:
+                _routingPenalties[penType] = 4000;
+                break;
+            default:
+                _routingPenalties[penType] = 50;
+                break;
+        }
+    }
+    else
+    {
+        _routingPenalties[penType] = penVal;
+    }
+}
+
+
+double Router::routingPenalty(const PenaltyType penType) const
+{
+    assert(penType < lastPenaltyMarker);
+    return _routingPenalties[penType];
+}
+
+
+double& Router::penaltyRef(const PenaltyType penType)
+{
+    assert(penType < lastPenaltyMarker);
+    return _routingPenalties[penType];
+}
+
+
 void Router::printInfo(void)
 {
     FILE *fp = stdout;
@@ -1298,7 +1349,11 @@ void Router::outputInstanceToSVG(void)
     fprintf(fp, "using namespace Avoid;\n");
     fprintf(fp, "int main(void) {\n");
     fprintf(fp, "    Router *router = new Router(OrthogonalRouting);\n");
-    fprintf(fp, "    router->segmt_penalty = %g;\n", segmt_penalty);
+    for (size_t p = 0; p < lastPenaltyMarker; ++p)
+    {
+        fprintf(fp, "    router->setRoutingPenalty(%lu, %g);\n", 
+                p, _routingPenalties[p]);
+    }
     fprintf(fp, "    router->setOrthogonalNudgeDistance(%g);\n",
             orthogonalNudgeDistance());
     ShapeRefList::iterator shRefIt = shapeRefs.begin();
