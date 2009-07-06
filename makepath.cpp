@@ -83,7 +83,7 @@ class ANode
 //
 bool operator<(const ANode &a, const ANode &b)
 {
-    if (fabs(a.f - b.f) > 0.001)
+    if (a.f != b.f)
     {
         return a.f > b.f;
     }
@@ -169,8 +169,8 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
     Router *router = inf2->_router;
     if (inf1 != NULL)
     {
-        double& angle_penalty = router->angle_penalty;
-        double& segmt_penalty = router->segmt_penalty;
+        const double angle_penalty = router->routingPenalty(anglePenalty);
+        const double segmt_penalty = router->routingPenalty(segmentPenalty);
 
         // This is not the first segment, so there is a bend
         // between it and the last one in the existing path.
@@ -208,8 +208,11 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
         }
     }
 
-    // XXX: Clustered routing doesn't yet work with orhtogonal connectors.
+    const double cluster_crossing_penalty = 
+            router->routingPenalty(clusterCrossingPenalty);
+    // XXX: Clustered routing doesn't yet work with orthogonal connectors.
     if (router->ClusteredRouting && !router->clusterRefs.empty() &&
+            (cluster_crossing_penalty > 0) && 
             (lineRef->routingType() != ConnType_Orthogonal))
     {
         if (connRoute.empty())
@@ -236,11 +239,13 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
             CrossingsInfoPair crossings = countRealCrossings(
                     dynamic_c_boundary, isConn, dynamic_conn_route, 
                     connRoute.size() - 1, true, finalSegment);
-            result += (crossings.first * router->cluster_crossing_penalty);
+            result += (crossings.first * cluster_crossing_penalty);
         }
     }
 
-    if (router->shared_path_penalty > 0)
+    const double shared_path_penalty = 
+            router->routingPenalty(fixedSharedPathPenalty);
+    if (shared_path_penalty > 0)
     {
         // Penalises shared paths, except if the connectors shared an endpoint.
         if (connRoute.empty())
@@ -270,11 +275,13 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
             {
                 // Penalise unecessary shared paths in the middle of
                 // connectors.
-                result += router->shared_path_penalty;
+                result += shared_path_penalty;
             }
         }
     }
-    if (lineRef->doesHateCrossings() && (router->crossing_penalty > 0))
+
+    const double crossing_penalty = router->routingPenalty(crossingPenalty);
+    if (lineRef->doesHateCrossings() && (crossing_penalty > 0))
     {
         if (connRoute.empty())
         {
@@ -297,7 +304,7 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
             CrossingsInfoPair crossings = countRealCrossings(
                     dynamic_route2, isConn, dynamic_conn_route, 
                     connRoute.size() - 1, true);
-            result += (crossings.first * router->crossing_penalty);
+            result += (crossings.first * crossing_penalty);
         }
     }
 
@@ -345,7 +352,8 @@ static double estimatedCost(ConnRef *lineRef, const Point *last,
                 num_penalties += 1;
             }
         }
-        double penalty = num_penalties * lineRef->router()->segmt_penalty;
+        double penalty = num_penalties * 
+                lineRef->router()->routingPenalty(segmentPenalty);
 
         return manhattanDist(a, b) + penalty;
     }

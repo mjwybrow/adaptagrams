@@ -2,9 +2,9 @@
 using namespace Avoid;
 int main(void) {
     Router *router = new Router(OrthogonalRouting);
-    router->segmt_penalty = 50;
-    router->shared_path_penalty = (2.1 * router->segmt_penalty);
-    router->setOrthogonalNudgeDistance(25);
+    router->setRoutingPenalty(segmentPenalty);
+    router->setRoutingPenalty(fixedSharedPathPenalty);
+    router->setOrthogonalNudgeDistance(20);
     Rectangle rect335855988(Point(51140, 50190), Point(51510, 50885));
     ShapeRef *shapeRef335855988 = new ShapeRef(router, rect335855988, 335855988);
     router->addShape(shapeRef335855988);
@@ -16,10 +16,10 @@ int main(void) {
     router->addShape(shapeRef942733064);
     ConnEnd srcPt100850179(Point(51925, 50800), 4);
     ConnEnd dstPt100850179(Point(51500, 50650), 8);
+    new ConnRef(router, srcPt100850179, dstPt100850179, 100850179);
     ConnEnd srcPt240732432(Point(51925, 50650), 4);
     ConnEnd dstPt240732432(Point(51800, 50800), 1);
     new ConnRef(router, srcPt240732432, dstPt240732432, 240732432);
-    new ConnRef(router, srcPt100850179, dstPt100850179, 100850179);
     router->processTransaction();
     router->outputInstanceToSVG();
     delete router;

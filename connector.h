@@ -363,7 +363,7 @@ extern CrossingsInfoPair countRealCrossings( Avoid::Polygon& poly,
         PointSet *crossingPoints = NULL, PtOrderMap *pointOrders = NULL, 
         ConnRef *polyConnRef = NULL, ConnRef *connConnRef = NULL);
 extern void splitBranchingSegments(Avoid::Polygon& poly, bool polyIsConn,
-        Avoid::Polygon& conn);
+        Avoid::Polygon& conn, const double tolerance = 0);
 extern bool validateBendPoint(VertInf *aInf, VertInf *bInf, VertInf *cInf);
 
 }

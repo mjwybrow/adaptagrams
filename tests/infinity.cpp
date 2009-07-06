@@ -2,7 +2,7 @@
 using namespace Avoid;
 int main(void) {
     Router *router = new Router(OrthogonalRouting);
-    router->segmt_penalty = 50;
+    router->setRoutingPenalty(segmentPenalty, 50);
     router->setOrthogonalNudgeDistance(10);
     Rectangle rect47(Point(51145, 50195), Point(51145+360, 50195+685));
     ShapeRef *shapeRef47 = new ShapeRef(router, rect47);

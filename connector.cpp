@@ -964,7 +964,7 @@ int PtOrder::positionFor(const ConnRef *conn, const size_t dim) const
         }
         ++position;
     }
-    // No found.
+    // Not found.
     return -1;
 }
 
@@ -1127,7 +1127,7 @@ static int midVertexNumber(const Point& p0, const Point& p1, const Point& c)
 // Break up overlapping parallel segments that are not the same edge in 
 // the visibility graph, i.e., where one segment is a subsegment of another.
 void splitBranchingSegments(Avoid::Polygon& poly, bool polyIsConn,
-        Avoid::Polygon& conn)
+        Avoid::Polygon& conn, const double tolerance)
 {
     for (std::vector<Avoid::Point>::iterator i = conn.ps.begin(); 
             i != conn.ps.end(); ++i)
@@ -1139,15 +1139,6 @@ void splitBranchingSegments(Avoid::Polygon& poly, bool polyIsConn,
             continue;
         }
 
-        // XXX When doing the pointOnLine test we allow the points to be 
-        // slightly non-collinear.  This addresses a problem with clustered
-        // routing where connectors could otherwise route cheaply through
-        // shape corners that were not quite on the cluster boundary, but
-        // reported to be on there by the line segment intersection code,
-        // which I suspect is not numerically accurate enough.  This occured
-        // for points that only differed by about 10^-12 in the y-dimension.
-        double tolerance = 0.00001;
-        
         for (std::vector<Avoid::Point>::iterator j = poly.ps.begin(); 
                 j != poly.ps.end(); )
         {
@@ -1252,7 +1243,15 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
     if (checkForBranchingSegments)
     {
         size_t conn_pn = conn.size();
-        splitBranchingSegments(poly, polyIsConn, conn);
+        // XXX When doing the pointOnLine test we allow the points to be 
+        // slightly non-collinear.  This addresses a problem with clustered
+        // routing where connectors could otherwise route cheaply through
+        // shape corners that were not quite on the cluster boundary, but
+        // reported to be on there by the line segment intersection code,
+        // which I suspect is not numerically accurate enough.  This occured
+        // for points that only differed by about 10^-12 in the y-dimension.
+        double tolerance = (!polyIsConn) ? 0.00001 : 0.0;
+        splitBranchingSegments(poly, polyIsConn, conn, tolerance);
         // cIndex is going to be the last, so take into account added points.
         cIndex += (conn.size() - conn_pn);
     }
