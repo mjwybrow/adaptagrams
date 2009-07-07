@@ -1,6 +1,6 @@
 INCLUDES = -I$(top_srcdir)
 check_PROGRAMS = example complex multiconnact inline infinity latesetup \
-	inlineoverlap
+	inlineoverlap nudgeintobug
 
 example_SOURCES = example.cpp
 example_LDADD = $(top_builddir)/libavoid/libavoid.a 
@@ -22,6 +22,9 @@ latesetup_LDADD = $(top_builddir)/libavoid/libavoid.a
 
 inlineoverlap_SOURCES = inlineoverlap.cpp
 inlineoverlap_LDADD = $(top_builddir)/libavoid/libavoid.a 
+
+nudgeintobug_SOURCES = nudgeintobug.cpp
+nudgeintobug_LDADD = $(top_builddir)/libavoid/libavoid.a 
 
 TESTS = $(check_PROGRAMS)
 
