@@ -226,6 +226,7 @@ ConnRef::ConnRef(Router *router, const ConnEnd& src, const ConnEnd& dst,
 
 ConnRef::~ConnRef()
 {
+    _router->removeQueuedConnectorActions(this);
     removeFromGraph();
 
     freeRoutes();

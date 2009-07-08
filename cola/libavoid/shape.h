@@ -98,6 +98,7 @@ class ShapeRef
 
         void makeActive(void);
         void makeInactive(void);
+        bool isActive(void) const;
 
         void removeFromGraph(void);
         void markForMove(void);
