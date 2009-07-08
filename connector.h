@@ -256,7 +256,6 @@ class ConnRef
         
 
         void set_route(const PolyLine& route);
-        void freeRoute(void);
         void calcRouteDist(void);
         void setEndPointId(const unsigned int type, const unsigned int id);
         unsigned int getSrcShapeId(void);
@@ -276,6 +275,7 @@ class ConnRef
     private:
         friend class Router;
 
+        void freeRoutes(void);
         void performCallback(void);
         bool generatePath(void);
         bool generatePath(Point p0, Point p1);

@@ -228,7 +228,7 @@ ConnRef::~ConnRef()
 {
     removeFromGraph();
 
-    freeRoute();
+    freeRoutes();
 
     if (_srcVert)
     {
@@ -446,9 +446,10 @@ void ConnRef::makeInactive(void)
 }
 
 
-void ConnRef::freeRoute(void)
+void ConnRef::freeRoutes(void)
 {
     _route.clear();
+    _display_route.clear();
 }
     
 
@@ -884,10 +885,9 @@ bool ConnRef::generatePath(void)
 
     // Would clear visibility for endpoints here if required.
 
-    freeRoute();
+    freeRoutes();
     PolyLine& output_route = _route;
     output_route.ps = path;
-    _display_route.clear();
  
 #ifdef PATHDEBUG
     db_printf("Output route:\n");
