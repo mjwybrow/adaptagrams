@@ -78,26 +78,6 @@ class ShiftSegment
         {
             return connRef->displayRoute().ps[indexHigh];
         }
-        const bool lowC(void) const
-        {
-            // This is true if this is a cBend and its adjoining points
-            // are at lower positions.
-            if (!sBend && (maxSpaceLimit == lowPoint()[dimension]))
-            {
-                return true;
-            }
-            return false;
-        }
-        const bool highC(void) const
-        {
-            // This is true if this is a cBend and its adjoining points
-            // are at higher positions.
-            if (!sBend && (minSpaceLimit == lowPoint()[dimension]))
-            {
-                return true;
-            }
-            return false;
-        }
         bool operator<(const ShiftSegment& rhs) const
         {
             const Point& lowPt = lowPoint();
@@ -1770,8 +1750,8 @@ static void buildOrthogonalNudgingOrderInfo(Router *router,
 class CmpLineOrder 
 {
     public:
-        CmpLineOrder(PtOrderMap& orders, const size_t dim)
-            : orders(orders),
+        CmpLineOrder(PtOrderMap& ord, const size_t dim)
+            : orders(ord),
               dimension(dim)
         {
         }
@@ -1800,28 +1780,16 @@ class CmpLineOrder
             PtOrder& lowOrder = orders[unchanged];
             int lhsPos = lowOrder.positionFor(lhs.connRef, dimension);
             int rhsPos = lowOrder.positionFor(rhs.connRef, dimension);
-            assert(lhsPos != -1);
-            assert(rhsPos != -1);
             if ((lhsPos == -1) || (rhsPos == -1))
             {
-                // This makes sure all the C-bends stay at the edges of 
-                // the channel, wrapping around their obstacles.
-                if (lhs.lowC())
-                {
-                    return true;
-                }
-                else if (lhs.highC())
-                {
-                    return false;
-                }
-                else if (rhs.lowC())
-                {
-                    return false;
-                }
-                else if (rhs.highC())
-                {
-                    return true;
-                }
+                // A value for rhsPos or lhsPos mean the points are not directly
+                // comparable, meaning they are at the same position but cannot
+                // overlap (they are just collinear.  The relative order for 
+                // these segments is not important since we do not constrain
+                // them against each other.
+                assert(lhs.overlapsWith(rhs, dimension) == false);
+                // We do need to be consistent though.
+                return lhsLow[altDim] < rhsLow[altDim];
             }
 
             return lhsPos < rhsPos;
@@ -1830,6 +1798,9 @@ class CmpLineOrder
         PtOrderMap& orders;
         const size_t dimension;
 };
+
+
+typedef std::list<ShiftSegment *> ShiftSegmentPtrList;
 
 
 static void nudgeOrthogonalRoutes(Router *router, size_t dimension, 
@@ -1861,7 +1832,10 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             if (overlaps)
             {
                 currentRegion.push_back(*curr);
-                curr = segmentList.erase(curr);
+                segmentList.erase(curr);
+                // Consider segments from the beginning, since we mave have
+                // since passed segments that overlap with the new set.
+                curr = segmentList.begin();
             }
             else
             {
@@ -1874,60 +1848,76 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
         // Process these segments.
         Variables vs;
         Constraints cs;
-        Variable *lastVar = NULL;
-        size_t lastIndex = 0;
+        ShiftSegmentPtrList prevVars;
         //printf("-------------------------------------------------------\n");
-        //printf("Nudge -- size: %d\n", currentRegion.size());
-        for (ShiftSegmentList::iterator currRegion = currentRegion.begin();
-                currRegion != currentRegion.end(); ++currRegion)
+        //printf("Nudge -- size: %d\n", (int) currentRegion.size());
+        for (ShiftSegmentList::iterator currSegment = currentRegion.begin();
+                currSegment != currentRegion.end(); ++currSegment)
         {
-            Point& lowPt = currRegion->lowPoint();
+            Point& lowPt = currSegment->lowPoint();
             
+            // Create a solver variable for the position of this segment.
             double idealPos = lowPt[dimension];
-            if (currRegion->sBend)
+            if (currSegment->sBend)
             {
-                assert(currRegion->minSpaceLimit > -CHANNEL_MAX);
-                assert(currRegion->maxSpaceLimit < CHANNEL_MAX);
+                assert(currSegment->minSpaceLimit > -CHANNEL_MAX);
+                assert(currSegment->maxSpaceLimit < CHANNEL_MAX);
                 
                 // For s-bends, take the middle as ideal.
-                idealPos = currRegion->minSpaceLimit +
-                        ((currRegion->maxSpaceLimit -
-                          currRegion->minSpaceLimit) / 2);
+                idealPos = currSegment->minSpaceLimit +
+                        ((currSegment->maxSpaceLimit -
+                          currSegment->minSpaceLimit) / 2);
             }
-
-            currRegion->variable = new Variable(0, idealPos);
-            vs.push_back(currRegion->variable);
-            //printf("line  %.15f  pos: %g   min: %g  max: %g\n",
-            //        lowPt[dimension], idealPos, currRegion->minSpaceLimit,
-            //        currRegion->maxSpaceLimit);
-
+            currSegment->variable = new Variable(0, idealPos);
+            vs.push_back(currSegment->variable);
             size_t index = vs.size() - 1;
-            if (lastVar)
+            //printf("line  %.15f  pos: %g   min: %g  max: %g\n",
+            //        lowPt[dimension], idealPos, currSegment->minSpaceLimit,
+            //        currSegment->maxSpaceLimit);
+
+            // Constrain position in relation to previously seen segments,
+            // if necessary (i.e. when they could overlap).
+            for (ShiftSegmentPtrList::iterator prevVarIt = prevVars.begin();
+                    prevVarIt != prevVars.end(); )
             {
-                cs.push_back(new Constraint(vs[lastIndex],vs[index],
-                            router->orthogonalNudgeDistance()));
-                if (vs[lastIndex]->desiredPosition == 
-                        vs[index]->desiredPosition)
+                ShiftSegment *prevSeg = *prevVarIt;
+                Variable *prevVar = prevSeg->variable;
+
+                if (currSegment->overlapsWith(*prevSeg, dimension))
                 {
-                    vs[index]->desiredPosition  += 0.0001;
+                    // If there is a previous segment to the left that 
+                    // could overlap this in the shift direction, then 
+                    // constrain the two segments to be separated.
+                    cs.push_back(new Constraint(prevVar, vs[index],
+                            router->orthogonalNudgeDistance()));
+                    prevVarIt = prevVars.erase(prevVarIt);
+                }
+                else
+                {
+                    ++prevVarIt;
                 }
             }
-            lastIndex = index;
-            if (currRegion->minSpaceLimit > -CHANNEL_MAX)
+
+            // If this segment sees a channel boundary to its left, 
+            // then constrain its placement as such.
+            if (currSegment->minSpaceLimit > -CHANNEL_MAX)
             {
-                vs.push_back(new Variable(1, currRegion->minSpaceLimit, 
+                vs.push_back(new Variable(1, currSegment->minSpaceLimit, 
                             100000));
                 cs.push_back(new Constraint(vs[vs.size() - 1], vs[index], 
                             0.0));
             }
-            if (currRegion->maxSpaceLimit < CHANNEL_MAX)
+            
+            // If this segment sees a channel boundary to its right, 
+            // then constrain its placement as such.
+            if (currSegment->maxSpaceLimit < CHANNEL_MAX)
             {
-                vs.push_back(new Variable(1, currRegion->maxSpaceLimit, 
+                vs.push_back(new Variable(1, currSegment->maxSpaceLimit, 
                             100000));
                 cs.push_back(new Constraint(vs[index], vs[vs.size() - 1],
                             0.0));
             }
-            lastVar = currRegion->variable;
+            prevVars.push_back(&(*currSegment));
         }
 #if 0
         for(unsigned i=0;i<vs.size();i++) {
@@ -1950,13 +1940,13 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
         }
         if (satisfied)
         {
-            for (ShiftSegmentList::iterator currRegion = currentRegion.begin();
-                    currRegion != currentRegion.end(); ++currRegion)
+            for (ShiftSegmentList::iterator currSegment = currentRegion.begin();
+                    currSegment != currentRegion.end(); ++currSegment)
             {
-                Point& lowPt = currRegion->lowPoint();
-                Point& highPt = currRegion->highPoint();
-                double newPos = currRegion->variable->finalPosition;
-                //printf("Pos: %X, %g\n", (int) currRegion->connRef, newPos);
+                Point& lowPt = currSegment->lowPoint();
+                Point& highPt = currSegment->highPoint();
+                double newPos = currSegment->variable->finalPosition;
+                printf("Pos: %X, %g\n", (int) currSegment->connRef, newPos);
                 lowPt[dimension] = newPos;
                 highPt[dimension] = newPos;
             }
