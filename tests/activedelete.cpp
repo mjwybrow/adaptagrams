@@ -6,6 +6,7 @@ int main(void) {
     Rectangle rect548374163(Point(51900, 50400), Point(52300, 50900));
     ShapeRef *shapeRef548374163 = new ShapeRef(router, rect548374163, 548374163);
     router->addShape(shapeRef548374163);
+    router->processTransaction();
     router->removeShape(shapeRef548374163);
     router->processTransaction();
     delete router;

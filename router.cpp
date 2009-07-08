@@ -165,8 +165,11 @@ Router::~Router()
     {
         ShapeRef *shapePtr = *shape;
         db_printf("Deleting shape %u in ~Router()\n", shapePtr->id());
-        shapePtr->removeFromGraph();
-        shapePtr->makeInactive();
+        if (shapePtr->isActive())
+        {
+            shapePtr->removeFromGraph();
+            shapePtr->makeInactive();
+        }
         delete shapePtr;
         shape = shapeRefs.begin();
     }
@@ -219,6 +222,19 @@ void Router::modifyConnector(ConnRef *conn)
     if (!_consolidateActions)
     {
         processTransaction();
+    }
+}
+
+
+void Router::removeQueuedConnectorActions(ConnRef *conn)
+{
+    ActionInfo modInfo(ConnChange, conn);
+
+    ActionInfoList::iterator found = 
+            find(actionList.begin(), actionList.end(), modInfo);
+    if (found != actionList.end())
+    {
+        actionList.erase(found);
     }
 }
 
@@ -1351,7 +1367,7 @@ void Router::outputInstanceToSVG(void)
     fprintf(fp, "    Router *router = new Router(OrthogonalRouting);\n");
     for (size_t p = 0; p < lastPenaltyMarker; ++p)
     {
-        fprintf(fp, "    router->setRoutingPenalty(%lu, %g);\n", 
+        fprintf(fp, "    router->setRoutingPenalty((PenaltyType)%lu, %g);\n", 
                 p, _routingPenalties[p]);
     }
     fprintf(fp, "    router->setOrthogonalNudgeDistance(%g);\n",
@@ -1369,10 +1385,10 @@ void Router::outputInstanceToSVG(void)
         fprintf(fp, "    router->addShape(shapeRef%u);\n", shRef->id());
         ++shRefIt;
     }
-    ConnRefList::iterator connRefIt = connRefs.begin();
-    while (connRefIt != connRefs.end())
+    ConnRefList::reverse_iterator revConnRefIt = connRefs.rbegin();
+    while (revConnRefIt != connRefs.rend())
     {
-        ConnRef *connRef = *connRefIt;
+        ConnRef *connRef = *revConnRefIt;
         fprintf(fp, "    ConnEnd srcPt%u(Point(%g, %g), %u);\n",
                 connRef->id(), connRef->src()->point.x,
                 connRef->src()->point.y, connRef->src()->visDirections);
@@ -1381,7 +1397,7 @@ void Router::outputInstanceToSVG(void)
                 connRef->dst()->point.y, connRef->dst()->visDirections);
         fprintf(fp, "    new ConnRef(router, srcPt%u, dstPt%u, %u);\n",
                 connRef->id(), connRef->id(), connRef->id());
-        ++connRefIt;
+        ++revConnRefIt;
     }
     fprintf(fp, "    router->processTransaction();\n");
     fprintf(fp, "    router->outputInstanceToSVG();\n");
@@ -1411,7 +1427,7 @@ void Router::outputInstanceToSVG(void)
             "inkscape:label=\"RawConnectors\""
             " style=\"display: none;\""
             ">\n");
-    connRefIt = connRefs.begin();
+    ConnRefList::iterator connRefIt = connRefs.begin();
     while (connRefIt != connRefs.end())
     {
         ConnRef *connRef = *connRefIt;

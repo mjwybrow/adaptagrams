@@ -168,7 +168,13 @@ void ShapeRef::makeInactive(void)
     
     _active = false;
 }
-    
+
+
+bool ShapeRef::isActive(void) const
+{
+    return _active;
+}
+
 
 VertInf *ShapeRef::firstVert(void)
 {
