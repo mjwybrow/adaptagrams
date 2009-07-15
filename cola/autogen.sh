@@ -5,6 +5,7 @@
 # The following sequence builds from scratch:
 aclocal $ACLOCAL_FLAGS
 #libtoolize
+autoheader
 autoconf
 automake -a --add-missing
 ./configure
