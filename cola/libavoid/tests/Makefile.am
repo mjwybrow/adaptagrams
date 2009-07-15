@@ -1,33 +1,27 @@
 INCLUDES = -I$(top_srcdir)
+
+LDADD = $(top_builddir)/libavoid/libavoid.a
+
 check_PROGRAMS = example complex multiconnact inline infinity latesetup \
 	inlineoverlap nudgeintobug activedelete
 
 example_SOURCES = example.cpp
-example_LDADD = $(top_builddir)/libavoid/libavoid.a 
 
 multiconnact_SOURCES = multiconnact.cpp
-multiconnact_LDADD = $(top_builddir)/libavoid/libavoid.a 
 
 complex_SOURCES = complex.cpp
-complex_LDADD = $(top_builddir)/libavoid/libavoid.a 
 
 inline_SOURCES = inline.cpp
-inline_LDADD = $(top_builddir)/libavoid/libavoid.a 
 
 infinity_SOURCES = infinity.cpp
-infinity_LDADD = $(top_builddir)/libavoid/libavoid.a 
 
 latesetup_SOURCES = latesetup.cpp
-latesetup_LDADD = $(top_builddir)/libavoid/libavoid.a 
 
 inlineoverlap_SOURCES = inlineoverlap.cpp
-inlineoverlap_LDADD = $(top_builddir)/libavoid/libavoid.a 
 
 nudgeintobug_SOURCES = nudgeintobug.cpp
-nudgeintobug_LDADD = $(top_builddir)/libavoid/libavoid.a 
 
 activedelete_SOURCES = activedelete.cpp
-activedelete_LDADD = $(top_builddir)/libavoid/libavoid.a 
 
 TESTS = $(check_PROGRAMS)
 
