@@ -20,6 +20,7 @@ using namespace vpsc;
 using namespace topology;
 %}
 
+%ignore Avoid::Point::operator[];
 %ignore cola::PreIteration::operator();
 //%ignore cola::TestConvergence::operator();
 %ignore operator<<(std::ostream &os, vpsc::Rectangle const &r);
