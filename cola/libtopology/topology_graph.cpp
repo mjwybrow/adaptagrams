@@ -30,8 +30,10 @@
 #include "topology_log.h"
 #include "topology_graph.h"
 #include "topology_constraints.h"
+
 using namespace std;
-using vpsc::Rectangle;
+
+
 namespace topology {
 
 void setNodeVariables(Nodes& ns, std::vector<vpsc::Variable*>& vs) {
@@ -446,16 +448,17 @@ struct NoIntersection {
             }
             double sx=s->start->posX(), sy=s->start->posY(),
                    ex=s->end->posX(), ey=s->end->posY();
-            double xBorder=Rectangle::xBorder, yBorder=Rectangle::yBorder;
-            Rectangle::setXBorder(xBorder-1e-6);
-            Rectangle::setYBorder(yBorder-1e-6);
+            double xBorder=vpsc::Rectangle::xBorder;
+            double yBorder=vpsc::Rectangle::yBorder;
+            vpsc::Rectangle::setXBorder(xBorder-1e-6);
+            vpsc::Rectangle::setYBorder(yBorder-1e-6);
             if((*v)->rect->overlaps(sx,sy,ex,ey)) {
                 printf("ERROR: Segment on edge id=%d overlaps Node id=%d\n",
                         s->edge->id,(*v)->id);
                 assert(false);
             }
-            Rectangle::setXBorder(xBorder);
-            Rectangle::setYBorder(yBorder);
+            vpsc::Rectangle::setXBorder(xBorder);
+            vpsc::Rectangle::setYBorder(yBorder);
         }
     }
     const Nodes& vs;
