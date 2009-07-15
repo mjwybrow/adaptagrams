@@ -1,5 +1,6 @@
 AC_INIT(libcola,0.1)
 AC_CONFIG_SRCDIR(libcola/cola.h)
+AM_CONFIG_HEADER(libcola/config.h)
 AM_INIT_AUTOMAKE
 AC_PROG_RANLIB
 #AC_PROG_LIBTOOL
@@ -46,10 +47,14 @@ fi
 
 #AC_CHECK_LIB(cairomm-1.0,cairo_create)
 PKG_CHECK_MODULES(CAIROMM,cairomm-1.0,cairomm=yes,cairomm=no)
-if test "x$cairomm" = "xno"; then
-	AC_MSG_ERROR([libcairomm-1.0 not installed!])
+if test "x$cairomm" = "xyes"; then
+	AC_DEFINE(HAVE_CAIROMM, 1, [Enable CairoMM code])
 fi
 AC_SUBST(CAIROMM_CFLAGS)
 AC_SUBST(CAIROMM_LIBS)
+
+AH_BOTTOM([ 
+  
+])
 
 AC_OUTPUT(Makefile libcola/Makefile libcola/tests/Makefile libvpsc/Makefile libvpsc/tests/Makefile libproject/Makefile libproject/tests/Makefile libtopology/Makefile libtopology/tests/Makefile libavoid/Makefile libavoid/tests/Makefile)

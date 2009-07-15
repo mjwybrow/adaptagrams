@@ -25,9 +25,15 @@
 
 #ifndef _OUTPUT_SVG_H
 #define _OUTPUT_SVG_H
+
+#include "config.h"
 #include "cola.h"
+
+#ifdef HAVE_CAIROMM
 #include <cairomm/context.h>
 #include <cairomm/surface.h>
+#endif
+
 class OutputFile {
 public:
 	std::vector<vpsc::Rectangle*> const &rs;
@@ -62,6 +68,7 @@ public:
         }
 	}
 private:
+#ifdef HAVE_CAIROMM
 	void draw_cluster_boundary(Cairo::RefPtr<Cairo::Context> const &cr, 
         cola::Cluster &c, const double xmin, const double ymin);
 	void draw_edges(Cairo::RefPtr<Cairo::Context> &cr, 
@@ -72,7 +79,10 @@ private:
 		const double xmin, 
 		const double ymin);
 	void openCairo(Cairo::RefPtr<Cairo::Context> &cr, double width, double height);
+#endif // HAVE_CAIROMM
     std::vector<std::string> labels;
 };
+
+
 #endif // _OUTPUT_SVG_H
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:encoding=utf-8:textwidth=99 :

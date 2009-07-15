@@ -26,10 +26,12 @@
 #include <string>
 #include <iostream>
 #include <sstream>
+#include <list>
 #include "output_svg.h"
+
+
 #include "cola.h"
 #include "straightener.h"
-#include <list>
 
 using namespace cola;
 using vpsc::Rectangle;
@@ -43,7 +45,7 @@ using std::vector;
 using std::list;
 
 void OutputFile::generate() {
-	unsigned E=es.size();
+    unsigned E=es.size();
     bool cleanupRoutes=false;
     if(routes==NULL) {
         cleanupRoutes=true;
@@ -57,8 +59,8 @@ void OutputFile::generate() {
             (*routes)[i]=r;
         }
     }
-#if defined (CAIRO_HAS_SVG_SURFACE) && defined (CAIRO_HAS_PDF_SURFACE)
 
+#if defined (CAIRO_HAS_SVG_SURFACE) && defined (CAIRO_HAS_PDF_SURFACE)
     double width,height,r=2;
 	if(rects) r=rs[0]->width()/2;
 	double xmin=DBL_MAX, ymin=xmin;
@@ -138,9 +140,11 @@ void OutputFile::generate() {
     std::cout << "Wrote file \"" << fname << "\"" << std::endl;
 
 #else
-
-    std::cout << "You must compile cairo with SVG support for this to work."
-        << std::endl;
+    std::cout << 
+            "WARNING: cola::OutputFile::generate(): No SVG file produced." <<
+            std::endl <<
+            "         You must have cairomm (and cairo with SVG support) " <<
+            "this to work." << std::endl;
 #endif
 
     if(cleanupRoutes) {
@@ -151,6 +155,7 @@ void OutputFile::generate() {
     }
 }
 
+#ifdef HAVE_CAIROMM
 void OutputFile::draw_cluster_boundary(Cairo::RefPtr<Cairo::Context> const &cr,
         Cluster &c,
         const double xmin,
@@ -387,5 +392,6 @@ void OutputFile::openCairo(Cairo::RefPtr<Cairo::Context> &cr, double width, doub
     }
 }
 
+#endif // HAVE_CAIROMM
 
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:encoding=utf-8:textwidth=99 :
