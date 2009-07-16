@@ -32,7 +32,7 @@ cola_wrap.o: swig-worked
 cola.jnilib: cola_wrap.o
 	$(LINK) cola_wrap.o libcola/libcola.a libtopology/libtopology.a libavoid/libavoid.a libvpsc/libvpsc.a
 
-colajava.jar: colajava swig-worked
+colajava.jar: swig-worked
 	jar -cf colajava.jar colajava
 
 realclean: clean
