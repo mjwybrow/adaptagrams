@@ -40,6 +40,7 @@
 #include <sstream>
 #include <map>
 #include <cfloat>
+#include <cstdio>
 
 #include "libavoid/vpsc.h"
 

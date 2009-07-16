@@ -30,6 +30,7 @@
 #include <set>
 #include <map>
 #include <iostream>
+#include <cstdio>
 
 #include "libavoid/geomtypes.h"
 
