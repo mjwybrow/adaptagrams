@@ -272,7 +272,10 @@ struct Node
         while (curr)
         {
             // There might be a larger shape after this one in the ordering.
-            firstAbovePos = std::max(curr->max[dim], firstAbovePos);
+            if (curr->max[dim] < min[dim])
+            {
+                firstAbovePos = std::max(curr->max[dim], firstAbovePos);
+            }
             curr = curr->firstAbove;
         }
         
@@ -298,7 +301,10 @@ struct Node
         while (curr)
         {
             // There might be a larger shape after this one in the ordering.
-            firstBelowPos = std::min(curr->min[dim], firstBelowPos);
+            if (curr->min[dim] > max[dim])
+            {
+                firstBelowPos = std::min(curr->min[dim], firstBelowPos);
+            }
             curr = curr->firstBelow;
         }
 
@@ -1046,12 +1052,18 @@ static void processEventVert(Router *router, NodeSet& scanline,
                             Point(maxShape, lineY));
                 
                 // There are no overlapping shapes, so give full visibility.
-                segments.insert(LineSegment(minLimit, minShape, lineY,
-                            true, NULL, vI1));
+                if (minLimit < minShape)
+                {
+                    segments.insert(LineSegment(minLimit, minShape, lineY,
+                                true, NULL, vI1));
+                }
                 segments.insert(LineSegment(minShape, maxShape, lineY, 
                             true, vI1, vI2));
-                segments.insert(LineSegment(maxShape, maxLimit, lineY,
-                            true, vI2, NULL));
+                if (maxShape < maxLimit)
+                {
+                    segments.insert(LineSegment(maxShape, maxLimit, lineY,
+                                true, vI2, NULL));
+                }
             }
             else
             {
