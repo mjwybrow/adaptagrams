@@ -240,11 +240,15 @@ struct Node
         }
     }
     bool findFirstPointAboveAndBelow(const size_t dim, double& firstAbovePos,
-            double& firstBelowPos)
+            double& firstBelowPos, double& lastAbovePos, double& lastBelowPos)
     {
         bool clearVisibility = true;
         firstAbovePos = -DBL_MAX;
         firstBelowPos = DBL_MAX;
+        // We start looking left from the right side of the shape, 
+        // and vice versa. 
+        lastAbovePos = max[dim];
+        lastBelowPos = min[dim];
 
         // Find the first blocking edge above this point.  Don't count the
         // edges as we are travelling out of shapes we are inside, but then
@@ -252,12 +256,24 @@ struct Node
         Node *curr = firstAbove;
         while (curr && (curr->max[dim] > min[dim]))
         {
+            lastAbovePos = std::min(curr->min[dim], lastAbovePos);
+            if ((curr->max[dim] >= min[dim]) && (curr->max[dim] <= max[dim]))
+            {
+                lastAbovePos = std::min(curr->max[dim], lastAbovePos);
+            }
+            lastBelowPos = std::max(curr->max[dim], lastBelowPos);
             clearVisibility = false;
             curr = curr->firstAbove;
         }
         if (curr)
         {
             firstAbovePos = curr->max[dim];
+        }
+        while (curr)
+        {
+            // There might be a larger shape after this one in the ordering.
+            firstAbovePos = std::max(curr->max[dim], firstAbovePos);
+            curr = curr->firstAbove;
         }
         
         // Find the first blocking edge below this point.  Don't count the
@@ -266,12 +282,24 @@ struct Node
         curr = firstBelow;
         while (curr && (curr->min[dim] < max[dim]))
         {
+            lastBelowPos = std::max(curr->max[dim], lastBelowPos);
+            if ((curr->min[dim] >= min[dim]) && (curr->min[dim] <= max[dim]))
+            {
+                lastBelowPos = std::max(curr->min[dim], lastBelowPos);
+            }
+            lastAbovePos = std::min(curr->min[dim], lastAbovePos);
             clearVisibility = false;
             curr = curr->firstBelow;
         }
         if (curr)
         {
             firstBelowPos = curr->min[dim];
+        }
+        while (curr)
+        {
+            // There might be a larger shape after this one in the ordering.
+            firstBelowPos = std::min(curr->min[dim], firstBelowPos);
+            curr = curr->firstBelow;
         }
 
         return clearVisibility;
@@ -996,29 +1024,48 @@ static void processEventVert(Router *router, NodeSet& scanline,
     {
         if ((e->type == Open) || (e->type == Close))
         {
-            // Shape corners.
+            // Shape edge positions.
             double minShape = v->min[0];
             double maxShape = v->max[0];
             // As far as we can see.
             double minLimit, maxLimit;
-            v->findFirstPointAboveAndBelow(0, minLimit, maxLimit);
+            double minLimitMax, maxLimitMin;
+            v->findFirstPointAboveAndBelow(0, minLimit, maxLimit,
+                    minLimitMax, maxLimitMin);
 
             // Only difference between Open and Close is whether the line
             // segments are at the top or bottom of the shape.  Decide here.
             double lineY = (e->type == Open) ? v->min[1] : v->max[1];
 
-            // Insert possible visibility segments.
-            VertInf *vI1 = new VertInf(router, dummyOrthogID, 
-                        Point(minShape, lineY));
-            VertInf *vI2 = new VertInf(router, dummyOrthogID, 
-                        Point(maxShape, lineY));
+            if (minLimitMax >= maxLimitMin)
+            {
+                // Insert possible visibility segments.
+                VertInf *vI1 = new VertInf(router, dummyOrthogID, 
+                            Point(minShape, lineY));
+                VertInf *vI2 = new VertInf(router, dummyOrthogID, 
+                            Point(maxShape, lineY));
                 
-            segments.insert(LineSegment(minLimit, minShape, lineY,
-                        true, NULL, vI1));
-            segments.insert(LineSegment(minShape, maxShape, lineY, 
-                        true, vI1, vI2));
-            segments.insert(LineSegment(maxShape, maxLimit, lineY,
-                        true, vI2, NULL));
+                // There are no overlapping shapes, so give full visibility.
+                segments.insert(LineSegment(minLimit, minShape, lineY,
+                            true, NULL, vI1));
+                segments.insert(LineSegment(minShape, maxShape, lineY, 
+                            true, vI1, vI2));
+                segments.insert(LineSegment(maxShape, maxLimit, lineY,
+                            true, vI2, NULL));
+            }
+            else
+            {
+                if ((minLimitMax > minLimit) && (minLimitMax >= minShape))
+                {
+                    segments.insert(LineSegment(minLimit, minLimitMax, lineY,
+                                true, NULL, NULL));
+                }
+                if ((maxLimitMin < maxLimit) && (maxLimitMin <= maxShape))
+                {
+                    segments.insert(LineSegment(maxLimitMin, maxLimit, lineY,
+                                true, NULL, NULL));
+                }
+            }
         }
         else if (e->type == ConnPoint)
         {
@@ -1137,16 +1184,39 @@ static void processEventHori(Router *router, NodeSet& scanline,
     {
         if ((e->type == Open) || (e->type == Close))
         {
+            // Shape edge positions.
+            double minShape = v->min[1];
+            double maxShape = v->max[1];
             // As far as we can see.
             double minLimit, maxLimit;
-            v->findFirstPointAboveAndBelow(1, minLimit, maxLimit);
+            double minLimitMax, maxLimitMin;
+            v->findFirstPointAboveAndBelow(1, minLimit, maxLimit,
+                    minLimitMax, maxLimitMin);
 
             // Only difference between Open and Close is whether the line
             // segments are at the left or right of the shape.  Decide here.
             double lineX = (e->type == Open) ? v->min[0] : v->max[0];
 
-            LineSegment vertSeg = LineSegment(minLimit, maxLimit, lineX);
-            segments.insert(vertSeg);
+            if (minLimitMax >= maxLimitMin)
+            {
+                LineSegment vertSeg = LineSegment(minLimit, maxLimit, lineX);
+                segments.insert(vertSeg);
+            }
+            else
+            {
+                if ((minLimitMax > minLimit) && (minLimitMax >= minShape))
+                {
+                    LineSegment vertSeg = 
+                            LineSegment(minLimit, minLimitMax, lineX);
+                    segments.insert(vertSeg);
+                }
+                if ((maxLimitMin < maxLimit) && (maxLimitMin <= maxShape))
+                {
+                    LineSegment vertSeg = 
+                            LineSegment(maxLimitMin, maxLimit, lineX);
+                    segments.insert(vertSeg);
+                }
+            }
         }
         else if (e->type == ConnPoint)
         {
