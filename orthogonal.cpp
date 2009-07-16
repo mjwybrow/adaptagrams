@@ -1946,7 +1946,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                 Point& lowPt = currSegment->lowPoint();
                 Point& highPt = currSegment->highPoint();
                 double newPos = currSegment->variable->finalPosition;
-                printf("Pos: %X, %g\n", (int) currSegment->connRef, newPos);
+                //printf("Pos: %X, %g\n", (int) currSegment->connRef, newPos);
                 lowPt[dimension] = newPos;
                 highPt[dimension] = newPos;
             }
