@@ -1,5 +1,5 @@
 
-OSNAME:=$(shell uname -s)
+OSNAME:=$(shell uname -s | sed 's/_.*//')
 
 ifeq ($(OSNAME),Darwin)
 	JAVA_INCLUDE = -I/System/Library/Frameworks/JavaVM.framework/Headers
@@ -8,6 +8,10 @@ else ifeq ($(OSNAME),Linux)
 	JAVA_INCLUDE = -I/usr/lib/jvm/java-6-sun-1.6.0.06/include \
 		       -I/usr/lib/jvm/java-6-sun-1.6.0.06/include/linux
 	LINK = g++ -shared -o libcolajni.so
+else ifeq ($(OSNAME),MINGW32)
+	JAVA_INCLUDE = -I/d/Programme/Java/jdk1.6.0_13/include \
+		       -I/d/Programme/Java/jdk1.6.0_13/include/win32
+	LINK = g++ -Wl,--add-stdcall-alias -shared -o cola.dll
 endif
 
 all: cola.jnilib colajava.jar
