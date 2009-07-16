@@ -3,7 +3,6 @@
 
 %{
 #include <vector>
-#include <list>
 #include <libvpsc/rectangle.h>
 #include <libcola/cola.h>
 #include <libcola/cluster.h>
@@ -54,10 +53,9 @@ using namespace topology;
 
 %include "std_vector.i"
 %include "std_pair.i"
-%include "std_list.i"
 
 %template(AlignmentConstraintPair) std::pair<cola::AlignmentConstraint *, cola::AlignmentConstraint *>;
-%template(AlignmentConstraintPairList) std::list<std::pair<cola::AlignmentConstraint *, cola::AlignmentConstraint *> >; 
+%template(AlignmentConstraintPairList) std::vector<std::pair<cola::AlignmentConstraint *, cola::AlignmentConstraint *> >; 
 %template(EdgeVector) std::vector<cola::Edge>;
 %template(ColaEdge) std::pair<unsigned,unsigned>;
 %template(OffsetPair) std::pair<unsigned,double>;
