@@ -75,6 +75,11 @@ void shapeVis(ShapeRef *shape)
         db_printf("\tFirst Half:\n");
         for (VertInf *j = pointsBegin ; j != curr; j = j->lstNext)
         {
+            if (j->id == dummyOrthogID)
+            {
+                // Don't include orthogonal dummy vertices.
+                continue;
+            }
             EdgeInf::checkEdgeVisibility(curr, j, knownNew);
         }
 
@@ -82,6 +87,11 @@ void shapeVis(ShapeRef *shape)
         VertInf *pointsEnd = router->vertices.end();
         for (VertInf *k = shapeEnd; k != pointsEnd; k = k->lstNext)
         {
+            if (k->id == dummyOrthogID)
+            {
+                // Don't include orthogonal dummy vertices.
+                continue;
+            }
             EdgeInf::checkEdgeVisibility(curr, k, knownNew);
         }
     }
@@ -137,6 +147,11 @@ void vertexVisibility(VertInf *point, VertInf *partner, bool knownNew,
         for (VertInf *k = router->vertices.shapesBegin(); k != shapesEnd;
                 k = k->lstNext)
         {
+            if (k->id == dummyOrthogID)
+            {
+                // Don't include orthogonal dummy vertices.
+                continue;
+            }
             EdgeInf::checkEdgeVisibility(point, k, knownNew);
         }
         if (partner)
