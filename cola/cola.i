@@ -54,6 +54,7 @@ using namespace topology;
 %include "std_vector.i"
 %include "std_pair.i"
 
+%template(UnsatisfiableConstrainInfos) std::vector<cola::UnsatisfiableConstraintInfo *>;
 %template(AlignmentConstraintPair) std::pair<cola::AlignmentConstraint *, cola::AlignmentConstraint *>;
 %template(AlignmentConstraintPairList) std::vector<std::pair<cola::AlignmentConstraint *, cola::AlignmentConstraint *> >; 
 %template(EdgeVector) std::vector<cola::Edge>;
@@ -99,10 +100,10 @@ void deleteDoubleArray(double* a) {
 
 /* Parse the header file to generate wrappers */
 %include "libvpsc/rectangle.h"
+%include "libcola/compound_constraints.h"
 %include "libcola/cola.h"
 %include "libcola/cluster.h"
 %include "libcola/convex_hull.h"
-%include "libcola/compound_constraints.h"
 %include "libcola/exceptions.h"
 %include "libtopology/topology_graph.h"
 
