@@ -54,7 +54,7 @@ using namespace topology;
 %include "std_vector.i"
 %include "std_pair.i"
 
-%template(UnsatisfiableConstrainInfos) std::vector<cola::UnsatisfiableConstraintInfo *>;
+%template(UnsatisfiableConstraintInfoVector) std::vector<cola::UnsatisfiableConstraintInfo *>;
 %template(AlignmentConstraintPair) std::pair<cola::AlignmentConstraint *, cola::AlignmentConstraint *>;
 %template(AlignmentConstraintPairList) std::vector<std::pair<cola::AlignmentConstraint *, cola::AlignmentConstraint *> >; 
 %template(EdgeVector) std::vector<cola::Edge>;

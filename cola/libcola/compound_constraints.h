@@ -255,7 +255,8 @@ private:
  * Info about constraints that could not be satisfied in gradient projection
  * process
  */
-struct UnsatisfiableConstraintInfo {
+class UnsatisfiableConstraintInfo {
+public:
     UnsatisfiableConstraintInfo(const vpsc::Constraint* c);
     unsigned vlid, vrid;
     double gap;
