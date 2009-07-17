@@ -467,6 +467,12 @@ int EdgeInf::firstBlocker(void)
     for (VertInf *k = _router->vertices.shapesBegin(); k != last; )
     {
         VertID kID = k->id;
+        if (k->id == dummyOrthogID)
+        {
+            // Don't include orthogonal dummy vertices.
+            k = k->lstNext;
+            continue;
+        }
         if (kID.objID != lastId)
         {
             if ((ss.find(kID.objID) != ss.end()))
@@ -533,6 +539,11 @@ VertInf *EdgeInf::otherVert(VertInf *vert)
 
 EdgeInf *EdgeInf::checkEdgeVisibility(VertInf *i, VertInf *j, bool knownNew)
 {
+    // This is for polyline routing, so check we're not 
+    // considering orthogonal vertices.
+    assert(i->id != dummyOrthogID);
+    assert(j->id != dummyOrthogID);
+    
     Router *router = i->_router;
     EdgeInf *edge = NULL;
 

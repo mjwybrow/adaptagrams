@@ -843,7 +843,7 @@ bool ConnRef::generatePath(void)
     int j = pathlen - 1;
     for (VertInf *i = tar; i != _srcVert; i = i->pathNext)
     {
-        if (_router->InvisibilityGrph && _router->_polyLineRouting)
+        if (_router->InvisibilityGrph && (_type == ConnType_PolyLine))
         {
             // TODO: Again, we could know this edge without searching.
             EdgeInf *edge = EdgeInf::existingEdge(i, i->pathNext);
