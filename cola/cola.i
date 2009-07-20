@@ -54,11 +54,17 @@ using namespace topology;
 %include "std_vector.i"
 %include "std_pair.i"
 
-%typemap(throws, throws="java.lang.Exception") cola::InvalidVariableIndexException {
-   jclass excep = jenv->FindClass("java/lang/Exception");
+%typemap(throws, throws="ColaException") InvalidVariableIndexException {
+   jclass excep = jenv->FindClass("ColaException");
    if (excep)
-       jenv->ThrowNew(excep, $1.what());
+       jenv->ThrowNew(excep, $1.what().c_str());
    return $null;
+}
+%typemap(javabase) cola::ColaException "java.lang.Exception";
+%typemap(javacode) cola::ColaException {
+  public String getMessage() {
+    return what();
+  }
 }
 
 %template(UnsatisfiableConstraintInfoVector) std::vector<cola::UnsatisfiableConstraintInfo *>;

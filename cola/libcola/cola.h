@@ -37,6 +37,7 @@
 #include "gradient_projection.h"
 #include "cluster.h"
 #include "straightener.h"
+#include "exceptions.h"
 
 namespace vpsc { class Rectangle; }
 namespace topology { 

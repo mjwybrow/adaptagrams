@@ -25,6 +25,9 @@
 
 #ifndef SEEN_LIBCOLA_EXCEPTIONS_H
 #define SEEN_LIBCOLA_EXCEPTIONS_H
+#include <string>
+#include <sstream>
+
 namespace cola {
 class CompoundConstraint;
 
@@ -32,6 +35,36 @@ struct InvalidConstraint {
 	InvalidConstraint(CompoundConstraint *c):constraint(c) {}
 	CompoundConstraint *constraint;
 };
+
+
+class InvalidVariableIndexException
+{
+public:
+    InvalidVariableIndexException(CompoundConstraint *c, unsigned i) 
+        : constraint(c),
+          index(i)
+    { }
+    std::string what() const throw()
+    {
+        std::stringstream s;
+        s << index;
+        return "Invalid variable index: " + s.str();
+    }
+    CompoundConstraint *constraint;
+    unsigned index;
+};
+
+
+class ColaException {
+    public:
+        ColaException(const std::string& msg) : message(msg) {}
+        std::string what() {
+            return message;
+        }
+    private:
+      std::string message;
+};
+
 
 } // namespace cola
 #endif //SEEN_LIBCOLA_EXCEPTIONS_H

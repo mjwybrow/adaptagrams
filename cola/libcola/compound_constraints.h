@@ -26,7 +26,6 @@
 #ifndef _COMPOUND_CONSTRAINTS_H
 #define _COMPOUND_CONSTRAINTS_H
 #include <vector>
-#include <exception>
 #include "sparse_matrix.h"
 
 namespace vpsc {
@@ -77,21 +76,6 @@ protected:
             const unsigned index);
 };
 typedef std::vector<CompoundConstraint*> CompoundConstraints;
-
-class InvalidVariableIndexException: public std::exception
-{
-    public:
-    InvalidVariableIndexException(CompoundConstraint *c, unsigned i) 
-        : constraint(c),
-          index(i)
-    { }
-    virtual const char* what() const throw()
-    {
-        return "Invalid variable index";
-    }
-    CompoundConstraint *constraint;
-    unsigned index;
-};
 
 
 /**
