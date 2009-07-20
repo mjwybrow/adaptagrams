@@ -414,7 +414,8 @@ public:
         const double* eLengths=NULL,
         TestConvergence& done=defaultTest,
         PreIteration* preIteration=NULL);
-    void run(bool x=true, bool y=true);
+    void run(bool x=true, bool y=true) 
+            throw(InvalidVariableIndexException);
     void runOnce(bool x=true, bool y=true);
     /**
      * Horizontal alignment constraints

@@ -222,7 +222,8 @@ void ConstrainedFDLayout::computeDescentVectorOnBothAxes(
  * done is a callback used to check stress but also to report updated 
  * positions.
  */
-void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis) {
+void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis) 
+        throw(InvalidVariableIndexException) {
     FILE_LOG(logDEBUG) << "ConstrainedFDLayout::run...";
     if(n==0) return;
     double stress=DBL_MAX;

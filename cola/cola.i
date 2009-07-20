@@ -54,6 +54,13 @@ using namespace topology;
 %include "std_vector.i"
 %include "std_pair.i"
 
+%typemap(throws, throws="java.lang.Exception") cola::InvalidVariableIndexException {
+   jclass excep = jenv->FindClass("java/lang/Exception");
+   if (excep)
+       jenv->ThrowNew(excep, $1.what());
+   return $null;
+}
+
 %template(UnsatisfiableConstraintInfoVector) std::vector<cola::UnsatisfiableConstraintInfo *>;
 %template(AlignmentConstraintPair) std::pair<cola::AlignmentConstraint *, cola::AlignmentConstraint *>;
 %template(AlignmentConstraintPairList) std::vector<std::pair<cola::AlignmentConstraint *, cola::AlignmentConstraint *> >; 
@@ -87,7 +94,6 @@ void deleteDoubleArray(double* a) {
    delete a;
 }
 %}
-
 
 %rename(testoperator) cola::TestConvergence::operator();
 
@@ -148,3 +154,5 @@ void deleteDoubleArray(double* a) {
 %include "libvpsc/solve_VPSC.h"
 %include "libvpsc/variable.h"
 */
+
+
