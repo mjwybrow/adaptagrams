@@ -26,6 +26,7 @@
 #ifndef _COMPOUND_CONSTRAINTS_H
 #define _COMPOUND_CONSTRAINTS_H
 #include <vector>
+#include <exception>
 #include "sparse_matrix.h"
 
 namespace vpsc {
@@ -37,6 +38,7 @@ namespace vpsc {
 namespace cola {
 
 typedef std::vector<std::pair<unsigned,double> > OffsetList;
+
 
 /** 
  * A compound constraint is a conceptual, diagramming application oriented
@@ -69,8 +71,28 @@ public:
      */
     virtual void updatePosition() {};
     virtual ~CompoundConstraint() {}
+    
+protected:
+    void assertValidVariableIndex(const vpsc::Variables& vars, 
+            const unsigned index);
 };
 typedef std::vector<CompoundConstraint*> CompoundConstraints;
+
+class InvalidVariableIndexException: public std::exception
+{
+    public:
+    InvalidVariableIndexException(CompoundConstraint *c, unsigned i) 
+        : constraint(c),
+          index(i)
+    { }
+    virtual const char* what() const throw()
+    {
+        return "Invalid variable index";
+    }
+    CompoundConstraint *constraint;
+    unsigned index;
+};
+
 
 /**
  * generate all the variables and constraints for a collection of CompoundConstraint

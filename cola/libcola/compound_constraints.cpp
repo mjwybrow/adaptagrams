@@ -51,6 +51,17 @@ void generateVariablesAndConstraints(CompoundConstraints& ccs, vpsc::Variables& 
 	for_each(ccs.begin(),ccs.end(),GenerateVariables(vars));
 	for_each(ccs.begin(),ccs.end(),GenerateSeparationConstraints(vars,cs));
 }
+
+void CompoundConstraint::assertValidVariableIndex(const vpsc::Variables& vars, 
+        const unsigned index)
+{
+    if (index > vars.size())
+    {
+        throw InvalidVariableIndexException(this, index);
+    }
+}
+
+
 void BoundaryConstraint::
 generateSeparationConstraints( vpsc::Variables& vars, vpsc::Constraints& cs) 
 {
@@ -76,6 +87,7 @@ generateVariables(vpsc::Variables& vars) {
     }
     vars.push_back(variable);
 }
+
 void AlignmentConstraint::
 generateSeparationConstraints(
             vpsc::Variables& vars, 
@@ -83,7 +95,7 @@ generateSeparationConstraints(
     assert(variable!=NULL);
     for(OffsetList::iterator o=offsets.begin();
             o!=offsets.end(); o++) {
-        assert(vars.size()>o->first);
+        assertValidVariableIndex(vars, o->first);
         cs.push_back(
                 new vpsc::Constraint(
                     variable,vars[o->first],o->second,true));
