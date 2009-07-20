@@ -51,6 +51,7 @@ using namespace topology;
 %ignore topology::compute_stress(const Edges&);
 %ignore topology::printEdges(const Edges&);
 
+%include "std_string.i"
 %include "std_vector.i"
 %include "std_pair.i"
 
@@ -61,11 +62,12 @@ using namespace topology;
    return $null;
 }
 %typemap(javabase) cola::ColaException "java.lang.Exception";
-%typemap(javacode) cola::ColaException {
+%typemap(javacode) cola::ColaException 
+%{
   public String getMessage() {
     return what();
   }
-}
+%}
 
 %template(UnsatisfiableConstraintInfoVector) std::vector<cola::UnsatisfiableConstraintInfo *>;
 %template(AlignmentConstraintPair) std::pair<cola::AlignmentConstraint *, cola::AlignmentConstraint *>;
