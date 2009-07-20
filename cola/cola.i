@@ -56,7 +56,7 @@ using namespace topology;
 %include "std_pair.i"
 
 %typemap(throws, throws="ColaException") InvalidVariableIndexException {
-   jclass excep = jenv->FindClass("ColaException");
+   jclass excep = jenv->FindClass("colajava/ColaException");
    if (excep)
        jenv->ThrowNew(excep, $1.what().c_str());
    return $null;
