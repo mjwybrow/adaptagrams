@@ -1372,21 +1372,20 @@ void Router::outputInstanceToSVG(void)
 
     fprintf(fp, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
     fprintf(fp, "<svg xmlns:inkscape=\"http://www.inkscape.org/namespaces/inkscape\" xmlns=\"http://www.w3.org/2000/svg\" width=\"100%%\" height=\"100%%\" viewBox=\"%g %g %g %g\">\n", minX, minY, maxX - minX, maxY - minY);
-    Avoid::EdgeList& visList = visOrthogGraph;
-    //router->visGraph : 
 
     // Output source code to generate this instance of the router.
     fprintf(fp, "<!-- Source code to generate this instance:\n");
     fprintf(fp, "#include \"libavoid/libavoid.h\"\n");
     fprintf(fp, "using namespace Avoid;\n");
     fprintf(fp, "int main(void) {\n");
-    fprintf(fp, "    Router *router = new Router(OrthogonalRouting);\n");
+    fprintf(fp, "    Router *router = new Router(\n");
+    fprintf(fp, "            PolyLineRouting | OrthogonalRouting);\n");
     for (size_t p = 0; p < lastPenaltyMarker; ++p)
     {
         fprintf(fp, "    router->setRoutingPenalty((PenaltyType)%lu, %g);\n", 
                 p, _routingPenalties[p]);
     }
-    fprintf(fp, "    router->setOrthogonalNudgeDistance(%g);\n",
+    fprintf(fp, "    router->setOrthogonalNudgeDistance(%g);\n\n",
             orthogonalNudgeDistance());
     ShapeRefList::iterator shRefIt = shapeRefs.begin();
     while (shRefIt != shapeRefs.end())
@@ -1398,7 +1397,7 @@ void Router::outputInstanceToSVG(void)
                 shRef->id(), minX, minY, maxX, maxY);
         fprintf(fp, "    ShapeRef *shapeRef%u = new ShapeRef(router, rect%u, "
                 "%u);\n", shRef->id(), shRef->id(), shRef->id());
-        fprintf(fp, "    router->addShape(shapeRef%u);\n", shRef->id());
+        fprintf(fp, "    router->addShape(shapeRef%u);\n\n", shRef->id());
         ++shRefIt;
     }
     ConnRefList::reverse_iterator revConnRefIt = connRefs.rbegin();
@@ -1411,7 +1410,11 @@ void Router::outputInstanceToSVG(void)
         fprintf(fp, "    ConnEnd dstPt%u(Point(%g, %g), %u);\n",
                 connRef->id(), connRef->dst()->point.x,
                 connRef->dst()->point.y, connRef->dst()->visDirections);
-        fprintf(fp, "    new ConnRef(router, srcPt%u, dstPt%u, %u);\n",
+        fprintf(fp, "    ConnRef *connRef%u = new ConnRef(router, %u);\n",
+                connRef->id(), connRef->id());
+        fprintf(fp, "    connRef%u->setRoutingType((ConnType)%u);\n", 
+                connRef->id(), connRef->routingType());
+        fprintf(fp, "    connRef%u->setEndpoints(srcPt%u, dstPt%u);\n\n",
                 connRef->id(), connRef->id(), connRef->id());
         ++revConnRefIt;
     }
@@ -1432,9 +1435,9 @@ void Router::outputInstanceToSVG(void)
         double minX, minY, maxX, maxY;
         shRef->polygon().getBoundingRect(&minX, &minY, &maxX, &maxY);
     
-        fprintf(fp, "<rect x=\"%g\" y=\"%g\" width=\"%g\" height=\"%g\" "
+        fprintf(fp, "<rect id=\"shape-%u\" x=\"%g\" y=\"%g\" width=\"%g\" height=\"%g\" "
                 "style=\"stroke-width: 1px; stroke: black; fill: blue; fill-opacity: 0.3;\" />\n",
-                minX, minY, maxX - minX, maxY - minY);
+                shRef->id(), minX, minY, maxX - minX, maxY - minY);
         ++shRefIt;
     }
     fprintf(fp, "</g>\n");
@@ -1451,7 +1454,8 @@ void Router::outputInstanceToSVG(void)
         PolyLine route = connRef->route();
         if (!route.empty())
         {
-            fprintf(fp, "<path d=\"M %g,%g ", route.ps[0].x, route.ps[0].y);
+            fprintf(fp, "<path id=\"raw-%u\" d=\"M %g,%g ", connRef->id(),
+                    route.ps[0].x, route.ps[0].y);
             for (size_t i = 1; i < route.size(); ++i)
             {
                 fprintf(fp, "L %g,%g ", route.ps[i].x, route.ps[i].y);
@@ -1479,7 +1483,8 @@ void Router::outputInstanceToSVG(void)
         PolyLine route = connRef->displayRoute();
         if (!route.empty())
         {
-            fprintf(fp, "<path d=\"M %g,%g ", route.ps[0].x, route.ps[0].y);
+            fprintf(fp, "<path id=\"disp-%u\" d=\"M %g,%g ", connRef->id(),
+                    route.ps[0].x, route.ps[0].y);
             for (size_t i = 1; i < route.size(); ++i)
             {
                 fprintf(fp, "L %g,%g ", route.ps[i].x, route.ps[i].y);
@@ -1497,9 +1502,73 @@ void Router::outputInstanceToSVG(void)
 
 
     fprintf(fp, "<g inkscape:groupmode=\"layer\" "
+            "inkscape:label=\"VisGraph\""
+            ">\n");
+    EdgeInf *finish = NULL;
+    fprintf(fp, "<g inkscape:groupmode=\"layer\" "
+            "inkscape:label=\"VisGraph-shape\""
+            ">\n");
+    finish = visGraph.end();
+    for (EdgeInf *t = visGraph.begin(); t != finish; t = t->lstNext)
+    {
+        std::pair<VertID, VertID> ids = t->ids();
+        bool isShape = (ids.first.isShape) && (ids.second.isShape);
+        if (!isShape)
+        {
+            continue;
+        }
+        std::pair<Point, Point> ptpair = t->points();
+        Point p1 = ptpair.first;
+        Point p2 = ptpair.second;
+        
+        reduceRange(p1.x);
+        reduceRange(p1.y);
+        reduceRange(p2.x);
+        reduceRange(p2.y);
+        
+        fprintf(fp, "<path d=\"M %g,%g L %g,%g\" "
+                "style=\"fill: none; stroke: %s; stroke-width: 1px;\" />\n", 
+                p1.x, p1.y, p2.x, p2.y,
+                (!(ids.first.isShape) || !(ids.second.isShape)) ? "green" : 
+                "red");
+    }
+    fprintf(fp, "</g>\n");
+
+    fprintf(fp, "<g inkscape:groupmode=\"layer\" "
+            "inkscape:label=\"VisGraph-conn\""
+            " style=\"display: none;\""
+            ">\n");
+    finish = visGraph.end();
+    for (EdgeInf *t = visGraph.begin(); t != finish; t = t->lstNext)
+    {
+        std::pair<VertID, VertID> ids = t->ids();
+        bool isShape = (ids.first.isShape) && (ids.second.isShape);
+        if (isShape)
+        {
+            continue;
+        }
+        std::pair<Point, Point> ptpair = t->points();
+        Point p1 = ptpair.first;
+        Point p2 = ptpair.second;
+        
+        reduceRange(p1.x);
+        reduceRange(p1.y);
+        reduceRange(p2.x);
+        reduceRange(p2.y);
+        
+        fprintf(fp, "<path d=\"M %g,%g L %g,%g\" "
+                "style=\"fill: none; stroke: %s; stroke-width: 1px;\" />\n", 
+                p1.x, p1.y, p2.x, p2.y,
+                (!(ids.first.isShape) || !(ids.second.isShape)) ? "green" : 
+                "red");
+    }
+    fprintf(fp, "</g>\n");
+    fprintf(fp, "</g>\n");
+
+    fprintf(fp, "<g inkscape:groupmode=\"layer\" "
             "inkscape:label=\"OrthogVisGraph\">\n");
-    EdgeInf *finish = visList.end();
-    for (EdgeInf *t = visList.begin(); t != finish; t = t->lstNext)
+    finish = visOrthogGraph.end();
+    for (EdgeInf *t = visOrthogGraph.begin(); t != finish; t = t->lstNext)
     {
         std::pair<Point, Point> ptpair = t->points();
         Point p1 = ptpair.first;
