@@ -47,8 +47,8 @@ public:
     std::string what() const throw()
     {
         std::stringstream s;
-        s << index;
-        return "Invalid variable index: " + s.str();
+        s << "Invalid variable index: " << index;
+        return s.str();
     }
     CompoundConstraint *constraint;
     unsigned index;

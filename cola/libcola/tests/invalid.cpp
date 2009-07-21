@@ -61,18 +61,13 @@ int main() {
 	AlignmentConstraint ac(1);
 	ccsy.push_back(&ac);
 	ac.offsets.push_back(make_pair((unsigned)0,(double)0));
-	ac.offsets.push_back(make_pair((unsigned)1,(double)0));
-	ccsy.push_back(new SeparationConstraint(0,1,10));
+	ac.offsets.push_back(make_pair((unsigned)5,(double)0));
 	alg.setYConstraints(&ccsy);
     try {
 	    alg.run();
-    } catch (vpsc::UnsatisfiableException& e) {
-        cerr << "Unsatisfiable" << endl;
-		for(vector<vpsc::Constraint*>::iterator i=e.path.begin();
-				i!=e.path.end();i++) {
-			cout << **i << endl;
-		}
-		exit(1);
+    } catch (cola::InvalidVariableIndexException& e) {
+        cerr << e.what() << endl;
+		exit(0);
     }
 	//assert(fabs(rs[0]->getCentreX()-rs[3]->getCentreX())<0.001);
 	cout<<rs[0]->getCentreX()<<","<<rs[1]->getCentreX()<<endl;
@@ -80,5 +75,6 @@ int main() {
 	for(unsigned i=0;i<V;i++) {
 		delete rs[i];
 	}
+    exit(1);
 }
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:encoding=utf-8:textwidth=99 :
