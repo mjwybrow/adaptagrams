@@ -55,16 +55,5 @@ public:
 };
 
 
-class ColaException {
-    public:
-        ColaException(const std::string& msg) : message(msg) {}
-        std::string what() {
-            return message;
-        }
-    private:
-      std::string message;
-};
-
-
 } // namespace cola
 #endif //SEEN_LIBCOLA_EXCEPTIONS_H

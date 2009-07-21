@@ -18,6 +18,7 @@ using namespace cola;
 using namespace hull;
 using namespace vpsc;
 using namespace topology;
+
 %}
 
 %ignore Avoid::Point::operator[];
@@ -68,6 +69,19 @@ using namespace topology;
     return what();
   }
 %}
+%inline %{
+namespace cola {
+class ColaException {
+    public:
+        ColaException(const std::string& msg) : message(msg) {}
+        std::string what() {
+            return message;
+        }
+    private:
+      std::string message;
+};
+}
+%}
 
 %template(UnsatisfiableConstraintInfoVector) std::vector<cola::UnsatisfiableConstraintInfo *>;
 %template(AlignmentConstraintPair) std::pair<cola::AlignmentConstraint *, cola::AlignmentConstraint *>;
@@ -112,6 +126,7 @@ void deleteDoubleArray(double* a) {
 
 //%rename straightener::Edge StraightenerEdge;
 
+
 /* Parse the header file to generate wrappers */
 %include "libvpsc/rectangle.h"
 %include "libcola/compound_constraints.h"
@@ -126,6 +141,8 @@ void deleteDoubleArray(double* a) {
 %include "libavoid/geomtypes.h"
 %include "libavoid/router.h"
 %include "libavoid/shape.h"
+
+
 /*
 %include "libavoid/libavoid.h"
 %include "libavoid/debug.h"
