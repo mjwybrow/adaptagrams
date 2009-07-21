@@ -67,12 +67,14 @@ generateSeparationConstraints( vpsc::Variables& vars, vpsc::Constraints& cs)
 {
     for(OffsetList::iterator o=leftOffsets.begin();
             o!=leftOffsets.end(); o++) {
+        assertValidVariableIndex(vars, o->first);
         cs.push_back(
                 new vpsc::Constraint(
                     vars[o->first],variable,o->second));
     }
     for(OffsetList::iterator o=rightOffsets.begin();
             o!=rightOffsets.end(); o++) {
+        assertValidVariableIndex(vars, o->first);
         cs.push_back(
                 new vpsc::Constraint(
                     variable,vars[o->first],o->second));
@@ -111,10 +113,8 @@ generateSeparationConstraints(
     if(ar) {
         right=ar->variable->id;
     }
-    if (!vs[left] || !vs[right])
-    {
-        throw InvalidConstraint(this);
-    }
+    assertValidVariableIndex(vs, left);
+    assertValidVariableIndex(vs, right);
     vpscConstraint = new vpsc::Constraint(vs[left],vs[right],gap,equality);
     cs.push_back(vpscConstraint);
 }
@@ -127,12 +127,16 @@ setSeparation(double gap) {
 }
 void OrthogonalEdgeConstraint::
 generateSeparationConstraints( vpsc::Variables& vs, vpsc::Constraints& cs) {
+    assertValidVariableIndex(vs, left);
+    assertValidVariableIndex(vs, right);
     vpscConstraint = new vpsc::Constraint(vs[left],vs[right],0,true);
     cs.push_back(vpscConstraint);
 }
 void OrthogonalEdgeConstraint::
 generateTopologyConstraints(const vpsc::Dim k, const vpsc::Rectangles& rs, 
         vector<vpsc::Variable*> const & vars, vector<vpsc::Constraint*> & cs) {
+    assertValidVariableIndex(vars, left);
+    assertValidVariableIndex(vars, right);
     double lBound, rBound, pos;
 	if(k==vpsc::HORIZONTAL) {
         lBound = rs[left]->getCentreY();
@@ -251,6 +255,7 @@ generateSeparationConstraints(
     // for each of the "real" variables, create a constraint that puts that var
     // between our two new dummy vars, depending on the dimension.
     for(OffsetList::iterator o=offsets.begin(); o!=offsets.end(); ++o)  {
+        assertValidVariableIndex(vs, o->first);
         if(vl)
             cs.push_back(new vpsc::Constraint(vl, vs[o->first], o->second));
         if(vr)
