@@ -168,7 +168,7 @@ const ConnDirFlags ConnEnd::directions(void) const
 
 ConnRef::ConnRef(Router *router, const unsigned int id)
     : _router(router),
-      _type(router->defaultConnType()),
+      _type(router->validConnType()),
       _srcId(0),
       _dstId(0),
       _needs_reroute_flag(true),
@@ -194,7 +194,7 @@ ConnRef::ConnRef(Router *router, const unsigned int id)
 ConnRef::ConnRef(Router *router, const ConnEnd& src, const ConnEnd& dst,
         const unsigned int id)
     : _router(router),
-      _type(router->defaultConnType()),
+      _type(router->validConnType()),
       _srcId(0),
       _dstId(0),
       _needs_reroute_flag(true),
@@ -257,6 +257,7 @@ const ConnType ConnRef::routingType(void) const
 
 void ConnRef::setRoutingType(ConnType type)
 {
+    type = _router->validConnType(type);
     if (_type != type)
     {
         _type = type;
