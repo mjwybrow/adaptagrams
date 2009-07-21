@@ -47,6 +47,7 @@ typedef std::list<ConnRef *> ConnRefList;
 //! @brief  Describes the type of routing that is performed for each 
 //!         connector.
 enum ConnType {
+    ConnType_None       = 0,
     //! @brief  The connector path will be a shortest-path poly-line that
     //!         routes around obstacles.
     ConnType_PolyLine   = 1,

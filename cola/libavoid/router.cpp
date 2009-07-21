@@ -1157,13 +1157,29 @@ void Router::markConnectors(ShapeRef *shape)
 }
 
 
-ConnType Router::defaultConnType(void) const
+ConnType Router::validConnType(const ConnType select) const
 {
-    if (_orthogonalRouting && !_polyLineRouting)
+    if (select != ConnType_None)
+    {
+        if ((select == ConnType_Orthogonal) && _orthogonalRouting)
+        {
+            return ConnType_Orthogonal;
+        }
+        else if ((select == ConnType_PolyLine) && _polyLineRouting)
+        {
+            return ConnType_PolyLine;
+        }
+    }
+
+    if (_polyLineRouting)
+    {
+        return ConnType_PolyLine;
+    }
+    else if (_orthogonalRouting)
     {
         return ConnType_Orthogonal;
     }
-    return ConnType_PolyLine;
+    return ConnType_None;
 }
 
 

@@ -330,7 +330,7 @@ class Router {
         void regenerateStaticBuiltGraph(void);
         void destroyOrthogonalVisGraph(void);
         void setStaticGraphInvalidated(const bool invalidated);
-        ConnType defaultConnType(void) const;
+        ConnType validConnType(const ConnType select = ConnType_None) const;
         bool shapeInQueuedActionList(ShapeRef *shape) const;
         double& penaltyRef(const PenaltyType penType);
 
