@@ -1391,11 +1391,15 @@ void Router::outputInstanceToSVG(void)
     while (shRefIt != shapeRefs.end())
     {
         ShapeRef *shRef = *shRefIt;
-        double minX, minY, maxX, maxY;
-        shRef->polygon().getBoundingRect(&minX, &minY, &maxX, &maxY);
-        fprintf(fp, "    Rectangle rect%u(Point(%g, %g), Point(%g, %g));\n",
-                shRef->id(), minX, minY, maxX, maxY);
-        fprintf(fp, "    ShapeRef *shapeRef%u = new ShapeRef(router, rect%u, "
+        fprintf(fp, "    Polygon poly%u(%lu);\n", 
+                shRef->id(), shRef->polygon().size());
+        for (size_t i = 0; i < shRef->polygon().size(); ++i)
+        {
+            fprintf(fp, "    poly%u.ps[%lu] = Point(%g, %g);\n", 
+                    shRef->id(), i, shRef->polygon().at(i).x,
+                    shRef->polygon().at(i).y);
+        }
+        fprintf(fp, "    ShapeRef *shapeRef%u = new ShapeRef(router, poly%u, "
                 "%u);\n", shRef->id(), shRef->id(), shRef->id());
         fprintf(fp, "    router->addShape(shapeRef%u);\n\n", shRef->id());
         ++shRefIt;
@@ -1427,7 +1431,28 @@ void Router::outputInstanceToSVG(void)
 
     
     fprintf(fp, "<g inkscape:groupmode=\"layer\" "
-            "inkscape:label=\"Shapes\">\n");
+            "inkscape:label=\"ShapesPoly\">\n");
+    shRefIt = shapeRefs.begin();
+    while (shRefIt != shapeRefs.end())
+    {
+        ShapeRef *shRef = *shRefIt;
+    
+        fprintf(fp, "<path id=\"poly-%u\" style=\"stroke-width: 1px; "
+                "stroke: black; fill: blue; fill-opacity: 0.3;\" d=\"", 
+                shRef->id());
+        for (size_t i = 0; i < shRef->polygon().size(); ++i)
+        {
+            fprintf(fp, "%c %g,%g ", ((i == 0) ? 'M' : 'L'), 
+                    shRef->polygon().at(i).x, shRef->polygon().at(i).y);
+        }
+        fprintf(fp, "Z\" />\n");
+        ++shRefIt;
+    }
+    fprintf(fp, "</g>\n");
+
+    fprintf(fp, "<g inkscape:groupmode=\"layer\" "
+            "style=\"display: none;\" "
+            "inkscape:label=\"ShapesRect\">\n");
     shRefIt = shapeRefs.begin();
     while (shRefIt != shapeRefs.end())
     {
@@ -1435,68 +1460,10 @@ void Router::outputInstanceToSVG(void)
         double minX, minY, maxX, maxY;
         shRef->polygon().getBoundingRect(&minX, &minY, &maxX, &maxY);
     
-        fprintf(fp, "<rect id=\"shape-%u\" x=\"%g\" y=\"%g\" width=\"%g\" height=\"%g\" "
+        fprintf(fp, "<rect id=\"rect-%u\" x=\"%g\" y=\"%g\" width=\"%g\" height=\"%g\" "
                 "style=\"stroke-width: 1px; stroke: black; fill: blue; fill-opacity: 0.3;\" />\n",
                 shRef->id(), minX, minY, maxX - minX, maxY - minY);
         ++shRefIt;
-    }
-    fprintf(fp, "</g>\n");
-
-    fprintf(fp, "<g inkscape:groupmode=\"layer\" "
-            "inkscape:label=\"RawConnectors\""
-            " style=\"display: none;\""
-            ">\n");
-    ConnRefList::iterator connRefIt = connRefs.begin();
-    while (connRefIt != connRefs.end())
-    {
-        ConnRef *connRef = *connRefIt;
-    
-        PolyLine route = connRef->route();
-        if (!route.empty())
-        {
-            fprintf(fp, "<path id=\"raw-%u\" d=\"M %g,%g ", connRef->id(),
-                    route.ps[0].x, route.ps[0].y);
-            for (size_t i = 1; i < route.size(); ++i)
-            {
-                fprintf(fp, "L %g,%g ", route.ps[i].x, route.ps[i].y);
-            }
-            fprintf(fp, "\" debug=\"src: %d dst: %d\" "
-                    "style=\"fill: none; stroke: black; "
-                    "stroke-width: 1px;\" />\n",
-                    connRef->src()->visDirections,
-                    connRef->dst()->visDirections);
-        }
-        
-        ++connRefIt;
-    }
-    fprintf(fp, "</g>\n");
-
-    fprintf(fp, "<g inkscape:groupmode=\"layer\" "
-            "inkscape:label=\"DisplayConnectors\""
-            " style=\"display: none;\""
-            ">\n");
-    connRefIt = connRefs.begin();
-    while (connRefIt != connRefs.end())
-    {
-        ConnRef *connRef = *connRefIt;
-    
-        PolyLine route = connRef->displayRoute();
-        if (!route.empty())
-        {
-            fprintf(fp, "<path id=\"disp-%u\" d=\"M %g,%g ", connRef->id(),
-                    route.ps[0].x, route.ps[0].y);
-            for (size_t i = 1; i < route.size(); ++i)
-            {
-                fprintf(fp, "L %g,%g ", route.ps[i].x, route.ps[i].y);
-            }
-            fprintf(fp, "\" debug=\"src: %d dst: %d\" "
-                    "style=\"fill: none; stroke: black; "
-                    "stroke-width: 1px;\" />\n",
-                    connRef->src()->visDirections,
-                    connRef->dst()->visDirections);
-        }
-        
-        ++connRefIt;
     }
     fprintf(fp, "</g>\n");
 
@@ -1506,6 +1473,7 @@ void Router::outputInstanceToSVG(void)
             ">\n");
     EdgeInf *finish = NULL;
     fprintf(fp, "<g inkscape:groupmode=\"layer\" "
+            "style=\"display: none;\" "
             "inkscape:label=\"VisGraph-shape\""
             ">\n");
     finish = visGraph.end();
@@ -1535,8 +1503,8 @@ void Router::outputInstanceToSVG(void)
     fprintf(fp, "</g>\n");
 
     fprintf(fp, "<g inkscape:groupmode=\"layer\" "
+            "style=\"display: none;\" "
             "inkscape:label=\"VisGraph-conn\""
-            " style=\"display: none;\""
             ">\n");
     finish = visGraph.end();
     for (EdgeInf *t = visGraph.begin(); t != finish; t = t->lstNext)
@@ -1566,6 +1534,7 @@ void Router::outputInstanceToSVG(void)
     fprintf(fp, "</g>\n");
 
     fprintf(fp, "<g inkscape:groupmode=\"layer\" "
+            "style=\"display: none;\" "
             "inkscape:label=\"OrthogVisGraph\">\n");
     finish = visOrthogGraph.end();
     for (EdgeInf *t = visOrthogGraph.begin(); t != finish; t = t->lstNext)
@@ -1588,6 +1557,64 @@ void Router::outputInstanceToSVG(void)
                 "red");
     }
     fprintf(fp, "</g>\n");
+
+    fprintf(fp, "<g inkscape:groupmode=\"layer\" "
+            "style=\"display: none;\" "
+            "inkscape:label=\"RawConnectors\""
+            ">\n");
+    ConnRefList::iterator connRefIt = connRefs.begin();
+    while (connRefIt != connRefs.end())
+    {
+        ConnRef *connRef = *connRefIt;
+    
+        PolyLine route = connRef->route();
+        if (!route.empty())
+        {
+            fprintf(fp, "<path id=\"raw-%u\" d=\"M %g,%g ", connRef->id(),
+                    route.ps[0].x, route.ps[0].y);
+            for (size_t i = 1; i < route.size(); ++i)
+            {
+                fprintf(fp, "L %g,%g ", route.ps[i].x, route.ps[i].y);
+            }
+            fprintf(fp, "\" debug=\"src: %d dst: %d\" "
+                    "style=\"fill: none; stroke: black; "
+                    "stroke-width: 1px;\" />\n",
+                    connRef->src()->visDirections,
+                    connRef->dst()->visDirections);
+        }
+        
+        ++connRefIt;
+    }
+    fprintf(fp, "</g>\n");
+
+    fprintf(fp, "<g inkscape:groupmode=\"layer\" "
+            "inkscape:label=\"DisplayConnectors\""
+            ">\n");
+    connRefIt = connRefs.begin();
+    while (connRefIt != connRefs.end())
+    {
+        ConnRef *connRef = *connRefIt;
+    
+        PolyLine route = connRef->displayRoute();
+        if (!route.empty())
+        {
+            fprintf(fp, "<path id=\"disp-%u\" d=\"M %g,%g ", connRef->id(),
+                    route.ps[0].x, route.ps[0].y);
+            for (size_t i = 1; i < route.size(); ++i)
+            {
+                fprintf(fp, "L %g,%g ", route.ps[i].x, route.ps[i].y);
+            }
+            fprintf(fp, "\" debug=\"src: %d dst: %d\" "
+                    "style=\"fill: none; stroke: black; "
+                    "stroke-width: 1px;\" />\n",
+                    connRef->src()->visDirections,
+                    connRef->dst()->visDirections);
+        }
+        
+        ++connRefIt;
+    }
+    fprintf(fp, "</g>\n");
+
 
     fprintf(fp, "</svg>\n");
     fclose(fp);
