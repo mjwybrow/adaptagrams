@@ -55,7 +55,7 @@ void generateVariablesAndConstraints(CompoundConstraints& ccs, vpsc::Variables& 
 void CompoundConstraint::assertValidVariableIndex(const vpsc::Variables& vars, 
         const unsigned index)
 {
-    if (index > vars.size())
+    if (index >= vars.size())
     {
         throw InvalidVariableIndexException(this, index);
     }
