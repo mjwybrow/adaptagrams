@@ -1984,6 +1984,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             
             // Create a solver variable for the position of this segment.
             double idealPos = lowPt[dimension];
+            double weight = 0.00001;
             if (currSegment->sBend)
             {
                 assert(currSegment->minSpaceLimit > -CHANNEL_MAX);
@@ -1994,7 +1995,14 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                         ((currSegment->maxSpaceLimit -
                           currSegment->minSpaceLimit) / 2);
             }
-            currSegment->variable = new Variable(0, idealPos);
+            else
+            {
+                // Set a higher weight for c-bends to stop them sometimes 
+                // getting pushed out into channels by more-free connectors
+                // to the "inner" side of them.
+                weight = 1;
+            }
+            currSegment->variable = new Variable(0, idealPos, weight);
             vs.push_back(currSegment->variable);
             size_t index = vs.size() - 1;
             //printf("line  %.15f  pos: %g   min: %g  max: %g\n",
