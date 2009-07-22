@@ -50,17 +50,34 @@ static const double CHANNEL_MAX = 100000000;
 class ShiftSegment 
 {
     public:
+        // For shiftable segments.
         ShiftSegment(ConnRef *conn, const size_t low, const size_t high, 
                 bool isSBend, const size_t dim, double minLim, double maxLim)
             : connRef(conn),
               indexLow(low),
               indexHigh(high),
               sBend(isSBend),
+              fixed(false),
               dimension(dim),
               variable(NULL),
               minSpaceLimit(minLim),
               maxSpaceLimit(maxLim)
         {
+        }
+        // For fixed segments.
+        ShiftSegment(ConnRef *conn, const size_t low, const size_t high, 
+                const size_t dim)
+            : connRef(conn),
+              indexLow(low),
+              indexHigh(high),
+              sBend(false),
+              fixed(true),
+              dimension(dim),
+              variable(NULL)
+        {
+            // This has no space to shift.
+            minSpaceLimit = lowPoint()[dim];
+            maxSpaceLimit = lowPoint()[dim];
         }
         Point& lowPoint(void)
         {
@@ -124,6 +141,7 @@ class ShiftSegment
         const size_t indexLow;
         const size_t indexHigh;
         const bool sBend;
+        const bool fixed;
         const size_t dimension;
         Variable *variable;
         double minSpaceLimit;
@@ -133,7 +151,7 @@ class ShiftSegment
         {
             // This is true if this is a cBend and its adjoining points
             // are at lower positions.
-            if (!sBend && (minSpaceLimit == lowPoint()[dimension]))
+            if (!sBend && !fixed && (minSpaceLimit == lowPoint()[dimension]))
             {
                 return true;
             }
@@ -143,7 +161,7 @@ class ShiftSegment
         {
             // This is true if this is a cBend and its adjoining points
             // are at higher positions.
-            if (!sBend && (maxSpaceLimit == lowPoint()[dimension]))
+            if (!sBend && !fixed && (maxSpaceLimit == lowPoint()[dimension]))
             {
                 return true;
             }
@@ -1601,11 +1619,11 @@ static void buildOrthogonalChannelInfo(Router *router,
         Polygon& displayRoute = (*curr)->displayRoute();
         // Determine all line segments that we are interested in shifting. 
         // We don't consider the first or last segment of a path.
-        for (size_t i = 2; (i + 1) < displayRoute.size(); ++i)
+        for (size_t i = 1; i < displayRoute.size(); ++i)
         {
             if (displayRoute.ps[i - 1][dim] == displayRoute.ps[i][dim])
             {
-                // It's a segment in the dimension we are processing.
+                // It's a segment in the dimension we are processing,
                 size_t indexLow = i - 1;
                 size_t indexHigh = i;
                 if (displayRoute.ps[i - 1][altDim] > displayRoute.ps[i][altDim])
@@ -1616,6 +1634,17 @@ static void buildOrthogonalChannelInfo(Router *router,
                 assert(displayRoute.at(indexLow)[altDim] < 
                         displayRoute.at(indexHigh)[altDim]);
 
+                if ((i == 1) || ((i + 1) == displayRoute.size()))
+                {
+                    // The first and last segment of a connector can't be 
+                    // shifted.  We call them fixed segments.  Note: this
+                    // will change if we later allow connection channels.
+                    segmentList.push_back(
+                            ShiftSegment(*curr, indexLow, indexHigh, dim));
+                    continue;
+                }
+
+                // The segment probably has space to be shifted.
                 double minLim = -CHANNEL_MAX;
                 double maxLim = CHANNEL_MAX;
                 bool isSBend = false;
@@ -1975,6 +2004,10 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
         Variables vs;
         Constraints cs;
         ShiftSegmentPtrList prevVars;
+        // Weights:
+        double freeWeight   = 0.00001;
+        double strongWeight = 1;
+        double fixedWeight  = 100000;
         //printf("-------------------------------------------------------\n");
         //printf("Nudge -- size: %d\n", (int) currentRegion.size());
         for (ShiftSegmentList::iterator currSegment = currentRegion.begin();
@@ -1984,7 +2017,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             
             // Create a solver variable for the position of this segment.
             double idealPos = lowPt[dimension];
-            double weight = 0.00001;
+            double weight = freeWeight;
             if (currSegment->sBend)
             {
                 assert(currSegment->minSpaceLimit > -CHANNEL_MAX);
@@ -1995,12 +2028,17 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                         ((currSegment->maxSpaceLimit -
                           currSegment->minSpaceLimit) / 2);
             }
+            else if (currSegment->fixed)
+            {
+                // Fixed segments shouldn't get moved.
+                weight = fixedWeight;
+            }
             else
             {
                 // Set a higher weight for c-bends to stop them sometimes 
                 // getting pushed out into channels by more-free connectors
                 // to the "inner" side of them.
-                weight = 1;
+                weight = strongWeight;
             }
             currSegment->variable = new Variable(0, idealPos, weight);
             vs.push_back(currSegment->variable);
@@ -2032,24 +2070,27 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                 }
             }
 
-            // If this segment sees a channel boundary to its left, 
-            // then constrain its placement as such.
-            if (currSegment->minSpaceLimit > -CHANNEL_MAX)
+            if (!currSegment->fixed)
             {
-                vs.push_back(new Variable(1, currSegment->minSpaceLimit, 
-                            100000));
-                cs.push_back(new Constraint(vs[vs.size() - 1], vs[index], 
-                            0.0));
-            }
-            
-            // If this segment sees a channel boundary to its right, 
-            // then constrain its placement as such.
-            if (currSegment->maxSpaceLimit < CHANNEL_MAX)
-            {
-                vs.push_back(new Variable(1, currSegment->maxSpaceLimit, 
-                            100000));
-                cs.push_back(new Constraint(vs[index], vs[vs.size() - 1],
-                            0.0));
+                // If this segment sees a channel boundary to its left, 
+                // then constrain its placement as such.
+                if (currSegment->minSpaceLimit > -CHANNEL_MAX)
+                {
+                    vs.push_back(new Variable(1, currSegment->minSpaceLimit, 
+                                fixedWeight));
+                    cs.push_back(new Constraint(vs[vs.size() - 1], vs[index], 
+                                0.0));
+                }
+                
+                // If this segment sees a channel boundary to its right, 
+                // then constrain its placement as such.
+                if (currSegment->maxSpaceLimit < CHANNEL_MAX)
+                {
+                    vs.push_back(new Variable(1, currSegment->maxSpaceLimit, 
+                                fixedWeight));
+                    cs.push_back(new Constraint(vs[index], vs[vs.size() - 1],
+                                0.0));
+                }
             }
             prevVars.push_back(&(*currSegment));
         }
