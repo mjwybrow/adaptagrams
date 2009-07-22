@@ -78,6 +78,18 @@ class ShiftSegment
         {
             return connRef->displayRoute().ps[indexHigh];
         }
+        const int order(void) const
+        {
+            if (lowC())
+            {
+                return -1;
+            }
+            else if (highC())
+            {
+                return 1;
+            }
+            return 0;
+        }
         bool operator<(const ShiftSegment& rhs) const
         {
             const Point& lowPt = lowPoint();
@@ -116,6 +128,27 @@ class ShiftSegment
         Variable *variable;
         double minSpaceLimit;
         double maxSpaceLimit;
+    private:
+        const bool lowC(void) const
+        {
+            // This is true if this is a cBend and its adjoining points
+            // are at lower positions.
+            if (!sBend && (minSpaceLimit == lowPoint()[dimension]))
+            {
+                return true;
+            }
+            return false;
+        }
+        const bool highC(void) const
+        {
+            // This is true if this is a cBend and its adjoining points
+            // are at higher positions.
+            if (!sBend && (maxSpaceLimit == lowPoint()[dimension]))
+            {
+                return true;
+            }
+            return false;
+        }
 };
 typedef std::list<ShiftSegment> ShiftSegmentList;
 
@@ -1855,6 +1888,17 @@ class CmpLineOrder
                 return lhsLow[dimension] < rhsLow[dimension];
             }
             
+            // C-bends that did not have a clear order with s-bends might 
+            // not have a good ordering here, so compare their order in 
+            // terms of C-bend direction and S-bends and use that if it
+            // differs for the two segments.
+            const int lhsOrder = lhs.order();
+            const int rhsOrder = rhs.order();
+            if (lhsOrder != rhsOrder)
+            {
+                return lhsOrder < rhsOrder;
+            }
+
             // Need to index using the original point into the map, so find it.
             Point& unchanged = (lhsLow[altDim] > rhsLow[altDim]) ?
                     lhsLow : rhsLow;
