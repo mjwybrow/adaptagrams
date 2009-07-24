@@ -49,13 +49,13 @@ vector<Edge> random_graph(unsigned n) {
 }
 int main() {
     unsigned V=100;
-    CompoundConstraints cx,cy;
+    CompoundConstraints ccs;
     vector<Edge> es = random_graph(V);
     double defaultEdgeLength=40;
     for(unsigned i=0;i<es.size();i++) {
         unsigned start=es[i].first, end=es[i].second;
-        cy.push_back(
-            new SeparationConstraint(start,end,-10));
+        ccs.push_back(
+            new SeparationConstraint(vpsc::YDIM, start,end,-10));
     }
 
     cout << "V="<<V<<endl;

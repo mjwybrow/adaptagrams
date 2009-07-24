@@ -57,12 +57,12 @@ int main() {
 		rs.push_back(new vpsc::Rectangle(x,x+5,y,y+5));
 	}
 	ConstrainedFDLayout alg(rs,es,width/2);
-	CompoundConstraints ccsy;
-	AlignmentConstraint ac(1);
-	ccsy.push_back(&ac);
+	CompoundConstraints ccs;
+	AlignmentConstraint ac(vpsc::YDIM);
+	ccs.push_back(&ac);
 	ac.offsets.push_back(make_pair((unsigned)0,(double)0));
 	ac.offsets.push_back(make_pair((unsigned)5,(double)0));
-	alg.setYConstraints(&ccsy);
+	alg.setConstraints(&ccs);
     try {
 	    alg.run();
     } catch (cola::InvalidVariableIndexException& e) {

@@ -59,7 +59,7 @@ ConstrainedMajorizationLayout
       nonOverlappingClusters(false),
       clusterHierarchy(clusterHierarchy), linearConstraints(NULL),
       gpX(NULL), gpY(NULL),
-      ccsx(NULL), ccsy(NULL),
+      ccs(NULL),
       unsatisfiableX(NULL), unsatisfiableY(NULL),
       avoidOverlaps(None),
       straightenEdges(NULL),
@@ -295,10 +295,10 @@ void ConstrainedMajorizationLayout::run(bool x, bool y) {
         // matrix used with dummy nodes is not properly scaled at the moment.
         if(straightenEdges) setScaling(false);
         gpX=new GradientProjection(
-            HORIZONTAL,&lap2,tol,100,ccsx,unsatisfiableX,
+            HORIZONTAL,&lap2,tol,100,ccs,unsatisfiableX,
             avoidOverlaps,clusterHierarchy,pbb,scaling,mosek);
         gpY=new GradientProjection(
-            VERTICAL,&lap2,tol,100,ccsy,unsatisfiableY,
+            VERTICAL,&lap2,tol,100,ccs,unsatisfiableY,
             avoidOverlaps,clusterHierarchy,pbb,scaling,mosek);
     }
     if(n>0) do {
@@ -373,10 +373,10 @@ void ConstrainedMajorizationLayout::runOnce(bool x, bool y) {
         // matrix used with dummy nodes is not properly scaled at the moment.
         if(straightenEdges) setScaling(false);
         gpX=new GradientProjection(
-            HORIZONTAL,&lap2,tol,100,ccsx,unsatisfiableX,
+            HORIZONTAL,&lap2,tol,100,ccs,unsatisfiableX,
             avoidOverlaps,clusterHierarchy,pbb,scaling,mosek);
         gpY=new GradientProjection(
-            VERTICAL,&lap2,tol,100,ccsy,unsatisfiableY,
+            VERTICAL,&lap2,tol,100,ccs,unsatisfiableY,
             avoidOverlaps,clusterHierarchy,pbb,scaling,mosek);
     }
     if(n>0) {

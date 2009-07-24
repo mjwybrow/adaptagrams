@@ -381,7 +381,7 @@ namespace straightener {
 	}
 
     static cola::SeparationConstraint* createConstraint(
-            Node* u, Node* v, bool dim) {
+            Node* u, Node* v, vpsc::Dim dim) {
         double g=u->length[dim]+v->length[dim];
         g/=2;
         double sep=v->pos[dim]-u->pos[dim];
@@ -390,7 +390,7 @@ namespace straightener {
             v->active = true;
         }
         //cerr << "Constraint: "<< u->id << "+"<<g<<"<="<<v->id<<endl;
-        return new cola::SeparationConstraint(u->id,v->id,g);
+        return new cola::SeparationConstraint(dim, u->id, v->id, g);
     }
 
     template <typename T>

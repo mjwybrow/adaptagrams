@@ -78,7 +78,7 @@ static const double EXTRAEDGEPROB = 0.002;
 void makeEdge(unsigned u, unsigned v, 
         vector<Edge> &edges, CompoundConstraints &cy) {
     edges.push_back(make_pair(u,v));
-    cy.push_back(new SeparationConstraint(u,v,5));
+    cy.push_back(new SeparationConstraint(vpsc::YDIM, u,v,5));
 }
 vector<Edge> random_dag(unsigned depth, unsigned maxbranch, unsigned &V,
         CompoundConstraints &cx, CompoundConstraints &cy) {
@@ -327,7 +327,7 @@ int main() {
     clock_t unconstrainedstarttime=clock();
     writeTextFile(es);
 	ConstrainedFDLayout alg2(rs,es,defaultEdgeLength,NULL,test);
-    alg2.setYConstraints(&cy);
+    alg2.setConstraints(&cy);
 	alg2.run();
     double totaltime=0;
     double unconstrainedtime=double(clock()-unconstrainedstarttime)/double(CLOCKS_PER_SEC);

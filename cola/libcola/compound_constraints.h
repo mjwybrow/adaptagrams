@@ -36,7 +36,7 @@ namespace vpsc {
 }
 namespace cola {
 
-typedef std::vector<std::pair<unsigned,double> > OffsetList;
+typedef std::vector<std::pair<unsigned, double> > OffsetList;
 
 
 /** 
@@ -48,6 +48,7 @@ typedef std::vector<std::pair<unsigned,double> > OffsetList;
  */
 class CompoundConstraint {
 public:
+    CompoundConstraint(vpsc::Dim primaryDim);
     /**
      * generate any additional variables required by this compound constraint
      * and add them to vars.  These variables should be cleaned up by
@@ -57,23 +58,30 @@ public:
      * @param vars the list of variables for the overall problem instance
      * to which any variables generated should be appended.
      */
-    virtual void generateVariables(vpsc::Variables& vars) = 0;
+    virtual void generateVariables(const vpsc::Dim dim, 
+            vpsc::Variables& vars) = 0;
     /**
      * create the separation constraints that will effect this
      * CompoundConstraint.
      */
-	virtual void generateSeparationConstraints(
-            vpsc::Variables& vars, vpsc::Constraints& cs) = 0;
+	virtual void generateSeparationConstraints(const vpsc::Dim dim, 
+            vpsc::Variables& var, vpsc::Constraints& cs) = 0;
     /**
      * after the vpsc instance is solved the following should be called
      * to send position information back to the interface.
      */
-    virtual void updatePosition() {};
+    virtual void updatePosition(const vpsc::Dim dim) {};
     virtual ~CompoundConstraint() {}
+    vpsc::Dim dimension(void) const;
     
 protected:
     void assertValidVariableIndex(const vpsc::Variables& vars, 
             const unsigned index);
+
+    // The dimension that this compound constraint operates.
+    vpsc::Dim _primaryDim;
+    // The alternate dimension.
+    vpsc::Dim _secondaryDim;
 };
 typedef std::vector<CompoundConstraint*> CompoundConstraints;
 
@@ -81,7 +89,10 @@ typedef std::vector<CompoundConstraint*> CompoundConstraints;
 /**
  * generate all the variables and constraints for a collection of CompoundConstraint
  */
-void generateVariablesAndConstraints(CompoundConstraints& ccs, vpsc::Variables& vars, vpsc::Constraints& cs);
+void generateVariablesAndConstraints(CompoundConstraints& ccs, 
+        const vpsc::Dim dim, vpsc::Variables& vars, vpsc::Constraints& cs);
+
+
 /**
  * A boundary constraint gives a bounding line (position stored in the variable)
  * and a set of nodes required to be to the left of that boundary and
@@ -89,174 +100,164 @@ void generateVariablesAndConstraints(CompoundConstraints& ccs, vpsc::Variables& 
  * rightOffsets store minimum separations required b/n each of these nodes and
  * the line.
  */
-class BoundaryConstraint : public CompoundConstraint {
-public:
-    BoundaryConstraint(double pos) : position(pos), variable(NULL) {}
-    void updatePosition() {
-        position = variable->finalPosition;
-    }
-    /**
-     * just one variable is generated, associated with the position of the
-     * boundary.
-     */
-    void generateVariables(vpsc::Variables& vars) {
-        variable = new vpsc::Variable(vars.size(),position,0.0001);
-        vars.push_back(variable);
-    }
-	void generateSeparationConstraints( vpsc::Variables& vars, vpsc::Constraints& cs);
-    double position;
-    OffsetList leftOffsets, rightOffsets;
-    vpsc::Variable* variable;
+class BoundaryConstraint : public CompoundConstraint 
+{
+    public:
+        BoundaryConstraint(const vpsc::Dim);
+        void generateVariables(const vpsc::Dim dim, vpsc::Variables& vars);
+        void generateSeparationConstraints(const vpsc::Dim dim, 
+                vpsc::Variables& vars, vpsc::Constraints& cs);
+        void updatePosition(const vpsc::Dim dim);
+        
+        double position;
+        OffsetList leftOffsets, rightOffsets;
+        vpsc::Variable* variable;
 };
+
 
 /*
  * An alignment constraint specifies a group of nodes and offsets for those
  * nodes such that the nodes must be spaced exactly at those offsets from a
  * vertical or horizontal line.
  */
-class AlignmentConstraint : public CompoundConstraint {
-public:
-    AlignmentConstraint(double pos) 
-        : position(pos), 
-          isFixed(false),
-          variable(NULL) {}
-    void updatePosition() {
-        position = variable->finalPosition;
-    }
-    void fixPos(double pos) {
-        position=pos;
-        isFixed=true;
-    }
-    void unfixPos() {
-        isFixed=false;
-    }
-    //! a list of pairs of node indices and their required offsets
-    OffsetList offsets;
-    /** the guide pointer is used by dunnart to keep a ref to it's local
-     * representation of the alignment constraint
-     */
-    void* guide;
-    // The position of the alignment line
-    double position;
-    bool isFixed;
-    void generateVariables(vpsc::Variables& vars);
-	void generateSeparationConstraints( vpsc::Variables& vars, vpsc::Constraints& cs);
-    vpsc::Variable* variable;
+class AlignmentConstraint : public CompoundConstraint 
+{
+    public:
+        AlignmentConstraint(const vpsc::Dim dim, double position = 0.0);
+        void generateVariables(const vpsc::Dim dim, vpsc::Variables& vars);
+        void generateSeparationConstraints(const vpsc::Dim dim, 
+                vpsc::Variables& vars, vpsc::Constraints& cs);
+        void updatePosition(const vpsc::Dim dim);
+        void fixPos(double pos);
+        void unfixPos(void);
+        double position(void) const;
+        bool isFixed(void) const;
+        
+        //! a list of pairs of node indices and their required offsets
+        OffsetList offsets;
+        /** the guide pointer is used by dunnart to keep a ref to it's local
+         * representation of the alignment constraint
+         */
+        void* guide;
+        vpsc::Variable* variable;
+    private:
+        // The position of the alignment line
+        double _position;
+        bool _isFixed;
 };
+
 
 // A simple horizontal or vertical spacing constraint between 2 nodes
 // or alignment constraints
-class SeparationConstraint : public CompoundConstraint {
-public:
-    SeparationConstraint(unsigned l, unsigned r, double g, bool equality = false) 
-        : left(l), right(r), al(NULL), ar(NULL), gap(g), equality(equality),
-          vpscConstraint(NULL)  {
-    }
-    SeparationConstraint(AlignmentConstraint *l, AlignmentConstraint *r, 
-            double g, bool equality = false) 
-        : left(0), right(0), al(l), ar(r), gap(g), equality(equality)  {
-    }
-    unsigned left;
-    unsigned right;
-    AlignmentConstraint *al;
-    AlignmentConstraint *ar;
-    double gap;
-    bool equality;
-    void generateVariables(vpsc::Variables& vars) { }
-	void generateSeparationConstraints( vpsc::Variables& vs, vpsc::Constraints& cs);
-    void setSeparation(double gap);
-    vpsc::Constraint* vpscConstraint;
+class SeparationConstraint : public CompoundConstraint 
+{
+    public:
+        SeparationConstraint(const vpsc::Dim dim, unsigned l, unsigned r, 
+                double g, bool equality = false);
+        SeparationConstraint(const vpsc::Dim dim, AlignmentConstraint *l, 
+                AlignmentConstraint *r, double g, bool equality = false);
+        void generateVariables(const vpsc::Dim dim, vpsc::Variables& vars);
+        void generateSeparationConstraints(const vpsc::Dim dim, 
+                vpsc::Variables& vs, vpsc::Constraints& cs);
+
+        unsigned left;
+        unsigned right;
+        AlignmentConstraint *al;
+        AlignmentConstraint *ar;
+        double gap;
+        bool equality;
+        void setSeparation(double gap);
+        vpsc::Constraint *vpscConstraint;
 };
+
+
 // Orthogonal edges must have their end points aligned horizontally or vertically
-class OrthogonalEdgeConstraint : public CompoundConstraint {
-public:
-    OrthogonalEdgeConstraint(unsigned l, unsigned r)
-        : left(l), right(r), 
-          vpscConstraint(NULL)  {
-    }
-    unsigned left;
-    unsigned right;
-    void generateVariables(vpsc::Variables& vars) { }
-	void generateSeparationConstraints( vpsc::Variables& vs, vpsc::Constraints& cs);
-    void generateTopologyConstraints(const vpsc::Dim k, std::vector<vpsc::Rectangle*> const & rs, 
-            std::vector<vpsc::Variable*> const & vars, std::vector<vpsc::Constraint*> & cs);
-    vpsc::Constraint* vpscConstraint;
-private:
-	void rectBounds(const vpsc::Dim k, vpsc::Rectangle const *r, 
-            double & cmin, double & cmax, double & centre, double & l) const;
+class OrthogonalEdgeConstraint : public CompoundConstraint 
+{
+    public:
+        OrthogonalEdgeConstraint(const vpsc::Dim dim, unsigned l, unsigned r);
+        void generateVariables(const vpsc::Dim dim, vpsc::Variables& vars);
+        void generateSeparationConstraints(const vpsc::Dim dim, 
+                vpsc::Variables& vs, vpsc::Constraints& cs);
+        void generateTopologyConstraints(const vpsc::Dim k, 
+                std::vector<vpsc::Rectangle*> const& rs, 
+                std::vector<vpsc::Variable*> const& vars, 
+                std::vector<vpsc::Constraint*>& cs);
+
+        unsigned left;
+        unsigned right;
+        vpsc::Constraint* vpscConstraint;
+    private:
+        void rectBounds(const vpsc::Dim k, vpsc::Rectangle const *r, 
+                double& cmin, double& cmax, double& centre, double& l) const;
 };
+
 
 // A set of horizontal or vertical spacing constraints between adjacent pairs
 // of alignment constraints
-class MultiSeparationConstraint : public CompoundConstraint {
-public:
-    MultiSeparationConstraint(double minSep=0, bool equality=false)
-        : sep(minSep), equality(equality)  {
-    }
-    void generateVariables(vpsc::Variables& vars) { }
-	void generateSeparationConstraints( vpsc::Variables& vs, vpsc::Constraints& gcs);
-    void setSeparation(double sep) { this->sep = sep; }
-    vpsc::Constraints cs;
-    std::vector<std::pair<AlignmentConstraint*,AlignmentConstraint*> > acs;
-    void *indicator;
-    double sep;
-    bool equality;
+class MultiSeparationConstraint : public CompoundConstraint 
+{
+    public:
+        MultiSeparationConstraint(const vpsc::Dim dim, double minSep = 0, 
+                bool equality = false);
+        void generateVariables(const vpsc::Dim dim, vpsc::Variables& vars);
+        void generateSeparationConstraints(const vpsc::Dim dim, 
+                vpsc::Variables& vs, vpsc::Constraints& gcs);
+        void setSeparation(double sep);
+
+        vpsc::Constraints cs;
+        std::vector<std::pair<AlignmentConstraint*,AlignmentConstraint*> > acs;
+        void *indicator;
+        double sep;
+        bool equality;
 };
+
 
 // A distribution constraint specifies an ordered set of alignment constraints
 // and a separation required between them.
 // The separation can be variable (but the same between each adjacent pair of
 // alignment constraints) or fixed.
 class DistributionConstraint : public CompoundConstraint {
-public:
-    DistributionConstraint() {}
-    void generateVariables(vpsc::Variables& vars) { }
-	void generateSeparationConstraints(vpsc::Variables& vars, vpsc::Constraints& gcs);
-    void setSeparation(double sep) {
-        this->sep = sep;
-    }
-    vpsc::Constraints cs;
-    std::vector<std::pair<AlignmentConstraint*,AlignmentConstraint*> > acs;
-    void *indicator;
-    double sep;
+    public:
+        DistributionConstraint(const vpsc::Dim dim);
+        void generateVariables(const vpsc::Dim dim, vpsc::Variables& vars);
+        void generateSeparationConstraints(const vpsc::Dim dim, 
+                vpsc::Variables& vars, vpsc::Constraints& gcs);
+        void setSeparation(double sep);
+
+        vpsc::Constraints cs;
+        std::vector<std::pair<AlignmentConstraint*,AlignmentConstraint*> > acs;
+        void *indicator;
+        double sep;
 };
 
 // creates dummy variables for the edges of the page and constraints
 // between all nodes and these dummy vars such that nodes are contained
 // between the edges
 class PageBoundaryConstraints : public CompoundConstraint {
-public:
-    PageBoundaryConstraints(double lm, double rm, double w)
-        : leftMargin(lm), rightMargin(rm), 
-          actualLeftMargin(0), actualRightMargin(0),
-          leftWeight(w), rightWeight(w), vl(NULL), vr(NULL) { }
-    PageBoundaryConstraints(double lm, double rm, double lw, double rw)
-        : leftMargin(lm), rightMargin(rm), 
-          actualLeftMargin(0), actualRightMargin(0),
-          leftWeight(lw), rightWeight(rw), vl(NULL), vr(NULL) { }
-    void generateVariables(vpsc::Variables& vars);
-	void generateSeparationConstraints(vpsc::Variables& vars, vpsc::Constraints& gcs);
-    void updatePosition() {
-        if(vl) actualLeftMargin = vl->finalPosition;
-        if(vr) actualRightMargin = vr->finalPosition;
-        //printf("updatePosition(): actualLeftMargin=%f, actualRightMargin=%f\n",actualLeftMargin,actualRightMargin);
-    }
-    double getActualLeftMargin() {
-        return actualLeftMargin;
-    }
-    double getActualRightMargin() {
-        return actualRightMargin;
-    }
-    OffsetList offsets;
-private:
-    double leftMargin;
-    double rightMargin;
-    double actualLeftMargin;
-    double actualRightMargin;
-    double leftWeight;    
-    double rightWeight;  
-    vpsc::Variable *vl, *vr;
+    public:
+        PageBoundaryConstraints(double lBoundary, double rBoundary, 
+                double bBoundary, double tBoundary, double w = 100.0);
+        void generateVariables(const vpsc::Dim dim, vpsc::Variables& vars);
+        void generateSeparationConstraints(const vpsc::Dim dim, 
+                vpsc::Variables& vars, vpsc::Constraints& gcs);
+        void updatePosition(const vpsc::Dim dim);
+        double getActualLeftMargin(const vpsc::Dim dim);
+        double getActualRightMargin(const vpsc::Dim dim);
+        void addContainedShape(unsigned id, double halfW, double halfH);
+
+    private:
+        OffsetList offsets[2];
+        double leftMargin[2];
+        double rightMargin[2];
+        double actualLeftMargin[2];
+        double actualRightMargin[2];
+        double leftWeight[2];    
+        double rightWeight[2];  
+        vpsc::Variable *vl[2], *vr[2];
 };
+
+
 /**
  * Info about constraints that could not be satisfied in gradient projection
  * process

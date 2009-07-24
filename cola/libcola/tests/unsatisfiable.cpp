@@ -57,13 +57,13 @@ int main() {
 		rs.push_back(new vpsc::Rectangle(x,x+5,y,y+5));
 	}
 	ConstrainedFDLayout alg(rs,es,width/2);
-	CompoundConstraints ccsy;
-	AlignmentConstraint ac(1);
-	ccsy.push_back(&ac);
+	CompoundConstraints ccs;
+	AlignmentConstraint ac(vpsc::YDIM, 1);
+	ccs.push_back(&ac);
 	ac.offsets.push_back(make_pair((unsigned)0,(double)0));
 	ac.offsets.push_back(make_pair((unsigned)1,(double)0));
-	ccsy.push_back(new SeparationConstraint(0,1,10));
-	alg.setYConstraints(&ccsy);
+	ccs.push_back(new SeparationConstraint(vpsc::YDIM, 0,1,10));
+	alg.setConstraints(&ccs);
     try {
 	    alg.run();
     } catch (vpsc::UnsatisfiableException& e) {

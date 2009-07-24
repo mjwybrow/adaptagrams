@@ -210,18 +210,11 @@ public:
         TestConvergence& done=defaultTest,
         PreIteration* preIteration=NULL);
     /**
-     * Horizontal alignment constraints
+     * Horizontal and vertical compound constraints
      */
-    void setXConstraints(cola::CompoundConstraints* ccsx) {
+    void setConstraints(cola::CompoundConstraints* ccs) {
         constrainedLayout = true;
-        this->ccsx=ccsx;
-    }
-    /**
-     * Vertical alignment constraints
-     */
-    void setYConstraints(cola::CompoundConstraints* ccsy) {
-        constrainedLayout = true;
-        this->ccsy=ccsy;
+        this->ccs=ccs;
     }
     /**
      * These lists will have info about unsatisfiable constraints
@@ -368,7 +361,7 @@ private:
     RootCluster *clusterHierarchy;
     straightener::LinearConstraints *linearConstraints;
     GradientProjection *gpX, *gpY;
-    cola::CompoundConstraints *ccsx, *ccsy;
+    cola::CompoundConstraints *ccs;
     UnsatisfiableConstraintInfos *unsatisfiableX, *unsatisfiableY;
     NonOverlapConstraints avoidOverlaps;
     std::vector<straightener::Edge*>* straightenEdges;
@@ -419,19 +412,13 @@ public:
             throw(InvalidVariableIndexException);
     void runOnce(bool x=true, bool y=true);
     /**
-     * Horizontal alignment constraints
+     *  Allow the user to specify compound constraints.
      */
-    void setXConstraints(cola::CompoundConstraints* ccsx) {
-        if(ccsx->size()>0) {
-            this->ccsx=ccsx;
-        }
-    }
-    /**
-     * Vertical alignment constraints
-     */
-    void setYConstraints(cola::CompoundConstraints* ccsy) {
-        if(ccsy->size()>0) {
-            this->ccsy=ccsy;
+    void setConstraints(cola::CompoundConstraints* ccs)
+    {
+        if (ccs && (ccs->size() > 0))
+        {
+            this->ccs = ccs;
         }
     }
     void setTopology(std::vector<topology::Node*>* tnodes, std::vector<topology::Edge*>* routes) {
@@ -491,14 +478,14 @@ private:
     std::vector<std::vector<double> > neighbourLengths;
     TestConvergence& done;
     PreIteration* preIteration;
-    cola::CompoundConstraints *ccsx, *ccsy;
+    cola::CompoundConstraints *ccs;
     double** D;
     unsigned short** G;
     std::vector<topology::Node*>* topologyNodes;
     std::vector<topology::Edge*>* topologyRoutes;
     std::vector<UnsatisfiableConstraintInfos*> unsatisfiable;
     bool rungekutta;
-	std::vector<DesiredPosition>* desiredPositions;
+    std::vector<DesiredPosition>* desiredPositions;
 };
 
 /**

@@ -106,7 +106,7 @@ GradientProjection::GradientProjection(
     if(ccs) {
         for(CompoundConstraints::const_iterator c=ccs->begin();
                 c!=ccs->end();++c) {
-            (*c)->generateVariables(vars);
+            (*c)->generateVariables(k, vars);
             OrthogonalEdgeConstraint* e=dynamic_cast<OrthogonalEdgeConstraint*>(*c);
             if(e) {
                 orthogonalEdges.push_back(e);
@@ -114,7 +114,7 @@ GradientProjection::GradientProjection(
         }
         for(CompoundConstraints::const_iterator c=ccs->begin();
                 c!=ccs->end();++c) {
-            (*c)->generateSeparationConstraints(vars,gcs);
+            (*c)->generateSeparationConstraints(k, vars, gcs);
         }
     }
 	/*
@@ -430,7 +430,8 @@ void GradientProjection::destroyVPSC(IncSolver *vpsc) {
     if(ccs) {
         for(CompoundConstraints::const_iterator c=ccs->begin(); 
                 c!=ccs->end();++c) {
-            (*c)->updatePosition();
+            (*c)->updatePosition(vpsc::XDIM);
+            (*c)->updatePosition(vpsc::YDIM);
         }
     }
     if(unsatisfiableConstraints) {
@@ -477,7 +478,7 @@ void GradientProjection::straighten(
     }
     assert(lcs.size()==0);
     for(vector<SeparationConstraint*>::const_iterator i=cs.begin();i!=cs.end();i++) {
-        (*i)->generateSeparationConstraints(vars,lcs); 
+        (*i)->generateSeparationConstraints(k, vars, lcs); 
     }
 }
 } // namespace cola

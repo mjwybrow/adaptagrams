@@ -54,21 +54,17 @@ vector<Edge> random_graph(unsigned n) {
 }
 int main() {
     unsigned V=30;
-    CompoundConstraints cx,cy;
+    CompoundConstraints ccs;
     vector<Edge> es = random_graph(V);
     double defaultEdgeLength=40;
-    cola::PageBoundaryConstraints* pbcx =
-        new cola::PageBoundaryConstraints(0,200,100);
-    cola::PageBoundaryConstraints* pbcy =
-        new cola::PageBoundaryConstraints(0,200,100);
+    cola::PageBoundaryConstraints* pbc =
+        new cola::PageBoundaryConstraints(0,200,0,200,100);
 
     double w=2.0, h=2.0;
     for(unsigned i=0;i<V;i++) {
-        pbcx->offsets.push_back(make_pair(i, w/2));
-        pbcy->offsets.push_back(make_pair(i, h/2));
+        pbc->addContainedShape(i, w/2, h/2);
     }
-    cx.push_back(pbcx);
-    cy.push_back(pbcy);
+    ccs.push_back(pbc);
 
     cout << "V="<<V<<endl;
     double width=1000;
@@ -100,6 +96,6 @@ int main() {
     run_test(startpos,es,defaultEdgeLength,cx,cy,IP,true,"random", "cip");
     run_test(startpos,es,defaultEdgeLength,cx,cy,SGP,true,"random", "csgp");
     */
-    run_test(startpos,es,defaultEdgeLength,cx,cy,UGP,true,"random", "cugp");
+    run_test(startpos,es,defaultEdgeLength,ccs,UGP,true,"random", "cugp");
 }
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:encoding=utf-8:textwidth=99 :

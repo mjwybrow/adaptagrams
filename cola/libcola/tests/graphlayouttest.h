@@ -120,8 +120,7 @@ void run_test(
         vector<pair<double,double> > const &startpos,
         vector<Edge> const &es, 
         const double defaultEdgeLength,
-        CompoundConstraints &cx,
-        CompoundConstraints &cy,
+        CompoundConstraints &ccs,
         const SolverType s, 
         const bool constrained,
         const char *fname,
@@ -163,9 +162,8 @@ void run_test(
         cout << "Unconstrained layout" << endl;
     } else {
         cout << "Constrained layout" << endl;
-        printf("|XConstraints|=%u, |YConstraints|=%u\n",(unsigned)cx.size(),(unsigned)cy.size());
-        alg.setXConstraints(&cx);
-        alg.setYConstraints(&cy);
+        printf("|CompoundConstraints|=%u\n",(unsigned)ccs.size());
+        alg.setConstraints(&ccs);
     }
     alg.run();
     double t=double(clock()-starttime)/double(CLOCKS_PER_SEC);

@@ -81,7 +81,7 @@ ConstrainedFDLayout::ConstrainedFDLayout(
   Y(valarray<double>(n)),
   done(done),
   preIteration(preIteration),
-  ccsx(NULL), ccsy(NULL),
+  ccs(NULL),
   topologyNodes(NULL),
   topologyRoutes(NULL),
   rungekutta(true),
@@ -291,28 +291,42 @@ void ConstrainedFDLayout::runOnce(const bool xAxis, const bool yAxis) {
         computeDescentVectorOnBothAxes(xAxis,yAxis,stress,x0,x1);
     }
 }
-void setupVarsAndConstraints(unsigned n, const CompoundConstraints* ccs,
-        vpsc::Variables& vs, vpsc::Constraints& cs) {
+
+
+static void setupVarsAndConstraints(unsigned n, const CompoundConstraints* ccs,
+        const vpsc::Dim dim, vpsc::Variables& vs, vpsc::Constraints& cs) 
+{
     vs.resize(n);
-    for(unsigned i=0;i<n;++i) {
-        vs[i]=new vpsc::Variable(i);
+    for (unsigned i = 0; i < n; ++i)
+    {
+        vs[i] = new vpsc::Variable(i);
     }
-    if(ccs) {
-        for(CompoundConstraints::const_iterator c=ccs->begin();
-                c!=ccs->end();++c) {
-            (*c)->generateVariables(vs);
+
+    if(ccs) 
+    {
+        for (CompoundConstraints::const_iterator c = ccs->begin();
+                c != ccs->end(); ++c) 
+        {
+            (*c)->generateVariables(dim, vs);
         }
-        for(CompoundConstraints::const_iterator c=ccs->begin();
-                c!=ccs->end();++c) {
-            (*c)->generateSeparationConstraints(vs,cs);
+        for (CompoundConstraints::const_iterator c = ccs->begin();
+                c != ccs->end(); ++c) 
+        {
+            (*c)->generateSeparationConstraints(dim, vs, cs);
         }
     }
 }
-void updateCompoundConstraints(const CompoundConstraints* ccs) {
-    if(ccs) {
-        for(CompoundConstraints::const_iterator c=ccs->begin();
-                c!=ccs->end();c++) {
-            (*c)->updatePosition();
+
+
+void updateCompoundConstraints(const vpsc::Dim dim,
+        const CompoundConstraints* ccs) 
+{
+    if(ccs) 
+    {
+        for (CompoundConstraints::const_iterator c = ccs->begin();
+                c != ccs->end(); ++c) 
+        {
+            (*c)->updatePosition(dim);
         }
     }
 }
@@ -366,8 +380,8 @@ void ConstrainedFDLayout::handleResizes(const Resizes& resizeList) {
     }
     vpsc::Variables xvs, yvs;
     vpsc::Constraints xcs, ycs;
-    setupVarsAndConstraints(n,ccsx,xvs,xcs);
-    setupVarsAndConstraints(n,ccsy,yvs,ycs);
+    setupVarsAndConstraints(n, ccs, vpsc::HORIZONTAL, xvs, xcs);
+    setupVarsAndConstraints(n, ccs, vpsc::VERTICAL, yvs, ycs);
     topology::applyResizes(*topologyNodes, *topologyRoutes, resizes,
             xvs, xcs, yvs, ycs);
     for_each(xvs.begin(), xvs.end(), delete_object());
@@ -387,8 +401,7 @@ void ConstrainedFDLayout::moveTo(const vpsc::Dim dim, Position& target) {
     valarray<double> &coords = (dim==vpsc::HORIZONTAL)?X:Y;
     vpsc::Variables vs;
     vpsc::Constraints cs;
-    CompoundConstraints* ccs=dim==vpsc::HORIZONTAL?ccsx:ccsy;
-    setupVarsAndConstraints(n,ccs,vs,cs);
+    setupVarsAndConstraints(n, ccs, dim, vs, cs);
     topology::DesiredPositions des;
     if(preIteration) {
         for(vector<Lock>::iterator l=preIteration->locks.begin();
@@ -421,7 +434,7 @@ void ConstrainedFDLayout::moveTo(const vpsc::Dim dim, Position& target) {
         project(vs,cs,coords);
         moveBoundingBoxes();
     }
-    updateCompoundConstraints(ccs);
+    updateCompoundConstraints(dim, ccs);
     for_each(vs.begin(),vs.end(),delete_object());
     for_each(cs.begin(),cs.end(),delete_object());
 }
@@ -446,9 +459,8 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const vpsc::Dim dim, const
     }
     vpsc::Variables vs;
     vpsc::Constraints cs;
-    CompoundConstraints* ccs=dim==vpsc::HORIZONTAL?ccsx:ccsy;
     double stress;
-    setupVarsAndConstraints(n,ccs,vs,cs);
+    setupVarsAndConstraints(n, ccs, dim, vs, cs);
     if(topologyRoutes) {
         FILE_LOG(logDEBUG1) << "applying topology preserving layout...";
 		vpsc::Rectangle::setXBorder(0);
@@ -502,7 +514,7 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const vpsc::Dim dim, const
         stress = applyDescentVector(d,oldCoords,coords,oldStress,stepsize);
         moveBoundingBoxes();
     }
-    updateCompoundConstraints(ccs);
+    updateCompoundConstraints(dim, ccs);
     if(unsatisfiable.size()==2) {
         checkUnsatisfiable(cs,unsatisfiable[dim]);
     }

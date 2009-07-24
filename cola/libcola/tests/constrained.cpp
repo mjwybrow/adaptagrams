@@ -63,14 +63,14 @@ int main() {
 		double x=getRand(width), y=getRand(height);
 		rs.push_back(new vpsc::Rectangle(x,x+5,y,y+5));
 	}
-	CompoundConstraints acsx;
-	AlignmentConstraint ac(1);
-	acsx.push_back(&ac);
+	CompoundConstraints ccs;
+	AlignmentConstraint ac(vpsc::XDIM);
+	ccs.push_back(&ac);
 	ac.offsets.push_back(make_pair((unsigned)0,(double)0));
 	ac.offsets.push_back(make_pair((unsigned)3,(double)0));
 	// apply steepest descent layout
 	ConstrainedFDLayout alg2(rs,es,width/2);
-	alg2.setXConstraints(&acsx);
+	alg2.setConstraints(&ccs);
 	alg2.run();
 	assert(alg2.computeStress()<0.0013);
 	// the following pair of nodes should line-up
@@ -82,7 +82,7 @@ int main() {
 	}
 	// apply scaled majorization layout
 	ConstrainedMajorizationLayout alg(rs,es,NULL,width/2);
-	alg.setXConstraints(&acsx);
+	alg.setConstraints(&ccs);
 	alg.setScaling(true);
 	alg.run();
 	// the following pair of nodes should line-up
