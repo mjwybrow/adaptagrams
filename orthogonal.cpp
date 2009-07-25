@@ -2028,6 +2028,16 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
         CmpLineOrder lineSort(pointOrders, dimension);
         currentRegion.sort(lineSort);
         
+        if (currentRegion.size() == 1)
+        {
+            // Save creating the solver instance if there is just one
+            // immovable segment.
+            if (!currentRegion.front().sBend)
+            {
+                continue;
+            }
+        }
+
         // Process these segments.
         Variables vs;
         Constraints cs;
