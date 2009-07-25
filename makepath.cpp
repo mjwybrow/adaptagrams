@@ -268,10 +268,11 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
             Polygon dynamic_conn_route(connRoute);
             CrossingsInfoPair crossings = countRealCrossings(
                     dynamic_route2, isConn, dynamic_conn_route, 
-                    connRoute.size() - 1, true);
+                    connRoute.size() - 1, true, false, NULL, NULL,
+                    connRef, lineRef);
 
             if ((crossings.second & CROSSING_SHARES_PATH) &&
-                    !(crossings.second & CROSSING_SHARES_PATH_AT_END))
+                    (crossings.second & CROSSING_SHARES_FIXED_SEGMENT))
             {
                 // Penalise unecessary shared paths in the middle of
                 // connectors.
