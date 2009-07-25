@@ -355,6 +355,8 @@ const unsigned int CROSSING_NONE = 0;
 const unsigned int CROSSING_TOUCHES = 1;
 const unsigned int CROSSING_SHARES_PATH = 2;
 const unsigned int CROSSING_SHARES_PATH_AT_END = 4;
+const unsigned int CROSSING_SHARES_FIXED_SEGMENT = 8;
+
 
 typedef std::pair<int, unsigned int> CrossingsInfoPair;
 

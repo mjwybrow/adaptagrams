@@ -95,6 +95,23 @@ class ShiftSegment
         {
             return connRef->displayRoute().ps[indexHigh];
         }
+        const int fixedOrder(bool& isFixed) const
+        {
+            if (fixed)
+            {
+                isFixed = true;
+                return 0;
+            }
+            if (lowC())
+            {
+                return 1;
+            }
+            else if (highC())
+            {
+                return -1;
+            }
+            return 0;
+        }
         const int order(void) const
         {
             if (lowC())
@@ -128,8 +145,8 @@ class ShiftSegment
             if ( (lowPt[altDim] < rhsHighPt[altDim]) &&
                     (rhsLowPt[altDim] < highPt[altDim]))
             {
-                if ( (minSpaceLimit < rhs.maxSpaceLimit) &&
-                        (rhs.minSpaceLimit < maxSpaceLimit))
+                if ( (minSpaceLimit <= rhs.maxSpaceLimit) &&
+                        (rhs.minSpaceLimit <= maxSpaceLimit))
                 {
                     return true;
                 }
@@ -1917,6 +1934,17 @@ class CmpLineOrder
                 return lhsLow[dimension] < rhsLow[dimension];
             }
             
+            // If one of these is fixed, then determine order based on 
+            // fixed segment, that is, order so the fixed segment doesn't 
+            // block movement.
+            bool oneIsFixed = false;
+            const int lhsFixedOrder = lhs.fixedOrder(oneIsFixed);
+            const int rhsFixedOrder = rhs.fixedOrder(oneIsFixed);
+            if (oneIsFixed && (lhsFixedOrder != rhsFixedOrder))
+            {
+                return lhsFixedOrder < rhsFixedOrder;
+            }
+
             // C-bends that did not have a clear order with s-bends might 
             // not have a good ordering here, so compare their order in 
             // terms of C-bend direction and S-bends and use that if it
@@ -2006,7 +2034,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
         ShiftSegmentPtrList prevVars;
         // Weights:
         double freeWeight   = 0.00001;
-        double strongWeight = 1;
+        double strongWeight = 0.001;
         double fixedWeight  = 100000;
         //printf("-------------------------------------------------------\n");
         //printf("Nudge -- size: %d\n", (int) currentRegion.size());

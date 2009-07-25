@@ -1260,6 +1260,11 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
     assert(cIndex >= 1);
     assert(cIndex < conn.size());
 
+    bool polyIsOrthogonal = (polyConnRef && 
+            (polyConnRef->routingType() == ConnType_Orthogonal));
+    bool connIsOrthogonal = (connConnRef &&
+            (connConnRef->routingType() == ConnType_Orthogonal));
+
     int crossingCount = 0;
     std::vector<Avoid::Point *> c_path;
     std::vector<Avoid::Point *> p_path;
@@ -1417,6 +1422,40 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
 
                 size_t size = c_path.size();
                 
+                // Check to see if these share a fixed segment.
+                if (polyIsOrthogonal && connIsOrthogonal)
+                {
+                    size_t startPt = (front_same) ? 0 : 1;
+                    if (c_path[startPt]->x == c_path[startPt + 1]->x)
+                    {
+                        // Vertical
+                        double xPos = c_path[startPt]->x;
+                        // See if this is inline with either the start
+                        // or end point of both connectors.
+                        if ( ((xPos == poly.ps[0].x) || 
+                                (xPos == poly.ps[poly.size() - 1].x)) &&
+                             ((xPos == conn.ps[0].x) || 
+                                (xPos == conn.ps[cIndex].x)) )
+                        {
+                            crossingFlags |= CROSSING_SHARES_FIXED_SEGMENT;
+                        }
+                    }
+                    else
+                    {
+                        // Horizontal
+                        double yPos = c_path[startPt]->y;
+                        // See if this is inline with either the start
+                        // or end point of both connectors.
+                        if ( ((yPos == poly.ps[0].y) || 
+                                (yPos == poly.ps[poly.size() - 1].y)) &&
+                             ((yPos == conn.ps[0].y) || 
+                                (yPos == conn.ps[cIndex].y)) )
+                        {
+                            crossingFlags |= CROSSING_SHARES_FIXED_SEGMENT;
+                        }
+                    }
+                }
+
                 int prevTurnDir = -1;
                 int startCornerSide = 1;
                 int endCornerSide = 1;
