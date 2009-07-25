@@ -746,21 +746,13 @@ void makePath(ConnRef *lineRef, bool *flag)
     VertInf *start = lineRef->start();
 
     // TODO: Could be more efficient here.
-    EdgeInf *directEdge = EdgeInf::existingEdge(src, tar);
     if (isOrthogonal)
     {
-        if ((start == src) && directEdge && (directEdge->getDist() > 0))
-        {
-            tar->pathNext = src;
-            directEdge->addConn(flag);
-        }
-        else
-        {
-            aStarPath(lineRef, src, tar, start);
-        }
+        aStarPath(lineRef, src, tar, start);
     }
     else // if (!isOrthogonal)
     {
+        EdgeInf *directEdge = EdgeInf::existingEdge(src, tar);
         // If the connector hates crossings or there are clusters present,
         // then we want to examine direct paths:
         bool examineDirectPath = lineRef->doesHateCrossings() || 
