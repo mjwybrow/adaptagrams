@@ -4,6 +4,7 @@
 %{
 #include <vector>
 #include <libvpsc/rectangle.h>
+#include <libvpsc/assertions.h>
 #include <libcola/cola.h>
 #include <libcola/cluster.h>
 #include <libcola/convex_hull.h>
@@ -83,6 +84,13 @@ class ColaException {
 }
 %}
 
+%typemap(throws, throws="ColaException") vpsc::CriticalFailure {
+   jclass excep = jenv->FindClass("colajava/ColaException");
+   if (excep)
+       jenv->ThrowNew(excep, $1.what().c_str());
+   return $null;
+}
+
 %template(UnsatisfiableConstraintInfoVector) std::vector<cola::UnsatisfiableConstraintInfo *>;
 %template(AlignmentConstraintPair) std::pair<cola::AlignmentConstraint *, cola::AlignmentConstraint *>;
 %template(AlignmentConstraintPairList) std::vector<std::pair<cola::AlignmentConstraint *, cola::AlignmentConstraint *> >; 
@@ -129,6 +137,7 @@ void deleteDoubleArray(double* a) {
 
 /* Parse the header file to generate wrappers */
 %include "libvpsc/rectangle.h"
+%include "libvpsc/assertions.h"
 %include "libcola/compound_constraints.h"
 %include "libcola/cola.h"
 %include "libcola/cluster.h"

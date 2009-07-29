@@ -410,7 +410,7 @@ public:
         TestConvergence& done=defaultTest,
         PreIteration* preIteration=NULL);
     void run(bool x=true, bool y=true) 
-            throw(InvalidVariableIndexException);
+            throw(InvalidVariableIndexException, vpsc::CriticalFailure);
     void runOnce(bool x=true, bool y=true);
     /**
      *  Allow the user to specify compound constraints.
