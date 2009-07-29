@@ -37,17 +37,26 @@
 
   #if defined(USE_CASSERT) 
     #define ASSERT(expr)  assert(expr)
-  #elif !defined(__ASSERT_FUNCTION)
-    #define ASSERT(expr) \
-        if (!(expr)) { \
-            throw vpsc::CriticalFailure(__STRING(expr), __FILE__, __LINE__); \
-        }
   #else
-    #define ASSERT(expr) \
-        if (!(expr)) { \
-            throw vpsc::CriticalFailure(__STRING(expr), __FILE__, __LINE__, \
-                    __ASSERT_FUNCTION); \
-        }
+
+    // String seems to be missing on MinGW's gcc,
+    // so define it here if it is missing.
+    #ifndef __STRING
+      #define __STRING(x) #x
+    #endif
+
+    #if !defined(__ASSERT_FUNCTION)
+      #define ASSERT(expr) \
+          if (!(expr)) { \
+              throw vpsc::CriticalFailure(__STRING(expr), __FILE__, __LINE__); \
+          }
+    #else
+      #define ASSERT(expr) \
+          if (!(expr)) { \
+              throw vpsc::CriticalFailure(__STRING(expr), __FILE__, __LINE__, \
+                      __ASSERT_FUNCTION); \
+          }
+    #endif
   #endif
 
 namespace vpsc { 
@@ -68,7 +77,7 @@ class CriticalFailure
         std::string what() const
         {
             std::stringstream s;
-            s << "ERROR: Critical sanity check failed.\n";
+            s << "ERROR: Critical assertion failed.\n";
             s << "  expression: " << expr << "\n";
             s << "  at line " << line << " of " << file << "\n";
             if (function)
