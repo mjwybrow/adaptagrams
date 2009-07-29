@@ -428,15 +428,7 @@ public:
      */
     void setAvoidNodeOverlaps(void);
     void setTopology(std::vector<topology::Node*>* tnodes, 
-            std::vector<topology::Edge*>* routes)
-    {
-        // Setting nodes with NULL routes will result in strange behaviour,
-        // so catch this case.  An empy list for topologyRoutes is okay though.
-        assert(!topologyNodes || topologyRoutes);
-
-        topologyNodes=tnodes;
-        topologyRoutes=routes;
-    }
+            std::vector<topology::Edge*>* routes);
     void setDesiredPositions(std::vector<DesiredPosition>* desiredPositions) {
         this->desiredPositions = desiredPositions;
     }

@@ -31,10 +31,13 @@
  *   Tim Dwyer <tgdwyer@gmail.com>
  */
 
-#include "constraint.h"
 #include <sstream>
 #include <cassert>
 #include <cfloat>
+
+#include "constraint.h"
+#include "variable.h"
+
 namespace vpsc {
 Constraint::Constraint(Variable *left, Variable *right, double gap, bool equality)
 : left(left),

@@ -25,9 +25,10 @@
 
 #include <cassert>
 #include <iostream>
-#include <libvpsc/variable.h>
-#include <libvpsc/constraint.h>
-#include <libvpsc/block.h>
+
+#include "libvpsc/variable.h"
+#include "libvpsc/constraint.h"
+#include "libvpsc/block.h"
 using namespace std;
 using namespace vpsc;
 

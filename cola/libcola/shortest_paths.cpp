@@ -23,13 +23,16 @@
  *
 */
 
-#include "commondefs.h"
-#include <float.h>
+#include <cfloat>
 #include <cassert>
 #include <algorithm>
 #include <iostream>
 #include <limits>
+
+#include "commondefs.h"
 #include <libvpsc/pairing_heap.h>
+#include <libvpsc/assertions.h>
+
 using namespace std;
 namespace shortest_paths {
 // O(n^3) time dynamic programming approach.  Slow, but fool proof.  Use for testing.
@@ -40,7 +43,7 @@ void floyd_warshall(
         vector<Edge> const & es,
         valarray<T> const * eweights) 
 {
-    assert(!eweights||eweights->size()==es.size());
+    ASSERT(!eweights||eweights->size()==es.size());
     for(unsigned i=0;i<n;i++) {
         for(unsigned j=0;j<n;j++) {
             if(i==j) D[i][j]=0;
@@ -49,7 +52,7 @@ void floyd_warshall(
     }
     for(unsigned i=0;i<es.size();i++) {
         unsigned u=es[i].first, v=es[i].second;
-        assert(u<n&&v<n);
+        ASSERT(u<n&&v<n);
         D[u][v]=D[v][u]=eweights?(*eweights)[i]:1;
     }
     for(unsigned k=0; k<n; k++) {
@@ -68,7 +71,7 @@ void neighbours(
         vector<Edge> const & es,
         valarray<T> const * eweights) 
 {
-    assert(!eweights||eweights->size()==es.size());
+    ASSERT(!eweights||eweights->size()==es.size());
     for(unsigned i=0;i<n;i++) {
         for(unsigned j=0;j<n;j++) {
             D[i][j]=0;
@@ -76,7 +79,7 @@ void neighbours(
     }
     for(unsigned i=0;i<es.size();i++) {
         unsigned u=es[i].first, v=es[i].second;
-        assert(u<n&&v<n);
+        ASSERT(u<n&&v<n);
         D[u][v]=D[v][u]=eweights?(*eweights)[i]:1;
     }
 }
@@ -85,14 +88,14 @@ void dijkstra_init(
         vector<Node<T> > & vs, 
         vector<Edge> const& es, 
         valarray<T> const* eweights) {
-    assert(!eweights||eweights->size()==es.size());
+    ASSERT(!eweights||eweights->size()==es.size());
 #ifndef NDEBUG
     const unsigned n=vs.size();
 #endif
     for(unsigned i=0;i<es.size();i++) {
         unsigned u=es[i].first, v=es[i].second;
-        assert(u<n);
-        assert(v<n);
+        ASSERT(u<n);
+        ASSERT(v<n);
         T w=eweights?(*eweights)[i]:1;
         vs[u].neighbours.push_back(&vs[v]);
         vs[u].nweights.push_back(w);
@@ -107,7 +110,7 @@ void dijkstra(
         T* d)
 {
     const unsigned n=vs.size();
-    assert(s<n);
+    ASSERT(s<n);
     for(unsigned i=0;i<n;i++) {
         vs[i].id=i;
         vs[i].d=numeric_limits<T>::max();
@@ -141,8 +144,8 @@ void dijkstra(
         vector<Edge> const & es,
         valarray<T> const * eweights)
 {
-    assert(!eweights||es.size()==eweights->size());
-    assert(s<n);
+    ASSERT(!eweights||es.size()==eweights->size());
+    ASSERT(s<n);
     vector<Node<T> > vs(n);
     dijkstra_init(vs,es,eweights);
     dijkstra(s,vs,d);

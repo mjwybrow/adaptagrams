@@ -23,19 +23,20 @@
  *
 */
 
-#include "commondefs.h"
 #include <vector>
 #include <cmath>
 #include <limits>
+
+#include "libvpsc/solve_VPSC.h"
+#include "libvpsc/variable.h"
+#include "libvpsc/constraint.h"
+#include "libvpsc/rectangle.h"
+#include "libtopology/topology_graph.h"
+#include "libtopology/topology_constraints.h"
+#include "commondefs.h"
 #include "cola.h"
 #include "shortest_paths.h"
 #include "straightener.h"
-#include <libvpsc/solve_VPSC.h>
-#include <libvpsc/variable.h>
-#include <libvpsc/constraint.h>
-#include <libvpsc/rectangle.h>
-#include <libtopology/topology_graph.h>
-#include <libtopology/topology_constraints.h>
 #include "cola_log.h"
 
 namespace cola {
@@ -47,7 +48,7 @@ void delete_vector(vector<T*> &v) {
 Resizes PreIteration::__resizesNotUsed;
 Locks PreIteration::__locksNotUsed;
 inline double dotProd(valarray<double> x, valarray<double> y) {
-    assert(x.size()==y.size());
+    ASSERT(x.size()==y.size());
     double dp=0;
     for(unsigned i=0;i<x.size();i++) {
         dp+=x[i]*y[i]; 
@@ -180,8 +181,8 @@ void ConstrainedFDLayout::computePathLengths(
 typedef valarray<double> Position;
 void getPosition(Position& X, Position& Y, Position& pos) {
     unsigned n=X.size();
-    assert(Y.size()==n);
-    assert(pos.size()==2*n);
+    ASSERT(Y.size()==n);
+    ASSERT(pos.size()==2*n);
     for(unsigned i=0;i<n;++i) {
         pos[i]=X[i];
         pos[i+n]=Y[i];
@@ -193,8 +194,8 @@ void getPosition(Position& X, Position& Y, Position& pos) {
  * @param pos target positions of both axes
  */
 void ConstrainedFDLayout::setPosition(Position& pos) {
-    assert(Y.size()==X.size());
-    assert(pos.size()==2*X.size());
+    ASSERT(Y.size()==X.size());
+    ASSERT(pos.size()==2*X.size());
     moveTo(vpsc::HORIZONTAL,pos);
     moveTo(vpsc::VERTICAL,pos);
 }
@@ -293,6 +294,17 @@ void ConstrainedFDLayout::runOnce(const bool xAxis, const bool yAxis) {
 }
 
 
+void ConstrainedFDLayout::setTopology(std::vector<topology::Node*>* tnodes, 
+        std::vector<topology::Edge*>* routes)
+{
+    // Setting nodes with NULL routes will result in strange behaviour,
+    // so catch this case.  An empy list for topologyRoutes is okay though.
+    ASSERT(!topologyNodes || topologyRoutes);
+
+    topologyNodes=tnodes;
+    topologyRoutes=routes;
+}
+
 void ConstrainedFDLayout::setAvoidNodeOverlaps(void)
 {
     unsigned nodesTotal = boundingBoxes.size();
@@ -356,7 +368,7 @@ void project(vpsc::Variables& vs, vpsc::Constraints& cs, valarray<double>& coord
 }
 void setVariableDesiredPositions(vpsc::Variables& vs, vpsc::Constraints& cs, const topology::DesiredPositions& des, valarray<double>& coords) {
     unsigned n=coords.size();
-    assert(vs.size()>=n);
+    ASSERT(vs.size()>=n);
     for(unsigned i=0;i<n;++i) {
         vpsc::Variable* v=vs[i];
         v->desiredPosition = coords[i];
@@ -364,7 +376,7 @@ void setVariableDesiredPositions(vpsc::Variables& vs, vpsc::Constraints& cs, con
     }
     for(topology::DesiredPositions::const_iterator d=des.begin();
             d!=des.end();++d) {
-        assert(d->first<vs.size());
+        ASSERT(d->first<vs.size());
         vpsc::Variable* v=vs[d->first];
         v->desiredPosition = d->second;
         v->weight=10000;
@@ -383,10 +395,10 @@ void checkUnsatisfiable(const vpsc::Constraints& cs,
 void ConstrainedFDLayout::handleResizes(const Resizes& resizeList) {
     FILE_LOG(logDEBUG) << "ConstrainedFDLayout::handleResizes()...";
     if(topologyNodes==NULL) {
-        assert(topologyRoutes==NULL);
+        ASSERT(topologyRoutes==NULL);
         return;
     }
-    assert(topologyRoutes!=NULL);
+    ASSERT(topologyRoutes!=NULL);
     // all shapes to be resized are wrapped in a ResizeInfo and
     // placed in a lookup table, resizes, indexed by id
     topology::ResizeMap resizes;
@@ -412,7 +424,7 @@ void ConstrainedFDLayout::handleResizes(const Resizes& resizeList) {
  * @param target array of desired positions (for both axes)
  */
 void ConstrainedFDLayout::moveTo(const vpsc::Dim dim, Position& target) {
-    assert(target.size()==2*n);
+    ASSERT(target.size()==2*n);
     FILE_LOG(logDEBUG) << "ConstrainedFDLayout::moveTo(): dim="<<dim;
     valarray<double> &coords = (dim==vpsc::HORIZONTAL)?X:Y;
     vpsc::Variables vs;
@@ -556,8 +568,8 @@ double ConstrainedFDLayout::applyDescentVector(
         const double oldStress,
         double stepsize
         ) {
-    assert(d.size()==oldCoords.size());
-    assert(d.size()==coords.size());
+    ASSERT(d.size()==oldCoords.size());
+    ASSERT(d.size()==coords.size());
     while(fabs(stepsize)>0.00000000001) {
         coords=oldCoords-stepsize*d;
         double stress=computeStress();
@@ -629,15 +641,15 @@ double ConstrainedFDLayout::computeStepSize(
         valarray<double> const &g, 
         valarray<double> const &d) const
 {
-    assert(g.size()==d.size());
-    assert(g.size()==H.rowSize());
+    ASSERT(g.size()==d.size());
+    ASSERT(g.size()==H.rowSize());
     // stepsize = g'd / (d' H d)
     double numerator = dotProd(g,d);
     valarray<double> Hd(d.size());
     H.rightMultiply(d,Hd);
     double denominator = dotProd(d,Hd);
-    //assert(numerator>=0);
-    //assert(denominator>=0);
+    //ASSERT(numerator>=0);
+    //ASSERT(denominator>=0);
     if(denominator==0) return 0;
     return numerator/denominator;
 }

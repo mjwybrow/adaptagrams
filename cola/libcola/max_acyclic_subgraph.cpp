@@ -30,8 +30,8 @@
 #include <iostream>
 #include <stack>
 #include <vector>
-#include <cassert>
 
+#include "libvpsc/assertions.h"
 #include "commondefs.h"
 #include "max_acyclic_subgraph.h"
 
@@ -46,7 +46,7 @@ MaxAcyclicSubgraph::MaxAcyclicSubgraph(unsigned numVertices, Edges *edges)  {
 
   // make the adjacency matrix
   this->make_matrix();
-  assert(nodes->size() == this->V);
+  ASSERT(nodes->size() == this->V);
 }
 
 MaxAcyclicSubgraph::~MaxAcyclicSubgraph()  {
@@ -66,7 +66,7 @@ void MaxAcyclicSubgraph::make_matrix()  {
   }
 
   nodes = new NodeList(this->V, NULL);
-  assert(!nodes->empty());
+  ASSERT(!nodes->empty());
 
   // from the edges passed, fill the adjacency matrix
   for (ei = edges->begin(); ei != edges->end(); ei++)  {
@@ -117,8 +117,8 @@ Edges *MaxAcyclicSubgraph::find_subgraph()  {
   NodeList *copy = copy_graph();
   Node *node = NULL;
 
-  assert(!copy->empty());
-  assert(!edges->empty());
+  ASSERT(!copy->empty());
+  ASSERT(!edges->empty());
 
   #ifdef COPY_ADJ_DEBUG
     cout << "COPY OF MATRIX: " << endl;
@@ -127,7 +127,7 @@ Edges *MaxAcyclicSubgraph::find_subgraph()  {
 
   // while the graph is not empty
   while (!copy->empty())  {
-    assert(toRemove.empty());
+    ASSERT(toRemove.empty());
 
     // do we have any sinks
     for (NodeList::iterator ni = copy->begin(); ni != copy->end(); ni++)  {
@@ -150,7 +150,7 @@ Edges *MaxAcyclicSubgraph::find_subgraph()  {
 	    if ((*copy)[q]->id == node->incoming[j].first)  { out = (*copy)[q]; }
           }
 
-          assert(out != NULL);
+          ASSERT(out != NULL);
 
 	  #ifdef RUN_DEBUG
 	    cout << "Searching through OUTGOING list for vertex(" << out->id << ")" << endl;
@@ -178,7 +178,7 @@ Edges *MaxAcyclicSubgraph::find_subgraph()  {
     }
 
     // remove all necessary vertices
-    while (!toRemove.empty())  { copy->erase(toRemove.top()); toRemove.pop(); } assert(toRemove.empty());
+    while (!toRemove.empty())  { copy->erase(toRemove.top()); toRemove.pop(); } ASSERT(toRemove.empty());
 
     #ifdef EA_DEBUG
       cout << "EA: ";
@@ -208,7 +208,7 @@ Edges *MaxAcyclicSubgraph::find_subgraph()  {
     }
 
     // remove all necessary vertices
-    while (!toRemove.empty())  { copy->erase(toRemove.top()); toRemove.pop(); } assert(toRemove.empty());
+    while (!toRemove.empty())  { copy->erase(toRemove.top()); toRemove.pop(); } ASSERT(toRemove.empty());
 
     #ifdef EA_DEBUG
       cout << "EA: ";
@@ -244,7 +244,7 @@ Edges *MaxAcyclicSubgraph::find_subgraph()  {
 	    if ((*copy)[q]->id == node->outgoing[j].second)  { in = (*copy)[q]; }
           }
 
-          assert(in != NULL);
+          ASSERT(in != NULL);
 
 	  #ifdef RUN_DEBUG
 	    cout << "Searching through INCOMING list for vertex(" << in->id << ")" << endl;
@@ -272,7 +272,7 @@ Edges *MaxAcyclicSubgraph::find_subgraph()  {
     }
 
     // remove all necessary vertices
-    while (!toRemove.empty())  { copy->erase(toRemove.top()); toRemove.pop(); } assert(toRemove.empty());
+    while (!toRemove.empty())  { copy->erase(toRemove.top()); toRemove.pop(); } ASSERT(toRemove.empty());
 
     #ifdef EA_DEBUG
       cout << "EA: ";
@@ -323,7 +323,7 @@ Edges *MaxAcyclicSubgraph::find_subgraph()  {
 	  if ((*copy)[q]->id == node->outgoing[j].second)  { in = (*copy)[q]; }
         }
 
-        assert(in != NULL);
+        ASSERT(in != NULL);
 
 	#ifdef RUN_DEBUG
 	  cout << "Searching through INCOMING list for vertex(" << in->id << ")" << endl;
@@ -353,7 +353,7 @@ Edges *MaxAcyclicSubgraph::find_subgraph()  {
 	  if ((*copy)[q]->id == node->incoming[j].first)  { out = (*copy)[q]; }
         }
 
-        assert(out != NULL);
+        ASSERT(out != NULL);
 
 	#ifdef RUN_DEBUG
 	  cout << "Searching through OUTGOING list for vertex(" << out->id << ")" << endl;
@@ -415,7 +415,7 @@ void MaxAcyclicSubgraph::mod_graph(unsigned numVertices, Edges *edges)  {
   this->edges = edges;
   // remake the adjaceny matrix
   this->make_matrix();
-  assert(nodes->size() == this->V);
+  ASSERT(nodes->size() == this->V);
 }
 
 bool MaxAcyclicSubgraph::find_node(unsigned k)  {

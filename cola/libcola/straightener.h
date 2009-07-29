@@ -37,7 +37,7 @@ namespace cola {
     class SeparationConstraint;
 }
 namespace straightener {
-using namespace std;
+
 struct Route {
     Route(unsigned n) : n(n), xs(new double[n]), ys(new double[n]) {}
     ~Route() {
@@ -45,20 +45,20 @@ struct Route {
         delete [] ys;
     }
     void print() {
-        cout << "double xs[]={";
-        copy(xs,xs+n-1,ostream_iterator<double>(cout,","));
-        cout << xs[n-1] << "};" << endl << "double ys[]={";
-        copy(ys,ys+n-1,ostream_iterator<double>(cout,","));
-        cout << ys[n-1] << "};" << endl;
+        std::cout << "double xs[]={";
+        std::copy(xs,xs+n-1,std::ostream_iterator<double>(std::cout,","));
+        std::cout << xs[n-1] << "};" << std::endl << "double ys[]={";
+        std::copy(ys,ys+n-1,std::ostream_iterator<double>(std::cout,","));
+        std::cout << ys[n-1] << "};" << std::endl;
     }
     void boundingBox(double &xmin,double &ymin,double &xmax,double &ymax) {
         xmin=ymin=DBL_MAX;
         xmax=ymax=-DBL_MAX;
         for(unsigned i=0;i<n;i++) {
-            xmin=min(xmin,xs[i]);
-            xmax=max(xmax,xs[i]);
-            ymin=min(ymin,ys[i]);
-            ymax=max(ymax,ys[i]);
+            xmin=std::min(xmin,xs[i]);
+            xmax=std::max(xmax,xs[i]);
+            ymin=std::min(ymin,ys[i]);
+            ymax=std::max(ymax,ys[i]);
         } 
     }
     double routeLength () const {
@@ -103,20 +103,20 @@ public:
     unsigned openInd; // position in openEdges
     unsigned startNode, endNode;
     double idealLength;
-    vector<unsigned> dummyNodes;
-    vector<unsigned> path;
-    vector<unsigned> activePath;
-    vector<DebugPoint> debugPoints;
-    vector<DebugLine> debugLines;
+    std::vector<unsigned> dummyNodes;
+    std::vector<unsigned> path;
+    std::vector<unsigned> activePath;
+    std::vector<DebugPoint> debugPoints;
+    std::vector<DebugLine> debugLines;
     void print() {
         printf("Edge[%d]=(%d,%d)\n",id,startNode,endNode);
         route->print();
     }
     // if the edge route intersects with any of the rectangles in rects then reroute
     // those parts of the route around the rectangle boundaries
-    void rerouteAround(vector<vpsc::Rectangle*> const &rects) {
+    void rerouteAround(std::vector<vpsc::Rectangle*> const &rects) {
         unsigned rid=0;
-        for(vector<vpsc::Rectangle*>::const_iterator r=rects.begin();r!=rects.end();r++,rid++) {
+        for(std::vector<vpsc::Rectangle*>::const_iterator r=rects.begin();r!=rects.end();r++,rid++) {
             if(rid!=startNode && rid!=endNode) {
                 route->rerouteAround(*r);
             }
@@ -145,9 +145,9 @@ public:
         if(startNode==n||endNode==n) return true;
         return false;
     }
-    void nodePath(vector<Node*>& nodes, bool allActive);
-    void createRouteFromPath(vector<Node *> const & nodes);
-    void xpos(double y, vector<double>& xs) const {
+    void nodePath(std::vector<Node*>& nodes, bool allActive);
+    void createRouteFromPath(std::vector<Node *> const & nodes);
+    void xpos(double y, std::vector<double>& xs) const {
         // search line segments for intersection points with y pos
         for(unsigned i=1;i<route->n;i++) {
             double ax=route->xs[i-1], bx=route->xs[i], ay=route->ys[i-1], by=route->ys[i];
@@ -158,7 +158,7 @@ public:
             }
         }
     }
-    void ypos(double x, vector<double>& ys) const {
+    void ypos(double x, std::vector<double>& ys) const {
         // search line segments for intersection points with x pos
         for(unsigned i=1;i<route->n;i++) {
             double ax=route->xs[i-1], bx=route->xs[i], ay=route->ys[i-1], by=route->ys[i];
@@ -188,34 +188,34 @@ public:
     Straightener(
             const double strength,
             const vpsc::Dim dim,
-            vector<vpsc::Rectangle*> const & rs,
+            std::vector<vpsc::Rectangle*> const & rs,
             cola::FixedList const & fixed,
-            vector<Edge*> const & edges, 
+            std::vector<Edge*> const & edges, 
             vpsc::Variables const & vs,
             vpsc::Variables & lvs,
             vpsc::Constraints & lcs,
-            valarray<double> & oldCoords,
-            valarray<double> & oldG);
+            std::valarray<double> & oldCoords,
+            std::valarray<double> & oldG);
     ~Straightener();
     void updateNodePositions();
     void finalizeRoutes();
     void computeForces(cola::SparseMap &H);
     void computeForces2(cola::SparseMap &H);
-    double computeStress(valarray<double> const &coords);
-    double computeStress2(valarray<double> const &coords);
-    valarray<double> dummyNodesX;
-    valarray<double> dummyNodesY;
-    valarray<double> g;
-    valarray<double> coords;
+    double computeStress(std::valarray<double> const &coords);
+    double computeStress2(std::valarray<double> const &coords);
+    std::valarray<double> dummyNodesX;
+    std::valarray<double> dummyNodesY;
+    std::valarray<double> g;
+    std::valarray<double> coords;
     unsigned N;
 private:
     double strength;
     const vpsc::Dim dim;
     cola::FixedList const & fixed;
-    vector<Edge*> const & edges;
+    std::vector<Edge*> const & edges;
     vpsc::Variables const & vs;
     vpsc::Variables & lvs;
-    vector<Node*> nodes;
+    std::vector<Node*> nodes;
     double len(const unsigned u, const unsigned v, 
             double& dx, double& dy,
             double& dx2, double& dy2);
@@ -238,7 +238,7 @@ public:
     cola::ConvexCluster* colaCluster;
     Cluster(cola::ConvexCluster* c) : colaCluster(c) {}
     double scanpos;
-    vector<Edge*> boundary;
+    std::vector<Edge*> boundary;
     void updateActualBoundary();
 };
 class Node : public ScanObject {
@@ -285,8 +285,8 @@ public:
 
 private:
     friend void sortNeighbours(const vpsc::Dim dim, Node * v, Node * l, Node * r, 
-        const double conjpos, vector<Edge*> const & openEdges, 
-        vector<Node *>& L, vector<Node *>& nodes);
+        const double conjpos, std::vector<Edge*> const & openEdges, 
+        std::vector<Node *>& L, std::vector<Node *>& nodes);
     Node(const unsigned id, const double x, const double y, Edge* e) : 
         ScanObject(id),cluster(NULL),
         edge(e),dummy(true),scan(false),active(false)  {
@@ -323,7 +323,7 @@ struct CmpNodePos {
         return tiebreaker;
     }
 };
-typedef set<Node*,CmpNodePos> NodeSet;
+typedef std::set<Node*,CmpNodePos> NodeSet;
 // defines references to three variables for which the goal function
 // will be altered to prefer points u-b-v are in a linear arrangement
 // such that b is placed at u+t(v-u).
@@ -368,24 +368,24 @@ struct LinearConstraint {
     double dvb;
     double dbb;
 };
-void setEdgeLengths(double **D, vector<Edge*> & edges);
-double pathLength(Edge const * e, vector<Node*> const & nodes);
-double computeStressFromRoutes(double strength, vector<Edge*> & edges);
-typedef vector<LinearConstraint*> LinearConstraints;
+void setEdgeLengths(double **D, std::vector<Edge*> & edges);
+double pathLength(Edge const * e, std::vector<Node*> const & nodes);
+double computeStressFromRoutes(double strength, std::vector<Edge*> & edges);
+typedef std::vector<LinearConstraint*> LinearConstraints;
 void generateConstraints(
         const vpsc::Dim dim, 
-        vector<Node*> & nodes, 
-        vector<Edge*> const & edges, 
-        vector<cola::SeparationConstraint*>& cs,
+        std::vector<Node*> & nodes, 
+        std::vector<Edge*> const & edges, 
+        std::vector<cola::SeparationConstraint*>& cs,
         bool xSkipping);
-void nodePath(Edge& e, vector<Node*>& nodes, vector<unsigned>& path);
+void nodePath(Edge& e, std::vector<Node*>& nodes, std::vector<unsigned>& path);
 void generateClusterBoundaries(
         const vpsc::Dim dim,
-        vector<Node*> & nodes,
-        vector<Edge*> & edges,
-        vector<vpsc::Rectangle*> const & rs,
+        std::vector<Node*> & nodes,
+        std::vector<Edge*> & edges,
+        std::vector<vpsc::Rectangle*> const & rs,
         cola::Cluster const & clusterHierarchy,
-        vector<straightener::Cluster*>& sclusters);
+        std::vector<straightener::Cluster*>& sclusters);
 } // namespace straightener
 
 #endif

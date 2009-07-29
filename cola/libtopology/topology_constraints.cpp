@@ -24,9 +24,10 @@
 
 #include <sstream>
 #include <string>
-#include <libvpsc/variable.h>
-#include <libcola/cola.h>
-#include <libcola/straightener.h>
+#include "libvpsc/variable.h"
+#include "libvpsc/assertions.h"
+#include "libcola/cola.h"
+#include "libcola/straightener.h"
 #include "topology_graph.h"
 #include "topology_constraints.h"
 #include "topology_log.h"
@@ -64,7 +65,7 @@ double TriConstraint::maxSafeAlpha() const {
 #ifndef NDEBUG
         const double iSlack = slackAtInitial();
 #endif
-        assert(iSlack>=fSlack);
+        ASSERT(iSlack>=fSlack);
         FILE_LOG(logDEBUG1)<<"  tiny negative msa rounded to 0!";
         // we know that fSlack is negative, we do not actually move by
         // negative amounts, but returning the following ensures that
@@ -121,6 +122,11 @@ toString() const {
     s << "BendConstraint: bendPoint=(" << bendPoint->posX() << "," << bendPoint->posY() << ")";
     return s.str();
 }
+unsigned BendConstraint::getEdgeID() const {
+    ASSERT(bendPoint->inSegment!=NULL);
+    ASSERT(bendPoint->outSegment!=NULL);
+    return bendPoint->inSegment->edge->id;
+}
 /**
  * functor that transfers each StraightConstraint associated with a segment
  * to be replaced, to either of the two new segments.
@@ -146,14 +152,14 @@ struct transferStraightConstraintChoose {
         double min2=min(target2->start->pos(vpsc::conjugate(dim)),target2->end->pos(vpsc::conjugate(dim)));
         double max2=max(target2->start->pos(vpsc::conjugate(dim)),target2->end->pos(vpsc::conjugate(dim)));
         if(min1<max2) {
-            assert(max1==min2);
+            ASSERT(max1==min2);
             lSeg = target1;
             rSeg = target2;
             lMin = min1;
             mid = max1;
             rMax = max2;
         } else {
-            assert(max2==min1);
+            ASSERT(max2==min1);
             lSeg = target2;
             rSeg = target1;
             lMin = min2;
@@ -188,19 +194,19 @@ struct transferStraightConstraintChoose {
     StraightConstraint* ignore;
 };
 bool sameCorner(const EdgePoint* a, const EdgePoint* b) {
-    assert( !(a->node->id==b->node->id
+    ASSERT( !(a->node->id==b->node->id
                 &&a->rectIntersect==b->rectIntersect));
     return false;
 }
 bool zigzag(const EdgePoint* a, const Segment* s) {
     if(s!=NULL) {
-        assert(!sameCorner(a,s->end));
+        ASSERT(!sameCorner(a,s->end));
     }
     return false;
 }
 bool zagzig(const EdgePoint* a, const Segment* s) {
     if(s!=NULL) {
-        assert(!sameCorner(a,s->start));
+        ASSERT(!sameCorner(a,s->start));
     }
     return false;
 }
@@ -214,11 +220,11 @@ void StraightConstraint::satisfy() {
              * end = segment->end,
              * bend = new EdgePoint(node,ri);
     FILE_LOG(logDEBUG1)<<"  u=("<<start->node->id<<":"<<start->rectIntersect<<"), v=("<<node->id<<":"<<ri<<"), w=("<<end->node->id<<":"<<end->rectIntersect<<")";
-    assert(!zigzag(bend,end->outSegment));
-    assert(!zagzig(bend,start->inSegment));
+    ASSERT(!zigzag(bend,end->outSegment));
+    ASSERT(!zagzig(bend,start->inSegment));
     // shouldn't have straight constraints between end segments and the
     // nodes to which they are connected.
-    assert(!segment->connectedToNode(node));
+    ASSERT(!segment->connectedToNode(node));
     
     Segment* s1 = new Segment(e,start,bend);
     Segment* s2 = new Segment(e,bend,end);
@@ -250,11 +256,11 @@ void StraightConstraint::satisfy() {
  * hence will never be violated anyway.
  */
 bool TriConstraint::assertFeasible() const {
-    assert(fabs(p)>1e7||slackAtInitial()>-1e-3);
+    ASSERT(fabs(p)>1e7||slackAtInitial()>-1e-3);
     return true;
 }
 bool TopologyConstraint::assertFeasible() const {
-    assert(c->assertFeasible());
+    ASSERT(c->assertFeasible());
     return true;
 }
 string StraightConstraint::
@@ -309,9 +315,9 @@ assertFeasible() const {
 }
 bool TopologyConstraints::solve() {
     FILE_LOG(logDEBUG)<<"TopologyConstraints::solve... dim="<<dim;
-    assert(assertConvexBends(edges));
-    assert(assertNoSegmentRectIntersection(nodes,edges));
-    assert(assertFeasible());
+    ASSERT(assertConvexBends(edges));
+    ASSERT(assertNoSegmentRectIntersection(nodes,edges));
+    ASSERT(assertFeasible());
     vector<TopologyConstraint*> ts;
     constraints(ts);
     vpsc::IncSolver s(vs,cs);
@@ -345,8 +351,8 @@ bool TopologyConstraints::solve() {
             v->rect->moveCentreD(dim,v->posOnLine(minTAlpha));
         }
     }
-    assert(noOverlaps());
-    assert(assertConvexBends(edges));
+    ASSERT(noOverlaps());
+    ASSERT(assertConvexBends(edges));
     // rectangle and edge point positions updated to variables.
     FILE_LOG(logDEBUG)<<" moves done.";
     if(minTAlpha<1 && minT) {
@@ -356,9 +362,9 @@ bool TopologyConstraints::solve() {
         minT->satisfy();
     }
     //printEdges(edges);
-    assert(assertFeasible());
-    assert(assertConvexBends(edges));
-    assert(assertNoSegmentRectIntersection(nodes,edges));
+    ASSERT(assertFeasible());
+    ASSERT(assertConvexBends(edges));
+    ASSERT(assertNoSegmentRectIntersection(nodes,edges));
     FILE_LOG(logDEBUG)<<"TopologyConstraints::solve... done";
     return minT!=NULL;
 }

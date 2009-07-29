@@ -42,8 +42,8 @@ inline bool isinf(double const &x) { return !(_finite(x) || _isnan(x)); }
 
 #endif
 
+#include "libvpsc/assertions.h"
 #include <valarray>
-#include <cassert>
 
 namespace cola {
 /**
@@ -61,7 +61,7 @@ public:
         array=false; 
     }
     void set(const unsigned i, const bool value=true) {
-        assert(i<array.size());
+        ASSERT(i<array.size());
         array[i]=value;
     }
     bool check(const unsigned i) const {

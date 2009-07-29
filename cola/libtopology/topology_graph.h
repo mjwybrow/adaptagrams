@@ -33,9 +33,14 @@
 
 #ifndef TOPOLOGY_GRAPH_H
 #define TOPOLOGY_GRAPH_H
+
 #include <vector>
-#include <libvpsc/rectangle.h>
+
+#include "libvpsc/assertions.h"
+#include "libvpsc/rectangle.h"
+
 #include "util.h"
+
 namespace vpsc {
 	class Variable;
 }
@@ -158,7 +163,7 @@ namespace topology {
          * @param e an EdgePoint (not this one)
          */
         bool uniqueCheck(const EdgePoint* e) const {
-            assert(this!=e);
+            ASSERT(this!=e);
             return node==e->node && rectIntersect==e->rectIntersect;
         }
         ~EdgePoint();
@@ -203,9 +208,9 @@ namespace topology {
             : edge(edge), start(start), end(end) 
         {
             // no self loops!
-            assert(start!=end);
+            ASSERT(start!=end);
             // the ends of the segment should not involve the same rectangle vertex
-            assert(!start->uniqueCheck(end));
+            ASSERT(!start->uniqueCheck(end));
             start->outSegment=this;
             end->inSegment=this;
         }
@@ -310,7 +315,7 @@ namespace topology {
             double ux=s->pos(dim) , vx=e->pos(dim),
                    uy=s->pos(vpsc::conjugate(dim)), vy=e->pos(vpsc::conjugate(dim));
             double denom = vy - uy;
-            assert(denom!=0); // must not be parallel to scanline!
+            ASSERT(denom!=0); // must not be parallel to scanline!
             p = (pos - uy)/denom;
             return ux + p * (vx-ux);
         }

@@ -36,8 +36,9 @@
 #define SEEN_LIBVPSC_BLOCK_H
 
 #include <vector>
-#include <iostream>
+
 template <class T, class TCompare> class PairingHeap;
+
 namespace vpsc {
 class Variable;
 class Constraint;
@@ -109,6 +110,6 @@ private:
 	void addVariable(Variable* v);
 	void setUpConstraintHeap(PairingHeap<Constraint*,CompareConstraints>* &h,bool in);
 };
-
 }
+
 #endif // SEEN_LIBVPSC_BLOCK_H

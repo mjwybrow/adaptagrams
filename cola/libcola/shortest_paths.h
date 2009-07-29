@@ -31,15 +31,14 @@ template <class T>
 struct PairNode;
 
 namespace shortest_paths {
-using namespace std;
 
 template <typename T>
 struct Node {
     unsigned id;
     T d;
     Node* p; // predecessor    
-    vector<Node<T>*> neighbours;
-    vector<T> nweights;
+    std::vector<Node<T>*> neighbours;
+    std::vector<T> nweights;
     PairNode<Node<T>*>* qnode;
 };
 template <typename T>
@@ -55,7 +54,7 @@ struct CompareNodes {
     }
 };
 
-typedef pair<unsigned,unsigned> Edge;
+typedef std::pair<unsigned,unsigned> Edge;
 template <typename T>
 /**
  * returns the adjacency matrix, 0 entries for non-adjacent nodes
@@ -65,7 +64,7 @@ template <typename T>
  * @param eweights edge weights, if NULL then all weights will be taken as 1
  */
 void neighbours(unsigned const n, T** D,
-        vector<Edge> const & es,valarray<T> const * eweights=NULL); 
+        std::vector<Edge> const & es,std::valarray<T> const * eweights=NULL); 
 /**
  * find all pairs shortest paths, n^3 dynamic programming approach
  * @param n total number of nodes
@@ -75,7 +74,7 @@ void neighbours(unsigned const n, T** D,
  */
 template <typename T>
 void floyd_warshall(unsigned const n, T** D,
-        vector<Edge> const & es,valarray<T> const * eweights=NULL); 
+        std::vector<Edge> const & es,std::valarray<T> const * eweights=NULL); 
 
 /**
  * find all pairs shortest paths, faster, uses dijkstra
@@ -86,7 +85,7 @@ void floyd_warshall(unsigned const n, T** D,
  */
 template <typename T>
 void johnsons(unsigned const n, T** D,
-        vector<Edge> const & es, valarray<T> const * eweights=NULL);
+        std::vector<Edge> const & es, std::valarray<T> const * eweights=NULL);
 /**
  * find shortest path lengths from node s to all other nodes
  * @param s starting node
@@ -97,7 +96,7 @@ void johnsons(unsigned const n, T** D,
  */
 template <typename T>
 void dijkstra(unsigned const s, unsigned const n, T* d, 
-        vector<Edge> const & es, valarray<T> const * eweights=NULL);
+        std::vector<Edge> const & es, std::valarray<T> const * eweights=NULL);
 
 } //namespace shortest_paths
 

@@ -29,9 +29,11 @@
  * Authors:
  *   Tim Dwyer <tgdwyer@gmail.com>
  */
+#include <cfloat>
+
 #include "cbuffer.h"
 #include "constraint.h"
-#include <cassert>
+#include "assertions.h"
 
 namespace vpsc {
     static const double ZERO_UPPERBOUND=-0.0000001;
@@ -83,7 +85,7 @@ namespace vpsc {
                 Constraint *c=buffer[i];
                 double slack = c->slack();
                 if(!(c->equality||slack < ZERO_UPPERBOUND)) {
-                    assert(size>0);
+                    ASSERT(size>0);
                     buffer[i--]=buffer[--size];
                 } else if(c->equality||slack < minSlack) {
                     v=c;
@@ -92,7 +94,7 @@ namespace vpsc {
                 }
             }
             if(deletePos>=0) {
-                assert(size>0);
+                ASSERT(size>0);
                 buffer[deletePos]=buffer[--size];
                 break;
             }

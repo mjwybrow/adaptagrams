@@ -31,18 +31,22 @@
  *   Tim Dwyer <tgdwyer@gmail.com>
  */
 
-#include <cassert>
+#include <cmath>
+#include <sstream>
+#include <map>
+#include <cfloat>
+
 #include "constraint.h"
 #include "block.h"
 #include "blocks.h"
 #include "solve_VPSC.h"
 #include "cbuffer.h"
-#include <math.h>
-#include <sstream>
+#include "variable.h"
+#include "assertions.h"
+
 #ifdef LIBVPSC_LOGGING
 #include <fstream>
 #endif
-#include <map>
 
 using namespace std;
 
@@ -71,7 +75,7 @@ Solver::Solver(vector<Variable*> const &vs, vector<Constraint*> const &cs) : m(c
 	bs=new Blocks(vs);
 #ifdef LIBVPSC_LOGGING
 	printBlocks();
-	//assert(!constraintGraphIsCyclic(n,vs));
+	//ASSERT(!constraintGraphIsCyclic(n,vs));
 #endif
 }
 Solver::~Solver() {
@@ -100,7 +104,7 @@ void Solver::copyResult() {
     for(Variables::const_iterator i=vs.begin();i!=vs.end();++i) {
         Variable* v=*i;
         v->finalPosition=v->position();
-        assert(v->finalPosition==v->finalPosition);
+        ASSERT(v->finalPosition==v->finalPosition);
     }
 }
 /**
@@ -130,7 +134,7 @@ bool Solver::satisfy() {
 			ofstream f(LOGFILE,ios::app);
 			f<<"Error: Unsatisfied constraint: "<<*cs[i]<<endl;
 #endif
-			//assert(cs[i]->slack()>-0.0000001);
+			//ASSERT(cs[i]->slack()>-0.0000001);
 			throw UnsatisfiedConstraint(*cs[i]);
 		}
 	}
@@ -172,7 +176,7 @@ void Solver::refine() {
 	}
 	for(unsigned i=0;i<m;i++) {
 		if(cs[i]->slack() < ZERO_UPPERBOUND) {
-			assert(cs[i]->slack()>ZERO_UPPERBOUND);
+			ASSERT(cs[i]->slack()>ZERO_UPPERBOUND);
 			throw UnsatisfiedConstraint(*cs[i]);
 		}
 	}
@@ -233,7 +237,7 @@ bool IncSolver::satisfy() {
 	while((v=mostViolated(inactive))
             &&(v->equality || v->slack() < ZERO_UPPERBOUND && !v->active)) 
     {
-		assert(!v->active);
+		ASSERT(!v->active);
 		Block *lb = v->left->block, *rb = v->right->block;
 		if(lb != rb) {
 			lb->merge(rb,v);
@@ -255,7 +259,7 @@ bool IncSolver::satisfy() {
                 Constraint* splitConstraint
                     =lb->splitBetween(v->left,v->right,lb,rb);
                 if(splitConstraint!=NULL) {
-                    assert(!splitConstraint->active);
+                    ASSERT(!splitConstraint->active);
 			        inactive.push_back(splitConstraint);
                 } else {
                     v->unsatisfiable=true;
@@ -273,7 +277,7 @@ bool IncSolver::satisfy() {
                 continue;
             }
 			if(v->slack()>=0) {
-                assert(!v->active);
+                ASSERT(!v->active);
                 // v was satisfied by the above split!
                 inactive.push_back(v);
                 bs->insert(lb);
@@ -337,13 +341,13 @@ void IncSolver::splitBlocks() {
 		Block* b = *i;
 		Constraint* v=b->findMinLM();
 		if(v!=NULL && v->lm < LAGRANGIAN_TOLERANCE) {
-			assert(!v->equality);
+			ASSERT(!v->equality);
 #ifdef LIBVPSC_LOGGING
 			f<<"    found split point: "<<*v<<" lm="<<v->lm<<endl;
 #endif
 			splitCnt++;
 			Block *b = v->left->block, *l=NULL, *r=NULL;
-			assert(v->left->block == v->right->block);
+			ASSERT(v->left->block == v->right->block);
 			//double pos = b->posn;
 			b->split(l,r,v);
 			//l->posn=r->posn=pos;
@@ -354,7 +358,7 @@ void IncSolver::splitBlocks() {
 			bs->insert(l);
 			bs->insert(r);
 			b->deleted=true;
-            assert(!v->active);
+            ASSERT(!v->active);
 			inactive.push_back(v);
 #ifdef LIBVPSC_LOGGING
 			f<<"  new blocks: "<<*l<<" and "<<*r<<endl;

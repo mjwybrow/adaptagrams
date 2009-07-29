@@ -18,7 +18,8 @@ libvpsc_a_SOURCES = block.cpp\
 	solve_VPSC.h\
 	variable.h\
 	cbuffer.h\
-	linesegment.h
+	linesegment.h\
+	assertions.h
 
 libvpscincludedir = ${includedir}/libvpsc
 
@@ -27,6 +28,8 @@ libvpscinclude_HEADERS = solve_VPSC.h \
 	constraint.h\
 	exceptions.h\
 	rectangle.h\
-	variable.h
+	variable.h \
+	assertions.h
 
 SUBDIRS = tests
+

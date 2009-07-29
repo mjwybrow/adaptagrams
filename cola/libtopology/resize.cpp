@@ -22,9 +22,10 @@
  *
 */
 
-#include <libvpsc/rectangle.h>
-#include <libvpsc/constraint.h>
-#include <libcola/cola.h>
+#include "libvpsc/assertions.h"
+#include "libvpsc/rectangle.h"
+#include "libvpsc/constraint.h"
+#include "libcola/cola.h"
 #include "topology_constraints.h"
 
 namespace topology {
@@ -85,7 +86,7 @@ struct CreateLeftRightDummyNodes {
         // dummy nodes will have the same id as the original
         ResizeInfo& ri=p.second;
         const unsigned id=ri.orig->id;
-        assert(p.first==id);
+        ASSERT(p.first==id);
         const Rectangle *ro=ri.orig->rect,
                         *targetRect=targets[id];
 
@@ -156,7 +157,7 @@ struct SubstituteNodes {
                     p->node=ri->second.rhsNode;
                     break;
                 default:
-                    assert(p->rectIntersect==topology::EdgePoint::CENTRE);
+                    ASSERT(p->rectIntersect==topology::EdgePoint::CENTRE);
                     p->node=tn[id];
             }
         } else {
@@ -214,25 +215,25 @@ bool checkDesired(
         const Rectangle* t=targets[id];
         ResizeMap::const_iterator j=resizeMap.find(id);
         if(j==resizeMap.end()) {
-            assert(approx_equals(v->var->desiredPosition,
+            ASSERT(approx_equals(v->var->desiredPosition,
                         t->getCentreD(dim)));
         }
     }
     for(ResizeMap::const_iterator j=resizeMap.begin();j!=resizeMap.end();++j) {
         const unsigned id=j->first;
         const ResizeInfo& ri=j->second;
-        assert(ri.orig->id==id);
+        ASSERT(ri.orig->id==id);
         const Node *ln=ri.lhsNode, *cn=nodes[id], *rn=ri.rhsNode;
-        assert(ln->id==id);
-        assert(cn->id==id);
-        assert(rn->id==id);
+        ASSERT(ln->id==id);
+        ASSERT(cn->id==id);
+        ASSERT(rn->id==id);
         const Rectangle* t=targets[id];
         const double lp = t->getMinD(dim) + DW2,
                      cp = t->getCentreD(dim),
                      rp = t->getMaxD(dim) - DW2;
-        assert(approx_equals(lp,ln->var->desiredPosition));
-        assert(approx_equals(cp,cn->var->desiredPosition));
-        assert(approx_equals(rp,rn->var->desiredPosition));
+        ASSERT(approx_equals(lp,ln->var->desiredPosition));
+        ASSERT(approx_equals(cp,cn->var->desiredPosition));
+        ASSERT(approx_equals(rp,rn->var->desiredPosition));
     }
     return true;
 }
@@ -246,15 +247,15 @@ bool checkFinal(
         const Rectangle* t=targets[v->id];
         ResizeMap::const_iterator j=resizeMap.find(v->id);
         if(j==resizeMap.end()) {
-            assert(fabs(v->rect->getCentreD(dim)-t->getCentreD(dim))
+            ASSERT(fabs(v->rect->getCentreD(dim)-t->getCentreD(dim))
                     <DISPLACEMENT_ERROR);
         } else {
             const Rectangle *l=j->second.lhsNode->rect,
                             *c=nodes[v->id]->rect,
                             *r=j->second.rhsNode->rect;
-            assert(fabs(l->getMinD(dim)-t->getMinD(dim))<DISPLACEMENT_ERROR);
-            assert(fabs(r->getMaxD(dim)-t->getMaxD(dim))<DISPLACEMENT_ERROR);
-            assert(fabs(c->getCentreD(dim)-t->getCentreD(dim))
+            ASSERT(fabs(l->getMinD(dim)-t->getMinD(dim))<DISPLACEMENT_ERROR);
+            ASSERT(fabs(r->getMaxD(dim)-t->getMaxD(dim))<DISPLACEMENT_ERROR);
+            ASSERT(fabs(c->getCentreD(dim)-t->getCentreD(dim))
                     <DISPLACEMENT_ERROR);
         }
     }
@@ -279,7 +280,7 @@ bool checkFinal(
 void resizeAxis(const Rectangles& targets,
         Nodes& nodes, Edges& edges, ResizeMap& resizes, 
         Variables& vs, Constraints& cs) {
-    assert(vs.size()>=nodes.size());
+    ASSERT(vs.size()>=nodes.size());
 
     //  - create copy tn of topologyNodes with resize rects replaced with
     //    three nodes: one for the lhs of rect, one for centre and one for rhs.
@@ -290,30 +291,30 @@ void resizeAxis(const Rectangles& targets,
     //    pos it at the centre
     Nodes tn(nodes.size());
 
-    assert(assertConvexBends(edges));
-    assert(assertNoSegmentRectIntersection(nodes,edges));
+    ASSERT(assertConvexBends(edges));
+    ASSERT(assertNoSegmentRectIntersection(nodes,edges));
 
     transform(nodes.begin(),nodes.end(),tn.begin(),
             TransformNode(targets,resizes,vs));
     feach(resizes, CreateLeftRightDummyNodes(targets,tn,vs));
-    assert(tn.size()==nodes.size()+2*resizes.size());
-    assert(vs.size()>=tn.size());
+    ASSERT(tn.size()==nodes.size()+2*resizes.size());
+    ASSERT(vs.size()>=tn.size());
 
     // update topologyRoutes with references to resized nodes replaced with
     // correct references to lhs/rhs nodes
     feach(edges,SubstituteNodes(resizes,tn));
 
-    assert(assertConvexBends(edges));
-    assert(assertNoSegmentRectIntersection(tn,edges));
+    ASSERT(assertConvexBends(edges));
+    ASSERT(assertNoSegmentRectIntersection(tn,edges));
 
     // move nodes and reroute
     topology::TopologyConstraints t(dim,tn,edges,vs,cs);
-    assert(checkDesired(tn,targets,resizes));
+    ASSERT(checkDesired(tn,targets,resizes));
 #ifndef NDEBUG
     unsigned loopCtr=0;
 #endif
-    while(t.solve()) { assert(++loopCtr<1000); }
-    //assert(checkFinal(tn,targets,resizes));
+    while(t.solve()) { ASSERT(++loopCtr<1000); }
+    //ASSERT(checkFinal(tn,targets,resizes));
     
     // reposition and resize original nodes
     feach(nodes,CopyPositions(tn,resizes));
@@ -321,8 +322,8 @@ void resizeAxis(const Rectangles& targets,
     // revert topologyRoutes back to original nodes
     feach(edges,RevertNodes(nodes));
 
-    assert(assertConvexBends(edges));
-    assert(assertNoSegmentRectIntersection(nodes,edges));
+    ASSERT(assertConvexBends(edges));
+    ASSERT(assertNoSegmentRectIntersection(nodes,edges));
 
     // clean up
     feach(tn,DeleteTempNode());
@@ -344,8 +345,8 @@ struct CreateTargetRect {
             fixed.insert(v->id); // resized rectangles are required to stay
                                  // where they have been placed
             target=new Rectangle(*r->second.targetRect);
-            assert(target->width() > 3.0*DW);
-            assert(target->height() > 3.0*DW);
+            ASSERT(target->width() > 3.0*DW);
+            ASSERT(target->height() > 3.0*DW);
         }
         return target;
     }

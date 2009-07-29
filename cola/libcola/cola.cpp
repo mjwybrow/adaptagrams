@@ -23,8 +23,10 @@
  *
 */
 
-#include "commondefs.h"
 #include <cmath>
+
+#include "libvpsc/assertions.h"
+#include "commondefs.h"
 #include "cola.h"
 #include "conjugate_gradient.h"
 #include "straightener.h"
@@ -74,7 +76,7 @@ ConstrainedMajorizationLayout
 
     done.reset();
 
-    assert(!straightenEdges||straightenEdges->size()==es.size());
+    ASSERT(!straightenEdges||straightenEdges->size()==es.size());
 
     double** D=new double*[n];
     for(unsigned i=0;i<n;i++) {
@@ -129,7 +131,7 @@ void ConstrainedMajorizationLayout::setStickyNodes(
         const double stickyWeight, 
         valarray<double> const & startX,
         valarray<double> const & startY) {
-    assert( startX.size()==n && startY.size()==n);
+    ASSERT( startX.size()==n && startY.size()==n);
     stickyNodes = true;
     // not really constrained but we want to use GP solver rather than 
     // ConjugateGradient
@@ -171,7 +173,7 @@ void ConstrainedMajorizationLayout::majorize(
             b[i] -= stickyWeight*startCoords[i];
         }
         b[i] += degree * coords[i];
-        assert(!std::isnan(b[i]));
+        ASSERT(!std::isnan(b[i]));
     }
     if(constrainedLayout) {
         //printf("GP iteration...\n");
@@ -567,7 +569,7 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
 }
 
 Rectangle bounds(vector<Rectangle*>& rs) {
-    assert(!rs.empty());
+    ASSERT(!rs.empty());
     
     double left = rs[0]->getMinX(), right = rs[0]->getMaxX(), 
         top = rs[0]->getMinY(), bottom = rs[0]->getMaxY();

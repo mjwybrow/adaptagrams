@@ -36,9 +36,13 @@
 #define SEEN_LIBVPSC_CONSTRAINT_H
 
 #include <iostream>
-#include <float.h>
-#include "variable.h"
+#include <vector>
+
+#include "constraint.h"
+
 namespace vpsc {
+
+class Variable;
 
 class Constraint
 {

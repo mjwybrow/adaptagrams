@@ -31,17 +31,17 @@
  *   Tim Dwyer <tgdwyer@gmail.com>
  */
 
-#include "commondefs.h"
-
 #include <set>
 #include <list>
 #include <cassert>
 #include <iostream>
 #include <cmath>
+
+#include "libvpsc/assertions.h"
+#include "commondefs.h"
 #include "cola.h"
 #include "compound_constraints.h"
 #include "straightener.h"
-//#include "topology_constraints.h"
 
 //#define STRAIGHTENER_DEBUG 1
 
@@ -91,8 +91,8 @@ namespace straightener {
         // the first and last points should not be inside this
         // rectangle - note that we should not be routing around
         // rectangles directly connected to this route
-        assert(!rect->inside(xs[0],ys[0]));
-        assert(!rect->inside(xs[n-1],ys[n-1]));
+        ASSERT(!rect->inside(xs[0],ys[0]));
+        ASSERT(!rect->inside(xs[n-1],ys[n-1]));
         // first, we examine each point and if it is inside the rectangle, we
         // project to the nearest edge of the rectangle
         for(unsigned i=1;i<n-1;i++) {
@@ -151,19 +151,19 @@ namespace straightener {
         //
         for(unsigned i=1;i<n;i++) {
             // we have projected all points to the boundary already so we shouldn't find any inside
-            assert(!rect->inside(xs[i],ys[i]));
+            ASSERT(!rect->inside(xs[i],ys[i]));
             vpsc::RectangleIntersections ri;
             rect->lineIntersections(prevX,prevY,
                     xs[i],ys[i],ri);
             if(ri.intersects) {
                 int count=ri.countIntersections();
-                assert(count>0); // can't be 0 because we have detected an intersection
-                assert(count<4); // assumes no zero width or height rects which would be
+                ASSERT(count>0); // can't be 0 because we have detected an intersection
+                ASSERT(count<4); // assumes no zero width or height rects which would be
                                  // the only way for a line segment to touch all 4 sides at once
                 if(count==3) { // runs along one side
-                    assert(!rect->inside(xs[i],ys[i]));
+                    ASSERT(!rect->inside(xs[i],ys[i]));
                 } else if(count==2) { // passes right through
-                    assert(!rect->inside(xs[i],ys[i]));
+                    ASSERT(!rect->inside(xs[i],ys[i]));
                     double x1=0, y1=0, x2=0, y2=0;
                     ri.nearest(prevX, prevY, x1, y1);
                     ri.nearest(xs[i], ys[i], x2, y2);
@@ -175,14 +175,14 @@ namespace straightener {
             }
             prevX=xs[i];
             prevY=ys[i];
-            assert(!rect->inside(prevX,prevY));
+            ASSERT(!rect->inside(prevX,prevY));
             rxs.push_back(prevX);
             rys.push_back(prevY);
         }
         delete [] xs;
         delete [] ys;
         n=rxs.size();
-        assert(rys.size()==n);
+        ASSERT(rys.size()==n);
         xs = new double[n];
         ys = new double[n];
         copy(rxs.begin(),rxs.end(),xs);
@@ -234,7 +234,7 @@ namespace straightener {
         }
         activePath.push_back(path.size());
         path.push_back(endNode);
-        assert(ds.empty());
+        ASSERT(ds.empty());
     }
     void Edge::createRouteFromPath(std::vector<Node *> const & nodes) {
         Route* r=new Route(path.size());
@@ -540,7 +540,7 @@ namespace straightener {
                     printf("EdgeClose@%f,eid=%d,(u,v)=(%d,%d)\n", e->pos,e->e->id,e->e->startNode,e->e->endNode);
 #endif                    
                     unsigned i=e->e->openInd;
-                    assert(openEdges.size()>0);
+                    ASSERT(openEdges.size()>0);
                     openEdges[i]=openEdges[openEdges.size()-1];
                     openEdges[i]->openInd=i;
                     openEdges.resize(openEdges.size()-1);
@@ -684,7 +684,7 @@ namespace straightener {
             //printf("Straightening path:\n");
             //edges[i]->print();
             vector<unsigned>& path=edges[i]->path;
-            assert(path.size()>0);
+            ASSERT(path.size()>0);
             for(unsigned j=1;j<path.size();j++) {
                 unsigned u=path[j-1], v=path[j];
                 double x1=nodes[u]->pos[0], x2=nodes[v]->pos[0],
@@ -710,7 +710,7 @@ namespace straightener {
         double stress=0;
         for(unsigned i=0;i<edges.size();i++) {
             vector<unsigned>& path=edges[i]->path;
-            assert(path.size()>0);
+            ASSERT(path.size()>0);
             for(unsigned j=1;j<path.size();j++) {
                 unsigned u=path[j-1], v=path[j];
                 double x1,x2,y1,y2;
@@ -755,7 +755,7 @@ namespace straightener {
         dummyNodesX.resize(lvs.size());
         dummyNodesY.resize(lvs.size());
         for (unsigned i=0;i<lvs.size();i++) {
-            assert(i+vs.size() < nodes.size());
+            ASSERT(i+vs.size() < nodes.size());
             Node *n=nodes[i+vs.size()];
             dummyNodesX[i]=n->pos[0];
             dummyNodesY[i]=n->pos[1];

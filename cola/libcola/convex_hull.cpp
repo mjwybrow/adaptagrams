@@ -24,10 +24,13 @@
 */
 
 #include <valarray>
-#include <cassert>
-#include <float.h>
+#include <cfloat>
 #include <algorithm>
+
+#include "libvpsc/assertions.h"
 #include "convex_hull.h"
+
+
 namespace hull {
 using namespace std;
 /**
@@ -79,7 +82,7 @@ void convex(const unsigned n, const double* X, const double* Y, vector<unsigned>
  */
 void convex(valarray<double> const & X, valarray<double> const & Y, vector<unsigned> & h) {
     unsigned n=X.size();
-    assert(n==Y.size());
+    ASSERT(n==Y.size());
     unsigned p0=0;
     // find point p0 with min Y position, choose leftmost in case of tie.
     // This is our "pivot" point

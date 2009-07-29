@@ -31,9 +31,11 @@
  * \author Tim Dwyer
  * \date Dec 2007
  */
-#include <libvpsc/constraint.h>
-#include <libcola/cola.h>
-#include <libcola/straightener.h>
+#include "libvpsc/assertions.h"
+#include "libvpsc/constraint.h"
+#include "libcola/cola.h"
+#include "libcola/straightener.h"
+
 #include "topology_log.h"
 #include "topology_graph.h"
 #include "topology_constraints.h"
@@ -111,14 +113,14 @@ struct NodeOpen : NodeEvent {
             openNodes.insert(make_pair(node->rect->getCentreD(dim),this));
         // the following test fails if there is already an entry in
         // openNodes at this position
-        //assert(r.second);
+        //ASSERT(r.second);
         if(!r.second) {
             const Node *n1=node;
             const Node *n2=((r.first)->second)->node;
             printf("scanpos %f, duplicate in open list at position: %f\n",pos,n1->rect->getCentreD(dim));
             printf("  id1=%d, id2=%d\n",n1->id, n2->id);
         }
-        assert(r.second);
+        ASSERT(r.second);
         openListIndex = r.first;
         OpenNodes::iterator right=openListIndex, left=openListIndex;
         Node *leftNeighbour=NULL, *rightNeighbour=NULL;
@@ -152,7 +154,7 @@ struct NodeClose : NodeEvent {
         : NodeEvent(false,node->rect->getMaxD(!dim),node)
         , opening(o)
         , cs(cs) {
-        assert(opening->node == node);
+        ASSERT(opening->node == node);
     }
     void createNonOverlapConstraint(const Node* left, const Node* right) {
         FILE_LOG(logDEBUG)<<"NodeClose::createNonOverlapConstraint left="<<left<<" right="<<right;
@@ -163,7 +165,7 @@ struct NodeClose : NodeEvent {
             //if(dim==vpsc::HORIZONTAL) {
                 g+=1e-7;
             //}
-            //assert(l->getPosition() + g <= r->getPosition());
+            //ASSERT(l->getPosition() + g <= r->getPosition());
             cs.push_back(new vpsc::Constraint(left->var, right->var, g));
         //}
     }
@@ -232,7 +234,7 @@ struct SegmentClose : SegmentEvent {
     SegmentClose(Segment *s, SegmentOpen* so)
         : SegmentEvent(false,s->getMax(),s), opening(so) 
     {
-        assert(opening->s==s);
+        ASSERT(opening->s==s);
     }
     void process() {
         OpenSegments::iterator i=openSegments.erase(opening->openListIndex);
@@ -315,11 +317,11 @@ struct CompareEvents {
             // close nodes before we open new ones so we don't generate
             // unnecessary non-overlap constraints
             if(aNO&&bNC) {
-                assert(aNO->node!=bNC->node); // no zero height nodes thanks!
+                ASSERT(aNO->node!=bNC->node); // no zero height nodes thanks!
                 return false;
             }
             if(aNC&&bNO) {
-                assert(aNC->node!=bNO->node); 
+                ASSERT(aNC->node!=bNO->node); 
                 return true;
             }
         }
@@ -334,13 +336,13 @@ TriConstraint::TriConstraint(
         double p, double g, bool left)
     : u(u), v(v), w(w), p(p), g(g), leftOf(left) 
 {
-    assert(assertFeasible());
+    ASSERT(assertFeasible());
 }
 
 bool Segment::createStraightConstraint(Node* node, double pos) {
     // no straight constraints between a node directly connected by its CENTRE 
     // to this segment.
-    assert(!connectedToNode(node));
+    ASSERT(!connectedToNode(node));
 	const double top = max(end->pos(vpsc::conjugate(dim)),start->pos(vpsc::conjugate(dim))), 
                  bottom = min(end->pos(vpsc::conjugate(dim)),start->pos(vpsc::conjugate(dim)));
     // segments orthogonal to scan direction need no StraightConstraints
@@ -350,8 +352,8 @@ bool Segment::createStraightConstraint(Node* node, double pos) {
         return false;
     }
     // segment must overlap in the scan dimension with the potential bend point
-    //assert(bottom<=pos);
-    //assert(top>=pos);
+    //ASSERT(bottom<=pos);
+    //ASSERT(top>=pos);
     vpsc::Rectangle* r=node->rect;
 	FILE_LOG(logDEBUG1)<<"Segment: from {"<<start->pos(dim)<<","<<start->pos(vpsc::conjugate(dim))<<"},{"<<end->pos(dim)<<","<<end->pos(vpsc::conjugate(dim))<<"}";
     FILE_LOG(logDEBUG1)<<"Node: rect "<<*r;
@@ -443,13 +445,13 @@ BendConstraint(EdgePoint* v)
     : bendPoint(v) 
 {
 	FILE_LOG(logDEBUG)<<"BendConstraint ctor, pos="<<v->pos(vpsc::conjugate(dim));
-    assert(v->inSegment!=NULL);
-    assert(v->outSegment!=NULL);
+    ASSERT(v->inSegment!=NULL);
+    ASSERT(v->outSegment!=NULL);
     // v must be a bend point around some node
-    assert(!v->isEnd());
-    assert(v->rectIntersect!=EdgePoint::CENTRE);
+    ASSERT(!v->isEnd());
+    ASSERT(v->rectIntersect!=EdgePoint::CENTRE);
     EdgePoint *u=v->inSegment->start, *w=v->outSegment->end;
-    assert(v->assertConvexBend());
+    ASSERT(v->assertConvexBend());
     bool leftOf=false;
     if(dim==vpsc::HORIZONTAL) {
         if(v->rectIntersect==EdgePoint::TR || v->rectIntersect==EdgePoint::BR) {
@@ -508,7 +510,7 @@ bool TopologyConstraints::noOverlaps() const {
             cout<<"   overlapY="<<u->rect->overlapY(v->rect)<<endl;
             */
             if(u->rect->overlapX(v->rect)>e) {
-                assert(u->rect->overlapY(v->rect)<e);
+                ASSERT(u->rect->overlapY(v->rect)<e);
             }
         }
     }
@@ -521,7 +523,7 @@ struct GetVariable {
     }
 };
 void getVariables(Nodes& ns, vpsc::Variables& vs) {
-    assert(vs.size()==0);
+    ASSERT(vs.size()==0);
     vs.resize(ns.size());
     transform(ns.begin(),ns.end(),vs.begin(),GetVariable());
 }
@@ -557,12 +559,12 @@ struct PruneDegenerate {
             } 
             if(inSegLen==0 && o->inSegment
                     && !validTurn(o->inSegment->start,p,q)) {
-                assert(validTurn(o->inSegment->start,o,q));
+                ASSERT(validTurn(o->inSegment->start,o,q));
                 FILE_LOG(logDEBUG)<<"Pruning node after 0 length segment!";
                 pruneList.push_back(p);
             } else if(outSegLen==0 && q->outSegment
                     && !validTurn(o,p,q->outSegment->end)) {
-                assert(validTurn(o,q,q->outSegment->end));
+                ASSERT(validTurn(o,q,q->outSegment->end));
                 pruneList.push_back(p);
             }
         }
@@ -586,9 +588,9 @@ TopologyConstraints(
     FILELog::ReportingLevel() = logERROR;
     //FILELog::ReportingLevel() = logDEBUG1;
     FILE_LOG(logDEBUG)<<"TopologyConstraints::TopologyConstraints():dim="<<axisDim;
-    assert(vs.size()>=n);
-    assert(noOverlaps());
-    assert(assertNoSegmentRectIntersection(nodes,edges));
+    ASSERT(vs.size()>=n);
+    ASSERT(noOverlaps());
+    ASSERT(assertNoSegmentRectIntersection(nodes,edges));
 
     dim = axisDim;
 
@@ -611,7 +613,7 @@ TopologyConstraints(
             i!=e; ++i) {
         (*i)->prune();
     }
-    assert(assertNoZeroLengthEdgeSegments(edges));
+    ASSERT(assertNoZeroLengthEdgeSegments(edges));
     for(Edges::const_iterator i=edges.begin(),e=edges.end();i!=e;++i) {
         (*i)->forEach(mem_fun(&EdgePoint::createBendConstraint),
                 CreateSegmentEvents(events),true);
@@ -619,9 +621,9 @@ TopologyConstraints(
     // process events in top to bottom order
     sort(events.begin(),events.end(),CompareEvents());
     for_each(events.begin(),events.end(),mem_fun(&Event::process));
-    assert(openSegments.empty());
-    assert(openNodes.empty());
-    assert(assertFeasible());
+    ASSERT(openSegments.empty());
+    ASSERT(openNodes.empty());
+    ASSERT(assertFeasible());
     FILE_LOG(logDEBUG)<<"TopologyConstraints::TopologyConstraints()... done.";
 }
 

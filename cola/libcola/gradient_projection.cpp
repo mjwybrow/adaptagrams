@@ -32,11 +32,12 @@
 
 #include <iostream>
 #include <cmath>
-#include <time.h>
-#include <cassert>
+#include <ctime>
+
 #include <libvpsc/solve_VPSC.h>
 #include <libvpsc/variable.h>
 #include <libvpsc/constraint.h>
+#include <libvpsc/assertions.h>
 #include "cluster.h"
 #include "gradient_projection.h"
 #include "straightener.h"
@@ -163,7 +164,7 @@ double GradientProjection::computeSteepestDescentVector(
     //
     //  except the 2s don't matter because we compute 
     //  the optimal stepsize anyway
-    assert(x.size()==b.size() && b.size()==g.size());
+    ASSERT(x.size()==b.size() && b.size()==g.size());
     g = b;
     for (unsigned i=0; i<denseSize; i++) {
         for (unsigned j=0; j<denseSize; j++) {
@@ -183,7 +184,7 @@ double GradientProjection::computeSteepestDescentVector(
 //    stepsize = ( g' d ) / ( d' A d )
 double GradientProjection::computeStepSize(
         valarray<double> const & g, valarray<double> const & d) const {
-    assert(g.size()==d.size());
+    ASSERT(g.size()==d.size());
     valarray<double> Ad;
     if(sparseQ) {
         Ad.resize(g.size());
@@ -242,10 +243,10 @@ bool GradientProjection::runSolver(valarray<double> & result) {
 unsigned GradientProjection::solve(
         valarray<double> const &linearCoefficients, 
         valarray<double> &x) {
-    assert(linearCoefficients.size()==x.size());
-    assert(x.size()==denseSize);
-    assert(numStaticVars>=denseSize);
-    assert(sparseQ==NULL || sparseQ!=NULL && vars.size()==sparseQ->rowSize());
+    ASSERT(linearCoefficients.size()==x.size());
+    ASSERT(x.size()==denseSize);
+    ASSERT(numStaticVars>=denseSize);
+    ASSERT(sparseQ==NULL || sparseQ!=NULL && vars.size()==sparseQ->rowSize());
 	if(max_iterations==0) return 0;
 
 	bool converged=false;
@@ -277,8 +278,8 @@ unsigned GradientProjection::solve(
     // load desired positions into vars, note that we keep desired positions 
     // already calculated for dummy vars
     for (unsigned i=0;i<x.size();i++) {
-        assert(!isnan(x[i]));
-        assert(!isinf(x[i]));
+        ASSERT(!isnan(x[i]));
+        ASSERT(!isinf(x[i]));
         b[i]=i<linearCoefficients.size()?linearCoefficients[i]:0;
         result[i]=x[i];
         if(scaling) {
@@ -312,8 +313,8 @@ unsigned GradientProjection::solve(
 			result[i]+=step;
             //printf("   after unconstrained step: x[%d]=%f\n",i,result[i]);
             stepSize+=step*step;
-            assert(!isnan(result[i]));
-            assert(!isinf(result[i]));
+            ASSERT(!isnan(result[i]));
+            ASSERT(!isinf(result[i]));
             if(!vars[i]->fixedDesiredPosition) vars[i]->desiredPosition=result[i];
 		}
 
@@ -349,7 +350,7 @@ unsigned GradientProjection::solve(
         //if(counter%2) {
             double cost = computeCost(b,result);
             printf("     gp[%d] %.15f %.15f\n",counter,previousCost,cost);
-            //assert(previousCost>cost);
+            //ASSERT(previousCost>cost);
             if(fabs(previousCost - cost) < tolerance) {
                 converged = true;
             }
@@ -468,15 +469,15 @@ void GradientProjection::straighten(
     vector<SeparationConstraint*> const & cs,
     vector<straightener::Node*> const & snodes) 
 {
-    assert(Q->rowSize()==snodes.size());
-    assert(vars.size()==numStaticVars);
+    ASSERT(Q->rowSize()==snodes.size());
+    ASSERT(vars.size()==numStaticVars);
     sparseQ = Q;
     for(unsigned i=numStaticVars;i<snodes.size();i++) {
         Variable* v=new vpsc::Variable(i,snodes[i]->pos[k],1);
-        assert(v->desiredPosition==snodes[i]->pos[k]);
+        ASSERT(v->desiredPosition==snodes[i]->pos[k]);
         vars.push_back(v);
     }
-    assert(lcs.size()==0);
+    ASSERT(lcs.size()==0);
     for(vector<SeparationConstraint*>::const_iterator i=cs.begin();i!=cs.end();i++) {
         (*i)->generateSeparationConstraints(k, vars, lcs); 
     }

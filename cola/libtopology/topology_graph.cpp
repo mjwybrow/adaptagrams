@@ -24,9 +24,12 @@
 
 #include <sstream>
 #include <stdexcept>
-#include <libvpsc/rectangle.h>
-#include <libcola/cola.h>
-#include <libcola/straightener.h>
+
+#include "libvpsc/assertions.h"
+#include "libvpsc/rectangle.h"
+#include "libcola/cola.h"
+#include "libcola/straightener.h"
+
 #include "topology_log.h"
 #include "topology_graph.h"
 #include "topology_constraints.h"
@@ -37,7 +40,7 @@ using namespace std;
 namespace topology {
 
 void setNodeVariables(Nodes& ns, std::vector<vpsc::Variable*>& vs) {
-    assert(ns.size()<=vs.size());
+    ASSERT(ns.size()<=vs.size());
     std::vector<vpsc::Variable*>::iterator v=vs.begin();
     for(Nodes::iterator i=ns.begin();i!=ns.end();++i,++v) {
         (*i)->var=(*v);
@@ -46,14 +49,14 @@ void setNodeVariables(Nodes& ns, std::vector<vpsc::Variable*>& vs) {
 Node::Node(unsigned id, vpsc::Rectangle* r, vpsc::Variable* v)
     : id(id), rect(r), var(v) 
 { 
-    assert(initialPos()>-100000);
-    assert(initialPos()<100000);
+    ASSERT(initialPos()>-100000);
+    ASSERT(initialPos()<100000);
 }
 Node::Node(unsigned id, vpsc::Rectangle* r)
     : id(id), rect(r), var(NULL) 
 {
-    assert(initialPos()>-100000);
-    assert(initialPos()<100000);
+    ASSERT(initialPos()>-100000);
+    ASSERT(initialPos()<100000);
 }
 void Node::setDesiredPos(double d, double weight) {
     var->desiredPosition=d;
@@ -115,7 +118,7 @@ Segment* EdgePoint::prune() {
 }
 bool EdgePoint::createBendConstraint() {
     // edges shouldn't double back!
-    assert(assertConvexBend());
+    ASSERT(assertConvexBend());
     // we replace any existing bend constraint
     if(bendConstraint) {
         delete bendConstraint;
@@ -282,7 +285,7 @@ bool EdgePoint::assertConvexBend() const {
                     default:
                         // a bend point must be associated with one of the
                         // corners of a rectangle!
-                        assert(false);
+                        ASSERT(false);
                 }
             }
         } catch(runtime_error e) {
@@ -298,7 +301,7 @@ bool EdgePoint::assertConvexBend() const {
             cout<<*u->node->rect<<","<<*node->rect<<","<<*w->node->rect<<","<<endl;
             cout<<inSegment->toString()<<","<<outSegment->toString()<<endl;
             cout<<"}]]"<<endl;
-            assert(false);
+            ASSERT(false);
         }
     } 
     return true;
@@ -336,7 +339,7 @@ void Segment::assertNonZeroLength() const {
     if(length()==0) {
         printf("segment length=%f\n",length());
     }
-    //assert(length()>0);
+    //ASSERT(length()>0);
 }
 double Segment::length() const {
     double dx = end->posX() - start->posX();
@@ -428,7 +431,7 @@ struct NoIntersection {
                 continue;
             }
             if(s->start->node==s->end->node) {
-                assert(s->start->rectIntersect==EdgePoint::BL
+                ASSERT(s->start->rectIntersect==EdgePoint::BL
                         &&s->end->rectIntersect==EdgePoint::BR
                      ||s->start->rectIntersect==EdgePoint::BR
                         &&s->end->rectIntersect==EdgePoint::BL
@@ -455,7 +458,7 @@ struct NoIntersection {
             if((*v)->rect->overlaps(sx,sy,ex,ey)) {
                 printf("ERROR: Segment on edge id=%d overlaps Node id=%d\n",
                         s->edge->id,(*v)->id);
-                assert(false);
+                ASSERT(false);
             }
             vpsc::Rectangle::setXBorder(xBorder);
             vpsc::Rectangle::setYBorder(yBorder);

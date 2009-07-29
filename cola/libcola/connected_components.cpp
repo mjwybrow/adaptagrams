@@ -28,6 +28,7 @@
 #include <list>
 
 #include "libvpsc/rectangle.h"
+#include "libvpsc/assertions.h"
 #include "commondefs.h"
 #include "connected_components.h"
 
@@ -121,7 +122,7 @@ namespace cola {
         for(ei=es.begin();ei!=es.end();ei++) {
             pair<Component*,unsigned> u=cmap[ei->first],
                                       v=cmap[ei->second];
-            assert(u.first==v.first);
+            ASSERT(u.first==v.first);
             u.first->edges.push_back(make_pair(u.second,v.second));
         }
         /*
@@ -130,7 +131,7 @@ namespace cola {
             SeparationConstraint *c=*ci;
             pair<Component*,unsigned> u=cmap[c->left],
                                       v=cmap[c->right];
-            assert(u.first==v.first);
+            ASSERT(u.first==v.first);
             u.first->scx.push_back(
                     new SeparationConstraint(u.second,v.second,c->gap));
         }
@@ -138,7 +139,7 @@ namespace cola {
             SeparationConstraint *c=*ci;
             pair<Component*,unsigned> u=cmap[c->left],
                                       v=cmap[c->right];
-            assert(u.first==v.first);
+            ASSERT(u.first==v.first);
             u.first->scy.push_back(
                     new SeparationConstraint(u.second,v.second,c->gap));
         }

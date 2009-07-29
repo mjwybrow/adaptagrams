@@ -40,11 +40,14 @@
  */
 #ifndef PAIRING_HEAP_H_
 #define PAIRING_HEAP_H_
-#include <stdlib.h>
+
+#include <cstdlib>
 #include <fstream>
-#include <cassert>
 #include <vector>
 #include <list>
+
+#include "assertions.h"
+
 class Underflow { };
 
 // Pairing heap class
@@ -179,7 +182,7 @@ void PairingHeap<T,TCompare>::deleteMin( )
         root = NULL;
     else
         root = combineSiblings( root->leftChild );
-    assert(counter);
+    ASSERT(counter);
     counter--;
     delete oldRoot;
 }
@@ -227,7 +230,7 @@ template <class T,class TCompare>
 void PairingHeap<T,TCompare>::decreaseKey( PairNode<T> *p,
 				  const T & newVal )
 {
-	assert(!lessThan(p->element,newVal)); // newVal cannot be bigger
+	ASSERT(!lessThan(p->element,newVal)); // newVal cannot be bigger
 	p->element = newVal;
 	if( p != root )
 	{

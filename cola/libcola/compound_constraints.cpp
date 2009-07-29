@@ -25,6 +25,8 @@
 
 #include <libvpsc/variable.h>
 #include <libvpsc/constraint.h>
+#include <libvpsc/assertions.h>
+
 #include "cola.h"
 #include "compound_constraints.h"
 #include "exceptions.h"
@@ -74,7 +76,7 @@ void BoundaryConstraint::generateSeparationConstraints(const vpsc::Dim dim,
 {
     if (dim == _primaryDim)
     {
-        assert(variable != NULL);
+        ASSERT(variable != NULL);
         // Constrain the left objects to be to the left of the boundary.
         for (OffsetList::iterator o = leftOffsets.begin();
                 o != leftOffsets.end(); ++o) 
@@ -162,7 +164,7 @@ void AlignmentConstraint::generateSeparationConstraints(const vpsc::Dim dim,
 {
     if (dim == _primaryDim)
     {
-        assert(variable != NULL);
+        ASSERT(variable != NULL);
         // Constrain each object to be offset from the guideline by
         // some exact amount.
         for (OffsetList::iterator o = offsets.begin();

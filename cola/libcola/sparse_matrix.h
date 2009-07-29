@@ -39,12 +39,14 @@
  */
 #ifndef _SPARSE_MATRIX_H
 #define _SPARSE_MATRIX_H
+
 #include <valarray>
 #include <map>
 #include <iostream>
-#include <cassert>
+
+#include "libvpsc/assertions.h"
+
 namespace cola {
-using std::valarray;
 struct SparseMap {
     SparseMap(unsigned n = 0) : n(n) {};
     unsigned n;
@@ -59,8 +61,8 @@ struct SparseMap {
         return lookup[std::make_pair(i,j)]; 
     }
     double getIJ(const unsigned i, const unsigned j) const {
-        assert(i<n);
-        assert(j<n);
+        ASSERT(i<n);
+        ASSERT(j<n);
         ConstIt v=lookup.find(std::make_pair(i,j));
         if(v!=lookup.end()) {
             return v->second;
@@ -91,13 +93,13 @@ class SparseMatrix {
 public:
     SparseMatrix(SparseMap const & m)
             : n(m.n), NZ(m.nonZeroCount()), sparseMap(m), 
-              A(valarray<double>(NZ)), IA(valarray<unsigned>(n+1)), JA(valarray<unsigned>(NZ)) {
+              A(std::valarray<double>(NZ)), IA(std::valarray<unsigned>(n+1)), JA(std::valarray<unsigned>(NZ)) {
         unsigned cnt=0;
         int lastrow=-1;
         for(SparseMap::ConstIt i=m.lookup.begin(); i!=m.lookup.end(); i++) {
             SparseMap::SparseIndex p = i->first;
-            assert(p.first<n);
-            assert(p.second<n);
+            ASSERT(p.first<n);
+            ASSERT(p.second<n);
             A[cnt]=i->second;
             if((int)p.first!=lastrow) {
                 for(unsigned r=lastrow+1;r<=p.first;r++) {
@@ -112,9 +114,9 @@ public:
             IA[r]=NZ;
         }
     }
-    void rightMultiply(valarray<double> const & v, valarray<double> & r) const {
-        assert(v.size()>=n);
-        assert(r.size()>=n);
+    void rightMultiply(std::valarray<double> const & v, std::valarray<double> & r) const {
+        ASSERT(v.size()>=n);
+        ASSERT(r.size()>=n);
         for(unsigned i=0;i<n;i++) {
             r[i]=0;
             for(unsigned j=IA[i];j<IA[i+1];j++) {
@@ -139,8 +141,8 @@ public:
 private:
     const unsigned n,NZ;
     SparseMap const & sparseMap;
-    valarray<double> A;
-    valarray<unsigned> IA, JA;
+    std::valarray<double> A;
+    std::valarray<unsigned> IA, JA;
 };
 } //namespace cola
 #endif /* _SPARSE_MATRIX_H */

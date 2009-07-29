@@ -34,10 +34,13 @@
  *   Tim Dwyer <tgdwyer@gmail.com>
  */
 
-#include <cassert>
+#include "assert.h"
 #include "blocks.h"
 #include "block.h"
 #include "constraint.h"
+#include "variable.h"
+#include "assertions.h"
+
 #ifdef LIBVPSC_LOGGING
 #include <fstream>
 using std::ios;
@@ -195,7 +198,7 @@ void Blocks::split(Block *b, Block *&l, Block *&r, Constraint *c) {
 	f<<"Split right: "<<*r<<endl;
 #endif
 	r->posn = b->posn;
-	//assert(r->weight!=0);
+	//ASSERT(r->weight!=0);
 	//r->wposn = r->posn * r->weight;
 	mergeLeft(l);
 	// r may have been merged!
@@ -207,8 +210,8 @@ void Blocks::split(Block *b, Block *&l, Block *&r, Constraint *c) {
 
 	insert(l);
 	insert(r);
-	assert(__NOTNAN(l->posn));
-	assert(__NOTNAN(r->posn));
+	ASSERT(__NOTNAN(l->posn));
+	ASSERT(__NOTNAN(r->posn));
 }
 /**
  * returns the cost total squared distance of variables from their desired

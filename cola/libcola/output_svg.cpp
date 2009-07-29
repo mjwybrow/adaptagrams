@@ -27,9 +27,8 @@
 #include <iostream>
 #include <sstream>
 #include <list>
+
 #include "output_svg.h"
-
-
 #include "cola.h"
 #include "straightener.h"
 

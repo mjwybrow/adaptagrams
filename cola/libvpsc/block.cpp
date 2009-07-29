@@ -31,20 +31,21 @@
  * Authors:
  *   Tim Dwyer <tgdwyer@gmail.com>
  */
-#include <cassert>
+
+#include "block.h"
+#include "variable.h"
+#include "assert.h"
 #include "pairing_heap.h"
 #include "constraint.h"
 #include "exceptions.h"
-#include "block.h"
 #include "blocks.h"
+
 #ifdef LIBVPSC_LOGGING
 #include <fstream>
 using std::ios;
 using std::ofstream;
 using std::endl;
 #endif
-using std::ostream;
-using std::vector;
 
 #define __NOTNAN(p) (p)==(p)
 
@@ -74,7 +75,7 @@ void Block::addVariable(Variable* v) {
 	//posn=wposn/weight;
 	ps.addVariable(v);
 	posn=(ps.AD - ps.AB) / ps.A2;
-	assert(__NOTNAN(posn));
+	ASSERT(__NOTNAN(posn));
 	/*
 #ifdef LIBVPSC_LOGGING
 	ofstream f(LOGFILE,ios::app);
@@ -83,7 +84,7 @@ void Block::addVariable(Variable* v) {
 */
 }
 Block::Block(Variable* const v)
-	: vars(new vector<Variable*>)
+	: vars(new std::vector<Variable*>)
 	, posn(0)
 	//, weight(0)
 	//, wposn(0)
@@ -106,7 +107,7 @@ void Block::updateWeightedPosition() {
 		ps.addVariable(*v);
 	}
 	posn=(ps.AD - ps.AB) / ps.A2;
-	assert(__NOTNAN(posn));
+	ASSERT(__NOTNAN(posn));
 #ifdef LIBVPSC_LOGGING
 	ofstream f(LOGFILE,ios::app);
 	f << ", posn=" << posn << endl;
@@ -129,7 +130,7 @@ void Block::setUpConstraintHeap(PairingHeap<Constraint*,CompareConstraints>* &h,
 	h = new PairingHeap<Constraint*,CompareConstraints>();
 	for (Vit i=vars->begin();i!=vars->end();++i) {
 		Variable *v=*i;
-		vector<Constraint*> *cs=in?&(v->in):&(v->out);
+		std::vector<Constraint*> *cs=in?&(v->in):&(v->out);
 		for (Cit j=cs->begin();j!=cs->end();++j) {
 			Constraint *c=*j;
 			c->timeStamp=blockTimeCtr;
@@ -190,9 +191,9 @@ void Block::merge(Block *b, Constraint *c, double dist) {
 	f<<"  AD="<<ps.AD<<" AB="<<ps.AB<<" A2="<<ps.A2<<endl;
 #endif
 	//posn=wposn/weight;
-	//assert(wposn==ps.AD - ps.AB);
+	//ASSERT(wposn==ps.AD - ps.AB);
 	posn=(ps.AD - ps.AB) / ps.A2;
-	assert(__NOTNAN(posn));
+	ASSERT(__NOTNAN(posn));
 	b->deleted=true;
 }
 
@@ -216,7 +217,7 @@ void Block::mergeOut(Block *b) {
 }
 Constraint *Block::findMinInConstraint() {
 	Constraint *v = NULL;
-	vector<Constraint*> outOfDate;
+	std::vector<Constraint*> outOfDate;
 	while (!in->isEmpty()) {
 		v = in->findMin();
 		Block *lb=v->left->block;
@@ -512,7 +513,7 @@ Constraint *Block::findMinLMBetween(Variable* const lv, Variable* const rv) {
 		getActivePathBetween(e.path,lv,rv,NULL);
 		throw e;
 	}
-	assert(min_lm!=NULL);
+	ASSERT(min_lm!=NULL);
 #endif
 	return min_lm;
 }
@@ -613,10 +614,10 @@ void Block::split(Block* &l, Block* &r, Constraint* c) {
 	c->active=false;
 	l=new Block();
 	populateSplitBlock(l,c->left,c->right);
-	//assert(l->weight>0);
+	//ASSERT(l->weight>0);
 	r=new Block();
 	populateSplitBlock(r,c->right,c->left);
-	//assert(r->weight>0);
+	//ASSERT(r->weight>0);
 }
 
 /**
@@ -631,7 +632,7 @@ double Block::cost() {
 	}
 	return c;
 }
-ostream& operator <<(ostream &os, const Block& b)
+std::ostream& operator <<(std::ostream &os, const Block& b)
 {
 	os<<"Block(posn="<<b.posn<<"):";
 	for(Block::Vit v=b.vars->begin();v!=b.vars->end();++v) {
@@ -642,4 +643,6 @@ ostream& operator <<(ostream &os, const Block& b)
 	}
     return os;
 }
+
 }
+

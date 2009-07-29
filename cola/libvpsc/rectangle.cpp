@@ -33,12 +33,14 @@
  */
 
 #include <set>
-#include <cassert>
 #include <cstdlib>
 #include <algorithm>
+
+#include "assertions.h"
 #include "solve_VPSC.h"
 #include "rectangle.h"
 #include "constraint.h"
+#include "variable.h"
 
 #include "isnan.h" /* Include last */
 
@@ -55,10 +57,10 @@ std::ostream& operator <<(std::ostream &os, const Rectangle &r) {
 
 Rectangle::Rectangle(double x, double X, double y, double Y,bool allowOverlap) 
 : minX(x),maxX(X),minY(y),maxY(Y),overlap(allowOverlap) {
-	assert(x<X);
-	assert(y<Y);
-    assert(getMinX()<getMaxX());
-    assert(getMinY()<getMaxY());
+	ASSERT(x<X);
+	ASSERT(y<Y);
+    ASSERT(getMinX()<getMaxX());
+    ASSERT(getMinY()<getMaxY());
 }
 void Rectangle::reset(unsigned d, double x, double X) {
     if(d==0) {
@@ -87,18 +89,18 @@ struct Node {
           leftNeighbours(NULL), rightNeighbours(NULL)
      
     {
-		assert(r->width()<1e40);
+		ASSERT(r->width()<1e40);
 	}
 	~Node() {
 		delete leftNeighbours;
 		delete rightNeighbours;
 	}
 	void addLeftNeighbour(Node *u) {
-        assert(leftNeighbours!=NULL);
+        ASSERT(leftNeighbours!=NULL);
 		leftNeighbours->insert(u);
 	}
 	void addRightNeighbour(Node *u) {
-        assert(rightNeighbours!=NULL);
+        ASSERT(rightNeighbours!=NULL);
 		rightNeighbours->insert(u);
 	}
 	void setNeighbours(NodeSet *left, NodeSet *right) {
@@ -115,8 +117,8 @@ struct Node {
 	}
 };
 bool CmpNodePos::operator() (const Node* u, const Node* v) const {
-    assert(!isNaN(u->pos));
-    assert(!isNaN(v->pos));
+    ASSERT(!isNaN(u->pos));
+    ASSERT(!isNaN(v->pos));
 	if (u->pos < v->pos) {
 		return true;
 	}
@@ -193,7 +195,7 @@ int compare_events(const void *a, const void *b) {
  */
 void generateXConstraints(vector<Rectangle*> const & rs, vector<Variable*> const &vars, vector<Constraint*> &cs, const bool useNeighbourLists) {
 	const unsigned n = rs.size();
-    assert(vars.size()>=n);
+    ASSERT(vars.size()>=n);
 	events=new Event*[2*n];
 	unsigned i,ctr=0;
 	for(i=0;i<n;i++) {
@@ -240,7 +242,7 @@ void generateXConstraints(vector<Rectangle*> const & rs, vector<Variable*> const
 					double sep = (v->r->width()+u->r->width())/2.0;
 					cs.push_back(new Constraint(u->v,v->v,sep));
 					result=u->rightNeighbours->erase(v);
-                    assert(result==1);
+                    ASSERT(result==1);
 				}
 				
 				for(NodeSet::iterator i=v->rightNeighbours->begin();
@@ -250,7 +252,7 @@ void generateXConstraints(vector<Rectangle*> const & rs, vector<Variable*> const
 					double sep = (v->r->width()+u->r->width())/2.0;
 					cs.push_back(new Constraint(v->v,u->v,sep));
 					result=u->leftNeighbours->erase(v);
-                    assert(result==1);
+                    ASSERT(result==1);
 				}
 			} else {
 				Node *l=v->firstAbove, *r=v->firstBelow;
@@ -266,12 +268,12 @@ void generateXConstraints(vector<Rectangle*> const & rs, vector<Variable*> const
 				}
 			}
 			result=scanline.erase(v);
-            assert(result==1);
+            ASSERT(result==1);
 			delete v;
 		}
 		delete e;
 	}
-    assert(scanline.size()==0);
+    ASSERT(scanline.size()==0);
 	delete [] events;
 }
 
@@ -280,7 +282,7 @@ void generateXConstraints(vector<Rectangle*> const & rs, vector<Variable*> const
  */
 void generateYConstraints(const Rectangles& rs, const Variables& vars, Constraints& cs) {
 	const unsigned n = rs.size();
-    assert(vars.size()>=n);
+    ASSERT(vars.size()>=n);
 	events=new Event*[2*n];
 	unsigned ctr=0;
     Rectangles::const_iterator ri=rs.begin(), re=rs.end();
@@ -290,11 +292,11 @@ void generateYConstraints(const Rectangles& rs, const Variables& vars, Constrain
         Variable* v=*vi;
 		v->desiredPosition=r->getCentreY();
 		Node *node = new Node(v,r,r->getCentreY());
-        assert(r->getMinX()<r->getMaxX());
+        ASSERT(r->getMinX()<r->getMaxX());
 		events[ctr++]=new Event(Open,node,r->getMinX());
 		events[ctr++]=new Event(Close,node,r->getMaxX());
 	}
-    assert(ri==rs.end());
+    ASSERT(ri==rs.end());
 	qsort((Event*)events, (size_t)2*n, sizeof(Event*), compare_events );
 	NodeSet scanline;
 #ifndef NDEBUG
@@ -335,13 +337,13 @@ void generateYConstraints(const Rectangles& rs, const Variables& vars, Constrain
             size_t erased=
 #endif
 			scanline.erase(v);
-            assert(erased==1);
+            ASSERT(erased==1);
 			delete v;
 		}
 		delete e;
 	}
-    assert(scanline.size()==0);
-    assert(deletes==n);
+    ASSERT(scanline.size()==0);
+    ASSERT(deletes==n);
 	delete [] events;
 }
 #include "linesegment.h"
@@ -409,8 +411,8 @@ bool Rectangle::inside(double x, double y) const {
 // path round the outside of the rectangle  from p1 to p2 into xs, ys.
 void Rectangle::routeAround(double x1, double y1, double x2, double y2,
         std::vector<double> &xs, std::vector<double> &ys) {
-    assert(eq(x1,minX) || eq(x1,maxX) || eq(y1,minY) || eq(y1,maxY));
-    assert(eq(x2,minX) || eq(x2,maxX) || eq(y2,minY) || eq(y2,maxY));
+    ASSERT(eq(x1,minX) || eq(x1,maxX) || eq(y1,minY) || eq(y1,maxY));
+    ASSERT(eq(x2,minX) || eq(x2,maxX) || eq(y2,minY) || eq(y2,maxY));
     xs.push_back(x1);
     ys.push_back(y1);
     bool top1=eq(y1,maxY), top2=eq(y2,maxY),
@@ -563,10 +565,10 @@ void removeoverlaps(Rectangles& rs, const set<unsigned>& fixed, bool thirdPass) 
 		vpsc_x.solve();
 		Rectangles::iterator r=rs.begin();
 		for(v=vs.begin();v!=vs.end();++v,++r) {
-			assert(ISNOTNAN((*v)->finalPosition));
+			ASSERT(ISNOTNAN((*v)->finalPosition));
 			(*r)->moveCentreX((*v)->finalPosition);
 		}
-		assert(r==rs.end());
+		ASSERT(r==rs.end());
 		for_each(cs.begin(),cs.end(),delete_object());
 		cs.clear();
         // Removing the extra gap here ensures things that were moved to be
@@ -577,7 +579,7 @@ void removeoverlaps(Rectangles& rs, const set<unsigned>& fixed, bool thirdPass) 
 		vpsc_y.solve();
 		r=rs.begin();
 		for(v=vs.begin();v!=vs.end();++v,++r) {
-			assert(ISNOTNAN((*v)->finalPosition));
+			ASSERT(ISNOTNAN((*v)->finalPosition));
 			(*r)->moveCentreY((*v)->finalPosition);
 		}
 		for_each(cs.begin(),cs.end(),delete_object());
@@ -600,7 +602,7 @@ void removeoverlaps(Rectangles& rs, const set<unsigned>& fixed, bool thirdPass) 
             vpsc_x2.solve();
             r=rs.begin();
             for(v=vs.begin();v!=vs.end();++v,++r) {
-                assert(ISNOTNAN((*v)->finalPosition));
+                ASSERT(ISNOTNAN((*v)->finalPosition));
                 (*r)->moveCentreX((*v)->finalPosition);
             }
         }
@@ -613,7 +615,7 @@ void removeoverlaps(Rectangles& rs, const set<unsigned>& fixed, bool thirdPass) 
 			std::cerr << **r <<std::endl;
 		}
 	}
-    assert(assertNoOverlaps(rs));
+    ASSERT(assertNoOverlaps(rs));
 }
 #ifndef NDEBUG
 bool assertNoOverlaps(const Rectangles& rs) {
@@ -624,7 +626,7 @@ bool assertNoOverlaps(const Rectangles& rs) {
 		for(j=i+1;j!=e;++j) {
 			v=*j;
             if(u->overlapX(v)>0) {
-                assert(u->overlapY(v)==0);
+                ASSERT(u->overlapY(v)==0);
             }
 		}
 	}

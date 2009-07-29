@@ -1,0 +1,94 @@
+/*
+ * vim: ts=4 sw=4 et tw=0 wm=0
+ *
+ * libvpsc - A solver for the problem of Variable Placement with 
+ *           Separation Constraints.
+ *
+ * Copyright (C) 2009  Monash University
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library in the file LICENSE; if not, 
+ * write to the Free Software Foundation, Inc., 59 Temple Place, 
+ * Suite 330, Boston, MA  02111-1307  USA
+ *
+*/
+
+#ifndef _LIBVPSC_UTIL_H
+#define _LIBVPSC_UTIL_H
+
+#include <sstream>
+#include <cassert>
+
+#ifdef NDEBUG 
+
+  #define ASSERT(expr)  static_cast<void>(0)
+
+#else // Not NDEBUG
+
+  #if defined(USE_CASSERT) 
+    #define ASSERT(expr)  assert(expr)
+  #elif !defined(__ASSERT_FUNCTION)
+    #define ASSERT(expr) \
+        if (!(expr)) { \
+            throw vpsc::CriticalFailure(__STRING(expr), __FILE__, __LINE__); \
+        }
+  #else
+    #define ASSERT(expr) \
+        if (!(expr)) { \
+            throw vpsc::CriticalFailure(__STRING(expr), __FILE__, __LINE__, \
+                    __ASSERT_FUNCTION); \
+        }
+  #endif
+
+namespace vpsc { 
+
+// Critical failure: either something went wrong, or (more likely) there
+// was infeasible input.
+class CriticalFailure
+{
+    public:
+        CriticalFailure(const char *expr, const char *file, int line, 
+                const char *function = NULL)
+            : expr(expr),
+              file(file),
+              line(line),
+              function(function)
+        {
+        }
+        std::string what() const
+        {
+            std::stringstream s;
+            s << "ERROR: Critical sanity check failed.\n";
+            s << "  expression: " << expr << "\n";
+            s << "  at line " << line << " of " << file << "\n";
+            if (function)
+            {
+                s << "  in: " << function << "\n";
+            }
+
+            return s.str();
+        }
+    private:
+        const char *expr;
+        const char *file;
+        int line;
+        const char *function;
+};
+
+}
+
+#endif // NDEBUG
+
+
+#endif // _LIBPROJECT_UTIL_H
+

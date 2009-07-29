@@ -142,11 +142,7 @@ namespace topology {
         BendConstraint(EdgePoint* bendPoint);
         void satisfy();
         std::string toString() const;
-        unsigned getEdgeID() const {
-            assert(bendPoint->inSegment!=NULL);
-            assert(bendPoint->outSegment!=NULL);
-            return bendPoint->inSegment->edge->id;
-        }
+        unsigned getEdgeID() const;
     };
     /**
      * A constraint between a Node and a Segment that is activated when
