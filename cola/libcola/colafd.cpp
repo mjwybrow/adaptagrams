@@ -224,7 +224,12 @@ void ConstrainedFDLayout::computeDescentVectorOnBothAxes(
  * positions.
  */
 void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis) 
-        throw(InvalidVariableIndexException, vpsc::CriticalFailure) {
+#ifdef ASSERTION_EXCEPTIONS
+        throw(InvalidVariableIndexException, vpsc::CriticalFailure)
+#else
+        throw(InvalidVariableIndexException)
+#endif
+{
     FILE_LOG(logDEBUG) << "ConstrainedFDLayout::run...";
     if(n==0) return;
     double stress=DBL_MAX;

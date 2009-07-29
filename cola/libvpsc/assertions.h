@@ -57,6 +57,9 @@
                       __ASSERT_FUNCTION); \
           }
     #endif
+
+    #define ASSERTION_EXCEPTIONS
+
   #endif
 
 namespace vpsc { 

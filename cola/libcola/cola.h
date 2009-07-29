@@ -33,7 +33,7 @@
 #include <algorithm>
 #include <cmath>
 #include <iostream>
-#include <cassert>
+#include "libvpsc/assertions.h"
 #include "gradient_projection.h"
 #include "cluster.h"
 #include "straightener.h"
@@ -409,8 +409,12 @@ public:
         const double* eLengths=NULL,
         TestConvergence& done=defaultTest,
         PreIteration* preIteration=NULL);
-    void run(bool x=true, bool y=true) 
+    void run(bool x=true, bool y=true)
+#ifdef ASSERTION_EXCEPTIONS
             throw(InvalidVariableIndexException, vpsc::CriticalFailure);
+#else
+            throw(InvalidVariableIndexException);
+#endif
     void runOnce(bool x=true, bool y=true);
     /**
      *  Allow the user to specify compound constraints.
