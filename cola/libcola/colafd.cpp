@@ -295,11 +295,11 @@ void ConstrainedFDLayout::runOnce(const bool xAxis, const bool yAxis) {
 
 void ConstrainedFDLayout::setAvoidNodeOverlaps(void)
 {
-    topology::Nodes *topologyNodes = new topology::Nodes(n);
-    for (unsigned id = 0; id < n; ++id)
+    unsigned nodesTotal = boundingBoxes.size();
+    topology::Nodes *topologyNodes = new topology::Nodes(nodesTotal);
+    for (unsigned id = 0; id < nodesTotal; ++id)
     {
-        vpsc::Rectangle *rect = boundingBoxes[id];
-        topologyNodes->push_back(new topology::Node(id,rect));
+        (*topologyNodes)[id] = new topology::Node(id, boundingBoxes[id]);
     }
 
     // Empty edge set will just result in nonoverlap constraints for nodes.
