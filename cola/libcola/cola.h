@@ -44,6 +44,7 @@ namespace topology {
     class Node; 
     class Edge;
     class TopologyConstraints;
+    typedef std::vector<Node*> Nodes;
 }
 
 /**
@@ -421,7 +422,13 @@ public:
             this->ccs = ccs;
         }
     }
-    void setTopology(std::vector<topology::Node*>* tnodes, std::vector<topology::Edge*>* routes) {
+    /** 
+     * Allow the user to specify that there should be no overlap between
+     * any pairs of nodes in the layout.
+     */
+    void setAvoidNodeOverlaps(void);
+    void setTopology(std::vector<topology::Node*>* tnodes, 
+            std::vector<topology::Edge*>* routes) {
         topologyNodes=tnodes;
         topologyRoutes=routes;
     }

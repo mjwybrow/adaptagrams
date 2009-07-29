@@ -293,6 +293,18 @@ void ConstrainedFDLayout::runOnce(const bool xAxis, const bool yAxis) {
 }
 
 
+void ConstrainedFDLayout::setAvoidNodeOverlaps(void)
+{
+    topology::Nodes *topologyNodes = new topology::Nodes(n);
+    for (unsigned id = 0; id < n; ++id)
+    {
+        vpsc::Rectangle *rect = boundingBoxes[id];
+        topologyNodes->push_back(new topology::Node(id,rect));
+    }
+    setTopology(topologyNodes, NULL);
+}
+
+
 static void setupVarsAndConstraints(unsigned n, const CompoundConstraints* ccs,
         const vpsc::Dim dim, vpsc::Variables& vs, vpsc::Constraints& cs) 
 {

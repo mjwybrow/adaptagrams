@@ -61,7 +61,9 @@ double TriConstraint::maxSafeAlpha() const {
     }
     double msa = numerator/denominator;
     if(msa<0) {
+#ifndef NDEBUG
         const double iSlack = slackAtInitial();
+#endif
         assert(iSlack>=fSlack);
         FILE_LOG(logDEBUG1)<<"  tiny negative msa rounded to 0!";
         // we know that fSlack is negative, we do not actually move by

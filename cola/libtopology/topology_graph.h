@@ -49,6 +49,8 @@ namespace topology {
     class BendConstraint;
     class StraightConstraint;
     class Edge;
+    class Node;
+    typedef std::vector<Node*> Nodes;
     /**
      * Each node is associated with a rectangle and solver variables
      * for the x and y axes
@@ -75,7 +77,6 @@ namespace topology {
         /// variable positions used by solver
         vpsc::Variable* var;
     };
-    typedef std::vector<Node*> Nodes;
     /**
      * let n=ns.size(), where n<=vs.size(), 
      * for i<n we set the variable for ns[i] to be vs[i].
