@@ -67,7 +67,7 @@ public:
         return id;
     }
     double pos(vpsc::Dim dim) const {
-		return dim==vpsc::HORIZONTAL?x:y;
+        return dim==vpsc::HORIZONTAL?x:y;
     }
 private:
     unsigned id;
@@ -87,12 +87,12 @@ public:
     unsigned getID() const {
         return id;
     }
-	const vpsc::Rectangle* getTarget() const {
+    const vpsc::Rectangle* getTarget() const {
         return &target;
     }
 private:
     unsigned id;
-	vpsc::Rectangle target;
+    vpsc::Rectangle target;
 };
 typedef std::vector<cola::Resize> Resizes;
 
@@ -101,10 +101,10 @@ typedef std::vector<cola::Resize> Resizes;
  * drawing the node towards that desired position
  */
 struct DesiredPosition {
-	unsigned id;
-	double x;
-	double y;
-	double weight;
+    unsigned id;
+    double x;
+    double y;
+    double weight;
 };
 typedef std::vector<cola::DesiredPosition> DesiredPositions;
 /** 
@@ -203,8 +203,8 @@ extern TestConvergence defaultTest;
 class ConstrainedMajorizationLayout {
 public:
     ConstrainedMajorizationLayout(
-		std::vector<vpsc::Rectangle*>& rs,
-		std::vector<Edge> const & es,
+        std::vector<vpsc::Rectangle*>& rs,
+        std::vector<Edge> const & es,
         RootCluster* clusterHierarchy,
         const double idealLength,
         const double* eLengths=NULL,
@@ -301,15 +301,15 @@ public:
      * run the layout algorithm in either the x-dim the y-dim or both
      */
     void run(bool x=true, bool y=true);
-	/**
-	 * run one iteration only
-	 */
+    /**
+     * run one iteration only
+     */
     void runOnce(bool x=true, bool y=true);
     void straighten(std::vector<straightener::Edge*>&, vpsc::Dim);
     void setConstrainedLayout(bool c) {
         constrainedLayout=c;
     }
-	double computeStress();
+    double computeStress();
 private:
     double euclidean_distance(unsigned i, unsigned j) {
         return sqrt(
@@ -327,7 +327,7 @@ private:
     double tol; //!< convergence tolerance
     TestConvergence& done; //!< functor used to determine if layout is finished
     PreIteration* preIteration; //!< client can use this to create locks on nodes
-	std::vector<vpsc::Rectangle*> boundingBoxes; //!< node bounding boxes
+    std::vector<vpsc::Rectangle*> boundingBoxes; //!< node bounding boxes
     /** stickyNodes controls whether nodes are attracted to their starting
      * positions (at time of ConstrainedMajorizationLayout instantiation)
      * stored in startX, startY
@@ -403,8 +403,8 @@ public:
      * @param preIteration an operation called before each iteration
      */
     ConstrainedFDLayout(
-		const vpsc::Rectangles& rs,
-		const std::vector<cola::Edge>& es,
+        const vpsc::Rectangles& rs,
+        const std::vector<cola::Edge>& es,
         const double idealLength,
         const double* eLengths=NULL,
         TestConvergence& done=defaultTest,
@@ -428,13 +428,18 @@ public:
      */
     void setAvoidNodeOverlaps(void);
     void setTopology(std::vector<topology::Node*>* tnodes, 
-            std::vector<topology::Edge*>* routes) {
+            std::vector<topology::Edge*>* routes)
+    {
+        // Setting nodes with NULL routes will result in strange behaviour,
+        // so catch this case.  An empy list for topologyRoutes is okay though.
+        assert(!topologyNodes || topologyRoutes);
+
         topologyNodes=tnodes;
         topologyRoutes=routes;
     }
-	void setDesiredPositions(std::vector<DesiredPosition>* desiredPositions) {
-		this->desiredPositions = desiredPositions;
-	}
+    void setDesiredPositions(std::vector<DesiredPosition>* desiredPositions) {
+        this->desiredPositions = desiredPositions;
+    }
     /**
      * These lists will have info about unsatisfiable constraints
      * after each iteration of constrained layout
@@ -458,8 +463,8 @@ public:
 private:
     unsigned n; // number of nodes
     std::valarray<double> X, Y;
-	std::vector<vpsc::Rectangle*> boundingBoxes;
-	double applyForcesAndConstraints(const vpsc::Dim dim,const double oldStress);
+    std::vector<vpsc::Rectangle*> boundingBoxes;
+    double applyForcesAndConstraints(const vpsc::Dim dim,const double oldStress);
     double computeStepSize(const SparseMatrix& H, const std::valarray<double>& g,
             const std::valarray<double>& d) const;
     void computeDescentVectorOnBothAxes(const bool xaxis, const bool yaxis,
@@ -504,11 +509,12 @@ private:
  * @param eLengths edge weights
  */
 void dijkstra(const unsigned s, const unsigned n, double* d, 
-			  const std::vector<cola::Edge>& es, const double* eLengths);
+              const std::vector<cola::Edge>& es, const double* eLengths);
 
 void removeClusterOverlapFast(RootCluster& clusterHierarchy, vpsc::Rectangles& rs, Locks& locks);
 }
-#endif				// COLA_H
+
+#endif // COLA_H
 
 /*
   Local Variables:
@@ -519,4 +525,4 @@ void removeClusterOverlapFast(RootCluster& clusterHierarchy, vpsc::Rectangles& r
   fill-column:99
   End:
 */
-// vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=8:softtabstop=4:encoding=utf-8:textwidth=99 :
+// vim: filetype=cpp:cindent:expandtab:shiftwidth=4:tabstop=4:softtabstop=4 :

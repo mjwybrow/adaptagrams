@@ -70,12 +70,12 @@ void dumpSquareMatrix(unsigned n, T** L) {
 }
 
 ConstrainedFDLayout::ConstrainedFDLayout(
-	const vpsc::Rectangles & rs,
-	const std::vector< Edge > & es, 
+    const vpsc::Rectangles & rs,
+    const std::vector< Edge > & es, 
     const double idealLength,
     const double* eLengths,
-	TestConvergence& done,
-	PreIteration* preIteration)
+    TestConvergence& done,
+    PreIteration* preIteration)
 : n(rs.size()),
   X(valarray<double>(n)),
   Y(valarray<double>(n)),
@@ -87,13 +87,13 @@ ConstrainedFDLayout::ConstrainedFDLayout(
   rungekutta(true),
   desiredPositions(NULL)
 {
-	//FILELog::ReportingLevel() = logDEBUG1;
+    //FILELog::ReportingLevel() = logDEBUG1;
     FILELog::ReportingLevel() = logERROR;
     boundingBoxes.resize(n);
     copy(rs.begin(),rs.end(),boundingBoxes.begin());
     done.reset();
-	unsigned i=0;
-	for(vpsc::Rectangles::const_iterator ri=rs.begin();ri!=rs.end();++ri,++i) {
+    unsigned i=0;
+    for(vpsc::Rectangles::const_iterator ri=rs.begin();ri!=rs.end();++ri,++i) {
         X[i]=(*ri)->getCentreX();
         Y[i]=(*ri)->getCentreY();
         FILE_LOG(logDEBUG) << *ri;
@@ -105,19 +105,19 @@ ConstrainedFDLayout::ConstrainedFDLayout(
         G[i]=new unsigned short[n];
     }
 
-	if(eLengths == NULL) {
-		computePathLengths(es,idealLength,NULL);
-	} else {
-		valarray<double> eLengthsArray(eLengths,es.size());
-		computePathLengths(es,idealLength,&eLengthsArray);
-	}	
+    if(eLengths == NULL) {
+        computePathLengths(es,idealLength,NULL);
+    } else {
+        valarray<double> eLengthsArray(eLengths,es.size());
+        computePathLengths(es,idealLength,&eLengthsArray);
+    }    
 }
 
 void dijkstra(const unsigned s, const unsigned n, double* d, 
         const vector<Edge>& es, const double* eLengths)
 {
-	const valarray<double> eLengthsArray(eLengths, es.size());
-	shortest_paths::dijkstra(s,n,d,es,&eLengthsArray);
+    const valarray<double> eLengthsArray(eLengths, es.size());
+    shortest_paths::dijkstra(s,n,d,es,&eLengthsArray);
 }
 
 /**
@@ -263,7 +263,7 @@ void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis)
     } while(!done(stress,X,Y));
     for(unsigned i=0;i<n;i++) {
         vpsc::Rectangle *r=boundingBoxes[i];
-	FILE_LOG(logDEBUG) << *r;
+    FILE_LOG(logDEBUG) << *r;
     }
     FILE_LOG(logDEBUG) << "ConstrainedFDLayout::run done.";
 }
@@ -277,8 +277,8 @@ void ConstrainedFDLayout::runOnce(const bool xAxis, const bool yAxis) {
     unsigned N=2*n;
     Position x0(N),x1(N);
     getPosition(X,Y,x0);
-	if(rungekutta) {
-		Position a(N),b(N),c(N),d(N),ia(N),ib(N);
+    if(rungekutta) {
+        Position a(N),b(N),c(N),d(N),ia(N),ib(N);
         computeDescentVectorOnBothAxes(xAxis,yAxis,stress,x0,a);
         ia=x0+(a-x0)/2.0;
         computeDescentVectorOnBothAxes(xAxis,yAxis,stress,ia,b);
@@ -287,7 +287,7 @@ void ConstrainedFDLayout::runOnce(const bool xAxis, const bool yAxis) {
         computeDescentVectorOnBothAxes(xAxis,yAxis,stress,c,d);
         x1=a+2.0*b+2.0*c+d;
         x1/=6.0;
-	} else {
+    } else {
         computeDescentVectorOnBothAxes(xAxis,yAxis,stress,x0,x1);
     }
 }
@@ -301,7 +301,11 @@ void ConstrainedFDLayout::setAvoidNodeOverlaps(void)
         vpsc::Rectangle *rect = boundingBoxes[id];
         topologyNodes->push_back(new topology::Node(id,rect));
     }
-    setTopology(topologyNodes, NULL);
+
+    // Empty edge set will just result in nonoverlap constraints for nodes.
+    topology::Edges *topologyEdges = new topology::Edges(0);
+
+    setTopology(topologyNodes, topologyEdges);
 }
 
 
@@ -424,7 +428,7 @@ void ConstrainedFDLayout::moveTo(const vpsc::Dim dim, Position& target) {
         }
     }
     for(unsigned i=0, j=(dim==vpsc::HORIZONTAL?0:n);i<n;++i,++j) {
-		vpsc::Variable* v=vs[i];
+        vpsc::Variable* v=vs[i];
         v->desiredPosition = target[j];
     }
     setVariableDesiredPositions(vs,cs,des,coords);
@@ -475,8 +479,8 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const vpsc::Dim dim, const
     setupVarsAndConstraints(n, ccs, dim, vs, cs);
     if(topologyRoutes) {
         FILE_LOG(logDEBUG1) << "applying topology preserving layout...";
-		vpsc::Rectangle::setXBorder(0);
-		vpsc::Rectangle::setYBorder(0);
+        vpsc::Rectangle::setXBorder(0);
+        vpsc::Rectangle::setYBorder(0);
         if(dim==vpsc::HORIZONTAL) {
             vpsc::Rectangle::setXBorder(0);
         }
@@ -507,8 +511,8 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const vpsc::Dim dim, const
             }
             loopBreaker--;
         } while(interrupted&&loopBreaker>0);
-		vpsc::Rectangle::setXBorder(0);
-		vpsc::Rectangle::setYBorder(0);
+        vpsc::Rectangle::setXBorder(0);
+        vpsc::Rectangle::setYBorder(0);
         stress=computeStress();
     } else {
         SparseMap HMap(n);
@@ -574,7 +578,7 @@ double ConstrainedFDLayout::applyDescentVector(
  *  - the vector g, the negative gradient (steepest-descent) direction.
  */
 void ConstrainedFDLayout::computeForces(
-		const vpsc::Dim dim,
+        const vpsc::Dim dim,
         SparseMap &H,
         valarray<double> &g) {
     if(n==1) return;
@@ -604,17 +608,17 @@ void ConstrainedFDLayout::computeForces(
         }
         H(u,u)=Huu;
     }
-	if(desiredPositions) {
-		for(DesiredPositions::const_iterator p=desiredPositions->begin();
-			p!=desiredPositions->end();++p) {
-			unsigned i = p->id;
-			double d=(dim==vpsc::HORIZONTAL)
-				?p->x-X[i]:p->y-Y[i];
-			d*=p->weight;
-			g[i]-=d;
-			H(i,i)+=p->weight;
-		}
-	}
+    if(desiredPositions) {
+        for(DesiredPositions::const_iterator p=desiredPositions->begin();
+            p!=desiredPositions->end();++p) {
+            unsigned i = p->id;
+            double d=(dim==vpsc::HORIZONTAL)
+                ?p->x-X[i]:p->y-Y[i];
+            d*=p->weight;
+            g[i]-=d;
+            H(i,i)+=p->weight;
+        }
+    }
 }
 /**
  * Returns the optimal step-size in the direction d, given gradient g and 
@@ -677,13 +681,13 @@ double ConstrainedFDLayout::computeStress() const {
         FILE_LOG(logDEBUG2)<<"s(topology)="<<s;
         stress+=s;
     }
-	if(desiredPositions) {
-		for(DesiredPositions::const_iterator p = desiredPositions->begin();
-			p!=desiredPositions->end();++p) {
-			double dx = X[p->id] - p->x, dy = Y[p->id] - p->y;
-			stress+=0.5*p->weight*(dx*dx+dy*dy);
-		}
-	}
+    if(desiredPositions) {
+        for(DesiredPositions::const_iterator p = desiredPositions->begin();
+            p!=desiredPositions->end();++p) {
+            double dx = X[p->id] - p->x, dy = Y[p->id] - p->y;
+            stress+=0.5*p->weight*(dx*dx+dy*dy);
+        }
+    }
     return stress;
 }
 void ConstrainedFDLayout::moveBoundingBoxes() {
