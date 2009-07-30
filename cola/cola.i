@@ -1,6 +1,9 @@
 /* File : cola.i */
 %module cola
 
+/* Allow enum values to be logically ORed together as flags. */
+%include "enumtypeunsafe.swg"
+
 %{
 #include <vector>
 #include <libvpsc/rectangle.h>
@@ -145,10 +148,10 @@ void deleteDoubleArray(double* a) {
 %include "libcola/exceptions.h"
 %include "libtopology/topology_graph.h"
 
-%include "libavoid/connector.h"
 %include "libavoid/geometry.h"
 %include "libavoid/geomtypes.h"
 %include "libavoid/router.h"
+%include "libavoid/connector.h"
 %include "libavoid/shape.h"
 
 
