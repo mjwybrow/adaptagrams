@@ -143,7 +143,6 @@ Router::Router(const unsigned int flags)
     {
         _routingPenalties[p] = 0.0;
     }
-    _routingPenalties[crossingPenalty] = 0;
     _routingPenalties[clusterCrossingPenalty] = 4000;
 }
 
@@ -1408,18 +1407,26 @@ void Router::outputInstanceToSVG(void)
     while (revConnRefIt != connRefs.rend())
     {
         ConnRef *connRef = *revConnRefIt;
-        fprintf(fp, "    ConnEnd srcPt%u(Point(%g, %g), %u);\n",
-                connRef->id(), connRef->src()->point.x,
-                connRef->src()->point.y, connRef->src()->visDirections);
-        fprintf(fp, "    ConnEnd dstPt%u(Point(%g, %g), %u);\n",
-                connRef->id(), connRef->dst()->point.x,
-                connRef->dst()->point.y, connRef->dst()->visDirections);
         fprintf(fp, "    ConnRef *connRef%u = new ConnRef(router, %u);\n",
                 connRef->id(), connRef->id());
-        fprintf(fp, "    connRef%u->setRoutingType((ConnType)%u);\n", 
+        if (connRef->src())
+        {
+            fprintf(fp, "    ConnEnd srcPt%u(Point(%g, %g), %u);\n",
+                    connRef->id(), connRef->src()->point.x,
+                    connRef->src()->point.y, connRef->src()->visDirections);
+            fprintf(fp, "    connRef%u->setSourceEndpoint(srcPt%u);\n",
+                    connRef->id(), connRef->id());
+        }
+        if (connRef->dst())
+        {
+            fprintf(fp, "    ConnEnd dstPt%u(Point(%g, %g), %u);\n",
+                    connRef->id(), connRef->dst()->point.x,
+                    connRef->dst()->point.y, connRef->dst()->visDirections);
+            fprintf(fp, "    connRef%u->setDestEndpoint(dstPt%u);\n",
+                    connRef->id(), connRef->id());
+        }
+        fprintf(fp, "    connRef%u->setRoutingType((ConnType)%u);\n\n", 
                 connRef->id(), connRef->routingType());
-        fprintf(fp, "    connRef%u->setEndpoints(srcPt%u, dstPt%u);\n\n",
-                connRef->id(), connRef->id(), connRef->id());
         ++revConnRefIt;
     }
     fprintf(fp, "    router->processTransaction();\n");
@@ -1579,8 +1586,8 @@ void Router::outputInstanceToSVG(void)
             fprintf(fp, "\" debug=\"src: %d dst: %d\" "
                     "style=\"fill: none; stroke: black; "
                     "stroke-width: 1px;\" />\n",
-                    connRef->src()->visDirections,
-                    connRef->dst()->visDirections);
+                    (connRef->src()) ? connRef->src()->visDirections : -1,
+                    (connRef->dst()) ? connRef->dst()->visDirections : -1);
         }
         
         ++connRefIt;
@@ -1607,8 +1614,8 @@ void Router::outputInstanceToSVG(void)
             fprintf(fp, "\" debug=\"src: %d dst: %d\" "
                     "style=\"fill: none; stroke: black; "
                     "stroke-width: 1px;\" />\n",
-                    connRef->src()->visDirections,
-                    connRef->dst()->visDirections);
+                    (connRef->src()) ? connRef->src()->visDirections : -1,
+                    (connRef->dst()) ? connRef->dst()->visDirections : -1);
         }
         
         ++connRefIt;

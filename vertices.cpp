@@ -373,6 +373,10 @@ void VertInfList::addVertex(VertInf *vert)
 // following the removed one.
 VertInf *VertInfList::removeVertex(VertInf *vert)
 {
+    if (vert == NULL)
+    {
+        return NULL;
+    }
     // Conditions for correct data structure
     checkVertInfListConditions();
     
