@@ -1705,6 +1705,14 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
         }
         else
         {
+            if ( polyIsOrthogonal && connIsOrthogonal)
+            {
+                // All crossings in orthogonal connectors will be at a
+                // vertex in the visibility graph, so we need not bother
+                // doing normal line intersection.
+                continue;
+            }
+
             // No endpoint is shared between these two line segments,
             // so just calculate normal segment intersection.
 
