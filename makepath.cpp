@@ -272,7 +272,8 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
                     connRef, lineRef);
 
             if ((crossings.second & CROSSING_SHARES_PATH) &&
-                    (crossings.second & CROSSING_SHARES_FIXED_SEGMENT))
+                    (crossings.second & CROSSING_SHARES_FIXED_SEGMENT) &&
+                    !(crossings.second & CROSSING_SHARES_PATH_AT_END))
             {
                 // Penalise unecessary shared paths in the middle of
                 // connectors.
