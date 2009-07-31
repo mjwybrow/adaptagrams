@@ -261,14 +261,14 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
             {
                 continue;
             }
-            const Avoid::PolyLine& route2 = connRef->displayRoute();
+            const Avoid::PolyLine& route2 = connRef->route();
             
             bool isConn = true;
             Polygon dynamic_route2(route2);
             Polygon dynamic_conn_route(connRoute);
             CrossingsInfoPair crossings = countRealCrossings(
                     dynamic_route2, isConn, dynamic_conn_route, 
-                    connRoute.size() - 1, true, false, NULL, NULL,
+                    connRoute.size() - 1, false, false, NULL, NULL,
                     connRef, lineRef);
 
             if ((crossings.second & CROSSING_SHARES_PATH) &&
