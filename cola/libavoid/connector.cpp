@@ -1265,6 +1265,7 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
     bool connIsOrthogonal = (connConnRef &&
             (connConnRef->routingType() == ConnType_Orthogonal));
 
+    size_t poly_size = poly.size();
     int crossingCount = 0;
     std::vector<Avoid::Point *> c_path;
     std::vector<Avoid::Point *> p_path;
@@ -1274,9 +1275,9 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
     //db_printf("a1: %g %g\n", a1.x, a1.y);
     //db_printf("a2: %g %g\n", a2.x, a2.y);
 
-    for (size_t j = ((polyIsConn) ? 1 : 0); j < poly.size(); ++j)
+    for (size_t j = ((polyIsConn) ? 1 : 0); j < poly_size; ++j)
     {
-        Avoid::Point& b1 = poly.ps[(j - 1 + poly.size()) % poly.size()];
+        Avoid::Point& b1 = poly.ps[(j - 1 + poly_size) % poly_size];
         Avoid::Point& b2 = poly.ps[j];
         //db_printf("b1: %g %g\n", b1.x, b1.y);
         //db_printf("b2: %g %g\n", b2.x, b2.y);
@@ -1322,7 +1323,7 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
                     continue;
                 }
 
-                Avoid::Point& b0 = poly.ps[(j - 2 + poly.size()) % poly.size()];
+                Avoid::Point& b0 = poly.ps[(j - 2 + poly_size) % poly_size];
                 // The segments share an endpoint -- a1==b1.
                 if (a2 == b0)
                 {
@@ -1369,7 +1370,7 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
             }
             else if (cIndex >= 2)
             {
-                Avoid::Point& b0 = poly.ps[(j - 2 + poly.size()) % poly.size()];
+                Avoid::Point& b0 = poly.ps[(j - 2 + poly_size) % poly_size];
                 Avoid::Point& a0 = conn.ps[cIndex - 2];
             
                 //db_printf("a0: %g %g\n", a0.x, a0.y);
@@ -1397,12 +1398,12 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
                 // Build the shared path, including the diverging points at
                 // each end if the connector does not end at a common point.
                 while ( (trace_c >= 0) && (!polyIsConn || 
-                            ((trace_p >= 0) && (trace_p < (int) poly.size()))) )
+                            ((trace_p >= 0) && (trace_p < (int) poly_size))) )
                 {
                     // If poly is a cluster boundary, then it is a closed 
                     // poly-line and so it wraps arounds.
                     size_t index_p = (size_t)
-                            ((trace_p + (2 * poly.size())) % poly.size());
+                            ((trace_p + (2 * poly_size)) % poly_size);
                     size_t index_c = (size_t) trace_c;
                     c_path.push_back(&conn.ps[index_c]);
                     p_path.push_back(&poly.ps[index_p]);
@@ -1433,7 +1434,7 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
                         // See if this is inline with either the start
                         // or end point of both connectors.
                         if ( ((xPos == poly.ps[0].x) || 
-                                (xPos == poly.ps[poly.size() - 1].x)) &&
+                                (xPos == poly.ps[poly_size - 1].x)) &&
                              ((xPos == conn.ps[0].x) || 
                                 (xPos == conn.ps[cIndex].x)) )
                         {
@@ -1447,7 +1448,7 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
                         // See if this is inline with either the start
                         // or end point of both connectors.
                         if ( ((yPos == poly.ps[0].y) || 
-                                (yPos == poly.ps[poly.size() - 1].y)) &&
+                                (yPos == poly.ps[poly_size - 1].y)) &&
                              ((yPos == conn.ps[0].y) || 
                                 (yPos == conn.ps[cIndex].y)) )
                         {
@@ -1658,7 +1659,7 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
                     db_printf("Error:\tCrossing shouldn't be at endpoint.\n");
                     abort();
                 }
-                Avoid::Point& b0 = poly.ps[(j - 2 + poly.size()) % poly.size()];
+                Avoid::Point& b0 = poly.ps[(j - 2 + poly_size) % poly_size];
                 Avoid::Point& a0 = conn.ps[cIndex - 2];
             
                 int side1 = Avoid::cornerSide(a0, a1, a2, b0);
