@@ -143,7 +143,7 @@ Router::Router(const unsigned int flags)
     {
         _routingPenalties[p] = 0.0;
     }
-    _routingPenalties[crossingPenalty] = 200;
+    _routingPenalties[crossingPenalty] = 0;
     _routingPenalties[clusterCrossingPenalty] = 4000;
 }
 

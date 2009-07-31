@@ -2042,6 +2042,9 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
         Variables vs;
         Constraints cs;
         ShiftSegmentPtrList prevVars;
+        // IDs:
+        const int freeID    = 0;
+        const int fixedID   = 1;
         // Weights:
         double freeWeight   = 0.00001;
         double strongWeight = 0.001;
@@ -2054,6 +2057,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             Point& lowPt = currSegment->lowPoint();
             
             // Create a solver variable for the position of this segment.
+            int varID = freeID;
             double idealPos = lowPt[dimension];
             double weight = freeWeight;
             if (currSegment->sBend)
@@ -2070,6 +2074,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             {
                 // Fixed segments shouldn't get moved.
                 weight = fixedWeight;
+                varID = fixedID;
             }
             else
             {
@@ -2078,7 +2083,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                 // to the "inner" side of them.
                 weight = strongWeight;
             }
-            currSegment->variable = new Variable(0, idealPos, weight);
+            currSegment->variable = new Variable(varID, idealPos, weight);
             vs.push_back(currSegment->variable);
             size_t index = vs.size() - 1;
             //printf("line  %.15f  pos: %g   min: %g  max: %g\n",
@@ -2093,11 +2098,14 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                 ShiftSegment *prevSeg = *prevVarIt;
                 Variable *prevVar = prevSeg->variable;
 
-                if (currSegment->overlapsWith(*prevSeg, dimension))
+                if (currSegment->overlapsWith(*prevSeg, dimension) &&
+                        (!(currSegment->fixed) || !(prevSeg->fixed)))
                 {
                     // If there is a previous segment to the left that 
                     // could overlap this in the shift direction, then 
                     // constrain the two segments to be separated.
+                    // Though don't add the constraint if both the 
+                    // segments are fixed in place.
                     cs.push_back(new Constraint(prevVar, vs[index],
                             router->orthogonalNudgeDistance()));
                     prevVarIt = prevVars.erase(prevVarIt);
@@ -2114,8 +2122,8 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                 // then constrain its placement as such.
                 if (currSegment->minSpaceLimit > -CHANNEL_MAX)
                 {
-                    vs.push_back(new Variable(1, currSegment->minSpaceLimit, 
-                                fixedWeight));
+                    vs.push_back(new Variable(fixedID, 
+                                currSegment->minSpaceLimit, fixedWeight));
                     cs.push_back(new Constraint(vs[vs.size() - 1], vs[index], 
                                 0.0));
                 }
@@ -2124,8 +2132,8 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                 // then constrain its placement as such.
                 if (currSegment->maxSpaceLimit < CHANNEL_MAX)
                 {
-                    vs.push_back(new Variable(1, currSegment->maxSpaceLimit, 
-                                fixedWeight));
+                    vs.push_back(new Variable(fixedID, 
+                                currSegment->maxSpaceLimit, fixedWeight));
                     cs.push_back(new Constraint(vs[index], vs[vs.size() - 1],
                                 0.0));
                 }
@@ -2142,7 +2150,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
         bool satisfied = true;
         for (size_t i = 0; i < vs.size(); ++i) 
         {
-            if (vs[i]->id == 1)
+            if (vs[i]->id == fixedID)
             {
                 if (fabs(vs[i]->finalPosition - vs[i]->desiredPosition) > 0.01)
                 {
@@ -2190,7 +2198,7 @@ extern void improveOrthogonalRoutes(Router *router)
         // Simplify routes.
         simplifyOrthogonalRoutes(router);
 
-        // Do the centering and nudging.
+        // Do the centring and nudging.
         ShiftSegmentList segLists;
         buildOrthogonalChannelInfo(router, dimension, segLists);
         nudgeOrthogonalRoutes(router, dimension, pointOrders, segLists);
