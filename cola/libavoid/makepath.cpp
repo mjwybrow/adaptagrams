@@ -133,15 +133,15 @@ static double angleBetween(const Point& p1, const Point& p2, const Point& p3)
 
 // Construct a temporary Polygon path given several VertInf's for a connector.
 //
-static Polygon constructPolygonPath(VertInf *inf2, VertInf *inf3, 
-        std::vector<ANode>& done, int inf1Index)
+static void constructPolygonPath(Polygon& connRoute, VertInf *inf2, 
+        VertInf *inf3, std::vector<ANode>& done, int inf1Index)
 {
     int routeSize = 2;
     for (int curr = inf1Index; curr >= 0; curr = done[curr].prevIndex)
     {
         routeSize += 1;
     }
-    Polygon connRoute(routeSize);
+    connRoute.ps.resize(routeSize);
     connRoute.ps[routeSize - 1] = inf3->point;
     connRoute.ps[routeSize - 2] = inf2->point;
     routeSize -= 3;
@@ -150,7 +150,6 @@ static Polygon constructPolygonPath(VertInf *inf2, VertInf *inf3,
         connRoute.ps[routeSize] = done[curr].inf->point;
         routeSize -= 1;
     }
-    return connRoute;
 }
 
 
@@ -217,7 +216,7 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
     {
         if (connRoute.empty())
         {
-            connRoute = constructPolygonPath(inf2, inf3, done, inf1Index);
+            constructPolygonPath(connRoute, inf2, inf3, done, inf1Index);
         }
         // There are clusters so do cluster routing.
         for (ClusterRefList::const_iterator cl = router->clusterRefs.begin(); 
@@ -250,7 +249,7 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
         // Penalises shared paths, except if the connectors shared an endpoint.
         if (connRoute.empty())
         {
-            connRoute = constructPolygonPath(inf2, inf3, done, inf1Index);
+            constructPolygonPath(connRoute, inf2, inf3, done, inf1Index);
         }
         ConnRefList::const_iterator curr, finish = router->connRefs.end();
         for (curr = router->connRefs.begin(); curr != finish; ++curr)
@@ -287,7 +286,7 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
     {
         if (connRoute.empty())
         {
-            connRoute = constructPolygonPath(inf2, inf3, done, inf1Index);
+            constructPolygonPath(connRoute, inf2, inf3, done, inf1Index);
         }
         ConnRefList::const_iterator curr, finish = router->connRefs.end();
         for (curr = router->connRefs.begin(); curr != finish; ++curr)
