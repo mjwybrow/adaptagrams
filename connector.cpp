@@ -1286,8 +1286,13 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
         c_path.clear();
         bool converging = false;
 
-        if ( ((a1 == b1) && (a2 == b2)) ||
-             ((a2 == b1) && (a1 == b2)) )
+        const bool a1_eq_b1 = (a1 == b1);
+        const bool a2_eq_b1 = (a2 == b1);
+        const bool a2_eq_b2 = (a2 == b2);
+        const bool a1_eq_b2 = (a1 == b2);
+
+        if ( (a1_eq_b1 && a2_eq_b2) ||
+             (a2_eq_b1 && a1_eq_b2) )
         {
             if (finalSegment)
             {
@@ -1300,7 +1305,7 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
                 continue;
             }
         }
-        else if ((a2 == b1) || (a2 == b2) || (b2 == a1))
+        else if (a2_eq_b1 || a2_eq_b2 || a1_eq_b2)
         {
             // Each crossing that is at a vertex in the 
             // visibility graph gets noticed four times.
@@ -1311,7 +1316,7 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
             continue;
         }
     
-        if ((a1 == b1) || converging)
+        if (a1_eq_b1 || converging)
         {
             if (!converging)
             {
@@ -1334,7 +1339,7 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
             
             // If here and not converging, then we know that a2 != b2
             // And a2 and its pair in b are a split.
-            assert(converging || (a2 != b2));
+            assert(converging || !a2_eq_b2);
 
             bool shared_path = false;
             
@@ -1350,7 +1355,7 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
             {
                 // Determine direction we have to look through
                 // the points of connector b.
-                p_dir_back = (a2 == b2) ? true : false;
+                p_dir_back = a2_eq_b2 ? true : false;
                 p_dir = p_dir_back ? -1 : 1;
                 trace_c = (int) cIndex;
                 trace_p = (int) j;
