@@ -64,7 +64,7 @@ using namespace topology;
  * possible C++ exceptions (generated from C++ assertion failures)
  * into Java exceptions.
  */
-%javaexception("colajava.ColaException") {
+%exception {
     try {
         $action
     } catch(vpsc::CriticalFailure cf) {
@@ -78,22 +78,20 @@ using namespace topology;
     } 
 }
 
+%javaexception("colajava.ColaException") cola::ConstrainedFDLayout::run;
+%javaexception("colajava.ColaException") Avoid::Router::processTransaction();
+
+
 
 /* Define a Java ColaException class.
  */
 %typemap(javabase) cola::ColaException "java.lang.Exception";
-%typemap(javacode) cola::ColaException 
-%{
-  public String getMessage() {
-    return what();
-  }
-%}
 %inline %{
 namespace cola {
 class ColaException {
     public:
         ColaException(const std::string& msg) : message(msg) {}
-        std::string what() {
+        std::string getMessage() {
             return message;
         }
     private:
