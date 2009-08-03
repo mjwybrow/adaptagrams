@@ -33,6 +33,8 @@
 
 #include <algorithm>
 #include <cfloat>
+#define _USE_MATH_DEFINES
+#include <cmath>
 
 #include "libavoid/shape.h"
 #include "libavoid/debug.h"
@@ -41,8 +43,7 @@
 #include "libavoid/graph.h"
 #include "libavoid/geometry.h"
 #include "libavoid/router.h"
-#define _USE_MATH_DEFINES
-#include <cmath>
+#include "libavoid/assertions.h"
 
 #ifdef LINEDEBUG
   #include "SDL_gfxPrimitives.h"
@@ -125,7 +126,7 @@ void vertexVisibility(VertInf *point, VertInf *partner, bool knownNew,
     const VertID& pID = point->id;
 
     // Make sure we're only doing ptVis for endpoints.
-    assert(!(pID.isShape));
+    ASSERT(!(pID.isShape));
 
     if ( !(router->InvisibilityGrph) )
     {
@@ -194,7 +195,7 @@ class PointPair
                 {
                     // If comparing two points at the same physical 
                     // position, then order them by their VertIDs.
-                    assert(vInf->id != rhs.vInf->id);
+                    ASSERT(vInf->id != rhs.vInf->id);
                     return vInf->id < rhs.vInf->id;
                 }
                 return distance < rhs.distance;
@@ -223,8 +224,8 @@ class PointPair
             {
                 ang += 360;
             }
-            assert(ang >= 0);
-            assert(ang <= 360);
+            ASSERT(ang >= 0);
+            ASSERT(ang <= 360);
             return ang;
         }
 
@@ -259,7 +260,7 @@ class EdgePair
         }
         bool operator<(const EdgePair& rhs) const
         {
-            assert(angle == rhs.angle);
+            ASSERT(angle == rhs.angle);
             if (angleDist == rhs.angleDist)
             {
                 return (dist2 < rhs.dist2);
@@ -306,7 +307,7 @@ class EdgePair
             }
             else if (p.angle != angle)
             {
-                assert(p.angle > angle);
+                ASSERT(p.angle > angle);
                 angle = p.angle;
                 Point pp;
                 int result = rayIntersectPoint(vInf1->point, vInf2->point,
@@ -543,8 +544,8 @@ void vertexSweep(VertInf *vert)
     {
         VertInf *k = t->vInf;
 
-        assert(centerInf != k);
-        assert(centerID.isShape || (ss.find(k->id.objID) == ss.end()));
+        ASSERT(centerInf != k);
+        ASSERT(centerID.isShape || (ss.find(k->id.objID) == ss.end()));
 
         Point xaxis(DBL_MAX, centerInf->point.y);
 

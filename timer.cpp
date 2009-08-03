@@ -25,12 +25,11 @@
 
 #include <cstdio>
 #include <cstdlib>
-#include <cassert>
-using std::abort;
 #include <climits>
 
 #include "libavoid/timer.h"
 #include "libavoid/debug.h"
+#include "libavoid/assertions.h"
 
 namespace Avoid {
 
@@ -77,11 +76,7 @@ void Timer::Register(const TimerIndex t, const bool start)
 
 void Timer::Start(void)
 {
-    if (running)
-    {
-        db_printf("ERROR: Timer already running in Timer::Start()\n");
-        abort();
-    }
+    ASSERT(!running);
     cStart[type] = clock();  // CPU time
     running = true;
 }
@@ -89,11 +84,7 @@ void Timer::Start(void)
 
 void Timer::Stop(void)
 {
-    if (!running)
-    {
-        db_printf("ERROR: Timer not running in Timer::Stop()\n");
-        abort();
-    }
+    ASSERT(running);
     clock_t cStop = clock();      // CPU time
     running = false;
 
@@ -110,11 +101,7 @@ void Timer::Stop(void)
         cDiff = cStop - cStart[type];
     }
     
-    if (cDiff > LONG_MAX)
-    {
-        db_printf("Error: cDiff overflow in Timer:Stop()\n");
-        abort();
-    }
+    ASSERT(cDiff > LONG_MAX);
 
     if (type == tmPth)
     {

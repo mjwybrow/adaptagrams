@@ -30,6 +30,7 @@
 #include "libavoid/geomtypes.h"
 #include "libavoid/shape.h"
 #include "libavoid/router.h"
+#include "libavoid/assertions.h"
 
 
 namespace Avoid
@@ -85,14 +86,14 @@ bool Point::operator<(const Point& rhs) const
 
 double& Point::operator[](const unsigned int dimension)
 {
-    assert((dimension == 0) || (dimension == 1));
+    ASSERT((dimension == 0) || (dimension == 1));
     return ((dimension == 0) ? x : y);
 }
 
 
 const double& Point::operator[](const unsigned int dimension) const
 {
-    assert((dimension == 0) || (dimension == 1));
+    ASSERT((dimension == 0) || (dimension == 1));
     return ((dimension == 0) ? x : y);
 }
 
@@ -102,7 +103,7 @@ ReferencingPolygon::ReferencingPolygon(const Polygon& poly, const Router *router
       _id(poly._id),
       ps(poly.size())
 {
-    assert(router != NULL);
+    ASSERT(router != NULL);
     for (size_t i = 0; i < poly.size(); ++i)
     {
         const Polygon *polyPtr = NULL;
@@ -116,7 +117,7 @@ ReferencingPolygon::ReferencingPolygon(const Polygon& poly, const Router *router
                 break;
             }
         }
-        assert(polyPtr != NULL);
+        ASSERT(polyPtr != NULL);
         ps[i] = std::make_pair(polyPtr, poly.ps[i].vn);
     }
 }
@@ -155,10 +156,10 @@ int ReferencingPolygon::id(void) const
 
 const Point& ReferencingPolygon::at(size_t index) const 
 {
-    assert(index < size());
+    ASSERT(index < size());
     const Polygon& poly = *(ps[index].first);
     unsigned short poly_index = ps[index].second;
-    assert(poly_index < poly.size());
+    ASSERT(poly_index < poly.size());
 
     return poly.ps[poly_index];
 }
@@ -252,7 +253,7 @@ int Polygon::id(void) const
 
 const Point& Polygon::at(size_t index) const
 {
-    assert(index < size());
+    ASSERT(index < size());
 
     return ps[index];
 }

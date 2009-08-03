@@ -36,8 +36,8 @@
 #ifndef _GEOMETRY_H
 #define _GEOMETRY_H
 
-#include <cassert>
 #include "libavoid/geomtypes.h"
+#include "libavoid/assertions.h"
 
 namespace Avoid {
 
@@ -78,7 +78,7 @@ extern bool inBetween(const Point& a, const Point& b, const Point& c);
 static inline int vecDir(const Point& a, const Point& b, const Point& c, 
         const double maybeZero = 0.0)
 {
-    assert(maybeZero >= 0);
+    ASSERT(maybeZero >= 0);
 
     double area2 = ((b.x - a.x) * (c.y - a.y)) -
                    ((c.x - a.x) * (b.y - a.y));
