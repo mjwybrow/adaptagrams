@@ -213,7 +213,12 @@ class Router {
         //!
         //! @sa setTransactionUse
         //!
-        void processTransaction(void);
+        void processTransaction(void)
+#ifdef ASSERTION_EXCEPTIONS
+            throw(Avoid::AssertionFailure);
+#else
+            ;
+#endif
         
         //! @brief Add a shape to the router scene.
         //!

@@ -425,6 +425,9 @@ void Router::setTransactionUse(const bool transactions)
 
 
 void Router::processTransaction(void)
+#ifdef ASSERTION_EXCEPTIONS
+            throw(Avoid::AssertionFailure)
+#endif
 {
     bool notPartialTime = !(PartialFeedback && PartialTime);
     bool seenShapeMovesOrDeletes = false;
