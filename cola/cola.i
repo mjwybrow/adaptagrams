@@ -60,12 +60,33 @@ using namespace topology;
 %include "std_vector.i"
 %include "std_pair.i"
 
+/* Wrap every C++ action in try/catch statement so we convert all 
+ * possible C++ exceptions (generated from C++ assertion failures)
+ * into Java exceptions.
+ */
+%exception {
+    try {
+        $action
+    } catch(vpsc::CriticalFailure cf) {
+        jclass excep = jenv->FindClass("colajava/ColaException");
+        if (excep)
+            jenv->ThrowNew(excep, cf.what().c_str());
+    }
+}
+
+/* Catch C++ InvalidVariableIndexException and convert it to a 
+ * Java exception. 
+ */
 %typemap(throws, throws="ColaException") InvalidVariableIndexException {
    jclass excep = jenv->FindClass("colajava/ColaException");
    if (excep)
        jenv->ThrowNew(excep, $1.what().c_str());
    return $null;
 }
+
+
+/* Define a Java ColaException class.
+ */
 %typemap(javabase) cola::ColaException "java.lang.Exception";
 %typemap(javacode) cola::ColaException 
 %{
@@ -86,13 +107,6 @@ class ColaException {
 };
 }
 %}
-
-%typemap(throws, throws="ColaException") vpsc::CriticalFailure {
-   jclass excep = jenv->FindClass("colajava/ColaException");
-   if (excep)
-       jenv->ThrowNew(excep, $1.what().c_str());
-   return $null;
-}
 
 
 %template(UnsatisfiableConstraintInfoVector) std::vector<cola::UnsatisfiableConstraintInfo *>;

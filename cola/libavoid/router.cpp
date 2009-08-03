@@ -425,9 +425,6 @@ void Router::setTransactionUse(const bool transactions)
 
 
 void Router::processTransaction(void)
-#ifdef USE_ASSERT_EXCEPTIONS
-            throw(vpsc::CriticalFailure)
-#endif
 {
     bool notPartialTime = !(PartialFeedback && PartialTime);
     bool seenShapeMovesOrDeletes = false;
