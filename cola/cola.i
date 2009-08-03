@@ -71,17 +71,11 @@ using namespace topology;
         jclass excep = jenv->FindClass("colajava/ColaException");
         if (excep)
             jenv->ThrowNew(excep, cf.what().c_str());
-    }
-}
-
-/* Catch C++ InvalidVariableIndexException and convert it to a 
- * Java exception. 
- */
-%typemap(throws, throws="ColaException") InvalidVariableIndexException {
-   jclass excep = jenv->FindClass("colajava/ColaException");
-   if (excep)
-       jenv->ThrowNew(excep, $1.what().c_str());
-   return $null;
+    } catch(cola::InvalidVariableIndexException ivi) {
+        jclass excep = jenv->FindClass("colajava/ColaException");
+        if (excep)
+            jenv->ThrowNew(excep, ivi.what().c_str());
+    } 
 }
 
 
