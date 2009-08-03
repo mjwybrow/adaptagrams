@@ -37,7 +37,6 @@
 #include "libavoid/graph.h"
 #include "libavoid/timer.h"
 #include "libavoid/connector.h"
-#include "libavoid/assertions.h"
 
 #if defined(LINEDEBUG) || defined(ASTAR_DEBUG) || defined(LIBAVOID_SDL)
     #include <SDL.h>
@@ -214,12 +213,7 @@ class Router {
         //!
         //! @sa setTransactionUse
         //!
-        void processTransaction(void)
-#ifdef USE_ASSERT_EXCEPTIONS
-            throw(vpsc::CriticalFailure);
-#else
-            ;
-#endif
+        void processTransaction(void);
         
         //! @brief Add a shape to the router scene.
         //!
