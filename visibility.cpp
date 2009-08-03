@@ -247,7 +247,7 @@ class EdgePair
         {
             // The default constuctor should never be called.  
             // This is defined to appease the MSVC compiler.
-            abort();
+            ASSERT(false);
         }
         EdgePair(const PointPair& p1, VertInf *v) : 
                 vInf1(p1.vInf), 

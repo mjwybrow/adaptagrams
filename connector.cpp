@@ -23,7 +23,6 @@
 */
 
 
-#include <cstdlib>
 #include <cstring>
 #include <cfloat>
 
@@ -1543,11 +1542,10 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
                 {
                     reversed = false;
                     size_t startPt = (front_same) ? 0 : 1;
-                    if (!(c_path.size() > (startPt + 1)))
-                    {
-                        // Orthogonal should always have one segment.
-                        abort();
-                    }
+                    
+                    // Orthogonal should always have at least one segment.
+                    ASSERT(c_path.size() > (startPt + 1));
+                    
                     if (startCornerSide > 0)
                     {
                         reversed = !reversed;
@@ -1561,8 +1559,7 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
                     {
                         Avoid::Point& an = *(c_path[i]);
                         Avoid::Point& bn = *(p_path[i]);
-                        if (an != bn) abort();
-
+                        ASSERT(an == bn);
 
                         int thisDir = prevDir;
                         if ((i > 0) && (*(c_path[i - 1]) == *(p_path[i - 1])))
@@ -1593,7 +1590,7 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
                                 // Reverse the order for later points.
                                 reversed = !reversed;
                             }
-                            if (ap != bp) abort();
+                            ASSERT(ap == bp);
                             //printf("2: %X, %X\n", (int) &bp, (int) &ap);
                             orderSwapped = (*pointOrders)[ap].addPoints(
                                     orientation, 
@@ -1660,11 +1657,11 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
             {
                 // The connectors cross or touch at this point.
                 //db_printf("Cross or touch at point... \n");
-                if ((cIndex < 2) || (polyIsConn && (j < 2)))
-                {
-                    db_printf("Error:\tCrossing shouldn't be at endpoint.\n");
-                    abort();
-                }
+                
+                // Crossing shouldn't be at an endpoint.
+                ASSERT(cIndex >= 2);
+                ASSERT(polyIsConn && (j >= 2));
+
                 Avoid::Point& b0 = poly.ps[(j - 2 + poly_size) % poly_size];
                 Avoid::Point& a0 = conn.ps[cIndex - 2];
             

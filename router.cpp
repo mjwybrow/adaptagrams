@@ -24,7 +24,6 @@
 
 
 #include <algorithm>
-#include <cstdlib>
 #include <cmath>
 
 #include "libavoid/shape.h"
@@ -1069,12 +1068,11 @@ void Router::markConnectors(ShapeRef *shape)
                 //db_printf("r_start: (%.1f, %.1f)\n", start.x, start.y);
                 //db_printf("r_end:   (%.1f, %.1f)\n", end.x, end.y);
 
-                if (((int) r_p2.y) != 0)
+                // This might be slightly off.
+                if (fabs(r_p2.y) > 0.0001)
                 {
                     db_printf("r_p2.y: %f != 0\n", r_p2.y);
-                    abort();
                 }
-                // This might be slightly off.
                 r_p2.y = 0;
 
                 offy = r_p1.y;
