@@ -25,6 +25,7 @@
 
 #include "libavoid/viscluster.h"
 #include "libavoid/router.h"
+#include "libavoid/assertions.h"
 
 
 namespace Avoid {
@@ -46,7 +47,7 @@ ClusterRef::~ClusterRef()
 
 void ClusterRef::makeActive(void)
 {
-    assert(!_active);
+    ASSERT(!_active);
     
     // Add to connRefs list.
     _pos = _router->clusterRefs.insert(_router->clusterRefs.begin(), this);
@@ -57,7 +58,7 @@ void ClusterRef::makeActive(void)
 
 void ClusterRef::makeInactive(void)
 {
-    assert(_active);
+    ASSERT(_active);
     
     // Remove from connRefs list.
     _router->clusterRefs.erase(_pos);

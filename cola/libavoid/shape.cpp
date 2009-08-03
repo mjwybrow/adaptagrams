@@ -23,13 +23,12 @@
 */
 
 
-#include <cassert>
-
 #include "libavoid/shape.h"
 #include "libavoid/graph.h"  // For alertConns
 #include "libavoid/vertices.h"
 #include "libavoid/router.h"
 #include "libavoid/debug.h"
+#include "libavoid/assertions.h"
 
 
 namespace Avoid {
@@ -79,7 +78,7 @@ ShapeRef::ShapeRef(Router *router, Polygon& ply, const unsigned int id)
 
 ShapeRef::~ShapeRef()
 {
-    assert(!_router->shapeInQueuedActionList(this));
+    ASSERT(!_router->shapeInQueuedActionList(this));
 
     if (_active)
     {
@@ -88,7 +87,7 @@ ShapeRef::~ShapeRef()
         _router->processTransaction();
     }
 
-    assert(_firstVert != NULL);
+    ASSERT(_firstVert != NULL);
     
     VertInf *it = _firstVert;
     do
@@ -105,14 +104,14 @@ ShapeRef::~ShapeRef()
 
 void ShapeRef::setNewPoly(const Polygon& poly)
 {
-    assert(_firstVert != NULL);
-    assert(_poly.size() == poly.size());
+    ASSERT(_firstVert != NULL);
+    ASSERT(_poly.size() == poly.size());
     
     VertInf *curr = _firstVert;
     for (size_t pt_i = 0; pt_i < _poly.size(); ++pt_i)
     {
-        assert(curr->visListSize == 0);
-        assert(curr->invisListSize == 0);
+        ASSERT(curr->visListSize == 0);
+        ASSERT(curr->invisListSize == 0);
 
         // Reset with the new polygon point.
         curr->Reset(poly.ps[pt_i]);
@@ -120,7 +119,7 @@ void ShapeRef::setNewPoly(const Polygon& poly)
         
         curr = curr->shNext;
     }
-    assert(curr == _firstVert);
+    ASSERT(curr == _firstVert);
         
     _poly = poly;
 }
@@ -128,7 +127,7 @@ void ShapeRef::setNewPoly(const Polygon& poly)
 
 void ShapeRef::makeActive(void)
 {
-    assert(!_active);
+    ASSERT(!_active);
     
     // Add to shapeRefs list.
     _pos = _router->shapeRefs.insert(_router->shapeRefs.begin(), this);
@@ -150,7 +149,7 @@ void ShapeRef::makeActive(void)
 
 void ShapeRef::makeInactive(void)
 {
-    assert(_active);
+    ASSERT(_active);
     
     // Remove from shapeRefs list.
     _router->shapeRefs.erase(_pos);
@@ -208,7 +207,7 @@ Router *ShapeRef::router(void) const
 
 void ShapeRef::boundingBox(BBox& bbox)
 {
-    assert(!_poly.empty());
+    ASSERT(!_poly.empty());
 
     bbox.a = bbox.b = _poly.ps[0];
     Point& a = bbox.a;

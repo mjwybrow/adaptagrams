@@ -36,6 +36,7 @@
 #include "libavoid/orthogonal.h"
 #include "libavoid/connector.h"
 #include "libavoid/vpsc.h"
+#include "libavoid/assertions.h"
 
 #ifdef LIBAVOID_SDL
   #include <SDL_gfxPrimitives.h>
@@ -215,7 +216,7 @@ struct Node
           firstAbove(NULL),
           firstBelow(NULL)
     {   
-        //assert(r->width()<1e40);
+        //ASSERT(r->width()<1e40);
         v->polygon().getBoundingRect(&min[0], &min[1], &max[0], &max[1]);
     }   
     Node(VertInf *c, const double p)
@@ -483,7 +484,7 @@ int compare_events(const void *a, const void *b)
     {
         return ea->type - eb->type;
     }
-    assert(ea->v != eb->v);
+    ASSERT(ea->v != eb->v);
     return ea->v - eb->v;
 }
 
@@ -517,7 +518,7 @@ struct CmpVertInf {
             // It is assumed vertical sets of points will all have the same
             // x position and horizontal sets all share a y position, so this
             // method can be used to sort both these sets.
-            assert((u->point.x == v->point.x) || (u->point.y == v->point.y));
+            ASSERT((u->point.x == v->point.x) || (u->point.y == v->point.y));
             if (u->point.x != v->point.x)
             {
                 return u->point.x < v->point.x;
@@ -549,7 +550,7 @@ public:
           pos(p),
           shapeSide(false)
     {
-        assert(begin < finish);
+        ASSERT(begin < finish);
 
         if (bvi)
         {
@@ -587,7 +588,7 @@ public:
         {
             return finish < rhs.finish;
         }
-        assert(shapeSide == rhs.shapeSide);
+        ASSERT(shapeSide == rhs.shapeSide);
         return false;
     }
 
@@ -837,9 +838,9 @@ public:
             BreakpointSet::iterator firstPrev = last;
             while (last->vert->point[dim] != vert->vert->point[dim])
             {
-                assert(vert != last);
+                ASSERT(vert != last);
                 // Assert points are not at the same position.
-                assert(vert->vert->point != last->vert->point);
+                ASSERT(vert->vert->point != last->vert->point);
 
                 if ( !(vert->vert->id.isShape || last->vert->id.isShape))
                 {
@@ -981,8 +982,8 @@ class SegmentListWrapper
 static void intersectSegments(Router *router, SegmentList& segments, 
         LineSegment& vertLine)
 {
-    assert(vertLine.beginVertInf() == NULL);
-    assert(vertLine.finishVertInf() == NULL);
+    ASSERT(vertLine.beginVertInf() == NULL);
+    ASSERT(vertLine.finishVertInf() == NULL);
     for (SegmentList::iterator it = segments.begin(); it != segments.end(); )
     {
         LineSegment& horiLine = *it;
@@ -1034,8 +1035,8 @@ static void intersectSegments(Router *router, SegmentList& segments,
         }
         else
         {
-            assert(horiLine.begin < vertLine.pos);
-            assert(horiLine.finish > vertLine.pos);
+            ASSERT(horiLine.begin < vertLine.pos);
+            ASSERT(horiLine.finish > vertLine.pos);
 
             if (inVertSegRegion)
             {
@@ -1075,7 +1076,7 @@ static void processEventVert(Router *router, NodeSet& scanline,
     {
         std::pair<NodeSet::iterator, bool> result = scanline.insert(v);
         v->iter = result.first;
-        assert(result.second);
+        ASSERT(result.second);
 
         NodeSet::iterator it = v->iter;
         // Work out neighbours
@@ -1219,7 +1220,7 @@ static void processEventVert(Router *router, NodeSet& scanline,
         {
             size_t result;
             result = scanline.erase(v);
-            assert(result == 1);
+            ASSERT(result == 1);
             delete v;
         }
     }
@@ -1241,7 +1242,7 @@ static void processEventHori(Router *router, NodeSet& scanline,
     {
         std::pair<NodeSet::iterator, bool> result = scanline.insert(v);
         v->iter = result.first;
-        assert(result.second);
+        ASSERT(result.second);
 
         NodeSet::iterator it = v->iter;
         // Work out neighbours
@@ -1343,7 +1344,7 @@ static void processEventHori(Router *router, NodeSet& scanline,
         {
             size_t result;
             result = scanline.erase(v);
-            assert(result == 1);
+            ASSERT(result == 1);
             delete v;
         }
     }
@@ -1421,7 +1422,7 @@ extern void generateStaticOrthogonalVisGraph(Router *router)
         const int pass = 1;
         processEventVert(router, scanline, segments, events[i], pass);
     }
-    assert(scanline.size() == 0);
+    ASSERT(scanline.size() == 0);
     for (unsigned i = 0; i < totalEvents; ++i)
     {
         delete events[i];
@@ -1500,7 +1501,7 @@ extern void generateStaticOrthogonalVisGraph(Router *router)
         const int pass = 1;
         processEventHori(router, scanline, vertSegments, events[i], pass);
     }
-    assert(scanline.size() == 0);
+    ASSERT(scanline.size() == 0);
     for (unsigned i = 0; i < totalEvents; ++i)
     {
         delete events[i];
@@ -1550,7 +1551,7 @@ static void processShiftEvent(Router *router, NodeSet& scanline,
     {
         std::pair<NodeSet::iterator, bool> result = scanline.insert(v);
         v->iter = result.first;
-        assert(result.second);
+        ASSERT(result.second);
 
         NodeSet::iterator it = v->iter;
         // Work out neighbours
@@ -1608,7 +1609,7 @@ static void processShiftEvent(Router *router, NodeSet& scanline,
 
         size_t result;
         result = scanline.erase(v);
-        assert(result == 1);
+        ASSERT(result == 1);
         delete v;
     }
 }
@@ -1648,7 +1649,7 @@ static void buildOrthogonalChannelInfo(Router *router,
                     indexLow = i;
                     indexHigh = i - 1;
                 }
-                assert(displayRoute.at(indexLow)[altDim] < 
+                ASSERT(displayRoute.at(indexLow)[altDim] < 
                         displayRoute.at(indexHigh)[altDim]);
 
                 if ((i == 1) || ((i + 1) == displayRoute.size()))
@@ -1743,8 +1744,8 @@ static void buildOrthogonalChannelInfo(Router *router,
         const Point& lowPt = curr->lowPoint();
         const Point& highPt = curr->highPoint();
 
-        assert(lowPt[dim] == highPt[dim]);
-        assert(lowPt[altDim] < highPt[altDim]);
+        ASSERT(lowPt[dim] == highPt[dim]);
+        ASSERT(lowPt[altDim] < highPt[altDim]);
         Node *v = new Node(&(*curr), lowPt[dim]);
         events[ctr++] = new Event(SegOpen, v, lowPt[altDim]);
         events[ctr++] = new Event(SegClose, v, highPt[altDim]);
@@ -1790,7 +1791,7 @@ static void buildOrthogonalChannelInfo(Router *router,
         processShiftEvent(router, scanline, segmentList, events[i],
                 dim, pass);
     }
-    assert(scanline.size() == 0);
+    ASSERT(scanline.size() == 0);
     for (unsigned i = 0; i < totalEvents; ++i)
     {
         delete events[i];
@@ -1926,8 +1927,8 @@ class CmpLineOrder
 #endif
             size_t altDim = (dimension + 1) % 2;
 
-            assert(lhsLow[dimension] == lhsHigh[dimension]);
-            assert(rhsLow[dimension] == rhsHigh[dimension]);
+            ASSERT(lhsLow[dimension] == lhsHigh[dimension]);
+            ASSERT(rhsLow[dimension] == rhsHigh[dimension]);
 
             if (lhsLow[dimension] != rhsLow[dimension])
             {
@@ -1970,7 +1971,7 @@ class CmpLineOrder
                 // overlap (they are just collinear.  The relative order for 
                 // these segments is not important since we do not constrain
                 // them against each other.
-                assert(lhs.overlapsWith(rhs, dimension) == false);
+                ASSERT(lhs.overlapsWith(rhs, dimension) == false);
                 // We do need to be consistent though.
                 return lhsLow[altDim] < rhsLow[altDim];
             }
@@ -2062,8 +2063,8 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             double weight = freeWeight;
             if (currSegment->sBend)
             {
-                assert(currSegment->minSpaceLimit > -CHANNEL_MAX);
-                assert(currSegment->maxSpaceLimit < CHANNEL_MAX);
+                ASSERT(currSegment->minSpaceLimit > -CHANNEL_MAX);
+                ASSERT(currSegment->maxSpaceLimit < CHANNEL_MAX);
                 
                 // For s-bends, take the middle as ideal.
                 idealPos = currSegment->minSpaceLimit +

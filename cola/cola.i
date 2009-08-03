@@ -94,6 +94,13 @@ class ColaException {
    return $null;
 }
 
+%typemap(throws, throws="ColaException") Avoid::AssertionFailure {
+   jclass excep = jenv->FindClass("colajava/ColaException");
+   if (excep)
+       jenv->ThrowNew(excep, $1.what().c_str());
+   return $null;
+}
+
 %template(UnsatisfiableConstraintInfoVector) std::vector<cola::UnsatisfiableConstraintInfo *>;
 %template(AlignmentConstraintPair) std::pair<cola::AlignmentConstraint *, cola::AlignmentConstraint *>;
 %template(AlignmentConstraintPairList) std::vector<std::pair<cola::AlignmentConstraint *, cola::AlignmentConstraint *> >; 

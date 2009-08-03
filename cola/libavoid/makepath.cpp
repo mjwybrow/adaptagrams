@@ -25,7 +25,7 @@
 
 #include <algorithm>
 #include <vector>
-#include <limits.h>
+#include <climits>
 #define _USE_MATH_DEFINES
 #include <cmath>
 
@@ -36,6 +36,7 @@
 #include "libavoid/graph.h"
 #include "libavoid/router.h"
 #include "libavoid/debug.h"
+#include "libavoid/assertions.h"
 #ifdef ASTAR_DEBUG
   #include <SDL_gfxPrimitives.h>
 #endif
@@ -96,7 +97,7 @@ bool operator<(const ANode &a, const ANode &b)
         // then we always try to explore forward first.
         return a.timeStamp < b.timeStamp;
     }
-    assert(a.prevIndex != b.prevIndex);
+    ASSERT(a.prevIndex != b.prevIndex);
     return a.prevIndex > b.prevIndex;
 }
 
@@ -223,12 +224,12 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
                 cl != router->clusterRefs.end(); ++cl)
         {
             ReferencingPolygon& cBoundary = (*cl)->polygon();
-            assert(cBoundary.ps[0] != cBoundary.ps[cBoundary.size() - 1]);
+            ASSERT(cBoundary.ps[0] != cBoundary.ps[cBoundary.size() - 1]);
             for (size_t j = 0; j < cBoundary.size(); ++j)
             {
                 // Cluster boundary points should correspond to shape 
                 // vertices and hence already be in the list of vertices.
-                assert(router->vertices.getVertexByPos(cBoundary.at(j))!=NULL);
+                ASSERT(router->vertices.getVertexByPos(cBoundary.at(j))!=NULL);
             }
             
             bool isConn = false;
@@ -409,7 +410,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
     Router *router = lineRef->router();
     if (router->RubberBandRouting && (start != src))
     {
-        assert(router->IgnoreRegions == true);
+        ASSERT(router->IgnoreRegions == true);
         
         const PolyLine& currRoute = lineRef->route();
         VertInf *last = NULL;
@@ -424,7 +425,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
             db_printf("/// %d %d %d\n", pnt.id, (int) isShape, pnt.vn);
 #endif
             VertInf *curr = router->vertices.getVertexByID(vID);
-            assert(curr != NULL);
+            ASSERT(curr != NULL);
 
             Node = ANode(curr, timestamp++);
             if (!last)
@@ -579,12 +580,12 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
             for (curr = BestNode; curr.prevIndex > 0; 
                     curr = DONE[curr.prevIndex])
             {
-                assert(curr.prevIndex < currIndex);   
+                ASSERT(curr.prevIndex < currIndex);   
                 curr.inf->pathNext = DONE[curr.prevIndex].inf;
                 currIndex = curr.prevIndex;
             }
             // Check that we've gone through the complete path.
-            assert(curr.prevIndex == 0);
+            ASSERT(curr.prevIndex == 0);
             // Fill in the final pathNext pointer.
             curr.inf->pathNext = DONE[curr.prevIndex].inf;
 

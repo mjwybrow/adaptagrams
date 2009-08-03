@@ -23,6 +23,8 @@
 */
 
 
+#include <cmath>
+
 #include "libavoid/debug.h"
 #include "libavoid/graph.h"
 #include "libavoid/connector.h"
@@ -30,8 +32,8 @@
 #include "libavoid/timer.h"
 #include "libavoid/vertices.h"
 #include "libavoid/router.h"
+#include "libavoid/assertions.h"
 
-#include <math.h>
 
 using std::pair;
 
@@ -51,10 +53,10 @@ EdgeInf::EdgeInf(VertInf *v1, VertInf *v2, const bool orthogonal)
       _dist(-1)
 {
     // Not passed NULL values.
-    assert(v1 && v2);
+    ASSERT(v1 && v2);
 
     // We are in the same instance
-    assert(_v1->_router == _v2->_router);
+    ASSERT(_v1->_router == _v2->_router);
     _router = _v1->_router;
 
     _conns.clear();
@@ -81,8 +83,8 @@ static inline int orthogTurnOrder(const Point& a, const Point& b,
         const Point& c)
 {
     //We should only be calling this with orthogonal points, 
-    assert((c.x == b.x) || (c.y == b.y));
-    assert((a.x == b.x) || (a.y == b.y));
+    ASSERT((c.x == b.x) || (c.y == b.y));
+    ASSERT((a.x == b.x) || (a.y == b.y));
 
     int direction = vecDir(a, b, c);
 
@@ -177,11 +179,11 @@ bool EdgeInf::rotationLessThen(const VertInf *lastV, const EdgeInf *rhs) const
 
 void EdgeInf::makeActive(void)
 {
-    assert(_added == false);
+    ASSERT(_added == false);
 
     if (_orthogonal)
     {
-        assert(_visible);
+        ASSERT(_visible);
         _router->visOrthogGraph.addEdge(this);
         _pos1 = _v1->orthogVisList.insert(_v1->orthogVisList.begin(), this);
         _v1->orthogVisListSize++;
@@ -213,11 +215,11 @@ void EdgeInf::makeActive(void)
 
 void EdgeInf::makeInactive(void)
 {
-    assert(_added == true);
+    ASSERT(_added == true);
 
     if (_orthogonal)
     {
-        assert(_visible);
+        ASSERT(_visible);
         _router->visOrthogGraph.removeEdge(this);
         _v1->orthogVisList.erase(_pos1);
         _v1->orthogVisListSize--;
@@ -251,12 +253,12 @@ void EdgeInf::makeInactive(void)
 
 void EdgeInf::setDist(double dist)
 {
-    //assert(dist != 0);
+    //ASSERT(dist != 0);
 
     if (_added && !_visible)
     {
         makeInactive();
-        assert(!_added);
+        ASSERT(!_added);
     }
     if (!_added)
     {
@@ -300,12 +302,12 @@ void EdgeInf::addCycleBlocker(void)
 
 void EdgeInf::addBlocker(int b)
 {
-    assert(_router->InvisibilityGrph);
+    ASSERT(_router->InvisibilityGrph);
 
     if (_added && _visible)
     {
         makeInactive();
-        assert(!_added);
+        ASSERT(!_added);
     }
     if (!_added)
     {
@@ -527,7 +529,7 @@ bool EdgeInf::isOrthogonal(void) const
 
 VertInf *EdgeInf::otherVert(VertInf *vert)
 {
-    assert((vert == _v1) || (vert == _v2));
+    ASSERT((vert == _v1) || (vert == _v2));
 
     if (vert == _v1)
     {
@@ -541,15 +543,15 @@ EdgeInf *EdgeInf::checkEdgeVisibility(VertInf *i, VertInf *j, bool knownNew)
 {
     // This is for polyline routing, so check we're not 
     // considering orthogonal vertices.
-    assert(i->id != dummyOrthogID);
-    assert(j->id != dummyOrthogID);
+    ASSERT(i->id != dummyOrthogID);
+    ASSERT(j->id != dummyOrthogID);
     
     Router *router = i->_router;
     EdgeInf *edge = NULL;
 
     if (knownNew)
     {
-        assert(existingEdge(i, j) == NULL);
+        ASSERT(existingEdge(i, j) == NULL);
         edge = new EdgeInf(i, j);
     }
     else
@@ -644,7 +646,7 @@ void EdgeList::clear(void)
     {
         delete _firstEdge;
     }
-    assert(_count == 0);
+    ASSERT(_count == 0);
     _lastEdge = NULL;
 }
 
@@ -657,11 +659,11 @@ int EdgeList::size(void) const
 
 void EdgeList::addEdge(EdgeInf *edge)
 {
-    assert(!_orthogonal || edge->isOrthogonal());
+    ASSERT(!_orthogonal || edge->isOrthogonal());
     
     if (_firstEdge == NULL)
     {
-        assert(_lastEdge == NULL);
+        ASSERT(_lastEdge == NULL);
 
         _lastEdge = edge;
         _firstEdge = edge;
@@ -671,7 +673,7 @@ void EdgeList::addEdge(EdgeInf *edge)
     }
     else
     {
-        assert(_lastEdge != NULL);
+        ASSERT(_lastEdge != NULL);
 
         _lastEdge->lstNext = edge;
         edge->lstPrev = _lastEdge;

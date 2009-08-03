@@ -33,10 +33,11 @@
 */
 
 
+#include <cmath>
+
 #include "libavoid/graph.h"
 #include "libavoid/geometry.h"
-
-#include <math.h>
+#include "libavoid/assertions.h"
 
 namespace Avoid {
 
@@ -51,7 +52,7 @@ bool inBetween(const Point& a, const Point& b, const Point& c)
 {
     // We only call this when we know the points are collinear,
     // otherwise we should be checking this here.
-    assert(vecDir(a, b, c, 0.0001) == 0);
+    ASSERT(vecDir(a, b, c, 0.0001) == 0);
 
     if ((fabs(a.x - b.x) > 1) && (a.x != b.x))
     {

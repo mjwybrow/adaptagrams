@@ -25,13 +25,15 @@
 
 #include <algorithm>
 #include <cstdlib>
-#include <math.h>
+#include <cmath>
+
 #include "libavoid/shape.h"
 #include "libavoid/router.h"
 #include "libavoid/visibility.h"
 #include "libavoid/connector.h"
 #include "libavoid/debug.h"
 #include "libavoid/orthogonal.h"
+#include "libavoid/assertions.h"
 
 namespace Avoid {
 
@@ -53,32 +55,32 @@ class ActionInfo {
               newPoly(p),
               firstMove(fM)
         {
-            assert(type == ShapeMove);
+            ASSERT(type == ShapeMove);
         }
         ActionInfo(ActionType t, ShapeRef *s)
             : type(t),
               objPtr(s)
         {
-            assert(type != ConnChange);
+            ASSERT(type != ConnChange);
         }
         ActionInfo(ActionType t, ConnRef *c)
             : type(t),
               objPtr(c)
         {
-            assert(type == ConnChange);
+            ASSERT(type == ConnChange);
         }
         ~ActionInfo()
         {
         }
         ShapeRef *shape(void) const
         {
-            assert((type == ShapeMove) || (type == ShapeAdd) || 
+            ASSERT((type == ShapeMove) || (type == ShapeAdd) || 
                     (type == ShapeRemove));
             return (static_cast<ShapeRef *> (objPtr));
         }
         ConnRef *conn(void) const
         {
-            assert(type == ConnChange);
+            ASSERT(type == ConnChange);
             return (static_cast<ConnRef *> (objPtr));
         }
         bool operator==(const ActionInfo& rhs) const
@@ -128,7 +130,7 @@ Router::Router(const unsigned int flags)
       _staticGraphInvalidated(true)
 {
     // At least one of the Routing modes must be set.
-    assert(flags & (PolyLineRouting | OrthogonalRouting));
+    ASSERT(flags & (PolyLineRouting | OrthogonalRouting));
 
     if (flags & PolyLineRouting)
     {
@@ -176,10 +178,10 @@ Router::~Router()
     // Cleanup orphaned orthogonal graph vertices.
     destroyOrthogonalVisGraph();
 
-    assert(connRefs.size() == 0);
-    assert(shapeRefs.size() == 0);
-    assert(visGraph.size() == 0);
-    assert(invisGraph.size() == 0);
+    ASSERT(connRefs.size() == 0);
+    ASSERT(shapeRefs.size() == 0);
+    ASSERT(visGraph.size() == 0);
+    ASSERT(invisGraph.size() == 0);
 }
 
 
@@ -243,9 +245,9 @@ void Router::addShape(ShapeRef *shape)
     // There shouldn't be remove events or move events for the same shape
     // already in the action list.
     // XXX: Possibly we could handle this by ordering them intelligently.
-    assert(find(actionList.begin(), actionList.end(), 
+    ASSERT(find(actionList.begin(), actionList.end(), 
                 ActionInfo(ShapeRemove, shape)) == actionList.end());
-    assert(find(actionList.begin(), actionList.end(), 
+    ASSERT(find(actionList.begin(), actionList.end(), 
                 ActionInfo(ShapeMove, shape)) == actionList.end());
 
     ActionInfo addInfo(ShapeAdd, shape);
@@ -269,7 +271,7 @@ void Router::removeShape(ShapeRef *shape)
     // There shouldn't be add events events for the same shape already 
     // in the action list.
     // XXX: Possibly we could handle this by ordering them intelligently.
-    assert(find(actionList.begin(), actionList.end(), 
+    ASSERT(find(actionList.begin(), actionList.end(), 
                 ActionInfo(ShapeAdd, shape)) == actionList.end());
 
     // Delete any ShapeMove entries for this shape in the action list.
@@ -310,7 +312,7 @@ void Router::moveShape(ShapeRef *shape, const Polygon& newPoly,
     // There shouldn't be remove events or add events for the same shape
     // already in the action list.
     // XXX: Possibly we could handle this by ordering them intelligently.
-    assert(find(actionList.begin(), actionList.end(), 
+    ASSERT(find(actionList.begin(), actionList.end(), 
                 ActionInfo(ShapeRemove, shape)) == actionList.end());
     
     if (find(actionList.begin(), actionList.end(), 
@@ -585,7 +587,7 @@ void Router::delCluster(ClusterRef *cluster)
 
 void Router::setOrthogonalNudgeDistance(const double dist)
 {
-    assert(dist >= 0);
+    ASSERT(dist >= 0);
     _orthogonalNudgeDistance = dist;
 }
 
@@ -607,7 +609,7 @@ unsigned int Router::assignId(const unsigned int suggestedId)
     _largestAssignedId = std::max(_largestAssignedId, assignedId);
 
     // If assertions are enabled, then we check that this ID really is unique.
-    assert(idIsUnique(assignedId));
+    ASSERT(idIsUnique(assignedId));
 
     return assignedId;
 }
@@ -817,7 +819,7 @@ void Router::newBlockingShape(const Polygon& poly, int pid)
 
 void Router::checkAllBlockedEdges(int pid)
 {
-    assert(InvisibilityGrph);
+    ASSERT(InvisibilityGrph);
 
     for (EdgeInf *iter = invisGraph.begin(); iter != invisGraph.end() ; )
     {
@@ -839,7 +841,7 @@ void Router::checkAllBlockedEdges(int pid)
 
 void Router::checkAllMissingEdges(void)
 {
-    assert(!InvisibilityGrph);
+    ASSERT(!InvisibilityGrph);
 
     VertInf *first = vertices.connsBegin();
 
@@ -970,7 +972,7 @@ void Router::markConnectors(ShapeRef *shape)
         return;
     }
 
-    assert(SelectiveReroute);
+    ASSERT(SelectiveReroute);
 
     ConnRefList::const_iterator end = connRefs.end();
     for (ConnRefList::const_iterator it = connRefs.begin(); it != end; ++it)
@@ -1184,7 +1186,7 @@ ConnType Router::validConnType(const ConnType select) const
 
 void Router::setRoutingPenalty(const PenaltyType penType, const double penVal)
 {
-    assert(penType < lastPenaltyMarker);
+    ASSERT(penType < lastPenaltyMarker);
     if (penVal < 0)
     {
         // Set some sensible penalty.
@@ -1219,14 +1221,14 @@ void Router::setRoutingPenalty(const PenaltyType penType, const double penVal)
 
 double Router::routingPenalty(const PenaltyType penType) const
 {
-    assert(penType < lastPenaltyMarker);
+    ASSERT(penType < lastPenaltyMarker);
     return _routingPenalties[penType];
 }
 
 
 double& Router::penaltyRef(const PenaltyType penType)
 {
-    assert(penType < lastPenaltyMarker);
+    ASSERT(penType < lastPenaltyMarker);
     return _routingPenalties[penType];
 }
 

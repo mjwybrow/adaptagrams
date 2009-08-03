@@ -23,15 +23,15 @@
 */
 
 
+#include <iostream>
+#include <cstdlib>
+
 #include "libavoid/vertices.h"
 #include "libavoid/geometry.h"
 #include "libavoid/graph.h"  // For alertConns
 #include "libavoid/debug.h"
 #include "libavoid/router.h"
-
-#include <iostream>
-#include <cstdlib>
-#include <cassert>
+#include "libavoid/assertions.h"
 
 using std::ostream;
 
@@ -80,7 +80,7 @@ bool VertID::operator==(const VertID& rhs) const
         return false;
     }
     // XXX RubberBand search breaks this:
-    // assert(isShape == rhs.isShape);
+    // ASSERT(isShape == rhs.isShape);
     return true;
 }
 
@@ -91,7 +91,7 @@ bool VertID::operator!=(const VertID& rhs) const
     {
         return true;
     }
-    assert(isShape == rhs.isShape);
+    ASSERT(isShape == rhs.isShape);
     return false;
 }
 
@@ -206,7 +206,7 @@ void VertInf::removeFromGraph(const bool isConnVert)
 {
     if (isConnVert)
     {
-        assert(!(id.isShape));
+        ASSERT(!(id.isShape));
     }
 
     // For each vertex.
@@ -248,7 +248,7 @@ bool directVis(VertInf *src, VertInf *dst)
 
     // We better be part of the same instance of libavoid.
     Router *router = src->_router;
-    assert(router == dst->_router);
+    ASSERT(router == dst->_router);
 
     ContainsMap& contains = router->contains;
     if (!(pID.isShape))
@@ -291,28 +291,28 @@ VertInfList::VertInfList()
 
 #define checkVertInfListConditions() \
         do { \
-            assert((!_firstConnVert && (_connVertices == 0)) || \
+            ASSERT((!_firstConnVert && (_connVertices == 0)) || \
                     ((_firstConnVert->lstPrev == NULL) && (_connVertices > 0))); \
-            assert((!_firstShapeVert && (_shapeVertices == 0)) || \
+            ASSERT((!_firstShapeVert && (_shapeVertices == 0)) || \
                     ((_firstShapeVert->lstPrev == NULL) && (_shapeVertices > 0))); \
-            assert(!_lastShapeVert || (_lastShapeVert->lstNext == NULL)); \
-            assert(!_lastConnVert || (_lastConnVert->lstNext == _firstShapeVert)); \
-            assert((!_firstConnVert && !_lastConnVert) || \
+            ASSERT(!_lastShapeVert || (_lastShapeVert->lstNext == NULL)); \
+            ASSERT(!_lastConnVert || (_lastConnVert->lstNext == _firstShapeVert)); \
+            ASSERT((!_firstConnVert && !_lastConnVert) || \
                     (_firstConnVert &&  _lastConnVert) ); \
-            assert((!_firstShapeVert && !_lastShapeVert) || \
+            ASSERT((!_firstShapeVert && !_lastShapeVert) || \
                     (_firstShapeVert &&  _lastShapeVert) ); \
-            assert(!_firstShapeVert || _firstShapeVert->id.isShape); \
-            assert(!_lastShapeVert || _lastShapeVert->id.isShape); \
-            assert(!_firstConnVert || !(_firstConnVert->id.isShape)); \
-            assert(!_lastConnVert || !(_lastConnVert->id.isShape)); \
+            ASSERT(!_firstShapeVert || _firstShapeVert->id.isShape); \
+            ASSERT(!_lastShapeVert || _lastShapeVert->id.isShape); \
+            ASSERT(!_firstConnVert || !(_firstConnVert->id.isShape)); \
+            ASSERT(!_lastConnVert || !(_lastConnVert->id.isShape)); \
         } while(0)
 
 
 void VertInfList::addVertex(VertInf *vert)
 {
     checkVertInfListConditions();
-    assert(vert->lstPrev == NULL);
-    assert(vert->lstNext == NULL);
+    ASSERT(vert->lstPrev == NULL);
+    ASSERT(vert->lstNext == NULL);
 
     if (!(vert->id.isShape))
     {
