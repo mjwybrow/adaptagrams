@@ -29,14 +29,15 @@
 #ifndef AVOID_ROUTER_H
 #define AVOID_ROUTER_H
 
+#include <list>
+#include <utility>
 
 #include "libavoid/shape.h"
 #include "libavoid/viscluster.h"
 #include "libavoid/graph.h"
 #include "libavoid/timer.h"
 #include "libavoid/connector.h"
-#include <list>
-#include <utility>
+#include "libavoid/assertions.h"
 
 #if defined(LINEDEBUG) || defined(ASTAR_DEBUG) || defined(LIBAVOID_SDL)
     #include <SDL.h>
@@ -214,8 +215,8 @@ class Router {
         //! @sa setTransactionUse
         //!
         void processTransaction(void)
-#ifdef ASSERTION_EXCEPTIONS
-            throw(Avoid::AssertionFailure);
+#ifdef USE_ASSERT_EXCEPTIONS
+            throw(vpsc::CriticalFailure);
 #else
             ;
 #endif

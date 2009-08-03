@@ -8,6 +8,8 @@ aclocal $ACLOCAL_FLAGS
 autoheader
 autoconf
 automake -a --add-missing
+# Configure.  Use the commented out line instead if building for SWIG:
+# ./configure CPPFLAGS="-DUSE_ASSERT_EXCEPTIONS"
 ./configure
 make
 # The following builds examples in libvpsc/tests and libcola/tests.

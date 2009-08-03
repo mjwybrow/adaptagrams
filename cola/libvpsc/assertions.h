@@ -26,18 +26,16 @@
 #ifndef _LIBVPSC_UTIL_H
 #define _LIBVPSC_UTIL_H
 
-#include <sstream>
-#include <cassert>
-
 #ifdef NDEBUG 
 
   #define ASSERT(expr)  static_cast<void>(0)
 
 #else // Not NDEBUG
 
-  #if defined(USE_CASSERT) 
-    #define ASSERT(expr)  assert(expr)
-  #else
+  #include <sstream>
+  #include <cassert>
+
+  #if defined(USE_ASSERT_EXCEPTIONS) 
 
     // String seems to be missing on MinGW's gcc,
     // so define it here if it is missing.
@@ -58,8 +56,8 @@
           }
     #endif
 
-    #define ASSERTION_EXCEPTIONS
-
+  #else
+    #define ASSERT(expr)  assert(expr)
   #endif
 
 namespace vpsc { 

@@ -23,7 +23,7 @@ all: cola.jnilib colajava.jar
 
 swig-worked: clean cola.i
 	mkdir -p colajava
-	swig -c++ -java -package colajava -outdir colajava cola.i
+	swig -DUSE_ASSERT_EXCEPTIONS -c++ -java -package colajava -outdir colajava cola.i
 	touch swig-worked
 
 cola_wrap.o: swig-worked

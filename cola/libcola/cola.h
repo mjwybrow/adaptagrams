@@ -410,7 +410,7 @@ public:
         TestConvergence& done=defaultTest,
         PreIteration* preIteration=NULL);
     void run(bool x=true, bool y=true)
-#ifdef ASSERTION_EXCEPTIONS
+#ifdef USE_ASSERT_EXCEPTIONS
             throw(InvalidVariableIndexException, vpsc::CriticalFailure);
 #else
             throw(InvalidVariableIndexException);

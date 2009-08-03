@@ -224,7 +224,7 @@ void ConstrainedFDLayout::computeDescentVectorOnBothAxes(
  * positions.
  */
 void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis) 
-#ifdef ASSERTION_EXCEPTIONS
+#ifdef USE_ASSERT_EXCEPTIONS
         throw(InvalidVariableIndexException, vpsc::CriticalFailure)
 #else
         throw(InvalidVariableIndexException)
