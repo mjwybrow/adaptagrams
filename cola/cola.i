@@ -64,7 +64,7 @@ using namespace topology;
  * possible C++ exceptions (generated from C++ assertion failures)
  * into Java exceptions.
  */
-%exception {
+%javaexception("colajava.ColaException") {
     try {
         $action
     } catch(vpsc::CriticalFailure cf) {
