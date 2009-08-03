@@ -25,84 +25,24 @@
 #ifndef AVOID_ASSERTIONS_H
 #define AVOID_ASSERTIONS_H
 
-#include <sstream>
-#include <cassert>
-
-#ifndef ASSERT
-
 #ifdef NDEBUG 
 
   #define ASSERT(expr)  static_cast<void>(0)
 
 #else // Not NDEBUG
 
-  #if defined(USE_CASSERT) 
-    #define ASSERT(expr)  assert(expr)
+  #if defined(USE_ASSERT_EXCEPTIONS)
+
+    #include "libvpsc/assertions.h"
+
   #else
 
-    // String seems to be missing on MinGW's gcc,
-    // so define it here if it is missing.
-    #ifndef __STRING
-      #define __STRING(x) #x
-    #endif
-
-    #if !defined(__ASSERT_FUNCTION)
-      #define ASSERT(expr) \
-          if (!(expr)) { \
-              throw Avoid::AssertionFailure(__STRING(expr), __FILE__, __LINE__); \
-          }
-    #else
-      #define ASSERT(expr) \
-          if (!(expr)) { \
-              throw Avoid::AssertionFailure(__STRING(expr), __FILE__, __LINE__, \
-                      __ASSERT_FUNCTION); \
-          }
-    #endif
-
-    #define ASSERTION_EXCEPTIONS
+    #include <cassert>
+    #define ASSERT(expr)  assert(expr)
 
   #endif
 
-#endif // NDEBUG
-
-#endif // ASSERT
-
-namespace Avoid { 
-
-
-// Asserion failure: This will be thrown when an assertion fails.
-class AssertionFailure
-{
-    public:
-        AssertionFailure(const char *expr, const char *file, int line, 
-                const char *function = NULL)
-            : expr(expr),
-              file(file),
-              line(line),
-              function(function)
-        {
-        }
-        std::string what() const
-        {
-            std::stringstream s;
-            s << "ERROR: Critical assertion failed.\n";
-            s << "  expression: " << expr << "\n";
-            s << "  at line " << line << " of " << file << "\n";
-            if (function)
-            {
-                s << "  in: " << function << "\n";
-            }
-
-            return s.str();
-        }
-    private:
-        const char *expr;
-        const char *file;
-        int line;
-        const char *function;
-};
-
-}
+#endif
 
 
 #endif // AVOID_ASSERTIONS_H

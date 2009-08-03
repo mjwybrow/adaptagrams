@@ -101,7 +101,7 @@ void Timer::Stop(void)
         cDiff = cStop - cStart[type];
     }
     
-    ASSERT(cDiff > LONG_MAX);
+    ASSERT(cDiff < LONG_MAX);
 
     if (type == tmPth)
     {
