@@ -78,9 +78,33 @@ using namespace topology;
     } 
 }
 
-%javaexception("colajava.ColaException") cola::ConstrainedFDLayout::run;
-%javaexception("colajava.ColaException") Avoid::Router::processTransaction();
+%javaexception("colajava.ColaException") cola::ConstrainedFDLayout::run {
+    try {
+        $action
+    } catch(vpsc::CriticalFailure cf) {
+        jclass excep = jenv->FindClass("colajava/ColaException");
+        if (excep)
+            jenv->ThrowNew(excep, cf.what().c_str());
+    } catch(cola::InvalidVariableIndexException ivi) {
+        jclass excep = jenv->FindClass("colajava/ColaException");
+        if (excep)
+            jenv->ThrowNew(excep, ivi.what().c_str());
+    } 
+}
 
+%javaexception("colajava.ColaException") Avoid::Router::processTransaction() {
+    try {
+        $action
+    } catch(vpsc::CriticalFailure cf) {
+        jclass excep = jenv->FindClass("colajava/ColaException");
+        if (excep)
+            jenv->ThrowNew(excep, cf.what().c_str());
+    } catch(cola::InvalidVariableIndexException ivi) {
+        jclass excep = jenv->FindClass("colajava/ColaException");
+        if (excep)
+            jenv->ThrowNew(excep, ivi.what().c_str());
+    } 
+}
 
 
 /* Define a Java ColaException class.
