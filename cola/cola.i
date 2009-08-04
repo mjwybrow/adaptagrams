@@ -129,6 +129,7 @@ class ColaException {
 %template(AlignmentConstraintPair) std::pair<cola::AlignmentConstraint *, cola::AlignmentConstraint *>;
 %template(AlignmentConstraintPairList) std::vector<std::pair<cola::AlignmentConstraint *, cola::AlignmentConstraint *> >; 
 %template(EdgeVector) std::vector<cola::Edge>;
+%template(CharVector) std::vector<char>;
 %template(ColaEdge) std::pair<unsigned,unsigned>;
 %template(OffsetPair) std::pair<unsigned,double>;
 %template(OffsetList) std::vector<std::pair<unsigned,double> >;
