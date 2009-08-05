@@ -211,9 +211,12 @@ class Router {
         //! If transactionUse() is false, then all actions will have been 
         //! processed immediately and this method will do nothing.
         //!
+        //! @return A boolean value describing whether there were any actions
+        //!         to process.
+        //!
         //! @sa setTransactionUse
         //!
-        void processTransaction(void);
+        bool processTransaction(void);
         
         //! @brief Add a shape to the router scene.
         //!
