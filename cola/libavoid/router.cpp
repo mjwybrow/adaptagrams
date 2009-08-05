@@ -423,7 +423,7 @@ void Router::setTransactionUse(const bool transactions)
 }
 
 
-void Router::processTransaction(void)
+bool Router::processTransaction(void)
 {
     bool notPartialTime = !(PartialFeedback && PartialTime);
     bool seenShapeMovesOrDeletes = false;
@@ -431,7 +431,7 @@ void Router::processTransaction(void)
     // If SimpleRouting, then don't update here.
     if (actionList.empty() || SimpleRouting)
     {
-        return;
+        return false;
     }
 
     actionList.sort();
@@ -560,6 +560,8 @@ void Router::processTransaction(void)
     
     _staticGraphInvalidated = true;
     callbackAllInvalidConnectors();
+
+    return true;
 }
 
 
