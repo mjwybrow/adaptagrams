@@ -57,7 +57,7 @@ void Timer::Reset(void)
 
 void Timer::Register(const TimerIndex t, const bool start)
 {
-    assert(t != tmNon);
+    ASSERT(t != tmNon);
 
     if (type == tmNon)
     {
