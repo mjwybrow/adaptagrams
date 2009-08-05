@@ -1583,11 +1583,15 @@ void Router::outputInstanceToSVG(void)
             {
                 fprintf(fp, "L %g,%g ", route.ps[i].x, route.ps[i].y);
             }
-            fprintf(fp, "\" debug=\"src: %d dst: %d\" "
-                    "style=\"fill: none; stroke: black; "
-                    "stroke-width: 1px;\" />\n",
-                    (connRef->src()) ? connRef->src()->visDirections : -1,
-                    (connRef->dst()) ? connRef->dst()->visDirections : -1);
+            fprintf(fp, "\" ");
+            if (connRef->src() && connRef->dst())
+            {
+                fprintf(fp, "debug=\"src: %d dst: %d\" ",
+                        connRef->src()->visDirections,
+                        connRef->dst()->visDirections);
+            }
+            fprintf(fp, "style=\"fill: none; stroke: black; "
+                    "stroke-width: 1px;\" />\n");
         }
         
         ++connRefIt;
@@ -1611,11 +1615,15 @@ void Router::outputInstanceToSVG(void)
             {
                 fprintf(fp, "L %g,%g ", route.ps[i].x, route.ps[i].y);
             }
-            fprintf(fp, "\" debug=\"src: %d dst: %d\" "
-                    "style=\"fill: none; stroke: black; "
-                    "stroke-width: 1px;\" />\n",
-                    (connRef->src()) ? connRef->src()->visDirections : -1,
-                    (connRef->dst()) ? connRef->dst()->visDirections : -1);
+            fprintf(fp, "\" ");
+            if (connRef->src() && connRef->dst())
+            {
+                fprintf(fp, "debug=\"src: %d dst: %d\" ",
+                        connRef->src()->visDirections,
+                        connRef->dst()->visDirections);
+            }
+            fprintf(fp, "style=\"fill: none; stroke: black; "
+                    "stroke-width: 1px;\" />\n");
         }
         
         ++connRefIt;
