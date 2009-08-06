@@ -127,7 +127,7 @@ class ConnEnd
         //! @return The position of this connector endpoint.
         const Point point(void) const;
 
-        const ConnDirFlags directions(void) const;
+        ConnDirFlags directions(void) const;
     private:
         Point _point;
         ConnDirFlags _directions;
@@ -259,7 +259,7 @@ class ConnRef
         //! @brief   Returns the type of routing performed for this connector.
         //! @return  The type of routing performed.
         //!
-        const ConnType routingType(void) const;
+        ConnType routingType(void) const;
         //! @brief       Sets the type of routing to be performed for this 
         //!              connector.
         //! 

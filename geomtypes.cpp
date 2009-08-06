@@ -136,13 +136,13 @@ void ReferencingPolygon::clear(void)
 }
 
 
-const bool ReferencingPolygon::empty(void) const
+bool ReferencingPolygon::empty(void) const
 {
     return ps.empty();
 }
 
 
-const size_t ReferencingPolygon::size(void) const
+size_t ReferencingPolygon::size(void) const
 {
     return ps.size();
 }
@@ -233,13 +233,13 @@ void Polygon::clear(void)
 }
 
 
-const bool Polygon::empty(void) const
+bool Polygon::empty(void) const
 {
     return ps.empty();
 }
 
 
-const size_t Polygon::size(void) const
+size_t Polygon::size(void) const
 {
     return ps.size();
 }
