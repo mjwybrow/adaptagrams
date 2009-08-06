@@ -127,7 +127,7 @@ const Point ConnEnd::point(void) const
 }
 
 
-const ConnDirFlags ConnEnd::directions(void) const
+ConnDirFlags ConnEnd::directions(void) const
 {
     if (_shapeRef)
     {
@@ -249,7 +249,7 @@ ConnRef::~ConnRef()
 }
 
 
-const ConnType ConnRef::routingType(void) const
+ConnType ConnRef::routingType(void) const
 {
     return _type;
 }

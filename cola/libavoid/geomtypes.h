@@ -118,9 +118,9 @@ class PolygonInterface
         //! @brief  Resets this to the empty polygon.
         virtual void clear(void) = 0;
         //! @brief  Returns true if this polygon is empty.
-        virtual const bool empty(void) const = 0;
+        virtual bool empty(void) const = 0;
         //! @brief  Returns the number of points in this polygon.
-        virtual const size_t size(void) const = 0;
+        virtual size_t size(void) const = 0;
         //! @brief  Returns the ID value associated with this polygon.
         virtual int id(void) const = 0;
         //! @brief  Returns a specific point in the polygon.
@@ -192,9 +192,9 @@ class Polygon : public PolygonInterface
         //! @brief  Resets this to the empty polygon.
         void clear(void);
         //! @brief  Returns true if this polygon is empty.
-        const bool empty(void) const;
+        bool empty(void) const;
         //! @brief  Returns the number of points in this polygon.
-        const size_t size(void) const;
+        size_t size(void) const;
         //! @brief  Returns the ID value associated with this polygon.
         int id(void) const;
         //! @brief  Returns a specific point in the polygon.
@@ -274,8 +274,8 @@ class ReferencingPolygon : public PolygonInterface
         ReferencingPolygon();
         ReferencingPolygon(const Polygon& poly, const Router *router);
         void clear(void);
-        const bool empty(void) const;
-        const size_t size(void) const;
+        bool empty(void) const;
+        size_t size(void) const;
         int id(void) const;
         const Point& at(size_t index) const;
 
