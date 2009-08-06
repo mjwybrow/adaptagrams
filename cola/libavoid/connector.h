@@ -303,6 +303,7 @@ class ConnRef
     private:
         friend class Router;
 
+        PolyLine& routeRef(void);
         void freeRoutes(void);
         void performCallback(void);
         bool generatePath(void);
