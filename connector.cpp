@@ -462,6 +462,11 @@ const PolyLine& ConnRef::route(void) const
 }
 
 
+PolyLine& ConnRef::routeRef(void)
+{
+    return _route;
+}
+
 
 void ConnRef::set_route(const PolyLine& route)
 {

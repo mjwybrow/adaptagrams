@@ -126,7 +126,8 @@ Router::Router(const unsigned int flags)
       // Mode options:
       _polyLineRouting(false),
       _orthogonalRouting(false),
-      _staticGraphInvalidated(true)
+      _staticGraphInvalidated(true),
+      _inCrossingPenaltyReroutingStage(false)
 {
     // At least one of the Routing modes must be set.
     ASSERT(flags & (PolyLineRouting | OrthogonalRouting));
@@ -559,7 +560,7 @@ bool Router::processTransaction(void)
     actionList.clear();
     
     _staticGraphInvalidated = true;
-    callbackAllInvalidConnectors();
+    rerouteAndCallbackConnectors();
 
     return true;
 }
@@ -722,7 +723,7 @@ void Router::attachedShapes(IntList &shapes, const unsigned int shapeId,
     // It's intended this function is called after visibility changes 
     // resulting from shape movement have happened.  It will alert 
     // rerouted connectors (via a callback) that they need to be redrawn.
-void Router::callbackAllInvalidConnectors(void)
+void Router::rerouteAndCallbackConnectors(void)
 {
     std::set<ConnRef *> reroutedConns;
     ConnRefList::const_iterator fin = connRefs.end();
@@ -742,6 +743,10 @@ void Router::callbackAllInvalidConnectors(void)
     }
     timers.Stop();
 
+    // Find and reroute crossing connectors if crossing penalties are set.
+    improveCrossings();
+
+    // Perform centring and nudging for othogonal routes.
     improveOrthogonalRoutes(this);
 
     // Alert connectors that they need redrawing.
@@ -750,6 +755,88 @@ void Router::callbackAllInvalidConnectors(void)
         (*i)->_needs_repaint = true;
         (*i)->performCallback();
     }
+}
+
+
+typedef std::set<ConnRef *> ConnRefSet;
+
+void Router::improveCrossings(void)
+{
+    const double crossing_penalty = routingPenalty(crossingPenalty);
+    const double shared_path_penalty = routingPenalty(fixedSharedPathPenalty);
+    if ((crossing_penalty == 0) && (shared_path_penalty == 0))
+    {
+        // No penalties, return.
+        return;
+    }
+    
+    // Find crossings and reroute connectors.
+    _inCrossingPenaltyReroutingStage = true;
+    ConnRefSet crossingConns;
+    ConnRefList::iterator fin = connRefs.end();
+    for (ConnRefList::iterator i = connRefs.begin(); i != fin; ++i) 
+    {
+        Avoid::Polygon& iRoute = (*i)->routeRef();
+        ConnRefList::iterator j = i;
+        for (++j; j != fin; ++j) 
+        {
+            if ((crossingConns.find(*i) != crossingConns.end()) && 
+                    (crossingConns.find(*j) != crossingConns.end()))
+            {
+                // We already know both these have crossings.
+                continue;
+            }
+            // Determine if this pair cross.
+            Avoid::Polygon& jRoute = (*j)->routeRef();
+            CrossingsInfoPair crossingInfo = std::make_pair(0, 0);
+            bool meetsPenaltyCriteria = false;
+            for (size_t jInd = 1; jInd < jRoute.size(); ++jInd)
+            {
+                const bool finalSegment = ((jInd + 1) == jRoute.size());
+                CrossingsInfoPair crossingInfo = countRealCrossings(
+                        iRoute, true, jRoute, jInd, false, 
+                        finalSegment, NULL, NULL, *i, *j);
+                
+                if ((shared_path_penalty > 0) && 
+                    (crossingInfo.second & CROSSING_SHARES_PATH) && 
+                    (crossingInfo.second & CROSSING_SHARES_FIXED_SEGMENT) && 
+                    !(crossingInfo.second & CROSSING_SHARES_PATH_AT_END)) 
+                {
+                    // We are penalising fixedSharedPaths and there is a
+                    // fixedSharedPath.
+                    meetsPenaltyCriteria = true;
+                    break;
+                }
+                else if ((crossing_penalty > 0) && (crossingInfo.first > 0))
+                {
+                    // We are penalising crossings and this is a crossing.
+                    meetsPenaltyCriteria = true;
+                    break;
+                }
+            }
+            if (meetsPenaltyCriteria)
+            {
+                crossingConns.insert(*i);
+                crossingConns.insert(*j);
+            }
+        }
+    }
+
+    for (ConnRefSet::iterator i = crossingConns.begin(); 
+            i != crossingConns.end(); ++i)
+    {
+        ConnRef *conn = *i;
+        conn->makePathInvalid();
+        // XXX: Could we free these routes here for extra savings?
+        // conn->freeRoutes();
+    }
+    for (ConnRefSet::iterator i = crossingConns.begin(); 
+            i != crossingConns.end(); ++i)
+    {
+        ConnRef *conn = *i;
+        conn->generatePath();
+    }
+    _inCrossingPenaltyReroutingStage = false;
 }
 
 

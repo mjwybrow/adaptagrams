@@ -352,8 +352,9 @@ class Router {
         void adjustClustersWithAdd(const PolygonInterface& poly, 
                 const int p_cluster);
         void adjustClustersWithDel(const int p_cluster);
-        void callbackAllInvalidConnectors(void);
+        void rerouteAndCallbackConnectors(void);
         bool idIsUnique(const unsigned int id) const;
+        void improveCrossings(void);
 
         ActionInfoList actionList;
         unsigned int _largestAssignedId;
@@ -367,6 +368,7 @@ class Router {
         bool _orthogonalRouting;
 
         bool _staticGraphInvalidated;
+        bool _inCrossingPenaltyReroutingStage;
 };
 
 }

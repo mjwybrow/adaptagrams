@@ -208,6 +208,12 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
         }
     }
 
+    if (!router->_inCrossingPenaltyReroutingStage)
+    {
+        // Return here if we ar not in the postprocessing stage 
+        return result;
+    }
+
     const double cluster_crossing_penalty = 
             router->routingPenalty(clusterCrossingPenalty);
     // XXX: Clustered routing doesn't yet work with orthogonal connectors.
