@@ -25,6 +25,7 @@
 
 #include <cstring>
 #include <cfloat>
+#include <cmath>
 
 #include "libavoid/graph.h"
 #include "libavoid/connector.h"
@@ -833,11 +834,8 @@ bool ConnRef::generatePath(void)
             }
             break;
         }
-        if (pathlen > 200)
-        {
-            db_printf("Error: Apparent infinite connector path detected.\n");
-            exit(1);
-        }
+        // Check we don't have an apparent infinite connector path.
+        ASSERT(pathlen < 200);
     }
     std::vector<Point> path(pathlen);
 
