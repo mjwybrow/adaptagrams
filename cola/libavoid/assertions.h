@@ -27,7 +27,7 @@
 
 #ifdef NDEBUG 
 
-  #define ASSERT(expr)  static_cast<void>(0)
+  #define COLA_ASSERT(expr)  static_cast<void>(0)
 
 #else // Not NDEBUG
 
@@ -38,7 +38,7 @@
   #else
 
     #include <cassert>
-    #define ASSERT(expr)  assert(expr)
+    #define COLA_ASSERT(expr)  assert(expr)
 
   #endif
 

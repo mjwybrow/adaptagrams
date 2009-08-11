@@ -85,7 +85,7 @@ namespace vpsc {
                 Constraint *c=buffer[i];
                 double slack = c->slack();
                 if(!(c->equality||slack < ZERO_UPPERBOUND)) {
-                    ASSERT(size>0);
+                    COLA_ASSERT(size>0);
                     buffer[i--]=buffer[--size];
                 } else if(c->equality||slack < minSlack) {
                     v=c;
@@ -94,7 +94,7 @@ namespace vpsc {
                 }
             }
             if(deletePos>=0) {
-                ASSERT(size>0);
+                COLA_ASSERT(size>0);
                 buffer[deletePos]=buffer[--size];
                 break;
             }

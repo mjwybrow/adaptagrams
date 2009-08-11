@@ -61,8 +61,8 @@ struct SparseMap {
         return lookup[std::make_pair(i,j)]; 
     }
     double getIJ(const unsigned i, const unsigned j) const {
-        ASSERT(i<n);
-        ASSERT(j<n);
+        COLA_ASSERT(i<n);
+        COLA_ASSERT(j<n);
         ConstIt v=lookup.find(std::make_pair(i,j));
         if(v!=lookup.end()) {
             return v->second;
@@ -98,8 +98,8 @@ public:
         int lastrow=-1;
         for(SparseMap::ConstIt i=m.lookup.begin(); i!=m.lookup.end(); i++) {
             SparseMap::SparseIndex p = i->first;
-            ASSERT(p.first<n);
-            ASSERT(p.second<n);
+            COLA_ASSERT(p.first<n);
+            COLA_ASSERT(p.second<n);
             A[cnt]=i->second;
             if((int)p.first!=lastrow) {
                 for(unsigned r=lastrow+1;r<=p.first;r++) {
@@ -115,8 +115,8 @@ public:
         }
     }
     void rightMultiply(std::valarray<double> const & v, std::valarray<double> & r) const {
-        ASSERT(v.size()>=n);
-        ASSERT(r.size()>=n);
+        COLA_ASSERT(v.size()>=n);
+        COLA_ASSERT(r.size()>=n);
         for(unsigned i=0;i<n;i++) {
             r[i]=0;
             for(unsigned j=IA[i];j<IA[i+1];j++) {

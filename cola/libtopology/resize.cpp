@@ -86,7 +86,7 @@ struct CreateLeftRightDummyNodes {
         // dummy nodes will have the same id as the original
         ResizeInfo& ri=p.second;
         const unsigned id=ri.orig->id;
-        ASSERT(p.first==id);
+        COLA_ASSERT(p.first==id);
         const Rectangle *ro=ri.orig->rect,
                         *targetRect=targets[id];
 
@@ -157,7 +157,7 @@ struct SubstituteNodes {
                     p->node=ri->second.rhsNode;
                     break;
                 default:
-                    ASSERT(p->rectIntersect==topology::EdgePoint::CENTRE);
+                    COLA_ASSERT(p->rectIntersect==topology::EdgePoint::CENTRE);
                     p->node=tn[id];
             }
         } else {
@@ -215,25 +215,25 @@ bool checkDesired(
         const Rectangle* t=targets[id];
         ResizeMap::const_iterator j=resizeMap.find(id);
         if(j==resizeMap.end()) {
-            ASSERT(approx_equals(v->var->desiredPosition,
+            COLA_ASSERT(approx_equals(v->var->desiredPosition,
                         t->getCentreD(dim)));
         }
     }
     for(ResizeMap::const_iterator j=resizeMap.begin();j!=resizeMap.end();++j) {
         const unsigned id=j->first;
         const ResizeInfo& ri=j->second;
-        ASSERT(ri.orig->id==id);
+        COLA_ASSERT(ri.orig->id==id);
         const Node *ln=ri.lhsNode, *cn=nodes[id], *rn=ri.rhsNode;
-        ASSERT(ln->id==id);
-        ASSERT(cn->id==id);
-        ASSERT(rn->id==id);
+        COLA_ASSERT(ln->id==id);
+        COLA_ASSERT(cn->id==id);
+        COLA_ASSERT(rn->id==id);
         const Rectangle* t=targets[id];
         const double lp = t->getMinD(dim) + DW2,
                      cp = t->getCentreD(dim),
                      rp = t->getMaxD(dim) - DW2;
-        ASSERT(approx_equals(lp,ln->var->desiredPosition));
-        ASSERT(approx_equals(cp,cn->var->desiredPosition));
-        ASSERT(approx_equals(rp,rn->var->desiredPosition));
+        COLA_ASSERT(approx_equals(lp,ln->var->desiredPosition));
+        COLA_ASSERT(approx_equals(cp,cn->var->desiredPosition));
+        COLA_ASSERT(approx_equals(rp,rn->var->desiredPosition));
     }
     return true;
 }
@@ -247,15 +247,15 @@ bool checkFinal(
         const Rectangle* t=targets[v->id];
         ResizeMap::const_iterator j=resizeMap.find(v->id);
         if(j==resizeMap.end()) {
-            ASSERT(fabs(v->rect->getCentreD(dim)-t->getCentreD(dim))
+            COLA_ASSERT(fabs(v->rect->getCentreD(dim)-t->getCentreD(dim))
                     <DISPLACEMENT_ERROR);
         } else {
             const Rectangle *l=j->second.lhsNode->rect,
                             *c=nodes[v->id]->rect,
                             *r=j->second.rhsNode->rect;
-            ASSERT(fabs(l->getMinD(dim)-t->getMinD(dim))<DISPLACEMENT_ERROR);
-            ASSERT(fabs(r->getMaxD(dim)-t->getMaxD(dim))<DISPLACEMENT_ERROR);
-            ASSERT(fabs(c->getCentreD(dim)-t->getCentreD(dim))
+            COLA_ASSERT(fabs(l->getMinD(dim)-t->getMinD(dim))<DISPLACEMENT_ERROR);
+            COLA_ASSERT(fabs(r->getMaxD(dim)-t->getMaxD(dim))<DISPLACEMENT_ERROR);
+            COLA_ASSERT(fabs(c->getCentreD(dim)-t->getCentreD(dim))
                     <DISPLACEMENT_ERROR);
         }
     }
@@ -280,7 +280,7 @@ bool checkFinal(
 void resizeAxis(const Rectangles& targets,
         Nodes& nodes, Edges& edges, ResizeMap& resizes, 
         Variables& vs, Constraints& cs) {
-    ASSERT(vs.size()>=nodes.size());
+    COLA_ASSERT(vs.size()>=nodes.size());
 
     //  - create copy tn of topologyNodes with resize rects replaced with
     //    three nodes: one for the lhs of rect, one for centre and one for rhs.
@@ -291,30 +291,30 @@ void resizeAxis(const Rectangles& targets,
     //    pos it at the centre
     Nodes tn(nodes.size());
 
-    ASSERT(assertConvexBends(edges));
-    ASSERT(assertNoSegmentRectIntersection(nodes,edges));
+    COLA_ASSERT(assertConvexBends(edges));
+    COLA_ASSERT(assertNoSegmentRectIntersection(nodes,edges));
 
     transform(nodes.begin(),nodes.end(),tn.begin(),
             TransformNode(targets,resizes,vs));
     feach(resizes, CreateLeftRightDummyNodes(targets,tn,vs));
-    ASSERT(tn.size()==nodes.size()+2*resizes.size());
-    ASSERT(vs.size()>=tn.size());
+    COLA_ASSERT(tn.size()==nodes.size()+2*resizes.size());
+    COLA_ASSERT(vs.size()>=tn.size());
 
     // update topologyRoutes with references to resized nodes replaced with
     // correct references to lhs/rhs nodes
     feach(edges,SubstituteNodes(resizes,tn));
 
-    ASSERT(assertConvexBends(edges));
-    ASSERT(assertNoSegmentRectIntersection(tn,edges));
+    COLA_ASSERT(assertConvexBends(edges));
+    COLA_ASSERT(assertNoSegmentRectIntersection(tn,edges));
 
     // move nodes and reroute
     topology::TopologyConstraints t(dim,tn,edges,vs,cs);
-    ASSERT(checkDesired(tn,targets,resizes));
+    COLA_ASSERT(checkDesired(tn,targets,resizes));
 #ifndef NDEBUG
     unsigned loopCtr=0;
 #endif
-    while(t.solve()) { ASSERT(++loopCtr<1000); }
-    //ASSERT(checkFinal(tn,targets,resizes));
+    while(t.solve()) { COLA_ASSERT(++loopCtr<1000); }
+    //COLA_ASSERT(checkFinal(tn,targets,resizes));
     
     // reposition and resize original nodes
     feach(nodes,CopyPositions(tn,resizes));
@@ -322,8 +322,8 @@ void resizeAxis(const Rectangles& targets,
     // revert topologyRoutes back to original nodes
     feach(edges,RevertNodes(nodes));
 
-    ASSERT(assertConvexBends(edges));
-    ASSERT(assertNoSegmentRectIntersection(nodes,edges));
+    COLA_ASSERT(assertConvexBends(edges));
+    COLA_ASSERT(assertNoSegmentRectIntersection(nodes,edges));
 
     // clean up
     feach(tn,DeleteTempNode());
@@ -345,8 +345,8 @@ struct CreateTargetRect {
             fixed.insert(v->id); // resized rectangles are required to stay
                                  // where they have been placed
             target=new Rectangle(*r->second.targetRect);
-            ASSERT(target->width() > 3.0*DW);
-            ASSERT(target->height() > 3.0*DW);
+            COLA_ASSERT(target->width() > 3.0*DW);
+            COLA_ASSERT(target->height() > 3.0*DW);
         }
         return target;
     }

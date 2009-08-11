@@ -133,14 +133,14 @@ public:
      * @param d axis: 0=horizontal 1=vertical
      */
     double getMinD(unsigned const d) const {
-        ASSERT(d==0||d==1);
+        COLA_ASSERT(d==0||d==1);
         return ( d == 0 ? getMinX() : getMinY() );
     }
     /**
      * @param d axis: 0=horizontal 1=vertical
      */
     double getMaxD(unsigned const d) const {
-        ASSERT(d==0||d==1);
+        COLA_ASSERT(d==0||d==1);
         return ( d == 0 ? getMaxX() : getMaxY() );
     }
     double getCentreX() const { return getMinX()+width()/2.0; }
@@ -149,7 +149,7 @@ public:
      * @param d axis: 0=horizontal 1=vertical
      */
     double getCentreD(unsigned const d) const {
-        ASSERT(d==0||d==1);
+        COLA_ASSERT(d==0||d==1);
         return getMinD(d)+length(d)/2.0;
     }
     double width() const { return getMaxX()-getMinX(); }
@@ -159,7 +159,7 @@ public:
      * @return width or height
      */
     double length(unsigned const d) const {
-        ASSERT(d==0||d==1);
+        COLA_ASSERT(d==0||d==1);
         return ( d == 0 ? width() : height() );
     }
     void set_width(double w) { maxX = minX + w - 2.0*xBorder; }
@@ -167,7 +167,7 @@ public:
     static void setXBorder(double x) {xBorder=x;}
     static void setYBorder(double y) {yBorder=y;}
     void moveCentreD(const unsigned d, double p) {
-        ASSERT(d==0||d==1);
+        COLA_ASSERT(d==0||d==1);
         if(d == 0) { moveCentreX(p);
         } else { moveCentreY(p); }
     }
@@ -185,13 +185,13 @@ public:
         double w=width();
         minX=x+xBorder;
         maxX=x+w-xBorder;
-        ASSERT(fabs(width()-w)<1e-9);
+        COLA_ASSERT(fabs(width()-w)<1e-9);
     }
     void moveMinY(double y) {
         double h=height();
         maxY=y+h-yBorder;
         minY=y+yBorder;
-        ASSERT(fabs(height()-h)<1e-9);
+        COLA_ASSERT(fabs(height()-h)<1e-9);
     }
     double overlapD(const unsigned d, Rectangle* r) {
         if(d==0) {

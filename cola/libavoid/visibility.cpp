@@ -126,7 +126,7 @@ void vertexVisibility(VertInf *point, VertInf *partner, bool knownNew,
     const VertID& pID = point->id;
 
     // Make sure we're only doing ptVis for endpoints.
-    ASSERT(!(pID.isShape));
+    COLA_ASSERT(!(pID.isShape));
 
     if ( !(router->InvisibilityGrph) )
     {
@@ -195,7 +195,7 @@ class PointPair
                 {
                     // If comparing two points at the same physical 
                     // position, then order them by their VertIDs.
-                    ASSERT(vInf->id != rhs.vInf->id);
+                    COLA_ASSERT(vInf->id != rhs.vInf->id);
                     return vInf->id < rhs.vInf->id;
                 }
                 return distance < rhs.distance;
@@ -224,8 +224,8 @@ class PointPair
             {
                 ang += 360;
             }
-            ASSERT(ang >= 0);
-            ASSERT(ang <= 360);
+            COLA_ASSERT(ang >= 0);
+            COLA_ASSERT(ang <= 360);
             return ang;
         }
 
@@ -247,7 +247,7 @@ class EdgePair
         {
             // The default constuctor should never be called.  
             // This is defined to appease the MSVC compiler.
-            ASSERT(false);
+            COLA_ASSERT(false);
         }
         EdgePair(const PointPair& p1, VertInf *v) : 
                 vInf1(p1.vInf), 
@@ -260,7 +260,7 @@ class EdgePair
         }
         bool operator<(const EdgePair& rhs) const
         {
-            ASSERT(angle == rhs.angle);
+            COLA_ASSERT(angle == rhs.angle);
             if (angleDist == rhs.angleDist)
             {
                 return (dist2 < rhs.dist2);
@@ -307,7 +307,7 @@ class EdgePair
             }
             else if (p.angle != angle)
             {
-                ASSERT(p.angle > angle);
+                COLA_ASSERT(p.angle > angle);
                 angle = p.angle;
                 Point pp;
                 int result = rayIntersectPoint(vInf1->point, vInf2->point,
@@ -544,8 +544,8 @@ void vertexSweep(VertInf *vert)
     {
         VertInf *k = t->vInf;
 
-        ASSERT(centerInf != k);
-        ASSERT(centerID.isShape || (ss.find(k->id.objID) == ss.end()));
+        COLA_ASSERT(centerInf != k);
+        COLA_ASSERT(centerID.isShape || (ss.find(k->id.objID) == ss.end()));
 
         Point xaxis(DBL_MAX, centerInf->point.y);
 

@@ -46,7 +46,7 @@ matrix_times_vector(valarray<double> const &matrix, /* m * n */
 {
     unsigned n = vec.size();
     unsigned m = result.size();
-    ASSERT(m*n == matrix.size());
+    COLA_ASSERT(m*n == matrix.size());
 #   if defined(_MSC_VER)
     // magmy: The following lines show how operator[] is defined for valarray under MSVC
     // _Ty valarray<_Ty>::operator[](size_t _Off) const;

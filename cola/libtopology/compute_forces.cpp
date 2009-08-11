@@ -61,7 +61,7 @@ double gRule1(const EdgePoint* a, const EdgePoint* b) {
     double lab=dim==vpsc::HORIZONTAL?
         len(a,b,dxab,dyab,dxab2,dyab2):
         len(a,b,dyab,dxab,dyab2,dxab2);
-    ASSERT(lab!=0);
+    COLA_ASSERT(lab!=0);
     return dxab/lab;
 }
 double gRule2(
@@ -70,12 +70,12 @@ double gRule2(
     double lab=dim==vpsc::HORIZONTAL?
         len(a,b,dxab,dyab,dxab2,dyab2):
         len(a,b,dyab,dxab,dyab2,dxab2);
-    ASSERT(lab!=0);
+    COLA_ASSERT(lab!=0);
     double dxbc, dybc, dxbc2, dybc2;
     double lbc=dim==vpsc::HORIZONTAL?
         len(b,c,dxbc,dybc,dxbc2,dybc2):
         len(b,c,dybc,dxbc,dybc2,dxbc2);
-    ASSERT(lbc!=0);
+    COLA_ASSERT(lbc!=0);
     return dxab/lab - dxbc/lbc;
 }
 double hRuleD1(const EdgePoint* u, const EdgePoint* v, const double dl) {
@@ -83,7 +83,7 @@ double hRuleD1(const EdgePoint* u, const EdgePoint* v, const double dl) {
     double l=dim==vpsc::HORIZONTAL?
         len(u,v,dx,dy,dx2,dy2):
         len(u,v,dy,dx,dy2,dx2);
-    ASSERT(l!=0);
+    COLA_ASSERT(l!=0);
     return dl*(dx2/(l*l*l) - 1/l) + dx2/(l*l);
 }
 double hRuleD2(
@@ -92,12 +92,12 @@ double hRuleD2(
     double luv=dim==vpsc::HORIZONTAL?
         len(u,v,dxuv,dyuv,dxuv2,dyuv2):
         len(u,v,dyuv,dxuv,dyuv2,dxuv2);
-    ASSERT(luv!=0);
+    COLA_ASSERT(luv!=0);
     double dxvw, dyvw, dxvw2, dyvw2;
     double lvw=dim==vpsc::HORIZONTAL?
         len(v,w,dxvw,dyvw,dxvw2,dyvw2):
         len(v,w,dyvw,dxvw,dyvw2,dxvw2);
-    ASSERT(lvw!=0);
+    COLA_ASSERT(lvw!=0);
     double p1=dl*(dxuv2/(luv*luv*luv) - 1/luv + dxvw2/(lvw*lvw*lvw) - 1/lvw);
     double p2=(dxuv/luv - dxvw/lvw);
     return p1+p2*p2;
@@ -108,12 +108,12 @@ double hRule2(
     double luv=dim==vpsc::HORIZONTAL?
         len(u,v,dxuv,dyuv,dxuv2,dyuv2):
         len(u,v,dyuv,dxuv,dyuv2,dxuv2);
-    ASSERT(luv!=0);
+    COLA_ASSERT(luv!=0);
     double dxvw, dyvw, dxvw2, dyvw2;
     double lvw=dim==vpsc::HORIZONTAL?
         len(v,w,dxvw,dyvw,dxvw2,dyvw2):
         len(v,w,dyvw,dxvw,dyvw2,dxvw2);
-    ASSERT(lvw!=0);
+    COLA_ASSERT(lvw!=0);
     return -dl*dxuv2/(luv*luv*luv)
         +dl/luv
         -dxuv2/(luv*luv)
@@ -126,12 +126,12 @@ double hRule3(
     double luv=dim==vpsc::HORIZONTAL?
         len(u,v,dxuv,dyuv,dxuv2,dyuv2):
         len(u,v,dyuv,dxuv,dyuv2,dxuv2);
-    ASSERT(luv!=0);
+    COLA_ASSERT(luv!=0);
     double dxvw, dyvw, dxvw2, dyvw2;
     double lvw=dim==vpsc::HORIZONTAL?
         len(v,w,dxvw,dyvw,dxvw2,dyvw2):
         len(v,w,dyvw,dxvw,dyvw2,dxvw2);
-    ASSERT(lvw!=0);
+    COLA_ASSERT(lvw!=0);
     return -dl*dxvw2/(lvw*lvw*lvw)
         -dxvw2/(lvw*lvw)
         +dl/lvw
@@ -143,12 +143,12 @@ double hRule4(const EdgePoint* a, const EdgePoint* b,
     double lab=dim==vpsc::HORIZONTAL?
         len(a,b,dxab,dyab,dxab2,dyab2):
         len(a,b,dyab,dxab,dyab2,dxab2);
-    ASSERT(lab!=0);
+    COLA_ASSERT(lab!=0);
     double dxcd, dycd, dxcd2, dycd2;
     double lcd=dim==vpsc::HORIZONTAL?
         len(c,d,dxcd,dycd,dxcd2,dycd2):
         len(c,d,dycd,dxcd,dycd2,dxcd2);
-    ASSERT(lcd!=0);
+    COLA_ASSERT(lcd!=0);
     return -dxab*dxcd/(lab*lcd);
 }
 double hRule56(const EdgePoint* u, const EdgePoint* v, 
@@ -157,17 +157,17 @@ double hRule56(const EdgePoint* u, const EdgePoint* v,
     double luv=dim==vpsc::HORIZONTAL?
         len(u,v,dxuv,dyuv,dxuv2,dyuv2):
         len(u,v,dyuv,dxuv,dyuv2,dxuv2);
-    ASSERT(luv!=0);
+    COLA_ASSERT(luv!=0);
     double dxab, dyab, dxab2, dyab2;
     double lab=dim==vpsc::HORIZONTAL?
         len(a,b,dxab,dyab,dxab2,dyab2):
         len(a,b,dyab,dxab,dyab2,dxab2);
-    ASSERT(lab!=0);
+    COLA_ASSERT(lab!=0);
     double dxbc, dybc, dxbc2, dybc2;
     double lbc=dim==vpsc::HORIZONTAL?
         len(b,c,dxbc,dybc,dxbc2,dybc2):
         len(b,c,dybc,dxbc,dybc2,dxbc2);
-    ASSERT(lbc!=0);
+    COLA_ASSERT(lbc!=0);
     return dxuv/luv * ( dxbc/lbc - dxab/lab );
 }
 double hRule7(const EdgePoint* a, const EdgePoint* b, 
@@ -176,17 +176,17 @@ double hRule7(const EdgePoint* a, const EdgePoint* b,
     double lab=dim==vpsc::HORIZONTAL?
         len(a,b,dxab,dyab,dxab2,dyab2):
         len(a,b,dyab,dxab,dyab2,dxab2);
-    ASSERT(lab!=0);
+    COLA_ASSERT(lab!=0);
     double dxbc, dybc, dxbc2, dybc2;
     double lbc=dim==vpsc::HORIZONTAL?
         len(b,c,dxbc,dybc,dxbc2,dybc2):
         len(b,c,dybc,dxbc,dybc2,dxbc2);
-    ASSERT(lbc!=0);
+    COLA_ASSERT(lbc!=0);
     double dxcd, dycd, dxcd2, dycd2;
     double lcd=dim==vpsc::HORIZONTAL?
         len(c,d,dxcd,dycd,dxcd2,dycd2):
         len(c,d,dycd,dxcd,dycd2,dxcd2);
-    ASSERT(lcd!=0);
+    COLA_ASSERT(lcd!=0);
     return dl*(1/lbc - dxbc2/(lbc*lbc*lbc))
         +(dxab/lab - dxbc/lbc)*(dxbc/lbc - dxcd/lcd);
 }
@@ -196,22 +196,22 @@ double hRule8(const EdgePoint* u, const EdgePoint* v, const EdgePoint* w,
     double luv=dim==vpsc::HORIZONTAL?
         len(u,v,dxuv,dyuv,dxuv2,dyuv2):
         len(u,v,dyuv,dxuv,dyuv2,dxuv2);
-    ASSERT(luv!=0);
+    COLA_ASSERT(luv!=0);
     double dxvw, dyvw, dxvw2, dyvw2;
     double lvw=dim==vpsc::HORIZONTAL?
         len(v,w,dxvw,dyvw,dxvw2,dyvw2):
         len(v,w,dyvw,dxvw,dyvw2,dxvw2);
-    ASSERT(lvw!=0);
+    COLA_ASSERT(lvw!=0);
     double dxab, dyab, dxab2, dyab2;
     double lab=dim==vpsc::HORIZONTAL?
         len(a,b,dxab,dyab,dxab2,dyab2):
         len(a,b,dyab,dxab,dyab2,dxab2);
-    ASSERT(lab!=0);
+    COLA_ASSERT(lab!=0);
     double dxbc, dybc, dxbc2, dybc2;
     double lbc=dim==vpsc::HORIZONTAL?
         len(b,c,dxbc,dybc,dxbc2,dybc2):
         len(b,c,dybc,dxbc,dybc2,dxbc2);
-    ASSERT(lbc!=0);
+    COLA_ASSERT(lbc!=0);
     return (dxuv/luv - dxvw/lvw) * (dxab/lab - dxbc/lbc);
 }
 /**
@@ -253,7 +253,7 @@ computeForces(valarray<double>& gradient, cola::SparseMap& hessian) {
         e->getPath(path);
         unsigned n=path.size();
         FILE_LOG(logDEBUG2) << "  path: n="<<n;
-        ASSERT(n>=2);
+        COLA_ASSERT(n>=2);
         double d=e->idealLength;
 
         double weight=2.0/(d*d);
@@ -264,7 +264,7 @@ computeForces(valarray<double>& gradient, cola::SparseMap& hessian) {
         // first and last entries
         // gradient
         u=path[0]; v=path[1];
-        ASSERT(v->inSegment->length()>0);
+        COLA_ASSERT(v->inSegment->length()>0);
         double h=weight*hRuleD1(u,v,dl);
         H(u,u)+=h;
         double g1=weight*dl*gRule1(u,v);
@@ -283,8 +283,8 @@ computeForces(valarray<double>& gradient, cola::SparseMap& hessian) {
         // remaining diagonal entries
         for(unsigned j=1;j<n-1;j++) {
             u=path[j-1], v=path[j], w=path[j+1];
-            ASSERT(v->inSegment->length()>0);
-            ASSERT(w->inSegment->length()>0);
+            COLA_ASSERT(v->inSegment->length()>0);
+            COLA_ASSERT(w->inSegment->length()>0);
             H(v,v)+=weight*hRuleD2(u,v,w,dl);
             g[v]+=weight*dl*gRule2(u,v,w);
         }
@@ -333,7 +333,7 @@ computeForces(valarray<double>& gradient, cola::SparseMap& hessian) {
         }
     }
     for(unsigned i=0;i<gradient.size();i++) {
-        ASSERT(gradient[i]==gradient[i]);
+        COLA_ASSERT(gradient[i]==gradient[i]);
     }
     /*
     for(unsigned i=0;i<edges.size();i++) {

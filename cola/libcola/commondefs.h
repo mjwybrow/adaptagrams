@@ -61,7 +61,7 @@ public:
         array=false; 
     }
     void set(const unsigned i, const bool value=true) {
-        ASSERT(i<array.size());
+        COLA_ASSERT(i<array.size());
         array[i]=value;
     }
     bool check(const unsigned i) const {

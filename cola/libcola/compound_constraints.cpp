@@ -76,7 +76,7 @@ void BoundaryConstraint::generateSeparationConstraints(const vpsc::Dim dim,
 {
     if (dim == _primaryDim)
     {
-        ASSERT(variable != NULL);
+        COLA_ASSERT(variable != NULL);
         // Constrain the left objects to be to the left of the boundary.
         for (OffsetList::iterator o = leftOffsets.begin();
                 o != leftOffsets.end(); ++o) 
@@ -164,7 +164,7 @@ void AlignmentConstraint::generateSeparationConstraints(const vpsc::Dim dim,
 {
     if (dim == _primaryDim)
     {
-        ASSERT(variable != NULL);
+        COLA_ASSERT(variable != NULL);
         // Constrain each object to be offset from the guideline by
         // some exact amount.
         for (OffsetList::iterator o = offsets.begin();

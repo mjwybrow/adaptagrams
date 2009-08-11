@@ -82,7 +82,7 @@ void convex(const unsigned n, const double* X, const double* Y, vector<unsigned>
  */
 void convex(valarray<double> const & X, valarray<double> const & Y, vector<unsigned> & h) {
     unsigned n=X.size();
-    ASSERT(n==Y.size());
+    COLA_ASSERT(n==Y.size());
     unsigned p0=0;
     // find point p0 with min Y position, choose leftmost in case of tie.
     // This is our "pivot" point

@@ -176,7 +176,7 @@ namespace cola {
 			const vpsc::Dim dim,
 			const vpsc::Rectangles& rs, 
 			vpsc::Variables& vars) {
-        ASSERT(clusters.size()>0||nodes.size()>0);
+        COLA_ASSERT(clusters.size()>0||nodes.size()>0);
         for(vector<Cluster*>::iterator i=clusters.begin();i!=clusters.end();i++) {
             (*i)->createVars(dim,rs,vars);
         }
@@ -208,7 +208,7 @@ namespace cola {
 			const vpsc::Rectangles& rs,
 			const vpsc::Variables& vars,
             vpsc::Constraints& cs) {
-        ASSERT(clusters.size()>0||nodes.size()>0);
+        COLA_ASSERT(clusters.size()>0||nodes.size()>0);
         for(unsigned i=0;i<clusters.size();i++) {
             Cluster* c=clusters[i];
             c->generateNonOverlapConstraints(dim,nonOverlapConstraints,rs,vars,cs);

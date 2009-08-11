@@ -163,7 +163,7 @@ namespace topology {
          * @param e an EdgePoint (not this one)
          */
         bool uniqueCheck(const EdgePoint* e) const {
-            ASSERT(this!=e);
+            COLA_ASSERT(this!=e);
             return node==e->node && rectIntersect==e->rectIntersect;
         }
         ~EdgePoint();
@@ -208,9 +208,9 @@ namespace topology {
             : edge(edge), start(start), end(end) 
         {
             // no self loops!
-            ASSERT(start!=end);
+            COLA_ASSERT(start!=end);
             // the ends of the segment should not involve the same rectangle vertex
-            ASSERT(!start->uniqueCheck(end));
+            COLA_ASSERT(!start->uniqueCheck(end));
             start->outSegment=this;
             end->inSegment=this;
         }
@@ -315,7 +315,7 @@ namespace topology {
             double ux=s->pos(dim) , vx=e->pos(dim),
                    uy=s->pos(vpsc::conjugate(dim)), vy=e->pos(vpsc::conjugate(dim));
             double denom = vy - uy;
-            ASSERT(denom!=0); // must not be parallel to scanline!
+            COLA_ASSERT(denom!=0); // must not be parallel to scanline!
             p = (pos - uy)/denom;
             return ux + p * (vx-ux);
         }

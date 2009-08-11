@@ -198,7 +198,7 @@ void Blocks::split(Block *b, Block *&l, Block *&r, Constraint *c) {
 	f<<"Split right: "<<*r<<endl;
 #endif
 	r->posn = b->posn;
-	//ASSERT(r->weight!=0);
+	//COLA_ASSERT(r->weight!=0);
 	//r->wposn = r->posn * r->weight;
 	mergeLeft(l);
 	// r may have been merged!
@@ -210,8 +210,8 @@ void Blocks::split(Block *b, Block *&l, Block *&r, Constraint *c) {
 
 	insert(l);
 	insert(r);
-	ASSERT(__NOTNAN(l->posn));
-	ASSERT(__NOTNAN(r->posn));
+	COLA_ASSERT(__NOTNAN(l->posn));
+	COLA_ASSERT(__NOTNAN(r->posn));
 }
 /**
  * returns the cost total squared distance of variables from their desired

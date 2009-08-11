@@ -182,7 +182,7 @@ void PairingHeap<T,TCompare>::deleteMin( )
         root = NULL;
     else
         root = combineSiblings( root->leftChild );
-    ASSERT(counter);
+    COLA_ASSERT(counter);
     counter--;
     delete oldRoot;
 }
@@ -230,7 +230,7 @@ template <class T,class TCompare>
 void PairingHeap<T,TCompare>::decreaseKey( PairNode<T> *p,
 				  const T & newVal )
 {
-	ASSERT(!lessThan(p->element,newVal)); // newVal cannot be bigger
+	COLA_ASSERT(!lessThan(p->element,newVal)); // newVal cannot be bigger
 	p->element = newVal;
 	if( p != root )
 	{

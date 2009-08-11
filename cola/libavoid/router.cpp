@@ -54,32 +54,32 @@ class ActionInfo {
               newPoly(p),
               firstMove(fM)
         {
-            ASSERT(type == ShapeMove);
+            COLA_ASSERT(type == ShapeMove);
         }
         ActionInfo(ActionType t, ShapeRef *s)
             : type(t),
               objPtr(s)
         {
-            ASSERT(type != ConnChange);
+            COLA_ASSERT(type != ConnChange);
         }
         ActionInfo(ActionType t, ConnRef *c)
             : type(t),
               objPtr(c)
         {
-            ASSERT(type == ConnChange);
+            COLA_ASSERT(type == ConnChange);
         }
         ~ActionInfo()
         {
         }
         ShapeRef *shape(void) const
         {
-            ASSERT((type == ShapeMove) || (type == ShapeAdd) || 
+            COLA_ASSERT((type == ShapeMove) || (type == ShapeAdd) || 
                     (type == ShapeRemove));
             return (static_cast<ShapeRef *> (objPtr));
         }
         ConnRef *conn(void) const
         {
-            ASSERT(type == ConnChange);
+            COLA_ASSERT(type == ConnChange);
             return (static_cast<ConnRef *> (objPtr));
         }
         bool operator==(const ActionInfo& rhs) const
@@ -130,7 +130,7 @@ Router::Router(const unsigned int flags)
       _inCrossingPenaltyReroutingStage(false)
 {
     // At least one of the Routing modes must be set.
-    ASSERT(flags & (PolyLineRouting | OrthogonalRouting));
+    COLA_ASSERT(flags & (PolyLineRouting | OrthogonalRouting));
 
     if (flags & PolyLineRouting)
     {
@@ -178,10 +178,10 @@ Router::~Router()
     // Cleanup orphaned orthogonal graph vertices.
     destroyOrthogonalVisGraph();
 
-    ASSERT(connRefs.size() == 0);
-    ASSERT(shapeRefs.size() == 0);
-    ASSERT(visGraph.size() == 0);
-    ASSERT(invisGraph.size() == 0);
+    COLA_ASSERT(connRefs.size() == 0);
+    COLA_ASSERT(shapeRefs.size() == 0);
+    COLA_ASSERT(visGraph.size() == 0);
+    COLA_ASSERT(invisGraph.size() == 0);
 }
 
 
@@ -245,9 +245,9 @@ void Router::addShape(ShapeRef *shape)
     // There shouldn't be remove events or move events for the same shape
     // already in the action list.
     // XXX: Possibly we could handle this by ordering them intelligently.
-    ASSERT(find(actionList.begin(), actionList.end(), 
+    COLA_ASSERT(find(actionList.begin(), actionList.end(), 
                 ActionInfo(ShapeRemove, shape)) == actionList.end());
-    ASSERT(find(actionList.begin(), actionList.end(), 
+    COLA_ASSERT(find(actionList.begin(), actionList.end(), 
                 ActionInfo(ShapeMove, shape)) == actionList.end());
 
     ActionInfo addInfo(ShapeAdd, shape);
@@ -271,7 +271,7 @@ void Router::removeShape(ShapeRef *shape)
     // There shouldn't be add events events for the same shape already 
     // in the action list.
     // XXX: Possibly we could handle this by ordering them intelligently.
-    ASSERT(find(actionList.begin(), actionList.end(), 
+    COLA_ASSERT(find(actionList.begin(), actionList.end(), 
                 ActionInfo(ShapeAdd, shape)) == actionList.end());
 
     // Delete any ShapeMove entries for this shape in the action list.
@@ -312,7 +312,7 @@ void Router::moveShape(ShapeRef *shape, const Polygon& newPoly,
     // There shouldn't be remove events or add events for the same shape
     // already in the action list.
     // XXX: Possibly we could handle this by ordering them intelligently.
-    ASSERT(find(actionList.begin(), actionList.end(), 
+    COLA_ASSERT(find(actionList.begin(), actionList.end(), 
                 ActionInfo(ShapeRemove, shape)) == actionList.end());
     
     if (find(actionList.begin(), actionList.end(), 
@@ -589,7 +589,7 @@ void Router::delCluster(ClusterRef *cluster)
 
 void Router::setOrthogonalNudgeDistance(const double dist)
 {
-    ASSERT(dist >= 0);
+    COLA_ASSERT(dist >= 0);
     _orthogonalNudgeDistance = dist;
 }
 
@@ -611,7 +611,7 @@ unsigned int Router::assignId(const unsigned int suggestedId)
     _largestAssignedId = std::max(_largestAssignedId, assignedId);
 
     // If assertions are enabled, then we check that this ID really is unique.
-    ASSERT(idIsUnique(assignedId));
+    COLA_ASSERT(idIsUnique(assignedId));
 
     return assignedId;
 }
@@ -907,7 +907,7 @@ void Router::newBlockingShape(const Polygon& poly, int pid)
 
 void Router::checkAllBlockedEdges(int pid)
 {
-    ASSERT(InvisibilityGrph);
+    COLA_ASSERT(InvisibilityGrph);
 
     for (EdgeInf *iter = invisGraph.begin(); iter != invisGraph.end() ; )
     {
@@ -929,7 +929,7 @@ void Router::checkAllBlockedEdges(int pid)
 
 void Router::checkAllMissingEdges(void)
 {
-    ASSERT(!InvisibilityGrph);
+    COLA_ASSERT(!InvisibilityGrph);
 
     VertInf *first = vertices.connsBegin();
 
@@ -1060,7 +1060,7 @@ void Router::markConnectors(ShapeRef *shape)
         return;
     }
 
-    ASSERT(SelectiveReroute);
+    COLA_ASSERT(SelectiveReroute);
 
     ConnRefList::const_iterator end = connRefs.end();
     for (ConnRefList::const_iterator it = connRefs.begin(); it != end; ++it)
@@ -1273,7 +1273,7 @@ ConnType Router::validConnType(const ConnType select) const
 
 void Router::setRoutingPenalty(const PenaltyType penType, const double penVal)
 {
-    ASSERT(penType < lastPenaltyMarker);
+    COLA_ASSERT(penType < lastPenaltyMarker);
     if (penVal < 0)
     {
         // Set some sensible penalty.
@@ -1308,14 +1308,14 @@ void Router::setRoutingPenalty(const PenaltyType penType, const double penVal)
 
 double Router::routingPenalty(const PenaltyType penType) const
 {
-    ASSERT(penType < lastPenaltyMarker);
+    COLA_ASSERT(penType < lastPenaltyMarker);
     return _routingPenalties[penType];
 }
 
 
 double& Router::penaltyRef(const PenaltyType penType)
 {
-    ASSERT(penType < lastPenaltyMarker);
+    COLA_ASSERT(penType < lastPenaltyMarker);
     return _routingPenalties[penType];
 }
 

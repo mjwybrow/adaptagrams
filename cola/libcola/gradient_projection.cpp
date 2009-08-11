@@ -164,7 +164,7 @@ double GradientProjection::computeSteepestDescentVector(
     //
     //  except the 2s don't matter because we compute 
     //  the optimal stepsize anyway
-    ASSERT(x.size()==b.size() && b.size()==g.size());
+    COLA_ASSERT(x.size()==b.size() && b.size()==g.size());
     g = b;
     for (unsigned i=0; i<denseSize; i++) {
         for (unsigned j=0; j<denseSize; j++) {
@@ -184,7 +184,7 @@ double GradientProjection::computeSteepestDescentVector(
 //    stepsize = ( g' d ) / ( d' A d )
 double GradientProjection::computeStepSize(
         valarray<double> const & g, valarray<double> const & d) const {
-    ASSERT(g.size()==d.size());
+    COLA_ASSERT(g.size()==d.size());
     valarray<double> Ad;
     if(sparseQ) {
         Ad.resize(g.size());
@@ -243,10 +243,10 @@ bool GradientProjection::runSolver(valarray<double> & result) {
 unsigned GradientProjection::solve(
         valarray<double> const &linearCoefficients, 
         valarray<double> &x) {
-    ASSERT(linearCoefficients.size()==x.size());
-    ASSERT(x.size()==denseSize);
-    ASSERT(numStaticVars>=denseSize);
-    ASSERT(sparseQ==NULL || sparseQ!=NULL && vars.size()==sparseQ->rowSize());
+    COLA_ASSERT(linearCoefficients.size()==x.size());
+    COLA_ASSERT(x.size()==denseSize);
+    COLA_ASSERT(numStaticVars>=denseSize);
+    COLA_ASSERT(sparseQ==NULL || sparseQ!=NULL && vars.size()==sparseQ->rowSize());
 	if(max_iterations==0) return 0;
 
 	bool converged=false;
@@ -278,8 +278,8 @@ unsigned GradientProjection::solve(
     // load desired positions into vars, note that we keep desired positions 
     // already calculated for dummy vars
     for (unsigned i=0;i<x.size();i++) {
-        ASSERT(!isnan(x[i]));
-        ASSERT(!isinf(x[i]));
+        COLA_ASSERT(!isnan(x[i]));
+        COLA_ASSERT(!isinf(x[i]));
         b[i]=i<linearCoefficients.size()?linearCoefficients[i]:0;
         result[i]=x[i];
         if(scaling) {
@@ -313,8 +313,8 @@ unsigned GradientProjection::solve(
 			result[i]+=step;
             //printf("   after unconstrained step: x[%d]=%f\n",i,result[i]);
             stepSize+=step*step;
-            ASSERT(!isnan(result[i]));
-            ASSERT(!isinf(result[i]));
+            COLA_ASSERT(!isnan(result[i]));
+            COLA_ASSERT(!isinf(result[i]));
             if(!vars[i]->fixedDesiredPosition) vars[i]->desiredPosition=result[i];
 		}
 
@@ -350,7 +350,7 @@ unsigned GradientProjection::solve(
         //if(counter%2) {
             double cost = computeCost(b,result);
             printf("     gp[%d] %.15f %.15f\n",counter,previousCost,cost);
-            //ASSERT(previousCost>cost);
+            //COLA_ASSERT(previousCost>cost);
             if(fabs(previousCost - cost) < tolerance) {
                 converged = true;
             }
@@ -469,15 +469,15 @@ void GradientProjection::straighten(
     vector<SeparationConstraint*> const & cs,
     vector<straightener::Node*> const & snodes) 
 {
-    ASSERT(Q->rowSize()==snodes.size());
-    ASSERT(vars.size()==numStaticVars);
+    COLA_ASSERT(Q->rowSize()==snodes.size());
+    COLA_ASSERT(vars.size()==numStaticVars);
     sparseQ = Q;
     for(unsigned i=numStaticVars;i<snodes.size();i++) {
         Variable* v=new vpsc::Variable(i,snodes[i]->pos[k],1);
-        ASSERT(v->desiredPosition==snodes[i]->pos[k]);
+        COLA_ASSERT(v->desiredPosition==snodes[i]->pos[k]);
         vars.push_back(v);
     }
-    ASSERT(lcs.size()==0);
+    COLA_ASSERT(lcs.size()==0);
     for(vector<SeparationConstraint*>::const_iterator i=cs.begin();i!=cs.end();i++) {
         (*i)->generateSeparationConstraints(k, vars, lcs); 
     }

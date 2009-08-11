@@ -75,7 +75,7 @@ void Block::addVariable(Variable* v) {
 	//posn=wposn/weight;
 	ps.addVariable(v);
 	posn=(ps.AD - ps.AB) / ps.A2;
-	ASSERT(__NOTNAN(posn));
+	COLA_ASSERT(__NOTNAN(posn));
 	/*
 #ifdef LIBVPSC_LOGGING
 	ofstream f(LOGFILE,ios::app);
@@ -107,7 +107,7 @@ void Block::updateWeightedPosition() {
 		ps.addVariable(*v);
 	}
 	posn=(ps.AD - ps.AB) / ps.A2;
-	ASSERT(__NOTNAN(posn));
+	COLA_ASSERT(__NOTNAN(posn));
 #ifdef LIBVPSC_LOGGING
 	ofstream f(LOGFILE,ios::app);
 	f << ", posn=" << posn << endl;
@@ -191,9 +191,9 @@ void Block::merge(Block *b, Constraint *c, double dist) {
 	f<<"  AD="<<ps.AD<<" AB="<<ps.AB<<" A2="<<ps.A2<<endl;
 #endif
 	//posn=wposn/weight;
-	//ASSERT(wposn==ps.AD - ps.AB);
+	//COLA_ASSERT(wposn==ps.AD - ps.AB);
 	posn=(ps.AD - ps.AB) / ps.A2;
-	ASSERT(__NOTNAN(posn));
+	COLA_ASSERT(__NOTNAN(posn));
 	b->deleted=true;
 }
 
@@ -513,7 +513,7 @@ Constraint *Block::findMinLMBetween(Variable* const lv, Variable* const rv) {
 		getActivePathBetween(e.path,lv,rv,NULL);
 		throw e;
 	}
-	ASSERT(min_lm!=NULL);
+	COLA_ASSERT(min_lm!=NULL);
 #endif
 	return min_lm;
 }
@@ -614,10 +614,10 @@ void Block::split(Block* &l, Block* &r, Constraint* c) {
 	c->active=false;
 	l=new Block();
 	populateSplitBlock(l,c->left,c->right);
-	//ASSERT(l->weight>0);
+	//COLA_ASSERT(l->weight>0);
 	r=new Block();
 	populateSplitBlock(r,c->right,c->left);
-	//ASSERT(r->weight>0);
+	//COLA_ASSERT(r->weight>0);
 }
 
 /**

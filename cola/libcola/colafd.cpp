@@ -48,7 +48,7 @@ void delete_vector(vector<T*> &v) {
 Resizes PreIteration::__resizesNotUsed;
 Locks PreIteration::__locksNotUsed;
 inline double dotProd(valarray<double> x, valarray<double> y) {
-    ASSERT(x.size()==y.size());
+    COLA_ASSERT(x.size()==y.size());
     double dp=0;
     for(unsigned i=0;i<x.size();i++) {
         dp+=x[i]*y[i]; 
@@ -181,8 +181,8 @@ void ConstrainedFDLayout::computePathLengths(
 typedef valarray<double> Position;
 void getPosition(Position& X, Position& Y, Position& pos) {
     unsigned n=X.size();
-    ASSERT(Y.size()==n);
-    ASSERT(pos.size()==2*n);
+    COLA_ASSERT(Y.size()==n);
+    COLA_ASSERT(pos.size()==2*n);
     for(unsigned i=0;i<n;++i) {
         pos[i]=X[i];
         pos[i+n]=Y[i];
@@ -194,8 +194,8 @@ void getPosition(Position& X, Position& Y, Position& pos) {
  * @param pos target positions of both axes
  */
 void ConstrainedFDLayout::setPosition(Position& pos) {
-    ASSERT(Y.size()==X.size());
-    ASSERT(pos.size()==2*X.size());
+    COLA_ASSERT(Y.size()==X.size());
+    COLA_ASSERT(pos.size()==2*X.size());
     moveTo(vpsc::HORIZONTAL,pos);
     moveTo(vpsc::VERTICAL,pos);
 }
@@ -300,7 +300,7 @@ void ConstrainedFDLayout::setTopology(std::vector<topology::Node*>* tnodes,
 {
     // Setting nodes with NULL routes will result in strange behaviour,
     // so catch this case.  An empy list for topologyRoutes is okay though.
-    ASSERT(!topologyNodes || topologyRoutes);
+    COLA_ASSERT(!topologyNodes || topologyRoutes);
 
     topologyNodes=tnodes;
     topologyRoutes=routes;
@@ -369,7 +369,7 @@ void project(vpsc::Variables& vs, vpsc::Constraints& cs, valarray<double>& coord
 }
 void setVariableDesiredPositions(vpsc::Variables& vs, vpsc::Constraints& cs, const topology::DesiredPositions& des, valarray<double>& coords) {
     unsigned n=coords.size();
-    ASSERT(vs.size()>=n);
+    COLA_ASSERT(vs.size()>=n);
     for(unsigned i=0;i<n;++i) {
         vpsc::Variable* v=vs[i];
         v->desiredPosition = coords[i];
@@ -377,7 +377,7 @@ void setVariableDesiredPositions(vpsc::Variables& vs, vpsc::Constraints& cs, con
     }
     for(topology::DesiredPositions::const_iterator d=des.begin();
             d!=des.end();++d) {
-        ASSERT(d->first<vs.size());
+        COLA_ASSERT(d->first<vs.size());
         vpsc::Variable* v=vs[d->first];
         v->desiredPosition = d->second;
         v->weight=10000;
@@ -396,10 +396,10 @@ void checkUnsatisfiable(const vpsc::Constraints& cs,
 void ConstrainedFDLayout::handleResizes(const Resizes& resizeList) {
     FILE_LOG(logDEBUG) << "ConstrainedFDLayout::handleResizes()...";
     if(topologyNodes==NULL) {
-        ASSERT(topologyRoutes==NULL);
+        COLA_ASSERT(topologyRoutes==NULL);
         return;
     }
-    ASSERT(topologyRoutes!=NULL);
+    COLA_ASSERT(topologyRoutes!=NULL);
     // all shapes to be resized are wrapped in a ResizeInfo and
     // placed in a lookup table, resizes, indexed by id
     topology::ResizeMap resizes;
@@ -425,7 +425,7 @@ void ConstrainedFDLayout::handleResizes(const Resizes& resizeList) {
  * @param target array of desired positions (for both axes)
  */
 void ConstrainedFDLayout::moveTo(const vpsc::Dim dim, Position& target) {
-    ASSERT(target.size()==2*n);
+    COLA_ASSERT(target.size()==2*n);
     FILE_LOG(logDEBUG) << "ConstrainedFDLayout::moveTo(): dim="<<dim;
     valarray<double> &coords = (dim==vpsc::HORIZONTAL)?X:Y;
     vpsc::Variables vs;
@@ -569,8 +569,8 @@ double ConstrainedFDLayout::applyDescentVector(
         const double oldStress,
         double stepsize
         ) {
-    ASSERT(d.size()==oldCoords.size());
-    ASSERT(d.size()==coords.size());
+    COLA_ASSERT(d.size()==oldCoords.size());
+    COLA_ASSERT(d.size()==coords.size());
     while(fabs(stepsize)>0.00000000001) {
         coords=oldCoords-stepsize*d;
         double stress=computeStress();
@@ -642,15 +642,15 @@ double ConstrainedFDLayout::computeStepSize(
         valarray<double> const &g, 
         valarray<double> const &d) const
 {
-    ASSERT(g.size()==d.size());
-    ASSERT(g.size()==H.rowSize());
+    COLA_ASSERT(g.size()==d.size());
+    COLA_ASSERT(g.size()==H.rowSize());
     // stepsize = g'd / (d' H d)
     double numerator = dotProd(g,d);
     valarray<double> Hd(d.size());
     H.rightMultiply(d,Hd);
     double denominator = dotProd(d,Hd);
-    //ASSERT(numerator>=0);
-    //ASSERT(denominator>=0);
+    //COLA_ASSERT(numerator>=0);
+    //COLA_ASSERT(denominator>=0);
     if(denominator==0) return 0;
     return numerator/denominator;
 }

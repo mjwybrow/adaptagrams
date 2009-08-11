@@ -52,7 +52,7 @@ bool inBetween(const Point& a, const Point& b, const Point& c)
 {
     // We only call this when we know the points are collinear,
     // otherwise we should be checking this here.
-    ASSERT(vecDir(a, b, c, 0.0001) == 0);
+    COLA_ASSERT(vecDir(a, b, c, 0.0001) == 0);
 
     if ((fabs(a.x - b.x) > 1) && (a.x != b.x))
     {

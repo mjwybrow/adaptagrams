@@ -275,8 +275,8 @@ void ConnRef::common_updateEndPoint(const unsigned int type, const ConnEnd& conn
     const Point& point = connEnd.point();
     //db_printf("common_updateEndPoint(%d,(pid=%d,vn=%d,(%f,%f)))\n",
     //      type,point.id,point.vn,point.x,point.y);
-    ASSERT((type == (unsigned int) VertID::src) ||
-           (type == (unsigned int) VertID::tar));
+    COLA_ASSERT((type == (unsigned int) VertID::src) ||
+                (type == (unsigned int) VertID::tar));
     
     if (!_initialised)
     {
@@ -431,7 +431,7 @@ unsigned int ConnRef::getDstShapeId(void)
 
 void ConnRef::makeActive(void)
 {
-    ASSERT(!_active);
+    COLA_ASSERT(!_active);
     
     // Add to connRefs list.
     _pos = _router->connRefs.insert(_router->connRefs.begin(), this);
@@ -441,7 +441,7 @@ void ConnRef::makeActive(void)
 
 void ConnRef::makeInactive(void)
 {
-    ASSERT(_active);
+    COLA_ASSERT(_active);
     
     // Remove from connRefs list.
     _router->connRefs.erase(_pos);
@@ -618,11 +618,11 @@ bool validateBendPoint(VertInf *aInf, VertInf *bInf, VertInf *cInf)
         return bendOkay;
     }
 
-    ASSERT(bInf != NULL);
+    COLA_ASSERT(bInf != NULL);
     VertInf *dInf = bInf->shPrev;
     VertInf *eInf = bInf->shNext;
-    ASSERT(dInf != NULL);
-    ASSERT(eInf != NULL);
+    COLA_ASSERT(dInf != NULL);
+    COLA_ASSERT(eInf != NULL);
 
     Point& a = aInf->point;
     Point& b = bInf->point;
@@ -657,7 +657,7 @@ bool validateBendPoint(VertInf *aInf, VertInf *bInf, VertInf *cInf)
     }
     else // (abc != 0)
     {
-        ASSERT(vecDir(d, b, e) > 0);
+        COLA_ASSERT(vecDir(d, b, e) > 0);
         int abe = vecDir(a, b, e);
         int abd = vecDir(a, b, d);
         int bce = vecDir(b, c, e);
@@ -704,7 +704,7 @@ bool ConnRef::generatePath(void)
         return false;
     }
     
-    //ASSERT(_srcVert->point != _dstVert->point);
+    //COLA_ASSERT(_srcVert->point != _dstVert->point);
 
     _false_path = false;
     _needs_reroute_flag = false;
@@ -718,7 +718,7 @@ bool ConnRef::generatePath(void)
     const PolyLine& currRoute = route();
     if (_router->RubberBandRouting)
     {
-        ASSERT(_router->IgnoreRegions == true);
+        COLA_ASSERT(_router->IgnoreRegions == true);
 
 #ifdef PATHDEBUG
         db_printf("\n");
@@ -737,7 +737,7 @@ bool ConnRef::generatePath(void)
             if (_srcVert->point == currRoute.ps[0])
             {
                 existingPathStart = currRoute.size() - 2;
-                ASSERT(existingPathStart != 0);
+                COLA_ASSERT(existingPathStart != 0);
                 const Point& pnt = currRoute.at(existingPathStart);
                 bool isShape = true;
                 VertID vID(pnt.id, isShape, pnt.vn);
@@ -775,7 +775,7 @@ bool ConnRef::generatePath(void)
             VertID vID(pnt.id, isShape, pnt.vn);
 
             _startVert = _router->vertices.getVertexByID(vID);
-            ASSERT(_startVert);
+            COLA_ASSERT(_startVert);
         }
         else if (_router->RubberBandRouting)
         {
@@ -811,7 +811,7 @@ bool ConnRef::generatePath(void)
                 VertID vID(pnt.id, isShape, pnt.vn);
 
                 _startVert = _router->vertices.getVertexByID(vID);
-                ASSERT(_startVert);
+                COLA_ASSERT(_startVert);
 
                 found = false;
             }
@@ -834,13 +834,13 @@ bool ConnRef::generatePath(void)
             {
                 // TODO:  Could we know this edge already?
                 EdgeInf *edge = EdgeInf::existingEdge(_srcVert, tar);
-                ASSERT(edge != NULL);
+                COLA_ASSERT(edge != NULL);
                 edge->addCycleBlocker();
             }
             break;
         }
         // Check we don't have an apparent infinite connector path.
-        ASSERT(pathlen < 200);
+        COLA_ASSERT(pathlen < 200);
     }
     std::vector<Point> path(pathlen);
 
@@ -851,7 +851,7 @@ bool ConnRef::generatePath(void)
         {
             // TODO: Again, we could know this edge without searching.
             EdgeInf *edge = EdgeInf::existingEdge(i, i->pathNext);
-            ASSERT(edge != NULL);
+            COLA_ASSERT(edge != NULL);
             edge->addConn(flag);
         }
         else
@@ -877,7 +877,7 @@ bool ConnRef::generatePath(void)
             {
                 // Check for consecutive points on opposite 
                 // corners of two touching shapes.
-                ASSERT(abs(i->pathNext->id.objID - i->id.objID) != 2);
+                COLA_ASSERT(abs(i->pathNext->id.objID - i->id.objID) != 2);
             }
         }
     }
@@ -979,7 +979,7 @@ bool PtOrder::addPoints(const int dim, PtConnPtrPair innerArg,
 {
     PtConnPtrPair inner = (swapped) ? outerArg : innerArg;
     PtConnPtrPair outer = (swapped) ? innerArg : outerArg;
-    ASSERT(inner != outer);
+    COLA_ASSERT(inner != outer);
 
     //printf("addPoints(%d, [%g, %g]-%X, [%g, %g]-%X)\n", dim,
     //        inner->x, inner->y, (int) inner, outer->x, outer->y, (int) outer);
@@ -1010,7 +1010,7 @@ bool PtOrder::addPoints(const int dim, PtConnPtrPair innerArg,
         outerPtr = new PointRep(outer.first, outer.second);
         connList[dim].push_back(outerPtr);
     }
-    // TODO ASSERT(innerPtr->inner_set.find(outerPtr) == innerPtr->inner_set.end());
+    // TODO COLA_ASSERT(innerPtr->inner_set.find(outerPtr) == innerPtr->inner_set.end());
     bool cycle = innerPtr->follow_inner(outerPtr);
     if (cycle)
     {
@@ -1032,7 +1032,7 @@ static bool pointRepLessThan(PointRep *r1, PointRep *r2)
 {
     size_t r1less = r1->inner_set.size();
     size_t r2less = r2->inner_set.size();
-    ASSERT(r1less != r2less);
+    COLA_ASSERT(r1less != r2less);
 
     return (r1less > r2less);
 }
@@ -1081,7 +1081,7 @@ static int midVertexNumber(const Point& p0, const Point& p1, const Point& c)
         }
         return vn_mid + 4;
     }
-    ASSERT((p0.x == p1.x) || (p0.y == p1.y));
+    COLA_ASSERT((p0.x == p1.x) || (p0.y == p1.y));
     if (p0.vn != kUnassignedVertexNumber)
     {
         if (p0.x == p1.x)
@@ -1260,8 +1260,8 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
         // cIndex is going to be the last, so take into account added points.
         cIndex += (conn.size() - conn_pn);
     }
-    ASSERT(cIndex >= 1);
-    ASSERT(cIndex < conn.size());
+    COLA_ASSERT(cIndex >= 1);
+    COLA_ASSERT(cIndex < conn.size());
 
     bool polyIsOrthogonal = (polyConnRef && 
             (polyConnRef->routingType() == ConnType_Orthogonal));
@@ -1342,7 +1342,7 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
             
             // If here and not converging, then we know that a2 != b2
             // And a2 and its pair in b are a split.
-            ASSERT(converging || !a2_eq_b2);
+            COLA_ASSERT(converging || !a2_eq_b2);
 
             bool shared_path = false;
             
@@ -1401,7 +1401,7 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
             {
                 crossingFlags |= CROSSING_SHARES_PATH;
                 // Shouldn't be here if p_dir is still equal to zero.
-                ASSERT(p_dir != 0);
+                COLA_ASSERT(p_dir != 0);
 
                 // Build the shared path, including the diverging points at
                 // each end if the connector does not end at a common point.
@@ -1510,7 +1510,7 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
                 if (pointOrders)
                 {
                     // Return the ordering for the shared path.
-                    ASSERT(c_path.size() > 0 || back_same);
+                    COLA_ASSERT(c_path.size() > 0 || back_same);
                     size_t adj_size = (c_path.size() - ((back_same) ? 0 : 1));
                     for (size_t i = (front_same) ? 0 : 1; i < adj_size; ++i)
                     {
@@ -1547,7 +1547,7 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
                     size_t startPt = (front_same) ? 0 : 1;
                     
                     // Orthogonal should always have at least one segment.
-                    ASSERT(c_path.size() > (startPt + 1));
+                    COLA_ASSERT(c_path.size() > (startPt + 1));
                     
                     if (startCornerSide > 0)
                     {
@@ -1556,13 +1556,13 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
 
                     int prevDir = 0;
                     // Return the ordering for the shared path.
-                    ASSERT(c_path.size() > 0 || back_same);
+                    COLA_ASSERT(c_path.size() > 0 || back_same);
                     size_t adj_size = (c_path.size() - ((back_same) ? 0 : 1));
                     for (size_t i = (front_same) ? 0 : 1; i < adj_size; ++i)
                     {
                         Avoid::Point& an = *(c_path[i]);
                         Avoid::Point& bn = *(p_path[i]);
-                        ASSERT(an == bn);
+                        COLA_ASSERT(an == bn);
 
                         int thisDir = prevDir;
                         if ((i > 0) && (*(c_path[i - 1]) == *(p_path[i - 1])))
@@ -1593,14 +1593,14 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
                                 // Reverse the order for later points.
                                 reversed = !reversed;
                             }
-                            ASSERT(ap == bp);
+                            COLA_ASSERT(ap == bp);
                             //printf("2: %X, %X\n", (int) &bp, (int) &ap);
                             orderSwapped = (*pointOrders)[ap].addPoints(
                                     orientation, 
                                     std::make_pair(&bp, polyConnRef), 
                                     std::make_pair(&ap, connConnRef), 
                                     reversed);
-                            ASSERT(!orderSwapped);
+                            COLA_ASSERT(!orderSwapped);
                         }
                     }
                 }
@@ -1662,8 +1662,8 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
                 //db_printf("Cross or touch at point... \n");
                 
                 // Crossing shouldn't be at an endpoint.
-                ASSERT(cIndex >= 2);
-                ASSERT(polyIsConn && (j >= 2));
+                COLA_ASSERT(cIndex >= 2);
+                COLA_ASSERT(polyIsConn && (j >= 2));
 
                 Avoid::Point& b0 = poly.ps[(j - 2 + poly_size) % poly_size];
                 Avoid::Point& a0 = conn.ps[cIndex - 2];
@@ -1702,7 +1702,7 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
                         { 
                             reversed = true; 
                         } 
-                        // TODO ASSERT((turnDirB != 0) || (turnDirA != 0)); 
+                        // TODO COLA_ASSERT((turnDirB != 0) || (turnDirA != 0)); 
                     }
                     VertID vID(b1.id, true, b1.vn);
                     //(*pointOrders)[b1].addPoints(&b1, &a1, reversed);
@@ -1734,10 +1734,10 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
                     // XXX: This shouldn't actually happen, because these
                     //      points should be added as bends to each line by
                     //      splitBranchingSegments().  Thus, lets ignore them.
-                    ASSERT(a1 != cPt);
-                    ASSERT(a2 != cPt);
-                    ASSERT(b1 != cPt);
-                    ASSERT(b2 != cPt);
+                    COLA_ASSERT(a1 != cPt);
+                    COLA_ASSERT(a2 != cPt);
+                    COLA_ASSERT(b1 != cPt);
+                    COLA_ASSERT(b2 != cPt);
                     continue;
                 }                
                 //db_printf("crossing lines:\n");

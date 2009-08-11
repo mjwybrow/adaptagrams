@@ -113,14 +113,14 @@ struct NodeOpen : NodeEvent {
             openNodes.insert(make_pair(node->rect->getCentreD(dim),this));
         // the following test fails if there is already an entry in
         // openNodes at this position
-        //ASSERT(r.second);
+        //COLA_ASSERT(r.second);
         if(!r.second) {
             const Node *n1=node;
             const Node *n2=((r.first)->second)->node;
             printf("scanpos %f, duplicate in open list at position: %f\n",pos,n1->rect->getCentreD(dim));
             printf("  id1=%d, id2=%d\n",n1->id, n2->id);
         }
-        ASSERT(r.second);
+        COLA_ASSERT(r.second);
         openListIndex = r.first;
         OpenNodes::iterator right=openListIndex, left=openListIndex;
         Node *leftNeighbour=NULL, *rightNeighbour=NULL;
@@ -154,7 +154,7 @@ struct NodeClose : NodeEvent {
         : NodeEvent(false,node->rect->getMaxD(!dim),node)
         , opening(o)
         , cs(cs) {
-        ASSERT(opening->node == node);
+        COLA_ASSERT(opening->node == node);
     }
     void createNonOverlapConstraint(const Node* left, const Node* right) {
         FILE_LOG(logDEBUG)<<"NodeClose::createNonOverlapConstraint left="<<left<<" right="<<right;
@@ -165,7 +165,7 @@ struct NodeClose : NodeEvent {
             //if(dim==vpsc::HORIZONTAL) {
                 g+=1e-7;
             //}
-            //ASSERT(l->getPosition() + g <= r->getPosition());
+            //COLA_ASSERT(l->getPosition() + g <= r->getPosition());
             cs.push_back(new vpsc::Constraint(left->var, right->var, g));
         //}
     }
@@ -234,7 +234,7 @@ struct SegmentClose : SegmentEvent {
     SegmentClose(Segment *s, SegmentOpen* so)
         : SegmentEvent(false,s->getMax(),s), opening(so) 
     {
-        ASSERT(opening->s==s);
+        COLA_ASSERT(opening->s==s);
     }
     void process() {
         OpenSegments::iterator i=openSegments.erase(opening->openListIndex);
@@ -317,11 +317,11 @@ struct CompareEvents {
             // close nodes before we open new ones so we don't generate
             // unnecessary non-overlap constraints
             if(aNO&&bNC) {
-                ASSERT(aNO->node!=bNC->node); // no zero height nodes thanks!
+                COLA_ASSERT(aNO->node!=bNC->node); // no zero height nodes thanks!
                 return false;
             }
             if(aNC&&bNO) {
-                ASSERT(aNC->node!=bNO->node); 
+                COLA_ASSERT(aNC->node!=bNO->node); 
                 return true;
             }
         }
@@ -336,13 +336,13 @@ TriConstraint::TriConstraint(
         double p, double g, bool left)
     : u(u), v(v), w(w), p(p), g(g), leftOf(left) 
 {
-    ASSERT(assertFeasible());
+    COLA_ASSERT(assertFeasible());
 }
 
 bool Segment::createStraightConstraint(Node* node, double pos) {
     // no straight constraints between a node directly connected by its CENTRE 
     // to this segment.
-    ASSERT(!connectedToNode(node));
+    COLA_ASSERT(!connectedToNode(node));
 	const double top = max(end->pos(vpsc::conjugate(dim)),start->pos(vpsc::conjugate(dim))), 
                  bottom = min(end->pos(vpsc::conjugate(dim)),start->pos(vpsc::conjugate(dim)));
     // segments orthogonal to scan direction need no StraightConstraints
@@ -352,8 +352,8 @@ bool Segment::createStraightConstraint(Node* node, double pos) {
         return false;
     }
     // segment must overlap in the scan dimension with the potential bend point
-    //ASSERT(bottom<=pos);
-    //ASSERT(top>=pos);
+    //COLA_ASSERT(bottom<=pos);
+    //COLA_ASSERT(top>=pos);
     vpsc::Rectangle* r=node->rect;
 	FILE_LOG(logDEBUG1)<<"Segment: from {"<<start->pos(dim)<<","<<start->pos(vpsc::conjugate(dim))<<"},{"<<end->pos(dim)<<","<<end->pos(vpsc::conjugate(dim))<<"}";
     FILE_LOG(logDEBUG1)<<"Node: rect "<<*r;
@@ -445,13 +445,13 @@ BendConstraint(EdgePoint* v)
     : bendPoint(v) 
 {
 	FILE_LOG(logDEBUG)<<"BendConstraint ctor, pos="<<v->pos(vpsc::conjugate(dim));
-    ASSERT(v->inSegment!=NULL);
-    ASSERT(v->outSegment!=NULL);
+    COLA_ASSERT(v->inSegment!=NULL);
+    COLA_ASSERT(v->outSegment!=NULL);
     // v must be a bend point around some node
-    ASSERT(!v->isEnd());
-    ASSERT(v->rectIntersect!=EdgePoint::CENTRE);
+    COLA_ASSERT(!v->isEnd());
+    COLA_ASSERT(v->rectIntersect!=EdgePoint::CENTRE);
     EdgePoint *u=v->inSegment->start, *w=v->outSegment->end;
-    ASSERT(v->assertConvexBend());
+    COLA_ASSERT(v->assertConvexBend());
     bool leftOf=false;
     if(dim==vpsc::HORIZONTAL) {
         if(v->rectIntersect==EdgePoint::TR || v->rectIntersect==EdgePoint::BR) {
@@ -510,7 +510,7 @@ bool TopologyConstraints::noOverlaps() const {
             cout<<"   overlapY="<<u->rect->overlapY(v->rect)<<endl;
             */
             if(u->rect->overlapX(v->rect)>e) {
-                ASSERT(u->rect->overlapY(v->rect)<e);
+                COLA_ASSERT(u->rect->overlapY(v->rect)<e);
             }
         }
     }
@@ -523,7 +523,7 @@ struct GetVariable {
     }
 };
 void getVariables(Nodes& ns, vpsc::Variables& vs) {
-    ASSERT(vs.size()==0);
+    COLA_ASSERT(vs.size()==0);
     vs.resize(ns.size());
     transform(ns.begin(),ns.end(),vs.begin(),GetVariable());
 }
@@ -559,12 +559,12 @@ struct PruneDegenerate {
             } 
             if(inSegLen==0 && o->inSegment
                     && !validTurn(o->inSegment->start,p,q)) {
-                ASSERT(validTurn(o->inSegment->start,o,q));
+                COLA_ASSERT(validTurn(o->inSegment->start,o,q));
                 FILE_LOG(logDEBUG)<<"Pruning node after 0 length segment!";
                 pruneList.push_back(p);
             } else if(outSegLen==0 && q->outSegment
                     && !validTurn(o,p,q->outSegment->end)) {
-                ASSERT(validTurn(o,q,q->outSegment->end));
+                COLA_ASSERT(validTurn(o,q,q->outSegment->end));
                 pruneList.push_back(p);
             }
         }
@@ -588,9 +588,9 @@ TopologyConstraints(
     FILELog::ReportingLevel() = logERROR;
     //FILELog::ReportingLevel() = logDEBUG1;
     FILE_LOG(logDEBUG)<<"TopologyConstraints::TopologyConstraints():dim="<<axisDim;
-    ASSERT(vs.size()>=n);
-    ASSERT(noOverlaps());
-    ASSERT(assertNoSegmentRectIntersection(nodes,edges));
+    COLA_ASSERT(vs.size()>=n);
+    COLA_ASSERT(noOverlaps());
+    COLA_ASSERT(assertNoSegmentRectIntersection(nodes,edges));
 
     dim = axisDim;
 
@@ -613,7 +613,7 @@ TopologyConstraints(
             i!=e; ++i) {
         (*i)->prune();
     }
-    ASSERT(assertNoZeroLengthEdgeSegments(edges));
+    COLA_ASSERT(assertNoZeroLengthEdgeSegments(edges));
     for(Edges::const_iterator i=edges.begin(),e=edges.end();i!=e;++i) {
         (*i)->forEach(mem_fun(&EdgePoint::createBendConstraint),
                 CreateSegmentEvents(events),true);
@@ -621,9 +621,9 @@ TopologyConstraints(
     // process events in top to bottom order
     sort(events.begin(),events.end(),CompareEvents());
     for_each(events.begin(),events.end(),mem_fun(&Event::process));
-    ASSERT(openSegments.empty());
-    ASSERT(openNodes.empty());
-    ASSERT(assertFeasible());
+    COLA_ASSERT(openSegments.empty());
+    COLA_ASSERT(openNodes.empty());
+    COLA_ASSERT(assertFeasible());
     FILE_LOG(logDEBUG)<<"TopologyConstraints::TopologyConstraints()... done.";
 }
 

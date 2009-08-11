@@ -47,7 +47,7 @@ ClusterRef::~ClusterRef()
 
 void ClusterRef::makeActive(void)
 {
-    ASSERT(!_active);
+    COLA_ASSERT(!_active);
     
     // Add to connRefs list.
     _pos = _router->clusterRefs.insert(_router->clusterRefs.begin(), this);
@@ -58,7 +58,7 @@ void ClusterRef::makeActive(void)
 
 void ClusterRef::makeInactive(void)
 {
-    ASSERT(_active);
+    COLA_ASSERT(_active);
     
     // Remove from connRefs list.
     _router->clusterRefs.erase(_pos);

@@ -52,7 +52,7 @@ CycleDetector::CycleDetector(unsigned numVertices, Edges *edges)  {
 
   // make the adjacency matrix
   this->make_matrix();
-  ASSERT(nodes->size() == this->V);
+  COLA_ASSERT(nodes->size() == this->V);
 }
 
 CycleDetector::~CycleDetector()  {
@@ -76,8 +76,8 @@ void CycleDetector::make_matrix()  {
   traverse.clear();
 
   // we should not have an empty array
-  ASSERT(!nodes->empty());
-  ASSERT(traverse.empty());
+  COLA_ASSERT(!nodes->empty());
+  COLA_ASSERT(traverse.empty());
 
   // from the edges passed, fill the adjacency matrix
   for (ei = edges->begin(); ei != edges->end(); ei++)  {
@@ -113,7 +113,7 @@ void CycleDetector::make_matrix()  {
     }
   }
 
-  ASSERT(!nodes->empty());
+  COLA_ASSERT(!nodes->empty());
 
   // the following block is code to print out
   // the adjacency matrix.
@@ -134,12 +134,12 @@ void CycleDetector::make_matrix()  {
 vector<bool> *CycleDetector::detect_cycles()  {
   cyclicEdgesMapping = new vector<bool>(edges->size(), false);
 
-  ASSERT(!nodes->empty());
-  ASSERT(!edges->empty());
+  COLA_ASSERT(!nodes->empty());
+  COLA_ASSERT(!edges->empty());
 
   // make a copy of the graph to ensure that we have visited all
   // vertices
-  traverse.clear(); ASSERT(traverse.empty());
+  traverse.clear(); COLA_ASSERT(traverse.empty());
   for (unsigned i = 0; i < V; i++)  { traverse.push_back(i); }
   #ifdef SETUP_DEBUG
     for (unsigned i = 0; i < traverse.size(); i++)  {
@@ -148,7 +148,7 @@ vector<bool> *CycleDetector::detect_cycles()  {
   #endif
 
   // find the cycles
-  ASSERT(nodes->size() > 1);
+  COLA_ASSERT(nodes->size() > 1);
 
   // while we still have vertices to visit, visit.
   while (!traverse.empty())  {
@@ -163,7 +163,7 @@ vector<bool> *CycleDetector::detect_cycles()  {
   }
 
   // clean up
-  ASSERT(traverse.empty());
+  COLA_ASSERT(traverse.empty());
 
   return cyclicEdgesMapping;
 }
@@ -173,7 +173,7 @@ void CycleDetector::mod_graph(unsigned numVertices, Edges *edges)  {
   this->edges = edges;
   // remake the adjaceny matrix
   this->make_matrix();
-  ASSERT(nodes->size() == this->V);
+  COLA_ASSERT(nodes->size() == this->V);
 }
 
 void CycleDetector::visit(unsigned k)  {
@@ -256,7 +256,7 @@ void CycleDetector::visit(unsigned k)  {
       if (otherNode->cyclicAncestor != NULL)  {
         // get the highest possible cyclic ancestor from this node
 	highestCA = this->get_highest_ca(otherNode->cyclicAncestor);
-        ASSERT(highestCA != NULL);
+        COLA_ASSERT(highestCA != NULL);
 
         #ifdef VISIT_DEBUG
           cout << "highest cyclic ancestor at vertex(" << highestCA->id << ")" << endl;
@@ -300,7 +300,7 @@ Node *CycleDetector::get_highest_ca(Node *n)  {
     cout << "At vertex(" << n->id << ")" << endl;
   #endif
 
-  ASSERT(n->cyclicAncestor != NULL);
+  COLA_ASSERT(n->cyclicAncestor != NULL);
 
   if (n == n->cyclicAncestor)  { 
     // we have reached the end of the chain

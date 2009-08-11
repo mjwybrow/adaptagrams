@@ -78,7 +78,7 @@ ShapeRef::ShapeRef(Router *router, Polygon& ply, const unsigned int id)
 
 ShapeRef::~ShapeRef()
 {
-    ASSERT(!_router->shapeInQueuedActionList(this));
+    COLA_ASSERT(!_router->shapeInQueuedActionList(this));
 
     if (_active)
     {
@@ -87,7 +87,7 @@ ShapeRef::~ShapeRef()
         _router->processTransaction();
     }
 
-    ASSERT(_firstVert != NULL);
+    COLA_ASSERT(_firstVert != NULL);
     
     VertInf *it = _firstVert;
     do
@@ -104,14 +104,14 @@ ShapeRef::~ShapeRef()
 
 void ShapeRef::setNewPoly(const Polygon& poly)
 {
-    ASSERT(_firstVert != NULL);
-    ASSERT(_poly.size() == poly.size());
+    COLA_ASSERT(_firstVert != NULL);
+    COLA_ASSERT(_poly.size() == poly.size());
     
     VertInf *curr = _firstVert;
     for (size_t pt_i = 0; pt_i < _poly.size(); ++pt_i)
     {
-        ASSERT(curr->visListSize == 0);
-        ASSERT(curr->invisListSize == 0);
+        COLA_ASSERT(curr->visListSize == 0);
+        COLA_ASSERT(curr->invisListSize == 0);
 
         // Reset with the new polygon point.
         curr->Reset(poly.ps[pt_i]);
@@ -119,7 +119,7 @@ void ShapeRef::setNewPoly(const Polygon& poly)
         
         curr = curr->shNext;
     }
-    ASSERT(curr == _firstVert);
+    COLA_ASSERT(curr == _firstVert);
         
     _poly = poly;
 }
@@ -127,7 +127,7 @@ void ShapeRef::setNewPoly(const Polygon& poly)
 
 void ShapeRef::makeActive(void)
 {
-    ASSERT(!_active);
+    COLA_ASSERT(!_active);
     
     // Add to shapeRefs list.
     _pos = _router->shapeRefs.insert(_router->shapeRefs.begin(), this);
@@ -149,7 +149,7 @@ void ShapeRef::makeActive(void)
 
 void ShapeRef::makeInactive(void)
 {
-    ASSERT(_active);
+    COLA_ASSERT(_active);
     
     // Remove from shapeRefs list.
     _router->shapeRefs.erase(_pos);
@@ -207,7 +207,7 @@ Router *ShapeRef::router(void) const
 
 void ShapeRef::boundingBox(BBox& bbox)
 {
-    ASSERT(!_poly.empty());
+    COLA_ASSERT(!_poly.empty());
 
     bbox.a = bbox.b = _poly.ps[0];
     Point& a = bbox.a;

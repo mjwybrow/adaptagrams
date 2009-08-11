@@ -86,14 +86,14 @@ bool Point::operator<(const Point& rhs) const
 
 double& Point::operator[](const unsigned int dimension)
 {
-    ASSERT((dimension == 0) || (dimension == 1));
+    COLA_ASSERT((dimension == 0) || (dimension == 1));
     return ((dimension == 0) ? x : y);
 }
 
 
 const double& Point::operator[](const unsigned int dimension) const
 {
-    ASSERT((dimension == 0) || (dimension == 1));
+    COLA_ASSERT((dimension == 0) || (dimension == 1));
     return ((dimension == 0) ? x : y);
 }
 
@@ -103,7 +103,7 @@ ReferencingPolygon::ReferencingPolygon(const Polygon& poly, const Router *router
       _id(poly._id),
       ps(poly.size())
 {
-    ASSERT(router != NULL);
+    COLA_ASSERT(router != NULL);
     for (size_t i = 0; i < poly.size(); ++i)
     {
         const Polygon *polyPtr = NULL;
@@ -117,7 +117,7 @@ ReferencingPolygon::ReferencingPolygon(const Polygon& poly, const Router *router
                 break;
             }
         }
-        ASSERT(polyPtr != NULL);
+        COLA_ASSERT(polyPtr != NULL);
         ps[i] = std::make_pair(polyPtr, poly.ps[i].vn);
     }
 }
@@ -156,10 +156,10 @@ int ReferencingPolygon::id(void) const
 
 const Point& ReferencingPolygon::at(size_t index) const 
 {
-    ASSERT(index < size());
+    COLA_ASSERT(index < size());
     const Polygon& poly = *(ps[index].first);
     unsigned short poly_index = ps[index].second;
-    ASSERT(poly_index < poly.size());
+    COLA_ASSERT(poly_index < poly.size());
 
     return poly.ps[poly_index];
 }
@@ -253,7 +253,7 @@ int Polygon::id(void) const
 
 const Point& Polygon::at(size_t index) const
 {
-    ASSERT(index < size());
+    COLA_ASSERT(index < size());
 
     return ps[index];
 }

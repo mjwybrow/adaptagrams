@@ -23,12 +23,12 @@
  *
 */
 
-#ifndef _LIBVPSC_UTIL_H
-#define _LIBVPSC_UTIL_H
+#ifndef _LIBVPSC_ASSERTIONS_H
+#define _LIBVPSC_ASSERTIONS_H
 
 #ifdef NDEBUG 
 
-  #define ASSERT(expr)  static_cast<void>(0)
+  #define COLA_ASSERT(expr)  static_cast<void>(0)
 
 #else // Not NDEBUG
 
@@ -44,12 +44,12 @@
     #endif
 
     #if !defined(__ASSERT_FUNCTION)
-      #define ASSERT(expr) \
+      #define COLA_ASSERT(expr) \
           if (!(expr)) { \
               throw vpsc::CriticalFailure(__STRING(expr), __FILE__, __LINE__); \
           }
     #else
-      #define ASSERT(expr) \
+      #define COLA_ASSERT(expr) \
           if (!(expr)) { \
               throw vpsc::CriticalFailure(__STRING(expr), __FILE__, __LINE__, \
                       __ASSERT_FUNCTION); \
@@ -57,7 +57,7 @@
     #endif
 
   #else
-    #define ASSERT(expr)  assert(expr)
+    #define COLA_ASSERT(expr)  assert(expr)
   #endif
 
 namespace vpsc { 
@@ -100,5 +100,5 @@ class CriticalFailure
 #endif // NDEBUG
 
 
-#endif // _LIBPROJECT_UTIL_H
+#endif // _LIBVPSC_ASSERTIONS_H
 
