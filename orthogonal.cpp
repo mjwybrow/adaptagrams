@@ -216,7 +216,7 @@ struct Node
           firstAbove(NULL),
           firstBelow(NULL)
     {   
-        //ASSERT(r->width()<1e40);
+        //COLA_ASSERT(r->width()<1e40);
         v->polygon().getBoundingRect(&min[0], &min[1], &max[0], &max[1]);
     }   
     Node(VertInf *c, const double p)
@@ -484,7 +484,7 @@ int compare_events(const void *a, const void *b)
     {
         return ea->type - eb->type;
     }
-    ASSERT(ea->v != eb->v);
+    COLA_ASSERT(ea->v != eb->v);
     return ea->v - eb->v;
 }
 
@@ -518,7 +518,7 @@ struct CmpVertInf {
             // It is assumed vertical sets of points will all have the same
             // x position and horizontal sets all share a y position, so this
             // method can be used to sort both these sets.
-            ASSERT((u->point.x == v->point.x) || (u->point.y == v->point.y));
+            COLA_ASSERT((u->point.x == v->point.x) || (u->point.y == v->point.y));
             if (u->point.x != v->point.x)
             {
                 return u->point.x < v->point.x;
@@ -550,7 +550,7 @@ public:
           pos(p),
           shapeSide(false)
     {
-        ASSERT(begin < finish);
+        COLA_ASSERT(begin < finish);
 
         if (bvi)
         {
@@ -588,7 +588,7 @@ public:
         {
             return finish < rhs.finish;
         }
-        ASSERT(shapeSide == rhs.shapeSide);
+        COLA_ASSERT(shapeSide == rhs.shapeSide);
         return false;
     }
 
@@ -838,9 +838,9 @@ public:
             BreakpointSet::iterator firstPrev = last;
             while (last->vert->point[dim] != vert->vert->point[dim])
             {
-                ASSERT(vert != last);
+                COLA_ASSERT(vert != last);
                 // Assert points are not at the same position.
-                ASSERT(vert->vert->point != last->vert->point);
+                COLA_ASSERT(vert->vert->point != last->vert->point);
 
                 if ( !(vert->vert->id.isShape || last->vert->id.isShape))
                 {
@@ -982,8 +982,8 @@ class SegmentListWrapper
 static void intersectSegments(Router *router, SegmentList& segments, 
         LineSegment& vertLine)
 {
-    ASSERT(vertLine.beginVertInf() == NULL);
-    ASSERT(vertLine.finishVertInf() == NULL);
+    COLA_ASSERT(vertLine.beginVertInf() == NULL);
+    COLA_ASSERT(vertLine.finishVertInf() == NULL);
     for (SegmentList::iterator it = segments.begin(); it != segments.end(); )
     {
         LineSegment& horiLine = *it;
@@ -1035,8 +1035,8 @@ static void intersectSegments(Router *router, SegmentList& segments,
         }
         else
         {
-            ASSERT(horiLine.begin < vertLine.pos);
-            ASSERT(horiLine.finish > vertLine.pos);
+            COLA_ASSERT(horiLine.begin < vertLine.pos);
+            COLA_ASSERT(horiLine.finish > vertLine.pos);
 
             if (inVertSegRegion)
             {
@@ -1076,7 +1076,7 @@ static void processEventVert(Router *router, NodeSet& scanline,
     {
         std::pair<NodeSet::iterator, bool> result = scanline.insert(v);
         v->iter = result.first;
-        ASSERT(result.second);
+        COLA_ASSERT(result.second);
 
         NodeSet::iterator it = v->iter;
         // Work out neighbours
@@ -1220,7 +1220,7 @@ static void processEventVert(Router *router, NodeSet& scanline,
         {
             size_t result;
             result = scanline.erase(v);
-            ASSERT(result == 1);
+            COLA_ASSERT(result == 1);
             delete v;
         }
     }
@@ -1242,7 +1242,7 @@ static void processEventHori(Router *router, NodeSet& scanline,
     {
         std::pair<NodeSet::iterator, bool> result = scanline.insert(v);
         v->iter = result.first;
-        ASSERT(result.second);
+        COLA_ASSERT(result.second);
 
         NodeSet::iterator it = v->iter;
         // Work out neighbours
@@ -1344,7 +1344,7 @@ static void processEventHori(Router *router, NodeSet& scanline,
         {
             size_t result;
             result = scanline.erase(v);
-            ASSERT(result == 1);
+            COLA_ASSERT(result == 1);
             delete v;
         }
     }
@@ -1422,7 +1422,7 @@ extern void generateStaticOrthogonalVisGraph(Router *router)
         const int pass = 1;
         processEventVert(router, scanline, segments, events[i], pass);
     }
-    ASSERT(scanline.size() == 0);
+    COLA_ASSERT(scanline.size() == 0);
     for (unsigned i = 0; i < totalEvents; ++i)
     {
         delete events[i];
@@ -1501,7 +1501,7 @@ extern void generateStaticOrthogonalVisGraph(Router *router)
         const int pass = 1;
         processEventHori(router, scanline, vertSegments, events[i], pass);
     }
-    ASSERT(scanline.size() == 0);
+    COLA_ASSERT(scanline.size() == 0);
     for (unsigned i = 0; i < totalEvents; ++i)
     {
         delete events[i];
@@ -1551,7 +1551,7 @@ static void processShiftEvent(Router *router, NodeSet& scanline,
     {
         std::pair<NodeSet::iterator, bool> result = scanline.insert(v);
         v->iter = result.first;
-        ASSERT(result.second);
+        COLA_ASSERT(result.second);
 
         NodeSet::iterator it = v->iter;
         // Work out neighbours
@@ -1609,7 +1609,7 @@ static void processShiftEvent(Router *router, NodeSet& scanline,
 
         size_t result;
         result = scanline.erase(v);
-        ASSERT(result == 1);
+        COLA_ASSERT(result == 1);
         delete v;
     }
 }
@@ -1649,7 +1649,7 @@ static void buildOrthogonalChannelInfo(Router *router,
                     indexLow = i;
                     indexHigh = i - 1;
                 }
-                ASSERT(displayRoute.at(indexLow)[altDim] < 
+                COLA_ASSERT(displayRoute.at(indexLow)[altDim] < 
                         displayRoute.at(indexHigh)[altDim]);
 
                 if ((i == 1) || ((i + 1) == displayRoute.size()))
@@ -1744,8 +1744,8 @@ static void buildOrthogonalChannelInfo(Router *router,
         const Point& lowPt = curr->lowPoint();
         const Point& highPt = curr->highPoint();
 
-        ASSERT(lowPt[dim] == highPt[dim]);
-        ASSERT(lowPt[altDim] < highPt[altDim]);
+        COLA_ASSERT(lowPt[dim] == highPt[dim]);
+        COLA_ASSERT(lowPt[altDim] < highPt[altDim]);
         Node *v = new Node(&(*curr), lowPt[dim]);
         events[ctr++] = new Event(SegOpen, v, lowPt[altDim]);
         events[ctr++] = new Event(SegClose, v, highPt[altDim]);
@@ -1791,7 +1791,7 @@ static void buildOrthogonalChannelInfo(Router *router,
         processShiftEvent(router, scanline, segmentList, events[i],
                 dim, pass);
     }
-    ASSERT(scanline.size() == 0);
+    COLA_ASSERT(scanline.size() == 0);
     for (unsigned i = 0; i < totalEvents; ++i)
     {
         delete events[i];
@@ -1927,8 +1927,8 @@ class CmpLineOrder
 #endif
             size_t altDim = (dimension + 1) % 2;
 
-            ASSERT(lhsLow[dimension] == lhsHigh[dimension]);
-            ASSERT(rhsLow[dimension] == rhsHigh[dimension]);
+            COLA_ASSERT(lhsLow[dimension] == lhsHigh[dimension]);
+            COLA_ASSERT(rhsLow[dimension] == rhsHigh[dimension]);
 
             if (lhsLow[dimension] != rhsLow[dimension])
             {
@@ -1971,7 +1971,7 @@ class CmpLineOrder
                 // overlap (they are just collinear.  The relative order for 
                 // these segments is not important since we do not constrain
                 // them against each other.
-                ASSERT(lhs.overlapsWith(rhs, dimension) == false);
+                COLA_ASSERT(lhs.overlapsWith(rhs, dimension) == false);
                 // We do need to be consistent though.
                 return lhsLow[altDim] < rhsLow[altDim];
             }
@@ -2063,8 +2063,8 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             double weight = freeWeight;
             if (currSegment->sBend)
             {
-                ASSERT(currSegment->minSpaceLimit > -CHANNEL_MAX);
-                ASSERT(currSegment->maxSpaceLimit < CHANNEL_MAX);
+                COLA_ASSERT(currSegment->minSpaceLimit > -CHANNEL_MAX);
+                COLA_ASSERT(currSegment->maxSpaceLimit < CHANNEL_MAX);
                 
                 // For s-bends, take the middle as ideal.
                 idealPos = currSegment->minSpaceLimit +

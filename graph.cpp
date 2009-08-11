@@ -53,10 +53,10 @@ EdgeInf::EdgeInf(VertInf *v1, VertInf *v2, const bool orthogonal)
       _dist(-1)
 {
     // Not passed NULL values.
-    ASSERT(v1 && v2);
+    COLA_ASSERT(v1 && v2);
 
     // We are in the same instance
-    ASSERT(_v1->_router == _v2->_router);
+    COLA_ASSERT(_v1->_router == _v2->_router);
     _router = _v1->_router;
 
     _conns.clear();
@@ -83,8 +83,8 @@ static inline int orthogTurnOrder(const Point& a, const Point& b,
         const Point& c)
 {
     //We should only be calling this with orthogonal points, 
-    ASSERT((c.x == b.x) || (c.y == b.y));
-    ASSERT((a.x == b.x) || (a.y == b.y));
+    COLA_ASSERT((c.x == b.x) || (c.y == b.y));
+    COLA_ASSERT((a.x == b.x) || (a.y == b.y));
 
     int direction = vecDir(a, b, c);
 
@@ -179,11 +179,11 @@ bool EdgeInf::rotationLessThen(const VertInf *lastV, const EdgeInf *rhs) const
 
 void EdgeInf::makeActive(void)
 {
-    ASSERT(_added == false);
+    COLA_ASSERT(_added == false);
 
     if (_orthogonal)
     {
-        ASSERT(_visible);
+        COLA_ASSERT(_visible);
         _router->visOrthogGraph.addEdge(this);
         _pos1 = _v1->orthogVisList.insert(_v1->orthogVisList.begin(), this);
         _v1->orthogVisListSize++;
@@ -215,11 +215,11 @@ void EdgeInf::makeActive(void)
 
 void EdgeInf::makeInactive(void)
 {
-    ASSERT(_added == true);
+    COLA_ASSERT(_added == true);
 
     if (_orthogonal)
     {
-        ASSERT(_visible);
+        COLA_ASSERT(_visible);
         _router->visOrthogGraph.removeEdge(this);
         _v1->orthogVisList.erase(_pos1);
         _v1->orthogVisListSize--;
@@ -253,12 +253,12 @@ void EdgeInf::makeInactive(void)
 
 void EdgeInf::setDist(double dist)
 {
-    //ASSERT(dist != 0);
+    //COLA_ASSERT(dist != 0);
 
     if (_added && !_visible)
     {
         makeInactive();
-        ASSERT(!_added);
+        COLA_ASSERT(!_added);
     }
     if (!_added)
     {
@@ -302,12 +302,12 @@ void EdgeInf::addCycleBlocker(void)
 
 void EdgeInf::addBlocker(int b)
 {
-    ASSERT(_router->InvisibilityGrph);
+    COLA_ASSERT(_router->InvisibilityGrph);
 
     if (_added && _visible)
     {
         makeInactive();
-        ASSERT(!_added);
+        COLA_ASSERT(!_added);
     }
     if (!_added)
     {
@@ -529,7 +529,7 @@ bool EdgeInf::isOrthogonal(void) const
 
 VertInf *EdgeInf::otherVert(VertInf *vert)
 {
-    ASSERT((vert == _v1) || (vert == _v2));
+    COLA_ASSERT((vert == _v1) || (vert == _v2));
 
     if (vert == _v1)
     {
@@ -543,15 +543,15 @@ EdgeInf *EdgeInf::checkEdgeVisibility(VertInf *i, VertInf *j, bool knownNew)
 {
     // This is for polyline routing, so check we're not 
     // considering orthogonal vertices.
-    ASSERT(i->id != dummyOrthogID);
-    ASSERT(j->id != dummyOrthogID);
+    COLA_ASSERT(i->id != dummyOrthogID);
+    COLA_ASSERT(j->id != dummyOrthogID);
     
     Router *router = i->_router;
     EdgeInf *edge = NULL;
 
     if (knownNew)
     {
-        ASSERT(existingEdge(i, j) == NULL);
+        COLA_ASSERT(existingEdge(i, j) == NULL);
         edge = new EdgeInf(i, j);
     }
     else
@@ -646,7 +646,7 @@ void EdgeList::clear(void)
     {
         delete _firstEdge;
     }
-    ASSERT(_count == 0);
+    COLA_ASSERT(_count == 0);
     _lastEdge = NULL;
 }
 
@@ -659,11 +659,11 @@ int EdgeList::size(void) const
 
 void EdgeList::addEdge(EdgeInf *edge)
 {
-    ASSERT(!_orthogonal || edge->isOrthogonal());
+    COLA_ASSERT(!_orthogonal || edge->isOrthogonal());
     
     if (_firstEdge == NULL)
     {
-        ASSERT(_lastEdge == NULL);
+        COLA_ASSERT(_lastEdge == NULL);
 
         _lastEdge = edge;
         _firstEdge = edge;
@@ -673,7 +673,7 @@ void EdgeList::addEdge(EdgeInf *edge)
     }
     else
     {
-        ASSERT(_lastEdge != NULL);
+        COLA_ASSERT(_lastEdge != NULL);
 
         _lastEdge->lstNext = edge;
         edge->lstPrev = _lastEdge;

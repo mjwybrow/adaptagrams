@@ -70,7 +70,7 @@ IncSolver::IncSolver(vector<Variable*> const &vs, vector<Constraint *> const &cs
     bs=new Blocks(vs);
 #ifdef LIBVPSC_LOGGING
     printBlocks();
-    //ASSERT(!constraintGraphIsCyclic(n,vs));
+    //COLA_ASSERT(!constraintGraphIsCyclic(n,vs));
 #endif
 
     inactive=cs;
@@ -104,7 +104,7 @@ void IncSolver::copyResult() {
     for(Variables::const_iterator i=vs.begin();i!=vs.end();++i) {
         Variable* v=*i;
         v->finalPosition=v->position();
-        ASSERT(v->finalPosition==v->finalPosition);
+        COLA_ASSERT(v->finalPosition==v->finalPosition);
     }
 }
 
@@ -259,7 +259,7 @@ bool IncSolver::satisfy() {
     while((v=mostViolated(inactive))
             &&(v->equality || v->slack() < ZERO_UPPERBOUND && !v->active)) 
     {
-        ASSERT(!v->active);
+        COLA_ASSERT(!v->active);
         Block *lb = v->left->block, *rb = v->right->block;
         if(lb != rb) {
             lb->merge(rb,v);
@@ -281,7 +281,7 @@ bool IncSolver::satisfy() {
                 Constraint* splitConstraint
                     =lb->splitBetween(v->left,v->right,lb,rb);
                 if(splitConstraint!=NULL) {
-                    ASSERT(!splitConstraint->active);
+                    COLA_ASSERT(!splitConstraint->active);
                     inactive.push_back(splitConstraint);
                 } else {
                     v->unsatisfiable=true;
@@ -299,7 +299,7 @@ bool IncSolver::satisfy() {
                 continue;
             }
             if(v->slack()>=0) {
-                ASSERT(!v->active);
+                COLA_ASSERT(!v->active);
                 // v was satisfied by the above split!
                 inactive.push_back(v);
                 bs->insert(lb);
@@ -363,13 +363,13 @@ void IncSolver::splitBlocks() {
         Block* b = *i;
         Constraint* v=b->findMinLM();
         if(v!=NULL && v->lm < LAGRANGIAN_TOLERANCE) {
-            ASSERT(!v->equality);
+            COLA_ASSERT(!v->equality);
 #ifdef LIBVPSC_LOGGING
             f<<"    found split point: "<<*v<<" lm="<<v->lm<<endl;
 #endif
             splitCnt++;
             Block *b = v->left->block, *l=NULL, *r=NULL;
-            ASSERT(v->left->block == v->right->block);
+            COLA_ASSERT(v->left->block == v->right->block);
             //double pos = b->posn;
             b->split(l,r,v);
             //l->posn=r->posn=pos;
@@ -380,7 +380,7 @@ void IncSolver::splitBlocks() {
             bs->insert(l);
             bs->insert(r);
             b->deleted=true;
-            ASSERT(!v->active);
+            COLA_ASSERT(!v->active);
             inactive.push_back(v);
 #ifdef LIBVPSC_LOGGING
             f<<"  new blocks: "<<*l<<" and "<<*r<<endl;
@@ -581,7 +581,7 @@ void Blocks::split(Block *b, Block *&l, Block *&r, Constraint *c) {
     f<<"Split right: "<<*r<<endl;
 #endif
     r->posn = b->posn;
-    //ASSERT(r->weight!=0);
+    //COLA_ASSERT(r->weight!=0);
     //r->wposn = r->posn * r->weight;
     mergeLeft(l);
     // r may have been merged!
@@ -593,8 +593,8 @@ void Blocks::split(Block *b, Block *&l, Block *&r, Constraint *c) {
 
     insert(l);
     insert(r);
-    ASSERT(__NOTNAN(l->posn));
-    ASSERT(__NOTNAN(r->posn));
+    COLA_ASSERT(__NOTNAN(l->posn));
+    COLA_ASSERT(__NOTNAN(r->posn));
 }
 /*
  * returns the cost total squared distance of variables from their desired
@@ -633,7 +633,7 @@ void Block::addVariable(Variable* v) {
     //posn=wposn/weight;
     ps.addVariable(v);
     posn=(ps.AD - ps.AB) / ps.A2;
-    ASSERT(__NOTNAN(posn));
+    COLA_ASSERT(__NOTNAN(posn));
     /*
 #ifdef LIBVPSC_LOGGING
     ofstream f(LOGFILE,ios::app);
@@ -665,7 +665,7 @@ void Block::updateWeightedPosition() {
         ps.addVariable(*v);
     }
     posn=(ps.AD - ps.AB) / ps.A2;
-    ASSERT(__NOTNAN(posn));
+    COLA_ASSERT(__NOTNAN(posn));
 #ifdef LIBVPSC_LOGGING
     ofstream f(LOGFILE,ios::app);
     f << ", posn=" << posn << endl;
@@ -749,9 +749,9 @@ void Block::merge(Block *b, Constraint *c, double dist) {
     f<<"  AD="<<ps.AD<<" AB="<<ps.AB<<" A2="<<ps.A2<<endl;
 #endif
     //posn=wposn/weight;
-    //ASSERT(wposn==ps.AD - ps.AB);
+    //COLA_ASSERT(wposn==ps.AD - ps.AB);
     posn=(ps.AD - ps.AB) / ps.A2;
-    ASSERT(__NOTNAN(posn));
+    COLA_ASSERT(__NOTNAN(posn));
     b->deleted=true;
 }
 
@@ -1079,7 +1079,7 @@ Constraint *Block::findMinLMBetween(Variable* const lv, Variable* const rv) {
         getActivePathBetween(e.path,lv,rv,NULL);
         throw e;
     }
-    ASSERT(min_lm!=NULL);
+    COLA_ASSERT(min_lm!=NULL);
 #endif
     return min_lm;
 }
@@ -1180,10 +1180,10 @@ void Block::split(Block* &l, Block* &r, Constraint* c) {
     c->active=false;
     l=new Block();
     populateSplitBlock(l,c->left,c->right);
-    //ASSERT(l->weight>0);
+    //COLA_ASSERT(l->weight>0);
     r=new Block();
     populateSplitBlock(r,c->right,c->left);
-    //ASSERT(r->weight>0);
+    //COLA_ASSERT(r->weight>0);
 }
 
 /*

@@ -80,7 +80,7 @@ bool VertID::operator==(const VertID& rhs) const
         return false;
     }
     // XXX RubberBand search breaks this:
-    // ASSERT(isShape == rhs.isShape);
+    // COLA_ASSERT(isShape == rhs.isShape);
     return true;
 }
 
@@ -91,7 +91,7 @@ bool VertID::operator!=(const VertID& rhs) const
     {
         return true;
     }
-    ASSERT(isShape == rhs.isShape);
+    COLA_ASSERT(isShape == rhs.isShape);
     return false;
 }
 
@@ -206,7 +206,7 @@ void VertInf::removeFromGraph(const bool isConnVert)
 {
     if (isConnVert)
     {
-        ASSERT(!(id.isShape));
+        COLA_ASSERT(!(id.isShape));
     }
 
     // For each vertex.
@@ -248,7 +248,7 @@ bool directVis(VertInf *src, VertInf *dst)
 
     // We better be part of the same instance of libavoid.
     Router *router = src->_router;
-    ASSERT(router == dst->_router);
+    COLA_ASSERT(router == dst->_router);
 
     ContainsMap& contains = router->contains;
     if (!(pID.isShape))
@@ -291,28 +291,28 @@ VertInfList::VertInfList()
 
 #define checkVertInfListConditions() \
         do { \
-            ASSERT((!_firstConnVert && (_connVertices == 0)) || \
+            COLA_ASSERT((!_firstConnVert && (_connVertices == 0)) || \
                     ((_firstConnVert->lstPrev == NULL) && (_connVertices > 0))); \
-            ASSERT((!_firstShapeVert && (_shapeVertices == 0)) || \
+            COLA_ASSERT((!_firstShapeVert && (_shapeVertices == 0)) || \
                     ((_firstShapeVert->lstPrev == NULL) && (_shapeVertices > 0))); \
-            ASSERT(!_lastShapeVert || (_lastShapeVert->lstNext == NULL)); \
-            ASSERT(!_lastConnVert || (_lastConnVert->lstNext == _firstShapeVert)); \
-            ASSERT((!_firstConnVert && !_lastConnVert) || \
+            COLA_ASSERT(!_lastShapeVert || (_lastShapeVert->lstNext == NULL)); \
+            COLA_ASSERT(!_lastConnVert || (_lastConnVert->lstNext == _firstShapeVert)); \
+            COLA_ASSERT((!_firstConnVert && !_lastConnVert) || \
                     (_firstConnVert &&  _lastConnVert) ); \
-            ASSERT((!_firstShapeVert && !_lastShapeVert) || \
+            COLA_ASSERT((!_firstShapeVert && !_lastShapeVert) || \
                     (_firstShapeVert &&  _lastShapeVert) ); \
-            ASSERT(!_firstShapeVert || _firstShapeVert->id.isShape); \
-            ASSERT(!_lastShapeVert || _lastShapeVert->id.isShape); \
-            ASSERT(!_firstConnVert || !(_firstConnVert->id.isShape)); \
-            ASSERT(!_lastConnVert || !(_lastConnVert->id.isShape)); \
+            COLA_ASSERT(!_firstShapeVert || _firstShapeVert->id.isShape); \
+            COLA_ASSERT(!_lastShapeVert || _lastShapeVert->id.isShape); \
+            COLA_ASSERT(!_firstConnVert || !(_firstConnVert->id.isShape)); \
+            COLA_ASSERT(!_lastConnVert || !(_lastConnVert->id.isShape)); \
         } while(0)
 
 
 void VertInfList::addVertex(VertInf *vert)
 {
     checkVertInfListConditions();
-    ASSERT(vert->lstPrev == NULL);
-    ASSERT(vert->lstNext == NULL);
+    COLA_ASSERT(vert->lstPrev == NULL);
+    COLA_ASSERT(vert->lstNext == NULL);
 
     if (!(vert->id.isShape))
     {

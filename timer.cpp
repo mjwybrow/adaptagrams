@@ -57,7 +57,7 @@ void Timer::Reset(void)
 
 void Timer::Register(const TimerIndex t, const bool start)
 {
-    ASSERT(t != tmNon);
+    COLA_ASSERT(t != tmNon);
 
     if (type == tmNon)
     {
@@ -76,7 +76,7 @@ void Timer::Register(const TimerIndex t, const bool start)
 
 void Timer::Start(void)
 {
-    ASSERT(!running);
+    COLA_ASSERT(!running);
     cStart[type] = clock();  // CPU time
     running = true;
 }
@@ -84,7 +84,7 @@ void Timer::Start(void)
 
 void Timer::Stop(void)
 {
-    ASSERT(running);
+    COLA_ASSERT(running);
     clock_t cStop = clock();      // CPU time
     running = false;
 
@@ -101,7 +101,7 @@ void Timer::Stop(void)
         cDiff = cStop - cStart[type];
     }
     
-    ASSERT(cDiff < LONG_MAX);
+    COLA_ASSERT(cDiff < LONG_MAX);
 
     if (type == tmPth)
     {
