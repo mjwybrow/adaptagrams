@@ -193,9 +193,13 @@ class PointPair
                 // distance from the point we are sweeping around.
                 if (distance == rhs.distance)
                 {
+                    // XXX: Add this assertion back if we require that 
+                    //      connector endpoints have unique IDs. For the 
+                    //      moment it is okay for them to have the same ID.
+                    //COLA_ASSERT(vInf->id != rhs.vInf->id);
+                    
                     // If comparing two points at the same physical 
                     // position, then order them by their VertIDs.
-                    COLA_ASSERT(vInf->id != rhs.vInf->id);
                     return vInf->id < rhs.vInf->id;
                 }
                 return distance < rhs.distance;
