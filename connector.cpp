@@ -26,6 +26,7 @@
 #include <cstring>
 #include <cfloat>
 #include <cmath>
+#include <cstdlib>
 
 #include "libavoid/graph.h"
 #include "libavoid/connector.h"
@@ -1032,7 +1033,7 @@ static bool pointRepLessThan(PointRep *r1, PointRep *r2)
 {
     size_t r1less = r1->inner_set.size();
     size_t r2less = r2->inner_set.size();
-    COLA_ASSERT(r1less != r2less);
+    //COLA_ASSERT(r1less != r2less);
 
     return (r1less > r2less);
 }
