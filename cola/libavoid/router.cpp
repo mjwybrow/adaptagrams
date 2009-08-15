@@ -518,8 +518,9 @@ bool Router::processTransaction(void)
         {
             shape->setNewPoly(newPoly);
         }
+        const Polygon& shapePoly = shape->polygon();
 
-        adjustContainsWithAdd(newPoly, pid);
+        adjustContainsWithAdd(shapePoly, pid);
 
         if (_polyLineRouting)
         {
@@ -527,7 +528,7 @@ bool Router::processTransaction(void)
             //    blocks them.
             if (!isMove || notPartialTime)
             {
-                newBlockingShape(newPoly, pid);
+                newBlockingShape(shapePoly, pid);
             }
 
             // o  Calculate visibility for the new vertices.
