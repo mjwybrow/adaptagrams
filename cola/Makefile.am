@@ -1,3 +1,3 @@
 AUTOMAKE_OPTIONS = gnu
-SUBDIRS = libvpsc libcola libtopology libavoid
+SUBDIRS = libvpsc libcola libtopology libproject libavoid 
 
