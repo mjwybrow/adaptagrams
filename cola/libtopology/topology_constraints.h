@@ -228,15 +228,6 @@ namespace topology {
      */
     void getVariables(Nodes& ns, vpsc::Variables& vs);
     /**
-     * Asserts that there are no intersections between any of the segments
-     * in edges and rectangles in nodes
-     * @param nodes containing rectangles
-     * @param edges containing segments
-     * @return true if assertions succeed
-     */
-    bool assertNoSegmentRectIntersection(
-            const Nodes& nodes, const Edges& edges);
-    /**
      * Details new dimensions for a given rectangle.
      */
     struct ResizeInfo {

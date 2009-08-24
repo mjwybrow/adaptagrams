@@ -521,6 +521,13 @@ inline double crossProduct(
 
 #ifndef NDEBUG
     bool assertConvexBends(const Edges&);
+    /**
+     * Asserts that there are no intersections between any of the segments
+     * in edges and rectangles in nodes
+     * @param nodes containing rectangles
+     * @param edges containing segments
+     * @return true if assertions succeed
+     */
     bool assertNoSegmentRectIntersection(const Nodes&, const Edges&);
     bool assertNoZeroLengthEdgeSegments(const Edges& es);
 #endif
