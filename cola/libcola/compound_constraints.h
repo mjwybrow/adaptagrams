@@ -38,6 +38,8 @@ namespace cola {
 
 typedef std::vector<std::pair<unsigned, double> > OffsetList;
 
+static const unsigned int DEFAULT_CONSTRAINT_PRIORITY = 300;
+
 
 /** 
  * A compound constraint is a conceptual, diagramming application oriented
@@ -48,7 +50,8 @@ typedef std::vector<std::pair<unsigned, double> > OffsetList;
  */
 class CompoundConstraint {
 public:
-    CompoundConstraint(vpsc::Dim primaryDim);
+    CompoundConstraint(vpsc::Dim primaryDim, 
+            unsigned int priority = DEFAULT_CONSTRAINT_PRIORITY);
     /**
      * generate any additional variables required by this compound constraint
      * and add them to vars.  These variables should be cleaned up by
@@ -73,6 +76,7 @@ public:
     virtual void updatePosition(const vpsc::Dim dim) {};
     virtual ~CompoundConstraint() {}
     vpsc::Dim dimension(void) const;
+    unsigned int priority(void) const;
     
 protected:
     void assertValidVariableIndex(const vpsc::Variables& vars, 
@@ -82,15 +86,24 @@ protected:
     vpsc::Dim _primaryDim;
     // The alternate dimension.
     vpsc::Dim _secondaryDim;
+    unsigned int _priority;
 };
 typedef std::vector<CompoundConstraint*> CompoundConstraints;
 
 
 /**
- * generate all the variables and constraints for a collection of CompoundConstraint
+ * Generate all the variables and constraints for a collection of 
+ * CompoundConstraints.
  */
 void generateVariablesAndConstraints(CompoundConstraints& ccs, 
         const vpsc::Dim dim, vpsc::Variables& vars, vpsc::Constraints& cs);
+
+
+/**
+ * Generate just all the variables for a collection of CompoundConstraints.
+ */
+void generateVariables(CompoundConstraints& ccs, const vpsc::Dim dim, 
+        vpsc::Variables& vars);
 
 
 /**

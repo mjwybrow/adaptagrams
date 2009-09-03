@@ -618,9 +618,19 @@ void generateVariablesAndConstraints(CompoundConstraints& ccs,
 }
 
 
-CompoundConstraint::CompoundConstraint(vpsc::Dim primaryDim)
+void generateVariables(CompoundConstraints& ccs, const vpsc::Dim dim, 
+        vpsc::Variables& vars)
+{
+	for_each(ccs.begin(), ccs.end(), 
+            GenerateVariables(dim, vars));
+}
+
+
+CompoundConstraint::CompoundConstraint(vpsc::Dim primaryDim,
+        unsigned int priority)
     : _primaryDim(primaryDim),
-      _secondaryDim((vpsc::Dim) ((primaryDim + 1) % 2))
+      _secondaryDim((vpsc::Dim) ((primaryDim + 1) % 2)),
+      _priority(priority)
 {
 }
 
@@ -628,6 +638,12 @@ CompoundConstraint::CompoundConstraint(vpsc::Dim primaryDim)
 vpsc::Dim CompoundConstraint::dimension(void) const
 {
     return _primaryDim;
+}
+
+
+unsigned int CompoundConstraint::priority(void) const
+{
+    return _priority;
 }
 
 

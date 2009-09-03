@@ -227,7 +227,6 @@ void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis)
         throw(InvalidVariableIndexException)
 {
     FILE_LOG(logDEBUG) << "ConstrainedFDLayout::run...";
-    if(n==0) return;
     double stress=DBL_MAX;
     do {
         if(preIteration) {
@@ -323,12 +322,13 @@ void ConstrainedFDLayout::setAvoidNodeOverlaps(void)
 
 
 static void setupVarsAndConstraints(unsigned n, const CompoundConstraints* ccs,
-        const vpsc::Dim dim, vpsc::Variables& vs, vpsc::Constraints& cs) 
+        const vpsc::Dim dim, vpsc::Variables& vs, vpsc::Constraints& cs, 
+        valarray<double> &coords) 
 {
     vs.resize(n);
     for (unsigned i = 0; i < n; ++i)
     {
-        vs[i] = new vpsc::Variable(i);
+        vs[i] = new vpsc::Variable(i, coords[i]);
     }
 
     if(ccs) 
@@ -409,8 +409,8 @@ void ConstrainedFDLayout::handleResizes(const Resizes& resizeList) {
     }
     vpsc::Variables xvs, yvs;
     vpsc::Constraints xcs, ycs;
-    setupVarsAndConstraints(n, ccs, vpsc::HORIZONTAL, xvs, xcs);
-    setupVarsAndConstraints(n, ccs, vpsc::VERTICAL, yvs, ycs);
+    setupVarsAndConstraints(n, ccs, vpsc::HORIZONTAL, xvs, xcs, X);
+    setupVarsAndConstraints(n, ccs, vpsc::VERTICAL, yvs, ycs, Y);
     topology::applyResizes(*topologyNodes, *topologyRoutes, resizes,
             xvs, xcs, yvs, ycs);
     for_each(xvs.begin(), xvs.end(), delete_object());
@@ -430,7 +430,7 @@ void ConstrainedFDLayout::moveTo(const vpsc::Dim dim, Position& target) {
     valarray<double> &coords = (dim==vpsc::HORIZONTAL)?X:Y;
     vpsc::Variables vs;
     vpsc::Constraints cs;
-    setupVarsAndConstraints(n, ccs, dim, vs, cs);
+    setupVarsAndConstraints(n, ccs, dim, vs, cs, coords);
     topology::DesiredPositions des;
     if(preIteration) {
         for(vector<Lock>::iterator l=preIteration->locks.begin();
@@ -489,7 +489,7 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const vpsc::Dim dim, const
     vpsc::Variables vs;
     vpsc::Constraints cs;
     double stress;
-    setupVarsAndConstraints(n, ccs, dim, vs, cs);
+    setupVarsAndConstraints(n, ccs, dim, vs, cs, coords);
     if(topologyRoutes) {
         FILE_LOG(logDEBUG1) << "applying topology preserving layout...";
         vpsc::Rectangle::setXBorder(0);
@@ -662,7 +662,7 @@ double ConstrainedFDLayout::computeStepSize(
 double ConstrainedFDLayout::computeStress() const {
     FILE_LOG(logDEBUG)<<"ConstrainedFDLayout::computeStress()";
     double stress=0;
-    for(unsigned u=0;u<n-1;u++) {
+    for(unsigned u=0;(u + 1)<n;u++) {
         for(unsigned v=u+1;v<n;v++) {
             unsigned short p=G[u][v];
             // no forces between disconnected parts of the graph
