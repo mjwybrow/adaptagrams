@@ -48,6 +48,10 @@ namespace Avoid {
 
 static const double CHANNEL_MAX = 100000000;
 
+static const size_t XDIM = 0;
+static const size_t YDIM = 1;
+
+
 class ShiftSegment 
 {
     public:
@@ -489,11 +493,56 @@ int compare_events(const void *a, const void *b)
 }
 
 
+// Returns a bitfield of the direction of visibility (in this dimension)
+// made up of ConnDirDown (for visibility towards lower position values) 
+// and ConnDirUp (for visibility towards higher position values).
+//
+static ConnDirFlags getPosVertInfDirection(VertInf *v, size_t dim)
+{
+    if (dim == XDIM) // X-dimension
+    {
+        unsigned int dirs = v->visDirections & (ConnDirLeft | ConnDirRight);
+        if (dirs == (ConnDirLeft | ConnDirRight))
+        {
+            return (ConnDirDown | ConnDirUp);
+        }
+        else if (dirs == ConnDirLeft)
+        {
+            return ConnDirDown;
+        }
+        else if (dirs == ConnDirRight)
+        {
+            return ConnDirUp;
+        }
+    }
+    else if (dim == YDIM) // Y-dimension
+    {
+        unsigned int dirs = v->visDirections & (ConnDirDown | ConnDirUp);
+        if (dirs == (ConnDirDown | ConnDirUp))
+        {
+            return (ConnDirDown | ConnDirUp);
+        }
+        else if (dirs == ConnDirDown)
+        {
+            return ConnDirDown;
+        }
+        else if (dirs == ConnDirUp)
+        {
+            return ConnDirUp;
+        }
+    }
+
+    // Can occur for ConnDirNone visibility.
+    return ConnDirNone;
+}
+
+
 struct PosVertInf
 {
-    PosVertInf(double p, VertInf *vI = NULL)
+    PosVertInf(double p, VertInf *vI, ConnDirFlags d = ConnDirNone)
         : pos(p),
-          vert(vI)
+          vert(vI),
+          dir(d)
     {
     }
     
@@ -508,27 +557,34 @@ struct PosVertInf
 
     double pos;
     VertInf *vert;
+
+    // A bitfield marking the direction of visibility (in this dimension)
+    // made up of ConnDirDown (for visibility towards lower position values) 
+    // and ConnDirUp (for visibility towards higher position values).
+    //
+    ConnDirFlags dir;
 };
 
 
-struct CmpVertInf { 
-        bool operator()(const VertInf* u, const VertInf* v) const
+struct CmpVertInf
+{ 
+    bool operator()(const VertInf* u, const VertInf* v) const
+    {
+        // Comparator for VertSet, an ordered set of VertInf pointers.
+        // It is assumed vertical sets of points will all have the same
+        // x position and horizontal sets all share a y position, so this
+        // method can be used to sort both these sets.
+        COLA_ASSERT((u->point.x == v->point.x) || (u->point.y == v->point.y));
+        if (u->point.x != v->point.x)
         {
-            // Comparator for VertSet, an ordered set of VertInf pointers.
-            // It is assumed vertical sets of points will all have the same
-            // x position and horizontal sets all share a y position, so this
-            // method can be used to sort both these sets.
-            COLA_ASSERT((u->point.x == v->point.x) || (u->point.y == v->point.y));
-            if (u->point.x != v->point.x)
-            {
-                return u->point.x < v->point.x;
-            }
-            else if (u->point.y != v->point.y)
-            {
-                return u->point.y < v->point.y;
-            }
-            return u < v;
+            return u->point.x < v->point.x;
         }
+        else if (u->point.y != v->point.y)
+        {
+            return u->point.y < v->point.y;
+        }
+        return u < v;
+    }
 };
 
 
@@ -637,7 +693,7 @@ public:
         return *vertInfs.rbegin();
     }
 
-    VertInf * commitPositionX(Router *router, double posX)
+    VertInf *commitPositionX(Router *router, double posX)
     {
         VertInf *found = NULL;
         for (VertSet::iterator v = vertInfs.begin();
@@ -702,7 +758,8 @@ public:
                 break;
             }
             
-            breakPoints.insert(PosVertInf((*vert)->point.x, (*vert)));
+            breakPoints.insert(PosVertInf((*vert)->point.x, (*vert),
+                        getPosVertInfDirection(*vert, XDIM)));
 
             if ((firstIntersectionPt == vertInfs.end()) && 
                     ((*vert)->point.x == finishPos))
@@ -778,7 +835,8 @@ public:
         {
             if ((*v)->point.x == begin)
             {
-                vertLine.breakPoints.insert(PosVertInf(pos, *v));
+                vertLine.breakPoints.insert(PosVertInf(pos, *v, 
+                        getPosVertInfDirection(*v, YDIM)));
             }
         }
     }
@@ -802,7 +860,8 @@ public:
         {
             if ((*v)->point.x == finish)
             {
-                vertLine.breakPoints.insert(PosVertInf(pos, *v));
+                vertLine.breakPoints.insert(PosVertInf(pos, *v,
+                        getPosVertInfDirection(*v, YDIM)));
             }
         }
     }
@@ -847,8 +906,8 @@ public:
                     // Here we have a pair of two endpoints that are both
                     // connector endpoints and both are inside a shape.
                     
-                    // Give vert visibility back to the the first 
-                    // non-connector-endpoint vertex (the side of the shape).
+                    // Give vert visibility back to the first non-connector
+                    // endpoint vertex (i.e., the side of the shape).
                     BreakpointSet::iterator side = last;
                     while (!side->vert->id.isShape)
                     {
@@ -858,7 +917,8 @@ public:
                         }
                         --side;
                     }
-                    if (side->vert->id.isShape)
+                    bool canSeeDown = (vert->dir & ConnDirDown);
+                    if (canSeeDown && side->vert->id.isShape)
                     {
                         EdgeInf *edge = new 
                                 EdgeInf(side->vert, vert->vert, orthogonal);
@@ -866,15 +926,16 @@ public:
                                 side->vert->point[dim]);
                     }
 
-                    // Give last visibility back to the the first 
-                    // non-connector-endpoint vertex (the side of the shape).
+                    // Give last visibility back to the first non-connector
+                    // endpoint vertex (i.e., the side of the shape).
                     side = vert;
                     while ((side != breakPoints.end()) && 
                             !side->vert->id.isShape)
                     {
                         ++side;
                     }
-                    if (side != breakPoints.end())
+                    bool canSeeUp = (last->dir & ConnDirUp);
+                    if (canSeeUp && (side != breakPoints.end()))
                     {
                         EdgeInf *edge = new 
                                 EdgeInf(last->vert, side->vert, orthogonal);
@@ -887,10 +948,25 @@ public:
                 //
                 // Note: It's okay to give two connector endpoints visbility 
                 // here since we only consider the partner endpoint as a 
-                // candidate while searching.
-                EdgeInf *edge = new EdgeInf(last->vert, vert->vert, orthogonal);
-                edge->setDist(vert->vert->point[dim] - 
-                        last->vert->point[dim]);
+                // candidate while searching if it is the other endpoint of
+                // the connector in question.
+                //
+                bool generateEdge = true;
+                if (!last->vert->id.isShape && !(last->dir & ConnDirUp))
+                {
+                    generateEdge = false;
+                }
+                else if (!vert->vert->id.isShape && !(vert->dir & ConnDirDown))
+                {
+                    generateEdge = false;
+                }
+                if (generateEdge)
+                {
+                    EdgeInf *edge = 
+                            new EdgeInf(last->vert, vert->vert, orthogonal);
+                    edge->setDist(vert->vert->point[dim] - 
+                            last->vert->point[dim]);
+                }
 
                 ++last;
             }
@@ -996,7 +1072,7 @@ static void intersectSegments(Router *router, SegmentList& segments,
             // Add horizontal visibility segment.
             horiLine.addEdgeHorizontal(router);
 
-            size_t dim = 0; // x-dimension
+            size_t dim = XDIM; // x-dimension
             horiLine.generateVisibilityEdgesFromBreakpointSet(router, dim);
 
             // We've now swept past this horizontal segment, so delete.
@@ -1025,7 +1101,7 @@ static void intersectSegments(Router *router, SegmentList& segments,
             
                 horiLine.insertBreakpointsFinish(router, vertLine);
                 
-                size_t dim = 0; // x-dimension
+                size_t dim = XDIM; // x-dimension
                 horiLine.generateVisibilityEdgesFromBreakpointSet(router, dim);
 
                 // And we've now finished with the segment, so delete.
@@ -1048,7 +1124,8 @@ static void intersectSegments(Router *router, SegmentList& segments,
                 for (VertSet::iterator v = intersectionVerts.begin();
                         v != intersectionVerts.end(); ++v)
                 {
-                    vertLine.breakPoints.insert(PosVertInf(horiLine.pos, *v));
+                    vertLine.breakPoints.insert(PosVertInf(horiLine.pos, *v,
+                            getPosVertInfDirection(*v, YDIM)));
                 }
             }
         }
@@ -1517,7 +1594,7 @@ extern void generateStaticOrthogonalVisGraph(Router *router)
 
         horiLine.addEdgeHorizontal(router);
         
-        size_t dim = 0; // x-dimension
+        size_t dim = XDIM; // x-dimension
         horiLine.generateVisibilityEdgesFromBreakpointSet(router, dim);
 
         it = segments.list().erase(it);
@@ -1901,7 +1978,7 @@ static void buildOrthogonalNudgingOrderInfo(Router *router,
         //const VertID& ptID = it->first;
         PtOrder& order = it->second;
 
-        for (size_t dim = 0; dim < 2; ++dim)
+        for (size_t dim = XDIM; dim <= YDIM; ++dim)
         {
             order.sort(dim);
         }
@@ -1971,7 +2048,7 @@ class CmpLineOrder
                 // overlap (they are just collinear.  The relative order for 
                 // these segments is not important since we do not constrain
                 // them against each other.
-                COLA_ASSERT(lhs.overlapsWith(rhs, dimension) == false);
+                //COLA_ASSERT(lhs.overlapsWith(rhs, dimension) == false);
                 // We do need to be consistent though.
                 return lhsLow[altDim] < rhsLow[altDim];
             }
