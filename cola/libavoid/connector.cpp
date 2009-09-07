@@ -1034,7 +1034,7 @@ static bool pointRepLessThan(PointRep *r1, PointRep *r2)
     size_t r1less = r1->inner_set.size();
     size_t r2less = r2->inner_set.size();
     //COLA_ASSERT(r1less != r2less);
-
+    
     return (r1less > r2less);
 }
 
@@ -1504,6 +1504,34 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
                 if (front_same || back_same)
                 {
                     crossingFlags |= CROSSING_SHARES_PATH_AT_END;
+                }
+                else if (polyIsOrthogonal && connIsOrthogonal)
+                {
+                    int cStartDir = vecDir(*c_path[0], *c_path[1], *c_path[2]);
+                    int pStartDir = vecDir(*p_path[0], *p_path[1], *p_path[2]);
+                    if ((cStartDir != 0) && (cStartDir == -pStartDir))
+                    {
+                        // The start segments diverge at 180 degrees to each 
+                        // other.  So order based on not introducing overlap
+                        // of the diverging segments when these are nudged
+                        // apart.
+                        startCornerSide = cStartDir;
+                    }
+                    else 
+                    {
+                        int cEndDir = vecDir(*c_path[size - 3], 
+                                *c_path[size - 2], *c_path[size - 1]);
+                        int pEndDir = vecDir(*p_path[size - 3], 
+                                *p_path[size - 2], *p_path[size - 1]);
+                        if ((cEndDir != 0) && (cEndDir == -pEndDir))
+                        {
+                            // The end segments diverge at 180 degrees to 
+                            // each other.  So order based on not introducing 
+                            // overlap of the diverging segments when these 
+                            // are nudged apart
+                            startCornerSide = cEndDir;
+                        }
+                    }
                 }
 
 #if 0
