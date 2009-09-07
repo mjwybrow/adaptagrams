@@ -140,6 +140,8 @@ class ShiftSegment
             }
             return this < &rhs;
         }
+        // This counts segments that are colliear and share an endpoint as
+        // overlapping.  This allows them to be nudged apart where possible.
         bool overlapsWith(const ShiftSegment& rhs, const size_t dim) const
         {
             size_t altDim = (dim + 1) % 2;
@@ -147,8 +149,8 @@ class ShiftSegment
             const Point& highPt = highPoint();
             const Point& rhsLowPt = rhs.lowPoint();
             const Point& rhsHighPt = rhs.highPoint();
-            if ( (lowPt[altDim] < rhsHighPt[altDim]) &&
-                    (rhsLowPt[altDim] < highPt[altDim]))
+            if ( (lowPt[altDim] <= rhsHighPt[altDim]) &&
+                    (rhsLowPt[altDim] <= highPt[altDim]))
             {
                 if ( (minSpaceLimit <= rhs.maxSpaceLimit) &&
                         (rhs.minSpaceLimit <= maxSpaceLimit))
@@ -160,11 +162,11 @@ class ShiftSegment
         }
 
         ConnRef *connRef;
-        const size_t indexLow;
-        const size_t indexHigh;
-        const bool sBend;
-        const bool fixed;
-        const size_t dimension;
+        size_t indexLow;
+        size_t indexHigh;
+        bool sBend;
+        bool fixed;
+        size_t dimension;
         Variable *variable;
         double minSpaceLimit;
         double maxSpaceLimit;
@@ -524,11 +526,15 @@ static ConnDirFlags getPosVertInfDirection(VertInf *v, size_t dim)
         }
         else if (dirs == ConnDirDown)
         {
-            return ConnDirDown;
+            // For libavoid the Y-axis points downwards, so in terms of 
+            // smaller or larger position values, Down is Up and vice versa.
+            return ConnDirUp;
         }
         else if (dirs == ConnDirUp)
         {
-            return ConnDirUp;
+            // For libavoid the Y-axis points downwards, so in terms of 
+            // smaller or larger position values, Down is Up and vice versa.
+            return ConnDirDown;
         }
     }
 
@@ -1994,8 +2000,13 @@ class CmpLineOrder
               dimension(dim)
         {
         }
-        bool operator()(const ShiftSegment& lhs, const ShiftSegment& rhs)
+        bool operator()(const ShiftSegment& lhs, const ShiftSegment& rhs,
+                bool *comparable = NULL) const
         {
+            if (comparable)
+            {
+                *comparable = true;
+            }
             Point lhsLow  = lhs.lowPoint(); 
             Point rhsLow  = rhs.lowPoint(); 
 #ifndef NDEBUG
@@ -2050,6 +2061,10 @@ class CmpLineOrder
                 // them against each other.
                 //COLA_ASSERT(lhs.overlapsWith(rhs, dimension) == false);
                 // We do need to be consistent though.
+                if (comparable)
+                {
+                    *comparable = false;
+                }
                 return lhsLow[altDim] < rhsLow[altDim];
             }
 
@@ -2059,6 +2074,46 @@ class CmpLineOrder
         PtOrderMap& orders;
         const size_t dimension;
 };
+
+
+// We can use the normaal sort algorithm for lists since it is not possible 
+// to comapre all elements, but there will be an ordering defined between 
+// most of the elements.  Hence we order these, using insertion sort, and 
+// the case of them not being able to be compared is handled by not setting 
+// up any constraints between such segments when doing the nudging.
+//
+static ShiftSegmentList linesort(ShiftSegmentList origList, 
+        CmpLineOrder& comparison)
+{
+    ShiftSegmentList resultList;
+
+    while (!origList.empty())
+    {
+        // Get and remove the first element from the origList.
+        ShiftSegment segment = origList.front();
+        origList.pop_front();
+
+        // Find the insertion point in the resultList.
+        ShiftSegmentList::iterator curr;
+        for (curr = resultList.begin(); curr != resultList.end(); ++curr)
+        {
+            bool comparable = false;
+            bool lessThan = comparison(segment, *curr, &comparable);
+
+            if (comparable && lessThan)
+            {
+                // If it is comparable and lessThan, then we have found the
+                // insertion point.
+                break;
+            }
+        }
+
+        // Insert the element into the reultList at the required point.
+        resultList.insert(curr, segment);
+    }
+
+    return resultList;
+}
 
 
 typedef std::list<ShiftSegment *> ShiftSegmentPtrList;
@@ -2103,8 +2158,8 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                 ++curr;
             }
         }
-        CmpLineOrder lineSort(pointOrders, dimension);
-        currentRegion.sort(lineSort);
+        CmpLineOrder lineSortComp(pointOrders, dimension);
+        currentRegion = linesort(currentRegion, lineSortComp);
         
         if (currentRegion.size() == 1)
         {
