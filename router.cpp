@@ -1689,6 +1689,52 @@ void Router::outputInstanceToSVG(void)
     fprintf(fp, "</g>\n");
 
     fprintf(fp, "<g inkscape:groupmode=\"layer\" "
+            "style=\"display: none;\" "
+            "inkscape:label=\"CurvedDisplayConnectors\""
+            ">\n");
+    connRefIt = connRefs.begin();
+    while (connRefIt != connRefs.end())
+    {
+        ConnRef *connRef = *connRefIt;
+    
+        PolyLine route = connRef->displayRoute().curvedPolyline(8);
+        if (!route.empty())
+        {
+            fprintf(fp, "<path id=\"curved-%u\" d=\"M %g,%g ", connRef->id(),
+                    route.ps[0].x, route.ps[0].y);
+            for (size_t i = 1; i < route.size(); ++i)
+            {
+                if (route.ts[i] == 'C')
+                {
+                    fprintf(fp, "%c %g,%g %g,%g %g,%g", route.ts[i], 
+                            route.ps[i].x, route.ps[i].y,
+                            route.ps[i+1].x, route.ps[i+1].y,
+                            route.ps[i+2].x, route.ps[i+2].y);
+                    i += 2;
+                }
+                else
+                {
+                    fprintf(fp, "%c %g,%g ", route.ts[i], 
+                            route.ps[i].x, route.ps[i].y);
+                }
+            }
+            fprintf(fp, "\" ");
+            if (connRef->src() && connRef->dst())
+            {
+                fprintf(fp, "debug=\"src: %d dst: %d\" ",
+                        connRef->src()->visDirections,
+                        connRef->dst()->visDirections);
+            }
+            fprintf(fp, "style=\"fill: none; stroke: black; "
+                    "stroke-width: 1px;\" />\n");
+        }
+        
+        ++connRefIt;
+    }
+    fprintf(fp, "</g>\n");
+
+
+    fprintf(fp, "<g inkscape:groupmode=\"layer\" "
             "inkscape:label=\"DisplayConnectors\""
             ">\n");
     connRefIt = connRefs.begin();

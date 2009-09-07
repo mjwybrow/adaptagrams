@@ -1685,28 +1685,53 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
                 crossingFlags |= CROSSING_TOUCHES;
                 if (pointOrders)
                 {
-                    int turnDirA = vecDir(a0, a1, a2); 
-                    int turnDirB = vecDir(b0, b1, b2); 
-                    bool reversed = (side1 != -turnDirA); 
-                    if (side1 != side2) 
-                    { 
-                        // Interesting case where a connector routes round the 
-                        // edge of a shape and intersects a connector which is 
-                        // connected to a port on the edge of the shape. 
-                        if (turnDirA == 0) 
-                        { 
-                            // We'll make B the outer by preference,  
-                            // because the points of A are collinear. 
-                            reversed = false; 
-                        } 
-                        else if (turnDirB == 0) 
-                        { 
-                            reversed = true; 
-                        } 
-                        // TODO COLA_ASSERT((turnDirB != 0) || (turnDirA != 0)); 
+                    if (polyIsOrthogonal && connIsOrthogonal)
+                    {
+                        // Orthogonal case:
+                        // Just order based on which comes from the left and
+                        // top in each dimension because this can only be two
+                        // L-shaped segments touching at the bend.
+                        bool reversedX = ((a0.x < a1.x) || (a2.x < a1.x));
+                        bool reversedY = ((a0.y < a1.y) || (a2.y < a1.y));
+                        // XXX: Why do we need to invert the reversed values 
+                        //      here?  Are they wrong for orthogonal points
+                        //      in the other places?
+                        (*pointOrders)[b1].addPoints(0, 
+                                std::make_pair(&b1, polyConnRef), 
+                                std::make_pair(&a1, connConnRef), 
+                                !reversedX);
+                        (*pointOrders)[b1].addPoints(1, 
+                                std::make_pair(&b1, polyConnRef), 
+                                std::make_pair(&a1, connConnRef),
+                                !reversedY);
                     }
-                    VertID vID(b1.id, true, b1.vn);
-                    //(*pointOrders)[b1].addPoints(&b1, &a1, reversed);
+                    else
+                    {
+                        int turnDirA = vecDir(a0, a1, a2); 
+                        int turnDirB = vecDir(b0, b1, b2); 
+                        bool reversed = (side1 != -turnDirA); 
+                        if (side1 != side2) 
+                        { 
+                            // Interesting case where a connector routes round 
+                            // the edge of a shape and intersects a connector 
+                            // which is connected to a port on the edge of the 
+                            // shape. 
+                            if (turnDirA == 0) 
+                            { 
+                                // We'll make B the outer by preference,  
+                                // because the points of A are collinear. 
+                                reversed = false; 
+                            } 
+                            else if (turnDirB == 0) 
+                            { 
+                                reversed = true; 
+                            } 
+                            // TODO COLA_ASSERT((turnDirB != 0) || 
+                            //          (turnDirA != 0)); 
+                        }
+                        VertID vID(b1.id, true, b1.vn);
+                        //(*pointOrders)[b1].addPoints(&b1, &a1, reversed);
+                    }
                 }
             }
         }

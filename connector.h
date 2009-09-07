@@ -60,6 +60,11 @@ enum ConnType {
 //! @brief  Flags that can be passed to the ConnEnd constructor to specify
 //!         which sides of a shape this point should have visibility to if
 //!         it is located within the shape's area.
+//!
+//! Like SVG, libavoid considers the Y-axis to point downwards, that is, 
+//! like screen coordinates the coordinates increase from left-to-right and 
+//! also from top-to-bottom.
+//!
 enum ConnDirFlag {
     ConnDirNone  = 0,
     //! @brief  This option specifies the point should be given visibility 
