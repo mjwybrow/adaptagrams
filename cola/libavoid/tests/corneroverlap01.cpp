@@ -153,9 +153,9 @@ int main(void) {
 
     router->processTransaction();
     router->outputInstanceToSVG("test-corneroverlap-01");
-    bool overlap = router->existsOrthogonalTouxhingCorners();
+    bool touching = router->existsOrthogonalTouchingCorners();
     delete router;
-    return (overlap) ? 1 : 0;
+    return (touching) ? 1 : 0;
 };
 
 
