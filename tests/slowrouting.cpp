@@ -714,7 +714,7 @@ int main(void) {
     ConnEnd dstPt175703112(Point(22575, 29360), 1);
     new ConnRef(router, srcPt175703112, dstPt175703112, 175703112);
     router->processTransaction();
-    router->outputInstanceToSVG();
+    router->outputInstanceToSVG("test-slowrouting");
     delete router;
     return 0;
 };

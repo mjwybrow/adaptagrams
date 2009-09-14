@@ -1452,7 +1452,7 @@ bool Router::existsOrthogonalPathOverlap(void)
 }
 
 
-bool Router::existsOrthogonalTouxhingCorners(void)
+bool Router::existsOrthogonalTouchingCorners(void)
 {
     ConnRefList::iterator fin = connRefs.end();
     for (ConnRefList::iterator i = connRefs.begin(); i != fin; ++i) 

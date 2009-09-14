@@ -36,8 +36,10 @@ int main(void) {
     new ConnRef(router, srcPt144520410, dstPt144520410, 144520410);
     new ConnRef(router, srcPt463223880, dstPt463223880, 463223880);
     router->processTransaction();
-    router->outputInstanceToSVG();
+    router->outputInstanceToSVG("test-nudgeintobug");
+    bool overlap = router->existsOrthogonalPathOverlap();
+    bool touching = router->existsOrthogonalTouchingCorners();
     delete router;
-    return 0;
+    return (overlap || touching) ? 1 : 0;
 };
 
