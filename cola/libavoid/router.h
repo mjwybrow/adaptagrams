@@ -338,6 +338,7 @@ class Router {
         bool shapeInQueuedActionList(ShapeRef *shape) const;
         double& penaltyRef(const PenaltyType penType);
         bool existsOrthogonalPathOverlap(void);
+        bool existsOrthogonalTouxhingCorners(void);
 
     private:
         friend class ConnRef;

@@ -1414,6 +1414,10 @@ static void reduceRange(double& val)
 }
 
 
+//=============================================================================
+// The following methods are for testing and debugging.
+
+
 bool Router::existsOrthogonalPathOverlap(void)
 {
     ConnRefList::iterator fin = connRefs.end();
@@ -1439,6 +1443,36 @@ bool Router::existsOrthogonalPathOverlap(void)
                 {
                     // We looking for fixedSharedPaths and there is a
                     // fixedSharedPath.
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+
+bool Router::existsOrthogonalTouxhingCorners(void)
+{
+    ConnRefList::iterator fin = connRefs.end();
+    for (ConnRefList::iterator i = connRefs.begin(); i != fin; ++i) 
+    {
+        Avoid::Polygon iRoute = (*i)->displayRoute();
+        ConnRefList::iterator j = i;
+        for (++j; j != fin; ++j) 
+        {
+            // Determine if this pair overlap
+            Avoid::Polygon jRoute = (*j)->displayRoute();
+            CrossingsInfoPair crossingInfo = std::make_pair(0, 0);
+            for (size_t jInd = 1; jInd < jRoute.size(); ++jInd)
+            {
+                const bool finalSegment = ((jInd + 1) == jRoute.size());
+                CrossingsInfoPair crossingInfo = countRealCrossings(
+                        iRoute, true, jRoute, jInd, true, 
+                        finalSegment, NULL, NULL, *i, *j);
+                
+                if (crossingInfo.second & CROSSING_TOUCHES) 
+                {
                     return true;
                 }
             }

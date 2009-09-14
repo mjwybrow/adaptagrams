@@ -1515,7 +1515,8 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
                         // other.  So order based on not introducing overlap
                         // of the diverging segments when these are nudged
                         // apart.
-                        startCornerSide = cStartDir;
+                        startCornerSide = -cStartDir * 
+                                segDir(*c_path[1], *c_path[2]);
                     }
                     else 
                     {
@@ -1528,8 +1529,9 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
                             // The end segments diverge at 180 degrees to 
                             // each other.  So order based on not introducing 
                             // overlap of the diverging segments when these 
-                            // are nudged apart
-                            startCornerSide = cEndDir;
+                            // are nudged apart.
+                            startCornerSide = -cEndDir * segDir(
+                                    *c_path[size - 3], *c_path[size - 2]);
                         }
                     }
                 }
