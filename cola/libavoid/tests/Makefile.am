@@ -4,7 +4,7 @@ LDADD = $(top_builddir)/libavoid/libavoid.a
 
 check_PROGRAMS = example complex multiconnact inline infinity latesetup \
 	inlineoverlap01 inlineoverlap02 inlineoverlap03 nudgeintobug \
-	activedelete slowrouting corneroverlap01
+	activedelete slowrouting corneroverlap01 tjunct
 
 example_SOURCES = example.cpp
 
@@ -23,6 +23,8 @@ inlineoverlap02_SOURCES = inlineoverlap02.cpp
 inlineoverlap03_SOURCES = inlineoverlap03.cpp
 
 corneroverlap01_SOURCES = corneroverlap01.cpp
+
+tjunct_SOURCES = tjunct.cpp
 
 nudgeintobug_SOURCES = nudgeintobug.cpp
 
