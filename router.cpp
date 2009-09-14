@@ -1414,9 +1414,53 @@ static void reduceRange(double& val)
 }
 
 
-void Router::outputInstanceToSVG(void)
+bool Router::existsOrthogonalPathOverlap(void)
 {
-    FILE *fp = fopen("libavoid-debug.svg", "w");
+    ConnRefList::iterator fin = connRefs.end();
+    for (ConnRefList::iterator i = connRefs.begin(); i != fin; ++i) 
+    {
+        Avoid::Polygon iRoute = (*i)->displayRoute();
+        ConnRefList::iterator j = i;
+        for (++j; j != fin; ++j) 
+        {
+            // Determine if this pair overlap
+            Avoid::Polygon jRoute = (*j)->displayRoute();
+            CrossingsInfoPair crossingInfo = std::make_pair(0, 0);
+            for (size_t jInd = 1; jInd < jRoute.size(); ++jInd)
+            {
+                const bool finalSegment = ((jInd + 1) == jRoute.size());
+                CrossingsInfoPair crossingInfo = countRealCrossings(
+                        iRoute, true, jRoute, jInd, true, 
+                        finalSegment, NULL, NULL, *i, *j);
+                
+                if ((crossingInfo.second & CROSSING_SHARES_PATH) && 
+                    (crossingInfo.second & CROSSING_SHARES_FIXED_SEGMENT) && 
+                    !(crossingInfo.second & CROSSING_SHARES_PATH_AT_END)) 
+                {
+                    // We looking for fixedSharedPaths and there is a
+                    // fixedSharedPath.
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+
+void Router::outputInstanceToSVG(std::string instanceName)
+{
+    std::string filename;
+    if (!instanceName.empty())
+    {
+        filename = instanceName;
+    }
+    else
+    {
+        filename = "libavoid-debug";
+    }
+    filename += ".svg";
+    FILE *fp = fopen(filename.c_str(), "w");
 
     if (fp == NULL)
     {

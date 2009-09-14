@@ -31,6 +31,7 @@
 
 #include <list>
 #include <utility>
+#include <string>
 
 #include "libavoid/shape.h"
 #include "libavoid/viscluster.h"
@@ -328,7 +329,7 @@ class Router {
         void markConnectors(ShapeRef *shape);
         void generateContains(VertInf *pt);
         void printInfo(void);
-        void outputInstanceToSVG(void);
+        void outputInstanceToSVG(std::string filename = std::string());
         unsigned int assignId(const unsigned int suggestedId);
         void regenerateStaticBuiltGraph(void);
         void destroyOrthogonalVisGraph(void);
@@ -336,6 +337,7 @@ class Router {
         ConnType validConnType(const ConnType select = ConnType_None) const;
         bool shapeInQueuedActionList(ShapeRef *shape) const;
         double& penaltyRef(const PenaltyType penType);
+        bool existsOrthogonalPathOverlap(void);
 
     private:
         friend class ConnRef;

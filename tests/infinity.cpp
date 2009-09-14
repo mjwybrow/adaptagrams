@@ -23,7 +23,7 @@ int main(void) {
     ConnEnd dstPt6(Point(51925,50000), 4);
     new ConnRef(router, srcPt6, dstPt6, 6);
     router->processTransaction();
-    router->outputInstanceToSVG();
+    router->outputInstanceToSVG("test-infinity");
     delete router;
     return 0;
 };

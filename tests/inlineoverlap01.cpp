@@ -21,7 +21,8 @@ int main(void) {
     ConnEnd dstPt240732432(Point(51800, 50800), 1);
     new ConnRef(router, srcPt240732432, dstPt240732432, 240732432);
     router->processTransaction();
-    router->outputInstanceToSVG();
+    router->outputInstanceToSVG("test-inlineoverlap-01");
+    bool overlap = router->existsOrthogonalPathOverlap();
     delete router;
-    return 0;
+    return (overlap) ? 1 : 0;
 };
