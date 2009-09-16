@@ -59,7 +59,7 @@ class EdgeInf
         void addBlocker(int b);
         bool added(void);
         bool isOrthogonal(void) const;
-        bool rotationLessThen(const VertInf* last, const EdgeInf *rhs) const;
+        bool rotationLessThan(const VertInf* last, const EdgeInf *rhs) const;
 
         std::pair<VertID, VertID> ids(void);
         std::pair<Point, Point> points(void);

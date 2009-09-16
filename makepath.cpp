@@ -377,7 +377,7 @@ class CmpVisEdgeRotation
         }
         bool operator() (const EdgeInf* u, const EdgeInf* v) const 
         {
-            return u->rotationLessThen(_lastPt, v);
+            return u->rotationLessThan(_lastPt, v);
         }
     private:
         const VertInf *_lastPt;
