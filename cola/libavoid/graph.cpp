@@ -82,7 +82,7 @@ EdgeInf::~EdgeInf()
 static inline int orthogTurnOrder(const Point& a, const Point& b, 
         const Point& c)
 {
-    //We should only be calling this with orthogonal points, 
+    // We should only be calling this with orthogonal points, 
     COLA_ASSERT((c.x == b.x) || (c.y == b.y));
     COLA_ASSERT((a.x == b.x) || (a.y == b.y));
 
@@ -127,7 +127,7 @@ static inline int orthogTurnOrder(const Point& a, const Point& b,
 // searching.  Forward, then left, then right.  Or if there is no previous 
 // point, then the order is north, east, south, then west.
 // Note: This method assumes the two Edges that share a common point.
-bool EdgeInf::rotationLessThen(const VertInf *lastV, const EdgeInf *rhs) const
+bool EdgeInf::rotationLessThan(const VertInf *lastV, const EdgeInf *rhs) const
 {
     if ((_v1 == rhs->_v1) && (_v2 == rhs->_v2))
     {

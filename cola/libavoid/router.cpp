@@ -1402,6 +1402,7 @@ void Router::printInfo(void)
     fprintf(fp, "OrthogCentre:  "); timers.Print(tmOrthogCentre, fp);
     fprintf(fp, "OrthogNudge:  "); timers.Print(tmOrthogNudge, fp);
     fprintf(fp, "\n");
+    timers.Reset();
 }
 
 

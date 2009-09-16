@@ -1139,7 +1139,7 @@ static void intersectSegments(Router *router, SegmentList& segments,
     }
 
     // Split breakPoints set into visibility segments.
-    size_t dimension = 1; // y-dimension
+    size_t dimension = YDIM; // y-dimension
     vertLine.generateVisibilityEdgesFromBreakpointSet(router, dimension);
 }
 
