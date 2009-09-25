@@ -32,22 +32,29 @@
 //! <h2>libavoid Information</h2>
 //!
 //! libavoid is a cross-platform C++ library providing fast, object-avoiding 
-//! connector routing for use in interactive diagram editors.
+//! orthogonal and polyline connector routing for use in interactive diagram 
+//! editors.
 //!
 //! libavoid is part of the 
 //! <a href="http://adaptagrams.sourceforge.net/">Adaptagrams project</a>. 
 //! There are no official releases yet, though the code is stable and 
 //! available from the Adaptagrams 
 //! <a href="http://sourceforge.net/scm/?type=svn&group_id=154331">SVN 
-//! repository</a>. Once orthogonal routing has been added, and the API is
-//! finailised, an offical release will be made. 
+//! repository</a>. 
 //!
-//! libavoid is written by Michael Wybrow, a member of the Adaptive
-//! Diagrams and Documents lab at Monash University, Australia.
+//! libavoid is written and maintained by Michael Wybrow, a member of the 
+//! Adaptive Diagrams and Documents lab at Monash University, Australia.
 //!
 //! The algorithms used for the connector routing are described in:
-//! -  M. Wybrow, K. Marriott, and P.J. Stuckey. Incremental connector routing.
-//!    In Proceedings of 13th International Symposium on Graph Drawing, 
+//! -  M. Wybrow, K. Marriott, and P.J. Stuckey. Orthogonal connector 
+//!    routing.<br />
+//!    In Proceedings of 17th International Symposium on Graph Drawing 
+//!    (GD '09),<br /> 
+//!    To appear 2010. 
+//! -  M. Wybrow, K. Marriott, and P.J. Stuckey. Incremental connector 
+//!    routing.<br />
+//!    In Proceedings of 13th International Symposium on Graph Drawing 
+//!    (GD '05),<br />
 //!    LNCS 3843, pages 446—457. Springer-Verlag, 2006. 
 //!    [<a href="http://dx.doi.org/10.1007/11618058_40">DOI</a>]
 //! 
