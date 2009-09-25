@@ -16,7 +16,7 @@ available from the Adaptagrams
 repository</a>.
 The API is documented using Doxygen, thus this documentation can be 
 obtained by running doxygen in the libavoid directory. There is also 
-a simple <a href="libavoid_example.html">documented example</a>.
+a simple <a href="example.html">documented example</a>.
 
 libavoid is written and maintained by 
 <a href="http://www.csse.monash.edu.au/~mwybrow/">Michael Wybrow</a>,
