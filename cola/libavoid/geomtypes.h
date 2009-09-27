@@ -296,7 +296,7 @@ class Rectangle : public Polygon
         //! @param[in]  topLeft      The first corner point of the rectangle.
         //! @param[in]  bottomRight  The opposing corner point of the rectangle.
         //!
-        Rectangle(const Point& topLeft, const Point bottomRight);
+        Rectangle(const Point& topLeft, const Point& bottomRight);
         
         //! @brief  Constructs a rectangular polygon given the centre, width
         //!         and height.

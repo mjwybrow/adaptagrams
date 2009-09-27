@@ -512,8 +512,8 @@ Polygon Polygon::curvedPolyline(const double curve_amount,
 }
 
 
-Rectangle::Rectangle(const Point& topLeft, const Point bottomRight) :
-    Polygon(4)
+Rectangle::Rectangle(const Point& topLeft, const Point& bottomRight)
+    : Polygon(4)
 {
     double xMin = std::min(topLeft.x, bottomRight.x);
     double xMax = std::max(topLeft.x, bottomRight.x);

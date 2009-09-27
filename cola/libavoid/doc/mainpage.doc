@@ -25,15 +25,15 @@ University, Australia.
 
 The algorithms used for the connector routing are described in:
 -  M. Wybrow, K. Marriott, and P.J. Stuckey. Orthogonal connector 
-   routing.<br />
+   routing.\n
    In Proceedings of 17th International Symposium on Graph Drawing 
-   (GD '09),<br /> 
+   (GD '09),\n
    To appear 2010. 
    [<a href="http://www.csse.monash.edu.au/~mwybrow/papers/wybrow-gd-2009.pdf">PDF</a>]
 -  M. Wybrow, K. Marriott, and P.J. Stuckey. Incremental connector 
-   routing.<br />
+   routing.\n
    In Proceedings of 13th International Symposium on Graph Drawing 
-   (GD '05),<br />
+   (GD '05),\n
    LNCS 3843, pages 446—457. Springer-Verlag, 2006. 
    [<a href="http://dx.doi.org/10.1007/11618058_40">DOI</a>]
    [<a href="http://www.csse.monash.edu.au/~mwybrow/papers/wybrow-gd-2005.pdf">PDF</a>]
