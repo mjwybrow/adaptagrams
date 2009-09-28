@@ -315,18 +315,21 @@ void Router::moveShape(ShapeRef *shape, const Polygon& newPoly,
     COLA_ASSERT(find(actionList.begin(), actionList.end(), 
                 ActionInfo(ShapeRemove, shape)) == actionList.end());
     
-    if (find(actionList.begin(), actionList.end(), 
-                ActionInfo(ShapeAdd, shape)) != actionList.end())
+    ActionInfoList::iterator found = find(actionList.begin(), 
+            actionList.end(), ActionInfo(ShapeAdd, shape));
+    if (found != actionList.end())
     {
         // The Add is enough, no need for the Move action too.
+        // The shape will be added with it's existing polygon,
+        // so set this to be the newPoly passed for the move.
+        found->shape()->setNewPoly(newPoly);
         return;
     }
 
     ActionInfo moveInfo(ShapeMove, shape, newPoly, first_move);
     // Sanely cope with the case where the user requests moving the same
     // shape multiple times before rerouting connectors.
-    ActionInfoList::iterator found = 
-            find(actionList.begin(), actionList.end(), moveInfo);
+    found = find(actionList.begin(), actionList.end(), moveInfo);
 
     if (found != actionList.end())
     {
