@@ -233,7 +233,7 @@ void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis)
             if(!(*preIteration)()) {
                 break;
             }
-            printf("preIteration->changed=%d\n",preIteration->changed);
+            //printf("preIteration->changed=%d\n",preIteration->changed);
             if(preIteration->changed) {
                 stress=DBL_MAX;
             }
