@@ -339,6 +339,7 @@ class Router {
         double& penaltyRef(const PenaltyType penType);
         bool existsOrthogonalPathOverlap(void);
         bool existsOrthogonalTouchingCorners(void);
+        int  existsOrthogonalCrossings(void);
 
     private:
         friend class ConnRef;

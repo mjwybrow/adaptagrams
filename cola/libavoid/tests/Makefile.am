@@ -2,9 +2,25 @@ INCLUDES = -I$(top_srcdir)
 
 LDADD = $(top_builddir)/libavoid/libavoid.a
 
-check_PROGRAMS = example complex multiconnact inline infinity latesetup \
-	inlineoverlap01 inlineoverlap02 inlineoverlap03 nudgeintobug \
-	activedelete slowrouting corneroverlap01 tjunct
+check_PROGRAMS = \
+	example \
+	complex \
+	multiconnact \
+	inline \
+	infinity \
+	latesetup \
+	inlineoverlap01 \
+	inlineoverlap02 \
+	inlineoverlap03 \
+	inlineoverlap04 \
+	inlineoverlap05 \
+	nudgeintobug \
+	activedelete \
+	slowrouting \
+	corneroverlap01 \
+	tjunct \
+	orthordering01 \
+	orthordering02
 
 example_SOURCES = example.cpp
 
@@ -21,8 +37,13 @@ latesetup_SOURCES = latesetup.cpp
 inlineoverlap01_SOURCES = inlineoverlap01.cpp
 inlineoverlap02_SOURCES = inlineoverlap02.cpp
 inlineoverlap03_SOURCES = inlineoverlap03.cpp
+inlineoverlap04_SOURCES = inlineoverlap04.cpp
+inlineoverlap05_SOURCES = inlineoverlap05.cpp
 
 corneroverlap01_SOURCES = corneroverlap01.cpp
+
+orthordering01_SOURCES = orthordering01.cpp
+orthordering02_SOURCES = orthordering02.cpp
 
 tjunct_SOURCES = tjunct.cpp
 

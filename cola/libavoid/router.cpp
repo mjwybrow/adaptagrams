@@ -1486,6 +1486,38 @@ bool Router::existsOrthogonalTouchingCorners(void)
 }
 
 
+// XXX: Currently just looks for normal crossings (not orthogonal specific).
+int Router::existsOrthogonalCrossings(void)
+{
+    int count = 0;
+    ConnRefList::iterator fin = connRefs.end();
+    for (ConnRefList::iterator i = connRefs.begin(); i != fin; ++i) 
+    {
+        Avoid::Polygon iRoute = (*i)->displayRoute();
+        ConnRefList::iterator j = i;
+        for (++j; j != fin; ++j) 
+        {
+            // Determine if this pair overlap
+            Avoid::Polygon jRoute = (*j)->displayRoute();
+            CrossingsInfoPair crossingInfo = std::make_pair(0, 0);
+            for (size_t jInd = 1; jInd < jRoute.size(); ++jInd)
+            {
+                const bool finalSegment = ((jInd + 1) == jRoute.size());
+                
+                // Normal crossings aren't counted if we pass the pointers
+                // for the connectors, so don't pass them.
+                CrossingsInfoPair crossingInfo = countRealCrossings(
+                        iRoute, true, jRoute, jInd, true, 
+                        finalSegment, NULL, NULL);
+                
+                count += crossingInfo.first;
+            }
+        }
+    }
+    return count;
+}
+
+
 void Router::outputInstanceToSVG(std::string instanceName)
 {
     std::string filename;

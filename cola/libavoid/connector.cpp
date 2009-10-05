@@ -1435,10 +1435,12 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
                 // Check to see if these share a fixed segment.
                 if (polyIsOrthogonal && connIsOrthogonal)
                 {
+                    bool vertical = false;
                     size_t startPt = (front_same) ? 0 : 1;
                     if (c_path[startPt]->x == c_path[startPt + 1]->x)
                     {
                         // Vertical
+                        vertical = true;
                         double xPos = c_path[startPt]->x;
                         // See if this is inline with either the start
                         // or end point of both connectors.
@@ -1462,6 +1464,33 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
                                 (yPos == conn.ps[cIndex].y)) )
                         {
                             crossingFlags |= CROSSING_SHARES_FIXED_SEGMENT;
+                        }
+                    }
+
+                    if (!front_same && !back_same)
+                    {
+                        for (size_t dim = 0; dim < 2; ++dim)
+                        {
+                            size_t altDim = (dim + 1) % 2;
+                            if ((*c_path[1])[altDim] == (*c_path[1])[altDim])
+                            {
+                                size_t n = c_path.size();
+                                double yPosB = (*c_path[1])[dim];
+                                if ( (yPosB == (*c_path[0])[dim]) && 
+                                        (yPosB == (*p_path[0])[dim]) )
+                                {
+                                    crossingFlags |= 
+                                            CROSSING_SHARES_FIXED_SEGMENT;
+                                }
+
+                                double yPosE = (*c_path[n - 2])[dim];
+                                if ( (yPosE == (*c_path[n - 1])[dim]) && 
+                                        (yPosE == (*p_path[n - 1])[dim]) )
+                                {
+                                    crossingFlags |= 
+                                            CROSSING_SHARES_FIXED_SEGMENT;
+                                }
+                            }
                         }
                     }
                 }
