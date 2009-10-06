@@ -431,22 +431,22 @@ struct NoIntersection {
                 continue;
             }
             if(s->start->node==s->end->node) {
-                COLA_ASSERT(s->start->rectIntersect==EdgePoint::BL
-                        &&s->end->rectIntersect==EdgePoint::BR
-                     ||s->start->rectIntersect==EdgePoint::BR
-                        &&s->end->rectIntersect==EdgePoint::BL
-                     ||s->start->rectIntersect==EdgePoint::BL
-                        &&s->end->rectIntersect==EdgePoint::TL
-                     ||s->start->rectIntersect==EdgePoint::TL
-                        &&s->end->rectIntersect==EdgePoint::BL
-                     ||s->start->rectIntersect==EdgePoint::BR
-                        &&s->end->rectIntersect==EdgePoint::TR
-                     ||s->start->rectIntersect==EdgePoint::TR
-                        &&s->end->rectIntersect==EdgePoint::BR
-                     ||s->start->rectIntersect==EdgePoint::TL
-                        &&s->end->rectIntersect==EdgePoint::TR
-                     ||s->start->rectIntersect==EdgePoint::TR
-                        &&s->end->rectIntersect==EdgePoint::TL);
+                COLA_ASSERT((s->start->rectIntersect==EdgePoint::BL && 
+                                s->end->rectIntersect==EdgePoint::BR) ||
+                            (s->start->rectIntersect==EdgePoint::BR &&
+                                s->end->rectIntersect==EdgePoint::BL) ||
+                            (s->start->rectIntersect==EdgePoint::BL &&
+                                s->end->rectIntersect==EdgePoint::TL) ||
+                            (s->start->rectIntersect==EdgePoint::TL &&
+                                s->end->rectIntersect==EdgePoint::BL) ||
+                            (s->start->rectIntersect==EdgePoint::BR &&
+                                s->end->rectIntersect==EdgePoint::TR) ||
+                            (s->start->rectIntersect==EdgePoint::TR &&
+                                s->end->rectIntersect==EdgePoint::BR) ||
+                            (s->start->rectIntersect==EdgePoint::TL &&
+                                s->end->rectIntersect==EdgePoint::TR) || 
+                            (s->start->rectIntersect==EdgePoint::TR &&
+                                s->end->rectIntersect==EdgePoint::TL));
                 continue;
             }
             double sx=s->start->posX(), sy=s->start->posY(),
