@@ -249,11 +249,11 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
         }
     }
 
+    const double crossing_penalty = router->routingPenalty(crossingPenalty);
     const double shared_path_penalty = 
             router->routingPenalty(fixedSharedPathPenalty);
-    if (shared_path_penalty > 0)
+    if ((shared_path_penalty > 0) || (crossing_penalty > 0))
     {
-        // Penalises shared paths, except if the connectors shared an endpoint.
         if (connRoute.empty())
         {
             constructPolygonPath(connRoute, inf2, inf3, done, inf1Index);
@@ -285,33 +285,6 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
                 // connectors.
                 result += shared_path_penalty;
             }
-        }
-    }
-
-    const double crossing_penalty = router->routingPenalty(crossingPenalty);
-    if (crossing_penalty > 0)
-    {
-        if (connRoute.empty())
-        {
-            constructPolygonPath(connRoute, inf2, inf3, done, inf1Index);
-        }
-        ConnRefList::const_iterator curr, finish = router->connRefs.end();
-        for (curr = router->connRefs.begin(); curr != finish; ++curr)
-        {
-            ConnRef *connRef = *curr;
-
-            if (connRef->id() == lineRef->id())
-            {
-                continue;
-            }
-            const Avoid::PolyLine& route2 = connRef->route();
-            
-            bool isConn = true;
-            Polygon dynamic_route2(route2);
-            Polygon dynamic_conn_route(connRoute);
-            CrossingsInfoPair crossings = countRealCrossings(
-                    dynamic_route2, isConn, dynamic_conn_route, 
-                    connRoute.size() - 1, true);
             result += (crossings.first * crossing_penalty);
         }
     }
