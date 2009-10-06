@@ -830,9 +830,12 @@ void Router::improveCrossings(void)
             i != crossingConns.end(); ++i)
     {
         ConnRef *conn = *i;
+        // Mark the crossing connector path as being invalid.
         conn->makePathInvalid();
-        // XXX: Could we free these routes here for extra savings?
-        // conn->freeRoutes();
+        // Freeing the routes here means that, if possible, we reroute all
+        // the crossings routes one by one, threading them through the 
+        // non-crossing routes to avoid as many crossings as possible.
+        conn->freeRoutes();
     }
     for (ConnRefSet::iterator i = crossingConns.begin(); 
             i != crossingConns.end(); ++i)

@@ -289,7 +289,7 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
     }
 
     const double crossing_penalty = router->routingPenalty(crossingPenalty);
-    if (lineRef->doesHateCrossings() && (crossing_penalty > 0))
+    if (crossing_penalty > 0)
     {
         if (connRoute.empty())
         {

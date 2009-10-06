@@ -2067,7 +2067,6 @@ class CmpLineOrder
                 }
                 return lhsLow[altDim] < rhsLow[altDim];
             }
-
             return lhsPos < rhsPos;
         }
 
@@ -2087,6 +2086,8 @@ static ShiftSegmentList linesort(ShiftSegmentList origList,
 {
     ShiftSegmentList resultList;
 
+    size_t origListSize = origList.size();
+    size_t deferredN = 0; 
     while (!origList.empty())
     {
         // Get and remove the first element from the origList.
@@ -2094,11 +2095,14 @@ static ShiftSegmentList linesort(ShiftSegmentList origList,
         origList.pop_front();
 
         // Find the insertion point in the resultList.
+        bool allComparable = true;
         ShiftSegmentList::iterator curr;
         for (curr = resultList.begin(); curr != resultList.end(); ++curr)
         {
             bool comparable = false;
             bool lessThan = comparison(segment, *curr, &comparable);
+
+            allComparable &= comparable;
 
             if (comparable && lessThan)
             {
@@ -2107,9 +2111,22 @@ static ShiftSegmentList linesort(ShiftSegmentList origList,
                 break;
             }
         }
-
-        // Insert the element into the reultList at the required point.
-        resultList.insert(curr, segment);
+    
+        if (resultList.empty() || allComparable || (deferredN >= origListSize))
+        {
+            // Insert the element into the resultList at the required point.
+            resultList.insert(curr, segment);
+            // Reset the origListSize and deferred counter.
+            deferredN = 0;
+            origListSize = origList.size();
+        }
+        else
+        {
+            // This wasn't comparable to anything in the sorted list, 
+            // so defer addition of the segment till later.
+            origList.push_back(segment);
+            deferredN++;
+        }
     }
 
     return resultList;
@@ -2300,7 +2317,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                 Point& lowPt = currSegment->lowPoint();
                 Point& highPt = currSegment->highPoint();
                 double newPos = currSegment->variable->finalPosition;
-                //printf("Pos: %X, %g\n", (int) currSegment->connRef, newPos);
+                //printf("Pos: %lX, %g\n", (long) currSegment->connRef, newPos);
                 lowPt[dimension] = newPos;
                 highPt[dimension] = newPos;
             }
@@ -2310,8 +2327,8 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             printf("+vs[%d]=%f\n",i,vs[i]->finalPosition);
         }
 #endif
-        for_each(vs.begin(),vs.end(),delete_object());
-        for_each(cs.begin(),cs.end(),delete_object());
+        for_each(vs.begin(), vs.end(), delete_object());
+        for_each(cs.begin(), cs.end(), delete_object());
     }
 }
 
