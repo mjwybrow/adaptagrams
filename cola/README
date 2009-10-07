@@ -48,5 +48,5 @@ A somewhat transient dependency (depending on whether I include
 libcola/output_svg.cpp in the build) is Cairo (cairographics.org).  It's only
 used by a few examples so you can easily build the core libraries without it.
 
-Run "autogen.sh" to compile from scratch.
+Run "./autogen.sh" to compile from scratch.
 
