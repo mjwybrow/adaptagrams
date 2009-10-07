@@ -40,7 +40,7 @@ router-&gt;moveShape(shapeRef, xmove, ymove);</pre>
 In its default mode the router will queue multiple shape movements and perform the changes to the visibility graph in an optimised order.  Thus you make several calls to <code>router-&gt;moveShape()</code> for different shapes and then tell the router to process the moves.  This tend to be useful in interactive applications where the user may move multiple shapes at once.
 <pre>router-&gt;moveShape(shapeRef1, newPolygon1);
 router-&gt;moveShape(shapeRef2, newPolygon2);
-router-&gt;processMoves();
+router-&gt;processTransaction();
 </pre>
 
 To add a new connector to the router, you do the following:
@@ -60,25 +60,22 @@ You can set a function to be called when the connector needs to be redrawn.  Whe
 }
 connRef-&gt;setCallback(connCallback, connRef);</pre>
 
-The callback will be triggered by movement, addition and deletion of shapes.  Adjusting the connector endpoints will not trigger it since if you're altering the endpoints you probably want to trigger the rerouting yourself.  You can check if a connector needs to be rerouted (say because a better path is available by a deleted shape):
-<pre>if (connRef-&gt;needsReroute()) ...</pre>
+The callback will be triggered by movement, addition and deletion of shapes, as well as by adjustment of the connector endpoints, or by procressing a transaction that includes any of these events.  You can check if a connector path has changed, and hence the object requires repainting (say because a better path is available due to a shape being deleted):
+<pre>if (connRef-&gt;needsRepaint()) ...</pre>
 
 If you want to trigger the callback for a connector after moving its endpoints (or when it is first created you can do this via:
-<pre>connRef->performReroutingCallback();</pre>
-
-To generate a new path for a connector you do the following:
-<pre>connRef-&gt;generatePath();</pre>
+<pre>connRef->processTransaction();</pre>
 
 You can then get the new path as follows:
 
-<pre>const Avoid::PolyLine route = connRef-&gt;route();
+<pre>const Avoid::PolyLine route = connRef-&gt;dispayRoute();
 for (size_t i = 0; i &lt; route.size(); ++i) 
 {
     Avoid::Point point = route.at(i);
     printf("%f, %f\n", point.x, point.y);
 }</pre>       
 
-Obviously the alternative to using the callback mechanism is to iterate through all connectors and check their needsReroute() value after having called processMoves().
+Obviously the alternative to using the callback mechanism is to iterate through all connectors and check their needsRepaint() value after having called processTransaction().
 
 You can update the endpoints of a connector with:
 <pre>Avoid::ConnEnd newSrcPt(Avoid::Point(6, 3));
