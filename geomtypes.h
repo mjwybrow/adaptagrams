@@ -36,6 +36,9 @@
 namespace Avoid
 {
 
+static const size_t XDIM = 0;
+static const size_t YDIM = 1;
+
 
 //! @brief  The Point class defines a point in the plane.
 //!

@@ -48,9 +48,6 @@ namespace Avoid {
 
 static const double CHANNEL_MAX = 100000000;
 
-static const size_t XDIM = 0;
-static const size_t YDIM = 1;
-
 
 class ShiftSegment 
 {
@@ -2256,8 +2253,16 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                     // constrain the two segments to be separated.
                     // Though don't add the constraint if both the 
                     // segments are fixed in place.
-                    cs.push_back(new Constraint(prevVar, vs[index],
-                            router->orthogonalNudgeDistance()));
+                    double sepDist = router->orthogonalNudgeDistance();
+                    if (currSegment->connRef == prevSeg->connRef)
+                    {
+                        // We need to address the problem of two neighbouring
+                        // segments of the same connector being kept separated
+                        // due only to a kink created in the other dimension.
+                        // Here, we let such segments drift back together.
+                        sepDist = 0;
+                    }
+                    cs.push_back(new Constraint(prevVar, vs[index], sepDist));
                     prevVarIt = prevVars.erase(prevVarIt);
                 }
                 else
