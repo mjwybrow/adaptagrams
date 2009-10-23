@@ -1234,6 +1234,29 @@ static int segDir(const Point& p1, const Point& p2)
 }
 
 
+bool posInlineWithConnEndSegs(const double pos, const size_t dim, 
+        const Avoid::Polygon& poly, const Avoid::Polygon& conn)
+{
+    size_t pLast = poly.size() - 1;
+    size_t cLast = conn.size() - 1;
+    if ((
+         // Is inline with the beginning of the "poly" line
+         ((pos == poly.ps[0][dim]) && (pos == poly.ps[1][dim]) ||
+         // Is inline with the end of the "poly" line
+         ((pos == poly.ps[pLast][dim]) && (pos == poly.ps[pLast - 1][dim])) 
+        ) &&
+         // Is inline with the beginning of the "conn" line
+         ((pos == conn.ps[0][dim]) && (pos == conn.ps[1][dim])) || 
+         // Is inline with the end of the "conn" line
+         ((pos == conn.ps[cLast][dim]) && (pos == conn.ps[cLast - 1][dim]))
+        ))
+    {
+        return true;
+    }
+    return false;
+}
+
+
 // Works out if the segment conn[cIndex-1]--conn[cIndex] really crosses poly.
 // This does not not count non-crossing shared paths as crossings.
 // poly can be either a connector (polyIsConn = true) or a cluster
@@ -1435,60 +1458,69 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
                 // Check to see if these share a fixed segment.
                 if (polyIsOrthogonal && connIsOrthogonal)
                 {
-                    bool vertical = false;
                     size_t startPt = (front_same) ? 0 : 1;
-                    if (c_path[startPt]->x == c_path[startPt + 1]->x)
+                    size_t endPt = c_path.size() - ((back_same) ? 1 : 2);
+                    for (size_t dim = 0; dim < 2; ++dim)
                     {
-                        // Vertical
-                        vertical = true;
-                        double xPos = c_path[startPt]->x;
-                        // See if this is inline with either the start
-                        // or end point of both connectors.
-                        if ( ((xPos == poly.ps[0].x) || 
-                                (xPos == poly.ps[poly_size - 1].x)) &&
-                             ((xPos == conn.ps[0].x) || 
-                                (xPos == conn.ps[cIndex].x)) )
+                        if ((*c_path[startPt])[dim] == (*c_path[endPt])[dim])
                         {
-                            crossingFlags |= CROSSING_SHARES_FIXED_SEGMENT;
-                        }
-                    }
-                    else
-                    {
-                        // Horizontal
-                        double yPos = c_path[startPt]->y;
-                        // See if this is inline with either the start
-                        // or end point of both connectors.
-                        if ( ((yPos == poly.ps[0].y) || 
-                                (yPos == poly.ps[poly_size - 1].y)) &&
-                             ((yPos == conn.ps[0].y) || 
-                                (yPos == conn.ps[cIndex].y)) )
-                        {
-                            crossingFlags |= CROSSING_SHARES_FIXED_SEGMENT;
+                            double pos = (*c_path[startPt])[dim];
+                            // See if this is inline with either the start
+                            // or end point of both connectors.
+                            if ( ((pos == poly.ps[0][dim]) ||
+                                    (pos == poly.ps[poly_size - 1][dim])) &&
+                                 ((pos == conn.ps[0][dim]) ||
+                                    (pos == conn.ps[cIndex][dim])) )
+                            {
+                                crossingFlags |= CROSSING_SHARES_FIXED_SEGMENT;
+                            }
                         }
                     }
 
                     if (!front_same && !back_same)
                     {
+                        // Find overlapping segments that are constrained by
+                        // the fact that both the adjoining segments are fixed
+                        // in the other dimension, i.e.,
+                        //
+                        // X------++---X
+                        //        ||
+                        //        ||
+                        //    X---++------X
+                        //
+                        // In the example above, altDim is X, and dim is Y.
+                        //
+                        
+                        // For each dimension...
                         for (size_t dim = 0; dim < 2; ++dim)
                         {
+                            size_t end = c_path.size() - 1;
                             size_t altDim = (dim + 1) % 2;
-                            if ((*c_path[1])[altDim] == (*c_path[1])[altDim])
+                            // If segment is in this dimension...
+                            if ((*c_path[1])[altDim] == (*c_path[end - 1])[altDim])
                             {
-                                size_t n = c_path.size();
-                                double yPosB = (*c_path[1])[dim];
-                                if ( (yPosB == (*c_path[0])[dim]) && 
-                                        (yPosB == (*p_path[0])[dim]) )
+                                double posBeg = (*c_path[1])[dim];
+                                double posEnd = (*c_path[end - 1])[dim];
+                                // If both segment ends diverge at right-angles...
+                                if ( (posBeg == (*c_path[0])[dim]) && 
+                                        (posBeg == (*p_path[0])[dim]) &&
+                                     (posEnd == (*c_path[end])[dim]) && 
+                                        (posEnd == (*p_path[end])[dim]) )
                                 {
+                                    // and these segments are inline with the conn and path ends themselves...
+                                    if (posInlineWithConnEndSegs(posBeg, dim,
+                                                conn, poly) &&
+                                        posInlineWithConnEndSegs(posEnd, dim,
+                                                conn, poly))
+                                    {
+                                    // If all endpoints branch at right angles,
+                                    // then penalise this since it is a segment
+                                    // will will not be able to nudge apart
+                                    // without introducing fixed segment 
+                                    // crossings.
                                     crossingFlags |= 
                                             CROSSING_SHARES_FIXED_SEGMENT;
-                                }
-
-                                double yPosE = (*c_path[n - 2])[dim];
-                                if ( (yPosE == (*c_path[n - 1])[dim]) && 
-                                        (yPosE == (*p_path[n - 1])[dim]) )
-                                {
-                                    crossingFlags |= 
-                                            CROSSING_SHARES_FIXED_SEGMENT;
+                                    }
                                 }
                             }
                         }

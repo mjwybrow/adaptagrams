@@ -14,6 +14,7 @@ check_PROGRAMS = \
 	inlineoverlap03 \
 	inlineoverlap04 \
 	inlineoverlap05 \
+	inlineoverlap06 \
 	nudgeintobug \
 	activedelete \
 	slowrouting \
@@ -39,6 +40,7 @@ inlineoverlap02_SOURCES = inlineoverlap02.cpp
 inlineoverlap03_SOURCES = inlineoverlap03.cpp
 inlineoverlap04_SOURCES = inlineoverlap04.cpp
 inlineoverlap05_SOURCES = inlineoverlap05.cpp
+inlineoverlap06_SOURCES = inlineoverlap06.cpp
 
 corneroverlap01_SOURCES = corneroverlap01.cpp
 
