@@ -1593,10 +1593,10 @@ void Router::outputInstanceToSVG(std::string instanceName)
     }
     fprintf(fp, "    router->setOrthogonalNudgeDistance(%g);\n\n",
             orthogonalNudgeDistance());
-    ShapeRefList::iterator shRefIt = shapeRefs.begin();
-    while (shRefIt != shapeRefs.end())
+    ShapeRefList::reverse_iterator revShapeRefIt = shapeRefs.rbegin();
+    while (revShapeRefIt != shapeRefs.rend())
     {
-        ShapeRef *shRef = *shRefIt;
+        ShapeRef *shRef = *revShapeRefIt;
         fprintf(fp, "    Polygon poly%u(%lu);\n", 
                 shRef->id(), shRef->polygon().size());
         for (size_t i = 0; i < shRef->polygon().size(); ++i)
@@ -1608,7 +1608,7 @@ void Router::outputInstanceToSVG(std::string instanceName)
         fprintf(fp, "    ShapeRef *shapeRef%u = new ShapeRef(router, poly%u, "
                 "%u);\n", shRef->id(), shRef->id(), shRef->id());
         fprintf(fp, "    router->addShape(shapeRef%u);\n\n", shRef->id());
-        ++shRefIt;
+        ++revShapeRefIt;
     }
     ConnRefList::reverse_iterator revConnRefIt = connRefs.rbegin();
     while (revConnRefIt != connRefs.rend())
@@ -1646,7 +1646,7 @@ void Router::outputInstanceToSVG(std::string instanceName)
     
     fprintf(fp, "<g inkscape:groupmode=\"layer\" "
             "inkscape:label=\"ShapesPoly\">\n");
-    shRefIt = shapeRefs.begin();
+    ShapeRefList::iterator shRefIt = shapeRefs.begin();
     while (shRefIt != shapeRefs.end())
     {
         ShapeRef *shRef = *shRefIt;
