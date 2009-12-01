@@ -21,7 +21,8 @@ check_PROGRAMS = \
 	corneroverlap01 \
 	tjunct \
 	orthordering01 \
-	orthordering02
+	orthordering02 \
+	orderassertion
 
 example_SOURCES = example.cpp
 
@@ -54,6 +55,8 @@ nudgeintobug_SOURCES = nudgeintobug.cpp
 activedelete_SOURCES = activedelete.cpp
 
 slowrouting_SOURCES = slowrouting.cpp
+
+orderassertion_SOURCES = orderassertion.cpp
 
 TESTS = $(check_PROGRAMS)
 
