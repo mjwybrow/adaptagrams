@@ -25,6 +25,8 @@ using namespace topology;
 
 %}
 
+%ignore Avoid::XDIM;
+%ignore Avoid::YDIM;
 %ignore Avoid::Point::operator[];
 %ignore cola::PreIteration::operator();
 //%ignore cola::TestConvergence::operator();
