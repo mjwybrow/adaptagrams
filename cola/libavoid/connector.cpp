@@ -214,10 +214,11 @@ ConnRef::ConnRef(Router *router, const ConnEnd& src, const ConnEnd& dst,
     _id = router->assignId(id);
     _route.clear();
 
-    bool isShape = false;
-    _srcVert = new VertInf(_router, VertID(_id, isShape, 1), src.point());
+    VertID id1(_id, 1, VertID::PROP_ConnPoint);
+    VertID id2(_id, 2, VertID::PROP_ConnPoint);
+    _srcVert = new VertInf(_router, id1, src.point());
     _srcVert->visDirections = src.directions();
-    _dstVert = new VertInf(_router, VertID(_id, isShape, 2), dst.point());
+    _dstVert = new VertInf(_router, id2, dst.point());
     _dstVert->visDirections = dst.directions();
     makeActive();
     _initialised = true;
@@ -287,17 +288,17 @@ void ConnRef::common_updateEndPoint(const unsigned int type, const ConnEnd& conn
     
     VertInf *altered = NULL;
     VertInf *partner = NULL;
-    bool isShape = false;
 
+    VertID ptID(_id, type, VertID::PROP_ConnPoint);
     if (type == (unsigned int) VertID::src)
     {
         if (_srcVert)
         {
-            _srcVert->Reset(VertID(_id, isShape, type), point);
+            _srcVert->Reset(ptID, point);
         }
         else
         {
-            _srcVert = new VertInf(_router, VertID(_id, isShape, type), point);
+            _srcVert = new VertInf(_router, ptID, point);
         }
         _srcVert->visDirections = connEnd.directions();
         
@@ -308,11 +309,11 @@ void ConnRef::common_updateEndPoint(const unsigned int type, const ConnEnd& conn
     {
         if (_dstVert)
         {
-            _dstVert->Reset(VertID(_id, isShape, type), point);
+            _dstVert->Reset(ptID, point);
         }
         else
         {
-            _dstVert = new VertInf(_router, VertID(_id, isShape, type), point);
+            _dstVert = new VertInf(_router, ptID, point);
         }
         _dstVert->visDirections = connEnd.directions();
         
@@ -740,8 +741,7 @@ bool ConnRef::generatePath(void)
                 existingPathStart = currRoute.size() - 2;
                 COLA_ASSERT(existingPathStart != 0);
                 const Point& pnt = currRoute.at(existingPathStart);
-                bool isShape = true;
-                VertID vID(pnt.id, isShape, pnt.vn);
+                VertID vID(pnt.id, pnt.vn);
 
                 _startVert = _router->vertices.getVertexByID(vID);
             }
@@ -772,8 +772,9 @@ bool ConnRef::generatePath(void)
 #endif
             existingPathStart--;
             const Point& pnt = currRoute.at(existingPathStart);
-            bool isShape = (existingPathStart > 0);
-            VertID vID(pnt.id, isShape, pnt.vn);
+            VertIDProps props = (existingPathStart > 0) ? 0 :
+                    VertID::PROP_ConnPoint;
+            VertID vID(pnt.id, pnt.vn, props);
 
             _startVert = _router->vertices.getVertexByID(vID);
             COLA_ASSERT(_startVert);
@@ -808,8 +809,9 @@ bool ConnRef::generatePath(void)
                 }
                 existingPathStart--;
                 const Point& pnt = currRoute.at(existingPathStart);
-                bool isShape = (existingPathStart > 0);
-                VertID vID(pnt.id, isShape, pnt.vn);
+                VertIDProps props = (existingPathStart > 0) ? 0 :
+                        VertID::PROP_ConnPoint;
+                VertID vID(pnt.id, pnt.vn, props);
 
                 _startVert = _router->vertices.getVertexByID(vID);
                 COLA_ASSERT(_startVert);
@@ -860,21 +862,21 @@ bool ConnRef::generatePath(void)
             _false_path = true;
         }
         path[j] = i->point;
-        if (i->id.isShape)
-        {
-            path[j].id = i->id.objID;
-            path[j].vn = i->id.vn;
-        }
-        else
+        if (i->id.isConnPt())
         {
             path[j].id = _id;
             path[j].vn = kUnassignedVertexNumber;
+        }
+        else
+        {
+            path[j].id = i->id.objID;
+            path[j].vn = i->id.vn;
         }
         j--;
 
         if (i->pathNext && (i->pathNext->point == i->point))
         {
-            if (i->pathNext->id.isShape && i->id.isShape)
+            if (!(i->pathNext->id.isConnPt()) && !(i->id.isConnPt()))
             {
                 // Check for consecutive points on opposite 
                 // corners of two touching shapes.
@@ -1525,6 +1527,39 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
                             }
                         }
                     }
+
+#if 0
+                    // XXX: What is this code for?  It is pretty much 
+                    // incomprehensible and also causes one of the test
+                    // cases to fail.  
+                    //
+                    if (!front_same && !back_same)
+                    {
+                        for (size_t dim = 0; dim < 2; ++dim)
+                        {
+                            size_t altDim = (dim + 1) % 2;
+                            if ((*c_path[1])[altDim] == (*c_path[1])[altDim])
+                            {
+                                size_t n = c_path.size();
+                                double yPosB = (*c_path[1])[dim];
+                                if ( (yPosB == (*c_path[0])[dim]) && 
+                                        (yPosB == (*p_path[0])[dim]) )
+                                {
+                                    crossingFlags |= 
+                                            CROSSING_SHARES_FIXED_SEGMENT;
+                                }
+
+                                double yPosE = (*c_path[n - 2])[dim];
+                                if ( (yPosE == (*c_path[n - 1])[dim]) && 
+                                        (yPosE == (*p_path[n - 1])[dim]) )
+                                {
+                                    crossingFlags |= 
+                                            CROSSING_SHARES_FIXED_SEGMENT;
+                                }
+                            }
+                        }
+                    }
+#endif
                 }
 
                 int prevTurnDir = -1;
@@ -1820,7 +1855,7 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
                             // TODO COLA_ASSERT((turnDirB != 0) || 
                             //          (turnDirA != 0)); 
                         }
-                        VertID vID(b1.id, true, b1.vn);
+                        VertID vID(b1.id, b1.vn);
                         //(*pointOrders)[b1].addPoints(&b1, &a1, reversed);
                     }
                 }

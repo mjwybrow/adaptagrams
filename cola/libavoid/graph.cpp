@@ -369,7 +369,7 @@ void EdgeInf::checkVis(void)
 
     _router->st_checked_edges++;
 
-    if (iID.isShape)
+    if (!(iID.isConnPt()))
     {
         cone1 = inValidRegion(_router->IgnoreRegions, i->shPrev->point,
                 iPoint, i->shNext->point, jPoint);
@@ -381,7 +381,7 @@ void EdgeInf::checkVis(void)
         // regions.
         ShapeSet& ss = _router->contains[iID];
 
-        if ((jID.isShape) && (ss.find(jID.objID) != ss.end()))
+        if (!(jID.isConnPt()) && (ss.find(jID.objID) != ss.end()))
         {
             db_printf("1: Edge of bounding shape\n");
             // Don't even check this edge, it should be zero,
@@ -393,7 +393,7 @@ void EdgeInf::checkVis(void)
     if (cone1)
     {
         // If outside the first cone, don't even bother checking.
-        if (jID.isShape)
+        if (!(jID.isConnPt()))
         {
             cone2 = inValidRegion(_router->IgnoreRegions, j->shPrev->point,
                     jPoint, j->shNext->point, iPoint);
@@ -405,7 +405,7 @@ void EdgeInf::checkVis(void)
             // regions.
             ShapeSet& ss = _router->contains[jID];
 
-            if ((iID.isShape) && (ss.find(iID.objID) != ss.end()))
+            if (!(iID.isConnPt()) && (ss.find(iID.objID) != ss.end()))
             {
                 db_printf("2: Edge of bounding shape\n");
                 // Don't even check this edge, it should be zero,
@@ -454,11 +454,11 @@ int EdgeInf::firstBlocker(void)
     VertID& jID = _v2->id;
 
     ContainsMap &contains = _router->contains;
-    if (!(iID.isShape))
+    if (iID.isConnPt())
     {
         ss.insert(contains[iID].begin(), contains[iID].end());
     }
-    if (!(jID.isShape))
+    if (jID.isConnPt())
     {
         ss.insert(contains[jID].begin(), contains[jID].end());
     }

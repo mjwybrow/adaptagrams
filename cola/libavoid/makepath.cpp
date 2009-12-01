@@ -397,8 +397,8 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
         while (last != start)
         {
             const Point& pnt = currRoute.at(rIndx);
-            bool isShape = (rIndx > 0);
-            VertID vID(pnt.id, isShape, pnt.vn);
+            VertIDProps props = (rIndx > 0) ? 0 : VertID::PROP_ConnPoint;
+            VertID vID(pnt.id, pnt.vn, props);
 
 #ifdef PATHDEBUG
             db_printf("/// %d %d %d\n", pnt.id, (int) isShape, pnt.vn);
@@ -520,7 +520,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
                     radius, 255, 0, 0, 255);
 
             SDL_Flip(router->avoid_screen);
-            //SDL_Delay(500);
+            SDL_Delay(500);
 
             filledCircleRGBA(router->avoid_screen, 
                     (int) BestNode.inf->point.x + canx,
@@ -592,7 +592,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
             Node.prevIndex = DONE.size() - 1;
 
             // Only check shape verticies, or the tar endpoint.
-            if (!(Node.inf->id.isShape) && (Node.inf != tar))
+            if (Node.inf->id.isConnPt() && (Node.inf != tar))
             {
                 continue;
             }
@@ -605,6 +605,61 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
             {
                 continue;
             }
+
+#ifdef ORTHOG_ROUTING_OPTIMISATION
+            if (isOrthogonal)
+            {
+                // Skip the edges that don't lead to shape edges, or the 
+                // connection point we are looking for.
+                Point& bestPt = BestNode.inf->point;
+                Point& nextPt = Node.inf->point;
+
+                bool notInlineX = prevInf && (prevInf->point.x != bestPt.x);
+                bool notInlineY = prevInf && (prevInf->point.y != bestPt.y);
+                if ((bestPt.x == nextPt.x) && notInlineX)
+                {
+                    if (nextPt.y < bestPt.y)
+                    {
+                        if (!(BestNode.inf->orthogVisPropFlags & YL_EDGE) &&
+                                !((bestPt.x == tar->point.x) ||
+                                  (bestPt.x == src->point.x)))
+                        {
+                            continue;
+                        }
+                    }
+                    else if (nextPt.y > bestPt.y)
+                    {
+                        if (!(BestNode.inf->orthogVisPropFlags & YH_EDGE) &&
+                                !((bestPt.x == tar->point.x) ||
+                                  (bestPt.x == src->point.x)))
+                        {
+                            continue;
+                        }
+                    }
+                }
+                if ((bestPt.y == nextPt.y) && notInlineY)
+                {
+                    if (nextPt.x < bestPt.x)
+                    {
+                        if (!(BestNode.inf->orthogVisPropFlags & XL_EDGE) &&
+                                !((bestPt.y == tar->point.y) ||
+                                  (bestPt.y == src->point.y)))
+                        {
+                            continue;
+                        }
+                    }
+                    else if (nextPt.x > bestPt.x)
+                    {
+                        if (!(BestNode.inf->orthogVisPropFlags & XH_EDGE) &&
+                                !((bestPt.y == tar->point.y) ||
+                                  (bestPt.y == src->point.y)))
+                        {
+                            continue;
+                        }
+                    }
+                }
+            }
+#endif
 
             double edgeDist = (*edge)->getDist();
 

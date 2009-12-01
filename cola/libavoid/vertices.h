@@ -42,20 +42,25 @@ class Router;
 typedef std::list<EdgeInf *> EdgeInfList;
 
 typedef unsigned int ConnDirFlags;
+typedef unsigned short VertIDProps;
 
 
 class VertID
 {
     public:
         unsigned int objID;
-        bool isShape;
         unsigned short vn;
+        // Properties:
+        VertIDProps props;
 
         static const unsigned short src;
         static const unsigned short tar;
+        
+        static const VertIDProps PROP_ConnPoint;
+        static const VertIDProps PROP_OrthShapeEdge;
 
         VertID();
-        VertID(unsigned int id, bool s, int n);
+        VertID(unsigned int id, unsigned short n, VertIDProps p = 0);
         VertID(const VertID& other);
         VertID& operator= (const VertID& rhs);
         bool operator==(const VertID& rhs) const;
@@ -67,6 +72,16 @@ class VertID
         void print(FILE *file = stdout) const;
         void db_print(void) const;
         friend std::ostream& operator<<(std::ostream& os, const VertID& vID);
+        
+        // Property tests:
+        inline bool isOrthShapeEdge(void) const
+        {
+            return (props & PROP_OrthShapeEdge);
+        }
+        inline bool isConnPt(void) const
+        {
+            return (props & PROP_ConnPoint);
+        }
 };
 
 
@@ -74,7 +89,8 @@ class VertID
 // orthogonal visibility graph since the vertices in the orthogonal graph 
 // mostly do not correspond to shape corners or connector endpoints.
 //
-static const VertID dummyOrthogID(0, true, 0);
+static const VertID dummyOrthogID(0, 0);
+static const VertID dummyOrthogShapeID(0, 0, VertID::PROP_OrthShapeEdge);
 
 
 class VertInf
@@ -103,7 +119,25 @@ class VertInf
         unsigned int invisListSize;
         VertInf *pathNext;
         ConnDirFlags visDirections;
+#ifdef ORTHOG_ROUTING_OPTIMISATION
+        // Flags for orthogonal visibility properties, i.e., whether the 
+        // line points to a shape edge, connection point or an obstacle.
+        unsigned int orthogVisPropFlags;
+#endif
 };
+
+
+#ifdef ORTHOG_ROUTING_OPTIMISATION
+// Orthogonal visibility property flags
+static const unsigned int XL_EDGE = 1;
+static const unsigned int XL_CONN = 2;
+static const unsigned int XH_EDGE = 4;
+static const unsigned int XH_CONN = 8;
+static const unsigned int YL_EDGE = 16;
+static const unsigned int YL_CONN = 32;
+static const unsigned int YH_EDGE = 64;
+static const unsigned int YH_CONN = 128;
+#endif
 
 
 bool directVis(VertInf *src, VertInf *dst);

@@ -44,18 +44,18 @@ VertID::VertID()
 }
 
 
-VertID::VertID(unsigned int id, bool s, int n)
-    : objID(id)
-    , isShape(s)
-    , vn(n)
+VertID::VertID(unsigned int id, unsigned short n, VertIDProps p)
+    : objID(id),
+      vn(n),
+      props(p)
 {
 }
 
 
 VertID::VertID(const VertID& other)
-    : objID(other.objID)
-    , isShape(other.isShape)
-    , vn(other.vn)
+    : objID(other.objID),
+      vn(other.vn),
+      props(other.props)
 {
 }
 
@@ -66,8 +66,8 @@ VertID& VertID::operator= (const VertID& rhs)
     //if (this == &rhs) return *this;
 
     objID = rhs.objID;
-    isShape = rhs.isShape;
     vn = rhs.vn;
+    props = rhs.props;
 
     return *this;
 }
@@ -79,8 +79,6 @@ bool VertID::operator==(const VertID& rhs) const
     {
         return false;
     }
-    // XXX RubberBand search breaks this:
-    // COLA_ASSERT(isShape == rhs.isShape);
     return true;
 }
 
@@ -91,7 +89,6 @@ bool VertID::operator!=(const VertID& rhs) const
     {
         return true;
     }
-    COLA_ASSERT(isShape == rhs.isShape);
     return false;
 }
 
@@ -109,13 +106,13 @@ bool VertID::operator<(const VertID& rhs) const
 
 VertID VertID::operator+(const int& rhs) const
 {
-    return VertID(objID, isShape, vn + rhs);
+    return VertID(objID, vn + rhs, props);
 }
 
 
 VertID VertID::operator-(const int& rhs) const
 {
-    return VertID(objID, isShape, vn - rhs);
+    return VertID(objID, vn - rhs, props);
 }
 
 
@@ -140,6 +137,10 @@ void VertID::db_print(void) const
 const unsigned short VertID::src = 1;
 const unsigned short VertID::tar = 2;
 
+// Property flags:
+const unsigned short VertID::PROP_ConnPoint     = 1;
+const unsigned short VertID::PROP_OrthShapeEdge = 2;
+
 
 ostream& operator<<(ostream& os, const VertID& vID)
 {
@@ -162,6 +163,9 @@ VertInf::VertInf(Router *router, const VertID& vid, const Point& vpoint,
       invisListSize(0),
       pathNext(NULL),
       visDirections(ConnDirNone)
+#ifdef ORTHOG_ROUTING_OPTIMISATION
+      ,orthogVisPropFlags(0)
+#endif
 {
     point.id = vid.objID;
     point.vn = vid.vn;
@@ -206,7 +210,7 @@ void VertInf::removeFromGraph(const bool isConnVert)
 {
     if (isConnVert)
     {
-        COLA_ASSERT(!(id.isShape));
+        COLA_ASSERT(id.isConnPt());
     }
 
     // For each vertex.
@@ -251,11 +255,11 @@ bool directVis(VertInf *src, VertInf *dst)
     COLA_ASSERT(router == dst->_router);
 
     ContainsMap& contains = router->contains;
-    if (!(pID.isShape))
+    if (pID.isConnPt())
     {
         ss.insert(contains[pID].begin(), contains[pID].end());
     }
-    if (!(qID.isShape))
+    if (qID.isConnPt())
     {
         ss.insert(contains[qID].begin(), contains[qID].end());
     }
@@ -301,10 +305,10 @@ VertInfList::VertInfList()
                     (_firstConnVert &&  _lastConnVert) ); \
             COLA_ASSERT((!_firstShapeVert && !_lastShapeVert) || \
                     (_firstShapeVert &&  _lastShapeVert) ); \
-            COLA_ASSERT(!_firstShapeVert || _firstShapeVert->id.isShape); \
-            COLA_ASSERT(!_lastShapeVert || _lastShapeVert->id.isShape); \
-            COLA_ASSERT(!_firstConnVert || !(_firstConnVert->id.isShape)); \
-            COLA_ASSERT(!_lastConnVert || !(_lastConnVert->id.isShape)); \
+            COLA_ASSERT(!_firstShapeVert || !(_firstShapeVert->id.isConnPt())); \
+            COLA_ASSERT(!_lastShapeVert || !(_lastShapeVert->id.isConnPt())); \
+            COLA_ASSERT(!_firstConnVert || _firstConnVert->id.isConnPt()); \
+            COLA_ASSERT(!_lastConnVert || _lastConnVert->id.isConnPt()); \
         } while(0)
 
 
@@ -314,7 +318,7 @@ void VertInfList::addVertex(VertInf *vert)
     COLA_ASSERT(vert->lstPrev == NULL);
     COLA_ASSERT(vert->lstNext == NULL);
 
-    if (!(vert->id.isShape))
+    if (vert->id.isConnPt())
     {
         // A Connector vertex
         if (_firstConnVert)
@@ -382,7 +386,7 @@ VertInf *VertInfList::removeVertex(VertInf *vert)
     
     VertInf *following = vert->lstNext;
 
-    if (!(vert->id.isShape))
+    if (vert->id.isConnPt())
     {
         // A Connector vertex
         if (vert == _firstConnVert)
