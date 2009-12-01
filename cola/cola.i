@@ -134,12 +134,9 @@ class ColaException {
 
 
 %template(UnsatisfiableConstraintInfoVector) std::vector<cola::UnsatisfiableConstraintInfo *>;
-%template(AlignmentConstraintPair) std::pair<cola::AlignmentConstraint *, cola::AlignmentConstraint *>;
-%template(AlignmentConstraintPairList) std::vector<std::pair<cola::AlignmentConstraint *, cola::AlignmentConstraint *> >; 
 %template(EdgeVector) std::vector<cola::Edge>;
 %template(CharVector) std::vector<char>;
 %template(ColaEdge) std::pair<unsigned,unsigned>;
-%template(OffsetList) std::vector<std::pair<unsigned,double> >;
 %template(RectPtrVector) std::vector<vpsc::Rectangle*>;
 %template(CompoundConstraintsVector) std::vector<cola::CompoundConstraint*>;
 %template(ColaLocks) std::vector<cola::Lock>;
