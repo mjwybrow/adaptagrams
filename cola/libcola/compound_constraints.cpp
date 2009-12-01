@@ -276,9 +276,29 @@ class VarIndexPair : public SubConstraintInfo
     public:
         VarIndexPair(unsigned ind1, unsigned ind2) 
             : SubConstraintInfo(ind1),
+              lConstraint(NULL),
+              rConstraint(NULL),
               varIndex2(ind2)
         {
         }
+        VarIndexPair(AlignmentConstraint *l, AlignmentConstraint *r) 
+            : SubConstraintInfo(0),
+              lConstraint(l),
+              rConstraint(r),
+              varIndex2(0)
+        {
+        }
+        unsigned indexL(void) const
+        {
+            return (lConstraint) ? lConstraint->variable->id : varIndex;
+        }
+        unsigned indexR(void) const
+        {
+            return (rConstraint) ? rConstraint->variable->id : varIndex2;
+        }
+    private:
+        AlignmentConstraint *lConstraint;
+        AlignmentConstraint *rConstraint;
         unsigned varIndex2;
 };
 
@@ -304,8 +324,7 @@ SeparationConstraint::SeparationConstraint(const vpsc::Dim dim,
     COLA_ASSERT(l);
     COLA_ASSERT(r);
     
-    _subConstraintInfo.push_back(
-            new VarIndexPair(l->variable->id, r->variable->id));
+    _subConstraintInfo.push_back(new VarIndexPair(l, r));
 }
 
 
@@ -324,10 +343,10 @@ SeparationConstraint::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
     VarIndexPair *info = static_cast<VarIndexPair *> 
             (_subConstraintInfo[_currSubConstraintIndex]);
     
-    assertValidVariableIndex(vs[_primaryDim], info->varIndex);
-    assertValidVariableIndex(vs[_primaryDim], info->varIndex2);
-    vpsc::Constraint constraint(vs[_primaryDim][info->varIndex],
-            vs[_primaryDim][info->varIndex2], gap, equality);
+    assertValidVariableIndex(vs[_primaryDim], info->indexL());
+    assertValidVariableIndex(vs[_primaryDim], info->indexR());
+    vpsc::Constraint constraint(vs[_primaryDim][info->indexL()],
+            vs[_primaryDim][info->indexR()], gap, equality);
     alternatives.push_back(SubConstraint(_primaryDim, constraint));
 
     fprintf(stderr, "===== SEPARATION ALTERNATIVES -======\n");
@@ -343,8 +362,8 @@ void SeparationConstraint::generateSeparationConstraints(const vpsc::Dim dim,
         VarIndexPair *info = 
                 static_cast<VarIndexPair *> (_subConstraintInfo.front());
         
-        unsigned left = info->varIndex;
-        unsigned right = info->varIndex2;
+        unsigned left = info->indexL();
+        unsigned right = info->indexR();
         assertValidVariableIndex(vs, left);
         assertValidVariableIndex(vs, right);
         vpscConstraint = 
@@ -359,7 +378,7 @@ unsigned SeparationConstraint::left(void) const
     VarIndexPair *info =
             static_cast<VarIndexPair *> (_subConstraintInfo.front());
 
-    return info->varIndex;
+    return info->indexL();
 }
 
 
@@ -368,7 +387,7 @@ unsigned SeparationConstraint::right(void) const
     VarIndexPair *info =
             static_cast<VarIndexPair *> (_subConstraintInfo.front());
 
-    return info->varIndex2;
+    return info->indexR();
 }
 
 
