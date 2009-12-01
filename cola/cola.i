@@ -139,7 +139,6 @@ class ColaException {
 %template(EdgeVector) std::vector<cola::Edge>;
 %template(CharVector) std::vector<char>;
 %template(ColaEdge) std::pair<unsigned,unsigned>;
-%template(OffsetPair) std::pair<unsigned,double>;
 %template(OffsetList) std::vector<std::pair<unsigned,double> >;
 %template(RectPtrVector) std::vector<vpsc::Rectangle*>;
 %template(CompoundConstraintsVector) std::vector<cola::CompoundConstraint*>;
