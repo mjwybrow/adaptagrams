@@ -685,7 +685,14 @@ public:
         {
             return NULL;
         }
-        return *vertInfs.begin();
+        VertInf *inf = *vertInfs.begin();
+        if ((inf->point.y == begin) && (inf->point.x == pos) ||
+            (inf->point.x == begin) && (inf->point.y == pos))
+        {
+            // Only return the point if it is actually at the begin pos.
+            return inf;
+        }
+        return NULL;
     }
     VertInf *finishVertInf(void) const
     {
@@ -693,7 +700,14 @@ public:
         {
             return NULL;
         }
-        return *vertInfs.rbegin();
+        VertInf *inf = *vertInfs.rbegin();
+        if ((inf->point.y == finish) && (inf->point.x == pos) ||
+            (inf->point.x == finish) && (inf->point.y == pos))
+        {
+            // Only return the point if it is actually at the finish pos.
+            return inf;
+        }
+        return NULL;
     }
 
     VertInf *commitPositionX(Router *router, double posX)
@@ -893,6 +907,89 @@ public:
             }
         }
 
+#ifdef ORTHOG_ROUTING_OPTIMISATION
+        // Travel in one direction
+        bool seenConnPt = false;
+        bool seenShapeEdge = false;
+        for (BreakpointSet::iterator nvert = breakPoints.begin(); 
+                nvert != breakPoints.end(); ++nvert)
+        {
+            VertIDProps mask = 0;
+            if (dim == 0)
+            {
+                if (seenConnPt)
+                {
+                    mask |= XL_CONN;
+                }
+                if (seenShapeEdge)
+                {
+                    mask |= XL_EDGE;
+                }
+            }
+            else
+            {
+                if (seenConnPt)
+                {
+                    mask |= YL_CONN;
+                }
+                if (seenShapeEdge)
+                {
+                    mask |= YL_EDGE;
+                }
+            }
+            nvert->vert->orthogVisPropFlags |= mask;
+
+            if (nvert->vert->id.isConnPt())
+            {
+                seenConnPt = true;
+            }
+            if (nvert->vert->id.isOrthShapeEdge())
+            {
+                seenShapeEdge = true;
+            }
+        }
+        // Then in the other direction
+        seenConnPt = false;
+        seenShapeEdge = false;
+        for (BreakpointSet::reverse_iterator rvert = breakPoints.rbegin(); 
+                rvert != breakPoints.rend(); ++rvert)
+        {
+            VertIDProps mask = 0;
+            if (dim == 0)
+            {
+                if (seenConnPt)
+                {
+                    mask |= XH_CONN;
+                }
+                if (seenShapeEdge)
+                {
+                    mask |= XH_EDGE;
+                }
+            }
+            else
+            {
+                if (seenConnPt)
+                {
+                    mask |= YH_CONN;
+                }
+                if (seenShapeEdge)
+                {
+                    mask |= YH_EDGE;
+                }
+            }
+            rvert->vert->orthogVisPropFlags |= mask;
+
+            if (rvert->vert->id.isConnPt())
+            {
+                seenConnPt = true;
+            }
+            if (rvert->vert->id.isOrthShapeEdge())
+            {
+                seenShapeEdge = true;
+            }
+        }
+#endif
+
         const bool orthogonal = true;
         BreakpointSet::iterator vert, last;
         for (vert = last = breakPoints.begin(); vert != breakPoints.end();)
@@ -904,7 +1001,7 @@ public:
                 // Assert points are not at the same position.
                 COLA_ASSERT(vert->vert->point != last->vert->point);
 
-                if ( !(vert->vert->id.isShape || last->vert->id.isShape))
+                if (vert->vert->id.isConnPt() && last->vert->id.isConnPt())
                 {
                     // Here we have a pair of two endpoints that are both
                     // connector endpoints and both are inside a shape.
@@ -912,7 +1009,7 @@ public:
                     // Give vert visibility back to the first non-connector
                     // endpoint vertex (i.e., the side of the shape).
                     BreakpointSet::iterator side = last;
-                    while (!side->vert->id.isShape)
+                    while (side->vert->id.isConnPt())
                     {
                         if (side == breakPoints.begin())
                         {
@@ -921,7 +1018,7 @@ public:
                         --side;
                     }
                     bool canSeeDown = (vert->dir & ConnDirDown);
-                    if (canSeeDown && side->vert->id.isShape)
+                    if (canSeeDown && !(side->vert->id.isConnPt()))
                     {
                         EdgeInf *edge = new 
                                 EdgeInf(side->vert, vert->vert, orthogonal);
@@ -933,7 +1030,7 @@ public:
                     // endpoint vertex (i.e., the side of the shape).
                     side = vert;
                     while ((side != breakPoints.end()) && 
-                            !side->vert->id.isShape)
+                            side->vert->id.isConnPt())
                     {
                         ++side;
                     }
@@ -955,11 +1052,11 @@ public:
                 // the connector in question.
                 //
                 bool generateEdge = true;
-                if (!last->vert->id.isShape && !(last->dir & ConnDirUp))
+                if (last->vert->id.isConnPt() && !(last->dir & ConnDirUp))
                 {
                     generateEdge = false;
                 }
-                else if (!vert->vert->id.isShape && !(vert->dir & ConnDirDown))
+                else if (vert->vert->id.isConnPt() && !(vert->dir & ConnDirDown))
                 {
                     generateEdge = false;
                 }
@@ -1195,9 +1292,11 @@ static void processEventVert(Router *router, NodeSet& scanline,
             if (minLimitMax >= maxLimitMin)
             {
                 // Insert possible visibility segments.
-                VertInf *vI1 = new VertInf(router, dummyOrthogID, 
+ 
+                // These vertices represent the shape corners.
+                VertInf *vI1 = new VertInf(router, dummyOrthogShapeID, 
                             Point(minShape, lineY));
-                VertInf *vI2 = new VertInf(router, dummyOrthogID, 
+                VertInf *vI2 = new VertInf(router, dummyOrthogShapeID, 
                             Point(maxShape, lineY));
                 
                 // There are no overlapping shapes, so give full visibility.
@@ -1218,13 +1317,21 @@ static void processEventVert(Router *router, NodeSet& scanline,
             {
                 if ((minLimitMax > minLimit) && (minLimitMax >= minShape))
                 {
-                    segments.insert(LineSegment(minLimit, minLimitMax, lineY,
-                                true, NULL, NULL));
+                    LineSegment *line = segments.insert(
+                            LineSegment(minLimit, minLimitMax, lineY, true));
+                    // Shape corner:
+                    VertInf *vI1 = new VertInf(router, dummyOrthogShapeID, 
+                                Point(minShape, lineY));
+                    line->vertInfs.insert(vI1);
                 }
                 if ((maxLimitMin < maxLimit) && (maxLimitMin <= maxShape))
                 {
-                    segments.insert(LineSegment(maxLimitMin, maxLimit, lineY,
-                                true, NULL, NULL));
+                    LineSegment *line = segments.insert(
+                            LineSegment(maxLimitMin, maxLimit, lineY, true));
+                    // Shape corner:
+                    VertInf *vI2 = new VertInf(router, dummyOrthogShapeID, 
+                                Point(maxShape, lineY));
+                    line->vertInfs.insert(vI2);
                 }
             }
         }
@@ -1360,22 +1467,38 @@ static void processEventHori(Router *router, NodeSet& scanline,
 
             if (minLimitMax >= maxLimitMin)
             {
-                LineSegment vertSeg = LineSegment(minLimit, maxLimit, lineX);
-                segments.insert(vertSeg);
+                LineSegment *line = segments.insert(
+                        LineSegment(minLimit, maxLimit, lineX));
+
+                // Shape corners:
+                VertInf *vI1 = new VertInf(router, dummyOrthogShapeID, 
+                        Point(lineX, minShape));
+                VertInf *vI2 = new VertInf(router, dummyOrthogShapeID, 
+                        Point(lineX, maxShape));
+                line->vertInfs.insert(vI1);
+                line->vertInfs.insert(vI2);
             }
             else
             {
                 if ((minLimitMax > minLimit) && (minLimitMax >= minShape))
                 {
-                    LineSegment vertSeg = 
-                            LineSegment(minLimit, minLimitMax, lineX);
-                    segments.insert(vertSeg);
+                    LineSegment *line = segments.insert(
+                            LineSegment(minLimit, minLimitMax, lineX));
+
+                    // Shape corner:
+                    VertInf *vI1 = new VertInf(router, dummyOrthogShapeID, 
+                                Point(lineX, minShape));
+                    line->vertInfs.insert(vI1);
                 }
                 if ((maxLimitMin < maxLimit) && (maxLimitMin <= maxShape))
                 {
-                    LineSegment vertSeg = 
-                            LineSegment(maxLimitMin, maxLimit, lineX);
-                    segments.insert(vertSeg);
+                    LineSegment *line = segments.insert(
+                            LineSegment(maxLimitMin, maxLimit, lineX));
+
+                    // Shape corner:
+                    VertInf *vI2 = new VertInf(router, dummyOrthogShapeID, 
+                                Point(lineX, maxShape));
+                    line->vertInfs.insert(vI2);
                 }
             }
         }

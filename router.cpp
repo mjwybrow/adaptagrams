@@ -868,9 +868,9 @@ void Router::newBlockingShape(const Polygon& poly, int pid)
             bool blocked = false;
 
             bool countBorder = false;
-            bool ep_in_poly1 = !(eID1.isShape) ? 
+            bool ep_in_poly1 = (eID1.isConnPt()) ? 
                     inPoly(poly, e1, countBorder) : false;
-            bool ep_in_poly2 = !(eID2.isShape) ? 
+            bool ep_in_poly2 = (eID2.isConnPt()) ? 
                     inPoly(poly, e2, countBorder) : false;
             if (ep_in_poly1 || ep_in_poly2)
             {
@@ -949,7 +949,7 @@ void Router::checkAllMissingEdges(void)
         for (VertInf *j = first ; j != i; j = j->lstNext)
         {
             VertID jID = j->id;
-            if (!(iID.isShape) && (iID.objID != jID.objID))
+            if (iID.isConnPt() && (iID.objID != jID.objID))
             {
                 // Don't keep visibility between edges of different conns
                 continue;
@@ -1346,12 +1346,12 @@ void Router::printInfo(void)
     {
         VertID pID = t->id;
 
-        if ((pID.isShape) && (pID.objID != currshape))
+        if (!(pID.isConnPt()) && (pID.objID != currshape))
         {
             currshape = pID.objID;
             st_shapes++;
         }
-        if (pID.isShape)
+        if (!(pID.isConnPt()))
         {
             st_vertices++;
         }
@@ -1366,7 +1366,7 @@ void Router::printInfo(void)
     {
         std::pair<VertID, VertID> idpair = t->ids();
 
-        if (!(idpair.first.isShape) || !(idpair.second.isShape))
+        if (idpair.first.isConnPt() || idpair.second.isConnPt())
         {
             st_valid_endpt_visedges++;
         }
@@ -1694,8 +1694,8 @@ void Router::outputInstanceToSVG(std::string instanceName)
     for (EdgeInf *t = visGraph.begin(); t != finish; t = t->lstNext)
     {
         std::pair<VertID, VertID> ids = t->ids();
-        bool isShape = (ids.first.isShape) && (ids.second.isShape);
-        if (!isShape)
+        bool isConn = ids.first.isConnPt() || ids.second.isConnPt();
+        if (isConn)
         {
             continue;
         }
@@ -1711,7 +1711,7 @@ void Router::outputInstanceToSVG(std::string instanceName)
         fprintf(fp, "<path d=\"M %g,%g L %g,%g\" "
                 "style=\"fill: none; stroke: %s; stroke-width: 1px;\" />\n", 
                 p1.x, p1.y, p2.x, p2.y,
-                (!(ids.first.isShape) || !(ids.second.isShape)) ? "green" : 
+                (ids.first.isConnPt() || ids.second.isConnPt()) ? "green" : 
                 "red");
     }
     fprintf(fp, "</g>\n");
@@ -1724,8 +1724,8 @@ void Router::outputInstanceToSVG(std::string instanceName)
     for (EdgeInf *t = visGraph.begin(); t != finish; t = t->lstNext)
     {
         std::pair<VertID, VertID> ids = t->ids();
-        bool isShape = (ids.first.isShape) && (ids.second.isShape);
-        if (isShape)
+        bool isConn = ids.first.isConnPt() || ids.second.isConnPt();
+        if (!isConn)
         {
             continue;
         }
@@ -1741,7 +1741,7 @@ void Router::outputInstanceToSVG(std::string instanceName)
         fprintf(fp, "<path d=\"M %g,%g L %g,%g\" "
                 "style=\"fill: none; stroke: %s; stroke-width: 1px;\" />\n", 
                 p1.x, p1.y, p2.x, p2.y,
-                (!(ids.first.isShape) || !(ids.second.isShape)) ? "green" : 
+                (ids.first.isConnPt() || ids.second.isConnPt()) ? "green" : 
                 "red");
     }
     fprintf(fp, "</g>\n");
@@ -1767,7 +1767,7 @@ void Router::outputInstanceToSVG(std::string instanceName)
         fprintf(fp, "<path d=\"M %g,%g L %g,%g\" "
                 "style=\"fill: none; stroke: %s; stroke-width: 1px;\" />\n", 
                 p1.x, p1.y, p2.x, p2.y,
-                (!(ids.first.isShape) || !(ids.second.isShape)) ? "green" : 
+                (ids.first.isConnPt() || ids.second.isConnPt()) ? "green" : 
                 "red");
     }
     fprintf(fp, "</g>\n");

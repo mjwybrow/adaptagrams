@@ -126,14 +126,14 @@ void vertexVisibility(VertInf *point, VertInf *partner, bool knownNew,
     const VertID& pID = point->id;
 
     // Make sure we're only doing ptVis for endpoints.
-    COLA_ASSERT(!(pID.isShape));
+    COLA_ASSERT(pID.isConnPt());
 
     if ( !(router->InvisibilityGrph) )
     {
         point->removeFromGraph();
     }
 
-    if (gen_contains && !(pID.isShape))
+    if (gen_contains && pID.isConnPt())
     {
         router->generateContains(point);
     }
@@ -355,7 +355,7 @@ class isBoundingShape
         // The following is an overloading of the function call operator.
         bool operator () (const PointPair& pp)
         {
-            if (pp.vInf->id.isShape &&
+            if (!(pp.vInf->id.isConnPt()) &&
                     (ss.find(pp.vInf->id.objID) != ss.end()))
             {
                 return true;
@@ -404,7 +404,7 @@ static bool sweepVisible(SweepEdgeList& T, const PointPair& point,
         return true;
     }
 
-    if (! point.vInf->id.isShape )
+    if (point.vInf->id.isConnPt())
     {
         // It's a connector endpoint, so we have to ignore 
         // edges of containing shapes for determining visibility.
@@ -503,7 +503,7 @@ void vertexSweep(VertInf *vert)
             continue;
         }
 
-        if (!(centerID.isShape) && (ss.find(inf->id.objID) != ss.end()))
+        if (centerID.isConnPt() && (ss.find(inf->id.objID) != ss.end()))
         {
             // Don't include edge points of containing shapes.
             unsigned int shapeID = inf->id.objID;
@@ -512,7 +512,7 @@ void vertexSweep(VertInf *vert)
             continue;
         }
 
-        if (inf->id.isShape)
+        if (!(inf->id.isConnPt()))
         {
             // Add shape vertex.
             v.insert(inf);
@@ -520,7 +520,7 @@ void vertexSweep(VertInf *vert)
         else
         {
             // Add connector endpoint.
-            if (centerID.isShape)
+            if (!(centerID.isConnPt()))
             {
                 // Center is a shape vertex, so add all endpoint vertices.
                 v.insert(inf);
@@ -529,8 +529,8 @@ void vertexSweep(VertInf *vert)
             {
                 // Center is an endpoint, so only include the other
                 // endpoint from the matching connector.
-                VertID partnerID = VertID(centerID.objID, false,
-                        (centerID.vn == 1) ? 2 : 1);
+                VertID partnerID = VertID(centerID.objID, 
+                        (centerID.vn == 1) ? 2 : 1, VertID::PROP_ConnPoint);
                 if (inf->id == partnerID)
                 {
                     v.insert(inf);
@@ -549,7 +549,8 @@ void vertexSweep(VertInf *vert)
         VertInf *k = t->vInf;
 
         COLA_ASSERT(centerInf != k);
-        COLA_ASSERT(centerID.isShape || (ss.find(k->id.objID) == ss.end()));
+        COLA_ASSERT(!(centerID.isConnPt()) || 
+                (ss.find(k->id.objID) == ss.end()));
 
         Point xaxis(DBL_MAX, centerInf->point.y);
 
@@ -634,13 +635,13 @@ void vertexSweep(VertInf *vert)
         bool currVisible = sweepVisible(e, *t, onBorderIDs, &blocker);
 
         bool cone1 = true, cone2 = true;
-        if (centerID.isShape)
+        if (!(centerID.isConnPt()))
         {
             cone1 = inValidRegion(router->IgnoreRegions,
                     centerInf->shPrev->point, centerPoint,
                     centerInf->shNext->point, currInf->point);
         }
-        if (currInf->id.isShape)
+        if (!(currInf->id.isConnPt()))
         {
             cone2 = inValidRegion(router->IgnoreRegions,
                     currInf->shPrev->point, currInf->point,
@@ -686,7 +687,7 @@ void vertexSweep(VertInf *vert)
             edge = NULL;
         }
 
-        if (currID.isShape)
+        if (!(currID.isConnPt()))
         {
             // This is a shape edge
 
