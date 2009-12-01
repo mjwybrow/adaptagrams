@@ -661,8 +661,8 @@ namespace straightener {
             coords[i]=desiredPos;
         }
         for (vector<cola::SeparationConstraint*>::iterator i=cs.begin();i!=cs.end();i++) {
-            unsigned lv=(*i)->left;
-            unsigned rv=(*i)->right;
+            unsigned lv=(*i)->left();
+            unsigned rv=(*i)->right();
             double gap=(*i)->gap;
             vpsc::Variable* l = lv<n?vs[lv]:lvs[lv-n];
             vpsc::Variable* r = rv<n?vs[rv]:lvs[rv-n];

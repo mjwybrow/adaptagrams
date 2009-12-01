@@ -66,8 +66,8 @@ int main() {
 	CompoundConstraints ccs;
 	AlignmentConstraint ac(vpsc::XDIM);
 	ccs.push_back(&ac);
-	ac.offsets.push_back(make_pair((unsigned)0,(double)0));
-	ac.offsets.push_back(make_pair((unsigned)3,(double)0));
+	ac.addShape(0,0);
+	ac.addShape(3,0);
 	// apply steepest descent layout
 	ConstrainedFDLayout alg2(rs,es,width/2);
 	alg2.setConstraints(&ccs);

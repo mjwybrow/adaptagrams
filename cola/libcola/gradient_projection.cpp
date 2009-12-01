@@ -56,7 +56,7 @@ GradientProjection::GradientProjection(
 	const unsigned max_iterations,
     CompoundConstraints const *ccs,
     UnsatisfiableConstraintInfos *unsatisfiableConstraints,
-    NonOverlapConstraints nonOverlapConstraints,
+    NonOverlapConstraintsMode nonOverlapConstraints,
     RootCluster* clusterHierarchy,
 	vpsc::Rectangles* rs,
     const bool scaling,

@@ -26,6 +26,8 @@
 #ifndef _COMPOUND_CONSTRAINTS_H
 #define _COMPOUND_CONSTRAINTS_H
 #include <vector>
+#include <list>
+#include <utility>
 #include "sparse_matrix.h"
 
 namespace vpsc {
@@ -36,9 +38,48 @@ namespace vpsc {
 }
 namespace cola {
 
-typedef std::vector<std::pair<unsigned, double> > OffsetList;
+
+// A component of a CompoundConstraint.
+class SubConstraint
+{
+    public:
+        SubConstraint(vpsc::Dim dim, vpsc::Constraint constraint, 
+                double cost = 0)
+            : dim(dim),
+              constraint(constraint),
+              cost(cost)
+        {
+        }
+        bool operator<(const SubConstraint& rhs) const
+        {
+            return cost < rhs.cost;
+        }
+
+        vpsc::Dim dim;
+        vpsc::Constraint constraint;
+        double cost;
+};
+
+
+// A list of alternative SubConstraints. 
+typedef std::list<SubConstraint> SubConstraintAlternatives;
+
 
 static const unsigned int DEFAULT_CONSTRAINT_PRIORITY = 300;
+
+class SubConstraintInfo 
+{
+    public:
+        SubConstraintInfo(unsigned ind) :
+            varIndex(ind),
+            satisfied(false)
+        {
+        }
+        unsigned varIndex;
+        bool satisfied;
+};
+
+typedef std::vector<SubConstraintInfo *> SubConstraintInfoList;
 
 
 /** 
@@ -74,10 +115,17 @@ public:
      * to send position information back to the interface.
      */
     virtual void updatePosition(const vpsc::Dim dim) {};
-    virtual ~CompoundConstraint() {}
+    virtual ~CompoundConstraint();
     vpsc::Dim dimension(void) const;
     unsigned int priority(void) const;
     
+    virtual void markAllSubConstraintsAsInactive(void);
+    virtual bool subConstraintsRemaining(void) const;
+    virtual void markCurrSubConstraintAsActive(const bool satisfiable);
+    virtual SubConstraintAlternatives getCurrSubConstraintAlternatives(
+            vpsc::Variables vs[]) = 0;
+    std::list<unsigned> subConstraintObjIndexes(void) const;
+
 protected:
     void assertValidVariableIndex(const vpsc::Variables& vars, 
             const unsigned index);
@@ -86,7 +134,13 @@ protected:
     vpsc::Dim _primaryDim;
     // The alternate dimension.
     vpsc::Dim _secondaryDim;
+    // The priority used to assign order for solving constraints.
     unsigned int _priority;
+    
+    // Info about the sub constraints within this compound constraint.
+    SubConstraintInfoList _subConstraintInfo;
+    // The index of the current subConstraint being made feasible.
+    size_t _currSubConstraintIndex;
 };
 typedef std::vector<CompoundConstraint*> CompoundConstraints;
 
@@ -117,13 +171,16 @@ class BoundaryConstraint : public CompoundConstraint
 {
     public:
         BoundaryConstraint(const vpsc::Dim);
+
+        SubConstraintAlternatives getCurrSubConstraintAlternatives(
+                vpsc::Variables vs[]);
+
         void generateVariables(const vpsc::Dim dim, vpsc::Variables& vars);
         void generateSeparationConstraints(const vpsc::Dim dim, 
                 vpsc::Variables& vars, vpsc::Constraints& cs);
         void updatePosition(const vpsc::Dim dim);
         
         double position;
-        OffsetList leftOffsets, rightOffsets;
         vpsc::Variable* variable;
 };
 
@@ -137,6 +194,11 @@ class AlignmentConstraint : public CompoundConstraint
 {
     public:
         AlignmentConstraint(const vpsc::Dim dim, double position = 0.0);
+        void addShape(const unsigned int index, const double offset);
+
+        SubConstraintAlternatives getCurrSubConstraintAlternatives(
+                vpsc::Variables vs[]);
+
         void generateVariables(const vpsc::Dim dim, vpsc::Variables& vars);
         void generateSeparationConstraints(const vpsc::Dim dim, 
                 vpsc::Variables& vars, vpsc::Constraints& cs);
@@ -146,8 +208,6 @@ class AlignmentConstraint : public CompoundConstraint
         double position(void) const;
         bool isFixed(void) const;
         
-        //! a list of pairs of node indices and their required offsets
-        OffsetList offsets;
         /** the guide pointer is used by dunnart to keep a ref to it's local
          * representation of the alignment constraint
          */
@@ -169,17 +229,19 @@ class SeparationConstraint : public CompoundConstraint
                 double g, bool equality = false);
         SeparationConstraint(const vpsc::Dim dim, AlignmentConstraint *l, 
                 AlignmentConstraint *r, double g, bool equality = false);
+
+        SubConstraintAlternatives getCurrSubConstraintAlternatives(
+                vpsc::Variables vs[]);
+        
         void generateVariables(const vpsc::Dim dim, vpsc::Variables& vars);
         void generateSeparationConstraints(const vpsc::Dim dim, 
                 vpsc::Variables& vs, vpsc::Constraints& cs);
+        void setSeparation(double gap);
+        unsigned left(void) const;
+        unsigned right(void) const;
 
-        unsigned left;
-        unsigned right;
-        AlignmentConstraint *al;
-        AlignmentConstraint *ar;
         double gap;
         bool equality;
-        void setSeparation(double gap);
         vpsc::Constraint *vpscConstraint;
 };
 
@@ -189,6 +251,10 @@ class OrthogonalEdgeConstraint : public CompoundConstraint
 {
     public:
         OrthogonalEdgeConstraint(const vpsc::Dim dim, unsigned l, unsigned r);
+        
+        SubConstraintAlternatives getCurrSubConstraintAlternatives(
+                vpsc::Variables vs[]);
+        
         void generateVariables(const vpsc::Dim dim, vpsc::Variables& vars);
         void generateSeparationConstraints(const vpsc::Dim dim, 
                 vpsc::Variables& vs, vpsc::Constraints& cs);
@@ -213,13 +279,17 @@ class MultiSeparationConstraint : public CompoundConstraint
     public:
         MultiSeparationConstraint(const vpsc::Dim dim, double minSep = 0, 
                 bool equality = false);
+        SubConstraintAlternatives getCurrSubConstraintAlternatives(
+                vpsc::Variables vs[]);
+        void addAlignmentPair(AlignmentConstraint *ac1, 
+                AlignmentConstraint *ac2);
+
         void generateVariables(const vpsc::Dim dim, vpsc::Variables& vars);
         void generateSeparationConstraints(const vpsc::Dim dim, 
                 vpsc::Variables& vs, vpsc::Constraints& gcs);
         void setSeparation(double sep);
 
         vpsc::Constraints cs;
-        std::vector<std::pair<AlignmentConstraint*,AlignmentConstraint*> > acs;
         void *indicator;
         double sep;
         bool equality;
@@ -233,16 +303,21 @@ class MultiSeparationConstraint : public CompoundConstraint
 class DistributionConstraint : public CompoundConstraint {
     public:
         DistributionConstraint(const vpsc::Dim dim);
+        SubConstraintAlternatives getCurrSubConstraintAlternatives(
+                vpsc::Variables vs[]);
+        void addAlignmentPair(AlignmentConstraint *ac1, 
+                AlignmentConstraint *ac2);
+
         void generateVariables(const vpsc::Dim dim, vpsc::Variables& vars);
         void generateSeparationConstraints(const vpsc::Dim dim, 
                 vpsc::Variables& vars, vpsc::Constraints& gcs);
         void setSeparation(double sep);
 
         vpsc::Constraints cs;
-        std::vector<std::pair<AlignmentConstraint*,AlignmentConstraint*> > acs;
         void *indicator;
         double sep;
 };
+
 
 // creates dummy variables for the edges of the page and constraints
 // between all nodes and these dummy vars such that nodes are contained
@@ -251,16 +326,17 @@ class PageBoundaryConstraints : public CompoundConstraint {
     public:
         PageBoundaryConstraints(double lBoundary, double rBoundary, 
                 double bBoundary, double tBoundary, double w = 100.0);
+        SubConstraintAlternatives getCurrSubConstraintAlternatives(
+                vpsc::Variables vs[]);
         void generateVariables(const vpsc::Dim dim, vpsc::Variables& vars);
         void generateSeparationConstraints(const vpsc::Dim dim, 
                 vpsc::Variables& vars, vpsc::Constraints& gcs);
         void updatePosition(const vpsc::Dim dim);
         double getActualLeftMargin(const vpsc::Dim dim);
         double getActualRightMargin(const vpsc::Dim dim);
-        void addContainedShape(unsigned id, double halfW, double halfH);
+        void addShape(unsigned id, double halfW, double halfH);
 
     private:
-        OffsetList offsets[2];
         double leftMargin[2];
         double rightMargin[2];
         double actualLeftMargin[2];
@@ -268,6 +344,31 @@ class PageBoundaryConstraints : public CompoundConstraint {
         double leftWeight[2];    
         double rightWeight[2];  
         vpsc::Variable *vl[2], *vr[2];
+};
+
+
+class ShapeOffsets;
+class ShapePairInfo;
+
+// Non-overlap constraints prevent a set of given shapes from overlapping.
+class NonOverlapConstraints : public CompoundConstraint {
+    public:
+        NonOverlapConstraints();
+        void addShape(unsigned id, double halfW, double halfH);
+        void computeAndSortOverlap(vpsc::Variables vs[]);
+        void markCurrSubConstraintAsActive(const bool satisfiable);
+        void markAllSubConstraintsAsInactive(void);
+        bool subConstraintsRemaining(void) const;
+        SubConstraintAlternatives getCurrSubConstraintAlternatives(
+                vpsc::Variables vs[]);
+        
+        void generateVariables(const vpsc::Dim dim, vpsc::Variables& vars);
+        void generateSeparationConstraints(const vpsc::Dim dim, 
+                vpsc::Variables& vars, vpsc::Constraints& gcs);
+
+    private:
+        std::list<ShapePairInfo> pairInfoList;
+        std::vector<ShapeOffsets> shapeOffsets;
 };
 
 

@@ -62,7 +62,7 @@ int main() {
 
     double w=2.0, h=2.0;
     for(unsigned i=0;i<V;i++) {
-        pbc->addContainedShape(i, w/2, h/2);
+        pbc->addShape(i, w/2, h/2);
     }
     ccs.push_back(pbc);
 

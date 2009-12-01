@@ -63,6 +63,7 @@ public:
 			const double weight=1.0, const double scale=1.0)
 		: id(id)
 		, desiredPosition(desiredPos)
+		, finalPosition(desiredPos)
 		, weight(weight)
 		, scale(scale)
 		, offset(0)

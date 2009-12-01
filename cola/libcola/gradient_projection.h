@@ -68,7 +68,7 @@ public:
 		const unsigned max_iterations,
         CompoundConstraints const *ccs,
         UnsatisfiableConstraintInfos *unsatisfiableConstraints,
-        NonOverlapConstraints nonOverlapConstraints = None,
+        NonOverlapConstraintsMode nonOverlapConstraints = None,
         RootCluster* clusterHierarchy = NULL,
 		vpsc::Rectangles* rs = NULL,
         const bool scaling = false,
@@ -145,7 +145,7 @@ private:
     std::vector<vpsc::Rectangle*>* rs;
     CompoundConstraints const *ccs;
     UnsatisfiableConstraintInfos *unsatisfiableConstraints;
-    NonOverlapConstraints nonOverlapConstraints;
+    NonOverlapConstraintsMode nonOverlapConstraints;
     Cluster* clusterHierarchy;
     double tolerance;
     unsigned max_iterations;

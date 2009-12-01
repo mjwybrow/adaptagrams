@@ -60,8 +60,8 @@ int main() {
 	CompoundConstraints ccs;
 	AlignmentConstraint ac(vpsc::YDIM);
 	ccs.push_back(&ac);
-	ac.offsets.push_back(make_pair((unsigned)0,(double)0));
-	ac.offsets.push_back(make_pair((unsigned)5,(double)0));
+	ac.addShape(0,0);
+	ac.addShape(5,0);
 	alg.setConstraints(&ccs);
     try {
 	    alg.run();

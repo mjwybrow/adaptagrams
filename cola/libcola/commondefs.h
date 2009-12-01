@@ -46,6 +46,7 @@ inline bool isinf(double const &x) { return !(_finite(x) || _isnan(x)); }
 #include <valarray>
 
 namespace cola {
+
 /**
  * resolve overlaps:
  *   None: not at all
@@ -53,7 +54,8 @@ namespace cola {
  *   Both: resolve in either Horizontal or Vertical direction
  *         depending on which leads to less displacement
  */
-enum NonOverlapConstraints { None, Horizontal, Both };
+enum NonOverlapConstraintsMode { None, Horizontal, Both };
+
 class FixedList {
 public:
     FixedList(const unsigned n) : array(std::valarray<bool>(n)),allFixed(false) 

@@ -255,7 +255,7 @@ public:
      */
     void setAvoidOverlaps(bool horizontal = false) {
         constrainedLayout = true;
-        this->avoidOverlaps = horizontal?Horizontal:Both;
+        this->avoidOverlaps = horizontal ? Horizontal : Both;
     }
     /**
      * Add constraints to prevent clusters overlapping
@@ -364,7 +364,7 @@ private:
     GradientProjection *gpX, *gpY;
     cola::CompoundConstraints *ccs;
     UnsatisfiableConstraintInfos *unsatisfiableX, *unsatisfiableY;
-    NonOverlapConstraints avoidOverlaps;
+    NonOverlapConstraintsMode avoidOverlaps;
     std::vector<straightener::Edge*>* straightenEdges;
     
     double bendWeight, potBendWeight;
