@@ -171,6 +171,7 @@ class BoundaryConstraint : public CompoundConstraint
 {
     public:
         BoundaryConstraint(const vpsc::Dim);
+        void addShape(const unsigned int index, const double offset);
 
         SubConstraintAlternatives getCurrSubConstraintAlternatives(
                 vpsc::Variables vs[]);

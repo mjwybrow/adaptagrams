@@ -77,6 +77,13 @@ void BoundaryConstraint::updatePosition(const vpsc::Dim dim)
 }
 
 
+void BoundaryConstraint::addShape(const unsigned int index, 
+        const double offset)
+{
+    _subConstraintInfo.push_back(new Offset(index, offset));
+}
+
+
 void BoundaryConstraint::generateVariables(const vpsc::Dim dim, 
         vpsc::Variables& vars) 
 {
