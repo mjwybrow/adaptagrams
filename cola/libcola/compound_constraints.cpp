@@ -153,7 +153,7 @@ BoundaryConstraint::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
         alternatives.push_back(SubConstraint(_primaryDim, constraint));
     }
 
-    fprintf(stderr, "===== BOUNDARYLINE ALTERNATIVES -======\n");
+    //fprintf(stderr, "===== BOUNDARYLINE ALTERNATIVES -======\n");
     return alternatives;
 }
 
@@ -261,7 +261,7 @@ AlignmentConstraint::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
             info->distOffset, true);
     alternatives.push_back(SubConstraint(_primaryDim, constraint));
 
-    fprintf(stderr, "===== ALIGN ALTERNATIVES -======\n");
+    //fprintf(stderr, "===== ALIGN ALTERNATIVES -======\n");
     return alternatives;
 }
 
@@ -349,7 +349,7 @@ SeparationConstraint::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
             vs[_primaryDim][info->indexR()], gap, equality);
     alternatives.push_back(SubConstraint(_primaryDim, constraint));
 
-    fprintf(stderr, "===== SEPARATION ALTERNATIVES -======\n");
+    //fprintf(stderr, "===== SEPARATION ALTERNATIVES -======\n");
     return alternatives;
 }
 
@@ -569,7 +569,7 @@ MultiSeparationConstraint::getCurrSubConstraintAlternatives(
     vpsc::Constraint constraint(c1->variable, c2->variable, sep, equality);
     alternatives.push_back(SubConstraint(_primaryDim, constraint));
 
-    fprintf(stderr, "===== MULTI SEPARATION ALTERNATIVES -======\n");
+    //fprintf(stderr, "===== MULTI SEPARATION ALTERNATIVES -======\n");
     return alternatives;
 }
 
@@ -650,7 +650,7 @@ DistributionConstraint::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
     vpsc::Constraint constraint(c1->variable, c2->variable, sep, true);
     alternatives.push_back(SubConstraint(_primaryDim, constraint));
 
-    fprintf(stderr, "===== DISTRIBUTION ALTERNATIVES -======\n");
+    //fprintf(stderr, "===== DISTRIBUTION ALTERNATIVES -======\n");
     return alternatives;
 }
 
@@ -945,8 +945,8 @@ void NonOverlapConstraints::computeAndSortOverlap(vpsc::Variables vs[])
         else
         {
             // There is overlap.
-            printf("[%02d][%02d] L %g, R %G, B %g, A %g\n", info.varIndex1, 
-                    info.varIndex2, spaceL, spaceR, spaceB, spaceA);
+            //printf("[%02d][%02d] L %g, R %G, B %g, A %g\n", info.varIndex1, 
+            //        info.varIndex2, spaceL, spaceR, spaceB, spaceA);
         }
     }
     pairInfoList.sort();
@@ -977,6 +977,8 @@ NonOverlapConstraints::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
     {
         //fprintf(stderr, "===== EMPTY ALTERNATIVES -======\n");
         // There is no overlap here.
+        // Mark as finished at this point.
+        _currSubConstraintIndex = pairInfoList.size();
         return alternatives;
     }
     ShapeOffsets& shape1 = shapeOffsets[info.varIndex1];
@@ -1006,13 +1008,14 @@ NonOverlapConstraints::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
             vs[YDIM][info.varIndex1], ySep);
     alternatives.push_back(SubConstraint(YDIM, constraintT, info.costA));
     
-    fprintf(stderr, "===== ALTERNATIVES -======\n");
+    //fprintf(stderr, "===== NONOVERLAP ALTERNATIVES -======\n");
     return alternatives;
 }
 
 
 bool NonOverlapConstraints::subConstraintsRemaining(void) const
 {
+    //printf(". %3d of %4d\n", _currSubConstraintIndex, pairInfoList.size());
     return _currSubConstraintIndex < pairInfoList.size();
 }
 

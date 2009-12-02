@@ -370,7 +370,7 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
                 // Some solving...
                 try 
                 {
-                    fprintf(stderr, "SOLVING %d...\n", (int) dim);
+                    fprintf(stderr, ".");
                     // Add the constraint from this alternative to the 
                     // valid constraint set.
                     valid[dim].push_back(new vpsc::Constraint(constraint));
@@ -418,6 +418,7 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
             cc->markCurrSubConstraintAsActive(subConstraintSatisfiable);
         }
     }
+    fprintf(stderr, "\n");
 
     // Write positions from solver variables back to Rectangles.
     for (unsigned int i = 0; i < boundingBoxes.size(); ++i)
