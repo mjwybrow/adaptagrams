@@ -322,7 +322,8 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
     }
 
     // Make a copy of the compound constraints and sort them by priority.
-    cola::CompoundConstraints idleConstraints = *ccs;
+    cola::CompoundConstraints idleConstraints =
+            (ccs) ? *ccs : cola::CompoundConstraints();
 
     if (nonOverlapConstraints)
     {
