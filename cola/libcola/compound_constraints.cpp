@@ -992,20 +992,20 @@ NonOverlapConstraints::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
     assertValidVariableIndex(vs[YDIM], info.varIndex1);
     assertValidVariableIndex(vs[YDIM], info.varIndex2);
 
-    vpsc::Constraint constraintL(vs[XDIM][info.varIndex1], 
-            vs[XDIM][info.varIndex2], xSep);
+    vpsc::Constraint constraintL(vs[XDIM][info.varIndex2], 
+            vs[XDIM][info.varIndex1], xSep);
     alternatives.push_back(SubConstraint(XDIM, constraintL, info.costL));
 
-    vpsc::Constraint constraintR(vs[XDIM][info.varIndex2], 
-            vs[XDIM][info.varIndex1], xSep);
+    vpsc::Constraint constraintR(vs[XDIM][info.varIndex1], 
+            vs[XDIM][info.varIndex2], xSep);
     alternatives.push_back(SubConstraint(XDIM, constraintR, info.costR));
 
-    vpsc::Constraint constraintB(vs[YDIM][info.varIndex1], 
-            vs[YDIM][info.varIndex2], ySep);
+    vpsc::Constraint constraintB(vs[YDIM][info.varIndex2], 
+            vs[YDIM][info.varIndex1], ySep);
     alternatives.push_back(SubConstraint(YDIM, constraintB, info.costB));
 
-    vpsc::Constraint constraintT(vs[YDIM][info.varIndex2], 
-            vs[YDIM][info.varIndex1], ySep);
+    vpsc::Constraint constraintT(vs[YDIM][info.varIndex1], 
+            vs[YDIM][info.varIndex2], ySep);
     alternatives.push_back(SubConstraint(YDIM, constraintT, info.costA));
     
     //fprintf(stderr, "===== NONOVERLAP ALTERNATIVES -======\n");
