@@ -422,11 +422,6 @@ public:
             this->ccs = ccs;
         }
     }
-    /** 
-     * Allow the user to specify that there should be no overlap between
-     * any pairs of nodes in the layout.
-     */
-    void setAvoidNodeOverlaps(void);
     void setTopology(std::vector<topology::Node*>* tnodes, 
             std::vector<topology::Edge*>* routes);
     void setDesiredPositions(std::vector<DesiredPosition>* desiredPositions) {
@@ -443,6 +438,8 @@ public:
         unsatisfiable[0]=unsatisfiableX;
         unsatisfiable[1]=unsatisfiableY;
     }
+    void makeFeasible(const bool nonOverlapConstraints,
+            const bool preserveTopology = false);
     ~ConstrainedFDLayout() {
         for(unsigned i=0;i<n;i++) {
             delete [] G[i];

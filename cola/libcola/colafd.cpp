@@ -294,6 +294,269 @@ void ConstrainedFDLayout::runOnce(const bool xAxis, const bool yAxis) {
 }
 
 
+// Used for sorting the CompoundConstraints from lowest priority to highest. 
+static bool cmpCompoundConstraintPriority(const cola::CompoundConstraint *lhs, 
+        const cola::CompoundConstraint *rhs)
+{
+    return lhs->priority() < rhs->priority();
+}
+
+
+void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
+        const bool preserveTopology)
+{
+    vpsc::Variables vs[2];
+    vpsc::Constraints valid[2];
+
+    // Populate all the variables for shapes.
+    for (unsigned int dim = 0; dim < 2; ++dim)
+    {
+        vs[dim] = vpsc::Variables(boundingBoxes.size());
+        for (unsigned int i = 0; i < vs[dim].size(); ++i)
+        {
+            double pos = (dim == 0) ? 
+                    boundingBoxes[i]->getCentreX() : 
+                    boundingBoxes[i]->getCentreY();
+            vs[dim][i] = new vpsc::Variable(i, pos, 1);
+        }
+    }
+
+    // Make a copy of the compound constraints and sort them by priority.
+    cola::CompoundConstraints idleConstraints = *ccs;
+
+    if (nonOverlapConstraints)
+    {
+        // Add non-overlap constraints
+        cola::NonOverlapConstraints *noc = new cola::NonOverlapConstraints();
+        for (unsigned int i = 0; i < boundingBoxes.size(); ++i)
+        {
+            noc->addShape(i, boundingBoxes[i]->width() / 2,
+                    boundingBoxes[i]->height() / 2);
+        }
+        idleConstraints.push_back(noc);
+    }
+
+    std::sort(idleConstraints.begin(), idleConstraints.end(), 
+            cmpCompoundConstraintPriority);
+
+    // Initialise extra variables for compound constraints.
+    for (unsigned int dim = 0; dim < 2; ++dim)
+    {
+        generateVariables(idleConstraints, (vpsc::Dim) dim, vs[dim]);
+    }
+
+    // Main makeFeasible loop.
+    while (!idleConstraints.empty())
+    {
+        // idleConstraints is sorted lowest to highest priority, so the 
+        // highest priority constant will be at the back of the vector.
+        cola::CompoundConstraint *cc = idleConstraints.back();
+        idleConstraints.pop_back();
+
+        cc->markAllSubConstraintsAsInactive();
+        bool subConstraintSatisfiable = true;
+        while (cc->subConstraintsRemaining())
+        {
+            cola::SubConstraintAlternatives alternatives = 
+                    cc->getCurrSubConstraintAlternatives(vs);
+            alternatives.sort();
+
+            while (!alternatives.empty())
+            {
+                vpsc::Dim& dim = alternatives.front().dim;
+                vpsc::Constraint& constraint = alternatives.front().constraint;
+                
+                // Some solving...
+                try 
+                {
+                    fprintf(stderr, "SOLVING %d...\n", (int) dim);
+                    // Add the constraint from this alternative to the 
+                    // valid constraint set.
+                    valid[dim].push_back(new vpsc::Constraint(constraint));
+
+                    // Solve with this constraint set.
+                    vpsc::IncSolver vpscInstance(vs[dim], valid[dim]);
+                    vpscInstance.satisfy();
+                }
+                catch (char *str) 
+                {
+                    subConstraintSatisfiable = false;
+                    
+                    std::cerr << "++++ IN ERROR BLOCK" << std::endl;
+                    std::cerr << str << std::endl;
+                    for (vpsc::Rectangles::iterator r = boundingBoxes.begin(); 
+                            r != boundingBoxes.end(); ++r) 
+                    {
+                        std::cerr << **r <<std::endl;
+                    }
+                }
+                for (size_t i = 0; i < valid[dim].size(); ++i) 
+                {
+                    if (valid[dim][i]->unsatisfiable) 
+                    {
+                        subConstraintSatisfiable = false;
+                        break;
+                    }
+                }
+
+                if (!subConstraintSatisfiable)
+                {
+                    fprintf(stderr, "UNSATISFIABLE\n");
+                    // Delete the newly added (and unsatisfiable) 
+                    // constraint from the valid constraint set.
+                    delete valid[dim].back();
+                    valid[dim].pop_back();
+                }
+                else
+                {
+                    break;
+                }
+                // Move on to the next alternative.
+                alternatives.pop_front();
+            }
+            cc->markCurrSubConstraintAsActive(subConstraintSatisfiable);
+        }
+    }
+
+    // Write positions from solver variables back to Rectangles.
+    for (unsigned int i = 0; i < boundingBoxes.size(); ++i)
+    {
+        boundingBoxes[i]->moveCentreX(vs[0][i]->finalPosition);
+        boundingBoxes[i]->moveCentreY(vs[1][i]->finalPosition);
+    }
+
+    // Cleanup.
+    for (unsigned int dim = 0; dim < 2; ++dim)
+    {
+        for_each(valid[dim].begin(), valid[dim].end(), delete_object());
+        for_each(vs[dim].begin(), vs[dim].end(), delete_object());
+    }
+
+#if 0
+    // XXX: Code for removing overlap between clusters needs to be updated.
+
+    vpsc::Rectangles rsa;
+    Rectangle::setXBorder(1);
+    Rectangle::setYBorder(1);
+    for(cola::CompoundConstraints::iterator c=ccs.begin(); 
+            c!=ccs.end(); ++c) {
+        cola::AlignmentConstraint* a
+            =dynamic_cast<cola::AlignmentConstraint*>(*c);
+        if(a && (a->dimension() == vpsc::HORIZONTAL)) {
+            for(cola::OffsetList::iterator o=a->offsets.begin();
+                    o!=a->offsets.end();++o) {
+                rsa.push_back(rs[o->first]);
+                printf("horizontal alignment: %d\n",o->first);
+            }
+        }
+    }
+    resolveOverlappingRectangles(rsa,vpsc::VERTICAL);
+    rsa.clear();
+    for(cola::CompoundConstraints::iterator c=ccs.begin(); 
+            c!=ccs.end(); ++c) {
+        cola::AlignmentConstraint* a
+            =dynamic_cast<cola::AlignmentConstraint*>(*c);
+        if(a && (a->dimension() == vpsc::VERTICAL)) {
+            for(cola::OffsetList::iterator o=a->offsets.begin();
+                    o!=a->offsets.end();++o) {
+                rsa.push_back(rs[o->first]);
+                printf("vertical alignment: %d\n",o->first);
+            }
+        }
+    }
+    resolveOverlappingRectangles(rsa,vpsc::HORIZONTAL);
+    Rectangle::setXBorder(0.00001);
+    Rectangle::setYBorder(0.00001);
+
+    if(mode==GraphLayout::FLOW||mode==GraphLayout::LAYERED) {
+        removeOverlap(vpsc::HORIZONTAL, cola::Horizontal);
+    } else {
+        bool horiSatisfied = false, vertSatisfied = false;
+        int iteration = 0;
+        while (!horiSatisfied || !vertSatisfied)
+        {
+            iteration++;
+            horiSatisfied = removeOverlap(vpsc::HORIZONTAL);
+            printf("%02d HORI -- %sSatisfied\n", iteration,
+                    (horiSatisfied) ? "" : "NOT ");
+            vertSatisfied = removeOverlap(vpsc::VERTICAL);
+            printf("%02d VERT -- %sSatisfied\n", iteration,
+                    (vertSatisfied) ? "" : "NOT ");
+            if (iteration == 50)
+            {
+                break;
+            }
+        }
+    }
+    Rectangle::setXBorder(0);
+    Rectangle::setYBorder(0);
+#endif
+
+#if 0
+    // create cluster boundaries
+    unsigned clusterCount=0;
+    for(vector<cola::Cluster*>::iterator i=clusterHierarchy.clusters.begin();
+            i!=clusterHierarchy.clusters.end();++i, ++clusterCount) {
+        (*i)->computeBoundary(boundingBoxes);
+        cola::ConvexCluster* c=dynamic_cast<cola::ConvexCluster*>(*i);
+        if(c!=NULL) {
+            double idealCircumference=2.0*sqrt(M_PI*c->area(rs));
+            vector<topology::EdgePoint*> eps;
+            for(unsigned j=0;j<c->hullRIDs.size();++j) {
+                const unsigned id = c->nodes[c->hullRIDs[j]];
+                const unsigned char corner = c->hullCorners[j];
+                assert(id<topologyNodesCount);
+                //cout << "addToPath(vs[" << id << "],";
+                topology::Node* node=topologyNodes[id];
+                topology::EdgePoint::RectIntersect ri;
+                switch(corner) {
+                    case 0: ri=topology::EdgePoint::BR; 
+                            //cout << "EdgePoint::BR);" << endl;
+                            break;
+                    case 1: ri=topology::EdgePoint::TR; 
+                            //cout << "EdgePoint::TR);" << endl;
+                            break;
+                    case 2: ri=topology::EdgePoint::TL;
+                            //cout << "EdgePoint::TL);" << endl;
+                            break;
+                    default:assert(corner==3);
+                            ri=topology::EdgePoint::BL; 
+                            //cout << "EdgePoint::BL);" << endl;
+                            break;
+                }
+                eps.push_back(new topology::EdgePoint(node,ri));
+            }
+            eps.push_back(eps[0]);
+            //cout << "addToPath(vs[" << eps[0]->node->id << "],(EdgePoint::RectIntersect)"<<eps[0]->rectIntersect<<");" << endl;
+            topology::Edge* e = new topology::Edge(clusterCount,idealCircumference, eps);
+            routes.push_back(e);
+        }
+    }
+    if (preserveTopology)
+    {
+        generateRoutes();
+    }
+#endif
+
+    // Turn on non-overlap constraints for later optimisation.
+    // XXX: Maybe use values from NonOverlapConstraints shape set.
+    if (!preserveTopology && nonOverlapConstraints)
+    {
+        unsigned nodesTotal = boundingBoxes.size();
+        topology::Nodes *topologyNodes = new topology::Nodes(nodesTotal);
+        for (unsigned id = 0; id < nodesTotal; ++id)
+        {
+            (*topologyNodes)[id] = new topology::Node(id, boundingBoxes[id]);
+        }
+
+        // Empty edge set will just result in nonoverlap constraints for nodes.
+        topology::Edges *topologyEdges = new topology::Edges(0);
+
+        setTopology(topologyNodes, topologyEdges);
+    }
+}
+
+
 void ConstrainedFDLayout::setTopology(std::vector<topology::Node*>* tnodes, 
         std::vector<topology::Edge*>* routes)
 {
@@ -303,21 +566,6 @@ void ConstrainedFDLayout::setTopology(std::vector<topology::Node*>* tnodes,
 
     topologyNodes=tnodes;
     topologyRoutes=routes;
-}
-
-void ConstrainedFDLayout::setAvoidNodeOverlaps(void)
-{
-    unsigned nodesTotal = boundingBoxes.size();
-    topology::Nodes *topologyNodes = new topology::Nodes(nodesTotal);
-    for (unsigned id = 0; id < nodesTotal; ++id)
-    {
-        (*topologyNodes)[id] = new topology::Node(id, boundingBoxes[id]);
-    }
-
-    // Empty edge set will just result in nonoverlap constraints for nodes.
-    topology::Edges *topologyEdges = new topology::Edges(0);
-
-    setTopology(topologyNodes, topologyEdges);
 }
 
 
