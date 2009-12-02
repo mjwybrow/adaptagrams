@@ -364,17 +364,20 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
 
             while (!alternatives.empty())
             {
+                // Reset subConstraintSatisfiable for new solve.
+                subConstraintSatisfiable = true;
+
                 vpsc::Dim& dim = alternatives.front().dim;
                 vpsc::Constraint& constraint = alternatives.front().constraint;
                 
                 // Some solving...
                 try 
                 {
-                    fprintf(stderr, ".");
                     // Add the constraint from this alternative to the 
                     // valid constraint set.
                     valid[dim].push_back(new vpsc::Constraint(constraint));
 
+                    //fprintf(stderr, ".%d %3d - ", dim, valid[dim].size());
                     // Solve with this constraint set.
                     vpsc::IncSolver vpscInstance(vs[dim], valid[dim]);
                     vpscInstance.satisfy();
@@ -395,6 +398,12 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
                 {
                     if (valid[dim][i]->unsatisfiable) 
                     {
+                        // It might have made one of the earlier added 
+                        // constraints unsatisfiable, so we mark that one 
+                        // as okay since we will be reverting the most 
+                        // recent one.
+                        valid[dim][i]->unsatisfiable = false;
+                        
                         subConstraintSatisfiable = false;
                         break;
                     }
@@ -402,7 +411,7 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
 
                 if (!subConstraintSatisfiable)
                 {
-                    fprintf(stderr, "UNSATISFIABLE\n");
+                    //fprintf(stderr, "*");
                     // Delete the newly added (and unsatisfiable) 
                     // constraint from the valid constraint set.
                     delete valid[dim].back();
