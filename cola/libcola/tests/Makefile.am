@@ -23,7 +23,7 @@ invalid_LDADD = $(common_LDADD)
 invalid_SOURCES = invalid.cpp 
 
 makefeasible_LDADD = $(common_LDADD) $(top_srcdir)/libavoid/libavoid.a
-makefeasible_SOURCES = makefeasible.cpp 
+makefeasible_SOURCES = makefeasible02.cpp 
 
 beautify_LDADD = $(common_LDADD) $(top_srcdir)/libavoid/libavoid.a
 beautify_SOURCES = beautify.cpp 

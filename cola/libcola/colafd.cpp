@@ -39,8 +39,6 @@
 #include "straightener.h"
 #include "cola_log.h"
 
-#define MAKEFEASIBLE_DEBUG
-
 #ifdef MAKEFEASIBLE_DEBUG
   #include "output_svg.h"
 #endif

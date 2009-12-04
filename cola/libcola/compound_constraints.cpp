@@ -250,16 +250,17 @@ void AlignmentConstraint::generateSeparationConstraints(const vpsc::Dim dim,
 
 void AlignmentConstraint::printCreationCode(FILE *fp) const
 {
-    fprintf(fp, "    AlignmentConstraint alignment%lu(%u, %g);\n",
+    fprintf(fp, "    AlignmentConstraint *alignment%lu = "
+            "AlignmentConstraint(%u, %g);\n",
             (unsigned long) this, _primaryDim, _position);
     for (SubConstraintInfoList::const_iterator o = _subConstraintInfo.begin();
             o != _subConstraintInfo.end(); ++o) 
     {
         Offset *info = static_cast<Offset *> (*o);
-        fprintf(fp, "    alignment%lu.addShape(%u, %g);\n",
+        fprintf(fp, "    alignment%lu->addShape(%u, %g);\n",
                 (unsigned long) this, info->varIndex, info->distOffset);
     }
-    fprintf(fp, "    ccs.push_back(alignment%lu);\n",
+    fprintf(fp, "    ccs.push_back(alignment%lu);\n\n",
             (unsigned long) this);
 }
 
