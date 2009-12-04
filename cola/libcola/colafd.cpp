@@ -1074,13 +1074,14 @@ void ConstrainedFDLayout::outputInstanceToSVG(std::string instanceName)
     // Output source code to generate this ConstrainedFDLayout instance.
     // XXX: This is not yet complete... it does not output everything.
     fprintf(fp, "<!-- Source code to generate this instance:\n");
-    fprintf(fp, "#include \"libcola/libcola.h\"\n");
+    fprintf(fp, "#include <vector>\n");
+    fprintf(fp, "#include \"libcola/cola.h\"\n");
     fprintf(fp, "using namespace cola;\n");
     fprintf(fp, "int main(void) {\n");
     fprintf(fp, "    CompoundConstraints ccs;\n");
-    fprintf(fp, "    vector<Edge> es;\n");
+    fprintf(fp, "    std::vector<Edge> es;\n");
     fprintf(fp, "    double defaultEdgeLength=40;\n");
-	fprintf(fp, "    vector<vpsc::Rectangle*> rs;\n");
+	fprintf(fp, "    std::vector<vpsc::Rectangle*> rs;\n");
     fprintf(fp, "    vpsc::Rectangle *rect = NULL;\n\n");
 	for (size_t i = 0; i < boundingBoxes.size(); ++i)
     {
