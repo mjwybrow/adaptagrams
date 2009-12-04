@@ -856,10 +856,12 @@ class ShapePairInfo
         }
         bool operator<(const ShapePairInfo& rhs) const
         {
+            int processedInt = processed ? 1 : 0;
+            int rhsProcessedInt = rhs.processed ? 1 : 0;
             // Make sure the processed ones are at the end after sorting.
-            if (!processed && rhs.processed)
+            if (processedInt != rhsProcessedInt)
             {
-                return true;
+                return processedInt < rhsProcessedInt;
             }
             return overlapMax > rhs.overlapMax;
         }
@@ -1024,7 +1026,8 @@ NonOverlapConstraints::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
             vs[YDIM][info.varIndex2], ySep);
     alternatives.push_back(SubConstraint(YDIM, constraintT, info.costA));
     
-    //fprintf(stderr, "===== NONOVERLAP ALTERNATIVES -======\n");
+    //fprintf(stderr, "===== NONOVERLAP ALTERNATIVES -====== \n");
+
     return alternatives;
 }
 

@@ -39,7 +39,9 @@
 #include "straightener.h"
 #include "cola_log.h"
 
-#ifdef MAKE_EFEASIBLE_DEBUG
+#define MAKEFEASIBLE_DEBUG
+
+#ifdef MAKEFEASIBLE_DEBUG
   #include "output_svg.h"
 #endif
 
@@ -325,6 +327,7 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
         }
     }
 
+    vector<double> priorPos(boundingBoxes.size());
     // Make a copy of the compound constraints and sort them by priority.
     cola::CompoundConstraints idleConstraints =
             (ccs) ? *ccs : cola::CompoundConstraints();
@@ -350,6 +353,18 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
         generateVariables(idleConstraints, (vpsc::Dim) dim, vs[dim]);
     }
 
+#ifdef MAKEFEASIBLE_DEBUG
+    char filename[200];
+    int iteration = 0;
+    vector<string> labels(boundingBoxes.size());
+    for(unsigned i=0;i<boundingBoxes.size();++i)
+    {
+        stringstream ss;
+        ss << i;
+        labels[i]=ss.str();
+    }
+#endif
+
     // Main makeFeasible loop.
     while (!idleConstraints.empty())
     {
@@ -358,9 +373,19 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
         cola::CompoundConstraint *cc = idleConstraints.back();
         idleConstraints.pop_back();
 
-#ifdef MAKE_EFEASIBLE_DEBUG
-        char filename[200];
-        int iteration = 0;
+#ifdef MAKEFEASIBLE_DEBUG
+        // Debugging SVG time slice output.
+        std::vector<cola::Edge> es;
+        for (unsigned int i = 0; i < boundingBoxes.size(); ++i)
+        {
+            boundingBoxes[i]->moveCentreX(vs[0][i]->finalPosition);
+            boundingBoxes[i]->moveCentreY(vs[1][i]->finalPosition);
+        }
+        sprintf(filename, "out/file-%05d.svg", iteration);
+
+        OutputFile of(boundingBoxes,es,NULL,filename,true,false);
+        of.setLabels(labels);
+        of.generate();
 #endif
 
         cc->markAllSubConstraintsAsInactive();
@@ -373,33 +398,18 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
 
             while (!alternatives.empty())
             {
-#ifdef MAKE_EFEASIBLE_DEBUG
-                // Debugging SVG time slice output.
-                std::vector<cola::Edge> es;
-                for (unsigned int i = 0; i < boundingBoxes.size(); ++i)
-                {
-                    boundingBoxes[i]->moveCentreX(vs[0][i]->finalPosition);
-                    boundingBoxes[i]->moveCentreY(vs[1][i]->finalPosition);
-                }
-                iteration++;
-                sprintf(filename, "out/file-%05d.svg", iteration);
-
-                OutputFile of(boundingBoxes,es,NULL,filename,true,false);
-                vector<string> labels(boundingBoxes.size());
-                for(unsigned i=0;i<boundingBoxes.size();++i) {
-                    stringstream ss;
-                    ss << i;
-                    labels[i]=ss.str();
-                }
-                of.setLabels(labels);
-                of.generate();
-#endif
                 // Reset subConstraintSatisfiable for new solve.
                 subConstraintSatisfiable = true;
 
                 vpsc::Dim& dim = alternatives.front().dim;
                 vpsc::Constraint& constraint = alternatives.front().constraint;
                 
+                // Store current values for variables.
+                for (unsigned int i = 0; i < priorPos.size(); ++i)
+                {
+                    priorPos[i] = vs[dim][i]->finalPosition;
+                }
+
                 // Some solving...
                 try 
                 {
@@ -435,13 +445,19 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
                         valid[dim][i]->unsatisfiable = false;
                         
                         subConstraintSatisfiable = false;
-                        break;
                     }
                 }
 
                 if (!subConstraintSatisfiable)
                 {
                     //fprintf(stderr, "*");
+
+                    // Restore previous values for variables.
+                    for (unsigned int i = 0; i < priorPos.size(); ++i)
+                    {
+                        vs[dim][i]->finalPosition = priorPos[i];
+                    }
+                    
                     // Delete the newly added (and unsatisfiable) 
                     // constraint from the valid constraint set.
                     delete valid[dim].back();
@@ -454,10 +470,27 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
                 // Move on to the next alternative.
                 alternatives.pop_front();
             }
+#ifdef MAKEFEASIBLE_DEBUG
+            if (idleConstraints.size() == 0)
+            {
+                // Debugging SVG time slice output.
+                std::vector<cola::Edge> es;
+                for (unsigned int i = 0; i < boundingBoxes.size(); ++i)
+                {
+                    boundingBoxes[i]->moveCentreX(vs[0][i]->finalPosition);
+                    boundingBoxes[i]->moveCentreY(vs[1][i]->finalPosition);
+                }
+                iteration++;
+                sprintf(filename, "out/file-%05d.svg", iteration);
+
+                OutputFile of(boundingBoxes,es,NULL,filename,true,false);
+                of.setLabels(labels);
+                of.generate();
+            }
+#endif
             cc->markCurrSubConstraintAsActive(subConstraintSatisfiable);
         }
     }
-    fprintf(stderr, "\n");
 
     // Write positions from solver variables back to Rectangles.
     for (unsigned int i = 0; i < boundingBoxes.size(); ++i)
