@@ -20,6 +20,7 @@ check_PROGRAMS = \
 	slowrouting \
 	corneroverlap01 \
 	tjunct \
+	vertlineassertion \
 	orthordering01 \
 	orthordering02 \
 	orderassertion
@@ -35,6 +36,8 @@ inline_SOURCES = inline.cpp
 infinity_SOURCES = infinity.cpp
 
 latesetup_SOURCES = latesetup.cpp
+
+vertlineassertion_SOURCES = vertlineassertion.cpp
 
 inlineoverlap01_SOURCES = inlineoverlap01.cpp
 inlineoverlap02_SOURCES = inlineoverlap02.cpp
