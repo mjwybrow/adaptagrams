@@ -1,6 +1,6 @@
 INCLUDES = -I$(top_srcdir) $(CAIROMM_CFLAGS)
 common_LDADD = $(top_builddir)/libcola/libcola.a $(top_builddir)/libvpsc/libvpsc.a $(top_builddir)/libtopology/libtopology.a $(CAIROMM_LIBS)
-check_PROGRAMS = random_graph nodedragging page_bounds constrained beautify unsatisfiable invalid
+check_PROGRAMS = random_graph nodedragging page_bounds constrained beautify unsatisfiable invalid makefeasible
 #check_PROGRAMS = unconstrained constrained containment shortest_paths connected_components large_graph convex_hull scale_free trees random_graph large_graph nodedragging topology boundary planar beautify #resize
 #check_PROGRAMS = beautify nodedragging topology boundary planar beautify resize resizealignment
 
@@ -21,6 +21,9 @@ unsatisfiable_SOURCES = unsatisfiable.cpp
 
 invalid_LDADD = $(common_LDADD)
 invalid_SOURCES = invalid.cpp 
+
+makefeasible_LDADD = $(common_LDADD) $(top_srcdir)/libavoid/libavoid.a
+makefeasible_SOURCES = makefeasible.cpp 
 
 beautify_LDADD = $(common_LDADD) $(top_srcdir)/libavoid/libavoid.a
 beautify_SOURCES = beautify.cpp 

@@ -39,6 +39,10 @@
 #include "straightener.h"
 #include "cola_log.h"
 
+#ifdef MAKE_EFEASIBLE_DEBUG
+  #include "output_svg.h"
+#endif
+
 namespace cola {
 template <class T>
 void delete_vector(vector<T*> &v) {
@@ -354,6 +358,11 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
         cola::CompoundConstraint *cc = idleConstraints.back();
         idleConstraints.pop_back();
 
+#ifdef MAKE_EFEASIBLE_DEBUG
+        char filename[200];
+        int iteration = 0;
+#endif
+
         cc->markAllSubConstraintsAsInactive();
         bool subConstraintSatisfiable = true;
         while (cc->subConstraintsRemaining())
@@ -364,6 +373,27 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
 
             while (!alternatives.empty())
             {
+#ifdef MAKE_EFEASIBLE_DEBUG
+                // Debugging SVG time slice output.
+                std::vector<cola::Edge> es;
+                for (unsigned int i = 0; i < boundingBoxes.size(); ++i)
+                {
+                    boundingBoxes[i]->moveCentreX(vs[0][i]->finalPosition);
+                    boundingBoxes[i]->moveCentreY(vs[1][i]->finalPosition);
+                }
+                iteration++;
+                sprintf(filename, "out/file-%05d.svg", iteration);
+
+                OutputFile of(boundingBoxes,es,NULL,filename,true,false);
+                vector<string> labels(boundingBoxes.size());
+                for(unsigned i=0;i<boundingBoxes.size();++i) {
+                    stringstream ss;
+                    ss << i;
+                    labels[i]=ss.str();
+                }
+                of.setLabels(labels);
+                of.generate();
+#endif
                 // Reset subConstraintSatisfiable for new solve.
                 subConstraintSatisfiable = true;
 
@@ -967,6 +997,135 @@ void ConstrainedFDLayout::moveBoundingBoxes() {
         boundingBoxes[i]->moveCentre(X[i],Y[i]);
     }
 }
+
+
+static const double LIMIT = 100000000;
+
+static void reduceRange(double& val)
+{
+    val = std::min(val, LIMIT);
+    val = std::max(val, -LIMIT);
+}
+
+void ConstrainedFDLayout::outputInstanceToSVG(std::string instanceName)
+{
+    std::string filename;
+    if (!instanceName.empty())
+    {
+        filename = instanceName;
+    }
+    else
+    {
+        filename = "libcola-debug";
+    }
+    filename += ".svg";
+    FILE *fp = fopen(filename.c_str(), "w");
+
+    if (fp == NULL)
+    {
+        return;
+    }
+
+
+    double minX = LIMIT;
+    double minY = LIMIT;
+    double maxX = -LIMIT;
+    double maxY = -LIMIT;
+
+	// Find the bounds of the diagram.
+    for (size_t i = 0; i < boundingBoxes.size(); ++i)
+    {
+        double rMinX = boundingBoxes[i]->getMinX();
+        double rMaxX = boundingBoxes[i]->getMaxX();
+        double rMinY = boundingBoxes[i]->getMinY();
+        double rMaxY = boundingBoxes[i]->getMaxY();
+   
+        reduceRange(rMinX);
+        reduceRange(rMaxX);
+        reduceRange(rMinY);
+        reduceRange(rMaxY);
+        
+        if (rMinX > -LIMIT)
+        {
+            minX = std::min(minX, rMinX);
+        }
+        if (rMaxX < LIMIT)
+        {
+            maxX = std::max(maxX,rMaxX);
+        }
+        if (rMinY > -LIMIT)
+        {
+            minY = std::min(minY, rMinY);
+        }
+        if (rMaxY < LIMIT)
+        {
+            maxY = std::max(maxY, rMaxY);
+        }
+    }
+ 
+    minX -= 50;
+    minY -= 50;
+    maxX += 50;
+    maxY += 50;
+
+    fprintf(fp, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+    fprintf(fp, "<svg xmlns:inkscape=\"http://www.inkscape.org/namespaces/inkscape\" xmlns=\"http://www.w3.org/2000/svg\" width=\"100%%\" height=\"100%%\" viewBox=\"%g %g %g %g\">\n", minX, minY, maxX - minX, maxY - minY);
+
+    // Output source code to generate this ConstrainedFDLayout instance.
+    // XXX: This is not yet complete... it does not output everything.
+    fprintf(fp, "<!-- Source code to generate this instance:\n");
+    fprintf(fp, "#include \"libcola/libcola.h\"\n");
+    fprintf(fp, "using namespace cola;\n");
+    fprintf(fp, "int main(void) {\n");
+    fprintf(fp, "    CompoundConstraints ccs;\n");
+    fprintf(fp, "    vector<Edge> es;\n");
+    fprintf(fp, "    double defaultEdgeLength=40;\n");
+	fprintf(fp, "    vector<vpsc::Rectangle*> rs;\n");
+    fprintf(fp, "    vpsc::Rectangle *rect = NULL;\n\n");
+	for (size_t i = 0; i < boundingBoxes.size(); ++i)
+    {
+        fprintf(fp, "    rect = new vpsc::Rectangle(%g, %g, %g, %g);\n",
+               boundingBoxes[i]->getMinX(), boundingBoxes[i]->getMaxX(),
+               boundingBoxes[i]->getMinY(), boundingBoxes[i]->getMaxY());
+		fprintf(fp, "    rs.push_back(rect);\n\n");
+	}
+
+    if (ccs)
+    {
+        for (cola::CompoundConstraints::iterator c = ccs->begin(); 
+                c != ccs->end(); ++c)
+        {
+            (*c)->printCreationCode(fp);
+        }
+    }
+
+	fprintf(fp, "    ConstrainedFDLayout alg(rs, es, defaultEdgeLength);\n");
+    fprintf(fp, "    alg.setConstraints(&ccs);\n");
+    fprintf(fp, "    alg.makeFeasible(true);\n");
+    fprintf(fp, "    alg.run();\n");
+    fprintf(fp, "};\n");
+    fprintf(fp, "-->\n");
+
+    fprintf(fp, "<g inkscape:groupmode=\"layer\" "
+            "inkscape:label=\"Rects\">\n");
+	for (size_t i = 0; i < boundingBoxes.size(); ++i)
+    {
+        double minX = boundingBoxes[i]->getMinX();
+        double maxX = boundingBoxes[i]->getMaxX();
+        double minY = boundingBoxes[i]->getMinY();
+        double maxY = boundingBoxes[i]->getMaxY();
+    
+        fprintf(fp, "<rect id=\"rect-%u\" x=\"%g\" y=\"%g\" width=\"%g\" "
+                "height=\"%g\" style=\"stroke-width: 1px; stroke: black; "
+                "fill: blue; fill-opacity: 0.3;\" />\n",
+                (unsigned) i, minX, minY, maxX - minX, maxY - minY);
+    }
+    fprintf(fp, "</g>\n");
+
+    fprintf(fp, "</svg>\n");
+    fclose(fp);
+}
+
 
 } // namespace cola
 

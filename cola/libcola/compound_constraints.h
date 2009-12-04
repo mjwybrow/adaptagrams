@@ -125,6 +125,7 @@ public:
     virtual SubConstraintAlternatives getCurrSubConstraintAlternatives(
             vpsc::Variables vs[]) = 0;
     std::list<unsigned> subConstraintObjIndexes(void) const;
+    virtual void printCreationCode(FILE *fp) const;
 
 protected:
     void assertValidVariableIndex(const vpsc::Variables& vars, 
@@ -208,6 +209,7 @@ class AlignmentConstraint : public CompoundConstraint
         void unfixPos(void);
         double position(void) const;
         bool isFixed(void) const;
+        void printCreationCode(FILE *fp) const;
         
         /** the guide pointer is used by dunnart to keep a ref to it's local
          * representation of the alignment constraint

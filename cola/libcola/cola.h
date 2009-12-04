@@ -412,6 +412,7 @@ public:
     void run(bool x=true, bool y=true)
             throw(InvalidVariableIndexException);
     void runOnce(bool x=true, bool y=true);
+    void outputInstanceToSVG(std::string filename = std::string());
     /**
      *  Allow the user to specify compound constraints.
      */

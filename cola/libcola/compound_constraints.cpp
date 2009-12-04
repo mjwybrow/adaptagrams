@@ -248,6 +248,22 @@ void AlignmentConstraint::generateSeparationConstraints(const vpsc::Dim dim,
 }
 
 
+void AlignmentConstraint::printCreationCode(FILE *fp) const
+{
+    fprintf(fp, "    AlignmentConstraint alignment%lu(%u, %g);\n",
+            (unsigned long) this, _primaryDim, _position);
+    for (SubConstraintInfoList::const_iterator o = _subConstraintInfo.begin();
+            o != _subConstraintInfo.end(); ++o) 
+    {
+        Offset *info = static_cast<Offset *> (*o);
+        fprintf(fp, "    alignment%lu.addShape(%u, %g);\n",
+                (unsigned long) this, info->varIndex, info->distOffset);
+    }
+    fprintf(fp, "    ccs.push_back(alignment%lu);\n",
+            (unsigned long) this);
+}
+
+
 SubConstraintAlternatives 
 AlignmentConstraint::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
 {
@@ -1135,6 +1151,12 @@ vpsc::Dim CompoundConstraint::dimension(void) const
 unsigned int CompoundConstraint::priority(void) const
 {
     return _priority;
+}
+
+
+void CompoundConstraint::printCreationCode(FILE *fp) const
+{
+    // Do nothing.  Subclasses can implement this.
 }
 
 
