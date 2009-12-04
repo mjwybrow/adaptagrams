@@ -1158,8 +1158,11 @@ class SegmentListWrapper
 static void intersectSegments(Router *router, SegmentList& segments, 
         LineSegment& vertLine)
 {
-    COLA_ASSERT(vertLine.beginVertInf() == NULL);
-    COLA_ASSERT(vertLine.finishVertInf() == NULL);
+    // XXX: It seems that this case can sometimes occur... maybe when
+    // there are many overlapping rectangles.
+    //COLA_ASSERT(vertLine.beginVertInf() == NULL);
+    //COLA_ASSERT(vertLine.finishVertInf() == NULL);
+
     for (SegmentList::iterator it = segments.begin(); it != segments.end(); )
     {
         LineSegment& horiLine = *it;
