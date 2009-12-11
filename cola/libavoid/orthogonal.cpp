@@ -798,6 +798,93 @@ public:
         addSegmentsUpTo(router, finish);
     }
 
+    // Set flags to show what can be passed on this visibility line.
+    // This can be used later to disreguard some edges in the visibility
+    // graph when routing particular connectors.
+    void setLongRangeVisibilityFlags(size_t dim)
+    {
+        // First, travel in one direction
+        bool seenConnPt = false;
+        bool seenShapeEdge = false;
+        for (BreakpointSet::iterator nvert = breakPoints.begin(); 
+                nvert != breakPoints.end(); ++nvert)
+        {
+            VertIDProps mask = 0;
+            if (dim == 0)
+            {
+                if (seenConnPt)
+                {
+                    mask |= XL_CONN;
+                }
+                if (seenShapeEdge)
+                {
+                    mask |= XL_EDGE;
+                }
+            }
+            else
+            {
+                if (seenConnPt)
+                {
+                    mask |= YL_CONN;
+                }
+                if (seenShapeEdge)
+                {
+                    mask |= YL_EDGE;
+                }
+            }
+            nvert->vert->orthogVisPropFlags |= mask;
+
+            if (nvert->vert->id.isConnPt())
+            {
+                seenConnPt = true;
+            }
+            if (nvert->vert->id.isOrthShapeEdge())
+            {
+                seenShapeEdge = true;
+            }
+        }
+        // Then in the other direction
+        seenConnPt = false;
+        seenShapeEdge = false;
+        for (BreakpointSet::reverse_iterator rvert = breakPoints.rbegin(); 
+                rvert != breakPoints.rend(); ++rvert)
+        {
+            VertIDProps mask = 0;
+            if (dim == 0)
+            {
+                if (seenConnPt)
+                {
+                    mask |= XH_CONN;
+                }
+                if (seenShapeEdge)
+                {
+                    mask |= XH_EDGE;
+                }
+            }
+            else
+            {
+                if (seenConnPt)
+                {
+                    mask |= YH_CONN;
+                }
+                if (seenShapeEdge)
+                {
+                    mask |= YH_EDGE;
+                }
+            }
+            rvert->vert->orthogVisPropFlags |= mask;
+
+            if (rvert->vert->id.isConnPt())
+            {
+                seenConnPt = true;
+            }
+            if (rvert->vert->id.isOrthShapeEdge())
+            {
+                seenShapeEdge = true;
+            }
+        }
+    }
+
     // Add visibility edge(s) for this segment up until an intersection.
     // Then, move the segment beginning to the intersection point, so we
     // later only consider the remainder of the segment.
@@ -907,88 +994,8 @@ public:
             }
         }
 
-#ifdef ORTHOG_ROUTING_OPTIMISATION
-        // Travel in one direction
-        bool seenConnPt = false;
-        bool seenShapeEdge = false;
-        for (BreakpointSet::iterator nvert = breakPoints.begin(); 
-                nvert != breakPoints.end(); ++nvert)
-        {
-            VertIDProps mask = 0;
-            if (dim == 0)
-            {
-                if (seenConnPt)
-                {
-                    mask |= XL_CONN;
-                }
-                if (seenShapeEdge)
-                {
-                    mask |= XL_EDGE;
-                }
-            }
-            else
-            {
-                if (seenConnPt)
-                {
-                    mask |= YL_CONN;
-                }
-                if (seenShapeEdge)
-                {
-                    mask |= YL_EDGE;
-                }
-            }
-            nvert->vert->orthogVisPropFlags |= mask;
-
-            if (nvert->vert->id.isConnPt())
-            {
-                seenConnPt = true;
-            }
-            if (nvert->vert->id.isOrthShapeEdge())
-            {
-                seenShapeEdge = true;
-            }
-        }
-        // Then in the other direction
-        seenConnPt = false;
-        seenShapeEdge = false;
-        for (BreakpointSet::reverse_iterator rvert = breakPoints.rbegin(); 
-                rvert != breakPoints.rend(); ++rvert)
-        {
-            VertIDProps mask = 0;
-            if (dim == 0)
-            {
-                if (seenConnPt)
-                {
-                    mask |= XH_CONN;
-                }
-                if (seenShapeEdge)
-                {
-                    mask |= XH_EDGE;
-                }
-            }
-            else
-            {
-                if (seenConnPt)
-                {
-                    mask |= YH_CONN;
-                }
-                if (seenShapeEdge)
-                {
-                    mask |= YH_EDGE;
-                }
-            }
-            rvert->vert->orthogVisPropFlags |= mask;
-
-            if (rvert->vert->id.isConnPt())
-            {
-                seenConnPt = true;
-            }
-            if (rvert->vert->id.isOrthShapeEdge())
-            {
-                seenShapeEdge = true;
-            }
-        }
-#endif
+        // Set flags for orthogonal routing optimisation.
+        setLongRangeVisibilityFlags(dim);
 
         const bool orthogonal = true;
         BreakpointSet::iterator vert, last;

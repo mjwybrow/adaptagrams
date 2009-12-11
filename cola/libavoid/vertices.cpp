@@ -162,10 +162,8 @@ VertInf::VertInf(Router *router, const VertID& vid, const Point& vpoint,
       orthogVisListSize(0),
       invisListSize(0),
       pathNext(NULL),
-      visDirections(ConnDirNone)
-#ifdef ORTHOG_ROUTING_OPTIMISATION
-      ,orthogVisPropFlags(0)
-#endif
+      visDirections(ConnDirNone),
+      orthogVisPropFlags(0)
 {
     point.id = vid.objID;
     point.vn = vid.vn;

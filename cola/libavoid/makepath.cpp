@@ -606,9 +606,9 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
                 continue;
             }
 
-#ifdef ORTHOG_ROUTING_OPTIMISATION
             if (isOrthogonal)
             {
+                // Orthogonal routing optimisation.
                 // Skip the edges that don't lead to shape edges, or the 
                 // connection point we are looking for.
                 Point& bestPt = BestNode.inf->point;
@@ -659,7 +659,6 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
                     }
                 }
             }
-#endif
 
             double edgeDist = (*edge)->getDist();
 
