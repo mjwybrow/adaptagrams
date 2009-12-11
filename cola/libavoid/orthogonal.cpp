@@ -220,7 +220,8 @@ struct Node
           firstBelow(NULL)
     {   
         //COLA_ASSERT(r->width()<1e40);
-        v->polygon().getBoundingRect(&min[0], &min[1], &max[0], &max[1]);
+        v->polygon().getBoundingRect(
+                &min[XDIM], &min[YDIM], &max[XDIM], &max[YDIM]);
     }   
     Node(VertInf *c, const double p)
         : v(NULL),
@@ -230,8 +231,8 @@ struct Node
           firstAbove(NULL),
           firstBelow(NULL)
     {
-        min[0] = max[0] = c->point.x;
-        min[1] = max[1] = c->point.y;
+        min[XDIM] = max[XDIM] = c->point.x;
+        min[YDIM] = max[YDIM] = c->point.y;
     }   
     Node(ShiftSegment *ss, const double p)
         : v(NULL),
@@ -242,7 +243,7 @@ struct Node
           firstBelow(NULL)
     {
         // These values shouldn't ever be used, so they don't matter.
-        min[0] = max[0] = min[1] = max[1] = 0;
+        min[XDIM] = max[XDIM] = min[YDIM] = max[YDIM] = 0;
     }   
     ~Node() 
     {
@@ -810,7 +811,7 @@ public:
                 nvert != breakPoints.end(); ++nvert)
         {
             VertIDProps mask = 0;
-            if (dim == 0)
+            if (dim == XDIM)
             {
                 if (seenConnPt)
                 {
@@ -821,7 +822,7 @@ public:
                     mask |= XL_EDGE;
                 }
             }
-            else
+            else // if (dim == YDIM)
             {
                 if (seenConnPt)
                 {
@@ -850,7 +851,7 @@ public:
                 rvert != breakPoints.rend(); ++rvert)
         {
             VertIDProps mask = 0;
-            if (dim == 0)
+            if (dim == XDIM)
             {
                 if (seenConnPt)
                 {
@@ -861,7 +862,7 @@ public:
                     mask |= XH_EDGE;
                 }
             }
-            else
+            else // if (dim == YDIM)
             {
                 if (seenConnPt)
                 {
@@ -1287,17 +1288,17 @@ static void processEventVert(Router *router, NodeSet& scanline,
         if ((e->type == Open) || (e->type == Close))
         {
             // Shape edge positions.
-            double minShape = v->min[0];
-            double maxShape = v->max[0];
+            double minShape = v->min[XDIM];
+            double maxShape = v->max[XDIM];
             // As far as we can see.
             double minLimit, maxLimit;
             double minLimitMax, maxLimitMin;
-            v->findFirstPointAboveAndBelow(0, minLimit, maxLimit,
+            v->findFirstPointAboveAndBelow(XDIM, minLimit, maxLimit,
                     minLimitMax, maxLimitMin);
 
             // Only difference between Open and Close is whether the line
             // segments are at the top or bottom of the shape.  Decide here.
-            double lineY = (e->type == Open) ? v->min[1] : v->max[1];
+            double lineY = (e->type == Open) ? v->min[YDIM] : v->max[YDIM];
 
             if (minLimitMax >= maxLimitMin)
             {
@@ -1352,9 +1353,9 @@ static void processEventVert(Router *router, NodeSet& scanline,
             Point& cp = centreVert->point;
 
             // As far as we can see.
-            double minLimit = v->firstPointAbove(0);
-            double maxLimit = v->firstPointBelow(0);
-            bool inShape = v->isInsideShape(0);
+            double minLimit = v->firstPointAbove(XDIM);
+            double maxLimit = v->firstPointBelow(XDIM);
+            bool inShape = v->isInsideShape(XDIM);
 
             LineSegment *line1 = NULL, *line2 = NULL;
             if (!inShape || (centreVert->visDirections & ConnDirLeft))
@@ -1463,17 +1464,17 @@ static void processEventHori(Router *router, NodeSet& scanline,
         if ((e->type == Open) || (e->type == Close))
         {
             // Shape edge positions.
-            double minShape = v->min[1];
-            double maxShape = v->max[1];
+            double minShape = v->min[YDIM];
+            double maxShape = v->max[YDIM];
             // As far as we can see.
             double minLimit, maxLimit;
             double minLimitMax, maxLimitMin;
-            v->findFirstPointAboveAndBelow(1, minLimit, maxLimit,
+            v->findFirstPointAboveAndBelow(YDIM, minLimit, maxLimit,
                     minLimitMax, maxLimitMin);
 
             // Only difference between Open and Close is whether the line
             // segments are at the left or right of the shape.  Decide here.
-            double lineX = (e->type == Open) ? v->min[0] : v->max[0];
+            double lineX = (e->type == Open) ? v->min[XDIM] : v->max[XDIM];
 
             if (minLimitMax >= maxLimitMin)
             {
@@ -1519,9 +1520,9 @@ static void processEventHori(Router *router, NodeSet& scanline,
             Point& cp = centreVert->point;
 
             // As far as we can see.
-            double minLimit = v->firstPointAbove(1);
-            double maxLimit = v->firstPointBelow(1);
-            bool inShape = v->isInsideShape(1);
+            double minLimit = v->firstPointAbove(YDIM);
+            double maxLimit = v->firstPointBelow(YDIM);
+            bool inShape = v->isInsideShape(YDIM);
             
             if (!inShape || (centreVert->visDirections & ConnDirUp))
             {
