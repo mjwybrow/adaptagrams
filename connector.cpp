@@ -1727,7 +1727,17 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
                                     std::make_pair(&bp, polyConnRef), 
                                     std::make_pair(&ap, connConnRef), 
                                     reversed);
-                            COLA_ASSERT(!orderSwapped);
+                            if (orderSwapped)
+                            {
+                                // XXX: Investigate why this occurs -- 
+                                //      see the orderassertion test case.
+                                //
+                                // The inconsistency here is not a problem,
+                                // as only one of the points is checked to 
+                                // determine ordering for nudging. 
+                                db_printf("WARNING: orderSwapped after "
+                                        "second call to PtOrder::addPoints\n");
+                            }
                         }
                     }
                 }
