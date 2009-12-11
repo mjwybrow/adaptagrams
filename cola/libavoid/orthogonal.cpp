@@ -731,7 +731,7 @@ public:
         return found;
     }
     // Set begin endpoint vertex if none has been assigned.
-    void commitBegin(Router *router, VertInf *vert = NULL)
+    void horiCommitBegin(Router *router, VertInf *vert = NULL)
     {
         if (vert)
         {
@@ -741,13 +741,16 @@ public:
         if (vertInfs.empty() ||
                 ((*vertInfs.begin())->point.x != begin))
         {
-            vertInfs.insert(new
-                    VertInf(router, dummyOrthogID, Point(begin, pos)));
+            if (begin != -DBL_MAX)
+            {
+                vertInfs.insert(new
+                        VertInf(router, dummyOrthogID, Point(begin, pos)));
+            }
         }
     }
 
     // Set begin endpoint vertex if none has been assigned.
-    void commitFinish(Router *router, VertInf *vert = NULL)
+    void horiCommitFinish(Router *router, VertInf *vert = NULL)
     {
         if (vert)
         {
@@ -757,8 +760,11 @@ public:
         if (vertInfs.empty() ||
                 ((*vertInfs.rbegin())->point.x != finish))
         {
-            vertInfs.insert(new
-                    VertInf(router, dummyOrthogID, Point(finish, pos)));
+            if (finish != DBL_MAX)
+            {
+                vertInfs.insert(new
+                        VertInf(router, dummyOrthogID, Point(finish, pos)));
+            }
         }
     }
 
@@ -793,8 +799,8 @@ public:
     // one of the endpoints is shared by multiple connector endpoints.
     void addEdgeHorizontal(Router *router)
     {
-        commitBegin(router);
-        commitFinish(router);
+        horiCommitBegin(router);
+        horiCommitFinish(router);
         
         addSegmentsUpTo(router, finish);
     }
@@ -896,7 +902,7 @@ public:
     {
         VertSet intersectionSet;
 
-        commitBegin(router);
+        horiCommitBegin(router);
 
         // Does a vertex already exist for this point.
         commitPositionX(router, vertLine.pos);
@@ -933,7 +939,7 @@ public:
         {
             vert = vertLine.finishVertInf();
         }
-        commitBegin(router, vert);
+        horiCommitBegin(router, vert);
 
         for (VertSet::iterator v = vertInfs.begin();
                 v != vertInfs.end(); ++v)
@@ -958,7 +964,7 @@ public:
         {
             vert = vertLine.finishVertInf();
         }
-        commitFinish(router, vert);
+        horiCommitFinish(router, vert);
 
         for (VertSet::iterator v = vertInfs.begin();
                 v != vertInfs.end(); ++v)
@@ -972,24 +978,44 @@ public:
     }
     void generateVisibilityEdgesFromBreakpointSet(Router *router, size_t dim)
     {
-        if ((breakPoints.begin())->pos != begin)
+        COLA_ASSERT(!breakPoints.empty());
+        if ((breakPoints.begin())->pos > begin)
         {
-            if (!beginVertInf())
+            // Add a begin point if there was not already an intersection
+            // found at that point. Though, don't do this if the line
+            // segment goes off to infinity -- we can't reach anything
+            // by going in that direction!
+            if (begin == -DBL_MAX)
             {
+                // Shorten line to first intersection point.
+                COLA_ASSERT(!breakPoints.empty());
+                begin = breakPoints.begin()->pos;
+            }
+            else
+            {
+                // Add begin point.
                 Point point(pos, pos);
                 point[dim] = begin;
-                // Add begin point if it didn't intersect another line.
                 VertInf *vert = new VertInf(router, dummyOrthogID, point);
                 breakPoints.insert(PosVertInf(begin, vert));
             }
         }
-        if ((breakPoints.rbegin())->pos != finish)
+        if ((breakPoints.rbegin())->pos < finish)
         {
-            if (!finishVertInf())
+            // Add a finish point if there was not already an intersection
+            // found at that point. Though, don't do this if the line
+            // segment goes off to infinity -- we can't reach anything
+            // by going in that direction!
+            if (finish == DBL_MAX)
             {
+                // Shorten line to first intersection point.
+                finish = breakPoints.rbegin()->pos;
+            }
+            else
+            {
+                // Add begin point.
                 Point point(pos, pos);
                 point[dim] = finish;
-                // Add finish point if it didn't intersect another line.
                 VertInf *vert = new VertInf(router, dummyOrthogID, point);
                 breakPoints.insert(PosVertInf(finish, vert));
             }
@@ -1178,32 +1204,20 @@ static void intersectSegments(Router *router, SegmentList& segments,
         bool inVertSegRegion = ((vertLine.begin <= horiLine.pos) &&
                                 (vertLine.finish >= horiLine.pos));
 
-        if (horiLine.finish < vertLine.pos)
-        {
-            // Add horizontal visibility segment.
-            horiLine.addEdgeHorizontal(router);
-
-            size_t dim = XDIM; // x-dimension
-            horiLine.generateVisibilityEdgesFromBreakpointSet(router, dim);
-
-            // We've now swept past this horizontal segment, so delete.
-            it = segments.erase(it);
-            continue;
-        }
-        else if (horiLine.begin > vertLine.pos)
+        if (vertLine.pos < horiLine.begin)
         {
             // We've yet to reach this segment in the sweep, so ignore.
             ++it;
             continue;
         }
-        else if (horiLine.begin == vertLine.pos)
+        else if (vertLine.pos == horiLine.begin)
         {
             if (inVertSegRegion)
             {
                 horiLine.insertBreakpointsBegin(router, vertLine);
             }
         }
-        else if (horiLine.finish == vertLine.pos)
+        else if (vertLine.pos == horiLine.finish)
         {
             if (inVertSegRegion)
             {
@@ -1220,10 +1234,22 @@ static void intersectSegments(Router *router, SegmentList& segments,
                 continue;
             }
         }
+        else if (vertLine.pos > horiLine.finish)
+        {
+            // Add horizontal visibility segment.
+            horiLine.addEdgeHorizontal(router);
+
+            size_t dim = XDIM; // x-dimension
+            horiLine.generateVisibilityEdgesFromBreakpointSet(router, dim);
+
+            // We've now swept past this horizontal segment, so delete.
+            it = segments.erase(it);
+            continue;
+        }
         else
         {
-            COLA_ASSERT(horiLine.begin < vertLine.pos);
-            COLA_ASSERT(horiLine.finish > vertLine.pos);
+            COLA_ASSERT(vertLine.pos > horiLine.begin);
+            COLA_ASSERT(vertLine.pos < horiLine.finish);
 
             if (inVertSegRegion)
             {
