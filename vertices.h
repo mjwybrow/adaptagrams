@@ -119,15 +119,12 @@ class VertInf
         unsigned int invisListSize;
         VertInf *pathNext;
         ConnDirFlags visDirections;
-#ifdef ORTHOG_ROUTING_OPTIMISATION
         // Flags for orthogonal visibility properties, i.e., whether the 
         // line points to a shape edge, connection point or an obstacle.
         unsigned int orthogVisPropFlags;
-#endif
 };
 
 
-#ifdef ORTHOG_ROUTING_OPTIMISATION
 // Orthogonal visibility property flags
 static const unsigned int XL_EDGE = 1;
 static const unsigned int XL_CONN = 2;
@@ -137,7 +134,6 @@ static const unsigned int YL_EDGE = 16;
 static const unsigned int YL_CONN = 32;
 static const unsigned int YH_EDGE = 64;
 static const unsigned int YH_CONN = 128;
-#endif
 
 
 bool directVis(VertInf *src, VertInf *dst);
