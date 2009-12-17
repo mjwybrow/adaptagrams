@@ -467,6 +467,11 @@ bool Router::processTransaction(void)
 
         adjustContainsWithDel(pid);
         
+        if (isMove)
+        {
+            shape->moveAttachedConns();
+        }
+
         // Ignore this shape for visibility.
         // XXX: We don't really need to do this if we're not using Partial
         //      Feedback.  Without this the blocked edges still route

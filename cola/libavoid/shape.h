@@ -29,8 +29,10 @@
 #ifndef AVOID_SHAPE_H
 #define AVOID_SHAPE_H
 
-#include "libavoid/geometry.h"
 #include <list>
+#include <set>
+
+#include "libavoid/geometry.h"
 
 
 namespace Avoid {
@@ -38,6 +40,7 @@ namespace Avoid {
 class VertInf;
 class Router;
 class ShapeRef;
+class ConnEnd;
 typedef std::list<ShapeRef *> ShapeRefList;
 
 
@@ -106,6 +109,10 @@ class ShapeRef
 
         VertInf *getPointVertex(const Point& point);
 
+        void addFollowingConnEnd(ConnEnd *connEnd);
+        void removeFollowingConnEnd(ConnEnd *connEnd);
+        void moveAttachedConns(void);
+
     private:
         Router *_router;
         unsigned int _id;
@@ -115,6 +122,7 @@ class ShapeRef
         ShapeRefList::iterator _pos;
         VertInf *_firstVert;
         VertInf *_lastVert;
+        std::set<ConnEnd *> _followingConns;
 };
 
 
