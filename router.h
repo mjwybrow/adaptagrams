@@ -343,6 +343,7 @@ class Router {
 
     private:
         friend class ConnRef;
+        friend class ShapeRef;
 
         void modifyConnector(ConnRef *conn);
         void modifyConnector(ConnRef *conn, unsigned int type,

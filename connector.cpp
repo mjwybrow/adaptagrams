@@ -43,7 +43,8 @@ namespace Avoid {
 ConnEnd::ConnEnd(const Point& point) 
     : _point(point),
       _directions(ConnDirAll),
-      _shapeRef(NULL)
+      _shapeRef(NULL),
+      _connRef(NULL)
 {
 }
 
@@ -51,21 +52,81 @@ ConnEnd::ConnEnd(const Point& point)
 ConnEnd::ConnEnd(const Point& point, const ConnDirFlags visDirs) 
     : _point(point),
       _directions(visDirs),
-      _shapeRef(NULL)
+      _shapeRef(NULL),
+      _connRef(NULL)
 {
 }
 
 ConnEnd::ConnEnd(ShapeRef *shapeRef, const double x_pos, const double y_pos,
         const double insideOffset, const ConnDirFlags visDirs) 
     : _directions(visDirs),
-      _shapeRef(shapeRef),
       _xPosition(x_pos),
       _yPosition(y_pos),
-      _insideOffset(insideOffset)
+      _insideOffset(insideOffset),
+      _shapeRef(shapeRef),
+      _connRef(NULL)
 {
 }
 
-const Point ConnEnd::point(void) const
+
+ConnEnd::~ConnEnd()
+{
+    disconnect();
+}
+
+
+unsigned int ConnEnd::type(void) const
+{
+    COLA_ASSERT(_connRef != NULL);
+    return (_connRef->_dstConnEnd == this) ? VertID::tar : VertID::src;
+}
+
+
+// Creates the connection between a connector and a shape.
+void ConnEnd::connect(ConnRef *conn)
+{
+    COLA_ASSERT(_connRef == NULL);
+
+    if (_shapeRef == NULL)
+    {
+        // This is a manual connector end;
+        return;
+    }
+
+    _shapeRef->addFollowingConnEnd(this);
+    _connRef = conn;
+}
+
+
+// Removes the connection between a connector and a shape.
+void ConnEnd::disconnect(const bool shapeDeleted)
+{
+    if (_connRef == NULL)
+    {
+        // Not connected.
+        return;
+    }
+
+    _point = position();
+    _shapeRef->removeFollowingConnEnd(this);
+    _connRef = NULL;
+
+    if (shapeDeleted)
+    {
+        // Turn this into a manual ConnEnd.
+        _point = position();
+        _shapeRef = NULL;
+    }
+}
+
+
+ShapeRef *ConnEnd::containingShape(void) const
+{
+    return _shapeRef;
+}
+
+
+const Point ConnEnd::position(void) const
 {
     if (_shapeRef)
     {
@@ -85,7 +146,7 @@ const Point ConnEnd::point(void) const
 
         Point point;
 
-        // We want to place connection points on the edges of shapes, 
+        // We want to place connection points exactly on the edges of shapes, 
         // or possibly slightly inside them (if _insideOfset is set).
 
         point.vn = kUnassignedVertexNumber;
@@ -139,19 +200,20 @@ ConnDirFlags ConnEnd::directions(void) const
             // None is set, use the defaults:
             if (_xPosition == ATTACH_POS_LEFT)
             {
-                visDir = ConnDirLeft;
+                visDir |= ConnDirLeft;
             }
             else if (_xPosition == ATTACH_POS_RIGHT)
             {
-                visDir = ConnDirRight;
+                visDir |= ConnDirRight;
             }
+
             if (_yPosition == ATTACH_POS_TOP)
             {
-                visDir = ConnDirDown;
+                visDir |= ConnDirDown;
             }
             else if (_yPosition == ATTACH_POS_BOTTOM)
             {
-                visDir = ConnDirUp;
+                visDir |= ConnDirUp;
             }
 
             if (visDir == ConnDirNone)
@@ -184,7 +246,9 @@ ConnRef::ConnRef(Router *router, const unsigned int id)
       _initialised(false),
       _callback(NULL),
       _connector(NULL),
-      _hateCrossings(false)
+      _hateCrossings(false),
+      _srcConnEnd(NULL),
+      _dstConnEnd(NULL)
 {
     _id = router->assignId(id);
 
@@ -209,17 +273,29 @@ ConnRef::ConnRef(Router *router, const ConnEnd& src, const ConnEnd& dst,
       _initialised(false),
       _callback(NULL),
       _connector(NULL),
-      _hateCrossings(false)
+      _hateCrossings(false),
+      _srcConnEnd(NULL),
+      _dstConnEnd(NULL)
 {
     _id = router->assignId(id);
     _route.clear();
 
     VertID id1(_id, 1, VertID::PROP_ConnPoint);
-    VertID id2(_id, 2, VertID::PROP_ConnPoint);
-    _srcVert = new VertInf(_router, id1, src.point());
+    _srcVert = new VertInf(_router, id1, src.position());
     _srcVert->visDirections = src.directions();
-    _dstVert = new VertInf(_router, id2, dst.point());
+    if (src.containingShape())
+    {
+        _srcConnEnd = new ConnEnd(src);
+    }
+
+    VertID id2(_id, 2, VertID::PROP_ConnPoint);
+    _dstVert = new VertInf(_router, id2, dst.position());
     _dstVert->visDirections = dst.directions();
+    if (dst.containingShape())
+    {
+        _dstConnEnd = new ConnEnd(dst);
+    }
+   
     makeActive();
     _initialised = true;
     
@@ -240,12 +316,22 @@ ConnRef::~ConnRef()
         delete _srcVert;
         _srcVert = NULL;
     }
+    if (_srcConnEnd)
+    {
+        delete _srcConnEnd;
+        _srcConnEnd = NULL;
+    }
 
     if (_dstVert)
     {
         _router->vertices.removeVertex(_dstVert);
         delete _dstVert;
         _dstVert = NULL;
+    }
+    if (_dstConnEnd)
+    {
+        delete _dstConnEnd;
+        _dstConnEnd = NULL;
     }
 
     makeInactive();
@@ -272,9 +358,10 @@ void ConnRef::setRoutingType(ConnType type)
 }
 
 
-void ConnRef::common_updateEndPoint(const unsigned int type, const ConnEnd& connEnd)
+void ConnRef::common_updateEndPoint(const unsigned int type, 
+        const ConnEnd& connEnd)
 {
-    const Point& point = connEnd.point();
+    const Point& point = connEnd.position();
     //db_printf("common_updateEndPoint(%d,(pid=%d,vn=%d,(%f,%f)))\n",
     //      type,point.id,point.vn,point.x,point.y);
     COLA_ASSERT((type == (unsigned int) VertID::src) ||
@@ -301,6 +388,16 @@ void ConnRef::common_updateEndPoint(const unsigned int type, const ConnEnd& conn
             _srcVert = new VertInf(_router, ptID, point);
         }
         _srcVert->visDirections = connEnd.directions();
+
+        if (_srcConnEnd)
+        {
+            delete _srcConnEnd;
+        }
+        if (connEnd.containingShape())
+        {
+            _srcConnEnd = new ConnEnd(connEnd);
+            _srcConnEnd->connect(this);
+        }
         
         altered = _srcVert;
         partner = _dstVert;
@@ -316,6 +413,16 @@ void ConnRef::common_updateEndPoint(const unsigned int type, const ConnEnd& conn
             _dstVert = new VertInf(_router, ptID, point);
         }
         _dstVert->visDirections = connEnd.directions();
+        
+        if (_dstConnEnd)
+        {
+            delete _dstConnEnd;
+        }
+        if (connEnd.containingShape())
+        {
+            _dstConnEnd = new ConnEnd(connEnd);
+            _dstConnEnd->connect(this);
+        }
         
         altered = _dstVert;
         partner = _srcVert;
@@ -403,31 +510,6 @@ bool ConnRef::setEndpoint(const unsigned int type, const VertID& pointID,
 
     _router->processTransaction();
     return true;
-}
-
-
-void ConnRef::setEndPointId(const unsigned int type, const unsigned int id)
-{
-    if (type == (unsigned int) VertID::src)
-    {
-        _srcId = id;
-    }
-    else  // if (type == (unsigned int) VertID::dst)
-    {
-        _dstId = id;
-    }
-}
-
-
-unsigned int ConnRef::getSrcShapeId(void)
-{
-    return _srcId;
-}
-
-
-unsigned int ConnRef::getDstShapeId(void)
-{
-    return _dstId;
 }
 
 

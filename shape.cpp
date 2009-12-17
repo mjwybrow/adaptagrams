@@ -125,6 +125,19 @@ void ShapeRef::setNewPoly(const Polygon& poly)
 }
 
 
+void ShapeRef::moveAttachedConns(void)
+{
+    // Update positions of attached connector ends.
+    for (std::set<ConnEnd *>::iterator curr = _followingConns.begin();
+            curr != _followingConns.end(); ++curr)
+    {
+        ConnEnd *connEnd = *curr;
+        COLA_ASSERT(connEnd->_connRef != NULL);
+        _router->modifyConnector(connEnd->_connRef, connEnd->type(), *connEnd);
+    }
+}
+
+
 void ShapeRef::makeActive(void)
 {
     COLA_ASSERT(!_active);
@@ -166,6 +179,14 @@ void ShapeRef::makeInactive(void)
     while (it != _firstVert);
     
     _active = false;
+    
+    // Turn attached ConnEnds into manual points.
+    bool deletedShape = true;
+    while (!_followingConns.empty())
+    {
+        ConnEnd *connEnd = *(_followingConns.begin());
+        connEnd->disconnect(deletedShape);
+    }
 }
 
 
@@ -297,6 +318,18 @@ VertInf *ShapeRef::getPointVertex(const Point& point)
     while (curr != _firstVert);
 
     return NULL;
+}
+
+
+void ShapeRef::addFollowingConnEnd(ConnEnd *connEnd)
+{
+    _followingConns.insert(connEnd);
+}
+
+
+void ShapeRef::removeFollowingConnEnd(ConnEnd *connEnd)
+{
+    _followingConns.erase(connEnd);
 }
 
 

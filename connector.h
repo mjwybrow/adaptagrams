@@ -90,7 +90,7 @@ typedef unsigned int ConnDirFlags;
 
 
 static const double ATTACH_POS_TOP = 0;
-static const double ATTACH_POS_CENTER = 0.5;
+static const double ATTACH_POS_CENTRE = 0.5;
 static const double ATTACH_POS_BOTTOM = 1;
 static const double ATTACH_POS_LEFT = ATTACH_POS_TOP;
 static const double ATTACH_POS_RIGHT = ATTACH_POS_BOTTOM;
@@ -100,7 +100,7 @@ static const double ATTACH_POS_RIGHT = ATTACH_POS_BOTTOM;
 //!         connectors.
 //!
 //! Currently this class just allows free-floating endpoints, but in future
-//! will be capable of representing attachments to connection points on shapes.
+//! will be capable of representing attachment to connection points on shapes.
 //! 
 class ConnEnd 
 {
@@ -119,29 +119,88 @@ class ConnEnd
         //! @param[in]  visDirs  One or more Avoid::ConnDirFlag options 
         //!                      specifying the directions that this point 
         //!                      should be given visibility if it is inside 
-        //!                      a shape.
+        //!                      a shape.  Currently has no effect if outside
+        //!                      of shapes.
         //!
         ConnEnd(const Point& point, const ConnDirFlags visDirs);
 
-        ConnEnd(ShapeRef *shapeRef, const double x_pos, const double y_pos,
+        //! @brief Constructs a ConnEnd attached to a position on a shape.
+        //!
+        //! The connection position should be specified as proportion
+        //! of the shape's total width and height using a floating point
+        //! value between 0 and 1.
+        //!
+        //! There are some predefined values for specifying the xPortionOffset
+        //! and yPortionOffset arguments:
+        //!  -  ATTACH_POS_TOP = 0
+        //!  -  ATTACH_POS_LEFT = 0
+        //!  -  ATTACH_POS_CENTRE = 0.5
+        //!  -  ATTACH_POS_BOTTOM = 1
+        //!  -  ATTACH_POS_RIGHT = 1
+        //!
+        //! Importantly, when this type of ConnEnd is passed to the 
+        //! ConnRed::setEndpoint() methods, that endpoint will subsequently 
+        //! get  automatically moved whenever the containing shape is moved 
+        //! or resized, thus causing the connector to be rerouted in response
+        //! to shape movement.
+        //!
+        //! If no value is given for the visDirs argument, then visibility is 
+        //! automatically determined based on the position of the connection
+        //! point.  Points on the shape boundary will have visibility from the
+        //! shape out of that edge while points in the interior will have
+        //! visibility in all directions.
+        //!
+        //! @param[in]  shapeRef       A pointer to the containing shape's
+        //!                            ShapeRef.
+        //! @param[in]  xPortionOffset The X position within the shape, 
+        //!                            specified as a proportion of the width
+        //!                            between 0 (left) and 1 (right).
+        //! @param[in]  yPortionOffset The Y position within the shape, 
+        //!                            specified as a proportion of the height
+        //!                            between 0 (top) and 1 (bottom).  
+        //! @param[in]  insideOffset   A distance to offset the point inside
+        //!                            the shape if it lies on the boundary.
+        //! @param[in]  visDirs        One or more Avoid::ConnDirFlag options 
+        //!                            specifying the directions that this 
+        //!                            point should be given visibility. 
+        //!
+        ConnEnd(ShapeRef *shapeRef, const double xPortionOffset, 
+                const double yPortionOffset,
                 const double insideOffset = 0.0,
                 const ConnDirFlags visDirs = ConnDirNone);
 
         //! @brief Returns the position of this connector endpoint
         //!
         //! @return The position of this connector endpoint.
-        const Point point(void) const;
+        //!
+        const Point position(void) const;
 
+        //! @brief Returns the directions in which this connector endpoint
+        //!        should be given visibility.
+        //!
+        //! @return The visibility directions for this connector endpoint.
+        //!
         ConnDirFlags directions(void) const;
+
+        ~ConnEnd();
     private:
+        void connect(ConnRef *conn);
+        void disconnect(const bool shapeDeleted = false);
+        ShapeRef *containingShape(void) const;
+        unsigned int type(void) const;
+
         Point _point;
         ConnDirFlags _directions;
-        
-        // For referencing ConnEnds
-        ShapeRef *_shapeRef;
         double _xPosition;
         double _yPosition;
         double _insideOffset;
+        
+        // For referencing ConnEns
+        ShapeRef *_shapeRef;  // The shape this is attached to.
+        ConnRef *_connRef;    // The parent connector.
+
+        friend class ShapeRef;
+        friend class ConnRef;
 };
 
 
@@ -200,17 +259,21 @@ class ConnRef
         //! @param[in]  srcPoint  New source endpoint for the connector.
         //! @param[in]  dstPoint  New destination endpoint for the connector.
         void setEndpoints(const ConnEnd& srcPoint, const ConnEnd& dstPoint);
+        
         //! @brief  Sets just a new source endpoint for this connector.
         //!
         //! @param[in]  srcPoint  New source endpoint for the connector.
         void setSourceEndpoint(const ConnEnd& srcPoint);
+        
         //! @brief  Sets just a new destination endpoint for this connector.
         //!
         //! @param[in]  dstPoint  New destination endpoint for the connector.
         void setDestEndpoint(const ConnEnd& dstPoint);
+        
         //! @brief   Returns the ID of this connector.
         //! @returns The ID of the connector. 
         unsigned int id(void) const;
+        
         //! @brief   Returns a pointer to the router scene this connector is in.
         //! @returns A pointer to the router scene for this connector.
         Router *router(void) const;
@@ -219,7 +282,8 @@ class ConnRef
         //!          new route and thus needs to be repainted.
         //!
         //! If the connector has been rerouted and need repainting, the  
-        //! route() method can be called to get a reference to the new route.
+        //! displayRoute() method can be called to get a reference to the 
+        //! new route.
         //!
         //! @returns Returns true if the connector requires repainting, or 
         //!          false if it does not.
@@ -261,10 +325,12 @@ class ConnRef
         //! @param[in]  ptr  A generic pointer that will be passed to the 
         //!                  callback function.
         void setCallback(void (*cb)(void *), void *ptr);
+        
         //! @brief   Returns the type of routing performed for this connector.
         //! @return  The type of routing performed.
         //!
         ConnType routingType(void) const;
+        
         //! @brief       Sets the type of routing to be performed for this 
         //!              connector.
         //! 
@@ -307,6 +373,7 @@ class ConnRef
     
     private:
         friend class Router;
+        friend class ConnEnd;
 
         PolyLine& routeRef(void);
         void freeRoutes(void);
@@ -315,7 +382,9 @@ class ConnRef
         bool generatePath(Point p0, Point p1);
         void unInitialise(void);
         void updateEndPoint(const unsigned int type, const ConnEnd& connEnd);
-        void common_updateEndPoint(const unsigned int type, const ConnEnd& connEnd);
+        void common_updateEndPoint(const unsigned int type, 
+                const ConnEnd& connEnd);
+
         Router *_router;
         unsigned int _id;
         ConnType _type;
@@ -336,6 +405,8 @@ class ConnRef
         void (*_callback)(void *);
         void *_connector;
         bool _hateCrossings;
+        ConnEnd *_srcConnEnd;
+        ConnEnd *_dstConnEnd;
 };
 
 
