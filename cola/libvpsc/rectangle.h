@@ -298,9 +298,8 @@ void removeoverlaps(Rectangles& rs);
  */
 void removeoverlaps(Rectangles& rs, const std::set<unsigned>& fixed, bool thirdPass=true);
 
-#ifndef NDEBUG
-bool assertNoOverlaps(const Rectangles& rs);
-#endif
+// Useful for assertions:
+bool noRectangleOverlaps(const Rectangles& rs);
 
 struct delete_object
 {

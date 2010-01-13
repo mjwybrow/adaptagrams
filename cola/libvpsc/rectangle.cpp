@@ -615,24 +615,28 @@ void removeoverlaps(Rectangles& rs, const set<unsigned>& fixed, bool thirdPass) 
 			std::cerr << **r <<std::endl;
 		}
 	}
-    COLA_ASSERT(assertNoOverlaps(rs));
+    COLA_ASSERT(noRectangleOverlaps(rs));
 }
-#ifndef NDEBUG
-bool assertNoOverlaps(const Rectangles& rs) {
+
+
+bool noRectangleOverlaps(const Rectangles& rs) 
+{
     Rectangle *u, *v;
     Rectangles::const_iterator i=rs.begin(), j, e=rs.end();
-	for(;i!=e;++i) {
+	for (;i!=e;++i) 
+    {
         u=*i;
-		for(j=i+1;j!=e;++j) {
+		for (j=i+1;j!=e;++j) 
+        {
 			v=*j;
-            if(u->overlapX(v)>0) {
+            if (u->overlapX(v)>0) 
+            {
                 COLA_ASSERT(u->overlapY(v)==0);
             }
 		}
 	}
     return true;
 }
-#endif
 
 }
 /*

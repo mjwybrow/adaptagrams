@@ -356,9 +356,6 @@ class ConnRef
 
         void set_route(const PolyLine& route);
         void calcRouteDist(void);
-        void setEndPointId(const unsigned int type, const unsigned int id);
-        unsigned int getSrcShapeId(void);
-        unsigned int getDstShapeId(void);
         void makeActive(void);
         void makeInactive(void);
         VertInf *start(void);

@@ -77,7 +77,7 @@ void testCase() {
     const size_t V = rs.size();
     
     removeoverlaps(rs);
-    assertNoOverlaps(rs);
+    noRectangleOverlaps(rs);
     Nodes nodes(V);
     transform(rs.begin(),rs.end(),nodes.begin(),Create());
     vpsc::Variables vs;
@@ -95,7 +95,7 @@ void testCase() {
         t.solve();
         writeFile(nodes,es,name+"-1.svg");
 
-        assertNoOverlaps(rs);
+        noRectangleOverlaps(rs);
 
         for_each(cs.begin(),cs.end(),delete_object());
     } catch(const char *e) {
@@ -117,7 +117,7 @@ void randomTest(vpsc::Dim dim) {
     vpsc::Rectangle::setXBorder(EXTRA_GAP);
     vpsc::Rectangle::setYBorder(EXTRA_GAP);
     removeoverlaps(rs);
-    assertNoOverlaps(rs);
+    noRectangleOverlaps(rs);
     Nodes nodes(V);
     transform(rs.begin(),rs.end(),nodes.begin(),Create());
     vpsc::Variables vs;
