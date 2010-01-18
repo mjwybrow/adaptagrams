@@ -687,8 +687,8 @@ public:
             return NULL;
         }
         VertInf *inf = *vertInfs.begin();
-        if ((inf->point.y == begin) && (inf->point.x == pos) ||
-            (inf->point.x == begin) && (inf->point.y == pos))
+        if ( ((inf->point.y == begin) && (inf->point.x == pos)) ||
+             ((inf->point.x == begin) && (inf->point.y == pos)) )
         {
             // Only return the point if it is actually at the begin pos.
             return inf;
@@ -702,8 +702,8 @@ public:
             return NULL;
         }
         VertInf *inf = *vertInfs.rbegin();
-        if ((inf->point.y == finish) && (inf->point.x == pos) ||
-            (inf->point.x == finish) && (inf->point.y == pos))
+        if ( ((inf->point.y == finish) && (inf->point.x == pos)) ||
+             ((inf->point.x == finish) && (inf->point.y == pos)) )
         {
             // Only return the point if it is actually at the finish pos.
             return inf;

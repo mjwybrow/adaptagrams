@@ -256,8 +256,8 @@ bool IncSolver::satisfy() {
     //long splitCtr = 0;
     Constraint* v = NULL;
     //CBuffer buffer(inactive);
-    while((v=mostViolated(inactive))
-            &&(v->equality || v->slack() < ZERO_UPPERBOUND && !v->active)) 
+    while ( (v = mostViolated(inactive)) && 
+            (v->equality || ((v->slack() < ZERO_UPPERBOUND) && !v->active)) )
     {
         COLA_ASSERT(!v->active);
         Block *lb = v->left->block, *rb = v->right->block;
@@ -421,7 +421,9 @@ Constraint* IncSolver::mostViolated(Constraints &l) {
     // move the last element over the deletePoint and resize
     // downwards.  There is always at least 1 element in the
     // vector because of search.
-    if(deletePoint != end && (minSlack < ZERO_UPPERBOUND && !v->active || v->equality)) {
+    if ( (deletePoint != end) && 
+         (((minSlack < ZERO_UPPERBOUND) && !v->active) || v->equality) )
+    {
         *deletePoint = l[l.size()-1];
         l.resize(l.size()-1);
     }
@@ -692,7 +694,9 @@ void Block::setUpConstraintHeap(Heap* &h,bool in) {
         for (Cit j=cs->begin();j!=cs->end();++j) {
             Constraint *c=*j;
             c->timeStamp=blockTimeCtr;
-            if (c->left->block != this && in || c->right->block != this && !in) {
+            if ( ((c->left->block != this) && in) || 
+                 ((c->right->block != this) && !in) )
+            {
                 h->push(c);
             }
         }

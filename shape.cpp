@@ -44,7 +44,6 @@ ShapeRef::ShapeRef(Router *router, Polygon& ply, const unsigned int id)
 {
     _id = router->assignId(id);
 
-    bool isShape = true;
     VertID i = VertID(_id, 0);
     
     const bool addToRouterNow = false;
