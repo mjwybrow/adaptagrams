@@ -23,11 +23,13 @@
  *
 */
 
+#include <sstream>
+#include <ctime>
+
 #include <libvpsc/rectangle.h>
 #include <libcola/cola.h>
 #include <libtopology/topology_graph.h>
 #include <libcola/output_svg.h>
-#include<sstream>
 
 inline double getRand(double range) {
 	return range*rand()/RAND_MAX;

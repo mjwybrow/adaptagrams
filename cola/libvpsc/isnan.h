@@ -46,10 +46,7 @@
  */
 
 #include <cmath>
-/* You might try changing the above to <cmath> if you have problems.
- * Whether you use math.h or cmath, you may need to edit the .cpp file
- * and/or other .h files to use the same header file.
- */
+#include <cfloat>
 
 #if defined(__isnan)
 # define isNaN(_a) (__isnan(_a))	/* MacOSX/Darwin definition < 10.4 */
