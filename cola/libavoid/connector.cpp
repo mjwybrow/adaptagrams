@@ -358,15 +358,18 @@ void ConnRef::setRoutingType(ConnType type)
 }
 
 
-void ConnRef::common_updateEndPoint(const unsigned int type, 
-        const ConnEnd& connEnd)
+void ConnRef::common_updateEndPoint(const unsigned int type, ConnEnd connEnd)
 {
     const Point& point = connEnd.position();
     //db_printf("common_updateEndPoint(%d,(pid=%d,vn=%d,(%f,%f)))\n",
     //      type,point.id,point.vn,point.x,point.y);
     COLA_ASSERT((type == (unsigned int) VertID::src) ||
                 (type == (unsigned int) VertID::tar));
-    
+
+    // The connEnd is a copy of a ConnEnd that will get disconnected,
+    // so don't leave it looking like it is still connected.
+    connEnd._connRef = NULL;
+
     if (!_initialised)
     {
         makeActive();
