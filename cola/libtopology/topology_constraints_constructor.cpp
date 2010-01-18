@@ -205,7 +205,7 @@ struct NodeClose : NodeEvent {
 struct SegmentEvent : Event {
     Segment *s;
     SegmentEvent(bool open, EdgePoint* v, Segment *s)
-		: Event(open,v->pos(vpsc::conjugate(dim))), s(s) {}
+        : Event(open,v->pos(vpsc::conjugate(dim))), s(s) {}
 };
 /**
  * at a segment open we add the segment to the list of open segments
@@ -347,7 +347,7 @@ bool Segment::createStraightConstraint(Node* node, double pos) {
     // no straight constraints between a node directly connected by its CENTRE 
     // to this segment.
     COLA_ASSERT(!connectedToNode(node));
-	const double top = max(end->pos(vpsc::conjugate(dim)),start->pos(vpsc::conjugate(dim))), 
+    const double top = max(end->pos(vpsc::conjugate(dim)),start->pos(vpsc::conjugate(dim))), 
                  bottom = min(end->pos(vpsc::conjugate(dim)),start->pos(vpsc::conjugate(dim)));
     // segments orthogonal to scan direction need no StraightConstraints
     FILE_LOG(logDEBUG)<<"Segment::createStraightConstraint, node->id="<<node->id<<", edge->id="<<edge->id<<" pos="<<pos;
@@ -359,7 +359,7 @@ bool Segment::createStraightConstraint(Node* node, double pos) {
     //COLA_ASSERT(bottom<=pos);
     //COLA_ASSERT(top>=pos);
     vpsc::Rectangle* r=node->rect;
-	FILE_LOG(logDEBUG1)<<"Segment: from {"<<start->pos(dim)<<","<<start->pos(vpsc::conjugate(dim))<<"},{"<<end->pos(dim)<<","<<end->pos(vpsc::conjugate(dim))<<"}";
+    FILE_LOG(logDEBUG1)<<"Segment: from {"<<start->pos(dim)<<","<<start->pos(vpsc::conjugate(dim))<<"},{"<<end->pos(dim)<<","<<end->pos(vpsc::conjugate(dim))<<"}";
     FILE_LOG(logDEBUG1)<<"Node: rect "<<*r;
     // determine direction of constraint based on intersection of segment with
     // scan line, i.e. set nodeLeft based on whether the intersection of the
@@ -448,7 +448,7 @@ BendConstraint::
 BendConstraint(EdgePoint* v) 
     : bendPoint(v) 
 {
-	FILE_LOG(logDEBUG)<<"BendConstraint ctor, pos="<<v->pos(vpsc::conjugate(dim));
+    FILE_LOG(logDEBUG)<<"BendConstraint ctor, pos="<<v->pos(vpsc::conjugate(dim));
     COLA_ASSERT(v->inSegment!=NULL);
     COLA_ASSERT(v->outSegment!=NULL);
     // v must be a bend point around some node
@@ -475,8 +475,8 @@ BendConstraint(EdgePoint* v)
     // bend constraint will be more accurate if the reference segment is the
     // one most orthogonal to scan line.
     double p;
-	if(v->inSegment->length(vpsc::conjugate(dim))>v->outSegment->length(vpsc::conjugate(dim))) {
-		v->inSegment->forwardIntersection(w->pos(vpsc::conjugate(dim)),p);
+    if(v->inSegment->length(vpsc::conjugate(dim))>v->outSegment->length(vpsc::conjugate(dim))) {
+        v->inSegment->forwardIntersection(w->pos(vpsc::conjugate(dim)),p);
         double g=u->offset()+p*(v->offset()-u->offset())-w->offset();
         c=new TriConstraint(u->node,v->node,w->node,p,g,leftOf);
     } else {
@@ -538,7 +538,7 @@ inline bool validTurn(EdgePoint* u, EdgePoint* v, EdgePoint* w) {
         return true;
     }
     // r is the shape that v turns around
-	vpsc::Rectangle* r=v->node->rect;
+    vpsc::Rectangle* r=v->node->rect;
     double rx = r->getCentreX(), ry = r->getCentreY();
     double cpuvr = crossProduct(u->posX(),u->posY(),v->posX(),v->posY(),rx,ry);
     double cpvwr = crossProduct(v->posX(),v->posY(),w->posX(),w->posY(),rx,ry);

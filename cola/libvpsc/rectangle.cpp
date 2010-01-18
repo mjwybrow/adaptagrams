@@ -52,14 +52,14 @@ namespace vpsc {
 
 double Rectangle::xBorder=0, Rectangle::yBorder=0;
 std::ostream& operator <<(std::ostream &os, const Rectangle &r) {
-	os << "Hue[0.17],Rectangle[{"<<r.getMinX()<<","<<r.getMinY()<<"},{"<<r.getMaxX()<<","<<r.getMaxY()<<"}]";
-	return os;
+    os << "Hue[0.17],Rectangle[{"<<r.getMinX()<<","<<r.getMinY()<<"},{"<<r.getMaxX()<<","<<r.getMaxY()<<"}]";
+    return os;
 }
 
 Rectangle::Rectangle(double x, double X, double y, double Y,bool allowOverlap) 
 : minX(x),maxX(X),minY(y),maxY(Y),overlap(allowOverlap) {
-	COLA_ASSERT(x<X);
-	COLA_ASSERT(y<Y);
+    COLA_ASSERT(x<X);
+    COLA_ASSERT(y<Y);
     COLA_ASSERT(getMinX()<getMaxX());
     COLA_ASSERT(getMinY()<getMaxY());
 }
@@ -79,114 +79,114 @@ struct CmpNodePos { bool operator()(const Node* u, const Node* v) const; };
 typedef set<Node*,CmpNodePos> NodeSet;
 
 struct Node {
-	Variable *v;
-	Rectangle *r;
-	double pos;
-	Node *firstAbove, *firstBelow;
-	NodeSet *leftNeighbours, *rightNeighbours;
-	Node(Variable *v, Rectangle *r, double p) 
+    Variable *v;
+    Rectangle *r;
+    double pos;
+    Node *firstAbove, *firstBelow;
+    NodeSet *leftNeighbours, *rightNeighbours;
+    Node(Variable *v, Rectangle *r, double p) 
         : v(v),r(r),pos(p),
           firstAbove(NULL), firstBelow(NULL),
           leftNeighbours(NULL), rightNeighbours(NULL)
      
     {
-		COLA_ASSERT(r->width()<1e40);
-	}
-	~Node() {
-		delete leftNeighbours;
-		delete rightNeighbours;
-	}
-	void addLeftNeighbour(Node *u) {
+        COLA_ASSERT(r->width()<1e40);
+    }
+    ~Node() {
+        delete leftNeighbours;
+        delete rightNeighbours;
+    }
+    void addLeftNeighbour(Node *u) {
         COLA_ASSERT(leftNeighbours!=NULL);
-		leftNeighbours->insert(u);
-	}
-	void addRightNeighbour(Node *u) {
+        leftNeighbours->insert(u);
+    }
+    void addRightNeighbour(Node *u) {
         COLA_ASSERT(rightNeighbours!=NULL);
-		rightNeighbours->insert(u);
-	}
-	void setNeighbours(NodeSet *left, NodeSet *right) {
-		leftNeighbours=left;
-		rightNeighbours=right;
-		for(NodeSet::iterator i=left->begin();i!=left->end();++i) {
-			Node *v=*(i);
-			v->addRightNeighbour(this);
-		}
-		for(NodeSet::iterator i=right->begin();i!=right->end();++i) {
-			Node *v=*(i);
-			v->addLeftNeighbour(this);
-		}
-	}
+        rightNeighbours->insert(u);
+    }
+    void setNeighbours(NodeSet *left, NodeSet *right) {
+        leftNeighbours=left;
+        rightNeighbours=right;
+        for(NodeSet::iterator i=left->begin();i!=left->end();++i) {
+            Node *v=*(i);
+            v->addRightNeighbour(this);
+        }
+        for(NodeSet::iterator i=right->begin();i!=right->end();++i) {
+            Node *v=*(i);
+            v->addLeftNeighbour(this);
+        }
+    }
 };
 bool CmpNodePos::operator() (const Node* u, const Node* v) const {
     COLA_ASSERT(!isNaN(u->pos));
     COLA_ASSERT(!isNaN(v->pos));
-	if (u->pos < v->pos) {
-		return true;
-	}
-	if (v->pos < u->pos) {
-		return false;
-	}
-	return u < v;
+    if (u->pos < v->pos) {
+        return true;
+    }
+    if (v->pos < u->pos) {
+        return false;
+    }
+    return u < v;
 }
 
 NodeSet* getLeftNeighbours(NodeSet &scanline,Node *v) {
-	NodeSet *leftv = new NodeSet;
-	NodeSet::iterator i=scanline.find(v);
-	while(i!=scanline.begin()) {
-		Node *u=*(--i);
-		if(u->r->overlapX(v->r)<=0) {
-			leftv->insert(u);
-			return leftv;
-		}
-		if(u->r->overlapX(v->r)<=u->r->overlapY(v->r)) {
-			leftv->insert(u);
-		}
-	}
-	return leftv;
+    NodeSet *leftv = new NodeSet;
+    NodeSet::iterator i=scanline.find(v);
+    while(i!=scanline.begin()) {
+        Node *u=*(--i);
+        if(u->r->overlapX(v->r)<=0) {
+            leftv->insert(u);
+            return leftv;
+        }
+        if(u->r->overlapX(v->r)<=u->r->overlapY(v->r)) {
+            leftv->insert(u);
+        }
+    }
+    return leftv;
 }
 NodeSet* getRightNeighbours(NodeSet &scanline,Node *v) {
-	NodeSet *rightv = new NodeSet;
-	NodeSet::iterator i=scanline.find(v);
-	for(++i;i!=scanline.end(); ++i) {
-		Node *u=*(i);
-		if(u->r->overlapX(v->r)<=0) {
-			rightv->insert(u);
-			return rightv;
-		}
-		if(u->r->overlapX(v->r)<=u->r->overlapY(v->r)) {
-			rightv->insert(u);
-		}
-	}
-	return rightv;
+    NodeSet *rightv = new NodeSet;
+    NodeSet::iterator i=scanline.find(v);
+    for(++i;i!=scanline.end(); ++i) {
+        Node *u=*(i);
+        if(u->r->overlapX(v->r)<=0) {
+            rightv->insert(u);
+            return rightv;
+        }
+        if(u->r->overlapX(v->r)<=u->r->overlapY(v->r)) {
+            rightv->insert(u);
+        }
+    }
+    return rightv;
 }
 
 typedef enum {Open, Close} EventType;
 struct Event {
-	EventType type;
-	Node *v;
-	double pos;
-	Event(EventType t, Node *v, double p) : type(t),v(v),pos(p) {};
+    EventType type;
+    Node *v;
+    double pos;
+    Event(EventType t, Node *v, double p) : type(t),v(v),pos(p) {};
 };
 Event **events;
 int compare_events(const void *a, const void *b) {
-	Event *ea=*(Event**)a;
-	Event *eb=*(Event**)b;
-	if(ea->pos==eb->pos) {
-		// when comparing opening and closing
-		// open must come first
-		if(ea->type==Open) return -1;
-		return 1;
-	} else if(ea->pos > eb->pos) {
-		return 1;
-	} else if(ea->pos < eb->pos) {
-		return -1;
-	} else if(isNaN(ea->pos) != isNaN(ea->pos)) {
-		/* See comment in CmpNodePos. */
-		return ( isNaN(ea->pos)
-			 ? -1
-			 : 1 );
-	}
-	return 0;
+    Event *ea=*(Event**)a;
+    Event *eb=*(Event**)b;
+    if(ea->pos==eb->pos) {
+        // when comparing opening and closing
+        // open must come first
+        if(ea->type==Open) return -1;
+        return 1;
+    } else if(ea->pos > eb->pos) {
+        return 1;
+    } else if(ea->pos < eb->pos) {
+        return -1;
+    } else if(isNaN(ea->pos) != isNaN(ea->pos)) {
+        /* See comment in CmpNodePos. */
+        return ( isNaN(ea->pos)
+             ? -1
+             : 1 );
+    }
+    return 0;
 }
 
 /**
@@ -195,157 +195,157 @@ int compare_events(const void *a, const void *b) {
  * all overlap in the x pass, or leave some overlaps for the y pass.
  */
 void generateXConstraints(vector<Rectangle*> const & rs, vector<Variable*> const &vars, vector<Constraint*> &cs, const bool useNeighbourLists) {
-	const unsigned n = rs.size();
+    const unsigned n = rs.size();
     COLA_ASSERT(vars.size()>=n);
-	events=new Event*[2*n];
-	unsigned i,ctr=0;
-	for(i=0;i<n;i++) {
-		vars[i]->desiredPosition=rs[i]->getCentreX();
-		Node *v = new Node(vars[i],rs[i],rs[i]->getCentreX());
-		events[ctr++]=new Event(Open,v,rs[i]->getMinY());
-		events[ctr++]=new Event(Close,v,rs[i]->getMaxY());
-	}
-	qsort((Event*)events, (size_t)2*n, sizeof(Event*), compare_events );
+    events=new Event*[2*n];
+    unsigned i,ctr=0;
+    for(i=0;i<n;i++) {
+        vars[i]->desiredPosition=rs[i]->getCentreX();
+        Node *v = new Node(vars[i],rs[i],rs[i]->getCentreX());
+        events[ctr++]=new Event(Open,v,rs[i]->getMinY());
+        events[ctr++]=new Event(Close,v,rs[i]->getMaxY());
+    }
+    qsort((Event*)events, (size_t)2*n, sizeof(Event*), compare_events );
 
-	NodeSet scanline;
-	for(i=0;i<2*n;i++) {
-		Event *e=events[i];
-		Node *v=e->v;
-		if(e->type==Open) {
-			scanline.insert(v);
-			if(useNeighbourLists) {
-				v->setNeighbours(
-					getLeftNeighbours(scanline,v),
-					getRightNeighbours(scanline,v)
-				);
-			} else {
-				NodeSet::iterator it=scanline.find(v);
-				if(it!=scanline.begin()) {
-					Node *u=*(--it);
-					v->firstAbove=u;
-					u->firstBelow=v;
-				}
-				it=scanline.find(v);
-				if(++it!=scanline.end()) {
-					Node *u=*it;
-					v->firstBelow=u;
-					u->firstAbove=v;
-				}
-			}
-		} else {
+    NodeSet scanline;
+    for(i=0;i<2*n;i++) {
+        Event *e=events[i];
+        Node *v=e->v;
+        if(e->type==Open) {
+            scanline.insert(v);
+            if(useNeighbourLists) {
+                v->setNeighbours(
+                    getLeftNeighbours(scanline,v),
+                    getRightNeighbours(scanline,v)
+                );
+            } else {
+                NodeSet::iterator it=scanline.find(v);
+                if(it!=scanline.begin()) {
+                    Node *u=*(--it);
+                    v->firstAbove=u;
+                    u->firstBelow=v;
+                }
+                it=scanline.find(v);
+                if(++it!=scanline.end()) {
+                    Node *u=*it;
+                    v->firstBelow=u;
+                    u->firstAbove=v;
+                }
+            }
+        } else {
             size_t result;
-			// Close event
-			if(useNeighbourLists) {
-				for(NodeSet::iterator i=v->leftNeighbours->begin();
-					i!=v->leftNeighbours->end();i++
-				) {
-					Node *u=*i;
-					double sep = (v->r->width()+u->r->width())/2.0;
-					cs.push_back(new Constraint(u->v,v->v,sep));
-					result=u->rightNeighbours->erase(v);
+            // Close event
+            if(useNeighbourLists) {
+                for(NodeSet::iterator i=v->leftNeighbours->begin();
+                    i!=v->leftNeighbours->end();i++
+                ) {
+                    Node *u=*i;
+                    double sep = (v->r->width()+u->r->width())/2.0;
+                    cs.push_back(new Constraint(u->v,v->v,sep));
+                    result=u->rightNeighbours->erase(v);
                     COLA_ASSERT(result==1);
-				}
-				
-				for(NodeSet::iterator i=v->rightNeighbours->begin();
-					i!=v->rightNeighbours->end();i++
-				) {
-					Node *u=*i;
-					double sep = (v->r->width()+u->r->width())/2.0;
-					cs.push_back(new Constraint(v->v,u->v,sep));
-					result=u->leftNeighbours->erase(v);
+                }
+                
+                for(NodeSet::iterator i=v->rightNeighbours->begin();
+                    i!=v->rightNeighbours->end();i++
+                ) {
+                    Node *u=*i;
+                    double sep = (v->r->width()+u->r->width())/2.0;
+                    cs.push_back(new Constraint(v->v,u->v,sep));
+                    result=u->leftNeighbours->erase(v);
                     COLA_ASSERT(result==1);
-				}
-			} else {
-				Node *l=v->firstAbove, *r=v->firstBelow;
-				if(l!=NULL) {
-					double sep = (v->r->width()+l->r->width())/2.0;
-					cs.push_back(new Constraint(l->v,v->v,sep));
-					l->firstBelow=v->firstBelow;
-				}
-				if(r!=NULL) {
-					double sep = (v->r->width()+r->r->width())/2.0;
-					cs.push_back(new Constraint(v->v,r->v,sep));
-					r->firstAbove=v->firstAbove;
-				}
-			}
-			result=scanline.erase(v);
+                }
+            } else {
+                Node *l=v->firstAbove, *r=v->firstBelow;
+                if(l!=NULL) {
+                    double sep = (v->r->width()+l->r->width())/2.0;
+                    cs.push_back(new Constraint(l->v,v->v,sep));
+                    l->firstBelow=v->firstBelow;
+                }
+                if(r!=NULL) {
+                    double sep = (v->r->width()+r->r->width())/2.0;
+                    cs.push_back(new Constraint(v->v,r->v,sep));
+                    r->firstAbove=v->firstAbove;
+                }
+            }
+            result=scanline.erase(v);
             COLA_ASSERT(result==1);
-			delete v;
-		}
-		delete e;
-	}
+            delete v;
+        }
+        delete e;
+    }
     COLA_ASSERT(scanline.size()==0);
-	delete [] events;
+    delete [] events;
 }
 
 /**
  * Prepares constraints in order to apply VPSC vertically to remove ALL overlap.
  */
 void generateYConstraints(const Rectangles& rs, const Variables& vars, Constraints& cs) {
-	const unsigned n = rs.size();
+    const unsigned n = rs.size();
     COLA_ASSERT(vars.size()>=n);
-	events=new Event*[2*n];
-	unsigned ctr=0;
+    events=new Event*[2*n];
+    unsigned ctr=0;
     Rectangles::const_iterator ri=rs.begin(), re=rs.end();
     Variables::const_iterator vi=vars.begin(), ve=vars.end();
     for(;ri!=re&&vi!=ve;++ri,++vi) {
         Rectangle* r=*ri;
         Variable* v=*vi;
-		v->desiredPosition=r->getCentreY();
-		Node *node = new Node(v,r,r->getCentreY());
+        v->desiredPosition=r->getCentreY();
+        Node *node = new Node(v,r,r->getCentreY());
         COLA_ASSERT(r->getMinX()<r->getMaxX());
-		events[ctr++]=new Event(Open,node,r->getMinX());
-		events[ctr++]=new Event(Close,node,r->getMaxX());
-	}
+        events[ctr++]=new Event(Open,node,r->getMinX());
+        events[ctr++]=new Event(Close,node,r->getMaxX());
+    }
     COLA_ASSERT(ri==rs.end());
-	qsort((Event*)events, (size_t)2*n, sizeof(Event*), compare_events );
-	NodeSet scanline;
+    qsort((Event*)events, (size_t)2*n, sizeof(Event*), compare_events );
+    NodeSet scanline;
 #ifndef NDEBUG
     size_t deletes=0;
 #endif
-	for(unsigned i=0;i<2*n;i++) {
-		Event *e=events[i];
-		Node *v=e->v;
-		if(e->type==Open) {
-			scanline.insert(v);
-			NodeSet::iterator it=scanline.find(v);
-			if(it!=scanline.begin()) {
-				Node *u=*(--it);
-				v->firstAbove=u;
-				u->firstBelow=v;
-			}
-			it=scanline.find(v);
-			if(++it!=scanline.end())	 {
-				Node *u=*it;
-				v->firstBelow=u;
-				u->firstAbove=v;
-			}
-		} else {
-			// Close event
-			Node *l=v->firstAbove, *r=v->firstBelow;
-			if(l!=NULL) {
-				double sep = (v->r->height()+l->r->height())/2.0;
-				cs.push_back(new Constraint(l->v,v->v,sep));
-				l->firstBelow=v->firstBelow;
-			}
-			if(r!=NULL) {
-				double sep = (v->r->height()+r->r->height())/2.0;
-				cs.push_back(new Constraint(v->v,r->v,sep));
-				r->firstAbove=v->firstAbove;
-			}
+    for(unsigned i=0;i<2*n;i++) {
+        Event *e=events[i];
+        Node *v=e->v;
+        if(e->type==Open) {
+            scanline.insert(v);
+            NodeSet::iterator it=scanline.find(v);
+            if(it!=scanline.begin()) {
+                Node *u=*(--it);
+                v->firstAbove=u;
+                u->firstBelow=v;
+            }
+            it=scanline.find(v);
+            if(++it!=scanline.end())     {
+                Node *u=*it;
+                v->firstBelow=u;
+                u->firstAbove=v;
+            }
+        } else {
+            // Close event
+            Node *l=v->firstAbove, *r=v->firstBelow;
+            if(l!=NULL) {
+                double sep = (v->r->height()+l->r->height())/2.0;
+                cs.push_back(new Constraint(l->v,v->v,sep));
+                l->firstBelow=v->firstBelow;
+            }
+            if(r!=NULL) {
+                double sep = (v->r->height()+r->r->height())/2.0;
+                cs.push_back(new Constraint(v->v,r->v,sep));
+                r->firstAbove=v->firstAbove;
+            }
 #ifndef NDEBUG
             deletes++;
             size_t erased=
 #endif
-			scanline.erase(v);
+            scanline.erase(v);
             COLA_ASSERT(erased==1);
-			delete v;
-		}
-		delete e;
-	}
+            delete v;
+        }
+        delete e;
+    }
     COLA_ASSERT(scanline.size()==0);
     COLA_ASSERT(deletes==n);
-	delete [] events;
+    delete [] events;
 }
 #include "linesegment.h"
 using namespace linesegment;
@@ -538,53 +538,53 @@ void removeoverlaps(Rectangles& rs) {
  * @param thirdPass optionally run the third horizontal pass described above.
  */
 void removeoverlaps(Rectangles& rs, const set<unsigned>& fixed, bool thirdPass) {
-	const double xBorder=Rectangle::xBorder, yBorder=Rectangle::yBorder;
+    const double xBorder=Rectangle::xBorder, yBorder=Rectangle::yBorder;
     static const double EXTRA_GAP=1e-3;
     static const size_t ARRAY_UNUSED=1;
-	unsigned n=rs.size();
-	try {
-		// The extra gap avoids numerical imprecision problems
-		Rectangle::setXBorder(xBorder+EXTRA_GAP);
-		Rectangle::setYBorder(yBorder+EXTRA_GAP);
-		Variables vs(n);
+    unsigned n=rs.size();
+    try {
+        // The extra gap avoids numerical imprecision problems
+        Rectangle::setXBorder(xBorder+EXTRA_GAP);
+        Rectangle::setYBorder(yBorder+EXTRA_GAP);
+        Variables vs(n);
         Variables::iterator v;
-		unsigned i=0;
-		vector<double> initX(thirdPass?n:ARRAY_UNUSED);
-		for(v=vs.begin();v!=vs.end();++v,++i) {
+        unsigned i=0;
+        vector<double> initX(thirdPass?n:ARRAY_UNUSED);
+        for(v=vs.begin();v!=vs.end();++v,++i) {
             double weight=1;
             if(fixed.find(i)!=fixed.end()) {
                 weight=10000;
             }
-			*v=new Variable(i,0,weight);
+            *v=new Variable(i,0,weight);
             if(thirdPass) {
                 initX[i]=rs[i]->getCentreX();
             }
-		}
-		Constraints cs;
-		generateXConstraints(rs,vs,cs,true);
-		Solver vpsc_x(vs,cs);
-		vpsc_x.solve();
-		Rectangles::iterator r=rs.begin();
-		for(v=vs.begin();v!=vs.end();++v,++r) {
-			COLA_ASSERT(ISNOTNAN((*v)->finalPosition));
-			(*r)->moveCentreX((*v)->finalPosition);
-		}
-		COLA_ASSERT(r==rs.end());
-		for_each(cs.begin(),cs.end(),delete_object());
-		cs.clear();
+        }
+        Constraints cs;
+        generateXConstraints(rs,vs,cs,true);
+        Solver vpsc_x(vs,cs);
+        vpsc_x.solve();
+        Rectangles::iterator r=rs.begin();
+        for(v=vs.begin();v!=vs.end();++v,++r) {
+            COLA_ASSERT(ISNOTNAN((*v)->finalPosition));
+            (*r)->moveCentreX((*v)->finalPosition);
+        }
+        COLA_ASSERT(r==rs.end());
+        for_each(cs.begin(),cs.end(),delete_object());
+        cs.clear();
         // Removing the extra gap here ensures things that were moved to be
         // adjacent to one another above are not considered overlapping
-		Rectangle::setXBorder(xBorder);
-		generateYConstraints(rs,vs,cs);
-		Solver vpsc_y(vs,cs);
-		vpsc_y.solve();
-		r=rs.begin();
-		for(v=vs.begin();v!=vs.end();++v,++r) {
-			COLA_ASSERT(ISNOTNAN((*v)->finalPosition));
-			(*r)->moveCentreY((*v)->finalPosition);
-		}
-		for_each(cs.begin(),cs.end(),delete_object());
-		cs.clear();
+        Rectangle::setXBorder(xBorder);
+        generateYConstraints(rs,vs,cs);
+        Solver vpsc_y(vs,cs);
+        vpsc_y.solve();
+        r=rs.begin();
+        for(v=vs.begin();v!=vs.end();++v,++r) {
+            COLA_ASSERT(ISNOTNAN((*v)->finalPosition));
+            (*r)->moveCentreY((*v)->finalPosition);
+        }
+        for_each(cs.begin(),cs.end(),delete_object());
+        cs.clear();
         Rectangle::setYBorder(yBorder);
         if(thirdPass) {
             // we reset x positions to their original values
@@ -607,15 +607,15 @@ void removeoverlaps(Rectangles& rs, const set<unsigned>& fixed, bool thirdPass) 
                 (*r)->moveCentreX((*v)->finalPosition);
             }
         }
-		Rectangle::setXBorder(xBorder);
-		for_each(cs.begin(),cs.end(),delete_object());
-		for_each(vs.begin(),vs.end(),delete_object());
-	} catch (char *str) {
-		std::cerr<<str<<std::endl;
-		for(Rectangles::iterator r=rs.begin();r!=rs.end();++r) {
-			std::cerr << **r <<std::endl;
-		}
-	}
+        Rectangle::setXBorder(xBorder);
+        for_each(cs.begin(),cs.end(),delete_object());
+        for_each(vs.begin(),vs.end(),delete_object());
+    } catch (char *str) {
+        std::cerr<<str<<std::endl;
+        for(Rectangles::iterator r=rs.begin();r!=rs.end();++r) {
+            std::cerr << **r <<std::endl;
+        }
+    }
     COLA_ASSERT(noRectangleOverlaps(rs));
 }
 
@@ -624,18 +624,18 @@ bool noRectangleOverlaps(const Rectangles& rs)
 {
     Rectangle *u, *v;
     Rectangles::const_iterator i=rs.begin(), j, e=rs.end();
-	for (;i!=e;++i) 
+    for (;i!=e;++i) 
     {
         u=*i;
-		for (j=i+1;j!=e;++j) 
+        for (j=i+1;j!=e;++j) 
         {
-			v=*j;
+            v=*j;
             if (u->overlapX(v)>0) 
             {
                 COLA_ASSERT(u->overlapY(v)==0);
             }
-		}
-	}
+        }
+    }
     return true;
 }
 

@@ -138,7 +138,7 @@ namespace straightener {
         double prevX=xs[0], prevY=ys[0];
         rxs.push_back(prevX);
         rys.push_back(prevY);
-	
+    
         // check each segment in turn to see if it intersects
         // with the rectangle.
         // If an intersecting segment is found:
@@ -373,12 +373,12 @@ namespace straightener {
         }
     }
     static double overlap(vpsc::Dim k, Node const *u, Node const *v) {
-		if (u->pos[k] <= v->pos[k] && v->getMin(k) < u->getMax(k))
-			return u->getMax(k) - v->getMin(k);
-		if (v->pos[k] <= u->pos[k] && u->getMin(k) < v->getMax(k))
-			return v->getMax(k) - u->getMin(k);
-		return 0;
-	}
+        if (u->pos[k] <= v->pos[k] && v->getMin(k) < u->getMax(k))
+            return u->getMax(k) - v->getMin(k);
+        if (v->pos[k] <= u->pos[k] && u->getMin(k) < v->getMax(k))
+            return v->getMax(k) - u->getMin(k);
+        return 0;
+    }
 
     static cola::SeparationConstraint* createConstraint(
             Node* u, Node* v, vpsc::Dim dim) {
@@ -491,7 +491,7 @@ namespace straightener {
                 printf("]\n");
 #endif
                 // for each dummy node w in L:
-                //   if w left of v create constraints l<w, w<v	
+                //   if w left of v create constraints l<w, w<v    
                 //   if w right of v create constraints v<w, w<r
                 for(vector<Node*>::iterator i=L.begin();i!=L.end();i++) {
                     Node* w=*i;
@@ -558,12 +558,12 @@ namespace straightener {
      *   create a chain of dummy nodes for cluster boundary
      */
     void generateClusterBoundaries(
-		    const vpsc::Dim dim,
-		    vector<straightener::Node*> & nodes,
+            const vpsc::Dim dim,
+            vector<straightener::Node*> & nodes,
             vector<straightener::Edge*> & edges,
             vector<vpsc::Rectangle*> const & rs,
-		    cola::Cluster const & clusterHierarchy,
-		    vector<straightener::Cluster*>& sclusters) {
+            cola::Cluster const & clusterHierarchy,
+            vector<straightener::Cluster*>& sclusters) {
         sclusters.clear();
         for(vector<cola::Cluster*>::const_iterator i
                 =clusterHierarchy.clusters.begin();

@@ -510,7 +510,7 @@ void OrthogonalEdgeConstraint::rectBounds(const vpsc::Dim k,
         vpsc::Rectangle const *r, double& cmin, double& cmax, 
         double& centre, double & l) const
 {
-	if (k == vpsc::HORIZONTAL)
+    if (k == vpsc::HORIZONTAL)
     {
         cmin = r->getMinY();
         cmax = r->getMaxY();
@@ -1110,9 +1110,9 @@ struct GenerateSeparationConstraints
 void generateVariablesAndConstraints(CompoundConstraints& ccs, 
         const vpsc::Dim dim, vpsc::Variables& vars, vpsc::Constraints& cs)
 {
-	for_each(ccs.begin(), ccs.end(), 
+    for_each(ccs.begin(), ccs.end(), 
             GenerateVariables(dim, vars));
-	for_each(ccs.begin(), ccs.end(), 
+    for_each(ccs.begin(), ccs.end(), 
             GenerateSeparationConstraints(dim, vars, cs));
 }
 
@@ -1120,7 +1120,7 @@ void generateVariablesAndConstraints(CompoundConstraints& ccs,
 void generateVariables(CompoundConstraints& ccs, const vpsc::Dim dim, 
         vpsc::Variables& vars)
 {
-	for_each(ccs.begin(), ccs.end(), 
+    for_each(ccs.begin(), ccs.end(), 
             GenerateVariables(dim, vars));
 }
 

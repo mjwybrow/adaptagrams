@@ -83,12 +83,12 @@ ConstrainedMajorizationLayout
     for(unsigned i=0;i<n;i++) {
         D[i]=new double[n];
     }
-	if(eLengths==NULL) {
-		shortest_paths::johnsons(n,D,es);
-	} else {
-		valarray<double> eLengthsArray(eLengths,es.size());
-		shortest_paths::johnsons(n,D,es,&eLengthsArray);
-	}
+    if(eLengths==NULL) {
+        shortest_paths::johnsons(n,D,es);
+    } else {
+        valarray<double> eLengthsArray(eLengths,es.size());
+        shortest_paths::johnsons(n,D,es,&eLengthsArray);
+    }
     //shortest_paths::neighbours(n,D,es,eLengths);
     edge_length = idealLength;
     if(clusterHierarchy) {
@@ -365,7 +365,7 @@ void ConstrainedMajorizationLayout::run(bool x, bool y) {
     } while(!done(compute_stress(Dij),X,Y));
 }
 double ConstrainedMajorizationLayout::computeStress() {
-	return compute_stress(Dij);
+    return compute_stress(Dij);
 }
 void ConstrainedMajorizationLayout::runOnce(bool x, bool y) {
     if(constrainedLayout) {
@@ -455,13 +455,13 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
         coords=&Y;
         startCoords=&startY;
     }
-	vector<straightener::Node*> snodes;
+    vector<straightener::Node*> snodes;
     if(dim==HORIZONTAL) {
         Rectangle::setXBorder(0.0001);
     }
-	for (unsigned i=0;i<n;i++) {
-		snodes.push_back(new straightener::Node(i,boundingBoxes[i]));
-	}
+    for (unsigned i=0;i<n;i++) {
+        snodes.push_back(new straightener::Node(i,boundingBoxes[i]));
+    }
     if(dim==HORIZONTAL) {
         Rectangle::setXBorder(0);
     }
@@ -496,7 +496,7 @@ void ConstrainedMajorizationLayout::straighten(vector<straightener::Edge*>& sedg
             unsigned u=path[uj], v=path[vj];
             for(unsigned k=uj+1;k<vj;k++) {
                 unsigned b=path[k];
-		// might be useful to have greater weight for potential bends than actual bends
+        // might be useful to have greater weight for potential bends than actual bends
                 linearConstraints.push_back(new straightener::LinearConstraint(
                             *snodes[u],*snodes[v],*snodes[b],-potBendWeight));
             }
@@ -584,74 +584,74 @@ Rectangle bounds(vector<Rectangle*>& rs) {
     return Rectangle(left, right, top, bottom);
 }
 
-	void removeClusterOverlap(RootCluster& clusterHierarchy, vpsc::Rectangles& rs, Locks& locks, vpsc::Dim dim) {
-		if(clusterHierarchy.nodes.size()>0 || clusterHierarchy.clusters.size()>0) {
-			vpsc::Variables vars;
-			vpsc::Constraints cs;
-			for(unsigned i=0;i<rs.size();i++) {
-				vars.push_back(new vpsc::Variable(i, rs[i]->getCentreD(dim)));
-			}
-			
-			clusterHierarchy.computeBoundingRect(rs);
-			clusterHierarchy.createVars(dim,rs,vars);
-			clusterHierarchy.generateNonOverlapConstraints(dim, cola::Both, rs, vars, cs);
-			
-			/*
-			if(dim==vpsc::HORIZONTAL) {
-				vpsc::Rectangle::setXBorder(0.001);
-				// use rs->size() rather than n because some of the variables may
-				// be dummy vars with no corresponding rectangle
-				generateXConstraints(rs,vars,cs,true); 
-				vpsc::Rectangle::setXBorder(0);
-			} else {
-				generateYConstraints(rs,vars,cs); 
-			}
-			*/
+    void removeClusterOverlap(RootCluster& clusterHierarchy, vpsc::Rectangles& rs, Locks& locks, vpsc::Dim dim) {
+        if(clusterHierarchy.nodes.size()>0 || clusterHierarchy.clusters.size()>0) {
+            vpsc::Variables vars;
+            vpsc::Constraints cs;
+            for(unsigned i=0;i<rs.size();i++) {
+                vars.push_back(new vpsc::Variable(i, rs[i]->getCentreD(dim)));
+            }
+            
+            clusterHierarchy.computeBoundingRect(rs);
+            clusterHierarchy.createVars(dim,rs,vars);
+            clusterHierarchy.generateNonOverlapConstraints(dim, cola::Both, rs, vars, cs);
+            
+            /*
+            if(dim==vpsc::HORIZONTAL) {
+                vpsc::Rectangle::setXBorder(0.001);
+                // use rs->size() rather than n because some of the variables may
+                // be dummy vars with no corresponding rectangle
+                generateXConstraints(rs,vars,cs,true); 
+                vpsc::Rectangle::setXBorder(0);
+            } else {
+                generateYConstraints(rs,vars,cs); 
+            }
+            */
             for(Locks::iterator l=locks.begin();
                     l!=locks.end();l++) {
                 unsigned id=l->getID();
                 double x=l->pos(HORIZONTAL), y=l->pos(VERTICAL);
-				Variable* v=vars[id];
-				v->desiredPosition = (dim==vpsc::HORIZONTAL)?x:y;
-				v->weight = 1000;
+                Variable* v=vars[id];
+                v->desiredPosition = (dim==vpsc::HORIZONTAL)?x:y;
+                v->weight = 1000;
             }
-			/*
-			vpsc::Solver s(vars,cs);
-			try {
-				s.satisfy();
-			} catch(const char* e) {
-				cerr << "ERROR from solver in GraphData::removeOverlap : " << e << endl;
-			}
-			*/
-			vpsc::IncSolver s(vars,cs);
-			try {
-				s.solve();
-			} catch(const char* e) {
-				cerr << "ERROR from solver in GraphData::removeOverlap : " << e << endl;
-			}
-			clusterHierarchy.updateBounds(dim);
-			/*
-			for(unsigned i=0;i<cs.size();++i) {
-				if(cs[i]->unsatisfiable) {
-					cout << "Unsatisfiable constraint: " << *cs[i] << endl;
-				}
-			}
-			*/
-			for(unsigned i=0;i<rs.size();i++) {
-				rs[i]->moveCentreD(dim,vars[i]->finalPosition);
-			}
+            /*
+            vpsc::Solver s(vars,cs);
+            try {
+                s.satisfy();
+            } catch(const char* e) {
+                cerr << "ERROR from solver in GraphData::removeOverlap : " << e << endl;
+            }
+            */
+            vpsc::IncSolver s(vars,cs);
+            try {
+                s.solve();
+            } catch(const char* e) {
+                cerr << "ERROR from solver in GraphData::removeOverlap : " << e << endl;
+            }
+            clusterHierarchy.updateBounds(dim);
+            /*
+            for(unsigned i=0;i<cs.size();++i) {
+                if(cs[i]->unsatisfiable) {
+                    cout << "Unsatisfiable constraint: " << *cs[i] << endl;
+                }
+            }
+            */
+            for(unsigned i=0;i<rs.size();i++) {
+                rs[i]->moveCentreD(dim,vars[i]->finalPosition);
+            }
             for(Locks::iterator l=locks.begin();
                     l!=locks.end();l++) {
                 //unsigned id=l->getID();
             }
-			for_each(vars.begin(),vars.end(),delete_object());
-			for_each(cs.begin(),cs.end(),delete_object());
-		}
-	}
-	void removeClusterOverlapFast(RootCluster& clusterHierarchy, vpsc::Rectangles& rs, Locks& locks) {
-		removeClusterOverlap(clusterHierarchy, rs, locks, vpsc::HORIZONTAL);
-		removeClusterOverlap(clusterHierarchy, rs, locks, vpsc::VERTICAL);
-	}
+            for_each(vars.begin(),vars.end(),delete_object());
+            for_each(cs.begin(),cs.end(),delete_object());
+        }
+    }
+    void removeClusterOverlapFast(RootCluster& clusterHierarchy, vpsc::Rectangles& rs, Locks& locks) {
+        removeClusterOverlap(clusterHierarchy, rs, locks, vpsc::HORIZONTAL);
+        removeClusterOverlap(clusterHierarchy, rs, locks, vpsc::VERTICAL);
+    }
 
 } // namespace cola
 

@@ -203,9 +203,9 @@ void CycleDetector::visit(unsigned k)  {
     if (otherNode->status != Node::DoneVisiting)  {
       if (otherNode->status == Node::NotVisited)  {  
         // visit this node
-	#ifdef VISIT_DEBUG
+    #ifdef VISIT_DEBUG
           cout << "traversing from vertex(" << k << ") to vertex(" << otherNode->id << ")" << endl;
-	#endif
+    #endif
         visit(otherNode->id);
       }
 
@@ -216,35 +216,35 @@ void CycleDetector::visit(unsigned k)  {
 
       // compare the stamp of the traversal with our stamp
       if (cycleOpen <= thisNode->stamp)  {
-	if (otherNode->cyclicAncestor == NULL)  { otherNode->cyclicAncestor = otherNode; }
+    if (otherNode->cyclicAncestor == NULL)  { otherNode->cyclicAncestor = otherNode; }
 
-	// store the cycle
-	for (unsigned i = 0; i < edges->size(); i++)  {
-	  if ((*edges)[i] == Edge(k, otherNode->id))  {
-	    (*cyclicEdgesMapping)[i] = true;
+    // store the cycle
+    for (unsigned i = 0; i < edges->size(); i++)  {
+      if ((*edges)[i] == Edge(k, otherNode->id))  {
+        (*cyclicEdgesMapping)[i] = true;
             #ifdef VISIT_DEBUG
               cout << "Setting cyclicEdgesMapping[(" << k << ", " << otherNode->id << ")] to true" << endl;
             #endif
-	  }
-	}
+      }
+    }
 
         // this node is part of a cycle
         if (thisNode->cyclicAncestor == NULL)  { 
-	  #ifdef VISIT_DEBUG
+      #ifdef VISIT_DEBUG
             cout << "setting vertex(" << thisNode->id << ") cyclic ancestor to vertex(" << otherNode->cyclicAncestor->id << ")" << endl;
-	  #endif
-	  
-	  thisNode->cyclicAncestor = otherNode->cyclicAncestor;
-	}
+      #endif
+      
+      thisNode->cyclicAncestor = otherNode->cyclicAncestor;
+    }
 
-	// see if we are part of a cycle with a cyclicAncestor that possesses a lower timestamp
-	if (otherNode->cyclicAncestor->stamp < thisNode->cyclicAncestor->stamp)  { 
-	  #ifdef VISIT_DEBUG
+    // see if we are part of a cycle with a cyclicAncestor that possesses a lower timestamp
+    if (otherNode->cyclicAncestor->stamp < thisNode->cyclicAncestor->stamp)  { 
+      #ifdef VISIT_DEBUG
             cout << "setting vertex(" << thisNode->id << ") cyclic ancestor to vertex(" << otherNode->cyclicAncestor->id << ")" << endl;
-	  #endif
+      #endif
 
-	  thisNode->cyclicAncestor = otherNode->cyclicAncestor;
-	}
+      thisNode->cyclicAncestor = otherNode->cyclicAncestor;
+    }
       }
     }
     else  {
@@ -255,34 +255,34 @@ void CycleDetector::visit(unsigned k)  {
 
       if (otherNode->cyclicAncestor != NULL)  {
         // get the highest possible cyclic ancestor from this node
-	highestCA = this->get_highest_ca(otherNode->cyclicAncestor);
+    highestCA = this->get_highest_ca(otherNode->cyclicAncestor);
         COLA_ASSERT(highestCA != NULL);
 
         #ifdef VISIT_DEBUG
           cout << "highest cyclic ancestor at vertex(" << highestCA->id << ")" << endl;
         #endif
 
-	// compare the stamp of the traversal with our stamp
+    // compare the stamp of the traversal with our stamp
         if (highestCA->stamp <= thisNode->stamp && highestCA->status != Node::DoneVisiting)  {
-	  #ifdef VISIT_DEBUG
+      #ifdef VISIT_DEBUG
             cout << "Edge(" << k << ", " << otherNode->id << ") is part of a cycle" << endl;
           #endif 
-  	  // store the cycle
-	  for (unsigned i = 0; i < edges->size(); i++)  {
-	    if ((*edges)[i] == Edge(k, otherNode->id))  {
-	      (*cyclicEdgesMapping)[i] = true;
+        // store the cycle
+      for (unsigned i = 0; i < edges->size(); i++)  {
+        if ((*edges)[i] == Edge(k, otherNode->id))  {
+          (*cyclicEdgesMapping)[i] = true;
               #ifdef VISIT_DEBUG
                 cout << "Setting cyclicEdgesMapping[" << i << "] to true" << endl;
               #endif
-	    }
-	  }
+        }
+      }
 
           // this node is part of a cycle
           if (thisNode->cyclicAncestor == NULL)  { thisNode->cyclicAncestor = highestCA; }
 
-	  // reassign the other node to point to the highest cyclic ancestor
-	  otherNode->cyclicAncestor = highestCA;
-	}
+      // reassign the other node to point to the highest cyclic ancestor
+      otherNode->cyclicAncestor = highestCA;
+    }
       }
     }
   }

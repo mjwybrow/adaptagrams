@@ -312,11 +312,11 @@ ostream& operator <<(ostream &os, const Variable* &v) {
        << "," << v->getDesiredPosition()
        << "," << v->getWeight()
        << ")";
-	return os;
+    return os;
 }
 ostream& operator <<(ostream &os, const Block &b) {
     copy(b.V.begin(),b.V.end(),ostream_iterator<Variable*>(os,","));
-	return os;
+    return os;
 }
 /**
  * Make the specified constraint active by setting to equality and merging the
@@ -368,7 +368,7 @@ ostream& operator <<(ostream &os, const Constraints &cs) {
         os<<","<<(*c)->toString();
     }
     copy(cs.begin(),cs.end(),ostream_iterator<Constraint*>(os,","));
-	return os;
+    return os;
 }
 /**
  * Check each block to see if splitting it allows the two new blocks to be moved

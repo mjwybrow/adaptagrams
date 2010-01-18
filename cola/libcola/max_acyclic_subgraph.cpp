@@ -90,7 +90,7 @@ void MaxAcyclicSubgraph::make_matrix()  {
     // see if we have found the second vertex before
     if (!find_node(anEdge.second))  {
       #ifdef ADJMAKE_DEBUG
-	cout << "Making a new vector indexed at: " << anEdge.second << endl;
+    cout << "Making a new vector indexed at: " << anEdge.second << endl;
       #endif
 
       (*nodes)[anEdge.second] = new Node(anEdge.second);
@@ -135,45 +135,45 @@ Edges *MaxAcyclicSubgraph::find_subgraph()  {
       node = *ni;
       if (node->outgoing.empty())  {
         #ifdef RUN_DEBUG
-	  cout << "vertex(" << node->id << ") is a SINK" << endl;
-	#endif
-	// append it's incoming edges to Ea
-	for (unsigned j = 0; j < node->incoming.size(); j++)  {
-	  #ifdef RUN_DEBUG
-	    cout << "Appending to Ea: Edge(" << node->incoming[j].first << ", " << node->incoming[j].second << ")" << endl;
-	  #endif
-	  Ea->push_back(node->incoming[j]);
+      cout << "vertex(" << node->id << ") is a SINK" << endl;
+    #endif
+    // append it's incoming edges to Ea
+    for (unsigned j = 0; j < node->incoming.size(); j++)  {
+      #ifdef RUN_DEBUG
+        cout << "Appending to Ea: Edge(" << node->incoming[j].first << ", " << node->incoming[j].second << ")" << endl;
+      #endif
+      Ea->push_back(node->incoming[j]);
 
-	  // find the edge from a vertex where the edge is outgoing
-	  Node *out = NULL;
-	  for (unsigned q = 0; q < copy->size(); q++)  {
-	    if ((*copy)[q]->id == node->incoming[j].first)  { out = (*copy)[q]; }
+      // find the edge from a vertex where the edge is outgoing
+      Node *out = NULL;
+      for (unsigned q = 0; q < copy->size(); q++)  {
+        if ((*copy)[q]->id == node->incoming[j].first)  { out = (*copy)[q]; }
           }
 
           COLA_ASSERT(out != NULL);
 
-	  #ifdef RUN_DEBUG
-	    cout << "Searching through OUTGOING list for vertex(" << out->id << ")" << endl;
-	  #endif
+      #ifdef RUN_DEBUG
+        cout << "Searching through OUTGOING list for vertex(" << out->id << ")" << endl;
+      #endif
 
           Edges::iterator oi;
-	  for (oi = out->outgoing.begin(); oi != out->outgoing.end(); oi++)  {
+      for (oi = out->outgoing.begin(); oi != out->outgoing.end(); oi++)  {
             cola::Edge e = *oi;
-	    #ifdef RUN_DEBUG
-	      cout << "Looking at Edge(" << e.first << ", " << e.second << ")" << endl;
-  	    #endif
+        #ifdef RUN_DEBUG
+          cout << "Looking at Edge(" << e.first << ", " << e.second << ")" << endl;
+          #endif
 
-	    if (e == node->incoming[j])  { break; }
-	  }
+        if (e == node->incoming[j])  { break; }
+      }
 
-	  #ifdef RUN_DEBUG
-	    cout << "Erasing Edge(" << (*oi).first << ", " << (*oi).second << ") from OUTGOING list of vertex(" << out->id << ")" << endl;
-	  #endif          
+      #ifdef RUN_DEBUG
+        cout << "Erasing Edge(" << (*oi).first << ", " << (*oi).second << ") from OUTGOING list of vertex(" << out->id << ")" << endl;
+      #endif          
           out->outgoing.erase(oi);
-	}
+    }
 
-	// say that we want to remove this vertex from the graph.
-	toRemove.push(ni);
+    // say that we want to remove this vertex from the graph.
+    toRemove.push(ni);
       }
     }
 
@@ -199,11 +199,11 @@ Edges *MaxAcyclicSubgraph::find_subgraph()  {
       node = *ni;
       if (node->incoming.empty() && node->outgoing.empty())  {
         #ifdef RUN_DEBUG
-	  cout << "vertex(" << node->id << ") is ISOLATED" << endl;
-	#endif
+      cout << "vertex(" << node->id << ") is ISOLATED" << endl;
+    #endif
 
-	// say that we want to remove this vertex from the graph.
-	toRemove.push(ni);
+    // say that we want to remove this vertex from the graph.
+    toRemove.push(ni);
       }
     }
 
@@ -229,45 +229,45 @@ Edges *MaxAcyclicSubgraph::find_subgraph()  {
       node = *ni;
       if (node->incoming.empty())  {
         #ifdef RUN_DEBUG
-	  cout << "vertex(" << node->id << ") is a SOURCE" << endl;
-	#endif
-	// append it's outgoing edges to Ea
-	for (unsigned j = 0; j < node->outgoing.size(); j++)  {
-	  #ifdef RUN_DEBUG
-	    cout << "Appending to Ea: Edge(" << node->outgoing[j].first << ", " << node->outgoing[j].second << ")" << endl;
-	  #endif
-	  Ea->push_back(node->outgoing[j]);
+      cout << "vertex(" << node->id << ") is a SOURCE" << endl;
+    #endif
+    // append it's outgoing edges to Ea
+    for (unsigned j = 0; j < node->outgoing.size(); j++)  {
+      #ifdef RUN_DEBUG
+        cout << "Appending to Ea: Edge(" << node->outgoing[j].first << ", " << node->outgoing[j].second << ")" << endl;
+      #endif
+      Ea->push_back(node->outgoing[j]);
 
-	  // find the edge from a vertex where the edge is incoming
-	  Node *in = NULL;
-	  for (unsigned q = 0; q < copy->size(); q++)  {
-	    if ((*copy)[q]->id == node->outgoing[j].second)  { in = (*copy)[q]; }
+      // find the edge from a vertex where the edge is incoming
+      Node *in = NULL;
+      for (unsigned q = 0; q < copy->size(); q++)  {
+        if ((*copy)[q]->id == node->outgoing[j].second)  { in = (*copy)[q]; }
           }
 
           COLA_ASSERT(in != NULL);
 
-	  #ifdef RUN_DEBUG
-	    cout << "Searching through INCOMING list for vertex(" << in->id << ")" << endl;
-	  #endif
+      #ifdef RUN_DEBUG
+        cout << "Searching through INCOMING list for vertex(" << in->id << ")" << endl;
+      #endif
 
           Edges::iterator ii;
-	  for (ii = in->incoming.begin(); ii != in->incoming.end(); ii++)  {
+      for (ii = in->incoming.begin(); ii != in->incoming.end(); ii++)  {
             cola::Edge e = *ii;
-	    #ifdef RUN_DEBUG
-	      cout << "Looking at Edge(" << e.first << ", " << e.second << ")" << endl;
-  	    #endif
+        #ifdef RUN_DEBUG
+          cout << "Looking at Edge(" << e.first << ", " << e.second << ")" << endl;
+          #endif
 
-	    if (e == node->outgoing[j])  { break; }
-	  }
+        if (e == node->outgoing[j])  { break; }
+      }
 
-	  #ifdef RUN_DEBUG
-	    cout << "Erasing Edge(" << (*ii).first << ", " << (*ii).second << ") from INCOMING list of vertex(" << in->id << ")" << endl;
-	  #endif          
+      #ifdef RUN_DEBUG
+        cout << "Erasing Edge(" << (*ii).first << ", " << (*ii).second << ") from INCOMING list of vertex(" << in->id << ")" << endl;
+      #endif          
           in->incoming.erase(ii);
-	}
+    }
 
-	// say that we want to remove this vertex from the graph.
-	toRemove.push(ni);
+    // say that we want to remove this vertex from the graph.
+    toRemove.push(ni);
       }
     }
 
@@ -295,83 +295,83 @@ Edges *MaxAcyclicSubgraph::find_subgraph()  {
 
       for (NodeList::iterator ni = copy->begin(); ni != copy->end(); ni++)  {
         node = *ni;
-	
-	int t = node->outgoing.size() - node->incoming.size();
+    
+    int t = node->outgoing.size() - node->incoming.size();
 
-	if (t > degree)  {
-	  #ifdef RUN_DEBUG
-	    cout << "Sourceiest node: " << node->id << "(d:" << degree << ", t:" << t << ")" << endl;
-	  #endif
+    if (t > degree)  {
+      #ifdef RUN_DEBUG
+        cout << "Sourceiest node: " << node->id << "(d:" << degree << ", t:" << t << ")" << endl;
+      #endif
 
-	  degree = t;
-	  theNode = ni; 
-	}
+      degree = t;
+      theNode = ni; 
+    }
       }
 
       // add this node's outgoing edges to Ea
       node = *theNode;
 
       for (unsigned j = 0; j < node->outgoing.size(); j++)  {
-	#ifdef RUN_DEBUG
-	  cout << "Appending to Ea: Edge(" << node->outgoing[j].first << ", " << node->outgoing[j].second << ")" << endl;
-	#endif
-	Ea->push_back(node->outgoing[j]);
+    #ifdef RUN_DEBUG
+      cout << "Appending to Ea: Edge(" << node->outgoing[j].first << ", " << node->outgoing[j].second << ")" << endl;
+    #endif
+    Ea->push_back(node->outgoing[j]);
 
-	// find the edge from a vertex where the edge is incoming
-	Node *in = NULL;
-	for (unsigned q = 0; q < copy->size(); q++)  {
-	  if ((*copy)[q]->id == node->outgoing[j].second)  { in = (*copy)[q]; }
+    // find the edge from a vertex where the edge is incoming
+    Node *in = NULL;
+    for (unsigned q = 0; q < copy->size(); q++)  {
+      if ((*copy)[q]->id == node->outgoing[j].second)  { in = (*copy)[q]; }
         }
 
         COLA_ASSERT(in != NULL);
 
-	#ifdef RUN_DEBUG
-	  cout << "Searching through INCOMING list for vertex(" << in->id << ")" << endl;
-	#endif
+    #ifdef RUN_DEBUG
+      cout << "Searching through INCOMING list for vertex(" << in->id << ")" << endl;
+    #endif
 
         Edges::iterator ii;
-	for (ii = in->incoming.begin(); ii != in->incoming.end(); ii++)  {
+    for (ii = in->incoming.begin(); ii != in->incoming.end(); ii++)  {
           cola::Edge e = *ii;
-	  #ifdef RUN_DEBUG
-	    cout << "Looking at Edge(" << e.first << ", " << e.second << ")" << endl;
-  	  #endif
+      #ifdef RUN_DEBUG
+        cout << "Looking at Edge(" << e.first << ", " << e.second << ")" << endl;
+        #endif
 
-	  if (e == node->outgoing[j])  { break; }
-	}
+      if (e == node->outgoing[j])  { break; }
+    }
 
-	#ifdef RUN_DEBUG
-	  cout << "Erasing Edge(" << (*ii).first << ", " << (*ii).second << ") from INCOMING list of vertex(" << in->id << ")" << endl;
-	#endif          
+    #ifdef RUN_DEBUG
+      cout << "Erasing Edge(" << (*ii).first << ", " << (*ii).second << ") from INCOMING list of vertex(" << in->id << ")" << endl;
+    #endif          
         in->incoming.erase(ii);
       }
 
       // for all of the incoming edges this node possesses, delete then from other node's outgoing edge list
       for (unsigned j = 0; j < node->incoming.size(); j++)  {
-	// find the edge from a vertex where the edge is outgoing
-	Node *out = NULL;
-	for (unsigned q = 0; q < copy->size(); q++)  {
-	  if ((*copy)[q]->id == node->incoming[j].first)  { out = (*copy)[q]; }
+    // find the edge from a vertex where the edge is outgoing
+    Node *out = NULL;
+    for (unsigned q = 0; q < copy->size(); q++)  {
+      if ((*copy)[q]->id == node->incoming[j].first)  { out = (*copy)[q]; }
         }
 
         COLA_ASSERT(out != NULL);
 
-	#ifdef RUN_DEBUG
-	  cout << "Searching through OUTGOING list for vertex(" << out->id << ")" << endl;
-	#endif
+    #ifdef RUN_DEBUG
+      cout << "Searching through OUTGOING list for vertex(" << out->id << ")" << endl;
+    #endif
 
         Edges::iterator oi;
-	for (oi = out->outgoing.begin(); oi != out->outgoing.end(); oi++)  {
+    for (oi = out->outgoing.begin(); oi != out->outgoing.end(); oi++)  {
           cola::Edge e = *oi;
-	  #ifdef RUN_DEBUG
-	    cout << "Looking at Edge(" << e.first << ", " << e.second << ")" << endl;
-  	  #endif
+      #ifdef RUN_DEBUG
+        cout << "Looking at Edge(" << e.first << ", " << e.second << ")" << endl;
+        #endif
 
-	  if (e == node->incoming[j])  { break; }
-	}
+      if (e == node->incoming[j])  { break; }
+    }
 
         #ifdef RUN_DEBUG
-	  cout << "Erasing Edge(" << (*oi).first << ", " << (*oi).second << ") from OUTGOING list of vertex(" << out->id << ")" << endl;
-	#endif          
+      cout << "Erasing Edge(" << (*oi).first << ", " << (*oi).second << ") from OUTGOING list of vertex(" << out->id << ")" << endl;
+    #endif          
         out->outgoing.erase(oi);
       }
 

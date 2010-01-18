@@ -138,7 +138,7 @@ void EdgePoint::getBendConstraint(vector<TopologyConstraint*>* ts) {
 }
 double EdgePoint::pos(vpsc::Dim dim) const {
     double p;
-	vpsc::Rectangle* r=node->rect;
+    vpsc::Rectangle* r=node->rect;
     switch(rectIntersect) {
         case TL:
             p=dim==vpsc::XDIM?

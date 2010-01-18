@@ -51,7 +51,7 @@ namespace cola {
             rects[i]->moveCentreY(rects[i]->getCentreY()+y);
         }
     }
-	Rectangle* Component::getBoundingBox() {
+    Rectangle* Component::getBoundingBox() {
         double llx=DBL_MAX, lly=DBL_MAX, urx=-DBL_MAX, ury=-DBL_MAX;
         for(unsigned i=0;i<rects.size();i++) {
             llx=min(llx,rects[i]->getMinX());

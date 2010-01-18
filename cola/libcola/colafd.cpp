@@ -1063,7 +1063,7 @@ void ConstrainedFDLayout::outputInstanceToSVG(std::string instanceName)
     double maxX = -LIMIT;
     double maxY = -LIMIT;
 
-	// Find the bounds of the diagram.
+    // Find the bounds of the diagram.
     for (size_t i = 0; i < boundingBoxes.size(); ++i)
     {
         double rMinX = boundingBoxes[i]->getMinX();
@@ -1112,15 +1112,15 @@ void ConstrainedFDLayout::outputInstanceToSVG(std::string instanceName)
     fprintf(fp, "    CompoundConstraints ccs;\n");
     fprintf(fp, "    std::vector<Edge> es;\n");
     fprintf(fp, "    double defaultEdgeLength=40;\n");
-	fprintf(fp, "    std::vector<vpsc::Rectangle*> rs;\n");
+    fprintf(fp, "    std::vector<vpsc::Rectangle*> rs;\n");
     fprintf(fp, "    vpsc::Rectangle *rect = NULL;\n\n");
-	for (size_t i = 0; i < boundingBoxes.size(); ++i)
+    for (size_t i = 0; i < boundingBoxes.size(); ++i)
     {
         fprintf(fp, "    rect = new vpsc::Rectangle(%g, %g, %g, %g);\n",
                boundingBoxes[i]->getMinX(), boundingBoxes[i]->getMaxX(),
                boundingBoxes[i]->getMinY(), boundingBoxes[i]->getMaxY());
-		fprintf(fp, "    rs.push_back(rect);\n\n");
-	}
+        fprintf(fp, "    rs.push_back(rect);\n\n");
+    }
 
     if (ccs)
     {
@@ -1131,7 +1131,7 @@ void ConstrainedFDLayout::outputInstanceToSVG(std::string instanceName)
         }
     }
 
-	fprintf(fp, "    ConstrainedFDLayout alg(rs, es, defaultEdgeLength);\n");
+    fprintf(fp, "    ConstrainedFDLayout alg(rs, es, defaultEdgeLength);\n");
     fprintf(fp, "    alg.setConstraints(&ccs);\n");
     fprintf(fp, "    alg.makeFeasible(true);\n");
     fprintf(fp, "    alg.run();\n");
@@ -1140,7 +1140,7 @@ void ConstrainedFDLayout::outputInstanceToSVG(std::string instanceName)
 
     fprintf(fp, "<g inkscape:groupmode=\"layer\" "
             "inkscape:label=\"Rects\">\n");
-	for (size_t i = 0; i < boundingBoxes.size(); ++i)
+    for (size_t i = 0; i < boundingBoxes.size(); ++i)
     {
         double minX = boundingBoxes[i]->getMinX();
         double maxX = boundingBoxes[i]->getMaxX();

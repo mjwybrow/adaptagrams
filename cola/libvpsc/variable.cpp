@@ -31,10 +31,10 @@
 #include "variable.h"
 namespace vpsc {
 std::ostream& operator <<(std::ostream &os, const Variable &v) {
-	if(v.block)
-		os << "(" << v.id << "=" << v.position() << ")";
-	else
-		os << "(" << v.id << "=" << v.desiredPosition << ")";
-	return os;
+    if(v.block)
+        os << "(" << v.id << "=" << v.position() << ")";
+    else
+        os << "(" << v.id << "=" << v.desiredPosition << ")";
+    return os;
 }
 }

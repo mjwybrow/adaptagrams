@@ -41,8 +41,8 @@ using std::valarray;
 
 static void 
 matrix_times_vector(valarray<double> const &matrix, /* m * n */
-		    valarray<double> const &vec,  /* n */
-		    valarray<double> &result) /* m */
+            valarray<double> const &vec,  /* n */
+            valarray<double> &result) /* m */
 {
     unsigned n = vec.size();
     unsigned m = result.size();
@@ -50,7 +50,7 @@ matrix_times_vector(valarray<double> const &matrix, /* m * n */
 #   if defined(_MSC_VER)
     // magmy: The following lines show how operator[] is defined for valarray under MSVC
     // _Ty valarray<_Ty>::operator[](size_t _Off) const;
-	// _Ty &valarray<_Ty>::operator[](size_t _Off);
+    // _Ty &valarray<_Ty>::operator[](size_t _Off);
     // As a consequence, it is not possible to take the address of a constant valarray[n].
     // This looks like a bug in the Microsoft's <valarray> file.
     // Below is a workaround
@@ -98,10 +98,10 @@ double compute_cost(valarray<double> const &A,
 }
 void 
 conjugate_gradient(valarray<double> const &A, 
-		   valarray<double> &x, 
-		   valarray<double> const &b, 
-		   unsigned const n, double const tol,
-		   unsigned const max_iterations) {
+           valarray<double> &x, 
+           valarray<double> const &b, 
+           unsigned const n, double const tol,
+           unsigned const max_iterations) {
     //printf("Conjugate Gradient...\n");
     valarray<double> Ap(n), p(n), r(n);
     matrix_times_vector(A,x,Ap);

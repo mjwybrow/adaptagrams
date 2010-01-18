@@ -61,22 +61,22 @@ void OutputFile::generate() {
 
 #if defined (CAIRO_HAS_SVG_SURFACE) && defined (CAIRO_HAS_PDF_SURFACE)
     double width,height,r=2;
-	if(rects) r=rs[0]->width()/2;
-	double xmin=DBL_MAX, ymin=xmin;
-	double xmax=-DBL_MAX, ymax=xmax;
-	for (unsigned i=0;i<rs.size();i++) {
-		double x=rs[i]->getCentreX(), y=rs[i]->getCentreY();
-		xmin=min(xmin,x);
-		ymin=min(ymin,y);
-		xmax=max(xmax,x);
-		ymax=max(ymax,y);
-	}
-	xmax+=2*r;
-	ymax+=2*r;
-	xmin-=2*r;
-	ymin-=2*r;
-	width=xmax-xmin;
-	height=ymax-ymin;
+    if(rects) r=rs[0]->width()/2;
+    double xmin=DBL_MAX, ymin=xmin;
+    double xmax=-DBL_MAX, ymax=xmax;
+    for (unsigned i=0;i<rs.size();i++) {
+        double x=rs[i]->getCentreX(), y=rs[i]->getCentreY();
+        xmin=min(xmin,x);
+        ymin=min(ymin,y);
+        xmax=max(xmax,x);
+        ymax=max(ymax,y);
+    }
+    xmax+=2*r;
+    ymax+=2*r;
+    xmin-=2*r;
+    ymin-=2*r;
+    width=xmax-xmin;
+    height=ymax-ymin;
 
     Cairo::RefPtr<Cairo::Context> cr;
     openCairo(cr,width,height);
@@ -99,12 +99,12 @@ void OutputFile::generate() {
     else 
         draw_edges(cr,*routes,xmin,ymin);
     Cairo::TextExtents te;
-	for (unsigned i=0;i<rs.size();i++) {
-		if(!rects) {
+    for (unsigned i=0;i<rs.size();i++) {
+        if(!rects) {
             double x=rs[i]->getCentreX()-xmin, y=rs[i]->getCentreY()-ymin;
             cr->arc(x,y,r, 0.0, 2.0 * M_PI);
             cr->fill();
-		} else {
+        } else {
             double x=rs[i]->getMinX()-xmin+0.5, y=rs[i]->getMinY()-ymin+0.5;
             std::string str;
             if(labels.size()==rs.size()) {
@@ -131,8 +131,8 @@ void OutputFile::generate() {
                 cr->show_text(str);
             }
             cr->stroke();
-		}
-	}
+        }
+    }
 
     cr->show_page();
 
@@ -187,11 +187,11 @@ void OutputFile::draw_edges(Cairo::RefPtr<Cairo::Context> &cr,
     for (unsigned i=0;i<es.size();i++) {
         const straightener::Route* r=es[i];
         cr->move_to(r->xs[0]-xmin,r->ys[0]-ymin);
-		for (unsigned j=1;j<r->n;j++) {
+        for (unsigned j=1;j<r->n;j++) {
             cr->line_to(r->xs[j]-xmin,r->ys[j]-ymin);
-		}
+        }
         cr->stroke();
-	}
+    }
     cr->restore();
 }
 
@@ -374,7 +374,7 @@ void OutputFile::draw_curved_edges(Cairo::RefPtr<Cairo::Context> &cr,
         cr->move_to(e.x0,e.y0);
         cr->curve_to(e.x1,e.y1,e.x2,e.y2,e.x3,e.y3);
         cr->stroke();
-	}
+    }
     cr->restore();
 }
 void OutputFile::openCairo(Cairo::RefPtr<Cairo::Context> &cr, double width, double height) {

@@ -52,14 +52,14 @@ using namespace vpsc;
 namespace cola {
 GradientProjection::GradientProjection(
     const Dim k,
-	std::valarray<double> *denseQ,
-	const double tol,
-	const unsigned max_iterations,
+    std::valarray<double> *denseQ,
+    const double tol,
+    const unsigned max_iterations,
     CompoundConstraints const *ccs,
     UnsatisfiableConstraintInfos *unsatisfiableConstraints,
     NonOverlapConstraintsMode nonOverlapConstraints,
     RootCluster* clusterHierarchy,
-	vpsc::Rectangles* rs,
+    vpsc::Rectangles* rs,
     const bool scaling,
     SolveWithMosek solveWithMosek) 
         : k(k), 
@@ -119,11 +119,11 @@ GradientProjection::GradientProjection(
             (*c)->generateSeparationConstraints(k, vars, gcs);
         }
     }
-	/*
+    /*
     if(clusterHierarchy) {
         clusterHierarchy->createVars(k,*rs,vars);
     }
-	*/
+    */
     numStaticVars=vars.size();
     //solver=setupVPSC();
 }
@@ -250,9 +250,9 @@ unsigned GradientProjection::solve(
     COLA_ASSERT(sparseQ==NULL || 
                 (sparseQ!=NULL && (vars.size()==sparseQ->rowSize())) );
 
-	if(max_iterations==0) return 0;
+    if(max_iterations==0) return 0;
 
-	bool converged=false;
+    bool converged=false;
 
     solver = setupVPSC();
 #ifdef MOSEK_AVAILABLE
@@ -292,9 +292,9 @@ unsigned GradientProjection::solve(
         if(!vars[i]->fixedDesiredPosition) vars[i]->desiredPosition=result[i];
     }
     runSolver(result);
-    	
-	valarray<double> g(n); /* gradient */
-	valarray<double> previous(n); /* stored positions */
+        
+    valarray<double> g(n); /* gradient */
+    valarray<double> previous(n); /* stored positions */
     valarray<double> d(n); /* actual descent vector */
 
 #ifdef CHECK_CONVERGENCE_BY_COST
@@ -302,24 +302,24 @@ unsigned GradientProjection::solve(
 #endif
     unsigned counter=0;
     double stepSize;
-	for (; counter<max_iterations&&!converged; counter++) {
+    for (; counter<max_iterations&&!converged; counter++) {
         previous=result;
         stepSize=0;
         double alpha=computeSteepestDescentVector(b,result,g);
 
         //printf("Iteration[%d]\n",counter);
         // move to new unconstrained position
-		for (unsigned i=0; i<n; i++) {
+        for (unsigned i=0; i<n; i++) {
             // dividing by variable weight is a cheap trick to make these
             // weights mean something in terms of the descent vector
             double step=alpha*g[i]/vars[i]->weight;
-			result[i]+=step;
+            result[i]+=step;
             //printf("   after unconstrained step: x[%d]=%f\n",i,result[i]);
             stepSize+=step*step;
             COLA_ASSERT(!isNaN(result[i]));
             COLA_ASSERT(isFinite(result[i]));
             if(!vars[i]->fixedDesiredPosition) vars[i]->desiredPosition=result[i];
-		}
+        }
 
         //project to constraint boundary
         bool constrainedOptimum = false;
@@ -338,7 +338,7 @@ unsigned GradientProjection::solve(
             const double beta = 0.5*computeStepSize(g, d);
             // beta > 1.0 takes us back outside the feasible region
             // beta < 0 clearly not useful and may happen due to numerical imp.
-		    //printf("beta=%f\n",beta);
+            //printf("beta=%f\n",beta);
             if(beta>0&&beta<0.99999) {
                 stepSize=0;
                 for (unsigned i=0; i<n; i++) {
@@ -362,7 +362,7 @@ unsigned GradientProjection::solve(
 #else
         if(stepSize<tolerance) converged = true; 
 #endif
-	}
+    }
     //printf("GP[%d] converged after %d iterations.\n",k,counter);
     for(unsigned i=0;i<x.size();i++) {
         x[i]=result[i];
@@ -371,7 +371,7 @@ unsigned GradientProjection::solve(
         }
     }
     destroyVPSC(solver);
-	return counter;
+    return counter;
 }
 // Setup an instance of the Variable Placement with Separation Constraints
 // for one iteration.

@@ -37,7 +37,7 @@
 
 namespace vpsc {
     static const double ZERO_UPPERBOUND=-0.0000001;
-	void CBuffer::load() {
+    void CBuffer::load() {
         size=0; 
         double buffMaxSlack=-DBL_MAX;
         unsigned buffMaxSlackPos=0;
@@ -89,7 +89,7 @@ namespace vpsc {
                     buffer[i--]=buffer[--size];
                 } else if(c->equality||slack < minSlack) {
                     v=c;
-                    deletePos=i;	
+                    deletePos=i;    
                     minSlack=slack;
                 }
             }
