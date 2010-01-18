@@ -35,6 +35,7 @@
 #ifndef SEEN_LIBVPSC_BLOCK_H
 #define SEEN_LIBVPSC_BLOCK_H
 
+#include <iostream>
 #include <vector>
 
 template <class T, class TCompare> class PairingHeap;

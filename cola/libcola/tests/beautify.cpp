@@ -217,31 +217,32 @@ void makeFeasible(vpsc::Rectangles& rs, vector<cola::Edge>& edges,
         double y=r->getMinY()+g;
         double Y=r->getMaxY()-g;
         // Create the ShapeRef:
-        Avoid::Polygon shapePoly(4);
-        // AntiClockwise!
-        shapePoly.ps[0] = Avoid::Point(X,y);
-        shapePoly.ps[1] = Avoid::Point(X,Y);
-        shapePoly.ps[2] = Avoid::Point(x,Y);
-        shapePoly.ps[3] = Avoid::Point(x,y);
+        Avoid::Rectangle shapeRect(Avoid::Point(x,y), Avoid::Point(X,Y));
         //if(i==4||i==13||i==9) {
             //printf("rect[%d]:{%f,%f,%f,%f}\n",i,x,y,X,Y);
         //}
         unsigned int shapeID = i + 1;
-        Avoid::ShapeRef *shapeRef = new Avoid::ShapeRef(router, shapePoly,
+        Avoid::ShapeRef *shapeRef = new Avoid::ShapeRef(router, shapeRect,
                 shapeID);
         // ShapeRef constructor makes a copy of polygon so we can free it:
         router->addShape(shapeRef);
     }
-    for(unsigned i=0;i<edges.size();++i) {
+    Avoid::ConnRef *connRefs[edges.size()];
+    for(unsigned i=0;i<edges.size();++i) 
+    {
         cola::Edge e=edges[i];
-        Avoid::ConnRef *connRef;
         unsigned int connID = i + rs.size() + 1;
         Rectangle* r0=rs[e.first], *r1=rs[e.second];
         Avoid::Point srcPt(r0->getCentreX(),r0->getCentreY());
         Avoid::Point dstPt(r1->getCentreX(),r1->getCentreY());
-        connRef = new Avoid::ConnRef(router, srcPt, dstPt, connID);
-        router->processTransaction();
-        const Avoid::Polygon& route = connRef->route();
+        connRefs[i] = new Avoid::ConnRef(router, srcPt, dstPt, connID);
+    }
+    router->processTransaction();
+    //router->outputInstanceToSVG();
+    for(unsigned i=0;i<edges.size();++i) 
+    {
+        cola::Edge e=edges[i];
+        const Avoid::Polygon& route = connRefs[i]->route();
         vector<topology::EdgePoint*> eps;
         eps.push_back( new topology::EdgePoint( topologyNodes[e.first], 
                     topology::EdgePoint::CENTRE));

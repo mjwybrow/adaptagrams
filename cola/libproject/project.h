@@ -40,6 +40,8 @@
 #include <set>
 #include <list>
 #include <sstream>
+#include <cstdio>
+
 #include "util.h"
 
 /**

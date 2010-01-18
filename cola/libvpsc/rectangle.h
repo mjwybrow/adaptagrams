@@ -62,33 +62,10 @@ struct RectangleIntersections {
     int countIntersections() {
         return left+right+top+bottom;
     }
-    void print() {
-        printf("intersections:\n");
-        if(top) printf("  top=%d:(%f,%f)\n",top,topX,topY);
-        if(bottom) printf("  bottom=%d:(%f,%f)\n",bottom,bottomX,bottomY);
-        if(left) printf("  left=%d:(%f,%f)\n",left,leftX,leftY);
-        if(right) printf("  right=%d:(%f,%f)\n",right,rightX,rightY);
-    }
-    // of the stored intersections, this returns the one closest to the
+    void print(void);
+    // Of the stored intersections, this returns the one closest to the
     // specified point
-    void nearest(double x, double y, double & xi, double & yi) {
-        bool is[]={top, right, bottom, left};
-        double xs[]={topX, rightX, bottomX, leftX};
-        double ys[]={topY, rightY, bottomY, leftY};
-        double dx, dy, l, minl = 999999999999999.0;
-        for(unsigned i=0;i<4;i++) {
-        if(is[i]) {
-            dx=xs[i]-x;
-            dy=ys[i]-y;
-            l=dx*dx + dy*dy;
-            if(l<minl) {
-            minl=l;
-            xi=xs[i];
-            yi=ys[i];
-            }
-        }
-        }
-    }
+    void nearest(double x, double y, double & xi, double & yi);
 };
 class Rectangle {   
 public:
@@ -237,26 +214,7 @@ public:
     }
     // checks if line segment is strictly overlapping.
     // That is, if any point on the line is inside the rectangle.
-    bool overlaps(double x1, double y1, double x2, double y2) {
-        RectangleIntersections ri;
-        lineIntersections(x1,y1,x2,y2,ri);
-        if(ri.intersects) {
-            if(ri.countIntersections()==1) {
-                // special case when one point is touching
-                // the boundary of the rectangle but no part
-                // of the line is interior
-                if(!inside(x1,y1)&&!inside(x2,y2)) {
-                    return false;
-                }
-            }
-            printf("Rectangle/Segment intersection!\n");
-            printf("Line[{{%f,%f},{%f,%f}}],\n",x1,y1,x2,y2);
-            printf("Rectangle[{%f,%f},{%f,%f}]\n",getMinX(),getMinY(),getMaxX(),getMaxY());
-            ri.print();
-            return true;
-        }
-        return false;
-    }
+    bool overlaps(double x1, double y1, double x2, double y2);
     // p1=(x1,y1),p2=(x2,y2) are points on the boundary.  Puts the shortest
     // path round the outside of the rectangle  from p1 to p2 into xs, ys.
     void routeAround(double x1, double y1, double x2, double y2,

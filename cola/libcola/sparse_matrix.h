@@ -42,7 +42,7 @@
 
 #include <valarray>
 #include <map>
-#include <iostream>
+#include <cstdio>
 
 #include "libvpsc/assertions.h"
 

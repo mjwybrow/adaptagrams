@@ -28,9 +28,9 @@
 #include <libvpsc/constraint.h>
 #include <libvpsc/solve_VPSC.h>
 #include <algorithm>
-#include <iostream>
-#include <time.h>
-#include <math.h>
+#include <cstdio>
+#include <ctime>
+#include <cmath>
 #include <cassert>
 
 using namespace std;

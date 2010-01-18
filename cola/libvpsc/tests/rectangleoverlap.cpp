@@ -23,7 +23,7 @@
  *
 */
 
-#include <iostream>
+#include <cstdio>
 #include <cassert>
 #include <cstdlib>
 #include <math.h>
