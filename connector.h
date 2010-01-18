@@ -379,8 +379,7 @@ class ConnRef
         bool generatePath(Point p0, Point p1);
         void unInitialise(void);
         void updateEndPoint(const unsigned int type, const ConnEnd& connEnd);
-        void common_updateEndPoint(const unsigned int type, 
-                const ConnEnd& connEnd);
+        void common_updateEndPoint(const unsigned int type, ConnEnd connEnd);
 
         Router *_router;
         unsigned int _id;
