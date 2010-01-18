@@ -1325,10 +1325,10 @@ bool posInlineWithConnEndSegs(const double pos, const size_t dim,
     size_t cLast = conn.size() - 1;
     if ((
          // Is inline with the beginning of the "poly" line
-         ((pos == poly.ps[0][dim]) && (pos == poly.ps[1][dim]) ||
+         ((pos == poly.ps[0][dim]) && (pos == poly.ps[1][dim])) ||
          // Is inline with the end of the "poly" line
          ((pos == poly.ps[pLast][dim]) && (pos == poly.ps[pLast - 1][dim])) 
-        ) &&
+        ) && (
          // Is inline with the beginning of the "conn" line
          ((pos == conn.ps[0][dim]) && (pos == conn.ps[1][dim])) || 
          // Is inline with the end of the "conn" line

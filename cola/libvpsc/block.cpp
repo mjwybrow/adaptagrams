@@ -134,7 +134,9 @@ void Block::setUpConstraintHeap(PairingHeap<Constraint*,CompareConstraints>* &h,
 		for (Cit j=cs->begin();j!=cs->end();++j) {
 			Constraint *c=*j;
 			c->timeStamp=blockTimeCtr;
-			if (c->left->block != this && in || c->right->block != this && !in) {
+			if ( ((c->left->block != this) && in) || 
+                 ((c->right->block != this) && !in) )
+            {
 				h->insert(c);
 			}
 		}

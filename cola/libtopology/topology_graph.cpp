@@ -141,7 +141,7 @@ double EdgePoint::pos(vpsc::Dim dim) const {
 	vpsc::Rectangle* r=node->rect;
     switch(rectIntersect) {
         case TL:
-            p=dim==vpsc::HORIZONTAL?
+            p=dim==vpsc::XDIM?
                 r->getMinX():r->getMaxY();
             break;
         case TR:
@@ -151,7 +151,7 @@ double EdgePoint::pos(vpsc::Dim dim) const {
             p=r->getMinD(dim);
             break;
         case BR:
-            p=dim==vpsc::HORIZONTAL?
+            p=dim==vpsc::XDIM?
                 r->getMaxX():r->getMinY();
             break;
         default:
@@ -164,8 +164,9 @@ double EdgePoint::offset() const {
         return 0;
     }
     double o = node->rect->length(dim)/2.0;
-    if(dim==vpsc::HORIZONTAL && (rectIntersect == TL || rectIntersect == BL)
-     ||dim==vpsc::VERTICAL && (rectIntersect == BL || rectIntersect == BR)) {
+    if ((dim==vpsc::XDIM && (rectIntersect == TL || rectIntersect == BL)) ||
+        (dim==vpsc::YDIM && (rectIntersect == BL || rectIntersect == BR)))
+        {
             return -o;
         }
         return o;
@@ -210,12 +211,13 @@ bool EdgePoint::assertConvexBend() const {
                 throw runtime_error("Two points on same edge the same!");
             }
             // monotonicity:
-            if(!( u->posX()<=posX()+eps && posX()<=w->posX()+eps
-                ||u->posX()>=posX()-eps && posX()>=w->posX()-eps)) {
+            if(!( (u->posX()<=posX()+eps && posX()<=w->posX()+eps) ||
+                  (u->posX()>=posX()-eps && posX()>=w->posX()-eps))) 
+            {
                 throw runtime_error("3 consecutive points not monotonically increasing in X!\n");
             }
-            if(!( u->posY()<=posY()+eps && posY()<=w->posY()+eps
-                ||u->posY()>=posY()-eps && posY()>=w->posY()-eps) )
+            if(!( (u->posY()<=posY()+eps && posY()<=w->posY()+eps) ||
+                  (u->posY()>=posY()-eps && posY()>=w->posY()-eps)) )
             {
                 throw runtime_error("3 consecutive points not monotonically increasing in Y!\n");
             }

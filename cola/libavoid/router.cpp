@@ -1593,7 +1593,7 @@ void Router::outputInstanceToSVG(std::string instanceName)
     fprintf(fp, "            PolyLineRouting | OrthogonalRouting);\n");
     for (size_t p = 0; p < lastPenaltyMarker; ++p)
     {
-        fprintf(fp, "    router->setRoutingPenalty((PenaltyType)%lu, %g);\n", 
+        fprintf(fp, "    router->setRoutingPenalty((PenaltyType)%u, %g);\n", 
                 p, _routingPenalties[p]);
     }
     fprintf(fp, "    router->setOrthogonalNudgeDistance(%g);\n\n",
@@ -1602,11 +1602,11 @@ void Router::outputInstanceToSVG(std::string instanceName)
     while (revShapeRefIt != shapeRefs.rend())
     {
         ShapeRef *shRef = *revShapeRefIt;
-        fprintf(fp, "    Polygon poly%u(%lu);\n", 
+        fprintf(fp, "    Polygon poly%u(%u);\n", 
                 shRef->id(), shRef->polygon().size());
         for (size_t i = 0; i < shRef->polygon().size(); ++i)
         {
-            fprintf(fp, "    poly%u.ps[%lu] = Point(%g, %g);\n", 
+            fprintf(fp, "    poly%u.ps[%u] = Point(%g, %g);\n", 
                     shRef->id(), i, shRef->polygon().at(i).x,
                     shRef->polygon().at(i).y);
         }

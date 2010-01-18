@@ -259,19 +259,23 @@ void NodeEvent::createStraightConstraints(
         rightLimit=rightNeighbour?rightNeighbour->rect->getCentreD(dim):DBL_MAX;
     for(OpenSegments::iterator j=openSegments.begin(); j!=openSegments.end();++j) {
         Segment* s=(*j)->s;
-        if(s->start->node->id==node->id 
-                && s->start->rectIntersect==EdgePoint::CENTRE
-        || s->end->node->id==node->id
-                && s->end->rectIntersect==EdgePoint::CENTRE) {
-            FILE_LOG(logDEBUG1)<<"  Not creating because segment is attached to this node!";
+        if ( (s->start->node->id==node->id 
+                && s->start->rectIntersect==EdgePoint::CENTRE)
+          || (s->end->node->id==node->id
+                && s->end->rectIntersect==EdgePoint::CENTRE) )
+        {
+            FILE_LOG(logDEBUG1)<<
+                    "  Not creating because segment is attached to this node!";
             continue;
         } 
         const double p = s->forwardIntersection(pos);
-        if(p<leftLimit&&pos>leftNeighbour->rect->getMinD(!dim)&&
-                pos<leftNeighbour->rect->getMaxD(!dim)
-           ||p>rightLimit&&pos>rightNeighbour->rect->getMinD(!dim)&&
-                pos<rightNeighbour->rect->getMaxD(!dim)) { 
-            FILE_LOG(logDEBUG1)<<"  Skipping because segment is not visible from this node!";
+        if ( (p<leftLimit&&pos>leftNeighbour->rect->getMinD(!dim)&&
+                pos<leftNeighbour->rect->getMaxD(!dim))
+          || (p>rightLimit&&pos>rightNeighbour->rect->getMinD(!dim)&&
+                pos<rightNeighbour->rect->getMaxD(!dim)) )
+        { 
+            FILE_LOG(logDEBUG1)<<
+                    "  Skipping because segment is not visible from this node!";
             continue;
         }
         s->createStraightConstraint(node,pos);

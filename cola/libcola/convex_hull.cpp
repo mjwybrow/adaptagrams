@@ -88,7 +88,8 @@ void convex(valarray<double> const & X, valarray<double> const & Y, vector<unsig
     // This is our "pivot" point
     double minY=DBL_MAX,minX=DBL_MAX;
     for(unsigned i=0;i<n;i++) {
-        if(Y[i]<minY || Y[i]==minY && X[i]<minX) {
+        if ( (Y[i] < minY) || ((Y[i] == minY) && (X[i] < minX)) ) 
+        {
             p0=i;
             minY=Y[i];
             minX=X[i];

@@ -176,12 +176,11 @@ struct transferStraightConstraintChoose {
             if(c->pos<mid) {
                 dest = lSeg;
             } else if(c->pos==mid) {
-                if(dim==vpsc::HORIZONTAL && 
-                     ( c->ri==EdgePoint::TL
-                     ||c->ri==EdgePoint::TR)
-                 ||dim==vpsc::VERTICAL &&
-                     ( c->ri==EdgePoint::TR
-                     ||c->ri==EdgePoint::BR)) 
+                if ( (dim==vpsc::XDIM && 
+                        (c->ri==EdgePoint::TL ||c->ri==EdgePoint::TR)) 
+                     || 
+                     (dim==vpsc::YDIM &&
+                        (c->ri==EdgePoint::TR ||c->ri==EdgePoint::BR))) 
                 {
                     dest=lSeg;
                 }

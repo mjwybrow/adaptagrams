@@ -246,7 +246,9 @@ unsigned GradientProjection::solve(
     COLA_ASSERT(linearCoefficients.size()==x.size());
     COLA_ASSERT(x.size()==denseSize);
     COLA_ASSERT(numStaticVars>=denseSize);
-    COLA_ASSERT(sparseQ==NULL || sparseQ!=NULL && vars.size()==sparseQ->rowSize());
+    COLA_ASSERT(sparseQ==NULL || 
+                (sparseQ!=NULL && (vars.size()==sparseQ->rowSize())) );
+
 	if(max_iterations==0) return 0;
 
 	bool converged=false;
