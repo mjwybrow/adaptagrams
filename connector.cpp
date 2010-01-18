@@ -962,7 +962,7 @@ bool ConnRef::generatePath(void)
             {
                 // Check for consecutive points on opposite 
                 // corners of two touching shapes.
-                COLA_ASSERT(abs(i->pathNext->id.objID - i->id.objID) != 2);
+                COLA_ASSERT(abs(i->pathNext->id.vn - i->id.vn) != 2);
             }
         }
     }
