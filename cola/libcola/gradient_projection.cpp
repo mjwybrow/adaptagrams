@@ -36,15 +36,16 @@
 
 #include <libvpsc/solve_VPSC.h>
 #include <libvpsc/variable.h>
+#include <libvpsc/isnan.h>
 #include <libvpsc/constraint.h>
 #include <libvpsc/assertions.h>
+
 #include "cluster.h"
 #include "gradient_projection.h"
 #include "straightener.h"
 #include "commondefs.h"
 //#define CHECK_CONVERGENCE_BY_COST 1
 
-#define __NOTNAN(p) (p)==(p)
 
 using namespace std;
 using namespace vpsc;
@@ -86,7 +87,7 @@ GradientProjection::GradientProjection(
             // XXX: Scale can sometimes be set to infinity here when 
             //      there are nodes not connected to any other node.
             //      Thus we just set the scale for such a variable to 1.
-            if (__NOTNAN(vars[i]->scale))
+            if (!isFinite(vars[i]->scale))
             {
                 vars[i]->scale = 1;
             }
@@ -280,8 +281,8 @@ unsigned GradientProjection::solve(
     // load desired positions into vars, note that we keep desired positions 
     // already calculated for dummy vars
     for (unsigned i=0;i<x.size();i++) {
-        COLA_ASSERT(!isnan(x[i]));
-        COLA_ASSERT(!isinf(x[i]));
+        COLA_ASSERT(!isNaN(x[i]));
+        COLA_ASSERT(isFinite(x[i]));
         b[i]=i<linearCoefficients.size()?linearCoefficients[i]:0;
         result[i]=x[i];
         if(scaling) {
@@ -315,8 +316,8 @@ unsigned GradientProjection::solve(
 			result[i]+=step;
             //printf("   after unconstrained step: x[%d]=%f\n",i,result[i]);
             stepSize+=step*step;
-            COLA_ASSERT(!isnan(result[i]));
-            COLA_ASSERT(!isinf(result[i]));
+            COLA_ASSERT(!isNaN(result[i]));
+            COLA_ASSERT(isFinite(result[i]));
             if(!vars[i]->fixedDesiredPosition) vars[i]->desiredPosition=result[i];
 		}
 

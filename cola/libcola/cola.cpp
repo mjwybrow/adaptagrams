@@ -26,6 +26,7 @@
 #include <cmath>
 
 #include "libvpsc/assertions.h"
+#include "libvpsc/isnan.h"
 #include "commondefs.h"
 #include "cola.h"
 #include "conjugate_gradient.h"
@@ -173,7 +174,7 @@ void ConstrainedMajorizationLayout::majorize(
             b[i] -= stickyWeight*startCoords[i];
         }
         b[i] += degree * coords[i];
-        COLA_ASSERT(!std::isnan(b[i]));
+        COLA_ASSERT(!isNaN(b[i]));
     }
     if(constrainedLayout) {
         //printf("GP iteration...\n");
