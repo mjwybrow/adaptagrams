@@ -1011,21 +1011,33 @@ NonOverlapConstraints::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
     assertValidVariableIndex(vs[YDIM], info.varIndex1);
     assertValidVariableIndex(vs[YDIM], info.varIndex2);
 
+    double desiredX1 = vs[XDIM][info.varIndex1]->desiredPosition;
+    double desiredY1 = vs[YDIM][info.varIndex1]->desiredPosition;
+    double desiredX2 = vs[XDIM][info.varIndex2]->desiredPosition;
+    double desiredY2 = vs[YDIM][info.varIndex2]->desiredPosition;
+    // Compute the cost to move in each direction based on the 
+    // desired positions for the two objects.
+    double costR = xSep - (desiredX2 - desiredX1);
+    double costL = xSep - (desiredX1 - desiredX2);
+    
+    double costA = ySep - (desiredY2 - desiredY1);
+    double costB = ySep - (desiredY1 - desiredY2);
+
     vpsc::Constraint constraintL(vs[XDIM][info.varIndex2], 
             vs[XDIM][info.varIndex1], xSep);
-    alternatives.push_back(SubConstraint(XDIM, constraintL, info.costL));
+    alternatives.push_back(SubConstraint(XDIM, constraintL, costL));
 
     vpsc::Constraint constraintR(vs[XDIM][info.varIndex1], 
             vs[XDIM][info.varIndex2], xSep);
-    alternatives.push_back(SubConstraint(XDIM, constraintR, info.costR));
+    alternatives.push_back(SubConstraint(XDIM, constraintR, costR));
 
     vpsc::Constraint constraintB(vs[YDIM][info.varIndex2], 
             vs[YDIM][info.varIndex1], ySep);
-    alternatives.push_back(SubConstraint(YDIM, constraintB, info.costB));
+    alternatives.push_back(SubConstraint(YDIM, constraintB, costB));
 
     vpsc::Constraint constraintT(vs[YDIM][info.varIndex1], 
             vs[YDIM][info.varIndex2], ySep);
-    alternatives.push_back(SubConstraint(YDIM, constraintT, info.costA));
+    alternatives.push_back(SubConstraint(YDIM, constraintT, costA));
     
     //fprintf(stderr, "===== NONOVERLAP ALTERNATIVES -====== \n");
 
