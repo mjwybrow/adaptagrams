@@ -341,7 +341,11 @@ namespace topology {
     /// do nothing operator used in ForEach
     template <typename T>
     struct NoOp {
-        void operator() (T t) {}
+        void operator() (T t)
+        {
+            // Suppress unused parameter warning.
+            (void) t;
+        }
     };
     /**
      * defines (hopefully just once) a loop over the bipartite linked-list

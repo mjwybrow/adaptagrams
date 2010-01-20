@@ -167,7 +167,12 @@ private:
     TestConvergence &operator=(TestConvergence const &);
 
 public:
-    virtual bool operator()(const double new_stress, std::valarray<double> & X, std::valarray<double> & Y) {
+    virtual bool operator()(const double new_stress, std::valarray<double> & X, std::valarray<double> & Y)
+    {
+        // Suppress unused parameter warning.
+        (void) X;
+        (void) Y;
+
         iterations++;
         //std::cout<<"iteration="<<iterations<<", old_stress="<<old_stress<<", new_stress="<<new_stress<<std::endl;
         if (old_stress == DBL_MAX) {

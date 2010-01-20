@@ -114,7 +114,11 @@ public:
      * after the vpsc instance is solved the following should be called
      * to send position information back to the interface.
      */
-    virtual void updatePosition(const vpsc::Dim dim) {};
+    virtual void updatePosition(const vpsc::Dim dim)
+    {
+        // Suppress unused parameter warning.
+        (void) dim;
+    }
     virtual ~CompoundConstraint();
     vpsc::Dim dimension(void) const;
     unsigned int priority(void) const;
