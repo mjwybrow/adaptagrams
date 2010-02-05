@@ -76,11 +76,11 @@ class VertID
         // Property tests:
         inline bool isOrthShapeEdge(void) const
         {
-            return (props & PROP_OrthShapeEdge);
+            return (props & PROP_OrthShapeEdge) ? true : false;
         }
         inline bool isConnPt(void) const
         {
-            return (props & PROP_ConnPoint);
+            return (props & PROP_ConnPoint) ? true : false;
         }
 };
 
