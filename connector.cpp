@@ -395,6 +395,7 @@ void ConnRef::common_updateEndPoint(const unsigned int type, ConnEnd connEnd)
         if (_srcConnEnd)
         {
             delete _srcConnEnd;
+            _srcConnEnd = NULL;
         }
         if (connEnd.containingShape())
         {
@@ -420,6 +421,7 @@ void ConnRef::common_updateEndPoint(const unsigned int type, ConnEnd connEnd)
         if (_dstConnEnd)
         {
             delete _dstConnEnd;
+            _dstConnEnd = NULL;
         }
         if (connEnd.containingShape())
         {

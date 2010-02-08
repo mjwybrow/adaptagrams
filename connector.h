@@ -139,10 +139,12 @@ class ConnEnd
         //!  -  ATTACH_POS_RIGHT = 1
         //!
         //! Importantly, when this type of ConnEnd is passed to the 
-        //! ConnRed::setEndpoint() methods, that endpoint will subsequently 
-        //! get  automatically moved whenever the containing shape is moved 
+        //! ConnEnd::setEndpoint() methods, that endpoint will subsequently 
+        //! get automatically moved whenever the containing shape is moved 
         //! or resized, thus causing the connector to be rerouted in response
-        //! to shape movement.
+        //! to shape movement.  To subsequently detach the connector from the
+        //! shape or attach it to a different shape, call one of the 
+        //! ConnEnd::setEndpoint() methods with a new ConnEnd.
         //!
         //! If no value is given for the visDirs argument, then visibility is 
         //! automatically determined based on the position of the connection
@@ -150,6 +152,18 @@ class ConnEnd
         //! shape out of that edge while points in the interior will have
         //! visibility in all directions.
         //!
+        //! The insideOffset argument can be used to set a distance to 
+        //! automatically offset the point within the shape.  This is useful
+        //! for orthogonal routing, where you usually want the connection 
+        //! point to lie inside the shape rather than exactly on its boundary.
+        //! While you could specify an exact position with xPortionOffset and 
+        //! yPortionOffset, it is usually much easier and more readable to not 
+        //! have to specify the visibility directions manually and to write 
+        //! something like
+        //! <pre>  ConnEnd(shapeRef, ATTACH_POS_RIGHT, ATTACH_POS_CENTRE, 5);</pre>
+        //! rather than
+        //! <pre>  ConnEnd(shapeRef, 1 - 5/shapeWidth, ATTACH_POS_CENTRE, 0, ConnDirRight);</pre>
+        //! 
         //! @param[in]  shapeRef       A pointer to the containing shape's
         //!                            ShapeRef.
         //! @param[in]  xPortionOffset The X position within the shape, 
@@ -253,7 +267,7 @@ class ConnRef
         //! @brief  Destuctor.
         ~ConnRef();
         
-        //! @brief  Sets both new source and destination endpoints for this 
+        //! @brief  Sets both a new source and destination endpoint for this 
         //!         connector.
         //!
         //! @param[in]  srcPoint  New source endpoint for the connector.
