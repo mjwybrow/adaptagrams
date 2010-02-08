@@ -333,11 +333,6 @@ void Router::moveShape(ShapeRef *shape, const Polygon& newPoly,
 
     if (found != actionList.end())
     {
-        if (!SimpleRouting)
-        {
-            db_printf("warning: multiple moves requested for shape %d "
-                    "within a single transaction.\n", (int) shape->id());
-        }
         // Just update the ActionInfo with the second polygon, but
         // leave the firstMove setting alone.
         found->newPoly = newPoly;
