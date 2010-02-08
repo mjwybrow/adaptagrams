@@ -23,7 +23,8 @@ check_PROGRAMS = \
 	vertlineassertion \
 	orthordering01 \
 	orthordering02 \
-	orderassertion
+	orderassertion \
+	connendmove
 
 example_SOURCES = example.cpp
 
@@ -60,6 +61,8 @@ activedelete_SOURCES = activedelete.cpp
 slowrouting_SOURCES = slowrouting.cpp
 
 orderassertion_SOURCES = orderassertion.cpp
+
+connendmove_SOURCES = connendmove.cpp
 
 TESTS = $(check_PROGRAMS)
 
