@@ -9,6 +9,31 @@ under the LGPL.
 See the 'LICENSE' file in this directory for the precise terms and
 conditions of the LGPL.
 
-Please see each file in the implementation for Copyright and licensing
-information.
+Below is the copyright notice for the libraries:
+
+--------------------------------------------------------------------------
+
+Adaptagrams is a library of tools and reusable code for adaptive diagramming
+applications, for example: drawing tools, automated document and diagram
+layout, smart presentation software, graph drawing, chart layout, etc.
+
+These libraries are collectively known as cola (for Constraint Layout). 
+The newest version of the C++ source code for cola can be found in the 
+Adaptagrams subversion repository:
+    https://adaptagrams.svn.sourceforge.net/svnroot/adaptagrams/trunk/cola
+
+All code in the Adaptagrams repository is released as open source under 
+the terms of the LGPL, see the LICENSE file.  This library is distributed
+in the hope that it will be useful, but WITHOUT ANY WARRANTY; without 
+even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
+PURPOSE.  
+
+Copyright (C) 2004-2010  Monash University
+Copyright (C) 2004-2008  Michael Wybrow
+
+The Adaptagrams code is written by:
+    Michael Wybrow  <mjwybrow@users.sourceforge.net>  and
+    Tim Dwyer  <tgdwyer@users.sourceforge.net>
+
+--------------------------------------------------------------------------
 
