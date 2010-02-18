@@ -559,7 +559,12 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
             for (curr = BestNode; curr.prevIndex > 0; 
                     curr = DONE[curr.prevIndex])
             {
-                COLA_ASSERT(curr.prevIndex < currIndex);   
+                // XXX Should these always decrease, like assertion below?
+                //     COLA_ASSERT(curr.prevIndex < currIndex);
+                //     It looks like they may not always decrease if during
+                //     the search some nodes are visited at later points and
+                //     have their cost to that point rewritten.
+
                 curr.inf->pathNext = DONE[curr.prevIndex].inf;
                 currIndex = curr.prevIndex;
             }
