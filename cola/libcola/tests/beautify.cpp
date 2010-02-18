@@ -341,7 +341,8 @@ int main() {
     cout<<"makefeasible ran in "<<makefeasibletime<<" seconds"<<endl;
     clock_t beautifystarttime=clock();
     test.reset();
-    alg2.setTopology(&topologyNodes, &routes);
+    bool setTopology = true;
+    alg2.setOrGetTopology(&topologyNodes, &routes, setTopology);
     writeFile(topologyNodes,routes,"beautify1.svg");
     char dunnartfile[50];
     sprintf(dunnartfile, "v%de%d.svg", V, (int) es.size());

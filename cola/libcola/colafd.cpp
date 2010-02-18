@@ -74,24 +74,22 @@ void dumpSquareMatrix(unsigned n, T** L) {
     }
 }
 
-ConstrainedFDLayout::ConstrainedFDLayout(
-    const vpsc::Rectangles & rs,
-    const std::vector< Edge > & es, 
-    const double idealLength,
-    const double* eLengths,
-    TestConvergence& done,
-    PreIteration* preIteration)
-: n(rs.size()),
-  X(valarray<double>(n)),
-  Y(valarray<double>(n)),
-  done(done),
-  preIteration(preIteration),
-  ccs(NULL),
-  topologyNodes(NULL),
-  topologyRoutes(NULL),
-  rungekutta(true),
-  desiredPositions(NULL)
+ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles & rs,
+        const std::vector< Edge > & es, const double idealLength,
+        const double* eLengths, TestConvergence& done, 
+        PreIteration* preIteration) 
+    : n(rs.size()),
+      X(valarray<double>(n)),
+      Y(valarray<double>(n)),
+      done(done),
+      preIteration(preIteration),
+      ccs(NULL),
+      rungekutta(true),
+      desiredPositions(NULL),
+      clusterHierarchy(NULL)
 {
+    topologyNodes.clear(),
+    topologyRoutes.clear(),
     //FILELog::ReportingLevel() = logDEBUG1;
     FILELog::ReportingLevel() = logERROR;
     boundingBoxes.resize(n);
@@ -168,9 +166,9 @@ void ConstrainedFDLayout::computePathLengths(
     // we don't need to compute attractive forces between nodes connected
     // by an edge if there is a topologyRoute between them (since the
     // p-stress force will be used instead)
-    if(topologyRoutes) {
-        for(vector<topology::Edge*>::iterator i=topologyRoutes->begin();
-                i!=topologyRoutes->end();++i) {
+    if(!topologyRoutes.empty()) {
+        for(vector<topology::Edge*>::iterator i=topologyRoutes.begin();
+                i!=topologyRoutes.end();++i) {
             topology::Edge* e=*i;
             if(!e->cycle()) {
                 unsigned u=e->firstSegment->start->node->id,
@@ -312,6 +310,9 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
     vpsc::Variables vs[2];
     vpsc::Constraints valid[2];
 
+    //vpsc::Rectangle::setXBorder(1);
+    //vpsc::Rectangle::setYBorder(1);
+    
     // Populate all the variables for shapes.
     for (unsigned int dim = 0; dim < 2; ++dim)
     {
@@ -379,7 +380,7 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
             boundingBoxes[i]->moveCentreX(vs[0][i]->finalPosition);
             boundingBoxes[i]->moveCentreY(vs[1][i]->finalPosition);
         }
-        sprintf(filename, "out/file-%05d.svg", iteration);
+        sprintf(filename, "out/file-%05d.pdf", iteration);
 
         OutputFile of(boundingBoxes,es,NULL,filename,true,false);
         of.setLabels(labels);
@@ -479,7 +480,7 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
                     boundingBoxes[i]->moveCentreY(vs[1][i]->finalPosition);
                 }
                 iteration++;
-                sprintf(filename, "out/file-%05d.svg", iteration);
+                sprintf(filename, "out/file-%05d.pdf", iteration);
 
                 OutputFile of(boundingBoxes,es,NULL,filename,true,false);
                 of.setLabels(labels);
@@ -497,61 +498,22 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
         boundingBoxes[i]->moveCentreY(vs[1][i]->finalPosition);
     }
 
-    // Cleanup.
-    for (unsigned int dim = 0; dim < 2; ++dim)
-    {
-        for_each(valid[dim].begin(), valid[dim].end(), delete_object());
-        for_each(vs[dim].begin(), vs[dim].end(), delete_object());
-    }
+    //vpsc::Rectangle::setXBorder(0);
+    //vpsc::Rectangle::setYBorder(0);
 
 #if 0
-    // XXX: Code for removing overlap between clusters needs to be updated.
-
-    vpsc::Rectangles rsa;
-    Rectangle::setXBorder(1);
-    Rectangle::setYBorder(1);
-    for(cola::CompoundConstraints::iterator c=ccs.begin(); 
-            c!=ccs.end(); ++c) {
-        cola::AlignmentConstraint* a
-            =dynamic_cast<cola::AlignmentConstraint*>(*c);
-        if(a && (a->dimension() == vpsc::HORIZONTAL)) {
-            for(cola::OffsetList::iterator o=a->offsets.begin();
-                    o!=a->offsets.end();++o) {
-                rsa.push_back(rs[o->first]);
-                printf("horizontal alignment: %d\n",o->first);
-            }
-        }
-    }
-    resolveOverlappingRectangles(rsa,vpsc::VERTICAL);
-    rsa.clear();
-    for(cola::CompoundConstraints::iterator c=ccs.begin(); 
-            c!=ccs.end(); ++c) {
-        cola::AlignmentConstraint* a
-            =dynamic_cast<cola::AlignmentConstraint*>(*c);
-        if(a && (a->dimension() == vpsc::VERTICAL)) {
-            for(cola::OffsetList::iterator o=a->offsets.begin();
-                    o!=a->offsets.end();++o) {
-                rsa.push_back(rs[o->first]);
-                printf("vertical alignment: %d\n",o->first);
-            }
-        }
-    }
-    resolveOverlappingRectangles(rsa,vpsc::HORIZONTAL);
-    Rectangle::setXBorder(0.00001);
-    Rectangle::setYBorder(0.00001);
-
     if(mode==GraphLayout::FLOW||mode==GraphLayout::LAYERED) {
-        removeOverlap(vpsc::HORIZONTAL, cola::Horizontal);
+        removeClusterOverlap(vpsc::HORIZONTAL, cola::Horizontal);
     } else {
         bool horiSatisfied = false, vertSatisfied = false;
         int iteration = 0;
         while (!horiSatisfied || !vertSatisfied)
         {
             iteration++;
-            horiSatisfied = removeOverlap(vpsc::HORIZONTAL);
+            horiSatisfied = removeClusterOverlap(vpsc::HORIZONTAL);
             printf("%02d HORI -- %sSatisfied\n", iteration,
                     (horiSatisfied) ? "" : "NOT ");
-            vertSatisfied = removeOverlap(vpsc::VERTICAL);
+            vertSatisfied = removeClusterOverlap(vpsc::VERTICAL);
             printf("%02d VERT -- %sSatisfied\n", iteration,
                     (vertSatisfied) ? "" : "NOT ");
             if (iteration == 50)
@@ -563,47 +525,70 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
     Rectangle::setXBorder(0);
     Rectangle::setYBorder(0);
 #endif
+     
+    // Set up topologyNodes:
+    unsigned nodesTotal = boundingBoxes.size();
+    topologyNodes = topology::Nodes(nodesTotal);
+    for (unsigned id = 0; id < nodesTotal; ++id)
+    {
+        topologyNodes[id] = new topology::Node(id, boundingBoxes[id]);
+    }
 
-#if 0
-    // create cluster boundaries
-    unsigned clusterCount=0;
-    for(vector<cola::Cluster*>::iterator i=clusterHierarchy.clusters.begin();
-            i!=clusterHierarchy.clusters.end();++i, ++clusterCount) {
-        (*i)->computeBoundary(boundingBoxes);
-        cola::ConvexCluster* c=dynamic_cast<cola::ConvexCluster*>(*i);
-        if(c!=NULL) {
-            double idealCircumference=2.0*sqrt(M_PI*c->area(rs));
-            vector<topology::EdgePoint*> eps;
-            for(unsigned j=0;j<c->hullRIDs.size();++j) {
-                const unsigned id = c->nodes[c->hullRIDs[j]];
-                const unsigned char corner = c->hullCorners[j];
-                assert(id<topologyNodesCount);
-                //cout << "addToPath(vs[" << id << "],";
-                topology::Node* node=topologyNodes[id];
-                topology::EdgePoint::RectIntersect ri;
-                switch(corner) {
-                    case 0: ri=topology::EdgePoint::BR; 
+    // Cleanup.
+    for (unsigned int dim = 0; dim < 2; ++dim)
+    {
+        for_each(valid[dim].begin(), valid[dim].end(), delete_object());
+        for_each(vs[dim].begin(), vs[dim].end(), delete_object());
+    }
+   
+    if (clusterHierarchy)
+    {
+        // create cluster boundaries
+        unsigned clusterCount=0;
+        for(vector<cola::Cluster*>::iterator i=clusterHierarchy->clusters.begin();
+                i!=clusterHierarchy->clusters.end();++i, ++clusterCount) {
+            (*i)->computeBoundary(boundingBoxes);
+            cola::ConvexCluster* c=dynamic_cast<cola::ConvexCluster*>(*i);
+            if(c!=NULL) {
+                double idealCircumference=2.0*sqrt(M_PI*c->area(boundingBoxes));
+                vector<topology::EdgePoint*> eps;
+                for(unsigned j=0;j<c->hullRIDs.size();++j) {
+                    const unsigned id = c->nodes[c->hullRIDs[j]];
+                    const unsigned char corner = c->hullCorners[j];
+                    COLA_ASSERT(id < topologyNodes.size());
+                    //cout << "addToPath(vs[" << id << "],";
+                    topology::Node *node= topologyNodes[id];
+                    topology::EdgePoint::RectIntersect ri;
+                    switch(corner) {
+                        case 0: 
+                            ri=topology::EdgePoint::BR; 
                             //cout << "EdgePoint::BR);" << endl;
                             break;
-                    case 1: ri=topology::EdgePoint::TR; 
+                        case 1: 
+                            ri=topology::EdgePoint::TR; 
                             //cout << "EdgePoint::TR);" << endl;
                             break;
-                    case 2: ri=topology::EdgePoint::TL;
+                        case 2: 
+                            ri=topology::EdgePoint::TL;
                             //cout << "EdgePoint::TL);" << endl;
                             break;
-                    default:assert(corner==3);
+                        default:
+                            COLA_ASSERT(corner==3);
                             ri=topology::EdgePoint::BL; 
                             //cout << "EdgePoint::BL);" << endl;
                             break;
+                    }
+                    eps.push_back(new topology::EdgePoint(node,ri));
                 }
-                eps.push_back(new topology::EdgePoint(node,ri));
+                eps.push_back(eps[0]);
+                //cout << "addToPath(vs[" << eps[0]->node->id << "],(EdgePoint::RectIntersect)"<<eps[0]->rectIntersect<<");" << endl;
+                topology::Edge* e = new topology::Edge(clusterCount,idealCircumference, eps);
+                topologyRoutes.push_back(e);
             }
-            eps.push_back(eps[0]);
-            //cout << "addToPath(vs[" << eps[0]->node->id << "],(EdgePoint::RectIntersect)"<<eps[0]->rectIntersect<<");" << endl;
-            topology::Edge* e = new topology::Edge(clusterCount,idealCircumference, eps);
-            routes.push_back(e);
         }
     }
+    
+#if 0
     if (preserveTopology)
     {
         generateRoutes();
@@ -614,30 +599,25 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
     // XXX: Maybe use values from NonOverlapConstraints shape set.
     if (!preserveTopology && nonOverlapConstraints)
     {
-        unsigned nodesTotal = boundingBoxes.size();
-        topology::Nodes *topologyNodes = new topology::Nodes(nodesTotal);
-        for (unsigned id = 0; id < nodesTotal; ++id)
-        {
-            (*topologyNodes)[id] = new topology::Node(id, boundingBoxes[id]);
-        }
-
         // Empty edge set will just result in nonoverlap constraints for nodes.
-        topology::Edges *topologyEdges = new topology::Edges(0);
-
-        setTopology(topologyNodes, topologyEdges);
+        //topologyRoutes.clear();
     }
 }
 
 
-void ConstrainedFDLayout::setTopology(std::vector<topology::Node*>* tnodes, 
-        std::vector<topology::Edge*>* routes)
+void ConstrainedFDLayout::setOrGetTopology(std::vector<topology::Node*> *tnodes, 
+        std::vector<topology::Edge*> *routes, bool setTopology)
 {
-    // Setting nodes with NULL routes will result in strange behaviour,
-    // so catch this case.  An empy list for topologyRoutes is okay though.
-    COLA_ASSERT(!topologyNodes || topologyRoutes);
-
-    topologyNodes=tnodes;
-    topologyRoutes=routes;
+    if (setTopology)
+    {
+        topologyNodes = *tnodes;
+        topologyRoutes = *routes;
+    }
+    else
+    {
+        *tnodes = topologyNodes;
+        *routes = topologyRoutes;
+    }
 }
 
 
@@ -715,23 +695,22 @@ void checkUnsatisfiable(const vpsc::Constraints& cs,
 
 void ConstrainedFDLayout::handleResizes(const Resizes& resizeList) {
     FILE_LOG(logDEBUG) << "ConstrainedFDLayout::handleResizes()...";
-    if(topologyNodes==NULL) {
-        COLA_ASSERT(topologyRoutes==NULL);
+    if(topologyNodes.empty()) {
+        COLA_ASSERT(topologyRoutes.empty());
         return;
     }
-    COLA_ASSERT(topologyRoutes!=NULL);
     // all shapes to be resized are wrapped in a ResizeInfo and
     // placed in a lookup table, resizes, indexed by id
     topology::ResizeMap resizes;
     for(Resizes::const_iterator r=resizeList.begin();r!=resizeList.end();++r) {
-        topology::ResizeInfo ri((*topologyNodes)[r->getID()],r->getTarget());
+        topology::ResizeInfo ri(topologyNodes[r->getID()],r->getTarget());
         resizes.insert(make_pair(r->getID(),ri));
     }
     vpsc::Variables xvs, yvs;
     vpsc::Constraints xcs, ycs;
     setupVarsAndConstraints(n, ccs, vpsc::HORIZONTAL, xvs, xcs, X);
     setupVarsAndConstraints(n, ccs, vpsc::VERTICAL, yvs, ycs, Y);
-    topology::applyResizes(*topologyNodes, *topologyRoutes, resizes,
+    topology::applyResizes(topologyNodes, topologyRoutes, resizes,
             xvs, xcs, yvs, ycs);
     for_each(xvs.begin(), xvs.end(), delete_object());
     for_each(yvs.begin(), yvs.end(), delete_object());
@@ -765,17 +744,17 @@ void ConstrainedFDLayout::moveTo(const vpsc::Dim dim, Position& target) {
         v->desiredPosition = target[j];
     }
     setVariableDesiredPositions(vs,cs,des,coords);
-    if(topologyRoutes) {
-        topology::setNodeVariables(*topologyNodes,vs);
-        topology::TopologyConstraints t(dim,*topologyNodes,*topologyRoutes,vs,cs);
+    if(!topologyNodes.empty()) {
+        topology::setNodeVariables(topologyNodes,vs);
+        topology::TopologyConstraints t(dim,topologyNodes,topologyRoutes,vs,cs);
         bool interrupted;
         int loopBreaker=100;
         do {
             interrupted=t.solve();
             loopBreaker--;
         } while(interrupted&&loopBreaker>0);
-        for(topology::Nodes::iterator i=topologyNodes->begin();
-                i!=topologyNodes->end();++i) {
+        for(topology::Nodes::iterator i=topologyNodes.begin();
+                i!=topologyNodes.end();++i) {
             topology::Node* v=*i;
             coords[v->id]=v->rect->getCentreD(dim);
         }
@@ -810,15 +789,15 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const vpsc::Dim dim, const
     vpsc::Constraints cs;
     double stress;
     setupVarsAndConstraints(n, ccs, dim, vs, cs, coords);
-    if(topologyRoutes) {
+    if(!topologyNodes.empty()) {
         FILE_LOG(logDEBUG1) << "applying topology preserving layout...";
         vpsc::Rectangle::setXBorder(0);
         vpsc::Rectangle::setYBorder(0);
         if(dim==vpsc::HORIZONTAL) {
             vpsc::Rectangle::setXBorder(0);
         }
-        topology::setNodeVariables(*topologyNodes,vs);
-        topology::TopologyConstraints t(dim,*topologyNodes,*topologyRoutes,vs,cs);
+        topology::setNodeVariables(topologyNodes,vs);
+        topology::TopologyConstraints t(dim,topologyNodes,topologyRoutes,vs,cs);
         bool interrupted;
         int loopBreaker=100;
         SparseMap HMap(n);
@@ -832,8 +811,8 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const vpsc::Dim dim, const
         do {
             interrupted=t.solve();
             unsigned vptr=0;
-            for(topology::Nodes::iterator i=topologyNodes->begin();
-                    i!=topologyNodes->end();++i,++vptr) {
+            for(topology::Nodes::iterator i=topologyNodes.begin();
+                    i!=topologyNodes.end();++i,++vptr) {
                 topology::Node* v=*i;
                 coords[v->id]=v->rect->getCentreD(dim);
             }
@@ -1009,8 +988,8 @@ double ConstrainedFDLayout::computeStress() const {
             }
         }
     }
-    if(topologyRoutes) {
-        double s=topology::computeStress(*topologyRoutes);
+    if(!topologyRoutes.empty()) {
+        double s=topology::computeStress(topologyRoutes);
         FILE_LOG(logDEBUG2)<<"s(topology)="<<s;
         stress+=s;
     }

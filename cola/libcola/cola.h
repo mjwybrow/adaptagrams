@@ -428,10 +428,14 @@ public:
             this->ccs = ccs;
         }
     }
-    void setTopology(std::vector<topology::Node*>* tnodes, 
-            std::vector<topology::Edge*>* routes);
+    void setOrGetTopology(std::vector<topology::Node*> *tnodes, 
+            std::vector<topology::Edge*> *routes, bool setTopology);
     void setDesiredPositions(std::vector<DesiredPosition>* desiredPositions) {
         this->desiredPositions = desiredPositions;
+    }
+    void setClusterHierarchy(RootCluster *hierarchy)
+    {
+        clusterHierarchy = hierarchy;
     }
     /**
      * These lists will have info about unsatisfiable constraints
@@ -488,11 +492,13 @@ private:
     cola::CompoundConstraints *ccs;
     double** D;
     unsigned short** G;
-    std::vector<topology::Node*>* topologyNodes;
-    std::vector<topology::Edge*>* topologyRoutes;
+    std::vector<topology::Node*> topologyNodes;
+    std::vector<topology::Edge*> topologyRoutes;
     std::vector<UnsatisfiableConstraintInfos*> unsatisfiable;
     bool rungekutta;
     std::vector<DesiredPosition>* desiredPositions;
+    
+    RootCluster *clusterHierarchy;
 };
 
 /**

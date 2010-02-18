@@ -978,8 +978,7 @@ public:
     }
     void generateVisibilityEdgesFromBreakpointSet(Router *router, size_t dim)
     {
-        COLA_ASSERT(!breakPoints.empty());
-        if ((breakPoints.begin())->pos > begin)
+        if (breakPoints.empty() || ((breakPoints.begin())->pos > begin))
         {
             // Add a begin point if there was not already an intersection
             // found at that point. Though, don't do this if the line
@@ -1000,7 +999,7 @@ public:
                 breakPoints.insert(PosVertInf(begin, vert));
             }
         }
-        if ((breakPoints.rbegin())->pos < finish)
+        if (breakPoints.empty() || ((breakPoints.rbegin())->pos < finish))
         {
             // Add a finish point if there was not already an intersection
             // found at that point. Though, don't do this if the line
@@ -1197,6 +1196,7 @@ static void intersectSegments(Router *router, SegmentList& segments,
     //COLA_ASSERT(vertLine.beginVertInf() == NULL);
     //COLA_ASSERT(vertLine.finishVertInf() == NULL);
 
+    COLA_ASSERT(!segments.empty());
     for (SegmentList::iterator it = segments.begin(); it != segments.end(); )
     {
         LineSegment& horiLine = *it;
