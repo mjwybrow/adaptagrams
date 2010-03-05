@@ -39,11 +39,6 @@ using vpsc::YDIM;
 
 namespace cola {
 
-static const double freeWeight = 0.0001;
-
-static const unsigned int PRIORITY_NONOVERLAP = 
-        DEFAULT_CONSTRAINT_PRIORITY - 50;
-
 //-----------------------------------------------------------------------------
 // BoundaryConstraint code
 //-----------------------------------------------------------------------------
@@ -839,246 +834,6 @@ void PageBoundaryConstraints::generateSeparationConstraints(
 
 
 //-----------------------------------------------------------------------------
-// NonOverlapConstraint code
-//-----------------------------------------------------------------------------
-
-class ShapePairInfo 
-{
-    public:
-        ShapePairInfo(unsigned ind1, unsigned ind2) 
-            : satisfied(false),
-              processed(false)
-        {
-            COLA_ASSERT(ind1 != ind2);
-            // Assign the lesser value to varIndex1.
-            varIndex1 = (ind1 < ind2) ? ind1 : ind2;
-            // Assign the greater value to varIndex2.
-            varIndex2 = (ind1 > ind2) ? ind1 : ind2;
-        }
-        bool operator<(const ShapePairInfo& rhs) const
-        {
-            int processedInt = processed ? 1 : 0;
-            int rhsProcessedInt = rhs.processed ? 1 : 0;
-            // Make sure the processed ones are at the end after sorting.
-            if (processedInt != rhsProcessedInt)
-            {
-                return processedInt < rhsProcessedInt;
-            }
-            return overlapMax > rhs.overlapMax;
-        }
-        unsigned varIndex1;
-        unsigned varIndex2;
-        bool satisfied;
-        bool processed;
-        double costL;
-        double costR;
-        double costB;
-        double costA;
-        double overlapMin;
-        double overlapMax;
-};
-
-
-NonOverlapConstraints::NonOverlapConstraints()
-    : CompoundConstraint(vpsc::HORIZONTAL, PRIORITY_NONOVERLAP)
-{
-}
-
-
-void NonOverlapConstraints::addShape(unsigned id, double halfW, double halfH)
-{
-    COLA_ASSERT(id == shapeOffsets.size());
-    shapeOffsets.push_back(ShapeOffsets(id, halfW, halfH));
-
-    // Setup pairInfos for all other shapes. 
-    for (size_t i = 0; i + 1 < shapeOffsets.size(); ++i)
-    {
-        pairInfoList.push_back(ShapePairInfo(i, id));
-    }
-}
-
-
-void NonOverlapConstraints::computeAndSortOverlap(vpsc::Variables vs[])
-{
-    for (std::list<ShapePairInfo>::iterator curr = pairInfoList.begin();
-            curr != pairInfoList.end(); ++curr)
-    {
-        ShapePairInfo& info = static_cast<ShapePairInfo&> (*curr);
-
-        ShapeOffsets& shape1 = shapeOffsets[info.varIndex1];
-        ShapeOffsets& shape2 = shapeOffsets[info.varIndex2];
-
-        double xPos1 = vs[0][info.varIndex1]->finalPosition;
-        double xPos2 = vs[0][info.varIndex2]->finalPosition;
-        double yPos1 = vs[1][info.varIndex1]->finalPosition;
-        double yPos2 = vs[1][info.varIndex2]->finalPosition;
-        // If lr < 0, then left edge of shape1 is on the left 
-        // of right edge of shape2.
-        double spaceR = (xPos2 - shape2.halfDim[0]) - 
-                (xPos1 + shape1.halfDim[0]);
-        double spaceL = (xPos1 - shape1.halfDim[0]) - 
-                (xPos2 + shape2.halfDim[0]);
-        // Below
-        double spaceA = (yPos2 - shape2.halfDim[1]) - 
-                (yPos1 + shape1.halfDim[1]);
-        // Above
-        double spaceB = (yPos1 - shape1.halfDim[1]) - 
-                (yPos2 + shape2.halfDim[1]);
-
-        info.costL = info.costR = info.costB = info.costA = 0;
-        info.overlapMax = 0;
-        info.overlapMin = DBL_MAX;
-        bool xOverlap = false;
-        bool yOverlap = false;
-        if ((spaceR < 0) && (spaceL < 0))
-        {
-            info.costL = std::max(-spaceL, 0.0);
-            info.costR = std::max(-spaceR, 0.0);
-
-            info.overlapMax = std::max(info.costL, info.costR);
-
-            info.overlapMin = std::min(info.overlapMin, info.costL);
-            info.overlapMin = std::min(info.overlapMin, info.costR);
-
-            xOverlap = true;
-        }
-        if ((spaceB < 0) && (spaceA < 0))
-        {
-            info.costB = std::max(-spaceB, 0.0);
-            info.costA = std::max(-spaceA, 0.0);
-
-            info.overlapMax = std::max(info.overlapMax, info.costB);
-            info.overlapMax = std::max(info.overlapMax, info.costA);
-
-            info.overlapMin = std::min(info.overlapMin, info.costB);
-            info.overlapMin = std::min(info.overlapMin, info.costA);
-
-            yOverlap = true;
-        }
-
-        if (!xOverlap || !yOverlap)
-        {
-            // Overlap must occur in both dimensions.
-            info.overlapMax = 0;
-        }
-        else
-        {
-            // There is overlap.
-            //printf("[%02d][%02d] L %g, R %G, B %g, A %g\n", info.varIndex1, 
-            //        info.varIndex2, spaceL, spaceR, spaceB, spaceA);
-        }
-    }
-    pairInfoList.sort();
-}
-
-
-void NonOverlapConstraints::markCurrSubConstraintAsActive(const bool satisfiable)
-{
-    ShapePairInfo& info = pairInfoList.front();
-    
-    info.processed = true;
-    info.satisfied = satisfiable;
-
-    _currSubConstraintIndex++;
-}
-
-
-
-SubConstraintAlternatives 
-NonOverlapConstraints::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
-{
-    SubConstraintAlternatives alternatives;
-    computeAndSortOverlap(vs);
-
-    ShapePairInfo& info = pairInfoList.front();
-    
-    if (info.overlapMax == 0)
-    {
-        //fprintf(stderr, "===== EMPTY ALTERNATIVES -======\n");
-        // There is no overlap here.
-        // Mark as finished at this point.
-        _currSubConstraintIndex = pairInfoList.size();
-        return alternatives;
-    }
-    ShapeOffsets& shape1 = shapeOffsets[info.varIndex1];
-    ShapeOffsets& shape2 = shapeOffsets[info.varIndex2];
-
-    double xSep = shape1.halfDim[0] + shape2.halfDim[0];
-    double ySep = shape1.halfDim[1] + shape2.halfDim[1];
-
-    assertValidVariableIndex(vs[XDIM], info.varIndex1);
-    assertValidVariableIndex(vs[XDIM], info.varIndex2);
-    assertValidVariableIndex(vs[YDIM], info.varIndex1);
-    assertValidVariableIndex(vs[YDIM], info.varIndex2);
-
-    double desiredX1 = vs[XDIM][info.varIndex1]->desiredPosition;
-    double desiredY1 = vs[YDIM][info.varIndex1]->desiredPosition;
-    double desiredX2 = vs[XDIM][info.varIndex2]->desiredPosition;
-    double desiredY2 = vs[YDIM][info.varIndex2]->desiredPosition;
-    // Compute the cost to move in each direction based on the 
-    // desired positions for the two objects.
-    double costR = xSep - (desiredX2 - desiredX1);
-    double costL = xSep - (desiredX1 - desiredX2);
-    
-    double costA = ySep - (desiredY2 - desiredY1);
-    double costB = ySep - (desiredY1 - desiredY2);
-
-    vpsc::Constraint constraintL(vs[XDIM][info.varIndex2], 
-            vs[XDIM][info.varIndex1], xSep);
-    alternatives.push_back(SubConstraint(XDIM, constraintL, costL));
-
-    vpsc::Constraint constraintR(vs[XDIM][info.varIndex1], 
-            vs[XDIM][info.varIndex2], xSep);
-    alternatives.push_back(SubConstraint(XDIM, constraintR, costR));
-
-    vpsc::Constraint constraintB(vs[YDIM][info.varIndex2], 
-            vs[YDIM][info.varIndex1], ySep);
-    alternatives.push_back(SubConstraint(YDIM, constraintB, costB));
-
-    vpsc::Constraint constraintT(vs[YDIM][info.varIndex1], 
-            vs[YDIM][info.varIndex2], ySep);
-    alternatives.push_back(SubConstraint(YDIM, constraintT, costA));
-    
-    //fprintf(stderr, "===== NONOVERLAP ALTERNATIVES -====== \n");
-
-    return alternatives;
-}
-
-
-bool NonOverlapConstraints::subConstraintsRemaining(void) const
-{
-    //printf(". %3d of %4d\n", _currSubConstraintIndex, pairInfoList.size());
-    return _currSubConstraintIndex < pairInfoList.size();
-}
-
-
-void NonOverlapConstraints::markAllSubConstraintsAsInactive(void)
-{
-    for (std::list<ShapePairInfo>::iterator curr = pairInfoList.begin();
-            curr != pairInfoList.end(); ++curr)
-    {
-        ShapePairInfo& info = (*curr);
-        info.satisfied = false;
-        info.processed = false;
-    }
-    _currSubConstraintIndex = 0;
-}
-
-
-
-void NonOverlapConstraints::generateVariables(const vpsc::Dim dim,
-        vpsc::Variables& vars) 
-{
-}
-
-
-void NonOverlapConstraints::generateSeparationConstraints(
-        const vpsc::Dim dim, vpsc::Variables& vs, vpsc::Constraints& cs) 
-{
-}
-
-
-//-----------------------------------------------------------------------------
 // Support code
 //-----------------------------------------------------------------------------
 
@@ -1142,6 +897,7 @@ CompoundConstraint::CompoundConstraint(vpsc::Dim primaryDim,
     _primaryDim(primaryDim),
     _secondaryDim((vpsc::Dim) ((primaryDim + 1) % 2)),
     _priority(priority),
+    _combineSubConstraints(false),
     _currSubConstraintIndex(0)
 {
 }
@@ -1218,6 +974,12 @@ void CompoundConstraint::assertValidVariableIndex(const vpsc::Variables& vars,
     {
         throw InvalidVariableIndexException(this, index);
     }
+}
+
+
+bool CompoundConstraint::shouldCombineSubConstraints(void) const
+{
+    return _combineSubConstraints;
 }
 
 

@@ -21,6 +21,9 @@
  * write to the Free Software Foundation, Inc., 59 Temple Place, 
  * Suite 330, Boston, MA  02111-1307  USA
  *
+ * Author(s): Tim Dwyer
+ *            Michael Wybrow
+ *
 */
 
 #include <vector>
@@ -38,12 +41,18 @@
 #include "shortest_paths.h"
 #include "straightener.h"
 #include "cola_log.h"
+#include "cc_clustercontainmentconstraints.h"
+#include "cc_nonoverlapconstraints.h"
 
 #ifdef MAKEFEASIBLE_DEBUG
   #include "output_svg.h"
 #endif
 
+using vpsc::XDIM;
+using vpsc::YDIM;
+
 namespace cola {
+
 template <class T>
 void delete_vector(vector<T*> &v) {
     for_each(v.begin(),v.end(),delete_object());
@@ -304,14 +313,83 @@ static bool cmpCompoundConstraintPriority(const cola::CompoundConstraint *lhs,
 }
 
 
+void ConstrainedFDLayout::recGenerateClusterVariablesAndConstraints(
+        vpsc::Variables (&vars)[2], unsigned int& priority, 
+        cola::NonOverlapConstraints *noc, Cluster *cluster, 
+        cola::CompoundConstraints& idleConstraints)
+{
+    for (std::vector<Cluster*>::iterator curr = cluster->clusters.begin();
+            curr != cluster->clusters.end(); ++curr)
+    {
+        // For each of the child clusters, recursively call this function.
+        recGenerateClusterVariablesAndConstraints(vars, priority, 
+                noc, *curr, idleConstraints);
+    }
+
+    if ( (noc == NULL) && (dynamic_cast<RootCluster *> (cluster) == NULL) )
+    {
+        double freeWeight = 0.00000000001;
+        // Then create left and right variables for the bounndary of this 
+        // cluster.
+        vpsc::Variable *variable = NULL;
+        cluster->clusterVarId = vars[XDIM].size();
+        COLA_ASSERT(vars[XDIM].size() == vars[YDIM].size());
+        // Left:
+        variable = new vpsc::Variable(vars[XDIM].size(), 
+                cluster->bounds.getMinX(), freeWeight);
+        vars[XDIM].push_back(variable);
+        // Right:
+        variable = new vpsc::Variable(vars[XDIM].size(), 
+                cluster->bounds.getMaxX(), freeWeight);
+        vars[XDIM].push_back(variable);
+        // Bottom::
+        variable = new vpsc::Variable(vars[YDIM].size(), 
+                cluster->bounds.getMinY(), freeWeight);
+        vars[YDIM].push_back(variable);
+        // Top:
+        variable = new vpsc::Variable(vars[YDIM].size(), 
+                cluster->bounds.getMaxY(), freeWeight);
+        vars[YDIM].push_back(variable);
+
+        priority--;
+        cola::ClusterContainmentConstraints *noc = 
+                new cola::ClusterContainmentConstraints(cluster, priority,
+                        boundingBoxes);
+        idleConstraints.push_back(noc);
+    }
+
+    if (noc)
+    {
+        // Enforce non-overlap between all the shapes and clusters at this 
+        // level.
+        printf("Cluster non-overlap constraints - nodes %d clusters %d\n",
+                (int) cluster->nodes.size(), (int) cluster->clusters.size());
+        for (std::vector<unsigned>::iterator curr = cluster->nodes.begin();
+                curr != cluster->nodes.end(); ++curr)
+        {
+            unsigned id = *curr;
+            noc->addShape(id, boundingBoxes[id]->width() / 2,
+                    boundingBoxes[id]->height() / 2);
+        }
+        for (std::vector<Cluster*>::iterator curr = cluster->clusters.begin();
+                curr != cluster->clusters.end(); ++curr)
+        {
+            Cluster *cluster = *curr;
+            noc->addCluster(cluster->clusterVarId);
+        }
+    }
+}
+
+
+
 void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
         const bool preserveTopology)
 {
     vpsc::Variables vs[2];
     vpsc::Constraints valid[2];
 
-    //vpsc::Rectangle::setXBorder(1);
-    //vpsc::Rectangle::setYBorder(1);
+    vpsc::Rectangle::setXBorder(1);
+    vpsc::Rectangle::setYBorder(1);
     
     // Populate all the variables for shapes.
     for (unsigned int dim = 0; dim < 2; ++dim)
@@ -333,14 +411,39 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
 
     if (nonOverlapConstraints)
     {
-        // Add non-overlap constraints
-        cola::NonOverlapConstraints *noc = new cola::NonOverlapConstraints();
-        for (unsigned int i = 0; i < boundingBoxes.size(); ++i)
+        if (clusterHierarchy)
         {
-            noc->addShape(i, boundingBoxes[i]->width() / 2,
-                    boundingBoxes[i]->height() / 2);
+            // Add non-overlap and containment constraints for all clusters
+            // and nodes.
+            unsigned int priority = PRIORITY_NONOVERLAP;
+            clusterHierarchy->computeBoundingRect(boundingBoxes);
+            
+            // Generate the containment constraints
+            recGenerateClusterVariablesAndConstraints(vs, priority, 
+                    NULL, clusterHierarchy, idleConstraints);
+            
+            // Generate non-overlap constraints between all clusters and 
+            // all contained nodes.
+            cola::NonOverlapConstraints *noc = 
+                    new cola::NonOverlapConstraints(priority);
+            priority--;
+            recGenerateClusterVariablesAndConstraints(vs, priority, 
+                    noc, clusterHierarchy, idleConstraints);
+            idleConstraints.push_back(noc);
         }
-        idleConstraints.push_back(noc);
+        else
+        {
+            // Add standard non-overlap constraints between each pair of
+            // nodes.
+            cola::NonOverlapConstraints *noc = 
+                    new cola::NonOverlapConstraints();
+            for (unsigned int i = 0; i < boundingBoxes.size(); ++i)
+            {
+                noc->addShape(i, boundingBoxes[i]->width() / 2,
+                        boundingBoxes[i]->height() / 2);
+            }
+            idleConstraints.push_back(noc);
+        }
     }
 
     std::sort(idleConstraints.begin(), idleConstraints.end(), 
@@ -380,15 +483,44 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
             boundingBoxes[i]->moveCentreX(vs[0][i]->finalPosition);
             boundingBoxes[i]->moveCentreY(vs[1][i]->finalPosition);
         }
+        iteration++;
         sprintf(filename, "out/file-%05d.pdf", iteration);
 
-        OutputFile of(boundingBoxes,es,NULL,filename,true,false);
+        OutputFile of(boundingBoxes,es,clusterHierarchy,filename,true,false);
         of.setLabels(labels);
         of.generate();
 #endif
 
         cc->markAllSubConstraintsAsInactive();
         bool subConstraintSatisfiable = true;
+        
+        if (cc->shouldCombineSubConstraints())
+        {
+            // We are processing a combined set of satisfiable constraints,
+            // such as for containment within cluster boundary variables, so
+            // we just add all the required constraints and solve in both
+            // the X and Y dimension once to set the cluster boundaries to 
+            // meaningful values.
+            while (cc->subConstraintsRemaining())
+            {
+                cola::SubConstraintAlternatives alternatives = 
+                        cc->getCurrSubConstraintAlternatives(vs);
+                // There should be no alternatives, just guaranteed
+                // satisfiable constraints.
+                COLA_ASSERT(alternatives.size() == 1);
+                vpsc::Dim& dim = alternatives.front().dim;
+                vpsc::Constraint& constraint = alternatives.front().constraint;
+                valid[dim].push_back(new vpsc::Constraint(constraint));
+                cc->markCurrSubConstraintAsActive(subConstraintSatisfiable);
+            }
+            for (size_t dim = 0; dim < 2; ++dim)
+            {
+                vpsc::IncSolver vpscInstance(vs[dim], valid[dim]);
+                vpscInstance.satisfy();
+            }
+            continue;
+        }
+
         while (cc->subConstraintsRemaining())
         {
             cola::SubConstraintAlternatives alternatives = 
@@ -402,7 +534,7 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
 
                 vpsc::Dim& dim = alternatives.front().dim;
                 vpsc::Constraint& constraint = alternatives.front().constraint;
-                
+            
                 // Store current values for variables.
                 for (unsigned int i = 0; i < priorPos.size(); ++i)
                 {
@@ -470,9 +602,10 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
                 alternatives.pop_front();
             }
 #ifdef MAKEFEASIBLE_DEBUG
-            if (idleConstraints.size() == 0)
+            if (true || idleConstraints.size() == 0)
             {
-                // Debugging SVG time slice output.
+                // Debugging SVG time slice output, but don't show this for
+                // constraints that promised satisfiable.
                 std::vector<cola::Edge> es;
                 for (unsigned int i = 0; i < boundingBoxes.size(); ++i)
                 {
@@ -482,7 +615,8 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
                 iteration++;
                 sprintf(filename, "out/file-%05d.pdf", iteration);
 
-                OutputFile of(boundingBoxes,es,NULL,filename,true,false);
+                OutputFile of(boundingBoxes,es,clusterHierarchy,filename,
+                        true,false);
                 of.setLabels(labels);
                 of.generate();
             }
@@ -498,8 +632,8 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
         boundingBoxes[i]->moveCentreY(vs[1][i]->finalPosition);
     }
 
-    //vpsc::Rectangle::setXBorder(0);
-    //vpsc::Rectangle::setYBorder(0);
+    vpsc::Rectangle::setXBorder(0);
+    vpsc::Rectangle::setYBorder(0);
 
 #if 0
     if(mode==GraphLayout::FLOW||mode==GraphLayout::LAYERED) {
@@ -545,8 +679,10 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
     {
         // create cluster boundaries
         unsigned clusterCount=0;
-        for(vector<cola::Cluster*>::iterator i=clusterHierarchy->clusters.begin();
-                i!=clusterHierarchy->clusters.end();++i, ++clusterCount) {
+        for (vector<cola::Cluster*>::iterator i = 
+                clusterHierarchy->clusters.begin();
+                i != clusterHierarchy->clusters.end(); ++i, ++clusterCount)
+        {
             (*i)->computeBoundary(boundingBoxes);
             cola::ConvexCluster* c=dynamic_cast<cola::ConvexCluster*>(*i);
             if(c!=NULL) {

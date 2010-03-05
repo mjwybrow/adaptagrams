@@ -67,6 +67,11 @@ public:
      * sets bounds based on the finalPositions of vMin and vMax.
      */
     void updateBounds(const vpsc::Dim dim);
+    
+    // This will be the id of the left/bottom boundary, 
+    // and the right/top will be clusterVarId + 1.
+    unsigned clusterVarId; 
+
 private:
     bool desiredBoundsSet;
     vpsc::Rectangle desiredBounds;

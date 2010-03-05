@@ -52,6 +52,8 @@ namespace topology {
  */
 namespace cola {
 
+class NonOverlapConstraints;
+
 //! Edges are simply a pair of indices to entries in the Node vector
 typedef std::pair<unsigned, unsigned> Edge;
 
@@ -484,7 +486,13 @@ private:
     void setPosition(std::valarray<double>& pos);
     void moveBoundingBoxes();
     bool noForces(double, double, unsigned) const;
-    void computeForces(const vpsc::Dim dim, SparseMap &H, std::valarray<double> &g);
+    void computeForces(const vpsc::Dim dim, SparseMap &H, 
+            std::valarray<double> &g);
+    void recGenerateClusterVariablesAndConstraints(
+            vpsc::Variables (&vars)[2], unsigned int& priority, 
+            cola::NonOverlapConstraints *noc, Cluster *cluster, 
+            cola::CompoundConstraints& idleConstraints);
+
     std::vector<std::vector<unsigned> > neighbours;
     std::vector<std::vector<double> > neighbourLengths;
     TestConvergence& done;

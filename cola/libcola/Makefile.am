@@ -21,7 +21,11 @@ libcola_a_SOURCES = cola.h\
 	compound_constraints.h\
 	compound_constraints.cpp\
 	output_svg.cpp\
-	output_svg.h
+	output_svg.h \
+	cc_clustercontainmentconstraints.cpp \
+	cc_clustercontainmentconstraints.h \
+	cc_nonoverlapconstraints.cpp \
+	cc_nonoverlapconstraints.h
 
 libcolaincludedir = ${includedir}/libcola
 libcolainclude_HEADERS = cola.h\
@@ -31,6 +35,8 @@ libcolainclude_HEADERS = cola.h\
 	gradient_projection.h\
 	sparse_matrix.h\
 	straightener.h \
-	output_svg.h
+	output_svg.h \
+	cc_clustercontainmentconstraints.h \
+	cc_nonoverlapconstraints.h
 
 SUBDIRS = tests

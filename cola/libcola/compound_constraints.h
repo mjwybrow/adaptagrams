@@ -25,10 +25,13 @@
 
 #ifndef _COMPOUND_CONSTRAINTS_H
 #define _COMPOUND_CONSTRAINTS_H
+
 #include <vector>
 #include <list>
 #include <utility>
+
 #include "sparse_matrix.h"
+
 
 namespace vpsc {
     class Constraint;
@@ -37,6 +40,9 @@ namespace vpsc {
     typedef std::vector<vpsc::Variable*> Variables;
 }
 namespace cola {
+
+class Cluster;
+class RootCluster;
 
 
 // A component of a CompoundConstraint.
@@ -64,8 +70,12 @@ class SubConstraint
 // A list of alternative SubConstraints. 
 typedef std::list<SubConstraint> SubConstraintAlternatives;
 
+static const double freeWeight = 0.0001;
 
-static const unsigned int DEFAULT_CONSTRAINT_PRIORITY = 300;
+static const unsigned int DEFAULT_CONSTRAINT_PRIORITY = 30000;
+static const unsigned int PRIORITY_NONOVERLAP = 
+        DEFAULT_CONSTRAINT_PRIORITY - 2000;
+
 
 class SubConstraintInfo 
 {
@@ -94,7 +104,7 @@ public:
     CompoundConstraint(vpsc::Dim primaryDim, 
             unsigned int priority = DEFAULT_CONSTRAINT_PRIORITY);
     /**
-     * generate any additional variables required by this compound constraint
+     * Generate any additional variables required by this compound constraint
      * and add them to vars.  These variables should be cleaned up by
      * the caller after the vpsc problem is solved.
      * The variables' ideal position and weight should be set and they
@@ -105,13 +115,13 @@ public:
     virtual void generateVariables(const vpsc::Dim dim, 
             vpsc::Variables& vars) = 0;
     /**
-     * create the separation constraints that will effect this
+     * Create the separation constraints that will effect this
      * CompoundConstraint.
      */
-	virtual void generateSeparationConstraints(const vpsc::Dim dim, 
+    virtual void generateSeparationConstraints(const vpsc::Dim dim, 
             vpsc::Variables& var, vpsc::Constraints& cs) = 0;
     /**
-     * after the vpsc instance is solved the following should be called
+     * After the vpsc instance is solved the following should be called
      * to send position information back to the interface.
      */
     virtual void updatePosition(const vpsc::Dim dim)
@@ -123,6 +133,9 @@ public:
     vpsc::Dim dimension(void) const;
     unsigned int priority(void) const;
     
+    // The following methods are only needed for initially solving feasibility
+    // of the constraints, and do not need to be implemented for most compound
+    // constraints.
     virtual void markAllSubConstraintsAsInactive(void);
     virtual bool subConstraintsRemaining(void) const;
     virtual void markCurrSubConstraintAsActive(const bool satisfiable);
@@ -130,6 +143,7 @@ public:
             vpsc::Variables vs[]) = 0;
     std::list<unsigned> subConstraintObjIndexes(void) const;
     virtual void printCreationCode(FILE *fp) const;
+    bool shouldCombineSubConstraints(void) const;
 
 protected:
     void assertValidVariableIndex(const vpsc::Variables& vars, 
@@ -141,6 +155,9 @@ protected:
     vpsc::Dim _secondaryDim;
     // The priority used to assign order for solving constraints.
     unsigned int _priority;
+    // Describes whether to process sub constraints individually, or all
+    // at once, during the makeFeasible opteration.
+    bool _combineSubConstraints;
     
     // Info about the sub constraints within this compound constraint.
     SubConstraintInfoList _subConstraintInfo;
@@ -351,31 +368,6 @@ class PageBoundaryConstraints : public CompoundConstraint {
         double leftWeight[2];    
         double rightWeight[2];  
         vpsc::Variable *vl[2], *vr[2];
-};
-
-
-class ShapeOffsets;
-class ShapePairInfo;
-
-// Non-overlap constraints prevent a set of given shapes from overlapping.
-class NonOverlapConstraints : public CompoundConstraint {
-    public:
-        NonOverlapConstraints();
-        void addShape(unsigned id, double halfW, double halfH);
-        void computeAndSortOverlap(vpsc::Variables vs[]);
-        void markCurrSubConstraintAsActive(const bool satisfiable);
-        void markAllSubConstraintsAsInactive(void);
-        bool subConstraintsRemaining(void) const;
-        SubConstraintAlternatives getCurrSubConstraintAlternatives(
-                vpsc::Variables vs[]);
-        
-        void generateVariables(const vpsc::Dim dim, vpsc::Variables& vars);
-        void generateSeparationConstraints(const vpsc::Dim dim, 
-                vpsc::Variables& vars, vpsc::Constraints& gcs);
-
-    private:
-        std::list<ShapePairInfo> pairInfoList;
-        std::vector<ShapeOffsets> shapeOffsets;
 };
 
 
