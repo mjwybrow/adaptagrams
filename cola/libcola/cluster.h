@@ -89,6 +89,10 @@ public:
 class RootCluster : public Cluster {
 public:
     void computeBoundary(const vpsc::Rectangles& rs);
+    bool flat(void) const
+    {
+        return clusters.empty();
+    }
 };
 class ConvexCluster : public Cluster {
 public:

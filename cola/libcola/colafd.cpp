@@ -411,7 +411,7 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
 
     if (nonOverlapConstraints)
     {
-        if (clusterHierarchy)
+        if (clusterHierarchy && !clusterHierarchy->flat())
         {
             // Add non-overlap and containment constraints for all clusters
             // and nodes.
