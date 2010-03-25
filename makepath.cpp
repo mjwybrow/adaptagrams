@@ -236,18 +236,11 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
         }
     }
 
-    if (!router->_inCrossingPenaltyReroutingStage)
-    {
-        // Return here if we ar not in the postprocessing stage 
-        return result;
-    }
-
     const double cluster_crossing_penalty = 
             router->routingPenalty(clusterCrossingPenalty);
     // XXX: Clustered routing doesn't yet work with orthogonal connectors.
     if (router->ClusteredRouting && !router->clusterRefs.empty() &&
-            (cluster_crossing_penalty > 0) && 
-            (lineRef->routingType() != ConnType_Orthogonal))
+            (cluster_crossing_penalty > 0))
     {
         if (connRoute.empty())
         {
@@ -257,24 +250,32 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
         for (ClusterRefList::const_iterator cl = router->clusterRefs.begin(); 
                 cl != router->clusterRefs.end(); ++cl)
         {
-            ReferencingPolygon& cBoundary = (*cl)->polygon();
+            bool isOrthogonal = (lineRef->routingType() == ConnType_Orthogonal);
+            Polygon cBoundary = (isOrthogonal) ? 
+                    (*cl)->rectangularPolygon() : (*cl)->polygon();
             COLA_ASSERT(cBoundary.ps[0] != cBoundary.ps[cBoundary.size() - 1]);
             for (size_t j = 0; j < cBoundary.size(); ++j)
             {
-                // Cluster boundary points should correspond to shape 
-                // vertices and hence already be in the list of vertices.
-                COLA_ASSERT(router->vertices.getVertexByPos(cBoundary.at(j))!=NULL);
+                // Non-orthogonal cluster boundary points should correspond to 
+                // shape vertices and hence already be in the list of vertices.
+                COLA_ASSERT(isOrthogonal || 
+                        router->vertices.getVertexByPos(cBoundary.at(j)));
             }
             
             bool isConn = false;
-            Polygon dynamic_c_boundary(cBoundary);
             Polygon dynamic_conn_route(connRoute);
             const bool finalSegment = (inf3 == lineRef->dst());
             CrossingsInfoPair crossings = countRealCrossings(
-                    dynamic_c_boundary, isConn, dynamic_conn_route, 
+                    cBoundary, isConn, dynamic_conn_route, 
                     connRoute.size() - 1, true, finalSegment);
             result += (crossings.first * cluster_crossing_penalty);
         }
+    }
+
+    if (!router->_inCrossingPenaltyReroutingStage)
+    {
+        // Return here if we are not in the postprocessing stage 
+        return result;
     }
 
     const double crossing_penalty = router->routingPenalty(crossingPenalty);
@@ -408,6 +409,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
     ANode Node, BestNode;           // Temporary Node and BestNode
     bool bNodeFound = false;        // Flag if node is found in container
     int timestamp = 1;
+    int targetNodeDoneIndex = -1;
 
     if (start == NULL)
     {
@@ -494,8 +496,44 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
     using std::make_heap; using std::push_heap; using std::pop_heap;
     make_heap( PENDING.begin(), PENDING.end() );
 
+    // Continue until the queue is empty.
     while (!PENDING.empty())
     {
+        // Continue until a goal node has a lower f value than every node 
+        // in the queue.
+        if (targetNodeDoneIndex >= 0)
+        {
+            bool finished = true;
+            double bestF = DONE[targetNodeDoneIndex].f;
+            for (unsigned int i = 0; i < PENDING.size(); ++i)
+            {
+                ANode& ati = PENDING.at(i);
+                if (bestF < ati.f)
+                {
+                    // Best node is lower than this node in queue.
+                    if (i == 0)
+                    {
+                        // The first node in heap is definitely the 
+                        // smallest, so don't need to look any further.
+                        break;
+                    }
+                }
+                else
+                {
+                    // A node in the queue has a lower or equal f-value 
+                    // to the best current goal node.
+                    finished = false;
+                    break;
+                }
+            }
+
+            if (finished)
+            {
+                // Exit from the loop.
+                break;
+            }
+        }
+
         // Set the Node with lowest f value to BESTNODE.
         // Since the ANode operator< is reversed, the head of the
         // heap is the node with the lowest f value.
@@ -573,38 +611,32 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
         }
 #endif
 
-        // If at destination, break and create path below
         if (BestNode.inf == tar)
         {
-#ifdef PATHDEBUG
-            db_printf("Cost: %g\n", BestNode.f);
-#endif
-            //bPathFound = true; // arrived at destination...
-            
-            // Correct all the pathNext pointers.
-            ANode curr;
-            int currIndex = DONE.size() - 1;
-            for (curr = BestNode; curr.prevIndex > 0; 
-                    curr = DONE[curr.prevIndex])
+            // This node is our goal.
+
+            if (targetNodeDoneIndex >= 0)
             {
-                // XXX Should these always decrease, like assertion below?
-                //     COLA_ASSERT(curr.prevIndex < currIndex);
-                //     It looks like they may not always decrease if during
-                //     the search some nodes are visited at later points and
-                //     have their cost to that point rewritten.
-
-                curr.inf->pathNext = DONE[curr.prevIndex].inf;
-                currIndex = curr.prevIndex;
+                // We have already found a goal node.
+                if (BestNode.f < DONE[targetNodeDoneIndex].f)
+                {
+                    // But this new one is better, so it becomes the
+                    // new best goal node.
+                    targetNodeDoneIndex = DONE.size() - 1;
+                }
             }
-            // Check that we've gone through the complete path.
-            COLA_ASSERT(curr.prevIndex == 0);
-            // Fill in the final pathNext pointer.
-            curr.inf->pathNext = DONE[curr.prevIndex].inf;
+            else
+            {
+                // We hadn't yet found a goal node, use this one.
+                targetNodeDoneIndex = DONE.size() - 1;
+            }
 
-            break;
+            // Don't add stop surrounding points for this, but just continue
+            // the search to look at other possible better paths.
+            continue;
         }
 
-        // Check adjacent points in graph
+        // Check adjacent points in graph and add them to the queue.
         EdgeInfList& visList = (!isOrthogonal) ?
                 BestNode.inf->visList : BestNode.inf->orthogVisList;
         if (isOrthogonal)
@@ -748,7 +780,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
                     break;
                 }
             }
-            if (!bNodeFound ) // If Node NOT found on PENDING
+            if ( !bNodeFound ) // If Node NOT found on PENDING
             {
                 // Check to see if already on DONE
                 for (unsigned int i = 0; i < DONE.size(); i++)
@@ -757,11 +789,10 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
                     if ((Node.inf == ati.inf) && 
                             (DONE[Node.prevIndex].inf == DONE[ati.prevIndex].inf))
                     {
-                        // If on DONE, Which has lower gone?
-                        if (Node.g < ati.g)
-                        {
-                            DONE[i] = Node;
-                        }
+                        COLA_ASSERT(Node.g >= ati.g);
+                        // This node is already in DONE, and the current 
+                        // node also has a higher g-value, so we don't
+                        // need to consider this node.
                         bNodeFound = true;
                         break;
                     }
@@ -795,6 +826,29 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
 #endif
             }
         }
+    }
+
+    if (targetNodeDoneIndex >= 0)
+    {
+        ANode BestNode = DONE[targetNodeDoneIndex];
+#ifdef PATHDEBUG
+        db_printf("LINE %10d  Steps: %3d  Cost: %g\n", lineRef->id(), 
+                (int) DONE.size(), BestNode.f);
+#endif
+        
+        // Correct all the pathNext pointers.
+        ANode curr;
+        int currIndex = targetNodeDoneIndex;
+        for (curr = BestNode; curr.prevIndex > 0; 
+                curr = DONE[curr.prevIndex])
+        {
+            curr.inf->pathNext = DONE[curr.prevIndex].inf;
+            currIndex = curr.prevIndex;
+        }
+        // Check that we've gone through the complete path.
+        COLA_ASSERT(curr.prevIndex == 0);
+        // Fill in the final pathNext pointer.
+        curr.inf->pathNext = DONE[curr.prevIndex].inf;
     }
 }
 
