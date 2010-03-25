@@ -73,6 +73,21 @@ bool inBetween(const Point& a, const Point& b, const Point& c)
 bool pointOnLine(const Point& a, const Point& b, const Point& c, 
         const double tolerance)
 {
+    // Do this a bit more optimally for orthogonal AB line segments.
+    if (a.x == b.x)
+    {
+        return (a.x == c.x) &&
+                (((a.y < c.y) && (c.y < b.y)) ||
+                 ((b.y < c.y) && (c.y < a.y)));
+    }
+    else if (a.y == b.y)
+    {
+        return (a.y == c.y) &&
+                (((a.x < c.x) && (c.x < b.x)) ||
+                 ((b.x < c.x) && (c.x < a.x)));
+    }
+
+    // Or use the general case.
     return (vecDir(a, b, c, tolerance) == 0) && inBetween(a, b, c);
 }
 

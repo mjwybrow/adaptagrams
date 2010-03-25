@@ -34,6 +34,7 @@ namespace Avoid {
 ClusterRef::ClusterRef(Router *router, unsigned int id, Polygon& ply)
     : _router(router)
     , _poly(ply, router)
+    , _rectangular_poly(_poly.boundingRect())
     , _active(false)
 {
     _id = router->assignId(id);
@@ -70,6 +71,7 @@ void ClusterRef::makeInactive(void)
 void ClusterRef::setNewPoly(Polygon& poly)
 {
     _poly = ReferencingPolygon(poly, _router);
+    _rectangular_poly = _poly.boundingRect();
 }
 
 
@@ -82,6 +84,12 @@ unsigned int ClusterRef::id(void)
 ReferencingPolygon& ClusterRef::polygon(void)
 {
     return _poly;
+}
+
+
+Polygon& ClusterRef::rectangularPolygon(void)
+{
+    return _rectangular_poly;
 }
 
 

@@ -226,6 +226,15 @@ Polygon::Polygon(const PolygonInterface& poly)
 }
 
 
+Polygon PolygonInterface::boundingRect(void) const
+{
+    double minX, minY, maxX, maxY;
+    getBoundingRect(&minX, &minY, &maxX, &maxY);
+    
+    return Rectangle(Point(minX, minY), Point(maxX, maxY));
+}
+
+
 void Polygon::clear(void)
 {
     ps.clear();

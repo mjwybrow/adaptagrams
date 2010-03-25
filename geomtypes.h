@@ -39,6 +39,7 @@ namespace Avoid
 static const size_t XDIM = 0;
 static const size_t YDIM = 1;
 
+class Polygon;
 
 //! @brief  The Point class defines a point in the plane.
 //!
@@ -140,6 +141,10 @@ class PolygonInterface
         //! @param[out]  maxY  The bottom of the bounding box.
         void getBoundingRect(double *minX, double *minY,
                 double *maxX, double *maxY) const;
+        //! @brief  Returns the bounding rectangle for this polygon.
+        //!
+        //! @return A new Rectangle representing the bounding box.
+        Polygon boundingRect(void) const;
 };
 
 

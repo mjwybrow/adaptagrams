@@ -46,6 +46,7 @@ class ClusterRef
         void setNewPoly(Polygon& poly);
         unsigned int id(void);
         ReferencingPolygon& polygon(void);
+        Polygon& rectangularPolygon(void);
         Router *router(void);
         void makeActive(void);
         void makeInactive(void);
@@ -54,6 +55,7 @@ class ClusterRef
         Router *_router;
         unsigned int _id;
         ReferencingPolygon _poly;
+        Polygon _rectangular_poly;
         bool _active;
         ClusterRefList::iterator _pos;
 };
