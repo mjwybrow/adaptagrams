@@ -2175,6 +2175,9 @@ class CmpLineOrder
             COLA_ASSERT(lhsLow[dimension] == lhsHigh[dimension]);
             COLA_ASSERT(rhsLow[dimension] == rhsHigh[dimension]);
 
+            // XXX: possibly this should be fabs(a - b) <= sepDistance),
+            //      so we consider things at effectively the same position
+            //      to be ordered based on their order and fixedOrder.
             if (lhsLow[dimension] != rhsLow[dimension])
             {
                 return lhsLow[dimension] < rhsLow[dimension];
@@ -2232,7 +2235,7 @@ class CmpLineOrder
 };
 
 
-// We can use the normaal sort algorithm for lists since it is not possible 
+// We can't use the normal sort algorithm for lists since it is not possible 
 // to comapre all elements, but there will be an ordering defined between 
 // most of the elements.  Hence we order these, using insertion sort, and 
 // the case of them not being able to be compared is handled by not setting 

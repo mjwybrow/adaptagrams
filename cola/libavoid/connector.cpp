@@ -1345,7 +1345,6 @@ bool posInlineWithConnEndSegs(const double pos, const size_t dim,
     return false;
 }
 
-
 // Works out if the segment conn[cIndex-1]--conn[cIndex] really crosses poly.
 // This does not not count non-crossing shared paths as crossings.
 // poly can be either a connector (polyIsConn = true) or a cluster
@@ -1649,9 +1648,14 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
 #endif
                 }
 
-                int prevTurnDir = -1;
+                // {start,end}CornerSide specifies which side of conn the 
+                // poly path enters and leaves.
                 int startCornerSide = 1;
                 int endCornerSide = 1;
+
+                int prevTurnDir = -1;
+                int adjStartCornerSide = 1;
+                int adjEndCornerSide = 1;
                 bool reversed = false;
                 if (!front_same)
                 {
@@ -1659,9 +1663,10 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
                     // then order the shared path based on this.
                     prevTurnDir = vecDir(*c_path[0], *c_path[1], *c_path[2]);
                     startCornerSide = Avoid::cornerSide(*c_path[0], *c_path[1], 
-                            *c_path[2], *p_path[0]) 
-                        * segDir(*c_path[1], *c_path[2]);
-                    reversed = (startCornerSide != -prevTurnDir);
+                            *c_path[2], *p_path[0]);
+                    adjStartCornerSide = 
+                            startCornerSide * segDir(*c_path[1], *c_path[2]);
+                    reversed = (adjStartCornerSide != -prevTurnDir);
                 }
                 if (!back_same)
                 {
@@ -1671,19 +1676,33 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
                             *c_path[size - 2], *c_path[size - 1]);
                     endCornerSide = Avoid::cornerSide(*c_path[size - 3], 
                             *c_path[size - 2], *c_path[size - 1], 
-                            *p_path[size - 1])
-                        * segDir(*c_path[size - 3], *c_path[size - 2]);
-                    reversed = (endCornerSide != -prevTurnDir);
+                            *p_path[size - 1]);
+                    adjEndCornerSide = endCornerSide * 
+                            segDir(*c_path[size - 3], *c_path[size - 2]);
+                    reversed = (adjEndCornerSide != -prevTurnDir);
                 }
                 else
                 {
                     endCornerSide = startCornerSide;
+                    adjEndCornerSide = adjStartCornerSide;
                 }
                 if (front_same)
                 {
                     startCornerSide = endCornerSide;
+                    adjStartCornerSide = adjEndCornerSide;
                 }
                 
+                if (endCornerSide != startCornerSide)
+                {
+                    // Mark that the shared path crosses.
+                    //db_printf("shared path crosses.\n");
+                    crossingCount += 1;
+                    if (crossingPoints)
+                    {
+                        crossingPoints->insert(*c_path[1]);
+                    }
+                }
+
                 if (front_same || back_same)
                 {
                     crossingFlags |= CROSSING_SHARES_PATH_AT_END;
@@ -1698,7 +1717,7 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
                         // other.  So order based on not introducing overlap
                         // of the diverging segments when these are nudged
                         // apart.
-                        startCornerSide = -cStartDir * 
+                        adjStartCornerSide = -cStartDir * 
                                 segDir(*c_path[1], *c_path[2]);
                     }
                     else 
@@ -1713,7 +1732,7 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
                             // each other.  So order based on not introducing 
                             // overlap of the diverging segments when these 
                             // are nudged apart.
-                            startCornerSide = -cEndDir * segDir(
+                            adjStartCornerSide = -cEndDir * segDir(
                                     *c_path[size - 3], *c_path[size - 2]);
                         }
                     }
@@ -1763,7 +1782,7 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
                     // Orthogonal should always have at least one segment.
                     COLA_ASSERT(c_path.size() > (startPt + 1));
                     
-                    if (startCornerSide > 0)
+                    if (adjStartCornerSide > 0)
                     {
                         reversed = !reversed;
                     }
@@ -1868,16 +1887,6 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
                     }
 #endif
  
-                if (endCornerSide != startCornerSide)
-                {
-                    // Mark that the shared path crosses.
-                    //db_printf("shared path crosses.\n");
-                    crossingCount += 1;
-                    if (crossingPoints)
-                    {
-                        crossingPoints->insert(*c_path[1]);
-                    }
-                }
                 crossingFlags |= CROSSING_TOUCHES;
             }
             else if (cIndex >= 2)

@@ -137,19 +137,47 @@ static double angleBetween(const Point& p1, const Point& p2, const Point& p3)
 static void constructPolygonPath(Polygon& connRoute, VertInf *inf2, 
         VertInf *inf3, std::vector<ANode>& done, int inf1Index)
 {
+    // Don't include colinear points.
+    bool simplified = true;
+
     int routeSize = 2;
     for (int curr = inf1Index; curr >= 0; curr = done[curr].prevIndex)
     {
         routeSize += 1;
     }
     connRoute.ps.resize(routeSize);
+    int arraySize = routeSize;
     connRoute.ps[routeSize - 1] = inf3->point;
     connRoute.ps[routeSize - 2] = inf2->point;
     routeSize -= 3;
     for (int curr = inf1Index; curr >= 0; curr = done[curr].prevIndex)
     {
-        connRoute.ps[routeSize] = done[curr].inf->point;
-        routeSize -= 1;
+        if (!simplified ||
+                vecDir(done[curr].inf->point, connRoute.ps[routeSize + 1], 
+                    connRoute.ps[routeSize + 2]) != 0)
+        {
+            // Add new point.
+            connRoute.ps[routeSize] = done[curr].inf->point;
+            routeSize -= 1;
+        }
+        else
+        {
+            // The last point is inline with this one, so update it.
+            connRoute.ps[routeSize + 1] = done[curr].inf->point;
+        }
+    }
+
+    // If the vector is not filled, move entries to the beginning and 
+    // remove the unused end of the vector.
+    int diff = routeSize + 1;
+    COLA_ASSERT(simplified || (diff == 0));
+    if (diff > 0)
+    {
+        for (int i = diff; i < arraySize; ++i)
+        {
+            connRoute.ps[i - diff] = connRoute.ps[i];
+        }
+        connRoute.ps.resize(connRoute.size() - diff);
     }
 }
 
@@ -274,7 +302,7 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
             Polygon dynamic_conn_route(connRoute);
             CrossingsInfoPair crossings = countRealCrossings(
                     dynamic_route2, isConn, dynamic_conn_route, 
-                    connRoute.size() - 1, false, false, NULL, NULL,
+                    connRoute.size() - 1, true, false, NULL, NULL,
                     connRef, lineRef);
 
             if ((crossings.second & CROSSING_SHARES_PATH) &&
