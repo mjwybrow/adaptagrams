@@ -792,26 +792,24 @@ void Router::improveCrossings(void)
             }
             // Determine if this pair cross.
             Avoid::Polygon& jRoute = (*j)->routeRef();
-            CrossingsInfoPair crossingInfo = std::make_pair(0, 0);
             bool meetsPenaltyCriteria = false;
+            ConnectorCrossings cross(iRoute, true, jRoute, *i, *j);
             for (size_t jInd = 1; jInd < jRoute.size(); ++jInd)
             {
                 const bool finalSegment = ((jInd + 1) == jRoute.size());
-                CrossingsInfoPair crossingInfo = countRealCrossings(
-                        iRoute, true, jRoute, jInd, false, 
-                        finalSegment, NULL, NULL, *i, *j);
+                cross.countForSegment(jInd, finalSegment);
                 
                 if ((shared_path_penalty > 0) && 
-                    (crossingInfo.second & CROSSING_SHARES_PATH) && 
-                    (crossingInfo.second & CROSSING_SHARES_FIXED_SEGMENT) && 
-                    !(crossingInfo.second & CROSSING_SHARES_PATH_AT_END)) 
+                    (cross.crossingFlags & CROSSING_SHARES_PATH) && 
+                    (cross.crossingFlags & CROSSING_SHARES_FIXED_SEGMENT) && 
+                    !(cross.crossingFlags & CROSSING_SHARES_PATH_AT_END)) 
                 {
                     // We are penalising fixedSharedPaths and there is a
                     // fixedSharedPath.
                     meetsPenaltyCriteria = true;
                     break;
                 }
-                else if ((crossing_penalty > 0) && (crossingInfo.first > 0))
+                else if ((crossing_penalty > 0) && (cross.crossingCount > 0))
                 {
                     // We are penalising crossings and this is a crossing.
                     meetsPenaltyCriteria = true;
@@ -1436,17 +1434,16 @@ bool Router::existsOrthogonalPathOverlap(void)
         {
             // Determine if this pair overlap
             Avoid::Polygon jRoute = (*j)->displayRoute();
-            CrossingsInfoPair crossingInfo = std::make_pair(0, 0);
+            ConnectorCrossings cross(iRoute, true, jRoute, *i, *j);
+            cross.checkForBranchingSegments = true;
             for (size_t jInd = 1; jInd < jRoute.size(); ++jInd)
             {
                 const bool finalSegment = ((jInd + 1) == jRoute.size());
-                CrossingsInfoPair crossingInfo = countRealCrossings(
-                        iRoute, true, jRoute, jInd, true, 
-                        finalSegment, NULL, NULL, *i, *j);
+                cross.countForSegment(jInd, finalSegment);
                 
-                if ((crossingInfo.second & CROSSING_SHARES_PATH) && 
-                    (crossingInfo.second & CROSSING_SHARES_FIXED_SEGMENT) && 
-                    !(crossingInfo.second & CROSSING_SHARES_PATH_AT_END)) 
+                if ((cross.crossingFlags & CROSSING_SHARES_PATH) && 
+                    (cross.crossingFlags & CROSSING_SHARES_FIXED_SEGMENT) && 
+                    !(cross.crossingFlags & CROSSING_SHARES_PATH_AT_END)) 
                 {
                     // We looking for fixedSharedPaths and there is a
                     // fixedSharedPath.
@@ -1470,15 +1467,14 @@ bool Router::existsOrthogonalTouchingCorners(void)
         {
             // Determine if this pair overlap
             Avoid::Polygon jRoute = (*j)->displayRoute();
-            CrossingsInfoPair crossingInfo = std::make_pair(0, 0);
+            ConnectorCrossings cross(iRoute, true, jRoute, *i, *j);
+            cross.checkForBranchingSegments = true;
             for (size_t jInd = 1; jInd < jRoute.size(); ++jInd)
             {
                 const bool finalSegment = ((jInd + 1) == jRoute.size());
-                CrossingsInfoPair crossingInfo = countRealCrossings(
-                        iRoute, true, jRoute, jInd, true, 
-                        finalSegment, NULL, NULL, *i, *j);
+                cross.countForSegment(jInd, finalSegment);
                 
-                if (crossingInfo.second & CROSSING_TOUCHES) 
+                if (cross.crossingFlags & CROSSING_TOUCHES) 
                 {
                     return true;
                 }
@@ -1502,18 +1498,17 @@ int Router::existsOrthogonalCrossings(void)
         {
             // Determine if this pair overlap
             Avoid::Polygon jRoute = (*j)->displayRoute();
-            CrossingsInfoPair crossingInfo = std::make_pair(0, 0);
+            ConnectorCrossings cross(iRoute, true, jRoute, *i, *j);
+            cross.checkForBranchingSegments = true;
             for (size_t jInd = 1; jInd < jRoute.size(); ++jInd)
             {
                 const bool finalSegment = ((jInd + 1) == jRoute.size());
                 
                 // Normal crossings aren't counted if we pass the pointers
                 // for the connectors, so don't pass them.
-                CrossingsInfoPair crossingInfo = countRealCrossings(
-                        iRoute, true, jRoute, jInd, true, 
-                        finalSegment, NULL, NULL);
+                cross.countForSegment(jInd, finalSegment);
                 
-                count += crossingInfo.first;
+                count += cross.crossingCount;
             }
         }
     }

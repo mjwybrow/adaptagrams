@@ -2118,14 +2118,15 @@ static void buildOrthogonalNudgingOrderInfo(Router *router,
             
             Avoid::Polygon& route = conn->displayRoute();
             Avoid::Polygon& route2 = conn2->displayRoute();
-            bool checkForBranchingSegments = false;
             int crossings = 0;
+            ConnectorCrossings cross(route2, true, route, conn2, conn);
+            cross.pointOrders = &pointOrders;
             for (size_t i = 1; i < route.size(); ++i)
             {
                 const bool finalSegment = ((i + 1) == route.size());
-                crossings += countRealCrossings(route2, true, route, i, 
-                        checkForBranchingSegments, finalSegment, NULL, 
-                        &pointOrders, conn2, conn).first;
+                cross.countForSegment(i, finalSegment);
+
+                crossings += cross.crossingCount;
             }
             if (crossings > 0)
             {

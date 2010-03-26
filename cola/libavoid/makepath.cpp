@@ -152,11 +152,24 @@ static void constructPolygonPath(Polygon& connRoute, VertInf *inf2,
     routeSize -= 3;
     for (int curr = inf1Index; curr >= 0; curr = done[curr].prevIndex)
     {
-        if (!simplified ||
+        if (!simplified)
+        {
+            // Add new point.
+            connRoute.ps[routeSize] = done[curr].inf->point;
+            routeSize -= 1;
+            continue;
+        }
+            
+        
+        if ((curr == inf1Index) || 
                 vecDir(done[curr].inf->point, connRoute.ps[routeSize + 1], 
                     connRoute.ps[routeSize + 2]) != 0)
         {
-            // Add new point.
+            // Add new point if this is the earlier than the last segment
+            // and it is not colinear with the other points.  
+            // Note, you can't collapse the 'last' segment with previous 
+            // segments, or if this just intersects another line you risk 
+            // penalising it once for each collapsed line segment.
             connRoute.ps[routeSize] = done[curr].inf->point;
             routeSize -= 1;
         }
@@ -265,10 +278,11 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
             bool isConn = false;
             Polygon dynamic_conn_route(connRoute);
             const bool finalSegment = (inf3 == lineRef->dst());
-            CrossingsInfoPair crossings = countRealCrossings(
-                    cBoundary, isConn, dynamic_conn_route, 
-                    connRoute.size() - 1, true, finalSegment);
-            result += (crossings.first * cluster_crossing_penalty);
+            ConnectorCrossings cross(cBoundary, isConn, dynamic_conn_route);
+            cross.checkForBranchingSegments = true;
+            cross.countForSegment(connRoute.size() - 1, finalSegment);
+            
+            result += (cross.crossingCount * cluster_crossing_penalty);
         }
     }
 
@@ -301,20 +315,20 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
             bool isConn = true;
             Polygon dynamic_route2(route2);
             Polygon dynamic_conn_route(connRoute);
-            CrossingsInfoPair crossings = countRealCrossings(
-                    dynamic_route2, isConn, dynamic_conn_route, 
-                    connRoute.size() - 1, true, false, NULL, NULL,
-                    connRef, lineRef);
+            ConnectorCrossings cross(dynamic_route2, isConn, 
+                    dynamic_conn_route, connRef, lineRef);
+            cross.checkForBranchingSegments = true;
+            cross.countForSegment(connRoute.size() - 1, false);
 
-            if ((crossings.second & CROSSING_SHARES_PATH) &&
-                    (crossings.second & CROSSING_SHARES_FIXED_SEGMENT) &&
-                    !(crossings.second & CROSSING_SHARES_PATH_AT_END))
+            if ((cross.crossingFlags & CROSSING_SHARES_PATH) &&
+                    (cross.crossingFlags & CROSSING_SHARES_FIXED_SEGMENT) &&
+                    !(cross.crossingFlags & CROSSING_SHARES_PATH_AT_END))
             {
                 // Penalise unecessary shared paths in the middle of
                 // connectors.
                 result += shared_path_penalty;
             }
-            result += (crossings.first * crossing_penalty);
+            result += (cross.crossingCount * crossing_penalty);
         }
     }
 
@@ -832,7 +846,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
     {
         ANode BestNode = DONE[targetNodeDoneIndex];
 #ifdef PATHDEBUG
-        db_printf("LINE %10d  Steps: %3d  Cost: %g\n", lineRef->id(), 
+        db_printf("LINE %10d  Steps: %4d  Cost: %g\n", lineRef->id(), 
                 (int) DONE.size(), BestNode.f);
 #endif
         
