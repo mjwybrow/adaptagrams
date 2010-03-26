@@ -1345,18 +1345,33 @@ bool posInlineWithConnEndSegs(const double pos, const size_t dim,
     return false;
 }
 
+ConnectorCrossings::ConnectorCrossings(Avoid::Polygon& poly, bool polyIsConn,               Avoid::Polygon& conn, ConnRef *polyConnRef, ConnRef *connConnRef)
+    : poly(poly),
+      polyIsConn(polyIsConn),
+      conn(conn),
+      checkForBranchingSegments(false),
+      polyConnRef(polyConnRef),
+      connConnRef(connConnRef),
+      crossingPoints(NULL),
+      pointOrders(NULL),
+      sharedPaths(NULL)
+{
+}
+
+void ConnectorCrossings::clear(void)
+{
+    crossingCount = 0;
+    crossingFlags = CROSSING_NONE;
+}
+
 // Works out if the segment conn[cIndex-1]--conn[cIndex] really crosses poly.
 // This does not not count non-crossing shared paths as crossings.
 // poly can be either a connector (polyIsConn = true) or a cluster
 // boundary (polyIsConn = false).
 //
-CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly, 
-        bool polyIsConn, Avoid::Polygon& conn, size_t cIndex, 
-        bool checkForBranchingSegments, const bool finalSegment, 
-        PointSet *crossingPoints, PtOrderMap *pointOrders, 
-        ConnRef *polyConnRef, ConnRef *connConnRef)
+void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
 {
-    unsigned int crossingFlags = CROSSING_NONE;
+    clear();
     if (checkForBranchingSegments)
     {
         size_t conn_pn = conn.size();
@@ -1381,7 +1396,6 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
             (connConnRef->routingType() == ConnType_Orthogonal));
 
     size_t poly_size = poly.size();
-    int crossingCount = 0;
     std::vector<Avoid::Point *> c_path;
     std::vector<Avoid::Point *> p_path;
 
@@ -1540,6 +1554,20 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
                 // Are there diverging points at the ends of the shared path.
                 bool front_same = (*(c_path.front()) == *(p_path.front()));
                 bool back_same  = (*(c_path.back())  == *(p_path.back()));
+
+                if (sharedPaths)
+                {
+                    // Store a copy of the shared path
+                    size_t start = (front_same) ? 0 : 1;
+                    size_t limit = c_path.size() - ((back_same) ? 0 : 1);
+                
+                    PointList sPath(limit - start);
+                    for (size_t i = start; i < limit; ++i)
+                    {
+                        sPath[i - start] = *(c_path[i]);
+                    }
+                    sharedPaths->push_back(sPath);
+                }
 
                 size_t size = c_path.size();
                 
@@ -2009,7 +2037,6 @@ CrossingsInfoPair countRealCrossings(Avoid::Polygon& poly,
         }
     }
     //db_printf("crossingcount %d\n", crossingCount);
-    return std::make_pair(crossingCount, crossingFlags);
 }
 
 

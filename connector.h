@@ -473,12 +473,32 @@ const unsigned int CROSSING_SHARES_FIXED_SEGMENT = 8;
 
 
 typedef std::pair<int, unsigned int> CrossingsInfoPair;
+typedef std::vector<Avoid::Point> PointList;
+typedef std::vector<PointList> SharedPathList;
 
-extern CrossingsInfoPair countRealCrossings( Avoid::Polygon& poly, 
-        bool polyIsConn, Avoid::Polygon& conn, size_t cIndex, 
-        bool checkForBranchingSegments, const bool finalSegment = false, 
-        PointSet *crossingPoints = NULL, PtOrderMap *pointOrders = NULL, 
-        ConnRef *polyConnRef = NULL, ConnRef *connConnRef = NULL);
+class ConnectorCrossings
+{
+    public:
+        ConnectorCrossings(Avoid::Polygon& poly, bool polyIsConn, 
+                Avoid::Polygon& conn, ConnRef *polyConnRef = NULL, 
+                ConnRef *connConnRef = NULL);
+        void clear(void);
+        void countForSegment(size_t cIndex, const bool finalSegment);
+
+        Avoid::Polygon& poly;
+        bool polyIsConn; 
+        Avoid::Polygon& conn; 
+        bool checkForBranchingSegments;
+        ConnRef *polyConnRef;
+        ConnRef *connConnRef;
+        
+        unsigned int crossingCount;
+        unsigned int crossingFlags;
+        PointSet *crossingPoints;
+        PtOrderMap *pointOrders;
+        SharedPathList *sharedPaths;
+};
+
 extern void splitBranchingSegments(Avoid::Polygon& poly, bool polyIsConn,
         Avoid::Polygon& conn, const double tolerance = 0);
 extern bool validateBendPoint(VertInf *aInf, VertInf *bInf, VertInf *cInf);
