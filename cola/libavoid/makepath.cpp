@@ -423,7 +423,6 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
     ANode Node, BestNode;           // Temporary Node and BestNode
     bool bNodeFound = false;        // Flag if node is found in container
     int timestamp = 1;
-    int targetNodeDoneIndex = -1;
 
     if (start == NULL)
     {
@@ -513,41 +512,6 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
     // Continue until the queue is empty.
     while (!PENDING.empty())
     {
-        // Continue until a goal node has a lower f value than every node 
-        // in the queue.
-        if (targetNodeDoneIndex >= 0)
-        {
-            bool finished = true;
-            double bestF = DONE[targetNodeDoneIndex].f;
-            for (unsigned int i = 0; i < PENDING.size(); ++i)
-            {
-                ANode& ati = PENDING.at(i);
-                if (bestF < ati.f)
-                {
-                    // Best node is lower than this node in queue.
-                    if (i == 0)
-                    {
-                        // The first node in heap is definitely the 
-                        // smallest, so don't need to look any further.
-                        break;
-                    }
-                }
-                else
-                {
-                    // A node in the queue has a lower or equal f-value 
-                    // to the best current goal node.
-                    finished = false;
-                    break;
-                }
-            }
-
-            if (finished)
-            {
-                // Exit from the loop.
-                break;
-            }
-        }
-
         // Set the Node with lowest f value to BESTNODE.
         // Since the ANode operator< is reversed, the head of the
         // heap is the node with the lowest f value.
@@ -628,26 +592,27 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
         if (BestNode.inf == tar)
         {
             // This node is our goal.
-
-            if (targetNodeDoneIndex >= 0)
+#ifdef PATHDEBUG
+            db_printf("LINE %10d  Steps: %4d  Cost: %g\n", lineRef->id(), 
+                    (int) DONE.size(), BestNode.f);
+#endif
+            
+            // Correct all the pathNext pointers.
+            ANode curr;
+            int currIndex = DONE.size() - 1;
+            for (curr = BestNode; curr.prevIndex > 0; 
+                    curr = DONE[curr.prevIndex])
             {
-                // We have already found a goal node.
-                if (BestNode.f < DONE[targetNodeDoneIndex].f)
-                {
-                    // But this new one is better, so it becomes the
-                    // new best goal node.
-                    targetNodeDoneIndex = DONE.size() - 1;
-                }
+                curr.inf->pathNext = DONE[curr.prevIndex].inf;
+                currIndex = curr.prevIndex;
             }
-            else
-            {
-                // We hadn't yet found a goal node, use this one.
-                targetNodeDoneIndex = DONE.size() - 1;
-            }
+            // Check that we've gone through the complete path.
+            COLA_ASSERT(curr.prevIndex == 0);
+            // Fill in the final pathNext pointer.
+            curr.inf->pathNext = DONE[curr.prevIndex].inf;
 
-            // Don't add stop surrounding points for this, but just continue
-            // the search to look at other possible better paths.
-            continue;
+            // Exit from the search
+            break;
         }
 
         // Check adjacent points in graph and add them to the queue.
@@ -840,29 +805,6 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
 #endif
             }
         }
-    }
-
-    if (targetNodeDoneIndex >= 0)
-    {
-        ANode BestNode = DONE[targetNodeDoneIndex];
-#ifdef PATHDEBUG
-        db_printf("LINE %10d  Steps: %4d  Cost: %g\n", lineRef->id(), 
-                (int) DONE.size(), BestNode.f);
-#endif
-        
-        // Correct all the pathNext pointers.
-        ANode curr;
-        int currIndex = targetNodeDoneIndex;
-        for (curr = BestNode; curr.prevIndex > 0; 
-                curr = DONE[curr.prevIndex])
-        {
-            curr.inf->pathNext = DONE[curr.prevIndex].inf;
-            currIndex = curr.prevIndex;
-        }
-        // Check that we've gone through the complete path.
-        COLA_ASSERT(curr.prevIndex == 0);
-        // Fill in the final pathNext pointer.
-        curr.inf->pathNext = DONE[curr.prevIndex].inf;
     }
 }
 
