@@ -2,14 +2,17 @@
 #
 # We use gnu automake to build.  I've tried to make the contents of the
 # repository as platform agnostic as possible, so you'll need to call
-# aclocal, autoconf, and automake before configure.
+# autoreconf before configure.
 #
-# The following sequence builds from scratch:
-aclocal $ACLOCAL_FLAGS
-#libtoolize
-autoheader
-autoconf
-automake -a --add-missing
+autoreconf --install --verbose
+#
+# The following sequence builds from scratch (autoreconf handles this)
+#aclocal $ACLOCAL_FLAGS
+#glibtoolize
+#autoheader
+#autoconf
+#automake -a --add-missing
+#
 # Configure.  Use the commented out line instead if building for SWIG:
 # ./configure CPPFLAGS="-DUSE_ASSERT_EXCEPTIONS"
 ./configure

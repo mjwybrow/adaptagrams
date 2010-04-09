@@ -1,8 +1,8 @@
 INCLUDES = -I$(top_srcdir)
 
-lib_LIBRARIES = libtopology.a
+lib_LTLIBRARIES = libtopology.la
 
-libtopology_a_SOURCES = topology_graph.cpp\
+libtopology_la_SOURCES = topology_graph.cpp\
 			topology_constraints.cpp\
 			compute_forces.cpp\
 			topology_graph.h\
@@ -15,4 +15,4 @@ libtopologyincludedir = ${includedir}/libtopology
 libtopologyinclude_HEADERS = topology_constraints.h topology_graph.h
 
 
-SUBDIRS = tests
+SUBDIRS = . tests

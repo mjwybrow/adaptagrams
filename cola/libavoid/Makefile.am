@@ -1,8 +1,9 @@
 INCLUDES = -I$(top_srcdir)
 
-lib_LIBRARIES = libavoid.a
+lib_LTLIBRARIES = libavoid.la
 
-libavoid_a_SOURCES = connector.cpp\
+
+libavoid_la_SOURCES = connector.cpp\
 			geometry.cpp\
 			vertices.cpp\
 			graph.cpp\
@@ -34,5 +35,5 @@ libavoidinclude_HEADERS = connector.h \
 			orthogonal.h \
 			vpsc.h
 
-SUBDIRS = tests
+SUBDIRS = . tests
 

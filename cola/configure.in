@@ -1,11 +1,13 @@
-AC_INIT(libcola,0.1)
+AC_INIT([libcola],[0.1])
+AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR(libcola/cola.h)
-AM_CONFIG_HEADER(libcola/config.h)
+AC_CONFIG_HEADERS([libcola/config.h])
 AM_INIT_AUTOMAKE
-AC_PROG_RANLIB
-#AC_PROG_LIBTOOL
+AC_ENABLE_STATIC
+AC_DISABLE_SHARED
 AC_PROG_CXX
 AC_PROG_CC
+LT_INIT
 #AC_PROG_INSTALL
 #AC_DEFINE(TRACE_LOGGING)
 dnl ******************************
@@ -57,4 +59,5 @@ AH_BOTTOM([
   
 ])
 
-AC_OUTPUT(Makefile libcola/Makefile libcola/tests/Makefile libvpsc/Makefile libvpsc/tests/Makefile libproject/Makefile libproject/tests/Makefile libtopology/Makefile libtopology/tests/Makefile libavoid/Makefile libavoid/tests/Makefile)
+AC_CONFIG_FILES([Makefile libcola/Makefile libcola/tests/Makefile libvpsc/Makefile libvpsc/tests/Makefile libproject/Makefile libproject/tests/Makefile libtopology/Makefile libtopology/tests/Makefile libavoid/Makefile libavoid/tests/Makefile])
+AC_OUTPUT

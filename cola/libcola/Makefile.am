@@ -1,8 +1,10 @@
 INCLUDES = -I$(top_srcdir) $(CAIROMM_CFLAGS)
 
-lib_LIBRARIES = libcola.a
+lib_LTLIBRARIES = libcola.la
+# libavoid_la_LIBADD = ../common/libjupcommon.a
+libavoid_la_CPPFLAGS = -I{includedir}/libcola
 
-libcola_a_SOURCES = cola.h\
+libcola_la_SOURCES = cola.h\
 	cola.cpp\
 	colafd.cpp\
 	conjugate_gradient.cpp\
@@ -39,4 +41,4 @@ libcolainclude_HEADERS = cola.h\
 	cc_clustercontainmentconstraints.h \
 	cc_nonoverlapconstraints.h
 
-SUBDIRS = tests
+SUBDIRS = . tests

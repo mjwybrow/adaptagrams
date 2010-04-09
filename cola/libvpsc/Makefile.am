@@ -1,8 +1,10 @@
 INCLUDES = -I$(top_srcdir) 
-lib_LIBRARIES = libvpsc.a
+
+lib_LTLIBRARIES = libvpsc.la
 #DEFS=-DLIBVPSC_LOGGING
 
-libvpsc_a_SOURCES = block.cpp\
+
+libvpsc_la_SOURCES = block.cpp\
 	blocks.cpp\
 	constraint.cpp\
 	rectangle.cpp\
@@ -31,5 +33,5 @@ libvpscinclude_HEADERS = solve_VPSC.h \
 	variable.h \
 	assertions.h
 
-SUBDIRS = tests
+SUBDIRS = . tests
 

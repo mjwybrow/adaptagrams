@@ -1,5 +1,5 @@
 INCLUDES = -I$(top_srcdir) $(CAIROMM_CFLAGS)
-ldcommon = $(top_builddir)/libtopology/libtopology.a $(top_builddir)/libcola/libcola.a $(top_builddir)/libvpsc/libvpsc.a $(CAIROMM_LIBS)
+ldcommon = $(top_builddir)/libtopology/libtopology.la $(top_builddir)/libcola/libcola.la $(top_builddir)/libvpsc/libvpsc.la $(CAIROMM_LIBS)
 check_PROGRAMS = simple_bend nooverlap #triangle split kamada nooverlap
 simple_bend_LDADD = $(ldcommon)
 simple_bend_SOURCES = simple_bend.cpp 
