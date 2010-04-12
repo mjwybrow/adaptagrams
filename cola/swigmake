@@ -30,7 +30,7 @@ cola_wrap.o: swig-worked
 	g++ -I. $(JAVA_INCLUDE) -c cola_wrap.cxx
 
 cola.jnilib: cola_wrap.o
-	$(LINK) cola_wrap.o libcola/libcola.a libtopology/libtopology.a libavoid/libavoid.a libvpsc/libvpsc.a
+	$(LINK) cola_wrap.o libcola/.libs/libcola.a libtopology/.libs/libtopology.a libavoid/.libs/libavoid.a libvpsc/.libs/libvpsc.a
 
 colajava.jar: swig-worked
 	jar -cf colajava.jar colajava
