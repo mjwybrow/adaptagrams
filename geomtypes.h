@@ -288,7 +288,8 @@ class ReferencingPolygon : public PolygonInterface
         const Point& at(size_t index) const;
 
         int _id;
-        std::vector<std::pair<const Polygon *, unsigned short> > ps;
+        std::vector<std::pair<const Polygon *, unsigned short> > psRef;
+        std::vector<Point> psPoints;
 };
 
 

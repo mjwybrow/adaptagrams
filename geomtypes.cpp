@@ -101,24 +101,35 @@ const double& Point::operator[](const unsigned int dimension) const
 ReferencingPolygon::ReferencingPolygon(const Polygon& poly, const Router *router)
     : PolygonInterface(),
       _id(poly._id),
-      ps(poly.size())
+      psRef(poly.size()),
+      psPoints(poly.size())
 {
     COLA_ASSERT(router != NULL);
     for (size_t i = 0; i < poly.size(); ++i)
     {
-        const Polygon *polyPtr = NULL;
-        for (ShapeRefList::const_iterator sh = router->shapeRefs.begin();
-                sh != router->shapeRefs.end(); ++sh) 
+        if (poly.ps[i].id == 0)
         {
-            if ((*sh)->id() == poly.ps[i].id)
-            {
-                const Polygon& poly = (*sh)->polygon();
-                polyPtr = &poly;
-                break;
-            }
+            // Can't be referenced, so just make a copy of the point.
+            psRef[i] = std::make_pair((Polygon *) NULL, 
+                    kUnassignedVertexNumber);
+            psPoints[i] = poly.ps[i];
         }
-        COLA_ASSERT(polyPtr != NULL);
-        ps[i] = std::make_pair(polyPtr, poly.ps[i].vn);
+        else
+        {
+            const Polygon *polyPtr = NULL;
+            for (ShapeRefList::const_iterator sh = router->shapeRefs.begin();
+                    sh != router->shapeRefs.end(); ++sh) 
+            {
+                if ((*sh)->id() == poly.ps[i].id)
+                {
+                    const Polygon& poly = (*sh)->polygon();
+                    polyPtr = &poly;
+                    break;
+                }
+            }
+            COLA_ASSERT(polyPtr != NULL);
+            psRef[i] = std::make_pair(polyPtr, poly.ps[i].vn);
+        }
     }
 }
 
@@ -132,19 +143,20 @@ ReferencingPolygon::ReferencingPolygon()
 
 void ReferencingPolygon::clear(void)
 {
-    ps.clear();
+    psRef.clear();
+    psPoints.clear();
 }
 
 
 bool ReferencingPolygon::empty(void) const
 {
-    return ps.empty();
+    return psRef.empty();
 }
 
 
 size_t ReferencingPolygon::size(void) const
 {
-    return ps.size();
+    return psRef.size();
 }
 
 
@@ -157,11 +169,19 @@ int ReferencingPolygon::id(void) const
 const Point& ReferencingPolygon::at(size_t index) const 
 {
     COLA_ASSERT(index < size());
-    const Polygon& poly = *(ps[index].first);
-    unsigned short poly_index = ps[index].second;
-    COLA_ASSERT(poly_index < poly.size());
+    
+    if (psRef[index].first != NULL)
+    {
+        const Polygon& poly = *(psRef[index].first);
+        unsigned short poly_index = psRef[index].second;
+        COLA_ASSERT(poly_index < poly.size());
 
-    return poly.ps[poly_index];
+        return poly.ps[poly_index];
+    }
+    else
+    {
+        return psPoints[index];
+    }
 }
 
 
