@@ -4,7 +4,7 @@
  * libvpsc - A solver for the problem of Variable Placement with 
  *           Separation Constraints.
  *
- * Copyright (C) 2005-2008  Monash University
+ * Copyright (C) 2005-2010  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,14 +21,13 @@
  * write to the Free Software Foundation, Inc., 59 Temple Place, 
  * Suite 330, Boston, MA  02111-1307  USA
  *
+ * Author(s):  Tim Dwyer
 */
 
 /**
  * \brief Functions to automatically generate constraints for the
  * rectangular node overlap removal problem.
  *
- * Authors:
- *   Tim Dwyer <tgdwyer@gmail.com>
  */
 #ifndef SEEN_LIBVPSC_RECTANGLE_H
 #define SEEN_LIBVPSC_RECTANGLE_H
@@ -120,6 +119,10 @@ public:
         COLA_ASSERT(d==0||d==1);
         return ( d == 0 ? getMaxX() : getMaxY() );
     }
+    void setMinD(unsigned const d, const double val)
+    { if ( d == 0) { minX = val; } else { minY = val; } }
+    void setMaxD(unsigned const d, const double val)
+    { if ( d == 0) { maxX = val; } else { maxY = val; } }
     double getCentreX() const { return getMinX()+width()/2.0; }
     double getCentreY() const { return getMinY()+height()/2.0; }
     /**

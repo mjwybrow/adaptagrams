@@ -44,14 +44,16 @@ class ShapeOffsets : public SubConstraintInfo
     public:
         ShapeOffsets(unsigned ind, double xOffset, double yOffset) :
             SubConstraintInfo(ind),
-            isCluster(false)
+            isCluster(false),
+            rectPadding(0)
         {
             halfDim[0] = xOffset;
             halfDim[1] = yOffset;
         }
-        ShapeOffsets(unsigned ind) :
-            SubConstraintInfo(ind),
-            isCluster(true)
+        ShapeOffsets(unsigned ind, const double padding)
+            : SubConstraintInfo(ind),
+              isCluster(true),
+              rectPadding(padding)
         {
             halfDim[0] = 0;
             halfDim[1] = 0;
@@ -62,7 +64,8 @@ class ShapeOffsets : public SubConstraintInfo
         {
         }
         bool isCluster;
-        double halfDim[2];  // half width and height values;
+        double halfDim[2];   // Half width and height values.
+        double rectPadding;  // Used for cluster padding.
 };
 
 
@@ -130,7 +133,7 @@ void NonOverlapConstraints::addShape(unsigned id, double halfW, double halfH)
 }
 
 
-void NonOverlapConstraints::addCluster(unsigned id)
+void NonOverlapConstraints::addCluster(unsigned id, const double rectPadding)
 {
     // Setup pairInfos for all other shapes. 
     for (std::map<unsigned, ShapeOffsets>::iterator curr = shapeOffsets.begin();
@@ -140,7 +143,7 @@ void NonOverlapConstraints::addCluster(unsigned id)
         pairInfoList.push_back(ShapePairInfo(otherId, id));
     }
     
-    shapeOffsets[id] = ShapeOffsets(id);
+    shapeOffsets[id] = ShapeOffsets(id, rectPadding);
 }
 
 
@@ -316,6 +319,8 @@ NonOverlapConstraints::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
         desiredY1 += height / 2;
         xSepCost += width / 2;
         ySepCost += height / 2;
+        xSep += shape1.rectPadding;
+        ySep += shape1.rectPadding;
     }
     if (shape2.isCluster)
     {
@@ -327,6 +332,8 @@ NonOverlapConstraints::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
         desiredY2 += height / 2;
         xSepCost += width / 2;
         ySepCost += height / 2;
+        xSep += shape2.rectPadding;
+        ySep += shape2.rectPadding;
     }
 
     // Compute the cost to move in each direction based on the 

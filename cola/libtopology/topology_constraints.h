@@ -3,7 +3,7 @@
  *
  * libtopology - Classes used in generating and managing topology constraints.
  *
- * Copyright (C) 2007-2008  Monash University
+ * Copyright (C) 2007-2010  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -49,6 +49,7 @@ namespace vpsc {
 }
 namespace cola {
     class SparseMap;
+    class RootCluster;
 }
 /**
  * namespace for classes uses in generating and solving forces and constraints associated with
@@ -204,6 +205,7 @@ namespace topology {
             const vpsc::Dim dim, 
             Nodes& nodes,
             Edges& edges,
+            cola::RootCluster* clusterHierarchy,
             vpsc::Variables& vs,
             vpsc::Constraints& cs);
         ~TopologyConstraints();
@@ -216,6 +218,7 @@ namespace topology {
     private:
         Nodes& nodes;
         Edges& edges;
+        cola::RootCluster* clusters;
         vpsc::Variables& vs;
         vpsc::Constraints& cs;
     };
@@ -241,7 +244,8 @@ namespace topology {
         Node *lhsNode, *rhsNode;
     };
     typedef std::map<unsigned, ResizeInfo> ResizeMap;
-    void applyResizes(Nodes& nodes, Edges& edges, ResizeMap& resizes,
+    void applyResizes(Nodes& nodes, Edges& edges, 
+            cola::RootCluster *clusters, ResizeMap& resizes,
             vpsc::Variables& xvs, vpsc::Constraints& xcs, 
             vpsc::Variables& yvs, vpsc::Constraints& ycs);
     /**

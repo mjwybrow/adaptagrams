@@ -4,7 +4,7 @@
  * libcola - A library providing force-directed network layout using the 
  *           stress-majorization method subject to separation constraints.
  *
- * Copyright (C) 2006-2008  Monash University
+ * Copyright (C) 2006-2010  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,13 +21,16 @@
  * write to the Free Software Foundation, Inc., 59 Temple Place, 
  * Suite 330, Boston, MA  02111-1307  USA
  *
+ * Author(s):  Tim Dwyer
+ *             Michael Wybrow
 */
 
 #ifndef COLA_CLUSTER_H
 #define COLA_CLUSTER_H
 
-#include <libvpsc/rectangle.h>
-#include <libvpsc/variable.h>
+#include "libvpsc/rectangle.h"
+#include "libvpsc/variable.h"
+
 #include "commondefs.h"
 
 namespace cola {
@@ -35,70 +38,86 @@ namespace cola {
 
 // A cluster defines a hierarchical partitioning over the nodes
 // which should be kept disjoint by the layout somehow
-class Cluster {
-public:
-    double varWeight;
-    double internalEdgeWeightFactor;
-    std::vector<unsigned> nodes;
-    std::vector<Cluster*> clusters;
-    std::valarray<double> hullX, hullY;
-    Cluster();
-    virtual ~Cluster() {}
-    virtual void computeBoundary(const vpsc::Rectangles& rs) = 0;
-    void computeBoundingRect(const vpsc::Rectangles& rs);
-    vpsc::Rectangle bounds;
-    void setDesiredBounds(const vpsc::Rectangle bounds);
-    void unsetDesiredBounds();
-    void createVars(const vpsc::Dim dim, const vpsc::Rectangles& rs, vpsc::Variables& vars);
-    vpsc::Variable *vXMin, *vXMax, *vYMin, *vYMax;
-    void generateNonOverlapConstraints(
-            const vpsc::Dim dim,
-            const NonOverlapConstraintsMode nonOverlapConstraints,
-            const vpsc::Rectangles& rs,
-            const vpsc::Variables& vars,
-            vpsc::Constraints & cs);
-    void clear();
-    /**
-     * @return the total area covered by contents of this cluster (not
-     * including space between nodes/clusters)
-     */
-    double area(const vpsc::Rectangles& rs);
-    /**
-     * sets bounds based on the finalPositions of vMin and vMax.
-     */
-    void updateBounds(const vpsc::Dim dim);
-    
-    // This will be the id of the left/bottom boundary, 
-    // and the right/top will be clusterVarId + 1.
-    unsigned clusterVarId; 
+class Cluster
+{
+    public:
+        double varWeight;
+        double internalEdgeWeightFactor;
+        std::vector<unsigned> nodes;
+        std::vector<Cluster*> clusters;
+        std::valarray<double> hullX, hullY;
+        
+        Cluster();
+        virtual ~Cluster() {}
+        virtual void computeBoundary(const vpsc::Rectangles& rs) = 0;
+        void computeBoundingRect(const vpsc::Rectangles& rs);
+        vpsc::Rectangle bounds;
+        void setDesiredBounds(const vpsc::Rectangle bounds);
+        void unsetDesiredBounds();
+        void createVars(const vpsc::Dim dim, const vpsc::Rectangles& rs,
+                vpsc::Variables& vars);
+        void setRectBuffers(const double buffer);
+        vpsc::Variable *vXMin, *vXMax, *vYMin, *vYMax;
+        void clear();
+        /**
+         * @return the total area covered by contents of this cluster (not
+         * including space between nodes/clusters)
+         */
+        double area(const vpsc::Rectangles& rs);
+        /**
+         * sets bounds based on the finalPositions of vMin and vMax.
+         */
+        void updateBounds(const vpsc::Dim dim);
+        
+        // This will be the id of the left/bottom boundary, 
+        // and the right/top will be clusterVarId + 1.
+        unsigned clusterVarId; 
 
-private:
-    bool desiredBoundsSet;
-    vpsc::Rectangle desiredBounds;
-    vpsc::Rectangle getMinRect( const vpsc::Dim dim, const vpsc::Rectangle& bounds);
-    vpsc::Rectangle getMaxRect( const vpsc::Dim dim, const vpsc::Rectangle& bounds);
-    vpsc::Variable *vMin, *vMax;
-    double length;
-    double border;
+        // This is padding used for rectangular non-overlap during 
+        // makeFeasible and for rectangular clusters during optimisation.
+        double rectBuffer;
+
+    private:
+        bool desiredBoundsSet;
+        vpsc::Rectangle desiredBounds;
+
+        vpsc::Variable *vMin, *vMax;
+        double length;
 };
 typedef std::vector<Cluster*> Clusters;
-class RectangularCluster : public Cluster {
-public:
-    void computeBoundary(const vpsc::Rectangles& rs);
+
+class RootCluster : public Cluster 
+{
+    public:
+        void computeBoundary(const vpsc::Rectangles& rs);
+        // There are just shapes at the top level, so
+        // effectively no clusters in the diagram scene.
+        bool flat(void) const
+        {
+            return clusters.empty();
+        }
 };
-class RootCluster : public Cluster {
-public:
-    void computeBoundary(const vpsc::Rectangles& rs);
-    bool flat(void) const
-    {
-        return clusters.empty();
-    }
+
+class RectangularCluster : public Cluster
+{
+    public:
+        RectangularCluster();
+        ~RectangularCluster();
+        void computeBoundary(const vpsc::Rectangles& rs);
+        vpsc::Rectangle *getMinEdgeRect(const vpsc::Dim dim);
+        vpsc::Rectangle *getMaxEdgeRect(const vpsc::Dim dim);
+
+        vpsc::Rectangle *minEdgeRect[2];
+        vpsc::Rectangle *maxEdgeRect[2];
 };
-class ConvexCluster : public Cluster {
-public:
-    void computeBoundary(const vpsc::Rectangles& rs);
-    std::valarray<unsigned> hullRIDs;
-    std::valarray<unsigned char> hullCorners;
+
+class ConvexCluster : public Cluster
+{
+    public:
+        void computeBoundary(const vpsc::Rectangles& rs);
+
+        std::valarray<unsigned> hullRIDs;
+        std::valarray<unsigned char> hullCorners;
 };
 
 

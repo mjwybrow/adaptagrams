@@ -113,8 +113,7 @@ void nodeDragging() {
     PreIteration preIteration(locks);
     Test test(0.00001,100,vs,tes);
     ConstrainedFDLayout alg(rs,es,idealLength,NULL,test,&preIteration);
-    bool setTopology = true;
-    alg.setOrGetTopology(&vs,&tes, setTopology);
+    alg.setTopology(&vs, &tes);
 
     double step=1;
     for(unsigned i=0;i<100;i++) {

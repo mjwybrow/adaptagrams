@@ -48,7 +48,7 @@ class NonOverlapConstraints : public CompoundConstraint {
     public:
         NonOverlapConstraints(unsigned int priority = PRIORITY_NONOVERLAP);
         void addShape(unsigned id, double halfW, double halfH);
-        void addCluster(unsigned id);
+        void addCluster(unsigned id, const double rectPadding);
         void computeAndSortOverlap(vpsc::Variables vs[]);
         void markCurrSubConstraintAsActive(const bool satisfiable);
         void markAllSubConstraintsAsInactive(void);

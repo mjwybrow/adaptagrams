@@ -4,7 +4,7 @@
  * libcola - A library providing force-directed network layout using the 
  *           stress-majorization method subject to separation constraints.
  *
- * Copyright (C) 2006-2008  Monash University
+ * Copyright (C) 2006-2010  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,6 +21,7 @@
  * write to the Free Software Foundation, Inc., 59 Temple Place, 
  * Suite 330, Boston, MA  02111-1307  USA
  *
+ * Author(s):  Tim Dwyer
 */
 
 #include <cmath>
@@ -584,6 +585,7 @@ Rectangle bounds(vector<Rectangle*>& rs) {
     return Rectangle(left, right, top, bottom);
 }
 
+#if 0
     void removeClusterOverlap(RootCluster& clusterHierarchy, vpsc::Rectangles& rs, Locks& locks, vpsc::Dim dim) {
         if(clusterHierarchy.nodes.size()>0 || clusterHierarchy.clusters.size()>0) {
             vpsc::Variables vars;
@@ -652,6 +654,7 @@ Rectangle bounds(vector<Rectangle*>& rs) {
         removeClusterOverlap(clusterHierarchy, rs, locks, vpsc::HORIZONTAL);
         removeClusterOverlap(clusterHierarchy, rs, locks, vpsc::VERTICAL);
     }
+#endif
 
 } // namespace cola
 

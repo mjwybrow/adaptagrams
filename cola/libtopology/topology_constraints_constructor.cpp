@@ -3,7 +3,7 @@
  *
  * libtopology - Classes used in generating and managing topology constraints.
  *
- * Copyright (C) 2007-2008  Monash University
+ * Copyright (C) 2007-2010  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,6 +20,8 @@
  * write to the Free Software Foundation, Inc., 59 Temple Place, 
  * Suite 330, Boston, MA  02111-1307  USA
  *
+ * Author(s):  Tim Dwyer
+ *             Michael Wybrow
 */
 
 /**
@@ -35,6 +37,7 @@
 #include "libvpsc/constraint.h"
 #include "libcola/cola.h"
 #include "libcola/straightener.h"
+#include "libcola/cluster.h"
 
 #include "topology_log.h"
 #include "topology_graph.h"
@@ -62,8 +65,8 @@ typedef map<double,NodeOpen*> OpenNodes;
 OpenNodes openNodes;
 
 /**
- * The scan algorithm works by processing events in the order they are encountered
- * by the scan line.
+ * The scan algorithm works by processing events in the order they 
+ * are encountered by the scan line.
  */
 struct Event {
     /// an event is either an opening or closing of some object
@@ -90,8 +93,8 @@ struct NodeEvent : Event {
     }
     ~NodeEvent(){}
     /**
-     * topology constraints are generated for the opening and closing edges of each node
-     * and every open segment at pos
+     * Topology constraints are generated for the opening and closing 
+     * edges of each node and every open segment at pos.
      */
     void createStraightConstraints(
             const Node* leftNeighbour, const Node* rightNeighbour);
@@ -576,16 +579,49 @@ struct PruneDegenerate {
     list<EdgePoint*>& pruneList;
 };
 
+static void recCreateTopologyClusterNodes(cola::Cluster *cluster, 
+        const vpsc::Dim dim, Nodes& clusterNodes)
+{
+    if (cluster == NULL)
+    {
+        return;
+    }
+
+    for (cola::Clusters::iterator i = cluster->clusters.begin(); 
+            i != cluster->clusters.end(); ++i)
+    {
+        recCreateTopologyClusterNodes(*i, dim, clusterNodes);
+    }
+    
+    // ConvexClusters are handled as connectors by the topology layout, but
+    // for RectangularClusters we make each side look like a separate node
+    // of zero width/height in one dimenstion -- effectively a shape 
+    // representing the border on each side of the cluster.
+    cola::RectangularCluster *rectCluster = 
+            dynamic_cast<cola::RectangularCluster *> (cluster);
+    if (rectCluster)
+    {
+        clusterNodes.push_back(new Node(rectCluster->clusterVarId, 
+                rectCluster->getMinEdgeRect(dim),
+                (dim == 0) ? rectCluster->vXMin : rectCluster->vYMin));
+        clusterNodes.push_back(new Node(rectCluster->clusterVarId + 1, 
+                rectCluster->getMaxEdgeRect(dim),
+                (dim == 0) ? rectCluster->vXMax : rectCluster->vYMax));
+    }
+}
+
 TopologyConstraints::
 TopologyConstraints( 
     const vpsc::Dim axisDim,
     Nodes& nodes,
     Edges& edges,
+    cola::RootCluster* clusterHierarchy,
     vpsc::Variables& vs,
     vpsc::Constraints& cs
 ) : n(nodes.size())
   , nodes(nodes)
   , edges(edges) 
+  , clusters(clusterHierarchy)
   , vs(vs)
   , cs(cs)
 {
@@ -599,10 +635,23 @@ TopologyConstraints(
     dim = axisDim;
 
     vector<Event*> events;
+    
+    // We handle rectangular cluster non-overlap by creating two fake shapes 
+    // for each cluster with zero width for the left and right side cluster 
+    // edges.
+    Nodes clusterNodes;
+    recCreateTopologyClusterNodes(clusterHierarchy, axisDim, clusterNodes);
+    
+    // allNodes is a set of nodes representing topologyNodes and the clusters.
+    Nodes allNodes = nodes;
+    allNodes.insert(allNodes.end(), clusterNodes.begin(), clusterNodes.end());
 
-    // scan vertically to create horizontal topology constraints
-    // place Segment opening/closing and Rectangle opening/closing into event queue
-    for(Nodes::const_iterator i=nodes.begin(), e=nodes.end();i!=e;++i) {
+    // Scan vertically to create horizontal topology constraints.
+    // Place Segment opening/closing and Rectangle opening/closing into 
+    // the event queue
+    for (Nodes::const_iterator i = allNodes.begin(), e = allNodes.end();
+            i != e; ++i)
+    {
         Node* v=*i;
         NodeOpen *open=new NodeOpen(v);
         NodeClose *close=new NodeClose(v,open,cs);
@@ -629,6 +678,8 @@ TopologyConstraints(
     COLA_ASSERT(openNodes.empty());
     COLA_ASSERT(assertFeasible());
     FILE_LOG(logDEBUG)<<"TopologyConstraints::TopologyConstraints()... done.";
+    // Delete the temporary clusterNodes.
+    for_each(clusterNodes.begin(), clusterNodes.end(), delete_object());
 }
 
 TopologyConstraints::

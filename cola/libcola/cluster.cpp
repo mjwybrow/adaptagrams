@@ -4,7 +4,7 @@
  * libcola - A library providing force-directed network layout using the 
  *           stress-majorization method subject to separation constraints.
  *
- * Copyright (C) 2006-2008  Monash University
+ * Copyright (C) 2006-2010  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,6 +21,8 @@
  * write to the Free Software Foundation, Inc., 59 Temple Place, 
  * Suite 330, Boston, MA  02111-1307  USA
  *
+ * Author(s):  Tim Dwyer
+ *             Michael Wybrow
 */
 
 #include "libvpsc/assertions.h"
@@ -39,16 +41,25 @@ namespace cola {
         : varWeight(0.0001), 
           internalEdgeWeightFactor(1.), 
           bounds(-1,1,-1,1),
+          rectBuffer(0),
           desiredBoundsSet(false), 
-          desiredBounds(-1,1,-1,1),
-          border(7)
-      {}
+          desiredBounds(-1,1,-1,1)
+    {}
     void Cluster::setDesiredBounds(const vpsc::Rectangle db) {
         desiredBoundsSet=true;
         desiredBounds=db;
     }
     void Cluster::unsetDesiredBounds() {
         desiredBoundsSet=false;
+    }
+    void Cluster::setRectBuffers(const double buffer)
+    {
+        for (vector<Cluster*>::iterator i = clusters.begin(); 
+                i != clusters.end(); ++i)
+        {
+            (*i)->setRectBuffers(buffer);
+        }
+        this->rectBuffer = buffer;
     }
     void Cluster::computeBoundingRect(const vpsc::Rectangles& rs) {
         double minX=DBL_MAX, maxX=-DBL_MAX, minY=DBL_MAX, maxY=-DBL_MAX;
@@ -108,6 +119,60 @@ namespace cola {
             hullCorners[j]=hull[j]%4;
         }
     }
+    RectangularCluster::RectangularCluster()
+        : Cluster()
+    {
+        minEdgeRect[vpsc::XDIM] = NULL;
+        minEdgeRect[vpsc::YDIM] = NULL;
+        maxEdgeRect[vpsc::XDIM] = NULL;
+        maxEdgeRect[vpsc::YDIM] = NULL;
+    }
+    RectangularCluster::~RectangularCluster()
+    {
+        for (size_t dim = 0; dim < 2; ++dim)
+        {
+            if (minEdgeRect[dim])
+            {
+                delete minEdgeRect[dim];
+                minEdgeRect[dim] = NULL;
+            }
+            if (maxEdgeRect[dim])
+            {
+                delete maxEdgeRect[dim];
+                maxEdgeRect[dim] = NULL;
+            }
+        }
+    }
+    vpsc::Rectangle *RectangularCluster::getMinEdgeRect(const vpsc::Dim dim)
+    {
+        if (minEdgeRect[dim])
+        {
+            delete minEdgeRect[dim];
+        }
+        minEdgeRect[dim] = new vpsc::Rectangle(bounds);
+        
+        // Set the Min and Max positions to be the min minus an offset.
+        double edgePosition = minEdgeRect[dim]->getMinD(dim);
+        minEdgeRect[dim]->setMinD(dim, edgePosition - rectBuffer);
+        minEdgeRect[dim]->setMaxD(dim, edgePosition);
+        
+        return minEdgeRect[dim];
+    }
+    vpsc::Rectangle *RectangularCluster::getMaxEdgeRect(const vpsc::Dim dim)
+    {
+        if (maxEdgeRect[dim])
+        {
+            delete maxEdgeRect[dim];
+        }
+        maxEdgeRect[dim] = new vpsc::Rectangle(bounds);
+
+        // Set the Min and Max positions to be the max plus an offset.
+        double edgePosition = maxEdgeRect[dim]->getMaxD(dim);
+        maxEdgeRect[dim]->setMaxD(dim, edgePosition + rectBuffer);
+        maxEdgeRect[dim]->setMinD(dim, edgePosition);
+
+        return maxEdgeRect[dim];
+    }
     void RectangularCluster::computeBoundary(const vpsc::Rectangles& rs) {
         double xMin=DBL_MAX, xMax=-DBL_MAX, yMin=DBL_MAX, yMax=-DBL_MAX;
         for(unsigned i=0;i<nodes.size();i++) {
@@ -142,36 +207,6 @@ namespace cola {
             clusters[i]->updateBounds(dim);
         }
     }
-    vpsc::Rectangle Cluster::getMinRect( const vpsc::Dim dim, const vpsc::Rectangle& bounds) {
-        if(dim==vpsc::HORIZONTAL) {
-            length=bounds.width();
-            vMin=vXMin;
-            vMin->desiredPosition=bounds.getMinX();
-            return vpsc::Rectangle(bounds.getMinX()-border,
-                             bounds.getMinX()+border,
-                             bounds.getMinY(),bounds.getMaxY());
-        } else {
-            length=bounds.height();
-            vMin=vYMin;
-            vMin->desiredPosition=bounds.getMinY();
-            return vpsc::Rectangle(bounds.getMinX(),bounds.getMaxX(),
-                             bounds.getMinY()-border,
-                             bounds.getMinY()+border);
-        }
-    }
-    vpsc::Rectangle Cluster::getMaxRect( const vpsc::Dim dim, vpsc::Rectangle const & bounds) {
-        if(dim==vpsc::HORIZONTAL) {
-            vMax=vXMax;
-            vMax->desiredPosition=bounds.getMaxX();
-            return vpsc::Rectangle(bounds.getMaxX()-border, bounds.getMaxX()+border,
-                             bounds.getMinY(), bounds.getMaxY());
-        } else {
-            vMax=vYMax;
-            vMax->desiredPosition=bounds.getMaxY();
-            return vpsc::Rectangle(bounds.getMinX(), bounds.getMaxX(),
-                             bounds.getMaxY()-border, bounds.getMaxY()+border);
-        }
-    }
     void Cluster::createVars(
             const vpsc::Dim dim,
             const vpsc::Rectangles& rs, 
@@ -186,6 +221,7 @@ namespace cola {
                 desiredMinX = desiredBounds.getMinX();
                 desiredMaxX = desiredBounds.getMaxX();
             }
+            clusterVarId = vars.size(); 
             vars.push_back(vXMin=new vpsc::Variable(
                         vars.size(),desiredMinX,varWeight));
             vars.push_back(vXMax=new vpsc::Variable(
@@ -196,89 +232,13 @@ namespace cola {
                 desiredMinY = desiredBounds.getMinY();
                 desiredMaxY = desiredBounds.getMaxY();
             }
+            clusterVarId = vars.size(); 
             vars.push_back(vYMin=new vpsc::Variable(
                         vars.size(),desiredMinY,varWeight));
             vars.push_back(vYMax=new vpsc::Variable(
                         vars.size(),desiredMaxY,varWeight));
         }
     }
-    void Cluster::generateNonOverlapConstraints(
-            const vpsc::Dim dim,
-            const NonOverlapConstraintsMode nonOverlapConstraints,
-            const vpsc::Rectangles& rs,
-            const vpsc::Variables& vars,
-            vpsc::Constraints& cs) {
-        COLA_ASSERT(clusters.size()>0||nodes.size()>0);
-        for(unsigned i=0;i<clusters.size();i++) {
-            Cluster* c=clusters[i];
-            c->generateNonOverlapConstraints(dim,nonOverlapConstraints,rs,vars,cs);
-        }
-        // n is the number of dummy vars and rectangles that need to be
-        // considered in generating non-overlap constraints within this
-        // cluster.
-        // One var/rect for each node, one for each child cluster, one for
-        // the LHS of this cluster and one for the RHS.
-        unsigned n=nodes.size()+clusters.size()+2;
-        vpsc::Variables lvs(n);
-        vpsc::Rectangles lrs(n);
-        unsigned vctr=0;
-        for(vector<unsigned>::iterator i=nodes.begin();i!=nodes.end();i++) {
-            lvs[vctr]=vars[*i];
-            lrs[vctr]=rs[*i];
-            //printf("  adding var %d, w=%f, h=%f\n",*i,rs[*i]->width(),rs[*i]->height());
-            vctr++;
-        }
-        map<vpsc::Variable*, Cluster*> varClusterMap;
-        for(vector<Cluster*>::iterator i=clusters.begin();i!=clusters.end();i++) {
-            Cluster* c=*i;
-            lvs[vctr]=c->vMin;
-            varClusterMap[c->vMin]=c;
-            lrs[vctr]=&c->bounds;
-            //printf("  adding cluster %d, w=%f, h=%f\n",c->vMin->id,lrs[vctr]->width(),lrs[vctr]->height());
-            vctr++;
-        }
-        vpsc::Rectangle rMin=getMinRect(dim,bounds), 
-                  rMax=getMaxRect(dim,bounds);
-        lvs[vctr]=vMin;
-        lrs[vctr++]=&rMin;
-        lvs[vctr]=vMax;
-        lrs[vctr++]=&rMax;
-
-        //printf("Processing cluster: vars=%d,%d length=%f\n",vMin->id,vMax->id,length);
-        vector<vpsc::Constraint*> tmp_cs;
-        double hAdjust=0;
-        if(dim==vpsc::HORIZONTAL) {
-            hAdjust=1;
-            vpsc::Rectangle::setXBorder(0.001);
-            // use rs->size() rather than n because some of the variables may
-            // be dummy vars with no corresponding rectangle
-            generateXConstraints(lrs,lvs,tmp_cs,nonOverlapConstraints==Both?true:false); 
-            vpsc::Rectangle::setXBorder(0);
-        } else {
-            generateYConstraints(lrs,lvs,tmp_cs); 
-        }
-        for(unsigned i=0;i<tmp_cs.size();i++) {
-            vpsc::Constraint* co = tmp_cs[i];
-            // need to remap outgoing constraints of each cluster to maxVar of
-            // cluster.
-            map<vpsc::Variable*, Cluster*>::iterator f=varClusterMap.find(co->left);
-            //std::cout << *co << std::endl;
-            if(f!=varClusterMap.end()) {
-                Cluster* cl=f->second;
-                co->left=cl->vMax;
-                co->gap-=cl->length/2.-hAdjust;
-                //std::cout << "modified "<<*co << std::endl;
-            }
-            f=varClusterMap.find(co->right);
-            if(f!=varClusterMap.end()) {
-                Cluster* cl=f->second;
-                co->gap-=cl->length/2.-hAdjust;
-                //std::cout << "modified "<<*co << std::endl;
-            }
-            cs.push_back(co);
-        }
-    } 
-
     /** recursively delete all clusters */
     void Cluster::clear() {
         for_each(clusters.begin(),clusters.end(),delete_object());

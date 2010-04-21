@@ -3,7 +3,7 @@
  *
  * libtopology - Classes used in generating and managing topology constraints.
  *
- * Copyright (C) 2007-2008  Monash University
+ * Copyright (C) 2007-2010  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,6 +20,7 @@
  * write to the Free Software Foundation, Inc., 59 Temple Place, 
  * Suite 330, Boston, MA  02111-1307  USA
  *
+ * Author(s):  Tim Dwyer
 */
 
 #include "libvpsc/assertions.h"
@@ -31,6 +32,7 @@
 namespace topology {
 using namespace std;
 using namespace vpsc;
+using namespace cola;
 static const double DW=1e-4;
 static const double DW2=DW/2.0;
 static const double DEFAULT_WEIGHT = 1.0;
@@ -278,7 +280,8 @@ bool checkFinal(
  * non-overlap constraints may be appended to the end of this list.
  */
 void resizeAxis(const Rectangles& targets,
-        Nodes& nodes, Edges& edges, ResizeMap& resizes, 
+        Nodes& nodes, Edges& edges, 
+        RootCluster *clusters, ResizeMap& resizes, 
         Variables& vs, Constraints& cs) {
     COLA_ASSERT(vs.size()>=nodes.size());
 
@@ -308,7 +311,7 @@ void resizeAxis(const Rectangles& targets,
     COLA_ASSERT(assertNoSegmentRectIntersection(tn,edges));
 
     // move nodes and reroute
-    topology::TopologyConstraints t(dim,tn,edges,vs,cs);
+    topology::TopologyConstraints t(dim, tn, edges, clusters, vs, cs);
     COLA_ASSERT(checkDesired(tn,targets,resizes));
 #ifndef NDEBUG
     unsigned loopCtr=0;
@@ -364,8 +367,8 @@ struct CreateTargetRect {
  * @param yvs vertical vars
  * @param ycs vertical constraints
  */
-void applyResizes(Nodes& nodes, Edges& edges, ResizeMap& resizes,
-        Variables& xvs, Constraints& xcs, 
+void applyResizes(Nodes& nodes, Edges& edges, RootCluster *clusters, 
+        ResizeMap& resizes, Variables& xvs, Constraints& xcs, 
         Variables& yvs, Constraints& ycs) {
     // targets will hold an overlap free placement of the resized rectangles
     Rectangles targets(nodes.size());
@@ -375,9 +378,9 @@ void applyResizes(Nodes& nodes, Edges& edges, ResizeMap& resizes,
     transform(nodes.begin(),nodes.end(),targets.begin(),CreateTargetRect(resizes,fixed));
     removeoverlaps(targets,fixed);
     dim=vpsc::HORIZONTAL;
-    resizeAxis(targets, nodes, edges, resizes, xvs, xcs);
+    resizeAxis(targets, nodes, edges, clusters, resizes, xvs, xcs);
     dim=vpsc::VERTICAL;
-    resizeAxis(targets, nodes, edges, resizes, yvs, ycs);
+    resizeAxis(targets, nodes, edges, clusters, resizes, yvs, ycs);
     feach(targets,delete_object());
 }
 } // namespace topology

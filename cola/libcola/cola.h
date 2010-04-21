@@ -4,7 +4,7 @@
  * libcola - A library providing force-directed network layout using the 
  *           stress-majorization method subject to separation constraints.
  *
- * Copyright (C) 2006-2008  Monash University
+ * Copyright (C) 2006-2010  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -21,6 +21,8 @@
  * write to the Free Software Foundation, Inc., 59 Temple Place, 
  * Suite 330, Boston, MA  02111-1307  USA
  *
+ * Author(s):  Tim Dwyer
+ *             Michael Wybrow
 */
 
 #ifndef COLA_H
@@ -403,10 +405,11 @@ public:
      * @param rs bounding boxes of nodes passed in at their initial positions
      * @param es simple pair edges, giving indices of the start and end nodes
      * @param idealLength is a scalar modifier of ideal edge lengths in eLengths
-     * @param eLengths individual ideal lengths for edges, actual ideal length of the
-     * ith edge is idealLength*eLengths[i], if eLengths is NULL then just idealLength
-     * is used (ie eLengths[i] is assumed to be 1).
-     * @param done a test of convergence operation called at the end of each iteration
+     * @param eLengths individual ideal lengths for edges, actual ideal length 
+     *        of the ith edge is idealLength*eLengths[i], if eLengths is NULL 
+     *        then just idealLength is used (ie eLengths[i] is assumed to be 1).
+     * @param done a test of convergence operation called at the end of each 
+     *        iteration
      * @param preIteration an operation called before each iteration
      */
     ConstrainedFDLayout(
@@ -416,6 +419,14 @@ public:
         const double* eLengths=NULL,
         TestConvergence& done=defaultTest,
         PreIteration* preIteration=NULL);
+    ~ConstrainedFDLayout() {
+        for(unsigned i=0;i<n;i++) {
+            delete [] G[i];
+            delete [] D[i];
+        }
+        delete [] G;
+        delete [] D;
+    }
     void run(bool x=true, bool y=true)
             throw(InvalidVariableIndexException);
     void runOnce(bool x=true, bool y=true);
@@ -430,8 +441,10 @@ public:
             this->ccs = ccs;
         }
     }
-    void setOrGetTopology(std::vector<topology::Node*> *tnodes, 
-            std::vector<topology::Edge*> *routes, bool setTopology);
+    void setTopology(std::vector<topology::Node*> *tnodes, 
+            std::vector<topology::Edge*> *routes);
+    void getTopology(std::vector<topology::Node*> *tnodes, 
+            std::vector<topology::Edge*> *routes);
     void setDesiredPositions(std::vector<DesiredPosition>* desiredPositions) {
         this->desiredPositions = desiredPositions;
     }
@@ -452,14 +465,6 @@ public:
     }
     void makeFeasible(const bool nonOverlapConstraints,
             const bool preserveTopology = false);
-    ~ConstrainedFDLayout() {
-        for(unsigned i=0;i<n;i++) {
-            delete [] G[i];
-            delete [] D[i];
-        }
-        delete [] G;
-        delete [] D;
-    }
     double computeStress() const;
 private:
     unsigned n; // number of nodes
@@ -507,6 +512,7 @@ private:
     std::vector<DesiredPosition>* desiredPositions;
     
     RootCluster *clusterHierarchy;
+    double rectClusterBuffer;
 };
 
 /**
@@ -520,7 +526,11 @@ private:
 void dijkstra(const unsigned s, const unsigned n, double* d, 
               const std::vector<cola::Edge>& es, const double* eLengths);
 
+#if 0
 void removeClusterOverlapFast(RootCluster& clusterHierarchy, vpsc::Rectangles& rs, Locks& locks);
+#endif
+
+
 }
 
 #endif // COLA_H

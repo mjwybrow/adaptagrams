@@ -4,7 +4,7 @@
  * libcola - A library providing force-directed network layout using the 
  *           stress-majorization method subject to separation constraints.
  *
- * Copyright (C) 2006-2008  Monash University
+ * Copyright (C) 2006-2010  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -36,6 +36,7 @@
 #include "libvpsc/rectangle.h"
 #include "libtopology/topology_graph.h"
 #include "libtopology/topology_constraints.h"
+
 #include "commondefs.h"
 #include "cola.h"
 #include "shortest_paths.h"
@@ -95,7 +96,8 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles & rs,
       ccs(NULL),
       rungekutta(true),
       desiredPositions(NULL),
-      clusterHierarchy(NULL)
+      clusterHierarchy(NULL),
+      rectClusterBuffer(0)
 {
     topologyNodes.clear(),
     topologyRoutes.clear(),
@@ -375,7 +377,7 @@ void ConstrainedFDLayout::recGenerateClusterVariablesAndConstraints(
                 curr != cluster->clusters.end(); ++curr)
         {
             Cluster *cluster = *curr;
-            noc->addCluster(cluster->clusterVarId);
+            noc->addCluster(cluster->clusterVarId, cluster->rectBuffer);
         }
     }
 }
@@ -635,31 +637,6 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
     vpsc::Rectangle::setXBorder(0);
     vpsc::Rectangle::setYBorder(0);
 
-#if 0
-    if(mode==GraphLayout::FLOW||mode==GraphLayout::LAYERED) {
-        removeClusterOverlap(vpsc::HORIZONTAL, cola::Horizontal);
-    } else {
-        bool horiSatisfied = false, vertSatisfied = false;
-        int iteration = 0;
-        while (!horiSatisfied || !vertSatisfied)
-        {
-            iteration++;
-            horiSatisfied = removeClusterOverlap(vpsc::HORIZONTAL);
-            printf("%02d HORI -- %sSatisfied\n", iteration,
-                    (horiSatisfied) ? "" : "NOT ");
-            vertSatisfied = removeClusterOverlap(vpsc::VERTICAL);
-            printf("%02d VERT -- %sSatisfied\n", iteration,
-                    (vertSatisfied) ? "" : "NOT ");
-            if (iteration == 50)
-            {
-                break;
-            }
-        }
-    }
-    Rectangle::setXBorder(0);
-    Rectangle::setYBorder(0);
-#endif
-     
     // Set up topologyNodes:
     unsigned nodesTotal = boundingBoxes.size();
     topologyNodes = topology::Nodes(nodesTotal);
@@ -741,30 +718,39 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
 }
 
 
-void ConstrainedFDLayout::setOrGetTopology(std::vector<topology::Node*> *tnodes, 
-        std::vector<topology::Edge*> *routes, bool setTopology)
+void ConstrainedFDLayout::setTopology(std::vector<topology::Node*> *tnodes, 
+        std::vector<topology::Edge*> *routes)
 {
-    if (setTopology)
-    {
-        topologyNodes = *tnodes;
-        topologyRoutes = *routes;
-    }
-    else
-    {
-        *tnodes = topologyNodes;
-        *routes = topologyRoutes;
-    }
+    topologyNodes = *tnodes;
+    topologyRoutes = *routes;
+}
+
+
+void ConstrainedFDLayout::getTopology(std::vector<topology::Node*> *tnodes, 
+        std::vector<topology::Edge*> *routes)
+{
+    *tnodes = topologyNodes;
+    *routes = topologyRoutes;
 }
 
 
 static void setupVarsAndConstraints(unsigned n, const CompoundConstraints* ccs,
-        const vpsc::Dim dim, vpsc::Variables& vs, vpsc::Constraints& cs, 
+        const vpsc::Dim dim, std::vector<vpsc::Rectangle*>& boundingBoxes,
+        RootCluster *clusterHierarchy,
+        vpsc::Variables& vs, vpsc::Constraints& cs, 
         valarray<double> &coords) 
 {
     vs.resize(n);
     for (unsigned i = 0; i < n; ++i)
     {
         vs[i] = new vpsc::Variable(i, coords[i]);
+    }
+
+    if (clusterHierarchy)
+    {
+        // Create variables for clusters
+        clusterHierarchy->computeBoundingRect(boundingBoxes);
+        clusterHierarchy->createVars(dim,boundingBoxes,vs);
     }
 
     if(ccs) 
@@ -844,10 +830,12 @@ void ConstrainedFDLayout::handleResizes(const Resizes& resizeList) {
     }
     vpsc::Variables xvs, yvs;
     vpsc::Constraints xcs, ycs;
-    setupVarsAndConstraints(n, ccs, vpsc::HORIZONTAL, xvs, xcs, X);
-    setupVarsAndConstraints(n, ccs, vpsc::VERTICAL, yvs, ycs, Y);
-    topology::applyResizes(topologyNodes, topologyRoutes, resizes,
-            xvs, xcs, yvs, ycs);
+    setupVarsAndConstraints(n, ccs, vpsc::HORIZONTAL, boundingBoxes,
+            clusterHierarchy, xvs, xcs, X);
+    setupVarsAndConstraints(n, ccs, vpsc::VERTICAL, boundingBoxes,
+            clusterHierarchy, yvs, ycs, Y);
+    topology::applyResizes(topologyNodes, topologyRoutes, clusterHierarchy,
+            resizes, xvs, xcs, yvs, ycs);
     for_each(xvs.begin(), xvs.end(), delete_object());
     for_each(yvs.begin(), yvs.end(), delete_object());
     for_each(xcs.begin(), xcs.end(), delete_object());
@@ -865,7 +853,8 @@ void ConstrainedFDLayout::moveTo(const vpsc::Dim dim, Position& target) {
     valarray<double> &coords = (dim==vpsc::HORIZONTAL)?X:Y;
     vpsc::Variables vs;
     vpsc::Constraints cs;
-    setupVarsAndConstraints(n, ccs, dim, vs, cs, coords);
+    setupVarsAndConstraints(n, ccs, dim, boundingBoxes,
+            clusterHierarchy, vs, cs, coords);
     topology::DesiredPositions des;
     if(preIteration) {
         for(vector<Lock>::iterator l=preIteration->locks.begin();
@@ -882,7 +871,8 @@ void ConstrainedFDLayout::moveTo(const vpsc::Dim dim, Position& target) {
     setVariableDesiredPositions(vs,cs,des,coords);
     if(!topologyNodes.empty()) {
         topology::setNodeVariables(topologyNodes,vs);
-        topology::TopologyConstraints t(dim,topologyNodes,topologyRoutes,vs,cs);
+        topology::TopologyConstraints t(dim, topologyNodes, topologyRoutes,
+                clusterHierarchy, vs, cs);
         bool interrupted;
         int loopBreaker=100;
         do {
@@ -924,7 +914,9 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const vpsc::Dim dim, const
     vpsc::Variables vs;
     vpsc::Constraints cs;
     double stress;
-    setupVarsAndConstraints(n, ccs, dim, vs, cs, coords);
+    setupVarsAndConstraints(n, ccs, dim, boundingBoxes,
+            clusterHierarchy, vs, cs, coords);
+
     if(!topologyNodes.empty()) {
         FILE_LOG(logDEBUG1) << "applying topology preserving layout...";
         vpsc::Rectangle::setXBorder(0);
@@ -933,7 +925,8 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const vpsc::Dim dim, const
             vpsc::Rectangle::setXBorder(0);
         }
         topology::setNodeVariables(topologyNodes,vs);
-        topology::TopologyConstraints t(dim,topologyNodes,topologyRoutes,vs,cs);
+        topology::TopologyConstraints t(dim, topologyNodes, topologyRoutes,
+                clusterHierarchy, vs, cs);
         bool interrupted;
         int loopBreaker=100;
         SparseMap HMap(n);
