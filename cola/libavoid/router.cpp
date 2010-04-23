@@ -1588,6 +1588,23 @@ void Router::outputInstanceToSVG(std::string instanceName)
     }
     fprintf(fp, "    router->setOrthogonalNudgeDistance(%g);\n\n",
             orthogonalNudgeDistance());
+    ClusterRefList::reverse_iterator revClusterRefIt = clusterRefs.rbegin();
+    while (revClusterRefIt != clusterRefs.rend())
+    {
+        ClusterRef *cRef = *revClusterRefIt;
+        fprintf(fp, "    Polygon clusterPoly%u(%lu);\n", 
+                cRef->id(), (unsigned long)cRef->polygon().size());
+        for (size_t i = 0; i <cRef->polygon().size(); ++i)
+        {
+            fprintf(fp, "    clusterPoly%u.ps[%lu] = Point(%g, %g);\n", 
+                    cRef->id(), (unsigned long)i, cRef->polygon().at(i).x,
+                    cRef->polygon().at(i).y);
+        }
+        fprintf(fp, "    ClusterRef *clusterRef%u = new ClusterRef(router, "
+                "poly%u, %u);\n", cRef->id(), cRef->id(), cRef->id());
+        fprintf(fp, "    router->addCluster(clusterRef%u);\n\n", cRef->id());
+        ++revClusterRefIt;
+    }
     ShapeRefList::reverse_iterator revShapeRefIt = shapeRefs.rbegin();
     while (revShapeRefIt != shapeRefs.rend())
     {
@@ -1639,6 +1656,36 @@ void Router::outputInstanceToSVG(std::string instanceName)
     fprintf(fp, "-->\n");
 
     
+    fprintf(fp, "<g inkscape:groupmode=\"layer\" "
+            "inkscape:label=\"Clusters\">\n");
+    revClusterRefIt = clusterRefs.rbegin();
+    while (revClusterRefIt != clusterRefs.rend())
+    {
+        ClusterRef *cRef = *revClusterRefIt;
+        fprintf(fp, "<path id=\"cluster-%u\" style=\"stroke-width: 1px; "
+                "stroke: black; fill: green; fill-opacity: 0.1;\" d=\"", 
+                cRef->id());
+        for (size_t i = 0; i < cRef->polygon().size(); ++i)
+        {
+            fprintf(fp, "%c %g,%g ", ((i == 0) ? 'M' : 'L'), 
+                    cRef->polygon().at(i).x, cRef->polygon().at(i).y);
+        }
+        fprintf(fp, "Z\" />\n");
+
+        fprintf(fp, "<path id=\"cluster-%u\" style=\"stroke-width: 1px; "
+                "stroke: black; fill: green; fill-opacity: 0.1;\" d=\"", 
+                cRef->id());
+        for (size_t i = 0; i < cRef->rectangularPolygon().size(); ++i)
+        {
+            fprintf(fp, "%c %g,%g ", ((i == 0) ? 'M' : 'L'), 
+                    cRef->rectangularPolygon().at(i).x, 
+                    cRef->rectangularPolygon().at(i).y);
+        }
+        fprintf(fp, "Z\" />\n");
+        ++revClusterRefIt;
+    }
+    fprintf(fp, "</g>\n");
+
     fprintf(fp, "<g inkscape:groupmode=\"layer\" "
             "inkscape:label=\"ShapesPoly\">\n");
     ShapeRefList::iterator shRefIt = shapeRefs.begin();
