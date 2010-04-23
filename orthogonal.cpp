@@ -97,18 +97,27 @@ class ShiftSegment
         {
             return connRef->displayRoute().ps[indexHigh];
         }
+        double nudgeDistance(void) const
+        {
+            return connRef->router()->orthogonalNudgeDistance();
+        }
         const int fixedOrder(bool& isFixed) const
         {
-            if (fixed)
+            double nudgeDist = nudgeDistance();
+            double pos = lowPoint()[dimension];
+            bool minLimited = ((pos - minSpaceLimit) < nudgeDist);
+            bool maxLimited = ((maxSpaceLimit - pos) < nudgeDist);
+            
+            if (fixed || (minLimited && maxLimited))
             {
                 isFixed = true;
                 return 0;
             }
-            if (lowC())
+            else if (minLimited)
             {
                 return 1;
             }
-            else if (highC())
+            else if (maxLimited)
             {
                 return -1;
             }
@@ -2179,7 +2188,8 @@ class CmpLineOrder
             // XXX: possibly this should be fabs(a - b) <= sepDistance),
             //      so we consider things at effectively the same position
             //      to be ordered based on their order and fixedOrder.
-            if (lhsLow[dimension] != rhsLow[dimension])
+            if (fabs(lhsLow[dimension] - rhsLow[dimension]) > 
+                    lhs.nudgeDistance())
             {
                 return lhsLow[dimension] < rhsLow[dimension];
             }
@@ -2237,7 +2247,7 @@ class CmpLineOrder
 
 
 // We can't use the normal sort algorithm for lists since it is not possible 
-// to comapre all elements, but there will be an ordering defined between 
+// to compare all elements, but there will be an ordering defined between 
 // most of the elements.  Hence we order these, using insertion sort, and 
 // the case of them not being able to be compared is handled by not setting 
 // up any constraints between such segments when doing the nudging.
@@ -2397,9 +2407,11 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             currSegment->variable = new Variable(varID, idealPos, weight);
             vs.push_back(currSegment->variable);
             size_t index = vs.size() - 1;
-            //printf("line  %.15f  pos: %g   min: %g  max: %g\n",
-            //        lowPt[dimension], idealPos, currSegment->minSpaceLimit,
-            //        currSegment->maxSpaceLimit);
+            //printf("line  %.15f  dim: %d pos: %g   min: %g  max: %g\n"
+            //       "minEndPt: %g  maxEndPt: %g\n",
+            //        lowPt[dimension], (int) dimension, idealPos, 
+            //        currSegment->minSpaceLimit, currSegment->maxSpaceLimit,
+            //        lowPt[!dimension], currSegment->highPoint()[!dimension]);
 
             // Constrain position in relation to previously seen segments,
             // if necessary (i.e. when they could overlap).
