@@ -649,7 +649,7 @@ TopologyConstraints(
     // for each cluster with zero width for the left and right side cluster 
     // edges.
     Nodes clusterNodes;
-    //recCreateTopologyClusterNodes(clusterHierarchy, axisDim, clusterNodes);
+    recCreateTopologyClusterNodes(clusterHierarchy, axisDim, clusterNodes);
     
     // allNodes is a set of nodes representing topologyNodes and the clusters.
     Nodes allNodes = nodes;
