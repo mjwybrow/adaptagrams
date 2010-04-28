@@ -116,8 +116,7 @@ void BendConstraint::satisfy() {
     s->createStraightConstraint(node, pos);
     FILE_LOG(logDEBUG)<<"BendConstraint::satisfy()...done.";
 }
-string BendConstraint::
-toString() const {
+string BendConstraint::toString() const {
     stringstream s;
     s << "BendConstraint: bendPoint=(" << bendPoint->posX() << "," << bendPoint->posY() << ")";
     return s.str();

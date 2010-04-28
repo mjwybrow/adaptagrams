@@ -746,7 +746,7 @@ static void setupVarsAndConstraints(unsigned n, const CompoundConstraints* ccs,
         vs[i] = new vpsc::Variable(i, coords[i]);
     }
 
-    if (clusterHierarchy)
+    if (clusterHierarchy && !clusterHierarchy->clusters.empty())
     {
         // Create variables for clusters
         clusterHierarchy->computeBoundingRect(boundingBoxes);

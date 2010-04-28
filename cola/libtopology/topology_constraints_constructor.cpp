@@ -49,20 +49,7 @@ vpsc::Dim dim;
 struct SegmentOpen;
 struct NodeOpen;
 typedef list<SegmentOpen*> OpenSegments;
-/**
- * open segments are scanned on node openings and closings to create
- * topology constraints between the node and each open segment
- */
-OpenSegments openSegments; 
 typedef map<double,NodeOpen*> OpenNodes;
-/** 
- * open nodes are stored in a map keyed on position along scan line.
- * We use this to find neighbouring rectangles at a NodeClose event
- * so that we can generate non-overlap constraints between the closing
- * node and its immediate neighbours.
- * Note that this assumes no overlaps between rectangles.
- */
-OpenNodes openNodes;
 
 /**
  * The scan algorithm works by processing events in the order they 
@@ -79,8 +66,8 @@ struct Event {
      * process is called for each event in pos order as part of the scan
      * algorithm to generate topology constraints.
      */
-    virtual void process()=0;
-    virtual string toString()=0;
+    virtual void process(OpenNodes& openNodes, OpenSegments& openSegments) = 0;
+    virtual string toString() = 0;
 };
 /**
  * There is a NodeEvent for the top and bottom (or left and right sides depending on
@@ -96,7 +83,7 @@ struct NodeEvent : Event {
      * Topology constraints are generated for the opening and closing 
      * edges of each node and every open segment at pos.
      */
-    void createStraightConstraints(
+    void createStraightConstraints(OpenSegments& openSegments,
             const Node* leftNeighbour, const Node* rightNeighbour);
 };
 /**
@@ -110,7 +97,8 @@ struct NodeOpen : NodeEvent {
     NodeOpen(Node *node) 
         : NodeEvent(true,node->rect->getMinD(!dim),node) {
     }
-    void process() {
+    void process(OpenNodes& openNodes, OpenSegments& openSegments)
+    {
         FILE_LOG(logDEBUG) << "NodeOpen::process()";
         pair<OpenNodes::iterator,bool> r =
             openNodes.insert(make_pair(node->rect->getCentreD(dim),this));
@@ -133,7 +121,7 @@ struct NodeOpen : NodeEvent {
         if((++right)!=openNodes.end()) {
             rightNeighbour=right->second->node;
         }
-        createStraightConstraints(leftNeighbour,rightNeighbour);
+        createStraightConstraints(openSegments, leftNeighbour,rightNeighbour);
     }
     string toString() {
         stringstream s;
@@ -176,7 +164,8 @@ struct NodeClose : NodeEvent {
      * remove opening from openNodes, cleanup, and generate
      * TopologyConstraints.
      */
-    void process() {
+    void process(OpenNodes& openNodes, OpenSegments& openSegments)
+    {
         FILE_LOG(logDEBUG) << "NodeClose::process()";
         OpenNodes::iterator nodePos=opening->openListIndex;
         OpenNodes::iterator right=nodePos, left=nodePos;
@@ -193,7 +182,7 @@ struct NodeClose : NodeEvent {
         delete opening;
         // create StraightConstraint from scanpos in every open edge 
         // visible before left and right from node
-        createStraightConstraints(leftNeighbour,rightNeighbour);
+        createStraightConstraints(openSegments, leftNeighbour,rightNeighbour);
         delete this;
     }
     string toString() {
@@ -219,7 +208,10 @@ struct SegmentOpen : SegmentEvent {
     SegmentOpen(Segment *s) 
         : SegmentEvent(true,s->getMin(),s) {}
     /// add to list of open segments
-    void process() {
+    void process(OpenNodes& openNodes, OpenSegments& openSegments)
+    {
+        openNodes; // prevent unused parameter warning
+
         openListIndex=openSegments.insert(openSegments.end(),this);
     }
     string toString() {
@@ -239,7 +231,10 @@ struct SegmentClose : SegmentEvent {
     {
         COLA_ASSERT(opening->s==s);
     }
-    void process() {
+    void process(OpenNodes& openNodes, OpenSegments& openSegments)
+    {
+        openNodes; // prevent unused parameter warning
+
         OpenSegments::iterator i=openSegments.erase(opening->openListIndex);
         delete opening;
         delete this;
@@ -254,7 +249,7 @@ struct SegmentClose : SegmentEvent {
  * Create topology constraint from scanpos in every open segment to node.
  * Segments must not be on-top-of rectangles.
  */
-void NodeEvent::createStraightConstraints(
+void NodeEvent::createStraightConstraints(OpenSegments& openSegments,
         const Node* leftNeighbour, const Node* rightNeighbour) {
     FILE_LOG(logDEBUG)<<"NodeEvent::createStraightConstraints():node->id="<<node->id<<" pos="<<pos;
     const double 
@@ -625,6 +620,20 @@ TopologyConstraints(
   , vs(vs)
   , cs(cs)
 {
+    /**
+     * open segments are scanned on node openings and closings to create
+     * topology constraints between the node and each open segment
+     */
+    OpenSegments openSegments;
+    /**
+     * open nodes are stored in a map keyed on position along scan line.
+     * We use this to find neighbouring rectangles at a NodeClose event
+     * so that we can generate non-overlap constraints between the closing
+     * node and its immediate neighbours.
+     * Note that this assumes no overlaps between rectangles.
+     */
+    OpenNodes openNodes;
+
     FILELog::ReportingLevel() = logERROR;
     //FILELog::ReportingLevel() = logDEBUG1;
     FILE_LOG(logDEBUG)<<"TopologyConstraints::TopologyConstraints():dim="<<axisDim;
@@ -640,7 +649,7 @@ TopologyConstraints(
     // for each cluster with zero width for the left and right side cluster 
     // edges.
     Nodes clusterNodes;
-    recCreateTopologyClusterNodes(clusterHierarchy, axisDim, clusterNodes);
+    //recCreateTopologyClusterNodes(clusterHierarchy, axisDim, clusterNodes);
     
     // allNodes is a set of nodes representing topologyNodes and the clusters.
     Nodes allNodes = nodes;
@@ -673,7 +682,11 @@ TopologyConstraints(
     }
     // process events in top to bottom order
     sort(events.begin(),events.end(),CompareEvents());
-    for_each(events.begin(),events.end(),mem_fun(&Event::process));
+    for (vector<Event *>::iterator curr = events.begin();
+            curr != events.end(); ++curr)
+    {
+        (*curr)->process(openNodes, openSegments);
+    }
     COLA_ASSERT(openSegments.empty());
     COLA_ASSERT(openNodes.empty());
     COLA_ASSERT(assertFeasible());
