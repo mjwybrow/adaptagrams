@@ -2185,9 +2185,9 @@ class CmpLineOrder
             COLA_ASSERT(lhsLow[dimension] == lhsHigh[dimension]);
             COLA_ASSERT(rhsLow[dimension] == rhsHigh[dimension]);
 
-            // XXX: possibly this should be fabs(a - b) <= sepDistance),
-            //      so we consider things at effectively the same position
-            //      to be ordered based on their order and fixedOrder.
+            // We consider things at effectively the same position to 
+            // be ordered based on their order and fixedOrder, so only 
+            // compare segments further apart than the nudgeDistance.
             if (fabs(lhsLow[dimension] - rhsLow[dimension]) > 
                     lhs.nudgeDistance())
             {
