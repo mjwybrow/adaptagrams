@@ -12,8 +12,8 @@ else
 	LINK = g++ -shared -o libcolajni.so
   else 
     ifeq ($(OSNAME),MINGW32)
-	JAVA_INCLUDE = -I/d/Programme/Java/jdk1.6.0_13/include \
-		       -I/d/Programme/Java/jdk1.6.0_13/include/win32
+	JAVA_INCLUDE = -I/c/Programme/Java/jdk1.6.0_18/include \
+		       -I/c/Programme/Java/jdk1.6.0_18/include/win32
 	LINK = g++ -Wl,--add-stdcall-alias -shared -o cola.dll
     endif
   endif
