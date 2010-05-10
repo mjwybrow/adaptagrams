@@ -210,7 +210,7 @@ struct SegmentOpen : SegmentEvent {
     /// add to list of open segments
     void process(OpenNodes& openNodes, OpenSegments& openSegments)
     {
-        openNodes; // prevent unused parameter warning
+        COLA_UNUSED(openNodes);
 
         openListIndex=openSegments.insert(openSegments.end(),this);
     }
@@ -233,7 +233,7 @@ struct SegmentClose : SegmentEvent {
     }
     void process(OpenNodes& openNodes, OpenSegments& openSegments)
     {
-        openNodes; // prevent unused parameter warning
+        COLA_UNUSED(openNodes);
 
         OpenSegments::iterator i=openSegments.erase(opening->openListIndex);
         delete opening;

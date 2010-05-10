@@ -637,12 +637,15 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
     vpsc::Rectangle::setXBorder(0);
     vpsc::Rectangle::setYBorder(0);
 
-    // Set up topologyNodes:
-    unsigned nodesTotal = boundingBoxes.size();
-    topologyNodes = topology::Nodes(nodesTotal);
-    for (unsigned id = 0; id < nodesTotal; ++id)
+    if (nonOverlapConstraints)
     {
-        topologyNodes[id] = new topology::Node(id, boundingBoxes[id]);
+        // Set up topologyNodes:
+        unsigned nodesTotal = boundingBoxes.size();
+        topologyNodes = topology::Nodes(nodesTotal);
+        for (unsigned id = 0; id < nodesTotal; ++id)
+        {
+            topologyNodes[id] = new topology::Node(id, boundingBoxes[id]);
+        }
     }
 
     // Cleanup.
@@ -789,7 +792,11 @@ void project(vpsc::Variables& vs, vpsc::Constraints& cs, valarray<double>& coord
         coords[i]=vs[i]->finalPosition;
     }
 }
-void setVariableDesiredPositions(vpsc::Variables& vs, vpsc::Constraints& cs, const topology::DesiredPositions& des, valarray<double>& coords) {
+void setVariableDesiredPositions(vpsc::Variables& vs, vpsc::Constraints& cs,
+        const topology::DesiredPositions& des, valarray<double>& coords)
+{
+    COLA_UNUSED(cs);
+
     unsigned n=coords.size();
     COLA_ASSERT(vs.size()>=n);
     for(unsigned i=0;i<n;++i) {
@@ -996,7 +1003,10 @@ double ConstrainedFDLayout::applyDescentVector(
         valarray<double> &coords,
         const double oldStress,
         double stepsize
-        ) {
+        )
+{
+    COLA_UNUSED(oldStress);
+
     COLA_ASSERT(d.size()==oldCoords.size());
     COLA_ASSERT(d.size()==coords.size());
     while(fabs(stepsize)>0.00000000001) {

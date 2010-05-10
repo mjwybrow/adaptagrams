@@ -78,6 +78,8 @@ ClusterContainmentConstraints::ClusterContainmentConstraints(Cluster *cluster,
 void ClusterContainmentConstraints::generateVariables(const vpsc::Dim dim,
         vpsc::Variables& vars) 
 {
+    COLA_UNUSED(dim);
+    COLA_UNUSED(vars);
 }
 
 
@@ -153,6 +155,9 @@ void ClusterContainmentConstraints::markCurrSubConstraintAsActive(
 void ClusterContainmentConstraints::generateSeparationConstraints(
         const vpsc::Dim dim, vpsc::Variables& vs, vpsc::Constraints& cs) 
 {
+    COLA_UNUSED(dim);
+    COLA_UNUSED(vs);
+    COLA_UNUSED(cs);
 }
 
 

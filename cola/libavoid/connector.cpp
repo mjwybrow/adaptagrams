@@ -1924,7 +1924,7 @@ void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
                 
                 // Crossing shouldn't be at an endpoint.
                 COLA_ASSERT(cIndex >= 2);
-                COLA_ASSERT(polyIsConn && (j >= 2));
+                COLA_ASSERT(!polyIsConn || (j >= 2));
 
                 Avoid::Point& b0 = poly.ps[(j - 2 + poly_size) % poly_size];
                 Avoid::Point& a0 = conn.ps[cIndex - 2];

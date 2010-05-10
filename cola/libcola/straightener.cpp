@@ -733,7 +733,10 @@ namespace straightener {
         }
         return strength*stress;
     }
-    double Straightener::computeStress2(std::valarray<double> const &coords) {
+    double Straightener::computeStress2(std::valarray<double> const &coords)
+    {
+        COLA_UNUSED(coords);
+
         double stress=0;
         for(unsigned i=0;i<edges.size();i++) {
             double d = edges[i]->idealLength;

@@ -150,6 +150,8 @@ void NonOverlapConstraints::addCluster(unsigned id, const double rectPadding)
 void NonOverlapConstraints::generateVariables(const vpsc::Dim dim,
         vpsc::Variables& vars) 
 {
+    COLA_UNUSED(dim);
+    COLA_UNUSED(vars);
 }
 
 
@@ -389,6 +391,9 @@ void NonOverlapConstraints::markAllSubConstraintsAsInactive(void)
 void NonOverlapConstraints::generateSeparationConstraints(
         const vpsc::Dim dim, vpsc::Variables& vs, vpsc::Constraints& cs) 
 {
+    COLA_UNUSED(dim);
+    COLA_UNUSED(vs);
+    COLA_UNUSED(cs);
 }
 
 

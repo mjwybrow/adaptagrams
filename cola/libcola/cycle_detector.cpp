@@ -337,12 +337,16 @@ bool CycleDetector::find_node(std::vector<Node *> *& list, unsigned k)  {
   return false;
 }
 
-pair< bool, vector<unsigned>::iterator > CycleDetector::find_node(std::vector<unsigned>& list, unsigned k)  {
-  for (vector<unsigned>::iterator ti = traverse.begin(); ti != traverse.end(); ti++)  {
-    if (*ti == k)  { return pair< bool, vector<unsigned>::iterator >(true, ti); }
-  }
+pair< bool, vector<unsigned>::iterator > CycleDetector::find_node(
+        std::vector<unsigned>& list, unsigned k)
+{
+    COLA_UNUSED(list);
 
-  return pair< bool, vector<unsigned>::iterator >(false, traverse.end()); 
+    for (vector<unsigned>::iterator ti = traverse.begin(); ti != traverse.end(); ti++)  {
+         if (*ti == k)  { return pair< bool, vector<unsigned>::iterator >(true, ti); }
+    }
+
+    return pair< bool, vector<unsigned>::iterator >(false, traverse.end());
 }
 
 vector<TimeStamp> *CycleDetector::getTimeStamps()  {

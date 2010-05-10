@@ -191,6 +191,7 @@ void ConstrainedMajorizationLayout::newton(
         valarray<double>& coords,
         valarray<double> const & startCoords)
 {
+    COLA_UNUSED(startCoords);
     /* compute the vector b */
     /* multiply on-the-fly with distance-based laplacian */
     valarray<double> b(n);

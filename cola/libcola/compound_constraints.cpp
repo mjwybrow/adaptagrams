@@ -343,6 +343,9 @@ SeparationConstraint::SeparationConstraint(const vpsc::Dim dim,
 void SeparationConstraint::generateVariables(const vpsc::Dim dim, 
         vpsc::Variables& vars) 
 {
+    COLA_UNUSED(dim);
+    COLA_UNUSED(vars);
+
     // No additional variables are required!
 }
 
@@ -430,6 +433,9 @@ OrthogonalEdgeConstraint::OrthogonalEdgeConstraint(const vpsc::Dim dim,
 void OrthogonalEdgeConstraint::generateVariables(const vpsc::Dim dim, 
         vpsc::Variables& vars) 
 {
+    COLA_UNUSED(dim);
+    COLA_UNUSED(vars);
+
     // No additional variables are required!
 }
 
@@ -438,6 +444,8 @@ SubConstraintAlternatives
 OrthogonalEdgeConstraint::getCurrSubConstraintAlternatives(
         vpsc::Variables vs[])
 {
+    COLA_UNUSED(vs);
+
     // XXX: What to do here?
     return SubConstraintAlternatives();
 }
@@ -559,6 +567,9 @@ void MultiSeparationConstraint::addAlignmentPair(AlignmentConstraint *ac1,
 void MultiSeparationConstraint::generateVariables(const vpsc::Dim dim, 
         vpsc::Variables& vars)
 {
+    COLA_UNUSED(dim);
+    COLA_UNUSED(vars);
+
     // No additional variables are required!
 }
 
@@ -567,6 +578,8 @@ SubConstraintAlternatives
 MultiSeparationConstraint::getCurrSubConstraintAlternatives(
         vpsc::Variables vs[])
 {
+    COLA_UNUSED(vs);
+
     SubConstraintAlternatives alternatives;
 
     AlignmentPair *info = static_cast<AlignmentPair *> 
@@ -595,6 +608,8 @@ void MultiSeparationConstraint::setSeparation(double sep)
 void MultiSeparationConstraint::generateSeparationConstraints(
         const vpsc::Dim dim, vpsc::Variables& vs, vpsc::Constraints& gcs) 
 {
+    COLA_UNUSED(vs);
+
     if (dim == _primaryDim)
     {
         for (SubConstraintInfoList::iterator o = _subConstraintInfo.begin();
@@ -636,6 +651,9 @@ void DistributionConstraint::addAlignmentPair(AlignmentConstraint *ac1,
 void DistributionConstraint::generateVariables(const vpsc::Dim dim, 
         vpsc::Variables& vars)
 {
+    COLA_UNUSED(dim);
+    COLA_UNUSED(vars);
+
     // No additional variables are required!
 }
 
@@ -649,6 +667,8 @@ void DistributionConstraint::setSeparation(double sep)
 SubConstraintAlternatives 
 DistributionConstraint::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
 {
+    COLA_UNUSED(vs);
+
     SubConstraintAlternatives alternatives;
 
     AlignmentPair *info = static_cast<AlignmentPair *>
@@ -670,6 +690,8 @@ DistributionConstraint::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
 void DistributionConstraint::generateSeparationConstraints(
         const vpsc::Dim dim, vpsc::Variables& vars, vpsc::Constraints& gcs) 
 {
+    COLA_UNUSED(vars);
+
     if (dim == _primaryDim)
     {
         cs.clear();
@@ -750,6 +772,8 @@ PageBoundaryConstraints::PageBoundaryConstraints(double lBoundary,
 SubConstraintAlternatives 
 PageBoundaryConstraints::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
 {
+    COLA_UNUSED(vs);
+
     // Page boundary constraints do not need to be evaluated at the
     // time of makeFeasible, so we return an empty list here.
     return SubConstraintAlternatives();
@@ -928,6 +952,8 @@ unsigned int CompoundConstraint::priority(void) const
 
 void CompoundConstraint::printCreationCode(FILE *fp) const
 {
+    COLA_UNUSED(fp);
+
     // Do nothing.  Subclasses can implement this.
 }
 

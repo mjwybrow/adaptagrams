@@ -343,8 +343,7 @@ namespace topology {
     struct NoOp {
         void operator() (T t)
         {
-            // Suppress unused parameter warning.
-            (void) t;
+            COLA_UNUSED(t);
         }
     };
     /**
