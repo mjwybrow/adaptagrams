@@ -264,8 +264,12 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
                 cl != router->clusterRefs.end(); ++cl)
         {
             bool isOrthogonal = (lineRef->routingType() == ConnType_Orthogonal);
-            Polygon cBoundary = (isOrthogonal) ? 
+            Polygon cBoundary = (isOrthogonal) ?
                     (*cl)->rectangularPolygon() : (*cl)->polygon();
+            if (cBoundary.size() <= 2)
+            {
+                continue;
+            }
             COLA_ASSERT(cBoundary.ps[0] != cBoundary.ps[cBoundary.size() - 1]);
             for (size_t j = 0; j < cBoundary.size(); ++j)
             {
@@ -768,7 +772,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
                     if ((Node.inf == ati.inf) && 
                             (DONE[Node.prevIndex].inf == DONE[ati.prevIndex].inf))
                     {
-                        COLA_ASSERT(Node.g >= ati.g);
+                        COLA_ASSERT(Node.g >= (ati.g - 10e-10));
                         // This node is already in DONE, and the current 
                         // node also has a higher g-value, so we don't
                         // need to consider this node.
