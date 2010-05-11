@@ -1893,13 +1893,18 @@ static void buildOrthogonalChannelInfo(Router *router,
                 // It's a segment in the dimension we are processing,
                 size_t indexLow = i - 1;
                 size_t indexHigh = i;
-                if (displayRoute.ps[i - 1][altDim] > displayRoute.ps[i][altDim])
+                if (displayRoute.ps[i - 1][altDim] == 
+                        displayRoute.ps[i][altDim])
+                {
+                    // This is a zero length segment, so ignore it.
+                    continue;
+                }
+                else if (displayRoute.ps[i - 1][altDim] > 
+                        displayRoute.ps[i][altDim])
                 {
                     indexLow = i;
                     indexHigh = i - 1;
                 }
-                COLA_ASSERT(displayRoute.at(indexLow)[altDim] < 
-                        displayRoute.at(indexHigh)[altDim]);
 
                 if ((i == 1) || ((i + 1) == displayRoute.size()))
                 {

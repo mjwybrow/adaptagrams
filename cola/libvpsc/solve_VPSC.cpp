@@ -306,7 +306,7 @@ bool IncSolver::satisfy() {
             ofstream f(LOGFILE,ios::app);
             f<<s.str()<<endl;
 #endif
-            throw s.str().c_str();
+            throw (char *) s.str().c_str();
         }
     }
 #ifdef LIBVPSC_LOGGING
