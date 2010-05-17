@@ -39,18 +39,18 @@ namespace cola {
 // NonOverlapConstraints code
 //-----------------------------------------------------------------------------
 
-class ShapeOffsets : public SubConstraintInfo 
+class OverlapShapeOffsets : public SubConstraintInfo
 {
     public:
-        ShapeOffsets(unsigned ind, double xOffset, double yOffset) :
-            SubConstraintInfo(ind),
-            isCluster(false),
-            rectPadding(0)
+        OverlapShapeOffsets(unsigned ind, double xOffset, double yOffset)
+            : SubConstraintInfo(ind),
+              isCluster(false),
+              rectPadding(0)
         {
             halfDim[0] = xOffset;
             halfDim[1] = yOffset;
         }
-        ShapeOffsets(unsigned ind, const double padding)
+        OverlapShapeOffsets(unsigned ind, const double padding)
             : SubConstraintInfo(ind),
               isCluster(true),
               rectPadding(padding)
@@ -58,9 +58,10 @@ class ShapeOffsets : public SubConstraintInfo
             halfDim[0] = 0;
             halfDim[1] = 0;
         }
-
-        ShapeOffsets() :
-            SubConstraintInfo(1000000)
+        OverlapShapeOffsets()
+            : SubConstraintInfo(1000000),
+              isCluster(false),
+              rectPadding(0)
         {
         }
         bool isCluster;
@@ -122,28 +123,28 @@ NonOverlapConstraints::NonOverlapConstraints(unsigned int priority)
 void NonOverlapConstraints::addShape(unsigned id, double halfW, double halfH)
 {
     // Setup pairInfos for all other shapes. 
-    for (std::map<unsigned, ShapeOffsets>::iterator curr = shapeOffsets.begin();
-            curr != shapeOffsets.end(); ++curr)
+    for (std::map<unsigned, OverlapShapeOffsets>::iterator curr =
+            shapeOffsets.begin(); curr != shapeOffsets.end(); ++curr)
     {
         unsigned otherId = curr->first;
         pairInfoList.push_back(ShapePairInfo(otherId, id));
     }
-    
-    shapeOffsets[id] = ShapeOffsets(id, halfW, halfH);
+
+    shapeOffsets[id] = OverlapShapeOffsets(id, halfW, halfH);
 }
 
 
 void NonOverlapConstraints::addCluster(unsigned id, const double rectPadding)
 {
     // Setup pairInfos for all other shapes. 
-    for (std::map<unsigned, ShapeOffsets>::iterator curr = shapeOffsets.begin();
-            curr != shapeOffsets.end(); ++curr)
+    for (std::map<unsigned, OverlapShapeOffsets>::iterator curr =
+            shapeOffsets.begin(); curr != shapeOffsets.end(); ++curr)
     {
         unsigned otherId = curr->first;
         pairInfoList.push_back(ShapePairInfo(otherId, id));
     }
     
-    shapeOffsets[id] = ShapeOffsets(id, rectPadding);
+    shapeOffsets[id] = OverlapShapeOffsets(id, rectPadding);
 }
 
 
@@ -162,8 +163,8 @@ void NonOverlapConstraints::computeAndSortOverlap(vpsc::Variables vs[])
     {
         ShapePairInfo& info = static_cast<ShapePairInfo&> (*curr);
 
-        ShapeOffsets& shape1 = shapeOffsets[info.varIndex1];
-        ShapeOffsets& shape2 = shapeOffsets[info.varIndex2];
+        OverlapShapeOffsets& shape1 = shapeOffsets[info.varIndex1];
+        OverlapShapeOffsets& shape2 = shapeOffsets[info.varIndex2];
 
         double xPos1 = vs[0][info.varIndex1]->finalPosition;
         double xPos2 = vs[0][info.varIndex2]->finalPosition;
@@ -177,7 +178,9 @@ void NonOverlapConstraints::computeAndSortOverlap(vpsc::Variables vs[])
 
         if (shape1.isCluster)
         {
+            COLA_ASSERT(info.varIndex1 + 1 < vs[0].size());
             right1 = vs[0][info.varIndex1 + 1]->finalPosition;
+            COLA_ASSERT(info.varIndex1 + 1 < vs[1].size());
             top1   = vs[1][info.varIndex1 + 1]->finalPosition;
         }
 
@@ -188,7 +191,9 @@ void NonOverlapConstraints::computeAndSortOverlap(vpsc::Variables vs[])
 
         if (shape2.isCluster)
         {
+            COLA_ASSERT(info.varIndex2 + 1 < vs[0].size());
             right2 = vs[0][info.varIndex2 + 1]->finalPosition;
+            COLA_ASSERT(info.varIndex2 + 1 < vs[1].size());
             top2   = vs[1][info.varIndex2 + 1]->finalPosition;
         }
 
@@ -276,8 +281,8 @@ NonOverlapConstraints::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
         _currSubConstraintIndex = pairInfoList.size();
         return alternatives;
     }
-    ShapeOffsets& shape1 = shapeOffsets[info.varIndex1];
-    ShapeOffsets& shape2 = shapeOffsets[info.varIndex2];
+    OverlapShapeOffsets& shape1 = shapeOffsets[info.varIndex1];
+    OverlapShapeOffsets& shape2 = shapeOffsets[info.varIndex2];
 
     double xSep = shape1.halfDim[0] + shape2.halfDim[0];
     double ySep = shape1.halfDim[1] + shape2.halfDim[1];

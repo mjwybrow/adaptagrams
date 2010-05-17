@@ -735,10 +735,10 @@ void DistributionConstraint::generateSeparationConstraints(
 // PageBoundaryConstraint code
 //-----------------------------------------------------------------------------
 
-class ShapeOffsets : public SubConstraintInfo 
+class PageBoundaryShapeOffsets : public SubConstraintInfo
 {
     public:
-        ShapeOffsets(unsigned ind, double xOffset, double yOffset) :
+        PageBoundaryShapeOffsets(unsigned ind, double xOffset, double yOffset) :
             SubConstraintInfo(ind)
         {
             halfDim[0] = xOffset;
@@ -782,7 +782,7 @@ PageBoundaryConstraints::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
 
 void PageBoundaryConstraints::addShape(unsigned id, double halfW, double halfH)
 {
-    _subConstraintInfo.push_back(new ShapeOffsets(id, halfW, halfH));
+    _subConstraintInfo.push_back(new PageBoundaryShapeOffsets(id, halfW, halfH));
 }
 
 
@@ -840,7 +840,8 @@ void PageBoundaryConstraints::generateSeparationConstraints(
     for (SubConstraintInfoList::iterator o = _subConstraintInfo.begin();
             o != _subConstraintInfo.end(); ++o) 
     {
-        ShapeOffsets *info = static_cast<ShapeOffsets *> (*o);
+        PageBoundaryShapeOffsets *info =
+                static_cast<PageBoundaryShapeOffsets *> (*o);
         assertValidVariableIndex(vs, info->varIndex);
         if (vl[dim])
         {

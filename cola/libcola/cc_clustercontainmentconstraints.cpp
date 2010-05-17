@@ -35,10 +35,10 @@ using vpsc::YDIM;
 
 namespace cola {
 
-class ShapeOffsets : public SubConstraintInfo 
+class ClusterShapeOffsets : public SubConstraintInfo
 {
     public:
-        ShapeOffsets(unsigned ind, vpsc::Dim dim, double offset,
+        ClusterShapeOffsets(unsigned ind, vpsc::Dim dim, double offset,
                 unsigned int boundaryVar) :
             SubConstraintInfo(ind),
             offset(offset),
@@ -63,14 +63,14 @@ ClusterContainmentConstraints::ClusterContainmentConstraints(Cluster *cluster,
         unsigned id = *curr;
         double halfW = boundingBoxes[id]->width() / 2;
         double halfH = boundingBoxes[id]->height() / 2;
-        _subConstraintInfo.push_back(
-                new ShapeOffsets(id, XDIM, halfW, cluster->clusterVarId));
-        _subConstraintInfo.push_back(
-                new ShapeOffsets(id, XDIM, -halfW, cluster->clusterVarId + 1));
-        _subConstraintInfo.push_back(
-                new ShapeOffsets(id, YDIM, halfH, cluster->clusterVarId));
-        _subConstraintInfo.push_back(
-                new ShapeOffsets(id, YDIM, -halfH, cluster->clusterVarId + 1));
+        _subConstraintInfo.push_back(new ClusterShapeOffsets(
+                id, XDIM, halfW, cluster->clusterVarId));
+        _subConstraintInfo.push_back(new ClusterShapeOffsets(
+                id, XDIM, -halfW, cluster->clusterVarId + 1));
+        _subConstraintInfo.push_back(new ClusterShapeOffsets(
+                id, YDIM, halfH, cluster->clusterVarId));
+        _subConstraintInfo.push_back(new ClusterShapeOffsets(
+                id, YDIM, -halfH, cluster->clusterVarId + 1));
     }
 }
 
@@ -89,7 +89,7 @@ ClusterContainmentConstraints::getCurrSubConstraintAlternatives(vpsc::Variables 
 {
     SubConstraintAlternatives alternatives;
 
-    ShapeOffsets *info = static_cast<ShapeOffsets *> 
+    ClusterShapeOffsets *info = static_cast<ClusterShapeOffsets *>
             (_subConstraintInfo[_currSubConstraintIndex]);
     
     assertValidVariableIndex(vs[_primaryDim], info->varIndex);

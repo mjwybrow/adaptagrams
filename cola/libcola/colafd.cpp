@@ -354,10 +354,10 @@ void ConstrainedFDLayout::recGenerateClusterVariablesAndConstraints(
         vars[YDIM].push_back(variable);
 
         priority--;
-        cola::ClusterContainmentConstraints *noc = 
+        cola::ClusterContainmentConstraints *ccc = 
                 new cola::ClusterContainmentConstraints(cluster, priority,
                         boundingBoxes);
-        idleConstraints.push_back(noc);
+        idleConstraints.push_back(ccc);
     }
 
     if (noc)

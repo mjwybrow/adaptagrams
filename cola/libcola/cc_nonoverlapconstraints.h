@@ -34,13 +34,8 @@ class Rectangle;
 
 namespace cola {
 
-class ShapeOffsets;
+class OverlapShapeOffsets;
 class ShapePairInfo;
-
-static const size_t CLUSTERMODE_CONTAINMENT                = 0; 
-static const size_t CLUSTERMODE_CLUSTER_CLUSTER_NONOVERLAP = 1;
-static const size_t CLUSTERMODE_CLUSTER_NODE_NONOVERLAP    = 2;
-static const size_t CLUSTERMODE_NODE_NODE_NONOVERLAP       = 3;
 
 
 // Non-overlap constraints prevent a set of given shapes from overlapping.
@@ -62,7 +57,7 @@ class NonOverlapConstraints : public CompoundConstraint {
 
     private:
         std::list<ShapePairInfo> pairInfoList;
-        std::map<unsigned, ShapeOffsets> shapeOffsets;
+        std::map<unsigned, OverlapShapeOffsets> shapeOffsets;
         
         // Cluster vaiables
         size_t clusterVarStartIndex;
