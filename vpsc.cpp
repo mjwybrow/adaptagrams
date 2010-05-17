@@ -23,11 +23,11 @@
  *
  * --------------
  *
- * This file contains a slightly modified version of Solver() from libvpsc:
+ * This file contains a slightly modified version of IncSolver() from libvpsc:
  * A solver for the problem of Variable Placement with Separation Constraints.
  * It has the following changes from the Adaptagrams VPSC version:
  *  -  The required VPSC code has been consolidated into a single file.
- *  -  Unnecessary code (like Solver) has been removed.
+ *  -  Unnecessary code, like the Solver() class, has been removed.
  *  -  The PairingHeap code has been replaced by a STL priority_queue.
  *
  * Modifications:  Michael Wybrow  <mjwybrow@users.sourceforge.net>
