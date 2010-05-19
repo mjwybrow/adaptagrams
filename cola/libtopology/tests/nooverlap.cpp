@@ -88,7 +88,7 @@ void testCase() {
     try {
         vpsc::Constraints cs;
         Edges es; // not used in this test
-        TopologyConstraints t(static_cast<vpsc::Dim>(dim),nodes,es,NULL,vs,cs);
+        TopologyConstraints t(vpsc::XDIM,nodes,es,NULL,vs,cs);
         for(Nodes::iterator v=nodes.begin();v!=nodes.end();++v) {
             (*v)->var->desiredPosition=getRand(5);
         }

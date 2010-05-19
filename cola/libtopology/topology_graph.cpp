@@ -46,30 +46,30 @@ void setNodeVariables(Nodes& ns, std::vector<vpsc::Variable*>& vs) {
         (*i)->var=(*v);
     }
 }
+
+static const double POSITION_LIMIT = 1000000;
+
 Node::Node(unsigned id, vpsc::Rectangle* r, vpsc::Variable* v)
-    : id(id), rect(r), var(v) 
+    : id(id), rect(r), var(v)
 { 
-    COLA_ASSERT(initialPos()>-100000);
-    COLA_ASSERT(initialPos()<100000);
-}
-Node::Node(unsigned id, vpsc::Rectangle* r)
-    : id(id), rect(r), var(NULL) 
-{
-    COLA_ASSERT(initialPos()>-100000);
-    COLA_ASSERT(initialPos()<100000);
+    COLA_ASSERT(initialPos(vpsc::XDIM) >- POSITION_LIMIT);
+    COLA_ASSERT(initialPos(vpsc::XDIM) < POSITION_LIMIT);
+
+    COLA_ASSERT(initialPos(vpsc::YDIM) >- POSITION_LIMIT);
+    COLA_ASSERT(initialPos(vpsc::YDIM) < POSITION_LIMIT);
 }
 void Node::setDesiredPos(double d, double weight) {
     var->desiredPosition=d;
     var->weight=weight;
 }
-double Node::initialPos() const {
-    return rect->getCentreD(dim);
+double Node::initialPos(vpsc::Dim scanDim) const {
+    return rect->getCentreD(scanDim);
 }
 double Node::finalPos() const {
     return var->finalPosition;
 }
-double Node::posOnLine(double alpha) const {
-    double i=initialPos();
+double Node::posOnLine(vpsc::Dim scanDim, double alpha) const {
+    double i=initialPos(scanDim);
     double d=finalPos()-i;
     return i+alpha*d; 
 }
@@ -82,7 +82,7 @@ void EdgePoint::deleteBendConstraint() {
 EdgePoint::~EdgePoint() {
     deleteBendConstraint();
 }
-Segment* EdgePoint::prune() {
+Segment* EdgePoint::prune(vpsc::Dim scanDim) {
     Edge* e = inSegment->edge;
     EdgePoint* start = inSegment->start,
              * end = outSegment->end;
@@ -107,8 +107,8 @@ Segment* EdgePoint::prune() {
 
     // update the BendConstraints associated with the end EdgePoints of
     // the new segment
-    start->createBendConstraint();
-    end->createBendConstraint();
+    start->createBendConstraint(scanDim);
+    end->createBendConstraint(scanDim);
 
     e->nSegments--;
     delete inSegment;
@@ -116,7 +116,7 @@ Segment* EdgePoint::prune() {
     delete this;
     return s;
 }
-bool EdgePoint::createBendConstraint() {
+bool EdgePoint::createBendConstraint(vpsc::Dim scanDim) {
     // edges shouldn't double back!
     COLA_ASSERT(assertConvexBend());
     // we replace any existing bend constraint
@@ -128,7 +128,7 @@ bool EdgePoint::createBendConstraint() {
     if(isEnd()) {
         return false;
     }
-    bendConstraint = new BendConstraint(this);
+    bendConstraint = new BendConstraint(this, scanDim);
     return true;
 }
 void EdgePoint::getBendConstraint(vector<TopologyConstraint*>* ts) {
@@ -159,7 +159,8 @@ double EdgePoint::pos(vpsc::Dim dim) const {
     }
     return p;
 }
-double EdgePoint::offset() const {
+double EdgePoint::offset(vpsc::Dim dim) const
+{
     if(rectIntersect==CENTRE) {
         return 0;
     }

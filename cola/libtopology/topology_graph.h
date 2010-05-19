@@ -42,13 +42,12 @@
 #include "util.h"
 
 namespace vpsc {
-	class Variable;
+    class Variable;
 }
 namespace straightener {
     class Route;
 }
 namespace topology {
-    extern vpsc::Dim dim;
     class Segment;
     class TopologyConstraint;
     class BendConstraint;
@@ -66,18 +65,17 @@ namespace topology {
         const unsigned id;
         /// the bounding box of the associated node
         vpsc::Rectangle* rect;
-        Node(unsigned id, vpsc::Rectangle*, vpsc::Variable*);
         /** 
          * When an edge path is being defined externally with a vector of
          * EdgePoint, a variable would not be specified.
          * @param id
          * @param r
          */
-        Node(unsigned id, vpsc::Rectangle*);
+        Node(unsigned id, vpsc::Rectangle*, vpsc::Variable *v = NULL);
         void setDesiredPos(double d, double weight=1.0);
-        double initialPos() const;
+        double initialPos(vpsc::Dim scanDim) const;
         double finalPos() const;
-        double posOnLine(double alpha) const;
+        double posOnLine(vpsc::Dim scanDim, double alpha) const;
         vpsc::Variable* getVar() const { return var; }
         /// variable positions used by solver
         vpsc::Variable* var;
@@ -115,7 +113,7 @@ namespace topology {
         /// append bendConstraint (if not null) to ts
         void getBendConstraint(std::vector<TopologyConstraint*>* ts);
         /// @return true if constraint created
-        bool createBendConstraint();
+        bool createBendConstraint(vpsc::Dim scanDim);
         /// delete the bendConstraint and reset pointer to NULL
         void deleteBendConstraint();
         /**
@@ -134,7 +132,7 @@ namespace topology {
          * @return the position, computed based on rectIntersect and rectangle
          * vertices of the node
          */
-		double pos(vpsc::Dim dim) const;
+        double pos(vpsc::Dim dim) const;
         /// @return x position
         double posX() const { return pos(vpsc::HORIZONTAL); }
         /// @return y position
@@ -180,13 +178,13 @@ namespace topology {
         /**
          * @return offset from centre of node
          */
-        double offset() const;
+        double offset(vpsc::Dim scanDim) const;
         /**
          * remove this point from the edge replacing its in and out
          * segments with a single new Segment.
          * @return the replacement Segment
          */
-        Segment* prune();
+        Segment* prune(vpsc::Dim scanDim);
     };
     typedef std::vector<EdgePoint*> EdgePoints;
     typedef std::vector<const EdgePoint*> ConstEdgePoints;
@@ -205,7 +203,7 @@ namespace topology {
          * @param end the EdgePoint at the end of the segment
          */
         Segment(Edge* edge, EdgePoint* start, EdgePoint* end) 
-            : edge(edge), start(start), end(end) 
+            : edge(edge), start(start), end(end)
         {
             // no self loops!
             COLA_ASSERT(start!=end);
@@ -221,7 +219,7 @@ namespace topology {
          * of the opening or closing of node.
          * @return true if a constraint was created
          */
-        bool createStraightConstraint(Node* node, double pos);
+        bool createStraightConstraint(vpsc::Dim dim, Node* node, double pos);
         /**
          * creates a copy of the StraightConstraint in our own
          * straightConstraints list, but only if this segment is not directly
@@ -265,29 +263,27 @@ namespace topology {
          * @return the EdgePoint at the minimum extent of this segment on the
          * scan axis
          */
-        EdgePoint* getMin() const {
-			if(start->pos(vpsc::conjugate(dim)) <= end->pos(vpsc::conjugate(dim))) {
+        EdgePoint* getMin(vpsc::Dim scanDim) const
+        {
+            if (start->pos(vpsc::conjugate(scanDim)) <=
+                    end->pos(vpsc::conjugate(scanDim)))
+            {
                 return start;
             }
             return end;
         }
-        /// @return the EdgePoint on the maximum extent of this segment on the scan axis
-        EdgePoint* getMax() const {
-            if(start->pos(vpsc::conjugate(dim)) > end->pos(vpsc::conjugate(dim))) {
-                return start;
-            }
-            return end;
-        }
-        /** test a given point to see if it lies within the scan range of this
-         * segment
-         * @param pos position to test
-         * @return true if point does lie in the scan range
+        /**
+         * @return the EdgePoint on the maximum extent of this segment on the
+         * scan axis
          */
-        bool intersects(double pos) const {
-            if(pos>=getMin()->pos(vpsc::conjugate(dim)) && pos<=getMax()->pos(vpsc::conjugate(dim))) {
-                return true;
+        EdgePoint* getMax(vpsc::Dim scanDim) const
+        {
+            if (start->pos(vpsc::conjugate(scanDim)) >
+                    end->pos(vpsc::conjugate(scanDim)))
+            {
+                return start;
             }
-            return false;
+            return end;
         }
         /** 
          * compute the intersection with the line !dim=pos.
@@ -300,20 +296,23 @@ namespace topology {
          * @return position along scanline of intersection with the line along
          * this edge segment
          */
-        double forwardIntersection(double pos, double &p) const {
-            return intersection(pos, start, end, p);
+        double forwardIntersection(vpsc::Dim scanDim, double pos, double &p) const {
+            return intersection(scanDim, pos, start, end, p);
         }
-        double reverseIntersection(double pos, double &p) const {
-            return intersection(pos, end, start, p);
+        double reverseIntersection(vpsc::Dim scanDim, double pos, double &p) const {
+            return intersection(scanDim, pos, end, start, p);
         }
-        double forwardIntersection(double pos) const {
+        double forwardIntersection(vpsc::Dim scanDim, double pos) const {
             double p;
-            return forwardIntersection(pos,p);
+            return forwardIntersection(scanDim, pos,p);
         }
-        double intersection(const double pos,
-            const EdgePoint* s, const EdgePoint* e, double& p) const {
-            double ux=s->pos(dim) , vx=e->pos(dim),
-                   uy=s->pos(vpsc::conjugate(dim)), vy=e->pos(vpsc::conjugate(dim));
+        double intersection(vpsc::Dim scanDim, const double pos,
+                const EdgePoint* s, const EdgePoint* e, double& p) const
+        {
+            double ux=s->pos(scanDim);
+            double vx=e->pos(scanDim);
+            double uy=s->pos(vpsc::conjugate(scanDim));
+            double vy=e->pos(vpsc::conjugate(scanDim));
             double denom = vy - uy;
             COLA_ASSERT(denom!=0); // must not be parallel to scanline!
             p = (pos - uy)/denom;
@@ -323,7 +322,7 @@ namespace topology {
         /**
          * Compute the length in the specified dimension.
          */
-		double length(vpsc::Dim dim) const;
+        double length(vpsc::Dim dim) const;
         /**
          * Compute the euclidean distance between #start and #end.
          */
@@ -404,7 +403,7 @@ namespace topology {
             : id(id)
             , idealLength(idealLength)
             , firstSegment(NULL), lastSegment(NULL)
-            , nSegments(0) 
+            , nSegments(0)
         {
             EdgePoints::iterator a=vs.begin();
             for(EdgePoints::iterator b=a+1;b!=vs.end();++a,++b) {

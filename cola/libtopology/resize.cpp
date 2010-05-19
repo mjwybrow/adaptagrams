@@ -52,9 +52,14 @@ void feach(Container& c, Op op) {
  * In either case the desired position is the centre of the target.
  */
 struct TransformNode {
-    TransformNode( const Rectangles& targets,
+    TransformNode(vpsc::Dim dim, const Rectangles& targets,
             const ResizeMap& resizes, Variables& vs)
-        : targets(targets), resizes(resizes), vs(vs) {}
+        : dim(dim),
+          targets(targets),
+          resizes(resizes),
+          vs(vs)
+    {
+    }
     Node* operator() (Node* u) {
         const Rectangle *targetRect = targets[u->id];
         Rectangle *rect = new Rectangle(*u->rect);
@@ -70,6 +75,7 @@ struct TransformNode {
         }
         return new topology::Node(u->id, rect, var);
     }
+    vpsc::Dim dim;
     const Rectangles& targets;
     const ResizeMap& resizes;
     Variables& vs;
@@ -78,12 +84,16 @@ struct TransformNode {
  * Functor which, for the specified Resizeinfo, creates a centre and
  * right dummy node and associated variables.
  */
-struct CreateLeftRightDummyNodes {
-    CreateLeftRightDummyNodes(
-            const Rectangles& targets,
-            Nodes& nodes,
-            Variables& vs)
-        : targets(targets), nodes(nodes), vs(vs) {}
+struct CreateLeftRightDummyNodes
+{
+    CreateLeftRightDummyNodes(vpsc::Dim dim, const Rectangles& targets,
+            Nodes& nodes, Variables& vs)
+        : dim(dim),
+          targets(targets),
+          nodes(nodes),
+          vs(vs)
+    {
+    }
     void operator() (pair<const unsigned, ResizeInfo>& p) {
         // dummy nodes will have the same id as the original
         ResizeInfo& ri=p.second;
@@ -111,6 +121,7 @@ struct CreateLeftRightDummyNodes {
         ri.rhsNode=new topology::Node(id, rhsRect, rv);
         nodes.push_back(ri.rhsNode);
     }
+    vpsc::Dim dim;
     const Rectangles& targets;
     Nodes& nodes;
     Variables& vs;
@@ -123,10 +134,14 @@ struct CreateLeftRightDummyNodes {
  * in the new Node list), the Node pointer is simply updated to the equivalent Node
  * in the new Node list.
  */
-struct SubstituteNodes {
-    SubstituteNodes(ResizeMap& resizes, 
-            const Nodes& tn) 
-        : resizes(resizes), tn(tn) {}
+struct SubstituteNodes
+{
+    SubstituteNodes(vpsc::Dim dim, ResizeMap& resizes, const Nodes& tn)
+        : dim(dim),
+          resizes(resizes),
+          tn(tn)
+    {
+    }
     void operator() (Edge* e) {
         e->forEachEdgePoint(*this);
     }
@@ -166,6 +181,7 @@ struct SubstituteNodes {
             p->node=tn[id];
         }
     }
+    vpsc::Dim dim;
     ResizeMap& resizes;
     const topology::Nodes& tn;
 };
@@ -181,8 +197,12 @@ struct RevertNodes {
     Nodes& orig;
 };
 struct CopyPositions {
-    CopyPositions(const Nodes& tn, const ResizeMap& rm)
-        : tn(tn), rm(rm) {}
+    CopyPositions(vpsc::Dim dim, const Nodes& tn, const ResizeMap& rm)
+        : dim(dim),
+          tn(tn),
+          rm(rm)
+    {
+    }
     void operator() (Node* v) {
         ResizeMap::const_iterator j=rm.find(v->id);
         if(j==rm.end()) {
@@ -193,6 +213,7 @@ struct CopyPositions {
             v->rect->reset(dim,l->getMinD(dim),r->getMaxD(dim));
         }
     }
+    vpsc::Dim dim;
     const Nodes& tn;
     const ResizeMap& rm;
 };
@@ -207,11 +228,10 @@ bool approx_equals(double a, double b) {
     return fabs(a-b)<1e-6;
 }
 static const double DISPLACEMENT_ERROR=1e-3;
-bool checkDesired(
-        const Nodes& nodes, 
-        const Rectangles& targets, 
-        const ResizeMap& resizeMap) {
-    for(Nodes::const_iterator i=nodes.begin();i!=nodes.end();++i) {
+static bool checkDesired(vpsc::Dim dim, const Nodes& nodes,
+        const Rectangles& targets, const ResizeMap& resizeMap)
+{
+    for (Nodes::const_iterator i=nodes.begin();i!=nodes.end();++i) {
         const Node* v=*i;
         const unsigned id=v->id;
         const Rectangle* t=targets[id];
@@ -239,10 +259,9 @@ bool checkDesired(
     }
     return true;
 }
-bool checkFinal(
-        const Nodes& nodes, 
-        const Rectangles& targets, 
-        const ResizeMap& resizeMap) {
+static bool checkFinal(vpsc::Dim dim, const Nodes& nodes,
+        const Rectangles& targets, const ResizeMap& resizeMap)
+{
     static const double DISPLACEMENT_ERROR=1e-3;
     for(Nodes::const_iterator i=nodes.begin();i!=nodes.end();++i) {
         const Node* v=*i;
@@ -279,10 +298,10 @@ bool checkFinal(
  * @param cs canonical list of constraints over variables.  Note that new
  * non-overlap constraints may be appended to the end of this list.
  */
-void resizeAxis(const Rectangles& targets,
-        Nodes& nodes, Edges& edges, 
-        RootCluster *clusters, ResizeMap& resizes, 
-        Variables& vs, Constraints& cs) {
+static void resizeAxis(vpsc::Dim dim, const Rectangles& targets,
+        Nodes& nodes, Edges& edges,  RootCluster *clusters, ResizeMap& resizes,
+        Variables& vs, Constraints& cs)
+{
     COLA_ASSERT(vs.size()>=nodes.size());
 
     //  - create copy tn of topologyNodes with resize rects replaced with
@@ -298,21 +317,21 @@ void resizeAxis(const Rectangles& targets,
     COLA_ASSERT(assertNoSegmentRectIntersection(nodes,edges));
 
     transform(nodes.begin(),nodes.end(),tn.begin(),
-            TransformNode(targets,resizes,vs));
-    feach(resizes, CreateLeftRightDummyNodes(targets,tn,vs));
+            TransformNode(dim, targets,resizes,vs));
+    feach(resizes, CreateLeftRightDummyNodes(dim,targets,tn,vs));
     COLA_ASSERT(tn.size()==nodes.size()+2*resizes.size());
     COLA_ASSERT(vs.size()>=tn.size());
 
     // update topologyRoutes with references to resized nodes replaced with
     // correct references to lhs/rhs nodes
-    feach(edges,SubstituteNodes(resizes,tn));
+    feach(edges,SubstituteNodes(dim,resizes,tn));
 
     COLA_ASSERT(assertConvexBends(edges));
     COLA_ASSERT(assertNoSegmentRectIntersection(tn,edges));
 
     // move nodes and reroute
     topology::TopologyConstraints t(dim, tn, edges, clusters, vs, cs);
-    COLA_ASSERT(checkDesired(tn,targets,resizes));
+    COLA_ASSERT(checkDesired(dim,tn,targets,resizes));
 #ifndef NDEBUG
     unsigned loopCtr=0;
 #endif
@@ -320,7 +339,7 @@ void resizeAxis(const Rectangles& targets,
     //COLA_ASSERT(checkFinal(tn,targets,resizes));
     
     // reposition and resize original nodes
-    feach(nodes,CopyPositions(tn,resizes));
+    feach(nodes,CopyPositions(dim,tn,resizes));
 
     // revert topologyRoutes back to original nodes
     feach(edges,RevertNodes(nodes));
@@ -377,10 +396,8 @@ void applyResizes(Nodes& nodes, Edges& edges, RootCluster *clusters,
     set<unsigned> fixed;
     transform(nodes.begin(),nodes.end(),targets.begin(),CreateTargetRect(resizes,fixed));
     removeoverlaps(targets,fixed);
-    dim=vpsc::HORIZONTAL;
-    resizeAxis(targets, nodes, edges, clusters, resizes, xvs, xcs);
-    dim=vpsc::VERTICAL;
-    resizeAxis(targets, nodes, edges, clusters, resizes, yvs, ycs);
+    resizeAxis(vpsc::XDIM, targets, nodes, edges, clusters, resizes, xvs, xcs);
+    resizeAxis(vpsc::YDIM, targets, nodes, edges, clusters, resizes, yvs, ycs);
     feach(targets,delete_object());
 }
 } // namespace topology

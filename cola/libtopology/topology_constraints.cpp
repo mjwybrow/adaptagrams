@@ -38,11 +38,11 @@ namespace topology {
  * final positions without violating this constraint
  */
 double TriConstraint::maxSafeAlpha() const {
-    const double u1=u->initialPos(),
+    const double u1=u->initialPos(scanDim),
                  u2=u->finalPos(),
-                 v1=v->initialPos(),
+                 v1=v->initialPos(scanDim),
                  v2=v->finalPos(),
-                 w1=w->initialPos(),
+                 w1=w->initialPos(scanDim),
                  w2=w->finalPos(),
                  fSlack=slackAtFinal();
     if(fSlack>=0) {
@@ -87,8 +87,10 @@ double TriConstraint::slackAtFinal() const {
               v->finalPos(), 
               w->finalPos());
 }
-double TriConstraint::slackAtInitial () const {
-    return slack(u->initialPos(), v->initialPos(), w->initialPos());
+double TriConstraint::slackAtInitial () const
+{
+    return slack(u->initialPos(scanDim), v->initialPos(scanDim),
+            w->initialPos(scanDim));
 }
 
 ostream& operator<< (ostream& os, const TriConstraint& c) {
@@ -107,18 +109,30 @@ ostream& operator<< (ostream& os, const TriConstraint& c) {
 /**
  * The bend has become straight, remove bend
  */
-void BendConstraint::satisfy() {
-    FILE_LOG(logDEBUG)<<"BendConstraint::satisfy()... edge id="<<getEdgeID()<<" node id="<<bendPoint->node->id;
+void BendConstraint::satisfy()
+{
+    COLA_ASSERT((scanDim==vpsc::XDIM)||(scanDim==vpsc::YDIM));
+    FILE_LOG(logDEBUG) << "BendConstraint::satisfy()... edge id=" <<
+            getEdgeID() << " node id=" << bendPoint->node->id;
+    // XXX: Note that the call to prune() deletes the bendPoint and the 
+    //      BendConstraint (this instance itself), so it is not safe to
+    //      access any member variables after that.  Hence the local copy 
+    //      of scanDim.  The code really needs to be reworked to be 
+    //      written much more cleanly, only this kind of restructuring
+    //      has the potential to introduce many bugs, so I will leave it
+    //      for now.  -- mjwybrow
+    vpsc::Dim dim = scanDim;
     Node* node=bendPoint->node;
-    double pos=bendPoint->pos(vpsc::conjugate(dim));
-    Segment* s=bendPoint->prune();
+    double pos=bendPoint->pos(vpsc::conjugate(scanDim));
+    Segment* s=bendPoint->prune(scanDim);
     // create a new StraightConstraint to replace the BendConstraint
-    s->createStraightConstraint(node, pos);
+    s->createStraightConstraint(dim, node, pos);
     FILE_LOG(logDEBUG)<<"BendConstraint::satisfy()...done.";
 }
 string BendConstraint::toString() const {
     stringstream s;
-    s << "BendConstraint: bendPoint=(" << bendPoint->posX() << "," << bendPoint->posY() << ")";
+    s << "BendConstraint: bendPoint=(" << bendPoint->posX() << "," << 
+            bendPoint->posY() << ")";
     return s.str();
 }
 unsigned BendConstraint::getEdgeID() const {
@@ -146,6 +160,7 @@ struct transferStraightConstraintChoose {
             StraightConstraint* ignore)
         : ignore(ignore) 
     {
+        vpsc::Dim dim = ignore->scanDim;
         double min1=min(target1->start->pos(vpsc::conjugate(dim)),target1->end->pos(vpsc::conjugate(dim)));
         double max1=max(target1->start->pos(vpsc::conjugate(dim)),target1->end->pos(vpsc::conjugate(dim)));
         double min2=min(target2->start->pos(vpsc::conjugate(dim)),target2->end->pos(vpsc::conjugate(dim)));
@@ -169,13 +184,15 @@ struct transferStraightConstraintChoose {
     /**
      * @param c constraint to transfer to target1 or target2
      */
-    void operator() (StraightConstraint* c) {
+    void operator() (StraightConstraint* c)
+    {
+        vpsc::Dim dim = ignore->scanDim;
         if(c!=ignore) {
             Segment* dest=rSeg;
             if(c->pos<mid) {
                 dest = lSeg;
             } else if(c->pos==mid) {
-                if ( (dim==vpsc::XDIM && 
+                if ( (dim==vpsc::XDIM &&
                         (c->ri==EdgePoint::TL ||c->ri==EdgePoint::TR)) 
                      || 
                      (dim==vpsc::YDIM &&
@@ -233,7 +250,7 @@ void StraightConstraint::satisfy() {
         e->lastSegment=s2;
     }
     // create BendConstraint to replace this StraightConstraint
-    bend->createBendConstraint();
+    bend->createBendConstraint(scanDim);
 
     // transfer other StraightConstraint constraints 
     // from s to s1 or s2 depending on which side of p they are on.
@@ -241,8 +258,8 @@ void StraightConstraint::satisfy() {
     segment->forEachStraightConstraint(transfer);
     // BendConstraint constraints associated with segment->end and 
     // segment->start need to be updated
-    start->createBendConstraint();
-    end->createBendConstraint();
+    start->createBendConstraint(scanDim);
+    end->createBendConstraint(scanDim);
              
     e->nSegments++;
     delete segment;
@@ -346,7 +363,7 @@ bool TopologyConstraints::solve() {
     if(minTAlpha>0) {
         for(Nodes::iterator i=nodes.begin();i!=nodes.end();++i) {
             Node* v=*i;
-            v->rect->moveCentreD(dim,v->posOnLine(minTAlpha));
+            v->rect->moveCentreD(dim,v->posOnLine(dim, minTAlpha));
         }
     }
     COLA_ASSERT(noOverlaps());

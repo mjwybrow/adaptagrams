@@ -45,7 +45,8 @@ enum Dim {
     HORIZONTAL = 0,
     XDIM = 0,
     VERTICAL = 1,
-    YDIM = 1
+    YDIM = 1,
+    UNSET = 2
 };
 inline Dim conjugate(Dim d) {
 	return static_cast<Dim>(!d);

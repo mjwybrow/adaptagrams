@@ -56,7 +56,6 @@ namespace cola {
  * topology preserving layout.
  */
 namespace topology {
-    extern vpsc::Dim dim;
     class StraightConstraint;
     class Edge;
     /**
@@ -77,10 +76,8 @@ namespace topology {
          * right
          */
         bool leftOf;
-        TriConstraint(
-                const Node *u, 
-                const Node *v, 
-                const Node *w, 
+        vpsc::Dim scanDim;
+        TriConstraint(vpsc::Dim dim, const Node *u,  const Node *v, const Node *w,
                 double p, double g, bool left);
         /** 
          * @return the maximum move we can make along the line from initial to
@@ -105,6 +102,7 @@ namespace topology {
     class TopologyConstraint {
     public:
         TriConstraint* c;
+        vpsc::Dim scanDim;
         /**
          * depending on the type of constraint (i.e. whether it is a constraint
          * between a segment and a node or between two segments) we either
@@ -125,7 +123,7 @@ namespace topology {
          */
         bool assertFeasible() const;
     protected:
-        TopologyConstraint() : c(NULL) { }
+        TopologyConstraint(vpsc::Dim dim) : c(NULL), scanDim(dim) { }
     };
     /**
      * A constraint around a bend point that becomes active when the bend
@@ -140,7 +138,7 @@ namespace topology {
          * are aligned.
          * @param bendPoint the articulation point
          */
-        BendConstraint(EdgePoint* bendPoint);
+        BendConstraint(EdgePoint* bendPoint, vpsc::Dim dim);
         void satisfy();
         std::string toString() const;
         unsigned getEdgeID() const;
@@ -166,7 +164,7 @@ namespace topology {
          * constraint lies
          * @param segmentPos the ratio (s->start,scanPos)/(s->start,s->end)
          */
-        StraightConstraint(Segment* s, 
+        StraightConstraint(Segment* s, vpsc::Dim dim,
                 Node* node, const EdgePoint::RectIntersect ri,
                 const double scanPos, const double segmentPos,
                 const bool nodeLeft);
@@ -221,6 +219,7 @@ namespace topology {
         cola::RootCluster* clusters;
         vpsc::Variables& vs;
         vpsc::Constraints& cs;
+        vpsc::Dim dim;
     };
     /**
      * The following just copies variables in ns into vs.  May be useful
