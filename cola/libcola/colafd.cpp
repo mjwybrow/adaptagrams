@@ -364,20 +364,23 @@ void ConstrainedFDLayout::recGenerateClusterVariablesAndConstraints(
     {
         // Enforce non-overlap between all the shapes and clusters at this 
         // level.
-        printf("Cluster non-overlap constraints - nodes %d clusters %d\n",
-                (int) cluster->nodes.size(), (int) cluster->clusters.size());
+        printf("Cluster #%d non-overlap constraints - nodes %d clusters %d\n",
+                (int) cluster->clusterVarId, (int) cluster->nodes.size(), 
+                (int) cluster->clusters.size());
+        unsigned int group = cluster->clusterVarId;
         for (std::vector<unsigned>::iterator curr = cluster->nodes.begin();
                 curr != cluster->nodes.end(); ++curr)
         {
             unsigned id = *curr;
             noc->addShape(id, boundingBoxes[id]->width() / 2,
-                    boundingBoxes[id]->height() / 2);
+                    boundingBoxes[id]->height() / 2, group);
         }
         for (std::vector<Cluster*>::iterator curr = cluster->clusters.begin();
                 curr != cluster->clusters.end(); ++curr)
         {
             Cluster *cluster = *curr;
-            noc->addCluster(cluster->clusterVarId, cluster->rectBuffer);
+            noc->addCluster(cluster->clusterVarId, cluster->rectBuffer, 
+                    group);
         }
     }
 }
@@ -426,9 +429,9 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
             
             // Generate non-overlap constraints between all clusters and 
             // all contained nodes.
+            priority--;
             cola::NonOverlapConstraints *noc = 
                     new cola::NonOverlapConstraints(priority);
-            priority--;
             recGenerateClusterVariablesAndConstraints(vs, priority, 
                     noc, clusterHierarchy, idleConstraints);
             idleConstraints.push_back(noc);

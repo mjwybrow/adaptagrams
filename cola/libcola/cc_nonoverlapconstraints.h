@@ -42,8 +42,13 @@ class ShapePairInfo;
 class NonOverlapConstraints : public CompoundConstraint {
     public:
         NonOverlapConstraints(unsigned int priority = PRIORITY_NONOVERLAP);
-        void addShape(unsigned id, double halfW, double halfH);
-        void addCluster(unsigned id, const double rectPadding);
+        // Group is used to determine which objects should be made not to 
+        // overlap with this one -- only objects in the same group.
+        // This is useful for clusters.
+        void addShape(unsigned id, double halfW, double halfH, 
+                unsigned int group = 1);
+        void addCluster(unsigned id, const double rectPadding,
+                unsigned int group = 1);
         void computeAndSortOverlap(vpsc::Variables vs[]);
         void markCurrSubConstraintAsActive(const bool satisfiable);
         void markAllSubConstraintsAsInactive(void);

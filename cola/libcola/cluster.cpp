@@ -41,6 +41,7 @@ namespace cola {
         : varWeight(0.0001), 
           internalEdgeWeightFactor(1.), 
           bounds(-1,1,-1,1),
+          clusterVarId(0),
           rectBuffer(0),
           desiredBoundsSet(false), 
           desiredBounds(-1,1,-1,1)

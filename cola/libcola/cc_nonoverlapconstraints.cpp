@@ -42,18 +42,22 @@ namespace cola {
 class OverlapShapeOffsets : public SubConstraintInfo
 {
     public:
-        OverlapShapeOffsets(unsigned ind, double xOffset, double yOffset)
+        OverlapShapeOffsets(unsigned ind, double xOffset, double yOffset,
+                unsigned int group)
             : SubConstraintInfo(ind),
               isCluster(false),
-              rectPadding(0)
+              rectPadding(0),
+              group(group)
         {
             halfDim[0] = xOffset;
             halfDim[1] = yOffset;
         }
-        OverlapShapeOffsets(unsigned ind, const double padding)
+        OverlapShapeOffsets(unsigned ind, const double padding,
+                unsigned int group)
             : SubConstraintInfo(ind),
               isCluster(true),
-              rectPadding(padding)
+              rectPadding(padding),
+              group(group)
         {
             halfDim[0] = 0;
             halfDim[1] = 0;
@@ -67,6 +71,7 @@ class OverlapShapeOffsets : public SubConstraintInfo
         bool isCluster;
         double halfDim[2];   // Half width and height values.
         double rectPadding;  // Used for cluster padding.
+        unsigned int group;
 };
 
 
@@ -86,17 +91,17 @@ class ShapePairInfo
         }
         bool operator<(const ShapePairInfo& rhs) const
         {
-            // Use cluster ordering for primary sorting.
-            if (order != rhs.order)
-            {
-                return order < rhs.order;
-            }
             // Make sure the processed ones are at the end after sorting.
             int processedInt = processed ? 1 : 0;
             int rhsProcessedInt = rhs.processed ? 1 : 0;
             if (processedInt != rhsProcessedInt)
             {
                 return processedInt < rhsProcessedInt;
+            }
+            // Use cluster ordering for primary sorting.
+            if (order != rhs.order)
+            {
+                return order < rhs.order;
             }
             return overlapMax > rhs.overlapMax;
         }
@@ -120,31 +125,41 @@ NonOverlapConstraints::NonOverlapConstraints(unsigned int priority)
     // All work is done by repeated addShape() calls.
 }
 
-void NonOverlapConstraints::addShape(unsigned id, double halfW, double halfH)
+void NonOverlapConstraints::addShape(unsigned id, double halfW, double halfH,
+        unsigned int group)
 {
     // Setup pairInfos for all other shapes. 
     for (std::map<unsigned, OverlapShapeOffsets>::iterator curr =
             shapeOffsets.begin(); curr != shapeOffsets.end(); ++curr)
     {
         unsigned otherId = curr->first;
-        pairInfoList.push_back(ShapePairInfo(otherId, id));
+        if (shapeOffsets[otherId].group == group)
+        {
+            // Apply non-overlap only to objects in the same group (cluster).
+            pairInfoList.push_back(ShapePairInfo(otherId, id));
+        }
     }
 
-    shapeOffsets[id] = OverlapShapeOffsets(id, halfW, halfH);
+    shapeOffsets[id] = OverlapShapeOffsets(id, halfW, halfH, group);
 }
 
 
-void NonOverlapConstraints::addCluster(unsigned id, const double rectPadding)
+void NonOverlapConstraints::addCluster(unsigned id, const double rectPadding,
+        unsigned int group)
 {
     // Setup pairInfos for all other shapes. 
     for (std::map<unsigned, OverlapShapeOffsets>::iterator curr =
             shapeOffsets.begin(); curr != shapeOffsets.end(); ++curr)
     {
         unsigned otherId = curr->first;
-        pairInfoList.push_back(ShapePairInfo(otherId, id));
+        if (shapeOffsets[otherId].group == group)
+        {
+            // Apply non-overlap only to objects in the same group (cluster).
+            pairInfoList.push_back(ShapePairInfo(otherId, id));
+        }
     }
     
-    shapeOffsets[id] = OverlapShapeOffsets(id, rectPadding);
+    shapeOffsets[id] = OverlapShapeOffsets(id, rectPadding, group);
 }
 
 
@@ -178,10 +193,16 @@ void NonOverlapConstraints::computeAndSortOverlap(vpsc::Variables vs[])
 
         if (shape1.isCluster)
         {
+            COLA_ASSERT(shape1.halfDim[0] == 0);
+            COLA_ASSERT(shape1.halfDim[1] == 0);
             COLA_ASSERT(info.varIndex1 + 1 < vs[0].size());
             right1 = vs[0][info.varIndex1 + 1]->finalPosition;
             COLA_ASSERT(info.varIndex1 + 1 < vs[1].size());
-            top1   = vs[1][info.varIndex1 + 1]->finalPosition;
+            top1    = vs[1][info.varIndex1 + 1]->finalPosition;
+            left1 -= shape1.rectPadding;
+            bottom1 -= shape1.rectPadding;
+            right1 += shape1.rectPadding;
+            top1 += shape1.rectPadding;
         }
 
         double left2   = xPos2 - shape2.halfDim[0];
@@ -191,10 +212,16 @@ void NonOverlapConstraints::computeAndSortOverlap(vpsc::Variables vs[])
 
         if (shape2.isCluster)
         {
+            COLA_ASSERT(shape2.halfDim[0] == 0);
+            COLA_ASSERT(shape2.halfDim[1] == 0);
             COLA_ASSERT(info.varIndex2 + 1 < vs[0].size());
             right2 = vs[0][info.varIndex2 + 1]->finalPosition;
             COLA_ASSERT(info.varIndex2 + 1 < vs[1].size());
             top2   = vs[1][info.varIndex2 + 1]->finalPosition;
+            left2 -= shape2.rectPadding;
+            bottom2 -= shape2.rectPadding;
+            right2 += shape2.rectPadding;
+            top2 += shape2.rectPadding;
         }
 
         // If lr < 0, then left edge of shape1 is on the left 
@@ -272,7 +299,7 @@ NonOverlapConstraints::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
     computeAndSortOverlap(vs);
 
     ShapePairInfo& info = pairInfoList.front();
-    
+
     if (info.overlapMax == 0)
     {
         //fprintf(stderr, "===== EMPTY ALTERNATIVES -======\n");
@@ -342,6 +369,12 @@ NonOverlapConstraints::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
         xSep += shape2.rectPadding;
         ySep += shape2.rectPadding;
     }
+
+    // We get problems with numerical inaccuracy in the topology constraint
+    // generation, so make sure the rectagles are separated by at least a 
+    // tiny distance.
+    xSep += 10e-10;
+    ySep += 10e-10;
 
     // Compute the cost to move in each direction based on the 
     // desired positions for the two objects.
