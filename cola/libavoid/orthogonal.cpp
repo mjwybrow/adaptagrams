@@ -146,7 +146,7 @@ class ShiftSegment
             }
             return this < &rhs;
         }
-        // This counts segments that are colliear and share an endpoint as
+        // This counts segments that are collinear and share an endpoint as
         // overlapping.  This allows them to be nudged apart where possible.
         bool overlapsWith(const ShiftSegment& rhs, const size_t dim) const
         {
@@ -1917,25 +1917,28 @@ static void buildOrthogonalChannelInfo(Router *router,
                 }
 
                 // The segment probably has space to be shifted.
-                double minLim = -CHANNEL_MAX;
-                double maxLim = CHANNEL_MAX;
+                double thisPos = displayRoute.ps[i][dim];
+                // For C-bends set a default available nudge distance.  We
+                // don't use CHANNEL_LIMIT since this causes channels to be
+                // needlessly merged that never have a chance of affecting
+                // each other.
+                const double CBEND_SPACE = 80; 
+                double minLim = thisPos - CBEND_SPACE;
+                double maxLim = thisPos + CBEND_SPACE;
+
                 bool isSBend = false;
 
                 double prevPos = displayRoute.ps[i - 2][dim];
                 double nextPos = displayRoute.ps[i + 1][dim];
-                if (((prevPos < displayRoute.ps[i][dim]) &&
-                     (nextPos > displayRoute.ps[i][dim])) 
-                     ||
-                    ((prevPos > displayRoute.ps[i][dim]) &&
-                     (nextPos < displayRoute.ps[i][dim])) )
+                if ( ((prevPos < thisPos) && (nextPos > thisPos)) ||
+                     ((prevPos > thisPos) && (nextPos < thisPos)) )
                 {
                     isSBend = true;
 
                     // Determine limits if the s-bend is not due to an 
                     // obstacle.  In this case we need to limit the channel 
                     // to the span of the adjoining segments to this one.
-                    if ((prevPos < displayRoute.ps[i][dim]) &&
-                        (nextPos > displayRoute.ps[i][dim]))
+                    if ((prevPos < thisPos) && (nextPos > thisPos))
                     {
                         minLim = std::max(minLim, prevPos);
                         maxLim = std::min(maxLim, nextPos);
@@ -1951,13 +1954,13 @@ static void buildOrthogonalChannelInfo(Router *router,
                     // isCBend: Both adjoining segments are in the same
                     // direction.  We indicate this for later by setting 
                     // the maxLim or minLim to the segment position.
-                    if (prevPos < displayRoute.ps[i][dim])
+                    if (prevPos < thisPos)
                     {
-                        minLim = displayRoute.ps[i][dim];
+                        minLim = thisPos;
                     }
                     else
                     {
-                        maxLim = displayRoute.ps[i][dim];
+                        maxLim = thisPos;
                     }
                 }
 
@@ -2417,6 +2420,20 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             //        lowPt[dimension], (int) dimension, idealPos, 
             //        currSegment->minSpaceLimit, currSegment->maxSpaceLimit,
             //        lowPt[!dimension], currSegment->highPoint()[!dimension]);
+#if 0
+            // Debugging info:
+            double minP = std::max(currSegment->minSpaceLimit, -5000.0);
+            double maxP = std::min(currSegment->maxSpaceLimit, 5000.0);
+            fprintf(stdout, "<rect style=\"fill: #f00; opacity: 0.2;\" "
+                    "x=\"%g\" y=\"%g\" width=\"%g\" height=\"%g\" />\n",
+                    lowPt[XDIM], minP, 
+                    currSegment->highPoint()[XDIM] - lowPt[XDIM], 
+                    maxP - minP);
+            fprintf(stdout, "<line style=\"stroke: #000;\" x1=\"%g\" "
+                    "y1=\"%g\" x2=\"%g\" y2=\"%g\" />\n",
+                    lowPt[XDIM], lowPt[YDIM], currSegment->highPoint()[XDIM], 
+                    currSegment->highPoint()[YDIM]);
+#endif
 
             // Constrain position in relation to previously seen segments,
             // if necessary (i.e. when they could overlap).
