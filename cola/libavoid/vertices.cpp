@@ -32,6 +32,7 @@
 #include "libavoid/debug.h"
 #include "libavoid/router.h"
 #include "libavoid/assertions.h"
+#include "libavoid/connend.h"
 
 using std::ostream;
 

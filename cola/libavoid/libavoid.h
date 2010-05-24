@@ -34,6 +34,7 @@
 
 #include "libavoid/geomtypes.h"
 #include "libavoid/connector.h"
+#include "libavoid/connend.h"
 #include "libavoid/graph.h"
 #include "libavoid/debug.h"
 #include "libavoid/timer.h"
