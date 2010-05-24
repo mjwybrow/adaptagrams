@@ -34,6 +34,7 @@
 #include "libavoid/geomtypes.h"
 #include "libavoid/shape.h"
 #include "libavoid/orthogonal.h"
+#include "libavoid/connend.h"
 #include "libavoid/connector.h"
 #include "libavoid/vpsc.h"
 #include "libavoid/assertions.h"

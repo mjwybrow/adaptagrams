@@ -3,23 +3,25 @@ INCLUDES = -I$(top_srcdir)
 lib_LTLIBRARIES = libavoid.la
 
 
-libavoid_la_SOURCES = connector.cpp\
-			geometry.cpp\
-			vertices.cpp\
-			graph.cpp\
-			makepath.cpp\
-			router.cpp\
-			shape.cpp\
-			viscluster.cpp\
-			timer.cpp\
-			visibility.cpp\
-			geomtypes.cpp\
-			orthogonal.cpp\
-			vpsc.cpp\
+libavoid_la_SOURCES = connector.cpp \
+			connend.cpp \
+			geometry.cpp \
+			vertices.cpp \
+			graph.cpp \
+			makepath.cpp \
+			router.cpp \
+			shape.cpp \
+			viscluster.cpp \
+			timer.cpp \
+			visibility.cpp \
+			geomtypes.cpp \
+			orthogonal.cpp \
+			vpsc.cpp \
 			libavoid.h
 
 libavoidincludedir = ${includedir}/libavoid
 libavoidinclude_HEADERS = connector.h \
+			connend.h \
 			geomtypes.h \
 			makepath.h \
 			router.h \

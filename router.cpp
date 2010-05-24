@@ -30,6 +30,7 @@
 #include "libavoid/router.h"
 #include "libavoid/visibility.h"
 #include "libavoid/connector.h"
+#include "libavoid/connend.h"
 #include "libavoid/debug.h"
 #include "libavoid/orthogonal.h"
 #include "libavoid/assertions.h"

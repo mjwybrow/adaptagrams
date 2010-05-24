@@ -27,6 +27,7 @@
 #include "libavoid/graph.h"  // For alertConns
 #include "libavoid/vertices.h"
 #include "libavoid/router.h"
+#include "libavoid/connend.h"
 #include "libavoid/debug.h"
 #include "libavoid/assertions.h"
 
