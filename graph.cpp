@@ -43,29 +43,29 @@ namespace Avoid {
 EdgeInf::EdgeInf(VertInf *v1, VertInf *v2, const bool orthogonal)
     : lstPrev(NULL),
       lstNext(NULL),
-      _blocker(0),
-      _router(NULL),
-      _added(false),
-      _visible(false),
-      _orthogonal(orthogonal),
-      _v1(v1),
-      _v2(v2),
-      _dist(-1)
+      m_router(NULL),
+      m_blocker(0),
+      m_added(false),
+      m_visible(false),
+      m_orthogonal(orthogonal),
+      m_vert1(v1),
+      m_vert2(v2),
+      m_dist(-1)
 {
     // Not passed NULL values.
     COLA_ASSERT(v1 && v2);
 
     // We are in the same instance
-    COLA_ASSERT(_v1->_router == _v2->_router);
-    _router = _v1->_router;
+    COLA_ASSERT(m_vert1->_router == m_vert2->_router);
+    m_router = m_vert1->_router;
 
-    _conns.clear();
+    m_conns.clear();
 }
 
 
 EdgeInf::~EdgeInf()
 {
-    if (_added)
+    if (m_added)
     {
         makeInactive();
     }
@@ -129,7 +129,7 @@ static inline int orthogTurnOrder(const Point& a, const Point& b,
 // Note: This method assumes the two Edges that share a common point.
 bool EdgeInf::rotationLessThan(const VertInf *lastV, const EdgeInf *rhs) const
 {
-    if ((_v1 == rhs->_v1) && (_v2 == rhs->_v2))
+    if ((m_vert1 == rhs->m_vert1) && (m_vert2 == rhs->m_vert2))
     {
         // Effectively the same visibility edge, so they are equal.
         return false;
@@ -138,29 +138,29 @@ bool EdgeInf::rotationLessThan(const VertInf *lastV, const EdgeInf *rhs) const
     
     // Determine common Point and the comparison point on the left- and
     // the right-hand-side.
-    if (_v1 == rhs->_v1)
+    if (m_vert1 == rhs->m_vert1)
     {
-        commonV = _v1;
-        lhsV = _v2;
-        rhsV = rhs->_v2;
+        commonV = m_vert1;
+        lhsV = m_vert2;
+        rhsV = rhs->m_vert2;
     }
-    else if (_v1 == rhs->_v2)
+    else if (m_vert1 == rhs->m_vert2)
     {
-        commonV = _v1;
-        lhsV = _v2;
-        rhsV = rhs->_v1;
+        commonV = m_vert1;
+        lhsV = m_vert2;
+        rhsV = rhs->m_vert1;
     }
-    else if (_v2 == rhs->_v1)
+    else if (m_vert2 == rhs->m_vert1)
     {
-        commonV = _v2;
-        lhsV = _v1;
-        rhsV = rhs->_v2;
+        commonV = m_vert2;
+        lhsV = m_vert1;
+        rhsV = rhs->m_vert2;
     }
-    else if (_v2 == rhs->_v2)
+    else if (m_vert2 == rhs->m_vert2)
     {
-        commonV = _v2;
-        lhsV = _v1;
-        rhsV = rhs->_v1;
+        commonV = m_vert2;
+        lhsV = m_vert1;
+        rhsV = rhs->m_vert1;
     }
 
     const Point& lhsPt = lhsV->point;
@@ -179,75 +179,75 @@ bool EdgeInf::rotationLessThan(const VertInf *lastV, const EdgeInf *rhs) const
 
 void EdgeInf::makeActive(void)
 {
-    COLA_ASSERT(_added == false);
+    COLA_ASSERT(m_added == false);
 
-    if (_orthogonal)
+    if (m_orthogonal)
     {
-        COLA_ASSERT(_visible);
-        _router->visOrthogGraph.addEdge(this);
-        _pos1 = _v1->orthogVisList.insert(_v1->orthogVisList.begin(), this);
-        _v1->orthogVisListSize++;
-        _pos2 = _v2->orthogVisList.insert(_v2->orthogVisList.begin(), this);
-        _v2->orthogVisListSize++;
+        COLA_ASSERT(m_visible);
+        m_router->visOrthogGraph.addEdge(this);
+        m_pos1 = m_vert1->orthogVisList.insert(m_vert1->orthogVisList.begin(), this);
+        m_vert1->orthogVisListSize++;
+        m_pos2 = m_vert2->orthogVisList.insert(m_vert2->orthogVisList.begin(), this);
+        m_vert2->orthogVisListSize++;
     }
     else
     {
-        if (_visible)
+        if (m_visible)
         {
-            _router->visGraph.addEdge(this);
-            _pos1 = _v1->visList.insert(_v1->visList.begin(), this);
-            _v1->visListSize++;
-            _pos2 = _v2->visList.insert(_v2->visList.begin(), this);
-            _v2->visListSize++;
+            m_router->visGraph.addEdge(this);
+            m_pos1 = m_vert1->visList.insert(m_vert1->visList.begin(), this);
+            m_vert1->visListSize++;
+            m_pos2 = m_vert2->visList.insert(m_vert2->visList.begin(), this);
+            m_vert2->visListSize++;
         }
         else // if (invisible)
         {
-            _router->invisGraph.addEdge(this);
-            _pos1 = _v1->invisList.insert(_v1->invisList.begin(), this);
-            _v1->invisListSize++;
-            _pos2 = _v2->invisList.insert(_v2->invisList.begin(), this);
-            _v2->invisListSize++;
+            m_router->invisGraph.addEdge(this);
+            m_pos1 = m_vert1->invisList.insert(m_vert1->invisList.begin(), this);
+            m_vert1->invisListSize++;
+            m_pos2 = m_vert2->invisList.insert(m_vert2->invisList.begin(), this);
+            m_vert2->invisListSize++;
         }
     }
-    _added = true;
+    m_added = true;
 }
 
 
 void EdgeInf::makeInactive(void)
 {
-    COLA_ASSERT(_added == true);
+    COLA_ASSERT(m_added == true);
 
-    if (_orthogonal)
+    if (m_orthogonal)
     {
-        COLA_ASSERT(_visible);
-        _router->visOrthogGraph.removeEdge(this);
-        _v1->orthogVisList.erase(_pos1);
-        _v1->orthogVisListSize--;
-        _v2->orthogVisList.erase(_pos2);
-        _v2->orthogVisListSize--;
+        COLA_ASSERT(m_visible);
+        m_router->visOrthogGraph.removeEdge(this);
+        m_vert1->orthogVisList.erase(m_pos1);
+        m_vert1->orthogVisListSize--;
+        m_vert2->orthogVisList.erase(m_pos2);
+        m_vert2->orthogVisListSize--;
     }
     else
     {
-        if (_visible)
+        if (m_visible)
         {
-            _router->visGraph.removeEdge(this);
-            _v1->visList.erase(_pos1);
-            _v1->visListSize--;
-            _v2->visList.erase(_pos2);
-            _v2->visListSize--;
+            m_router->visGraph.removeEdge(this);
+            m_vert1->visList.erase(m_pos1);
+            m_vert1->visListSize--;
+            m_vert2->visList.erase(m_pos2);
+            m_vert2->visListSize--;
         }
         else // if (invisible)
         {
-            _router->invisGraph.removeEdge(this);
-            _v1->invisList.erase(_pos1);
-            _v1->invisListSize--;
-            _v2->invisList.erase(_pos2);
-            _v2->invisListSize--;
+            m_router->invisGraph.removeEdge(this);
+            m_vert1->invisList.erase(m_pos1);
+            m_vert1->invisListSize--;
+            m_vert2->invisList.erase(m_pos2);
+            m_vert2->invisListSize--;
         }
     }
-    _blocker = 0;
-    _conns.clear();
-    _added = false;
+    m_blocker = 0;
+    m_conns.clear();
+    m_added = false;
 }
 
 
@@ -255,41 +255,47 @@ void EdgeInf::setDist(double dist)
 {
     //COLA_ASSERT(dist != 0);
 
-    if (_added && !_visible)
+    if (m_added && !m_visible)
     {
         makeInactive();
-        COLA_ASSERT(!_added);
+        COLA_ASSERT(!m_added);
     }
-    if (!_added)
+    if (!m_added)
     {
-        _visible = true;
+        m_visible = true;
         makeActive();
     }
-    _dist = dist;
-    _blocker = 0;
+    m_dist = dist;
+    m_blocker = 0;
 }
 
 
 bool EdgeInf::added(void)
 {
-    return _added;
+    return m_added;
+}
+
+
+int EdgeInf::blocker(void) const
+{
+    return m_blocker;
 }
 
 
 void EdgeInf::alertConns(void)
 {
-    FlagList::iterator finish = _conns.end();
-    for (FlagList::iterator i = _conns.begin(); i != finish; ++i)
+    FlagList::iterator finish = m_conns.end();
+    for (FlagList::iterator i = m_conns.begin(); i != finish; ++i)
     {
         *(*i) = true;
     }
-    _conns.clear();
+    m_conns.clear();
 }
 
 
 void EdgeInf::addConn(bool *flag)
 {
-    _conns.push_back(flag);
+    m_conns.push_back(flag);
 }
 
 
@@ -302,54 +308,54 @@ void EdgeInf::addCycleBlocker(void)
 
 void EdgeInf::addBlocker(int b)
 {
-    COLA_ASSERT(_router->InvisibilityGrph);
+    COLA_ASSERT(m_router->InvisibilityGrph);
 
-    if (_added && _visible)
+    if (m_added && m_visible)
     {
         makeInactive();
-        COLA_ASSERT(!_added);
+        COLA_ASSERT(!m_added);
     }
-    if (!_added)
+    if (!m_added)
     {
-        _visible = false;
+        m_visible = false;
         makeActive();
     }
-    _dist = 0;
-    _blocker = b;
+    m_dist = 0;
+    m_blocker = b;
 }
 
 
 pair<VertID, VertID> EdgeInf::ids(void)
 {
-    return std::make_pair(_v1->id, _v2->id);
+    return std::make_pair(m_vert1->id, m_vert2->id);
 }
 
 
 pair<Point, Point> EdgeInf::points(void)
 {
-    return std::make_pair(_v1->point, _v2->point);
+    return std::make_pair(m_vert1->point, m_vert2->point);
 }
 
 
 void EdgeInf::db_print(void)
 {
     db_printf("Edge(");
-    _v1->id.db_print();
+    m_vert1->id.db_print();
     db_printf(",");
-    _v2->id.db_print();
+    m_vert2->id.db_print();
     db_printf(")\n");
 }
 
 
 void EdgeInf::checkVis(void)
 {
-    if (_added && !_visible)
+    if (m_added && !m_visible)
     {
         db_printf("\tChecking visibility for existing invisibility edge..."
                 "\n\t\t");
         db_print();
     }
-    else if (_added && _visible)
+    else if (m_added && m_visible)
     {
         db_printf("\tChecking visibility for existing visibility edge..."
                 "\n\t\t");
@@ -360,26 +366,26 @@ void EdgeInf::checkVis(void)
     bool cone1 = true;
     bool cone2 = true;
 
-    VertInf *i = _v1;
-    VertInf *j = _v2;
+    VertInf *i = m_vert1;
+    VertInf *j = m_vert2;
     const VertID& iID = i->id;
     const VertID& jID = j->id;
     const Point& iPoint = i->point;
     const Point& jPoint = j->point;
 
-    _router->st_checked_edges++;
+    m_router->st_checked_edges++;
 
     if (!(iID.isConnPt()))
     {
-        cone1 = inValidRegion(_router->IgnoreRegions, i->shPrev->point,
+        cone1 = inValidRegion(m_router->IgnoreRegions, i->shPrev->point,
                 iPoint, i->shNext->point, jPoint);
     }
-    else if (_router->IgnoreRegions == false)
+    else if (m_router->IgnoreRegions == false)
     {
         // If Ignoring regions then this case is already caught by 
         // the invalid regions, so only check it when not ignoring
         // regions.
-        ShapeSet& ss = _router->contains[iID];
+        ShapeSet& ss = m_router->contains[iID];
 
         if (!(jID.isConnPt()) && (ss.find(jID.objID) != ss.end()))
         {
@@ -395,15 +401,15 @@ void EdgeInf::checkVis(void)
         // If outside the first cone, don't even bother checking.
         if (!(jID.isConnPt()))
         {
-            cone2 = inValidRegion(_router->IgnoreRegions, j->shPrev->point,
+            cone2 = inValidRegion(m_router->IgnoreRegions, j->shPrev->point,
                     jPoint, j->shNext->point, iPoint);
         }
-        else if (_router->IgnoreRegions == false)
+        else if (m_router->IgnoreRegions == false)
         {
             // If Ignoring regions then this case is already caught by 
             // the invalid regions, so only check it when not ignoring
             // regions.
-            ShapeSet& ss = _router->contains[jID];
+            ShapeSet& ss = m_router->contains[jID];
 
             if (!(iID.isConnPt()) && (ss.find(iID.objID) != ss.end()))
             {
@@ -427,7 +433,7 @@ void EdgeInf::checkVis(void)
         setDist(d);
 
     }
-    else if (_router->InvisibilityGrph)
+    else if (m_router->InvisibilityGrph)
     {
 #if 0
         db_printf("%d, %d, %d\n", cone1, cone2, blocker);
@@ -448,12 +454,12 @@ int EdgeInf::firstBlocker(void)
 {
     ShapeSet ss = ShapeSet();
 
-    Point& pti = _v1->point;
-    Point& ptj = _v2->point;
-    VertID& iID = _v1->id;
-    VertID& jID = _v2->id;
+    Point& pti = m_vert1->point;
+    Point& ptj = m_vert2->point;
+    VertID& iID = m_vert1->id;
+    VertID& jID = m_vert2->id;
 
-    ContainsMap &contains = _router->contains;
+    ContainsMap &contains = m_router->contains;
     if (iID.isConnPt())
     {
         ss.insert(contains[iID].begin(), contains[iID].end());
@@ -463,10 +469,10 @@ int EdgeInf::firstBlocker(void)
         ss.insert(contains[jID].begin(), contains[jID].end());
     }
 
-    VertInf *last = _router->vertices.end();
+    VertInf *last = m_router->vertices.end();
     unsigned int lastId = 0;
     bool seenIntersectionAtEndpoint = false;
-    for (VertInf *k = _router->vertices.shapesBegin(); k != last; )
+    for (VertInf *k = m_router->vertices.shapesBegin(); k != last; )
     {
         VertID kID = k->id;
         if (k->id == dummyOrthogID)
@@ -510,8 +516,8 @@ int EdgeInf::firstBlocker(void)
 
 bool EdgeInf::isBetween(VertInf *i, VertInf *j)
 {
-    if ( ((i == _v1) && (j == _v2)) ||
-         ((i == _v2) && (j == _v1)) )
+    if ( ((i == m_vert1) && (j == m_vert2)) ||
+         ((i == m_vert2) && (j == m_vert1)) )
     {
         return true;
     }
@@ -522,20 +528,25 @@ bool EdgeInf::isBetween(VertInf *i, VertInf *j)
     // Returns true if this edge is a vertical or horizontal line segment.
 bool EdgeInf::isOrthogonal(void) const
 {
-    return ((_v1->point.x == _v2->point.x) || 
-            (_v1->point.y == _v2->point.y));
+    return ((m_vert1->point.x == m_vert2->point.x) || 
+            (m_vert1->point.y == m_vert2->point.y));
+}
+
+
+bool EdgeInf::isDummyConnection(void) const
+{
+    // This is a dummy edge from a shape centre to 
+    // a set of its ShapeConnectionPins.
+    return ((m_vert1->id.isConnectionPin() && m_vert2->id.isConnPt()) ||
+            (m_vert2->id.isConnectionPin() && m_vert1->id.isConnPt()));
 }
 
 
 VertInf *EdgeInf::otherVert(VertInf *vert)
 {
-    COLA_ASSERT((vert == _v1) || (vert == _v2));
+    COLA_ASSERT((vert == m_vert1) || (vert == m_vert2));
 
-    if (vert == _v1)
-    {
-        return _v2;
-    }
-    return _v1;
+    return (vert == m_vert1) ? m_vert2 : m_vert1;
 }
 
 
@@ -563,7 +574,7 @@ EdgeInf *EdgeInf::checkEdgeVisibility(VertInf *i, VertInf *j, bool knownNew)
         }
     }
     edge->checkVis();
-    if (!(edge->_added) && !(router->InvisibilityGrph))
+    if (!(edge->m_added) && !(router->InvisibilityGrph))
     {
         delete edge;
         edge = NULL;
@@ -626,10 +637,10 @@ EdgeInf *EdgeInf::existingEdge(VertInf *i, VertInf *j)
 
 
 EdgeList::EdgeList(bool orthogonal)
-    : _orthogonal(orthogonal),
-      _firstEdge(NULL),
-      _lastEdge(NULL),
-      _count(0)
+    : m_orthogonal(orthogonal),
+      m_first_edge(NULL),
+      m_last_edge(NULL),
+      m_count(0)
 {
 }
 
@@ -642,47 +653,50 @@ EdgeList::~EdgeList()
 
 void EdgeList::clear(void)
 {
-    while (_firstEdge)
+    while (m_first_edge)
     {
-        delete _firstEdge;
+        delete m_first_edge;
     }
-    COLA_ASSERT(_count == 0);
-    _lastEdge = NULL;
+    COLA_ASSERT(m_count == 0);
+    m_last_edge = NULL;
 }
 
 
 int EdgeList::size(void) const
 {
-    return _count;
+    return m_count;
 }
 
 
 void EdgeList::addEdge(EdgeInf *edge)
 {
-    COLA_ASSERT(!_orthogonal || edge->isOrthogonal());
+    // Dummy connections for ShapeConnectionPins won't be orthogonal, 
+    // even in the orthogonal visibility graph.
+    COLA_ASSERT(!m_orthogonal || edge->isOrthogonal() ||
+            edge->isDummyConnection());
     
-    if (_firstEdge == NULL)
+    if (m_first_edge == NULL)
     {
-        COLA_ASSERT(_lastEdge == NULL);
+        COLA_ASSERT(m_last_edge == NULL);
 
-        _lastEdge = edge;
-        _firstEdge = edge;
+        m_last_edge = edge;
+        m_first_edge = edge;
 
         edge->lstPrev = NULL;
         edge->lstNext = NULL;
     }
     else
     {
-        COLA_ASSERT(_lastEdge != NULL);
+        COLA_ASSERT(m_last_edge != NULL);
 
-        _lastEdge->lstNext = edge;
-        edge->lstPrev = _lastEdge;
+        m_last_edge->lstNext = edge;
+        edge->lstPrev = m_last_edge;
 
-        _lastEdge = edge;
+        m_last_edge = edge;
 
         edge->lstNext = NULL;
     }
-    _count++;
+    m_count++;
 }
 
 
@@ -696,30 +710,30 @@ void EdgeList::removeEdge(EdgeInf *edge)
     {
         edge->lstNext->lstPrev = edge->lstPrev;
     }
-    if (edge == _lastEdge)
+    if (edge == m_last_edge)
     {
-        _lastEdge = edge->lstPrev;
-        if (edge == _firstEdge)
+        m_last_edge = edge->lstPrev;
+        if (edge == m_first_edge)
         {
-            _firstEdge = NULL;
+            m_first_edge = NULL;
         }
     }
-    else if (edge == _firstEdge)
+    else if (edge == m_first_edge)
     {
-        _firstEdge = edge->lstNext;
+        m_first_edge = edge->lstNext;
     }
 
 
     edge->lstPrev = NULL;
     edge->lstNext = NULL;
 
-    _count--;
+    m_count--;
 }
 
 
 EdgeInf *EdgeList::begin(void)
 {
-    return _firstEdge;
+    return m_first_edge;
 }
 
 

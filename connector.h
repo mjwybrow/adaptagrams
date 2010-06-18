@@ -34,13 +34,15 @@
 
 #include "libavoid/vertices.h"
 #include "libavoid/geometry.h"
-#include "libavoid/shape.h"
+#include "libavoid/connend.h"
 
 
 namespace Avoid {
 
 class Router;
 class ConnRef;
+class JunctionRef;
+class ShapeRef;
 typedef std::list<ConnRef *> ConnRefList;
 
 
@@ -56,13 +58,6 @@ enum ConnType {
     //!         routes around obstacles.
     ConnType_Orthogonal = 2
 };
-
-
-static const double ATTACH_POS_TOP = 0;
-static const double ATTACH_POS_CENTRE = 0.5;
-static const double ATTACH_POS_BOTTOM = 1;
-static const double ATTACH_POS_LEFT = ATTACH_POS_TOP;
-static const double ATTACH_POS_RIGHT = ATTACH_POS_BOTTOM;
 
 
 //! @brief   The ConnRef class represents a connector object.
@@ -117,16 +112,28 @@ class ConnRef
         //! @brief  Sets both a new source and destination endpoint for this 
         //!         connector.
         //!
+        //! If the router is using transactions, then this action will occur
+        //! the next time Router::processTransaction() is called.  See
+        //! Router::setTransactionUse() for more information.
+        //!
         //! @param[in]  srcPoint  New source endpoint for the connector.
         //! @param[in]  dstPoint  New destination endpoint for the connector.
         void setEndpoints(const ConnEnd& srcPoint, const ConnEnd& dstPoint);
         
         //! @brief  Sets just a new source endpoint for this connector.
         //!
+        //! If the router is using transactions, then this action will occur
+        //! the next time Router::processTransaction() is called.  See
+        //! Router::setTransactionUse() for more information.
+        //!
         //! @param[in]  srcPoint  New source endpoint for the connector.
         void setSourceEndpoint(const ConnEnd& srcPoint);
         
         //! @brief  Sets just a new destination endpoint for this connector.
+        //!
+        //! If the router is using transactions, then this action will occur
+        //! the next time Router::processTransaction() is called.  See
+        //! Router::setTransactionUse() for more information.
         //!
         //! @param[in]  dstPoint  New destination endpoint for the connector.
         void setDestEndpoint(const ConnEnd& dstPoint);
@@ -203,8 +210,20 @@ class ConnRef
         //! @param type  The type of routing to be performed.
         //!
         void setRoutingType(ConnType type);
-
        
+        //! @brief   Splits a connector in the centre of the segmentNth 
+        //!          segment and creates a junction point there as well 
+        //!          as a second connector.
+        //!
+        //! The new junction and connector will be automatically added to 
+        //! the router scene.  A slight preference will be given to the 
+        //! connectors connecting to the junction in the same orientation
+        //! the line segment already existed in.
+        //!
+        //! @return  A pair containing pointers to the new JunctioRef and 
+        //!          ConnRef.
+        std::pair<JunctionRef *, ConnRef *> splitAtSegment(
+                const size_t segmentN);
 
         // @brief   Returns the source endpoint vertex in the visibility graph.
         // @returns The source endpoint vertex.
@@ -228,42 +247,43 @@ class ConnRef
         void setEndpoint(const unsigned int type, const ConnEnd& connEnd);
         bool setEndpoint(const unsigned int type, const VertID& pointID, 
                 Point *pointSuggestion = NULL);
+        std::vector<Point> possibleDstPinPoints(void) const;
     
     private:
         friend class Router;
         friend class ConnEnd;
+        friend class JunctionRef;
 
         PolyLine& routeRef(void);
         void freeRoutes(void);
         void performCallback(void);
         bool generatePath(void);
-        bool generatePath(Point p0, Point p1);
         void unInitialise(void);
         void updateEndPoint(const unsigned int type, const ConnEnd& connEnd);
         void common_updateEndPoint(const unsigned int type, ConnEnd connEnd);
+        void freeActivePins(void);
 
-        Router *_router;
-        unsigned int _id;
-        ConnType _type;
-        unsigned int _srcId, _dstId;
-        bool _orthogonal;
-        bool _needs_reroute_flag;
-        bool _false_path;
-        bool _needs_repaint;
-        bool _active;
-        PolyLine _route;
-        Polygon _display_route;
-        double _route_dist;
-        ConnRefList::iterator _pos;
-        VertInf *_srcVert;
-        VertInf *_dstVert;
-        VertInf *_startVert;
-        bool _initialised;
-        void (*_callback)(void *);
-        void *_connector;
-        bool _hateCrossings;
-        ConnEnd *_srcConnEnd;
-        ConnEnd *_dstConnEnd;
+        Router *m_router;
+        unsigned int m_id;
+        ConnType m_type;
+        bool m_orthogonal;
+        bool m_needs_reroute_flag;
+        bool m_false_path;
+        bool m_needs_repaint;
+        bool m_active;
+        PolyLine m_route;
+        Polygon m_display_route;
+        double m_route_dist;
+        ConnRefList::iterator m_connrefs_pos;
+        VertInf *m_src_vert;
+        VertInf *m_dst_vert;
+        VertInf *m_start_vert;
+        bool m_initialised;
+        void (*m_callback_func)(void *);
+        void *m_connector;
+        bool m_hate_crossings;
+        ConnEnd *m_src_connend;
+        ConnEnd *m_dst_connend;
 };
 
 

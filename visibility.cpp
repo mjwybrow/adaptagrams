@@ -52,20 +52,18 @@
 namespace Avoid {
 
 
-void shapeVis(ShapeRef *shape)
+void ShapeRef::computeVisibilityNaive(void)
 {
-    Router *router = shape->router();
-
-    if ( !(router->InvisibilityGrph) )
+    if ( !(router()->InvisibilityGrph) )
     {
         // Clear shape from graph.
-        shape->removeFromGraph();
+        removeFromGraph();
     }
 
-    VertInf *shapeBegin = shape->firstVert();
-    VertInf *shapeEnd = shape->lastVert()->lstNext;
+    VertInf *shapeBegin = firstVert();
+    VertInf *shapeEnd = lastVert()->lstNext;
 
-    VertInf *pointsBegin = router->vertices.connsBegin();
+    VertInf *pointsBegin = router()->vertices.connsBegin();
     for (VertInf *curr = shapeBegin; curr != shapeEnd; curr = curr->lstNext)
     {
         bool knownNew = true;
@@ -85,7 +83,7 @@ void shapeVis(ShapeRef *shape)
         }
 
         db_printf("\tSecond Half:\n");
-        VertInf *pointsEnd = router->vertices.end();
+        VertInf *pointsEnd = router()->vertices.end();
         for (VertInf *k = shapeEnd; k != pointsEnd; k = k->lstNext)
         {
             if (k->id == dummyOrthogID)
@@ -99,18 +97,16 @@ void shapeVis(ShapeRef *shape)
 }
 
 
-void shapeVisSweep(ShapeRef *shape)
+void ShapeRef::computeVisibilitySweep(void)
 {
-    Router *router = shape->router();
-
-    if ( !(router->InvisibilityGrph) )
+    if ( !(router()->InvisibilityGrph) )
     {
         // Clear shape from graph.
-        shape->removeFromGraph();
+        removeFromGraph();
     }
 
-    VertInf *startIter = shape->firstVert();
-    VertInf *endIter = shape->lastVert()->lstNext;
+    VertInf *startIter = firstVert();
+    VertInf *endIter = lastVert()->lstNext;
 
     for (VertInf *i = startIter; i != endIter; i = i->lstNext)
     {
@@ -167,16 +163,13 @@ void vertexVisibility(VertInf *point, VertInf *partner, bool knownNew,
 //  SWEEP CODE
 //
 
-static VertInf *centerInf;
-static Point centerPoint;
-static VertID centerID;
-
 
 class PointPair
 {
     public:
-        PointPair(VertInf *inf)
-            : vInf(inf)
+        PointPair(const Point& centerPoint, VertInf *inf)
+            : vInf(inf),
+              centerPoint(centerPoint)
         {
             double x = vInf->point.x - centerPoint.x;
             double y = vInf->point.y - centerPoint.y;
@@ -236,8 +229,8 @@ class PointPair
         VertInf    *vInf;
         double     angle;
         double     distance;
+        Point      centerPoint;
 };
-
 
 typedef std::set<PointPair > VertSet;
 
@@ -245,21 +238,26 @@ typedef std::set<PointPair > VertSet;
 class EdgePair
 {
     public:
-        EdgePair() :
-            vInf1(NULL), vInf2(NULL), dist1(0.0), dist2(0.0), angle(0.0),
-            angleDist(0.0)
+        EdgePair() 
+            : vInf1(NULL), 
+              vInf2(NULL), 
+              dist1(0.0),
+              dist2(0.0),
+              angle(0.0),
+              angleDist(0.0)
         {
             // The default constuctor should never be called.  
             // This is defined to appease the MSVC compiler.
             COLA_ASSERT(false);
         }
-        EdgePair(const PointPair& p1, VertInf *v) : 
-                vInf1(p1.vInf), 
-                vInf2(v),
-                dist1(p1.distance),
-                dist2(euclideanDist(vInf2->point, centerPoint)),
-                angle(p1.angle),
-                angleDist(p1.distance)
+        EdgePair(const PointPair& p1, VertInf *v) 
+            : vInf1(p1.vInf), 
+              vInf2(v),
+              dist1(p1.distance),
+              dist2(euclideanDist(vInf2->point, centerPoint)),
+              angle(p1.angle),
+              angleDist(p1.distance),
+              centerPoint(p1.centerPoint)
         {
         }
         bool operator<(const EdgePair& rhs) const
@@ -337,6 +335,7 @@ class EdgePair
         double dist2;
         double angle;
         double angleDist;
+        Point centerPoint;
 };
 
 typedef std::list<EdgePair> SweepEdgeList;
@@ -477,10 +476,9 @@ void vertexSweep(VertInf *vert)
     VertID& pID = vert->id;
     Point& pPoint = vert->point;
 
-    centerInf = vert;
-    centerID = pID;
-    centerPoint = pPoint;
-    Point centerPt = pPoint;
+    VertInf *centerInf = vert;
+    VertID centerID = pID;
+    Point centerPoint = pPoint;
 
     // List of shape (and maybe endpt) vertices, except p
     // Sort list, around
@@ -515,7 +513,7 @@ void vertexSweep(VertInf *vert)
         if (!(inf->id.isConnPt()))
         {
             // Add shape vertex.
-            v.insert(inf);
+            v.insert(PointPair(centerPoint, inf));
         }
         else
         {
@@ -523,7 +521,7 @@ void vertexSweep(VertInf *vert)
             if (!(centerID.isConnPt()))
             {
                 // Center is a shape vertex, so add all endpoint vertices.
-                v.insert(inf);
+                v.insert(PointPair(centerPoint, inf));
             }
             else
             {
@@ -533,7 +531,7 @@ void vertexSweep(VertInf *vert)
                         (centerID.vn == 1) ? 2 : 1, VertID::PROP_ConnPoint);
                 if (inf->id == partnerID)
                 {
-                    v.insert(inf);
+                    v.insert(PointPair(centerPoint, inf));
                 }
             }
         }
@@ -606,8 +604,8 @@ void vertexSweep(VertInf *vert)
         Point&  currPt = currInf->point;
 
 #ifdef LINEDEBUG
-        Sint16 ppx = (int) centerPt.x;
-        Sint16 ppy = (int) centerPt.y;
+        Sint16 ppx = (int) centerPoint.x;
+        Sint16 ppy = (int) centerPoint.y;
 
         Sint16 cx = (int) currPt.x;
         Sint16 cy = (int) currPt.y;
@@ -694,7 +692,7 @@ void vertexSweep(VertInf *vert)
             if (currInf->shPrev != centerInf)
             {
                 Point& prevPt = currInf->shPrev->point;
-                int prevDir = vecDir(centerPt, currPt, prevPt);
+                int prevDir = vecDir(centerPoint, currPt, prevPt);
                 EdgePair prevPair = EdgePair(*t, currInf->shPrev);
 
                 if (prevDir == BEHIND)
@@ -710,7 +708,7 @@ void vertexSweep(VertInf *vert)
             if (currInf->shNext != centerInf)
             {
                 Point& nextPt = currInf->shNext->point;
-                int nextDir = vecDir(centerPt, currPt, nextPt);
+                int nextDir = vecDir(centerPoint, currPt, nextPt);
                 EdgePair nextPair = EdgePair(*t, currInf->shNext);
 
                 if (nextDir == BEHIND)

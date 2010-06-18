@@ -17,6 +17,8 @@ libavoid_la_SOURCES = connector.cpp \
 			geomtypes.cpp \
 			orthogonal.cpp \
 			vpsc.cpp \
+			connectionpin.cpp \
+			junction.cpp \
 			libavoid.h
 
 libavoidincludedir = ${includedir}/libavoid
@@ -35,6 +37,8 @@ libavoidinclude_HEADERS = connector.h \
 			visibility.h \
 			viscluster.h \
 			orthogonal.h \
+			connectionpin.h \
+			junction.h \
 			vpsc.h
 
 SUBDIRS = . tests

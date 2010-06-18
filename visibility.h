@@ -26,25 +26,18 @@
 #ifndef AVOID_VISIBILITY_H
 #define AVOID_VISIBILITY_H
 
-#include "libavoid/vertices.h"
-
 
 namespace Avoid {
 
-class ShapeRef;
 class VertInf;
 
 extern void vertexVisibility(VertInf *point, VertInf *partner, bool knownNew,
             const bool gen_contains = false);
 extern void vertexSweep(VertInf *point);
 extern void computeCompleteVis(void);
-extern void shapeVis(ShapeRef *shape);
-extern void shapeVisSweep(ShapeRef *shape);
-
 
 }
 
 
 #endif
-
 

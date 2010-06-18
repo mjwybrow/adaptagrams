@@ -1,0 +1,147 @@
+/*
+ * vim: ts=4 sw=4 et tw=0 wm=0
+ *
+ * libavoid - Fast, Incremental, Object-avoiding Line Router
+ *
+ * Copyright (C) 2010  Monash University
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ * See the file LICENSE.LGPL distributed with the library.
+ *
+ * Licensees holding a valid commercial license may use this file in
+ * accordance with the commercial license agreement provided with the 
+ * library.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ *
+ * Author(s):   Michael Wybrow <mjwybrow@users.sourceforge.net>
+*/
+
+//! @file    junction.h
+//! @brief   Contains the interface for the JunctionRef class.
+
+
+#ifndef AVOID_JUNCTION_H
+#define AVOID_JUNCTION_H
+
+#include <list>
+#include <set>
+
+#include "libavoid/geomtypes.h"
+
+namespace Avoid {
+
+class Router;
+class VertInf;
+class ConnEnd;
+class ConnRef;
+class ShapeConnectionPin;
+class JunctionRef;
+typedef std::list<JunctionRef *> JunctionRefList;
+
+
+//! @brief  The JunctionRef class represents a fixed or free-floating point that 
+//!         connectors can be attached to.  
+//!
+//! A JunctionRef represents a junction between multiple connectors, or could
+//! be used to specify an intermediate point that a single connector must route
+//! through.
+//!
+class JunctionRef
+{
+    public:
+        //! @brief  Junction reference constructor.
+        //!
+        //! Creates a junction obect reference, but does not yet place it 
+        //! into the Router scene.  You can add or remove the junction to/from
+        //! the scene with Router::addJunction() and Router::removeJunction().
+        //! The junction can be moved with Router::moveJunction().
+        //!
+        //! If an ID is not specified, then one will be assigned to the 
+        //! junction.  If assigning an ID yourself, note that it should be 
+        //! a unique positive integer.  Also, IDs are given to all objects 
+        //! in a scene, so the same ID cannot be given to a shape and a 
+        //! connector for example.
+        //!
+        //! @param[in]  router   The router scene to place the junction into.
+        //! @param[in]  position A Point representing the position of the 
+        //!                      junction.
+        //! @param[in]  id       A unique positive integer ID for the junction.  
+        JunctionRef(Router *router, Point position, const unsigned int id = 0);
+
+        //! @brief  Junction reference destructor.
+        //!
+        //! This will call Router::removeJunction() for this shape, if this has
+        //! not already be called.
+        ~JunctionRef();
+
+        //! @brief  Removes a junction that has only two connectors attached
+        //!         to it and merges them into a single connector.
+        //!
+        //! The junction and one of the connectors will be removed from the
+        //! router scene and the connecor deleted.  A pointer to the 
+        //! remaining (merged) connector will be returned by this method.
+        //!
+        //! Currently this method does not delete and free the Junction itself.
+        //! The user needs to do this after the transaction has been 
+        //! processed by the router.
+        //!
+        //! If there are more than two connectors attached to the junction
+        //! then nothing will be changed and this method will return NULL.
+        //!
+        //! @return  The merged connector, or NULL if the junction was not
+        //!          removed.
+        ConnRef *removeJunctionAndMergeConnectors(void);
+
+        //! @brief   Returns the ID of this junction.
+        //! @returns The ID of the junction. 
+        unsigned int id(void) const;
+        //! @brief   Returns the position of this junction.
+        //! @returns A point representing the position of this junction.
+        Point position(void) const;
+        //! @brief   Returns a pointer to the router scene this junctione is in.
+        //! @returns A pointer to the router scene for this junction.
+        Router *router(void) const;
+
+        void preferOrthogonalDimension(const size_t dim);
+
+    private:
+        friend class Router;
+        friend class ShapeConnectionPin;
+        friend class ConnEnd;
+
+        void setPosition(const Point& position);
+        void makeActive(void);
+        void makeInactive(void);
+        bool isActive(void) const;
+        void addFollowingConnEnd(ConnEnd *connEnd);
+        void removeFollowingConnEnd(ConnEnd *connEnd);
+        void moveAttachedConns(const Point& newPosition);
+        unsigned int addConnectionPin(ShapeConnectionPin *pin);
+        void removeConnectionPin(ShapeConnectionPin *pin);
+        void assignPinVisibilityTo(const unsigned int pinClassId, 
+                VertInf *dummyConnectionVert);
+        void removeFromGraph(void);
+
+
+        Router *m_router;
+        unsigned int m_id;
+        Point m_position;
+        bool m_active;
+        JunctionRefList::iterator m_junctionrefs_pos;
+        std::set<ConnEnd *> m_following_conns;
+        std::set<ShapeConnectionPin *> m_connection_pins;
+};
+
+
+}
+
+
+#endif
+
+

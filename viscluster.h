@@ -52,12 +52,12 @@ class ClusterRef
         void makeInactive(void);
 
     private:
-        Router *_router;
-        unsigned int _id;
-        ReferencingPolygon _poly;
-        Polygon _rectangular_poly;
-        bool _active;
-        ClusterRefList::iterator _pos;
+        Router *m_router;
+        unsigned int m_id;
+        ReferencingPolygon m_polygon;
+        Polygon m_rectangular_polygon;
+        bool m_active;
+        ClusterRefList::iterator m_clusterrefs_pos;
 };
 
 

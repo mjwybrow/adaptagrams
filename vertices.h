@@ -58,6 +58,7 @@ class VertID
         
         static const VertIDProps PROP_ConnPoint;
         static const VertIDProps PROP_OrthShapeEdge;
+        static const VertIDProps PROP_ConnectionPin;
 
         VertID();
         VertID(unsigned int id, unsigned short n, VertIDProps p = 0);
@@ -81,6 +82,10 @@ class VertID
         inline bool isConnPt(void) const
         {
             return (props & PROP_ConnPoint) ? true : false;
+        }
+        inline bool isConnectionPin(void) const
+        {
+            return (props & PROP_ConnectionPin) ? true : false;
         }
 };
 
@@ -141,7 +146,7 @@ bool directVis(VertInf *src, VertInf *dst);
 
 // A linked list of all the vertices in the router instance.  All the 
 // connector endpoints are listed first, then all the shape vertices.
-// Dunnny vertices inserted for orthogonal routing are classed as shape
+// Dummy vertices inserted for orthogonal routing are classed as shape
 // vertices but have VertID(0, 0).
 //
 class VertInfList

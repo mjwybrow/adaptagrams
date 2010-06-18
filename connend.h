@@ -23,7 +23,7 @@
 */
 
 //! @file    connend.h
-//! @brief   Contains the interface for the ConnRef class.
+//! @brief   Contains the interface for the ConnEnd class.
 
 
 #ifndef AVOID_CONNEND_H
@@ -38,10 +38,13 @@
 
 namespace Avoid {
 
+class ShapeRef;
+class JunctionRef;
 class Router;
 class ConnRef;
-class ShapeRef;
+class ShapeConnectionPin;
 typedef std::list<ConnRef *> ConnRefList;
+class VertInf;
 
 
 //! @brief  Flags that can be passed to the ConnEnd constructor to specify
@@ -76,6 +79,15 @@ enum ConnDirFlag {
 typedef unsigned int ConnDirFlags;
 
 
+// Used to specify position on shape when constructing a shape-attached ConnEnd.
+//
+static const double ATTACH_POS_TOP = 0;
+static const double ATTACH_POS_CENTRE = 0.5;
+static const double ATTACH_POS_BOTTOM = 1;
+static const double ATTACH_POS_LEFT = ATTACH_POS_TOP;
+static const double ATTACH_POS_RIGHT = ATTACH_POS_BOTTOM;
+
+
 //! @brief  The ConnEnd class represents different possible endpoints for 
 //!         connectors.
 //!
@@ -90,6 +102,33 @@ class ConnEnd
         //! @param[in]  point  The position of the connector endpoint.
         //!
         ConnEnd(const Point& point);
+
+        //! @brief Constructs a ConnEnd attached to one of a particular set of
+        //!        connection pins on a shape.
+        //!
+        //! This is the ideal method for connecting to shapes that may later be
+        //! moved or resized and you don't want to track and specify the 
+        //! connections yourself.  See the ShapeConnectionPin documentation 
+        //! for more information.
+        //!
+        //! @param[in]  shapeRef              A pointer to the containing shape's
+        //!                                   ShapeRef.
+        //! @param[in]  connectionPinClassID  An integer denoting the class ID 
+        //!                                   for the set of pins to connect to.
+        //!
+        ConnEnd(ShapeRef *shapeRef, const unsigned int connectionPinClassID);
+
+        //! @brief Constructs a ConnEnd attached to one of the connection 
+        //!        pins on a junction.
+        //!
+        //! This is the ideal method for connecting to junctions that may 
+        //! later be moved.  See the ShapeConnectionPin documentation for 
+        //! more information.
+        //!
+        //! @param[in]  junctionRef           A pointer to the containing 
+        //!                                   junction's junctionRef.
+        //!
+        ConnEnd(JunctionRef *junctionRef);
 
         //! @brief Constructs a ConnEnd from a free-floating point as well
         //!        as a set of flags specifying visibility for this point 
@@ -163,7 +202,7 @@ class ConnEnd
                 const double insideOffset = 0.0,
                 const ConnDirFlags visDirs = ConnDirNone);
 
-        //! @brief Returns the position of this connector endpoint
+        //! @brief Returns the position of this connector endpoint.
         //!
         //! @return The position of this connector endpoint.
         //!
@@ -178,23 +217,38 @@ class ConnEnd
 
         ~ConnEnd();
     private:
+        friend class ShapeRef;
+        friend class JunctionRef;
+        friend class ConnRef;
+        friend class Router;
+        friend class ShapeConnectionPin;
+
         void connect(ConnRef *conn);
         void disconnect(const bool shapeDeleted = false);
+        void usePin(ShapeConnectionPin *pin);
+        void usePinVertex(VertInf *pinVert);
+        void freeActivePin(void);
         ShapeRef *containingShape(void) const;
         unsigned int type(void) const;
+        bool isPinConnection(void) const;
+        std::vector<Point> possiblePinPoints(void) const;
+        void assignPinVisibilityTo(VertInf *dummyConnectionVert);
+        void outputCode(FILE *fp, const char *srcDst);
 
-        Point _point;
-        ConnDirFlags _directions;
-        double _xPosition;
-        double _yPosition;
-        double _insideOffset;
+        Point m_point;
+        ConnDirFlags m_directions;
+        double m_shape_x_position;
+        double m_shape_y_position;
+        double m_shape_inside_offset;
+        unsigned int m_connection_pin_class_id;
         
-        // For referencing ConnEns
-        ShapeRef *_shapeRef;  // The shape this is attached to.
-        ConnRef *_connRef;    // The parent connector.
-
-        friend class ShapeRef;
-        friend class ConnRef;
+        // For referencing ConnEnds
+        ShapeRef *m_shape_ref;  // The shape this is attached to.
+        JunctionRef *m_junction_ref;  // The junction this is attached to.
+        ConnRef *m_conn_ref;    // The parent connector.
+        
+        // The pin to which the ConnEnd is attached.
+        ShapeConnectionPin *m_active_pin;  
 };
 
 
