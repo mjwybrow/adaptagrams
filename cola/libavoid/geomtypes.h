@@ -104,6 +104,9 @@ class Point
 //!
 static const unsigned short kUnassignedVertexNumber = 8;
 
+//! Constant value representing a ShapeConnectionPin.
+static const unsigned short kShapeConnectionPin = 9;
+
 
 //! @brief  A vector, represented by the Point class.
 //!

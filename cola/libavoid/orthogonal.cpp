@@ -566,6 +566,14 @@ struct PosVertInf
         {
             return pos < rhs.pos;
         }
+        if ((vert->id == rhs.vert->id) && (vert->id == dummyOrthogID))
+        {
+            // Multiple dummy nodes can get placed at the same point for 
+            // multiple ShapeConnectionPins on junctions (outside of shapes).
+            // We only need one at each position, so multiples can be seen
+            // as equal here.
+            return false;
+        }
         return vert < rhs.vert;
     }
 
@@ -816,7 +824,7 @@ public:
     }
 
     // Set flags to show what can be passed on this visibility line.
-    // This can be used later to disreguard some edges in the visibility
+    // This can be used later to disregard some edges in the visibility
     // graph when routing particular connectors.
     void setLongRangeVisibilityFlags(size_t dim)
     {
@@ -1035,6 +1043,29 @@ public:
 
         const bool orthogonal = true;
         BreakpointSet::iterator vert, last;
+#if 0
+        last = breakPoints.end();
+        for (vert = breakPoints.begin(); vert != breakPoints.end();)
+        {
+            if (vert->vert->id == dummyOrthogID)
+            {
+                if (last == breakPoints.end() || 
+                        (last->vert->point != vert->vert->point))
+                {
+                    last = vert;
+                }
+                else
+                {
+                    // Already seen a dummy orthogonal point at this 
+                    // position, delete it.
+
+            }
+            else
+            {
+                ++vert;
+            }
+        }
+#endif
         for (vert = last = breakPoints.begin(); vert != breakPoints.end();)
         {
             BreakpointSet::iterator firstPrev = last;
@@ -1394,12 +1425,12 @@ static void processEventVert(Router *router, NodeSet& scanline,
             bool inShape = v->isInsideShape(XDIM);
 
             LineSegment *line1 = NULL, *line2 = NULL;
-            if (!inShape || (centreVert->visDirections & ConnDirLeft))
+            if (centreVert->visDirections & ConnDirLeft)
             {
                 line1 = segments.insert(LineSegment(minLimit, cp.x, e->pos, 
                         true, NULL, centreVert));
             }
-            if (!inShape || (centreVert->visDirections & ConnDirRight))
+            if (centreVert->visDirections & ConnDirRight)
             {
                 line2 = segments.insert(LineSegment(cp.x, maxLimit, e->pos, 
                         true, centreVert, NULL));
@@ -1558,13 +1589,13 @@ static void processEventHori(Router *router, NodeSet& scanline,
             // As far as we can see.
             double minLimit = v->firstPointAbove(YDIM);
             double maxLimit = v->firstPointBelow(YDIM);
-            bool inShape = v->isInsideShape(YDIM);
+            //bool inShape = v->isInsideShape(YDIM);
             
-            if (!inShape || (centreVert->visDirections & ConnDirUp))
+            if (centreVert->visDirections & ConnDirUp)
             {
                 segments.insert(LineSegment(minLimit, cp.y, e->pos));
             }
-            if (!inShape || (centreVert->visDirections & ConnDirDown))
+            if (centreVert->visDirections & ConnDirDown)
             {
                 segments.insert(LineSegment(cp.y, maxLimit, e->pos));
             }
@@ -1919,13 +1950,8 @@ static void buildOrthogonalChannelInfo(Router *router,
 
                 // The segment probably has space to be shifted.
                 double thisPos = displayRoute.ps[i][dim];
-                // For C-bends set a default available nudge distance.  We
-                // don't use CHANNEL_LIMIT since this causes channels to be
-                // needlessly merged that never have a chance of affecting
-                // each other.
-                const double CBEND_SPACE = 80; 
-                double minLim = thisPos - CBEND_SPACE;
-                double maxLim = thisPos + CBEND_SPACE;
+                double minLim = -CHANNEL_MAX;
+                double maxLim = CHANNEL_MAX;
 
                 bool isSBend = false;
 
@@ -1955,12 +1981,20 @@ static void buildOrthogonalChannelInfo(Router *router,
                     // isCBend: Both adjoining segments are in the same
                     // direction.  We indicate this for later by setting 
                     // the maxLim or minLim to the segment position.
+                    // 
+                    // For C-bends set a default available nudge distance.  We
+                    // don't use CHANNEL_LIMIT since this causes channels to be
+                    // needlessly merged that never have a chance of affecting
+                    // each other.
+                    const double CBEND_SPACE = 80; 
                     if (prevPos < thisPos)
                     {
                         minLim = thisPos;
+                        maxLim = thisPos + CBEND_SPACE;
                     }
                     else
                     {
+                        minLim = thisPos - CBEND_SPACE;
                         maxLim = thisPos;
                     }
                 }
@@ -2379,8 +2413,10 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
         double freeWeight   = 0.00001;
         double strongWeight = 0.001;
         double fixedWeight  = 100000;
-        //printf("-------------------------------------------------------\n");
-        //printf("Nudge -- size: %d\n", (int) currentRegion.size());
+#ifdef NUDGE_DEBUG 
+        printf("-------------------------------------------------------\n");
+        printf("Nudge -- size: %d\n", (int) currentRegion.size());
+#endif
         for (ShiftSegmentList::iterator currSegment = currentRegion.begin();
                 currSegment != currentRegion.end(); ++currSegment)
         {
@@ -2416,11 +2452,13 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             currSegment->variable = new Variable(varID, idealPos, weight);
             vs.push_back(currSegment->variable);
             size_t index = vs.size() - 1;
-            //printf("line  %.15f  dim: %d pos: %g   min: %g  max: %g\n"
-            //       "minEndPt: %g  maxEndPt: %g\n",
-            //        lowPt[dimension], (int) dimension, idealPos, 
-            //        currSegment->minSpaceLimit, currSegment->maxSpaceLimit,
-            //        lowPt[!dimension], currSegment->highPoint()[!dimension]);
+#ifdef NUDGE_DEBUG 
+            printf("line  %.15f  dim: %d pos: %g   min: %g  max: %g\n"
+                   "minEndPt: %g  maxEndPt: %g\n",
+                    lowPt[dimension], (int) dimension, idealPos, 
+                    currSegment->minSpaceLimit, currSegment->maxSpaceLimit,
+                    lowPt[!dimension], currSegment->highPoint()[!dimension]);
+#endif
 #if 0
             // Debugging info:
             double minP = std::max(currSegment->minSpaceLimit, -5000.0);
@@ -2494,7 +2532,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             }
             prevVars.push_back(&(*currSegment));
         }
-#if 0
+#ifdef NUDGE_DEBUG
         for(unsigned i=0;i<vs.size();i++) {
             printf("-vs[%d]=%f\n",i,vs[i]->desiredPosition);
         }
@@ -2521,12 +2559,14 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                 Point& lowPt = currSegment->lowPoint();
                 Point& highPt = currSegment->highPoint();
                 double newPos = currSegment->variable->finalPosition;
-                //printf("Pos: %lX, %g\n", (long) currSegment->connRef, newPos);
+#ifdef NUDGE_DEBUG
+                printf("Pos: %lX, %g\n", (long) currSegment->connRef, newPos);
+#endif
                 lowPt[dimension] = newPos;
                 highPt[dimension] = newPos;
             }
         }
-#if 0
+#ifdef NUDGE_DEBUG
         for(unsigned i=0;i<vs.size();i++) {
             printf("+vs[%d]=%f\n",i,vs[i]->finalPosition);
         }

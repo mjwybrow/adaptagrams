@@ -30,33 +30,35 @@
 #include "libavoid/connend.h"
 #include "libavoid/debug.h"
 #include "libavoid/assertions.h"
+#include "libavoid/connectionpin.h"
 
 
 namespace Avoid {
 
 
 ShapeRef::ShapeRef(Router *router, Polygon& ply, const unsigned int id)
-    : _router(router)
-    , _poly(ply)
-    , _active(false)
-    , _inMoveList(false)
-    , _firstVert(NULL)
-    , _lastVert(NULL)
+    : m_router(router)
+    , m_polygon(ply)
+    , m_active(false)
+    , m_in_move_list(false)
+    , m_first_vert(NULL)
+    , m_last_vert(NULL)
 {
-    _id = router->assignId(id);
+    COLA_ASSERT(m_router != NULL);
+    m_id = m_router->assignId(id);
 
-    VertID i = VertID(_id, 0);
+    VertID i = VertID(m_id, 0);
     
     const bool addToRouterNow = false;
     VertInf *last = NULL;
     VertInf *node = NULL;
-    for (size_t pt_i = 0; pt_i < _poly.size(); ++pt_i)
+    for (size_t pt_i = 0; pt_i < m_polygon.size(); ++pt_i)
     {
-        node = new VertInf(_router, i, _poly.ps[pt_i], addToRouterNow);
+        node = new VertInf(m_router, i, m_polygon.ps[pt_i], addToRouterNow);
 
-        if (!_firstVert)
+        if (!m_first_vert)
         {
-            _firstVert = node;
+            m_first_vert = node;
         }
         else
         {
@@ -69,27 +71,27 @@ ShapeRef::ShapeRef(Router *router, Polygon& ply, const unsigned int id)
         last = node;
         i++;
     }
-    _lastVert = node;
+    m_last_vert = node;
     
-    _lastVert->shNext = _firstVert;
-    _firstVert->shPrev = _lastVert;
+    m_last_vert->shNext = m_first_vert;
+    m_first_vert->shPrev = m_last_vert;
 }
 
 
 ShapeRef::~ShapeRef()
 {
-    COLA_ASSERT(!_router->shapeInQueuedActionList(this));
+    COLA_ASSERT(!m_router->shapeInQueuedActionList(this));
 
-    if (_active)
+    if (m_active)
     {
         // Destroying a shape without calling removeShape(), so do it now.
-        _router->removeShape(this);
-        _router->processTransaction();
+        m_router->removeShape(this);
+        m_router->processTransaction();
     }
 
-    COLA_ASSERT(_firstVert != NULL);
+    COLA_ASSERT(m_first_vert != NULL);
     
-    VertInf *it = _firstVert;
+    VertInf *it = m_first_vert;
     do
     {
         VertInf *tmp = it;
@@ -97,18 +99,24 @@ ShapeRef::~ShapeRef()
 
         delete tmp;
     }
-    while (it != _firstVert);
-    _firstVert = _lastVert = NULL;
+    while (it != m_first_vert);
+    m_first_vert = m_last_vert = NULL;
+
+    // Free and clear any connection pins.
+    while (!m_connection_pins.empty())
+    {
+        delete *(m_connection_pins.begin());
+    }
 }
 
 
 void ShapeRef::setNewPoly(const Polygon& poly)
 {
-    COLA_ASSERT(_firstVert != NULL);
-    COLA_ASSERT(_poly.size() == poly.size());
+    COLA_ASSERT(m_first_vert != NULL);
+    COLA_ASSERT(m_polygon.size() == poly.size());
     
-    VertInf *curr = _firstVert;
-    for (size_t pt_i = 0; pt_i < _poly.size(); ++pt_i)
+    VertInf *curr = m_first_vert;
+    for (size_t pt_i = 0; pt_i < m_polygon.size(); ++pt_i)
     {
         COLA_ASSERT(curr->visListSize == 0);
         COLA_ASSERT(curr->invisListSize == 0);
@@ -119,124 +127,144 @@ void ShapeRef::setNewPoly(const Polygon& poly)
         
         curr = curr->shNext;
     }
-    COLA_ASSERT(curr == _firstVert);
+    COLA_ASSERT(curr == m_first_vert);
         
-    _poly = poly;
+    m_polygon = poly;
 }
 
 
-void ShapeRef::moveAttachedConns(void)
+void ShapeRef::moveAttachedConns(const Polygon& newPoly)
 {
     // Update positions of attached connector ends.
-    for (std::set<ConnEnd *>::iterator curr = _followingConns.begin();
-            curr != _followingConns.end(); ++curr)
+    for (std::set<ConnEnd *>::iterator curr = m_following_conns.begin();
+            curr != m_following_conns.end(); ++curr)
     {
         ConnEnd *connEnd = *curr;
-        COLA_ASSERT(connEnd->_connRef != NULL);
-        _router->modifyConnector(connEnd->_connRef, connEnd->type(), *connEnd);
+        COLA_ASSERT(connEnd->m_conn_ref != NULL);
+        m_router->modifyConnector(connEnd->m_conn_ref, connEnd->type(), 
+                *connEnd);
+    }
+    for (std::set<ShapeConnectionPin *>::iterator curr = 
+            m_connection_pins.begin(); curr != m_connection_pins.end(); ++curr)
+    {
+        ShapeConnectionPin *pin = *curr;
+        pin->updatePosition(newPoly);
     }
 }
 
 
 void ShapeRef::makeActive(void)
 {
-    COLA_ASSERT(!_active);
+    COLA_ASSERT(!m_active);
     
     // Add to shapeRefs list.
-    _pos = _router->shapeRefs.insert(_router->shapeRefs.begin(), this);
+    m_shaperefs_pos = m_router->shapeRefs.insert(m_router->shapeRefs.begin(), this);
 
     // Add points to vertex list.
-    VertInf *it = _firstVert;
+    VertInf *it = m_first_vert;
     do
     {
         VertInf *tmp = it;
         it = it->shNext;
 
-        _router->vertices.addVertex(tmp);
+        m_router->vertices.addVertex(tmp);
     }
-    while (it != _firstVert);
+    while (it != m_first_vert);
     
-    _active = true;
+    m_active = true;
 }
 
 
 void ShapeRef::makeInactive(void)
 {
-    COLA_ASSERT(_active);
+    COLA_ASSERT(m_active);
     
     // Remove from shapeRefs list.
-    _router->shapeRefs.erase(_pos);
+    m_router->shapeRefs.erase(m_shaperefs_pos);
 
     // Remove points from vertex list.
-    VertInf *it = _firstVert;
+    VertInf *it = m_first_vert;
     do
     {
         VertInf *tmp = it;
         it = it->shNext;
 
-        _router->vertices.removeVertex(tmp);
+        m_router->vertices.removeVertex(tmp);
     }
-    while (it != _firstVert);
+    while (it != m_first_vert);
     
-    _active = false;
+    m_active = false;
     
     // Turn attached ConnEnds into manual points.
     bool deletedShape = true;
-    while (!_followingConns.empty())
+    while (!m_following_conns.empty())
     {
-        ConnEnd *connEnd = *(_followingConns.begin());
+        ConnEnd *connEnd = *(m_following_conns.begin());
         connEnd->disconnect(deletedShape);
     }
 }
 
 
+unsigned int ShapeRef::addConnectionPin(ShapeConnectionPin *pin)
+{
+    m_connection_pins.insert(pin);
+
+    return m_connection_pins.size();
+}
+
+void ShapeRef::removeConnectionPin(ShapeConnectionPin *pin)
+{
+    m_connection_pins.erase(pin);
+}
+
+
 bool ShapeRef::isActive(void) const
 {
-    return _active;
+    return m_active;
 }
 
 
 VertInf *ShapeRef::firstVert(void)
 {
-    return _firstVert;
+    return m_first_vert;
 }
 
 
 VertInf *ShapeRef::lastVert(void)
 {
-    return _lastVert;
+    return m_last_vert;
 }
 
 
 unsigned int ShapeRef::id(void) const
 {
-    return _id;
+    return m_id;
 }
 
 
 const Polygon& ShapeRef::polygon(void) const
 {
-    return _poly;
+    return m_polygon;
 }
 
 
 Router *ShapeRef::router(void) const
 {
-    return _router;
+    return m_router;
 }
 
 
 void ShapeRef::boundingBox(BBox& bbox)
 {
-    COLA_ASSERT(!_poly.empty());
+    COLA_ASSERT(!m_polygon.empty());
 
-    bbox.a = bbox.b = _poly.ps[0];
+    bbox.a = bbox.b = m_polygon.ps[0];
     Point& a = bbox.a;
     Point& b = bbox.b;
 
-    for (size_t i = 1; i < _poly.size(); ++i)
+    for (size_t i = 1; i < m_polygon.size(); ++i)
     {
-        const Point& p = _poly.ps[i];
+        const Point& p = m_polygon.ps[i];
 
         a.x = std::min(p.x, a.x);
         a.y = std::min(p.y, a.y);
@@ -248,47 +276,22 @@ void ShapeRef::boundingBox(BBox& bbox)
 
 void ShapeRef::removeFromGraph(void)
 {
+    bool isConnPt = false;
     for (VertInf *iter = firstVert(); iter != lastVert()->lstNext; )
     {
         VertInf *tmp = iter;
         iter = iter->lstNext;
-        
-        // For each vertex.
-        EdgeInfList& visList = tmp->visList;
-        EdgeInfList::const_iterator finish = visList.end();
-        EdgeInfList::const_iterator edge;
-        while ((edge = visList.begin()) != finish)
-        {
-            // Remove each visibility edge
-            (*edge)->alertConns();
-            delete (*edge);
-        }
-
-        EdgeInfList& invisList = tmp->invisList;
-        finish = invisList.end();
-        while ((edge = invisList.begin()) != finish)
-        {
-            // Remove each invisibility edge
-            delete (*edge);
-        }
-
-        EdgeInfList& orthogList = tmp->orthogVisList;
-        finish = orthogList.end();
-        while ((edge = orthogList.begin()) != finish)
-        {
-            // Remove each orthogonal visibility edge
-            (*edge)->alertConns();
-            delete (*edge);
-        }
+ 
+        tmp->removeFromGraph(isConnPt);
     }
 }
 
 
 void ShapeRef::markForMove(void)
 {
-    if (!_inMoveList)
+    if (!m_in_move_list)
     {
-        _inMoveList = true;
+        m_in_move_list = true;
     }
     else
     {
@@ -300,13 +303,13 @@ void ShapeRef::markForMove(void)
 
 void ShapeRef::clearMoveMark(void)
 {
-    _inMoveList = false;
+    m_in_move_list = false;
 }
 
 
 VertInf *ShapeRef::getPointVertex(const Point& point)
 {
-    VertInf *curr = _firstVert;
+    VertInf *curr = m_first_vert;
     do
     {
         if (curr->point == point)
@@ -315,7 +318,7 @@ VertInf *ShapeRef::getPointVertex(const Point& point)
         }
         curr = curr->shNext;
     }
-    while (curr != _firstVert);
+    while (curr != m_first_vert);
 
     return NULL;
 }
@@ -323,13 +326,13 @@ VertInf *ShapeRef::getPointVertex(const Point& point)
 
 void ShapeRef::addFollowingConnEnd(ConnEnd *connEnd)
 {
-    _followingConns.insert(connEnd);
+    m_following_conns.insert(connEnd);
 }
 
 
 void ShapeRef::removeFollowingConnEnd(ConnEnd *connEnd)
 {
-    _followingConns.erase(connEnd);
+    m_following_conns.erase(connEnd);
 }
 
 

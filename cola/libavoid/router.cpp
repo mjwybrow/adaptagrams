@@ -30,10 +30,13 @@
 #include "libavoid/router.h"
 #include "libavoid/visibility.h"
 #include "libavoid/connector.h"
+#include "libavoid/junction.h"
+#include "libavoid/viscluster.h"
 #include "libavoid/connend.h"
 #include "libavoid/debug.h"
 #include "libavoid/orthogonal.h"
 #include "libavoid/assertions.h"
+#include "libavoid/connectionpin.h"
 
 namespace Avoid {
 
@@ -42,6 +45,9 @@ enum ActionType {
     ShapeMove,
     ShapeAdd,
     ShapeRemove,
+    JunctionMove,
+    JunctionAdd,
+    JunctionRemove,
     ConnChange
 };
 
@@ -61,7 +67,22 @@ class ActionInfo {
             : type(t),
               objPtr(s)
         {
-            COLA_ASSERT(type != ConnChange);
+            COLA_ASSERT((type == ShapeAdd) || (type == ShapeRemove) ||
+                    (type == ShapeMove));
+        }
+        ActionInfo(ActionType t, JunctionRef *j, const Point& p)
+            : type(t),
+              objPtr(j),
+              newPosition(p)
+        {
+            COLA_ASSERT(type == JunctionMove);
+        }
+        ActionInfo(ActionType t, JunctionRef *j)
+            : type(t),
+              objPtr(j)
+        {
+            COLA_ASSERT((type == JunctionAdd) || (type == JunctionRemove) ||
+                    (type == JunctionMove));
         }
         ActionInfo(ActionType t, ConnRef *c)
             : type(t),
@@ -83,6 +104,12 @@ class ActionInfo {
             COLA_ASSERT(type == ConnChange);
             return (static_cast<ConnRef *> (objPtr));
         }
+        JunctionRef *junction(void) const
+        {
+            COLA_ASSERT((type == JunctionMove) || (type == JunctionAdd) || 
+                    (type == JunctionRemove));
+            return (static_cast<JunctionRef *> (objPtr));
+        }
         bool operator==(const ActionInfo& rhs) const
         {
             return (type == rhs.type) && (objPtr == rhs.objPtr);
@@ -98,6 +125,7 @@ class ActionInfo {
         ActionType type;
         void *objPtr;
         Polygon newPoly;
+        Point newPosition;
         bool firstMove;
         ConnUpdateList conns;
 };
@@ -175,6 +203,22 @@ Router::~Router()
         delete shapePtr;
         shape = shapeRefs.begin();
     }
+
+    // Remove remaining junctions.
+    JunctionRefList::iterator junction = junctionRefs.begin();
+    while (junction != junctionRefs.end())
+    {
+        JunctionRef *junctionPtr = *junction;
+        db_printf("Deleting junction %u in ~Router()\n", junctionPtr->id());
+        if (junctionPtr->isActive())
+        {
+            junctionPtr->removeFromGraph();
+            junctionPtr->makeInactive();
+        }
+        delete junctionPtr;
+        junction = junctionRefs.begin();
+    }
+
 
     // Cleanup orphaned orthogonal graph vertices.
     destroyOrthogonalVisGraph();
@@ -465,7 +509,7 @@ bool Router::processTransaction(void)
         
         if (isMove)
         {
-            shape->moveAttachedConns();
+            shape->moveAttachedConns(actInf.newPoly);
         }
 
         // Ignore this shape for visibility.
@@ -473,6 +517,26 @@ bool Router::processTransaction(void)
         //      Feedback.  Without this the blocked edges still route
         //      around the shape until it leaves the connector.
         shape->makeInactive();
+    }
+    for (curr = actionList.begin(); curr != finish; ++curr)
+    {
+        ActionInfo& actInf = *curr;
+        if (!((actInf.type == JunctionRemove) || (actInf.type == JunctionMove)))
+        {
+            // Not a junction move or remove action, so don't do anything.
+            continue;
+        }
+
+        JunctionRef *junction = actInf.junction();
+        bool isMove = (actInf.type == JunctionMove);
+
+        junction->removeFromGraph();
+        
+        if (isMove)
+        {
+            junction->moveAttachedConns(actInf.newPosition);
+        }
+        junction->makeInactive();
     }
     
     if (seenShapeMovesOrDeletes && _polyLineRouting)
@@ -500,6 +564,25 @@ bool Router::processTransaction(void)
         }
     }
 
+    for (curr = actionList.begin(); curr != finish; ++curr)
+    {
+        ActionInfo& actInf = *curr;
+        if (!((actInf.type == JunctionAdd) || (actInf.type == JunctionMove)))
+        {
+            // Not a junction move or add action, so don't do anything.
+            continue;
+        }
+
+        JunctionRef *junction = actInf.junction();
+        bool isMove = (actInf.type == JunctionMove);
+
+        junction->makeActive();
+        
+        if (isMove)
+        {
+            junction->setPosition(actInf.newPosition);
+        }
+    }
     for (curr = actionList.begin(); curr != finish; ++curr)
     {
         ActionInfo& actInf = *curr;
@@ -538,11 +621,11 @@ bool Router::processTransaction(void)
             // o  Calculate visibility for the new vertices.
             if (UseLeesAlgorithm)
             {
-                shapeVisSweep(shape);
+                shape->computeVisibilitySweep();
             }
             else
             {
-                shapeVis(shape);
+                shape->computeVisibilityNaive();
             }
         }
     }
@@ -570,6 +653,113 @@ bool Router::processTransaction(void)
     return true;
 }
 
+
+void Router::addJunction(JunctionRef *junction)
+{
+    // There shouldn't be remove events or move events for the same junction
+    // already in the action list.
+    // XXX: Possibly we could handle this by ordering them intelligently.
+    COLA_ASSERT(find(actionList.begin(), actionList.end(), 
+                ActionInfo(JunctionRemove, junction)) == actionList.end());
+    COLA_ASSERT(find(actionList.begin(), actionList.end(), 
+                ActionInfo(JunctionMove, junction)) == actionList.end());
+
+    ActionInfo addInfo(JunctionAdd, junction);
+    
+    ActionInfoList::iterator found = 
+            find(actionList.begin(), actionList.end(), addInfo);
+    if (found == actionList.end())
+    {
+        actionList.push_back(addInfo);
+    }
+
+    if (!_consolidateActions)
+    {
+        processTransaction();
+    }
+}
+
+
+void Router::removeJunction(JunctionRef *junction)
+{
+    // There shouldn't be add events events for the same junction already 
+    // in the action list.
+    // XXX: Possibly we could handle this by ordering them intelligently.
+    COLA_ASSERT(find(actionList.begin(), actionList.end(), 
+                ActionInfo(JunctionAdd, junction)) == actionList.end());
+
+    // Delete any ShapeMove entries for this shape in the action list.
+    ActionInfoList::iterator found = find(actionList.begin(), 
+            actionList.end(), ActionInfo(JunctionMove, junction));
+    if (found != actionList.end())
+    {
+        actionList.erase(found);
+    }
+
+    // Add the ShapeRemove entry.
+    ActionInfo remInfo(JunctionRemove, junction);
+    found = find(actionList.begin(), actionList.end(), remInfo);
+    if (found == actionList.end())
+    {
+        actionList.push_back(remInfo);
+    }
+
+    if (!_consolidateActions)
+    {
+        processTransaction();
+    }
+}
+
+
+void Router::moveJunction(JunctionRef *junction, const double xDiff, 
+        const double yDiff)
+{
+    Point newPosition = junction->position();
+    newPosition.x += xDiff;
+    newPosition.y += yDiff;
+
+    moveJunction(junction, newPosition);
+}
+
+
+void Router::moveJunction(JunctionRef *junction, const Point& newPosition)
+{
+    // There shouldn't be remove events or add events for the same junction
+    // already in the action list.
+    // XXX: Possibly we could handle this by ordering them intelligently.
+    COLA_ASSERT(find(actionList.begin(), actionList.end(), 
+                ActionInfo(JunctionRemove, junction)) == actionList.end());
+    
+    ActionInfoList::iterator found = find(actionList.begin(), 
+            actionList.end(), ActionInfo(JunctionAdd, junction));
+    if (found != actionList.end())
+    {
+        // The Add is enough, no need for the Move action too.
+        // The junction will be added with the new position.
+        found->junction()->setPosition(newPosition);
+        return;
+    }
+
+    ActionInfo moveInfo(JunctionMove, junction, newPosition);
+    // Sanely cope with the case where the user requests moving the same
+    // shape multiple times before rerouting connectors.
+    found = find(actionList.begin(), actionList.end(), moveInfo);
+
+    if (found != actionList.end())
+    {
+        // Just update the ActionInfo with the second position.
+        found->newPosition = newPosition;
+    }
+    else 
+    {
+        actionList.push_back(moveInfo);
+    }
+
+    if (!_consolidateActions)
+    {
+        processTransaction();
+    }
+}
 
 void Router::addCluster(ClusterRef *cluster)
 {
@@ -672,6 +862,7 @@ bool Router::idIsUnique(const unsigned int id) const
 
 //----------------------------------------------------------------------------
 
+#if 0
 // XXX: attachedShapes and attachedConns both need to be rewritten
 //      for constant time lookup of attached objects once this info
 //      is stored better within libavoid.  Also they shouldn't need to
@@ -723,6 +914,7 @@ void Router::attachedShapes(IntList &shapes, const unsigned int shapeId,
         }
     }
 }
+#endif
 
 
     // It's intended this function is called after visibility changes 
@@ -736,10 +928,14 @@ void Router::rerouteAndCallbackConnectors(void)
     // Updating the orthogonal visibility graph if necessary. 
     regenerateStaticBuiltGraph();
 
+    for (ConnRefList::const_iterator i = connRefs.begin(); i != fin; ++i) 
+    {
+        (*i)->freeActivePins();
+    }
     timers.Register(tmOrthogRoute, timerStart);
     for (ConnRefList::const_iterator i = connRefs.begin(); i != fin; ++i) 
     {
-        (*i)->_needs_repaint = false;
+        (*i)->m_needs_repaint = false;
         bool rerouted = (*i)->generatePath();
         if (rerouted)
         {
@@ -757,7 +953,7 @@ void Router::rerouteAndCallbackConnectors(void)
     // Alert connectors that they need redrawing.
     for (ConnRefList::const_iterator i = connRefs.begin(); i != fin; ++i) 
     {
-        (*i)->_needs_repaint = true;
+        (*i)->m_needs_repaint = true;
         (*i)->performCallback();
     }
 }
@@ -835,6 +1031,11 @@ void Router::improveCrossings(void)
         // the crossings routes one by one, threading them through the 
         // non-crossing routes to avoid as many crossings as possible.
         conn->freeRoutes();
+    }
+    for (ConnRefSet::iterator i = crossingConns.begin(); 
+            i != crossingConns.end(); ++i)
+    {
+        (*i)->freeActivePins();
     }
     for (ConnRefSet::iterator i = crossingConns.begin(); 
             i != crossingConns.end(); ++i)
@@ -920,12 +1121,12 @@ void Router::checkAllBlockedEdges(int pid)
         EdgeInf *tmp = iter;
         iter = iter->lstNext;
 
-        if (tmp->_blocker == -1)
+        if (tmp->blocker() == -1)
         {
             tmp->alertConns();
             tmp->checkVis();
         }
-        else if (tmp->_blocker == pid)
+        else if (tmp->blocker() == pid)
         {
             tmp->checkVis();
         }
@@ -1073,21 +1274,21 @@ void Router::markConnectors(ShapeRef *shape)
     {
         ConnRef *conn = (*it);
 
-        if (conn->_route.empty())
+        if (conn->m_route.empty())
         {
             // Ignore uninitialised connectors.
             continue;
         }
-        else if (conn->_needs_reroute_flag)
+        else if (conn->m_needs_reroute_flag)
         {
             // Already marked, so skip.
             continue;
         }
 
-        Point start = conn->_route.ps[0];
-        Point end = conn->_route.ps[conn->_route.size() - 1];
+        Point start = conn->m_route.ps[0];
+        Point end = conn->m_route.ps[conn->m_route.size() - 1];
 
-        double conndist = conn->_route_dist;
+        double conndist = conn->m_route_dist;
 
         double estdist;
         double e1, e2;
@@ -1242,7 +1443,7 @@ void Router::markConnectors(ShapeRef *shape)
                 db_printf("[%3d] - Possible better path found (%.1f < %.1f)\n",
                         conn->_id, estdist, conndist);
 #endif
-                conn->_needs_reroute_flag = true;
+                conn->m_needs_reroute_flag = true;
                 break;
             }
 
@@ -1620,8 +1821,27 @@ void Router::outputInstanceToSVG(std::string instanceName)
         }
         fprintf(fp, "    ShapeRef *shapeRef%u = new ShapeRef(router, poly%u, "
                 "%u);\n", shRef->id(), shRef->id(), shRef->id());
-        fprintf(fp, "    router->addShape(shapeRef%u);\n\n", shRef->id());
+        fprintf(fp, "    router->addShape(shapeRef%u);\n", shRef->id());
+        for (std::set<ShapeConnectionPin *>::iterator curr = 
+                shRef->m_connection_pins.begin(); 
+                curr != shRef->m_connection_pins.end(); ++curr)
+        {
+            (*curr)->outputCode(fp);
+        }
+        fprintf(fp, "\n");
         ++revShapeRefIt;
+    }
+    JunctionRefList::reverse_iterator revJunctionRefIt = junctionRefs.rbegin();
+    while (revJunctionRefIt != junctionRefs.rend())
+    {
+        JunctionRef *junctionRef = *revJunctionRefIt;
+        fprintf(fp, "    JunctionRef *junctionRef%u = new JunctionRef(router, "
+                "Point(%g, %g), %u);\n", junctionRef->id(), 
+                junctionRef->position().x, junctionRef->position().y,
+                junctionRef->id());
+        fprintf(fp, "    router->addJunction(junctionRef%u);\n\n", 
+                junctionRef->id());
+        ++revJunctionRefIt;
     }
     ConnRefList::reverse_iterator revConnRefIt = connRefs.rbegin();
     while (revConnRefIt != connRefs.rend())
@@ -1629,7 +1849,13 @@ void Router::outputInstanceToSVG(std::string instanceName)
         ConnRef *connRef = *revConnRefIt;
         fprintf(fp, "    ConnRef *connRef%u = new ConnRef(router, %u);\n",
                 connRef->id(), connRef->id());
-        if (connRef->src())
+        if (connRef->m_src_connend)
+        {
+            connRef->m_src_connend->outputCode(fp, "src");
+            fprintf(fp, "    connRef%u->setSourceEndpoint(srcPt%u);\n",
+                    connRef->id(), connRef->id());
+        }
+        else if (connRef->src())
         {
             fprintf(fp, "    ConnEnd srcPt%u(Point(%g, %g), %u);\n",
                     connRef->id(), connRef->src()->point.x,
@@ -1637,7 +1863,13 @@ void Router::outputInstanceToSVG(std::string instanceName)
             fprintf(fp, "    connRef%u->setSourceEndpoint(srcPt%u);\n",
                     connRef->id(), connRef->id());
         }
-        if (connRef->dst())
+        if (connRef->m_dst_connend)
+        {
+            connRef->m_dst_connend->outputCode(fp, "dst");
+            fprintf(fp, "    connRef%u->setDestEndpoint(dstPt%u);\n",
+                    connRef->id(), connRef->id());
+        }
+        else if (connRef->dst())
         {
             fprintf(fp, "    ConnEnd dstPt%u(Point(%g, %g), %u);\n",
                     connRef->id(), connRef->dst()->point.x,
@@ -1689,6 +1921,17 @@ void Router::outputInstanceToSVG(std::string instanceName)
 
     fprintf(fp, "<g inkscape:groupmode=\"layer\" "
             "inkscape:label=\"ShapesPoly\">\n");
+    JunctionRefList::iterator juncRefIt = junctionRefs.begin();
+    while (juncRefIt != junctionRefs.end())
+    {
+        JunctionRef *juncRef = *juncRefIt;
+    
+        fprintf(fp, "<circle id=\"junc-%u\" style=\"stroke-width: 1px; "
+                "stroke: black; fill: red; fill-opacity: 0.5;\" r=\"10\" "
+                "cx=\"%g\" cy=\"%g\" />\n", 
+                juncRef->id(), juncRef->position().x, juncRef->position().y);
+        ++juncRefIt;
+    }
     ShapeRefList::iterator shRefIt = shapeRefs.begin();
     while (shRefIt != shapeRefs.end())
     {

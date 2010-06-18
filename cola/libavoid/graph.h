@@ -50,7 +50,7 @@ class EdgeInf
         ~EdgeInf();
         inline double getDist(void)
         {
-            return _dist;
+            return m_dist;
         }
         void setDist(double dist);
         void alertConns(void);
@@ -59,6 +59,7 @@ class EdgeInf
         void addBlocker(int b);
         bool added(void);
         bool isOrthogonal(void) const;
+        bool isDummyConnection(void) const;
         bool rotationLessThan(const VertInf* last, const EdgeInf *rhs) const;
 
         std::pair<VertID, VertID> ids(void);
@@ -69,26 +70,27 @@ class EdgeInf
         static EdgeInf *checkEdgeVisibility(VertInf *i, VertInf *j,
                 bool knownNew = false);
         static EdgeInf *existingEdge(VertInf *i, VertInf *j);
+        int blocker(void) const;
 
         EdgeInf *lstPrev;
         EdgeInf *lstNext;
-        int _blocker;
     private:
-        Router *_router;
-        bool _added;
-        bool _visible;
-        bool _orthogonal;
-        VertInf *_v1;
-        VertInf *_v2;
-        EdgeInfList::iterator _pos1;
-        EdgeInfList::iterator _pos2;
-        FlagList  _conns;
-        double  _dist;
-
         void makeActive(void);
         void makeInactive(void);
         int firstBlocker(void);
         bool isBetween(VertInf *i, VertInf *j);
+
+        Router *m_router;
+        int m_blocker;
+        bool m_added;
+        bool m_visible;
+        bool m_orthogonal;
+        VertInf *m_vert1;
+        VertInf *m_vert2;
+        EdgeInfList::iterator m_pos1;
+        EdgeInfList::iterator m_pos2;
+        FlagList  m_conns;
+        double  m_dist;
 };
 
 
@@ -105,10 +107,11 @@ class EdgeList
     private:
         void addEdge(EdgeInf *edge);
         void removeEdge(EdgeInf *edge);
-        bool _orthogonal;
-        EdgeInf *_firstEdge;
-        EdgeInf *_lastEdge;
-        unsigned int _count;
+
+        bool m_orthogonal;
+        EdgeInf *m_first_edge;
+        EdgeInf *m_last_edge;
+        unsigned int m_count;
 };
 
 

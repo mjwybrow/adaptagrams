@@ -24,7 +24,13 @@ check_PROGRAMS = \
 	orthordering01 \
 	orthordering02 \
 	orderassertion \
-	connendmove
+	connendmove \
+	connectionpin01 \
+	connectionpin02 \
+	junction01 \
+	junction02 \
+	junction03 \
+	junction04
 
 example_SOURCES = example.cpp
 
@@ -63,6 +69,14 @@ slowrouting_SOURCES = slowrouting.cpp
 orderassertion_SOURCES = orderassertion.cpp
 
 connendmove_SOURCES = connendmove.cpp
+
+connectionpin01_SOURCES = connectionpin01.cpp
+connectionpin02_SOURCES = connectionpin02.cpp
+
+junction01_SOURCES = junction01.cpp
+junction02_SOURCES = junction02.cpp
+junction03_SOURCES = junction03.cpp
+junction04_SOURCES = junction04.cpp
 
 TESTS = $(check_PROGRAMS)
 

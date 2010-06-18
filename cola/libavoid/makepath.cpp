@@ -33,6 +33,7 @@
 #include "libavoid/makepath.h"
 #include "libavoid/geometry.h"
 #include "libavoid/connector.h"
+#include "libavoid/viscluster.h"
 #include "libavoid/graph.h"
 #include "libavoid/router.h"
 #include "libavoid/debug.h"
@@ -397,11 +398,31 @@ class CmpVisEdgeRotation
         }
         bool operator() (const EdgeInf* u, const EdgeInf* v) const 
         {
-            return u->rotationLessThan(_lastPt, v);
+            // Dummy ShapeConnectionPin edges are not orthogonal and 
+            // therefore can't be compared in the same way.
+            if (u->isOrthogonal() && v->isOrthogonal())
+            {
+                return u->rotationLessThan(_lastPt, v);
+            }
+            return u < v;
         }
     private:
         const VertInf *_lastPt;
 };
+
+
+static inline bool pointAlignedWithOneOf(const Point& point, 
+        const std::vector<Point>& points, const size_t dim)
+{
+    for (size_t i = 0; i < points.size(); ++i)
+    {
+        if (point[dim] == points[i][dim])
+        {
+            return true;
+        }
+    }
+    return false;
+}
 
 
 // Returns the best path from src to tar using the cost function.
@@ -421,6 +442,16 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
 
     double (*dist)(const Point& a, const Point& b) = 
         (isOrthogonal) ? manhattanDist : euclideanDist;
+
+    // We need to know the possible endpoints for doing an orthogonal 
+    // routing optimisation where we only turn when we are heading beside
+    // a shape or are in line with a possible endpoint.
+    std::vector<Point> endPoints;
+    if (isOrthogonal)
+    {
+        endPoints = lineRef->possibleDstPinPoints();
+    }
+    endPoints.push_back(tar->point);
 
     std::vector<ANode> PENDING;     // STL Vectors chosen because of rapid
     std::vector<ANode> DONE;        // insertions/deletions at back,
@@ -640,7 +671,8 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
             Node.prevIndex = DONE.size() - 1;
 
             // Only check shape verticies, or the tar endpoint.
-            if (Node.inf->id.isConnPt() && (Node.inf != tar))
+            if (Node.inf->id.isConnPt() && !Node.inf->id.isConnectionPin() && 
+                    (Node.inf != tar))
             {
                 continue;
             }
@@ -654,7 +686,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
                 continue;
             }
 
-            if (isOrthogonal)
+            if (isOrthogonal && !(*edge)->isDummyConnection())
             {
                 // Orthogonal routing optimisation.
                 // Skip the edges that don't lead to shape edges, or the 
@@ -669,8 +701,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
                     if (nextPt.y < bestPt.y)
                     {
                         if (!(BestNode.inf->orthogVisPropFlags & YL_EDGE) &&
-                                !((bestPt.x == tar->point.x) ||
-                                  (bestPt.x == src->point.x)))
+                                !pointAlignedWithOneOf(bestPt, endPoints, XDIM))
                         {
                             continue;
                         }
@@ -678,8 +709,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
                     else if (nextPt.y > bestPt.y)
                     {
                         if (!(BestNode.inf->orthogVisPropFlags & YH_EDGE) &&
-                                !((bestPt.x == tar->point.x) ||
-                                  (bestPt.x == src->point.x)))
+                                !pointAlignedWithOneOf(bestPt, endPoints, XDIM))
                         {
                             continue;
                         }
@@ -690,8 +720,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
                     if (nextPt.x < bestPt.x)
                     {
                         if (!(BestNode.inf->orthogVisPropFlags & XL_EDGE) &&
-                                !((bestPt.y == tar->point.y) ||
-                                  (bestPt.y == src->point.y)))
+                                !pointAlignedWithOneOf(bestPt, endPoints, YDIM))
                         {
                             continue;
                         }
@@ -699,8 +728,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
                     else if (nextPt.x > bestPt.x)
                     {
                         if (!(BestNode.inf->orthogVisPropFlags & XH_EDGE) &&
-                                !((bestPt.y == tar->point.y) ||
-                                  (bestPt.y == src->point.y)))
+                                !pointAlignedWithOneOf(bestPt, endPoints, YDIM))
                         {
                             continue;
                         }

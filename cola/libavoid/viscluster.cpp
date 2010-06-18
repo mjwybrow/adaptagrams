@@ -31,13 +31,14 @@
 namespace Avoid {
 
 
-ClusterRef::ClusterRef(Router *router, unsigned int id, Polygon& ply)
-    : _router(router)
-    , _poly(ply, router)
-    , _rectangular_poly(_poly.boundingRect())
-    , _active(false)
+ClusterRef::ClusterRef(Router *router, unsigned int id, Polygon& polygon)
+    : m_router(router)
+    , m_polygon(polygon, router)
+    , m_rectangular_polygon(m_polygon.boundingRect())
+    , m_active(false)
 {
-    _id = router->assignId(id);
+    COLA_ASSERT(m_router != NULL);
+    m_id = m_router->assignId(id);
 }
 
 
@@ -48,54 +49,55 @@ ClusterRef::~ClusterRef()
 
 void ClusterRef::makeActive(void)
 {
-    COLA_ASSERT(!_active);
+    COLA_ASSERT(!m_active);
     
-    // Add to connRefs list.
-    _pos = _router->clusterRefs.insert(_router->clusterRefs.begin(), this);
+    // Add to clusterRefs list.
+    m_clusterrefs_pos = m_router->clusterRefs.insert(
+            m_router->clusterRefs.begin(), this);
 
-    _active = true;
+    m_active = true;
 }
 
 
 void ClusterRef::makeInactive(void)
 {
-    COLA_ASSERT(_active);
+    COLA_ASSERT(m_active);
     
-    // Remove from connRefs list.
-    _router->clusterRefs.erase(_pos);
+    // Remove from clusterRefs list.
+    m_router->clusterRefs.erase(m_clusterrefs_pos);
 
-    _active = false;
+    m_active = false;
 }
     
 
 void ClusterRef::setNewPoly(Polygon& poly)
 {
-    _poly = ReferencingPolygon(poly, _router);
-    _rectangular_poly = _poly.boundingRect();
+    m_polygon = ReferencingPolygon(poly, m_router);
+    m_rectangular_polygon = m_polygon.boundingRect();
 }
 
 
 unsigned int ClusterRef::id(void)
 {
-    return _id;
+    return m_id;
 }
 
 
 ReferencingPolygon& ClusterRef::polygon(void)
 {
-    return _poly;
+    return m_polygon;
 }
 
 
 Polygon& ClusterRef::rectangularPolygon(void)
 {
-    return _rectangular_poly;
+    return m_rectangular_polygon;
 }
 
 
 Router *ClusterRef::router(void)
 {
-    return _router;
+    return m_router;
 }
 
 

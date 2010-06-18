@@ -34,6 +34,7 @@
 #include "libavoid/visibility.h"
 #include "libavoid/debug.h"
 #include "libavoid/assertions.h"
+#include "libavoid/junction.h"
 #include "libavoid/makepath.h"
 
 
@@ -41,73 +42,71 @@ namespace Avoid {
 
     
 ConnRef::ConnRef(Router *router, const unsigned int id)
-    : _router(router),
-      _type(router->validConnType()),
-      _srcId(0),
-      _dstId(0),
-      _needs_reroute_flag(true),
-      _false_path(false),
-      _needs_repaint(false),
-      _active(false),
-      _route_dist(0),
-      _srcVert(NULL),
-      _dstVert(NULL),
-      _startVert(NULL),
-      _initialised(false),
-      _callback(NULL),
-      _connector(NULL),
-      _hateCrossings(false),
-      _srcConnEnd(NULL),
-      _dstConnEnd(NULL)
+    : m_router(router),
+      m_type(router->validConnType()),
+      m_needs_reroute_flag(true),
+      m_false_path(false),
+      m_needs_repaint(false),
+      m_active(false),
+      m_route_dist(0),
+      m_src_vert(NULL),
+      m_dst_vert(NULL),
+      m_start_vert(NULL),
+      m_initialised(false),
+      m_callback_func(NULL),
+      m_connector(NULL),
+      m_hate_crossings(false),
+      m_src_connend(NULL),
+      m_dst_connend(NULL)
 {
-    _id = router->assignId(id);
+    COLA_ASSERT(m_router != NULL);
+    m_id = m_router->assignId(id);
 
     // TODO: Store endpoints and details.
-    _route.clear();
+    m_route.clear();
 }
 
 
 ConnRef::ConnRef(Router *router, const ConnEnd& src, const ConnEnd& dst,
         const unsigned int id)
-    : _router(router),
-      _type(router->validConnType()),
-      _srcId(0),
-      _dstId(0),
-      _needs_reroute_flag(true),
-      _false_path(false),
-      _needs_repaint(false),
-      _active(false),
-      _route_dist(0),
-      _srcVert(NULL),
-      _dstVert(NULL),
-      _initialised(false),
-      _callback(NULL),
-      _connector(NULL),
-      _hateCrossings(false),
-      _srcConnEnd(NULL),
-      _dstConnEnd(NULL)
+    : m_router(router),
+      m_type(router->validConnType()),
+      m_needs_reroute_flag(true),
+      m_false_path(false),
+      m_needs_repaint(false),
+      m_active(false),
+      m_route_dist(0),
+      m_src_vert(NULL),
+      m_dst_vert(NULL),
+      m_initialised(false),
+      m_callback_func(NULL),
+      m_connector(NULL),
+      m_hate_crossings(false),
+      m_src_connend(NULL),
+      m_dst_connend(NULL)
 {
-    _id = router->assignId(id);
-    _route.clear();
+    COLA_ASSERT(m_router != NULL);
+    m_id = m_router->assignId(id);
+    m_route.clear();
 
-    VertID id1(_id, 1, VertID::PROP_ConnPoint);
-    _srcVert = new VertInf(_router, id1, src.position());
-    _srcVert->visDirections = src.directions();
-    if (src.containingShape())
+    VertID id1(m_id, 1, VertID::PROP_ConnPoint);
+    m_src_vert = new VertInf(m_router, id1, src.position());
+    m_src_vert->visDirections = src.directions();
+    if (src.isPinConnection())
     {
-        _srcConnEnd = new ConnEnd(src);
+        m_src_connend = new ConnEnd(src);
     }
 
-    VertID id2(_id, 2, VertID::PROP_ConnPoint);
-    _dstVert = new VertInf(_router, id2, dst.position());
-    _dstVert->visDirections = dst.directions();
-    if (dst.containingShape())
+    VertID id2(m_id, 2, VertID::PROP_ConnPoint);
+    m_dst_vert = new VertInf(m_router, id2, dst.position());
+    m_dst_vert->visDirections = dst.directions();
+    if (dst.isPinConnection())
     {
-        _dstConnEnd = new ConnEnd(dst);
+        m_dst_connend = new ConnEnd(dst);
     }
    
     makeActive();
-    _initialised = true;
+    m_initialised = true;
     
     setEndpoints(src, dst);
 }
@@ -115,33 +114,33 @@ ConnRef::ConnRef(Router *router, const ConnEnd& src, const ConnEnd& dst,
 
 ConnRef::~ConnRef()
 {
-    _router->removeQueuedConnectorActions(this);
+    m_router->removeQueuedConnectorActions(this);
     removeFromGraph();
 
     freeRoutes();
 
-    if (_srcVert)
+    if (m_src_vert)
     {
-        _router->vertices.removeVertex(_srcVert);
-        delete _srcVert;
-        _srcVert = NULL;
+        m_router->vertices.removeVertex(m_src_vert);
+        delete m_src_vert;
+        m_src_vert = NULL;
     }
-    if (_srcConnEnd)
+    if (m_src_connend)
     {
-        delete _srcConnEnd;
-        _srcConnEnd = NULL;
+        delete m_src_connend;
+        m_src_connend = NULL;
     }
 
-    if (_dstVert)
+    if (m_dst_vert)
     {
-        _router->vertices.removeVertex(_dstVert);
-        delete _dstVert;
-        _dstVert = NULL;
+        m_router->vertices.removeVertex(m_dst_vert);
+        delete m_dst_vert;
+        m_dst_vert = NULL;
     }
-    if (_dstConnEnd)
+    if (m_dst_connend)
     {
-        delete _dstConnEnd;
-        _dstConnEnd = NULL;
+        delete m_dst_connend;
+        m_dst_connend = NULL;
     }
 
     makeInactive();
@@ -150,20 +149,20 @@ ConnRef::~ConnRef()
 
 ConnType ConnRef::routingType(void) const
 {
-    return _type;
+    return m_type;
 }
 
 
 void ConnRef::setRoutingType(ConnType type)
 {
-    type = _router->validConnType(type);
-    if (_type != type)
+    type = m_router->validConnType(type);
+    if (m_type != type)
     {
-        _type = type;
+        m_type = type;
 
         makePathInvalid();
 
-        _router->modifyConnector(this);
+        m_router->modifyConnector(this);
     }
 }
 
@@ -178,69 +177,69 @@ void ConnRef::common_updateEndPoint(const unsigned int type, ConnEnd connEnd)
 
     // The connEnd is a copy of a ConnEnd that will get disconnected,
     // so don't leave it looking like it is still connected.
-    connEnd._connRef = NULL;
+    connEnd.m_conn_ref = NULL;
 
-    if (!_initialised)
+    if (!m_initialised)
     {
         makeActive();
-        _initialised = true;
+        m_initialised = true;
     }
     
     VertInf *altered = NULL;
     VertInf *partner = NULL;
 
-    VertID ptID(_id, type, VertID::PROP_ConnPoint);
+    VertID ptID(m_id, type, VertID::PROP_ConnPoint);
     if (type == (unsigned int) VertID::src)
     {
-        if (_srcVert)
+        if (m_src_vert)
         {
-            _srcVert->Reset(ptID, point);
+            m_src_vert->Reset(ptID, point);
         }
         else
         {
-            _srcVert = new VertInf(_router, ptID, point);
+            m_src_vert = new VertInf(m_router, ptID, point);
         }
-        _srcVert->visDirections = connEnd.directions();
+        m_src_vert->visDirections = connEnd.directions();
 
-        if (_srcConnEnd)
+        if (m_src_connend)
         {
-            delete _srcConnEnd;
-            _srcConnEnd = NULL;
+            delete m_src_connend;
+            m_src_connend = NULL;
         }
-        if (connEnd.containingShape())
+        if (connEnd.isPinConnection())
         {
-            _srcConnEnd = new ConnEnd(connEnd);
-            _srcConnEnd->connect(this);
+            m_src_connend = new ConnEnd(connEnd);
+            m_src_connend->connect(this);
         }
         
-        altered = _srcVert;
-        partner = _dstVert;
+        altered = m_src_vert;
+        partner = m_dst_vert;
     }
     else // if (type == (unsigned int) VertID::tar)
     {
-        if (_dstVert)
+        if (m_dst_vert)
         {
-            _dstVert->Reset(ptID, point);
+            m_dst_vert->Reset(ptID, point);
         }
         else
         {
-            _dstVert = new VertInf(_router, ptID, point);
+            m_dst_vert = new VertInf(m_router, ptID, point);
         }
-        _dstVert->visDirections = connEnd.directions();
+        m_dst_vert->visDirections = connEnd.directions();
         
-        if (_dstConnEnd)
+        if (m_dst_connend)
         {
-            delete _dstConnEnd;
-            _dstConnEnd = NULL;
+            delete m_dst_connend;
+            m_dst_connend = NULL;
         }
-        if (connEnd.containingShape())
+        if (connEnd.isPinConnection())
         {
-            _dstConnEnd = new ConnEnd(connEnd);
-            _dstConnEnd->connect(this);
+            m_dst_connend = new ConnEnd(connEnd);
+            m_dst_connend->connect(this);
         }
         
-        altered = _dstVert;
-        partner = _srcVert;
+        altered = m_dst_vert;
+        partner = m_src_vert;
     }
     
     // XXX: Seems to be faster to just remove the edges and recreate
@@ -248,32 +247,32 @@ void ConnRef::common_updateEndPoint(const unsigned int type, ConnEnd connEnd)
     altered->removeFromGraph(isConn);
 
     makePathInvalid();
-    _router->setStaticGraphInvalidated(true);
+    m_router->setStaticGraphInvalidated(true);
 }
 
 
 void ConnRef::setEndpoints(const ConnEnd& srcPoint, const ConnEnd& dstPoint)
 {
-    _router->modifyConnector(this, VertID::src, srcPoint);
-    _router->modifyConnector(this, VertID::tar, dstPoint);
+    m_router->modifyConnector(this, VertID::src, srcPoint);
+    m_router->modifyConnector(this, VertID::tar, dstPoint);
 }
 
 
 void ConnRef::setEndpoint(const unsigned int type, const ConnEnd& connEnd)
 {
-    _router->modifyConnector(this, type, connEnd);
+    m_router->modifyConnector(this, type, connEnd);
 }
 
 
 void ConnRef::setSourceEndpoint(const ConnEnd& srcPoint)
 {
-    _router->modifyConnector(this, VertID::src, srcPoint);
+    m_router->modifyConnector(this, VertID::src, srcPoint);
 }
 
 
 void ConnRef::setDestEndpoint(const ConnEnd& dstPoint)
 {
-    _router->modifyConnector(this, VertID::tar, dstPoint);
+    m_router->modifyConnector(this, VertID::tar, dstPoint);
 }
 
 
@@ -281,17 +280,17 @@ void ConnRef::updateEndPoint(const unsigned int type, const ConnEnd& connEnd)
 {
     common_updateEndPoint(type, connEnd);
 
-    if (_router->_polyLineRouting)
+    if (m_router->_polyLineRouting)
     {
         bool knownNew = true;
         bool genContains = true;
         if (type == (unsigned int) VertID::src)
         {
-            vertexVisibility(_srcVert, _dstVert, knownNew, genContains);
+            vertexVisibility(m_src_vert, m_dst_vert, knownNew, genContains);
         }
         else
         {
-            vertexVisibility(_dstVert, _srcVert, knownNew, genContains);
+            vertexVisibility(m_dst_vert, m_src_vert, knownNew, genContains);
         }
     }
 }
@@ -300,7 +299,7 @@ void ConnRef::updateEndPoint(const unsigned int type, const ConnEnd& connEnd)
 bool ConnRef::setEndpoint(const unsigned int type, const VertID& pointID,
         Point *pointSuggestion)
 {
-    VertInf *vInf = _router->vertices.getVertexByID(pointID);
+    VertInf *vInf = m_router->vertices.getVertexByID(pointID);
     if (vInf == NULL)
     {
         return false;
@@ -318,63 +317,76 @@ bool ConnRef::setEndpoint(const unsigned int type, const VertID& pointID,
 
     // Give this visibility just to the point it is over.
     EdgeInf *edge = new EdgeInf(
-            (type == VertID::src) ? _srcVert : _dstVert, vInf);
+            (type == VertID::src) ? m_src_vert : m_dst_vert, vInf);
     // XXX: We should be able to set this to zero, but can't due to 
     //      assumptions elsewhere in the code.
     edge->setDist(0.001);
 
-    _router->processTransaction();
+    m_router->processTransaction();
     return true;
 }
 
 
 void ConnRef::makeActive(void)
 {
-    COLA_ASSERT(!_active);
+    COLA_ASSERT(!m_active);
     
     // Add to connRefs list.
-    _pos = _router->connRefs.insert(_router->connRefs.begin(), this);
-    _active = true;
+    m_connrefs_pos = m_router->connRefs.insert(m_router->connRefs.begin(), this);
+    m_active = true;
+}
+
+
+void ConnRef::freeActivePins(void)
+{
+    if (m_src_connend)
+    {
+        m_src_connend->freeActivePin();
+    }
+    if (m_dst_connend)
+    {
+        m_dst_connend->freeActivePin();
+    }
 }
 
 
 void ConnRef::makeInactive(void)
 {
-    COLA_ASSERT(_active);
+    COLA_ASSERT(m_active);
     
     // Remove from connRefs list.
-    _router->connRefs.erase(_pos);
-    _active = false;
+    m_router->connRefs.erase(m_connrefs_pos);
+    m_active = false;
 }
 
 
 void ConnRef::freeRoutes(void)
 {
-    _route.clear();
-    _display_route.clear();
+    m_route.clear();
+    m_display_route.clear();
 }
     
 
 const PolyLine& ConnRef::route(void) const
 {
-    return _route;
+    return m_route;
 }
 
 
 PolyLine& ConnRef::routeRef(void)
 {
-    return _route;
+    return m_route;
 }
 
 
 void ConnRef::set_route(const PolyLine& route)
 {
-    if (&_display_route == &route)
+    if (&m_display_route == &route)
     {
         db_printf("Error:\tTrying to update libavoid route with itself.\n");
         return;
     }
-    _display_route.ps = route.ps;
+    m_display_route.ps = route.ps;
 
     //_display_route.clear();
 }
@@ -382,124 +394,151 @@ void ConnRef::set_route(const PolyLine& route)
 
 Polygon& ConnRef::displayRoute(void)
 {
-    if (_display_route.empty())
+    if (m_display_route.empty())
     {
         // No displayRoute is set.  Simplify the current route to get it.
-        _display_route = _route.simplify();
+        m_display_route = m_route.simplify();
     }
-    return _display_route;
+    return m_display_route;
 }
 
 
 void ConnRef::calcRouteDist(void)
 {
     double (*dist)(const Point& a, const Point& b) = 
-            (_type == ConnType_PolyLine) ? euclideanDist : manhattanDist;
+            (m_type == ConnType_PolyLine) ? euclideanDist : manhattanDist;
 
-    _route_dist = 0;
-    for (size_t i = 1; i < _route.size(); ++i)
+    m_route_dist = 0;
+    for (size_t i = 1; i < m_route.size(); ++i)
     {
-        _route_dist += dist(_route.at(i), _route.at(i - 1));
+        m_route_dist += dist(m_route.at(i), m_route.at(i - 1));
     }
 }
 
 
 bool ConnRef::needsRepaint(void) const
 {
-    return _needs_repaint;
+    return m_needs_repaint;
 }
 
 
 unsigned int ConnRef::id(void) const
 {
-    return _id;
+    return m_id;
+}
+
+
+Point midpoint(Point a, Point b)
+{
+    Point midpoint;
+
+    midpoint.x = (a.x + b.x) / 2.0;
+    midpoint.y = (a.y + b.y) / 2.0;
+
+    return midpoint;
+}
+
+
+std::pair<JunctionRef *, ConnRef *> ConnRef::splitAtSegment(
+                const size_t segmentN)
+{
+    ConnRef *newConn = NULL;
+    JunctionRef *newJunction = NULL;
+
+    if (m_display_route.size() > segmentN)
+    {
+        // Position the junction at the midpoint of the desired segment.
+        Point junctionPos = midpoint(m_display_route.at(segmentN - 1),
+                m_display_route.at(segmentN));
+
+        // Create the new junction.
+        newJunction = new JunctionRef(router(), junctionPos);
+        router()->addJunction(newJunction);
+        newJunction->preferOrthogonalDimension(
+                (m_display_route.at(segmentN - 1).x == 
+                    m_display_route.at(segmentN).x) ? YDIM : XDIM);
+
+        // Create a new connection routing from the junction to the original
+        // connector's endpoint.
+        ConnEnd newConnSrc = ConnEnd(newJunction);
+        ConnEnd newConnDst = *m_dst_connend;
+        newConn = new ConnRef(router(), newConnSrc, newConnDst);
+        
+        // Reroute the endpoint of the original connector to attach to the
+        // new junction.
+        ConnEnd oldConnDst = ConnEnd(newJunction);
+        this->setDestEndpoint(oldConnDst);
+    }
+
+    return std::make_pair(newJunction, newConn);
 }
 
 
 VertInf *ConnRef::src(void)
 {
-    return _srcVert;
+    return m_src_vert;
 }
 
     
 VertInf *ConnRef::dst(void)
 {
-    return _dstVert;
+    return m_dst_vert;
 }
 
 
 VertInf *ConnRef::start(void)
 {
-    return _startVert;
+    return m_start_vert;
 }
 
 
 bool ConnRef::isInitialised(void)
 {
-    return _initialised;
+    return m_initialised;
 }
 
 
 void ConnRef::unInitialise(void)
 {
-    _router->vertices.removeVertex(_srcVert);
-    _router->vertices.removeVertex(_dstVert);
+    m_router->vertices.removeVertex(m_src_vert);
+    m_router->vertices.removeVertex(m_dst_vert);
     makeInactive();
-    _initialised = false;
+    m_initialised = false;
 }
 
 
 void ConnRef::removeFromGraph(void)
 {
-    _srcVert->removeFromGraph();
-    _dstVert->removeFromGraph();
+    m_src_vert->removeFromGraph();
+    m_dst_vert->removeFromGraph();
 }
 
 
 void ConnRef::setCallback(void (*cb)(void *), void *ptr)
 {
-    _callback = cb;
-    _connector = ptr;
+    m_callback_func = cb;
+    m_connector = ptr;
 }
 
 
 void ConnRef::performCallback(void)
 {
-    if (_callback) 
+    if (m_callback_func)
     {
-        _callback(_connector);
+        m_callback_func(m_connector);
     }
 }
 
 
 void ConnRef::makePathInvalid(void)
 {
-    _needs_reroute_flag = true;
+    m_needs_reroute_flag = true;
 }
 
 
 Router *ConnRef::router(void) const
 {
-    return _router;
-}
-
-
-bool ConnRef::generatePath(Point p0, Point p1)
-{
-    // XXX Code to determine when connectors really need to be rerouted
-    //     does not yet work for orthogonal connectors.
-    if (_type != ConnType_Orthogonal)
-    {
-        if (!_false_path && !_needs_reroute_flag) 
-        {
-            // This connector is up to date.
-            return false;
-        }
-    }
-
-    bool result = generatePath();
-
-    return result;
+    return m_router;
 }
 
 
@@ -591,13 +630,13 @@ bool validateBendPoint(VertInf *aInf, VertInf *bInf, VertInf *cInf)
 
 bool ConnRef::generatePath(void)
 {
-    if (!_false_path && !_needs_reroute_flag) 
+    if (!m_false_path && !m_needs_reroute_flag)
     {
         // This connector is up to date.
         return false;
     }
 
-    if (!_dstVert || !_srcVert)
+    if (!m_dst_vert || !m_src_vert)
     {
         // Connector is not fully initialised..
         return false;
@@ -605,19 +644,35 @@ bool ConnRef::generatePath(void)
     
     //COLA_ASSERT(_srcVert->point != _dstVert->point);
 
-    _false_path = false;
-    _needs_reroute_flag = false;
+    m_false_path = false;
+    m_needs_reroute_flag = false;
 
-    VertInf *tar = _dstVert;
-    _startVert = _srcVert;
+    VertInf *tar = m_dst_vert;
+    m_start_vert = m_src_vert;
 
-    bool *flag = &(_needs_reroute_flag);
+    // XXX This is kind of a hack for connection pins.  Probably we want to
+    //     not use m_src_vert and m_dst_vert.  For the moment we will clear
+    //     their visibility and give them visibility to the pins.
+    bool dummySrc = m_src_connend && m_src_connend->isPinConnection();
+    if (dummySrc)
+    {
+        m_src_vert->removeFromGraph();
+        m_src_connend->assignPinVisibilityTo(m_src_vert);
+    }
+    bool dummyDst = m_dst_connend && m_dst_connend->isPinConnection();
+    if (dummyDst)
+    {
+        m_dst_vert->removeFromGraph();
+        m_dst_connend->assignPinVisibilityTo(m_dst_vert);
+    }
+
+    bool *flag = &(m_needs_reroute_flag);
    
     size_t existingPathStart = 0;
     const PolyLine& currRoute = route();
-    if (_router->RubberBandRouting)
+    if (m_router->RubberBandRouting)
     {
-        COLA_ASSERT(_router->IgnoreRegions == true);
+        COLA_ASSERT(m_router->IgnoreRegions == true);
 
 #ifdef PATHDEBUG
         db_printf("\n");
@@ -633,14 +688,14 @@ bool ConnRef::generatePath(void)
 #endif
         if (currRoute.size() > 2)
         {
-            if (_srcVert->point == currRoute.ps[0])
+            if (m_src_vert->point == currRoute.ps[0])
             {
                 existingPathStart = currRoute.size() - 2;
                 COLA_ASSERT(existingPathStart != 0);
                 const Point& pnt = currRoute.at(existingPathStart);
                 VertID vID(pnt.id, pnt.vn);
 
-                _startVert = _router->vertices.getVertexByID(vID);
+                m_start_vert = m_router->vertices.getVertexByID(vID);
             }
         }
     }
@@ -652,7 +707,7 @@ bool ConnRef::generatePath(void)
         makePath(this, flag);
         for (VertInf *i = tar; i != NULL; i = i->pathNext)
         {
-            if (i == _srcVert)
+            if (i == m_src_vert)
             {
                 found = true;
                 break;
@@ -673,10 +728,10 @@ bool ConnRef::generatePath(void)
                     VertID::PROP_ConnPoint;
             VertID vID(pnt.id, pnt.vn, props);
 
-            _startVert = _router->vertices.getVertexByID(vID);
-            COLA_ASSERT(_startVert);
+            m_start_vert = m_router->vertices.getVertexByID(vID);
+            COLA_ASSERT(m_start_vert);
         }
-        else if (_router->RubberBandRouting)
+        else if (m_router->RubberBandRouting)
         {
             // found.
             bool unwind = false;
@@ -685,7 +740,7 @@ bool ConnRef::generatePath(void)
             db_printf("\n\n\nSTART:\n\n");
 #endif
             VertInf *prior = NULL;
-            for (VertInf *curr = tar; curr != _startVert->pathNext; 
+            for (VertInf *curr = tar; curr != m_start_vert->pathNext;
                     curr = curr->pathNext)
             {
                 if (!validateBendPoint(curr->pathNext, curr, prior))
@@ -710,8 +765,8 @@ bool ConnRef::generatePath(void)
                         VertID::PROP_ConnPoint;
                 VertID vID(pnt.id, pnt.vn, props);
 
-                _startVert = _router->vertices.getVertexByID(vID);
-                COLA_ASSERT(_startVert);
+                m_start_vert = m_router->vertices.getVertexByID(vID);
+                COLA_ASSERT(m_start_vert);
 
                 found = false;
             }
@@ -722,18 +777,18 @@ bool ConnRef::generatePath(void)
     bool result = true;
     
     int pathlen = 1;
-    for (VertInf *i = tar; i != _srcVert; i = i->pathNext)
+    for (VertInf *i = tar; i != m_src_vert; i = i->pathNext)
     {
         pathlen++;
         if (i == NULL)
         {
             db_printf("Warning: Path not found...\n");
             pathlen = 2;
-            tar->pathNext = _srcVert;
-            if ((_type == ConnType_PolyLine) && _router->InvisibilityGrph)
+            tar->pathNext = m_src_vert;
+            if ((m_type == ConnType_PolyLine) && m_router->InvisibilityGrph)
             {
                 // TODO:  Could we know this edge already?
-                EdgeInf *edge = EdgeInf::existingEdge(_srcVert, tar);
+                EdgeInf *edge = EdgeInf::existingEdge(m_src_vert, tar);
                 COLA_ASSERT(edge != NULL);
                 edge->addCycleBlocker();
             }
@@ -744,10 +799,12 @@ bool ConnRef::generatePath(void)
     }
     std::vector<Point> path(pathlen);
 
+    VertInf *pinSrc = NULL;
+    VertInf *pinDst = NULL;
     int j = pathlen - 1;
-    for (VertInf *i = tar; i != _srcVert; i = i->pathNext)
+    for (VertInf *i = tar; i != m_src_vert; i = i->pathNext)
     {
-        if (_router->InvisibilityGrph && (_type == ConnType_PolyLine))
+        if (m_router->InvisibilityGrph && (m_type == ConnType_PolyLine))
         {
             // TODO: Again, we could know this edge without searching.
             EdgeInf *edge = EdgeInf::existingEdge(i, i->pathNext);
@@ -756,12 +813,12 @@ bool ConnRef::generatePath(void)
         }
         else
         {
-            _false_path = true;
+            m_false_path = true;
         }
         path[j] = i->point;
         if (i->id.isConnPt())
         {
-            path[j].id = _id;
+            path[j].id = m_id;
             path[j].vn = kUnassignedVertexNumber;
         }
         else
@@ -769,6 +826,17 @@ bool ConnRef::generatePath(void)
             path[j].id = i->id.objID;
             path[j].vn = i->id.vn;
         }
+
+        // Get the VertInfs of the chosen pins.
+        if (dummySrc && (j == 1))
+        {
+            pinSrc = i;
+        }
+        if (dummyDst && (j == (pathlen - 2)))
+        {
+            pinDst = i;
+        }
+
         j--;
 
         if (i->pathNext && (i->pathNext->point == i->point))
@@ -781,18 +849,36 @@ bool ConnRef::generatePath(void)
             }
         }
     }
-    path[0] = _srcVert->point;
+    path[0] = m_src_vert->point;
     // Use topbit to differentiate between start and end point of connector.
     // They need unique IDs for nudging.
     unsigned int topbit = ((unsigned int) 1) << 31;
-    path[0].id = _id | topbit; 
+    path[0].id = m_id | topbit; 
     path[0].vn = kUnassignedVertexNumber;
+
+    // Get rid of dummy ShapeConnectionPin bridging points at beginning and end.
+    std::vector<Point> clippedPath;
+    std::vector<Point>::iterator pathBegin = path.begin();
+    std::vector<Point>::iterator pathEnd = path.end();
+    if (path.size() > 2 && dummySrc)
+    {
+        COLA_ASSERT(pinSrc != NULL);
+        ++pathBegin;
+        m_src_connend->usePinVertex(pinSrc);
+    }
+    if (path.size() > 2 && dummyDst)
+    {
+        COLA_ASSERT(pinDst != NULL);
+        --pathEnd;
+        m_dst_connend->usePinVertex(pinDst);
+    }
+    clippedPath.insert(clippedPath.end(), pathBegin, pathEnd);
 
     // Would clear visibility for endpoints here if required.
 
     freeRoutes();
-    PolyLine& output_route = _route;
-    output_route.ps = path;
+    PolyLine& output_route = m_route;
+    output_route.ps = clippedPath;
  
 #ifdef PATHDEBUG
     db_printf("Output route:\n");
@@ -811,13 +897,24 @@ bool ConnRef::generatePath(void)
 
 void ConnRef::setHateCrossings(bool value)
 {
-    _hateCrossings = value;
+    m_hate_crossings = value;
 }
 
 
 bool ConnRef::doesHateCrossings(void)
 {
-    return _hateCrossings;
+    return m_hate_crossings;
+}
+
+
+std::vector<Point> ConnRef::possibleDstPinPoints(void) const
+{
+    std::vector<Point> points;
+    if (m_dst_connend)
+    {
+        points = m_dst_connend->possiblePinPoints();
+    }
+    return points;
 }
 
 

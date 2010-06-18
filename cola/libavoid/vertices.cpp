@@ -141,6 +141,7 @@ const unsigned short VertID::tar = 2;
 // Property flags:
 const unsigned short VertID::PROP_ConnPoint     = 1;
 const unsigned short VertID::PROP_OrthShapeEdge = 2;
+const unsigned short VertID::PROP_ConnectionPin = 4;
 
 
 ostream& operator<<(ostream& os, const VertID& vID)

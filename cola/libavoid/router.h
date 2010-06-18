@@ -33,11 +33,10 @@
 #include <utility>
 #include <string>
 
-#include "libavoid/shape.h"
-#include "libavoid/viscluster.h"
+#include "libavoid/connector.h"
+#include "libavoid/vertices.h"
 #include "libavoid/graph.h"
 #include "libavoid/timer.h"
-#include "libavoid/connector.h"
 
 #if defined(LINEDEBUG) || defined(ASTAR_DEBUG) || defined(LIBAVOID_SDL)
     #include <SDL.h>
@@ -54,6 +53,11 @@ typedef std::list<unsigned int> IntList;
 class ActionInfo;
 typedef std::list<ActionInfo> ActionInfoList;
 class ShapeRef;
+typedef std::list<ShapeRef *> ShapeRefList;
+class JunctionRef;
+typedef std::list<JunctionRef *> JunctionRefList;
+class ClusterRef;
+typedef std::list<ClusterRef *> ClusterRefList;
 
 //! @brief  Flags that can be passed to the router during initialisation 
 //!         to specify options.
@@ -140,6 +144,7 @@ class Router {
 
         ShapeRefList shapeRefs;
         ConnRefList connRefs;
+        JunctionRefList junctionRefs;
         ClusterRefList clusterRefs;
         EdgeList visGraph;
         EdgeList invisGraph;
@@ -225,6 +230,10 @@ class Router {
         //! method will cause connectors intersecting the added shape to
         //! be marked as needing to be rerouted.
         //!
+        //! If the router is using transactions, then this action will occur
+        //! the next time Router::processTransaction() is called.  See
+        //! Router::setTransactionUse() for more information.
+        //!
         //! @param[in]  shape  Pointer reference to the shape being added.
         //!
         void addShape(ShapeRef *shape);
@@ -233,6 +242,10 @@ class Router {
         //!
         //! Connectors that could have a better (usually shorter) path after
         //! the removal of this shape will be marked as needing to be rerouted.
+        //!
+        //! If the router is using transactions, then this action will occur
+        //! the next time Router::processTransaction() is called.  See
+        //! Router::setTransactionUse() for more information.
         //!
         //! @param[in]  shape  Pointer reference to the shape being removed.
         //!
@@ -244,6 +257,10 @@ class Router {
         //! resize the shape with the scene.  Connectors that intersect the 
         //! new shape polygon, or that could have a better (usually shorter)
         //! path after the change, will be marked as needing to be rerouted.
+        //!
+        //! If the router is using transactions, then this action will occur
+        //! the next time Router::processTransaction() is called.  See
+        //! Router::setTransactionUse() for more information.
         //!
         //! @param[in]  shape       Pointer reference to the shape being 
         //!                         moved/resized.
@@ -262,6 +279,10 @@ class Router {
         //! have a better (usually shorter) path after the change, will be 
         //! marked as needing to be rerouted.
         //!
+        //! If the router is using transactions, then this action will occur
+        //! the next time Router::processTransaction() is called.  See
+        //! Router::setTransactionUse() for more information.
+        //!
         //! @param[in]  shape       Pointer reference to the shape being moved.
         //! @param[in]  xDiff       The distance to move the shape in the 
         //!                         x dimension.
@@ -270,6 +291,62 @@ class Router {
         //!
         void moveShape(ShapeRef *shape, const double xDiff, const double yDiff);
 
+        //! @brief Add a junction from the router scene.
+        //!
+        //! If the router is using transactions, then this action will occur
+        //! the next time Router::processTransaction() is called.  See
+        //! Router::setTransactionUse() for more information.
+        //!
+        //! @param[in]  junction  Pointer reference to the junction being added.
+        //!
+        void addJunction(JunctionRef *junction);
+
+        //! @brief Remove a junction from the router scene.
+        //!
+        //! If the router is using transactions, then this action will occur
+        //! the next time Router::processTransaction() is called.  See
+        //! Router::setTransactionUse() for more information.
+        //!
+        //! @param[in]  junction  Pointer reference to the junction being 
+        //!                       removed.
+        //!
+        void removeJunction(JunctionRef *junction);
+        
+        //! @brief Move an existing junction within the router scene.
+        //!
+        //! Connectors that are attached to this junction will be rerouted 
+        //! as a result of the move.
+        //!
+        //! If the router is using transactions, then this action will occur
+        //! the next time Router::processTransaction() is called.  See
+        //! Router::setTransactionUse() for more information.
+        //!
+        //! @param[in]  junction     Pointer reference to the junction being 
+        //!                          moved.
+        //! @param[in]  newPosition  The new position for the junction.
+        //!
+        void moveJunction(JunctionRef *junction, const Point& newPosition);
+
+        //! @brief Move an existing junction within the router scene by a 
+        //!        relative distance.
+        //!         
+        //! Connectors that are attached to this junction will be rerouted 
+        //! as a result of the move.
+        //!
+        //! If the router is using transactions, then this action will occur
+        //! the next time Router::processTransaction() is called.  See
+        //! Router::setTransactionUse() for more information.
+        //!
+        //! @param[in]  junction    Pointer reference to the junction being 
+        //!                         moved.
+        //! @param[in]  xDiff       The distance to move the junction in the 
+        //!                         x dimension.
+        //! @param[in]  yDiff       The distance to move the junction in the 
+        //!                         y dimension.
+        //!
+        void moveJunction(JunctionRef *junction, const double xDiff, 
+                const double yDiff);
+        
         //! @brief Sets a spacing distance for overlapping orthogonal 
         //!        connectors to be nudged apart.
         //!         
@@ -321,10 +398,16 @@ class Router {
         void addCluster(ClusterRef *cluster);
         void delCluster(ClusterRef *cluster);
 
-        void attachedConns(IntList &conns, const unsigned int shapeId,
-                const unsigned int type);
+#if 0
+        // XXX: attachedShapes and attachedConns both need to be rewritten
+        //      for constant time lookup of attached objects once this info
+        //      is stored better within libavoid.  Also they shouldn't need to
+        //      be friends of ConnRef.
         void attachedShapes(IntList &shapes, const unsigned int shapeId,
                 const unsigned int type);
+        void attachedConns(IntList &conns, const unsigned int shapeId,
+                const unsigned int type);
+#endif
         
         void markConnectors(ShapeRef *shape);
         void generateContains(VertInf *pt);
@@ -344,6 +427,7 @@ class Router {
     private:
         friend class ConnRef;
         friend class ShapeRef;
+        friend class JunctionRef;
 
         void modifyConnector(ConnRef *conn);
         void modifyConnector(ConnRef *conn, unsigned int type,
