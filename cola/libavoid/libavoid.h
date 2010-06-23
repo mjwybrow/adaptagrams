@@ -45,6 +45,7 @@
 #include "libavoid/router.h"
 #include "libavoid/connectionpin.h"
 #include "libavoid/junction.h"
+#include "libavoid/viscluster.h"
 
 #endif
 
