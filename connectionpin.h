@@ -30,6 +30,7 @@
 #define AVOID_CONNECTIONPIN_H
 
 #include <set>
+#include <climits>
 
 #include "libavoid/connend.h"
 #include "libavoid/geomtypes.h"
