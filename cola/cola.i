@@ -186,10 +186,10 @@ void deleteDoubleArray(double* a) {
 
 %include "libavoid/geometry.h"
 %include "libavoid/geomtypes.h"
+%include "libavoid/connend.h"
 %include "libavoid/router.h"
 %include "libavoid/connector.h"
 %include "libavoid/shape.h"
-%include "libavoid/connend.h"
 %include "libavoid/junction.h"
 %include "libavoid/connectionpin.h"
 
