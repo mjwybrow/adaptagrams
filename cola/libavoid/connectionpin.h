@@ -29,6 +29,7 @@
 #ifndef AVOID_CONNECTIONPIN_H
 #define AVOID_CONNECTIONPIN_H
 
+#include <cstdio>
 #include <set>
 #include <climits>
 

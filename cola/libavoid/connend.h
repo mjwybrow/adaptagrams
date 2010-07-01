@@ -30,6 +30,7 @@
 #define AVOID_CONNEND_H
 
 
+#include <cstdio>
 #include <list>
 #include <vector>
 

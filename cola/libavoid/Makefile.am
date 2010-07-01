@@ -22,7 +22,8 @@ libavoid_la_SOURCES = connector.cpp \
 			libavoid.h
 
 libavoidincludedir = ${includedir}/libavoid
-libavoidinclude_HEADERS = connector.h \
+libavoidinclude_HEADERS = assertions.h \
+			connector.h \
 			connend.h \
 			geomtypes.h \
 			makepath.h \
