@@ -47,9 +47,11 @@ int main(void)
 
     // Create pins two input pins on the left side of shape 3.
     const unsigned int INPUT = 1;
-    new Avoid::ShapeConnectionPin(shapeRef3, INPUT, Avoid::ATTACH_POS_LEFT, 
+    Avoid::ShapeConnectionPin *pin1 = 
+        new Avoid::ShapeConnectionPin(shapeRef3, INPUT, Avoid::ATTACH_POS_LEFT, 
             0.25, 5, Avoid::ConnDirLeft);
-    new Avoid::ShapeConnectionPin(shapeRef3, INPUT, Avoid::ATTACH_POS_LEFT, 
+    Avoid::ShapeConnectionPin *pin2 = 
+        new Avoid::ShapeConnectionPin(shapeRef3, INPUT, Avoid::ATTACH_POS_LEFT, 
             0.75, 5, Avoid::ConnDirLeft);
     
     // And centre pins for two other shapes.
@@ -80,6 +82,16 @@ int main(void)
 
     router->processTransaction();
     router->outputInstanceToSVG("test-connectionpin02-3");
+    
+    delete pin1;
+    delete pin2;
+    pin1 = new Avoid::ShapeConnectionPin(shapeRef3, INPUT, 
+            Avoid::ATTACH_POS_RIGHT, 0.25, 5, Avoid::ConnDirRight);
+    pin2 = new Avoid::ShapeConnectionPin(shapeRef3, INPUT,
+            Avoid::ATTACH_POS_RIGHT, 0.75, 5, Avoid::ConnDirRight);
+    
+    router->processTransaction();
+    router->outputInstanceToSVG("test-connectionpin02-4");
 
     return 0;
 }

@@ -432,6 +432,7 @@ class Router {
         void modifyConnector(ConnRef *conn);
         void modifyConnector(ConnRef *conn, unsigned int type,
                 const ConnEnd &connEnd);
+        void modifyConnectionPin(ShapeConnectionPin *pin);
         void removeQueuedConnectorActions(ConnRef *conn);
         void newBlockingShape(const Polygon& poly, int pid);
         void checkAllBlockedEdges(int pid);

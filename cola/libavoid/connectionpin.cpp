@@ -242,6 +242,14 @@ void ShapeConnectionPin::outputCode(FILE *fp)
                 m_x_portion_offset, m_y_portion_offset, m_inside_offset,
                 (unsigned int) m_visibility_directions);
     }
+    /* Junctions just use a standard set of pins, so don't need this:
+    else if (m_junction)
+    {
+        fprintf(fp, "    new ShapeConnectionPin(junctionRef%u, %u, "
+                "(ConnDirFlags) %u);\n", m_shape->id(), m_class_id, 
+                (unsigned int) m_visibility_directions);
+    }
+    */
 }
 
 //============================================================================
