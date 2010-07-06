@@ -179,6 +179,7 @@ class ShapeRef
         void removeFromGraph(void);
         void markForMove(void);
         void clearMoveMark(void);
+        Point shapeCentre(void);
 
         VertInf *getPointVertex(const Point& point);
 

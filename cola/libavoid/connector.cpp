@@ -89,25 +89,7 @@ ConnRef::ConnRef(Router *router, const ConnEnd& src, const ConnEnd& dst,
     m_id = m_router->assignId(id);
     m_route.clear();
 
-    VertID id1(m_id, 1, VertID::PROP_ConnPoint);
-    m_src_vert = new VertInf(m_router, id1, src.position());
-    m_src_vert->visDirections = src.directions();
-    if (src.isPinConnection())
-    {
-        m_src_connend = new ConnEnd(src);
-    }
-
-    VertID id2(m_id, 2, VertID::PROP_ConnPoint);
-    m_dst_vert = new VertInf(m_router, id2, dst.position());
-    m_dst_vert->visDirections = dst.directions();
-    if (dst.isPinConnection())
-    {
-        m_dst_connend = new ConnEnd(dst);
-    }
-   
-    makeActive();
-    m_initialised = true;
-    
+    // Set endpoint values.
     setEndpoints(src, dst);
 }
 

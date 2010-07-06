@@ -274,6 +274,20 @@ void ShapeRef::boundingBox(BBox& bbox)
 }
 
 
+Point ShapeRef::shapeCentre(void)
+{
+    BBox bb;
+    boundingBox(bb);
+
+    Point centre;
+
+    centre.x = bb.a.x + (0.5 * (bb.b.x - bb.a.x));
+    centre.y = bb.a.y + (0.5 * (bb.b.y - bb.a.y));
+
+    return centre;
+}
+
+
 void ShapeRef::removeFromGraph(void)
 {
     bool isConnPt = false;
