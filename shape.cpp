@@ -208,6 +208,7 @@ void ShapeRef::makeInactive(void)
 unsigned int ShapeRef::addConnectionPin(ShapeConnectionPin *pin)
 {
     m_connection_pins.insert(pin);
+    m_router->modifyConnectionPin(pin);
 
     return m_connection_pins.size();
 }
@@ -215,6 +216,7 @@ unsigned int ShapeRef::addConnectionPin(ShapeConnectionPin *pin)
 void ShapeRef::removeConnectionPin(ShapeConnectionPin *pin)
 {
     m_connection_pins.erase(pin);
+    m_router->modifyConnectionPin(pin);
 }
 
 

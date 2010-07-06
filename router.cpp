@@ -48,7 +48,8 @@ enum ActionType {
     JunctionMove,
     JunctionAdd,
     JunctionRemove,
-    ConnChange
+    ConnChange,
+    ConnectionPinChange
 };
 
 typedef std::list<std::pair<unsigned int, ConnEnd> > ConnUpdateList;
@@ -89,6 +90,12 @@ class ActionInfo {
               objPtr(c)
         {
             COLA_ASSERT(type == ConnChange);
+        }
+        ActionInfo(ActionType t, ShapeConnectionPin *p)
+            : type(t),
+              objPtr(p)
+        {
+            COLA_ASSERT(type == ConnectionPinChange);
         }
         ~ActionInfo()
         {
@@ -257,6 +264,24 @@ void Router::modifyConnector(ConnRef *conn, const unsigned int type,
 void Router::modifyConnector(ConnRef *conn)
 {
     ActionInfo modInfo(ConnChange, conn);
+    
+    ActionInfoList::iterator found = 
+            find(actionList.begin(), actionList.end(), modInfo);
+    if (found == actionList.end())
+    {
+        actionList.push_back(modInfo);
+    }
+
+    if (!_consolidateActions)
+    {
+        processTransaction();
+    }
+}
+
+
+void Router::modifyConnectionPin(ShapeConnectionPin *pin)
+{
+    ActionInfo modInfo(ConnectionPinChange, pin);
     
     ActionInfoList::iterator found = 
             find(actionList.begin(), actionList.end(), modInfo);
