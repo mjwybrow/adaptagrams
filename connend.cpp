@@ -62,25 +62,10 @@ ConnEnd::ConnEnd(const Point& point, const ConnDirFlags visDirs)
 {
 }
 
-ConnEnd::ConnEnd(ShapeRef *shapeRef, const double x_pos, const double y_pos,
-        const double insideOffset, const ConnDirFlags visDirs) 
-    : m_directions(visDirs),
-      m_shape_x_position(x_pos),
-      m_shape_y_position(y_pos),
-      m_shape_inside_offset(insideOffset),
-      m_connection_pin_class_id(CONNECTIONPIN_UNSET),
-      m_shape_ref(shapeRef),
-      m_junction_ref(NULL),
-      m_conn_ref(NULL),
-      m_active_pin(NULL)
-{
-}
 
 ConnEnd::ConnEnd(ShapeRef *shapeRef, const unsigned int connectionPinClassID)
-    : m_directions(ConnDirAll),
-      m_shape_x_position(ATTACH_POS_CENTRE),
-      m_shape_y_position(ATTACH_POS_CENTRE),
-      m_shape_inside_offset(0.0),
+    : m_point(Point(0,0)),
+      m_directions(ConnDirAll),
       m_connection_pin_class_id(connectionPinClassID),
       m_shape_ref(shapeRef),
       m_junction_ref(NULL),
@@ -88,15 +73,13 @@ ConnEnd::ConnEnd(ShapeRef *shapeRef, const unsigned int connectionPinClassID)
       m_active_pin(NULL)
 {
     COLA_ASSERT(m_shape_ref != NULL);
+    m_point = m_shape_ref->shapeCentre();
     COLA_ASSERT(m_connection_pin_class_id != CONNECTIONPIN_UNSET);
 }
 
 
 ConnEnd::ConnEnd(JunctionRef *junctionRef)
     : m_directions(ConnDirAll),
-      m_shape_x_position(ATTACH_POS_CENTRE),
-      m_shape_y_position(ATTACH_POS_CENTRE),
-      m_shape_inside_offset(0.0),
       m_connection_pin_class_id(CONNECTIONPIN_CENTRE),
       m_shape_ref(NULL),
       m_junction_ref(junctionRef),
@@ -104,6 +87,7 @@ ConnEnd::ConnEnd(JunctionRef *junctionRef)
       m_active_pin(NULL)
 {
     COLA_ASSERT(m_junction_ref != NULL);
+    m_point = m_junction_ref->position();
 }
 
 
@@ -276,67 +260,6 @@ const Point ConnEnd::position(void) const
     {
         return m_junction_ref->position();
     }
-    else if (m_shape_ref)  // Not attached to a pin.
-    {
-        if (m_connection_pin_class_id != CONNECTIONPIN_UNSET)
-        {
-            db_printf("Warning: A valid pin connection could not be found.  "
-                    "Using the shape centre.\n");
-        }
-
-        const Polygon& poly = m_shape_ref->polygon();
-
-        double x_min = DBL_MAX;
-        double x_max = -DBL_MAX;
-        double y_min = DBL_MAX;
-        double y_max = -DBL_MAX;
-        for (size_t i = 0; i < poly.size(); ++i)
-        {
-            x_min = std::min(x_min, poly.ps[i].x);
-            x_max = std::max(x_max, poly.ps[i].x);
-            y_min = std::min(y_min, poly.ps[i].y);
-            y_max = std::max(y_max, poly.ps[i].y);
-        }
-
-        Point point;
-
-        // We want to place connection points exactly on the edges of shapes, 
-        // or possibly slightly inside them (if _insideOfset is set).
-
-        point.vn = kUnassignedVertexNumber;
-        if (m_shape_x_position == ATTACH_POS_LEFT)
-        {
-            point.x = x_min + m_shape_inside_offset;
-            point.vn = 6;
-        }
-        else if (m_shape_x_position == ATTACH_POS_RIGHT)
-        {
-            point.x = x_max - m_shape_inside_offset;
-            point.vn = 4;
-        }
-        else
-        {
-            point.x = x_min + (m_shape_x_position * (x_max - x_min));
-        }
-
-        if (m_shape_y_position == ATTACH_POS_TOP)
-        {
-            point.y = y_max - m_shape_inside_offset;
-            point.vn = 5;
-        }
-        else if (m_shape_y_position == ATTACH_POS_BOTTOM)
-        {
-            point.y = y_min + m_shape_inside_offset;
-            point.vn = 7;
-        }
-        else
-        {
-            point.y = y_min + (m_shape_y_position * (y_max - y_min));
-            point.vn = kUnassignedVertexNumber;
-        }
-
-        return point;
-    }
     else
     {
         return m_point;
@@ -349,37 +272,6 @@ ConnDirFlags ConnEnd::directions(void) const
     if (m_active_pin)  // Attached to a pin!
     {
         return m_active_pin->directions();
-    }
-    else if (m_shape_ref)  // Not attached to a pin.
-    {
-        ConnDirFlags visDir = m_directions;
-        if (m_directions == ConnDirNone)
-        {
-            // None is set, use the defaults:
-            if (m_shape_x_position == ATTACH_POS_LEFT)
-            {
-                visDir |= ConnDirLeft;
-            }
-            else if (m_shape_x_position == ATTACH_POS_RIGHT)
-            {
-                visDir |= ConnDirRight;
-            }
-
-            if (m_shape_y_position == ATTACH_POS_TOP)
-            {
-                visDir |= ConnDirDown;
-            }
-            else if (m_shape_y_position == ATTACH_POS_BOTTOM)
-            {
-                visDir |= ConnDirUp;
-            }
-
-            if (visDir == ConnDirNone)
-            {
-                visDir = ConnDirAll;
-            }
-        }
-        return visDir;
     }
     else
     {

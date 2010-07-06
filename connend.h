@@ -144,65 +144,6 @@ class ConnEnd
         //!
         ConnEnd(const Point& point, const ConnDirFlags visDirs);
 
-        //! @brief Constructs a ConnEnd attached to a position on a shape.
-        //!
-        //! The connection position should be specified as proportion
-        //! of the shape's total width and height using a floating point
-        //! value between 0 and 1.
-        //!
-        //! There are some predefined values for specifying the xPortionOffset
-        //! and yPortionOffset arguments:
-        //!  -  ATTACH_POS_TOP = 0
-        //!  -  ATTACH_POS_LEFT = 0
-        //!  -  ATTACH_POS_CENTRE = 0.5
-        //!  -  ATTACH_POS_BOTTOM = 1
-        //!  -  ATTACH_POS_RIGHT = 1
-        //!
-        //! Importantly, when this type of ConnEnd is passed to the 
-        //! ConnEnd::setEndpoint() methods, that endpoint will subsequently 
-        //! get automatically moved whenever the containing shape is moved 
-        //! or resized, thus causing the connector to be rerouted in response
-        //! to shape movement.  To subsequently detach the connector from the
-        //! shape or attach it to a different shape, call one of the 
-        //! ConnEnd::setEndpoint() methods with a new ConnEnd.
-        //!
-        //! If no value is given for the visDirs argument, then visibility is 
-        //! automatically determined based on the position of the connection
-        //! point.  Points on the shape boundary will have visibility from the
-        //! shape out of that edge while points in the interior will have
-        //! visibility in all directions.
-        //!
-        //! The insideOffset argument can be used to set a distance to 
-        //! automatically offset the point within the shape.  This is useful
-        //! for orthogonal routing, where you usually want the connection 
-        //! point to lie inside the shape rather than exactly on its boundary.
-        //! While you could specify an exact position with xPortionOffset and 
-        //! yPortionOffset, it is usually much easier and more readable to not 
-        //! have to specify the visibility directions manually and to write 
-        //! something like
-        //! <pre>  ConnEnd(shapeRef, ATTACH_POS_RIGHT, ATTACH_POS_CENTRE, 5);</pre>
-        //! rather than
-        //! <pre>  ConnEnd(shapeRef, 1 - 5/shapeWidth, ATTACH_POS_CENTRE, 0, ConnDirRight);</pre>
-        //! 
-        //! @param[in]  shapeRef       A pointer to the containing shape's
-        //!                            ShapeRef.
-        //! @param[in]  xPortionOffset The X position within the shape, 
-        //!                            specified as a proportion of the width
-        //!                            between 0 (left) and 1 (right).
-        //! @param[in]  yPortionOffset The Y position within the shape, 
-        //!                            specified as a proportion of the height
-        //!                            between 0 (top) and 1 (bottom).  
-        //! @param[in]  insideOffset   A distance to offset the point inside
-        //!                            the shape if it lies on the boundary.
-        //! @param[in]  visDirs        One or more Avoid::ConnDirFlag options 
-        //!                            specifying the directions that this 
-        //!                            point should be given visibility. 
-        //!
-        ConnEnd(ShapeRef *shapeRef, const double xPortionOffset, 
-                const double yPortionOffset,
-                const double insideOffset = 0.0,
-                const ConnDirFlags visDirs = ConnDirNone);
-
         //! @brief Returns the position of this connector endpoint.
         //!
         //! @return The position of this connector endpoint.
@@ -238,9 +179,6 @@ class ConnEnd
 
         Point m_point;
         ConnDirFlags m_directions;
-        double m_shape_x_position;
-        double m_shape_y_position;
-        double m_shape_inside_offset;
         unsigned int m_connection_pin_class_id;
         
         // For referencing ConnEnds

@@ -194,7 +194,6 @@ const Point ShapeConnectionPin::position(const Polygon& newPoly) const
     else
     {
         point.y = y_min + (m_y_portion_offset * (y_max - y_min));
-        point.vn = kUnassignedVertexNumber;
     }
 
     return point;
