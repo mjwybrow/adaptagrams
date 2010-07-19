@@ -333,23 +333,33 @@ struct Node
         lastAbovePos = max[dim];
         lastBelowPos = min[dim];
 
-        // Find the first blocking edge above this point.  Don't count the
-        // edges as we are travelling out of shapes we are inside, but then
-        // mark clearVisibility as false.
+        // Find the first blocking edge above this point.  
         Node *curr = firstAbove;
         while (curr && (curr->max[dim] > min[dim]))
         {
-            lastAbovePos = std::min(curr->min[dim], lastAbovePos);
-            if ((curr->max[dim] >= min[dim]) && (curr->max[dim] <= max[dim]))
+            // Don't count the edges as we are travelling out of shapes 
+            // we are inside, but then mark clearVisibility as false.
+
+            if (curr->min[!dim] != min[!dim])
             {
-                lastAbovePos = std::min(curr->max[dim], lastAbovePos);
+                // Shapes that open or close at the same position do not
+                // block visibility, so if they are not at same position,
+                // find overlapping shapes that block visibility.
+                lastAbovePos = std::min(curr->min[dim], lastAbovePos);
+                if ((curr->max[dim] >= min[dim]) &&
+                        (curr->max[dim] <= max[dim]))
+                {
+                    lastAbovePos = std::min(curr->max[dim], lastAbovePos);
+                }
+                lastBelowPos = std::max(curr->max[dim], lastBelowPos);
             }
-            lastBelowPos = std::max(curr->max[dim], lastBelowPos);
+
             clearVisibility = false;
             curr = curr->firstAbove;
         }
         if (curr)
         {
+            // This is the first blocking shape above.
             firstAbovePos = curr->max[dim];
         }
         while (curr)
@@ -362,23 +372,33 @@ struct Node
             curr = curr->firstAbove;
         }
         
-        // Find the first blocking edge below this point.  Don't count the
-        // edges as we are travelling out of shapes we are inside, but then
-        // mark clearVisibility as false.
+        // Find the first blocking edge below this point.
         curr = firstBelow;
         while (curr && (curr->min[dim] < max[dim]))
         {
-            lastBelowPos = std::max(curr->max[dim], lastBelowPos);
-            if ((curr->min[dim] >= min[dim]) && (curr->min[dim] <= max[dim]))
+            // Don't count the edges as we are travelling out of shapes 
+            // we are inside, but then mark clearVisibility as false.
+            
+            if (curr->min[!dim] != min[!dim])
             {
-                lastBelowPos = std::max(curr->min[dim], lastBelowPos);
+                // Shapes that open or close at the same position do not
+                // block visibility, so if they are not at same position,
+                // find overlapping shapes that block visibility.
+                lastBelowPos = std::max(curr->max[dim], lastBelowPos);
+                if ((curr->min[dim] >= min[dim]) && 
+                        (curr->min[dim] <= max[dim]))
+                {
+                    lastBelowPos = std::max(curr->min[dim], lastBelowPos);
+                }
+                lastAbovePos = std::min(curr->min[dim], lastAbovePos);
             }
-            lastAbovePos = std::min(curr->min[dim], lastAbovePos);
+
             clearVisibility = false;
             curr = curr->firstBelow;
         }
         if (curr)
         {
+            // This is the first blocking shape below.
             firstBelowPos = curr->min[dim];
         }
         while (curr)
@@ -1128,10 +1148,14 @@ public:
                 bool generateEdge = true;
                 if (last->vert->id.isConnPt() && !(last->dir & ConnDirUp))
                 {
+                    // Don't generate the visibility segment if the ConnEnd
+                    // doesn't have visibility in that direction.
                     generateEdge = false;
                 }
                 else if (vert->vert->id.isConnPt() && !(vert->dir & ConnDirDown))
                 {
+                    // Don't generate the visibility segment if the ConnEnd
+                    // doesn't have visibility in that direction.
                     generateEdge = false;
                 }
                 if (generateEdge)
@@ -1155,8 +1179,8 @@ public:
             }
             else
             {
-                // vert has moved to the beginning of a number number group.
-                // Last is now in the right place, so do nothing.
+                // vert has moved to the beginning of a group at a new 
+                // position.  Last is now in the right place, so do nothing.
             }
         }
     }
@@ -1367,10 +1391,9 @@ static void processEventVert(Router *router, NodeSet& scanline,
             // segments are at the top or bottom of the shape.  Decide here.
             double lineY = (e->type == Open) ? v->min[YDIM] : v->max[YDIM];
 
+            // Insert possible visibility segments.
             if (minLimitMax >= maxLimitMin)
             {
-                // Insert possible visibility segments.
- 
                 // These vertices represent the shape corners.
                 VertInf *vI1 = new VertInf(router, dummyOrthogShapeID, 
                             Point(minShape, lineY));
@@ -1393,6 +1416,8 @@ static void processEventVert(Router *router, NodeSet& scanline,
             }
             else
             {
+                // There are overlapping shapes along this shape edge.
+
                 if ((minLimitMax > minLimit) && (minLimitMax >= minShape))
                 {
                     LineSegment *line = segments.insert(
