@@ -79,6 +79,23 @@ void BoundaryConstraint::addShape(const unsigned int index,
 }
 
 
+void BoundaryConstraint::printCreationCode(FILE *fp) const
+{
+    fprintf(fp, "    BoundaryConstraint *boundary%llu = "
+            "new BoundaryConstraint(vpsc::%cDIM);\n",
+            (unsigned long long) this, (_primaryDim == 0) ? 'X' : 'Y');
+    for (SubConstraintInfoList::const_iterator o = _subConstraintInfo.begin();
+            o != _subConstraintInfo.end(); ++o) 
+    {
+        Offset *info = static_cast<Offset *> (*o);
+        fprintf(fp, "    alignment%llu->addShape(%u, %g);\n",
+                (unsigned long long) this, info->varIndex, info->distOffset);
+    }
+    fprintf(fp, "    ccs.push_back(boundary%llu);\n\n",
+            (unsigned long long) this);
+}
+
+
 void BoundaryConstraint::generateVariables(const vpsc::Dim dim, 
         vpsc::Variables& vars) 
 {
@@ -246,8 +263,9 @@ void AlignmentConstraint::generateSeparationConstraints(const vpsc::Dim dim,
 void AlignmentConstraint::printCreationCode(FILE *fp) const
 {
     fprintf(fp, "    AlignmentConstraint *alignment%llu = "
-            "AlignmentConstraint(%u, %g);\n",
-            (unsigned long long) this, _primaryDim, _position);
+            "new AlignmentConstraint(vpsc::%cDIM, %g);\n",
+            (unsigned long long) this, (_primaryDim == 0) ? 'X' : 'Y', 
+            _position);
     for (SubConstraintInfoList::const_iterator o = _subConstraintInfo.begin();
             o != _subConstraintInfo.end(); ++o) 
     {
@@ -337,6 +355,20 @@ SeparationConstraint::SeparationConstraint(const vpsc::Dim dim,
     COLA_ASSERT(r);
     
     _subConstraintInfo.push_back(new VarIndexPair(l, r));
+}
+
+
+void SeparationConstraint::printCreationCode(FILE *fp) const
+{
+    assert(_subConstraintInfo.size() == 1);
+    VarIndexPair *varIndexPair = (VarIndexPair *) _subConstraintInfo.front();
+    fprintf(fp, "    SeparationConstraint *separation%llu = "
+            "new SeparationConstraint(vpsc::%cDIM, %u, %u, %g, %s);\n",
+            (unsigned long long) this, (_primaryDim == 0) ? 'X' : 'Y', 
+            varIndexPair->indexL(), varIndexPair->indexR(), gap, 
+            (equality) ? "true" : "false");
+    fprintf(fp, "    ccs.push_back(separation%llu);\n\n",
+            (unsigned long long) this);
 }
 
 
@@ -437,6 +469,13 @@ void OrthogonalEdgeConstraint::generateVariables(const vpsc::Dim dim,
     COLA_UNUSED(vars);
 
     // No additional variables are required!
+}
+
+
+void OrthogonalEdgeConstraint::printCreationCode(FILE *fp) const
+{
+    fprintf(fp, "    /* OrthogonalEdgeConstraint *orthogonal%llu = NULL; */\n\n",
+            (unsigned long long) this);
 }
 
 
@@ -564,6 +603,27 @@ void MultiSeparationConstraint::addAlignmentPair(AlignmentConstraint *ac1,
 }
 
 
+void MultiSeparationConstraint::printCreationCode(FILE *fp) const
+{
+    fprintf(fp, "    MultiSeparationConstraint *multiSep%llu = "
+            "new MultiSeparationConstraint(vpsc::%cDIM, %g, %s);\n",
+            (unsigned long long) this, (_primaryDim == 0) ? 'X' : 'Y', sep,
+            (equality) ? "true" : "false");
+    for (SubConstraintInfoList::const_iterator o = _subConstraintInfo.begin();
+            o != _subConstraintInfo.end(); ++o) 
+    {
+        AlignmentPair *pair = static_cast<AlignmentPair *> (*o);
+        fprintf(fp, "    multiSep%llu->addAlignmentPair("
+                "alignment%llu, alignment%llu);\n",
+                (unsigned long long) this, 
+                (unsigned long long) pair->alignment1, 
+                (unsigned long long) pair->alignment2);
+    }
+    fprintf(fp, "    ccs.push_back(multiSep%llu);\n\n",
+            (unsigned long long) this);
+}
+
+
 void MultiSeparationConstraint::generateVariables(const vpsc::Dim dim, 
         vpsc::Variables& vars)
 {
@@ -661,6 +721,28 @@ void DistributionConstraint::generateVariables(const vpsc::Dim dim,
 void DistributionConstraint::setSeparation(double sep) 
 {
     this->sep = sep;
+}
+
+
+void DistributionConstraint::printCreationCode(FILE *fp) const
+{
+    fprintf(fp, "    DistributionConstraint *distribution%llu = "
+            "new DistributionConstraint(vpsc::%cDIM);\n",
+            (unsigned long long) this, (_primaryDim == 0) ? 'X' : 'Y');
+    fprintf(fp, "    distribution%llu->setSeparation(%g);\n",
+            (unsigned long long) this, sep);
+    for (SubConstraintInfoList::const_iterator o = _subConstraintInfo.begin();
+            o != _subConstraintInfo.end(); ++o) 
+    {
+        AlignmentPair *pair = static_cast<AlignmentPair *> (*o);
+        fprintf(fp, "    distribution%llu->addAlignmentPair("
+                "alignment%llu, alignment%llu);\n",
+                (unsigned long long) this, 
+                (unsigned long long) pair->alignment1, 
+                (unsigned long long) pair->alignment2);
+    }
+    fprintf(fp, "    ccs.push_back(distribution%llu);\n\n",
+            (unsigned long long) this);
 }
 
 
@@ -769,6 +851,33 @@ PageBoundaryConstraints::PageBoundaryConstraints(double lBoundary,
 }
 
 
+void PageBoundaryConstraints::addShape(unsigned id, double halfW, double halfH)
+{
+    _subConstraintInfo.push_back(new PageBoundaryShapeOffsets(id, halfW, halfH));
+}
+
+
+void PageBoundaryConstraints::printCreationCode(FILE *fp) const
+{
+    fprintf(fp, "    PageBoundaryConstraints *pageBoundary%llu = "
+            "new PageBoundaryConstraints(%g, %g, %g, %g, %g);\n",
+            (unsigned long long) this, leftMargin[vpsc::XDIM], 
+            rightMargin[vpsc::XDIM], leftMargin[vpsc::YDIM],
+            rightMargin[vpsc::YDIM], leftWeight[0]);
+    for (SubConstraintInfoList::const_iterator o = _subConstraintInfo.begin();
+            o != _subConstraintInfo.end(); ++o) 
+    {
+        PageBoundaryShapeOffsets *offsets = 
+                static_cast<PageBoundaryShapeOffsets *> (*o);
+        fprintf(fp, "    pageBoundary%llu->addShape(%u, %g, %g);\n",
+                (unsigned long long) this, offsets->varIndex,
+                offsets->halfDim[XDIM], offsets->halfDim[YDIM]);
+    }
+    fprintf(fp, "    ccs.push_back(pageBoundary%llu);\n\n",
+            (unsigned long long) this);
+}
+
+
 SubConstraintAlternatives 
 PageBoundaryConstraints::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
 {
@@ -777,12 +886,6 @@ PageBoundaryConstraints::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
     // Page boundary constraints do not need to be evaluated at the
     // time of makeFeasible, so we return an empty list here.
     return SubConstraintAlternatives();
-}
-
-
-void PageBoundaryConstraints::addShape(unsigned id, double halfW, double halfH)
-{
-    _subConstraintInfo.push_back(new PageBoundaryShapeOffsets(id, halfW, halfH));
 }
 
 

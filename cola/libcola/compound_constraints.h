@@ -202,6 +202,7 @@ class BoundaryConstraint : public CompoundConstraint
         void generateSeparationConstraints(const vpsc::Dim dim, 
                 vpsc::Variables& vars, vpsc::Constraints& cs);
         void updatePosition(const vpsc::Dim dim);
+        void printCreationCode(FILE *fp) const;
         
         double position;
         vpsc::Variable* variable;
@@ -263,6 +264,7 @@ class SeparationConstraint : public CompoundConstraint
         void setSeparation(double gap);
         unsigned left(void) const;
         unsigned right(void) const;
+        void printCreationCode(FILE *fp) const;
 
         double gap;
         bool equality;
@@ -286,6 +288,7 @@ class OrthogonalEdgeConstraint : public CompoundConstraint
                 std::vector<vpsc::Rectangle*> const& rs, 
                 std::vector<vpsc::Variable*> const& vars, 
                 std::vector<vpsc::Constraint*>& cs);
+        void printCreationCode(FILE *fp) const;
 
         unsigned left;
         unsigned right;
@@ -312,6 +315,7 @@ class MultiSeparationConstraint : public CompoundConstraint
         void generateSeparationConstraints(const vpsc::Dim dim, 
                 vpsc::Variables& vs, vpsc::Constraints& gcs);
         void setSeparation(double sep);
+        void printCreationCode(FILE *fp) const;
 
         vpsc::Constraints cs;
         void *indicator;
@@ -336,6 +340,7 @@ class DistributionConstraint : public CompoundConstraint {
         void generateSeparationConstraints(const vpsc::Dim dim, 
                 vpsc::Variables& vars, vpsc::Constraints& gcs);
         void setSeparation(double sep);
+        void printCreationCode(FILE *fp) const;
 
         vpsc::Constraints cs;
         void *indicator;
@@ -359,6 +364,7 @@ class PageBoundaryConstraints : public CompoundConstraint {
         double getActualLeftMargin(const vpsc::Dim dim);
         double getActualRightMargin(const vpsc::Dim dim);
         void addShape(unsigned id, double halfW, double halfH);
+        void printCreationCode(FILE *fp) const;
 
     private:
         double leftMargin[2];
