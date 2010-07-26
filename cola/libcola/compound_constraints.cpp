@@ -88,7 +88,7 @@ void BoundaryConstraint::printCreationCode(FILE *fp) const
             o != _subConstraintInfo.end(); ++o) 
     {
         Offset *info = static_cast<Offset *> (*o);
-        fprintf(fp, "    alignment%llu->addShape(%u, %g);\n",
+        fprintf(fp, "    boundary%llu->addShape(%u, %g);\n",
                 (unsigned long long) this, info->varIndex, info->distOffset);
     }
     fprintf(fp, "    ccs.push_back(boundary%llu);\n\n",
@@ -326,7 +326,6 @@ class VarIndexPair : public SubConstraintInfo
         {
             return (rConstraint) ? rConstraint->variable->id : varIndex2;
         }
-    private:
         AlignmentConstraint *lConstraint;
         AlignmentConstraint *rConstraint;
         unsigned varIndex2;
@@ -362,11 +361,24 @@ void SeparationConstraint::printCreationCode(FILE *fp) const
 {
     assert(_subConstraintInfo.size() == 1);
     VarIndexPair *varIndexPair = (VarIndexPair *) _subConstraintInfo.front();
-    fprintf(fp, "    SeparationConstraint *separation%llu = "
-            "new SeparationConstraint(vpsc::%cDIM, %u, %u, %g, %s);\n",
-            (unsigned long long) this, (_primaryDim == 0) ? 'X' : 'Y', 
-            varIndexPair->indexL(), varIndexPair->indexR(), gap, 
-            (equality) ? "true" : "false");
+    if (varIndexPair->lConstraint && varIndexPair->rConstraint)
+    {
+        fprintf(fp, "    SeparationConstraint *separation%llu = "
+                "new SeparationConstraint(vpsc::%cDIM, alignment%llu, "
+                "alignment%llu, %g, %s);\n",
+                (unsigned long long) this, (_primaryDim == 0) ? 'X' : 'Y', 
+                (unsigned long long) varIndexPair->lConstraint, 
+                (unsigned long long) varIndexPair->rConstraint, gap, 
+                (equality) ? "true" : "false");
+    }
+    else
+    {
+        fprintf(fp, "    SeparationConstraint *separation%llu = "
+                "new SeparationConstraint(vpsc::%cDIM, %u, %u, %g, %s);\n",
+                (unsigned long long) this, (_primaryDim == 0) ? 'X' : 'Y', 
+                varIndexPair->indexL(), varIndexPair->indexR(), gap, 
+                (equality) ? "true" : "false");
+    }
     fprintf(fp, "    ccs.push_back(separation%llu);\n\n",
             (unsigned long long) this);
 }
