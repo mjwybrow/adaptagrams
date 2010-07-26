@@ -776,7 +776,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
             // Check to see if already on PENDING
             for (unsigned int i = 0; i < PENDING.size(); i++)
             {
-                ANode& ati = PENDING.at(i);
+                ANode& ati = PENDING[i];
                 if ((Node.inf == ati.inf) &&
                         (DONE[Node.prevIndex].inf == DONE[ati.prevIndex].inf))
                 {
@@ -796,7 +796,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
                 // Check to see if already on DONE
                 for (unsigned int i = 0; i < DONE.size(); i++)
                 {
-                    ANode& ati = DONE.at(i);
+                    ANode& ati = DONE[i];
                     if ((Node.inf == ati.inf) && 
                             (DONE[Node.prevIndex].inf == DONE[ati.prevIndex].inf))
                     {
@@ -823,15 +823,15 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
                 cout << "PENDING:   ";
                 for (unsigned int i = 0; i < PENDING.size(); i++)
                 {
-                    cout << PENDING.at(i).g << "," << PENDING.at(i).h << ",";
-                    cout << PENDING.at(i).inf << "," << PENDING.at(i).pp << "  ";
+                    cout << PENDING[i].g << "," << PENDING[i].h << ",";
+                    cout << PENDING[i].inf << "," << PENDING[i].pp << "  ";
                 }
                 cout << endl;
                 cout << "DONE:   ";
                 for (unsigned int i = 0; i < DONE.size(); i++)
                 {
-                    cout << DONE.at(i).g << "," << DONE.at(i).h << ",";
-                    cout << DONE.at(i).inf << "," << DONE.at(i).pp << "  ";
+                    cout << DONE[i].g << "," << DONE[i].h << ",";
+                    cout << DONE[i].inf << "," << DONE[i].pp << "  ";
                 }
                 cout << endl << endl;
 #endif
