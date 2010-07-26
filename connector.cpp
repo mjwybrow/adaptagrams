@@ -1285,13 +1285,16 @@ void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
             (connConnRef->routingType() == ConnType_Orthogonal));
 
     size_t poly_size = poly.size();
-    std::vector<Avoid::Point *> c_path;
-    std::vector<Avoid::Point *> p_path;
 
     Avoid::Point& a1 = conn.ps[cIndex - 1];
     Avoid::Point& a2 = conn.ps[cIndex];
     //db_printf("a1: %g %g\n", a1.x, a1.y);
     //db_printf("a2: %g %g\n", a2.x, a2.y);
+
+    size_t max_path_size = std::min(poly_size, conn.size());
+    Avoid::Point *c_path[max_path_size];
+    Avoid::Point *p_path[max_path_size];
+    size_t size = 0;
 
     for (size_t j = ((polyIsConn) ? 1 : 0); j < poly_size; ++j)
     {
@@ -1300,8 +1303,8 @@ void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
         //db_printf("b1: %g %g\n", b1.x, b1.y);
         //db_printf("b2: %g %g\n", b2.x, b2.y);
 
-        p_path.clear();
-        c_path.clear();
+        size = 0;
+
         bool converging = false;
 
         const bool a1_eq_b1 = (a1 == b1);
@@ -1428,10 +1431,10 @@ void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
                     size_t index_p = (size_t)
                             ((trace_p + (2 * poly_size)) % poly_size);
                     size_t index_c = (size_t) trace_c;
-                    c_path.push_back(&conn.ps[index_c]);
-                    p_path.push_back(&poly.ps[index_p]);
-                    if ((c_path.size() > 1) && 
-                            (conn.ps[index_c] != poly.ps[index_p]))
+                    c_path[size] = &conn.ps[index_c];
+                    p_path[size] = &poly.ps[index_p];
+                    ++size;
+                    if ((size > 1) && (conn.ps[index_c] != poly.ps[index_p]))
                     {
                         // Points don't match, so break out of loop.
                         break;
@@ -1441,14 +1444,14 @@ void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
                 }
 
                 // Are there diverging points at the ends of the shared path.
-                bool front_same = (*(c_path.front()) == *(p_path.front()));
-                bool back_same  = (*(c_path.back())  == *(p_path.back()));
+                bool front_same = (*(c_path[0]) == *(p_path[0]));
+                bool back_same  = (*(c_path[size - 1]) == *(p_path[size - 1]));
 
                 if (sharedPaths)
                 {
                     // Store a copy of the shared path
                     size_t start = (front_same) ? 0 : 1;
-                    size_t limit = c_path.size() - ((back_same) ? 0 : 1);
+                    size_t limit = size - ((back_same) ? 0 : 1);
                 
                     PointList sPath(limit - start);
                     for (size_t i = start; i < limit; ++i)
@@ -1458,13 +1461,11 @@ void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
                     sharedPaths->push_back(sPath);
                 }
 
-                size_t size = c_path.size();
-                
                 // Check to see if these share a fixed segment.
                 if (polyIsOrthogonal && connIsOrthogonal)
                 {
                     size_t startPt = (front_same) ? 0 : 1;
-                    size_t endPt = c_path.size() - ((back_same) ? 1 : 2);
+                    size_t endPt = size - ((back_same) ? 1 : 2);
                     for (size_t dim = 0; dim < 2; ++dim)
                     {
                         if ((*c_path[startPt])[dim] == (*c_path[endPt])[dim])
@@ -1499,7 +1500,7 @@ void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
                         // For each dimension...
                         for (size_t dim = 0; dim < 2; ++dim)
                         {
-                            size_t end = c_path.size() - 1;
+                            size_t end = size - 1;
                             size_t altDim = (dim + 1) % 2;
                             // If segment is in this dimension...
                             if ((*c_path[1])[altDim] == (*c_path[end - 1])[altDim])
@@ -1697,7 +1698,7 @@ void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
                     size_t startPt = (front_same) ? 0 : 1;
                     
                     // Orthogonal should always have at least one segment.
-                    COLA_ASSERT(c_path.size() > (startPt + 1));
+                    COLA_ASSERT(size > (startPt + 1));
                     
                     if (adjStartCornerSide > 0)
                     {
@@ -1706,8 +1707,8 @@ void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
 
                     int prevDir = 0;
                     // Return the ordering for the shared path.
-                    COLA_ASSERT(c_path.size() > 0 || back_same);
-                    size_t adj_size = (c_path.size() - ((back_same) ? 0 : 1));
+                    COLA_ASSERT(size > 0 || back_same);
+                    size_t adj_size = (size - ((back_same) ? 0 : 1));
                     for (size_t i = (front_same) ? 0 : 1; i < adj_size; ++i)
                     {
                         Avoid::Point& an = *(c_path[i]);
