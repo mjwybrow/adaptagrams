@@ -260,6 +260,10 @@ const Point ConnEnd::position(void) const
     {
         return m_junction_ref->position();
     }
+    else if (m_shape_ref)
+    {
+        return m_shape_ref->shapeCentre();
+    }
     else
     {
         return m_point;

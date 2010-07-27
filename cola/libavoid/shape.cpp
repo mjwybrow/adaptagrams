@@ -220,6 +220,100 @@ void ShapeRef::removeConnectionPin(ShapeConnectionPin *pin)
 }
 
 
+void ShapeRef::transformConnectionPinPositions(
+        ShapeTransformationType transform)
+{
+    for (std::set<ShapeConnectionPin *>::iterator curr = 
+            m_connection_pins.begin(); curr != m_connection_pins.end(); ++curr)
+    {
+        ShapeConnectionPin *pin = *curr;
+        double& xPortionOffset = pin->m_x_portion_offset;
+        double& yPortionOffset = pin->m_y_portion_offset;
+        ConnDirFlags& visDirs =  pin->m_visibility_directions;
+        double tmpOffset;
+
+        // Translate to Origin.
+        xPortionOffset -= 0.5;
+        yPortionOffset -= 0.5;
+
+        // Number of clockwise 90degree rotations;
+        unsigned int rotationN = 0;
+
+        switch (transform)
+        {
+            case TransformationType_CW90:
+                rotationN = 3;
+                // Y <- inverse X, X <- inverse Y
+                tmpOffset = yPortionOffset;
+                yPortionOffset = xPortionOffset;
+                xPortionOffset = -tmpOffset;
+                break;
+            case TransformationType_CW180:
+                rotationN = 2;
+                // Y <- inverse Y, X <- inverse X
+                yPortionOffset = -yPortionOffset;
+                xPortionOffset = -xPortionOffset;
+                break;
+            case TransformationType_CW270:
+                rotationN = 1;
+                // Y <- X, X <- Y
+                tmpOffset = yPortionOffset;
+                yPortionOffset = -xPortionOffset;
+                xPortionOffset = tmpOffset;
+                break;
+            case TransformationType_FlipX:
+                // Y <- Y, X <- inverse X
+                xPortionOffset = -xPortionOffset;
+                break;
+            case TransformationType_FlipY:
+                // X <- inverse X, Y <- Y
+                yPortionOffset = -yPortionOffset;
+                break;
+        }
+        // Translate back.
+        xPortionOffset += 0.5;
+        yPortionOffset += 0.5;
+
+        if ( (visDirs & ConnDirAll) && (visDirs != ConnDirAll) )
+        {
+            // Visibility is set, but not in all directions.
+            
+            const unsigned int dirU = 0;
+            const unsigned int dirR = 1;
+            const unsigned int dirD = 2;
+            const unsigned int dirL = 3;
+
+            bool visInDir[4] = { false };
+            if (visDirs & ConnDirUp)    visInDir[dirU] = true;
+            if (visDirs & ConnDirRight) visInDir[dirR] = true;
+            if (visDirs & ConnDirDown)  visInDir[dirD] = true;
+            if (visDirs & ConnDirLeft)  visInDir[dirL] = true;
+
+            if (transform == TransformationType_FlipY)
+            {
+                bool tmpBool = visInDir[dirU];
+                visInDir[dirU] = visInDir[dirD];
+                visInDir[dirD] = tmpBool;
+            }
+            else if (transform == TransformationType_FlipX)
+            {
+                bool tmpBool = visInDir[dirL];
+                visInDir[dirL] = visInDir[dirR];
+                visInDir[dirR] = tmpBool;
+            }
+            
+            visDirs = ConnDirNone;
+            if (visInDir[(rotationN + dirU) % 4])  visDirs |= ConnDirUp;
+            if (visInDir[(rotationN + dirR) % 4])  visDirs |= ConnDirRight;
+            if (visInDir[(rotationN + dirD) % 4])  visDirs |= ConnDirDown;
+            if (visInDir[(rotationN + dirL) % 4])  visDirs |= ConnDirLeft;
+        }
+        pin->updatePositionAndVisbility();
+        m_router->modifyConnectionPin(pin);
+    }
+}
+
+
 bool ShapeRef::isActive(void) const
 {
     return m_active;

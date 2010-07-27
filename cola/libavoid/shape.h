@@ -44,6 +44,22 @@ class ConnEnd;
 class ShapeConnectionPin;
 typedef std::list<ShapeRef *> ShapeRefList;
 
+//! @brief  Describes the type of transformation that has been applied to a
+//!         shape having its transformConnectionPinPositions() method called.
+enum ShapeTransformationType 
+{
+    //! @brief  The shape has been rotated clockwise by 90 degrees.
+    TransformationType_CW90       = 0,
+    //! @brief  The shape has been rotated clockwise by 180 degrees.
+    TransformationType_CW180      = 1,
+    //! @brief  The shape has been rotated clockwise by 270 degrees.
+    TransformationType_CW270      = 2,
+    //! @brief  The shape has been flipped horizontally in the X-dimension.
+    TransformationType_FlipX      = 3,
+    //! @brief  The shape has been flipped vertically in the Y-dimension.
+    TransformationType_FlipY      = 4
+};
+
 
 //! @brief   The ShapeRef class represents a shape object.
 //!
@@ -97,6 +113,15 @@ class ShapeRef
         //! @returns A pointer to the router scene for this shape.
         Router *router(void) const;
         
+        //! @brief  Adjusts all of the shape's connection pin positions and 
+        //!         visibility directions for a given transformation type.
+        //!
+        //! @param[in]  transform  A ShapeTransformationType specifing the type
+        //!                        of transform to be applied to all connection
+        //!                        pins for the shape.
+        //! 
+        void transformConnectionPinPositions(ShapeTransformationType transform);
+ 
 #if 0
         //! @brief Constructs a ShapeConnectionPin at a specified position on a
         //!        parent shape.
@@ -157,7 +182,7 @@ class ShapeRef
                 const double insideOffset = 0.0,
                 const ConnDirFlags visDirs = ConnDirNone);
 #endif
- 
+        
         void setNewPoly(const Polygon& poly);
         VertInf *firstVert(void);
         VertInf *lastVert(void);

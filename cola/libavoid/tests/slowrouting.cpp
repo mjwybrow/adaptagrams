@@ -715,6 +715,12 @@ int main(void) {
     new ConnRef(router, srcPt175703112, dstPt175703112, 175703112);
     router->processTransaction();
     router->outputInstanceToSVG("test-slowrouting");
+
+    for (int i = 0; i < 20; ++i)
+    {
+	    router->moveShape(shapeRef373450980, 0.1, 0.1);
+	    router->processTransaction();
+    }
     delete router;
     return 0;
 };
