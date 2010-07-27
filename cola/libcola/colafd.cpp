@@ -237,7 +237,6 @@ void ConstrainedFDLayout::computeDescentVectorOnBothAxes(
  * positions.
  */
 void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis) 
-        throw(InvalidVariableIndexException)
 {
     FILE_LOG(logDEBUG) << "ConstrainedFDLayout::run...";
     double stress=DBL_MAX;

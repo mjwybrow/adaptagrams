@@ -427,8 +427,7 @@ public:
         delete [] G;
         delete [] D;
     }
-    void run(bool x=true, bool y=true)
-            throw(InvalidVariableIndexException);
+    void run(bool x=true, bool y=true);
     void runOnce(bool x=true, bool y=true);
     void outputInstanceToSVG(std::string filename = std::string());
     /**

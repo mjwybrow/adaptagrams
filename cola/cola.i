@@ -86,6 +86,8 @@ using namespace topology;
     } 
 }
 
+/* No longer needed, since we wrap everything.
+ *
 %javaexception("colajava.ColaException") cola::ConstrainedFDLayout::run {
     try {
         $action
@@ -113,6 +115,7 @@ using namespace topology;
             jenv->ThrowNew(excep, ivi.what().c_str());
     } 
 }
+*/
 
 
 /* Define a Java ColaException class.
