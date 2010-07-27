@@ -1682,6 +1682,14 @@ extern void generateStaticOrthogonalVisGraph(Router *router)
             curr && (curr != router->vertices.shapesBegin()); 
             curr = curr->lstNext)
     {
+        if (curr->visDirections == ConnDirNone)
+        {
+            // This is a connector endpoint that is attached to a connection
+            // pin on a shape, so it doesn't need to be given visibility.
+            // Thus, skip it and record that there is one less total event.
+            --totalEvents;
+            continue;
+        }
         Point& point = curr->point;
 
         Node *v = new Node(curr, point.x);
@@ -1756,6 +1764,13 @@ extern void generateStaticOrthogonalVisGraph(Router *router)
             curr && (curr != router->vertices.shapesBegin()); 
             curr = curr->lstNext)
     {
+        if (curr->visDirections == ConnDirNone)
+        {
+            // This is a connector endpoint that is attached to a connection
+            // pin on a shape, so it doesn't need to be given visibility.
+            // Thus, skip it.
+            continue;
+        }
         Point& point = curr->point;
 
         Node *v = new Node(curr, point.y);

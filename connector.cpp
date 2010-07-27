@@ -192,6 +192,9 @@ void ConnRef::common_updateEndPoint(const unsigned int type, ConnEnd connEnd)
         {
             m_src_connend = new ConnEnd(connEnd);
             m_src_connend->connect(this);
+            // Don't need this to have visibility since we won't 
+            // be connecting to it.
+            m_src_vert->visDirections = ConnDirNone;
         }
         
         altered = m_src_vert;
@@ -218,6 +221,9 @@ void ConnRef::common_updateEndPoint(const unsigned int type, ConnEnd connEnd)
         {
             m_dst_connend = new ConnEnd(connEnd);
             m_dst_connend->connect(this);
+            // Don't need this to have visibility since we won't 
+            // be connecting to it.
+            m_dst_vert->visDirections = ConnDirNone;
         }
         
         altered = m_dst_vert;

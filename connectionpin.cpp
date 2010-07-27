@@ -113,6 +113,13 @@ ShapeConnectionPin::~ShapeConnectionPin()
     }
 }
 
+void ShapeConnectionPin::updatePositionAndVisbility(void)
+{
+    m_vertex->removeFromGraph();
+    m_vertex->Reset(this->position());
+    m_vertex->visDirections = this->directions();
+}
+
 void ShapeConnectionPin::setConnectionCost(const double cost)
 {
     COLA_ASSERT(cost >= 0);
