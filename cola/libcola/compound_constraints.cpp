@@ -266,6 +266,11 @@ void AlignmentConstraint::printCreationCode(FILE *fp) const
             "new AlignmentConstraint(vpsc::%cDIM, %g);\n",
             (unsigned long long) this, (_primaryDim == 0) ? 'X' : 'Y', 
             _position);
+    if (_isFixed)
+    {
+        fprintf(fp, "    alignment%llu->fixPos(%g);\n",
+                (unsigned long long) this, _position);
+    }
     for (SubConstraintInfoList::const_iterator o = _subConstraintInfo.begin();
             o != _subConstraintInfo.end(); ++o) 
     {
