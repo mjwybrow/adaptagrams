@@ -254,7 +254,7 @@ class EdgePair
             : vInf1(p1.vInf), 
               vInf2(v),
               dist1(p1.distance),
-              dist2(euclideanDist(vInf2->point, centerPoint)),
+              dist2(euclideanDist(vInf2->point, p1.centerPoint)),
               angle(p1.angle),
               angleDist(p1.distance),
               centerPoint(p1.centerPoint)
