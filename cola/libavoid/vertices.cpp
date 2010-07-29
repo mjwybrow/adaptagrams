@@ -362,7 +362,7 @@ void VertInfList::addVertex(VertInf *vert)
             // Join with conns list
             if (_lastConnVert)
             {
-                assert (_lastConnVert->lstNext == NULL);
+                COLA_ASSERT(_lastConnVert->lstNext == NULL);
 
                 _lastConnVert->lstNext = vert;
             }
