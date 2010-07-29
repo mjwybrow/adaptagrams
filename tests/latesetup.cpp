@@ -63,6 +63,13 @@ int main(void)
     // Force inital callback:
     router->processTransaction();
 
+    Avoid::ConnRef *connRef2 = new Avoid::ConnRef(router);
+    connRef2->setCallback(connCallback, connRef2);
+    router->processTransaction();
+
+    delete connRef2;
+    router->processTransaction();
+
     printf("\nAdd endpoints.\n");
     connRef->setEndpoints(srcPt, dstPt);
     router->processTransaction();
@@ -82,6 +89,7 @@ int main(void)
     router->moveShape(shapeRef, 0.5, 0);
     router->processTransaction();
 
+    delete router;
     return 0;
 }
 

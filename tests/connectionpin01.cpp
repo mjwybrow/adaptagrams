@@ -63,6 +63,7 @@ int main(void)
     router->processTransaction();
     router->outputInstanceToSVG("test-connectionpin01-3");
 
+    delete router;
     return 0;
 }
 

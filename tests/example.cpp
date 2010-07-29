@@ -76,6 +76,7 @@ int main(void)
     router->moveShape(shapeRef, 0.5, 0);
     router->processTransaction();
 
+    delete router;
     return 0;
 }
 
