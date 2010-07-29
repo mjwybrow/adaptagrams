@@ -455,6 +455,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
 
     std::vector<ANode> PENDING;     // STL Vectors chosen because of rapid
     std::vector<ANode> DONE;        // insertions/deletions at back,
+    size_t DONE_size = 0;
     ANode Node, BestNode;           // Temporary Node and BestNode
     bool bNodeFound = false;        // Flag if node is found in container
     int timestamp = 1;
@@ -507,7 +508,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
                 Node.f = Node.g + Node.h;
                 
                 // Point parent to last BestNode (pushed onto DONE)
-                Node.prevIndex = DONE.size() - 1;
+                Node.prevIndex = DONE_size - 1;
             }
 
             if (curr != start)
@@ -515,6 +516,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
                 BestNode = Node;
 
                 DONE.push_back(BestNode);
+                DONE_size++;
             }
             else
             {
@@ -562,6 +564,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
 
         // Push the BestNode onto DONE
         DONE.push_back(BestNode);
+        DONE_size++;
 
         VertInf *prevInf = (BestNode.prevIndex >= 0) ?
                 DONE[BestNode.prevIndex].inf : NULL;
@@ -629,12 +632,12 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
             // This node is our goal.
 #ifdef PATHDEBUG
             db_printf("LINE %10d  Steps: %4d  Cost: %g\n", lineRef->id(), 
-                    (int) DONE.size(), BestNode.f);
+                    (int) DONE_size, BestNode.f);
 #endif
             
             // Correct all the pathNext pointers.
             ANode curr;
-            int currIndex = DONE.size() - 1;
+            int currIndex = DONE_size - 1;
             for (curr = BestNode; curr.prevIndex > 0; 
                     curr = DONE[curr.prevIndex])
             {
@@ -668,7 +671,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
 
             // Set the index to the previous ANode that we reached
             // this ANode through (the last BestNode pushed onto DONE).
-            Node.prevIndex = DONE.size() - 1;
+            Node.prevIndex = DONE_size - 1;
 
             // Only check shape verticies, or the tar endpoint.
             if (Node.inf->id.isConnPt() && !Node.inf->id.isConnectionPin() && 
@@ -774,7 +777,8 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
             bNodeFound = false;
 
             // Check to see if already on PENDING
-            for (unsigned int i = 0; i < PENDING.size(); i++)
+            size_t PENDING_size = PENDING.size();
+            for (unsigned int i = 0; i < PENDING_size; i++)
             {
                 ANode& ati = PENDING[i];
                 if ((Node.inf == ati.inf) &&
@@ -794,7 +798,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
             if ( !bNodeFound ) // If Node NOT found on PENDING
             {
                 // Check to see if already on DONE
-                for (unsigned int i = 0; i < DONE.size(); i++)
+                for (unsigned int i = 0; i < DONE_size; i++)
                 {
                     ANode& ati = DONE[i];
                     if ((Node.inf == ati.inf) && 
@@ -828,7 +832,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
                 }
                 cout << endl;
                 cout << "DONE:   ";
-                for (unsigned int i = 0; i < DONE.size(); i++)
+                for (unsigned int i = 0; i < DONE_size; i++)
                 {
                     cout << DONE[i].g << "," << DONE[i].h << ",";
                     cout << DONE[i].inf << "," << DONE[i].pp << "  ";
