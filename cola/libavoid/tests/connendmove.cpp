@@ -78,6 +78,7 @@ int main(void)
     
     router->processTransaction();
 
+    delete router;
     return 0;
 }
 

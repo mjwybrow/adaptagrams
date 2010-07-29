@@ -112,6 +112,7 @@ int main(void)
     router->processTransaction();
     router->outputInstanceToSVG("test-connectionpin02-8");
 
+    delete router;
     return 0;
 }
 

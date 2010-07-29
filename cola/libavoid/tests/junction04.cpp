@@ -100,7 +100,9 @@ int main(void)
     // After the transaction has been processed we can free the junction obj.
     delete newObjs.first;
 
+    router->processTransaction();
 
+    delete router;
     return 0;
 }
 

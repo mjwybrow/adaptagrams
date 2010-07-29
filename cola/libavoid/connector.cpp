@@ -97,12 +97,12 @@ ConnRef::ConnRef(Router *router, const ConnEnd& src, const ConnEnd& dst,
 ConnRef::~ConnRef()
 {
     m_router->removeQueuedConnectorActions(this);
-    removeFromGraph();
 
     freeRoutes();
 
     if (m_src_vert)
     {
+        m_src_vert->removeFromGraph();
         m_router->vertices.removeVertex(m_src_vert);
         delete m_src_vert;
         m_src_vert = NULL;
@@ -115,6 +115,7 @@ ConnRef::~ConnRef()
 
     if (m_dst_vert)
     {
+        m_dst_vert->removeFromGraph();
         m_router->vertices.removeVertex(m_dst_vert);
         delete m_dst_vert;
         m_dst_vert = NULL;
@@ -125,7 +126,10 @@ ConnRef::~ConnRef()
         m_dst_connend = NULL;
     }
 
-    makeInactive();
+    if (m_active)
+    {
+        makeInactive();
+    }
 }
 
 
