@@ -558,6 +558,7 @@ Rectangle::Rectangle(const Point& topLeft, const Point& bottomRight)
 
 Rectangle::Rectangle(const Point& centre, const double width, 
         const double height)
+    : Polygon(4)
 {
     double halfWidth  = width / 2.0;
     double halfHeight = height / 2.0;

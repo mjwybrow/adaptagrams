@@ -190,12 +190,12 @@ const Point ShapeConnectionPin::position(const Polygon& newPoly) const
 
     if (m_y_portion_offset == ATTACH_POS_TOP)
     {
-        point.y = y_max - m_inside_offset;
+        point.y = y_min + m_inside_offset;
         point.vn = 5;
     }
     else if (m_y_portion_offset == ATTACH_POS_BOTTOM)
     {
-        point.y = y_min + m_inside_offset;
+        point.y = y_max - m_inside_offset;
         point.vn = 7;
     }
     else
@@ -224,11 +224,11 @@ ConnDirFlags ShapeConnectionPin::directions(void) const
 
         if (m_y_portion_offset == ATTACH_POS_TOP)
         {
-            visDir |= ConnDirDown;
+            visDir |= ConnDirUp;
         }
         else if (m_y_portion_offset == ATTACH_POS_BOTTOM)
         {
-            visDir |= ConnDirUp;
+            visDir |= ConnDirDown;
         }
 
         if (visDir == ConnDirNone)

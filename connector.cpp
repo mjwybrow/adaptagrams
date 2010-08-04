@@ -1301,9 +1301,11 @@ void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
     //db_printf("a1: %g %g\n", a1.x, a1.y);
     //db_printf("a2: %g %g\n", a2.x, a2.y);
 
+    // Allocate arrays for computing shared paths.
+    // Don't use dynamic array due to portablity issues.
     size_t max_path_size = std::min(poly_size, conn.size());
-    Avoid::Point *c_path[max_path_size];
-    Avoid::Point *p_path[max_path_size];
+    Avoid::Point **c_path = new Avoid::Point*[max_path_size];
+    Avoid::Point **p_path = new Avoid::Point*[max_path_size];
     size_t size = 0;
 
     for (size_t j = ((polyIsConn) ? 1 : 0); j < poly_size; ++j)
@@ -1937,6 +1939,10 @@ void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
         }
     }
     //db_printf("crossingcount %d\n", crossingCount);
+
+    // Free shared path memory.
+    delete c_path;
+    delete p_path;
 }
 
 
