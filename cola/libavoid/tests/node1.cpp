@@ -29,7 +29,7 @@ int main(void) {
     ShapeRef *shapeRef807558175 = new ShapeRef(router, poly807558175, 807558175);
     router->addShape(shapeRef807558175);
     new ShapeConnectionPin(shapeRef807558175, 0, 
-	    ATTACH_POS_CENTRE, ATTACH_POS_BOTTOM, buffer, ConnDirNone);
+	    ATTACH_POS_CENTRE, ATTACH_POS_TOP, buffer, ConnDirNone);
 
     Polygon poly404900496(4);
     poly404900496.ps[0] = Point(51525, 50946);
