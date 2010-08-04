@@ -31,7 +31,9 @@ check_PROGRAMS = \
 	junction01 \
 	junction02 \
 	junction03 \
-	junction04
+	junction04 \
+	nudgeold \
+	node1
 
 example_SOURCES = example.cpp
 
@@ -44,6 +46,10 @@ inline_SOURCES = inline.cpp
 infinity_SOURCES = infinity.cpp
 
 latesetup_SOURCES = latesetup.cpp
+
+nudgeold_SOURCES = nudgeold.cpp
+
+node1_SOURCES = node1.cpp
 
 vertlineassertion_SOURCES = vertlineassertion.cpp
 

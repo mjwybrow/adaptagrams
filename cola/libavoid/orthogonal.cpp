@@ -523,9 +523,10 @@ int compare_events(const void *a, const void *b)
 }
 
 
-// Returns a bitfield of the direction of visibility (in this dimension)
-// made up of ConnDirDown (for visibility towards lower position values) 
-// and ConnDirUp (for visibility towards higher position values).
+// Returns a bitfield of the direction of visibility in terms of the scanline
+// in a particular dimension dimension.  It will return either ConnDirDown 
+// (meaning visibility to lower position values) or ConnDirUp (for visibility 
+// towards higher position values).
 //
 static ConnDirFlags getPosVertInfDirection(VertInf *v, size_t dim)
 {
@@ -554,14 +555,16 @@ static ConnDirFlags getPosVertInfDirection(VertInf *v, size_t dim)
         }
         else if (dirs == ConnDirDown)
         {
-            // For libavoid the Y-axis points downwards, so in terms of 
-            // smaller or larger position values, Down is Up and vice versa.
+            // libavoid's Y-axis points downwards, so where the user has 
+            // specified visibility downwards, this results in visibility to
+            // higher scanline positition values. 
             return ConnDirUp;
         }
         else if (dirs == ConnDirUp)
         {
-            // For libavoid the Y-axis points downwards, so in terms of 
-            // smaller or larger position values, Down is Up and vice versa.
+            // libavoid's Y-axis points downwards, so where the user has 
+            // specified visibility upwards, this results in visibility to
+            // lower scanline positition values. 
             return ConnDirDown;
         }
     }
@@ -2021,20 +2024,12 @@ static void buildOrthogonalChannelInfo(Router *router,
                     // isCBend: Both adjoining segments are in the same
                     // direction.  We indicate this for later by setting 
                     // the maxLim or minLim to the segment position.
-                    // 
-                    // For C-bends set a default available nudge distance.  We
-                    // don't use CHANNEL_LIMIT since this causes channels to be
-                    // needlessly merged that never have a chance of affecting
-                    // each other.
-                    const double CBEND_SPACE = 80; 
                     if (prevPos < thisPos)
                     {
                         minLim = thisPos;
-                        maxLim = thisPos + CBEND_SPACE;
                     }
                     else
                     {
-                        minLim = thisPos - CBEND_SPACE;
                         maxLim = thisPos;
                     }
                 }
