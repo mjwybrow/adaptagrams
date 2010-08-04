@@ -523,27 +523,35 @@ int compare_events(const void *a, const void *b)
 }
 
 
+enum ScanVisDirFlag {
+    VisDirNone  = 0,
+    VisDirUp    = 1,
+    VisDirDown  = 2
+};
+typedef unsigned int ScanVisDirFlags;
+
+
 // Returns a bitfield of the direction of visibility in terms of the scanline
 // in a particular dimension dimension.  It will return either ConnDirDown 
 // (meaning visibility to lower position values) or ConnDirUp (for visibility 
 // towards higher position values).
 //
-static ConnDirFlags getPosVertInfDirection(VertInf *v, size_t dim)
+static ScanVisDirFlags getPosVertInfDirection(VertInf *v, size_t dim)
 {
     if (dim == XDIM) // X-dimension
     {
         unsigned int dirs = v->visDirections & (ConnDirLeft | ConnDirRight);
         if (dirs == (ConnDirLeft | ConnDirRight))
         {
-            return (ConnDirDown | ConnDirUp);
+            return (VisDirDown | VisDirUp);
         }
         else if (dirs == ConnDirLeft)
         {
-            return ConnDirDown;
+            return VisDirDown;
         }
         else if (dirs == ConnDirRight)
         {
-            return ConnDirUp;
+            return VisDirUp;
         }
     }
     else if (dim == YDIM) // Y-dimension
@@ -551,35 +559,35 @@ static ConnDirFlags getPosVertInfDirection(VertInf *v, size_t dim)
         unsigned int dirs = v->visDirections & (ConnDirDown | ConnDirUp);
         if (dirs == (ConnDirDown | ConnDirUp))
         {
-            return (ConnDirDown | ConnDirUp);
+            return (VisDirDown | VisDirUp);
         }
         else if (dirs == ConnDirDown)
         {
             // libavoid's Y-axis points downwards, so where the user has 
             // specified visibility downwards, this results in visibility to
             // higher scanline positition values. 
-            return ConnDirUp;
+            return VisDirUp;
         }
         else if (dirs == ConnDirUp)
         {
             // libavoid's Y-axis points downwards, so where the user has 
             // specified visibility upwards, this results in visibility to
             // lower scanline positition values. 
-            return ConnDirDown;
+            return VisDirDown;
         }
     }
 
     // Can occur for ConnDirNone visibility.
-    return ConnDirNone;
+    return VisDirNone;
 }
 
 
 struct PosVertInf
 {
-    PosVertInf(double p, VertInf *vI, ConnDirFlags d = ConnDirNone)
+    PosVertInf(double p, VertInf *vI, ScanVisDirFlags d = VisDirNone)
         : pos(p),
           vert(vI),
-          dir(d)
+          dirs(d)
     {
     }
     
@@ -604,10 +612,10 @@ struct PosVertInf
     VertInf *vert;
 
     // A bitfield marking the direction of visibility (in this dimension)
-    // made up of ConnDirDown (for visibility towards lower position values) 
-    // and ConnDirUp (for visibility towards higher position values).
+    // made up of VisDirDown (for visibility towards lower position values) 
+    // and VisDirUp (for visibility towards higher position values).
     //
-    ConnDirFlags dir;
+    ScanVisDirFlags dirs;
 };
 
 
@@ -1114,7 +1122,7 @@ public:
                         }
                         --side;
                     }
-                    bool canSeeDown = (vert->dir & ConnDirDown);
+                    bool canSeeDown = (vert->dirs & VisDirDown);
                     if (canSeeDown && !(side->vert->id.isConnPt()))
                     {
                         EdgeInf *edge = new 
@@ -1131,7 +1139,7 @@ public:
                     {
                         ++side;
                     }
-                    bool canSeeUp = (last->dir & ConnDirUp);
+                    bool canSeeUp = (last->dirs & VisDirUp);
                     if (canSeeUp && (side != breakPoints.end()))
                     {
                         EdgeInf *edge = new 
@@ -1149,13 +1157,13 @@ public:
                 // the connector in question.
                 //
                 bool generateEdge = true;
-                if (last->vert->id.isConnPt() && !(last->dir & ConnDirUp))
+                if (last->vert->id.isConnPt() && !(last->dirs & VisDirUp))
                 {
                     // Don't generate the visibility segment if the ConnEnd
                     // doesn't have visibility in that direction.
                     generateEdge = false;
                 }
-                else if (vert->vert->id.isConnPt() && !(vert->dir & ConnDirDown))
+                else if (vert->vert->id.isConnPt() && !(vert->dirs & VisDirDown))
                 {
                     // Don't generate the visibility segment if the ConnEnd
                     // doesn't have visibility in that direction.
