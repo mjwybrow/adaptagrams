@@ -1251,12 +1251,11 @@ void ConstrainedFDLayout::outputInstanceToSVG(std::string instanceName)
         }
     }
 
+    fprintf(fp, "    ConstrainedFDLayout alg(rs, es, defaultEdgeLength);\n");
     if (clusterHierarchy)
     {
         clusterHierarchy->printCreationCode(fp);
     }
-
-    fprintf(fp, "    ConstrainedFDLayout alg(rs, es, defaultEdgeLength);\n");
     fprintf(fp, "    alg.setConstraints(&ccs);\n");
     fprintf(fp, "    alg.makeFeasible(true);\n");
     fprintf(fp, "    alg.run();\n");
