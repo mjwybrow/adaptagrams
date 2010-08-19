@@ -787,7 +787,7 @@ bool ConnRef::generatePath(void)
             break;
         }
         // Check we don't have an apparent infinite connector path.
-        COLA_ASSERT(pathlen < 200);
+        COLA_ASSERT(pathlen < 2000);
     }
     std::vector<Point> path(pathlen);
 
