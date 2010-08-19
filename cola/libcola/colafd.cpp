@@ -25,7 +25,6 @@
  *            Michael Wybrow
  *
 */
-#define MAKEFEASIBLE_DEBUG
 
 #include <vector>
 #include <cmath>

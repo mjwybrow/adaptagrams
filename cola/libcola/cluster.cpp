@@ -136,7 +136,7 @@ void ConvexCluster::printCreationCode(FILE *fp) const
             i != clusters.end(); ++i)
     {
         (*i)->printCreationCode(fp);
-        fprintf(fp, "    cluster%llu->clusters.push_back(%llu);\n",
+        fprintf(fp, "    cluster%llu->clusters.push_back(cluster%llu);\n",
                 (unsigned long long) this, (unsigned long long) *i);
     }
 }
@@ -232,7 +232,7 @@ void RectangularCluster::printCreationCode(FILE *fp) const
             i != clusters.end(); ++i)
     {
         (*i)->printCreationCode(fp);
-        fprintf(fp, "    cluster%llu->clusters.push_back(%llu);\n",
+        fprintf(fp, "    cluster%llu->clusters.push_back(cluster%llu);\n",
                 (unsigned long long) this, (unsigned long long) *i);
     }
 }
@@ -257,7 +257,7 @@ void RootCluster::printCreationCode(FILE *fp) const
             i != clusters.end(); ++i)
     {
         (*i)->printCreationCode(fp);
-        fprintf(fp, "    cluster%llu->clusters.push_back(%llu);\n",
+        fprintf(fp, "    cluster%llu->clusters.push_back(cluster%llu);\n",
                 (unsigned long long) this, (unsigned long long) *i);
     }
     fprintf(fp, "    alg.setClusterHierarchy(cluster%llu)\n",
