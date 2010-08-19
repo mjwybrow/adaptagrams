@@ -25,6 +25,7 @@
  *            Michael Wybrow
  *
 */
+#define MAKEFEASIBLE_DEBUG
 
 #include <vector>
 #include <cmath>
@@ -1249,6 +1250,11 @@ void ConstrainedFDLayout::outputInstanceToSVG(std::string instanceName)
         {
             (*c)->printCreationCode(fp);
         }
+    }
+
+    if (clusterHierarchy)
+    {
+        clusterHierarchy->printCreationCode(fp);
     }
 
     fprintf(fp, "    ConstrainedFDLayout alg(rs, es, defaultEdgeLength);\n");

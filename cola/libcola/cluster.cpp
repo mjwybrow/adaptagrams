@@ -33,9 +33,9 @@
 
 using vpsc::generateXConstraints;
 using vpsc::generateYConstraints;
+using namespace std;
 
 namespace cola {
-    using namespace std;
 
     Cluster::Cluster()
         : varWeight(0.0001), 
@@ -120,6 +120,28 @@ namespace cola {
             hullCorners[j]=hull[j]%4;
         }
     }
+
+
+void ConvexCluster::printCreationCode(FILE *fp) const
+{
+    fprintf(fp, "    ConvexCluster *cluster%llu = new ConvexCluster();\n",
+            (unsigned long long) this);
+    for(vector<unsigned>::const_iterator i = nodes.begin(); 
+            i != nodes.end(); ++i)
+    {
+        fprintf(fp, "    cluster%llu->nodes.push_back(%u);\n",
+                (unsigned long long) this, *i);
+    }
+    for(vector<Cluster *>::const_iterator i = clusters.begin(); 
+            i != clusters.end(); ++i)
+    {
+        (*i)->printCreationCode(fp);
+        fprintf(fp, "    cluster%llu->clusters.push_back(%llu);\n",
+                (unsigned long long) this, (unsigned long long) *i);
+    }
+}
+
+
     RectangularCluster::RectangularCluster()
         : Cluster()
     {
@@ -193,11 +215,56 @@ namespace cola {
         hullX[0]=xMax;
         hullY[0]=yMin;
     }
-    void RootCluster::computeBoundary(const vpsc::Rectangles& rs) {
-        for(unsigned i=0;i<clusters.size();i++) {
-            clusters[i]->computeBoundary(rs);
-        }
+
+
+void RectangularCluster::printCreationCode(FILE *fp) const
+{
+    fprintf(fp, "    RectangularCluster *cluster%llu = "
+            "new RectangularCluster();\n",
+            (unsigned long long) this);
+    for(vector<unsigned>::const_iterator i = nodes.begin(); 
+            i != nodes.end(); ++i)
+    {
+        fprintf(fp, "    cluster%llu->nodes.push_back(%u);\n",
+                (unsigned long long) this, *i);
     }
+    for(vector<Cluster *>::const_iterator i = clusters.begin(); 
+            i != clusters.end(); ++i)
+    {
+        (*i)->printCreationCode(fp);
+        fprintf(fp, "    cluster%llu->clusters.push_back(%llu);\n",
+                (unsigned long long) this, (unsigned long long) *i);
+    }
+}
+
+void RootCluster::computeBoundary(const vpsc::Rectangles& rs) {
+    for(unsigned i=0;i<clusters.size();i++) {
+        clusters[i]->computeBoundary(rs);
+    }
+}
+
+void RootCluster::printCreationCode(FILE *fp) const
+{
+    fprintf(fp, "    RootCluster *cluster%llu = new RootCluster();\n",
+            (unsigned long long) this);
+    for(vector<unsigned>::const_iterator i = nodes.begin(); 
+            i != nodes.end(); ++i)
+    {
+        fprintf(fp, "    cluster%llu->nodes.push_back(%u);\n",
+                (unsigned long long) this, *i);
+    }
+    for(vector<Cluster *>::const_iterator i = clusters.begin(); 
+            i != clusters.end(); ++i)
+    {
+        (*i)->printCreationCode(fp);
+        fprintf(fp, "    cluster%llu->clusters.push_back(%llu);\n",
+                (unsigned long long) this, (unsigned long long) *i);
+    }
+    fprintf(fp, "    alg.setClusterHierarchy(cluster%llu)\n",
+            (unsigned long long) this);
+}
+
+
     void Cluster::updateBounds(const vpsc::Dim dim) {
         if(dim==vpsc::HORIZONTAL) {
             bounds=vpsc::Rectangle(vMin->finalPosition,vMax->finalPosition,bounds.getMinY(),bounds.getMaxY());

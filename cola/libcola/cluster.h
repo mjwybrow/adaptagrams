@@ -57,6 +57,7 @@ class Cluster
         void createVars(const vpsc::Dim dim, const vpsc::Rectangles& rs,
                 vpsc::Variables& vars);
         void setRectBuffers(const double buffer);
+        virtual void printCreationCode(FILE *fp) const = 0;
         vpsc::Variable *vXMin, *vXMax, *vYMin, *vYMax;
         void clear();
         /**
@@ -96,6 +97,7 @@ class RootCluster : public Cluster
         {
             return clusters.empty();
         }
+        virtual void printCreationCode(FILE *fp) const;
 };
 
 class RectangularCluster : public Cluster
@@ -104,6 +106,7 @@ class RectangularCluster : public Cluster
         RectangularCluster();
         ~RectangularCluster();
         void computeBoundary(const vpsc::Rectangles& rs);
+        virtual void printCreationCode(FILE *fp) const;
         vpsc::Rectangle *getMinEdgeRect(const vpsc::Dim dim);
         vpsc::Rectangle *getMaxEdgeRect(const vpsc::Dim dim);
 
@@ -115,6 +118,7 @@ class ConvexCluster : public Cluster
 {
     public:
         void computeBoundary(const vpsc::Rectangles& rs);
+        virtual void printCreationCode(FILE *fp) const;
 
         std::valarray<unsigned> hullRIDs;
         std::valarray<unsigned char> hullCorners;
