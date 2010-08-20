@@ -330,7 +330,7 @@ void ConstrainedFDLayout::recGenerateClusterVariablesAndConstraints(
     if ( (noc == NULL) && (dynamic_cast<RootCluster *> (cluster) == NULL) )
     {
         double freeWeight = 0.00000000001;
-        // Then create left and right variables for the bounndary of this 
+        // Then create left and right variables for the boundary of this 
         // cluster.
         vpsc::Variable *variable = NULL;
         cluster->clusterVarId = vars[XDIM].size();
@@ -351,6 +351,13 @@ void ConstrainedFDLayout::recGenerateClusterVariablesAndConstraints(
         variable = new vpsc::Variable(vars[YDIM].size(), 
                 cluster->bounds.getMaxY(), freeWeight);
         vars[YDIM].push_back(variable);
+
+        RectangularCluster *rc = dynamic_cast<RectangularCluster *> (cluster);
+        if (rc)
+        {
+            rc->generateFixedRectangleConstraints(idleConstraints, 
+                    boundingBoxes, vars);
+        }
 
         priority--;
         cola::ClusterContainmentConstraints *ccc = 

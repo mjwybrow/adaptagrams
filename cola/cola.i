@@ -135,6 +135,7 @@ class ColaException {
 }
 %}
 
+%typemap(javafinalize) vpsc::Rectangle, std::vector<cola::CompoundConstraint*>, cola::CompoundConstraint, cola::AlignmentConstraint, cola::BoundaryConstraint, cola::DistributionConstraint, cola::MultiSeparationConstraint, cola::PageBoundaryConstraints, cola::SeparationConstraint, Avoid::ShapeRef, Avoid::ConnRef %{%}
 
 %template(UnsatisfiableConstraintInfoVector) std::vector<cola::UnsatisfiableConstraintInfo *>;
 %template(EdgeVector) std::vector<cola::Edge>;

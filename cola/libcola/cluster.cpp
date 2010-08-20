@@ -44,7 +44,7 @@ Cluster::Cluster()
       clusterVarId(0),
       rectBuffer(0),
       desiredBoundsSet(false), 
-      desiredBounds(-1,1,-1,1)
+      desiredBounds()
 { }
 
 void Cluster::setDesiredBounds(const vpsc::Rectangle db) 
@@ -176,7 +176,18 @@ void ConvexCluster::printCreationCode(FILE *fp) const
 
 
 RectangularCluster::RectangularCluster()
-    : Cluster()
+    : Cluster(),
+      rectangleIndex(-1)
+{
+    minEdgeRect[vpsc::XDIM] = NULL;
+    minEdgeRect[vpsc::YDIM] = NULL;
+    maxEdgeRect[vpsc::XDIM] = NULL;
+    maxEdgeRect[vpsc::YDIM] = NULL;
+}
+
+RectangularCluster::RectangularCluster(unsigned rectIndex)
+    : Cluster(),
+      rectangleIndex(rectIndex)
 {
     minEdgeRect[vpsc::XDIM] = NULL;
     minEdgeRect[vpsc::YDIM] = NULL;
@@ -201,6 +212,47 @@ RectangularCluster::~RectangularCluster()
     }
 }
  
+bool RectangularCluster::containsShape(unsigned index) const
+{
+    if (rectangleIndex == (int) index)
+    {
+        // This cluster is the shape in question.
+        return true;
+    }
+    return Cluster::containsShape(index);
+}
+
+
+void RectangularCluster::generateFixedRectangleConstraints(
+        cola::CompoundConstraints& idleConstraints,
+        vpsc::Rectangles& rc, vpsc::Variables (&vars)[2])
+{
+    if (rectangleIndex < 0)
+    {
+        // Not based on a Rectangle.
+        return;
+    }
+
+    double halfWidth = rc[rectangleIndex]->width() / 2;
+    double halfHeight = rc[rectangleIndex]->height() / 2;
+
+    cola::SeparationConstraint *sc = 
+            new cola::SeparationConstraint(vpsc::XDIM, clusterVarId, 
+                    rectangleIndex, halfWidth, true);
+    idleConstraints.push_back(sc);
+    sc = new cola::SeparationConstraint(vpsc::XDIM, 
+                    rectangleIndex, clusterVarId + 1, halfWidth, true);
+    idleConstraints.push_back(sc);
+    
+    sc = new cola::SeparationConstraint(vpsc::YDIM, 
+                    clusterVarId, rectangleIndex, halfHeight, true);
+    idleConstraints.push_back(sc);
+    sc = new cola::SeparationConstraint(vpsc::YDIM, 
+                    rectangleIndex, clusterVarId + 1, halfHeight, true);
+    idleConstraints.push_back(sc);
+}
+
+
 vpsc::Rectangle *RectangularCluster::getMinEdgeRect(const vpsc::Dim dim)
 {
     if (minEdgeRect[dim])
@@ -276,6 +328,25 @@ void RectangularCluster::printCreationCode(FILE *fp) const
                 (unsigned long long) this, (unsigned long long) *i);
     }
 }
+
+bool RectangularCluster::clusterIsFromFixedRectangle(void) const
+{
+    return (rectangleIndex >= 0);
+}
+
+void RectangularCluster::computeBoundingRect(const vpsc::Rectangles& rs) 
+{
+    if (clusterIsFromFixedRectangle())
+    {
+        // For bounds, just use this shape's rectangle.
+        bounds = *(rs[rectangleIndex]);
+    }
+    else
+    {
+        Cluster::computeBoundingRect(rs);
+    }
+}
+
 
 void RootCluster::computeBoundary(const vpsc::Rectangles& rs) 
 {
@@ -391,4 +462,4 @@ double Cluster::area(const vpsc::Rectangles& rs)
 }
 
 } // namespace cola
-// vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=8:softtabstop=4:encoding=utf-8:textwidth=99 :
+// vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=8:softtabstop=4:textwidth=99 :

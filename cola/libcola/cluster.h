@@ -31,6 +31,7 @@
 #include "libvpsc/rectangle.h"
 #include "libvpsc/variable.h"
 
+#include "compound_constraints.h"
 #include "commondefs.h"
 
 namespace cola {
@@ -50,7 +51,7 @@ class Cluster
         Cluster();
         virtual ~Cluster() {}
         virtual void computeBoundary(const vpsc::Rectangles& rs) = 0;
-        void computeBoundingRect(const vpsc::Rectangles& rs);
+        virtual void computeBoundingRect(const vpsc::Rectangles& rs);
         vpsc::Rectangle bounds;
         void setDesiredBounds(const vpsc::Rectangle bounds);
         void unsetDesiredBounds();
@@ -60,7 +61,7 @@ class Cluster
         virtual void printCreationCode(FILE *fp) const = 0;
         vpsc::Variable *vXMin, *vXMax, *vYMin, *vYMax;
         void clear();
-        bool containsShape(unsigned index) const;
+        virtual bool containsShape(unsigned index) const;
         /**
          * @return the total area covered by contents of this cluster (not
          * including space between nodes/clusters)
@@ -104,15 +105,40 @@ class RootCluster : public Cluster
 class RectangularCluster : public Cluster
 {
     public:
+        
+        //! @brief  A rectangular cluster with floating sides that contains
+        //!         its children.
         RectangularCluster();
+        
+        //! @brief  A fixed size rectangular cluster based on a particular 
+        //!         rectangle.  This rectangle might be constrained in the 
+        //!         other ways like other rectangles.
+        //!
+        //! @param[in]  rectIndex  The index of the rectangle that this cluster
+        //!                        represents.
+        RectangularCluster(unsigned rectIndex);
         ~RectangularCluster();
         void computeBoundary(const vpsc::Rectangles& rs);
+        virtual bool containsShape(unsigned index) const;
         virtual void printCreationCode(FILE *fp) const;
+        virtual void computeBoundingRect(const vpsc::Rectangles& rs);
         vpsc::Rectangle *getMinEdgeRect(const vpsc::Dim dim);
         vpsc::Rectangle *getMaxEdgeRect(const vpsc::Dim dim);
+    
+        // For fixed sized clusters based on a rectangle, this method 
+        // generates the constraints that attach the cluster edges to the
+        // centre position of the relevant rectangle.
+        void generateFixedRectangleConstraints(
+                cola::CompoundConstraints& idleConstraints,
+                vpsc::Rectangles& rc, vpsc::Variables (&vars)[2]);
+    
+    private:
+        bool clusterIsFromFixedRectangle(void) const;
 
         vpsc::Rectangle *minEdgeRect[2];
         vpsc::Rectangle *maxEdgeRect[2];
+        int rectangleIndex;
+
 };
 
 class ConvexCluster : public Cluster
@@ -129,4 +155,4 @@ class ConvexCluster : public Cluster
 } // namespace cola
 
 #endif // COLA_CLUSTER_H
-// vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=8:softtabstop=4:encoding=utf-8:textwidth=99 :
+// vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=8:softtabstop=4:textwidth=99 :
