@@ -70,16 +70,6 @@ struct RectangleIntersections {
 class Rectangle {   
 public:
     /**
-     * xBorder and yBorder can be set to add a border to the boundary of the
-     * rectangle.  In other words, the size of the rectangle returned by the
-     * getters (getMinX, getMaxX, etc) will be slightly larger than the
-     * internal representation.  This is useful in situations where we need the
-     * size considered in one axis to be slightly different to that considered
-     * in the other axis for example, to avoid numerical precision problems in
-     * the axis-by-axis overlap removal process.
-     */
-    static double xBorder,yBorder;
-    /**
      * @param x minimum horizontal value
      * @param X maximum horizontal value
      * @param y minimum vertical value
@@ -94,7 +84,9 @@ public:
         ,  minY(Other.minY)
         ,  maxY(Other.maxY)
         ,  overlap(Other.overlap) { }
-    Rectangle() {}
+    Rectangle();
+    bool isValid(void) const;
+    Rectangle unionWith(const Rectangle& rhs) const;
     /**
      * reset the dimensions in one axis
      * @param d axis (0==X, 1==Y)
@@ -145,8 +137,6 @@ public:
     }
     void set_width(double w) { maxX = minX + w - 2.0*xBorder; }
     void set_height(double h) { maxY = minY + h - 2.0*yBorder; }
-    static void setXBorder(double x) {xBorder=x;}
-    static void setYBorder(double y) {yBorder=y;}
     void moveCentreD(const unsigned d, double p) {
         COLA_ASSERT(d==0||d==1);
         if(d == 0) { moveCentreX(p);
@@ -220,9 +210,22 @@ public:
     // That is, if any point on the line is inside the rectangle.
     bool overlaps(double x1, double y1, double x2, double y2);
     // p1=(x1,y1),p2=(x2,y2) are points on the boundary.  Puts the shortest
-    // path round the outside of the rectangle  from p1 to p2 into xs, ys.
+    // path round the outside of the rectangle from p1 to p2 into xs, ys.
     void routeAround(double x1, double y1, double x2, double y2,
             std::vector<double> &xs, std::vector<double> &ys);
+    /**
+     * xBorder and yBorder can be set to add a border to the boundary of the
+     * rectangle.  In other words, the size of the rectangle returned by the
+     * getters (getMinX, getMaxX, etc) will be slightly larger than the
+     * internal representation.  This is useful in situations where we need the
+     * size considered in one axis to be slightly different to that considered
+     * in the other axis for example, to avoid numerical precision problems in
+     * the axis-by-axis overlap removal process.
+     */
+    static double xBorder,yBorder;
+    static void setXBorder(double x) {xBorder=x;}
+    static void setYBorder(double y) {yBorder=y;}
+    
 private:
     double minX,maxX,minY,maxY;
     bool overlap;

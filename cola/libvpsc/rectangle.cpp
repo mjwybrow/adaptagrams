@@ -57,12 +57,52 @@ std::ostream& operator <<(std::ostream &os, const Rectangle &r) {
 }
 
 Rectangle::Rectangle(double x, double X, double y, double Y,bool allowOverlap) 
-: minX(x),maxX(X),minY(y),maxY(Y),overlap(allowOverlap) {
+    : minX(x),
+      maxX(X),
+      minY(y),
+      maxY(Y),
+      overlap(allowOverlap) 
+{
     COLA_ASSERT(x<X);
     COLA_ASSERT(y<Y);
     COLA_ASSERT(getMinX()<getMaxX());
     COLA_ASSERT(getMinY()<getMaxY());
 }
+
+Rectangle::Rectangle()
+    : minX(1),
+      maxX(-1),
+      minY(1),
+      maxY(-1),
+      overlap(false) 
+{
+    // Creates an invalid Rectangle
+}
+
+bool Rectangle::isValid(void) const
+{
+    return ((minX <= maxX) && (minY <= maxY));
+}
+
+Rectangle Rectangle::unionWith(const Rectangle& rhs) const
+{
+    if (!isValid())
+    {
+        return Rectangle(rhs);
+    }
+    else if (!rhs.isValid())
+    {
+        return Rectangle(*this);
+    }
+    
+    double minX = std::min(rhs.getMinX(),minX);
+    double maxX = std::max(rhs.getMaxX(),maxX);
+    double minY = std::min(rhs.getMinY(),minY);
+    double maxY = std::max(rhs.getMaxY(),maxY);
+
+    return Rectangle(minX, maxX, minY, maxY);
+}
+
 void Rectangle::reset(unsigned d, double x, double X) {
     if(d==0) {
         minX=x;

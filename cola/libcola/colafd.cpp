@@ -417,6 +417,16 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
     {
         if (clusterHierarchy && !clusterHierarchy->flat())
         {
+            // Add remaining nodes that aren't contained within any clusters
+            // as children of the root cluster.
+            for (unsigned int i = 0; i < boundingBoxes.size(); ++i)
+            {
+                if (!clusterHierarchy->containsShape(i))
+                {
+                    clusterHierarchy->nodes.push_back(i);
+                }
+            }
+
             // Add non-overlap and containment constraints for all clusters
             // and nodes.
             unsigned int priority = PRIORITY_NONOVERLAP;

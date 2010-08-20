@@ -60,6 +60,7 @@ class Cluster
         virtual void printCreationCode(FILE *fp) const = 0;
         vpsc::Variable *vXMin, *vXMax, *vYMin, *vYMax;
         void clear();
+        bool containsShape(unsigned index) const;
         /**
          * @return the total area covered by contents of this cluster (not
          * including space between nodes/clusters)

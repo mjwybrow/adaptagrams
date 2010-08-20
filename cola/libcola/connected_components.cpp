@@ -51,15 +51,14 @@ namespace cola {
             rects[i]->moveCentreY(rects[i]->getCentreY()+y);
         }
     }
-    Rectangle* Component::getBoundingBox() {
-        double llx=DBL_MAX, lly=DBL_MAX, urx=-DBL_MAX, ury=-DBL_MAX;
-        for(unsigned i=0;i<rects.size();i++) {
-            llx=min(llx,rects[i]->getMinX());
-            lly=min(lly,rects[i]->getMinY());
-            urx=max(urx,rects[i]->getMaxX());
-            ury=max(ury,rects[i]->getMaxY());
+    Rectangle* Component::getBoundingBox() 
+    {
+        Rectangle boundingBox;
+        for (unsigned i = 0; i < rects.size(); ++i)
+        {
+            boundingBox = boundingBox.unionWith(*(rects[i]));
         }
-        return new Rectangle(llx,urx,lly,ury);
+        return new Rectangle(boundingBox);
     }
 
     namespace ccomponents {
