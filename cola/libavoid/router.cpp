@@ -1925,7 +1925,7 @@ void Router::outputInstanceToSVG(std::string instanceName)
                 cRef->id());
         for (size_t i = 0; i < cRef->polygon().size(); ++i)
         {
-            fprintf(fp, "%c %g,%g ", ((i == 0) ? 'M' : 'L'), 
+            fprintf(fp, "%c %g %g ", ((i == 0) ? 'M' : 'L'), 
                     cRef->polygon().at(i).x, cRef->polygon().at(i).y);
         }
         fprintf(fp, "Z\" />\n");
@@ -1935,7 +1935,7 @@ void Router::outputInstanceToSVG(std::string instanceName)
                 cRef->id());
         for (size_t i = 0; i < cRef->rectangularPolygon().size(); ++i)
         {
-            fprintf(fp, "%c %g,%g ", ((i == 0) ? 'M' : 'L'), 
+            fprintf(fp, "%c %g %g ", ((i == 0) ? 'M' : 'L'), 
                     cRef->rectangularPolygon().at(i).x, 
                     cRef->rectangularPolygon().at(i).y);
         }
