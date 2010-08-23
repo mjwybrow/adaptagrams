@@ -50,7 +50,9 @@ using std::vector;
 
 namespace vpsc {
 
-double Rectangle::xBorder=0, Rectangle::yBorder=0;
+double Rectangle::xBorder = 0;
+double Rectangle::yBorder = 0;
+
 std::ostream& operator <<(std::ostream &os, const Rectangle &r) {
     os << "Hue[0.17],Rectangle[{"<<r.getMinX()<<","<<r.getMinY()<<"},{"<<r.getMaxX()<<","<<r.getMaxY()<<"}]";
     return os;
@@ -95,12 +97,12 @@ Rectangle Rectangle::unionWith(const Rectangle& rhs) const
         return Rectangle(*this);
     }
     
-    double minX = std::min(rhs.getMinX(),minX);
-    double maxX = std::max(rhs.getMaxX(),maxX);
-    double minY = std::min(rhs.getMinY(),minY);
-    double maxY = std::max(rhs.getMaxY(),maxY);
+    double newMaxY = std::max(rhs.getMaxY(),maxY);
+    double newMinY = std::min(rhs.getMinY(),minY);
+    double newMinX = std::min(rhs.getMinX(),minX);
+    double newMaxX = std::max(rhs.getMaxX(),maxX);
 
-    return Rectangle(minX, maxX, minY, maxY);
+    return Rectangle(newMinX, newMaxX, newMinY, newMaxY);
 }
 
 void Rectangle::reset(unsigned d, double x, double X) {
