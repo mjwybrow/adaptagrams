@@ -38,11 +38,11 @@ using namespace std;
 namespace cola {
 
 Cluster::Cluster()
-    : varWeight(0.0001), 
-      internalEdgeWeightFactor(1.), 
-      bounds(),
+    : bounds(),
       clusterVarId(0),
       rectBuffer(0),
+      varWeight(0.0001), 
+      internalEdgeWeightFactor(1.), 
       desiredBoundsSet(false), 
       desiredBounds()
 { }
@@ -441,13 +441,6 @@ void Cluster::createVars(const vpsc::Dim dim, const vpsc::Rectangles& rs,
     }
 }
 
-/** recursively delete all clusters */
-void Cluster::clear(void) 
-{
-    for_each(clusters.begin(), clusters.end(), delete_object());
-    clusters.clear();
-}
-
 /**
  * @return the total area covered by contents of this cluster (not
  * including space between nodes/clusters)
@@ -466,6 +459,17 @@ double Cluster::area(const vpsc::Rectangles& rs)
     }
     return a;
 }
+
+void Cluster::addChildNode(unsigned index)
+{
+    this->nodes.push_back(index);
+}
+
+void Cluster::addChildCluster(Cluster *cluster)
+{
+    this->clusters.push_back(cluster);
+}
+
 
 } // namespace cola
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=8:softtabstop=4:textwidth=99 :

@@ -42,12 +42,6 @@ namespace cola {
 class Cluster
 {
     public:
-        double varWeight;
-        double internalEdgeWeightFactor;
-        std::vector<unsigned> nodes;
-        std::vector<Cluster*> clusters;
-        std::valarray<double> hullX, hullY;
-        
         Cluster();
         ~Cluster();
         virtual void computeBoundary(const vpsc::Rectangles& rs) = 0;
@@ -60,8 +54,9 @@ class Cluster
         void setRectBuffers(const double buffer);
         virtual void printCreationCode(FILE *fp) const = 0;
         vpsc::Variable *vXMin, *vXMax, *vYMin, *vYMax;
-        void clear();
         virtual bool containsShape(unsigned index) const;
+        void addChildNode(unsigned index);
+        void addChildCluster(Cluster *cluster);
         /**
          * @return the total area covered by contents of this cluster (not
          * including space between nodes/clusters)
@@ -80,6 +75,12 @@ class Cluster
         // makeFeasible and for rectangular clusters during optimisation.
         double rectBuffer;
 
+        double varWeight;
+        double internalEdgeWeightFactor;
+        std::vector<unsigned> nodes;
+        std::vector<Cluster*> clusters;
+        std::valarray<double> hullX, hullY;
+        
     private:
         bool desiredBoundsSet;
         vpsc::Rectangle desiredBounds;
