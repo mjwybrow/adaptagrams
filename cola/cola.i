@@ -135,7 +135,32 @@ class ColaException {
 }
 %}
 
-%typemap(javafinalize) vpsc::Rectangle, std::vector<cola::CompoundConstraint*>, cola::CompoundConstraint, cola::AlignmentConstraint, cola::BoundaryConstraint, cola::DistributionConstraint, cola::MultiSeparationConstraint, cola::PageBoundaryConstraints, cola::SeparationConstraint, Avoid::ShapeRef, Avoid::ConnRef %{%}
+/* We have a problem where Java objects that appear to no longer be used and
+ * go out of scope will sometimes cause their internal C++ instances to be
+ * freed prematurely.  For this reason we generate empty finialise methods 
+ * for the following classes and clean them up later.  For libavoid, the 
+ * Router instance takes ownership of these objects and deletes them when it
+ * is freed.  For the cola/vpsc classes, a Java user can call 
+ * ConstraintedFDLayout::freeAssociatedObjects() to free this memory.
+ */
+%typemap(javafinalize) 
+        vpsc::Rectangle, 
+        cola::CompoundConstraint, 
+        cola::AlignmentConstraint, 
+        cola::BoundaryConstraint, 
+        cola::DistributionConstraint, 
+        cola::MultiSeparationConstraint, 
+        cola::PageBoundaryConstraints, 
+        cola::SeparationConstraint,
+        cola::Cluster,
+        cola::RootCluster,
+        cola::ConvexCluster,
+        cola::RectangularCluster,
+        Avoid::ShapeRef, 
+        Avoid::ConnRef,
+        Avoid::JunctionRef,
+        Avoid::ShapeConnectionPin
+        %{%}
 
 %template(UnsatisfiableConstraintInfoVector) std::vector<cola::UnsatisfiableConstraintInfo *>;
 %template(EdgeVector) std::vector<cola::Edge>;
