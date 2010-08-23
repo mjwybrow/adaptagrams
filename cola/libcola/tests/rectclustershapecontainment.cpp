@@ -2161,9 +2161,10 @@ int main(void) {
     
     ConstrainedFDLayout alg(rs, es, defaultEdgeLength);
     alg.setClusterHierarchy(cluster140664475533920);
-    alg.setConstraints(&ccs);
+    alg.setConstraints(ccs);
     alg.makeFeasible(true);
     
     alg.outputInstanceToSVG("test-rectclustershapecontainment");
+    alg.freeAssociatedObjects();
     //alg.run();
 };

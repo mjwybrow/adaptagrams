@@ -47,6 +47,12 @@ Cluster::Cluster()
       desiredBounds()
 { }
 
+Cluster::~Cluster()
+{
+    for_each(clusters.begin(), clusters.end(), delete_object());
+    clusters.clear();
+}
+
 void Cluster::setDesiredBounds(const vpsc::Rectangle db) 
 {
     desiredBoundsSet = true;

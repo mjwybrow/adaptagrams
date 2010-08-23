@@ -419,26 +419,17 @@ public:
         const double* eLengths=NULL,
         TestConvergence& done=defaultTest,
         PreIteration* preIteration=NULL);
-    ~ConstrainedFDLayout() {
-        for(unsigned i=0;i<n;i++) {
-            delete [] G[i];
-            delete [] D[i];
-        }
-        delete [] G;
-        delete [] D;
-    }
+    ~ConstrainedFDLayout();
+    
     void run(bool x=true, bool y=true);
     void runOnce(bool x=true, bool y=true);
     void outputInstanceToSVG(std::string filename = std::string());
     /**
      *  Allow the user to specify compound constraints.
      */
-    void setConstraints(cola::CompoundConstraints* ccs)
+    void setConstraints(cola::CompoundConstraints ccs)
     {
-        if (ccs && (ccs->size() > 0))
-        {
-            this->ccs = ccs;
-        }
+        this->ccs = ccs;
     }
     void setTopology(std::vector<topology::Node*> *tnodes, 
             std::vector<topology::Edge*> *routes);
@@ -465,6 +456,17 @@ public:
     void makeFeasible(const bool nonOverlapConstraints,
             const bool preserveTopology = false);
     double computeStress() const;
+
+    //! @brief  A convenience method that can be called from Java to free
+    //!         the memory of Rectangles, CompoundConstraints, etc.
+    //! 
+    //! This is useful because in SWIG we have problems with Java wrapper
+    //! classes going out of scope and causing objects like Rectanges to 
+    //! sometimes be freed when the layout instance still needs them.  For 
+    //! this reason we prevent the Java wrappers from deleting the internal
+    //! C++ instances, and let them be cleaned up later via this method.
+    void freeAssociatedObjects(void);
+
 private:
     unsigned n; // number of nodes
     std::valarray<double> X, Y;
@@ -501,7 +503,7 @@ private:
     std::vector<std::vector<double> > neighbourLengths;
     TestConvergence& done;
     PreIteration* preIteration;
-    cola::CompoundConstraints *ccs;
+    cola::CompoundConstraints ccs;
     double** D;
     unsigned short** G;
     std::vector<topology::Node*> topologyNodes;

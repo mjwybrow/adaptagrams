@@ -49,7 +49,7 @@ class Cluster
         std::valarray<double> hullX, hullY;
         
         Cluster();
-        virtual ~Cluster() {}
+        ~Cluster();
         virtual void computeBoundary(const vpsc::Rectangles& rs) = 0;
         virtual void computeBoundingRect(const vpsc::Rectangles& rs);
         vpsc::Rectangle bounds;

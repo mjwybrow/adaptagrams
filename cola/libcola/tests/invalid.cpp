@@ -62,7 +62,7 @@ int main() {
 	ccs.push_back(&ac);
 	ac.addShape(0,0);
 	ac.addShape(5,0);
-	alg.setConstraints(&ccs);
+	alg.setConstraints(ccs);
     try {
 	    alg.run();
     } catch (cola::InvalidVariableIndexException& e) {

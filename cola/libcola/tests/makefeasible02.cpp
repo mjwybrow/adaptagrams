@@ -923,7 +923,7 @@ int main(void) {
 #endif
 
     ConstrainedFDLayout alg(rs, es, defaultEdgeLength);
-    alg.setConstraints(&ccs);
+    alg.setConstraints(ccs);
     alg.makeFeasible(true);
     alg.outputInstanceToSVG();
     //alg.run();

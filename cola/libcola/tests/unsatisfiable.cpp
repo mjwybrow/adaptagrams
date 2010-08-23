@@ -63,7 +63,7 @@ int main() {
 	ac.addShape(0,0);
 	ac.addShape(1,0);
 	ccs.push_back(new SeparationConstraint(vpsc::YDIM, 0,1,10));
-	alg.setConstraints(&ccs);
+	alg.setConstraints(ccs);
     try {
 	    alg.run();
     } catch (vpsc::UnsatisfiableException& e) {
@@ -81,4 +81,4 @@ int main() {
 		delete rs[i];
 	}
 }
-// vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:encoding=utf-8:textwidth=99 :
+// vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:textwidth=99 :

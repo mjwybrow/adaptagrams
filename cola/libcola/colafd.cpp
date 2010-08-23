@@ -417,8 +417,7 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
 
     vector<double> priorPos(boundingBoxes.size());
     // Make a copy of the compound constraints and sort them by priority.
-    cola::CompoundConstraints idleConstraints =
-            (ccs) ? *ccs : cola::CompoundConstraints();
+    cola::CompoundConstraints idleConstraints = ccs;
 
     if (nonOverlapConstraints)
     {
@@ -739,6 +738,33 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
     }
 }
 
+ConstrainedFDLayout::~ConstrainedFDLayout()
+{
+    for (unsigned i = 0; i < n; ++i)
+    {
+        delete [] G[i];
+        delete [] D[i];
+    }
+    delete [] G;
+    delete [] D;
+}
+
+void ConstrainedFDLayout::freeAssociatedObjects(void)
+{
+    // Free Rectangles
+    for_each(boundingBoxes.begin(), boundingBoxes.end(), delete_object());
+    boundingBoxes.clear();
+    
+    // Free compound constraints
+    for_each(ccs.begin(), ccs.end(), delete_object());
+    ccs.clear();
+
+    if (clusterHierarchy)
+    {
+        delete clusterHierarchy;
+        clusterHierarchy = NULL;
+    }
+}
 
 void ConstrainedFDLayout::setTopology(std::vector<topology::Node*> *tnodes, 
         std::vector<topology::Edge*> *routes)
@@ -756,7 +782,7 @@ void ConstrainedFDLayout::getTopology(std::vector<topology::Node*> *tnodes,
 }
 
 
-static void setupVarsAndConstraints(unsigned n, const CompoundConstraints* ccs,
+static void setupVarsAndConstraints(unsigned n, const CompoundConstraints& ccs,
         const vpsc::Dim dim, std::vector<vpsc::Rectangle*>& boundingBoxes,
         RootCluster *clusterHierarchy,
         vpsc::Variables& vs, vpsc::Constraints& cs, 
@@ -775,32 +801,26 @@ static void setupVarsAndConstraints(unsigned n, const CompoundConstraints* ccs,
         clusterHierarchy->createVars(dim,boundingBoxes,vs);
     }
 
-    if(ccs) 
+    for (CompoundConstraints::const_iterator c = ccs.begin();
+            c != ccs.end(); ++c) 
     {
-        for (CompoundConstraints::const_iterator c = ccs->begin();
-                c != ccs->end(); ++c) 
-        {
-            (*c)->generateVariables(dim, vs);
-        }
-        for (CompoundConstraints::const_iterator c = ccs->begin();
-                c != ccs->end(); ++c) 
-        {
-            (*c)->generateSeparationConstraints(dim, vs, cs);
-        }
+        (*c)->generateVariables(dim, vs);
+    }
+    for (CompoundConstraints::const_iterator c = ccs.begin();
+            c != ccs.end(); ++c) 
+    {
+        (*c)->generateSeparationConstraints(dim, vs, cs);
     }
 }
 
 
 void updateCompoundConstraints(const vpsc::Dim dim,
-        const CompoundConstraints* ccs) 
+        const CompoundConstraints& ccs) 
 {
-    if(ccs) 
+    for (CompoundConstraints::const_iterator c = ccs.begin();
+            c != ccs.end(); ++c) 
     {
-        for (CompoundConstraints::const_iterator c = ccs->begin();
-                c != ccs->end(); ++c) 
-        {
-            (*c)->updatePosition(dim);
-        }
+        (*c)->updatePosition(dim);
     }
 }
 void project(vpsc::Variables& vs, vpsc::Constraints& cs, valarray<double>& coords) {
@@ -1259,13 +1279,10 @@ void ConstrainedFDLayout::outputInstanceToSVG(std::string instanceName)
         fprintf(fp, "    rs.push_back(rect);\n\n");
     }
 
-    if (ccs)
+    for (cola::CompoundConstraints::iterator c = ccs.begin(); 
+            c != ccs.end(); ++c)
     {
-        for (cola::CompoundConstraints::iterator c = ccs->begin(); 
-                c != ccs->end(); ++c)
-        {
-            (*c)->printCreationCode(fp);
-        }
+        (*c)->printCreationCode(fp);
     }
 
     fprintf(fp, "    ConstrainedFDLayout alg(rs, es, defaultEdgeLength);\n");
@@ -1273,7 +1290,7 @@ void ConstrainedFDLayout::outputInstanceToSVG(std::string instanceName)
     {
         clusterHierarchy->printCreationCode(fp);
     }
-    fprintf(fp, "    alg.setConstraints(&ccs);\n");
+    fprintf(fp, "    alg.setConstraints(ccs);\n");
     fprintf(fp, "    alg.makeFeasible(true);\n");
     fprintf(fp, "    alg.run();\n");
     fprintf(fp, "};\n");
