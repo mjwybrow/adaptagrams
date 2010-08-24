@@ -414,8 +414,10 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
     }
 
     vector<double> priorPos(boundingBoxes.size());
-    // Make a copy of the compound constraints and sort them by priority.
-    cola::CompoundConstraints idleConstraints = ccs;
+
+    // Extra constraints for cluster containment and non-overlap.
+    // We keep a separate list of these since we need to free them when done.
+    cola::CompoundConstraints extraConstraints;
 
     if (nonOverlapConstraints)
     {
@@ -438,7 +440,7 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
             
             // Generate the containment constraints
             recGenerateClusterVariablesAndConstraints(vs, priority, 
-                    NULL, clusterHierarchy, idleConstraints);
+                    NULL, clusterHierarchy, extraConstraints);
             
             // Generate non-overlap constraints between all clusters and 
             // all contained nodes.
@@ -446,8 +448,8 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
             cola::NonOverlapConstraints *noc = 
                     new cola::NonOverlapConstraints(priority);
             recGenerateClusterVariablesAndConstraints(vs, priority, 
-                    noc, clusterHierarchy, idleConstraints);
-            idleConstraints.push_back(noc);
+                    noc, clusterHierarchy, extraConstraints);
+            extraConstraints.push_back(noc);
         }
         else
         {
@@ -460,9 +462,15 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
                 noc->addShape(i, boundingBoxes[i]->width() / 2,
                         boundingBoxes[i]->height() / 2);
             }
-            idleConstraints.push_back(noc);
+            extraConstraints.push_back(noc);
         }
     }
+
+    // Make a copy of the compound constraints and sort them by priority.
+    cola::CompoundConstraints idleConstraints = ccs;
+    // Append extraConstraints to idleConstraints.
+    idleConstraints.insert(idleConstraints.end(), 
+            extraConstraints.begin(), extraConstraints.end());
 
     std::sort(idleConstraints.begin(), idleConstraints.end(), 
             cmpCompoundConstraintPriority);
@@ -734,6 +742,9 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
         // Empty edge set will just result in nonoverlap constraints for nodes.
         //topologyRoutes.clear();
     }
+
+    // Free the extra constraints we added to idle compound constraints.
+    for_each(extraConstraints.begin(), extraConstraints.end(), delete_object());
 }
 
 ConstrainedFDLayout::~ConstrainedFDLayout()
