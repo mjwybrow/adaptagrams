@@ -1941,8 +1941,8 @@ void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
     //db_printf("crossingcount %d\n", crossingCount);
 
     // Free shared path memory.
-    delete c_path;
-    delete p_path;
+    delete[] c_path;
+    delete[] p_path;
 }
 
 
