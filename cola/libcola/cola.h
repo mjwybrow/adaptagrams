@@ -427,7 +427,7 @@ public:
     /**
      *  Allow the user to specify compound constraints.
      */
-    void setConstraints(cola::CompoundConstraints ccs)
+    void setConstraints(const cola::CompoundConstraints& ccs)
     {
         this->ccs = ccs;
     }

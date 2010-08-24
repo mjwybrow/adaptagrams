@@ -1051,11 +1051,8 @@ CompoundConstraint::CompoundConstraint(vpsc::Dim primaryDim,
 CompoundConstraint::~CompoundConstraint()
 {
     // Free memory from the subConstraintInfo list.
-    while (!_subConstraintInfo.empty())
-    {
-        delete _subConstraintInfo.back();
-        _subConstraintInfo.pop_back();
-    }
+    for_each(_subConstraintInfo.begin(), _subConstraintInfo.end(), delete_object());
+    _subConstraintInfo.clear();
 }
 
 
