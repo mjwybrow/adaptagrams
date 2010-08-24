@@ -84,8 +84,8 @@ void dumpSquareMatrix(unsigned n, T** L) {
     }
 }
 
-ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles & rs,
-        const std::vector< Edge > & es, const double idealLength,
+ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
+        const std::vector< Edge >& es, const double idealLength,
         const double* eLengths, TestConvergence& done, 
         PreIteration* preIteration) 
     : n(rs.size()),
@@ -102,8 +102,7 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles & rs,
     topologyRoutes.clear(),
     //FILELog::ReportingLevel() = logDEBUG1;
     FILELog::ReportingLevel() = logERROR;
-    boundingBoxes.resize(n);
-    copy(rs.begin(),rs.end(),boundingBoxes.begin());
+    boundingBoxes = rs;
     done.reset();
     unsigned i=0;
     for(vpsc::Rectangles::const_iterator ri=rs.begin();ri!=rs.end();++ri,++i) {
@@ -755,8 +754,17 @@ void ConstrainedFDLayout::freeAssociatedObjects(void)
     boundingBoxes.clear();
     
     // Free compound constraints
-    for_each(ccs.begin(), ccs.end(), delete_object());
+    std::list<CompoundConstraint *> freeList(ccs.begin(), ccs.end());
+    freeList.sort();
+    freeList.unique();
+    if (freeList.size() != ccs.size())
+    {
+        // The compound constraint list had repeated elements.
+        fprintf(stderr, "Warning: CompoundConstraints vector contained %d "
+                "duplicates.\n", (int) (ccs.size() - freeList.size()));
+    }
     ccs.clear();
+    for_each(freeList.begin(), freeList.end(), delete_object());
 
     if (clusterHierarchy)
     {
