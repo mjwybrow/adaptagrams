@@ -33,7 +33,24 @@ check_PROGRAMS = \
 	junction03 \
 	junction04 \
 	nudgeold \
+	lineSegWrapperCrash1 \
+	lineSegWrapperCrash2 \
+	lineSegWrapperCrash3 \
+	lineSegWrapperCrash4 \
+	lineSegWrapperCrash5 \
+	lineSegWrapperCrash6 \
+	lineSegWrapperCrash7 \
+	lineSegWrapperCrash8
 	node1
+
+lineSegWrapperCrash1_SOURCES = lineSegWrapperCrash1.cpp
+lineSegWrapperCrash2_SOURCES = lineSegWrapperCrash2.cpp
+lineSegWrapperCrash3_SOURCES = lineSegWrapperCrash3.cpp
+lineSegWrapperCrash4_SOURCES = lineSegWrapperCrash4.cpp
+lineSegWrapperCrash5_SOURCES = lineSegWrapperCrash5.cpp
+lineSegWrapperCrash6_SOURCES = lineSegWrapperCrash6.cpp
+lineSegWrapperCrash7_SOURCES = lineSegWrapperCrash7.cpp
+lineSegWrapperCrash8_SOURCES = lineSegWrapperCrash8.cpp
 
 example_SOURCES = example.cpp
 

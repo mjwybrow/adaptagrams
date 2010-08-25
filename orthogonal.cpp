@@ -1470,6 +1470,9 @@ static void processEventVert(Router *router, NodeSet& scanline,
             {
                 line2 = segments.insert(LineSegment(cp.x, maxLimit, e->pos, 
                         true, centreVert, NULL));
+                // If there was a line1, then we just merged with it, so
+                // that pointer will be invalid (and now unnecessary).
+                line1 = NULL;
             }
             if (!line1 && !line2)
             {
