@@ -1967,7 +1967,7 @@ void Router::outputInstanceToSVG(std::string instanceName)
                 shRef->id());
         for (size_t i = 0; i < shRef->polygon().size(); ++i)
         {
-            fprintf(fp, "%c %g,%g ", ((i == 0) ? 'M' : 'L'), 
+            fprintf(fp, "%c %g %g ", ((i == 0) ? 'M' : 'L'), 
                     shRef->polygon().at(i).x, shRef->polygon().at(i).y);
         }
         fprintf(fp, "Z\" />\n");
@@ -2019,7 +2019,7 @@ void Router::outputInstanceToSVG(std::string instanceName)
         reduceRange(p2.x);
         reduceRange(p2.y);
         
-        fprintf(fp, "<path d=\"M %g,%g L %g,%g\" "
+        fprintf(fp, "<path d=\"M %g %g L %g %g\" "
                 "style=\"fill: none; stroke: %s; stroke-width: 1px;\" />\n", 
                 p1.x, p1.y, p2.x, p2.y,
                 (ids.first.isConnPt() || ids.second.isConnPt()) ? "green" : 
@@ -2049,7 +2049,7 @@ void Router::outputInstanceToSVG(std::string instanceName)
         reduceRange(p2.x);
         reduceRange(p2.y);
         
-        fprintf(fp, "<path d=\"M %g,%g L %g,%g\" "
+        fprintf(fp, "<path d=\"M %g %g L %g %g\" "
                 "style=\"fill: none; stroke: %s; stroke-width: 1px;\" />\n", 
                 p1.x, p1.y, p2.x, p2.y,
                 (ids.first.isConnPt() || ids.second.isConnPt()) ? "green" : 
@@ -2075,7 +2075,7 @@ void Router::outputInstanceToSVG(std::string instanceName)
         
         std::pair<VertID, VertID> ids = t->ids();
 
-        fprintf(fp, "<path d=\"M %g,%g L %g,%g\" "
+        fprintf(fp, "<path d=\"M %g %g L %g %g\" "
                 "style=\"fill: none; stroke: %s; stroke-width: 1px;\" />\n", 
                 p1.x, p1.y, p2.x, p2.y,
                 (ids.first.isConnPt() || ids.second.isConnPt()) ? "green" : 
@@ -2095,11 +2095,11 @@ void Router::outputInstanceToSVG(std::string instanceName)
         PolyLine route = connRef->route();
         if (!route.empty())
         {
-            fprintf(fp, "<path id=\"raw-%u\" d=\"M %g,%g ", connRef->id(),
+            fprintf(fp, "<path id=\"raw-%u\" d=\"M %g %g ", connRef->id(),
                     route.ps[0].x, route.ps[0].y);
             for (size_t i = 1; i < route.size(); ++i)
             {
-                fprintf(fp, "L %g,%g ", route.ps[i].x, route.ps[i].y);
+                fprintf(fp, "L %g %g ", route.ps[i].x, route.ps[i].y);
             }
             fprintf(fp, "\" ");
             if (connRef->src() && connRef->dst())
@@ -2128,13 +2128,13 @@ void Router::outputInstanceToSVG(std::string instanceName)
         PolyLine route = connRef->displayRoute().curvedPolyline(8);
         if (!route.empty())
         {
-            fprintf(fp, "<path id=\"curved-%u\" d=\"M %g,%g ", connRef->id(),
+            fprintf(fp, "<path id=\"curved-%u\" d=\"M %g %g ", connRef->id(),
                     route.ps[0].x, route.ps[0].y);
             for (size_t i = 1; i < route.size(); ++i)
             {
                 if (route.ts[i] == 'C')
                 {
-                    fprintf(fp, "%c %g,%g %g,%g %g,%g", route.ts[i], 
+                    fprintf(fp, "%c %g %g %g %g %g %g", route.ts[i], 
                             route.ps[i].x, route.ps[i].y,
                             route.ps[i+1].x, route.ps[i+1].y,
                             route.ps[i+2].x, route.ps[i+2].y);
@@ -2142,7 +2142,7 @@ void Router::outputInstanceToSVG(std::string instanceName)
                 }
                 else
                 {
-                    fprintf(fp, "%c %g,%g ", route.ts[i], 
+                    fprintf(fp, "%c %g %g ", route.ts[i], 
                             route.ps[i].x, route.ps[i].y);
                 }
             }
@@ -2173,11 +2173,11 @@ void Router::outputInstanceToSVG(std::string instanceName)
         PolyLine route = connRef->displayRoute();
         if (!route.empty())
         {
-            fprintf(fp, "<path id=\"disp-%u\" d=\"M %g,%g ", connRef->id(),
+            fprintf(fp, "<path id=\"disp-%u\" d=\"M %g %g ", connRef->id(),
                     route.ps[0].x, route.ps[0].y);
             for (size_t i = 1; i < route.size(); ++i)
             {
-                fprintf(fp, "L %g,%g ", route.ps[i].x, route.ps[i].y);
+                fprintf(fp, "L %g %g ", route.ps[i].x, route.ps[i].y);
             }
             fprintf(fp, "\" ");
             if (connRef->src() && connRef->dst())
