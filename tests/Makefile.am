@@ -40,8 +40,11 @@ check_PROGRAMS = \
 	lineSegWrapperCrash5 \
 	lineSegWrapperCrash6 \
 	lineSegWrapperCrash7 \
-	lineSegWrapperCrash8
-	node1
+	lineSegWrapperCrash8 \
+	node1 \
+	overlappingRects
+
+overlappingRects_SOURCES = overlappingRects.cpp
 
 lineSegWrapperCrash1_SOURCES = lineSegWrapperCrash1.cpp
 lineSegWrapperCrash2_SOURCES = lineSegWrapperCrash2.cpp

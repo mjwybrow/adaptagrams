@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2009  Monash University
+ * Copyright (C) 2009-2010  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -322,10 +322,10 @@ struct Node
             curr = curr->firstBelow;
         }
     }
-    bool findFirstPointAboveAndBelow(const size_t dim, double& firstAbovePos,
-            double& firstBelowPos, double& lastAbovePos, double& lastBelowPos)
+    void findFirstPointAboveAndBelow(const size_t dim, const double linePos,
+            double& firstAbovePos, double& firstBelowPos, 
+            double& lastAbovePos, double& lastBelowPos)
     {
-        bool clearVisibility = true;
         firstAbovePos = -DBL_MAX;
         firstBelowPos = DBL_MAX;
         // We start looking left from the right side of the shape, 
@@ -333,113 +333,75 @@ struct Node
         lastAbovePos = max[dim];
         lastBelowPos = min[dim];
 
-        // Find the first blocking edge above this point.  
-        Node *curr = firstAbove;
-        while (curr && (curr->max[dim] > min[dim]))
+        Node *curr = NULL;
+        bool eventsAtSamePos = false;
+        for (int direction = 0; direction < 2; ++direction)
         {
-            // Don't count the edges as we are travelling out of shapes 
-            // we are inside, but then mark clearVisibility as false.
+            // Look for obstacles in one direction, then the other.
+            curr = (direction == 0) ? firstAbove: firstBelow;
 
-            if (curr->min[!dim] != min[!dim])
+            while (curr)
             {
-                // Shapes that open or close at the same position do not
-                // block visibility, so if they are not at same position,
-                // find overlapping shapes that block visibility.
-                lastAbovePos = std::min(curr->min[dim], lastAbovePos);
-                if ((curr->max[dim] >= min[dim]) &&
-                        (curr->max[dim] <= max[dim]))
+                // The events are at a shared beginning or end of a shape or 
+                // connection point.  Note, connection points have the same 
+                // min and max value in the the !dim dimension.
+                eventsAtSamePos = 
+                        (((linePos == max[!dim]) && 
+                          (linePos == curr->max[!dim])) || 
+                         ((linePos == min[!dim]) && 
+                          (linePos == curr->min[!dim])));
+                
+                if (curr->max[dim] <= min[dim])
                 {
-                    lastAbovePos = std::min(curr->max[dim], lastAbovePos);
+                    // Curr shape is completely to the left, 
+                    // so add it's right side as a limit
+                    firstAbovePos = std::max(curr->max[dim], firstAbovePos);
                 }
-                lastBelowPos = std::max(curr->max[dim], lastBelowPos);
-            }
-
-            clearVisibility = false;
-            curr = curr->firstAbove;
-        }
-        if (curr)
-        {
-            // This is the first blocking shape above.
-            firstAbovePos = curr->max[dim];
-        }
-        while (curr)
-        {
-            // There might be a larger shape after this one in the ordering.
-            if (curr->max[dim] < min[dim])
-            {
-                firstAbovePos = std::max(curr->max[dim], firstAbovePos);
-            }
-            curr = curr->firstAbove;
-        }
-        
-        // Find the first blocking edge below this point.
-        curr = firstBelow;
-        while (curr && (curr->min[dim] < max[dim]))
-        {
-            // Don't count the edges as we are travelling out of shapes 
-            // we are inside, but then mark clearVisibility as false.
-            
-            if (curr->min[!dim] != min[!dim])
-            {
-                // Shapes that open or close at the same position do not
-                // block visibility, so if they are not at same position,
-                // find overlapping shapes that block visibility.
-                lastBelowPos = std::max(curr->max[dim], lastBelowPos);
-                if ((curr->min[dim] >= min[dim]) && 
-                        (curr->min[dim] <= max[dim]))
+                else if (curr->min[dim] >= max[dim])
                 {
-                    lastBelowPos = std::max(curr->min[dim], lastBelowPos);
+                    // Curr shape is completely to the right, 
+                    // so add it's left side as a limit
+                    firstBelowPos = std::min(curr->min[dim], firstBelowPos);
                 }
-                lastAbovePos = std::min(curr->min[dim], lastAbovePos);
+                else if (!eventsAtSamePos)
+                {
+                    // Shapes that open or close at the same position do not
+                    // block visibility, so if they are not at same position
+                    // determine where they overlap.
+                    lastAbovePos = std::min(curr->min[dim], lastAbovePos);
+                    lastBelowPos = std::max(curr->max[dim], lastBelowPos);
+                }
+                curr = (direction == 0) ? curr->firstAbove : curr->firstBelow;
             }
-
-            clearVisibility = false;
-            curr = curr->firstBelow;
-        }
-        if (curr)
-        {
-            // This is the first blocking shape below.
-            firstBelowPos = curr->min[dim];
-        }
-        while (curr)
-        {
-            // There might be a larger shape after this one in the ordering.
-            if (curr->min[dim] > max[dim])
-            {
-                firstBelowPos = std::min(curr->min[dim], firstBelowPos);
-            }
-            curr = curr->firstBelow;
-        }
-
-        return clearVisibility;
+        }    
     }
     double firstPointAbove(size_t dim) 
-    { 
+    {
+        double result = -DBL_MAX;
         Node *curr = firstAbove; 
-        while (curr && (curr->max[dim] >= pos)) 
-        { 
+        while (curr) 
+        {
+            if (curr->max[dim] < pos)
+            {
+                result = std::max(curr->max[dim], result);
+            }
             curr = curr->firstAbove; 
         } 
-        
-        if (curr) 
-        { 
-            return curr->max[dim]; 
-        } 
-        return -DBL_MAX; 
+        return result; 
     } 
     double firstPointBelow(size_t dim) 
     { 
+        double result = DBL_MAX;
         Node *curr = firstBelow; 
-        while (curr && (curr->min[dim] <= pos)) 
+        while (curr) 
         { 
+            if (curr->min[dim] > pos)
+            {
+                result = std::min(curr->min[dim], result);
+            }
             curr = curr->firstBelow; 
-        } 
-         
-        if (curr) 
-        { 
-            return curr->min[dim]; 
-        } 
-        return DBL_MAX; 
+        }
+        return result;
     } 
     // This is a bit inefficient, but we won't need to do it once we have 
     // connection points.
@@ -531,12 +493,12 @@ enum ScanVisDirFlag {
 typedef unsigned int ScanVisDirFlags;
 
 
-// Returns a bitfield of the direction of visibility in terms of the scanline
+// Returns a bitfield of the directions of visibility in terms of the scanline
 // in a particular dimension dimension.  It will return either ConnDirDown 
 // (meaning visibility to lower position values) or ConnDirUp (for visibility 
 // towards higher position values).
 //
-static ScanVisDirFlags getPosVertInfDirection(VertInf *v, size_t dim)
+static ScanVisDirFlags getPosVertInfDirections(VertInf *v, size_t dim)
 {
     if (dim == XDIM) // X-dimension
     {
@@ -832,7 +794,7 @@ public:
             }
             
             breakPoints.insert(PosVertInf((*vert)->point.x, (*vert),
-                        getPosVertInfDirection(*vert, XDIM)));
+                        getPosVertInfDirections(*vert, XDIM)));
 
             if ((firstIntersectionPt == vertInfs.end()) && 
                     ((*vert)->point.x == finishPos))
@@ -996,7 +958,7 @@ public:
             if ((*v)->point.x == begin)
             {
                 vertLine.breakPoints.insert(PosVertInf(pos, *v, 
-                        getPosVertInfDirection(*v, YDIM)));
+                        getPosVertInfDirections(*v, YDIM)));
             }
         }
     }
@@ -1021,7 +983,7 @@ public:
             if ((*v)->point.x == finish)
             {
                 vertLine.breakPoints.insert(PosVertInf(pos, *v,
-                        getPosVertInfDirection(*v, YDIM)));
+                        getPosVertInfDirections(*v, YDIM)));
             }
         }
     }
@@ -1338,7 +1300,7 @@ static void intersectSegments(Router *router, SegmentList& segments,
                         v != intersectionVerts.end(); ++v)
                 {
                     vertLine.breakPoints.insert(PosVertInf(horiLine.pos, *v,
-                            getPosVertInfDirection(*v, YDIM)));
+                            getPosVertInfDirections(*v, YDIM)));
                 }
             }
         }
@@ -1389,18 +1351,18 @@ static void processEventVert(Router *router, NodeSet& scanline,
     {
         if ((e->type == Open) || (e->type == Close))
         {
+            // Only difference between Open and Close is whether the line
+            // segments are at the top or bottom of the shape.  Decide here.
+            double lineY = (e->type == Open) ? v->min[YDIM] : v->max[YDIM];
+
             // Shape edge positions.
             double minShape = v->min[XDIM];
             double maxShape = v->max[XDIM];
             // As far as we can see.
             double minLimit, maxLimit;
             double minLimitMax, maxLimitMin;
-            v->findFirstPointAboveAndBelow(XDIM, minLimit, maxLimit,
+            v->findFirstPointAboveAndBelow(XDIM, lineY, minLimit, maxLimit,
                     minLimitMax, maxLimitMin);
-
-            // Only difference between Open and Close is whether the line
-            // segments are at the top or bottom of the shape.  Decide here.
-            double lineY = (e->type == Open) ? v->min[YDIM] : v->max[YDIM];
 
             // Insert possible visibility segments.
             if (minLimitMax >= maxLimitMin)
@@ -1569,18 +1531,18 @@ static void processEventHori(Router *router, NodeSet& scanline,
     {
         if ((e->type == Open) || (e->type == Close))
         {
+            // Only difference between Open and Close is whether the line
+            // segments are at the left or right of the shape.  Decide here.
+            double lineX = (e->type == Open) ? v->min[XDIM] : v->max[XDIM];
+
             // Shape edge positions.
             double minShape = v->min[YDIM];
             double maxShape = v->max[YDIM];
             // As far as we can see.
             double minLimit, maxLimit;
             double minLimitMax, maxLimitMin;
-            v->findFirstPointAboveAndBelow(YDIM, minLimit, maxLimit,
+            v->findFirstPointAboveAndBelow(YDIM, lineX, minLimit, maxLimit,
                     minLimitMax, maxLimitMin);
-
-            // Only difference between Open and Close is whether the line
-            // segments are at the left or right of the shape.  Decide here.
-            double lineX = (e->type == Open) ? v->min[XDIM] : v->max[XDIM];
 
             if (minLimitMax >= maxLimitMin)
             {
