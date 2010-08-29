@@ -28,7 +28,8 @@ The algorithms used for the connector routing are described in:
    routing.\n
    In Proceedings of 17th International Symposium on Graph Drawing 
    (GD '09),\n
-   To appear 2010. 
+   LNCS 5849, pages 219–231. Spring-Verlag, 2010.
+   [<a href="http://dx.doi.org/10.1007/978-3-642-11805-0_22">DOI</a>]
    [<a href="http://www.csse.monash.edu.au/~mwybrow/papers/wybrow-gd-2009.pdf">PDF</a>]
 -  M. Wybrow, K. Marriott, and P.J. Stuckey. Incremental connector 
    routing.\n
