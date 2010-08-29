@@ -213,7 +213,7 @@ struct CmpNodePos { bool operator()(const Node* u, const Node* v) const; };
 typedef std::set<Node*,CmpNodePos> NodeSet;
 struct Node 
 {
-    ShapeRef *v;
+    Obstacle *v;
     VertInf *c;
     ShiftSegment *ss;
     double pos;
@@ -221,7 +221,7 @@ struct Node
     Node *firstAbove, *firstBelow;
     NodeSet::iterator iter;
 
-    Node(ShapeRef *v, const double p)
+    Node(Obstacle *v, const double p)
         : v(v),
           c(NULL),
           ss(NULL),
@@ -1635,24 +1635,24 @@ static void processEventHori(Router *router, NodeSet& scanline,
 
 extern void generateStaticOrthogonalVisGraph(Router *router)
 {
-    const size_t n = router->shapeRefs.size();
+    const size_t n = router->m_obstacles.size();
     const unsigned cpn = router->vertices.connsSize();
     // Set up the events for the vertical sweep.
     size_t totalEvents = (2 * n) + cpn;
     events = new Event*[totalEvents];
     unsigned ctr = 0;
-    ShapeRefList::iterator shRefIt = router->shapeRefs.begin();
+    ObstacleList::iterator obstacleIt = router->m_obstacles.begin();
     for (unsigned i = 0; i < n; i++)
     {
-        ShapeRef *shRef = *shRefIt;
+        Obstacle *obstacle = *obstacleIt;
         double minX, minY, maxX, maxY;
-        shRef->polygon().getBoundingRect(&minX, &minY, &maxX, &maxY);
+        obstacle->polygon().getBoundingRect(&minX, &minY, &maxX, &maxY);
         double midX = minX + ((maxX - minX) / 2);
-        Node *v = new Node(shRef, midX);
+        Node *v = new Node(obstacle, midX);
         events[ctr++] = new Event(Open, v, minY);
         events[ctr++] = new Event(Close, v, maxY);
 
-        ++shRefIt;
+        ++obstacleIt;
     }
     for (VertInf *curr = router->vertices.connsBegin(); 
             curr && (curr != router->vertices.shapesBegin()); 
@@ -1723,18 +1723,18 @@ extern void generateStaticOrthogonalVisGraph(Router *router)
     // Set up the events for the horizontal sweep.
     SegmentListWrapper vertSegments;
     ctr = 0;
-    shRefIt = router->shapeRefs.begin();
+    obstacleIt = router->m_obstacles.begin();
     for (unsigned i = 0; i < n; i++)
     {
-        ShapeRef *shRef = *shRefIt;
+        Obstacle *obstacle = *obstacleIt;
         double minX, minY, maxX, maxY;
-        shRef->polygon().getBoundingRect(&minX, &minY, &maxX, &maxY);
+        obstacle->polygon().getBoundingRect(&minX, &minY, &maxX, &maxY);
         double midY = minY + ((maxY - minY) / 2);
-        Node *v = new Node(shRef, midY);
+        Node *v = new Node(obstacle, midY);
         events[ctr++] = new Event(Open, v, minX);
         events[ctr++] = new Event(Close, v, maxX);
 
-        ++shRefIt;
+        ++obstacleIt;
     }
     for (VertInf *curr = router->vertices.connsBegin(); 
             curr && (curr != router->vertices.shapesBegin()); 
@@ -2019,24 +2019,24 @@ static void buildOrthogonalChannelInfo(Router *router,
     }
     
     // Do a sweep and shift these segments.
-    const size_t n = router->shapeRefs.size();
+    const size_t n = router->m_obstacles.size();
     const size_t cpn = segmentList.size();
     // Set up the events for the sweep.
     size_t totalEvents = 2 * (n + cpn);
     events = new Event*[totalEvents];
     unsigned ctr = 0;
-    ShapeRefList::iterator shRefIt = router->shapeRefs.begin();
+    ObstacleList::iterator obstacleIt = router->m_obstacles.begin();
     for (unsigned i = 0; i < n; i++)
     {
-        ShapeRef *shRef = *shRefIt;
+        Obstacle *obstacle = *obstacleIt;
         Point min, max;
-        shRef->polygon().getBoundingRect(&min.x, &min.y, &max.x, &max.y);
+        obstacle->polygon().getBoundingRect(&min.x, &min.y, &max.x, &max.y);
         double mid = min[dim] + ((max[dim] - min[dim]) / 2);
-        Node *v = new Node(shRef, mid);
+        Node *v = new Node(obstacle, mid);
         events[ctr++] = new Event(Open, v, min[altDim]);
         events[ctr++] = new Event(Close, v, max[altDim]);
 
-        ++shRefIt;
+        ++obstacleIt;
     }
     for (ShiftSegmentList::iterator curr = segmentList.begin(); 
             curr != segmentList.end(); ++curr)

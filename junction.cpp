@@ -32,13 +32,9 @@ namespace Avoid {
 
 
 JunctionRef::JunctionRef(Router *router, Point position, const unsigned int id)
-    : m_router(router),
-      m_position(position),
-      m_active(false)
+    : Obstacle(router, makeRectangle(router, position), id),
+      m_position(position)
 {
-    COLA_ASSERT(m_router != NULL);
-    m_id = m_router->assignId(id);
-
     // Set up pins in four directions:
     m_connection_pins.insert(new Avoid::ShapeConnectionPin(this, 
             Avoid::CONNECTIONPIN_CENTRE, ConnDirUp));
@@ -48,6 +44,24 @@ JunctionRef::JunctionRef(Router *router, Point position, const unsigned int id)
             Avoid::CONNECTIONPIN_CENTRE, ConnDirLeft));
     m_connection_pins.insert(new Avoid::ShapeConnectionPin(this, 
             Avoid::CONNECTIONPIN_CENTRE, ConnDirRight));
+}
+
+
+Rectangle JunctionRef::makeRectangle(Router *router, const Point& position)
+{
+    COLA_ASSERT(router);
+
+    double nudgeDist = router->orthogonalNudgeDistance();
+
+    Point low = position;
+    low.x -= nudgeDist;
+    low.y -= nudgeDist;
+
+    Point high = position;
+    high.x += nudgeDist;
+    high.y += nudgeDist;
+
+    return Rectangle(low, high);
 }
 
 
@@ -78,27 +92,6 @@ void JunctionRef::preferOrthogonalDimension(const size_t dim)
 
 JunctionRef::~JunctionRef()
 {
-    if (m_active)
-    {
-        makeInactive();
-    }
-    // Free and clear any connection pins.
-    while (!m_connection_pins.empty())
-    {
-        delete *(m_connection_pins.begin());
-    }
-}
-
-
-unsigned int JunctionRef::id(void) const
-{
-    return m_id;
-}
-
-
-Router *JunctionRef::router(void) const
-{
-    return m_router;
 }
 
 
@@ -111,61 +104,17 @@ Point JunctionRef::position(void) const
 void JunctionRef::setPosition(const Point& position)
 {
     m_position = position;
+    m_polygon = makeRectangle(m_router, m_position);
 }
 
 
-bool JunctionRef::isActive(void) const
+void JunctionRef::outputCode(FILE *fp) const
 {
-    return m_active;
+    fprintf(fp, "    JunctionRef *junctionRef%u = new JunctionRef(router, "
+            "Point(%g, %g), %u);\n", id(), position().x, position().y, id());
+    fprintf(fp, "    router->addJunction(junctionRef%u);\n\n", id());
 }
 
-
-void JunctionRef::makeActive(void)
-{
-    COLA_ASSERT(!m_active);
-    
-    // Add to junctionRefs list.
-    m_junctionrefs_pos = m_router->junctionRefs.insert(
-            m_router->junctionRefs.begin(), this);
-
-    m_active = true;
-}
-
-
-void JunctionRef::makeInactive(void)
-{
-    COLA_ASSERT(m_active);
-    
-    // Remove from junctionRefs list.
-    m_router->junctionRefs.erase(m_junctionrefs_pos);
-
-    m_active = false;
-    
-    // Turn attached ConnEnds into manual points.
-    bool deletedShape = true;
-    while (!m_following_conns.empty())
-    {
-        ConnEnd *connEnd = *(m_following_conns.begin());
-        connEnd->disconnect(deletedShape);
-    }
-}
-
-
-void JunctionRef::removeFromGraph(void)
-{
-}
-
-
-void JunctionRef::addFollowingConnEnd(ConnEnd *connEnd)
-{
-    m_following_conns.insert(connEnd);
-}
-
-
-void JunctionRef::removeFollowingConnEnd(ConnEnd *connEnd)
-{
-    m_following_conns.erase(connEnd);
-}
 
 void JunctionRef::moveAttachedConns(const Point& newPosition)
 {
@@ -184,20 +133,6 @@ void JunctionRef::moveAttachedConns(const Point& newPosition)
         ShapeConnectionPin *pin = *curr;
         pin->updatePosition(newPosition);
     }
-}
-
-
-unsigned int JunctionRef::addConnectionPin(ShapeConnectionPin *pin)
-{
-    m_connection_pins.insert(pin);
-
-    return m_connection_pins.size();
-}
-
-
-void JunctionRef::removeConnectionPin(ShapeConnectionPin *pin)
-{
-    m_connection_pins.erase(pin);
 }
 
 

@@ -239,7 +239,7 @@ ConnDirFlags ShapeConnectionPin::directions(void) const
     return visDir;
 }
 
-void ShapeConnectionPin::outputCode(FILE *fp)
+void ShapeConnectionPin::outputCode(FILE *fp) const
 {
     COLA_ASSERT(m_shape);
     if (m_shape)
