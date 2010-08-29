@@ -183,13 +183,14 @@ class ShapeConnectionPin
     private:
         friend class ShapeRef;
         friend class JunctionRef;
+        friend class Obstacle;
         friend class ConnEnd;
         friend class Router;
         
         void updatePosition(const Point& newPosition);
         void updatePosition(const Polygon& newPoly);
         void updatePositionAndVisbility(void);
-        void outputCode(FILE *fp);
+        void outputCode(FILE *fp) const;
 
         Router *m_router;
         ShapeRef *m_shape;

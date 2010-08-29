@@ -53,11 +53,11 @@ typedef std::list<unsigned int> IntList;
 class ActionInfo;
 typedef std::list<ActionInfo> ActionInfoList;
 class ShapeRef;
-typedef std::list<ShapeRef *> ShapeRefList;
 class JunctionRef;
-typedef std::list<JunctionRef *> JunctionRefList;
 class ClusterRef;
 typedef std::list<ClusterRef *> ClusterRefList;
+class Obstacle;
+typedef std::list<Obstacle *> ObstacleList;
 
 //! @brief  Flags that can be passed to the router during initialisation 
 //!         to specify options.
@@ -142,9 +142,8 @@ class Router {
         //!         pointers to them.
         ~Router();
 
-        ShapeRefList shapeRefs;
+        ObstacleList m_obstacles;
         ConnRefList connRefs;
-        JunctionRefList junctionRefs;
         ClusterRefList clusterRefs;
         EdgeList visGraph;
         EdgeList invisGraph;
@@ -409,7 +408,7 @@ class Router {
                 const unsigned int type);
 #endif
         
-        void markConnectors(ShapeRef *shape);
+        void markConnectors(Obstacle *obstacle);
         void generateContains(VertInf *pt);
         void printInfo(void);
         void outputInstanceToSVG(std::string filename = std::string());
@@ -418,16 +417,17 @@ class Router {
         void destroyOrthogonalVisGraph(void);
         void setStaticGraphInvalidated(const bool invalidated);
         ConnType validConnType(const ConnType select = ConnType_None) const;
-        bool shapeInQueuedActionList(ShapeRef *shape) const;
+        bool objectIsInQueuedActionList(void *object) const;
         double& penaltyRef(const PenaltyType penType);
         bool existsOrthogonalPathOverlap(void);
         bool existsOrthogonalTouchingCorners(void);
         int  existsOrthogonalCrossings(void);
 
     private:
-        friend class ConnRef;
         friend class ShapeRef;
+        friend class ConnRef;
         friend class JunctionRef;
+        friend class Obstacle;
 
         void modifyConnector(ConnRef *conn);
         void modifyConnector(ConnRef *conn, unsigned int type,

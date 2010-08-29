@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2008  Monash University
+ * Copyright (C) 2004-2010  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -22,56 +22,34 @@
  * Author(s):   Michael Wybrow <mjwybrow@users.sourceforge.net>
 */
 
-//! @file    shape.h
-//! @brief   Contains the interface for the ShapeRef class.
+//! @file    obstacle.h
+//! @brief   Contains the interface for the Obstacle class, 
+//!          the superclass for ShapeRef and JunctionRef.
 
 
-#ifndef AVOID_SHAPE_H
-#define AVOID_SHAPE_H
+#ifndef AVOID_OBSTACLE_H
+#define AVOID_OBSTACLE_H
 
 #include <list>
 #include <set>
 
 #include "libavoid/geometry.h"
-#include "libavoid/obstacle.h"
 
 
 namespace Avoid {
 
 class VertInf;
 class Router;
-class ShapeRef;
+class Obstacle;
 class ConnEnd;
 class ShapeConnectionPin;
-typedef std::list<ShapeRef *> ShapeRefList;
-
-//! @brief  Describes the type of transformation that has been applied to a
-//!         shape having its transformConnectionPinPositions() method called.
-enum ShapeTransformationType 
-{
-    //! @brief  The shape has been rotated clockwise by 90 degrees.
-    TransformationType_CW90       = 0,
-    //! @brief  The shape has been rotated clockwise by 180 degrees.
-    TransformationType_CW180      = 1,
-    //! @brief  The shape has been rotated clockwise by 270 degrees.
-    TransformationType_CW270      = 2,
-    //! @brief  The shape has been flipped horizontally in the X-dimension.
-    TransformationType_FlipX      = 3,
-    //! @brief  The shape has been flipped vertically in the Y-dimension.
-    TransformationType_FlipY      = 4
-};
+typedef std::list<Obstacle *> ObstacleList;
 
 
-//! @brief   The ShapeRef class represents a shape object.
-//!
-//! Shapes are obstacles that connectors must be routed around.  They can be 
-//! placed into a Router scene and can be repositioned or resized (via
-//! Router::moveShape()).
-//! 
-//! Usually, it is expected that you would create a ShapeRef for each shape 
-//! in your diagram and keep that reference in your own shape class.
-//!
-class ShapeRef : public Obstacle
+// @brief   The Obstacle class represents an obstacle that must be 
+//          routed around..
+//
+class Obstacle
 {
     public:
         //! @brief  Shape reference constructor.
@@ -97,39 +75,71 @@ class ShapeRef : public Obstacle
         //! @param[in]  poly    A Polygon representing the boundary of the 
         //!                     shape.
         //! @param[in]  id      A unique positive integer ID for the shape.  
-        ShapeRef(Router *router, Polygon& poly, const unsigned int id = 0);
+        Obstacle(Router *router, Polygon poly, const unsigned int id = 0);
         //! @brief  Shape reference destructor.
         //!
         //! This will call Router::removeShape() for this shape, if this has
         //! not already be called.
-        ~ShapeRef();
+        ~Obstacle();
         
+        //! @brief   Returns the ID of this shape.
+        //! @returns The ID of the shape. 
+        unsigned int id(void) const;
         //! @brief   Returns a reference to the polygon boundary of this shape.
         //! @returns A reference to the polygon boundary of the shape.
         const Polygon& polygon(void) const;
+        //! @brief   Returns a pointer to the router scene this shape is in.
+        //! @returns A pointer to the router scene for this shape.
+        Router *router(void) const;
+        //! @brief   Returns the position of this junction.
+        //! @returns A point representing the position of this junction.
+        virtual Point position(void) const = 0;
         
-        //! @brief  Adjusts all of the shape's connection pin positions and 
-        //!         visibility directions for a given transformation type.
-        //!
-        //! @param[in]  transform  A ShapeTransformationType specifing the type
-        //!                        of transform to be applied to all connection
-        //!                        pins for the shape.
-        //! 
-        void transformConnectionPinPositions(ShapeTransformationType transform);
- 
         void setNewPoly(const Polygon& poly);
-        void boundingBox(BBox& bbox) const;
+        VertInf *firstVert(void);
+        VertInf *lastVert(void);
+        void boundingBox(BBox& bbox);
 
     private:
         friend class Router;
         friend class ConnEnd;
         friend class ShapeConnectionPin;
 
-        void outputCode(FILE *fp) const;
-        Point position(void) const;
-        void moveAttachedConns(const Polygon& newPoly);
+        // Defined in visibility.cpp:
+        void computeVisibilityNaive(void);
+        void computeVisibilitySweep(void);
+       
+        virtual void outputCode(FILE *fp) const = 0;
+        void makeActive(void);
+        void makeInactive(void);
+        bool isActive(void) const;
+
+        void removeFromGraph(void);
+        void markForMove(void);
+        void clearMoveMark(void);
+        Point shapeCentre(void);
+
+        VertInf *getPointVertex(const Point& point);
+
+        void addFollowingConnEnd(ConnEnd *connEnd);
+        void removeFollowingConnEnd(ConnEnd *connEnd);
+        unsigned int addConnectionPin(ShapeConnectionPin *pin);
+        void removeConnectionPin(ShapeConnectionPin *pin);
         void assignPinVisibilityTo(const unsigned int pinClassId, 
                 VertInf *dummyConnectionVert);
+        std::vector<Point> possiblePinPoints(unsigned int pinClassId) const;
+
+    protected:
+        Router *m_router;
+        unsigned int m_id;
+        Polygon m_polygon;
+        bool m_active;
+        bool m_in_move_list;
+        ObstacleList::iterator m_router_obstacles_pos;
+        VertInf *m_first_vert;
+        VertInf *m_last_vert;
+        std::set<ConnEnd *> m_following_conns;
+        std::set<ShapeConnectionPin *> m_connection_pins;
 };
 
 

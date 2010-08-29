@@ -37,76 +37,13 @@ namespace Avoid {
 
 
 ShapeRef::ShapeRef(Router *router, Polygon& ply, const unsigned int id)
-    : m_router(router)
-    , m_polygon(ply)
-    , m_active(false)
-    , m_in_move_list(false)
-    , m_first_vert(NULL)
-    , m_last_vert(NULL)
+    : Obstacle(router, ply, id)
 {
-    COLA_ASSERT(m_router != NULL);
-    m_id = m_router->assignId(id);
-
-    VertID i = VertID(m_id, 0);
-    
-    const bool addToRouterNow = false;
-    VertInf *last = NULL;
-    VertInf *node = NULL;
-    for (size_t pt_i = 0; pt_i < m_polygon.size(); ++pt_i)
-    {
-        node = new VertInf(m_router, i, m_polygon.ps[pt_i], addToRouterNow);
-
-        if (!m_first_vert)
-        {
-            m_first_vert = node;
-        }
-        else
-        {
-            node->shPrev = last;
-            last->shNext = node;
-            //node->lstPrev = last;
-            //last->lstNext = node;
-        }
-        
-        last = node;
-        i++;
-    }
-    m_last_vert = node;
-    
-    m_last_vert->shNext = m_first_vert;
-    m_first_vert->shPrev = m_last_vert;
 }
 
 
 ShapeRef::~ShapeRef()
 {
-    COLA_ASSERT(!m_router->shapeInQueuedActionList(this));
-
-    if (m_active)
-    {
-        // Destroying a shape without calling removeShape(), so do it now.
-        m_router->removeShape(this);
-        m_router->processTransaction();
-    }
-
-    COLA_ASSERT(m_first_vert != NULL);
-    
-    VertInf *it = m_first_vert;
-    do
-    {
-        VertInf *tmp = it;
-        it = it->shNext;
-
-        delete tmp;
-    }
-    while (it != m_first_vert);
-    m_first_vert = m_last_vert = NULL;
-
-    // Free and clear any connection pins.
-    while (!m_connection_pins.empty())
-    {
-        delete *(m_connection_pins.begin());
-    }
 }
 
 
@@ -150,73 +87,6 @@ void ShapeRef::moveAttachedConns(const Polygon& newPoly)
         ShapeConnectionPin *pin = *curr;
         pin->updatePosition(newPoly);
     }
-}
-
-
-void ShapeRef::makeActive(void)
-{
-    COLA_ASSERT(!m_active);
-    
-    // Add to shapeRefs list.
-    m_shaperefs_pos = m_router->shapeRefs.insert(m_router->shapeRefs.begin(), this);
-
-    // Add points to vertex list.
-    VertInf *it = m_first_vert;
-    do
-    {
-        VertInf *tmp = it;
-        it = it->shNext;
-
-        m_router->vertices.addVertex(tmp);
-    }
-    while (it != m_first_vert);
-    
-    m_active = true;
-}
-
-
-void ShapeRef::makeInactive(void)
-{
-    COLA_ASSERT(m_active);
-    
-    // Remove from shapeRefs list.
-    m_router->shapeRefs.erase(m_shaperefs_pos);
-
-    // Remove points from vertex list.
-    VertInf *it = m_first_vert;
-    do
-    {
-        VertInf *tmp = it;
-        it = it->shNext;
-
-        m_router->vertices.removeVertex(tmp);
-    }
-    while (it != m_first_vert);
-    
-    m_active = false;
-    
-    // Turn attached ConnEnds into manual points.
-    bool deletedShape = true;
-    while (!m_following_conns.empty())
-    {
-        ConnEnd *connEnd = *(m_following_conns.begin());
-        connEnd->disconnect(deletedShape);
-    }
-}
-
-
-unsigned int ShapeRef::addConnectionPin(ShapeConnectionPin *pin)
-{
-    m_connection_pins.insert(pin);
-    m_router->modifyConnectionPin(pin);
-
-    return m_connection_pins.size();
-}
-
-void ShapeRef::removeConnectionPin(ShapeConnectionPin *pin)
-{
-    m_connection_pins.erase(pin);
-    m_router->modifyConnectionPin(pin);
 }
 
 
@@ -314,43 +184,36 @@ void ShapeRef::transformConnectionPinPositions(
 }
 
 
-bool ShapeRef::isActive(void) const
-{
-    return m_active;
-}
-
-
-VertInf *ShapeRef::firstVert(void)
-{
-    return m_first_vert;
-}
-
-
-VertInf *ShapeRef::lastVert(void)
-{
-    return m_last_vert;
-}
-
-
-unsigned int ShapeRef::id(void) const
-{
-    return m_id;
-}
-
-
 const Polygon& ShapeRef::polygon(void) const
 {
     return m_polygon;
 }
 
 
-Router *ShapeRef::router(void) const
+void ShapeRef::outputCode(FILE *fp) const
 {
-    return m_router;
+    fprintf(fp, "    Polygon poly%u(%lu);\n", 
+            id(), (unsigned long) polygon().size());
+    for (size_t i = 0; i < polygon().size(); ++i)
+    {
+        fprintf(fp, "    poly%u.ps[%lu] = Point(%g, %g);\n", 
+                id(), (unsigned long) i, polygon().at(i).x,
+                polygon().at(i).y);
+    }
+    fprintf(fp, "    ShapeRef *shapeRef%u = new ShapeRef(router, poly%u, "
+            "%u);\n", id(), id(), id());
+    fprintf(fp, "    router->addShape(shapeRef%u);\n", id());
+    for (std::set<ShapeConnectionPin *>::iterator curr = 
+            m_connection_pins.begin(); 
+            curr != m_connection_pins.end(); ++curr)
+    {
+        (*curr)->outputCode(fp);
+    }
+    fprintf(fp, "\n");
 }
 
 
-void ShapeRef::boundingBox(BBox& bbox)
+void ShapeRef::boundingBox(BBox& bbox) const
 {
     COLA_ASSERT(!m_polygon.empty());
 
@@ -370,7 +233,7 @@ void ShapeRef::boundingBox(BBox& bbox)
 }
 
 
-Point ShapeRef::shapeCentre(void)
+Point ShapeRef::position(void) const
 {
     BBox bb;
     boundingBox(bb);
@@ -384,68 +247,5 @@ Point ShapeRef::shapeCentre(void)
 }
 
 
-void ShapeRef::removeFromGraph(void)
-{
-    bool isConnPt = false;
-    for (VertInf *iter = firstVert(); iter != lastVert()->lstNext; )
-    {
-        VertInf *tmp = iter;
-        iter = iter->lstNext;
- 
-        tmp->removeFromGraph(isConnPt);
-    }
 }
-
-
-void ShapeRef::markForMove(void)
-{
-    if (!m_in_move_list)
-    {
-        m_in_move_list = true;
-    }
-    else
-    {
-        db_printf("WARNING: two moves queued for same shape prior to rerouting."
-                "\n         This is not safe.\n");
-    }
-}
-
-
-void ShapeRef::clearMoveMark(void)
-{
-    m_in_move_list = false;
-}
-
-
-VertInf *ShapeRef::getPointVertex(const Point& point)
-{
-    VertInf *curr = m_first_vert;
-    do
-    {
-        if (curr->point == point)
-        {
-            return curr;
-        }
-        curr = curr->shNext;
-    }
-    while (curr != m_first_vert);
-
-    return NULL;
-}
-
-
-void ShapeRef::addFollowingConnEnd(ConnEnd *connEnd)
-{
-    m_following_conns.insert(connEnd);
-}
-
-
-void ShapeRef::removeFollowingConnEnd(ConnEnd *connEnd)
-{
-    m_following_conns.erase(connEnd);
-}
-
-
-}
-
 

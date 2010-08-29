@@ -52,7 +52,7 @@
 namespace Avoid {
 
 
-void ShapeRef::computeVisibilityNaive(void)
+void Obstacle::computeVisibilityNaive(void)
 {
     if ( !(router()->InvisibilityGrph) )
     {
@@ -97,7 +97,7 @@ void ShapeRef::computeVisibilityNaive(void)
 }
 
 
-void ShapeRef::computeVisibilitySweep(void)
+void Obstacle::computeVisibilitySweep(void)
 {
     if ( !(router()->InvisibilityGrph) )
     {

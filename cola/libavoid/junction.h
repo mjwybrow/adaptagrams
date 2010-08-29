@@ -33,6 +33,7 @@
 #include <set>
 
 #include "libavoid/geomtypes.h"
+#include "libavoid/obstacle.h"
 
 namespace Avoid {
 
@@ -52,7 +53,7 @@ typedef std::list<JunctionRef *> JunctionRefList;
 //! be used to specify an intermediate point that a single connector must route
 //! through.
 //!
-class JunctionRef
+class JunctionRef : public Obstacle
 {
     public:
         //! @brief  Junction reference constructor.
@@ -98,16 +99,11 @@ class JunctionRef
         //!          removed.
         ConnRef *removeJunctionAndMergeConnectors(void);
 
-        //! @brief   Returns the ID of this junction.
-        //! @returns The ID of the junction. 
-        unsigned int id(void) const;
         //! @brief   Returns the position of this junction.
         //! @returns A point representing the position of this junction.
         Point position(void) const;
-        //! @brief   Returns a pointer to the router scene this junctione is in.
-        //! @returns A pointer to the router scene for this junction.
-        Router *router(void) const;
 
+        Rectangle makeRectangle(Router *router, const Point& position);
         void preferOrthogonalDimension(const size_t dim);
 
     private:
@@ -115,27 +111,13 @@ class JunctionRef
         friend class ShapeConnectionPin;
         friend class ConnEnd;
 
+        void outputCode(FILE *fp) const;
         void setPosition(const Point& position);
-        void makeActive(void);
-        void makeInactive(void);
-        bool isActive(void) const;
-        void addFollowingConnEnd(ConnEnd *connEnd);
-        void removeFollowingConnEnd(ConnEnd *connEnd);
         void moveAttachedConns(const Point& newPosition);
-        unsigned int addConnectionPin(ShapeConnectionPin *pin);
-        void removeConnectionPin(ShapeConnectionPin *pin);
         void assignPinVisibilityTo(const unsigned int pinClassId, 
                 VertInf *dummyConnectionVert);
-        void removeFromGraph(void);
 
-
-        Router *m_router;
-        unsigned int m_id;
         Point m_position;
-        bool m_active;
-        JunctionRefList::iterator m_junctionrefs_pos;
-        std::set<ConnEnd *> m_following_conns;
-        std::set<ShapeConnectionPin *> m_connection_pins;
 };
 
 

@@ -3,43 +3,45 @@ INCLUDES = -I$(top_srcdir)
 lib_LTLIBRARIES = libavoid.la
 
 
-libavoid_la_SOURCES = connector.cpp \
+libavoid_la_SOURCES = connectionpin.cpp \
+			connector.cpp \
 			connend.cpp \
 			geometry.cpp \
-			vertices.cpp \
+			geomtypes.cpp \
 			graph.cpp \
+			junction.cpp \
 			makepath.cpp \
+			obstacle.cpp \
+			orthogonal.cpp \
 			router.cpp \
 			shape.cpp \
-			viscluster.cpp \
 			timer.cpp \
+			vertices.cpp \
+			viscluster.cpp \
 			visibility.cpp \
-			geomtypes.cpp \
-			orthogonal.cpp \
 			vpsc.cpp \
-			connectionpin.cpp \
-			junction.cpp \
 			libavoid.h
 
 libavoidincludedir = ${includedir}/libavoid
 libavoidinclude_HEADERS = assertions.h \
 			connector.h \
-			connend.h \
-			geomtypes.h \
-			makepath.h \
-			router.h \
-			timer.h \
-			debug.h \
-			graph.h \
-			shape.h \
-			vertices.h \
-			geometry.h \
-			libavoid.h \
-			visibility.h \
-			viscluster.h \
-			orthogonal.h \
 			connectionpin.h \
+			connend.h \
+			debug.h \
+			geometry.h \
+			geomtypes.h \
+			graph.h \
 			junction.h \
+			libavoid.h \
+			makepath.h \
+			obstacle.h \
+			orthogonal.h \
+			router.h \
+			shape.h \
+			timer.h \
+			vertices.h \
+			viscluster.h \
+			visibility.h \
 			vpsc.h
 
 SUBDIRS = . tests

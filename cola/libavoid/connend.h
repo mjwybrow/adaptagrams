@@ -39,6 +39,7 @@
 
 namespace Avoid {
 
+class Obstacle;
 class ShapeRef;
 class JunctionRef;
 class Router;
@@ -159,8 +160,9 @@ class ConnEnd
 
         ~ConnEnd();
     private:
-        friend class ShapeRef;
+        friend class Obstacle;
         friend class JunctionRef;
+        friend class ShapeRef;
         friend class ConnRef;
         friend class Router;
         friend class ShapeConnectionPin;
@@ -182,8 +184,7 @@ class ConnEnd
         unsigned int m_connection_pin_class_id;
         
         // For referencing ConnEnds
-        ShapeRef *m_shape_ref;  // The shape this is attached to.
-        JunctionRef *m_junction_ref;  // The junction this is attached to.
+        Obstacle *m_anchor_obj;  // The shape/junction this is attached to.
         ConnRef *m_conn_ref;    // The parent connector.
         
         // The pin to which the ConnEnd is attached.

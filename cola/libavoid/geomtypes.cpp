@@ -117,8 +117,8 @@ ReferencingPolygon::ReferencingPolygon(const Polygon& poly, const Router *router
         else
         {
             const Polygon *polyPtr = NULL;
-            for (ShapeRefList::const_iterator sh = router->shapeRefs.begin();
-                    sh != router->shapeRefs.end(); ++sh) 
+            for (ObstacleList::const_iterator sh = router->m_obstacles.begin();
+                    sh != router->m_obstacles.end(); ++sh) 
             {
                 if ((*sh)->id() == poly.ps[i].id)
                 {

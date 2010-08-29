@@ -100,11 +100,16 @@ class ActionInfo {
         ~ActionInfo()
         {
         }
-        ShapeRef *shape(void) const
+        Obstacle *obstacle(void) const
         {
             COLA_ASSERT((type == ShapeMove) || (type == ShapeAdd) || 
-                    (type == ShapeRemove));
-            return (static_cast<ShapeRef *> (objPtr));
+                    (type == ShapeRemove) || (type == JunctionMove) || 
+                    (type == JunctionAdd) || (type == JunctionRemove));
+            return (static_cast<Obstacle *> (objPtr));
+        }
+        ShapeRef *shape(void) const
+        {
+            return (dynamic_cast<ShapeRef *> (obstacle()));
         }
         ConnRef *conn(void) const
         {
@@ -113,9 +118,7 @@ class ActionInfo {
         }
         JunctionRef *junction(void) const
         {
-            COLA_ASSERT((type == JunctionMove) || (type == JunctionAdd) || 
-                    (type == JunctionRemove));
-            return (static_cast<JunctionRef *> (objPtr));
+            return (dynamic_cast<JunctionRef *> (obstacle()));
         }
         bool operator==(const ActionInfo& rhs) const
         {
@@ -196,44 +199,29 @@ Router::~Router()
         conn = connRefs.begin();
     }
 
-    // Remove remaining shapes.
-    ShapeRefList::iterator shape = shapeRefs.begin();
-    while (shape != shapeRefs.end())
+    // Remove remaining obstacles (shapes and junctions).
+    ObstacleList::iterator obstacle =  m_obstacles.begin();
+    while (obstacle != m_obstacles.end())
     {
-        ShapeRef *shapePtr = *shape;
-        db_printf("Deleting shape %u in ~Router()\n", shapePtr->id());
-        if (shapePtr->isActive())
+        Obstacle *obstaclePtr = *obstacle;
+        ShapeRef *shape = dynamic_cast<ShapeRef *> (obstaclePtr);
+        db_printf("Deleting %s %u in ~Router()\n", 
+                (shape) ? "shape" : "junction", obstaclePtr->id());
+        if (obstaclePtr->isActive())
         {
-            shapePtr->removeFromGraph();
-            shapePtr->makeInactive();
+            obstaclePtr->removeFromGraph();
+            obstaclePtr->makeInactive();
         }
-        delete shapePtr;
-        shape = shapeRefs.begin();
+        delete obstaclePtr;
+        obstacle = m_obstacles.begin();
     }
-
-    // Remove remaining junctions.
-    JunctionRefList::iterator junction = junctionRefs.begin();
-    while (junction != junctionRefs.end())
-    {
-        JunctionRef *junctionPtr = *junction;
-        db_printf("Deleting junction %u in ~Router()\n", junctionPtr->id());
-        if (junctionPtr->isActive())
-        {
-            junctionPtr->removeFromGraph();
-            junctionPtr->makeInactive();
-        }
-        delete junctionPtr;
-        junction = junctionRefs.begin();
-    }
-
 
     // Cleanup orphaned orthogonal graph vertices.
     destroyOrthogonalVisGraph();
 
+    COLA_ASSERT(m_obstacles.size() == 0);
     COLA_ASSERT(connRefs.size() == 0);
-    COLA_ASSERT(shapeRefs.size() == 0);
     COLA_ASSERT(visGraph.size() == 0);
-    COLA_ASSERT(invisGraph.size() == 0);
 }
 
 
@@ -467,16 +455,17 @@ void Router::regenerateStaticBuiltGraph(void)
 }
 
 
-bool Router::shapeInQueuedActionList(ShapeRef *shape) const
+bool Router::objectIsInQueuedActionList(void *object) const
 {
-    bool foundAdd = find(actionList.begin(), actionList.end(), 
-                ActionInfo(ShapeAdd, shape)) != actionList.end();
-    bool foundRem = find(actionList.begin(), actionList.end(), 
-                ActionInfo(ShapeRemove, shape)) != actionList.end();
-    bool foundMove = find(actionList.begin(), actionList.end(), 
-                ActionInfo(ShapeMove, shape)) != actionList.end();
-
-    return (foundAdd || foundRem || foundMove);
+    for (ActionInfoList::const_iterator curr = actionList.begin();
+            curr != actionList.end(); ++curr)
+    {
+        if (curr->objPtr == object)
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 
@@ -509,59 +498,50 @@ bool Router::processTransaction(void)
     for (curr = actionList.begin(); curr != finish; ++curr)
     {
         ActionInfo& actInf = *curr;
-        if (!((actInf.type == ShapeRemove) || (actInf.type == ShapeMove)))
+        if (!((actInf.type == ShapeRemove) || (actInf.type == ShapeMove) ||
+              (actInf.type == JunctionRemove) || (actInf.type == JunctionMove)))
         {
             // Not a move or remove action, so don't do anything.
             continue;
         }
         seenShapeMovesOrDeletes = true;
 
+        Obstacle *obstacle = actInf.obstacle();
         ShapeRef *shape = actInf.shape();
-        bool isMove = (actInf.type == ShapeMove);
+        JunctionRef *junction = actInf.junction();
+        bool isMove = (actInf.type == ShapeMove) || 
+                (actInf.type == JunctionMove);;
         bool first_move = actInf.firstMove;
 
-        unsigned int pid = shape->id();
+        unsigned int pid = obstacle->id();
 
         // o  Remove entries related to this shape's vertices
-        shape->removeFromGraph();
+        obstacle->removeFromGraph();
         
         if (SelectiveReroute && (!isMove || notPartialTime || first_move))
         {
-            markConnectors(shape);
+            markConnectors(obstacle);
         }
 
         adjustContainsWithDel(pid);
         
         if (isMove)
         {
-            shape->moveAttachedConns(actInf.newPoly);
+            if (shape)
+            {
+                shape->moveAttachedConns(actInf.newPoly);
+            }
+            else if (junction)
+            {
+                junction->moveAttachedConns(actInf.newPosition);
+            }
         }
 
         // Ignore this shape for visibility.
         // XXX: We don't really need to do this if we're not using Partial
         //      Feedback.  Without this the blocked edges still route
         //      around the shape until it leaves the connector.
-        shape->makeInactive();
-    }
-    for (curr = actionList.begin(); curr != finish; ++curr)
-    {
-        ActionInfo& actInf = *curr;
-        if (!((actInf.type == JunctionRemove) || (actInf.type == JunctionMove)))
-        {
-            // Not a junction move or remove action, so don't do anything.
-            continue;
-        }
-
-        JunctionRef *junction = actInf.junction();
-        bool isMove = (actInf.type == JunctionMove);
-
-        junction->removeFromGraph();
-        
-        if (isMove)
-        {
-            junction->moveAttachedConns(actInf.newPosition);
-        }
-        junction->makeInactive();
+        obstacle->makeInactive();
     }
     
     if (seenShapeMovesOrDeletes && _polyLineRouting)
@@ -572,14 +552,16 @@ bool Router::processTransaction(void)
             {
                 ActionInfo& actInf = *curr;
                 if (!((actInf.type == ShapeRemove) || 
-                            (actInf.type == ShapeMove)))
+                      (actInf.type == ShapeMove) ||
+                      (actInf.type == JunctionRemove) || 
+                      (actInf.type == JunctionMove)))
                 {
                     // Not a move or remove action, so don't do anything.
                     continue;
                 }
 
                 // o  Check all edges that were blocked by this shape.
-                checkAllBlockedEdges(actInf.shape()->id());
+                checkAllBlockedEdges(actInf.obstacle()->id());
             }
         }
         else
@@ -592,45 +574,37 @@ bool Router::processTransaction(void)
     for (curr = actionList.begin(); curr != finish; ++curr)
     {
         ActionInfo& actInf = *curr;
-        if (!((actInf.type == JunctionAdd) || (actInf.type == JunctionMove)))
-        {
-            // Not a junction move or add action, so don't do anything.
-            continue;
-        }
-
-        JunctionRef *junction = actInf.junction();
-        bool isMove = (actInf.type == JunctionMove);
-
-        junction->makeActive();
-        
-        if (isMove)
-        {
-            junction->setPosition(actInf.newPosition);
-        }
-    }
-    for (curr = actionList.begin(); curr != finish; ++curr)
-    {
-        ActionInfo& actInf = *curr;
-        if (!((actInf.type == ShapeAdd) || (actInf.type == ShapeMove)))
+        if (!((actInf.type == ShapeAdd) || (actInf.type == ShapeMove) ||
+              (actInf.type == JunctionAdd) || (actInf.type == JunctionMove)))
         {
             // Not a move or add action, so don't do anything.
             continue;
         }
 
+        Obstacle *obstacle = actInf.obstacle();
         ShapeRef *shape = actInf.shape();
+        JunctionRef *junction = actInf.junction();
         Polygon& newPoly = actInf.newPoly;
-        bool isMove = (actInf.type == ShapeMove);
+        bool isMove = (actInf.type == ShapeMove) || 
+                (actInf.type == JunctionMove);
 
-        unsigned int pid = shape->id();
+        unsigned int pid = obstacle->id();
 
         // Restore this shape for visibility.
-        shape->makeActive();
+        obstacle->makeActive();
         
         if (isMove)
         {
-            shape->setNewPoly(newPoly);
+            if (shape)
+            {
+                shape->setNewPoly(newPoly);
+            }
+            else
+            {
+                junction->setPosition(actInf.newPosition);
+            }
         }
-        const Polygon& shapePoly = shape->polygon();
+        const Polygon& shapePoly = obstacle->polygon();
 
         adjustContainsWithAdd(shapePoly, pid);
 
@@ -646,11 +620,11 @@ bool Router::processTransaction(void)
             // o  Calculate visibility for the new vertices.
             if (UseLeesAlgorithm)
             {
-                shape->computeVisibilitySweep();
+                obstacle->computeVisibilitySweep();
             }
             else
             {
-                shape->computeVisibilityNaive();
+                obstacle->computeVisibilityNaive();
             }
         }
     }
@@ -846,9 +820,9 @@ bool Router::idIsUnique(const unsigned int id) const
 {
     unsigned int count = 0;
 
-    // Examine shapes.
-    for (ShapeRefList::const_iterator i = shapeRefs.begin(); 
-            i != shapeRefs.end(); ++i) 
+    // Examine shapes/junctions.
+    for (ObstacleList::const_iterator i = m_obstacles.begin(); 
+            i != m_obstacles.end(); ++i) 
     {
         if ((*i)->id() == id)
         {
@@ -1203,8 +1177,8 @@ void Router::generateContains(VertInf *pt)
     bool countBorder = false;
 
     // Compute enclosing shapes.
-    ShapeRefList::const_iterator finish = shapeRefs.end();
-    for (ShapeRefList::const_iterator i = shapeRefs.begin(); i != finish; ++i)
+    ObstacleList::const_iterator finish = m_obstacles.end();
+    for (ObstacleList::const_iterator i = m_obstacles.begin(); i != finish; ++i)
     {
         if (inPoly((*i)->polygon(), pt->point, countBorder))
         {
@@ -1283,7 +1257,7 @@ static double AngleAFromThreeSides(const double a, const double b,
 }
 #endif
 
-void Router::markConnectors(ShapeRef *shape)
+void Router::markConnectors(Obstacle *obstacle)
 {
     if (RubberBandRouting)
     {
@@ -1318,8 +1292,8 @@ void Router::markConnectors(ShapeRef *shape)
         double estdist;
         double e1, e2;
 
-        VertInf *beginV = shape->firstVert();
-        VertInf *endV = shape->lastVert()->lstNext;
+        VertInf *beginV = obstacle->firstVert();
+        VertInf *endV = obstacle->lastVert()->lstNext;
         for (VertInf *i = beginV; i != endV; i = i->lstNext)
         {
             const Point& p1 = i->point;
@@ -1832,41 +1806,12 @@ void Router::outputInstanceToSVG(std::string instanceName)
         fprintf(fp, "    router->addCluster(clusterRef%u);\n\n", cRef->id());
         ++revClusterRefIt;
     }
-    ShapeRefList::reverse_iterator revShapeRefIt = shapeRefs.rbegin();
-    while (revShapeRefIt != shapeRefs.rend())
+    ObstacleList::reverse_iterator revObstacleIt = m_obstacles.rbegin();
+    while (revObstacleIt != m_obstacles.rend())
     {
-        ShapeRef *shRef = *revShapeRefIt;
-        fprintf(fp, "    Polygon poly%u(%lu);\n", 
-                shRef->id(), (unsigned long)shRef->polygon().size());
-        for (size_t i = 0; i < shRef->polygon().size(); ++i)
-        {
-            fprintf(fp, "    poly%u.ps[%lu] = Point(%g, %g);\n", 
-                    shRef->id(), (unsigned long)i, shRef->polygon().at(i).x,
-                    shRef->polygon().at(i).y);
-        }
-        fprintf(fp, "    ShapeRef *shapeRef%u = new ShapeRef(router, poly%u, "
-                "%u);\n", shRef->id(), shRef->id(), shRef->id());
-        fprintf(fp, "    router->addShape(shapeRef%u);\n", shRef->id());
-        for (std::set<ShapeConnectionPin *>::iterator curr = 
-                shRef->m_connection_pins.begin(); 
-                curr != shRef->m_connection_pins.end(); ++curr)
-        {
-            (*curr)->outputCode(fp);
-        }
-        fprintf(fp, "\n");
-        ++revShapeRefIt;
-    }
-    JunctionRefList::reverse_iterator revJunctionRefIt = junctionRefs.rbegin();
-    while (revJunctionRefIt != junctionRefs.rend())
-    {
-        JunctionRef *junctionRef = *revJunctionRefIt;
-        fprintf(fp, "    JunctionRef *junctionRef%u = new JunctionRef(router, "
-                "Point(%g, %g), %u);\n", junctionRef->id(), 
-                junctionRef->position().x, junctionRef->position().y,
-                junctionRef->id());
-        fprintf(fp, "    router->addJunction(junctionRef%u);\n\n", 
-                junctionRef->id());
-        ++revJunctionRefIt;
+        Obstacle *obstacle = *revObstacleIt;
+        obstacle->outputCode(fp);
+        ++revObstacleIt;
     }
     ConnRefList::reverse_iterator revConnRefIt = connRefs.rbegin();
     while (revConnRefIt != connRefs.rend())
@@ -1946,49 +1891,42 @@ void Router::outputInstanceToSVG(std::string instanceName)
 
     fprintf(fp, "<g inkscape:groupmode=\"layer\" "
             "inkscape:label=\"ShapesPoly\">\n");
-    JunctionRefList::iterator juncRefIt = junctionRefs.begin();
-    while (juncRefIt != junctionRefs.end())
+    ObstacleList::iterator obstacleIt = m_obstacles.begin();
+    while (obstacleIt != m_obstacles.end())
     {
-        JunctionRef *juncRef = *juncRefIt;
-    
-        fprintf(fp, "<circle id=\"junc-%u\" style=\"stroke-width: 1px; "
-                "stroke: black; fill: red; fill-opacity: 0.5;\" r=\"10\" "
-                "cx=\"%g\" cy=\"%g\" />\n", 
-                juncRef->id(), juncRef->position().x, juncRef->position().y);
-        ++juncRefIt;
-    }
-    ShapeRefList::iterator shRefIt = shapeRefs.begin();
-    while (shRefIt != shapeRefs.end())
-    {
-        ShapeRef *shRef = *shRefIt;
-    
+        Obstacle *obstacle = *obstacleIt;
+        bool isShape = (NULL != dynamic_cast<ShapeRef *> (obstacle));
+
         fprintf(fp, "<path id=\"poly-%u\" style=\"stroke-width: 1px; "
-                "stroke: black; fill: blue; fill-opacity: 0.3;\" d=\"", 
-                shRef->id());
-        for (size_t i = 0; i < shRef->polygon().size(); ++i)
+                "stroke: black; fill: %s; fill-opacity: 0.3;\" d=\"", 
+                obstacle->id(), (isShape) ? "blue" : "red");
+        for (size_t i = 0; i < obstacle->polygon().size(); ++i)
         {
             fprintf(fp, "%c %g %g ", ((i == 0) ? 'M' : 'L'), 
-                    shRef->polygon().at(i).x, shRef->polygon().at(i).y);
+                    obstacle->polygon().at(i).x, obstacle->polygon().at(i).y);
         }
         fprintf(fp, "Z\" />\n");
-        ++shRefIt;
+        ++obstacleIt;
     }
     fprintf(fp, "</g>\n");
 
     fprintf(fp, "<g inkscape:groupmode=\"layer\" "
             "style=\"display: none;\" "
             "inkscape:label=\"ShapesRect\">\n");
-    shRefIt = shapeRefs.begin();
-    while (shRefIt != shapeRefs.end())
+    obstacleIt = m_obstacles.begin();
+    while (obstacleIt != m_obstacles.end())
     {
-        ShapeRef *shRef = *shRefIt;
+        Obstacle *obstacle = *obstacleIt;
+        bool isShape = (NULL != dynamic_cast<ShapeRef *> (obstacle));
         double minX, minY, maxX, maxY;
-        shRef->polygon().getBoundingRect(&minX, &minY, &maxX, &maxY);
+        obstacle->polygon().getBoundingRect(&minX, &minY, &maxX, &maxY);
     
-        fprintf(fp, "<rect id=\"rect-%u\" x=\"%g\" y=\"%g\" width=\"%g\" height=\"%g\" "
-                "style=\"stroke-width: 1px; stroke: black; fill: blue; fill-opacity: 0.3;\" />\n",
-                shRef->id(), minX, minY, maxX - minX, maxY - minY);
-        ++shRefIt;
+        fprintf(fp, "<rect id=\"rect-%u\" x=\"%g\" y=\"%g\" width=\"%g\" "
+                "height=\"%g\" style=\"stroke-width: 1px; stroke: %s; "
+                "fill: blue; fill-opacity: 0.3;\" />\n",
+                obstacle->id(), minX, minY, maxX - minX, maxY - minY,
+                (isShape) ? "blue" : "red");
+        ++obstacleIt;
     }
     fprintf(fp, "</g>\n");
 
