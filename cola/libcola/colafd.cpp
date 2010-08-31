@@ -86,8 +86,8 @@ void dumpSquareMatrix(unsigned n, T** L) {
 
 ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
         const std::vector< Edge >& es, const double idealLength,
-        const double* eLengths, TestConvergence& done, 
-        PreIteration* preIteration) 
+        const bool preventOverlaps, const double* eLengths, 
+        TestConvergence& done, PreIteration* preIteration) 
     : n(rs.size()),
       X(valarray<double>(n)),
       Y(valarray<double>(n)),
@@ -96,7 +96,8 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
       rungekutta(true),
       desiredPositions(NULL),
       clusterHierarchy(NULL),
-      rectClusterBuffer(0)
+      rectClusterBuffer(0),
+      m_generateNonOverlapConstraints(preventOverlaps)
 {
     topologyNodes.clear(),
     topologyRoutes.clear(),
@@ -236,6 +237,11 @@ void ConstrainedFDLayout::computeDescentVectorOnBothAxes(
  */
 void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis) 
 {
+    if (extraConstraints.empty())
+    {
+        vpsc::Variables vs[2];
+        generateNonOverlapCompoundConstraints(vs);
+    }
     FILE_LOG(logDEBUG) << "ConstrainedFDLayout::run...";
     double stress=DBL_MAX;
     do {
@@ -389,10 +395,55 @@ void ConstrainedFDLayout::recGenerateClusterVariablesAndConstraints(
     }
 }
 
+void ConstrainedFDLayout::generateNonOverlapCompoundConstraints(
+        vpsc::Variables (&vs)[2])
+{
+    if (clusterHierarchy && !clusterHierarchy->flat())
+    {
+        // Add remaining nodes that aren't contained within any clusters
+        // as children of the root cluster.
+        for (unsigned int i = 0; i < boundingBoxes.size(); ++i)
+        {
+            if (!clusterHierarchy->containsShape(i))
+            {
+                clusterHierarchy->nodes.push_back(i);
+            }
+        }
 
+        // Add non-overlap and containment constraints for all clusters
+        // and nodes.
+        unsigned int priority = PRIORITY_NONOVERLAP;
+        clusterHierarchy->computeBoundingRect(boundingBoxes);
+        
+        // Generate the containment constraints
+        recGenerateClusterVariablesAndConstraints(vs, priority, 
+                NULL, clusterHierarchy, extraConstraints);
+        
+        // Generate non-overlap constraints between all clusters and 
+        // all contained nodes.
+        priority--;
+        cola::NonOverlapConstraints *noc = 
+                new cola::NonOverlapConstraints(priority);
+        recGenerateClusterVariablesAndConstraints(vs, priority, 
+                noc, clusterHierarchy, extraConstraints);
+        extraConstraints.push_back(noc);
+    }
+    else
+    {
+        // Add standard non-overlap constraints between each pair of
+        // nodes.
+        cola::NonOverlapConstraints *noc = 
+                new cola::NonOverlapConstraints();
+        for (unsigned int i = 0; i < boundingBoxes.size(); ++i)
+        {
+            noc->addShape(i, boundingBoxes[i]->width() / 2,
+                    boundingBoxes[i]->height() / 2);
+        }
+        extraConstraints.push_back(noc);
+    }
+}
 
-void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
-        const bool preserveTopology)
+void ConstrainedFDLayout::makeFeasible(void)
 {
     vpsc::Variables vs[2];
     vpsc::Constraints valid[2];
@@ -415,55 +466,15 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
 
     vector<double> priorPos(boundingBoxes.size());
 
-    // Extra constraints for cluster containment and non-overlap.
-    // We keep a separate list of these since we need to free them when done.
-    cola::CompoundConstraints extraConstraints;
+    // Clear extra constraints for cluster containment and non-overlap.
+    // We keep a separate list of these since we keep them around for 
+    // later solving.
+    for_each(extraConstraints.begin(), extraConstraints.end(), delete_object());
+    extraConstraints.clear();
 
-    if (nonOverlapConstraints)
+    if (m_generateNonOverlapConstraints)
     {
-        if (clusterHierarchy && !clusterHierarchy->flat())
-        {
-            // Add remaining nodes that aren't contained within any clusters
-            // as children of the root cluster.
-            for (unsigned int i = 0; i < boundingBoxes.size(); ++i)
-            {
-                if (!clusterHierarchy->containsShape(i))
-                {
-                    clusterHierarchy->nodes.push_back(i);
-                }
-            }
-
-            // Add non-overlap and containment constraints for all clusters
-            // and nodes.
-            unsigned int priority = PRIORITY_NONOVERLAP;
-            clusterHierarchy->computeBoundingRect(boundingBoxes);
-            
-            // Generate the containment constraints
-            recGenerateClusterVariablesAndConstraints(vs, priority, 
-                    NULL, clusterHierarchy, extraConstraints);
-            
-            // Generate non-overlap constraints between all clusters and 
-            // all contained nodes.
-            priority--;
-            cola::NonOverlapConstraints *noc = 
-                    new cola::NonOverlapConstraints(priority);
-            recGenerateClusterVariablesAndConstraints(vs, priority, 
-                    noc, clusterHierarchy, extraConstraints);
-            extraConstraints.push_back(noc);
-        }
-        else
-        {
-            // Add standard non-overlap constraints between each pair of
-            // nodes.
-            cola::NonOverlapConstraints *noc = 
-                    new cola::NonOverlapConstraints();
-            for (unsigned int i = 0; i < boundingBoxes.size(); ++i)
-            {
-                noc->addShape(i, boundingBoxes[i]->width() / 2,
-                        boundingBoxes[i]->height() / 2);
-            }
-            extraConstraints.push_back(noc);
-        }
+        generateNonOverlapCompoundConstraints(vs);
     }
 
     // Make a copy of the compound constraints and sort them by priority.
@@ -661,7 +672,7 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
     vpsc::Rectangle::setXBorder(0);
     vpsc::Rectangle::setYBorder(0);
 
-    if (nonOverlapConstraints)
+    if (m_generateNonOverlapConstraints)
     {
         // Set up topologyNodes:
         unsigned nodesTotal = boundingBoxes.size();
@@ -734,17 +745,6 @@ void ConstrainedFDLayout::makeFeasible(const bool nonOverlapConstraints,
         generateRoutes();
     }
 #endif
-
-    // Turn on non-overlap constraints for later optimisation.
-    // XXX: Maybe use values from NonOverlapConstraints shape set.
-    if (!preserveTopology && nonOverlapConstraints)
-    {
-        // Empty edge set will just result in nonoverlap constraints for nodes.
-        //topologyRoutes.clear();
-    }
-
-    // Free the extra constraints we added to idle compound constraints.
-    for_each(extraConstraints.begin(), extraConstraints.end(), delete_object());
 }
 
 ConstrainedFDLayout::~ConstrainedFDLayout()
@@ -827,10 +827,26 @@ static void setupVarsAndConstraints(unsigned n, const CompoundConstraints& ccs,
     for (CompoundConstraints::const_iterator c = ccs.begin();
             c != ccs.end(); ++c) 
     {
-        (*c)->generateSeparationConstraints(dim, vs, cs);
+        (*c)->generateSeparationConstraints(dim, vs, cs, boundingBoxes);
     }
 }
 
+
+static void setupExtraConstraints(const CompoundConstraints& ccs,
+        const vpsc::Dim dim, vpsc::Variables& vs, vpsc::Constraints& cs,
+        std::vector<vpsc::Rectangle*>& boundingBoxes)
+{
+    for (CompoundConstraints::const_iterator c = ccs.begin();
+            c != ccs.end(); ++c) 
+    {
+        (*c)->generateVariables(dim, vs);
+    }
+    for (CompoundConstraints::const_iterator c = ccs.begin();
+            c != ccs.end(); ++c) 
+    {
+        (*c)->generateSeparationConstraints(dim, vs, cs, boundingBoxes);
+    }
+}
 
 void updateCompoundConstraints(const vpsc::Dim dim,
         const CompoundConstraints& ccs) 
@@ -933,7 +949,8 @@ void ConstrainedFDLayout::moveTo(const vpsc::Dim dim, Position& target) {
         v->desiredPosition = target[j];
     }
     setVariableDesiredPositions(vs,cs,des,coords);
-    if(!topologyNodes.empty()) {
+    if (!topologyNodes.empty() && !topologyRoutes.empty()) 
+    {
         topology::setNodeVariables(topologyNodes,vs);
         topology::TopologyConstraints t(dim, topologyNodes, topologyRoutes,
                 clusterHierarchy, vs, cs);
@@ -949,6 +966,12 @@ void ConstrainedFDLayout::moveTo(const vpsc::Dim dim, Position& target) {
             coords[v->id]=v->rect->getCentreD(dim);
         }
     } else {
+        if (m_generateNonOverlapConstraints)
+        {
+            // Add non-overlap constraints, but not variables again.
+            setupExtraConstraints(extraConstraints, dim, vs, cs, boundingBoxes);
+        }
+        // Projection.
         project(vs,cs,coords);
         moveBoundingBoxes();
     }
@@ -981,7 +1004,8 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const vpsc::Dim dim, const
     setupVarsAndConstraints(n, ccs, dim, boundingBoxes,
             clusterHierarchy, vs, cs, coords);
 
-    if(!topologyNodes.empty()) {
+    if (!topologyNodes.empty() && !topologyRoutes.empty())
+    {
         FILE_LOG(logDEBUG1) << "applying topology preserving layout...";
         vpsc::Rectangle::setXBorder(0);
         vpsc::Rectangle::setYBorder(0);
@@ -1020,6 +1044,12 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const vpsc::Dim dim, const
         vpsc::Rectangle::setYBorder(0);
         stress=computeStress();
     } else {
+        if (m_generateNonOverlapConstraints)
+        {
+            // Add non-overlap constraints, but not variables again.
+            setupExtraConstraints(extraConstraints, dim, vs, cs, boundingBoxes);
+        }
+        // Projection.
         SparseMap HMap(n);
         computeForces(dim,HMap,g);
         SparseMatrix H(HMap);
@@ -1303,13 +1333,14 @@ void ConstrainedFDLayout::outputInstanceToSVG(std::string instanceName)
         (*c)->printCreationCode(fp);
     }
 
-    fprintf(fp, "    ConstrainedFDLayout alg(rs, es, defaultEdgeLength);\n");
+    fprintf(fp, "    ConstrainedFDLayout alg(rs, es, defaultEdgeLength, %s);\n",
+            (m_generateNonOverlapConstraints) ? "true" : "false");
     if (clusterHierarchy)
     {
         clusterHierarchy->printCreationCode(fp);
     }
     fprintf(fp, "    alg.setConstraints(ccs);\n");
-    fprintf(fp, "    alg.makeFeasible(true);\n");
+    fprintf(fp, "    alg.makeFeasible();\n");
     fprintf(fp, "    alg.run();\n");
     fprintf(fp, "};\n");
     fprintf(fp, "-->\n");

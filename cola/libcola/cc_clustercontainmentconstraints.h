@@ -44,7 +44,8 @@ class ClusterContainmentConstraints : public CompoundConstraint
         
         void generateVariables(const vpsc::Dim dim, vpsc::Variables& vars);
         void generateSeparationConstraints(const vpsc::Dim dim, 
-                vpsc::Variables& vars, vpsc::Constraints& gcs);
+                vpsc::Variables& vars, vpsc::Constraints& cs,
+                std::vector<vpsc::Rectangle*>& bbs);
 
 };
 

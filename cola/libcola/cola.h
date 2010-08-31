@@ -405,6 +405,8 @@ public:
      * @param rs bounding boxes of nodes passed in at their initial positions
      * @param es simple pair edges, giving indices of the start and end nodes
      * @param idealLength is a scalar modifier of ideal edge lengths in eLengths
+     * @param preventOverlaps causes non-overlap constraints to be generated 
+     *        for all rectangles, if it is set to true.
      * @param eLengths individual ideal lengths for edges, actual ideal length 
      *        of the ith edge is idealLength*eLengths[i], if eLengths is NULL 
      *        then just idealLength is used (ie eLengths[i] is assumed to be 1).
@@ -416,6 +418,7 @@ public:
         const vpsc::Rectangles& rs,
         const std::vector<cola::Edge>& es,
         const double idealLength,
+        const bool preventOverlaps,
         const double* eLengths=NULL,
         TestConvergence& done=defaultTest,
         PreIteration* preIteration=NULL);
@@ -453,8 +456,8 @@ public:
         unsatisfiable[0]=unsatisfiableX;
         unsatisfiable[1]=unsatisfiableY;
     }
-    void makeFeasible(const bool nonOverlapConstraints,
-            const bool preserveTopology = false);
+
+    void makeFeasible(void);
     double computeStress() const;
 
     //! @brief  A convenience method that can be called from Java to free
@@ -488,6 +491,7 @@ private:
             const std::vector<Edge>& es,
             const double idealLength,
             const std::valarray<double> * eLengths);
+    void generateNonOverlapCompoundConstraints(vpsc::Variables (&vs)[2]);
     void handleResizes(const Resizes&);
     void setPosition(std::valarray<double>& pos);
     void moveBoundingBoxes();
@@ -511,9 +515,11 @@ private:
     std::vector<UnsatisfiableConstraintInfos*> unsatisfiable;
     bool rungekutta;
     std::vector<DesiredPosition>* desiredPositions;
+    cola::CompoundConstraints extraConstraints;
     
     RootCluster *clusterHierarchy;
     double rectClusterBuffer;
+    bool m_generateNonOverlapConstraints;
 };
 
 /**

@@ -153,11 +153,13 @@ void ClusterContainmentConstraints::markCurrSubConstraintAsActive(
 
 
 void ClusterContainmentConstraints::generateSeparationConstraints(
-        const vpsc::Dim dim, vpsc::Variables& vs, vpsc::Constraints& cs) 
+        const vpsc::Dim dim, vpsc::Variables& vs, vpsc::Constraints& cs,
+        std::vector<vpsc::Rectangle*>& bbs) 
 {
     COLA_UNUSED(dim);
     COLA_UNUSED(vs);
     COLA_UNUSED(cs);
+    COLA_UNUSED(bbs);
 }
 
 

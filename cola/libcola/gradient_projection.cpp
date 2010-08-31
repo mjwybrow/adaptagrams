@@ -116,7 +116,7 @@ GradientProjection::GradientProjection(
         }
         for(CompoundConstraints::const_iterator c=ccs->begin();
                 c!=ccs->end();++c) {
-            (*c)->generateSeparationConstraints(k, vars, gcs);
+            (*c)->generateSeparationConstraints(k, vars, gcs, *rs);
         }
     }
     /*
@@ -482,7 +482,7 @@ void GradientProjection::straighten(
     }
     COLA_ASSERT(lcs.size()==0);
     for(vector<SeparationConstraint*>::const_iterator i=cs.begin();i!=cs.end();i++) {
-        (*i)->generateSeparationConstraints(k, vars, lcs); 
+        (*i)->generateSeparationConstraints(k, vars, lcs, *rs); 
     }
 }
 } // namespace cola

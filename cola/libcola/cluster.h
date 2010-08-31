@@ -131,7 +131,7 @@ class RectangularCluster : public Cluster
         // centre position of the relevant rectangle.
         void generateFixedRectangleConstraints(
                 cola::CompoundConstraints& idleConstraints,
-                vpsc::Rectangles& rc, vpsc::Variables (&vars)[2]);
+                vpsc::Rectangles& rc, vpsc::Variables (&vars)[2]) const;
     
     private:
         bool clusterIsFromFixedRectangle(void) const;

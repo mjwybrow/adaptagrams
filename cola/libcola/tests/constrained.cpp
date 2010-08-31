@@ -69,7 +69,7 @@ int main() {
 	ac.addShape(0,0);
 	ac.addShape(3,0);
 	// apply steepest descent layout
-	ConstrainedFDLayout alg2(rs,es,width/2);
+	ConstrainedFDLayout alg2(rs,es,width/2, false);
 	alg2.setConstraints(ccs);
 	alg2.run();
 	assert(alg2.computeStress()<0.0013);

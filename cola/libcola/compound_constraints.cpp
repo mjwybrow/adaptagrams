@@ -110,8 +110,10 @@ void BoundaryConstraint::generateVariables(const vpsc::Dim dim,
 
 
 void BoundaryConstraint::generateSeparationConstraints(const vpsc::Dim dim,
-        vpsc::Variables& vars, vpsc::Constraints& cs) 
+        vpsc::Variables& vars, vpsc::Constraints& cs,
+        std::vector<vpsc::Rectangle*>& bbs) 
 {
+    COLA_UNUSED(bbs);
     if (dim == _primaryDim)
     {
         COLA_ASSERT(variable != NULL);
@@ -241,8 +243,10 @@ void AlignmentConstraint::generateVariables(const vpsc::Dim dim,
 
 
 void AlignmentConstraint::generateSeparationConstraints(const vpsc::Dim dim,
-        vpsc::Variables& vars, vpsc::Constraints& cs) 
+        vpsc::Variables& vars, vpsc::Constraints& cs,
+        std::vector<vpsc::Rectangle*>& bbs) 
 {
+    COLA_UNUSED(bbs);
     if (dim == _primaryDim)
     {
         COLA_ASSERT(variable != NULL);
@@ -419,8 +423,10 @@ SeparationConstraint::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
 
 
 void SeparationConstraint::generateSeparationConstraints(const vpsc::Dim dim,
-            vpsc::Variables& vs, vpsc::Constraints& cs) 
+            vpsc::Variables& vs, vpsc::Constraints& cs,
+            std::vector<vpsc::Rectangle*>& bbs) 
 {
+    COLA_UNUSED(bbs);
     if (dim == _primaryDim)
     {
         VarIndexPair *info = 
@@ -508,8 +514,10 @@ OrthogonalEdgeConstraint::getCurrSubConstraintAlternatives(
 
 
 void OrthogonalEdgeConstraint::generateSeparationConstraints(
-        const vpsc::Dim dim, vpsc::Variables& vs, vpsc::Constraints& cs) 
+        const vpsc::Dim dim, vpsc::Variables& vs, vpsc::Constraints& cs,
+        std::vector<vpsc::Rectangle*>& bbs) 
 {
+    COLA_UNUSED(bbs);
     if (dim == _primaryDim)
     {
         assertValidVariableIndex(vs, left);
@@ -683,9 +691,11 @@ void MultiSeparationConstraint::setSeparation(double sep)
 
 
 void MultiSeparationConstraint::generateSeparationConstraints(
-        const vpsc::Dim dim, vpsc::Variables& vs, vpsc::Constraints& gcs) 
+        const vpsc::Dim dim, vpsc::Variables& vs, vpsc::Constraints& gcs,
+        std::vector<vpsc::Rectangle*>& bbs) 
 {
     COLA_UNUSED(vs);
+    COLA_UNUSED(bbs);
 
     if (dim == _primaryDim)
     {
@@ -787,9 +797,11 @@ DistributionConstraint::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
 
 
 void DistributionConstraint::generateSeparationConstraints(
-        const vpsc::Dim dim, vpsc::Variables& vars, vpsc::Constraints& gcs) 
+        const vpsc::Dim dim, vpsc::Variables& vars, vpsc::Constraints& gcs,
+        std::vector<vpsc::Rectangle*>& bbs)
 {
     COLA_UNUSED(vars);
+    COLA_UNUSED(bbs);
 
     if (dim == _primaryDim)
     {
@@ -953,8 +965,10 @@ void PageBoundaryConstraints::generateVariables(const vpsc::Dim dim,
 
 
 void PageBoundaryConstraints::generateSeparationConstraints(
-        const vpsc::Dim dim, vpsc::Variables& vs, vpsc::Constraints& cs) 
+        const vpsc::Dim dim, vpsc::Variables& vs, vpsc::Constraints& cs,
+        std::vector<vpsc::Rectangle*>& bbs) 
 {
+    COLA_UNUSED(bbs);
     // For each of the "real" variables, create a constraint that puts 
     // that var between our two new dummy vars, depending on the dimension.
     for (SubConstraintInfoList::iterator o = _subConstraintInfo.begin();
@@ -1003,29 +1017,32 @@ struct GenerateVariables
 struct GenerateSeparationConstraints 
 {
     GenerateSeparationConstraints(const vpsc::Dim dim, vpsc::Variables& vars, 
-            vpsc::Constraints& cs) 
+            vpsc::Constraints& cs, std::vector<vpsc::Rectangle*>& bbs) 
         : dim(dim),
           vars(vars), 
-          cs(cs) 
+          cs(cs),
+          bbs(bbs)
     {
     }
     void operator() (CompoundConstraint *c) 
     {
-        c->generateSeparationConstraints(dim, vars, cs);
+        c->generateSeparationConstraints(dim, vars, cs, bbs);
     }
     const vpsc::Dim dim;
     vpsc::Variables& vars;
     vpsc::Constraints& cs;
+    std::vector<vpsc::Rectangle*>& bbs;
 };
 
 
 void generateVariablesAndConstraints(CompoundConstraints& ccs, 
-        const vpsc::Dim dim, vpsc::Variables& vars, vpsc::Constraints& cs)
+        const vpsc::Dim dim, vpsc::Variables& vars, vpsc::Constraints& cs,
+        std::vector<vpsc::Rectangle*>& bbs)
 {
     for_each(ccs.begin(), ccs.end(), 
             GenerateVariables(dim, vars));
     for_each(ccs.begin(), ccs.end(), 
-            GenerateSeparationConstraints(dim, vars, cs));
+            GenerateSeparationConstraints(dim, vars, cs, bbs));
 }
 
 

@@ -922,9 +922,9 @@ int main(void) {
     ccs.push_back(alignment1216022832);
 #endif
 
-    ConstrainedFDLayout alg(rs, es, defaultEdgeLength);
+    ConstrainedFDLayout alg(rs, es, defaultEdgeLength, true);
     alg.setConstraints(ccs);
-    alg.makeFeasible(true);
+    alg.makeFeasible();
     alg.outputInstanceToSVG();
     //alg.run();
 };

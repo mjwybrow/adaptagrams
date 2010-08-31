@@ -119,7 +119,8 @@ public:
      * CompoundConstraint.
      */
     virtual void generateSeparationConstraints(const vpsc::Dim dim, 
-            vpsc::Variables& var, vpsc::Constraints& cs) = 0;
+            vpsc::Variables& var, vpsc::Constraints& cs,
+            std::vector<vpsc::Rectangle*>& bbs) = 0;
     /**
      * After the vpsc instance is solved the following should be called
      * to send position information back to the interface.
@@ -200,7 +201,8 @@ class BoundaryConstraint : public CompoundConstraint
 
         void generateVariables(const vpsc::Dim dim, vpsc::Variables& vars);
         void generateSeparationConstraints(const vpsc::Dim dim, 
-                vpsc::Variables& vars, vpsc::Constraints& cs);
+                vpsc::Variables& vars, vpsc::Constraints& cs,
+                std::vector<vpsc::Rectangle*>& bbs);
         void updatePosition(const vpsc::Dim dim);
         void printCreationCode(FILE *fp) const;
         
@@ -225,7 +227,8 @@ class AlignmentConstraint : public CompoundConstraint
 
         void generateVariables(const vpsc::Dim dim, vpsc::Variables& vars);
         void generateSeparationConstraints(const vpsc::Dim dim, 
-                vpsc::Variables& vars, vpsc::Constraints& cs);
+                vpsc::Variables& vars, vpsc::Constraints& cs,
+                std::vector<vpsc::Rectangle*>& bbs);
         void updatePosition(const vpsc::Dim dim);
         void fixPos(double pos);
         void unfixPos(void);
@@ -260,7 +263,8 @@ class SeparationConstraint : public CompoundConstraint
         
         void generateVariables(const vpsc::Dim dim, vpsc::Variables& vars);
         void generateSeparationConstraints(const vpsc::Dim dim, 
-                vpsc::Variables& vs, vpsc::Constraints& cs);
+                vpsc::Variables& vs, vpsc::Constraints& cs,
+                std::vector<vpsc::Rectangle*>& bbs);
         void setSeparation(double gap);
         unsigned left(void) const;
         unsigned right(void) const;
@@ -283,7 +287,8 @@ class OrthogonalEdgeConstraint : public CompoundConstraint
         
         void generateVariables(const vpsc::Dim dim, vpsc::Variables& vars);
         void generateSeparationConstraints(const vpsc::Dim dim, 
-                vpsc::Variables& vs, vpsc::Constraints& cs);
+                vpsc::Variables& vs, vpsc::Constraints& cs,
+                std::vector<vpsc::Rectangle*>& bbs);
         void generateTopologyConstraints(const vpsc::Dim k, 
                 std::vector<vpsc::Rectangle*> const& rs, 
                 std::vector<vpsc::Variable*> const& vars, 
@@ -313,7 +318,8 @@ class MultiSeparationConstraint : public CompoundConstraint
 
         void generateVariables(const vpsc::Dim dim, vpsc::Variables& vars);
         void generateSeparationConstraints(const vpsc::Dim dim, 
-                vpsc::Variables& vs, vpsc::Constraints& gcs);
+                vpsc::Variables& vs, vpsc::Constraints& gcs,
+                std::vector<vpsc::Rectangle*>& bbs);
         void setSeparation(double sep);
         void printCreationCode(FILE *fp) const;
 
@@ -338,7 +344,8 @@ class DistributionConstraint : public CompoundConstraint {
 
         void generateVariables(const vpsc::Dim dim, vpsc::Variables& vars);
         void generateSeparationConstraints(const vpsc::Dim dim, 
-                vpsc::Variables& vars, vpsc::Constraints& gcs);
+                vpsc::Variables& vars, vpsc::Constraints& gcs,
+                std::vector<vpsc::Rectangle*>& bbs);
         void setSeparation(double sep);
         void printCreationCode(FILE *fp) const;
 
@@ -359,7 +366,8 @@ class PageBoundaryConstraints : public CompoundConstraint {
                 vpsc::Variables vs[]);
         void generateVariables(const vpsc::Dim dim, vpsc::Variables& vars);
         void generateSeparationConstraints(const vpsc::Dim dim, 
-                vpsc::Variables& vars, vpsc::Constraints& gcs);
+                vpsc::Variables& vars, vpsc::Constraints& gcs,
+                std::vector<vpsc::Rectangle*>& bbs);
         void updatePosition(const vpsc::Dim dim);
         double getActualLeftMargin(const vpsc::Dim dim);
         double getActualRightMargin(const vpsc::Dim dim);

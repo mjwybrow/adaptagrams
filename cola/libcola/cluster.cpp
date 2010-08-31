@@ -231,8 +231,10 @@ bool RectangularCluster::containsShape(unsigned index) const
 
 void RectangularCluster::generateFixedRectangleConstraints(
         cola::CompoundConstraints& idleConstraints,
-        vpsc::Rectangles& rc, vpsc::Variables (&vars)[2])
+        vpsc::Rectangles& rc, vpsc::Variables (&vars)[2]) const
 {
+    COLA_UNUSED(vars);
+
     if (rectangleIndex < 0)
     {
         // Not based on a Rectangle.

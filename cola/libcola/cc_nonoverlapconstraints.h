@@ -59,6 +59,9 @@ class NonOverlapConstraints : public CompoundConstraint {
         void generateVariables(const vpsc::Dim dim, vpsc::Variables& vars);
         void generateSeparationConstraints(const vpsc::Dim dim, 
                 vpsc::Variables& vars, vpsc::Constraints& gcs);
+        void generateSeparationConstraints(const vpsc::Dim dim, 
+                vpsc::Variables& vars, vpsc::Constraints& gcs,
+                std::vector<vpsc::Rectangle*>& boundingBoxes);
 
     private:
         std::list<ShapePairInfo> pairInfoList;

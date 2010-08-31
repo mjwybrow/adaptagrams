@@ -427,11 +427,38 @@ void NonOverlapConstraints::markAllSubConstraintsAsInactive(void)
 
 
 void NonOverlapConstraints::generateSeparationConstraints(
-        const vpsc::Dim dim, vpsc::Variables& vs, vpsc::Constraints& cs) 
+        const vpsc::Dim dim, vpsc::Variables& vs, vpsc::Constraints& cs,
+        std::vector<vpsc::Rectangle*>& boundingBoxes) 
 {
-    COLA_UNUSED(dim);
-    COLA_UNUSED(vs);
-    COLA_UNUSED(cs);
+    for (std::list<ShapePairInfo>::iterator info = pairInfoList.begin();
+            info != pairInfoList.end(); ++info)
+    {
+        assertValidVariableIndex(vs, info->varIndex1);
+        assertValidVariableIndex(vs, info->varIndex2);
+        
+        OverlapShapeOffsets& shape1 = shapeOffsets[info->varIndex1];
+        OverlapShapeOffsets& shape2 = shapeOffsets[info->varIndex2];
+           
+        double pos1 = boundingBoxes[info->varIndex1]->getCentreD(dim);
+        double pos2 = boundingBoxes[info->varIndex2]->getCentreD(dim);
+
+        if (boundingBoxes[info->varIndex1]->overlapD(!dim,
+                    boundingBoxes[info->varIndex2]) > 0.0005)
+        {
+            if (pos1 < pos2)
+            {
+                cs.push_back(new vpsc::Constraint(
+                        vs[info->varIndex1], vs[info->varIndex2], 
+                        shape1.halfDim[dim] + shape2.halfDim[dim]));
+            }
+            else
+            {
+                cs.push_back(new vpsc::Constraint(
+                        vs[info->varIndex2], vs[info->varIndex1], 
+                        shape1.halfDim[dim] + shape2.halfDim[dim]));
+            }
+        }
+    }
 }
 
 
