@@ -32,6 +32,8 @@
 #include <list>
 #include <set>
 
+#include <cstdio>
+
 #include "libavoid/geometry.h"
 #include "libavoid/obstacle.h"
 

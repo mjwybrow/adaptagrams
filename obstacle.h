@@ -33,6 +33,8 @@
 #include <list>
 #include <set>
 
+#include <cstdio>
+
 #include "libavoid/geometry.h"
 
 
