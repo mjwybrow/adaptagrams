@@ -56,12 +56,11 @@ using std::copy;
 
 namespace vpsc {
 
-long blockTimeCtr;
 
 Blocks::Blocks(vector<Variable*> const &vs) : vs(vs),nvs(vs.size()) {
     blockTimeCtr=0;
     for(int i=0;i<nvs;i++) {
-        insert(new Block(vs[i]));
+        insert(new Block(this, vs[i]));
     }
 }
 Blocks::~Blocks(void)

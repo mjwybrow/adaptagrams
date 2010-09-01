@@ -441,12 +441,11 @@ using std::list;
 using std::copy;
 #define __NOTNAN(p) (p)==(p)
 
-long blockTimeCtr;
 
 Blocks::Blocks(vector<Variable*> const &vs) : vs(vs),nvs(vs.size()) {
     blockTimeCtr=0;
     for(int i=0;i<nvs;i++) {
-        insert(new Block(vs[i]));
+        insert(new Block(this, vs[i]));
     }
 }
 Blocks::~Blocks(void)
@@ -643,7 +642,7 @@ void Block::addVariable(Variable* v) {
 #endif
 */
 }
-Block::Block(Variable* const v)
+Block::Block(Blocks *blocks, Variable* const v)
     : vars(new vector<Variable*>)
     , posn(0)
     //, weight(0)
@@ -652,6 +651,7 @@ Block::Block(Variable* const v)
     , timeStamp(0)
     , in(NULL)
     , out(NULL)
+    , blocks(blocks)
 {
     if(v!=NULL) {
         v->offset=0;
@@ -693,7 +693,7 @@ void Block::setUpConstraintHeap(Heap* &h,bool in) {
         vector<Constraint*> *cs=in?&(v->in):&(v->out);
         for (Cit j=cs->begin();j!=cs->end();++j) {
             Constraint *c=*j;
-            c->timeStamp=blockTimeCtr;
+            c->timeStamp=blocks->blockTimeCtr;
             if ( ((c->left->block != this) && in) || 
                  ((c->right->block != this) && !in) )
             {
@@ -824,7 +824,7 @@ Constraint *Block::findMinInConstraint() {
     }
     for(Cit i=outOfDate.begin();i!=outOfDate.end();++i) {
         v=*i;
-        v->timeStamp=blockTimeCtr;
+        v->timeStamp=blocks->blockTimeCtr;
         in->push(v);
     }
     if(in->empty()) {
@@ -1182,10 +1182,10 @@ Constraint* Block::splitBetween(Variable* const vl, Variable* const vr,
  */
 void Block::split(Block* &l, Block* &r, Constraint* c) {
     c->active=false;
-    l=new Block();
+    l=new Block(blocks);
     populateSplitBlock(l,c->left,c->right);
     //COLA_ASSERT(l->weight>0);
-    r=new Block();
+    r=new Block(blocks);
     populateSplitBlock(r,c->right,c->left);
     //COLA_ASSERT(r->weight>0);
 }

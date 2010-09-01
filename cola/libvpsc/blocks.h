@@ -65,6 +65,8 @@ public:
 	std::list<Variable*> *totalOrder();
 	void cleanup();
 	double cost();
+    
+    long blockTimeCtr;
 private:
 	void dfsVisit(Variable *v, std::list<Variable*> *order);
 	void removeBlock(Block *doomed);
@@ -72,6 +74,5 @@ private:
 	int nvs;
 };
 
-extern long blockTimeCtr;
 }
 #endif // SEEN_LIBVPSC_BLOCKS_H
