@@ -542,7 +542,7 @@ bool EdgeInf::isDummyConnection(void) const
 }
 
 
-VertInf *EdgeInf::otherVert(VertInf *vert)
+VertInf *EdgeInf::otherVert(const VertInf *vert) const 
 {
     COLA_ASSERT((vert == m_vert1) || (vert == m_vert2));
 

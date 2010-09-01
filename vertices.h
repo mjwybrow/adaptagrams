@@ -109,6 +109,9 @@ class VertInf
         void removeFromGraph(const bool isConnVert = true);
         bool orphaned(void);
 
+        // Checks if this vertex has the target as a visibility neighbour.
+        bool hasNeighbour(VertInf *target, bool orthogonal) const;
+        
         Router *_router;
         VertID id;
         Point  point;

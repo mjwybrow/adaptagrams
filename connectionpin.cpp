@@ -57,6 +57,13 @@ ShapeConnectionPin::ShapeConnectionPin(ShapeRef *shape,
             VertID::PROP_ConnPoint | VertID::PROP_ConnectionPin);
     m_vertex = new VertInf(m_router, id, this->position());
     m_vertex->visDirections = this->directions();
+    
+    if (m_vertex->visDirections == ConnDirAll)
+    {
+        // A pin with visibility in all directions is not exclusive 
+        // by default.
+        m_exclusive = false;
+    }
 }
 
 
