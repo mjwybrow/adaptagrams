@@ -60,8 +60,10 @@ class VertInf;
 //! Then the shape is moved or resized, The pin will be automatically moved 
 //! accordingly.
 //!
-//! Pins are exclusive by default, but they can be set otherwise with 
-//! setExclusive().
+//! Pins with a specified direction are exclusive by default, those with
+//! visibility in all directions are non-exclusive by default.  This 
+//! behaviour can be changed by calling the ShapeConnectionPin::setExclusive() 
+//! method.
 //!
 class ShapeConnectionPin
 {

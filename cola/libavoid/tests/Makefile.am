@@ -42,7 +42,11 @@ check_PROGRAMS = \
 	lineSegWrapperCrash7 \
 	lineSegWrapperCrash8 \
 	node1 \
-	overlappingRects
+	overlappingRects \
+	inlineShapes
+
+
+inlineShapes_SOURCES = inlineShapes.cpp
 
 overlappingRects_SOURCES = overlappingRects.cpp
 

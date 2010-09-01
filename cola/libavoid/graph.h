@@ -66,7 +66,7 @@ class EdgeInf
         std::pair<Point, Point> points(void);
         void db_print(void);
         void checkVis(void);
-        VertInf *otherVert(VertInf *vert);
+        VertInf *otherVert(const VertInf *vert) const;
         static EdgeInf *checkEdgeVisibility(VertInf *i, VertInf *j,
                 bool knownNew = false);
         static EdgeInf *existingEdge(VertInf *i, VertInf *j);

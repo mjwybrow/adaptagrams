@@ -131,7 +131,7 @@ void VertID::print(FILE *file) const
 
 void VertID::db_print(void) const
 {
-    db_printf("[%u,%d]", objID, vn);
+    db_printf("[%u,%d, p=%u]", objID, vn, (unsigned int) props);
 }
 
 
@@ -181,6 +181,21 @@ VertInf::~VertInf()
 {
 }
 
+
+bool VertInf::hasNeighbour(VertInf *target, bool orthogonal) const
+{
+    const EdgeInfList& visEdgeList = (!orthogonal) ? visList : orthogVisList;
+    EdgeInfList::const_iterator finish = visEdgeList.end();
+    for (EdgeInfList::const_iterator edge = visEdgeList.begin(); 
+            edge != finish; ++edge)
+    {
+        if ((*edge)->otherVert(this) == target)
+        {
+            return true;
+        }
+    }
+    return false;
+}
 
 void VertInf::Reset(const VertID& vid, const Point& vpoint)
 {

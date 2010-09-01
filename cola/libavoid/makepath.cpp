@@ -673,18 +673,27 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
             // this ANode through (the last BestNode pushed onto DONE).
             Node.prevIndex = DONE_size - 1;
 
-            // Only check shape verticies, or the tar endpoint.
-            if (Node.inf->id.isConnPt() && !Node.inf->id.isConnectionPin() && 
-                    (Node.inf != tar))
-            {
-                continue;
-            }
-
             VertInf *prevInf = (BestNode.prevIndex >= 0) ?
                     DONE[BestNode.prevIndex].inf : NULL;
 
             // Don't bother looking at the segment we just arrived along.
             if (prevInf && (prevInf == Node.inf))
+            {
+                continue;
+            }
+
+            // Don't check connection pins if they don't have the target
+            // vertex as a direct neightbour.
+            if (DONE_size > 1 && Node.inf->id.isConnectionPin() && 
+                    (Node.inf->hasNeighbour(tar, isOrthogonal) == false))
+            {
+                continue;
+            }
+
+            // Don't check connector endpoints vertices unless they
+            // are the target endpoint.
+            if (Node.inf->id.isConnPt() && !Node.inf->id.isConnectionPin() && 
+                    (Node.inf != tar))
             {
                 continue;
             }
