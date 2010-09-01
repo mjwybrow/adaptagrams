@@ -173,7 +173,8 @@ typedef std::vector<CompoundConstraint*> CompoundConstraints;
  * CompoundConstraints.
  */
 void generateVariablesAndConstraints(CompoundConstraints& ccs, 
-        const vpsc::Dim dim, vpsc::Variables& vars, vpsc::Constraints& cs);
+        const vpsc::Dim dim, vpsc::Variables& vars, vpsc::Constraints& cs,
+        vpsc::Rectangles& bbs);
 
 
 /**

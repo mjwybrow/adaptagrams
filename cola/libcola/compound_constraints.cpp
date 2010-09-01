@@ -1037,7 +1037,7 @@ struct GenerateSeparationConstraints
 
 void generateVariablesAndConstraints(CompoundConstraints& ccs, 
         const vpsc::Dim dim, vpsc::Variables& vars, vpsc::Constraints& cs,
-        std::vector<vpsc::Rectangle*>& bbs)
+        vpsc::Rectangles& bbs)
 {
     for_each(ccs.begin(), ccs.end(), 
             GenerateVariables(dim, vars));

@@ -213,6 +213,7 @@ void deleteDoubleArray(double* a) {
 %include "libcola/exceptions.h"
 %include "libtopology/topology_graph.h"
 
+%include "libavoid/obstacle.h"
 %include "libavoid/geometry.h"
 %include "libavoid/geomtypes.h"
 %include "libavoid/connend.h"
