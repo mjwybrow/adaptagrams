@@ -46,6 +46,7 @@ namespace Avoid {
 
 class Variable;
 class Constraint;
+class Blocks;
 typedef std::vector<Variable*> Variables;
 typedef std::vector<Constraint*> Constraints;
 class CompareConstraints {
@@ -77,7 +78,7 @@ public:
     //double weight;
     //double wposn;
     PositionStats ps;
-    Block(Variable* const v=NULL);
+    Block(Blocks *blocks, Variable* const v=NULL);
     ~Block(void);
     Constraint* findMinLM();
     Constraint* findMinLMBetween(Variable* const lv, Variable* const rv);
@@ -118,6 +119,9 @@ private:
     void populateSplitBlock(Block *b, Variable* v, Variable const* u);
     void addVariable(Variable* v);
     void setUpConstraintHeap(Heap* &h,bool in);
+
+    // Parent container, that holds the blockTimeCtr.
+    Blocks *blocks;
 };
 
 
@@ -197,6 +201,8 @@ public:
     std::list<Variable*> *totalOrder();
     void cleanup();
     double cost();
+    
+    long blockTimeCtr;
 private:
     void dfsVisit(Variable *v, std::list<Variable*> *order);
     void removeBlock(Block *doomed);
