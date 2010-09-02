@@ -755,7 +755,7 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
                 continue;
             }
 
-            if (!router->_orthogonalRouting &&
+            if (!isOrthogonal &&
                   (!router->RubberBandRouting || (start == src)) && 
                   (validateBendPoint(prevInf, BestNode.inf, Node.inf) == false))
             {
@@ -859,40 +859,16 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
 // The path encoded in the pathNext links in each of the VertInfs
 // backwards along the path, from the tar back to the source.
 //
-void makePath(ConnRef *lineRef, bool *flag)
+void makePath(ConnRef *lineRef)
 {
-    bool isOrthogonal = (lineRef->routingType() == ConnType_Orthogonal);
-    Router *router = lineRef->router();
     VertInf *src = lineRef->src();
     VertInf *tar = lineRef->dst();
     VertInf *start = lineRef->start();
 
-    // TODO: Could be more efficient here.
-    if (isOrthogonal)
-    {
-        aStarPath(lineRef, src, tar, start);
-    }
-    else // if (!isOrthogonal)
-    {
-        EdgeInf *directEdge = EdgeInf::existingEdge(src, tar);
-        // If the connector hates crossings or there are clusters present,
-        // then we want to examine direct paths:
-        bool examineDirectPath = lineRef->doesHateCrossings() || 
-                !(router->clusterRefs.empty());
-        
-        if ((start == src) && directEdge && (directEdge->getDist() > 0) && 
-                !examineDirectPath)
-        {
-            tar->pathNext = src;
-            directEdge->addConn(flag);
-        }
-        else
-        {
-            aStarPath(lineRef, src, tar, start);
-        }
-    }
+    aStarPath(lineRef, src, tar, start);
 
 #if 0
+    Router *router = lineRef->router();
     for (VertInf *t = vertices.connsBegin(); t != vertices.end();
             t = t->lstNext)
     {

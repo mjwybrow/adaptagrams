@@ -278,11 +278,21 @@ void ConnRef::updateEndPoint(const unsigned int type, const ConnEnd& connEnd)
         bool genContains = true;
         if (type == (unsigned int) VertID::src)
         {
-            vertexVisibility(m_src_vert, m_dst_vert, knownNew, genContains);
+            bool dummySrc = m_src_connend && m_src_connend->isPinConnection();
+            if (!dummySrc)
+            {
+                // Only generate visibility if not attached to a pin.
+                vertexVisibility(m_src_vert, m_dst_vert, knownNew, genContains);
+            }
         }
         else
         {
-            vertexVisibility(m_dst_vert, m_src_vert, knownNew, genContains);
+            bool dummyDst = m_dst_connend && m_dst_connend->isPinConnection();
+            if (!dummyDst)
+            {
+                // Only generate visibility if not attached to a pin.
+                vertexVisibility(m_dst_vert, m_src_vert, knownNew, genContains);
+            }
         }
     }
 }
@@ -540,6 +550,11 @@ Router *ConnRef::router(void) const
 //
 bool validateBendPoint(VertInf *aInf, VertInf *bInf, VertInf *cInf)
 {
+    if (bInf->id.isConnectionPin())
+    {
+        // We shouldn't check connection pins.
+        return true;
+    }
     bool bendOkay = true;
 
     if ((aInf == NULL) || (cInf == NULL))
@@ -658,8 +673,6 @@ bool ConnRef::generatePath(void)
         m_dst_connend->assignPinVisibilityTo(m_dst_vert);
     }
 
-    bool *flag = &(m_needs_reroute_flag);
-   
     size_t existingPathStart = 0;
     const PolyLine& currRoute = route();
     if (m_router->RubberBandRouting)
@@ -696,7 +709,7 @@ bool ConnRef::generatePath(void)
     bool found = false;
     while (!found)
     {
-        makePath(this, flag);
+        makePath(this);
         for (VertInf *i = tar; i != NULL; i = i->pathNext)
         {
             if (i == m_src_vert)
@@ -775,14 +788,15 @@ bool ConnRef::generatePath(void)
         if (i == NULL)
         {
             db_printf("Warning: Path not found...\n");
+            m_needs_reroute_flag = true;
             pathlen = 2;
             tar->pathNext = m_src_vert;
             if ((m_type == ConnType_PolyLine) && m_router->InvisibilityGrph)
             {
                 // TODO:  Could we know this edge already?
-                EdgeInf *edge = EdgeInf::existingEdge(m_src_vert, tar);
-                COLA_ASSERT(edge != NULL);
-                edge->addCycleBlocker();
+                //EdgeInf *edge = EdgeInf::existingEdge(m_src_vert, tar);
+                //COLA_ASSERT(edge != NULL);
+                //edge->addCycleBlocker();
             }
             break;
         }
@@ -801,7 +815,7 @@ bool ConnRef::generatePath(void)
             // TODO: Again, we could know this edge without searching.
             EdgeInf *edge = EdgeInf::existingEdge(i, i->pathNext);
             COLA_ASSERT(edge != NULL);
-            edge->addConn(flag);
+            edge->addConn(&m_needs_reroute_flag);
         }
         else
         {
@@ -1244,7 +1258,8 @@ static bool posInlineWithConnEndSegs(const double pos, const size_t dim,
     return false;
 }
 
-ConnectorCrossings::ConnectorCrossings(Avoid::Polygon& poly, bool polyIsConn,               Avoid::Polygon& conn, ConnRef *polyConnRef, ConnRef *connConnRef)
+ConnectorCrossings::ConnectorCrossings(Avoid::Polygon& poly, bool polyIsConn,
+        Avoid::Polygon& conn, ConnRef *polyConnRef, ConnRef *connConnRef)
     : poly(poly),
       polyIsConn(polyIsConn),
       conn(conn),

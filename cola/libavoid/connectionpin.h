@@ -191,7 +191,8 @@ class ShapeConnectionPin
         
         void updatePosition(const Point& newPosition);
         void updatePosition(const Polygon& newPoly);
-        void updatePositionAndVisbility(void);
+        void updatePositionAndVisibility(void);
+        void updateVisibility(void);
         void outputCode(FILE *fp) const;
 
         Router *m_router;

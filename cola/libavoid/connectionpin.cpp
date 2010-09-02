@@ -29,6 +29,7 @@
 #include "libavoid/junction.h"
 #include "libavoid/vertices.h"
 #include "libavoid/router.h"
+#include "libavoid/visibility.h"
 
 
 namespace Avoid {
@@ -64,6 +65,11 @@ ShapeConnectionPin::ShapeConnectionPin(ShapeRef *shape,
         // by default.
         m_exclusive = false;
     }
+
+    if (m_router->_polyLineRouting)
+    {
+        vertexVisibility(m_vertex, NULL, true, true);
+    }
 }
 
 
@@ -89,6 +95,11 @@ ShapeConnectionPin::ShapeConnectionPin(JunctionRef *junction,
             VertID::PROP_ConnPoint | VertID::PROP_ConnectionPin);
     m_vertex = new VertInf(m_router, id, m_junction->position());
     m_vertex->visDirections = visDirs;
+
+    if (m_router->_polyLineRouting)
+    {
+        vertexVisibility(m_vertex, NULL, true, true);
+    }
 }
 
 
@@ -120,11 +131,20 @@ ShapeConnectionPin::~ShapeConnectionPin()
     }
 }
 
-void ShapeConnectionPin::updatePositionAndVisbility(void)
+void ShapeConnectionPin::updatePositionAndVisibility(void)
 {
-    m_vertex->removeFromGraph();
     m_vertex->Reset(this->position());
     m_vertex->visDirections = this->directions();
+    updateVisibility();
+}
+
+void ShapeConnectionPin::updateVisibility(void)
+{
+    m_vertex->removeFromGraph();
+    if (m_router->_polyLineRouting)
+    {
+        vertexVisibility(m_vertex, NULL, true, true);
+    }
 }
 
 void ShapeConnectionPin::setConnectionCost(const double cost)
