@@ -178,7 +178,7 @@ void ShapeRef::transformConnectionPinPositions(
             if (visInDir[(rotationN + dirD) % 4])  visDirs |= ConnDirDown;
             if (visInDir[(rotationN + dirL) % 4])  visDirs |= ConnDirLeft;
         }
-        pin->updatePositionAndVisbility();
+        pin->updatePositionAndVisibility();
         m_router->modifyConnectionPin(pin);
     }
 }

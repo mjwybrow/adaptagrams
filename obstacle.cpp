@@ -186,6 +186,17 @@ void Obstacle::makeInactive(void)
 }
 
 
+void Obstacle::updatePinPolyLineVisibility(void)
+{
+    for (std::set<ShapeConnectionPin *>::iterator curr = 
+            m_connection_pins.begin(); 
+            curr != m_connection_pins.end(); ++curr)
+    {
+        (*curr)->updateVisibility();
+    }
+}
+
+
 std::vector<Point> Obstacle::possiblePinPoints(unsigned int pinClassId) const
 {
     std::vector<Point> points;

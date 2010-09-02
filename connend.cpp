@@ -27,6 +27,7 @@
 #include <cstdlib>
 #include <cfloat>
 
+#include "libavoid/router.h"
 #include "libavoid/connend.h"
 #include "libavoid/connector.h"
 #include "libavoid/connectionpin.h"
@@ -229,7 +230,8 @@ void ConnEnd::assignPinVisibilityTo(VertInf *dummyConnectionVert)
 {
     COLA_ASSERT(m_anchor_obj);
     COLA_ASSERT(m_connection_pin_class_id != CONNECTIONPIN_UNSET);
-
+    
+    Router *router = m_anchor_obj->router();
     for (std::set<ShapeConnectionPin *>::iterator curr = 
             m_anchor_obj->m_connection_pins.begin(); 
             curr != m_anchor_obj->m_connection_pins.end(); ++curr)
@@ -238,15 +240,31 @@ void ConnEnd::assignPinVisibilityTo(VertInf *dummyConnectionVert)
         if ((currPin->m_class_id == m_connection_pin_class_id) && 
                 (!currPin->m_exclusive || currPin->m_connend_users.empty()))
         {
-            // This has same ID and is either unconnected or not 
-            // exclusive, so give it visibility.
-            EdgeInf *edge = new EdgeInf(dummyConnectionVert,
-                    currPin->m_vertex, true);
-            // XXX Can't use a zero cost due to assumptions 
-            //     elsewhere in code.
-            edge->setDist(manhattanDist(dummyConnectionVert->point,
-                        currPin->m_vertex->point) + 
-                    std::max(0.001, currPin->m_connection_cost));
+            if (router->_orthogonalRouting)
+            {
+                // This has same ID and is either unconnected or not 
+                // exclusive, so give it visibility.
+                EdgeInf *edge = new EdgeInf(dummyConnectionVert,
+                        currPin->m_vertex, true);
+                // XXX Can't use a zero cost due to assumptions 
+                //     elsewhere in code.
+                edge->setDist(manhattanDist(dummyConnectionVert->point,
+                            currPin->m_vertex->point) + 
+                        std::max(0.001, currPin->m_connection_cost));
+            }
+
+            if (router->_polyLineRouting)
+            {
+                // This has same ID and is either unconnected or not 
+                // exclusive, so give it visibility.
+                EdgeInf *edge = new EdgeInf(dummyConnectionVert,
+                        currPin->m_vertex, false);
+                // XXX Can't use a zero cost due to assumptions 
+                //     elsewhere in code.
+                edge->setDist(euclideanDist(dummyConnectionVert->point,
+                            currPin->m_vertex->point) + 
+                        std::max(0.001, currPin->m_connection_cost));
+            }
         }
     }
 }

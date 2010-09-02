@@ -141,12 +141,17 @@ void vertexVisibility(VertInf *point, VertInf *partner, bool knownNew,
     else
     {
         VertInf *shapesEnd = router->vertices.end();
-        for (VertInf *k = router->vertices.shapesBegin(); k != shapesEnd;
+        for (VertInf *k = router->vertices.connsBegin(); k != shapesEnd;
                 k = k->lstNext)
         {
             if (k->id == dummyOrthogID)
             {
                 // Don't include orthogonal dummy vertices.
+                continue;
+            }
+            else if (k->id.isConnPt() && !k->id.isConnectionPin())
+            {
+                // Include connection pins, but not connectors.
                 continue;
             }
             EdgeInf::checkEdgeVisibility(point, k, knownNew);
@@ -509,7 +514,7 @@ void vertexSweep(VertInf *vert)
                     shapeID);
             continue;
         }
-
+        
         if (!(inf->id.isConnPt()))
         {
             // Add shape vertex.
@@ -518,7 +523,7 @@ void vertexSweep(VertInf *vert)
         else
         {
             // Add connector endpoint.
-            if (!(centerID.isConnPt()))
+            if (!(centerID.isConnPt()) || inf->id.isConnectionPin())
             {
                 // Center is a shape vertex, so add all endpoint vertices.
                 v.insert(PointPair(centerPoint, inf));

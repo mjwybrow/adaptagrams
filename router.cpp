@@ -626,6 +626,7 @@ bool Router::processTransaction(void)
             {
                 obstacle->computeVisibilityNaive();
             }
+            obstacle->updatePinPolyLineVisibility();
         }
     }
 
@@ -1148,7 +1149,8 @@ void Router::checkAllMissingEdges(void)
         for (VertInf *j = first ; j != i; j = j->lstNext)
         {
             VertID jID = j->id;
-            if (iID.isConnPt() && (iID.objID != jID.objID))
+            if (iID.isConnPt() && !iID.isConnectionPin() && 
+                    (iID.objID != jID.objID))
             {
                 // Don't keep visibility between edges of different conns
                 continue;

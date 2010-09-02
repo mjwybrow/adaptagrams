@@ -115,6 +115,7 @@ class Obstacle
         void makeActive(void);
         void makeInactive(void);
         bool isActive(void) const;
+        void updatePinPolyLineVisibility(void);
 
         void removeFromGraph(void);
         void markForMove(void);
