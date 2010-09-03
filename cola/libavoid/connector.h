@@ -233,6 +233,18 @@ class ConnRef
         // @returns The destination endpoint vertex.
         VertInf *dst(void);
         
+        //! @brief  Allows the user to specify a set of checkpoints that this
+        //!         connector will route via.
+        //!
+        //! When routing, the connector will attempt to visit each of the 
+        //! points in the checkpoints list in order.  It will route from the
+        //! source point to the first checkpoint, to the second checkpoint, 
+        //! etc.  If a checkpoint is unreachable because it lies inside an
+        //! obstacle, then that checkpoint will be skipped.
+        //! 
+        //! @param[in] checkpoints  An ordered list of points that the 
+        //!                         connector will attempt to route via.
+        void setRoutingCheckpoints(const std::vector<Point>& checkpoints);
 
         void set_route(const PolyLine& route);
         void calcRouteDist(void);
@@ -258,6 +270,10 @@ class ConnRef
         void freeRoutes(void);
         void performCallback(void);
         bool generatePath(void);
+        void generateCheckpointsPath(std::vector<Point>& path,
+                std::vector<VertInf *>& vertices);
+        void generateStandardPath(std::vector<Point>& path,
+                std::vector<VertInf *>& vertices);
         void unInitialise(void);
         void updateEndPoint(const unsigned int type, const ConnEnd& connEnd);
         void common_updateEndPoint(const unsigned int type, ConnEnd connEnd);
@@ -284,6 +300,8 @@ class ConnRef
         bool m_hate_crossings;
         ConnEnd *m_src_connend;
         ConnEnd *m_dst_connend;
+        std::vector<Point> m_checkpoints;
+        std::vector<VertInf *> m_checkpoint_vertices;
 };
 
 

@@ -39,7 +39,6 @@
 #include "libavoid/graph.h"
 #include "libavoid/debug.h"
 #include "libavoid/timer.h"
-#include "libavoid/makepath.h"
 #include "libavoid/vertices.h"
 #include "libavoid/visibility.h"
 #include "libavoid/router.h"

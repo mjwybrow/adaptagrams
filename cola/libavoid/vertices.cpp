@@ -139,9 +139,10 @@ const unsigned short VertID::src = 1;
 const unsigned short VertID::tar = 2;
 
 // Property flags:
-const unsigned short VertID::PROP_ConnPoint     = 1;
-const unsigned short VertID::PROP_OrthShapeEdge = 2;
-const unsigned short VertID::PROP_ConnectionPin = 4;
+const unsigned short VertID::PROP_ConnPoint      = 1;
+const unsigned short VertID::PROP_OrthShapeEdge  = 2;
+const unsigned short VertID::PROP_ConnectionPin  = 4;
+const unsigned short VertID::PROP_ConnCheckpoint = 8;
 
 
 ostream& operator<<(ostream& os, const VertID& vID)
@@ -254,6 +255,26 @@ void VertInf::removeFromGraph(const bool isConnVert)
     }
 }
 
+
+// Number of points in path from end back to start, or zero if no path exists.
+//
+unsigned int VertInf::pathLeadsBackTo(const VertInf *start) const
+{
+    unsigned int pathlen = 1;
+    for (const VertInf *i = this; i != start; i = i->pathNext)
+    {
+        pathlen++;
+        if (i == NULL)
+        {
+            // Path not found.
+            return 0;
+        }
+
+        // Check we don't have an apparent infinite connector path.
+        COLA_ASSERT(pathlen < 20000);
+    }
+    return pathlen;
+}
 
 bool directVis(VertInf *src, VertInf *dst)
 {

@@ -149,9 +149,11 @@ void vertexVisibility(VertInf *point, VertInf *partner, bool knownNew,
                 // Don't include orthogonal dummy vertices.
                 continue;
             }
-            else if (k->id.isConnPt() && !k->id.isConnectionPin())
+            else if (k->id.isConnPt() && !k->id.isConnectionPin() &&
+                    !(k->id.isConnCheckpoint() && k->id.objID == pID.objID))
             {
                 // Include connection pins, but not connectors.
+                // Also include checkpoints with same ID as sweep point.
                 continue;
             }
             EdgeInf::checkEdgeVisibility(point, k, knownNew);
@@ -515,30 +517,32 @@ void vertexSweep(VertInf *vert)
             continue;
         }
         
-        if (!(inf->id.isConnPt()))
-        {
-            // Add shape vertex.
-            v.insert(PointPair(centerPoint, inf));
-        }
-        else
+        if (inf->id.isConnPt())
         {
             // Add connector endpoint.
-            if (!(centerID.isConnPt()) || inf->id.isConnectionPin())
+            if (centerID.isConnPt())
+            {
+                if (inf->id.isConnectionPin())
+                {
+                    v.insert(PointPair(centerPoint, inf));
+                }
+                else if (inf->id.objID == centerID.objID)
+                {
+                    // Center is an endpoint, so only include the other
+                    // endpoints or checkpoints from the matching connector.
+                    v.insert(PointPair(centerPoint, inf));
+                }
+            }
+            else
             {
                 // Center is a shape vertex, so add all endpoint vertices.
                 v.insert(PointPair(centerPoint, inf));
             }
-            else
-            {
-                // Center is an endpoint, so only include the other
-                // endpoint from the matching connector.
-                VertID partnerID = VertID(centerID.objID, 
-                        (centerID.vn == 1) ? 2 : 1, VertID::PROP_ConnPoint);
-                if (inf->id == partnerID)
-                {
-                    v.insert(PointPair(centerPoint, inf));
-                }
-            }
+        }
+        else
+        {
+            // Add shape vertex.
+            v.insert(PointPair(centerPoint, inf));
         }
     }
     std::set<unsigned int> onBorderIDs;

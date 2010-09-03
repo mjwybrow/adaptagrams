@@ -27,6 +27,7 @@
 #include <cfloat>
 #include <cmath>
 #include <cstdlib>
+#include <algorithm>
 
 #include "libavoid/connector.h"
 #include "libavoid/connend.h"
@@ -125,6 +126,15 @@ ConnRef::~ConnRef()
         delete m_dst_connend;
         m_dst_connend = NULL;
     }
+    
+    // Clear checkpoint vertices.
+    for (size_t i = 0; i < m_checkpoint_vertices.size(); ++i)
+    {
+        m_checkpoint_vertices[i]->removeFromGraph(true);
+        m_router->vertices.removeVertex(m_checkpoint_vertices[i]);
+        delete m_checkpoint_vertices[i];
+    }
+    m_checkpoint_vertices.clear();
 
     if (m_active)
     {
@@ -149,6 +159,38 @@ void ConnRef::setRoutingType(ConnType type)
         makePathInvalid();
 
         m_router->modifyConnector(this);
+    }
+}
+
+
+void ConnRef::setRoutingCheckpoints(const std::vector<Point>& checkpoints)
+{
+    m_checkpoints = checkpoints;
+    
+    // Clear previous checkpoint vertices.
+    for (size_t i = 0; i < m_checkpoint_vertices.size(); ++i)
+    {
+        m_checkpoint_vertices[i]->removeFromGraph(true);
+        m_router->vertices.removeVertex(m_checkpoint_vertices[i]);
+        delete m_checkpoint_vertices[i];
+    }
+    m_checkpoint_vertices.clear();
+
+    for (size_t i = 0; i < m_checkpoints.size(); ++i)
+    {
+        VertID ptID(m_id, 2 + i, 
+                VertID::PROP_ConnPoint | VertID::PROP_ConnCheckpoint);
+        VertInf *vertex = new VertInf(m_router, ptID, m_checkpoints[i]);
+        vertex->visDirections = ConnDirAll;
+
+        m_checkpoint_vertices.push_back(vertex);
+    }
+    if (m_router->_polyLineRouting)
+    {
+        for (size_t i = 0; i < m_checkpoints.size(); ++i)
+        {
+            vertexVisibility(m_checkpoint_vertices[i], NULL, true, true);
+        }
     }
 }
 
@@ -654,7 +696,6 @@ bool ConnRef::generatePath(void)
     m_false_path = false;
     m_needs_reroute_flag = false;
 
-    VertInf *tar = m_dst_vert;
     m_start_vert = m_src_vert;
 
     // XXX This is kind of a hack for connection pins.  Probably we want to
@@ -672,7 +713,161 @@ bool ConnRef::generatePath(void)
         m_dst_vert->removeFromGraph();
         m_dst_connend->assignPinVisibilityTo(m_dst_vert);
     }
+    
+    std::vector<Point> path;
+    std::vector<VertInf *> vertices;
+    if (m_checkpoints.empty())
+    {
+        generateStandardPath(path, vertices);
+    }
+    else
+    {
+        generateCheckpointsPath(path, vertices);
+    }
 
+    COLA_ASSERT(vertices.size() >= 2);
+    COLA_ASSERT(vertices[0] == src());
+    COLA_ASSERT(vertices[vertices.size() - 1] == dst());
+
+    for (size_t i = 1; i < vertices.size(); ++i)
+    {
+        if (m_router->InvisibilityGrph && (m_type == ConnType_PolyLine))
+        {
+            // TODO: Again, we could know this edge without searching.
+            EdgeInf *edge = EdgeInf::existingEdge(vertices[i - 1], vertices[i]);
+            if (edge) {
+                edge->addConn(&m_needs_reroute_flag);
+            }
+        }
+        else
+        {
+            m_false_path = true;
+        }
+
+        VertInf *vertex = vertices[i];
+        if (vertex->pathNext && 
+                (vertex->pathNext->point == vertex->point))
+        {
+            if (!(vertex->pathNext->id.isConnPt()) && !(vertex->id.isConnPt()))
+            {
+                // Check for consecutive points on opposite 
+                // corners of two touching shapes.
+                COLA_ASSERT(abs(vertex->pathNext->id.vn - vertex->id.vn) != 2);
+            }
+        }
+    }
+
+    // Get rid of dummy ShapeConnectionPin bridging points at beginning and end.
+    std::vector<Point> clippedPath;
+    std::vector<Point>::iterator pathBegin = path.begin();
+    std::vector<Point>::iterator pathEnd = path.end();
+    if (path.size() > 2 && dummySrc)
+    {
+        ++pathBegin;
+        m_src_connend->usePinVertex(vertices[1]);
+    }
+    if (path.size() > 2 && dummyDst)
+    {
+        --pathEnd;
+        m_dst_connend->usePinVertex(vertices[vertices.size() - 2]);
+    }
+    clippedPath.insert(clippedPath.end(), pathBegin, pathEnd);
+
+    // Would clear visibility for endpoints here if required.
+
+    freeRoutes();
+    PolyLine& output_route = m_route;
+    output_route.ps = clippedPath;
+ 
+#ifdef PATHDEBUG
+    db_printf("Output route:\n");
+    for (size_t i = 0; i < output_route.ps.size(); ++i)
+    {
+        db_printf("[%d,%d] %g, %g   ", output_route.ps[i].id, 
+                output_route.ps[i].vn, output_route.ps[i].x, 
+                output_route.ps[i].y);
+    }
+    db_printf("\n\n");
+#endif
+
+    return true;
+}
+
+void ConnRef::generateCheckpointsPath(std::vector<Point>& path,
+        std::vector<VertInf *>& vertices)
+{
+    std::vector<VertInf *> checkpoints = m_checkpoint_vertices;
+    checkpoints.insert(checkpoints.begin(), src());
+    checkpoints.push_back(dst());
+    
+    path.clear();
+    vertices.clear();
+    path.push_back(src()->point);
+    vertices.push_back(src());
+    
+    size_t lastSuccessfulIndex = 0;
+    for (size_t i = 1; i < checkpoints.size(); ++i)
+    {
+        VertInf *start = checkpoints[lastSuccessfulIndex];
+        VertInf *end = checkpoints[i];
+        aStarPath(this, start, end, end); 
+        int pathlen = end->pathLeadsBackTo(start);
+        if (pathlen >= 2)
+        {
+            size_t prev_path_size = path.size();
+            path.resize(prev_path_size + (pathlen - 1));
+            vertices.resize(prev_path_size + (pathlen - 1));
+            VertInf *vertInf = end;
+            for (size_t index = path.size() - 1; index >= prev_path_size;
+                    --index)
+            {
+                path[index] = vertInf->point;
+                if (vertInf->id.isConnPt())
+                {
+                    path[index].id = m_id;
+                    path[index].vn = kUnassignedVertexNumber;
+                }
+                else
+                {
+                    path[index].id = vertInf->id.objID;
+                    path[index].vn = vertInf->id.vn;
+                }
+                vertices[index] = vertInf;
+                vertInf = vertInf->pathNext;
+            }
+            lastSuccessfulIndex = i;
+        }
+        else if (i + 1 == vertices.size())
+        {
+            // There is no valid path.
+            db_printf("Warning: Path not found...\n");
+            m_needs_reroute_flag = true;
+            
+            path.push_back(dst()->point);
+            vertices.push_back(dst());
+
+            COLA_ASSERT(path.size() == 2);
+        }
+        else
+        {
+            fprintf(stdout, "Warning: skipping checkpoint for connector "
+                    "%d at (%g, %g).\n", (int) id(), 
+                    vertices[i]->point.x, vertices[i]->point.y);
+            fflush(stdout);
+        }
+    }
+    // Use topbit to differentiate between start and end point of connector.
+    // They need unique IDs for nudging.
+    unsigned int topbit = ((unsigned int) 1) << 31;
+    path[path.size() - 1].id = m_id | topbit; 
+    path[path.size() - 1].vn = kUnassignedVertexNumber;
+}
+
+
+void ConnRef::generateStandardPath(std::vector<Point>& path,
+        std::vector<VertInf *>& vertices)
+{
+    VertInf *tar = m_dst_vert;
     size_t existingPathStart = 0;
     const PolyLine& currRoute = route();
     if (m_router->RubberBandRouting)
@@ -709,15 +904,8 @@ bool ConnRef::generatePath(void)
     bool found = false;
     while (!found)
     {
-        makePath(this);
-        for (VertInf *i = tar; i != NULL; i = i->pathNext)
-        {
-            if (i == m_src_vert)
-            {
-                found = true;
-                break;
-            }
-        }
+        aStarPath(this, src(), dst(), start());
+        found = tar->pathLeadsBackTo(m_src_vert);
         if (!found)
         {
             if (existingPathStart == 0)
@@ -779,49 +967,30 @@ bool ConnRef::generatePath(void)
     }
 
     
-    bool result = true;
-    
-    int pathlen = 1;
-    for (VertInf *i = tar; i != m_src_vert; i = i->pathNext)
+    unsigned int pathlen = tar->pathLeadsBackTo(m_src_vert);
+    if (pathlen < 2)
     {
-        pathlen++;
-        if (i == NULL)
+        // There is no valid path.
+        db_printf("Warning: Path not found...\n");
+        m_needs_reroute_flag = true;
+        pathlen = 2;
+        tar->pathNext = m_src_vert;
+        if ((m_type == ConnType_PolyLine) && m_router->InvisibilityGrph)
         {
-            db_printf("Warning: Path not found...\n");
-            m_needs_reroute_flag = true;
-            pathlen = 2;
-            tar->pathNext = m_src_vert;
-            if ((m_type == ConnType_PolyLine) && m_router->InvisibilityGrph)
-            {
-                // TODO:  Could we know this edge already?
-                //EdgeInf *edge = EdgeInf::existingEdge(m_src_vert, tar);
-                //COLA_ASSERT(edge != NULL);
-                //edge->addCycleBlocker();
-            }
-            break;
+            // TODO:  Could we know this edge already?
+            //EdgeInf *edge = EdgeInf::existingEdge(m_src_vert, tar);
+            //COLA_ASSERT(edge != NULL);
+            //edge->addCycleBlocker();
         }
-        // Check we don't have an apparent infinite connector path.
-        COLA_ASSERT(pathlen < 2000);
     }
-    std::vector<Point> path(pathlen);
+    path.resize(pathlen);
+    vertices.resize(pathlen);
 
-    VertInf *pinSrc = NULL;
-    VertInf *pinDst = NULL;
-    int j = pathlen - 1;
+    unsigned int j = pathlen - 1;
     for (VertInf *i = tar; i != m_src_vert; i = i->pathNext)
     {
-        if (m_router->InvisibilityGrph && (m_type == ConnType_PolyLine))
-        {
-            // TODO: Again, we could know this edge without searching.
-            EdgeInf *edge = EdgeInf::existingEdge(i, i->pathNext);
-            COLA_ASSERT(edge != NULL);
-            edge->addConn(&m_needs_reroute_flag);
-        }
-        else
-        {
-            m_false_path = true;
-        }
         path[j] = i->point;
+        vertices[j] = i;
         if (i->id.isConnPt())
         {
             path[j].id = m_id;
@@ -833,71 +1002,15 @@ bool ConnRef::generatePath(void)
             path[j].vn = i->id.vn;
         }
 
-        // Get the VertInfs of the chosen pins.
-        if (dummySrc && (j == 1))
-        {
-            pinSrc = i;
-        }
-        if (dummyDst && (j == (pathlen - 2)))
-        {
-            pinDst = i;
-        }
-
         j--;
-
-        if (i->pathNext && (i->pathNext->point == i->point))
-        {
-            if (!(i->pathNext->id.isConnPt()) && !(i->id.isConnPt()))
-            {
-                // Check for consecutive points on opposite 
-                // corners of two touching shapes.
-                COLA_ASSERT(abs(i->pathNext->id.vn - i->id.vn) != 2);
-            }
-        }
     }
+    vertices[0] = m_src_vert;
     path[0] = m_src_vert->point;
     // Use topbit to differentiate between start and end point of connector.
     // They need unique IDs for nudging.
     unsigned int topbit = ((unsigned int) 1) << 31;
     path[0].id = m_id | topbit; 
     path[0].vn = kUnassignedVertexNumber;
-
-    // Get rid of dummy ShapeConnectionPin bridging points at beginning and end.
-    std::vector<Point> clippedPath;
-    std::vector<Point>::iterator pathBegin = path.begin();
-    std::vector<Point>::iterator pathEnd = path.end();
-    if (path.size() > 2 && dummySrc)
-    {
-        COLA_ASSERT(pinSrc != NULL);
-        ++pathBegin;
-        m_src_connend->usePinVertex(pinSrc);
-    }
-    if (path.size() > 2 && dummyDst)
-    {
-        COLA_ASSERT(pinDst != NULL);
-        --pathEnd;
-        m_dst_connend->usePinVertex(pinDst);
-    }
-    clippedPath.insert(clippedPath.end(), pathBegin, pathEnd);
-
-    // Would clear visibility for endpoints here if required.
-
-    freeRoutes();
-    PolyLine& output_route = m_route;
-    output_route.ps = clippedPath;
- 
-#ifdef PATHDEBUG
-    db_printf("Output route:\n");
-    for (size_t i = 0; i < output_route.ps.size(); ++i)
-    {
-        db_printf("[%d,%d] %g, %g   ", output_route.ps[i].id, 
-                output_route.ps[i].vn, output_route.ps[i].x, 
-                output_route.ps[i].y);
-    }
-    db_printf("\n\n");
-#endif
-
-    return result;
 }
 
 

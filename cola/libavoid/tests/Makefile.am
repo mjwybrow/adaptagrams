@@ -43,9 +43,11 @@ check_PROGRAMS = \
 	lineSegWrapperCrash8 \
 	node1 \
 	overlappingRects \
-	inlineShapes
+	inlineShapes \
+	checkpoints01
 
 
+checkpoints01_SOURCES = checkpoints01.cpp
 inlineShapes_SOURCES = inlineShapes.cpp
 
 overlappingRects_SOURCES = overlappingRects.cpp
