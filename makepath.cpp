@@ -30,7 +30,6 @@
 #include <cmath>
 
 #include "libavoid/vertices.h"
-#include "libavoid/makepath.h"
 #include "libavoid/geometry.h"
 #include "libavoid/connector.h"
 #include "libavoid/viscluster.h"
@@ -435,8 +434,7 @@ static inline bool pointAlignedWithOneOf(const Point& point,
 // The aStar STL code is based on public domain code available on the
 // internet.
 //
-static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar, 
-        VertInf *start)
+void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar, VertInf *start)
 {
     bool isOrthogonal = (lineRef->routingType() == ConnType_Orthogonal);
 
@@ -851,33 +849,6 @@ static void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
             }
         }
     }
-}
-
-
-// Returns the best path for the connector referred to by lineRef.
-//
-// The path encoded in the pathNext links in each of the VertInfs
-// backwards along the path, from the tar back to the source.
-//
-void makePath(ConnRef *lineRef)
-{
-    VertInf *src = lineRef->src();
-    VertInf *tar = lineRef->dst();
-    VertInf *start = lineRef->start();
-
-    aStarPath(lineRef, src, tar, start);
-
-#if 0
-    Router *router = lineRef->router();
-    for (VertInf *t = vertices.connsBegin(); t != vertices.end();
-            t = t->lstNext)
-    {
-        t->id.db_print();
-        db_printf(" -> ");
-        t->pathNext->id.db_print();
-        db_printf("\n");
-    }
-#endif
 }
 
 

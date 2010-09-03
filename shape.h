@@ -119,7 +119,6 @@ class ShapeRef : public Obstacle
         //! 
         void transformConnectionPinPositions(ShapeTransformationType transform);
  
-        void setNewPoly(const Polygon& poly);
         void boundingBox(BBox& bbox) const;
 
     private:

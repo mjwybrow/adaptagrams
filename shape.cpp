@@ -47,29 +47,6 @@ ShapeRef::~ShapeRef()
 }
 
 
-void ShapeRef::setNewPoly(const Polygon& poly)
-{
-    COLA_ASSERT(m_first_vert != NULL);
-    COLA_ASSERT(m_polygon.size() == poly.size());
-    
-    VertInf *curr = m_first_vert;
-    for (size_t pt_i = 0; pt_i < m_polygon.size(); ++pt_i)
-    {
-        COLA_ASSERT(curr->visListSize == 0);
-        COLA_ASSERT(curr->invisListSize == 0);
-
-        // Reset with the new polygon point.
-        curr->Reset(poly.ps[pt_i]);
-        curr->pathNext = NULL;
-        
-        curr = curr->shNext;
-    }
-    COLA_ASSERT(curr == m_first_vert);
-        
-    m_polygon = poly;
-}
-
-
 void ShapeRef::moveAttachedConns(const Polygon& newPoly)
 {
     // Update positions of attached connector ends.

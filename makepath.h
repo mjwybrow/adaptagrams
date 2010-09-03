@@ -31,8 +31,7 @@ namespace Avoid {
 
 class ConnRef;
 
-extern void makePath(ConnRef *lineRef);
-
+void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar, VertInf *start);
 
 }
 

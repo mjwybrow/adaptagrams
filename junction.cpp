@@ -105,6 +105,7 @@ void JunctionRef::setPosition(const Point& position)
 {
     m_position = position;
     m_polygon = makeRectangle(m_router, m_position);
+    setNewPoly(m_polygon);
 }
 
 

@@ -59,6 +59,7 @@ class VertID
         static const VertIDProps PROP_ConnPoint;
         static const VertIDProps PROP_OrthShapeEdge;
         static const VertIDProps PROP_ConnectionPin;
+        static const VertIDProps PROP_ConnCheckpoint;
 
         VertID();
         VertID(unsigned int id, unsigned short n, VertIDProps p = 0);
@@ -87,6 +88,10 @@ class VertID
         {
             return (props & PROP_ConnectionPin) ? true : false;
         }
+        inline bool isConnCheckpoint(void) const
+        {
+            return (props & PROP_ConnCheckpoint) ? true : false;
+        }
 };
 
 
@@ -108,6 +113,8 @@ class VertInf
         void Reset(const Point& vpoint);
         void removeFromGraph(const bool isConnVert = true);
         bool orphaned(void);
+
+        unsigned int pathLeadsBackTo(const VertInf *start) const;
 
         // Checks if this vertex has the target as a visibility neighbour.
         bool hasNeighbour(VertInf *target, bool orthogonal) const;
