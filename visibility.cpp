@@ -526,6 +526,11 @@ void vertexSweep(VertInf *vert)
                 {
                     v.insert(PointPair(centerPoint, inf));
                 }
+                else if (centerID.isConnectionPin())
+                {
+                    // Connection pins have visibility to everything.
+                    v.insert(PointPair(centerPoint, inf));
+                }
                 else if (inf->id.objID == centerID.objID)
                 {
                     // Center is an endpoint, so only include the other
