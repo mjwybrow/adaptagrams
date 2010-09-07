@@ -104,7 +104,7 @@ class ShapeRef : public Obstacle
         //!
         //! This will call Router::removeShape() for this shape, if this has
         //! not already be called.
-        ~ShapeRef();
+        virtual ~ShapeRef();
         
         //! @brief   Returns a reference to the polygon boundary of this shape.
         //! @returns A reference to the polygon boundary of the shape.

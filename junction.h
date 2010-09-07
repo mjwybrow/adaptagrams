@@ -79,7 +79,7 @@ class JunctionRef : public Obstacle
         //!
         //! This will call Router::removeJunction() for this shape, if this has
         //! not already be called.
-        ~JunctionRef();
+        virtual ~JunctionRef();
 
         //! @brief  Removes a junction that has only two connectors attached
         //!         to it and merges them into a single connector.
