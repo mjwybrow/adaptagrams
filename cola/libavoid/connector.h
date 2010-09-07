@@ -246,6 +246,12 @@ class ConnRef
         //!                         connector will attempt to route via.
         void setRoutingCheckpoints(const std::vector<Point>& checkpoints);
 
+        //! @brief   Returns the current set of routing checkpoints for this
+        //!          connector.
+        //! @returns The ordered list of Points that this connecotr will 
+        //!          route via.
+        std::vector<Point> routingCheckpoints(void) const;
+
         void set_route(const PolyLine& route);
         void calcRouteDist(void);
         void makeActive(void);

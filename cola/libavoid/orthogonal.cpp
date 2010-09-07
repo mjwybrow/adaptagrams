@@ -1932,6 +1932,7 @@ static void buildOrthogonalChannelInfo(Router *router,
             continue;
         }
         Polygon& displayRoute = (*curr)->displayRoute();
+        std::vector<Point> checkpoints = (*curr)->routingCheckpoints();
         // Determine all line segments that we are interested in shifting. 
         // We don't consider the first or last segment of a path.
         for (size_t i = 1; i < displayRoute.size(); ++i)
@@ -1952,6 +1953,27 @@ static void buildOrthogonalChannelInfo(Router *router,
                 {
                     indexLow = i;
                     indexHigh = i - 1;
+                }
+
+                bool containsCheckpoint = false;
+                for (size_t cpi = 0; cpi < checkpoints.size(); ++cpi)
+                {
+                    if ( (displayRoute.ps[i] == checkpoints[cpi]) ||
+                         (displayRoute.ps[i - 1] == checkpoints[cpi]) ||
+                         pointOnLine(displayRoute.ps[i - 1], \
+                             displayRoute.ps[i], checkpoints[cpi]) )
+                    {
+                        containsCheckpoint = true;
+                        break;
+                    }
+                }
+                if (containsCheckpoint)
+                {
+                    // This segment includes one of the routing
+                    // checkpoints so we shouldn's shift it.
+                    segmentList.push_back(
+                            ShiftSegment(*curr, indexLow, indexHigh, dim));
+                    continue;
                 }
 
                 if ((i == 1) || ((i + 1) == displayRoute.size()))
@@ -2564,6 +2586,10 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             for (ShiftSegmentList::iterator currSegment = currentRegion.begin();
                     currSegment != currentRegion.end(); ++currSegment)
             {
+                if (currSegment->fixed)
+                {
+                    continue;
+                }
                 Point& lowPt = currSegment->lowPoint();
                 Point& highPt = currSegment->highPoint();
                 double newPos = currSegment->variable->finalPosition;

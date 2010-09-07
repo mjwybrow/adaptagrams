@@ -163,6 +163,12 @@ void ConnRef::setRoutingType(ConnType type)
 }
 
 
+std::vector<Point> ConnRef::routingCheckpoints(void) const
+{
+    return m_checkpoints;
+}
+
+
 void ConnRef::setRoutingCheckpoints(const std::vector<Point>& checkpoints)
 {
     m_checkpoints = checkpoints;
