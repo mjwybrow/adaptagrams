@@ -43,7 +43,7 @@ class Cluster
 {
     public:
         Cluster();
-        ~Cluster();
+        virtual ~Cluster();
         virtual void computeBoundary(const vpsc::Rectangles& rs) = 0;
         virtual void computeBoundingRect(const vpsc::Rectangles& rs);
         vpsc::Rectangle bounds;
@@ -118,7 +118,7 @@ class RectangularCluster : public Cluster
         //! @param[in]  rectIndex  The index of the rectangle that this cluster
         //!                        represents.
         RectangularCluster(unsigned rectIndex);
-        ~RectangularCluster();
+        virtual ~RectangularCluster();
         void computeBoundary(const vpsc::Rectangles& rs);
         virtual bool containsShape(unsigned index) const;
         virtual void printCreationCode(FILE *fp) const;
