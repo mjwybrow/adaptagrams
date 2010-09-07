@@ -82,7 +82,7 @@ class Obstacle
         //!
         //! This will call Router::removeShape() for this shape, if this has
         //! not already be called.
-        ~Obstacle();
+        virtual ~Obstacle();
         
         //! @brief   Returns the ID of this shape.
         //! @returns The ID of the shape. 
