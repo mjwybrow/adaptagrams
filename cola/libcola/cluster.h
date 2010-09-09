@@ -57,6 +57,7 @@ class Cluster
         virtual bool containsShape(unsigned index) const;
         void addChildNode(unsigned index);
         void addChildCluster(Cluster *cluster);
+        virtual bool clusterIsFromFixedRectangle(void) const;
         /**
          * @return the total area covered by contents of this cluster (not
          * including space between nodes/clusters)
@@ -125,6 +126,8 @@ class RectangularCluster : public Cluster
         virtual void computeBoundingRect(const vpsc::Rectangles& rs);
         vpsc::Rectangle *getMinEdgeRect(const vpsc::Dim dim);
         vpsc::Rectangle *getMaxEdgeRect(const vpsc::Dim dim);
+        virtual bool clusterIsFromFixedRectangle(void) const;
+        int rectangleIndex(void) const;
     
         // For fixed sized clusters based on a rectangle, this method 
         // generates the constraints that attach the cluster edges to the
@@ -134,12 +137,9 @@ class RectangularCluster : public Cluster
                 vpsc::Rectangles& rc, vpsc::Variables (&vars)[2]) const;
     
     private:
-        bool clusterIsFromFixedRectangle(void) const;
-
         vpsc::Rectangle *minEdgeRect[2];
         vpsc::Rectangle *maxEdgeRect[2];
-        int rectangleIndex;
-
+        int m_rectangle_index;
 };
 
 class ConvexCluster : public Cluster

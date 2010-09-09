@@ -117,6 +117,11 @@ void Cluster::computeBoundingRect(const vpsc::Rectangles& rs)
 }
 
 
+bool Cluster::clusterIsFromFixedRectangle(void) const
+{
+    return false;
+}
+
 void ConvexCluster::computeBoundary(const vpsc::Rectangles& rs) 
 {
     unsigned n = 4 * nodes.size();
@@ -183,7 +188,7 @@ void ConvexCluster::printCreationCode(FILE *fp) const
 
 RectangularCluster::RectangularCluster()
     : Cluster(),
-      rectangleIndex(-1)
+      m_rectangle_index(-1)
 {
     minEdgeRect[vpsc::XDIM] = NULL;
     minEdgeRect[vpsc::YDIM] = NULL;
@@ -193,7 +198,7 @@ RectangularCluster::RectangularCluster()
 
 RectangularCluster::RectangularCluster(unsigned rectIndex)
     : Cluster(),
-      rectangleIndex(rectIndex)
+      m_rectangle_index(rectIndex)
 {
     minEdgeRect[vpsc::XDIM] = NULL;
     minEdgeRect[vpsc::YDIM] = NULL;
@@ -220,7 +225,7 @@ RectangularCluster::~RectangularCluster()
  
 bool RectangularCluster::containsShape(unsigned index) const
 {
-    if (rectangleIndex == (int) index)
+    if (m_rectangle_index == (int) index)
     {
         // This cluster is the shape in question.
         return true;
@@ -235,28 +240,28 @@ void RectangularCluster::generateFixedRectangleConstraints(
 {
     COLA_UNUSED(vars);
 
-    if (rectangleIndex < 0)
+    if (m_rectangle_index < 0)
     {
         // Not based on a Rectangle.
         return;
     }
 
-    double halfWidth = rc[rectangleIndex]->width() / 2;
-    double halfHeight = rc[rectangleIndex]->height() / 2;
+    double halfWidth = rc[m_rectangle_index]->width() / 2;
+    double halfHeight = rc[m_rectangle_index]->height() / 2;
 
     cola::SeparationConstraint *sc = 
             new cola::SeparationConstraint(vpsc::XDIM, clusterVarId, 
-                    rectangleIndex, halfWidth, true);
+                    m_rectangle_index, halfWidth, true);
     idleConstraints.push_back(sc);
     sc = new cola::SeparationConstraint(vpsc::XDIM, 
-                    rectangleIndex, clusterVarId + 1, halfWidth, true);
+                    m_rectangle_index, clusterVarId + 1, halfWidth, true);
     idleConstraints.push_back(sc);
     
     sc = new cola::SeparationConstraint(vpsc::YDIM, 
-                    clusterVarId, rectangleIndex, halfHeight, true);
+                    clusterVarId, m_rectangle_index, halfHeight, true);
     idleConstraints.push_back(sc);
     sc = new cola::SeparationConstraint(vpsc::YDIM, 
-                    rectangleIndex, clusterVarId + 1, halfHeight, true);
+                    m_rectangle_index, clusterVarId + 1, halfHeight, true);
     idleConstraints.push_back(sc);
 }
 
@@ -337,9 +342,14 @@ void RectangularCluster::printCreationCode(FILE *fp) const
     }
 }
 
+int RectangularCluster::rectangleIndex(void) const
+{
+    return m_rectangle_index;
+}
+
 bool RectangularCluster::clusterIsFromFixedRectangle(void) const
 {
-    return (rectangleIndex >= 0);
+    return (m_rectangle_index >= 0);
 }
 
 void RectangularCluster::computeBoundingRect(const vpsc::Rectangles& rs) 
@@ -347,7 +357,7 @@ void RectangularCluster::computeBoundingRect(const vpsc::Rectangles& rs)
     if (clusterIsFromFixedRectangle())
     {
         // For bounds, just use this shape's rectangle.
-        bounds = *(rs[rectangleIndex]);
+        bounds = *(rs[m_rectangle_index]);
     }
     else
     {

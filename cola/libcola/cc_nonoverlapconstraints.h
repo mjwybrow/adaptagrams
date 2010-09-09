@@ -36,6 +36,7 @@ namespace cola {
 
 class OverlapShapeOffsets;
 class ShapePairInfo;
+class Cluster;
 
 
 // Non-overlap constraints prevent a set of given shapes from overlapping.
@@ -47,8 +48,7 @@ class NonOverlapConstraints : public CompoundConstraint {
         // This is useful for clusters.
         void addShape(unsigned id, double halfW, double halfH, 
                 unsigned int group = 1);
-        void addCluster(unsigned id, const double rectPadding,
-                unsigned int group = 1);
+        void addCluster(Cluster *cluster, unsigned int group);
         void computeAndSortOverlap(vpsc::Variables vs[]);
         void markCurrSubConstraintAsActive(const bool satisfiable);
         void markAllSubConstraintsAsInactive(void);

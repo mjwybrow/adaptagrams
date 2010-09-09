@@ -239,7 +239,12 @@ void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis)
 {
     if (extraConstraints.empty())
     {
+        // This generates constraints for non-overlap inside and outside
+        // of clusters.  To assign correct variable indexes it requires
+        // that vs contains elements equal to the number of rectangles.
         vpsc::Variables vs[2];
+        vs[0].resize(n);
+        vs[1].resize(n);
         generateNonOverlapCompoundConstraints(vs);
     }
     FILE_LOG(logDEBUG) << "ConstrainedFDLayout::run...";
@@ -389,8 +394,20 @@ void ConstrainedFDLayout::recGenerateClusterVariablesAndConstraints(
                 curr != cluster->clusters.end(); ++curr)
         {
             Cluster *cluster = *curr;
-            noc->addCluster(cluster->clusterVarId, cluster->rectBuffer, 
-                    group);
+            RectangularCluster *rectCluster = 
+                    dynamic_cast<RectangularCluster *> (cluster);
+            if (rectCluster && rectCluster->clusterIsFromFixedRectangle())
+            {
+                // Treat it like a shape for non-overlap.
+                unsigned id = rectCluster->rectangleIndex();
+                noc->addShape(id, boundingBoxes[id]->width() / 2,
+                        boundingBoxes[id]->height() / 2, group);
+            }
+            else
+            {
+                // Normal cluster.
+                noc->addCluster(cluster, group);
+            }
         }
     }
 }

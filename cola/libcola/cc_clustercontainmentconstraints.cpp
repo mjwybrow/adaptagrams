@@ -61,8 +61,8 @@ ClusterContainmentConstraints::ClusterContainmentConstraints(Cluster *cluster,
             curr != cluster->nodes.end(); ++curr)
     {
         unsigned id = *curr;
-        double halfW = boundingBoxes[id]->width() / 2;
-        double halfH = boundingBoxes[id]->height() / 2;
+        double halfW = (boundingBoxes[id]->width() / 2.0) + cluster->rectBuffer;
+        double halfH = (boundingBoxes[id]->height() / 2.0) + cluster->rectBuffer;
         _subConstraintInfo.push_back(new ClusterShapeOffsets(
                 id, XDIM, halfW, cluster->clusterVarId));
         _subConstraintInfo.push_back(new ClusterShapeOffsets(
@@ -156,10 +156,36 @@ void ClusterContainmentConstraints::generateSeparationConstraints(
         const vpsc::Dim dim, vpsc::Variables& vs, vpsc::Constraints& cs,
         std::vector<vpsc::Rectangle*>& bbs) 
 {
-    COLA_UNUSED(dim);
-    COLA_UNUSED(vs);
-    COLA_UNUSED(cs);
     COLA_UNUSED(bbs);
+    for (SubConstraintInfoList::iterator o = _subConstraintInfo.begin();
+            o != _subConstraintInfo.end(); ++o) 
+    {
+        ClusterShapeOffsets *info = static_cast<ClusterShapeOffsets *> (*o);
+
+        if (info->dim != dim)
+        {
+            continue;
+        }
+
+        if (info->offset < 0)
+        {
+            // Constrain the objects with negative offsets to be 
+            // to the left of the boundary.
+            vpsc::Constraint *constraint = new vpsc::Constraint( 
+                    vs[info->varIndex], vs[info->boundaryVar], 
+                    -info->offset);
+            cs.push_back(constraint);
+        }
+        else
+        {
+            // Constrain the objects with positive offsets to be 
+            // to the right of the boundary.
+            vpsc::Constraint *constraint = new vpsc::Constraint(
+                    vs[info->boundaryVar], vs[info->varIndex], 
+                    info->offset);
+            cs.push_back(constraint);
+        }
+    }
 }
 
 

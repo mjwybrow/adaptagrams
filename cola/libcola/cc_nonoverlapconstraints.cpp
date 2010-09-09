@@ -45,18 +45,17 @@ class OverlapShapeOffsets : public SubConstraintInfo
         OverlapShapeOffsets(unsigned ind, double xOffset, double yOffset,
                 unsigned int group)
             : SubConstraintInfo(ind),
-              isCluster(false),
+              cluster(NULL),
               rectPadding(0),
               group(group)
         {
             halfDim[0] = xOffset;
             halfDim[1] = yOffset;
         }
-        OverlapShapeOffsets(unsigned ind, const double padding,
-                unsigned int group)
+        OverlapShapeOffsets(unsigned ind, Cluster *cluster, unsigned int group)
             : SubConstraintInfo(ind),
-              isCluster(true),
-              rectPadding(padding),
+              cluster(cluster),
+              rectPadding(cluster->rectBuffer),
               group(group)
         {
             halfDim[0] = 0;
@@ -64,11 +63,15 @@ class OverlapShapeOffsets : public SubConstraintInfo
         }
         OverlapShapeOffsets()
             : SubConstraintInfo(1000000),
-              isCluster(false),
+              cluster(NULL),
               rectPadding(0)
         {
         }
-        bool isCluster;
+        bool usesClusterBounds(void) const
+        {
+            return (cluster && !cluster->clusterIsFromFixedRectangle());
+        }
+        Cluster *cluster;
         double halfDim[2];   // Half width and height values.
         double rectPadding;  // Used for cluster padding.
         unsigned int group;
@@ -144,9 +147,9 @@ void NonOverlapConstraints::addShape(unsigned id, double halfW, double halfH,
 }
 
 
-void NonOverlapConstraints::addCluster(unsigned id, const double rectPadding,
-        unsigned int group)
+void NonOverlapConstraints::addCluster(Cluster *cluster, unsigned int group)
 {
+    unsigned id = cluster->clusterVarId;
     // Setup pairInfos for all other shapes. 
     for (std::map<unsigned, OverlapShapeOffsets>::iterator curr =
             shapeOffsets.begin(); curr != shapeOffsets.end(); ++curr)
@@ -159,7 +162,7 @@ void NonOverlapConstraints::addCluster(unsigned id, const double rectPadding,
         }
     }
     
-    shapeOffsets[id] = OverlapShapeOffsets(id, rectPadding, group);
+    shapeOffsets[id] = OverlapShapeOffsets(id, cluster, group);
 }
 
 
@@ -191,7 +194,7 @@ void NonOverlapConstraints::computeAndSortOverlap(vpsc::Variables vs[])
         double bottom1 = yPos1 - shape1.halfDim[1];
         double top1    = yPos1 + shape1.halfDim[1];
 
-        if (shape1.isCluster)
+        if (shape1.cluster)
         {
             COLA_ASSERT(shape1.halfDim[0] == 0);
             COLA_ASSERT(shape1.halfDim[1] == 0);
@@ -210,7 +213,7 @@ void NonOverlapConstraints::computeAndSortOverlap(vpsc::Variables vs[])
         double bottom2 = yPos2 - shape2.halfDim[1];
         double top2    = yPos2 + shape2.halfDim[1];
 
-        if (shape2.isCluster)
+        if (shape2.cluster)
         {
             COLA_ASSERT(shape2.halfDim[0] == 0);
             COLA_ASSERT(shape2.halfDim[1] == 0);
@@ -318,9 +321,9 @@ NonOverlapConstraints::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
     unsigned varIndexL2 = info.varIndex2;
     // Clusters have left and right variables, instead of centre variables.
     unsigned varIndexR1 = 
-            (shape1.isCluster) ? (info.varIndex1 + 1) : info.varIndex1;
+            (shape1.cluster) ? (info.varIndex1 + 1) : info.varIndex1;
     unsigned varIndexR2 = 
-            (shape2.isCluster) ? (info.varIndex2 + 1) : info.varIndex2;
+            (shape2.cluster) ? (info.varIndex2 + 1) : info.varIndex2;
 
     assertValidVariableIndex(vs[XDIM], varIndexL1);
     assertValidVariableIndex(vs[XDIM], varIndexL1);
@@ -343,7 +346,7 @@ NonOverlapConstraints::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
     // Clusters have two variables instead of a centre variabale -- one for
     // each boundary side, so we need to remap the desired positions and the
     // separations values for the purposes of cost sorting.
-    if (shape1.isCluster)
+    if (shape1.cluster)
     {
         double width = vs[XDIM][info.varIndex1 + 1]->finalPosition -
                 vs[XDIM][info.varIndex1]->finalPosition;
@@ -356,7 +359,7 @@ NonOverlapConstraints::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
         xSep += shape1.rectPadding;
         ySep += shape1.rectPadding;
     }
-    if (shape2.isCluster)
+    if (shape2.cluster)
     {
         double width = vs[XDIM][info.varIndex2 + 1]->finalPosition -
                 vs[XDIM][info.varIndex2]->finalPosition;
@@ -438,24 +441,59 @@ void NonOverlapConstraints::generateSeparationConstraints(
         
         OverlapShapeOffsets& shape1 = shapeOffsets[info->varIndex1];
         OverlapShapeOffsets& shape2 = shapeOffsets[info->varIndex2];
-           
-        double pos1 = boundingBoxes[info->varIndex1]->getCentreD(dim);
-        double pos2 = boundingBoxes[info->varIndex2]->getCentreD(dim);
+        
+        vpsc::Rectangle& rect1 = (shape1.cluster) ?
+                shape1.cluster->bounds : *boundingBoxes[info->varIndex1];
+        vpsc::Rectangle& rect2 = (shape2.cluster) ?
+                shape2.cluster->bounds : *boundingBoxes[info->varIndex2];
 
-        if (boundingBoxes[info->varIndex1]->overlapD(!dim,
-                    boundingBoxes[info->varIndex2]) > 0.0005)
+        double pos1 = rect1.getCentreD(dim);
+        double pos2 = rect2.getCentreD(dim);
+
+        double half1 = shape1.halfDim[dim];
+        double half2 = shape2.halfDim[dim];
+
+        vpsc::Variable *varLeft1 = NULL;
+        vpsc::Variable *varLeft2 = NULL;
+        vpsc::Variable *varRight1 = NULL;
+        vpsc::Variable *varRight2 = NULL;
+        if (shape1.cluster)
+        {
+            // Must constraint to cluster boundary variables.
+            varLeft1 = vs[shape1.cluster->clusterVarId];
+            varRight1 = vs[shape1.cluster->clusterVarId + 1];
+            half1 = shape1.cluster->rectBuffer;
+        }
+        else
+        {
+            // Must constrain to rectangle centre postion variable.
+            varLeft1 = varRight1 = vs[info->varIndex1];
+        }
+
+        if (shape2.cluster)
+        {
+            // Must constraint to cluster boundary variables.
+            varLeft2 = vs[shape2.cluster->clusterVarId];
+            varRight2 = vs[shape2.cluster->clusterVarId + 1];
+            half2 = shape2.cluster->rectBuffer;
+        }
+        else
+        {
+            // Must constrain to rectangle centre postion variable.
+            varLeft2 = varRight2 = vs[info->varIndex2];
+        }
+
+        if (rect1.overlapD(!dim, &rect2) > 0.0005)
         {
             if (pos1 < pos2)
             {
-                cs.push_back(new vpsc::Constraint(
-                        vs[info->varIndex1], vs[info->varIndex2], 
-                        shape1.halfDim[dim] + shape2.halfDim[dim]));
+                cs.push_back(new vpsc::Constraint(varRight1, varLeft2, 
+                             half1 + half2));
             }
             else
             {
-                cs.push_back(new vpsc::Constraint(
-                        vs[info->varIndex2], vs[info->varIndex1], 
-                        shape1.halfDim[dim] + shape2.halfDim[dim]));
+                cs.push_back(new vpsc::Constraint(varRight2, varLeft1, 
+                        half1 + half2));
             }
         }
     }
