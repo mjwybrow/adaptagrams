@@ -245,7 +245,7 @@ void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis)
         vpsc::Variables vs[2];
         vs[0].resize(n);
         vs[1].resize(n);
-        generateNonOverlapCompoundConstraints(vs);
+        generateNonOverlapAndClusterCompoundConstraints(vs);
     }
     FILE_LOG(logDEBUG) << "ConstrainedFDLayout::run...";
     double stress=DBL_MAX;
@@ -412,7 +412,7 @@ void ConstrainedFDLayout::recGenerateClusterVariablesAndConstraints(
     }
 }
 
-void ConstrainedFDLayout::generateNonOverlapCompoundConstraints(
+void ConstrainedFDLayout::generateNonOverlapAndClusterCompoundConstraints(
         vpsc::Variables (&vs)[2])
 {
     if (clusterHierarchy && !clusterHierarchy->flat())
@@ -438,14 +438,17 @@ void ConstrainedFDLayout::generateNonOverlapCompoundConstraints(
         
         // Generate non-overlap constraints between all clusters and 
         // all contained nodes.
-        priority--;
-        cola::NonOverlapConstraints *noc = 
-                new cola::NonOverlapConstraints(priority);
-        recGenerateClusterVariablesAndConstraints(vs, priority, 
-                noc, clusterHierarchy, extraConstraints);
-        extraConstraints.push_back(noc);
+        if (m_generateNonOverlapConstraints)
+        {
+            priority--;
+            cola::NonOverlapConstraints *noc = 
+                    new cola::NonOverlapConstraints(priority);
+            recGenerateClusterVariablesAndConstraints(vs, priority, 
+                    noc, clusterHierarchy, extraConstraints);
+            extraConstraints.push_back(noc);
+        }
     }
-    else
+    else if (m_generateNonOverlapConstraints)
     {
         // Add standard non-overlap constraints between each pair of
         // nodes.
@@ -489,10 +492,7 @@ void ConstrainedFDLayout::makeFeasible(void)
     for_each(extraConstraints.begin(), extraConstraints.end(), delete_object());
     extraConstraints.clear();
 
-    if (m_generateNonOverlapConstraints)
-    {
-        generateNonOverlapCompoundConstraints(vs);
-    }
+    generateNonOverlapAndClusterCompoundConstraints(vs);
 
     // Make a copy of the compound constraints and sort them by priority.
     cola::CompoundConstraints idleConstraints = ccs;
@@ -983,11 +983,8 @@ void ConstrainedFDLayout::moveTo(const vpsc::Dim dim, Position& target) {
             coords[v->id]=v->rect->getCentreD(dim);
         }
     } else {
-        if (m_generateNonOverlapConstraints)
-        {
-            // Add non-overlap constraints, but not variables again.
-            setupExtraConstraints(extraConstraints, dim, vs, cs, boundingBoxes);
-        }
+        // Add non-overlap constraints, but not variables again.
+        setupExtraConstraints(extraConstraints, dim, vs, cs, boundingBoxes);
         // Projection.
         project(vs,cs,coords);
         moveBoundingBoxes();
@@ -1061,11 +1058,8 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const vpsc::Dim dim, const
         vpsc::Rectangle::setYBorder(0);
         stress=computeStress();
     } else {
-        if (m_generateNonOverlapConstraints)
-        {
-            // Add non-overlap constraints, but not variables again.
-            setupExtraConstraints(extraConstraints, dim, vs, cs, boundingBoxes);
-        }
+        // Add non-overlap constraints, but not variables again.
+        setupExtraConstraints(extraConstraints, dim, vs, cs, boundingBoxes);
         // Projection.
         SparseMap HMap(n);
         computeForces(dim,HMap,g);

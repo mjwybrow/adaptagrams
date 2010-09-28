@@ -491,7 +491,8 @@ private:
             const std::vector<Edge>& es,
             const double idealLength,
             const std::valarray<double> * eLengths);
-    void generateNonOverlapCompoundConstraints(vpsc::Variables (&vs)[2]);
+    void generateNonOverlapAndClusterCompoundConstraints(
+            vpsc::Variables (&vs)[2]);
     void handleResizes(const Resizes&);
     void setPosition(std::valarray<double>& pos);
     void moveBoundingBoxes();

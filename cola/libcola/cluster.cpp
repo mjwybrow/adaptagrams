@@ -41,11 +41,15 @@ Cluster::Cluster()
     : bounds(),
       clusterVarId(0),
       rectBuffer(0),
-      varWeight(0.0001), 
+      varWeight(0.0001),
       internalEdgeWeightFactor(1.), 
       desiredBoundsSet(false), 
       desiredBounds()
-{ }
+{
+    // XXX We use a really low weight here until we properly set the source 
+    //     of the variable value back in updatePositions() type manner.
+    varWeight = 0.0000001;
+}
 
 Cluster::~Cluster()
 {

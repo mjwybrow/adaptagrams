@@ -136,7 +136,7 @@ void NonOverlapConstraints::addShape(unsigned id, double halfW, double halfH,
             shapeOffsets.begin(); curr != shapeOffsets.end(); ++curr)
     {
         unsigned otherId = curr->first;
-        if (shapeOffsets[otherId].group == group)
+        if ((shapeOffsets[otherId].group == group) && (id != otherId))
         {
             // Apply non-overlap only to objects in the same group (cluster).
             pairInfoList.push_back(ShapePairInfo(otherId, id));
