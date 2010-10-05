@@ -680,20 +680,25 @@ void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar, VertInf *start)
                 continue;
             }
 
-            // Don't check connection pins if they don't have the target
-            // vertex as a direct neightbour.
-            if (DONE_size > 1 && Node.inf->id.isConnectionPin() && 
-                    (Node.inf->hasNeighbour(tar, isOrthogonal) == false))
+            if (Node.inf->id.isConnectionPin())
             {
-                continue;
+                if ((BestNode.inf != lineRef->src()) &&
+                        !(Node.inf->hasNeighbour(lineRef->dst(), isOrthogonal)))
+                {
+                    // Don't check connection pins if they don't have the 
+                    // target vertex as a direct neightbour, or are directly
+                    // leaving the source vertex.
+                    continue;
+                }
             }
-
-            // Don't check connector endpoints vertices unless they
-            // are the target endpoint.
-            if (Node.inf->id.isConnPt() && !Node.inf->id.isConnectionPin() && 
-                    (Node.inf != tar))
+            else if (Node.inf->id.isConnPt())
             {
-                continue;
+                if ((Node.inf != tar))
+                {
+                    // Don't check connector endpoints vertices unless they
+                    // are the target endpoint.
+                    continue;
+                }
             }
 
             if (isOrthogonal && !(*edge)->isDummyConnection())

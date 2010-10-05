@@ -185,7 +185,7 @@ VertInf::~VertInf()
 
 bool VertInf::hasNeighbour(VertInf *target, bool orthogonal) const
 {
-    const EdgeInfList& visEdgeList = (!orthogonal) ? visList : orthogVisList;
+    const EdgeInfList& visEdgeList = (orthogonal) ? orthogVisList : visList;
     EdgeInfList::const_iterator finish = visEdgeList.end();
     for (EdgeInfList::const_iterator edge = visEdgeList.begin(); 
             edge != finish; ++edge)
