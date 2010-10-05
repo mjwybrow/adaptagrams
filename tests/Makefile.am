@@ -44,8 +44,10 @@ check_PROGRAMS = \
 	node1 \
 	overlappingRects \
 	inlineShapes \
-	checkpoints01
+	checkpoints01 \
+	freeFloatingDirection01
 
+freeFloatingDirection01_SOURCES = freeFloatingDirection01.cpp
 
 checkpoints01_SOURCES = checkpoints01.cpp
 inlineShapes_SOURCES = inlineShapes.cpp
