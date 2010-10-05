@@ -705,13 +705,16 @@ void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar, VertInf *start)
             {
                 // Orthogonal routing optimisation.
                 // Skip the edges that don't lead to shape edges, or the 
-                // connection point we are looking for.
+                // connection point we are looking for.  Though allow them
+                // if we haven't yet turned from the source point, since it
+                // may be a free-floating endpoint with directional visibility.
                 Point& bestPt = BestNode.inf->point;
                 Point& nextPt = Node.inf->point;
 
                 bool notInlineX = prevInf && (prevInf->point.x != bestPt.x);
                 bool notInlineY = prevInf && (prevInf->point.y != bestPt.y);
-                if ((bestPt.x == nextPt.x) && notInlineX)
+                if ((bestPt.x == nextPt.x) && notInlineX &&
+                        (bestPt[YDIM] != src->point[YDIM]))
                 {
                     if (nextPt.y < bestPt.y)
                     {
@@ -730,7 +733,8 @@ void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar, VertInf *start)
                         }
                     }
                 }
-                if ((bestPt.y == nextPt.y) && notInlineY)
+                if ((bestPt.y == nextPt.y) && notInlineY && 
+                        (bestPt[XDIM] != src->point[XDIM]))
                 {
                     if (nextPt.x < bestPt.x)
                     {
