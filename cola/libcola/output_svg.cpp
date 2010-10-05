@@ -123,7 +123,7 @@ void OutputFile::generate() {
                     rs[i]->width()-1,rs[i]->height()-1);
             cr->stroke_preserve();
             cr->save();
-            cr->set_source_rgb(245./255., 233./255., 177./255.);
+            cr->set_source_rgba(245./255., 233./255., 177./255., 0.6);
             cr->fill();
             cr->restore();
             if(labels.size()==rs.size()) {
@@ -393,4 +393,4 @@ void OutputFile::openCairo(Cairo::RefPtr<Cairo::Context> &cr, double width, doub
 
 #endif // HAVE_CAIROMM
 
-// vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:encoding=utf-8:textwidth=99 :
+// vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:textwidth=99 :
