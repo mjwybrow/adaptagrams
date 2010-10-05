@@ -525,7 +525,7 @@ void ConstrainedFDLayout::makeFeasible(void)
     while (!idleConstraints.empty())
     {
         // idleConstraints is sorted lowest to highest priority, so the 
-        // highest priority constant will be at the back of the vector.
+        // highest priority constraint will be at the back of the vector.
         cola::CompoundConstraint *cc = idleConstraints.back();
         idleConstraints.pop_back();
 
