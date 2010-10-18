@@ -2528,20 +2528,24 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                     // constrain the two segments to be separated.
                     // Though don't add the constraint if both the 
                     // segments are fixed in place.
+                    double thisSepDist = sepDist;
                     if (currSegment->connRef == prevSeg->connRef)
                     {
                         // We need to address the problem of two neighbouring
                         // segments of the same connector being kept separated
                         // due only to a kink created in the other dimension.
                         // Here, we let such segments drift back together.
-                        sepDist = 0;
+                        thisSepDist = 0;
                     }
                     Constraint *constraint = 
-                            new Constraint(prevVar, vs[index], sepDist);
+                            new Constraint(prevVar, vs[index], thisSepDist);
                     cs.push_back(constraint);
-                    // Add to the list of gap constraints so we can rewrite
-                    // the separation distance later.
-                    gapcs.push_back(constraint);
+                    if (thisSepDist)
+                    {
+                        // Add to the list of gap constraints so we can 
+                        // rewrite the separation distance later.
+                        gapcs.push_back(constraint);
+                    }
                     prevVarIt = prevVars.erase(prevVarIt);
                 }
                 else
