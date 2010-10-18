@@ -2383,6 +2383,12 @@ typedef std::list<ShiftSegment *> ShiftSegmentPtrList;
 static void nudgeOrthogonalRoutes(Router *router, size_t dimension, 
         PtOrderMap& pointOrders, ShiftSegmentList& segmentList)
 {
+    double baseSepDist = router->orthogonalNudgeDistance();
+    COLA_ASSERT(baseSepDist >= 0);
+    // If we can fit things with the desired separtation distance, then
+    // we try 10 times, reducing eac time by a 10th of the original amount.
+    double reductionSteps = 10.0;
+
     // Do the actual nudging.
     ShiftSegmentList currentRegion;
     while (!segmentList.empty())
@@ -2435,6 +2441,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
         // Process these segments.
         Variables vs;
         Constraints cs;
+        Constraints gapcs;
         ShiftSegmentPtrList prevVars;
         // IDs:
         const int freeID    = 0;
@@ -2443,6 +2450,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
         double freeWeight   = 0.00001;
         double strongWeight = 0.001;
         double fixedWeight  = 100000;
+        double sepDist = baseSepDist;
 #ifdef NUDGE_DEBUG 
         printf("-------------------------------------------------------\n");
         printf("Nudge -- size: %d\n", (int) currentRegion.size());
@@ -2520,7 +2528,6 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                     // constrain the two segments to be separated.
                     // Though don't add the constraint if both the 
                     // segments are fixed in place.
-                    double sepDist = router->orthogonalNudgeDistance();
                     if (currSegment->connRef == prevSeg->connRef)
                     {
                         // We need to address the problem of two neighbouring
@@ -2529,7 +2536,12 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                         // Here, we let such segments drift back together.
                         sepDist = 0;
                     }
-                    cs.push_back(new Constraint(prevVar, vs[index], sepDist));
+                    Constraint *constraint = 
+                            new Constraint(prevVar, vs[index], sepDist);
+                    cs.push_back(constraint);
+                    // Add to the list of gap constraints so we can rewrite
+                    // the separation distance later.
+                    gapcs.push_back(constraint);
                     prevVarIt = prevVars.erase(prevVarIt);
                 }
                 else
@@ -2563,24 +2575,48 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             prevVars.push_back(&(*currSegment));
         }
 #ifdef NUDGE_DEBUG
-        for(unsigned i=0;i<vs.size();i++) {
-            printf("-vs[%d]=%f\n",i,vs[i]->desiredPosition);
+        for (unsigned i = 0;i < vs.size(); ++i)
+        {
+            printf("-vs[%d]=%f\n", i, vs[i]->desiredPosition);
         }
 #endif
-        IncSolver f(vs,cs);
-        f.solve();
-        bool satisfied = true;
-        for (size_t i = 0; i < vs.size(); ++i) 
+        // Repeatedly try solving this with smaller separation distances till
+        // we find a solution that is satisfied.
+        bool satisfied;
+        do 
         {
-            if (vs[i]->id == fixedID)
+            IncSolver f(vs,cs);
+            f.solve();
+            satisfied = true;
+            for (size_t i = 0; i < vs.size(); ++i) 
             {
-                if (fabs(vs[i]->finalPosition - vs[i]->desiredPosition) > 0.01)
+                if (vs[i]->id == fixedID)
                 {
-                    satisfied = false;
-                    break;
+                    if (fabs(vs[i]->finalPosition - 
+                            vs[i]->desiredPosition) > 0.01)
+                    {
+                        satisfied = false;
+                        break;
+                    }
+                }
+            }
+
+            if (!satisfied)
+            {
+                // Reduce the separation distance.
+                sepDist -= (baseSepDist / reductionSteps);
+                // And rewrite all the gap constraints to have the new reduced
+                // separation distance.
+                for (Constraints::iterator cIt = gapcs.begin(); 
+                        cIt != gapcs.end(); ++cIt)
+                {
+                    Constraint *constraint = *cIt;
+                    constraint->gap = sepDist;
                 }
             }
         }
+        while (!satisfied && (sepDist > 0.0001));
+
         if (satisfied)
         {
             for (ShiftSegmentList::iterator currSegment = currentRegion.begin();

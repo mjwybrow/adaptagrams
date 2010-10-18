@@ -45,7 +45,10 @@ check_PROGRAMS = \
 	overlappingRects \
 	inlineShapes \
 	checkpoints01 \
-	freeFloatingDirection01
+	freeFloatingDirection01 \
+	restrictedNudging
+
+restrictedNudging_SOURCES = restrictedNudging.cpp
 
 freeFloatingDirection01_SOURCES = freeFloatingDirection01.cpp
 

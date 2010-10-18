@@ -153,7 +153,7 @@ int main(void) {
 
     router->processTransaction();
     router->outputInstanceToSVG("test-corneroverlap-01");
-    bool touching = router->existsOrthogonalTouchingCorners();
+    bool touching = router->existsOrthogonalTouchingPaths();
     delete router;
     return (touching) ? 1 : 0;
 };

@@ -1648,7 +1648,7 @@ bool Router::existsOrthogonalPathOverlap(void)
                     (cross.crossingFlags & CROSSING_SHARES_FIXED_SEGMENT) && 
                     !(cross.crossingFlags & CROSSING_SHARES_PATH_AT_END)) 
                 {
-                    // We looking for fixedSharedPaths and there is a
+                    // We are looking for fixedSharedPaths and there is a
                     // fixedSharedPath.
                     return true;
                 }
@@ -1659,7 +1659,7 @@ bool Router::existsOrthogonalPathOverlap(void)
 }
 
 
-bool Router::existsOrthogonalTouchingCorners(void)
+bool Router::existsOrthogonalTouchingPaths(void)
 {
     ConnRefList::iterator fin = connRefs.end();
     for (ConnRefList::iterator i = connRefs.begin(); i != fin; ++i) 

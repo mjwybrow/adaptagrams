@@ -38,7 +38,7 @@ int main(void) {
     router->processTransaction();
     router->outputInstanceToSVG("test-nudgeintobug");
     bool overlap = router->existsOrthogonalPathOverlap();
-    bool touching = router->existsOrthogonalTouchingCorners();
+    bool touching = router->existsOrthogonalTouchingPaths();
     delete router;
     return (overlap || touching) ? 1 : 0;
 };
