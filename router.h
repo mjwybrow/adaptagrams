@@ -420,7 +420,7 @@ class Router {
         bool objectIsInQueuedActionList(void *object) const;
         double& penaltyRef(const PenaltyType penType);
         bool existsOrthogonalPathOverlap(void);
-        bool existsOrthogonalTouchingCorners(void);
+        bool existsOrthogonalTouchingPaths(void);
         int  existsOrthogonalCrossings(void);
 
     private:
