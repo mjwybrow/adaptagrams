@@ -1,7 +1,7 @@
 #include "libavoid/libavoid.h"
 using namespace Avoid;
 int main(void) {
-    Router *router = new Router(PolyLineRouting);
+    Router *router = new Router(OrthogonalRouting);
     router->setRoutingPenalty((PenaltyType)0, 50);
     router->setRoutingPenalty((PenaltyType)1, 0);
     router->setRoutingPenalty((PenaltyType)2, 0);
