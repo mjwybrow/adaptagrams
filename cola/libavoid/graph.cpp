@@ -325,13 +325,13 @@ void EdgeInf::addBlocker(int b)
 }
 
 
-pair<VertID, VertID> EdgeInf::ids(void)
+pair<VertID, VertID> EdgeInf::ids(void) const
 {
     return std::make_pair(m_vert1->id, m_vert2->id);
 }
 
 
-pair<Point, Point> EdgeInf::points(void)
+pair<Point, Point> EdgeInf::points(void) const
 {
     return std::make_pair(m_vert1->point, m_vert2->point);
 }

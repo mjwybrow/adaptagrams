@@ -574,6 +574,36 @@ int rayIntersectPoint(const Point& a1, const Point& a2,
     return DO_INTERSECT;
 }
 
+// Returns the rootationalAngle, between 0 and 360, of this point from (0,0).
+//
+double rotationalAngle(const Point& p)
+{
+    if (p.y == 0)
+    {
+        return ((p.x < 0) ? 180 : 0);
+    }
+    else if (p.x == 0)
+    {
+        return ((p.y < 0) ? 270 : 90);
+    }
+    
+    double ang = atan(p.y / p.x);
+    ang = (ang * 180) / M_PI;
+
+    if (p.x < 0)
+    {
+        ang += 180;
+    }
+    else if (p.y < 0)
+    {
+        ang += 360;
+    }
+    COLA_ASSERT(ang >= 0);
+    COLA_ASSERT(ang <= 360);
+
+    return ang;
+}
+
 
 }
 

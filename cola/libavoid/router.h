@@ -112,6 +112,13 @@ enum PenaltyType
     //! @note   This penalty is still experimental!  It is not recommended
     //!         for normal use.
     fixedSharedPathPenalty,
+    //! @brief  This penalty is applied to port selection choice when the 
+    //!         other end of the connector being routed does not appear in 
+    //!         any of the 90 degree visibility cones centered on the
+    //!         visibility directions for the port.
+    //! @note   This penalty is still experimental!  It is not recommended
+    //!         for normal use.
+    portDirectionPenalty,
     // Used for determining the size of the penalty array.  
     // This should always we the last value in the enum.
     lastPenaltyMarker

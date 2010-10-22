@@ -87,7 +87,10 @@ class Point
         //! @return                The component of the point in that dimension.
         double& operator[](const unsigned int dimension);
         const double& operator[](const unsigned int dimension) const;
-        
+
+        Point operator+(const Point& rhs) const;
+        Point operator-(const Point& rhs) const;
+
         //! The x position.
         double x;
         //! The y position.

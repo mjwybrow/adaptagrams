@@ -181,7 +181,7 @@ class PointPair
             double x = vInf->point.x - centerPoint.x;
             double y = vInf->point.y - centerPoint.y;
 
-            angle = pos_to_angle(x, y);
+            angle = rotationalAngle(vInf->point - centerPoint);
             distance = euclideanDist(centerPoint, vInf->point);
         }
         bool operator<(const PointPair& rhs) const
@@ -205,32 +205,6 @@ class PointPair
                 return distance < rhs.distance;
             }
             return angle < rhs.angle;
-        }
-        static double pos_to_angle(double x, double y)
-        {
-            if (y == 0)
-            {
-                return ((x < 0) ? 180 : 0);
-            }
-            else if (x == 0)
-            {
-                return ((y < 0) ? 270 : 90);
-            }
-            
-            double ang = atan(y / x);
-            ang = (ang * 180) / M_PI;
-
-            if (x < 0)
-            {
-                ang += 180;
-            }
-            else if (y < 0)
-            {
-                ang += 360;
-            }
-            COLA_ASSERT(ang >= 0);
-            COLA_ASSERT(ang <= 360);
-            return ang;
         }
 
         VertInf    *vInf;

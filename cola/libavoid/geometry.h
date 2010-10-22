@@ -119,6 +119,7 @@ extern int segmentIntersectPoint(const Point& a1, const Point& a2,
         const Point& b1, const Point& b2, double *x, double *y);
 extern int rayIntersectPoint(const Point& a1, const Point& a2,
         const Point& b1, const Point& b2, double *x, double *y);
+extern double rotationalAngle(const Point& p);
 
 
 }

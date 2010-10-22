@@ -36,7 +36,6 @@
 #include "libavoid/debug.h"
 #include "libavoid/graph.h"
 
-
 namespace Avoid {
 
     
@@ -226,11 +225,12 @@ ConnDirFlags ConnEnd::directions(void) const
 
 // Assign visibility to a dummy vertex representing all the possible pins
 // for this pinClassId.
-void ConnEnd::assignPinVisibilityTo(VertInf *dummyConnectionVert)
+void ConnEnd::assignPinVisibilityTo(VertInf *dummyConnectionVert, 
+        VertInf *targetVert)
 {
     COLA_ASSERT(m_anchor_obj);
     COLA_ASSERT(m_connection_pin_class_id != CONNECTIONPIN_UNSET);
-    
+ 
     Router *router = m_anchor_obj->router();
     for (std::set<ShapeConnectionPin *>::iterator curr = 
             m_anchor_obj->m_connection_pins.begin(); 
@@ -240,6 +240,44 @@ void ConnEnd::assignPinVisibilityTo(VertInf *dummyConnectionVert)
         if ((currPin->m_class_id == m_connection_pin_class_id) && 
                 (!currPin->m_exclusive || currPin->m_connend_users.empty()))
         {
+            double routingCost = currPin->m_connection_cost;
+            Point adjTargetPt = targetVert->point - currPin->m_vertex->point;
+            double angle = rotationalAngle(adjTargetPt);
+            bool inVisibilityRange = false;
+
+            if (angle <= 45 || angle >= 315)
+            {
+                if (currPin->directions() & ConnDirRight)
+                {
+                    inVisibilityRange = true;
+                }
+            }
+            if (angle >= 45 && angle <= 135)
+            {
+                if (currPin->directions() & ConnDirDown)
+                {
+                    inVisibilityRange = true;
+                }
+            }
+            if (angle >= 135 && angle <= 225)
+            {
+                if (currPin->directions() & ConnDirLeft)
+                {
+                    inVisibilityRange = true;
+                }
+            }
+            if (angle >= 225 && angle <= 315)
+            {
+                if (currPin->directions() & ConnDirUp)
+                {
+                    inVisibilityRange = true;
+                }
+            }
+            if (!inVisibilityRange)
+            {
+                routingCost += router->routingPenalty(portDirectionPenalty);
+            }
+
             if (router->_orthogonalRouting)
             {
                 // This has same ID and is either unconnected or not 
@@ -250,7 +288,7 @@ void ConnEnd::assignPinVisibilityTo(VertInf *dummyConnectionVert)
                 //     elsewhere in code.
                 edge->setDist(manhattanDist(dummyConnectionVert->point,
                             currPin->m_vertex->point) + 
-                        std::max(0.001, currPin->m_connection_cost));
+                        std::max(0.001, routingCost));
             }
 
             if (router->_polyLineRouting)
@@ -263,7 +301,7 @@ void ConnEnd::assignPinVisibilityTo(VertInf *dummyConnectionVert)
                 //     elsewhere in code.
                 edge->setDist(euclideanDist(dummyConnectionVert->point,
                             currPin->m_vertex->point) + 
-                        std::max(0.001, currPin->m_connection_cost));
+                        std::max(0.001, routingCost));
             }
         }
     }
