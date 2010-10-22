@@ -178,9 +178,6 @@ class PointPair
             : vInf(inf),
               centerPoint(centerPoint)
         {
-            double x = vInf->point.x - centerPoint.x;
-            double y = vInf->point.y - centerPoint.y;
-
             angle = rotationalAngle(vInf->point - centerPoint);
             distance = euclideanDist(centerPoint, vInf->point);
         }
