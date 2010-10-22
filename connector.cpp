@@ -711,13 +711,13 @@ bool ConnRef::generatePath(void)
     if (dummySrc)
     {
         m_src_vert->removeFromGraph();
-        m_src_connend->assignPinVisibilityTo(m_src_vert);
+        m_src_connend->assignPinVisibilityTo(m_src_vert, m_dst_vert);
     }
     bool dummyDst = m_dst_connend && m_dst_connend->isPinConnection();
     if (dummyDst)
     {
         m_dst_vert->removeFromGraph();
-        m_dst_connend->assignPinVisibilityTo(m_dst_vert);
+        m_dst_connend->assignPinVisibilityTo(m_dst_vert, m_src_vert);
     }
     
     std::vector<Point> path;

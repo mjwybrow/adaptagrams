@@ -176,7 +176,8 @@ class ConnEnd
         unsigned int type(void) const;
         bool isPinConnection(void) const;
         std::vector<Point> possiblePinPoints(void) const;
-        void assignPinVisibilityTo(VertInf *dummyConnectionVert);
+        void assignPinVisibilityTo(VertInf *dummyConnectionVert, 
+                VertInf *targetVert);
         void outputCode(FILE *fp, const char *srcDst);
 
         Point m_point;

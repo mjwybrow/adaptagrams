@@ -61,9 +61,8 @@ class EdgeInf
         bool isOrthogonal(void) const;
         bool isDummyConnection(void) const;
         bool rotationLessThan(const VertInf* last, const EdgeInf *rhs) const;
-
-        std::pair<VertID, VertID> ids(void);
-        std::pair<Point, Point> points(void);
+        std::pair<VertID, VertID> ids(void) const;
+        std::pair<Point, Point> points(void) const;
         void db_print(void);
         void checkVis(void);
         VertInf *otherVert(const VertInf *vert) const;

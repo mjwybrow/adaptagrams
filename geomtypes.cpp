@@ -97,6 +97,17 @@ const double& Point::operator[](const unsigned int dimension) const
     return ((dimension == 0) ? x : y);
 }
 
+Point Point::operator+(const Point& rhs) const
+{
+    return Point(x + rhs.x, y + rhs.y);
+}
+
+
+Point Point::operator-(const Point& rhs) const
+{
+    return Point(x - rhs.x, y - rhs.y);
+}
+
 
 ReferencingPolygon::ReferencingPolygon(const Polygon& poly, const Router *router)
     : PolygonInterface(),
