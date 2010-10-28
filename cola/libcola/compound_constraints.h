@@ -28,6 +28,7 @@
 
 #include <vector>
 #include <list>
+#include <set>
 #include <utility>
 
 #include "sparse_matrix.h"
@@ -277,7 +278,10 @@ class SeparationConstraint : public CompoundConstraint
 };
 
 
-// Orthogonal edges must have their end points aligned horizontally or vertically
+// XXX: This is experimental
+//
+// Orthogonal edges must have their end points aligned horizontally or 
+// vertically
 class OrthogonalEdgeConstraint : public CompoundConstraint 
 {
     public:
@@ -353,6 +357,28 @@ class DistributionConstraint : public CompoundConstraint {
         vpsc::Constraints cs;
         void *indicator;
         double sep;
+};
+
+// XXX: This is experimental
+//
+// A Fixed-relative constraint specifies that a group of nodes are constrained
+// to be fixed in position relative to each other.  A weight can be given to 
+// try to keep the whole group at the desired position.
+class FixedRelativeConstraint : public CompoundConstraint {
+    public:
+        FixedRelativeConstraint(const vpsc::Rectangles& rs,
+                std::set<unsigned> shapeIds, const bool fixedPosition = false);
+        SubConstraintAlternatives getCurrSubConstraintAlternatives(
+                vpsc::Variables vs[]);
+
+        void generateVariables(const vpsc::Dim dim, vpsc::Variables& vars);
+        void generateSeparationConstraints(const vpsc::Dim dim, 
+                vpsc::Variables& vars, vpsc::Constraints& gcs,
+                std::vector<vpsc::Rectangle*>& bbs);
+        void printCreationCode(FILE *fp) const;
+
+        bool m_fixed_position;
+        std::set<unsigned> m_shape_vars;
 };
 
 

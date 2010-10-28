@@ -843,6 +843,143 @@ void DistributionConstraint::generateSeparationConstraints(
 
 
 //-----------------------------------------------------------------------------
+// FixedRelativeConstraint code
+//-----------------------------------------------------------------------------
+
+class RelativeOffset : public SubConstraintInfo
+{
+    public:
+        RelativeOffset(unsigned indL, unsigned indR, vpsc::Dim dim,
+                double offset)
+            : SubConstraintInfo(indL),
+              varIndex2(indR),
+              dim(dim),
+              distOffset(offset)
+        {
+        }
+        unsigned varIndex2;
+        vpsc::Dim dim;
+        double distOffset;
+};
+
+
+FixedRelativeConstraint::FixedRelativeConstraint(const vpsc::Rectangles& rs,
+        std::set<unsigned> shapeIds, const bool fixedPosition)
+    : CompoundConstraint(vpsc::XDIM),
+      m_fixed_position(fixedPosition),
+      m_shape_vars(shapeIds)
+{
+    _combineSubConstraints = true;
+
+    unsigned firstId = UINT_MAX;
+    COLA_ASSERT(m_shape_vars.size() >= 2);
+    for (std::set<unsigned>::iterator it = m_shape_vars.begin();
+            it != m_shape_vars.end(); ++it)
+    {
+        if (it == m_shape_vars.begin())
+        {
+            firstId = *it;
+        }
+        else
+        {
+            unsigned thisId = *it;
+            _subConstraintInfo.push_back(
+                    new RelativeOffset(firstId, thisId, vpsc::XDIM,
+                        rs[thisId]->getCentreX() - rs[firstId]->getCentreX()));
+            _subConstraintInfo.push_back(
+                    new RelativeOffset(firstId, thisId, vpsc::YDIM,
+                        rs[thisId]->getCentreY() - rs[firstId]->getCentreY()));
+        }
+    }
+}
+
+
+void FixedRelativeConstraint::generateVariables(const vpsc::Dim dim, 
+        vpsc::Variables& vars)
+{
+    COLA_UNUSED(dim);
+    COLA_UNUSED(vars);
+
+    // No additional variables are required!
+    
+    // Fix shape positions if required.
+    if (m_fixed_position)
+    {
+        for (std::set<unsigned>::iterator it = m_shape_vars.begin();
+                it != m_shape_vars.end(); ++it)
+        {
+            vars[*it]->fixedDesiredPosition = true;
+            vars[*it]->weight = 100000;
+        }
+    }
+}
+
+
+void FixedRelativeConstraint::printCreationCode(FILE *fp) const
+{
+    fprintf(fp, "    std::set<unsigned> fixedRelativeSet%llu;\n",
+            (unsigned long long) this);
+    for (std::set<unsigned>::iterator it = m_shape_vars.begin();
+            it != m_shape_vars.end(); ++it)
+    {
+        fprintf(fp, "    fixedRelativeSet%llu.insert(%u);\n",
+                (unsigned long long) this, *it);
+    }
+    fprintf(fp, "    FixedRelativeConstraint *fixedRelative%llu = "
+            "new FixedRelative(rs, fixedRelativeSet%llu, %s);\n",
+            (unsigned long long) this, (unsigned long long) this,
+            (m_fixed_position) ? "true" : "false");
+    fprintf(fp, "    ccs.push_back(fixedRelative%llu);\n\n",
+            (unsigned long long) this);
+}
+
+
+SubConstraintAlternatives 
+FixedRelativeConstraint::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
+{
+    COLA_UNUSED(vs);
+
+    SubConstraintAlternatives alternatives;
+
+    RelativeOffset *offset = static_cast<RelativeOffset *> 
+            (_subConstraintInfo[_currSubConstraintIndex]);
+        
+    vpsc::Dim dim = offset->dim;
+    vpsc::Constraint constraint(vs[dim][offset->varIndex], 
+            vs[dim][offset->varIndex2], offset->distOffset, true);
+    alternatives.push_back(SubConstraint(dim, constraint));
+    
+    //fprintf(stderr, "===== FixedRelativeConstraint ALTERNATIVES -======\n");
+    return alternatives;
+}
+
+
+void FixedRelativeConstraint::generateSeparationConstraints(
+        const vpsc::Dim dim, vpsc::Variables& vars, vpsc::Constraints& gcs,
+        std::vector<vpsc::Rectangle*>& bbs)
+{
+    COLA_UNUSED(vars);
+    COLA_UNUSED(bbs);
+
+    for (SubConstraintInfoList::iterator o = _subConstraintInfo.begin();
+            o != _subConstraintInfo.end(); ++o) 
+    {
+        RelativeOffset *offset = static_cast<RelativeOffset *> (*o);
+        if (dim != offset->dim)
+        {
+            continue;
+        }
+
+        vpsc::Constraint *c = 
+                new vpsc::Constraint(&(vars[dim][offset->varIndex]), 
+                        &(vars[dim][offset->varIndex2]), 
+                        offset->distOffset, true);
+        gcs.push_back(c);
+    }
+}
+
+
+//-----------------------------------------------------------------------------
 // PageBoundaryConstraint code
 //-----------------------------------------------------------------------------
 
