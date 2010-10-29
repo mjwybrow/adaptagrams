@@ -33,8 +33,6 @@
 
 #include <algorithm>
 #include <cfloat>
-#define _USE_MATH_DEFINES
-#include <cmath>
 
 #include "libavoid/shape.h"
 #include "libavoid/debug.h"

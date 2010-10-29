@@ -26,6 +26,8 @@
 #include <algorithm>
 #include <vector>
 #include <climits>
+
+// For M_PI:
 #define _USE_MATH_DEFINES
 #include <cmath>
 
