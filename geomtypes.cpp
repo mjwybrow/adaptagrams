@@ -232,7 +232,8 @@ void PolygonInterface::getBoundingRect(double *minX, double *minY,
 
 
 Polygon::Polygon()
-    : PolygonInterface()
+    : PolygonInterface(),
+      _id(0)
 {
     clear();
 }
@@ -240,6 +241,7 @@ Polygon::Polygon()
 
 Polygon::Polygon(const int pn)
     : PolygonInterface(),
+      _id(0),
       ps(pn)
 {
 }
