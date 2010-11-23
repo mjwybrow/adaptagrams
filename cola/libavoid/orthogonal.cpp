@@ -2538,11 +2538,11 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             // Constrain position in relation to previously seen segments,
             // if necessary (i.e. when they could overlap).
             for (ShiftSegmentPtrList::iterator prevVarIt = prevVars.begin();
-                    prevVarIt != prevVars.end(); )
+                    prevVarIt != prevVars.end(); ++prevVarIt)
             {
                 ShiftSegment *prevSeg = *prevVarIt;
                 Variable *prevVar = prevSeg->variable;
-
+                
                 if (currSegment->overlapsWith(*prevSeg, dimension) &&
                         (!(currSegment->fixed) || !(prevSeg->fixed)))
                 {
@@ -2569,11 +2569,6 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                         // rewrite the separation distance later.
                         gapcs.push_back(constraint);
                     }
-                    prevVarIt = prevVars.erase(prevVarIt);
-                }
-                else
-                {
-                    ++prevVarIt;
                 }
             }
 
