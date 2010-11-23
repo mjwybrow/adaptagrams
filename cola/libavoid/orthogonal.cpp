@@ -55,16 +55,18 @@ class ShiftSegment
     public:
         // For shiftable segments.
         ShiftSegment(ConnRef *conn, const size_t low, const size_t high, 
-                bool isSBend, const size_t dim, double minLim, double maxLim)
+                bool isSBend, bool isZBend, const size_t dim, double minLim,
+                double maxLim)
             : connRef(conn),
               indexLow(low),
               indexHigh(high),
-              sBend(isSBend),
               fixed(false),
               dimension(dim),
               variable(NULL),
               minSpaceLimit(minLim),
-              maxSpaceLimit(maxLim)
+              maxSpaceLimit(maxLim),
+              sBend(isSBend),
+              zBend(isZBend)
         {
         }
         // For fixed segments.
@@ -73,10 +75,11 @@ class ShiftSegment
             : connRef(conn),
               indexLow(low),
               indexHigh(high),
-              sBend(false),
               fixed(true),
               dimension(dim),
-              variable(NULL)
+              variable(NULL),
+              sBend(false),
+              zBend(false)
         {
             // This has no space to shift.
             minSpaceLimit = lowPoint()[dim];
@@ -147,6 +150,10 @@ class ShiftSegment
             }
             return this < &rhs;
         }
+        bool zigzag(void) const
+        {
+            return sBend || zBend;
+        }
         // This counts segments that are collinear and share an endpoint as
         // overlapping.  This allows them to be nudged apart where possible.
         bool overlapsWith(const ShiftSegment& rhs, const size_t dim) const
@@ -156,13 +163,26 @@ class ShiftSegment
             const Point& highPt = highPoint();
             const Point& rhsLowPt = rhs.lowPoint();
             const Point& rhsHighPt = rhs.highPoint();
-            if ( (lowPt[altDim] <= rhsHighPt[altDim]) &&
-                    (rhsLowPt[altDim] <= highPt[altDim]))
+            if ( (lowPt[altDim] < rhsHighPt[altDim]) &&
+                    (rhsLowPt[altDim] < highPt[altDim]))
             {
+                // The segments overlap.
                 if ( (minSpaceLimit <= rhs.maxSpaceLimit) &&
-                        (rhs.minSpaceLimit <= maxSpaceLimit))
+                        (rhs.minSpaceLimit <= maxSpaceLimit) )
                 {
                     return true;
+                }
+            }
+            else if ( (lowPt[altDim] == rhsHighPt[altDim]) || 
+                      (rhsLowPt[altDim] == highPt[altDim]) )
+            {
+                // The segment touch at one end, so count them as overlaping
+                // for nudging if they are both s-bends or both z-bends, i.e.,
+                // when the ordering would matter.
+                if ( (minSpaceLimit <= rhs.maxSpaceLimit) &&
+                        (rhs.minSpaceLimit <= maxSpaceLimit) )
+                {
+                    return ((rhs.sBend && sBend) || (rhs.zBend && zBend));
                 }
             }
             return false;
@@ -171,18 +191,19 @@ class ShiftSegment
         ConnRef *connRef;
         size_t indexLow;
         size_t indexHigh;
-        bool sBend;
         bool fixed;
         size_t dimension;
         Variable *variable;
         double minSpaceLimit;
         double maxSpaceLimit;
     private:
+        bool sBend;
+        bool zBend;
         const bool lowC(void) const
         {
             // This is true if this is a cBend and its adjoining points
             // are at lower positions.
-            if (!sBend && !fixed && (minSpaceLimit == lowPoint()[dimension]))
+            if (!zigzag() && !fixed && (minSpaceLimit == lowPoint()[dimension]))
             {
                 return true;
             }
@@ -192,7 +213,7 @@ class ShiftSegment
         {
             // This is true if this is a cBend and its adjoining points
             // are at higher positions.
-            if (!sBend && !fixed && (maxSpaceLimit == lowPoint()[dimension]))
+            if (!zigzag() && !fixed && (maxSpaceLimit == lowPoint()[dimension]))
             {
                 return true;
             }
@@ -1992,13 +2013,13 @@ static void buildOrthogonalChannelInfo(Router *router,
                 double maxLim = CHANNEL_MAX;
 
                 bool isSBend = false;
+                bool isZBend = false;
 
                 double prevPos = displayRoute.ps[i - 2][dim];
                 double nextPos = displayRoute.ps[i + 1][dim];
                 if ( ((prevPos < thisPos) && (nextPos > thisPos)) ||
                      ((prevPos > thisPos) && (nextPos < thisPos)) )
                 {
-                    isSBend = true;
 
                     // Determine limits if the s-bend is not due to an 
                     // obstacle.  In this case we need to limit the channel 
@@ -2007,11 +2028,13 @@ static void buildOrthogonalChannelInfo(Router *router,
                     {
                         minLim = std::max(minLim, prevPos);
                         maxLim = std::min(maxLim, nextPos);
+                        isZBend = true;
                     }
                     else
                     {
                         minLim = std::max(minLim, nextPos);
                         maxLim = std::min(maxLim, prevPos);
+                        isSBend = true;
                     }
                 }
                 else
@@ -2030,7 +2053,7 @@ static void buildOrthogonalChannelInfo(Router *router,
                 }
 
                 segmentList.push_back(ShiftSegment(*curr, indexLow, 
-                            indexHigh, isSBend, dim, minLim, maxLim));
+                            indexHigh, isSBend, isZBend, dim, minLim, maxLim));
             }
         }
     }
@@ -2432,7 +2455,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
         {
             // Save creating the solver instance if there is just one
             // immovable segment.
-            if (!currentRegion.front().sBend)
+            if (!currentRegion.front().zigzag())
             {
                 continue;
             }
@@ -2464,12 +2487,12 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             int varID = freeID;
             double idealPos = lowPt[dimension];
             double weight = freeWeight;
-            if (currSegment->sBend)
+            if (currSegment->zigzag())
             {
                 COLA_ASSERT(currSegment->minSpaceLimit > -CHANNEL_MAX);
                 COLA_ASSERT(currSegment->maxSpaceLimit < CHANNEL_MAX);
                 
-                // For s-bends, take the middle as ideal.
+                // For zigzag bends, take the middle as ideal.
                 idealPos = currSegment->minSpaceLimit +
                         ((currSegment->maxSpaceLimit -
                           currSegment->minSpaceLimit) / 2);
