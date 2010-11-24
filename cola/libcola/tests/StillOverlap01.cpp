@@ -212,6 +212,7 @@ int main(void) {
     alg.setClusterHierarchy(cluster140600590333360);
     alg.setConstraints(ccs);
     alg.makeFeasible();
+    alg.run();
     alg.outputInstanceToSVG("test-StillOverlap01");
 };
 

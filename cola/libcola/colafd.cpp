@@ -241,7 +241,7 @@ void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis)
     {
         // This generates constraints for non-overlap inside and outside
         // of clusters.  To assign correct variable indexes it requires
-        // that vs contains elements equal to the number of rectangles.
+        // that vs[] contains elements equal to the number of rectangles.
         vpsc::Variables vs[2];
         vs[0].resize(n);
         vs[1].resize(n);
@@ -762,6 +762,13 @@ void ConstrainedFDLayout::makeFeasible(void)
         generateRoutes();
     }
 #endif
+
+    // Update the X and Y vectors with the new shape positions.
+    for (unsigned int i = 0; i < boundingBoxes.size(); ++i)
+    {
+        X[i] = boundingBoxes[i]->getCentreX();
+        Y[i] = boundingBoxes[i]->getCentreY();
+    }
 }
 
 ConstrainedFDLayout::~ConstrainedFDLayout()

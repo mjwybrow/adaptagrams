@@ -1855,5 +1855,6 @@ int main(void) {
     alg.setClusterHierarchy(cluster1100877760);
     alg.setConstraints(ccs);
     alg.makeFeasible();
+    alg.run();
     alg.outputInstanceToSVG("test-StillOverlap02");
 };
