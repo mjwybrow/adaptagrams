@@ -1,8 +1,13 @@
 INCLUDES = -I$(top_srcdir) $(CAIROMM_CFLAGS)
 common_LDADD = $(top_builddir)/libcola/libcola.la $(top_builddir)/libvpsc/libvpsc.la $(top_builddir)/libtopology/libtopology.la $(CAIROMM_LIBS)
-check_PROGRAMS = random_graph nodedragging page_bounds constrained beautify unsatisfiable invalid makefeasible rectclustershapecontainment FixedRelativeConstraint01
+check_PROGRAMS = random_graph nodedragging page_bounds constrained beautify unsatisfiable invalid makefeasible rectclustershapecontainment FixedRelativeConstraint01 StillOverlap01 StillOverlap02
 #check_PROGRAMS = unconstrained constrained containment shortest_paths connected_components large_graph convex_hull scale_free trees random_graph large_graph nodedragging topology boundary planar beautify #resize
 #check_PROGRAMS = beautify nodedragging topology boundary planar beautify resize resizealignment
+
+StillOverlap01_LDADD = $(common_LDADD)
+StillOverlap01_SOURCES = StillOverlap01.cpp 
+StillOverlap02_LDADD = $(common_LDADD)
+StillOverlap02_SOURCES = StillOverlap02.cpp 
 
 FixedRelativeConstraint01_LDADD = $(common_LDADD)
 FixedRelativeConstraint01_SOURCES = FixedRelativeConstraint01.cpp 

@@ -274,6 +274,28 @@ void NonOverlapConstraints::computeAndSortOverlap(vpsc::Variables vs[])
         }
         else
         {
+            // Increase the overlap value for overlap where one shape is fully
+            // within the other.  This result in these situations being
+            // resolved first and will sometimes prevent us from committing to
+            // bad non-overlap choices and getting stuck later.
+            // XXX Another alternative would be to look at previously added
+            //     non-overlap constraints that become unsatified and then 
+            //     allow them to be rechosen maybe just a single time.
+            double penalty = 100000;
+            if ( (left1 >= left2) && (right1 <= right2) &&
+                 (bottom1 >= bottom2) && (top1 <= top2) )
+            {
+                // Shape 1 is inside shape 2.
+                double smallShapeArea = (right1 - left1) * (top1 - bottom1);
+                info.overlapMax = penalty + smallShapeArea;
+            }
+            else if ( (left2 >= left1) && (right2 <= right1) &&
+                 (bottom2 >= bottom1) && (top2 <= top1) )
+            {
+                // Shape 2 is inside shape 1.
+                double smallShapeArea = (right2 - left2) * (top2 - bottom2);
+                info.overlapMax = penalty + smallShapeArea;
+            }
             // There is overlap.
             //printf("[%02d][%02d] L %g, R %G, B %g, A %g\n", info.varIndex1, 
             //        info.varIndex2, spaceL, spaceR, spaceB, spaceA);
@@ -326,11 +348,11 @@ NonOverlapConstraints::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
             (shape2.cluster) ? (info.varIndex2 + 1) : info.varIndex2;
 
     assertValidVariableIndex(vs[XDIM], varIndexL1);
-    assertValidVariableIndex(vs[XDIM], varIndexL1);
-    assertValidVariableIndex(vs[YDIM], varIndexR1);
+    assertValidVariableIndex(vs[YDIM], varIndexL1);
+    assertValidVariableIndex(vs[XDIM], varIndexR1);
     assertValidVariableIndex(vs[YDIM], varIndexR1);
     assertValidVariableIndex(vs[XDIM], varIndexL2);
-    assertValidVariableIndex(vs[XDIM], varIndexL2);
+    assertValidVariableIndex(vs[YDIM], varIndexL2);
     assertValidVariableIndex(vs[YDIM], varIndexR2);
     assertValidVariableIndex(vs[YDIM], varIndexR2);
 

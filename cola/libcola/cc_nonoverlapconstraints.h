@@ -67,7 +67,7 @@ class NonOverlapConstraints : public CompoundConstraint {
         std::list<ShapePairInfo> pairInfoList;
         std::map<unsigned, OverlapShapeOffsets> shapeOffsets;
         
-        // Cluster vaiables
+        // Cluster variables
         size_t clusterVarStartIndex;
         size_t currClusterIndex;
         size_t clusterMode;
