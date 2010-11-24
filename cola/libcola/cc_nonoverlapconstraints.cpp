@@ -353,7 +353,7 @@ NonOverlapConstraints::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
     assertValidVariableIndex(vs[YDIM], varIndexR1);
     assertValidVariableIndex(vs[XDIM], varIndexL2);
     assertValidVariableIndex(vs[YDIM], varIndexL2);
-    assertValidVariableIndex(vs[YDIM], varIndexR2);
+    assertValidVariableIndex(vs[XDIM], varIndexR2);
     assertValidVariableIndex(vs[YDIM], varIndexR2);
 
     // 
