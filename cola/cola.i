@@ -37,6 +37,8 @@ using namespace topology;
 %ignore Avoid::Point::operator==(const Point&) const;
 %ignore Avoid::Point::operator!=(const Point&) const;
 %ignore Avoid::Point::operator<(const Point&) const;
+%ignore Avoid::Point::operator-(const Point&) const;
+%ignore Avoid::Point::operator+(const Point&) const;
 %ignore cola::SubConstraint;
 %ignore cola::SubConstraintAlternatives;
 %ignore cola::SubConstraintInfo;
