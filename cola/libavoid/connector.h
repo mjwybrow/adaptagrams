@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2009  Monash University
+ * Copyright (C) 2004-2010  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -311,45 +311,31 @@ class ConnRef
 };
 
 
-class PointRep;
-typedef std::set<PointRep *> PointRepSet;
-typedef std::list<PointRep *> PointRepList;
-
-class PointRep
-{
-    public:
-        PointRep(Point *p, const ConnRef *c)
-            : point(p),
-              conn(c)
-
-        {
-        }
-        bool follow_inner(PointRep *target);
-
-        Point *point;
-        const ConnRef *conn;
-        // inner_set: Set of pointers to the PointReps 'inner' of 
-        // this one, at this corner.
-        PointRepSet inner_set;
-};
-
-
 typedef std::pair<Point *, ConnRef *> PtConnPtrPair;
+
+typedef std::vector< PtConnPtrPair > PointRepVector;
+typedef std::list<std::pair<size_t, size_t> > NodeIndexPairLinkList;
 
 class PtOrder
 {
     public:
-        PtOrder()
-        {
-        }
+        PtOrder();
         ~PtOrder();
-        bool addPoints(const int dim, PtConnPtrPair innerArg, 
-                PtConnPtrPair outerArg, bool swapped);
-        void sort(const int dim);
-        int positionFor(const ConnRef *conn, const size_t dim) const;
+        void addPoints(const size_t dim, const PtConnPtrPair& arg1, 
+                const PtConnPtrPair& arg2);
+        void addOrderedPoints(const size_t dim, const PtConnPtrPair& innerArg, 
+                const PtConnPtrPair& outerArg, bool swapped);
+        int positionFor(const size_t dim, const ConnRef *conn);
+
+    private:
+        size_t insertPoint(const size_t dim, const PtConnPtrPair& point);
+        void sort(const size_t dim);
 
         // One for each dimension.
-        PointRepList connList[2];
+        bool sorted[2];
+        PointRepVector nodes[2];
+        NodeIndexPairLinkList links[2];
+        PointRepVector sortedConnVector[2];
 };
 
 typedef std::map<Avoid::Point,PtOrder> PtOrderMap;

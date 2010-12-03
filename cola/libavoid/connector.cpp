@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2009  Monash University
+ * Copyright (C) 2004-2010  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -28,6 +28,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <algorithm>
+#include <queue>
 
 #include "libavoid/connector.h"
 #include "libavoid/connend.h"
@@ -1043,126 +1044,155 @@ std::vector<Point> ConnRef::possibleDstPinPoints(void) const
 }
 
 
+PtOrder::PtOrder()
+{
+    // We has sorted neither list initially.
+    for (size_t dim = 0; dim < 2; ++dim)
+    {
+        sorted[dim] = false;
+    }
+}
+
+
 PtOrder::~PtOrder()
 {
-    // Free the PointRep lists.
-    for (int dim = 0; dim < 2; ++dim)
-    {
-        PointRepList::iterator curr = connList[dim].begin();
-        while (curr != connList[dim].end())
-        {
-            PointRep *doomed = *curr;
-            curr = connList[dim].erase(curr);
-            delete doomed;
-        }
-    }
-}
-
-bool PointRep::follow_inner(PointRep *target)
-{
-    if (this == target)
-    {
-        return true;
-    }
-    else
-    {
-        for (PointRepSet::iterator curr = inner_set.begin(); 
-                curr != inner_set.end(); ++curr)
-        {
-            if ((*curr)->follow_inner(target))
-            {
-                return true;
-            }
-        }
-    }
-    return false;
 }
 
 
-int PtOrder::positionFor(const ConnRef *conn, const size_t dim) const
+int PtOrder::positionFor(const size_t dim, const ConnRef *conn)
 {
-    int position = 0;
-    for (PointRepList::const_iterator curr = connList[dim].begin(); 
-            curr != connList[dim].end(); ++curr)
+    // Sort if not already sorted.
+    if (sorted[dim] == false)
     {
-        if ((*curr)->conn == conn)
-        {
-            return position;
-        }
-        ++position;
+        sort(dim);
     }
-    // Not found.
+
+    // Just return position from the sorted list.
+    size_t i = 0;
+    for ( ; i < sortedConnVector[dim].size(); ++i)
+    {
+        if (sortedConnVector[dim][i].second == conn)
+        {
+            return (int) i;
+        }
+    }
     return -1;
 }
 
 
-bool PtOrder::addPoints(const int dim, PtConnPtrPair innerArg, 
-        PtConnPtrPair outerArg, bool swapped)
+size_t PtOrder::insertPoint(const size_t dim, const PtConnPtrPair& pointPair)
+{
+    // Is this connector bendpoint already inserted?
+    size_t i = 0;
+    for ( ; i < nodes[dim].size(); ++i)
+    {
+        if (nodes[dim][i].second == pointPair.second)
+        {
+            return i;
+        }
+    }
+    // Not found, insert.
+    nodes[dim].push_back(pointPair);
+    return nodes[dim].size() - 1;
+}
+
+void PtOrder::addPoints(const size_t dim, const PtConnPtrPair& arg1, 
+                const PtConnPtrPair& arg2)
+{
+    // Add points, but not ordering information.
+    insertPoint(dim, arg1);
+    insertPoint(dim, arg2);
+}
+
+
+void PtOrder::addOrderedPoints(const size_t dim, const PtConnPtrPair& innerArg, 
+        const PtConnPtrPair& outerArg, bool swapped)
 {
     PtConnPtrPair inner = (swapped) ? outerArg : innerArg;
     PtConnPtrPair outer = (swapped) ? innerArg : outerArg;
     COLA_ASSERT(inner != outer);
 
-    //printf("addPoints(%d, [%g, %g]-%X, [%g, %g]-%X)\n", dim,
-    //        inner->x, inner->y, (int) inner, outer->x, outer->y, (int) outer);
-
-    PointRep *innerPtr = NULL;
-    PointRep *outerPtr = NULL;
-    for (PointRepList::iterator curr = connList[dim].begin(); 
-            curr != connList[dim].end(); ++curr)
-    {
-        if ((*curr)->point == inner.first)
-        {
-            innerPtr = *curr;
-        }
-        if ((*curr)->point == outer.first)
-        {
-            outerPtr = *curr;
-        }
-    }
-    
-    if (innerPtr == NULL)
-    {
-        innerPtr = new PointRep(inner.first, inner.second);
-        connList[dim].push_back(innerPtr);
-    }
-    
-    if (outerPtr == NULL)
-    {
-        outerPtr = new PointRep(outer.first, outer.second);
-        connList[dim].push_back(outerPtr);
-    }
-    // TODO COLA_ASSERT(innerPtr->inner_set.find(outerPtr) == innerPtr->inner_set.end());
-    bool cycle = innerPtr->follow_inner(outerPtr);
-    if (cycle)
-    {
-        // Must reverse to avoid a cycle.
-        innerPtr->inner_set.insert(outerPtr);
-    }
-    else
-    {
-        outerPtr->inner_set.insert(innerPtr);
-    }
-    return cycle;
+    // Add points.
+    size_t innerIndex = insertPoint(dim, inner);
+    size_t outerIndex = insertPoint(dim, outer);
+   
+    // And edge for ordering information.
+    links[dim].push_back(std::make_pair(outerIndex, innerIndex));
 }
 
 
-// Assuming that addPoints has been called for each pair of points in the 
-// shared path at that corner, then the contents of inner_set can be used 
-// to determine the correct ordering.
-static bool pointRepLessThan(PointRep *r1, PointRep *r2)
+void PtOrder::sort(const size_t dim)
 {
-    size_t r1less = r1->inner_set.size();
-    size_t r2less = r2->inner_set.size();
-    //COLA_ASSERT(r1less != r2less);
-    
-    return (r1less > r2less);
-}
+    // This is just a topological sort of the points using the edges info.
 
+    sorted[dim] = true;
 
-void PtOrder::sort(const int dim)
-{
-    connList[dim].sort(pointRepLessThan);
+    size_t n = nodes[dim].size();
+
+    // Build an adjacancy matrix for easy lookup.
+    bool adjacencyMatrix[n][n];
+    for (size_t i = 0; i <= n; ++i)
+    {
+        for (size_t j = 0; j <= n; ++j)
+        {
+            adjacencyMatrix[i][j] = false;
+        }
+    }
+    int incomingDegree[n];
+    std::queue<size_t> queue;
+
+    // Populate the dependancy matrix.
+    for (NodeIndexPairLinkList::iterator it = links[dim].begin(); 
+            it != links[dim].end(); ++it)
+    {
+        adjacencyMatrix[it->first][it->second] = true;
+    }
+
+    // Build incoming degree lookup structure, and add nodes with no
+    // incoming edges to queue.
+    for (size_t i = 0; i < n; ++i)
+    {
+        int degree = 0;
+ 
+        for (size_t j = 0;j < n; ++j)
+        {
+            if (adjacencyMatrix[j][i])
+            {
+                degree++;
+            }
+        }
+        incomingDegree[i] = degree;
+
+        if (degree == 0)
+        {
+            queue.push(i);
+        }
+    }
+ 
+    while (queue.empty() == false)
+    {
+        size_t k = queue.front();
+        assert(k < nodes[dim].size());
+        queue.pop();
+
+        // Insert node k into the sorted list
+        sortedConnVector[dim].push_back(nodes[dim][k]);
+
+        // Remove all edges leaving node k:
+        for (size_t i = 0; i < n; ++i)
+        {
+            if (adjacencyMatrix[k][i])
+            {
+                adjacencyMatrix[k][i] = false;
+                incomingDegree[i]--;
+ 
+                if (incomingDegree[i] == 0)
+                {
+                    queue.push(i);
+                }
+            }
+        }
+    }
 }
 
 
@@ -1826,7 +1856,7 @@ void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
                             // become the outer path and vice versa.
                             reversed = !reversed;
                         }
-                        bool orderSwapped = (*pointOrders)[an].addPoints(
+                        bool orderSwapped = (*pointOrders)[an].addOrderedPoints(
                                 &bn, &an, reversed);
                         if (orderSwapped)
                         {
@@ -1880,34 +1910,18 @@ void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
                             int orientation = (ap.x == an.x) ? 0 : 1;
                             //printf("prevOri %d\n", prevOrientation);
                             //printf("1: %X, %X\n", (int) &(bn), (int) &(an));
-                            bool orderSwapped = (*pointOrders)[an].addPoints(
+                            (*pointOrders)[an].addOrderedPoints(
                                     orientation, 
                                     std::make_pair(&bn, polyConnRef), 
                                     std::make_pair(&an, connConnRef), 
                                     reversed);
-                            if (orderSwapped)
-                            {
-                                // Reverse the order for later points.
-                                reversed = !reversed;
-                            }
                             COLA_ASSERT(ap == bp);
                             //printf("2: %X, %X\n", (int) &bp, (int) &ap);
-                            orderSwapped = (*pointOrders)[ap].addPoints(
+                            (*pointOrders)[ap].addOrderedPoints(
                                     orientation, 
                                     std::make_pair(&bp, polyConnRef), 
                                     std::make_pair(&ap, connConnRef), 
                                     reversed);
-                            if (orderSwapped)
-                            {
-                                // XXX: Investigate why this occurs -- 
-                                //      see the orderassertion test case.
-                                //
-                                // The inconsistency here is not a problem,
-                                // as only one of the points is checked to 
-                                // determine ordering for nudging. 
-                                db_printf("WARNING: orderSwapped after "
-                                        "second call to PtOrder::addPoints\n");
-                            }
                         }
                     }
                 }
@@ -1992,11 +2006,11 @@ void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
                         // XXX: Why do we need to invert the reversed values 
                         //      here?  Are they wrong for orthogonal points
                         //      in the other places?
-                        (*pointOrders)[b1].addPoints(0, 
+                        (*pointOrders)[b1].addOrderedPoints(0, 
                                 std::make_pair(&b1, polyConnRef), 
                                 std::make_pair(&a1, connConnRef), 
                                 !reversedX);
-                        (*pointOrders)[b1].addPoints(1, 
+                        (*pointOrders)[b1].addOrderedPoints(1, 
                                 std::make_pair(&b1, polyConnRef), 
                                 std::make_pair(&a1, connConnRef),
                                 !reversedY);
@@ -2026,7 +2040,7 @@ void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
                             //          (turnDirA != 0)); 
                         }
                         VertID vID(b1.id, b1.vn);
-                        //(*pointOrders)[b1].addPoints(&b1, &a1, reversed);
+                        //(*pointOrders)[b1].addOrderedPoints(&b1, &a1, reversed);
                     }
                 }
             }

@@ -2239,19 +2239,6 @@ static void buildOrthogonalNudgingOrderInfo(Router *router,
             }
         }
     }
-    
-    // Sort the point orders.
-    PtOrderMap::iterator finish = pointOrders.end();
-    for (PtOrderMap::iterator it = pointOrders.begin(); it != finish; ++it)
-    {
-        //const VertID& ptID = it->first;
-        PtOrder& order = it->second;
-
-        for (size_t dim = XDIM; dim <= YDIM; ++dim)
-        {
-            order.sort(dim);
-        }
-    }
 }
 
 
@@ -2317,8 +2304,8 @@ class CmpLineOrder
                     lhsLow : rhsLow;
 
             PtOrder& lowOrder = orders[unchanged];
-            int lhsPos = lowOrder.positionFor(lhs.connRef, dimension);
-            int rhsPos = lowOrder.positionFor(rhs.connRef, dimension);
+            int lhsPos = lowOrder.positionFor(dimension, lhs.connRef);
+            int rhsPos = lowOrder.positionFor(dimension, rhs.connRef);
             if ((lhsPos == -1) || (rhsPos == -1))
             {
                 // A value for rhsPos or lhsPos mean the points are not directly
