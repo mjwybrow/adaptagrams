@@ -24,6 +24,7 @@
 */
 
 #include <algorithm>
+#include <climits>
 
 #include <libvpsc/variable.h>
 #include <libvpsc/constraint.h>
