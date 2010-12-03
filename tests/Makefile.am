@@ -47,7 +47,10 @@ check_PROGRAMS = \
 	inlineShapes \
 	checkpoints01 \
 	freeFloatingDirection01 \
-	restrictedNudging
+	restrictedNudging \
+	performance01
+
+performance01_SOURCES = performance01.cpp
 
 restrictedNudging_SOURCES = restrictedNudging.cpp
 
