@@ -560,8 +560,15 @@ void ConnRef::unInitialise(void)
 
 void ConnRef::removeFromGraph(void)
 {
-    m_src_vert->removeFromGraph();
-    m_dst_vert->removeFromGraph();
+    if (m_src_vert)
+    {
+        m_src_vert->removeFromGraph();
+    }
+
+    if (m_dst_vert)
+    {
+        m_dst_vert->removeFromGraph();
+    }
 }
 
 
@@ -1130,15 +1137,12 @@ void PtOrder::sort(const size_t dim)
     size_t n = nodes[dim].size();
 
     // Build an adjacancy matrix for easy lookup.
-    bool adjacencyMatrix[n][n];
-    for (size_t i = 0; i <= n; ++i)
+    std::vector<std::vector<bool> > adjacencyMatrix(n);
+    for (size_t i = 0; i < n; ++i)
     {
-        for (size_t j = 0; j <= n; ++j)
-        {
-            adjacencyMatrix[i][j] = false;
-        }
+        adjacencyMatrix[i].assign(n, false);
     }
-    int incomingDegree[n];
+    std::vector<int> incomingDegree(n);
     std::queue<size_t> queue;
 
     // Populate the dependancy matrix.
@@ -1154,7 +1158,7 @@ void PtOrder::sort(const size_t dim)
     {
         int degree = 0;
  
-        for (size_t j = 0;j < n; ++j)
+        for (size_t j = 0; j < n; ++j)
         {
             if (adjacencyMatrix[j][i])
             {
