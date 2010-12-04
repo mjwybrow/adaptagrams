@@ -1066,6 +1066,17 @@ PtOrder::~PtOrder()
 }
 
 
+PointRepVector PtOrder::sortedPoints(const size_t dim)
+{
+    // Sort if not already sorted.
+    if (sorted[dim] == false)
+    {
+        sort(dim);
+    }
+    return sortedConnVector[dim];
+}
+
+
 int PtOrder::positionFor(const size_t dim, const ConnRef *conn)
 {
     // Sort if not already sorted.

@@ -326,7 +326,7 @@ class PtOrder
         void addOrderedPoints(const size_t dim, const PtConnPtrPair& innerArg, 
                 const PtConnPtrPair& outerArg, bool swapped);
         int positionFor(const size_t dim, const ConnRef *conn);
-
+        PointRepVector sortedPoints(const size_t dim);
     private:
         size_t insertPoint(const size_t dim, const PtConnPtrPair& point);
         void sort(const size_t dim);
