@@ -78,10 +78,10 @@ class ShapeRef : public Obstacle
     public:
         //! @brief  Shape reference constructor.
         //!
-        //! Creates a shape obect reference, but does not yet place it into the
-        //! Router scene.  You can add or remove the shape to/from the scene 
-        //! with Router::addJunction() and Router::removeJunction().  The 
-        //! junction can be moved with Router::moveJunction().
+        //! Creates a shape object reference, but does not yet place it into 
+        //! the Router scene.  You can add or remove the shape to/from the 
+        //! scene with Router::addShape() and Router::removShape().
+        //! The shape can be moved with Router::moveShape().
         //!
         //! The poly argument will usually be the boundary of the shape in your 
         //! application with additional buffer of several pixels on each side.
@@ -113,9 +113,9 @@ class ShapeRef : public Obstacle
         //! @brief  Adjusts all of the shape's connection pin positions and 
         //!         visibility directions for a given transformation type.
         //!
-        //! @param[in]  transform  A ShapeTransformationType specifing the type
-        //!                        of transform to be applied to all connection
-        //!                        pins for the shape.
+        //! @param[in]  transform  A ShapeTransformationType specifying the 
+        //!                        type of transform to be applied to all 
+        //!                        connection pins for the shape.
         //! 
         void transformConnectionPinPositions(ShapeTransformationType transform);
  

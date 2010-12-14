@@ -22,6 +22,8 @@
  * Author(s):   Michael Wybrow <mjwybrow@users.sourceforge.net>
 */
 
+//! @file    viscluster.h
+//! @brief   Contains the interface for the ClusterRef class.
 
 #ifndef AVOID_CLUSTER_H
 #define AVOID_CLUSTER_H
@@ -38,16 +40,70 @@ class ClusterRef;
 typedef std::list<ClusterRef *> ClusterRefList;
 
 
+//! @brief   The ClusterRef class represents a cluster object.
+//!
+//! Cluster are boundaries around groups of shape objects.  Ideally, only
+//! connectors with one endpoint inside the cluster and one endpoint outside
+//! the cluster will cross the cluster boundary. Connectors that begin and 
+//! end inside a cluster will not route outside it, and connectors that begin 
+//! and end outside the cluster will not enter the cluster.
+//! 
+//! @note   While the functionality of this class works, it is currently 
+//!         experimental you will likely suffer a large performance hit
+//!         when using it.
+//!
 class ClusterRef
 {
     public:
-        ClusterRef(Router *router, unsigned int id, Polygon& poly);
+        //! @brief  Cluster reference constructor.
+        //!
+        //! Creates a cluster object reference, but does not yet place it 
+        //! into the Router scene.  You can add or remove the cluster to/from 
+        //! the scene with Router::addCluster() and Router::delCluster().  The 
+        //! cluster can effectively be moved with ClusterRef::setNewPoly() 
+        //! method.
+        //!
+        //! The poly argument should be used to specify a polygon boundary.
+        //! The rectangular boundary will be automatically generated from this.
+        //! The polygon boundary could be a convex hull consisting of points
+        //! from the boundaries of shapes.
+        //!
+        //! If an ID is not specified, then one will be assigned to the cluster.
+        //! If assigning an ID yourself, note that it should be a unique 
+        //! positive integer.  Also, IDs are given to all objects in a scene,
+        //! so the same ID cannot be given to a shape and a connector for 
+        //! example.
+        //!
+        //! @param[in]  router  The router scene to place the cluster into.
+        //! @param[in]  poly    A Polygon representing the boundary of the 
+        //!                     cluster.
+        //! @param[in]  id      A unique positive integer ID for the cluster.  
+        ClusterRef(Router *router, Polygon& poly, const unsigned int id = 0);
+        //! @brief  Cluster reference destructor.
         ~ClusterRef();
+        //! @brief   Update the polygon boundary for this cluster.
+        //!
+        //! You should specify a polygon boundary.  The rectangular one will
+        //! be generated automatically from this.
+        //!
+        //! @param[in]  poly    A Polygon representing the boundary of the 
+        //!                     cluster.
         void setNewPoly(Polygon& poly);
-        unsigned int id(void);
+        //! @brief   Returns the ID of this cluster.
+        //! @returns The ID of the cluster. 
+        unsigned int id(void) const;
+        //! @brief   Returns a reference to the polygon boundary of this 
+        //!          cluster.
+        //! @returns A reference to the polygon boundary of the cluster.
         ReferencingPolygon& polygon(void);
+        //! @brief   Returns a reference to the rectangular boundary of this 
+        //!          cluster.
+        //! @returns A reference to the rectangular boundary of the cluster.
         Polygon& rectangularPolygon(void);
-        Router *router(void);
+        //! @brief   Returns a pointer to the router scene this cluster is in.
+        //! @returns A pointer to the router scene for this cluster.
+        Router *router(void) const;
+        
         void makeActive(void);
         void makeInactive(void);
 

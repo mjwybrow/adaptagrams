@@ -31,11 +31,11 @@
 namespace Avoid {
 
 
-ClusterRef::ClusterRef(Router *router, unsigned int id, Polygon& polygon)
-    : m_router(router)
-    , m_polygon(polygon, router)
-    , m_rectangular_polygon(m_polygon.boundingRect())
-    , m_active(false)
+ClusterRef::ClusterRef(Router *router, Polygon& polygon, const unsigned int id)
+    : m_router(router),
+      m_polygon(polygon, router),
+      m_rectangular_polygon(m_polygon.boundingRect()),
+      m_active(false)
 {
     COLA_ASSERT(m_router != NULL);
     m_id = m_router->assignId(id);
@@ -77,7 +77,7 @@ void ClusterRef::setNewPoly(Polygon& poly)
 }
 
 
-unsigned int ClusterRef::id(void)
+unsigned int ClusterRef::id(void) const
 {
     return m_id;
 }
@@ -95,7 +95,7 @@ Polygon& ClusterRef::rectangularPolygon(void)
 }
 
 
-Router *ClusterRef::router(void)
+Router *ClusterRef::router(void) const
 {
     return m_router;
 }

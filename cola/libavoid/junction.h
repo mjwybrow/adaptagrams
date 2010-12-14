@@ -85,7 +85,7 @@ class JunctionRef : public Obstacle
         //!         to it and merges them into a single connector.
         //!
         //! The junction and one of the connectors will be removed from the
-        //! router scene and the connecor deleted.  A pointer to the 
+        //! router scene and the connector deleted.  A pointer to the 
         //! remaining (merged) connector will be returned by this method.
         //!
         //! Currently this method does not delete and free the Junction itself.
