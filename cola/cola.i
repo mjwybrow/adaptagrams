@@ -160,6 +160,7 @@ class ColaException {
         cola::RectangularCluster,
         Avoid::ShapeRef, 
         Avoid::ConnRef,
+        Avoid::ClusterRef,
         Avoid::JunctionRef,
         Avoid::ShapeConnectionPin
         %{%}
@@ -223,6 +224,7 @@ void deleteDoubleArray(double* a) {
 %include "libavoid/connector.h"
 %include "libavoid/shape.h"
 %include "libavoid/junction.h"
+%include "libavoid/viscluster.h"
 %include "libavoid/connectionpin.h"
 
 
