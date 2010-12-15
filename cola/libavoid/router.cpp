@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2009  Monash University
+ * Copyright (C) 2004-2010  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -186,6 +186,7 @@ Router::Router(const unsigned int flags)
     }
     _routingPenalties[clusterCrossingPenalty] = 4000;
     _routingPenalties[portDirectionPenalty] = 100;
+    _routingOptions[nudgeOthogonalSegmentsConnectedToShapes] = false;
 }
 
 
@@ -1522,6 +1523,20 @@ double Router::routingPenalty(const PenaltyType penType) const
 }
 
 
+void Router::setRoutingOption(const RoutingOption option, const bool value)
+{
+    COLA_ASSERT(option < lastRoutingOptionMarker);
+    _routingOptions[option] = value;
+}
+
+
+bool Router::routingOption(const RoutingOption option) const
+{
+    COLA_ASSERT(option < lastRoutingOptionMarker);
+    return _routingOptions[option];
+}
+
+
 double& Router::penaltyRef(const PenaltyType penType)
 {
     COLA_ASSERT(penType < lastPenaltyMarker);
@@ -1789,6 +1804,11 @@ void Router::outputInstanceToSVG(std::string instanceName)
     {
         fprintf(fp, "    router->setRoutingPenalty((PenaltyType)%lu, %g);\n", 
                 (unsigned long)p, _routingPenalties[p]);
+    }
+    for (size_t p = 0; p < lastRoutingOptionMarker; ++p)
+    {
+        fprintf(fp, "    router->setRoutingOption((RoutingOption)%lu, %s);\n", 
+                (unsigned long)p, (_routingOptions[p]) ? "true" : "false");
     }
     fprintf(fp, "    router->setOrthogonalNudgeDistance(%g);\n\n",
             orthogonalNudgeDistance());

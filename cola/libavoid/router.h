@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2009  Monash University
+ * Copyright (C) 2004-2010  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -122,6 +122,22 @@ enum PenaltyType
     // Used for determining the size of the penalty array.  
     // This should always we the last value in the enum.
     lastPenaltyMarker
+};
+
+
+//! @brief  Types of routing options that can be enabled.
+enum RoutingOption
+{
+    //! @brief  This option causes the final segments of connectors, which
+    //!         are attached to shapes, to be nudged apart.  Usually these
+    //!         segments are fixed, since they are considered to be attached
+    //!         to ports.
+    //! @note   This option is still experimental, and not implemented in an
+    //!         optimal fashion.  As such, it will slow down routing.
+    nudgeOthogonalSegmentsConnectedToShapes = 0,
+    // Used for determining the size of the routing options array.  
+    // This should always we the last value in the enum.
+    lastRoutingOptionMarker
 };
 
 
@@ -401,6 +417,20 @@ class Router {
         //!
         double routingPenalty(const PenaltyType penType) const;
 
+        //! @brief  Turn specific routing options on or off.
+        //!
+        //! @param[in] option  The type of routing option, a RoutingOption.
+        //! @param[in] value   A boolean representing the option state.
+        //!
+        void setRoutingOption(const RoutingOption option, const bool value);
+
+        //! @brief  Returns the current state for a specific routing option.
+        //!
+        //! @param[in] option  The type of routing option, a RoutingOption.
+        //! @return  A boolean representing the option state.
+        //!
+        bool routingOption(const RoutingOption option) const;
+
         void addCluster(ClusterRef *cluster);
         void delCluster(ClusterRef *cluster);
 
@@ -458,6 +488,7 @@ class Router {
         bool _consolidateActions;
         double _orthogonalNudgeDistance;
         double _routingPenalties[lastPenaltyMarker];
+        bool _routingOptions[lastRoutingOptionMarker];
 
     public:
         // Overall modes:

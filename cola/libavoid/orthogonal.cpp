@@ -36,6 +36,7 @@
 #include "libavoid/orthogonal.h"
 #include "libavoid/connend.h"
 #include "libavoid/connector.h"
+#include "libavoid/junction.h"
 #include "libavoid/vpsc.h"
 #include "libavoid/assertions.h"
 
@@ -1932,6 +1933,31 @@ static void processShiftEvent(Router *router, NodeSet& scanline,
     }
 }
 
+typedef std::pair<Point, Point> RectBounds;
+
+static bool insideRectBounds(const Point& point, const RectBounds& rectBounds)
+{
+    Point zero(0, 0);
+    if ((rectBounds.first == zero) && (rectBounds.second == zero))
+    {
+        // We can't be inside the invalid rectangle.
+        return false;
+    }
+
+    for (size_t i = 0; i < 2; ++i)
+    {
+        if (point[i] < rectBounds.first[i])
+        {
+            return false;
+        }
+        if (point[i] > rectBounds.second[i])
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
 
 static void buildOrthogonalChannelInfo(Router *router, 
         const size_t dim, ShiftSegmentList& segmentList)
@@ -1941,6 +1967,45 @@ static void buildOrthogonalChannelInfo(Router *router,
         // This code assumes the routes are pretty optimal, so we don't
         // do this adjustment if the routes have no segment penalty.
         return;
+    }
+    bool nudgeFinalSegments = 
+            router->routingOption(nudgeOthogonalSegmentsConnectedToShapes);
+    std::vector<RectBounds> shapeLimits;
+    if (nudgeFinalSegments)
+    {
+        // If we're going to nudge final segments, then cache the shape 
+        // rectangles to save us rebuilding them multiple times.
+        const size_t n = router->m_obstacles.size();
+        shapeLimits.reserve(n);
+
+        double nudgeDistance = router->orthogonalNudgeDistance();
+
+        ObstacleList::iterator obstacleIt = router->m_obstacles.begin();
+        for (unsigned i = 0; i < n; i++)
+        {
+            ShapeRef *shape = dynamic_cast<ShapeRef *> (*obstacleIt);
+            JunctionRef *junction = dynamic_cast<JunctionRef *> (*obstacleIt);
+            if (shape)
+            {
+                // Take the bounds of the shape
+                Point min, max;
+                shape->polygon().getBoundingRect(
+                        &min.x, &min.y, &max.x, &max.y);
+                min.x += nudgeDistance;
+                min.y += nudgeDistance;
+                max.x -= nudgeDistance;
+                max.y -= nudgeDistance;
+                shapeLimits[i] = std::make_pair(min, max);
+            }
+            else if (junction)
+            {
+                // Don't nudge segments attached to junctions,
+                // so just use the junction position here.
+                Point pos = junction->position();
+                shapeLimits[i] = std::make_pair(pos, pos);
+            }
+            ++obstacleIt;
+        }
     }
 
     size_t altDim = (dim + 1) % 2;
@@ -1997,18 +2062,95 @@ static void buildOrthogonalChannelInfo(Router *router,
                     continue;
                 }
 
+                double thisPos = displayRoute.ps[i][dim];
+                
                 if ((i == 1) || ((i + 1) == displayRoute.size()))
                 {
-                    // The first and last segment of a connector can't be 
-                    // shifted.  We call them fixed segments.  Note: this
-                    // will change if we later allow connection channels.
-                    segmentList.push_back(
-                            ShiftSegment(*curr, indexLow, indexHigh, dim));
+                    if (nudgeFinalSegments)
+                    {
+                        // Determine available space for nudging these
+                        // final segments.
+                        double minLim = -CHANNEL_MAX;
+                        double maxLim = CHANNEL_MAX;
+                        
+                        // Limit their movement by the length of 
+                        // adjoining segments.
+                        bool first = (i == 1) ? true : false;
+                        bool last = ((i + 1) == displayRoute.size()) ? 
+                                true : false;
+                        if (!first)
+                        {
+                            double prevPos = displayRoute.ps[i - 2][dim];
+                            if (prevPos < thisPos)
+                            {
+                                minLim = std::max(minLim, prevPos);
+                            }
+                            else if (prevPos > thisPos)
+                            {
+                                maxLim = std::min(maxLim, prevPos);
+                            }
+                        }
+                        if (!last)
+                        {
+                            double nextPos = displayRoute.ps[i + 1][dim];
+                            if (nextPos < thisPos)
+                            {
+                                minLim = std::max(minLim, nextPos);
+                            }
+                            else if (nextPos > thisPos)
+                            {
+                                maxLim = std::min(maxLim, nextPos);
+                            }
+                        }
+                        
+                        // Also limit their movement to the edges of the 
+                        // shapes they begin or end within.
+                        for (size_t k = 0; k < shapeLimits.size(); ++k)
+                        {
+                            if (insideRectBounds(displayRoute.ps[i - 1], 
+                                        shapeLimits[k]))
+                            {
+                                minLim = std::max(minLim, 
+                                        shapeLimits[k].first[dim]);
+                                maxLim = std::min(maxLim, 
+                                        shapeLimits[k].second[dim]);
+                            }
+                            if (insideRectBounds(displayRoute.ps[i], 
+                                        shapeLimits[k]))
+                            {
+                                minLim = std::max(minLim, 
+                                        shapeLimits[k].first[dim]);
+                                maxLim = std::min(maxLim, 
+                                        shapeLimits[k].second[dim]);
+                            }
+                        }
+                        
+                        if (minLim == maxLim)
+                        {
+                            // Fixed.
+                            segmentList.push_back(ShiftSegment(*curr, 
+                                    indexLow, indexHigh, dim));
+                        }
+                        else
+                        {
+                            // Shiftable.
+                            segmentList.push_back(ShiftSegment(*curr, 
+                                    indexLow, indexHigh, false, false, 
+                                    dim, minLim, maxLim));
+                        }
+                    }
+                    else
+                    {
+                        // The first and last segment of a connector can't be 
+                        // shifted.  We call them fixed segments.  
+                        segmentList.push_back(
+                                ShiftSegment(*curr, indexLow, indexHigh, dim));
+                    }
                     continue;
                 }
+                
 
                 // The segment probably has space to be shifted.
-                double thisPos = displayRoute.ps[i][dim];
                 double minLim = -CHANNEL_MAX;
                 double maxLim = CHANNEL_MAX;
 
