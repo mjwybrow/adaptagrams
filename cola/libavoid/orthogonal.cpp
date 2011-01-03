@@ -803,7 +803,7 @@ public:
 
     // Converts a section of the points list to a set of breakPoints.  
     // Returns the first of the intersection points occuring at finishPos.
-    VertSet::iterator addSegmentsUpTo(Router *router, double finishPos)
+    VertSet::iterator addSegmentsUpTo(double finishPos)
     {
         VertSet::iterator firstIntersectionPt = vertInfs.end();
         for (VertSet::iterator vert = vertInfs.begin(); 
@@ -835,7 +835,7 @@ public:
         horiCommitBegin(router);
         horiCommitFinish(router);
         
-        addSegmentsUpTo(router, finish);
+        addSegmentsUpTo(finish);
     }
 
     // Set flags to show what can be passed on this visibility line.
@@ -942,7 +942,7 @@ public:
    
         // Generate segments and set end iterator to the first point 
         // at the intersection position.
-        VertSet::iterator restBegin = addSegmentsUpTo(router, vertLine.pos);
+        VertSet::iterator restBegin = addSegmentsUpTo(vertLine.pos);
 
         // Add the intersections points to intersectionSet.
         VertSet::iterator restEnd = restBegin;
@@ -1859,8 +1859,7 @@ extern void generateStaticOrthogonalVisGraph(Router *router)
 //   3) Add Open event objects to the scanline.
 //   4) Handle all Open event processing.
 //
-static void processShiftEvent(Router *router, NodeSet& scanline, 
-        ShiftSegmentList& segments, Event *e, size_t dim,
+static void processShiftEvent(NodeSet& scanline, Event *e, size_t dim,
         unsigned int pass)
 {
     Node *v = e->v;
@@ -2257,8 +2256,7 @@ static void buildOrthogonalChannelInfo(Router *router,
             {
                 for (unsigned j = posStartIndex; j < posFinishIndex; ++j)
                 {
-                    processShiftEvent(router, scanline, segmentList, events[j], 
-                            dim, pass);
+                    processShiftEvent(scanline, events[j], dim, pass);
                 }
             }
 
@@ -2275,8 +2273,7 @@ static void buildOrthogonalChannelInfo(Router *router,
         // Do the first sweep event handling -- building the correct 
         // structure of the scanline.
         const int pass = 1;
-        processShiftEvent(router, scanline, segmentList, events[i],
-                dim, pass);
+        processShiftEvent(scanline, events[i], dim, pass);
     }
     COLA_ASSERT(scanline.size() == 0);
     for (unsigned i = 0; i < totalEvents; ++i)
