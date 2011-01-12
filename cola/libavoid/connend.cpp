@@ -124,7 +124,7 @@ void ConnEnd::usePinVertex(VertInf *pinVert)
 {
     COLA_ASSERT(m_active_pin == NULL);
     
-    for (std::set<ShapeConnectionPin *>::iterator curr = 
+    for (ShapeConnectionPinSet::iterator curr = 
             m_anchor_obj->m_connection_pins.begin(); 
             curr != m_anchor_obj->m_connection_pins.end(); ++curr)
     {
@@ -232,7 +232,7 @@ void ConnEnd::assignPinVisibilityTo(VertInf *dummyConnectionVert,
     COLA_ASSERT(m_connection_pin_class_id != CONNECTIONPIN_UNSET);
  
     Router *router = m_anchor_obj->router();
-    for (std::set<ShapeConnectionPin *>::iterator curr = 
+    for (ShapeConnectionPinSet::iterator curr = 
             m_anchor_obj->m_connection_pins.begin(); 
             curr != m_anchor_obj->m_connection_pins.end(); ++curr)
     {

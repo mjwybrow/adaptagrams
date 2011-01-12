@@ -182,6 +182,8 @@ class ShapeConnectionPin
         //!
         void setExclusive(const bool exclusive);
 
+        bool operator==(const ShapeConnectionPin& rhs) const;
+        bool operator<(const ShapeConnectionPin& rhs) const;
     private:
         friend class ShapeRef;
         friend class JunctionRef;
@@ -194,7 +196,9 @@ class ShapeConnectionPin
         void updatePositionAndVisibility(void);
         void updateVisibility(void);
         void outputCode(FILE *fp) const;
+        unsigned int containingObjectId(void) const;
 
+        // Unique properties
         Router *m_router;
         ShapeRef *m_shape;
         JunctionRef *m_junction;
@@ -203,14 +207,29 @@ class ShapeConnectionPin
         double m_y_portion_offset;
         double m_inside_offset;
         ConnDirFlags m_visibility_directions;
-        double m_connection_cost;
-        // If this only allows one connend to use it.
+        
+        // Some extra properties.
         bool m_exclusive;
+        double m_connection_cost;
         // The set of connends using this pin.
         std::set<ConnEnd *> m_connend_users;
         VertInf *m_vertex;
 };
 
+class CmpConnPinPtr
+{
+    public:
+        CmpConnPinPtr()
+        {
+        }
+        bool operator()(const ShapeConnectionPin *lhs, 
+                const ShapeConnectionPin *rhs) const 
+        {
+            return (*lhs) < (*rhs);
+        }
+};
+
+typedef std::set<ShapeConnectionPin *, CmpConnPinPtr> ShapeConnectionPinSet;
 
 }
 

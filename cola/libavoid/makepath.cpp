@@ -390,6 +390,13 @@ static double estimatedCost(ConnRef *lineRef, const Point *last,
 }
 
 
+double estimatedCost(ConnRef *lineRef)
+{
+    return estimatedCost(lineRef, NULL, lineRef->src()->point, 
+            lineRef->dst()->point);
+}
+
+
 class CmpVisEdgeRotation 
 {
     public:

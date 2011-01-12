@@ -68,7 +68,7 @@ Rectangle JunctionRef::makeRectangle(Router *router, const Point& position)
 void JunctionRef::preferOrthogonalDimension(const size_t dim)
 {
     const double smallPenalty = 1.0;
-    for (std::set<ShapeConnectionPin *>::iterator curr = 
+    for (ShapeConnectionPinSet::iterator curr = 
             m_connection_pins.begin(); curr != m_connection_pins.end(); ++curr)
     {
         ShapeConnectionPin *pin = *curr;
@@ -117,7 +117,7 @@ void JunctionRef::outputCode(FILE *fp) const
 
     fprintf(fp, "    /*\n");
     fprintf(fp, "    // This may be useful if junction pins are modified.\n");
-    for (std::set<ShapeConnectionPin *>::iterator curr = 
+    for (ShapeConnectionPinSet::iterator curr = 
             m_connection_pins.begin(); 
             curr != m_connection_pins.end(); ++curr)
     {
@@ -139,7 +139,7 @@ void JunctionRef::moveAttachedConns(const Point& newPosition)
         m_router->modifyConnector(connEnd->m_conn_ref, connEnd->type(), 
                 *connEnd);
     }
-    for (std::set<ShapeConnectionPin *>::iterator curr = 
+    for (ShapeConnectionPinSet::iterator curr = 
             m_connection_pins.begin(); curr != m_connection_pins.end(); ++curr)
     {
         ShapeConnectionPin *pin = *curr;

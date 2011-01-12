@@ -31,7 +31,9 @@ namespace Avoid {
 
 class ConnRef;
 
-void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar, VertInf *start);
+extern void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
+        VertInf *start);
+extern double estimatedCost(ConnRef *lineRef);
 
 }
 
