@@ -58,7 +58,7 @@ void ShapeRef::moveAttachedConns(const Polygon& newPoly)
         m_router->modifyConnector(connEnd->m_conn_ref, connEnd->type(), 
                 *connEnd);
     }
-    for (std::set<ShapeConnectionPin *>::iterator curr = 
+    for (ShapeConnectionPinSet::iterator curr = 
             m_connection_pins.begin(); curr != m_connection_pins.end(); ++curr)
     {
         ShapeConnectionPin *pin = *curr;
@@ -70,7 +70,7 @@ void ShapeRef::moveAttachedConns(const Polygon& newPoly)
 void ShapeRef::transformConnectionPinPositions(
         ShapeTransformationType transform)
 {
-    for (std::set<ShapeConnectionPin *>::iterator curr = 
+    for (ShapeConnectionPinSet::iterator curr = 
             m_connection_pins.begin(); curr != m_connection_pins.end(); ++curr)
     {
         ShapeConnectionPin *pin = *curr;
@@ -180,7 +180,7 @@ void ShapeRef::outputCode(FILE *fp) const
     fprintf(fp, "    ShapeRef *shapeRef%u = new ShapeRef(router, poly%u, "
             "%u);\n", id(), id(), id());
     fprintf(fp, "    router->addShape(shapeRef%u);\n", id());
-    for (std::set<ShapeConnectionPin *>::iterator curr = 
+    for (ShapeConnectionPinSet::const_iterator curr = 
             m_connection_pins.begin(); 
             curr != m_connection_pins.end(); ++curr)
     {

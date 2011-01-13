@@ -36,6 +36,7 @@
 #include <cstdio>
 
 #include "libavoid/geometry.h"
+#include "libavoid/connectionpin.h"
 
 
 namespace Avoid {
@@ -44,7 +45,6 @@ class VertInf;
 class Router;
 class Obstacle;
 class ConnEnd;
-class ShapeConnectionPin;
 typedef std::list<Obstacle *> ObstacleList;
 
 
@@ -142,7 +142,7 @@ class Obstacle
         VertInf *m_first_vert;
         VertInf *m_last_vert;
         std::set<ConnEnd *> m_following_conns;
-        std::set<ShapeConnectionPin *> m_connection_pins;
+        ShapeConnectionPinSet m_connection_pins;
 };
 
 

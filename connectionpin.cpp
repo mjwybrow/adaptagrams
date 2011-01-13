@@ -45,8 +45,8 @@ ShapeConnectionPin::ShapeConnectionPin(ShapeRef *shape,
       m_y_portion_offset(yPortionOffset),
       m_inside_offset(insideOffset),
       m_visibility_directions(visDirs),
-      m_connection_cost(0.0),
       m_exclusive(true),
+      m_connection_cost(0.0),
       m_vertex(NULL)
 {
     COLA_ASSERT(m_shape != NULL);
@@ -82,8 +82,8 @@ ShapeConnectionPin::ShapeConnectionPin(JunctionRef *junction,
       m_y_portion_offset(0.0),
       m_inside_offset(0.0),
       m_visibility_directions(visDirs),
-      m_connection_cost(0.0),
       m_exclusive(true),
+      m_connection_cost(0.0),
       m_vertex(NULL)
 {
     COLA_ASSERT(m_junction != NULL);
@@ -283,6 +283,85 @@ void ShapeConnectionPin::outputCode(FILE *fp) const
                 (unsigned int) m_visibility_directions);
     }
 }
+
+unsigned int ShapeConnectionPin::containingObjectId(void) const
+{
+    COLA_ASSERT(m_shape || m_junction);
+    return (m_shape) ? m_shape->id() : m_junction->id();
+}
+
+bool ShapeConnectionPin::operator==(const ShapeConnectionPin& rhs) const
+{
+    COLA_ASSERT(m_router == rhs.m_router);
+
+    if (containingObjectId() != rhs.containingObjectId())
+    {
+        return false;
+    }
+
+    // The shape/junction is equal, so examine the unique members.
+    if (m_class_id != rhs.m_class_id)
+    {
+        return false;
+    }
+    if (m_visibility_directions != rhs.m_visibility_directions)
+    {
+        return false;
+    }
+    if (m_x_portion_offset != rhs.m_x_portion_offset)
+    {
+       return false;
+    }
+    if (m_y_portion_offset != rhs.m_y_portion_offset)
+    {
+       return false;
+    }
+    if (m_inside_offset != rhs.m_inside_offset)
+    {
+       return false;
+    } 
+    return true;  
+}
+
+bool ShapeConnectionPin::operator<(const ShapeConnectionPin& rhs) const
+{
+    COLA_ASSERT(m_router == rhs.m_router);
+
+    if (containingObjectId() != rhs.containingObjectId())
+    {
+        return containingObjectId() < rhs.containingObjectId();
+    }
+    // Note: operator< is used for set ordering within each shape or junction,
+    // so the m_shape/m_junction values should match and we needn't perform the
+    // above test in most cases and could just assert the following:
+    // COLA_ASSERT(m_shape == rhs.m_shape);
+    // COLA_ASSERT(m_junction == rhs.m_junction);
+
+    if (m_class_id != rhs.m_class_id)
+    {
+        return m_class_id < rhs.m_class_id;
+    }
+    if (m_visibility_directions != rhs.m_visibility_directions)
+    {
+        return m_visibility_directions < rhs.m_visibility_directions;
+    }
+    if (m_x_portion_offset != rhs.m_x_portion_offset)
+    {
+        return m_x_portion_offset < rhs.m_x_portion_offset;
+    }
+    if (m_y_portion_offset != rhs.m_y_portion_offset)
+    {
+        return m_y_portion_offset < rhs.m_y_portion_offset;
+    }
+    if (m_inside_offset != rhs.m_inside_offset)
+    {
+        return m_inside_offset < rhs.m_inside_offset;
+    }
+
+    // Otherwise, they are considered the same.
+    return false;
+} 
+
 
 //============================================================================
 

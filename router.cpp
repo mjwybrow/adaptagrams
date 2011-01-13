@@ -37,6 +37,7 @@
 #include "libavoid/orthogonal.h"
 #include "libavoid/assertions.h"
 #include "libavoid/connectionpin.h"
+#include "libavoid/makepath.h"
 
 namespace Avoid {
 
@@ -67,6 +68,7 @@ class ActionInfo {
         ActionInfo(ActionType t, ShapeRef *s)
             : type(t),
               objPtr(s)
+
         {
             COLA_ASSERT((type == ShapeAdd) || (type == ShapeRemove) ||
                     (type == ShapeMove));
@@ -130,7 +132,22 @@ class ActionInfo {
             {
                 return type < rhs.type;
             }
-            return objPtr < rhs.objPtr;
+
+            if (type == ConnChange)
+            {
+                return conn()->id() < rhs.conn()->id();
+            }
+            else if (type == ConnectionPinChange)
+            {
+                // NOTE Comparing pointers may not preserve the order of
+                //      objects, but the order of Connection Pins is not 
+                //      used so this is not an issue here.
+                return objPtr < rhs.objPtr;
+            }
+            else
+            {
+                return obstacle()->id() < rhs.obstacle()->id();
+            }
         }
         ActionType type;
         void *objPtr;
@@ -923,7 +940,7 @@ void Router::attachedShapes(IntList &shapes, const unsigned int shapeId,
     // rerouted connectors (via a callback) that they need to be redrawn.
 void Router::rerouteAndCallbackConnectors(void)
 {
-    std::set<ConnRef *> reroutedConns;
+    std::list<ConnRef *> reroutedConns;
     ConnRefList::const_iterator fin = connRefs.end();
     
     // Updating the orthogonal visibility graph if necessary. 
@@ -940,7 +957,7 @@ void Router::rerouteAndCallbackConnectors(void)
         bool rerouted = (*i)->generatePath();
         if (rerouted)
         {
-            reroutedConns.insert(*i);
+            reroutedConns.push_back(*i);
         }
     }
     timers.Stop();
@@ -952,15 +969,37 @@ void Router::rerouteAndCallbackConnectors(void)
     improveOrthogonalRoutes(this);
 
     // Alert connectors that they need redrawing.
-    for (ConnRefList::const_iterator i = connRefs.begin(); i != fin; ++i) 
+    fin = reroutedConns.end();
+    for (ConnRefList::const_iterator i = reroutedConns.begin(); i != fin; ++i) 
     {
         (*i)->m_needs_repaint = true;
         (*i)->performCallback();
     }
 }
 
+// Type holding a cost estimate and ConnRef.
+typedef std::pair<double, ConnRef *> ConnCostRef;
 
-typedef std::set<ConnRef *> ConnRefSet;
+// A comparison class used to order a set of ConnCostRefs.
+class CmpConnCostRef
+{
+    public:
+        CmpConnCostRef()
+        {
+        }
+        bool operator() (const ConnCostRef& u, const ConnCostRef& v) const
+        {
+            if (u.first != v.first)
+            {
+                // Order by lowest estimated cost.
+                return u.first < v.first;
+            }
+            // Or differentiate by object id.
+            return u.second->id() < v.second->id();
+        }
+};
+
+typedef std::set<ConnCostRef, CmpConnCostRef> ConnCostRefSet;
 
 void Router::improveCrossings(void)
 {
@@ -974,16 +1013,18 @@ void Router::improveCrossings(void)
     
     // Find crossings and reroute connectors.
     _inCrossingPenaltyReroutingStage = true;
-    ConnRefSet crossingConns;
+    ConnCostRefSet crossingConns;
     ConnRefList::iterator fin = connRefs.end();
     for (ConnRefList::iterator i = connRefs.begin(); i != fin; ++i) 
     {
         Avoid::Polygon& iRoute = (*i)->routeRef();
+        ConnCostRef iCostRef = std::make_pair(estimatedCost(*i), *i);
         ConnRefList::iterator j = i;
         for (++j; j != fin; ++j) 
         {
-            if ((crossingConns.find(*i) != crossingConns.end()) && 
-                    (crossingConns.find(*j) != crossingConns.end()))
+            ConnCostRef jCostRef = std::make_pair(estimatedCost(*j), *j);
+            if ((crossingConns.find(iCostRef) != crossingConns.end()) && 
+                    (crossingConns.find(jCostRef) != crossingConns.end()))
             {
                 // We already know both these have crossings.
                 continue;
@@ -1016,32 +1057,33 @@ void Router::improveCrossings(void)
             }
             if (meetsPenaltyCriteria)
             {
-                crossingConns.insert(*i);
-                crossingConns.insert(*j);
+                crossingConns.insert(std::make_pair(estimatedCost(*i), *i));
+                crossingConns.insert(std::make_pair(estimatedCost(*j), *j));
             }
         }
     }
 
-    for (ConnRefSet::iterator i = crossingConns.begin(); 
+    for (ConnCostRefSet::iterator i = crossingConns.begin(); 
             i != crossingConns.end(); ++i)
     {
-        ConnRef *conn = *i;
+        ConnRef *conn = i->second;
         // Mark the crossing connector path as being invalid.
         conn->makePathInvalid();
         // Freeing the routes here means that, if possible, we reroute all
-        // the crossings routes one by one, threading them through the 
+        // the crossing routes one by one, threading them through the 
         // non-crossing routes to avoid as many crossings as possible.
         conn->freeRoutes();
     }
-    for (ConnRefSet::iterator i = crossingConns.begin(); 
+    for (ConnCostRefSet::iterator i = crossingConns.begin(); 
             i != crossingConns.end(); ++i)
     {
-        (*i)->freeActivePins();
+        ConnRef *conn = i->second;
+        conn->freeActivePins();
     }
-    for (ConnRefSet::iterator i = crossingConns.begin(); 
+    for (ConnCostRefSet::iterator i = crossingConns.begin(); 
             i != crossingConns.end(); ++i)
     {
-        ConnRef *conn = *i;
+        ConnRef *conn = i->second;
         conn->generatePath();
     }
     _inCrossingPenaltyReroutingStage = false;
