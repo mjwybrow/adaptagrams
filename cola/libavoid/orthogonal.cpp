@@ -641,7 +641,7 @@ public:
         : begin(b),
           finish(f),
           pos(p),
-          shapeSide(false)
+          shapeSide(ss)
     {
         COLA_ASSERT(begin < finish);
 
@@ -1183,6 +1183,8 @@ public:
     double begin;
     double finish;
     double pos;
+
+    // XXX shapeSide is unused and could possibly be removed?
     bool shapeSide;
     
     VertSet vertInfs;
