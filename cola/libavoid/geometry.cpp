@@ -33,15 +33,14 @@
 */
 
 
+// For M_PI:
+#define _USE_MATH_DEFINES
 #include <cmath>
 
 #include "libavoid/graph.h"
 #include "libavoid/geometry.h"
 #include "libavoid/assertions.h"
 
-// For M_PI:
-#define _USE_MATH_DEFINES
-#include <cmath>
 
 namespace Avoid {
 

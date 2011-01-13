@@ -979,7 +979,7 @@ void Router::rerouteAndCallbackConnectors(void)
 }
 
 // Type holding a cost estimate and ConnRef.
-typedef std::pair<unsigned int, ConnRef *> ConnCostRef;
+typedef std::pair<double, ConnRef *> ConnCostRef;
 
 // A comparison class used to order a set of ConnCostRefs.
 class CmpConnCostRef

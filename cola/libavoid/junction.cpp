@@ -117,7 +117,7 @@ void JunctionRef::outputCode(FILE *fp) const
 
     fprintf(fp, "    /*\n");
     fprintf(fp, "    // This may be useful if junction pins are modified.\n");
-    for (ShapeConnectionPinSet::iterator curr = 
+    for (ShapeConnectionPinSet::const_iterator curr = 
             m_connection_pins.begin(); 
             curr != m_connection_pins.end(); ++curr)
     {

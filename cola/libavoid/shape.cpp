@@ -180,7 +180,7 @@ void ShapeRef::outputCode(FILE *fp) const
     fprintf(fp, "    ShapeRef *shapeRef%u = new ShapeRef(router, poly%u, "
             "%u);\n", id(), id(), id());
     fprintf(fp, "    router->addShape(shapeRef%u);\n", id());
-    for (ShapeConnectionPinSet::iterator curr = 
+    for (ShapeConnectionPinSet::const_iterator curr = 
             m_connection_pins.begin(); 
             curr != m_connection_pins.end(); ++curr)
     {

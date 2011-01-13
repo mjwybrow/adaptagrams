@@ -200,7 +200,7 @@ void Obstacle::updatePinPolyLineVisibility(void)
 std::vector<Point> Obstacle::possiblePinPoints(unsigned int pinClassId) const
 {
     std::vector<Point> points;
-    for (ShapeConnectionPinSet::iterator curr = 
+    for (ShapeConnectionPinSet::const_iterator curr = 
             m_connection_pins.begin(); 
             curr != m_connection_pins.end(); ++curr)
     {
