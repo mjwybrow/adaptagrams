@@ -139,17 +139,6 @@ class ShiftSegment
             }
             return 0;
         }
-        bool operator<(const ShiftSegment& rhs) const
-        {
-            const Point& lowPt = lowPoint();
-            const Point& rhsLowPt = rhs.lowPoint();
-            
-            if (lowPt[dimension] != rhsLowPt[dimension])
-            {
-                return lowPt[dimension] < rhsLowPt[dimension];
-            }
-            return this < &rhs;
-        }
         bool zigzag(void) const
         {
             return sBend || zBend;
@@ -221,11 +210,6 @@ class ShiftSegment
         }
 };
 typedef std::list<ShiftSegment> ShiftSegmentList;
-
-bool cmpShiftSegment(const ShiftSegment& u, const ShiftSegment& v)
-{
-    return u < v;
-}
 
 
 struct Node;
@@ -588,7 +572,11 @@ struct PosVertInf
             // as equal here.
             return false;
         }
-        return vert < rhs.vert;
+        if (vert->id != rhs.vert->id)
+        {
+            return vert->id < rhs.vert->id;
+        }
+        return dirs < rhs.dirs;
     }
 
     double pos;
