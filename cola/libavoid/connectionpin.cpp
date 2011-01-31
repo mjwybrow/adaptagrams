@@ -50,6 +50,8 @@ ShapeConnectionPin::ShapeConnectionPin(ShapeRef *shape,
       m_vertex(NULL)
 {
     COLA_ASSERT(m_shape != NULL);
+    COLA_ASSERT(m_class_id > 0);
+
     m_router = m_shape->router();
     m_shape->addConnectionPin(this);
     

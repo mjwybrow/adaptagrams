@@ -115,8 +115,9 @@ class ConnEnd
         //!
         //! @param[in]  shapeRef              A pointer to the containing shape's
         //!                                   ShapeRef.
-        //! @param[in]  connectionPinClassID  An integer denoting the class ID 
-        //!                                   for the set of pins to connect to.
+        //! @param[in]  connectionPinClassID  A non-zero integer denoting the
+        //!                                   class ID for the set of pins to
+        //!                                   connect to.
         //!
         ConnEnd(ShapeRef *shapeRef, const unsigned int connectionPinClassID);
 

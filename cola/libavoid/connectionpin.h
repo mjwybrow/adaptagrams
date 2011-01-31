@@ -110,9 +110,10 @@ class ShapeConnectionPin
         //! 
         //! @param[in]  shape          A pointer to the containing parent 
         //!                            shape's ShapeRef.
-        //! @param[in]  classId        An integer used to mark the class or 
-        //!                            group of this connection point, used 
-        //!                            for specifying attachment to ConnEnd.
+        //! @param[in]  classId        A non-zero integer used to denote the
+        //!                            class or group of this connection
+        //!                            point, used for specifying attachment
+        //!                            to ConnEnd.
         //! @param[in]  xPortionOffset The X position within the shape, 
         //!                            specified as a proportion of the width
         //!                            between 0 (left) and 1 (right).

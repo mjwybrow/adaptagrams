@@ -45,6 +45,8 @@ class Router;
 class ShapeRef;
 class ConnEnd;
 class ShapeConnectionPin;
+class ConnRef;
+typedef std::list<ConnRef *> ConnRefList;
 typedef std::list<ShapeRef *> ShapeRefList;
 
 //! @brief  Describes the type of transformation that has been applied to a
@@ -120,6 +122,7 @@ class ShapeRef : public Obstacle
         void transformConnectionPinPositions(ShapeTransformationType transform);
  
         void boundingBox(BBox& bbox) const;
+        ConnRefList attachedConnectors(void) const;
 
     private:
         friend class Router;
@@ -129,7 +132,7 @@ class ShapeRef : public Obstacle
         void outputCode(FILE *fp) const;
         Point position(void) const;
         void moveAttachedConns(const Polygon& newPoly);
-        void assignPinVisibilityTo(const unsigned int pinClassId, 
+        void assignPinVisibilityTo(const unsigned int pinClassId,
                 VertInf *dummyConnectionVert);
 };
 

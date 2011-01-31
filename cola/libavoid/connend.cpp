@@ -70,6 +70,8 @@ ConnEnd::ConnEnd(ShapeRef *shapeRef, const unsigned int connectionPinClassID)
       m_active_pin(NULL)
 {
     COLA_ASSERT(m_anchor_obj != NULL);
+    COLA_ASSERT(m_connection_pin_class_id > 0);
+
     m_point = m_anchor_obj->position();
     COLA_ASSERT(m_connection_pin_class_id != CONNECTIONPIN_UNSET);
 }
