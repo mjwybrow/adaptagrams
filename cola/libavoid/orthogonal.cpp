@@ -66,6 +66,8 @@ class ShiftSegment
               variable(NULL),
               minSpaceLimit(minLim),
               maxSpaceLimit(maxLim),
+              hasIdealPos(false),
+              finalSegment(false),
               sBend(isSBend),
               zBend(isZBend)
         {
@@ -79,6 +81,8 @@ class ShiftSegment
               fixed(true),
               dimension(dim),
               variable(NULL),
+              hasIdealPos(false),
+              finalSegment(false),
               sBend(false),
               zBend(false)
         {
@@ -144,6 +148,11 @@ class ShiftSegment
         {
             return sBend || zBend;
         }
+        void setIdealPos(double pos)
+        {
+            idealPos = pos;
+            hasIdealPos = true;
+        }
         // This counts segments that are collinear and share an endpoint as
         // overlapping.  This allows them to be nudged apart where possible.
         bool overlapsWith(const ShiftSegment& rhs, const size_t dim) const
@@ -186,6 +195,9 @@ class ShiftSegment
         Variable *variable;
         double minSpaceLimit;
         double maxSpaceLimit;
+        bool hasIdealPos;
+        double idealPos;
+        bool finalSegment;
     private:
         bool sBend;
         bool zBend;
@@ -1965,7 +1977,7 @@ static void buildOrthogonalChannelInfo(Router *router,
         // If we're going to nudge final segments, then cache the shape 
         // rectangles to save us rebuilding them multiple times.
         const size_t n = router->m_obstacles.size();
-        shapeLimits.reserve(n);
+        shapeLimits = std::vector<RectBounds>(n);
 
         double nudgeDistance = router->orthogonalNudgeDistance();
 
@@ -2061,22 +2073,29 @@ static void buildOrthogonalChannelInfo(Router *router,
                         // final segments.
                         double minLim = -CHANNEL_MAX;
                         double maxLim = CHANNEL_MAX;
+
                         
                         // Limit their movement by the length of 
                         // adjoining segments.
                         bool first = (i == 1) ? true : false;
                         bool last = ((i + 1) == displayRoute.size()) ? 
                                 true : false;
+                        // If the position of the opposite end of the
+                        // attached segment is within the shape boundaries
+                        // then we want to use this as an ideal position
+                        // for the segment.
+                        double idealPos;
+                        bool useIdealPos = false;
                         if (!first)
                         {
                             double prevPos = displayRoute.ps[i - 2][dim];
                             if (prevPos < thisPos)
                             {
-                                minLim = std::max(minLim, prevPos);
+                                idealPos = minLim = std::max(minLim, prevPos);
                             }
                             else if (prevPos > thisPos)
                             {
-                                maxLim = std::min(maxLim, prevPos);
+                                idealPos = maxLim = std::min(maxLim, prevPos);
                             }
                         }
                         if (!last)
@@ -2084,33 +2103,43 @@ static void buildOrthogonalChannelInfo(Router *router,
                             double nextPos = displayRoute.ps[i + 1][dim];
                             if (nextPos < thisPos)
                             {
-                                minLim = std::max(minLim, nextPos);
+                                idealPos = minLim = std::max(minLim, nextPos);
                             }
                             else if (nextPos > thisPos)
                             {
-                                maxLim = std::min(maxLim, nextPos);
+                                idealPos = maxLim = std::min(maxLim, nextPos);
                             }
                         }
-                        
+
                         // Also limit their movement to the edges of the 
                         // shapes they begin or end within.
                         for (size_t k = 0; k < shapeLimits.size(); ++k)
                         {
+                            double shapeMin = shapeLimits[k].first[dim];
+                            double shapeMax = shapeLimits[k].second[dim];
                             if (insideRectBounds(displayRoute.ps[i - 1], 
                                         shapeLimits[k]))
                             {
-                                minLim = std::max(minLim, 
-                                        shapeLimits[k].first[dim]);
-                                maxLim = std::min(maxLim, 
-                                        shapeLimits[k].second[dim]);
+                                minLim = std::max(minLim, shapeMin);
+                                maxLim = std::min(maxLim, shapeMax);
+
+                                if ((idealPos >= shapeMin) &&
+                                    (idealPos <= shapeMax))
+                                {
+                                    useIdealPos = true;
+                                }
                             }
                             if (insideRectBounds(displayRoute.ps[i], 
                                         shapeLimits[k]))
                             {
-                                minLim = std::max(minLim, 
-                                        shapeLimits[k].first[dim]);
-                                maxLim = std::min(maxLim, 
-                                        shapeLimits[k].second[dim]);
+                                minLim = std::max(minLim, shapeMin);
+                                maxLim = std::min(maxLim, shapeMax);
+
+                                if ((idealPos >= shapeMin) &&
+                                    (idealPos <= shapeMax))
+                                {
+                                    useIdealPos = true;
+                                }
                             }
                         }
                         
@@ -2126,6 +2155,11 @@ static void buildOrthogonalChannelInfo(Router *router,
                             segmentList.push_back(ShiftSegment(*curr, 
                                     indexLow, indexHigh, false, false, 
                                     dim, minLim, maxLim));
+                            segmentList.back().finalSegment = true;
+                            if (useIdealPos)
+                            {
+                                segmentList.back().setIdealPos(idealPos);
+                            }
                         }
                     }
                     else
@@ -2603,7 +2637,12 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             int varID = freeID;
             double idealPos = lowPt[dimension];
             double weight = freeWeight;
-            if (currSegment->zigzag())
+            if (currSegment->hasIdealPos)
+            {
+                idealPos = currSegment->idealPos;
+                weight = strongWeight;
+            }
+            else if (currSegment->zigzag())
             {
                 COLA_ASSERT(currSegment->minSpaceLimit > -CHANNEL_MAX);
                 COLA_ASSERT(currSegment->maxSpaceLimit < CHANNEL_MAX);
@@ -2619,7 +2658,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                 weight = fixedWeight;
                 varID = fixedID;
             }
-            else
+            else if (!currSegment->finalSegment)
             {
                 // Set a higher weight for c-bends to stop them sometimes 
                 // getting pushed out into channels by more-free connectors
