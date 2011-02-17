@@ -61,16 +61,16 @@ public:
      * A motivated person could rewrite the constructor to allow 
      * arbitrary sparse terms (if they had a use for it).
      */
-	GradientProjection(
-		const vpsc::Dim k,
-		std::valarray<double> *denseQ,
-		const double tol,
-		const unsigned max_iterations,
+    GradientProjection(
+        const vpsc::Dim k,
+        std::valarray<double> *denseQ,
+        const double tol,
+        const unsigned max_iterations,
         CompoundConstraints const *ccs,
         UnsatisfiableConstraintInfos *unsatisfiableConstraints,
         NonOverlapConstraintsMode nonOverlapConstraints = None,
         RootCluster* clusterHierarchy = NULL,
-		vpsc::Rectangles* rs = NULL,
+        vpsc::Rectangles* rs = NULL,
         const bool scaling = false,
         SolveWithMosek solveWithMosek = Off);
     static void dumpSquareMatrix(std::valarray<double> const &L) {
@@ -100,7 +100,7 @@ public:
             delete vars[i];
         }
     }
-	unsigned solve(std::valarray<double> const & b, std::valarray<double> & x);
+    unsigned solve(std::valarray<double> const & b, std::valarray<double> & x);
     void unfixPos(unsigned i) {
         if(vars[i]->fixedDesiredPosition) {
             vars[i]->weight=1;
@@ -112,13 +112,13 @@ public:
         vars[i]->desiredPosition=pos;
         vars[i]->fixedDesiredPosition=true;
     }
-	const vpsc::Dim getDimension() const {
+    vpsc::Dim getDimension() const {
         return k;
     }
     void straighten(
-		cola::SparseMatrix const * Q, 
-		std::vector<SeparationConstraint*> const & ccs,
-		std::vector<straightener::Node*> const & snodes);
+        cola::SparseMatrix const * Q, 
+        std::vector<SeparationConstraint*> const & ccs,
+        std::vector<straightener::Node*> const & snodes);
     std::valarray<double> const & getFullResult() const {
         return result;
     }
@@ -136,12 +136,12 @@ private:
         std::valarray<double> const & g, std::valarray<double> const & d) const;
     bool runSolver(std::valarray<double> & result);
     void destroyVPSC(vpsc::IncSolver *vpsc);
-	vpsc::Dim k;
+    vpsc::Dim k;
     unsigned numStaticVars; // number of variables that persist
                               // throughout iterations
     const unsigned denseSize; // denseQ has denseSize^2 entries
-	std::valarray<double> *denseQ; // dense square graph laplacian matrix
-	std::valarray<double> scaledDenseQ; // scaled dense square graph laplacian matrix
+    std::valarray<double> *denseQ; // dense square graph laplacian matrix
+    std::valarray<double> scaledDenseQ; // scaled dense square graph laplacian matrix
     std::vector<vpsc::Rectangle*>* rs;
     CompoundConstraints const *ccs;
     UnsatisfiableConstraintInfos *unsatisfiableConstraints;
@@ -150,7 +150,7 @@ private:
     double tolerance;
     unsigned max_iterations;
     cola::SparseMatrix const * sparseQ; // sparse components of goal function
-	vpsc::Variables vars; // all variables
+    vpsc::Variables vars; // all variables
                           // computations
     vpsc::Constraints gcs; /* global constraints - persist throughout all
                                 iterations */
@@ -163,7 +163,7 @@ private:
     vpsc::IncSolver* solver;
     SolveWithMosek solveWithMosek;
     const bool scaling;
-	std::vector<OrthogonalEdgeConstraint*> orthogonalEdges;
+    std::vector<OrthogonalEdgeConstraint*> orthogonalEdges;
 };
 } // namespace cola
 

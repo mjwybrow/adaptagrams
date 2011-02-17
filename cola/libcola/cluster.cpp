@@ -270,39 +270,6 @@ void RectangularCluster::generateFixedRectangleConstraints(
 }
 
 
-vpsc::Rectangle *RectangularCluster::getMinEdgeRect(const vpsc::Dim dim)
-{
-    if (minEdgeRect[dim])
-    {
-        delete minEdgeRect[dim];
-    }
-    minEdgeRect[dim] = new vpsc::Rectangle(bounds);
-    
-    // Set the Min and Max positions to be the min minus an offset.
-    double edgePosition = minEdgeRect[dim]->getMinD(dim);
-    minEdgeRect[dim]->setMinD(dim, edgePosition - rectBuffer);
-    minEdgeRect[dim]->setMaxD(dim, edgePosition);
-    
-    return minEdgeRect[dim];
-}
-
-vpsc::Rectangle *RectangularCluster::getMaxEdgeRect(const vpsc::Dim dim)
-{
-    if (maxEdgeRect[dim])
-    {
-        delete maxEdgeRect[dim];
-    }
-    maxEdgeRect[dim] = new vpsc::Rectangle(bounds);
-
-    // Set the Min and Max positions to be the max plus an offset.
-    double edgePosition = maxEdgeRect[dim]->getMaxD(dim);
-    maxEdgeRect[dim]->setMaxD(dim, edgePosition + rectBuffer);
-    maxEdgeRect[dim]->setMinD(dim, edgePosition);
-
-    return maxEdgeRect[dim];
-}
-
-
 void RectangularCluster::computeBoundary(const vpsc::Rectangles& rs)
 {
     double xMin=DBL_MAX, xMax=-DBL_MAX, yMin=DBL_MAX, yMax=-DBL_MAX;

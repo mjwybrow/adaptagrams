@@ -124,8 +124,37 @@ class RectangularCluster : public Cluster
         virtual bool containsShape(unsigned index) const;
         virtual void printCreationCode(FILE *fp) const;
         virtual void computeBoundingRect(const vpsc::Rectangles& rs);
-        vpsc::Rectangle *getMinEdgeRect(const vpsc::Dim dim);
-        vpsc::Rectangle *getMaxEdgeRect(const vpsc::Dim dim);
+        inline vpsc::Rectangle *getMinEdgeRect(const vpsc::Dim dim)
+        {
+            if (minEdgeRect[dim])
+            {
+                delete minEdgeRect[dim];
+            }
+            minEdgeRect[dim] = new vpsc::Rectangle(bounds);
+
+            // Set the Min and Max positions to be the min minus an offset.
+            double edgePosition = minEdgeRect[dim]->getMinD(dim);
+            minEdgeRect[dim]->setMinD(dim, edgePosition - rectBuffer);
+            minEdgeRect[dim]->setMaxD(dim, edgePosition);
+
+            return minEdgeRect[dim];
+        }
+
+        inline vpsc::Rectangle *getMaxEdgeRect(const vpsc::Dim dim)
+        {
+            if (maxEdgeRect[dim])
+            {
+                delete maxEdgeRect[dim];
+            }
+            maxEdgeRect[dim] = new vpsc::Rectangle(bounds);
+
+            // Set the Min and Max positions to be the max plus an offset.
+            double edgePosition = maxEdgeRect[dim]->getMaxD(dim);
+            maxEdgeRect[dim]->setMaxD(dim, edgePosition + rectBuffer);
+            maxEdgeRect[dim]->setMinD(dim, edgePosition);
+
+            return maxEdgeRect[dim];
+        }
         virtual bool clusterIsFromFixedRectangle(void) const;
         int rectangleIndex(void) const;
     

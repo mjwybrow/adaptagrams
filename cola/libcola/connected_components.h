@@ -34,13 +34,13 @@ namespace cola {
 // and a list of edges - node indices relative to this component
 class Component {
 public:
-	std::vector<unsigned> node_ids;
-	std::vector<vpsc::Rectangle*> rects;
-	std::vector<cola::Edge> edges;
+    std::vector<unsigned> node_ids;
+    std::vector<vpsc::Rectangle*> rects;
+    std::vector<cola::Edge> edges;
     //CompoundConstraints cx, cy;
     ~Component();
     void moveRectangles(double x, double y);
-	vpsc::Rectangle* getBoundingBox();
+    vpsc::Rectangle* getBoundingBox();
 };
 // for a graph of n nodes, return connected components
 void connectedComponents(

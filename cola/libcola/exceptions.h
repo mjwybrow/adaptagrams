@@ -32,8 +32,8 @@ namespace cola {
 class CompoundConstraint;
 
 struct InvalidConstraint {
-	InvalidConstraint(CompoundConstraint *c):constraint(c) {}
-	CompoundConstraint *constraint;
+    InvalidConstraint(CompoundConstraint *c):constraint(c) {}
+    CompoundConstraint *constraint;
 };
 
 

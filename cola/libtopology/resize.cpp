@@ -259,6 +259,7 @@ static bool checkDesired(vpsc::Dim dim, const Nodes& nodes,
     }
     return true;
 }
+#if 0
 static bool checkFinal(vpsc::Dim dim, const Nodes& nodes,
         const Rectangles& targets, const ResizeMap& resizeMap)
 {
@@ -282,6 +283,7 @@ static bool checkFinal(vpsc::Dim dim, const Nodes& nodes,
     }
     return true;
 }
+#endif
 #endif
 /**
  * Applies the required resizes to nodes in the specified axis, rerouting edges
