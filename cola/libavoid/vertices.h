@@ -60,6 +60,7 @@ class VertID
         static const VertIDProps PROP_OrthShapeEdge;
         static const VertIDProps PROP_ConnectionPin;
         static const VertIDProps PROP_ConnCheckpoint;
+        static const VertIDProps PROP_DummyPinHelper;
 
         VertID();
         VertID(unsigned int id, unsigned short n, VertIDProps p = 0);
@@ -91,6 +92,10 @@ class VertID
         inline bool isConnCheckpoint(void) const
         {
             return (props & PROP_ConnCheckpoint) ? true : false;
+        }
+        inline bool isDummyPinHelper(void) const
+        {
+            return (props & PROP_DummyPinHelper) ? true : false;
         }
 };
 

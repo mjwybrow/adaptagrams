@@ -2084,7 +2084,7 @@ static void buildOrthogonalChannelInfo(Router *router,
                         // attached segment is within the shape boundaries
                         // then we want to use this as an ideal position
                         // for the segment.
-                        double idealPos;
+                        double idealPos = 0;
                         bool useIdealPos = false;
                         if (!first)
                         {

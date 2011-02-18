@@ -691,8 +691,12 @@ void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar, VertInf *start)
 
             if (Node.inf->id.isConnectionPin())
             {
-                if ((BestNode.inf != lineRef->src()) &&
-                        !(Node.inf->hasNeighbour(lineRef->dst(), isOrthogonal)))
+                if ( !( (BestNode.inf == lineRef->src()) &&
+                        lineRef->src()->id.isDummyPinHelper()
+                      ) &&
+                     !( Node.inf->hasNeighbour(lineRef->dst(), isOrthogonal) &&
+                        lineRef->dst()->id.isDummyPinHelper())
+                      )
                 {
                     // Don't check connection pins if they don't have the 
                     // target vertex as a direct neightbour, or are directly

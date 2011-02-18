@@ -223,7 +223,12 @@ void ConnRef::common_updateEndPoint(const unsigned int type, ConnEnd connEnd)
     VertInf *altered = NULL;
     VertInf *partner = NULL;
 
-    VertID ptID(m_id, type, VertID::PROP_ConnPoint);
+    VertIDProps properties = VertID::PROP_ConnPoint;
+    if (connEnd.isPinConnection())
+    {
+        properties |= VertID::PROP_DummyPinHelper;
+    }
+    VertID ptID(m_id, type, properties);
     if (type == (unsigned int) VertID::src)
     {
         if (m_src_vert)

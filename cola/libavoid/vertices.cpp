@@ -143,6 +143,7 @@ const unsigned short VertID::PROP_ConnPoint      = 1;
 const unsigned short VertID::PROP_OrthShapeEdge  = 2;
 const unsigned short VertID::PROP_ConnectionPin  = 4;
 const unsigned short VertID::PROP_ConnCheckpoint = 8;
+const unsigned short VertID::PROP_DummyPinHelper = 16;
 
 
 ostream& operator<<(ostream& os, const VertID& vID)
