@@ -195,9 +195,13 @@ void ShapeRef::outputCode(FILE *fp) const
                 id(), (unsigned long) i, polygon().at(i).x,
                 polygon().at(i).y);
     }
-    fprintf(fp, "    ShapeRef *shapeRef%u = new ShapeRef(router, poly%u, "
-            "%u);\n", id(), id(), id());
-    fprintf(fp, "    router->addShape(shapeRef%u);\n", id());
+
+    fprintf(fp, "    ");
+    if (!m_connection_pins.empty())
+    {
+        fprintf(fp, "ShapeRef *shapeRef%u = ", id());
+    }
+    fprintf(fp, "new ShapeRef(router, poly%u, %u);\n", id(), id());
     for (ShapeConnectionPinSet::const_iterator curr = 
             m_connection_pins.begin(); 
             curr != m_connection_pins.end(); ++curr)
