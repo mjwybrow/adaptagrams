@@ -24,7 +24,6 @@
 
 
 #include "libavoid/shape.h"
-#include "libavoid/graph.h"  // For alertConns
 #include "libavoid/vertices.h"
 #include "libavoid/router.h"
 #include "libavoid/connend.h"
@@ -39,11 +38,18 @@ namespace Avoid {
 ShapeRef::ShapeRef(Router *router, Polygon& ply, const unsigned int id)
     : Obstacle(router, ply, id)
 {
+    m_router->addShape(this);
 }
 
 
 ShapeRef::~ShapeRef()
 {
+    if (m_router->m_currently_calling_destructors == false)
+    {
+        fprintf(stderr, "ERROR: ShapeRef::~ShapeRef() shouldn't be called directly.\n");
+        fprintf(stderr, "       It is owned by the router.  Call Router::deleteShape() instead.\n");
+        abort();
+    }
 }
 
 ConnRefList ShapeRef::attachedConnectors(void) const

@@ -49,52 +49,39 @@ typedef std::list<Obstacle *> ObstacleList;
 
 
 // @brief   The Obstacle class represents an obstacle that must be 
-//          routed around..
+//          routed around.  Superclass of ShapeRef and JunctionRef.
 //
 class Obstacle
 {
     public:
-        //! @brief  Shape reference constructor.
+        //! @brief  Obstacle reference constructor.
         //!
-        //! Creates a shape obect reference, but does not yet place it into the
-        //! Router scene.  You can add or remove the shape to/from the scene 
-        //! with Router::addJunction() and Router::removeJunction().  The 
-        //! junction can be moved with Router::moveJunction().
-        //!
-        //! The poly argument will usually be the boundary of the shape in your 
-        //! application with additional buffer of several pixels on each side.
-        //! Specifying such a buffer results in connectors leaving a small 
-        //! amount of space around shapes, rather than touching them on the 
-        //! corners or edges.
-        //!
-        //! If an ID is not specified, then one will be assigned to the shape.
-        //! If assigning an ID yourself, note that it should be a unique 
-        //! positive integer.  Also, IDs are given to all objects in a scene,
-        //! so the same ID cannot be given to a shape and a connector for 
-        //! example.
+        //! Creates an obstacle object reference.  It is expected that you
+        //! would not instantiate an Ostacle directly, but would instead
+        //! use either ShapeRef() or JunctionRef().
         //!
         //! @param[in]  router  The router scene to place the shape into.
         //! @param[in]  poly    A Polygon representing the boundary of the 
         //!                     shape.
         //! @param[in]  id      A unique positive integer ID for the shape.  
         Obstacle(Router *router, Polygon poly, const unsigned int id = 0);
-        //! @brief  Shape reference destructor.
+        //! @brief  Obstacle reference destructor.
         //!
-        //! This will call Router::removeShape() for this shape, if this has
-        //! not already be called.
         virtual ~Obstacle();
         
-        //! @brief   Returns the ID of this shape.
-        //! @returns The ID of the shape. 
+        //! @brief   Returns the ID of this obstacle.
+        //! @returns The ID of the obstacle.
         unsigned int id(void) const;
-        //! @brief   Returns a reference to the polygon boundary of this shape.
-        //! @returns A reference to the polygon boundary of the shape.
+        //! @brief   Returns a reference to the polygon boundary of this
+        //!          obstacle.
+        //! @returns A reference to the polygon boundary of the obstacle.
         const Polygon& polygon(void) const;
-        //! @brief   Returns a pointer to the router scene this shape is in.
-        //! @returns A pointer to the router scene for this shape.
+        //! @brief   Returns a pointer to the router scene this obstacle
+        //!          is in.
+        //! @returns A pointer to the router scene for this obstacle.
         Router *router(void) const;
-        //! @brief   Returns the position of this junction.
-        //! @returns A point representing the position of this junction.
+        //! @brief   Returns the position of this obstacle.
+        //! @returns A point representing the position of this obstacle.
         virtual Point position(void) const = 0;
         
         void setNewPoly(const Polygon& poly);

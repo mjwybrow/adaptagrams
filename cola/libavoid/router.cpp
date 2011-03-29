@@ -178,6 +178,7 @@ Router::Router(const unsigned int flags)
 #endif
       _largestAssignedId(0),
       _consolidateActions(true),
+      m_currently_calling_destructors(false),
       _orthogonalNudgeDistance(4.0),
       // Mode options:
       _polyLineRouting(false),
@@ -209,6 +210,8 @@ Router::Router(const unsigned int flags)
 
 Router::~Router()
 {
+    m_currently_calling_destructors = true;
+
     // Delete remaining connectors.
     ConnRefList::iterator conn = connRefs.begin();
     while (conn != connRefs.end())
@@ -234,6 +237,7 @@ Router::~Router()
         delete obstaclePtr;
         obstacle = m_obstacles.begin();
     }
+    m_currently_calling_destructors = false;
 
     // Cleanup orphaned orthogonal graph vertices.
     destroyOrthogonalVisGraph();
@@ -343,7 +347,7 @@ void Router::addShape(ShapeRef *shape)
 }
 
 
-void Router::removeShape(ShapeRef *shape)
+void Router::deleteShape(ShapeRef *shape)
 {
     // There shouldn't be add events events for the same shape already 
     // in the action list.
@@ -373,6 +377,13 @@ void Router::removeShape(ShapeRef *shape)
     }
 }
 
+
+void Router::deleteConnector(ConnRef *connector)
+{
+    m_currently_calling_destructors = true;
+    delete connector;
+    m_currently_calling_destructors = false;
+}
 
 void Router::moveShape(ShapeRef *shape, const double xDiff, const double yDiff)
 {
@@ -508,6 +519,7 @@ bool Router::processTransaction(void)
     // If SimpleRouting, then don't update here.
     if (actionList.empty() || SimpleRouting)
     {
+        actionList.clear();
         return false;
     }
 
@@ -699,7 +711,7 @@ void Router::addJunction(JunctionRef *junction)
 }
 
 
-void Router::removeJunction(JunctionRef *junction)
+void Router::deleteJunction(JunctionRef *junction)
 {
     // There shouldn't be add events events for the same junction already 
     // in the action list.
@@ -791,7 +803,7 @@ void Router::addCluster(ClusterRef *cluster)
 }
 
 
-void Router::delCluster(ClusterRef *cluster)
+void Router::deleteCluster(ClusterRef *cluster)
 {
     cluster->makeInactive();
     
@@ -944,6 +956,8 @@ void Router::rerouteAndCallbackConnectors(void)
     std::list<ConnRef *> reroutedConns;
     ConnRefList::const_iterator fin = connRefs.end();
     
+    this->m_conn_reroute_flags.alertConns();
+
     // Updating the orthogonal visibility graph if necessary. 
     regenerateStaticBuiltGraph();
 
@@ -2202,6 +2216,46 @@ void Router::outputInstanceToSVG(std::string instanceName)
     fclose(fp);
 }
 
+
+Router::ConnRerouteFlagDelegate::ConnRerouteFlagDelegate()
+{
+}
+
+Router::ConnRerouteFlagDelegate::~ConnRerouteFlagDelegate()
+{
+}
+
+bool *Router::ConnRerouteFlagDelegate::addConn(ConnRef *conn)
+{
+    m_mapping.push_back(std::make_pair(conn, false));
+    return &(m_mapping.back().second);
+}
+
+void Router::ConnRerouteFlagDelegate::removeConn(ConnRef *conn)
+{
+    std::list<std::pair<ConnRef *, bool> >::iterator it;
+    for (it = m_mapping.begin(); it != m_mapping.end(); ++it)
+    {
+        if (it->first == conn)
+        {
+            it->first = NULL;
+        }
+    }
+}
+
+
+void Router::ConnRerouteFlagDelegate::alertConns(void)
+{
+    std::list<std::pair<ConnRef *, bool> >::iterator it;
+    for (it = m_mapping.begin(); it != m_mapping.end(); ++it)
+    {
+        if ((it->first != NULL) && (it->second == true))
+        {
+            it->second = false;
+            it->first->m_needs_reroute_flag = true;
+        }
+    }
+}
 
 }
 

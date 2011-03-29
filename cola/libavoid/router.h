@@ -245,22 +245,8 @@ class Router {
         //! @sa setTransactionUse
         //!
         bool processTransaction(void);
-        
-        //! @brief Add a shape to the router scene.
-        //!
-        //! This shape will be considered to be an obstacle. Calling this 
-        //! method will cause connectors intersecting the added shape to
-        //! be marked as needing to be rerouted.
-        //!
-        //! If the router is using transactions, then this action will occur
-        //! the next time Router::processTransaction() is called.  See
-        //! Router::setTransactionUse() for more information.
-        //!
-        //! @param[in]  shape  Pointer reference to the shape being added.
-        //!
-        void addShape(ShapeRef *shape);
 
-        //! @brief Remove a shape from the router scene.
+        //! @brief Delete a shape from the router scene.
         //!
         //! Connectors that could have a better (usually shorter) path after
         //! the removal of this shape will be marked as needing to be rerouted.
@@ -269,9 +255,12 @@ class Router {
         //! the next time Router::processTransaction() is called.  See
         //! Router::setTransactionUse() for more information.
         //!
+        //! You should not use the shape reference again after this call.
+        //! The router will handle freeing of the shape's memory.
+        //!
         //! @param[in]  shape  Pointer reference to the shape being removed.
         //!
-        void removeShape(ShapeRef *shape);
+        void deleteShape(ShapeRef *shape);
 
         //! @brief Move or resize an existing shape within the router scene.
         //!
@@ -313,27 +302,34 @@ class Router {
         //!
         void moveShape(ShapeRef *shape, const double xDiff, const double yDiff);
 
-        //! @brief Add a junction from the router scene.
-        //!
-        //! If the router is using transactions, then this action will occur
-        //! the next time Router::processTransaction() is called.  See
-        //! Router::setTransactionUse() for more information.
-        //!
-        //! @param[in]  junction  Pointer reference to the junction being added.
-        //!
-        void addJunction(JunctionRef *junction);
-
         //! @brief Remove a junction from the router scene.
         //!
         //! If the router is using transactions, then this action will occur
         //! the next time Router::processTransaction() is called.  See
         //! Router::setTransactionUse() for more information.
         //!
+        //! You should not use the junction reference again after this call.
+        //! The router will handle freeing of the junction's memory.
+        //!
         //! @param[in]  junction  Pointer reference to the junction being 
         //!                       removed.
         //!
-        void removeJunction(JunctionRef *junction);
+        void deleteJunction(JunctionRef *junction);
         
+        //! @brief Remove a connector from the router scene.
+        //!
+        //! If the router is using transactions, then this action will occur
+        //! the next time Router::processTransaction() is called.  See
+        //! Router::setTransactionUse() for more information.
+        //!
+        //! You should not use the connector reference again after this call.
+        //! The router will handle freeing of the connector's memory.
+        //!
+        //! @param[in]  connector  Pointer reference to the connector being
+        //!                        removed.
+        //!
+        void deleteConnector(ConnRef *connector);
+
         //! @brief Move an existing junction within the router scene.
         //!
         //! Connectors that are attached to this junction will be rerouted 
@@ -343,7 +339,7 @@ class Router {
         //! the next time Router::processTransaction() is called.  See
         //! Router::setTransactionUse() for more information.
         //!
-        //! @param[in]  junction     Pointer reference to the junction being 
+        //! @param[in]  junction     Pointer reference to the junction being
         //!                          moved.
         //! @param[in]  newPosition  The new position for the junction.
         //!
@@ -431,8 +427,7 @@ class Router {
         //!
         bool routingOption(const RoutingOption option) const;
 
-        void addCluster(ClusterRef *cluster);
-        void delCluster(ClusterRef *cluster);
+        void deleteCluster(ClusterRef *cluster);
 
 #if 0
         // XXX: attachedShapes and attachedConns both need to be rewritten
@@ -465,11 +460,16 @@ class Router {
         friend class ConnRef;
         friend class JunctionRef;
         friend class Obstacle;
+        friend class ClusterRef;
 
+        void addShape(ShapeRef *shape);
+        void addJunction(JunctionRef *junction);
+        void addCluster(ClusterRef *cluster);
         void modifyConnector(ConnRef *conn);
         void modifyConnector(ConnRef *conn, unsigned int type,
                 const ConnEnd &connEnd);
         void modifyConnectionPin(ShapeConnectionPin *pin);
+
         void removeQueuedConnectorActions(ConnRef *conn);
         void newBlockingShape(const Polygon& poly, int pid);
         void checkAllBlockedEdges(int pid);
@@ -486,11 +486,30 @@ class Router {
         ActionInfoList actionList;
         unsigned int _largestAssignedId;
         bool _consolidateActions;
+        bool m_currently_calling_destructors;
         double _orthogonalNudgeDistance;
         double _routingPenalties[lastPenaltyMarker];
         bool _routingOptions[lastRoutingOptionMarker];
 
-    public:
+        // This class allows edges in the visibility graph to store a
+        // pointer to a boolean registering when a connector needs to
+        // reroute, while allowing connectors to be deleted without
+        // needing to scan and remove these references from the visibility
+        // graph.  Instead the bool is stored in this delegate and the
+        // connector is alerted later, so long as it hasn't since been
+        // deleted.
+        class ConnRerouteFlagDelegate {
+            public:
+                ConnRerouteFlagDelegate();
+                ~ConnRerouteFlagDelegate();
+                bool *addConn(ConnRef *conn);
+                void removeConn(ConnRef *conn);
+                void alertConns(void);
+            private:
+                std::list<std::pair<ConnRef *, bool> > m_mapping;
+        };
+        ConnRerouteFlagDelegate m_conn_reroute_flags;
+public:
         // Overall modes:
         bool _polyLineRouting;
         bool _orthogonalRouting;
@@ -498,6 +517,7 @@ class Router {
         bool _staticGraphInvalidated;
         bool _inCrossingPenaltyReroutingStage;
 };
+
 
 }
 

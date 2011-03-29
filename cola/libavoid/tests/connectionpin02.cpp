@@ -35,23 +35,18 @@ int main(void)
     // Create the ShapeRef:
     Avoid::Rectangle shapeRect1(Avoid::Point(0, 0), Avoid::Point(10, 10));
     Avoid::ShapeRef *shapeRef1 = new Avoid::ShapeRef(router, shapeRect1);
-    router->addShape(shapeRef1);
     
     Avoid::Rectangle shapeRect2(Avoid::Point(0, 90), Avoid::Point(20, 100));
     Avoid::ShapeRef *shapeRef2 = new Avoid::ShapeRef(router, shapeRect2);
-    router->addShape(shapeRef2);
 
     Avoid::Rectangle shapeRect3(Avoid::Point(50, 40), Avoid::Point(90, 80));
     Avoid::ShapeRef *shapeRef3 = new Avoid::ShapeRef(router, shapeRect3);
-    router->addShape(shapeRef3);
 
     // Create pins two input pins on the left side of shape 3.
     const unsigned int INPUT = 1;
-    Avoid::ShapeConnectionPin *pin1 = 
-        new Avoid::ShapeConnectionPin(shapeRef3, INPUT, 0.25, 
+    new Avoid::ShapeConnectionPin(shapeRef3, INPUT, 0.25, 
             0.4, 0, Avoid::ConnDirLeft);
-    Avoid::ShapeConnectionPin *pin2 = 
-       new Avoid::ShapeConnectionPin(shapeRef3, INPUT, 0.75, 
+    new Avoid::ShapeConnectionPin(shapeRef3, INPUT, 0.75, 
             0.6, 0, Avoid::ConnDirLeft);
     
     // And centre pins for two other shapes.

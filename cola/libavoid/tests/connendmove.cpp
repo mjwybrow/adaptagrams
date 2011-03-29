@@ -35,14 +35,12 @@ int main(void)
     // Create the ShapeRef:
     Avoid::Rectangle shapeRect1(Avoid::Point(0, 0), Avoid::Point(10, 10));
     Avoid::ShapeRef *shapeRef1 = new Avoid::ShapeRef(router, shapeRect1);
-    router->addShape(shapeRef1);
     const unsigned int CENTRE = 1;
     new Avoid::ShapeConnectionPin(shapeRef1, CENTRE, 
             Avoid::ATTACH_POS_CENTRE, Avoid::ATTACH_POS_CENTRE);
     
     Avoid::Rectangle shapeRect2(Avoid::Point(0, 0), Avoid::Point(10, 10));
     Avoid::ShapeRef *shapeRef2 = new Avoid::ShapeRef(router, shapeRect1);
-    router->addShape(shapeRef2);
 
     Avoid::ConnEnd dstPt(shapeRef1, CENTRE); 
     Avoid::Point srcPt(1.5, 4);

@@ -40,10 +40,6 @@
 #include "libavoid/vpsc.h"
 #include "libavoid/assertions.h"
 
-#ifdef LIBAVOID_SDL
-  #include <SDL_gfxPrimitives.h>
-#endif
-
 
 namespace Avoid {
 
@@ -110,7 +106,7 @@ class ShiftSegment
         {
             return connRef->router()->orthogonalNudgeDistance();
         }
-        const int fixedOrder(bool& isFixed) const
+        int fixedOrder(bool& isFixed) const
         {
             double nudgeDist = nudgeDistance();
             double pos = lowPoint()[dimension];
@@ -132,7 +128,7 @@ class ShiftSegment
             }
             return 0;
         }
-        const int order(void) const
+        int order(void) const
         {
             if (lowC())
             {
@@ -201,7 +197,7 @@ class ShiftSegment
     private:
         bool sBend;
         bool zBend;
-        const bool lowC(void) const
+        bool lowC(void) const
         {
             // This is true if this is a cBend and its adjoining points
             // are at lower positions.
@@ -211,7 +207,7 @@ class ShiftSegment
             }
             return false;
         }
-        const bool highC(void) const
+        bool highC(void) const
         {
             // This is true if this is a cBend and its adjoining points
             // are at higher positions.

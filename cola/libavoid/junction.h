@@ -58,10 +58,17 @@ class JunctionRef : public Obstacle
     public:
         //! @brief  Junction reference constructor.
         //!
-        //! Creates a junction obect reference, but does not yet place it 
-        //! into the Router scene.  You can add or remove the junction to/from
-        //! the scene with Router::addJunction() and Router::removeJunction().
-        //! The junction can be moved with Router::moveJunction().
+        //! Creates a junction object reference, and adds it to the router
+        //! scene.  This junction will be considered to be an obstacle.
+        //! This will cause connectors intersecting the newly added shape
+        //! to be marked as needing to be rerouted.
+        //!
+        //! If the router is using transactions, then changes will occur
+        //! the next time Router::processTransaction() is called.  See
+        //! Router::setTransactionUse() for more information.
+        //!
+        //! The junction can be moved with Router::moveJunction() and removed
+        //! from the scene and freed with Router::deleteJunction().
         //!
         //! If an ID is not specified, then one will be assigned to the 
         //! junction.  If assigning an ID yourself, note that it should be 
@@ -77,8 +84,8 @@ class JunctionRef : public Obstacle
 
         //! @brief  Junction reference destructor.
         //!
-        //! This will call Router::removeJunction() for this shape, if this has
-        //! not already be called.
+        //! Do not call this yourself, instead call Router::deleteJunction().
+        //! Ownership of this object belongs to the router scene.
         virtual ~JunctionRef();
 
         //! @brief  Removes a junction that has only two connectors attached

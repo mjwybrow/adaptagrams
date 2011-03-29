@@ -15,7 +15,6 @@ int main(void) {
     poly1.ps[2] = Point(-52, 292);
     poly1.ps[3] = Point(-52, 188);
     ShapeRef *shapeRef1 = new ShapeRef(router, poly1, 1);
-    router->addShape(shapeRef1);
     new ShapeConnectionPin(shapeRef1, 544, 0.5, 0.5, 10, (ConnDirFlags) 0);
 
     Polygon poly2(4);
@@ -24,7 +23,6 @@ int main(void) {
     poly2.ps[2] = Point(-52, 52);
     poly2.ps[3] = Point(-52, -52);
     ShapeRef *shapeRef2 = new ShapeRef(router, poly2, 2);
-    router->addShape(shapeRef2);
     new ShapeConnectionPin(shapeRef2, 544, 0.5, 0.5, 10, (ConnDirFlags) 0);
 
     Polygon poly3(4);
@@ -33,7 +31,6 @@ int main(void) {
     poly3.ps[2] = Point(-52, 532);
     poly3.ps[3] = Point(-52, 428);
     ShapeRef *shapeRef3 = new ShapeRef(router, poly3, 3);
-    router->addShape(shapeRef3);
     new ShapeConnectionPin(shapeRef3, 544, 0.5, 0.5, 10, (ConnDirFlags) 0);
 
     Polygon poly4(4);
@@ -42,7 +39,6 @@ int main(void) {
     poly4.ps[2] = Point(-52, 172);
     poly4.ps[3] = Point(-52, 68);
     ShapeRef *shapeRef4 = new ShapeRef(router, poly4, 4);
-    router->addShape(shapeRef4);
     new ShapeConnectionPin(shapeRef4, 544, 0.5, 0.5, 10, (ConnDirFlags) 0);
 
     Polygon poly5(4);
@@ -51,7 +47,6 @@ int main(void) {
     poly5.ps[2] = Point(-52, 412);
     poly5.ps[3] = Point(-52, 308);
     ShapeRef *shapeRef5 = new ShapeRef(router, poly5, 5);
-    router->addShape(shapeRef5);
     new ShapeConnectionPin(shapeRef5, 544, 0.5, 0.5, 10, (ConnDirFlags) 0);
 
     ConnRef *connRef6 = new ConnRef(router, 6);

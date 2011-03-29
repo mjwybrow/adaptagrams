@@ -81,8 +81,11 @@ class ConnRef
     public:
         //! @brief Constructs a connector with no endpoints specified.
         //!
-        //! @param[in]  router  The router scene to place the connector into.
-        //! @param[in]  id      A unique positive integer ID for the connector.  
+        //! The constructor requires a valid Router instance.  This router
+        //! will take ownership of the connector.  Hence, you should not
+        //! call the destructor yourself, but should instead call
+        //! Router::deleteConnector() and the router instance will remove
+        //! and then free the connector's memory.
         //!
         //! If an ID is not specified, then one will be assigned to the shape.
         //! If assigning an ID yourself, note that it should be a unique 
@@ -90,23 +93,37 @@ class ConnRef
         //! so the same ID cannot be given to a shape and a connector for 
         //! example.
         //!
+        //! @param[in]  router  The router scene to place the connector into.
+        //! @param[in]  id      A unique positive integer ID for the connector.
+        //!
         ConnRef(Router *router, const unsigned int id = 0);
         //! @brief Constructs a connector with endpoints specified.
+        //!
+        //! The constructor requires a valid Router instance.  This router
+        //! will take ownership of the connector.  Hence, you should not
+        //! call the destructor yourself, but should instead call
+        //! Router::deleteConnector() and the router instance will remove
+        //! and then free the connector's memory.
+        //!
+        //! If an ID is not specified, then one will be assigned to the shape.
+        //! If assigning an ID yourself, note that it should be a unique 
+        //! positive integer.  Also, IDs are given to all objects in a scene,
+        //! so the same ID cannot be given to a shape and a connector for 
+        //! example.
         //!
         //! @param[in]  router  The router scene to place the connector into.
         //! @param[in]  id      A unique positive integer ID for the connector.
         //! @param[in]  src     The source endpoint of the connector.
         //! @param[in]  dst     The destination endpoint of the connector.
         //!
-        //! If an ID is not specified, then one will be assigned to the shape.
-        //! If assigning an ID yourself, note that it should be a unique 
-        //! positive integer.  Also, IDs are given to all objects in a scene,
-        //! so the same ID cannot be given to a shape and a connector for 
-        //! example.
-        //!
         ConnRef(Router *router, const ConnEnd& src, const ConnEnd& dst,
                 const unsigned int id = 0);
-        //! @brief  Destuctor.
+
+        //! @brief  Connector reference destuctor.
+        //!
+        //! Do not call this yourself, instead call
+        //! Router::deleteConnector().  Ownership of this object
+        //! belongs to the router scene.
         ~ConnRef();
         
         //! @brief  Sets both a new source and destination endpoint for this 
@@ -290,6 +307,7 @@ class ConnRef
         ConnType m_type;
         bool m_orthogonal;
         bool m_needs_reroute_flag;
+        bool *m_reroute_flag_ptr;
         bool m_false_path;
         bool m_needs_repaint;
         bool m_active;

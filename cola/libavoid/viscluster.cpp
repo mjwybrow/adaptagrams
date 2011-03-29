@@ -39,11 +39,19 @@ ClusterRef::ClusterRef(Router *router, Polygon& polygon, const unsigned int id)
 {
     COLA_ASSERT(m_router != NULL);
     m_id = m_router->assignId(id);
+
+    m_router->addCluster(this);
 }
 
 
 ClusterRef::~ClusterRef()
 {
+    if (m_router->m_currently_calling_destructors == false)
+    {
+        fprintf(stderr, "ERROR: ClusterRef::~ClusterRef() shouldn't be called directly.\n");
+        fprintf(stderr, "       It is owned by the router.  Call Router::deleteCluster() instead.\n");
+        abort();
+    }
 }
 
 

@@ -44,6 +44,18 @@ JunctionRef::JunctionRef(Router *router, Point position, const unsigned int id)
             Avoid::CONNECTIONPIN_CENTRE, ConnDirLeft));
     m_connection_pins.insert(new Avoid::ShapeConnectionPin(this, 
             Avoid::CONNECTIONPIN_CENTRE, ConnDirRight));
+
+    m_router->addJunction(this);
+}
+
+JunctionRef::~JunctionRef()
+{
+    if (m_router->m_currently_calling_destructors == false)
+    {
+        fprintf(stderr, "ERROR: JunctionRef::~JunctionRef() shouldn't be called directly.\n");
+        fprintf(stderr, "       It is owned by the router.  Call Router::deleteJunction() instead.\n");
+        abort();
+    }
 }
 
 
@@ -87,11 +99,6 @@ void JunctionRef::preferOrthogonalDimension(const size_t dim)
             }
         }
     }
-}
-
-
-JunctionRef::~JunctionRef()
-{
 }
 
 
@@ -178,10 +185,10 @@ ConnRef *JunctionRef::removeJunctionAndMergeConnectors(void)
             *connEnd2Other);
 
     // Delete the second connector.
-    delete conn2;
+    m_router->deleteConnector(conn2);
 
     // Remove the junction from the router scene.  It should get deleted later.
-    m_router->removeJunction(this);
+    m_router->deleteJunction(this);
 
     // Return the first (i.e. merged) connector.
     return connEnd1->m_conn_ref;

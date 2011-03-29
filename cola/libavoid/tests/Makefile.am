@@ -17,7 +17,6 @@ check_PROGRAMS = \
 	inlineoverlap06 \
 	inlineoverlap07 \
 	nudgeintobug \
-	activedelete \
 	slowrouting \
 	corneroverlap01 \
 	tjunct \

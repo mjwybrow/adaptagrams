@@ -47,6 +47,7 @@ ConnRef::ConnRef(Router *router, const unsigned int id)
     : m_router(router),
       m_type(router->validConnType()),
       m_needs_reroute_flag(true),
+      m_reroute_flag_ptr(NULL),
       m_false_path(false),
       m_needs_repaint(false),
       m_active(false),
@@ -66,6 +67,8 @@ ConnRef::ConnRef(Router *router, const unsigned int id)
 
     // TODO: Store endpoints and details.
     m_route.clear();
+
+    m_reroute_flag_ptr = m_router->m_conn_reroute_flags.addConn(this);
 }
 
 
@@ -74,6 +77,7 @@ ConnRef::ConnRef(Router *router, const ConnEnd& src, const ConnEnd& dst,
     : m_router(router),
       m_type(router->validConnType()),
       m_needs_reroute_flag(true),
+      m_reroute_flag_ptr(NULL),
       m_false_path(false),
       m_needs_repaint(false),
       m_active(false),
@@ -93,11 +97,22 @@ ConnRef::ConnRef(Router *router, const ConnEnd& src, const ConnEnd& dst,
 
     // Set endpoint values.
     setEndpoints(src, dst);
+
+    m_reroute_flag_ptr = m_router->m_conn_reroute_flags.addConn(this);
 }
 
 
 ConnRef::~ConnRef()
 {
+    if (m_router->m_currently_calling_destructors == false)
+    {
+        fprintf(stderr, "ERROR: ConnRef::~ConnRef() shouldn't be called directly.\n");
+        fprintf(stderr, "       It is owned by the router.  Call Router::deleteConnector() instead.\n");
+        abort();
+    }
+
+    m_router->m_conn_reroute_flags.removeConn(this);
+
     m_router->removeQueuedConnectorActions(this);
 
     freeRoutes();
@@ -127,7 +142,7 @@ ConnRef::~ConnRef()
         delete m_dst_connend;
         m_dst_connend = NULL;
     }
-    
+
     // Clear checkpoint vertices.
     for (size_t i = 0; i < m_checkpoint_vertices.size(); ++i)
     {
@@ -747,6 +762,7 @@ bool ConnRef::generatePath(void)
     COLA_ASSERT(vertices.size() >= 2);
     COLA_ASSERT(vertices[0] == src());
     COLA_ASSERT(vertices[vertices.size() - 1] == dst());
+    COLA_ASSERT(m_reroute_flag_ptr != NULL);
 
     for (size_t i = 1; i < vertices.size(); ++i)
     {
@@ -755,7 +771,7 @@ bool ConnRef::generatePath(void)
             // TODO: Again, we could know this edge without searching.
             EdgeInf *edge = EdgeInf::existingEdge(vertices[i - 1], vertices[i]);
             if (edge) {
-                edge->addConn(&m_needs_reroute_flag);
+                edge->addConn(m_reroute_flag_ptr);
             }
         }
         else

@@ -35,8 +35,7 @@ int main(void)
     
     // Create the ShapeRef:
     Avoid::Rectangle shapePoly(Avoid::Point(0, 0), Avoid::Point(100, 100));
-    Avoid::ShapeRef *shapeRef = new Avoid::ShapeRef(router, shapePoly);
-    router->addShape(shapeRef);
+    new Avoid::ShapeRef(router, shapePoly);
 
     Avoid::ConnEnd srcPt(Avoid::Point(200, 200));
 

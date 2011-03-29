@@ -5,14 +5,11 @@ int main(void) {
     router->setRoutingPenalty(segmentPenalty, 50);
     router->setOrthogonalNudgeDistance(10);
     Rectangle rect47(Point(51145, 50195), Point(51145+360, 50195+685));
-    ShapeRef *shapeRef47 = new ShapeRef(router, rect47);
-    router->addShape(shapeRef47);
+    new ShapeRef(router, rect47);
     Rectangle rect46(Point(51920, 49770), Point(51920+360, 49770+310));
-    ShapeRef *shapeRef46 = new ShapeRef(router, rect46);
-    router->addShape(shapeRef46);
+    new ShapeRef(router, rect46);
     Rectangle rect45(Point(51151, 49770), Point(51151+360, 49770+310));
-    ShapeRef *shapeRef45 = new ShapeRef(router, rect45);
-    router->addShape(shapeRef45);
+    new ShapeRef(router, rect45);
     ConnEnd srcPt53(Point(51150,49850), 4);
     ConnEnd dstPt53(Point(51500,50350), 8);
     new ConnRef(router, srcPt53, dstPt53);

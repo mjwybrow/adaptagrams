@@ -48,14 +48,6 @@ int main(void)
     Avoid::Router *router = new Avoid::Router(Avoid::OrthogonalRouting |
             Avoid::PolyLineRouting);
     
-    // Create the ShapeRef:
-    Avoid::Polygon shapePoly(3);
-    shapePoly.ps[0] = Avoid::Point(1, 1);
-    shapePoly.ps[1] = Avoid::Point(2.5, 1.5);
-    shapePoly.ps[2] = Avoid::Point(1.5, 2.5);
-    Avoid::ShapeRef *shapeRef = new Avoid::ShapeRef(router, shapePoly);
-
-    {
     Avoid::Point srcPt(1.2, 0.5);
     Avoid::Point dstPt(1.5, 4);
     Avoid::ConnRef *connRef = new Avoid::ConnRef(router, srcPt, dstPt);
@@ -64,7 +56,12 @@ int main(void)
     router->processTransaction();
 
     printf("\nAdding a shape.\n");
-    router->addShape(shapeRef);
+    // Create the ShapeRef:
+    Avoid::Polygon shapePoly(3);
+    shapePoly.ps[0] = Avoid::Point(1, 1);
+    shapePoly.ps[1] = Avoid::Point(2.5, 1.5);
+    shapePoly.ps[2] = Avoid::Point(1.5, 2.5);
+    Avoid::ShapeRef *shapeRef = new Avoid::ShapeRef(router, shapePoly);
     router->processTransaction();
 
     printf("\nShifting endpoint.\n");
@@ -86,21 +83,21 @@ int main(void)
     connRef->setRoutingType(Avoid::ConnType_PolyLine);
     router->processTransaction();
 
-    delete connRef;
-    }
+    router->deleteConnector(connRef);
     printf("\nRemoving shape.\n");
-    router->removeShape(shapeRef);
+    router->deleteShape(shapeRef);
     router->processTransaction();
 
     printf("\nReadding shape.\n");
-    router->addShape(shapeRef);
+    shapeRef = new Avoid::ShapeRef(router, shapePoly);
     router->processTransaction();
 
     printf("\nMoving shape right by 0.5.\n");
     router->moveShape(shapeRef, 0.5, 0);
     router->processTransaction();
 
-    router->removeShape(shapeRef);
+    router->deleteShape(shapeRef);
+    shapeRef = NULL;
     router->processTransaction();
 
     delete router;

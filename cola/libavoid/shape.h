@@ -80,10 +80,17 @@ class ShapeRef : public Obstacle
     public:
         //! @brief  Shape reference constructor.
         //!
-        //! Creates a shape object reference, but does not yet place it into 
-        //! the Router scene.  You can add or remove the shape to/from the 
-        //! scene with Router::addShape() and Router::removShape().
-        //! The shape can be moved with Router::moveShape().
+        //! Creates a shape object reference, and adds it to the router
+        //! scene.  This shape will be considered to be an obstacle.
+        //! This will cause connectors intersecting the newly added shape
+        //! to be marked as needing to be rerouted.
+        //!
+        //! If the router is using transactions, then changes will occur
+        //! the next time Router::processTransaction() is called.  See
+        //! Router::setTransactionUse() for more information.
+        //!
+        //! The shape can be moved with Router::moveShape() and removed
+        //! from the scene and freed with Router::deleteShape().
         //!
         //! The poly argument will usually be the boundary of the shape in your 
         //! application with additional buffer of several pixels on each side.
@@ -102,10 +109,11 @@ class ShapeRef : public Obstacle
         //!                     shape.
         //! @param[in]  id      A unique positive integer ID for the shape.  
         ShapeRef(Router *router, Polygon& poly, const unsigned int id = 0);
+
         //! @brief  Shape reference destructor.
         //!
-        //! This will call Router::removeShape() for this shape, if this has
-        //! not already be called.
+        //! Do not call this yourself, instead call Router::deleteShape().
+        //! Ownership of this object belongs to the router scene.
         virtual ~ShapeRef();
         
         //! @brief   Returns a reference to the polygon boundary of this shape.

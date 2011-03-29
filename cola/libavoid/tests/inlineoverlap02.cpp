@@ -16,24 +16,21 @@ int main(void) {
     poly548374163.ps[1] = Point(52285, 50885);
     poly548374163.ps[2] = Point(51915, 50885);
     poly548374163.ps[3] = Point(51915, 50415);
-    ShapeRef *shapeRef548374163 = new ShapeRef(router, poly548374163, 548374163);
-    router->addShape(shapeRef548374163);
+    new ShapeRef(router, poly548374163, 548374163);
 
     Polygon poly942733064(4);
     poly942733064.ps[0] = Point(51829, 50800);
     poly942733064.ps[1] = Point(51829, 50885);
     poly942733064.ps[2] = Point(51771, 50885);
     poly942733064.ps[3] = Point(51771, 50800);
-    ShapeRef *shapeRef942733064 = new ShapeRef(router, poly942733064, 942733064);
-    router->addShape(shapeRef942733064);
+    new ShapeRef(router, poly942733064, 942733064);
 
     Polygon poly335855988(4);
     poly335855988.ps[0] = Point(51510, 50190);
     poly335855988.ps[1] = Point(51510, 50885);
     poly335855988.ps[2] = Point(51140, 50885);
     poly335855988.ps[3] = Point(51140, 50190);
-    ShapeRef *shapeRef335855988 = new ShapeRef(router, poly335855988, 335855988);
-    router->addShape(shapeRef335855988);
+    new ShapeRef(router, poly335855988, 335855988);
 
     ConnRef *connRef240732432 = new ConnRef(router, 240732432);
     ConnEnd srcPt240732432(Point(51935, 50650), 4);

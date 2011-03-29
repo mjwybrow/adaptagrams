@@ -33,28 +33,22 @@ int main(void)
     
     Avoid::Rectangle shapeRect1(Avoid::Point(0, 0), Avoid::Point(30, 20));
     Avoid::ShapeRef *shapeRef1 = new Avoid::ShapeRef(router, shapeRect1);
-    router->addShape(shapeRef1);
     
     Avoid::Rectangle shapeRect2(Avoid::Point(70, 7), Avoid::Point(100, 27));
-    Avoid::ShapeRef *shapeRef2 = new Avoid::ShapeRef(router, shapeRect2);
-    router->addShape(shapeRef2);
-
+    new Avoid::ShapeRef(router, shapeRect2);
+    
     Avoid::Rectangle shapeRect3(Avoid::Point(50, 60), Avoid::Point(80, 155));
-    Avoid::ShapeRef *shapeRef3 = new Avoid::ShapeRef(router, shapeRect3);
-    router->addShape(shapeRef3);
-
+    new Avoid::ShapeRef(router, shapeRect3);
+    
     Avoid::Rectangle shapeRect4(Avoid::Point(125, 60), Avoid::Point(155, 80));
-    Avoid::ShapeRef *shapeRef4 = new Avoid::ShapeRef(router, shapeRect4);
-    router->addShape(shapeRef4);
-
+    new Avoid::ShapeRef(router, shapeRect4);
+    
     Avoid::Rectangle shapeRect5(Avoid::Point(15, 150), Avoid::Point(45, 170));
     Avoid::ShapeRef *shapeRef5 = new Avoid::ShapeRef(router, shapeRect5);
-    router->addShape(shapeRef5);
-
+    
     Avoid::Rectangle shapeRect6(Avoid::Point(130, 130), Avoid::Point(160, 150));
     Avoid::ShapeRef *shapeRef6 = new Avoid::ShapeRef(router, shapeRect6);
-    router->addShape(shapeRef6);
-
+    
     // Add a centre connection pin for the three shapes we'll be using.
     new Avoid::ShapeConnectionPin(shapeRef1, Avoid::CONNECTIONPIN_CENTRE, 
             Avoid::ATTACH_POS_CENTRE, Avoid::ATTACH_POS_CENTRE);
@@ -81,13 +75,14 @@ int main(void)
     // the junction.
     Avoid::ConnEnd srcEnd3(shapeRef5, Avoid::CONNECTIONPIN_CENTRE);
     Avoid::ConnEnd dstEnd3(newObjs.first);
-    Avoid::ConnRef *conn3= new Avoid::ConnRef(router, srcEnd3, dstEnd3);
+    new Avoid::ConnRef(router, srcEnd3, dstEnd3);
 
     router->processTransaction();
     router->outputInstanceToSVG("test-junction04-3");
 
     // Delete one half of the original connector, up to the junction.
-    delete conn1;
+    router->deleteConnector(conn1);
+    conn1 = NULL;
 
     router->processTransaction();
     router->outputInstanceToSVG("test-junction04-4");
@@ -97,9 +92,6 @@ int main(void)
     router->processTransaction();
     router->outputInstanceToSVG("test-junction04-5");
     
-    // After the transaction has been processed we can free the junction obj.
-    delete newObjs.first;
-
     router->processTransaction();
 
     delete router;

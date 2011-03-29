@@ -592,9 +592,6 @@ void vertexSweep(VertInf *vert)
 
         Sint16 cx = (int) currPt.x;
         Sint16 cy = (int) currPt.y;
-
-        int canx = 151;
-        int cany = 55;
 #endif
 
         const double& currDist = (*t).distance;
@@ -646,7 +643,7 @@ void vertexSweep(VertInf *vert)
                 if (router->avoid_screen)
                 {
                     lineRGBA(router->avoid_screen, ppx + canx, ppy + cany,
-                            cx + canx, cy + cany, 255, 0, 0, 75);
+                            cx, cy, 255, 0, 0, 75);
                     SDL_Delay(1000);
                 }
 #endif
