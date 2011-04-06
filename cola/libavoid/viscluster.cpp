@@ -22,6 +22,7 @@
  * Author(s):   Michael Wybrow <mjwybrow@users.sourceforge.net>
 */
 
+#include <cstdlib>
 
 #include "libavoid/viscluster.h"
 #include "libavoid/router.h"

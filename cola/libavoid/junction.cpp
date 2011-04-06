@@ -22,6 +22,7 @@
  * Author(s):   Michael Wybrow <mjwybrow@users.sourceforge.net>
 */
 
+#include <cstdlib>
 
 #include "libavoid/junction.h"
 #include "libavoid/router.h"

@@ -22,6 +22,7 @@
  * Author(s):   Michael Wybrow <mjwybrow@users.sourceforge.net>
 */
 
+#include <cstdlib>
 
 #include "libavoid/shape.h"
 #include "libavoid/vertices.h"

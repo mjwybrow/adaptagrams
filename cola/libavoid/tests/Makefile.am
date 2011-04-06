@@ -104,8 +104,6 @@ tjunct_SOURCES = tjunct.cpp
 
 nudgeintobug_SOURCES = nudgeintobug.cpp
 
-activedelete_SOURCES = activedelete.cpp
-
 slowrouting_SOURCES = slowrouting.cpp
 
 orderassertion_SOURCES = orderassertion.cpp
