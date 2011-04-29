@@ -75,7 +75,7 @@ Obstacle::Obstacle(Router *router, Polygon ply, const unsigned int id)
 
 Obstacle::~Obstacle()
 {
-    COLA_ASSERT(!m_router->objectIsInQueuedActionList(this));
+    m_router->removeObjectFromQueuedActions(this);
 
     if (m_active)
     {

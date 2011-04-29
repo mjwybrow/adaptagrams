@@ -2082,16 +2082,19 @@ static void buildOrthogonalChannelInfo(Router *router,
                         // for the segment.
                         double idealPos = 0;
                         bool useIdealPos = false;
+                        bool tryIdealPos = false;
                         if (!first)
                         {
                             double prevPos = displayRoute.ps[i - 2][dim];
                             if (prevPos < thisPos)
                             {
                                 idealPos = minLim = std::max(minLim, prevPos);
+                                tryIdealPos = true;
                             }
                             else if (prevPos > thisPos)
                             {
                                 idealPos = maxLim = std::min(maxLim, prevPos);
+                                tryIdealPos = true;
                             }
                         }
                         if (!last)
@@ -2100,10 +2103,12 @@ static void buildOrthogonalChannelInfo(Router *router,
                             if (nextPos < thisPos)
                             {
                                 idealPos = minLim = std::max(minLim, nextPos);
+                                tryIdealPos = true;
                             }
                             else if (nextPos > thisPos)
                             {
                                 idealPos = maxLim = std::min(maxLim, nextPos);
+                                tryIdealPos = true;
                             }
                         }
 
@@ -2119,7 +2124,7 @@ static void buildOrthogonalChannelInfo(Router *router,
                                 minLim = std::max(minLim, shapeMin);
                                 maxLim = std::min(maxLim, shapeMax);
 
-                                if ((idealPos >= shapeMin) &&
+                                if (tryIdealPos && (idealPos >= shapeMin) &&
                                     (idealPos <= shapeMax))
                                 {
                                     useIdealPos = true;
@@ -2131,14 +2136,14 @@ static void buildOrthogonalChannelInfo(Router *router,
                                 minLim = std::max(minLim, shapeMin);
                                 maxLim = std::min(maxLim, shapeMax);
 
-                                if ((idealPos >= shapeMin) &&
+                                if (tryIdealPos && (idealPos >= shapeMin) &&
                                     (idealPos <= shapeMax))
                                 {
                                     useIdealPos = true;
                                 }
                             }
                         }
-                        
+
                         if (minLim == maxLim)
                         {
                             // Fixed.
@@ -2435,8 +2440,8 @@ class CmpLineOrder
             {
                 return lhsLow[dimension] < rhsLow[dimension];
             }
-            
-            // If one of these is fixed, then determine order based on 
+
+            // If one of these is fixed, then determine order based on
             // fixed segment, that is, order so the fixed segment doesn't 
             // block movement.
             bool oneIsFixed = false;
@@ -2558,6 +2563,9 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
     // we try 10 times, reducing eac time by a 10th of the original amount.
     double reductionSteps = 10.0;
 
+    bool nudgeFinalSegments =
+            router->routingOption(nudgeOthogonalSegmentsConnectedToShapes);
+
     // Do the actual nudging.
     ShiftSegmentList currentRegion;
     while (!segmentList.empty())
@@ -2594,9 +2602,13 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                 ++curr;
             }
         }
-        CmpLineOrder lineSortComp(pointOrders, dimension);
-        currentRegion = linesort(currentRegion, lineSortComp);
-        
+
+        if (!pointOrders.empty())
+        {
+            CmpLineOrder lineSortComp(pointOrders, dimension);
+            currentRegion = linesort(currentRegion, lineSortComp);
+        }
+
         if (currentRegion.size() == 1)
         {
             // Save creating the solver instance if there is just one
@@ -2635,7 +2647,15 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             double weight = freeWeight;
             if (currSegment->hasIdealPos)
             {
-                idealPos = currSegment->idealPos;
+                // XXX There are still some problems with setting the ideal
+                //     position.  One is that it uses the position of
+                //     adjacent segments in the other dimension, and these
+                //     might not have been nudged yet.
+                // idealPos = currSegment->idealPos;
+                weight = strongWeight;
+            }
+            else if (nudgeFinalSegments && currSegment->finalSegment)
+            {
                 weight = strongWeight;
             }
             else if (currSegment->zigzag())
@@ -2661,15 +2681,24 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                 // to the "inner" side of them.
                 weight = strongWeight;
             }
+
+            if (pointOrders.empty())
+            {
+                // If we are just doing centring, then we should use the
+                // same weights, otherwise we might move overlapping paths
+                // a tiny difference apart if they have different weights.
+                weight = freeWeight;
+            }
+
             currSegment->variable = new Variable(varID, idealPos, weight);
             vs.push_back(currSegment->variable);
             size_t index = vs.size() - 1;
-#ifdef NUDGE_DEBUG 
-            printf("line  %.15f  dim: %d pos: %g   min: %g  max: %g\n"
-                   "minEndPt: %g  maxEndPt: %g\n",
+#ifdef NUDGE_DEBUG
+            fprintf(stderr,"line  %.15f  dim: %d pos: %g   min: %g  max: %g\n"
+                   "minEndPt: %g  maxEndPt: %g weight: %g\n",
                     lowPt[dimension], (int) dimension, idealPos, 
                     currSegment->minSpaceLimit, currSegment->maxSpaceLimit,
-                    lowPt[!dimension], currSegment->highPoint()[!dimension]);
+                    lowPt[!dimension], currSegment->highPoint()[!dimension], weight);
 #endif
 #if 0
             // Debugging info:
@@ -2685,6 +2714,14 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                     lowPt[XDIM], lowPt[YDIM], currSegment->highPoint()[XDIM], 
                     currSegment->highPoint()[YDIM]);
 #endif
+
+            if (pointOrders.empty())
+            {
+                // Just doing centring, not nudging.
+                // Thus, we don't need to constrain position.
+                prevVars.push_back(&(*currSegment));
+                continue;
+            }
 
             // Constrain position in relation to previously seen segments,
             // if necessary (i.e. when they could overlap).
@@ -2711,7 +2748,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                         // Here, we let such segments drift back together.
                         thisSepDist = 0;
                     }
-                    Constraint *constraint = 
+                    Constraint *constraint =
                             new Constraint(prevVar, vs[index], thisSepDist);
                     cs.push_back(constraint);
                     if (thisSepDist)
@@ -2725,26 +2762,27 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
 
             if (!currSegment->fixed)
             {
-                // If this segment sees a channel boundary to its left, 
+                // If this segment sees a channel boundary to its left,
                 // then constrain its placement as such.
                 if (currSegment->minSpaceLimit > -CHANNEL_MAX)
                 {
-                    vs.push_back(new Variable(fixedID, 
+                    vs.push_back(new Variable(fixedID,
                                 currSegment->minSpaceLimit, fixedWeight));
-                    cs.push_back(new Constraint(vs[vs.size() - 1], vs[index], 
+                    cs.push_back(new Constraint(vs[vs.size() - 1], vs[index],
                                 0.0));
                 }
-                
-                // If this segment sees a channel boundary to its right, 
+
+                // If this segment sees a channel boundary to its right,
                 // then constrain its placement as such.
                 if (currSegment->maxSpaceLimit < CHANNEL_MAX)
                 {
-                    vs.push_back(new Variable(fixedID, 
+                    vs.push_back(new Variable(fixedID,
                                 currSegment->maxSpaceLimit, fixedWeight));
                     cs.push_back(new Constraint(vs[index], vs[vs.size() - 1],
                                 0.0));
                 }
             }
+
             prevVars.push_back(&(*currSegment));
         }
 #ifdef NUDGE_DEBUG
@@ -2819,20 +2857,32 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
     }
 }
 
-
 extern void improveOrthogonalRoutes(Router *router)
 {
     router->timers.Register(tmOrthogNudge, timerStart);
+
+    // Simplify routes.
+    simplifyOrthogonalRoutes(router);
+
+    // Do centring first, by itself, to make nudging results a little better.
+    for (size_t dimension = 0; dimension < 2; ++dimension)
+    {
+        // Empty pointOrders, so no nudging is conducted.
+        PtOrderMap pointOrders;
+
+        ShiftSegmentList segLists;
+        buildOrthogonalChannelInfo(router, dimension, segLists);
+        nudgeOrthogonalRoutes(router, dimension, pointOrders, segLists);
+    }
+
     for (size_t dimension = 0; dimension < 2; ++dimension)
     {
         // Build nudging info.
-        // XXX: We need to build the point orders separately in each
-        //      dimension since things move.  There is probably a more 
-        //      efficient way to do this.
+        // XXX Needs to be rebuilt for each dimension, cause of shifting
+        //     points.  Maybe we could modify the point orders.
         PtOrderMap pointOrders;
         buildOrthogonalNudgingOrderInfo(router, pointOrders);
 
-        // Simplify routes.
         simplifyOrthogonalRoutes(router);
 
         // Do the centring and nudging.

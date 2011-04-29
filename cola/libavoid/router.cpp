@@ -308,15 +308,19 @@ void Router::modifyConnectionPin(ShapeConnectionPin *pin)
 }
 
 
-void Router::removeQueuedConnectorActions(ConnRef *conn)
+void Router::removeObjectFromQueuedActions(const void *object)
 {
-    ActionInfo modInfo(ConnChange, conn);
-
-    ActionInfoList::iterator found = 
-            find(actionList.begin(), actionList.end(), modInfo);
-    if (found != actionList.end())
+    for (ActionInfoList::iterator curr = actionList.begin();
+            curr != actionList.end(); )
     {
-        actionList.erase(found);
+        if (curr->objPtr == object)
+        {
+            curr = actionList.erase(curr);
+        }
+        else
+        {
+            ++curr;
+        }
     }
 }
 
@@ -482,20 +486,6 @@ void Router::regenerateStaticBuiltGraph(void)
         }
         _staticGraphInvalidated = false;
     }
-}
-
-
-bool Router::objectIsInQueuedActionList(void *object) const
-{
-    for (ActionInfoList::const_iterator curr = actionList.begin();
-            curr != actionList.end(); ++curr)
-    {
-        if (curr->objPtr == object)
-        {
-            return true;
-        }
-    }
-    return false;
 }
 
 

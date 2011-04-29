@@ -449,7 +449,6 @@ class Router {
         void destroyOrthogonalVisGraph(void);
         void setStaticGraphInvalidated(const bool invalidated);
         ConnType validConnType(const ConnType select = ConnType_None) const;
-        bool objectIsInQueuedActionList(void *object) const;
         double& penaltyRef(const PenaltyType penType);
         bool existsOrthogonalPathOverlap(void);
         bool existsOrthogonalTouchingPaths(void);
@@ -470,7 +469,7 @@ class Router {
                 const ConnEnd &connEnd);
         void modifyConnectionPin(ShapeConnectionPin *pin);
 
-        void removeQueuedConnectorActions(ConnRef *conn);
+        void removeObjectFromQueuedActions(const void *object);
         void newBlockingShape(const Polygon& poly, int pid);
         void checkAllBlockedEdges(int pid);
         void checkAllMissingEdges(void);

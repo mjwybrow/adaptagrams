@@ -113,7 +113,7 @@ ConnRef::~ConnRef()
 
     m_router->m_conn_reroute_flags.removeConn(this);
 
-    m_router->removeQueuedConnectorActions(this);
+    m_router->removeObjectFromQueuedActions(this);
 
     freeRoutes();
 
@@ -1463,6 +1463,7 @@ void ConnectorCrossings::clear(void)
     crossingFlags = CROSSING_NONE;
 }
 
+
 // Works out if the segment conn[cIndex-1]--conn[cIndex] really crosses poly.
 // This does not not count non-crossing shared paths as crossings.
 // poly can be either a connector (polyIsConn = true) or a cluster
@@ -1783,43 +1784,29 @@ void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
                 int startCornerSide = 1;
                 int endCornerSide = 1;
 
-                int prevTurnDir = -1;
-                int adjStartCornerSide = 1;
-                int adjEndCornerSide = 1;
                 bool reversed = false;
                 if (!front_same)
                 {
                     // If there is a divergence at the beginning, 
                     // then order the shared path based on this.
-                    prevTurnDir = vecDir(*c_path[0], *c_path[1], *c_path[2]);
                     startCornerSide = Avoid::cornerSide(*c_path[0], *c_path[1], 
                             *c_path[2], *p_path[0]);
-                    adjStartCornerSide = 
-                            startCornerSide * segDir(*c_path[1], *c_path[2]);
-                    reversed = (adjStartCornerSide != -prevTurnDir);
                 }
                 if (!back_same)
                 {
                     // If there is a divergence at the end of the path, 
                     // then order the shared path based on this.
-                    prevTurnDir = vecDir(*c_path[size - 3],
-                            *c_path[size - 2], *c_path[size - 1]);
                     endCornerSide = Avoid::cornerSide(*c_path[size - 3], 
                             *c_path[size - 2], *c_path[size - 1], 
                             *p_path[size - 1]);
-                    adjEndCornerSide = endCornerSide * 
-                            segDir(*c_path[size - 3], *c_path[size - 2]);
-                    reversed = (adjEndCornerSide != -prevTurnDir);
                 }
                 else
                 {
                     endCornerSide = startCornerSide;
-                    adjEndCornerSide = adjStartCornerSide;
                 }
                 if (front_same)
                 {
                     startCornerSide = endCornerSide;
-                    adjStartCornerSide = adjEndCornerSide;
                 }
                 
                 if (endCornerSide != startCornerSide)
@@ -1847,8 +1834,7 @@ void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
                         // other.  So order based on not introducing overlap
                         // of the diverging segments when these are nudged
                         // apart.
-                        adjStartCornerSide = -cStartDir * 
-                                segDir(*c_path[1], *c_path[2]);
+                        startCornerSide = -cStartDir;
                     }
                     else 
                     {
@@ -1862,14 +1848,13 @@ void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
                             // each other.  So order based on not introducing 
                             // overlap of the diverging segments when these 
                             // are nudged apart.
-                            adjStartCornerSide = -cEndDir * segDir(
-                                    *c_path[size - 3], *c_path[size - 2]);
+                            startCornerSide = -cEndDir;
                         }
                     }
                 }
 
 #if 0
-                prevTurnDir = 0;
+                int prevTurnDir = 0;
                 if (pointOrders)
                 {
                     // Return the ordering for the shared path.
@@ -1903,7 +1888,6 @@ void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
                     }
                 }
 #endif
-                prevTurnDir = 0;
                 if (pointOrders)
                 {
                     reversed = false;
@@ -1911,8 +1895,8 @@ void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
                     
                     // Orthogonal should always have at least one segment.
                     COLA_ASSERT(size > (startPt + 1));
-                    
-                    if (adjStartCornerSide > 0)
+
+                    if (startCornerSide > 0)
                     {
                         reversed = !reversed;
                     }
@@ -1921,28 +1905,30 @@ void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
                     // Return the ordering for the shared path.
                     COLA_ASSERT(size > 0 || back_same);
                     size_t adj_size = (size - ((back_same) ? 0 : 1));
-                    for (size_t i = (front_same) ? 0 : 1; i < adj_size; ++i)
+                    for (size_t i = startPt; i < adj_size; ++i)
                     {
                         Avoid::Point& an = *(c_path[i]);
                         Avoid::Point& bn = *(p_path[i]);
                         COLA_ASSERT(an == bn);
 
-                        int thisDir = prevDir;
-                        if ((i > 0) && (*(c_path[i - 1]) == *(p_path[i - 1])))
-                        {
-                            thisDir = segDir(*c_path[i - 1], *c_path[i]);
-                        }
-
-                        if (thisDir != prevDir)
-                        {
-                            reversed = !reversed;
-                        }
-                        prevDir = thisDir;
-
                         if (i > startPt)
                         {
                             Avoid::Point& ap = *(c_path[i - 1]);
                             Avoid::Point& bp = *(p_path[i - 1]);
+
+                            int thisDir = segDir(ap, an);
+                            if (prevDir == 0)
+                            {
+                                if (thisDir > 0)
+                                {
+                                    reversed = !reversed;
+                                }
+                            }
+                            else if (thisDir != prevDir)
+                            {
+                                reversed = !reversed;
+                            }
+
                             int orientation = (ap.x == an.x) ? 0 : 1;
                             //printf("prevOri %d\n", prevOrientation);
                             //printf("1: %X, %X\n", (int) &(bn), (int) &(an));
@@ -1958,6 +1944,7 @@ void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
                                     std::make_pair(&bp, polyConnRef), 
                                     std::make_pair(&ap, connConnRef), 
                                     reversed);
+                            prevDir = thisDir;
                         }
                     }
                 }
