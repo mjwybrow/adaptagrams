@@ -2207,21 +2207,21 @@ void Router::outputInstanceToSVG(std::string instanceName)
 }
 
 
-Router::ConnRerouteFlagDelegate::ConnRerouteFlagDelegate()
+ConnRerouteFlagDelegate::ConnRerouteFlagDelegate()
 {
 }
 
-Router::ConnRerouteFlagDelegate::~ConnRerouteFlagDelegate()
+ConnRerouteFlagDelegate::~ConnRerouteFlagDelegate()
 {
 }
 
-bool *Router::ConnRerouteFlagDelegate::addConn(ConnRef *conn)
+bool *ConnRerouteFlagDelegate::addConn(ConnRef *conn)
 {
     m_mapping.push_back(std::make_pair(conn, false));
     return &(m_mapping.back().second);
 }
 
-void Router::ConnRerouteFlagDelegate::removeConn(ConnRef *conn)
+void ConnRerouteFlagDelegate::removeConn(ConnRef *conn)
 {
     std::list<std::pair<ConnRef *, bool> >::iterator it;
     for (it = m_mapping.begin(); it != m_mapping.end(); ++it)
@@ -2234,7 +2234,7 @@ void Router::ConnRerouteFlagDelegate::removeConn(ConnRef *conn)
 }
 
 
-void Router::ConnRerouteFlagDelegate::alertConns(void)
+void ConnRerouteFlagDelegate::alertConns(void)
 {
     std::list<std::pair<ConnRef *, bool> >::iterator it;
     for (it = m_mapping.begin(); it != m_mapping.end(); ++it)
@@ -2246,6 +2246,7 @@ void Router::ConnRerouteFlagDelegate::alertConns(void)
         }
     }
 }
+
 
 }
 

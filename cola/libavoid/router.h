@@ -141,6 +141,26 @@ enum RoutingOption
 };
 
 
+// NOTE: This is an internal helper class that should not be used by the user.
+//
+// This class allows edges in the visibility graph to store a
+// pointer to a boolean registering when a connector needs to
+// reroute, while allowing connectors to be deleted without
+// needing to scan and remove these references from the visibility
+// graph.  Instead the bool is stored in this delegate and the
+// connector is alerted later, so long as it hasn't since been
+// deleted.
+class ConnRerouteFlagDelegate {
+    public:
+        ConnRerouteFlagDelegate();
+        ~ConnRerouteFlagDelegate();
+        bool *addConn(ConnRef *conn);
+        void removeConn(ConnRef *conn);
+        void alertConns(void);
+    private:
+        std::list<std::pair<ConnRef *, bool> > m_mapping;
+};
+
 static const double noPenalty = 0;
 static const double chooseSensiblePenalty = -1;
 
@@ -490,23 +510,6 @@ class Router {
         double _routingPenalties[lastPenaltyMarker];
         bool _routingOptions[lastRoutingOptionMarker];
 
-        // This class allows edges in the visibility graph to store a
-        // pointer to a boolean registering when a connector needs to
-        // reroute, while allowing connectors to be deleted without
-        // needing to scan and remove these references from the visibility
-        // graph.  Instead the bool is stored in this delegate and the
-        // connector is alerted later, so long as it hasn't since been
-        // deleted.
-        class ConnRerouteFlagDelegate {
-            public:
-                ConnRerouteFlagDelegate();
-                ~ConnRerouteFlagDelegate();
-                bool *addConn(ConnRef *conn);
-                void removeConn(ConnRef *conn);
-                void alertConns(void);
-            private:
-                std::list<std::pair<ConnRef *, bool> > m_mapping;
-        };
         ConnRerouteFlagDelegate m_conn_reroute_flags;
 public:
         // Overall modes:

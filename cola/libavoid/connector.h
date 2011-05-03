@@ -288,6 +288,7 @@ class ConnRef
         friend class Router;
         friend class ConnEnd;
         friend class JunctionRef;
+        friend class ConnRerouteFlagDelegate;
 
         PolyLine& routeRef(void);
         void freeRoutes(void);
