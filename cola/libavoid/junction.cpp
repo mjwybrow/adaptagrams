@@ -121,7 +121,6 @@ void JunctionRef::outputCode(FILE *fp) const
 {
     fprintf(fp, "    JunctionRef *junctionRef%u = new JunctionRef(router, "
             "Point(%g, %g), %u);\n", id(), position().x, position().y, id());
-    fprintf(fp, "    router->addJunction(junctionRef%u);\n\n", id());
 
     fprintf(fp, "    /*\n");
     fprintf(fp, "    // This may be useful if junction pins are modified.\n");
