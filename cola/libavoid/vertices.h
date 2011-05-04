@@ -139,6 +139,7 @@ class VertInf
         unsigned int invisListSize;
         VertInf *pathNext;
         ConnDirFlags visDirections;
+        std::list<unsigned int> aStarDoneIndexes;
         // Flags for orthogonal visibility properties, i.e., whether the 
         // line points to a shape edge, connection point or an obstacle.
         unsigned int orthogVisPropFlags;
