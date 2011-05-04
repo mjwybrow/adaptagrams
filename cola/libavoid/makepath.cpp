@@ -459,7 +459,7 @@ void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar, VertInf *start)
         endPoints = lineRef->possibleDstPinPoints();
     }
     endPoints.push_back(tar->point);
-
+    
     std::vector<ANode> PENDING;     // STL Vectors chosen because of rapid
     std::vector<ANode> DONE;        // insertions/deletions at back,
     size_t DONE_size = 0;
@@ -523,6 +523,7 @@ void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar, VertInf *start)
                 BestNode = Node;
 
                 DONE.push_back(BestNode);
+                BestNode.inf->aStarDoneIndexes.push_back(DONE_size);
                 DONE_size++;
             }
             else
@@ -571,6 +572,7 @@ void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar, VertInf *start)
 
         // Push the BestNode onto DONE
         DONE.push_back(BestNode);
+        BestNode.inf->aStarDoneIndexes.push_back(DONE_size);
         DONE_size++;
 
         VertInf *prevInf = (BestNode.prevIndex >= 0) ?
@@ -824,10 +826,18 @@ void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar, VertInf *start)
             }
             if ( !bNodeFound ) // If Node NOT found on PENDING
             {
-                // Check to see if already on DONE
-                for (unsigned int i = 0; i < DONE_size; i++)
+                // Check to see if already on DONE.
+                // Rather than iterate through the complete DONE list, which
+                // may get very large in the worst case, we look at just the
+                // ANodes for this vertex.  This is cheaper for us even than
+                // using a hash map for DONE, especially since a good hash 
+                // function on the unique combination of vertex and previous 
+                // vertex is very difficult.
+                for (std::list<unsigned int>::const_iterator currInd = 
+                        Node.inf->aStarDoneIndexes.begin();
+                        currInd != Node.inf->aStarDoneIndexes.end(); ++currInd)
                 {
-                    ANode& ati = DONE[i];
+                    ANode& ati = DONE[*currInd];
                     if ((Node.inf == ati.inf) && 
                             (DONE[Node.prevIndex].inf == DONE[ati.prevIndex].inf))
                     {
@@ -868,6 +878,15 @@ void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar, VertInf *start)
 #endif
             }
         }
+    }
+
+    // Cleanup lists used to store positions in DONE list for ANodes at each
+    // vertex.
+    VertInf *endVert = router->vertices.end();
+    for (VertInf *k = router->vertices.connsBegin(); k != endVert;
+            k = k->lstNext)
+    {
+        k->aStarDoneIndexes.clear();
     }
 }
 
