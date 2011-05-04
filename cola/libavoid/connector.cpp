@@ -1074,7 +1074,7 @@ std::vector<Point> ConnRef::possibleDstPinPoints(void) const
 
 PtOrder::PtOrder()
 {
-    // We has sorted neither list initially.
+    // We have sorted neither list initially.
     for (size_t dim = 0; dim < 2; ++dim)
     {
         sorted[dim] = false;
