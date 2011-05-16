@@ -1870,9 +1870,8 @@ void Router::outputInstanceToSVG(std::string instanceName)
                     cRef->id(), (unsigned long)i, cRef->polygon().at(i).x,
                     cRef->polygon().at(i).y);
         }
-        fprintf(fp, "    ClusterRef *clusterRef%u = new ClusterRef(router, "
-                "poly%u, %u);\n", cRef->id(), cRef->id(), cRef->id());
-        fprintf(fp, "    router->addCluster(clusterRef%u);\n\n", cRef->id());
+        fprintf(fp, "    new ClusterRef(router, clusterPoly%u, %u);\n", 
+                cRef->id(), cRef->id());
         ++revClusterRefIt;
     }
     ObstacleList::reverse_iterator revObstacleIt = m_obstacles.rbegin();
