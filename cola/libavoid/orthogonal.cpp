@@ -1966,7 +1966,7 @@ static void buildOrthogonalChannelInfo(Router *router,
         return;
     }
     bool nudgeFinalSegments = 
-            router->routingOption(nudgeOthogonalSegmentsConnectedToShapes);
+            router->routingOption(nudgeOrthogonalSegmentsConnectedToShapes);
     std::vector<RectBounds> shapeLimits;
     if (nudgeFinalSegments)
     {
@@ -2564,7 +2564,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
     double reductionSteps = 10.0;
 
     bool nudgeFinalSegments =
-            router->routingOption(nudgeOthogonalSegmentsConnectedToShapes);
+            router->routingOption(nudgeOrthogonalSegmentsConnectedToShapes);
 
     // Do the actual nudging.
     ShiftSegmentList currentRegion;

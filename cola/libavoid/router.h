@@ -134,7 +134,7 @@ enum RoutingOption
     //!         to ports.
     //! @note   This option is still experimental, and not implemented in an
     //!         optimal fashion.  As such, it will slow down routing.
-    nudgeOthogonalSegmentsConnectedToShapes = 0,
+    nudgeOrthogonalSegmentsConnectedToShapes = 0,
     // Used for determining the size of the routing options array.  
     // This should always we the last value in the enum.
     lastRoutingOptionMarker

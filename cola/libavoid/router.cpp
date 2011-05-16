@@ -204,7 +204,7 @@ Router::Router(const unsigned int flags)
     }
     _routingPenalties[clusterCrossingPenalty] = 4000;
     _routingPenalties[portDirectionPenalty] = 100;
-    _routingOptions[nudgeOthogonalSegmentsConnectedToShapes] = false;
+    _routingOptions[nudgeOrthogonalSegmentsConnectedToShapes] = false;
 }
 
 
@@ -970,7 +970,7 @@ void Router::rerouteAndCallbackConnectors(void)
     // Find and reroute crossing connectors if crossing penalties are set.
     improveCrossings();
 
-    // Perform centring and nudging for othogonal routes.
+    // Perform centring and nudging for orthogonal routes.
     improveOrthogonalRoutes(this);
 
     // Alert connectors that they need redrawing.
