@@ -251,7 +251,16 @@ class AlignmentConstraint : public CompoundConstraint
 
 
 // A simple horizontal or vertical spacing constraint between 2 nodes
-// or alignment constraints
+// or alignment constraints.
+//
+// The non-equality constraint is  lPos + g <= rPos
+// and the equality constraint is  lPos + g  = rPos
+//
+// Note: With an equality, you can effectively reverse the ordering of the 
+//       two variables by making the gap a negative number.   This is not so
+//       for the non-equality case, there you need to keep the same gap value
+//       but reverse the order of the variables passed to the constructor.
+//
 class SeparationConstraint : public CompoundConstraint 
 {
     public:
