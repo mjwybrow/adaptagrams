@@ -2890,6 +2890,10 @@ extern void improveOrthogonalRoutes(Router *router)
         buildOrthogonalChannelInfo(router, dimension, segLists);
         nudgeOrthogonalRoutes(router, dimension, pointOrders, segLists);
     }
+    
+    // Resimplify all the display routes that may have been split.
+    simplifyOrthogonalRoutes(router);
+
     router->timers.Stop();
 }
 
