@@ -201,7 +201,8 @@ class ShiftSegment
         {
             // This is true if this is a cBend and its adjoining points
             // are at lower positions.
-            if (!zigzag() && !fixed && (minSpaceLimit == lowPoint()[dimension]))
+            if (!finalSegment && !zigzag() && !fixed && 
+                    (minSpaceLimit == lowPoint()[dimension]))
             {
                 return true;
             }
@@ -211,7 +212,8 @@ class ShiftSegment
         {
             // This is true if this is a cBend and its adjoining points
             // are at higher positions.
-            if (!zigzag() && !fixed && (maxSpaceLimit == lowPoint()[dimension]))
+            if (!finalSegment && !zigzag() && !fixed && 
+                    (maxSpaceLimit == lowPoint()[dimension]))
             {
                 return true;
             }
@@ -2462,7 +2464,7 @@ class CmpLineOrder
             {
                 return lhsOrder < rhsOrder;
             }
-
+            
             // Need to index using the original point into the map, so find it.
             Point& unchanged = (lhsLow[altDim] > rhsLow[altDim]) ?
                     lhsLow : rhsLow;
