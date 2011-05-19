@@ -62,8 +62,8 @@ class ShiftSegment
               variable(NULL),
               minSpaceLimit(minLim),
               maxSpaceLimit(maxLim),
-              hasIdealPos(false),
               finalSegment(false),
+              endsInShape(false),
               sBend(isSBend),
               zBend(isZBend)
         {
@@ -77,8 +77,8 @@ class ShiftSegment
               fixed(true),
               dimension(dim),
               variable(NULL),
-              hasIdealPos(false),
               finalSegment(false),
+              endsInShape(false),
               sBend(false),
               zBend(false)
         {
@@ -144,11 +144,6 @@ class ShiftSegment
         {
             return sBend || zBend;
         }
-        void setIdealPos(double pos)
-        {
-            idealPos = pos;
-            hasIdealPos = true;
-        }
         // This counts segments that are collinear and share an endpoint as
         // overlapping.  This allows them to be nudged apart where possible.
         bool overlapsWith(const ShiftSegment& rhs, const size_t dim) const
@@ -177,7 +172,33 @@ class ShiftSegment
                 if ( (minSpaceLimit <= rhs.maxSpaceLimit) &&
                         (rhs.minSpaceLimit <= maxSpaceLimit) )
                 {
-                    return ((rhs.sBend && sBend) || (rhs.zBend && zBend));
+                    if ((rhs.sBend && sBend) || (rhs.zBend && zBend))
+                    {
+                        return true;
+                    }
+                    else if ((rhs.finalSegment && finalSegment) &&
+                            (rhs.connRef == connRef))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+        bool shouldAlignWith(const ShiftSegment& rhs, const size_t dim) const
+        {
+            if ((connRef == rhs.connRef) && (finalSegment == rhs.finalSegment) &&
+                overlapsWith(rhs, dim))
+            {
+                // If both the segments are in shapes then we know limits
+                // and can align.  Otherwise we do this just for segments 
+                // that are very close together, since these will often 
+                // prevent nudging, or force it to have a tiny separation
+                // value.
+                if ((endsInShape && rhs.endsInShape) ||
+                        (fabs(lowPoint()[dim] - rhs.lowPoint()[dim]) < 10))
+                {
+                    return true;
                 }
             }
             return false;
@@ -191,9 +212,8 @@ class ShiftSegment
         Variable *variable;
         double minSpaceLimit;
         double maxSpaceLimit;
-        bool hasIdealPos;
-        double idealPos;
         bool finalSegment;
+        bool endsInShape;
     private:
         bool sBend;
         bool zBend;
@@ -2081,21 +2101,16 @@ static void buildOrthogonalChannelInfo(Router *router,
                         // attached segment is within the shape boundaries
                         // then we want to use this as an ideal position
                         // for the segment.
-                        double idealPos = 0;
-                        bool useIdealPos = false;
-                        bool tryIdealPos = false;
                         if (!first)
                         {
                             double prevPos = displayRoute.ps[i - 2][dim];
                             if (prevPos < thisPos)
                             {
-                                idealPos = minLim = std::max(minLim, prevPos);
-                                tryIdealPos = true;
+                                minLim = std::max(minLim, prevPos);
                             }
                             else if (prevPos > thisPos)
                             {
-                                idealPos = maxLim = std::min(maxLim, prevPos);
-                                tryIdealPos = true;
+                                maxLim = std::min(maxLim, prevPos);
                             }
                         }
                         if (!last)
@@ -2103,13 +2118,11 @@ static void buildOrthogonalChannelInfo(Router *router,
                             double nextPos = displayRoute.ps[i + 1][dim];
                             if (nextPos < thisPos)
                             {
-                                idealPos = minLim = std::max(minLim, nextPos);
-                                tryIdealPos = true;
+                                minLim = std::max(minLim, nextPos);
                             }
                             else if (nextPos > thisPos)
                             {
-                                idealPos = maxLim = std::min(maxLim, nextPos);
-                                tryIdealPos = true;
+                                maxLim = std::min(maxLim, nextPos);
                             }
                         }
 
@@ -2125,26 +2138,12 @@ static void buildOrthogonalChannelInfo(Router *router,
                             {
                                 minLim = std::max(minLim, shapeMin);
                                 maxLim = std::min(maxLim, shapeMax);
-
-                                if (tryIdealPos && (idealPos >= shapeMin) &&
-                                    (idealPos <= shapeMax))
-                                {
-                                    useIdealPos = true;
-                                }
-                                withinShape = true;
                             }
                             if (insideRectBounds(displayRoute.ps[i], 
                                         shapeLimits[k]))
                             {
                                 minLim = std::max(minLim, shapeMin);
                                 maxLim = std::min(maxLim, shapeMax);
-
-                                if (tryIdealPos && (idealPos >= shapeMin) &&
-                                    (idealPos <= shapeMax))
-                                {
-                                    useIdealPos = true;
-                                }
-                                withinShape = true;
                             }
                         }
 
@@ -2172,10 +2171,7 @@ static void buildOrthogonalChannelInfo(Router *router,
                                     indexLow, indexHigh, false, false, 
                                     dim, minLim, maxLim));
                             segmentList.back().finalSegment = true;
-                            if (useIdealPos)
-                            {
-                                segmentList.back().setIdealPos(idealPos);
-                            }
+                            segmentList.back().endsInShape = withinShape;
                         }
                     }
                     else
@@ -2651,25 +2647,27 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
         printf("-------------------------------------------------------\n");
         printf("Nudge -- size: %d\n", (int) currentRegion.size());
 #endif
-        for (ShiftSegmentList::iterator currSegment = currentRegion.begin();
-                currSegment != currentRegion.end(); ++currSegment)
+        ShiftSegmentList::iterator matchingConnSegment = currentRegion.end();
+        for (ShiftSegmentList::iterator currSegmentIt = currentRegion.begin();
+                currSegmentIt != currentRegion.end(); ++currSegmentIt )
         {
+            if (matchingConnSegment != currentRegion.end())
+            {
+                // If we have a segment that should be aligned with the last
+                // processed segment, then we take it out of order, inserting
+                // it at the current position. 
+                currentRegion.insert(currSegmentIt, *matchingConnSegment);
+                currentRegion.erase(matchingConnSegment);
+                --currSegmentIt;
+            }
+            ShiftSegmentList::iterator currSegment = currSegmentIt;
             Point& lowPt = currSegment->lowPoint();
             
             // Create a solver variable for the position of this segment.
             int varID = freeID;
             double idealPos = lowPt[dimension];
             double weight = freeWeight;
-            if (currSegment->hasIdealPos)
-            {
-                // XXX There are still some problems with setting the ideal
-                //     position.  One is that it uses the position of
-                //     adjacent segments in the other dimension, and these
-                //     might not have been nudged yet.
-                // idealPos = currSegment->idealPos;
-                weight = strongWeight;
-            }
-            else if (nudgeFinalSegments && currSegment->finalSegment)
+            if (nudgeFinalSegments && currSegment->finalSegment)
             {
                 weight = strongWeight;
             }
@@ -2756,7 +2754,17 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                     // Though don't add the constraint if both the 
                     // segments are fixed in place.
                     double thisSepDist = sepDist;
-                    if (currSegment->connRef == prevSeg->connRef)
+                    bool equality = false;
+                    if (currSegment->shouldAlignWith(*prevSeg, dimension))
+                    {
+                        // Handles the case where the two end segments can
+                        // be brought together to make a single segment. This
+                        // can help in situations where having the small kink
+                        // can restrict other kinds of nudging.
+                        thisSepDist = 0;
+                        equality = true;
+                    }
+                    else if (currSegment->connRef == prevSeg->connRef)
                     {
                         // We need to address the problem of two neighbouring
                         // segments of the same connector being kept separated
@@ -2764,8 +2772,9 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                         // Here, we let such segments drift back together.
                         thisSepDist = 0;
                     }
-                    Constraint *constraint =
-                            new Constraint(prevVar, vs[index], thisSepDist);
+                    
+                    Constraint *constraint = new Constraint(prevVar, 
+                            vs[index], thisSepDist, equality);
                     cs.push_back(constraint);
                     if (thisSepDist)
                     {
@@ -2800,6 +2809,26 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             }
 
             prevVars.push_back(&(*currSegment));
+
+            // Here we look for segments that should be aligned with the 
+            // current segment.  We record a reference to them here so that
+            // we may load them out of order.
+            matchingConnSegment = currentRegion.end();
+            if (currSegment->finalSegment)
+            {
+                for (ShiftSegmentList::iterator matchingSegment = currSegment;
+                        matchingSegment != currentRegion.end(); ++matchingSegment)
+                {
+                    if (matchingSegment == currSegment)
+                    {
+                        continue;
+                    }
+                    if (matchingSegment->shouldAlignWith(*currSegment, dimension))
+                    {
+                        matchingConnSegment = matchingSegment;
+                    }
+                }
+            }
         }
 #ifdef NUDGE_DEBUG
         for (unsigned i = 0;i < vs.size(); ++i)
