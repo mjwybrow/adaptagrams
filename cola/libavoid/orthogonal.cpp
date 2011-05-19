@@ -2071,7 +2071,6 @@ static void buildOrthogonalChannelInfo(Router *router,
                         // final segments.
                         double minLim = -CHANNEL_MAX;
                         double maxLim = CHANNEL_MAX;
-
                         
                         // Limit their movement by the length of 
                         // adjoining segments.
@@ -2114,6 +2113,7 @@ static void buildOrthogonalChannelInfo(Router *router,
                             }
                         }
 
+                        bool withinShape = false;
                         // Also limit their movement to the edges of the 
                         // shapes they begin or end within.
                         for (size_t k = 0; k < shapeLimits.size(); ++k)
@@ -2131,6 +2131,7 @@ static void buildOrthogonalChannelInfo(Router *router,
                                 {
                                     useIdealPos = true;
                                 }
+                                withinShape = true;
                             }
                             if (insideRectBounds(displayRoute.ps[i], 
                                         shapeLimits[k]))
@@ -2143,7 +2144,19 @@ static void buildOrthogonalChannelInfo(Router *router,
                                 {
                                     useIdealPos = true;
                                 }
+                                withinShape = true;
                             }
+                        }
+
+                        if ( ! withinShape )
+                        {
+                            // If the segment is not within a shape, then we
+                            // should limit it's nudging buffer so we don't
+                            // combine many unnecessary regions.
+                            double pos = displayRoute.ps[i - 1][dim];
+                            double freeConnBuffer = 15;
+                            minLim = std::max(minLim, pos - freeConnBuffer);
+                            maxLim = std::min(maxLim, pos + freeConnBuffer);
                         }
 
                         if (minLim == maxLim)
@@ -2696,8 +2709,9 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             vs.push_back(currSegment->variable);
             size_t index = vs.size() - 1;
 #ifdef NUDGE_DEBUG
-            fprintf(stderr,"line  %.15f  dim: %d pos: %g   min: %g  max: %g\n"
+            fprintf(stderr,"line(%d)  %.15f  dim: %d pos: %g   min: %g  max: %g\n"
                    "minEndPt: %g  maxEndPt: %g weight: %g\n",
+                    currSegment->connRef->id(),
                     lowPt[dimension], (int) dimension, idealPos, 
                     currSegment->minSpaceLimit, currSegment->maxSpaceLimit,
                     lowPt[!dimension], currSegment->highPoint()[!dimension], weight);
