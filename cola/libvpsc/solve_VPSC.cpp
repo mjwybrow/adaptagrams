@@ -267,12 +267,14 @@ bool IncSolver::satisfy() {
                 }
             } catch(UnsatisfiableException e) {
                 e.path.push_back(v);
+#ifdef LIBVPSC_DEBUG
                 std::cerr << "Unsatisfiable:" << std::endl;
                 for(std::vector<Constraint*>::iterator r=e.path.begin();
                         r!=e.path.end();++r)
                 {
                     std::cerr << **r <<std::endl;
                 }
+#endif
                 v->unsatisfiable=true;
                 continue;
             }

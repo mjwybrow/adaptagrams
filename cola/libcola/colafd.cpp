@@ -756,13 +756,6 @@ void ConstrainedFDLayout::makeFeasible(void)
         }
     }
     
-#if 0
-    if (preserveTopology)
-    {
-        generateRoutes();
-    }
-#endif
-
     // Update the X and Y vectors with the new shape positions.
     for (unsigned int i = 0; i < boundingBoxes.size(); ++i)
     {
@@ -973,7 +966,7 @@ void ConstrainedFDLayout::moveTo(const vpsc::Dim dim, Position& target) {
         v->desiredPosition = target[j];
     }
     setVariableDesiredPositions(vs,cs,des,coords);
-    if (!topologyNodes.empty() && !topologyRoutes.empty()) 
+    if (!topologyNodes.empty() && !topologyRoutes.empty())
     {
         topology::setNodeVariables(topologyNodes,vs);
         topology::TopologyConstraints t(dim, topologyNodes, topologyRoutes,

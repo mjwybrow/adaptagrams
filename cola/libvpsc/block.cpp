@@ -511,7 +511,9 @@ Constraint *Block::findMinLMBetween(Variable* const lv, Variable* const rv) {
     }
 #else
     if(min_lm==NULL) {
+#ifdef LIBVPSC_DEBUG
         fprintf(stderr,"Couldn't find split point!\n");
+#endif
         UnsatisfiableException e;
         getActivePathBetween(e.path,lv,rv,NULL);
         throw e;
