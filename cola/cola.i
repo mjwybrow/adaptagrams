@@ -184,6 +184,7 @@ class ColaException {
 %template(TopologyNodePtrVector) std::vector<topology::Node*>;
 %template(UnsignedVector) std::vector<unsigned>;
 %template(ClusterVector) std::vector<cola::Cluster*>;
+%template(PointVector) std::vector<Avoid::Point>;
 
 %inline %{
 void doubleArraySet(double *a, int i, double val) {

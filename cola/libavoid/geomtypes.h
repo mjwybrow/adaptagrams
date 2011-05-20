@@ -195,6 +195,9 @@ class Polygon : public PolygonInterface
         //! considered to be closed, meaning the last point joins back to the
         //! first point.
         //!
+        //! The values for points can be set by setting the Polygon:ps vector,
+        //! or via the Polygon::setPoint() method.
+        //!
         //! @param[in]  n  Number of points in the polygon.
         //!
         Polygon(const int n);
@@ -214,6 +217,10 @@ class Polygon : public PolygonInterface
         //! @brief  Returns a specific point in the polygon.
         //! @param[in]  index  The array index of the point to be returned.
         const Point& at(size_t index) const;
+        //! @brief  Sets a position for a particular point in the polygon..
+        //! @param[in]  index  The array index of the point to be set.
+        //! @param[in]  point  The point value to be assigned..
+        void setPoint(size_t index, const Point& point);
         //! @brief  Returns a simplified Polyline, where all collinear line
         //!         segments have been collapsed down into single line 
         //!         segments.

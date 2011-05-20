@@ -300,6 +300,13 @@ const Point& Polygon::at(size_t index) const
     return ps[index];
 }
 
+void Polygon::setPoint(size_t index, const Point& point)
+{
+    COLA_ASSERT(index < size());
+
+    ps[index] = point;
+}
+
 
 static const unsigned int SHORTEN_NONE  = 0;
 static const unsigned int SHORTEN_START = 1;
