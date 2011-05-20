@@ -81,11 +81,11 @@ using namespace topology;
     try {
         $action
     } catch(vpsc::CriticalFailure cf) {
-        jclass excep = jenv->FindClass("colajava/ColaException");
+        jclass excep = jenv->FindClass("org/dunnart/adaptagrams/ColaException");
         if (excep)
             jenv->ThrowNew(excep, cf.what().c_str());
     } catch(cola::InvalidVariableIndexException ivi) {
-        jclass excep = jenv->FindClass("colajava/ColaException");
+        jclass excep = jenv->FindClass("org/dunnart/adaptagrams/ColaException");
         if (excep)
             jenv->ThrowNew(excep, ivi.what().c_str());
     } 
@@ -148,23 +148,24 @@ class ColaException {
  * is freed.  For the cola/vpsc classes, a Java user can call 
  * ConstraintedFDLayout::freeAssociatedObjects() to free this memory.
  */
-%typemap(javafinalize) 
-        vpsc::Rectangle, 
-        cola::CompoundConstraint, 
-        cola::AlignmentConstraint, 
-        cola::BoundaryConstraint, 
-        cola::DistributionConstraint, 
-        cola::MultiSeparationConstraint, 
-        cola::PageBoundaryConstraints, 
+%typemap(javafinalize)
+        vpsc::Rectangle,
+        cola::CompoundConstraint,
+        cola::AlignmentConstraint,
+        cola::BoundaryConstraint,
+        cola::DistributionConstraint,
+        cola::MultiSeparationConstraint,
+        cola::PageBoundaryConstraints,
         cola::SeparationConstraint,
         cola::Cluster,
         cola::RootCluster,
         cola::ConvexCluster,
         cola::RectangularCluster,
-        Avoid::ShapeRef, 
+        Avoid::ShapeRef,
         Avoid::ConnRef,
         Avoid::ClusterRef,
         Avoid::JunctionRef,
+		Avoid::Obstacle,
         Avoid::ShapeConnectionPin
         %{%}
 
@@ -219,12 +220,12 @@ void deleteDoubleArray(double* a) {
 %include "libcola/exceptions.h"
 %include "libtopology/topology_graph.h"
 
-%include "libavoid/obstacle.h"
 %include "libavoid/geometry.h"
 %include "libavoid/geomtypes.h"
 %include "libavoid/connend.h"
 %include "libavoid/router.h"
 %include "libavoid/connector.h"
+%include "libavoid/obstacle.h"
 %include "libavoid/shape.h"
 %include "libavoid/junction.h"
 %include "libavoid/viscluster.h"
@@ -267,5 +268,4 @@ void deleteDoubleArray(double* a) {
 %include "libvpsc/solve_VPSC.h"
 %include "libvpsc/variable.h"
 */
-
 

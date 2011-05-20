@@ -1,48 +1,53 @@
-
 OSNAME:=$(shell uname -s | sed 's/_.*//')
 
 ifeq ($(OSNAME),Darwin)
+	CPPFLAGS =
 	JAVA_INCLUDE = -I/System/Library/Frameworks/JavaVM.framework/Headers
-	LINK = g++ -dynamiclib -framework JavaVM -o libcolajni.dylib
+	LINK = g++ -dynamiclib -framework JavaVM -o adaptagrams.dylib
 else 
-  # Some make versions say only one else per if statment.
-  ifeq ($(OSNAME),Linux)
-	JAVA_INCLUDE = -I/usr/lib/jvm/java-6-sun-1.6.0.06/include \
-		       -I/usr/lib/jvm/java-6-sun-1.6.0.06/include/linux
-	LINK = g++ -shared -o libcolajni.so
-  else 
-    ifeq ($(OSNAME),MINGW32)
-	JAVA_INCLUDE = -I/c/Programme/Java/jdk1.6.0_18/include \
-		       -I/c/Programme/Java/jdk1.6.0_18/include/win32
-	LINK = g++ -Wl,--add-stdcall-alias -shared -o cola.dll
-    endif
-  endif
+	# Some make versions say only one else per if statment.
+	ifeq ($(OSNAME),Linux)
+		CPPFLAGS = -fPIC
+		JAVA_INCLUDE = -I/usr/lib/jvm/java-6-sun/include \
+						-I/usr/lib/jvm/java-6-sun/include/linux
+		LINK = g++ -shared -o adaptagrams.so
+	else 
+	    ifeq ($(OSNAME),MINGW32)
+			CPPFLAGS =
+			JAVA_INCLUDE = -I/c/Programme/Java/jdk1.6.0_24/include \
+							-I/c/Programme/Java/jdk1.6.0_24/include/win32
+			LINK = g++ -Wl,--add-stdcall-alias -shared -o adaptagrams.dll
+		endif
+	endif
 endif
 
-all: cola.jnilib colajava.jar
+all: adaptagrams jar
 
 swig-worked: clean cola.i
-	mkdir -p colajava
-	swig -DUSE_ASSERT_EXCEPTIONS -c++ -java -package colajava -outdir colajava cola.i
+	mkdir -p java/src/org/dunnart/adaptagrams
+	mkdir -p java/build/org/dunnart/adaptagrams
+	swig -DUSE_ASSERT_EXCEPTIONS -c++ -java -package org.dunnart.adaptagrams -outdir java/src/org/dunnart/adaptagrams cola.i
 	touch swig-worked
 
 cola_wrap.o: swig-worked
-	g++ -I. $(JAVA_INCLUDE) -c cola_wrap.cxx
+	g++ $(CPPFLAGS) -I. $(JAVA_INCLUDE) -c cola_wrap.cxx
 
-cola.jnilib: cola_wrap.o
+adaptagrams: cola_wrap.o
 	$(LINK) cola_wrap.o libcola/.libs/libcola.a libtopology/.libs/libtopology.a libavoid/.libs/libavoid.a libvpsc/.libs/libvpsc.a
 
-colajava.jar: swig-worked
-	jar -cf colajava.jar colajava
+jar: swig-worked
+	javac -d java/build/ java/src/org/dunnart/adaptagrams/*.java
+	jar cf adaptagramsswig.jar -C java/build/ .
 
 realclean: clean
 
 clean: mostlyclean
-	rm -f cola.jnilib
+	rm -f adaptagrams.*
 
 mostlyclean:
 	rm -f swig-worked
-	rm -f cola_wrap.o cola_wrap.cxx colajava.jar
-	rm -rf colajava/*
+	rm -f cola_wrap.o cola_wrap.cxx adaptagramsswig.jar
+	rm -rf java/*
 
 .PHONY: all clean mostlyclean realclean
+
