@@ -3,20 +3,20 @@ OSNAME:=$(shell uname -s | sed 's/_.*//')
 ifeq ($(OSNAME),Darwin)
 	CPPFLAGS =
 	JAVA_INCLUDE = -I/System/Library/Frameworks/JavaVM.framework/Headers
-	LINK = g++ -dynamiclib -framework JavaVM -o adaptagrams.dylib
+	LINK = $(CXX) $(CXXFLAGS) -dynamiclib -framework JavaVM -o adaptagrams.dylib
 else 
 	# Some make versions say only one else per if statment.
 	ifeq ($(OSNAME),Linux)
 		CPPFLAGS = -fPIC
 		JAVA_INCLUDE = -I/usr/lib/jvm/java-6-sun/include \
 						-I/usr/lib/jvm/java-6-sun/include/linux
-		LINK = g++ -shared -o adaptagrams.so
+		LINK = $(CXX) $(CXXFLAGS) -shared -o adaptagrams.so
 	else 
 	    ifeq ($(OSNAME),MINGW32)
 			CPPFLAGS =
 			JAVA_INCLUDE = -I/c/Programme/Java/jdk1.6.0_24/include \
 							-I/c/Programme/Java/jdk1.6.0_24/include/win32
-			LINK = g++ -Wl,--add-stdcall-alias -shared -o adaptagrams.dll
+			LINK = $(CXX) $(CXXFLAGS) -Wl,--add-stdcall-alias -shared -o adaptagrams.dll
 		endif
 	endif
 endif
@@ -30,7 +30,7 @@ swig-worked: clean cola.i
 	touch swig-worked
 
 cola_wrap.o: swig-worked
-	g++ $(CPPFLAGS) -I. $(JAVA_INCLUDE) -c cola_wrap.cxx
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -I. $(JAVA_INCLUDE) -c cola_wrap.cxx
 
 adaptagrams: cola_wrap.o
 	$(LINK) cola_wrap.o libcola/.libs/libcola.a libtopology/.libs/libtopology.a libavoid/.libs/libavoid.a libvpsc/.libs/libvpsc.a
