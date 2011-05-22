@@ -2138,12 +2138,14 @@ static void buildOrthogonalChannelInfo(Router *router,
                             {
                                 minLim = std::max(minLim, shapeMin);
                                 maxLim = std::min(maxLim, shapeMax);
+                                withinShape = true;
                             }
                             if (insideRectBounds(displayRoute.ps[i], 
                                         shapeLimits[k]))
                             {
                                 minLim = std::max(minLim, shapeMin);
                                 maxLim = std::min(maxLim, shapeMax);
+                                withinShape = true;
                             }
                         }
 
