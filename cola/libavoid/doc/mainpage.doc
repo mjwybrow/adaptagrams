@@ -8,6 +8,8 @@ libavoid is a cross-platform C++ library providing fast, object-avoiding
 orthogonal and polyline connector routing for use in interactive diagram 
 editors.
 
+<pre>For GD 2011 Reviewers: Hyperedge changes to libavoid will be committed on Wednesday 15th June.  They are being cleaned up for public and commercial use.</pre>
+
 libavoid is part of the 
 <a href="http://adaptagrams.sourceforge.net/">Adaptagrams project</a>. 
 There are no official releases yet, though the code is stable and 
@@ -40,10 +42,14 @@ The algorithms used for the connector routing are described in:
    [<a href="http://www.csse.monash.edu.au/~mwybrow/papers/wybrow-gd-2005.pdf">PDF</a>]
 
 libavoid is currently used in the following software:
+-  A commercial circuit diagram editor,
 -  <a href="http://www.dunnart.org/">Dunnart</a>, a prototype research 
-   constraint-based diagram editor, and
+   constraint-based diagram editor, 
 -  <a href="http://www.inkscape.org/">Inkscape</a>, the popular Open 
-   Source vector graphics editor.
+   Source vector graphics editor,
+-  <a href="http://arcadiapathways.sourceforge.net/">Arcadia</a>, a 
+   visualisation tool for metabolic pathways, and
+-  <a href="http://gaphor.sourceforge.net/">Gaphas</a>, an open source diagramming widget for GTK+, written in Python.
 
 */
 

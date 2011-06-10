@@ -27,9 +27,7 @@ Avoid::ShapeRef(Avoid::Router *router, const Avoid::Polygon& polygon, unsigned i
 
 To actually add the shape to the router (and cause rerouting of connectors it intersects) you do the following:
 <pre>router-&gt;addShape(shapeRef);</pre>
-
-Conversely, to delete a shape from the router (and reroute connectors that then have a better path) you do the following.  
-<pre>router-&gt;removeShape(shapeRef);</pre>
+This passes ownership of the shapeRef object to the router instance, though it is still fine for you to keep a reference to it.
 
 To move or resize a shape already in the router, you do the following:
 <pre>router-&gt;moveShape(shapeRef, newPolygon);</pre>
@@ -43,14 +41,20 @@ router-&gt;moveShape(shapeRef2, newPolygon2);
 router-&gt;processTransaction();
 </pre>
 
+To delete a shape from the router (and reroute connectors that then have a better path) you do the following.  
+<pre>router-&gt;deleteShape(shapeRef);</pre>
+This will cause the router to free the memory for the shapeRef.  You should discard your reference to the shapeRef after this call.
+
 To add a new connector to the router, you do the following:
 <pre>
 Avoid::ConnEnd srcPt(Avoid::Point(1.2, 0.5));
 Avoid::ConnEnd dstPt(Avoid::Point(3.0, 4.0));
 Avoid::ConnRef *connRef = new Avoid::ConnRef(router, srcPt, dstPt);</pre>
+This passes ownership of the connRef object to the router instance, though it is still fine for you to keep a reference to it.
 
 To remove a connector from the router:
-<pre>delete connRef;</pre>
+<pre>router-&gt;deleteConnector(connRef);</pre>
+This will cause the router to free the memory for the connRef.  You should discard your reference to the connRef after this call.
 
 You can set a function to be called when the connector needs to be redrawn.  When called, this function will be passed the pointer given as a second argument to <code>setCallback</code>:
 <pre>void connCallback(void *ptr)
@@ -60,7 +64,7 @@ You can set a function to be called when the connector needs to be redrawn.  Whe
 }
 connRef-&gt;setCallback(connCallback, connRef);</pre>
 
-The callback will be triggered by movement, addition and deletion of shapes, as well as by adjustment of the connector endpoints, or by procressing a transaction that includes any of these events.  You can check if a connector path has changed, and hence the object requires repainting (say because a better path is available due to a shape being deleted):
+The callback will be triggered by movement, addition and deletion of shapes, as well as by adjustment of the connector endpoints, or by processing a transaction that includes any of these events.  You can check if a connector path has changed, and hence the object requires repainting (say because a better path is available due to a shape being deleted):
 <pre>if (connRef-&gt;needsRepaint()) ...</pre>
 
 If you want to trigger the callback for a connector after moving its endpoints (or when it is first created you can do this via:
@@ -88,8 +92,17 @@ connRef-&gt;setSourceEndpoint(newSrcPt);
 Avoid::ConnEnd newDstPt(Avoid::Point(6, 3));
 connRef-&gt;setDestEndpoint(newDstPt);</pre>
 
+You can also create connection pins on shapes and attach connectors directly to these.  Then when you move or resize the shapes, the connector endpoints attached to them will be automatically rerouted.
 
-(Then ConnEnd type exists to allow connector ports later on!)
+You can create a connection pin as follows:
+<pre>const unsigned int CENTRE = 1;
+new Avoid::ShapeConnectionPin(shapeRef, CENTRE, Avoid::ATTACH_POS_CENTRE, Avoid::ATTACH_POS_CENTRE);</pre>
+This one connects to the centre of the shape, but the position can be specified anywhere within the shape as a proportion of the shape's width and height.  
+
+You can then attach a connector to the connection pin be doing the following:
+<pre>Avoid::ConnEnd newSrcPt(shapeRef, CENTRE);
+connRef-&gt;setSourceEndpoint(newSrcPt);</pre>
+
 
 See also a short example: example.cpp in the libavoid/tests directory
 
