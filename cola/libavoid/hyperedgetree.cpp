@@ -22,6 +22,8 @@
  * Author(s):   Michael Wybrow <mjwybrow@users.sourceforge.net>
 */
 
+#include <algorithm>
+
 #include "libavoid/hyperedgetree.h"
 #include "libavoid/geometry.h"
 #include "libavoid/connector.h"

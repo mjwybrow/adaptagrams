@@ -28,6 +28,7 @@
 #ifndef AVOID_HYPEREDGE_H
 #define AVOID_HYPEREDGE_H
 
+#include <cstdio>
 #include <list>
 #include <vector>
 #include <set>
