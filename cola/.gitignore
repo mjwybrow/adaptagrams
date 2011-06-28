@@ -1,0 +1,45 @@
+# http://www.gnu.org/software/automake
+
+Makefile.in
+
+# http://www.gnu.org/software/autoconf
+
+/autom4te.cache
+/aclocal.m4
+/compile
+/configure
+/depcomp
+/install-sh
+/missing
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+
+# Compiled Dynamic libraries
+*.so
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+
+Makefile
+
+/m4
+config.guess
+config.log
+config.status
+config.sub
+
+libtool
+ltmain.sh
+
+.deps/
+
+libcola/config.h.in
+libcola/stamp-h1
+libcola/config.h
+
+diff
