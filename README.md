@@ -30,7 +30,7 @@ These libraries are collectively known as cola (for Constraint Layout). The
 newest version of the C++ source code for cola can be found in the 
 Adaptagrams github repository:
 
-    https://github.com/mjwybrow/adaptagrams/
+    [https://github.com/mjwybrow/adaptagrams/][repo]
 
 The Adaptagrams code is maintained by [Michael Wybrow][mw].
 
@@ -38,6 +38,7 @@ All code in the Adaptagrams repository is released as open source under the
 terms of the LGPL 2.1 or later, see the LICENSE file. 
 
 Software using one or more of the Adaptagrams libraries include: 
+
  *  [Dunnart][dunnart], constraint-based diagram editor,
  *  [Inkscape][inkscape], the popular open source vector graphics editor,
  *  [Graphviz][graphviz], open source graph visualisation software,
@@ -75,3 +76,5 @@ Run `./autogen.sh` to compile from scratch.
 [arcadia]: http://arcadiapathways.sourceforge.net/
 [gaphor]: http://gaphor.sourceforge.net/
 [cairo]: http://cairographics.org/
+[repo]: https://github.com/mjwybrow/adaptagrams/
+
