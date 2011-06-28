@@ -7,21 +7,21 @@ layout, smart presentation software, graph drawing, chart layout, etc.
 
 Currently, the Adaptagrams repository includes:
 
- *  libvpsc   
+ *  libvpsc  
               - a solver for the Variable Placement with Separation 
 		Constraints problem. This is a quadratic programming 
 		problem in which the squared differences between a 
 		placement vector and some ideal placement are minimised 
 		subject to a set of separation constraints. This is very 
 		useful in a number of layout problems.  
- *  libcola
+ *  libcola  
     	      - a library for constraint graph layout.  Specifically, 
     		force-directed layout using the stress-majorization 
 		method subject to separation constraints. Applications 
 		include layout with non-overlapping nodes and clusters, 
 		directed graph layout and layout preserving the crossing 
 		properties of a given starting layout.  
- *  [libavoid][libavoid] 
+ *  [libavoid][libavoid]  
     	      - a cross-platform C++ library providing fast, polyline and
     		orthogonal object-avoiding connector routing for use in 
 		interactive diagram editors.  
@@ -32,11 +32,18 @@ Adaptagrams github repository:
 
     https://github.com/mjwybrow/adaptagrams/
 
-All code in the Adaptagrams repository is released as open source under the
-terms of the LGPL 2.1 or later, see the LICENSE file. Software using the 
-above libraries include: Inkscape, Graphviz and Dunnart.
-
 The Adaptagrams code is maintained by [Michael Wybrow][mw].
+
+All code in the Adaptagrams repository is released as open source under the
+terms of the LGPL 2.1 or later, see the LICENSE file. 
+
+Software using one or more of the Adaptagrams libraries include: 
+ *  [Dunnart][dunnart], constraint-based diagram editor,
+ *  [Inkscape][inkscape], the popular open source vector graphics editor,
+ *  [Graphviz][graphviz], open source graph visualisation software,
+ *  [Arcadia][arcadia], a visualisation tool for metabolic pathways, and
+ *  [Gaphas][gaphor], an open source Python-based diagramming widget for GTK+.
+
 
 The algorithms were developed by [Kim Marriott][km]'s Adaptive Diagrams Research Group at [Monash University][monash] in Melbourne, Australia.  The Adaptagrams libraries were originally written by [Tim Dwyer][td] and [Michael Wybrow][mw].
 
@@ -51,8 +58,8 @@ repository as platform agnostic as possible, so you'll need to call `aclocal`,
 `autoconf`, and `automake` before `configure`.
  
 A somewhat transient dependency (depending on whether `libcola/output_svg.cpp` 
-is included in the build) is [Cairo](http://cairographics.org/).  It's only
-used by a few examples so you can easily build the core libraries without it.
+is included in the build) is [Cairo][cairo].  It's only used by a few examples 
+so you can easily build the core libraries without it.
 
 Run `./autogen.sh` to compile from scratch.
 
@@ -62,3 +69,9 @@ Run `./autogen.sh` to compile from scratch.
 [mw]: http://www.csse.monash.edu.au/~mwybrow/
 [monash]: http://wwww.csse.monash.edu.au/
 [libavoid]: http://adaptagrams.sourceforge.net/libavoid/
+[dunnart]: http://www.dunnart.org/
+[inkscape]: http://www.inkscape.org/
+[graphviz]: http://www.graphviz.org/
+[arcadia]: http://arcadiapathways.sourceforge.net/
+[gaphor]: http://gaphor.sourceforge.net/
+[cairo]: http://cairographics.org/
