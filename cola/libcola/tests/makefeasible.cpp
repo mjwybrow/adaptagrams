@@ -182,6 +182,7 @@ void removeoverlaps(vpsc::Rectangles &rs, bool bothaxes) {
     Rectangle::setXBorder(xBorder);
     Rectangle::setYBorder(yBorder);
 }
+/*
 void writeTextFile(vector<cola::Edge>& edges) {  
     ofstream outfile("new.txt",ofstream::binary);
     for(vector<cola::Edge>::iterator e=edges.begin();e!=edges.end();++e) {
@@ -189,6 +190,7 @@ void writeTextFile(vector<cola::Edge>& edges) {
     }
     outfile.close();
 }
+*/
 /*
  * Make feasible:
  *   - remove overlaps between rectangular boundaries of nodes/clusters
@@ -320,7 +322,7 @@ int main() {
 	}
 	CheckProgress test(0.01,100);
     clock_t unconstrainedstarttime=clock();
-    writeTextFile(es);
+    //writeTextFile(es);
     es.clear();
 	ConstrainedFDLayout alg2(rs,es,defaultEdgeLength,NULL,test);
     //alg2.setConstraints(&ccs);
