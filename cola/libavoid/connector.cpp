@@ -367,6 +367,24 @@ void ConnRef::updateEndPoint(const unsigned int type, const ConnEnd& connEnd)
 }
 
 
+std::pair<Obstacle *, Obstacle *> ConnRef::endpointAnchors(void) const
+{
+    std::pair<Obstacle *, Obstacle *> anchors;
+    anchors.first = NULL;
+    anchors.second = NULL;
+
+    if (m_src_connend)
+    {
+        anchors.first = m_src_connend->m_anchor_obj;
+    }
+    if (m_dst_connend)
+    {
+        anchors.second = m_dst_connend->m_anchor_obj;
+    }
+    return anchors;
+}
+
+
 bool ConnRef::setEndpoint(const unsigned int type, const VertID& pointID,
         Point *pointSuggestion)
 {

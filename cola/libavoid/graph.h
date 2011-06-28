@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2009  Monash University
+ * Copyright (C) 2004-2011  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -70,10 +70,14 @@ class EdgeInf
                 bool knownNew = false);
         static EdgeInf *existingEdge(VertInf *i, VertInf *j);
         int blocker(void) const;
+        double mtstDist(void) const;
+        void setMtstDist(VertInf *from, const double bendCost);
 
         EdgeInf *lstPrev;
         EdgeInf *lstNext;
     private:
+        friend class MinimumTerminalSpanningTree;
+
         void makeActive(void);
         void makeInactive(void);
         int firstBlocker(void);
@@ -90,6 +94,7 @@ class EdgeInf
         EdgeInfList::iterator m_pos2;
         FlagList  m_conns;
         double  m_dist;
+        double  m_mtst_dist;
 };
 
 

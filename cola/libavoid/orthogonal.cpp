@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2009-2010  Monash University
+ * Copyright (C) 2009-2011  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -39,44 +39,301 @@
 #include "libavoid/junction.h"
 #include "libavoid/vpsc.h"
 #include "libavoid/assertions.h"
-
+#include "libavoid/hyperedgetree.h"
+#include "libavoid/mtst.h"
 
 namespace Avoid {
 
 
 static const double CHANNEL_MAX = 100000000;
 
+// IDs:
+static const int freeID    = 0;
+static const int fixedID   = 1;
+// Weights:
+static const double freeWeight   = 0.00001;
+static const double strongWeight = 0.001;
+static const double fixedWeight  = 100000;
 
-class ShiftSegment 
+
+// ShiftSegment interface.
+class ShiftSegment
+{ 
+    public:
+        ShiftSegment(const size_t dim)
+            : dimension(dim)
+        {
+        }
+        virtual ~ShiftSegment()
+        {
+        }
+        virtual Point& lowPoint(void) = 0;
+        virtual Point& highPoint(void) = 0;
+        virtual const Point& lowPoint(void) const = 0;
+        virtual const Point& highPoint(void) const = 0;
+        virtual bool overlapsWith(const ShiftSegment *rhs,
+                const size_t dim) const = 0;
+        virtual bool shouldAlignWith(const ShiftSegment *rhs,
+                const size_t dim) const = 0;
+        virtual bool immovable(void) const = 0;
+        
+        size_t dimension;
+        double minSpaceLimit;
+        double maxSpaceLimit;
+};
+
+
+class HyperEdgeShiftSegment : public ShiftSegment
+{
+    public:
+        HyperEdgeShiftSegment(HyperEdgeTreeNode *n1, HyperEdgeTreeNode *n2, 
+                const size_t dim, bool immovable)
+            : ShiftSegment(dim),
+              isImmovable(immovable),
+              m_balance_count(0),
+              m_balance_count_set(false),
+              m_at_limit(false)
+        {
+            nodes.insert(n1);
+            nodes.insert(n2);
+            n1->shiftSegmentNodeSet = &nodes;
+            n2->shiftSegmentNodeSet = &nodes;
+
+            minSpaceLimit = -CHANNEL_MAX;
+            maxSpaceLimit = CHANNEL_MAX;
+        }
+        virtual ~HyperEdgeShiftSegment()
+        {
+            for (OrderedHENodeSet::const_iterator curr = nodes.begin();
+                    curr != nodes.end(); ++curr)
+            {
+                (*curr)->shiftSegmentNodeSet = NULL;
+            }
+        }
+
+        Point& lowPoint(void)
+        {
+            return (*nodes.begin())->point;
+        }
+        Point& highPoint(void) 
+        {
+            return (*nodes.rbegin())->point;
+        }
+        const Point& lowPoint(void) const
+        {
+            return (*nodes.begin())->point;
+        }
+        const Point& highPoint(void) const
+        {
+            return (*nodes.rbegin())->point;
+        }
+        // Counts the number of segments diverging on each side and returns
+        // a count: a negative number if there a more on the lower side,
+        // a positive number if there are more on the upper side, or zero if
+        // there are an equal number of segments.
+        void setBalanceCount(void)
+        {
+            size_t altDim = (dimension + 1) % 2;
+            m_next_pos_lower = minSpaceLimit;
+            m_next_pos_upper = maxSpaceLimit;
+            m_balance_count = 0;
+            if ( isImmovable )
+            {
+                m_balance_count_set = true;
+                return;
+            }
+            for (OrderedHENodeSet::const_iterator curr = nodes.begin();
+                    curr != nodes.end(); ++curr)
+            {
+                const Point& currPoint = (*curr)->point;
+                for (std::list<HyperEdgeTreeEdge *>::const_iterator currEdge =
+                        (*curr)->edges.begin(); currEdge != (*curr)->edges.end();
+                        ++currEdge)
+                {
+                    const HyperEdgeTreeNode *node = (*currEdge)->followFrom(*curr);
+                    const Point& otherPoint = node->point;
+                    if (currPoint[altDim] == otherPoint[altDim])
+                    {
+                        if (otherPoint[dimension] < currPoint[dimension])
+                        {
+                            m_next_pos_lower = std::max(m_next_pos_lower,
+                                    otherPoint[dimension]);
+                            --m_balance_count;
+                        }
+                        else if (otherPoint[dimension] > currPoint[dimension])
+                        {
+                            m_next_pos_upper = std::min(m_next_pos_upper,
+                                    otherPoint[dimension]);
+                            ++m_balance_count;
+                        }
+                    }
+                }
+            }
+            m_balance_count_set = true;
+        }
+        int balanceCount(void) const
+        {
+            COLA_ASSERT( m_balance_count_set );
+            return m_balance_count;
+        }
+        void adjustPosition(void)
+        {
+            COLA_ASSERT(m_balance_count_set);
+            COLA_ASSERT(m_balance_count != 0);
+
+            double newPos = (m_balance_count < 0) ?
+                    m_next_pos_lower : m_next_pos_upper;
+            double limit = (m_balance_count < 0) ?
+                    minSpaceLimit : maxSpaceLimit;
+            for (OrderedHENodeSet::iterator curr = nodes.begin();
+                    curr != nodes.end(); ++curr)
+            {
+                (*curr)->point[dimension] = newPos;
+            }
+
+            if (newPos == limit)
+            {
+                m_at_limit = true;
+            }
+
+            // Add nodes from collapsed segments, incase they are not part of
+            // a segment that will be merged.
+            for (OrderedHENodeSet::iterator curr = nodes.begin();
+                    curr != nodes.end(); ++curr)
+            {
+                Point& currPoint = (*curr)->point;
+                for (std::list<HyperEdgeTreeEdge *>::iterator currEdge =
+                        (*curr)->edges.begin(); currEdge != (*curr)->edges.end();
+                        ++currEdge)
+                {
+                    HyperEdgeTreeNode *node = (*currEdge)->followFrom(*curr);
+                    Point& otherPoint = node->point;
+                    if (currPoint == otherPoint)
+                    {
+                        nodes.insert(node);
+                        node->shiftSegmentNodeSet = &nodes;
+                    }
+                }
+            }
+        }
+        bool overlapsWith(const ShiftSegment *rhs, const size_t dim) const
+        {
+            size_t altDim = (dim + 1) % 2;
+            const Point& lowPt = lowPoint();
+            const Point& highPt = highPoint();
+            const Point& rhsLowPt = rhs->lowPoint();
+            const Point& rhsHighPt = rhs->highPoint();
+            if ( (lowPt[altDim] <= rhsHighPt[altDim]) &&
+                    (rhsLowPt[altDim] <= highPt[altDim]))
+            {
+                // The segments overlap.
+                if ( (minSpaceLimit <= rhs->maxSpaceLimit) &&
+                        (rhs->minSpaceLimit <= maxSpaceLimit) )
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        bool shouldAlignWith(const ShiftSegment *rhs, const size_t dim) const
+        {
+            // Avoid unused parameter warning.
+            (void)(rhs);
+            (void)(dim);
+
+            return false;
+        }
+        bool immovable(void) const
+        {
+            return isImmovable;
+        }
+        bool settled(void) const
+        {
+            return isImmovable || m_at_limit || (balanceCount() == 0);
+        }
+        bool mergesWith(HyperEdgeShiftSegment *other)
+        {
+            size_t altDim = (dimension + 1) % 2;
+            const Point& lowPt = lowPoint();
+            const Point& highPt = highPoint();
+            const Point& otherLowPt = other->lowPoint();
+            const Point& otherHighPt = other->highPoint();
+            if ( (lowPt[dimension] == otherLowPt[dimension]) &&
+                    (lowPt[altDim] <= otherHighPt[altDim]) &&
+                    (otherLowPt[altDim] <= highPt[altDim]))
+            {
+                isImmovable |= other->isImmovable;
+                m_at_limit |= m_at_limit;
+                minSpaceLimit = std::max(minSpaceLimit, other->minSpaceLimit);
+                maxSpaceLimit = std::min(maxSpaceLimit, other->maxSpaceLimit);
+                nodes.insert(other->nodes.begin(), other->nodes.end());
+                other->nodes.clear();
+                for (OrderedHENodeSet::iterator curr = nodes.begin();
+                        curr != nodes.end(); ++curr)
+                {
+                    (*curr)->shiftSegmentNodeSet = &nodes;
+                }
+                setBalanceCount();
+                return true;
+            }
+            setBalanceCount();
+            return false;
+        }
+
+        std::set<HyperEdgeTreeNode *, CmpNodesInDim> nodes;
+        bool isImmovable;
+private:
+        int m_balance_count;
+        bool m_balance_count_set;
+        double m_next_pos_lower;
+        double m_next_pos_upper;
+        bool m_at_limit;
+};
+
+#if 0
+// UNUSED
+static bool CmpHyperEdgeSegmentDirOrder(const ShiftSegment *lhsSuper,
+            const ShiftSegment *rhsSuper)
+{
+    const HyperEdgeShiftSegment *lhs =
+            dynamic_cast<const HyperEdgeShiftSegment *> (lhsSuper);
+    const HyperEdgeShiftSegment *rhs =
+            dynamic_cast<const HyperEdgeShiftSegment *> (rhsSuper);
+
+    return fabs(lhs->balanceCount()) > fabs(rhs->balanceCount());
+}
+#endif
+
+class NudgingShiftSegment : public ShiftSegment
 {
     public:
         // For shiftable segments.
-        ShiftSegment(ConnRef *conn, const size_t low, const size_t high, 
+        NudgingShiftSegment(ConnRef *conn, const size_t low, const size_t high, 
                 bool isSBend, bool isZBend, const size_t dim, double minLim,
                 double maxLim)
-            : connRef(conn),
+            : ShiftSegment(dim),
+              connRef(conn),
+              variable(NULL),
               indexLow(low),
               indexHigh(high),
               fixed(false),
-              dimension(dim),
-              variable(NULL),
-              minSpaceLimit(minLim),
-              maxSpaceLimit(maxLim),
               finalSegment(false),
               endsInShape(false),
               sBend(isSBend),
               zBend(isZBend)
         {
+              minSpaceLimit = minLim;
+              maxSpaceLimit = maxLim;
         }
         // For fixed segments.
-        ShiftSegment(ConnRef *conn, const size_t low, const size_t high, 
+        NudgingShiftSegment(ConnRef *conn, const size_t low, const size_t high, 
                 const size_t dim)
-            : connRef(conn),
+            : ShiftSegment(dim),
+              connRef(conn),
+              variable(NULL),
               indexLow(low),
               indexHigh(high),
               fixed(true),
-              dimension(dim),
-              variable(NULL),
               finalSegment(false),
               endsInShape(false),
               sBend(false),
@@ -85,6 +342,9 @@ class ShiftSegment
             // This has no space to shift.
             minSpaceLimit = lowPoint()[dim];
             maxSpaceLimit = lowPoint()[dim];
+        }
+        virtual ~NudgingShiftSegment()
+        {
         }
         Point& lowPoint(void)
         {
@@ -105,6 +365,61 @@ class ShiftSegment
         double nudgeDistance(void) const
         {
             return connRef->router()->orthogonalNudgeDistance();
+        }
+        bool immovable(void) const
+        {
+            return ! zigzag();
+        }
+        void createSolverVariable(void)
+        {
+            bool nudgeFinalSegments = connRef->router()->routingOption(
+                    nudgeOrthogonalSegmentsConnectedToShapes);
+            int varID = freeID;
+            double varPos = lowPoint()[dimension];
+            double weight = freeWeight;
+            if (nudgeFinalSegments && finalSegment)
+            {
+                weight = strongWeight;
+            }
+            else if (zigzag())
+            {
+                COLA_ASSERT(minSpaceLimit > -CHANNEL_MAX);
+                COLA_ASSERT(maxSpaceLimit < CHANNEL_MAX);
+                
+                // For zigzag bends, take the middle as ideal.
+                varPos = minSpaceLimit + ((maxSpaceLimit - minSpaceLimit) / 2);
+            }
+            else if (fixed)
+            {
+                // Fixed segments shouldn't get moved.
+                weight = fixedWeight;
+                varID = fixedID;
+            }
+            else if ( ! finalSegment )
+            {
+                // Set a higher weight for c-bends to stop them sometimes 
+                // getting pushed out into channels by more-free connectors
+                // to the "inner" side of them.
+                weight = strongWeight;
+            }
+
+            variable = new Variable(varID, varPos, weight);
+        }
+
+        void updatePositionsFromSolver(void)
+        {
+            if (fixed)
+            {
+                return;
+            }
+            Point& lowPt = lowPoint();
+            Point& highPt = highPoint();
+            double newPos = variable->finalPosition;
+#ifdef NUDGE_DEBUG
+            printf("Pos: %lX, %g\n", (long) connRef, newPos);
+#endif
+            lowPt[dimension] = newPos;
+            highPt[dimension] = newPos;
         }
         int fixedOrder(bool& isFixed) const
         {
@@ -146,19 +461,21 @@ class ShiftSegment
         }
         // This counts segments that are collinear and share an endpoint as
         // overlapping.  This allows them to be nudged apart where possible.
-        bool overlapsWith(const ShiftSegment& rhs, const size_t dim) const
+        bool overlapsWith(const ShiftSegment *rhsSuper, const size_t dim) const
         {
+            const NudgingShiftSegment *rhs = 
+                    dynamic_cast<const NudgingShiftSegment *> (rhsSuper);
             size_t altDim = (dim + 1) % 2;
             const Point& lowPt = lowPoint();
             const Point& highPt = highPoint();
-            const Point& rhsLowPt = rhs.lowPoint();
-            const Point& rhsHighPt = rhs.highPoint();
+            const Point& rhsLowPt = rhs->lowPoint();
+            const Point& rhsHighPt = rhs->highPoint();
             if ( (lowPt[altDim] < rhsHighPt[altDim]) &&
                     (rhsLowPt[altDim] < highPt[altDim]))
             {
                 // The segments overlap.
-                if ( (minSpaceLimit <= rhs.maxSpaceLimit) &&
-                        (rhs.minSpaceLimit <= maxSpaceLimit) )
+                if ( (minSpaceLimit <= rhs->maxSpaceLimit) &&
+                        (rhs->minSpaceLimit <= maxSpaceLimit) )
                 {
                     return true;
                 }
@@ -166,18 +483,18 @@ class ShiftSegment
             else if ( (lowPt[altDim] == rhsHighPt[altDim]) || 
                       (rhsLowPt[altDim] == highPt[altDim]) )
             {
-                // The segment touch at one end, so count them as overlaping
+                // The segments touch at one end, so count them as overlaping
                 // for nudging if they are both s-bends or both z-bends, i.e.,
                 // when the ordering would matter.
-                if ( (minSpaceLimit <= rhs.maxSpaceLimit) &&
-                        (rhs.minSpaceLimit <= maxSpaceLimit) )
+                if ( (minSpaceLimit <= rhs->maxSpaceLimit) &&
+                        (rhs->minSpaceLimit <= maxSpaceLimit) )
                 {
-                    if ((rhs.sBend && sBend) || (rhs.zBend && zBend))
+                    if ((rhs->sBend && sBend) || (rhs->zBend && zBend))
                     {
                         return true;
                     }
-                    else if ((rhs.finalSegment && finalSegment) &&
-                            (rhs.connRef == connRef))
+                    else if ((rhs->finalSegment && finalSegment) &&
+                            (rhs->connRef == connRef))
                     {
                         return true;
                     }
@@ -185,9 +502,11 @@ class ShiftSegment
             }
             return false;
         }
-        bool shouldAlignWith(const ShiftSegment& rhs, const size_t dim) const
+        bool shouldAlignWith(const ShiftSegment *rhsSuper, const size_t dim) const
         {
-            if ((connRef == rhs.connRef) && (finalSegment == rhs.finalSegment) &&
+            const NudgingShiftSegment *rhs = 
+                    dynamic_cast<const NudgingShiftSegment *> (rhsSuper);
+            if ((connRef == rhs->connRef) && (finalSegment == rhs->finalSegment) &&
                 overlapsWith(rhs, dim))
             {
                 // If both the segments are in shapes then we know limits
@@ -195,8 +514,8 @@ class ShiftSegment
                 // that are very close together, since these will often 
                 // prevent nudging, or force it to have a tiny separation
                 // value.
-                if ((endsInShape && rhs.endsInShape) ||
-                        (fabs(lowPoint()[dim] - rhs.lowPoint()[dim]) < 10))
+                if ((endsInShape && rhs->endsInShape) ||
+                        (fabs(lowPoint()[dim] - rhs->lowPoint()[dim]) < 10))
                 {
                     return true;
                 }
@@ -205,13 +524,10 @@ class ShiftSegment
         }
 
         ConnRef *connRef;
+        Variable *variable;
         size_t indexLow;
         size_t indexHigh;
         bool fixed;
-        size_t dimension;
-        Variable *variable;
-        double minSpaceLimit;
-        double maxSpaceLimit;
         bool finalSegment;
         bool endsInShape;
     private:
@@ -240,7 +556,7 @@ class ShiftSegment
             return false;
         }
 };
-typedef std::list<ShiftSegment> ShiftSegmentList;
+typedef std::list<ShiftSegment *> ShiftSegmentList;
 
 
 struct Node;
@@ -1687,6 +2003,17 @@ extern void generateStaticOrthogonalVisGraph(Router *router)
     for (unsigned i = 0; i < n; i++)
     {
         Obstacle *obstacle = *obstacleIt;
+#ifndef PAPER
+        JunctionRef *junction = dynamic_cast<JunctionRef *> (obstacle);
+        if (junction && ! junction->positionFixed())
+        {
+            // Junctions that are free to move are not treated as obstacles.
+            ++obstacleIt;
+            totalEvents -= 2;
+            continue;
+        }
+#endif
+
         double minX, minY, maxX, maxY;
         obstacle->polygon().getBoundingRect(&minX, &minY, &maxX, &maxY);
         double midX = minX + ((maxX - minX) / 2);
@@ -1769,6 +2096,15 @@ extern void generateStaticOrthogonalVisGraph(Router *router)
     for (unsigned i = 0; i < n; i++)
     {
         Obstacle *obstacle = *obstacleIt;
+#ifndef PAPER
+        JunctionRef *junction = dynamic_cast<JunctionRef *> (obstacle);
+        if (junction && ! junction->positionFixed())
+        {
+            // Junctions that are free to move are not treated as obstacles.
+            ++obstacleIt;
+            continue;
+        }
+#endif
         double minX, minY, maxX, maxY;
         obstacle->polygon().getBoundingRect(&minX, &minY, &maxX, &maxY);
         double midY = minY + ((maxY - minY) / 2);
@@ -1978,13 +2314,14 @@ static bool insideRectBounds(const Point& point, const RectBounds& rectBounds)
 }
 
 
-static void buildOrthogonalChannelInfo(Router *router, 
+static void buildOrthogonalNudgingSegments(Router *router, 
         const size_t dim, ShiftSegmentList& segmentList)
 {
     if (router->routingPenalty(segmentPenalty) == 0)
     {
-        // This code assumes the routes are pretty optimal, so we don't
-        // do this adjustment if the routes have no segment penalty.
+        // The nudging code assumes the routes are pretty optimal.  This will
+        // only be true if a segment penalty is set, so just return if this 
+        // is not the case.
         return;
     }
     bool nudgeFinalSegments = 
@@ -2076,8 +2413,8 @@ static void buildOrthogonalChannelInfo(Router *router,
                 {
                     // This segment includes one of the routing
                     // checkpoints so we shouldn's shift it.
-                    segmentList.push_back(
-                            ShiftSegment(*curr, indexLow, indexHigh, dim));
+                    segmentList.push_back(new NudgingShiftSegment(
+                            *curr, indexLow, indexHigh, dim));
                     continue;
                 }
 
@@ -2163,25 +2500,26 @@ static void buildOrthogonalChannelInfo(Router *router,
                         if (minLim == maxLim)
                         {
                             // Fixed.
-                            segmentList.push_back(ShiftSegment(*curr, 
+                            segmentList.push_back(new NudgingShiftSegment(*curr, 
                                     indexLow, indexHigh, dim));
                         }
                         else
                         {
                             // Shiftable.
-                            segmentList.push_back(ShiftSegment(*curr, 
-                                    indexLow, indexHigh, false, false, 
-                                    dim, minLim, maxLim));
-                            segmentList.back().finalSegment = true;
-                            segmentList.back().endsInShape = withinShape;
+                            NudgingShiftSegment *segment = new NudgingShiftSegment(
+                                    *curr, indexLow, indexHigh, false, false, dim, 
+                                    minLim, maxLim);
+                            segment->finalSegment = true;
+                            segment->endsInShape = withinShape;
+                            segmentList.push_back(segment);
                         }
                     }
                     else
                     {
                         // The first and last segment of a connector can't be 
                         // shifted.  We call them fixed segments.  
-                        segmentList.push_back(
-                                ShiftSegment(*curr, indexLow, indexHigh, dim));
+                        segmentList.push_back(new NudgingShiftSegment(*curr, 
+                               indexLow, indexHigh, dim));
                     }
                     continue;
                 }
@@ -2231,18 +2569,25 @@ static void buildOrthogonalChannelInfo(Router *router,
                     }
                 }
 
-                segmentList.push_back(ShiftSegment(*curr, indexLow, 
-                            indexHigh, isSBend, isZBend, dim, minLim, maxLim));
+                segmentList.push_back(new NudgingShiftSegment(*curr, 
+                        indexLow, indexHigh, isSBend, isZBend, dim, 
+                        minLim, maxLim));
             }
         }
     }
+}
+
+static void buildOrthogonalChannelInfo(Router *router, 
+        const size_t dim, ShiftSegmentList& segmentList)
+{
     if (segmentList.empty())
     {
         // There are no segments, so we can just return now.
         return;
     }
     
-    // Do a sweep and shift these segments.
+    // Do a sweep to determine space for shifting segments.
+    size_t altDim = (dim + 1) % 2;
     const size_t n = router->m_obstacles.size();
     const size_t cpn = segmentList.size();
     // Set up the events for the sweep.
@@ -2253,6 +2598,14 @@ static void buildOrthogonalChannelInfo(Router *router,
     for (unsigned i = 0; i < n; i++)
     {
         Obstacle *obstacle = *obstacleIt;
+        JunctionRef *junction = dynamic_cast<JunctionRef *> (obstacle);
+        if (junction && ! junction->positionFixed())
+        {
+            // Junctions that are free to move are not treated as obstacles.
+            ++obstacleIt;
+            totalEvents -= 2;
+            continue;
+        }
         Point min, max;
         obstacle->polygon().getBoundingRect(&min.x, &min.y, &max.x, &max.y);
         double mid = min[dim] + ((max[dim] - min[dim]) / 2);
@@ -2265,12 +2618,12 @@ static void buildOrthogonalChannelInfo(Router *router,
     for (ShiftSegmentList::iterator curr = segmentList.begin(); 
             curr != segmentList.end(); ++curr)
     {
-        const Point& lowPt = curr->lowPoint();
-        const Point& highPt = curr->highPoint();
+        const Point& lowPt = (*curr)->lowPoint();
+        const Point& highPt = (*curr)->highPoint();
 
         COLA_ASSERT(lowPt[dim] == highPt[dim]);
         COLA_ASSERT(lowPt[altDim] < highPt[altDim]);
-        Node *v = new Node(&(*curr), lowPt[dim]);
+        Node *v = new Node(*curr, lowPt[dim]);
         events[ctr++] = new Event(SegOpen, v, lowPt[altDim]);
         events[ctr++] = new Event(SegClose, v, highPt[altDim]);
     }
@@ -2427,18 +2780,23 @@ class CmpLineOrder
               dimension(dim)
         {
         }
-        bool operator()(const ShiftSegment& lhs, const ShiftSegment& rhs,
+        bool operator()(const ShiftSegment *lhsSuper, 
+                const ShiftSegment *rhsSuper,
                 bool *comparable = NULL) const
         {
+            const NudgingShiftSegment *lhs = 
+                    dynamic_cast<const NudgingShiftSegment *> (lhsSuper);
+            const NudgingShiftSegment *rhs = 
+                    dynamic_cast<const NudgingShiftSegment *> (rhsSuper);
             if (comparable)
             {
                 *comparable = true;
             }
-            Point lhsLow  = lhs.lowPoint(); 
-            Point rhsLow  = rhs.lowPoint(); 
+            Point lhsLow  = lhs->lowPoint(); 
+            Point rhsLow  = rhs->lowPoint(); 
 #ifndef NDEBUG
-            const Point& lhsHigh = lhs.highPoint(); 
-            const Point& rhsHigh = rhs.highPoint(); 
+            const Point& lhsHigh = lhs->highPoint(); 
+            const Point& rhsHigh = rhs->highPoint(); 
 #endif
             size_t altDim = (dimension + 1) % 2;
 
@@ -2449,7 +2807,7 @@ class CmpLineOrder
             // be ordered based on their order and fixedOrder, so only 
             // compare segments further apart than the nudgeDistance.
             if (fabs(lhsLow[dimension] - rhsLow[dimension]) > 
-                    lhs.nudgeDistance())
+                    lhs->nudgeDistance())
             {
                 return lhsLow[dimension] < rhsLow[dimension];
             }
@@ -2458,8 +2816,8 @@ class CmpLineOrder
             // fixed segment, that is, order so the fixed segment doesn't 
             // block movement.
             bool oneIsFixed = false;
-            const int lhsFixedOrder = lhs.fixedOrder(oneIsFixed);
-            const int rhsFixedOrder = rhs.fixedOrder(oneIsFixed);
+            const int lhsFixedOrder = lhs->fixedOrder(oneIsFixed);
+            const int rhsFixedOrder = rhs->fixedOrder(oneIsFixed);
             if (oneIsFixed && (lhsFixedOrder != rhsFixedOrder))
             {
                 return lhsFixedOrder < rhsFixedOrder;
@@ -2469,8 +2827,8 @@ class CmpLineOrder
             // not have a good ordering here, so compare their order in 
             // terms of C-bend direction and S-bends and use that if it
             // differs for the two segments.
-            const int lhsOrder = lhs.order();
-            const int rhsOrder = rhs.order();
+            const int lhsOrder = lhs->order();
+            const int rhsOrder = rhs->order();
             if (lhsOrder != rhsOrder)
             {
                 return lhsOrder < rhsOrder;
@@ -2481,8 +2839,8 @@ class CmpLineOrder
                     lhsLow : rhsLow;
 
             PtOrder& lowOrder = orders[unchanged];
-            int lhsPos = lowOrder.positionFor(dimension, lhs.connRef);
-            int rhsPos = lowOrder.positionFor(dimension, rhs.connRef);
+            int lhsPos = lowOrder.positionFor(dimension, lhs->connRef);
+            int rhsPos = lowOrder.positionFor(dimension, rhs->connRef);
             if ((lhsPos == -1) || (rhsPos == -1))
             {
                 // A value for rhsPos or lhsPos mean the points are not directly
@@ -2490,7 +2848,7 @@ class CmpLineOrder
                 // overlap (they are just collinear.  The relative order for 
                 // these segments is not important since we do not constrain
                 // them against each other.
-                //COLA_ASSERT(lhs.overlapsWith(rhs, dimension) == false);
+                //COLA_ASSERT(lhs->overlapsWith(rhs, dimension) == false);
                 // We do need to be consistent though.
                 if (comparable)
                 {
@@ -2522,7 +2880,7 @@ static ShiftSegmentList linesort(ShiftSegmentList origList,
     while (!origList.empty())
     {
         // Get and remove the first element from the origList.
-        ShiftSegment segment = origList.front();
+        ShiftSegment *segment = origList.front();
         origList.pop_front();
 
         // Find the insertion point in the resultList.
@@ -2576,15 +2934,12 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
     // we try 10 times, reducing eac time by a 10th of the original amount.
     double reductionSteps = 10.0;
 
-    bool nudgeFinalSegments =
-            router->routingOption(nudgeOrthogonalSegmentsConnectedToShapes);
-
     // Do the actual nudging.
     ShiftSegmentList currentRegion;
     while (!segmentList.empty())
     {
         // Take a reference segment
-        ShiftSegment& currentSegment = segmentList.front();
+        ShiftSegment *currentSegment = segmentList.front();
         // Then, find the segments that overlap this one.
         currentRegion.clear();
         currentRegion.push_back(currentSegment);
@@ -2596,7 +2951,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             for (ShiftSegmentList::iterator curr2 = currentRegion.begin();
                     curr2 != currentRegion.end(); ++curr2)
             {
-                if (curr->overlapsWith(*curr2, dimension))
+                if ((*curr)->overlapsWith(*curr2, dimension))
                 {
                     overlaps = true;
                     break;
@@ -2626,8 +2981,9 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
         {
             // Save creating the solver instance if there is just one
             // immovable segment.
-            if (!currentRegion.front().zigzag())
+            if (currentRegion.front()->immovable())
             {
+                delete currentRegion.front();
                 continue;
             }
         }
@@ -2637,13 +2993,6 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
         Constraints cs;
         Constraints gapcs;
         ShiftSegmentPtrList prevVars;
-        // IDs:
-        const int freeID    = 0;
-        const int fixedID   = 1;
-        // Weights:
-        double freeWeight   = 0.00001;
-        double strongWeight = 0.001;
-        double fixedWeight  = 100000;
         double sepDist = baseSepDist;
 #ifdef NUDGE_DEBUG 
         printf("-------------------------------------------------------\n");
@@ -2662,50 +3011,19 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                 currentRegion.erase(matchingConnSegment);
                 --currSegmentIt;
             }
-            ShiftSegmentList::iterator currSegment = currSegmentIt;
-            Point& lowPt = currSegment->lowPoint();
+            NudgingShiftSegment *currSegment = dynamic_cast<NudgingShiftSegment *> (*currSegmentIt);
             
             // Create a solver variable for the position of this segment.
-            int varID = freeID;
-            double idealPos = lowPt[dimension];
-            double weight = freeWeight;
-            if (nudgeFinalSegments && currSegment->finalSegment)
-            {
-                weight = strongWeight;
-            }
-            else if (currSegment->zigzag())
-            {
-                COLA_ASSERT(currSegment->minSpaceLimit > -CHANNEL_MAX);
-                COLA_ASSERT(currSegment->maxSpaceLimit < CHANNEL_MAX);
-                
-                // For zigzag bends, take the middle as ideal.
-                idealPos = currSegment->minSpaceLimit +
-                        ((currSegment->maxSpaceLimit -
-                          currSegment->minSpaceLimit) / 2);
-            }
-            else if (currSegment->fixed)
-            {
-                // Fixed segments shouldn't get moved.
-                weight = fixedWeight;
-                varID = fixedID;
-            }
-            else if (!currSegment->finalSegment)
-            {
-                // Set a higher weight for c-bends to stop them sometimes 
-                // getting pushed out into channels by more-free connectors
-                // to the "inner" side of them.
-                weight = strongWeight;
-            }
-
+            currSegment->createSolverVariable();
+            
             if (pointOrders.empty())
             {
                 // If we are just doing centring, then we should use the
                 // same weights, otherwise we might move overlapping paths
-                // a tiny difference apart if they have different weights.
-                weight = freeWeight;
+                // a tiny distance apart if they have different weights.
+                currSegment->variable->weight = freeWeight;
             }
 
-            currSegment->variable = new Variable(varID, idealPos, weight);
             vs.push_back(currSegment->variable);
             size_t index = vs.size() - 1;
 #ifdef NUDGE_DEBUG
@@ -2744,10 +3062,11 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             for (ShiftSegmentPtrList::iterator prevVarIt = prevVars.begin();
                     prevVarIt != prevVars.end(); ++prevVarIt)
             {
-                ShiftSegment *prevSeg = *prevVarIt;
+                NudgingShiftSegment *prevSeg =
+                        dynamic_cast<NudgingShiftSegment *> (*prevVarIt);
                 Variable *prevVar = prevSeg->variable;
                 
-                if (currSegment->overlapsWith(*prevSeg, dimension) &&
+                if (currSegment->overlapsWith(prevSeg, dimension) &&
                         (!(currSegment->fixed) || !(prevSeg->fixed)))
                 {
                     // If there is a previous segment to the left that 
@@ -2757,7 +3076,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                     // segments are fixed in place.
                     double thisSepDist = sepDist;
                     bool equality = false;
-                    if (currSegment->shouldAlignWith(*prevSeg, dimension))
+                    if (currSegment->shouldAlignWith(prevSeg, dimension))
                     {
                         // Handles the case where the two end segments can
                         // be brought together to make a single segment. This
@@ -2818,14 +3137,14 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             matchingConnSegment = currentRegion.end();
             if (currSegment->finalSegment)
             {
-                for (ShiftSegmentList::iterator matchingSegment = currSegment;
+                for (ShiftSegmentList::iterator matchingSegment = currSegmentIt;
                         matchingSegment != currentRegion.end(); ++matchingSegment)
                 {
-                    if (matchingSegment == currSegment)
+                    if (matchingSegment == currSegmentIt)
                     {
                         continue;
                     }
-                    if (matchingSegment->shouldAlignWith(*currSegment, dimension))
+                    if ((*matchingSegment)->shouldAlignWith(currSegment, dimension))
                     {
                         matchingConnSegment = matchingSegment;
                     }
@@ -2880,20 +3199,13 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             for (ShiftSegmentList::iterator currSegment = currentRegion.begin();
                     currSegment != currentRegion.end(); ++currSegment)
             {
-                if (currSegment->fixed)
-                {
-                    continue;
-                }
-                Point& lowPt = currSegment->lowPoint();
-                Point& highPt = currSegment->highPoint();
-                double newPos = currSegment->variable->finalPosition;
-#ifdef NUDGE_DEBUG
-                printf("Pos: %lX, %g\n", (long) currSegment->connRef, newPos);
-#endif
-                lowPt[dimension] = newPos;
-                highPt[dimension] = newPos;
+                NudgingShiftSegment *segment =
+                        dynamic_cast<NudgingShiftSegment *> (*currSegment);
+
+                segment->updatePositionsFromSolver();
             }
         }
+        for_each(currentRegion.begin(), currentRegion.end(), delete_object());
 #ifdef NUDGE_DEBUG
         for(unsigned i=0;i<vs.size();i++) {
             printf("+vs[%d]=%f\n",i,vs[i]->finalPosition);
@@ -2912,14 +3224,19 @@ extern void improveOrthogonalRoutes(Router *router)
     simplifyOrthogonalRoutes(router);
 
     // Do centring first, by itself, to make nudging results a little better.
+    // XXX This is still not great.  In some ways we really want to consider
+    //     the ordering for all segments within a channel, rather than just
+    //     the overlapping cases.  This would address the problem where
+    //     initial routings can force crossings that could be avoided.
     for (size_t dimension = 0; dimension < 2; ++dimension)
     {
         // Empty pointOrders, so no nudging is conducted.
         PtOrderMap pointOrders;
 
-        ShiftSegmentList segLists;
-        buildOrthogonalChannelInfo(router, dimension, segLists);
-        nudgeOrthogonalRoutes(router, dimension, pointOrders, segLists);
+        ShiftSegmentList segmentList;
+        buildOrthogonalNudgingSegments(router, dimension, segmentList);
+        buildOrthogonalChannelInfo(router, dimension, segmentList);
+        nudgeOrthogonalRoutes(router, dimension, pointOrders, segmentList);
     }
 
     for (size_t dimension = 0; dimension < 2; ++dimension)
@@ -2933,15 +3250,617 @@ extern void improveOrthogonalRoutes(Router *router)
         simplifyOrthogonalRoutes(router);
 
         // Do the centring and nudging.
-        ShiftSegmentList segLists;
-        buildOrthogonalChannelInfo(router, dimension, segLists);
-        nudgeOrthogonalRoutes(router, dimension, pointOrders, segLists);
+        ShiftSegmentList segmentList;
+        buildOrthogonalNudgingSegments(router, dimension, segmentList);
+        buildOrthogonalChannelInfo(router, dimension, segmentList);
+        nudgeOrthogonalRoutes(router, dimension, pointOrders, segmentList);
     }
     
     // Resimplify all the display routes that may have been split.
     simplifyOrthogonalRoutes(router);
 
     router->timers.Stop();
+}
+
+
+typedef std::map<JunctionRef *, ShiftSegmentList> RootSegmentsMap;
+
+struct ImproveHyperEdges
+{
+    // Constructor.
+    ImproveHyperEdges(Router *router)
+        : router(router),
+          debug_count(0)
+    {
+    }
+
+    // Helper method for buildHyperEdgeSegments() for hyperedge tree nodes.
+    void createShiftSegmentsForDimensionExcluding(HyperEdgeTreeNode *node,
+            const size_t dim, HyperEdgeTreeEdge *ignore, 
+            ShiftSegmentList& segments)
+    {
+        for (std::list<HyperEdgeTreeEdge *>::iterator curr = node->edges.begin();
+                curr != node->edges.end(); ++curr)
+        {
+            HyperEdgeTreeEdge *edge = *curr;
+            if (edge != ignore)
+            {
+                createShiftSegmentsForDimensionExcluding(edge, dim,
+                        node, segments);
+            }
+        }
+    }
+
+    // Helper method for buildHyperEdgeSegments() for hyperedge tree edges.
+    void createShiftSegmentsForDimensionExcluding(HyperEdgeTreeEdge *edge,
+            const size_t dim, HyperEdgeTreeNode *ignore, 
+            ShiftSegmentList& segments)
+    {
+        if (edge->hasOrientation(dim))
+        {
+            bool immovable = (edge->ends.first->edges.size() == 1) || 
+                    (edge->ends.second->edges.size() == 1);
+            HyperEdgeShiftSegment *newSegment =
+                    new HyperEdgeShiftSegment(edge->ends.first,
+                    edge->ends.second, dim, immovable);
+            segments.push_back(newSegment);
+        }
+
+        if (edge->ends.first && (edge->ends.first != ignore))
+        {
+            createShiftSegmentsForDimensionExcluding(edge->ends.first, dim,
+                    edge, segments);
+        }
+
+        if (edge->ends.second && (edge->ends.second != ignore))
+        {
+            createShiftSegmentsForDimensionExcluding(edge->ends.second, dim,
+                    edge, segments);
+        }
+    }
+
+    // During creation and nudging of shift segments it is often necessary
+    // to merge colinear  or overlapping segments.  This method does the
+    // merging for these cases.  Effectively merging is done by adding
+    // additional vertex pointers to the shift segment.
+    void mergeOverlappingSegments(ShiftSegmentList& segments)
+    {
+        for (ShiftSegmentList::iterator curr = segments.begin();
+                curr != segments.end(); ++curr)
+        {
+            HyperEdgeShiftSegment *edge1 =
+                    dynamic_cast<HyperEdgeShiftSegment *> (*curr);
+            for (ShiftSegmentList::iterator curr2 = segments.begin();
+                    curr2 != segments.end(); )
+            {
+                if (curr2 == curr)
+                {
+                    ++curr2;
+                    continue;
+                }
+                HyperEdgeShiftSegment *edge2 =
+                        dynamic_cast<HyperEdgeShiftSegment *> (*curr2);
+                if (edge1->mergesWith(edge2))
+                {
+                    delete edge2;
+                    curr2 = segments.erase(curr2);
+                }
+                else
+                {
+                    ++curr2;
+                }
+            }
+        }
+    }
+
+    // Given a hyperedge tree and a dimension, this method creates shift
+    // segments for all edges in that orientation.  These segments are the
+    // objects on which the local improvement nudging operates, and they
+    // in turn make changes back to the hyperedge tree.
+    void buildHyperEdgeSegments(const size_t dim)
+    {
+        for (JunctionSet::iterator curr = hyperEdgeTreeRoots.begin();
+                curr != hyperEdgeTreeRoots.end(); ++curr)
+        {
+            ShiftSegmentList& segments = rootShiftSegments[*curr];
+            
+            HyperEdgeTreeNode *node = hyperEdgeTreeJunctions[*curr];
+            createShiftSegmentsForDimensionExcluding(node, dim, NULL, segments);
+
+            // Merge overlapping segment.
+            mergeOverlappingSegments(segments);
+
+            allShiftSegments.insert(allShiftSegments.begin(), 
+                    segments.begin(), segments.end());    
+        }
+    }
+
+    // This method looks for and corrects situations where the middle section
+    // of a zigzag is optimised away by bringing the outside segments in line
+    // and leading to the middle segment being zero length.  These zero length
+    // edges are removed.
+    void removeZeroLengthEdges(void)
+    {
+        for (JunctionSet::iterator curr = hyperEdgeTreeRoots.begin();
+                curr != hyperEdgeTreeRoots.end(); ++curr)
+        {
+            HyperEdgeTreeNode *node = hyperEdgeTreeJunctions[*curr];
+
+            node->removeZeroLengthEdges(NULL);
+        }
+    }
+
+    // This method looks for and correct situations where multiple overlapping
+    // edges lead to a junction and one or more of these segments could be
+    // removed by moving the junction (and thus divergence point) along the
+    // edge.
+    void moveJunctionsAlongCommonEdges(void)
+    {
+        for (JunctionHyperEdgeTreeNodeMap::iterator curr = 
+                hyperEdgeTreeJunctions.begin(); 
+                curr != hyperEdgeTreeJunctions.end(); ++curr)
+        {
+            HyperEdgeTreeNode *node = curr->second;
+
+            // For each junction, try and move it.
+            while ((node = HyperEdgeTreeNode::moveJunctionAlongCommonEdge(node)))
+            {
+                if (node)
+                {
+                    // Junction has moved, rewrite the pointer in
+                    // the hyperEdgeTreeJunctions map.
+                    curr->second = node;
+                }
+            }
+        }
+    }
+
+    // Given a set of hyperedge shift segments in a particular dimension,
+    // with limits and balance values precomputed, this method shifts and
+    // merges segments to improve the overall cost (length + bend penalties)
+    // for the hyperedge.
+    void nudgeHyperEdgeSegments(size_t dimension, unsigned int& versionNumber)
+    {
+        // FOr each hyperedge...
+        for (JunctionSet::iterator curr = hyperEdgeTreeRoots.begin();
+                curr != hyperEdgeTreeRoots.end(); ++curr)
+        {
+            ++debug_count;
+            versionNumber = dimension * 10000;
+            versionNumber += debug_count * 1000;
+
+            // Calculate the balance for each shift segment.
+            ShiftSegmentList& segmentList = rootShiftSegments[*curr];
+            for (ShiftSegmentList::iterator currSeg = segmentList.begin();
+                    currSeg != segmentList.end(); )
+            {
+                HyperEdgeShiftSegment *segment =
+                        dynamic_cast<HyperEdgeShiftSegment *> (*currSeg);
+                segment->setBalanceCount();
+
+                ++currSeg;
+            }
+
+            //segmentList.sort(CmpHyperEdgeSegmentDirOrder);
+
+            bool change = false;
+            ShiftSegmentList::iterator currSeg = segmentList.begin();
+            while (currSeg != segmentList.end())
+            {
+                // While we haven't considered every segment...
+
+                HyperEdgeShiftSegment *segment =
+                        dynamic_cast<HyperEdgeShiftSegment *> (*currSeg);
+
+                if ( ! segment->settled() )
+                {
+                    // The segment is not settled, so move it to the next
+                    // ideal position and then merge it with overlapping
+                    // segments.  Note, the merged segment will have a new
+                    // balance value calculated for it.
+                    segment->adjustPosition();
+                    outputHyperEdgesToSVG(++versionNumber, segment);
+                    mergeOverlappingSegments(segmentList);
+                    change = true;
+                }
+
+                if (change)
+                {
+                    // We made a change, so start again from the beginning
+                    // of the list of segments.
+                    change = false;
+                    currSeg = segmentList.begin();
+                }
+                else
+                {
+                    // Consider the next segment.
+                    ++currSeg;
+                }
+            }
+        }
+    }
+
+    // Write the paths from an improved hyperedgetree object back as routes
+    // to the component connectors that form the hyperedge.
+    void writeHyperEdgeSegmentsBackToConnPaths(void)
+    {
+        // Write segments in two passes.  The first to clear the existing
+        // connector routes and the second to build and set new routes.
+        for (size_t pass = 0; pass < 2; ++pass)
+        {
+            for (JunctionSet::iterator curr = hyperEdgeTreeRoots.begin();
+                    curr != hyperEdgeTreeRoots.end(); ++curr)
+            {
+                HyperEdgeTreeNode *node = hyperEdgeTreeJunctions[*curr];
+
+                node->writeEdgesToConns(NULL, pass);
+            }
+        }
+    }
+
+    // Output the hyperedge tree to an SVG file, optionally highlighting
+    // a segment of interest (usually the segment being moved).
+    void outputHyperEdgesToSVG(unsigned int pass,
+            HyperEdgeShiftSegment *activeSegment = NULL)
+    {
+#ifndef HYPEREDGE_DEBUG
+        return;
+#endif
+
+        // Reasonable initial limit for diagram bounds.
+        const double LIMIT = 100000000;
+
+        char filename[50];
+        sprintf(filename, "DEBUG/hyperedges-%05u.svg", pass);
+        FILE *fp = fopen(filename, "w");
+
+        double minX = LIMIT;
+        double minY = LIMIT;
+        double maxX = -LIMIT;
+        double maxY = -LIMIT;
+
+        VertInf *curr = router->vertices.connsBegin();
+        while (curr)
+        {
+            Point p = curr->point;
+
+            if (p.x > -LIMIT)
+            {
+                minX = std::min(minX, p.x);
+            }
+            if (p.x < LIMIT)
+            {
+                maxX = std::max(maxX, p.x);
+            }
+            if (p.y > -LIMIT)
+            {
+                minY = std::min(minY, p.y);
+            }
+            if (p.y < LIMIT)
+            {
+                maxY = std::max(maxY, p.y);
+            }
+            curr = curr->lstNext;
+        }
+        minX -= 50;
+        minY -= 50;
+        maxX += 50;
+        maxY += 50;
+
+
+        fprintf(fp, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        fprintf(fp, "<svg xmlns:inkscape=\"http://www.inkscape.org/namespaces/inkscape\" xmlns=\"http://www.w3.org/2000/svg\" width=\"100%%\" height=\"100%%\" viewBox=\"%g %g %g %g\">\n", minX, minY, maxX - minX, maxY - minY);
+
+        fprintf(fp, "<g inkscape:groupmode=\"layer\" "
+                "inkscape:label=\"ShapesRect\">\n");
+        ObstacleList::iterator obstacleIt = router->m_obstacles.begin();
+        while (obstacleIt != router->m_obstacles.end())
+        {
+            Obstacle *obstacle = *obstacleIt;
+            bool isShape = (NULL != dynamic_cast<ShapeRef *> (obstacle));
+
+            if ( ! isShape )
+            {
+                // Don't output obstacles here, for now.
+                ++obstacleIt;
+                continue;
+            }
+
+            double minX, minY, maxX, maxY;
+            obstacle->polygon().getBoundingRect(&minX, &minY, &maxX, &maxY);
+
+            fprintf(fp, "<rect id=\"rect-%u\" x=\"%g\" y=\"%g\" width=\"%g\" "
+                    "height=\"%g\" style=\"stroke-width: 1px; stroke: %s; "
+                    "fill: blue; fill-opacity: 0.3;\" />\n",
+                    obstacle->id(), minX, minY, maxX - minX, maxY - minY,
+                    (isShape) ? "blue" : "red");
+            ++obstacleIt;
+        }
+        fprintf(fp, "</g>\n");
+
+        fprintf(fp, "<g inkscape:groupmode=\"layer\" "
+                "inkscape:label=\"HyperEdge-%u\">\n", pass);
+        if (activeSegment)
+        {
+            fprintf(fp, "<path d=\"M %g %g L %g %g\" "
+                "style=\"fill: none; stroke: %s; stroke-width: 12px; "
+                "stroke-opacity: 0.5;\" />\n",
+                activeSegment->lowPoint().x, activeSegment->lowPoint().y,
+                activeSegment->highPoint().x, activeSegment->highPoint().y,
+                activeSegment->settled() ? "red" : "orange");
+        }
+
+        for (JunctionSet::iterator curr = hyperEdgeTreeRoots.begin();
+                curr != hyperEdgeTreeRoots.end(); ++curr)
+        {
+            HyperEdgeTreeNode *node = hyperEdgeTreeJunctions[*curr];
+
+            node->outputEdgesExcept(fp, NULL);
+        }
+        fprintf(fp, "</g>\n");
+        fprintf(fp, "</svg>\n");
+
+        fclose(fp);
+    }
+
+    // Given a junction, this method follows the attached connectors and
+    // junctions to determine a hyperedge and returns the set of vertices
+    // representing its endpoints.
+    void getEndpoints(JunctionRef *junction, JunctionRef *ignore,
+            std::set<VertInf *>& endpoints)
+    {
+        for (std::set<ConnEnd *>::iterator curr =
+                junction->m_following_conns.begin();
+                curr != junction->m_following_conns.end(); ++curr)
+        {
+            ConnEnd *connEnd = *curr;
+            COLA_ASSERT(connEnd->m_conn_ref != NULL);
+            ConnRef *connRef = connEnd->m_conn_ref;
+            std::pair<Obstacle *, Obstacle *> anchors =
+                    connRef->endpointAnchors();
+
+            JunctionRef *junction1 =
+                    dynamic_cast<JunctionRef *> (anchors.first);
+            if (junction1)
+            {
+                if (junction1 != junction && junction1 != ignore)
+                {
+                    getEndpoints(junction1, junction, endpoints);
+                }
+            }
+            else
+            {
+                endpoints.insert(connRef->m_src_vert);
+            }
+
+            JunctionRef *junction2 =
+                    dynamic_cast<JunctionRef *> (anchors.second);
+            if (junction2)
+            {
+                if (junction2 != junction && junction2 != ignore)
+                {
+                    getEndpoints(junction2, junction, endpoints);
+                }
+            }
+            else
+            {
+                endpoints.insert(connRef->m_dst_vert);
+            }
+        }
+    }
+
+    // Execute local improvement process.
+    void execute(void)
+    {
+        // Build HyperEdge trees.
+        ConnRefList::iterator connRefIt = router->connRefs.begin();
+        while (connRefIt != router->connRefs.end())
+        {
+            ConnRef *connRef = *connRefIt;
+            JunctionRef *jFront = NULL;
+            JunctionRef *jBack = NULL;
+
+            if (connRef->m_src_connend)
+            {
+                jFront = dynamic_cast<JunctionRef *> 
+                        (connRef->m_src_connend->m_anchor_obj);
+            }
+
+            if (connRef->m_dst_connend)
+            {
+                jBack = dynamic_cast<JunctionRef *>        
+                        (connRef->m_dst_connend->m_anchor_obj);
+            }
+
+            if (jFront && jFront->positionFixed())
+            {
+                jFront = NULL;
+            }
+
+            if (jBack && jBack->positionFixed())
+            {
+                jBack = NULL;
+            }
+
+            if ( ! jFront && ! jBack )
+            {
+                ++connRefIt;
+                continue;
+            }
+
+            bool seenFront = (hyperEdgeTreeJunctions.find(jFront) != 
+                    hyperEdgeTreeJunctions.end());
+            bool seenBack = (hyperEdgeTreeJunctions.find(jBack) !=
+                    hyperEdgeTreeJunctions.end());
+                
+            HyperEdgeTreeNode *nodeFront = NULL;
+            HyperEdgeTreeNode *nodeBack = NULL;
+
+            if (jFront)
+            {
+                if ( ! seenFront)
+                {
+                    nodeFront = new HyperEdgeTreeNode();
+                    nodeFront->point = jFront->position();
+                    nodeFront->junction = jFront;
+
+                    hyperEdgeTreeJunctions[jFront] = nodeFront;
+                }
+                else
+                {
+                    nodeFront = hyperEdgeTreeJunctions[jFront];
+                }
+            }
+            else
+            {
+                nodeFront = new HyperEdgeTreeNode();
+            }
+
+            if (jBack)
+            {
+                if ( ! seenBack)
+                {
+                    nodeBack = new HyperEdgeTreeNode();
+                    nodeBack->point = jBack->position();
+                    nodeBack->junction = jBack;
+
+                    hyperEdgeTreeJunctions[jBack] = nodeBack;
+                }
+                else
+                {
+                    nodeBack = hyperEdgeTreeJunctions[jBack];
+                }
+            }
+            else
+            {
+                nodeBack = new HyperEdgeTreeNode();
+            }
+
+            PolyLine& route = connRef->displayRoute();
+            HyperEdgeTreeNode *prev = NULL;
+            for (unsigned int i = 1; i < route.size(); ++i)
+            {
+                HyperEdgeTreeNode *node;
+                if (i + 1 == route.size())
+                {
+                    node = nodeBack;
+                }
+                else
+                {
+                    node = new HyperEdgeTreeNode();
+                }
+                node->point = route.at(i);
+                if (i == 1)
+                {
+                    prev = nodeFront;
+                    nodeFront->point = route.at(0);
+                }
+                new HyperEdgeTreeEdge(prev, node, connRef);
+                prev = node;
+            }
+            ++connRefIt;
+        }
+
+        // Make a list that contains a single junction from each tree.
+        for (JunctionHyperEdgeTreeNodeMap::iterator curr = 
+                hyperEdgeTreeJunctions.begin(); 
+                curr != hyperEdgeTreeJunctions.end(); ++curr)
+        {
+            HyperEdgeTreeNode *node = curr->second;
+            hyperEdgeTreeRoots.insert(node->junction); 
+        }
+        for (JunctionSet::iterator curr = hyperEdgeTreeRoots.begin();
+                curr != hyperEdgeTreeRoots.end(); ++curr)
+        {
+            HyperEdgeTreeNode *node = hyperEdgeTreeJunctions[*curr];
+            node->removeOtherJunctionsFrom(NULL, hyperEdgeTreeRoots);
+        }
+
+        router->timers.Register(tmHyperedgeImprove, timerStart);
+
+        // Debug output.
+        unsigned int versionNumber = 1;
+        outputHyperEdgesToSVG(versionNumber);
+
+        // Move junctions to divergence points.
+        moveJunctionsAlongCommonEdges();
+
+        // Debug output.
+        outputHyperEdgesToSVG(++versionNumber);
+
+        for (size_t count = 0; count < 4; ++count)
+        {
+            size_t dimension = count % 2;
+
+            // Set a version number for debug output.
+            versionNumber = 100 * (dimension + 1);
+
+            // Build shift segments.
+            buildHyperEdgeSegments(dimension);
+            // Calculate channel information for this dimension.
+            buildOrthogonalChannelInfo(router, dimension, allShiftSegments);
+            // Nudge hyperedge segments to locally improve the route.
+            nudgeHyperEdgeSegments(dimension, versionNumber);
+            // Remove resulting zero length edges.
+            removeZeroLengthEdges();
+            // Move junctions to divergence points.
+            moveJunctionsAlongCommonEdges();
+            // Debug output.
+            outputHyperEdgesToSVG(++versionNumber);
+
+            // Clean up shift segments.
+            for (JunctionSet::iterator curr = hyperEdgeTreeRoots.begin();
+                    curr != hyperEdgeTreeRoots.end(); ++curr)
+            {
+                ShiftSegmentList& segmentList = rootShiftSegments[*curr];
+                for_each(segmentList.begin(), segmentList.end(),
+                        delete_object());
+            }
+            rootShiftSegments.clear();
+            allShiftSegments.clear();
+        }
+
+        // Write back final recommended positions to junctions.
+        for (JunctionHyperEdgeTreeNodeMap::iterator curr = 
+                hyperEdgeTreeJunctions.begin(); 
+                curr != hyperEdgeTreeJunctions.end(); ++curr)
+        {
+            HyperEdgeTreeNode *node = curr->second;
+
+            node->junction->setRecommendedPosition(node->point);
+        }
+
+        // Write paths from the hyperedge tree back into individual
+        // connector routes.
+        writeHyperEdgeSegmentsBackToConnPaths();
+
+        // Free HyperEdgeTree structure.
+        for (JunctionSet::iterator curr = hyperEdgeTreeRoots.begin();
+                curr != hyperEdgeTreeRoots.end(); ++curr)
+        {
+            HyperEdgeTreeNode *node = hyperEdgeTreeJunctions[*curr];
+
+            node->deleteEdgesExcept(NULL);
+            delete node;
+        }
+        router->timers.Stop();
+    }
+
+    Router *router;
+    JunctionHyperEdgeTreeNodeMap hyperEdgeTreeJunctions;
+    JunctionSet hyperEdgeTreeRoots;
+    RootSegmentsMap rootShiftSegments;
+    ShiftSegmentList allShiftSegments;
+    int debug_count;
+};
+
+
+// Convenience function to create a ImproveHyperEdges object and to
+// execute the process.
+void improveHyperedgeRoutes(Router *router)
+{
+    ImproveHyperEdges method(router);
+    method.execute();
 }
 
 

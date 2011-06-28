@@ -20,6 +20,9 @@ libavoid_la_SOURCES = connectionpin.cpp \
 			viscluster.cpp \
 			visibility.cpp \
 			vpsc.cpp \
+			hyperedge.cpp \
+			mtst.cpp \
+			hyperedgetree.cpp \
 			libavoid.h
 
 libavoidincludedir = ${includedir}/libavoid
@@ -42,6 +45,9 @@ libavoidinclude_HEADERS = assertions.h \
 			vertices.h \
 			viscluster.h \
 			visibility.h \
+			hyperedge.h \
+			mtst.h \
+			hyperedgetree.h \
 			vpsc.h
 
 SUBDIRS = . tests

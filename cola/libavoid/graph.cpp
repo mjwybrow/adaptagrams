@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2009  Monash University
+ * Copyright (C) 2004-2011  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -269,6 +269,31 @@ void EdgeInf::setDist(double dist)
     m_blocker = 0;
 }
 
+
+void EdgeInf::setMtstDist(VertInf *from, const double bendCost)
+{
+    VertInf *other = otherVert(from);
+
+    // The default cost is the cost back to the root of each forest plus the
+    // length of this edge.
+    double cost = m_vert1->sptfDist + m_vert2->sptfDist + getDist();
+
+    // If the other end is connecting to a forest via a bend, then add a
+    // penalty for it.  Note, the penalty is already added for the side
+    // we are connecting from.
+    if (other->pathNext && ! colinear(other->pathNext->point,
+            other->point, from->point))
+    {
+        cost += bendCost;
+    }
+
+    m_mtst_dist = cost;
+}
+
+double EdgeInf::mtstDist(void) const
+{
+    return m_mtst_dist;
+}
 
 bool EdgeInf::added(void)
 {

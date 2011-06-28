@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2008  Monash University
+ * Copyright (C) 2004-2011  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -30,6 +30,7 @@
 
 namespace Avoid {
 
+#define NOTIMERS
 
 #ifdef NOTIMERS
 
@@ -61,6 +62,9 @@ enum TimerIndex
     tmOrthogRoute,
     tmOrthogCentre,
     tmOrthogNudge,
+    tmHyperedgeForest,
+    tmHyperedgeMTST,
+    tmHyperedgeImprove,
     tmCount
 };
 

@@ -8,20 +8,8 @@ int main(void) {
     router->setRoutingPenalty((PenaltyType)3, 4000);
     router->setRoutingPenalty((PenaltyType)4, 105);
     router->setOrthogonalNudgeDistance(25);
-    Rectangle rect478845150(Point(50695, 51070), Point(50705, 51080));
-    ShapeRef *shapeRef478845150 = new ShapeRef(router, rect478845150, 478845150);
-    new Avoid::ShapeConnectionPin(shapeRef478845150, 
-	    Avoid::CONNECTIONPIN_CENTRE, Avoid::ATTACH_POS_CENTRE, 
-	    Avoid::ATTACH_POS_CENTRE, 0.0, ConnDirDown);
-    new Avoid::ShapeConnectionPin(shapeRef478845150, 
-	    Avoid::CONNECTIONPIN_CENTRE, Avoid::ATTACH_POS_CENTRE, 
-	    Avoid::ATTACH_POS_CENTRE, 0.0, ConnDirLeft);
-    new Avoid::ShapeConnectionPin(shapeRef478845150, 
-	    Avoid::CONNECTIONPIN_CENTRE, Avoid::ATTACH_POS_CENTRE, 
-	    Avoid::ATTACH_POS_CENTRE, 0.0, ConnDirRight);
-    new Avoid::ShapeConnectionPin(shapeRef478845150, 
-	    Avoid::CONNECTIONPIN_CENTRE, Avoid::ATTACH_POS_CENTRE, 
-	    Avoid::ATTACH_POS_CENTRE, 0.0, ConnDirUp);
+
+    JunctionRef *junction478845150 = new JunctionRef(router, Point(50700, 51075));
     
     Rectangle rect92712048(Point(51246, 50475), Point(51304, 50585));
     new ShapeRef(router, rect92712048, 92712048);
@@ -39,15 +27,15 @@ int main(void) {
     ConnEnd dstPt342420237(Point(50710, 50450), 4);
     new ConnRef(router, srcPt342420237, dstPt342420237, 342420237);
     ConnEnd srcPt352019675(Point(50990, 50500), 8);
-    ConnEnd dstPt352019675(shapeRef478845150, Avoid::CONNECTIONPIN_CENTRE);
+    ConnEnd dstPt352019675(junction478845150);
     //ConnEnd dstPt352019675(Point(50700, 51075), 15);
     new ConnRef(router, srcPt352019675, dstPt352019675, 352019675);
-    ConnEnd srcPt42699400(shapeRef478845150, Avoid::CONNECTIONPIN_CENTRE);
+    ConnEnd srcPt42699400(junction478845150);
     //ConnEnd srcPt42699400(Point(50700, 51075), 15);
     ConnEnd dstPt42699400(Point(50615, 51075), 8);
     new ConnRef(router, srcPt42699400, dstPt42699400, 42699400);
     ConnEnd srcPt94712625(Point(50710, 50550), 4);
-    ConnEnd dstPt94712625(shapeRef478845150, Avoid::CONNECTIONPIN_CENTRE);
+    ConnEnd dstPt94712625(junction478845150);
     //ConnEnd dstPt94712625(Point(50700, 51075), 15);
     new ConnRef(router, srcPt94712625, dstPt94712625, 94712625);
     ConnEnd srcPt92802970(Point(50990, 50450), 8);
@@ -58,9 +46,10 @@ int main(void) {
     new ConnRef(router, srcPt716502036, dstPt716502036, 716502036);
     router->processTransaction();
     router->outputInstanceToSVG("test-junction02-1");
-    router->moveShape(shapeRef478845150, 585, 0);
+    router->moveJunction(junction478845150, 585, 0);
     router->processTransaction();
     router->outputInstanceToSVG("test-junction02-2");
     delete router;
     return 0;
 };
+

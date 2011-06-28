@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2009  Monash University
+ * Copyright (C) 2004-2011  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -138,6 +138,11 @@ class VertInf
         EdgeInfList invisList;
         unsigned int invisListSize;
         VertInf *pathNext;
+
+        // The tree root and distance value used when computing MTSTs.
+        VertInf *sptfRoot;
+        double sptfDist;
+
         ConnDirFlags visDirections;
         std::list<unsigned int> aStarDoneIndexes;
         // Flags for orthogonal visibility properties, i.e., whether the 
@@ -178,11 +183,6 @@ class VertInfList
         VertInf *end(void);
         unsigned int connsSize(void) const;
         unsigned int shapesSize(void) const;
-        void stats(FILE *fp = stderr)
-        {
-            fprintf(fp, "Conns %d, shapes %d\n", _connVertices, 
-                    _shapeVertices);
-        }
     private:
         VertInf *_firstShapeVert;
         VertInf *_firstConnVert;

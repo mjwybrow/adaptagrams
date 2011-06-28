@@ -2,12 +2,12 @@
 using namespace Avoid;
 int main(void) {
     Router *router = new Router(
-            PolyLineRouting | OrthogonalRouting);
+            OrthogonalRouting);
     router->setRoutingPenalty((PenaltyType)0, 50);
     router->setRoutingPenalty((PenaltyType)1, 0);
-    router->setRoutingPenalty((PenaltyType)2, 200);
+    //router->setRoutingPenalty((PenaltyType)2, 200);
     router->setRoutingPenalty((PenaltyType)3, 4000);
-    router->setRoutingPenalty((PenaltyType)4, 110);
+    //router->setRoutingPenalty((PenaltyType)4, 110);
     router->setOrthogonalNudgeDistance(25);
 
     Polygon poly219926511(4);
@@ -320,8 +320,39 @@ int main(void) {
     connRef985644192->setDestEndpoint(dstPt985644192);
     connRef985644192->setRoutingType((ConnType)2);
 
+    ConnRef *connRef1 = new ConnRef(router, 1);
+    ConnEnd srcPt1(shapeRef102578723);
+    connRef1->setSourceEndpoint(srcPt1);
+    ConnEnd dstPt1(shapeRef171026375);
+    connRef1->setDestEndpoint(dstPt1);
+    connRef1->setRoutingType((ConnType)2);
+
+    ConnRef *connRef2 = new ConnRef(router, 2);
+    ConnEnd srcPt2(shapeRef102578723);
+    connRef2->setSourceEndpoint(srcPt2);
+    ConnEnd dstPt2(shapeRef17922268);
+    connRef2->setDestEndpoint(dstPt2);
+    connRef2->setRoutingType((ConnType)2);
+
+    ConnRef *connRef3 = new ConnRef(router, 3);
+    ConnEnd srcPt3(shapeRef102578723);
+    connRef3->setSourceEndpoint(srcPt3);
+    ConnEnd dstPt3(shapeRef265539540);
+    connRef3->setDestEndpoint(dstPt3);
+    connRef3->setRoutingType((ConnType)2);
+
     router->processTransaction();
-    router->outputInstanceToSVG("test-connectionpin03");
+    router->outputInstanceToSVG("test-hyperedge01-1");
+
+    HyperedgeRerouter *hyperedgeRerouter = router->hyperedgeRerouter();
+    hyperedgeRerouter->registerHyperedgeForRerouting(shapeRef102578723);
+    
+    router->processTransaction();
+    router->outputInstanceToSVG("test-hyperedge01-2");
+
+    router->processTransaction();
+    router->outputInstanceToSVG("test-hyperedge01-3");
+
     delete router;
     return 0;
 }

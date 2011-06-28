@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2008  Monash University
+ * Copyright (C) 2004-2011  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -46,7 +46,6 @@ class ShapeRef;
 class ConnEnd;
 class ShapeConnectionPin;
 class ConnRef;
-typedef std::list<ConnRef *> ConnRefList;
 typedef std::list<ShapeRef *> ShapeRefList;
 
 //! @brief  Describes the type of transformation that has been applied to a
@@ -130,7 +129,6 @@ class ShapeRef : public Obstacle
         void transformConnectionPinPositions(ShapeTransformationType transform);
  
         void boundingBox(BBox& bbox) const;
-        ConnRefList attachedConnectors(void) const;
 
     private:
         friend class Router;

@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2010  Monash University
+ * Copyright (C) 2004-2011  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -180,6 +180,7 @@ Router::Router(const unsigned int flags)
       _consolidateActions(true),
       m_currently_calling_destructors(false),
       _orthogonalNudgeDistance(4.0),
+      m_hyperedge_rerouter(this),
       // Mode options:
       _polyLineRouting(false),
       _orthogonalRouting(false),
@@ -205,6 +206,7 @@ Router::Router(const unsigned int flags)
     _routingPenalties[clusterCrossingPenalty] = 4000;
     _routingPenalties[portDirectionPenalty] = 100;
     _routingOptions[nudgeOrthogonalSegmentsConnectedToShapes] = false;
+    _routingOptions[improveHyperedgeRoutesMovingJunctions] = true;
 }
 
 
@@ -507,7 +509,8 @@ bool Router::processTransaction(void)
     bool seenShapeMovesOrDeletes = false;
 
     // If SimpleRouting, then don't update here.
-    if (actionList.empty() || SimpleRouting)
+    if ((actionList.empty() && (m_hyperedge_rerouter.count() == 0)) ||
+            SimpleRouting)
     {
         actionList.clear();
         return false;
@@ -883,12 +886,6 @@ bool Router::idIsUnique(const unsigned int id) const
 
 //----------------------------------------------------------------------------
 
-#if 0
-// XXX: attachedShapes and attachedConns both need to be rewritten
-//      for constant time lookup of attached objects once this info
-//      is stored better within libavoid.  Also they shouldn't need to
-//      be friends of ConnRef.
-
     // Returns a list of connector Ids of all the connectors of type
     // 'type' attached to the shape with the ID 'shapeId'.
 void Router::attachedConns(IntList &conns, const unsigned int shapeId,
@@ -897,13 +894,17 @@ void Router::attachedConns(IntList &conns, const unsigned int shapeId,
     ConnRefList::const_iterator fin = connRefs.end();
     for (ConnRefList::const_iterator i = connRefs.begin(); i != fin; ++i) 
     {
-        if ((type & runningTo) && ((*i)->_dstId == shapeId)) 
+        std::pair<Obstacle *, Obstacle *> anchors = (*i)->endpointAnchors();
+
+        if ((type & runningTo) &&
+                (anchors.second && (anchors.second->id() == shapeId)))
         {
-            conns.push_back((*i)->_id);
+            conns.push_back((*i)->id());
         }
-        else if ((type & runningFrom) && ((*i)->_srcId == shapeId)) 
+        else if ((type & runningFrom) &&
+                (anchors.first && (anchors.first->id() == shapeId)))
         {
-            conns.push_back((*i)->_id);
+            conns.push_back((*i)->id());
         }
     }
 }
@@ -917,25 +918,28 @@ void Router::attachedShapes(IntList &shapes, const unsigned int shapeId,
     ConnRefList::const_iterator fin = connRefs.end();
     for (ConnRefList::const_iterator i = connRefs.begin(); i != fin; ++i) 
     {
-        if ((type & runningTo) && ((*i)->_dstId == shapeId)) 
+        std::pair<Obstacle *, Obstacle *> anchors = (*i)->endpointAnchors();
+
+        if ((type & runningTo) &&
+                (anchors.second && (anchors.second->id() == shapeId)))
         {
-            if ((*i)->_srcId != 0)
+            if (anchors.first)
             {
                 // Only if there is a shape attached to the other end.
-                shapes.push_back((*i)->_srcId);
+                shapes.push_back(anchors.first->id());
             }
         }
-        else if ((type & runningFrom) && ((*i)->_srcId == shapeId)) 
+        else if ((type & runningFrom) &&
+            (anchors.first && (anchors.first->id() == shapeId)))
         {
-            if ((*i)->_dstId != 0)
+            if (anchors.second)
             {
                 // Only if there is a shape attached to the other end.
-                shapes.push_back((*i)->_dstId);
+                shapes.push_back(anchors.second->id());
             }
         }
     }
 }
-#endif
 
 
     // It's intended this function is called after visibility changes 
@@ -943,7 +947,7 @@ void Router::attachedShapes(IntList &shapes, const unsigned int shapeId,
     // rerouted connectors (via a callback) that they need to be redrawn.
 void Router::rerouteAndCallbackConnectors(void)
 {
-    std::list<ConnRef *> reroutedConns;
+    ConnRefList reroutedConns;
     ConnRefList::const_iterator fin = connRefs.end();
     
     this->m_conn_reroute_flags.alertConns();
@@ -955,9 +959,21 @@ void Router::rerouteAndCallbackConnectors(void)
     {
         (*i)->freeActivePins();
     }
+
+    // Calculate and return connectors that are part of hyperedges and will
+    // be completely rerouted by that code so don't need to be rerouted here.
+    ConnRefSet hyperedgeConns =
+            m_hyperedge_rerouter.calcHyperedgeConnectors();
+
     timers.Register(tmOrthogRoute, timerStart);
     for (ConnRefList::const_iterator i = connRefs.begin(); i != fin; ++i) 
     {
+        if (hyperedgeConns.find(*i) != hyperedgeConns.end())
+        {
+            // This will be rerouted by the hyperedge code, so do nothing.
+            continue;
+        }
+
         (*i)->m_needs_repaint = false;
         bool rerouted = (*i)->generatePath();
         if (rerouted)
@@ -967,8 +983,17 @@ void Router::rerouteAndCallbackConnectors(void)
     }
     timers.Stop();
 
+
+    // Perform any complete hyperedge rerouting that has been requested.
+    m_hyperedge_rerouter.performRerouting();
+
     // Find and reroute crossing connectors if crossing penalties are set.
     improveCrossings();
+
+    if (routingOption(improveHyperedgeRoutesMovingJunctions))
+    {
+        improveHyperedgeRoutes(this);
+    }
 
     // Perform centring and nudging for orthogonal routes.
     improveOrthogonalRoutes(this);
@@ -1590,6 +1615,12 @@ double& Router::penaltyRef(const PenaltyType penType)
 }
 
 
+HyperedgeRerouter *Router::hyperedgeRerouter(void)
+{
+    return &m_hyperedge_rerouter;
+}
+
+
 void Router::printInfo(void)
 {
     FILE *fp = stdout;
@@ -1670,6 +1701,9 @@ void Router::printInfo(void)
     fprintf(fp, "OrthogRoute:  "); timers.Print(tmOrthogRoute, fp);
     fprintf(fp, "OrthogCentre:  "); timers.Print(tmOrthogCentre, fp);
     fprintf(fp, "OrthogNudge:  "); timers.Print(tmOrthogNudge, fp);
+    fprintf(fp, "HyperedgeForest:  "); timers.Print(tmHyperedgeForest, fp);
+    fprintf(fp, "HyperedgeMTST:  "); timers.Print(tmHyperedgeMTST, fp);
+    fprintf(fp, "HyperedgeImprove:  "); timers.Print(tmHyperedgeImprove, fp);
     fprintf(fp, "\n");
     timers.Reset();
 }
@@ -1831,10 +1865,10 @@ void Router::outputInstanceToSVG(std::string instanceName)
         }
         curr = curr->lstNext;
     }
-    minX -= 50;
-    minY -= 50;
-    maxX += 50;
-    maxY += 50;
+    minX -= 8;
+    minY -= 8;
+    maxX += 8;
+    maxY += 8;
 
     fprintf(fp, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
     fprintf(fp, "<svg xmlns:inkscape=\"http://www.inkscape.org/namespaces/inkscape\" xmlns=\"http://www.w3.org/2000/svg\" width=\"100%%\" height=\"100%%\" viewBox=\"%g %g %g %g\">\n", minX, minY, maxX - minX, maxY - minY);
@@ -1926,7 +1960,6 @@ void Router::outputInstanceToSVG(std::string instanceName)
     fprintf(fp, "};\n");
     fprintf(fp, "-->\n");
 
-    
     fprintf(fp, "<g inkscape:groupmode=\"layer\" "
             "inkscape:label=\"Clusters\">\n");
     revClusterRefIt = clusterRefs.rbegin();
@@ -1958,6 +1991,7 @@ void Router::outputInstanceToSVG(std::string instanceName)
     fprintf(fp, "</g>\n");
 
     fprintf(fp, "<g inkscape:groupmode=\"layer\" "
+    "style=\"display: none;\" "
             "inkscape:label=\"ShapesPoly\">\n");
     ObstacleList::iterator obstacleIt = m_obstacles.begin();
     while (obstacleIt != m_obstacles.end())
@@ -1965,9 +1999,16 @@ void Router::outputInstanceToSVG(std::string instanceName)
         Obstacle *obstacle = *obstacleIt;
         bool isShape = (NULL != dynamic_cast<ShapeRef *> (obstacle));
 
+        if ( ! isShape )
+        {
+            // Don't output obstacles here, for now.
+            ++obstacleIt;
+            continue;
+        }
+
         fprintf(fp, "<path id=\"poly-%u\" style=\"stroke-width: 1px; "
                 "stroke: black; fill: %s; fill-opacity: 0.3;\" d=\"", 
-                obstacle->id(), (isShape) ? "blue" : "red");
+                obstacle->id(), (isShape) ? "grey" : "red");
         for (size_t i = 0; i < obstacle->polygon().size(); ++i)
         {
             fprintf(fp, "%c %g %g ", ((i == 0) ? 'M' : 'L'), 
@@ -1980,24 +2021,49 @@ void Router::outputInstanceToSVG(std::string instanceName)
 
     fprintf(fp, "<g inkscape:groupmode=\"layer\" "
             "style=\"display: none;\" "
+            "inkscape:label=\"IdealJunctions\">\n");
+    for (ObstacleList::iterator obstacleIt = m_obstacles.begin();
+            obstacleIt != m_obstacles.end(); ++obstacleIt)
+    {
+        JunctionRef *junction = dynamic_cast<JunctionRef *> (*obstacleIt);
+        if (junction)
+        {
+            fprintf(fp, "<circle id=\"idealJunction-%u\" cx=\"%g\" cy=\"%g\" "
+                    "r=\"8\" style=\"stroke: none; fill: %s; "
+                    "fill-opacity: 0.5;\"  />\n", junction->id(), 
+                    junction->recommendedPosition().x, 
+                    junction->recommendedPosition().y, "green");
+        }
+
+    }
+    fprintf(fp, "</g>\n");
+
+    fprintf(fp, "<g inkscape:groupmode=\"layer\" "
             "inkscape:label=\"ShapesRect\">\n");
     obstacleIt = m_obstacles.begin();
     while (obstacleIt != m_obstacles.end())
     {
         Obstacle *obstacle = *obstacleIt;
         bool isShape = (NULL != dynamic_cast<ShapeRef *> (obstacle));
+
+        if ( ! isShape )
+        {
+            // Don't output obstacles here, for now.
+            ++obstacleIt;
+            continue;
+        }
+
         double minX, minY, maxX, maxY;
         obstacle->polygon().getBoundingRect(&minX, &minY, &maxX, &maxY);
-    
+
         fprintf(fp, "<rect id=\"rect-%u\" x=\"%g\" y=\"%g\" width=\"%g\" "
-                "height=\"%g\" style=\"stroke-width: 1px; stroke: %s; "
-                "fill: blue; fill-opacity: 0.3;\" />\n",
-                obstacle->id(), minX, minY, maxX - minX, maxY - minY,
-                (isShape) ? "blue" : "red");
+                "height=\"%g\" style=\"stroke-width: 1px; stroke: black; "
+                "fill: grey; stroke-opacity: 0.1; fill-opacity: 0.1;\" />\n",
+                obstacle->id(), minX + 3, minY + 3, maxX - minX - 6, maxY - minY - 6
+                );
         ++obstacleIt;
     }
     fprintf(fp, "</g>\n");
-
 
     fprintf(fp, "<g inkscape:groupmode=\"layer\" "
             "inkscape:label=\"VisGraph\""
@@ -2028,11 +2094,10 @@ void Router::outputInstanceToSVG(std::string instanceName)
         fprintf(fp, "<path d=\"M %g %g L %g %g\" "
                 "style=\"fill: none; stroke: %s; stroke-width: 1px;\" />\n", 
                 p1.x, p1.y, p2.x, p2.y,
-                (ids.first.isConnPt() || ids.second.isConnPt()) ? "green" : 
+                (ids.first.isConnPt() || ids.second.isConnPt()) ? "blue" :
                 "red");
     }
     fprintf(fp, "</g>\n");
-
     fprintf(fp, "<g inkscape:groupmode=\"layer\" "
             "style=\"display: none;\" "
             "inkscape:label=\"VisGraph-conn\""
@@ -2058,7 +2123,7 @@ void Router::outputInstanceToSVG(std::string instanceName)
         fprintf(fp, "<path d=\"M %g %g L %g %g\" "
                 "style=\"fill: none; stroke: %s; stroke-width: 1px;\" />\n", 
                 p1.x, p1.y, p2.x, p2.y,
-                (ids.first.isConnPt() || ids.second.isConnPt()) ? "green" : 
+                (ids.first.isConnPt() || ids.second.isConnPt()) ? "blue" :
                 "red");
     }
     fprintf(fp, "</g>\n");
@@ -2203,6 +2268,7 @@ void Router::outputInstanceToSVG(std::string instanceName)
 
     fprintf(fp, "</svg>\n");
     fclose(fp);
+    //printInfo();
 }
 
 

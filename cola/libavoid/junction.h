@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2010  Monash University
+ * Copyright (C) 2010-2011  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -70,6 +70,12 @@ class JunctionRef : public Obstacle
         //! The junction can be moved with Router::moveJunction() and removed
         //! from the scene and freed with Router::deleteJunction().
         //!
+        //! When the improveHyperedgeRoutesMovingJunctions router option is
+        //! set (the default) the junction position is a suggestion used for
+        //! initial routing, but subsequent hyperedge path improvement may
+        //! suggest new junction positions for the updated routings.  This
+        //! position can be accessed via recommendedPosition().
+        //!
         //! If an ID is not specified, then one will be assigned to the 
         //! junction.  If assigning an ID yourself, note that it should be 
         //! a unique positive integer.  Also, IDs are given to all objects 
@@ -110,6 +116,25 @@ class JunctionRef : public Obstacle
         //! @returns A point representing the position of this junction.
         Point position(void) const;
 
+        //! @brief             Sets whether the junction has a fixed position
+        //!                    and therefore can't be moved by the Router 
+        //!                    during routing.
+        //! @param[in]  fixed  Boolean indicating if the junction position
+        //!                    should be set as fixed.
+        void setPositionFixed(bool fixed);
+        
+        //! @brief   Returns whether this junction has a fixed position (that 
+        //!          can't be moved by the Router during routing).
+        //! @returns A point representing the position of this junction.
+        bool positionFixed(void) const;
+        
+        //! @brief   Returns a recommended position for the junction based on
+        //!          improving hyperedge routes. This value will be set during
+        //!          routing when the improveHyperedgeRoutesMovingJunctions
+        //!          router option is set (the default).
+        //! @returns A point indicating the ideal position for this junction.
+        Point recommendedPosition(void) const;
+
         Rectangle makeRectangle(Router *router, const Point& position);
         void preferOrthogonalDimension(const size_t dim);
 
@@ -117,14 +142,16 @@ class JunctionRef : public Obstacle
         friend class Router;
         friend class ShapeConnectionPin;
         friend class ConnEnd;
+        friend struct ImproveHyperEdges;
 
         void outputCode(FILE *fp) const;
         void setPosition(const Point& position);
+        void setRecommendedPosition(const Point& position);
         void moveAttachedConns(const Point& newPosition);
-        void assignPinVisibilityTo(const unsigned int pinClassId, 
-                VertInf *dummyConnectionVert);
 
         Point m_position;
+        Point m_recommended_position;
+        bool m_position_fixed;
 };
 
 

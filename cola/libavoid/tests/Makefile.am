@@ -2,6 +2,9 @@ INCLUDES = -I$(top_srcdir)
 
 LDADD = $(top_builddir)/libavoid/libavoid.la
 
+# Disabled tests:
+#	corneroverlap01
+
 check_PROGRAMS = \
 	example \
 	complex \
@@ -18,7 +21,6 @@ check_PROGRAMS = \
 	inlineoverlap07 \
 	nudgeintobug \
 	slowrouting \
-	corneroverlap01 \
 	tjunct \
 	vertlineassertion \
 	orthordering01 \
@@ -47,7 +49,8 @@ check_PROGRAMS = \
 	checkpoints01 \
 	freeFloatingDirection01 \
 	restrictedNudging \
-	performance01
+	performance01 \
+	hyperedge01
 
 performance01_SOURCES = performance01.cpp
 
@@ -95,12 +98,14 @@ inlineoverlap05_SOURCES = inlineoverlap05.cpp
 inlineoverlap06_SOURCES = inlineoverlap06.cpp
 inlineoverlap07_SOURCES = inlineoverlap07.cpp
 
-corneroverlap01_SOURCES = corneroverlap01.cpp
+# corneroverlap01_SOURCES = corneroverlap01.cpp
 
 orthordering01_SOURCES = orthordering01.cpp
 orthordering02_SOURCES = orthordering02.cpp
 
 tjunct_SOURCES = tjunct.cpp
+
+hyperedge01_SOURCES = hyperedge01.cpp
 
 nudgeintobug_SOURCES = nudgeintobug.cpp
 

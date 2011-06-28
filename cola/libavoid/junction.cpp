@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2010  Monash University
+ * Copyright (C) 2010-2011  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -34,17 +34,10 @@ namespace Avoid {
 
 JunctionRef::JunctionRef(Router *router, Point position, const unsigned int id)
     : Obstacle(router, makeRectangle(router, position), id),
-      m_position(position)
+      m_position(position),
+      m_recommended_position(position)
 {
-    // Set up pins in four directions:
-    m_connection_pins.insert(new Avoid::ShapeConnectionPin(this, 
-            Avoid::CONNECTIONPIN_CENTRE, ConnDirUp));
-    m_connection_pins.insert(new Avoid::ShapeConnectionPin(this, 
-            Avoid::CONNECTIONPIN_CENTRE, ConnDirDown));
-    m_connection_pins.insert(new Avoid::ShapeConnectionPin(this, 
-            Avoid::CONNECTIONPIN_CENTRE, ConnDirLeft));
-    m_connection_pins.insert(new Avoid::ShapeConnectionPin(this, 
-            Avoid::CONNECTIONPIN_CENTRE, ConnDirRight));
+    setPositionFixed(false);
 
     m_router->addJunction(this);
 }
@@ -75,6 +68,45 @@ Rectangle JunctionRef::makeRectangle(Router *router, const Point& position)
     high.y += nudgeDist;
 
     return Rectangle(low, high);
+}
+
+
+void JunctionRef::setPositionFixed(bool fixed)
+{
+    m_position_fixed = fixed;
+
+    // Remove existing connection pins.
+    while ( ! m_connection_pins.empty() )
+    {
+        delete *(m_connection_pins.begin());
+    }
+
+    if (m_position_fixed)
+    {
+        // Set up pins in four directions, each exclusive.
+        m_connection_pins.insert(new Avoid::ShapeConnectionPin(this, 
+                Avoid::CONNECTIONPIN_CENTRE, ConnDirUp));
+        m_connection_pins.insert(new Avoid::ShapeConnectionPin(this, 
+                Avoid::CONNECTIONPIN_CENTRE, ConnDirDown));
+        m_connection_pins.insert(new Avoid::ShapeConnectionPin(this, 
+                Avoid::CONNECTIONPIN_CENTRE, ConnDirLeft));
+        m_connection_pins.insert(new Avoid::ShapeConnectionPin(this, 
+                Avoid::CONNECTIONPIN_CENTRE, ConnDirRight));
+    }
+    else
+    {
+        // For non-fixed Junctions, use a single non-excluusive pin.
+        ShapeConnectionPin *pin = new Avoid::ShapeConnectionPin(this,
+                Avoid::CONNECTIONPIN_CENTRE, ConnDirAll);
+        pin->setExclusive(false);
+        m_connection_pins.insert(pin);
+    }
+}
+
+
+bool JunctionRef::positionFixed(void) const
+{
+    return m_position_fixed;
 }
 
 
@@ -112,8 +144,21 @@ Point JunctionRef::position(void) const
 void JunctionRef::setPosition(const Point& position)
 {
     m_position = position;
+    m_recommended_position = position;
     m_polygon = makeRectangle(m_router, m_position);
     setNewPoly(m_polygon);
+}
+
+
+Point JunctionRef::recommendedPosition(void) const
+{
+    return m_recommended_position;
+}
+
+
+void JunctionRef::setRecommendedPosition(const Point& position)
+{
+    m_recommended_position = position;
 }
 
 

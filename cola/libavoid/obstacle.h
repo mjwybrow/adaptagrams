@@ -45,7 +45,9 @@ class VertInf;
 class Router;
 class Obstacle;
 class ConnEnd;
+class ConnRef;
 typedef std::list<Obstacle *> ObstacleList;
+typedef std::list<ConnRef *> ConnRefList;
 
 
 // @brief   The Obstacle class represents an obstacle that must be 
@@ -88,11 +90,14 @@ class Obstacle
         VertInf *firstVert(void);
         VertInf *lastVert(void);
         void boundingBox(BBox& bbox);
+        ConnRefList attachedConnectors(void) const;
 
     private:
         friend class Router;
         friend class ConnEnd;
         friend class ShapeConnectionPin;
+        friend class HyperedgeRerouter;
+        friend class MinimumTerminalSpanningTree;
 
         // Defined in visibility.cpp:
         void computeVisibilityNaive(void);
@@ -103,7 +108,6 @@ class Obstacle
         void makeInactive(void);
         bool isActive(void) const;
         void updatePinPolyLineVisibility(void);
-
         void removeFromGraph(void);
         void markForMove(void);
         void clearMoveMark(void);

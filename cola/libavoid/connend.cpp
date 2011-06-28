@@ -35,6 +35,7 @@
 #include "libavoid/shape.h"
 #include "libavoid/debug.h"
 #include "libavoid/graph.h"
+#include "libavoid/visibility.h"
 
 namespace Avoid {
 
@@ -310,18 +311,65 @@ void ConnEnd::assignPinVisibilityTo(VertInf *dummyConnectionVert,
 }
 
 
-void ConnEnd::outputCode(FILE *fp, const char *srcDst)
+std::pair<bool, VertInf *> ConnEnd::getHyperedgeVertex(Router *router) const
 {
+    bool addedVertex = false;
+    VertInf *vertex = NULL;
+
+    if (m_anchor_obj)
+    {
+        for (ShapeConnectionPinSet::iterator curr =
+                m_anchor_obj->m_connection_pins.begin();
+                curr != m_anchor_obj->m_connection_pins.end(); ++curr)
+        {
+            ShapeConnectionPin *currPin = *curr;
+            if ((currPin->m_class_id == m_connection_pin_class_id) &&
+                    (!currPin->m_exclusive || currPin->m_connend_users.empty()))
+            {
+                vertex = currPin->m_vertex;
+            }
+        }
+        COLA_ASSERT(vertex != NULL);
+    }
+    else
+    {
+        VertID id(0, kUnassignedVertexNumber,
+                VertID::PROP_ConnPoint);
+        vertex = new VertInf(router, id, m_point);
+        vertex->visDirections = m_directions;
+        addedVertex = true;
+
+        if (router->_polyLineRouting)
+        {
+            vertexVisibility(vertex, NULL, true, true);
+        }
+    }
+
+    return std::make_pair(addedVertex, vertex);
+}
+
+
+void ConnEnd::outputCode(FILE *fp, const char *srcDst, unsigned int num) const
+{
+    if (num == 0)
+    {
+        num = m_conn_ref->id();
+    }
+
     if (dynamic_cast<JunctionRef *> (m_anchor_obj))
     {
         fprintf(fp, "    ConnEnd %sPt%u(junctionRef%u);\n", srcDst,
-                m_conn_ref->id(), m_anchor_obj->id());
+                num, m_anchor_obj->id());
     }
     else if (dynamic_cast<ShapeRef *> (m_anchor_obj))
     {
         fprintf(fp, "    ConnEnd %sPt%u(shapeRef%u, %u);\n", srcDst,
-                m_conn_ref->id(), m_anchor_obj->id(),
-                m_connection_pin_class_id);
+                num, m_anchor_obj->id(), m_connection_pin_class_id);
+    }
+    else
+    {
+        fprintf(fp, "   ConnEnd %sPt%u(Point(%g, %g), (ConnDirFlags) %u);\n",
+                srcDst, num, m_point.x, m_point.y, m_directions);
     }
 }
 

@@ -356,6 +356,19 @@ void Obstacle::removeFollowingConnEnd(ConnEnd *connEnd)
 }
 
 
+ConnRefList Obstacle::attachedConnectors(void) const
+{
+    ConnRefList attachedConns;
+    for (std::set<ConnEnd *>::const_iterator curr = m_following_conns.begin();
+            curr != m_following_conns.end(); ++curr)
+    {
+        ConnEnd *connEnd = *curr;
+        COLA_ASSERT(connEnd->m_conn_ref != NULL);
+        attachedConns.push_back(connEnd->m_conn_ref);
+    }
+    return attachedConns;
+}
+
 }
 
 

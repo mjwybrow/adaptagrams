@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2008  Monash University
+ * Copyright (C) 2004-2011  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -53,18 +53,6 @@ ShapeRef::~ShapeRef()
     }
 }
 
-ConnRefList ShapeRef::attachedConnectors(void) const
-{
-    ConnRefList attachedConns;
-    for (std::set<ConnEnd *>::const_iterator curr = m_following_conns.begin();
-            curr != m_following_conns.end(); ++curr)
-    {
-        ConnEnd *connEnd = *curr;
-        COLA_ASSERT(connEnd->m_conn_ref != NULL);
-        attachedConns.push_back(connEnd->m_conn_ref);
-    }
-    return attachedConns;
-}
 
 void ShapeRef::moveAttachedConns(const Polygon& newPoly)
 {

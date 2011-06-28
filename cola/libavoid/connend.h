@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2009  Monash University
+ * Copyright (C) 2004-2011  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -33,6 +33,7 @@
 #include <cstdio>
 #include <list>
 #include <vector>
+#include <utility>
 
 #include "libavoid/geometry.h"
 
@@ -166,20 +167,23 @@ class ConnEnd
         friend class ShapeRef;
         friend class ConnRef;
         friend class Router;
+        friend class HyperedgeRerouter;
         friend class ShapeConnectionPin;
+        friend struct ImproveHyperEdges;
 
         void connect(ConnRef *conn);
         void disconnect(const bool shapeDeleted = false);
         void usePin(ShapeConnectionPin *pin);
         void usePinVertex(VertInf *pinVert);
         void freeActivePin(void);
-        ShapeRef *containingShape(void) const;
         unsigned int type(void) const;
         bool isPinConnection(void) const;
         std::vector<Point> possiblePinPoints(void) const;
         void assignPinVisibilityTo(VertInf *dummyConnectionVert, 
                 VertInf *targetVert);
-        void outputCode(FILE *fp, const char *srcDst);
+        void outputCode(FILE *fp, const char *srcDst,
+                unsigned int num = 0) const;
+        std::pair<bool, VertInf *> getHyperedgeVertex(Router *router) const;
 
         Point m_point;
         ConnDirFlags m_directions;

@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2010  Monash University
+ * Copyright (C) 2004-2011  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -289,6 +289,9 @@ class ConnRef
         friend class ConnEnd;
         friend class JunctionRef;
         friend class ConnRerouteFlagDelegate;
+        friend struct ImproveHyperEdges;
+        friend class HyperEdgeTreeEdge;
+        friend class HyperedgeRerouter;
 
         PolyLine& routeRef(void);
         void freeRoutes(void);
@@ -302,6 +305,7 @@ class ConnRef
         void updateEndPoint(const unsigned int type, const ConnEnd& connEnd);
         void common_updateEndPoint(const unsigned int type, ConnEnd connEnd);
         void freeActivePins(void);
+        std::pair<Obstacle *, Obstacle *> endpointAnchors(void) const;
 
         Router *m_router;
         unsigned int m_id;

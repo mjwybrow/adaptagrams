@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2009  Monash University
+ * Copyright (C) 2004-2011  Monash University
  *
  * --------------------------------------------------------------------
  * Much of the code in this module is based on code published with
@@ -68,6 +68,32 @@ bool inBetween(const Point& a, const Point& b, const Point& c)
         return (((a.y < c.y) && (c.y < b.y)) ||
                 ((b.y < c.y) && (c.y < a.y)));
     }
+}
+
+
+// Returns true iff the three points are colinear.
+//
+bool colinear(const Point& a, const Point& b, const Point& c,
+        const double tolerance)
+{
+
+    // Do this a bit more optimally for orthogonal AB line segments.
+    if (a == b)
+    {
+        return true;
+    }
+    else if (a.x == b.x)
+    {
+        return (a.x == c.x);
+    }
+    else if (a.y == b.y)
+    {
+        return (a.y == c.y);
+    }
+
+    // Or use the general case.
+    return (vecDir(a, b, c, tolerance) == 0);
+    
 }
 
 

@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2009  Monash University
+ * Copyright (C) 2004-2011  Monash University
  *
  * --------------------------------------------------------------------
  * Much of the code in this module is based on code published with
@@ -58,7 +58,8 @@ extern int cornerSide(const Point &c1, const Point &c2, const Point &c3,
         const Point& p);
 extern bool pointOnLine(const Point& a, const Point& b, const Point& c,
         const double tolerance = 0.0);
-
+extern bool colinear(const Point& a, const Point& b, const Point& c,
+        const double tolerance = 0.0);
 // To be used only when the points are known to be colinear.
 extern bool inBetween(const Point& a, const Point& b, const Point& c);
 
