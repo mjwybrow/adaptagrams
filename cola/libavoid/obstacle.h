@@ -109,8 +109,6 @@ class Obstacle
         bool isActive(void) const;
         void updatePinPolyLineVisibility(void);
         void removeFromGraph(void);
-        void markForMove(void);
-        void clearMoveMark(void);
         Point shapeCentre(void);
 
         VertInf *getPointVertex(const Point& point);
@@ -128,7 +126,6 @@ class Obstacle
         unsigned int m_id;
         Polygon m_polygon;
         bool m_active;
-        bool m_in_move_list;
         ObstacleList::iterator m_router_obstacles_pos;
         VertInf *m_first_vert;
         VertInf *m_last_vert;

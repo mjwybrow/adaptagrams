@@ -35,7 +35,6 @@ Obstacle::Obstacle(Router *router, Polygon ply, const unsigned int id)
     : m_router(router),
       m_polygon(ply),
       m_active(false),
-      m_in_move_list(false),
       m_first_vert(NULL),
       m_last_vert(NULL)
 {
@@ -304,26 +303,6 @@ void Obstacle::removeFromGraph(void)
  
         tmp->removeFromGraph(isConnPt);
     }
-}
-
-
-void Obstacle::markForMove(void)
-{
-    if (!m_in_move_list)
-    {
-        m_in_move_list = true;
-    }
-    else
-    {
-        db_printf("WARNING: two moves queued for same shape prior to rerouting."
-                "\n         This is not safe.\n");
-    }
-}
-
-
-void Obstacle::clearMoveMark(void)
-{
-    m_in_move_list = false;
 }
 
 
