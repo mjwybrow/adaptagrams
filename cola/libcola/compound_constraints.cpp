@@ -330,11 +330,13 @@ class VarIndexPair : public SubConstraintInfo
         }
         unsigned indexL(void) const
         {
-            return (lConstraint) ? lConstraint->variable->id : varIndex;
+            return (lConstraint) ? 
+                    (unsigned) lConstraint->variable->id : varIndex;
         }
         unsigned indexR(void) const
         {
-            return (rConstraint) ? rConstraint->variable->id : varIndex2;
+            return (rConstraint) ? 
+                    (unsigned) rConstraint->variable->id : varIndex2;
         }
         AlignmentConstraint *lConstraint;
         AlignmentConstraint *rConstraint;

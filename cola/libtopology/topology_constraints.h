@@ -48,7 +48,7 @@ namespace vpsc {
     typedef std::vector<Variable*> Variables;
 }
 namespace cola {
-    class SparseMap;
+    struct SparseMap;
     class RootCluster;
 }
 /**

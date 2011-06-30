@@ -45,7 +45,7 @@ namespace vpsc {
     class Variable;
 }
 namespace straightener {
-    class Route;
+    struct Route;
 }
 namespace topology {
     class Segment;

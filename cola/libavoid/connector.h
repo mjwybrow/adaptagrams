@@ -290,7 +290,7 @@ class ConnRef
         friend class JunctionRef;
         friend class ConnRerouteFlagDelegate;
         friend struct ImproveHyperEdges;
-        friend class HyperEdgeTreeEdge;
+        friend struct HyperEdgeTreeEdge;
         friend class HyperedgeRerouter;
 
         PolyLine& routeRef(void);
