@@ -106,8 +106,8 @@ ConnRef::~ConnRef()
 {
     if (m_router->m_currently_calling_destructors == false)
     {
-        fprintf(stderr, "ERROR: ConnRef::~ConnRef() shouldn't be called directly.\n");
-        fprintf(stderr, "       It is owned by the router.  Call Router::deleteConnector() instead.\n");
+        err_printf("ERROR: ConnRef::~ConnRef() shouldn't be called directly.\n");
+        err_printf("       It is owned by the router.  Call Router::deleteConnector() instead.\n");
         abort();
     }
 
@@ -903,10 +903,10 @@ void ConnRef::generateCheckpointsPath(std::vector<Point>& path,
         }
         else
         {
-            fprintf(stdout, "Warning: skipping checkpoint for connector "
+            err_printf("Warning: skipping checkpoint for connector "
                     "%d at (%g, %g).\n", (int) id(), 
                     vertices[i]->point.x, vertices[i]->point.y);
-            fflush(stdout);
+            fflush(stderr);
         }
     }
     // Use topbit to differentiate between start and end point of connector.

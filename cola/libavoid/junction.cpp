@@ -27,6 +27,7 @@
 #include "libavoid/junction.h"
 #include "libavoid/router.h"
 #include "libavoid/connectionpin.h"
+#include "libavoid/debug.h"
 
 
 namespace Avoid {
@@ -46,8 +47,8 @@ JunctionRef::~JunctionRef()
 {
     if (m_router->m_currently_calling_destructors == false)
     {
-        fprintf(stderr, "ERROR: JunctionRef::~JunctionRef() shouldn't be called directly.\n");
-        fprintf(stderr, "       It is owned by the router.  Call Router::deleteJunction() instead.\n");
+        err_printf("ERROR: JunctionRef::~JunctionRef() shouldn't be called directly.\n");
+        err_printf("       It is owned by the router.  Call Router::deleteJunction() instead.\n");
         abort();
     }
 }

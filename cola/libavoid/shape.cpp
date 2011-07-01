@@ -47,8 +47,8 @@ ShapeRef::~ShapeRef()
 {
     if (m_router->m_currently_calling_destructors == false)
     {
-        fprintf(stderr, "ERROR: ShapeRef::~ShapeRef() shouldn't be called directly.\n");
-        fprintf(stderr, "       It is owned by the router.  Call Router::deleteShape() instead.\n");
+        err_printf("ERROR: ShapeRef::~ShapeRef() shouldn't be called directly.\n");
+        err_printf("       It is owned by the router.  Call Router::deleteShape() instead.\n");
         abort();
     }
 }

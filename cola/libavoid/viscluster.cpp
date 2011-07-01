@@ -27,6 +27,7 @@
 #include "libavoid/viscluster.h"
 #include "libavoid/router.h"
 #include "libavoid/assertions.h"
+#include "libavoid/debug.h"
 
 
 namespace Avoid {
@@ -49,8 +50,8 @@ ClusterRef::~ClusterRef()
 {
     if (m_router->m_currently_calling_destructors == false)
     {
-        fprintf(stderr, "ERROR: ClusterRef::~ClusterRef() shouldn't be called directly.\n");
-        fprintf(stderr, "       It is owned by the router.  Call Router::deleteCluster() instead.\n");
+        err_printf("ERROR: ClusterRef::~ClusterRef() shouldn't be called directly.\n");
+        err_printf("       It is owned by the router.  Call Router::deleteCluster() instead.\n");
         abort();
     }
 }

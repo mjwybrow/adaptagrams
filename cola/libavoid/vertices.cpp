@@ -181,6 +181,7 @@ VertInf::VertInf(Router *router, const VertID& vid, const Point& vpoint,
 
 VertInf::~VertInf()
 {
+    COLA_ASSERT(orphaned());
 }
 
 

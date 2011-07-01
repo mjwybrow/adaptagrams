@@ -93,10 +93,9 @@ class HyperedgeRerouter
         //! @note   You shouldn't create this object yourself.  The Router
         //!         instance has one that you can request a reference to
         //!         via Router::hyperedgeRerouter().
-        //! @param[in] router  The router instance to operate on.
         //!
-        HyperedgeRerouter(Router *router);
-
+        HyperedgeRerouter();
+        
         //! @brief  Registers a hyperedge to be fully rerouted the next time
         //!         the router processes a transaction.
         //!
@@ -179,6 +178,12 @@ class HyperedgeRerouter
         // @return The number of rerouted hyperedges.
         //
         size_t count(void) const;
+        // @brief  Sets the router instance that this object operates on.
+        //
+        // @param[in] router  The router instance to operate on.
+        //
+        void setRouter(Router *router);
+
         ConnRefSet calcHyperedgeConnectors(void);
         // Calledby Router during processTransaction().
         void performRerouting(void);

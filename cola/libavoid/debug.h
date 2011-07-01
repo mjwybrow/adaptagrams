@@ -37,17 +37,42 @@
 namespace Avoid {
 
 #ifdef LIBAVOID_DEBUG
-inline void db_printf(const char *fmt, ...)
-{
-    va_list ap;
-    va_start(ap, fmt);
-    vfprintf(stdout, fmt, ap);
-    va_end(ap);
-}
+
+  #ifdef _MSC_VER
+    // Compiling with Microsoft Visual C++ compiler
+
+    // Prevent inclusion of min and max macros.
+    #define NOMINMAX
+
+    #include <afx.h>
+    #define db_printf  ATL::AtlTrace
+    #define err_printf ATL::AtlTrace
+  #else
+    inline void db_printf(const char *fmt, ...)
+    {
+        va_list ap;
+        va_start(ap, fmt);
+        vfprintf(stdout, fmt, ap);
+        va_end(ap);
+    }
+    inline void err_printf(const char *fmt, ...)
+    {
+        va_list ap;
+        va_start(ap, fmt);
+        vfprintf(stderr, fmt, ap);
+        va_end(ap);
+    }
+  #endif
+
 #else
-inline void db_printf(const char *, ...)
-{
-}
+
+    inline void db_printf(const char *, ...)
+    {
+    }
+    inline void err_printf(const char *, ...)
+    {
+    }
+
 #endif
 
 }

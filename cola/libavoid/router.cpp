@@ -180,7 +180,6 @@ Router::Router(const unsigned int flags)
       _consolidateActions(true),
       m_currently_calling_destructors(false),
       _orthogonalNudgeDistance(4.0),
-      m_hyperedge_rerouter(this),
       // Mode options:
       _polyLineRouting(false),
       _orthogonalRouting(false),
@@ -207,6 +206,8 @@ Router::Router(const unsigned int flags)
     _routingPenalties[portDirectionPenalty] = 100;
     _routingOptions[nudgeOrthogonalSegmentsConnectedToShapes] = false;
     _routingOptions[improveHyperedgeRoutesMovingJunctions] = true;
+      
+    m_hyperedge_rerouter.setRouter(this);
 }
 
 
