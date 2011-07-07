@@ -29,6 +29,16 @@
 
 #ifdef LIBAVOID_DEBUG
 
+  #ifdef _MSC_VER
+    // Compiling with Microsoft Visual C++ compiler
+
+    // Prevent inclusion of min and max macros.
+    #define NOMINMAX
+
+    #include <afx.h>
+
+  #endif
+
 #include <stdarg.h>
 #include <iostream>
 
@@ -41,10 +51,6 @@ namespace Avoid {
   #ifdef _MSC_VER
     // Compiling with Microsoft Visual C++ compiler
 
-    // Prevent inclusion of min and max macros.
-    #define NOMINMAX
-
-    #include <afx.h>
     #define db_printf  ATL::AtlTrace
     #define err_printf ATL::AtlTrace
   #else
