@@ -242,14 +242,6 @@ class ConnRef
         std::pair<JunctionRef *, ConnRef *> splitAtSegment(
                 const size_t segmentN);
 
-        // @brief   Returns the source endpoint vertex in the visibility graph.
-        // @returns The source endpoint vertex.
-        VertInf *src(void);
-        // @brief   Returns the destination endpoint vertex in the 
-        //          visibility graph.
-        // @returns The destination endpoint vertex.
-        VertInf *dst(void);
-        
         //! @brief  Allows the user to specify a set of checkpoints that this
         //!         connector will route via.
         //!
@@ -268,7 +260,27 @@ class ConnRef
         //! @returns The ordered list of Points that this connecotr will 
         //!          route via.
         std::vector<Point> routingCheckpoints(void) const;
+        
+        //! @brief   Returns the anchor objects that this connector is 
+        //!          attached to.
+        //!
+        //! This may be useful during hyperedge rerouting.  You can check the 
+        //! IDs of the anchor objects or try casting them to JunctionRefs or
+        //! ShapeRefs to find out what they are.
+        //!
+        //! @returns A pair with pointers to the two objects that the connector
+        //!          is attached to, or NULL if it is not attached.
+        //!
+        std::pair<Obstacle *, Obstacle *> endpointAnchors(void) const;
 
+        // @brief   Returns the source endpoint vertex in the visibility graph.
+        // @returns The source endpoint vertex.
+        VertInf *src(void);
+        // @brief   Returns the destination endpoint vertex in the 
+        //          visibility graph.
+        // @returns The destination endpoint vertex.
+        VertInf *dst(void);
+        
         void set_route(const PolyLine& route);
         void calcRouteDist(void);
         void makeActive(void);
@@ -305,7 +317,6 @@ class ConnRef
         void updateEndPoint(const unsigned int type, const ConnEnd& connEnd);
         void common_updateEndPoint(const unsigned int type, ConnEnd connEnd);
         void freeActivePins(void);
-        std::pair<Obstacle *, Obstacle *> endpointAnchors(void) const;
 
         Router *m_router;
         unsigned int m_id;
