@@ -466,6 +466,27 @@ class Router {
         //!
         void outputInstanceToSVG(std::string filename = std::string());
 
+        //! @brief  Returns the object ID used for automatically generated 
+        //!         objects, such as during hyeredge routing.
+        //! 
+        //! Reimplement this in a subclass to set specific IDs for new objects.
+        //!
+        //! @note   Your implementation should return a value that does not 
+        //!         fail objectIdIsUnused().
+        //!
+        //! @return  The ID for a new object.
+        //!
+        virtual unsigned int newObjectId(void) const;
+
+        //! @brief  Returns whether or not the given ID is already used.
+        //! 
+        //! You should only need this if you reimplement newObjectId().
+        //!
+        //! @param[in]  id  An ID to test.
+        //! @return  A boolean denoting that the given ID is unused.
+        //!
+        bool objectIdIsUnused(const unsigned int id) const;
+
         void deleteCluster(ClusterRef *cluster);
         void attachedShapes(IntList &shapes, const unsigned int shapeId,
                 const unsigned int type);
@@ -474,7 +495,6 @@ class Router {
         void markConnectors(Obstacle *obstacle);
         void generateContains(VertInf *pt);
         void printInfo(void);
-        unsigned int assignId(const unsigned int suggestedId);
         void regenerateStaticBuiltGraph(void);
         void destroyOrthogonalVisGraph(void);
         void setStaticGraphInvalidated(const bool invalidated);
@@ -492,6 +512,7 @@ class Router {
         friend class ClusterRef;
         friend class MinimumTerminalSpanningTree;
 
+        unsigned int assignId(const unsigned int suggestedId);
         void addShape(ShapeRef *shape);
         void addJunction(JunctionRef *junction);
         void addCluster(ClusterRef *cluster);
@@ -510,11 +531,10 @@ class Router {
                 const int p_cluster);
         void adjustClustersWithDel(const int p_cluster);
         void rerouteAndCallbackConnectors(void);
-        bool idIsUnique(const unsigned int id) const;
         void improveCrossings(void);
 
         ActionInfoList actionList;
-        unsigned int _largestAssignedId;
+        unsigned int m_largest_assigned_id;
         bool _consolidateActions;
         bool m_currently_calling_destructors;
         double _orthogonalNudgeDistance;

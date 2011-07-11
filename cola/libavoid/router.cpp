@@ -176,7 +176,7 @@ Router::Router(const unsigned int flags)
 #ifdef LIBAVOID_SDL
       avoid_screen(NULL),
 #endif
-      _largestAssignedId(0),
+      m_largest_assigned_id(0),
       _consolidateActions(true),
       m_currently_calling_destructors(false),
       _orthogonalNudgeDistance(4.0),
@@ -820,39 +820,41 @@ double Router::orthogonalNudgeDistance(void) const
 }
 
 
+unsigned int Router::newObjectId(void) const
+{
+    return m_largest_assigned_id + 1;
+}
+
+
 unsigned int Router::assignId(const unsigned int suggestedId)
 {
     // If the suggestedId is zero, then we assign the object the next
     // smallest unassigned ID, otherwise we trust the ID given is unique.
-    unsigned int assignedId = (suggestedId == 0) ? 
-            (_largestAssignedId + 1) : suggestedId;
+    unsigned int assignedId = (suggestedId == 0) ?  newObjectId() : suggestedId;
     
-    // Have the router record if this ID is larger than the _largestAssignedId.
-    _largestAssignedId = std::max(_largestAssignedId, assignedId);
-
     // If assertions are enabled, then we check that this ID really is unique.
-    COLA_ASSERT(idIsUnique(assignedId));
+    COLA_ASSERT(objectIdIsUnused(assignedId));
+    
+    // Have the router record if this ID is larger than the largest assigned ID.
+    m_largest_assigned_id = std::max(m_largest_assigned_id, assignedId);
 
     return assignedId;
 }
 
 
     // Returns whether the given ID is unique among all objects known by the
-    // router.  Outputs a warning if the ID is found ore than once. 
-    // It is expected this is only going to be called from assertions while
-    // debugging, so efficiency is not an issue and we just iterate over all
-    // objects.
-bool Router::idIsUnique(const unsigned int id) const 
+    // router.  It is expected this is only going to be called from assertions
+    // while debugging, so efficiency is not an issue and we just iterate over
+    // all objects.
+bool Router::objectIdIsUnused(const unsigned int id) const 
 {
-    unsigned int count = 0;
-
     // Examine shapes/junctions.
     for (ObstacleList::const_iterator i = m_obstacles.begin(); 
             i != m_obstacles.end(); ++i) 
     {
         if ((*i)->id() == id)
         {
-            count++;
+            return false;
         }
     }
 
@@ -862,7 +864,7 @@ bool Router::idIsUnique(const unsigned int id) const
     {
         if ((*i)->id() == id)
         {
-            count++;
+            return false;
         }
     }
 
@@ -872,15 +874,10 @@ bool Router::idIsUnique(const unsigned int id) const
     {
         if ((*i)->id() == id)
         {
-            count++;
+            return false;
         }
     }
 
-    if (count > 1)
-    {
-        db_printf("Warning:\tlibavoid object ID %d not unique.\n", id);
-        return false;
-    }
     return true;
 }
 
