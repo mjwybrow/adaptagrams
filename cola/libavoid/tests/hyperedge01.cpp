@@ -258,7 +258,7 @@ int main(void) {
     connRef314512308->setRoutingType((ConnType)2);
 
     ConnRef *connRef182776308 = new ConnRef(router, 182776308);
-    ConnEnd srcPt182776308(Point(51075, 51225), 15);
+    ConnEnd srcPt182776308(shapeRef171026375);
     connRef182776308->setSourceEndpoint(srcPt182776308);
     ConnEnd dstPt182776308(Point(51075, 51165), 2);
     connRef182776308->setDestEndpoint(dstPt182776308);
