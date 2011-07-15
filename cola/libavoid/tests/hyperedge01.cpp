@@ -229,27 +229,6 @@ int main(void) {
     connRef34178450->setDestEndpoint(dstPt34178450);
     connRef34178450->setRoutingType((ConnType)2);
 
-    ConnRef *connRef7982176 = new ConnRef(router, 7982176);
-    ConnEnd srcPt7982176(Point(50675, 51260), 1);
-    connRef7982176->setSourceEndpoint(srcPt7982176);
-    ConnEnd dstPt7982176(shapeRef219926511, 2147483646);
-    connRef7982176->setDestEndpoint(dstPt7982176);
-    connRef7982176->setRoutingType((ConnType)2);
-
-    ConnRef *connRef197177982 = new ConnRef(router, 197177982);
-    ConnEnd srcPt197177982(Point(50750, 51250), 15);
-    connRef197177982->setSourceEndpoint(srcPt197177982);
-    ConnEnd dstPt197177982(Point(50750, 51260), 1);
-    connRef197177982->setDestEndpoint(dstPt197177982);
-    connRef197177982->setRoutingType((ConnType)2);
-
-    ConnRef *connRef398066432 = new ConnRef(router, 398066432);
-    ConnEnd srcPt398066432(shapeRef219926511, 2147483646);
-    connRef398066432->setSourceEndpoint(srcPt398066432);
-    ConnEnd dstPt398066432(Point(50850, 51260), 1);
-    connRef398066432->setDestEndpoint(dstPt398066432);
-    connRef398066432->setRoutingType((ConnType)2);
-
     ConnRef *connRef314512308 = new ConnRef(router, 314512308);
     ConnEnd srcPt314512308(Point(51000, 51235), 1);
     connRef314512308->setSourceEndpoint(srcPt314512308);
@@ -270,34 +249,6 @@ int main(void) {
     ConnEnd dstPt96504835(shapeRef171026375);
     connRef96504835->setDestEndpoint(dstPt96504835);
     connRef96504835->setRoutingType((ConnType)2);
-
-    ConnRef *connRef118099300 = new ConnRef(router, 118099300);
-    ConnEnd srcPt118099300(Point(51425, 51210), 1);
-    connRef118099300->setSourceEndpoint(srcPt118099300);
-    ConnEnd dstPt118099300(shapeRef223927132, 2147483646);
-    connRef118099300->setDestEndpoint(dstPt118099300);
-    connRef118099300->setRoutingType((ConnType)2);
-
-    ConnRef *connRef176080410 = new ConnRef(router, 176080410);
-    ConnEnd srcPt176080410(shapeRef223927132, 2147483646);
-    connRef176080410->setSourceEndpoint(srcPt176080410);
-    ConnEnd dstPt176080410(Point(51575, 51210), 1);
-    connRef176080410->setDestEndpoint(dstPt176080410);
-    connRef176080410->setRoutingType((ConnType)2);
-
-    ConnRef *connRef426666001 = new ConnRef(router, 426666001);
-    ConnEnd srcPt426666001(Point(51500, 51210), 1);
-    connRef426666001->setSourceEndpoint(srcPt426666001);
-    ConnEnd dstPt426666001(Point(51500, 51200), 15);
-    connRef426666001->setDestEndpoint(dstPt426666001);
-    connRef426666001->setRoutingType((ConnType)2);
-
-    ConnRef *connRef795762792 = new ConnRef(router, 795762792);
-    ConnEnd srcPt795762792(Point(51650, 51210), 1);
-    connRef795762792->setSourceEndpoint(srcPt795762792);
-    ConnEnd dstPt795762792(shapeRef223927132, 2147483646);
-    connRef795762792->setDestEndpoint(dstPt795762792);
-    connRef795762792->setRoutingType((ConnType)2);
 
     ConnRef *connRef467016913 = new ConnRef(router, 467016913);
     ConnEnd srcPt467016913(shapeRef265539540);
