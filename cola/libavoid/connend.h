@@ -160,6 +160,7 @@ class ConnEnd
         //!
         ConnDirFlags directions(void) const;
 
+        ConnEnd();
         ~ConnEnd();
     private:
         friend class Obstacle;

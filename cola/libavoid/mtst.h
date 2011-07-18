@@ -52,6 +52,7 @@ class MinimumTerminalSpanningTree
                 JunctionHyperEdgeTreeNodeMap *hyperEdgeTreeJunctions = NULL);
         void setDebuggingOutput(FILE *fp, unsigned int counter);
         void execute(void);
+        HyperEdgeTreeNode *rootJunction(void) const;
 
     private:
         void buildHyperEdgeTreeToRoot(VertInf *curr,
@@ -61,12 +62,14 @@ class MinimumTerminalSpanningTree
         void makeSet(VertInf *vertex);
         VertexSetList::iterator findSet(VertInf *vertex);
         void unionSets(VertexSetList::iterator s1, VertexSetList::iterator s2);
+        HyperEdgeTreeNode *addNode(VertInf *vertex, HyperEdgeTreeNode *prevNode);
 
         Router *router;
         std::set<VertInf *> terminals;
         JunctionHyperEdgeTreeNodeMap *hyperEdgeTreeJunctions;
 
-        HyperEdgeTreeNodeMultiSet ends;
+        VertexNodeMap nodes;
+        HyperEdgeTreeNode *m_rootJunction;
         double bendCost;
         VertexSetList allsets;
         std::list<VertInf *> extraVertices;

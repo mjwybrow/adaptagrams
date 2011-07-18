@@ -43,6 +43,8 @@ namespace Avoid {
 class JunctionRef;
 class ConnRef;
 class HyperEdgeShiftSegment;
+class VertInf;
+class Router;
 
 struct HyperEdgeTreeEdge;
 struct HyperEdgeTreeNode;
@@ -72,6 +74,8 @@ struct HyperEdgeTreeNode
     void spliceEdgesFrom(HyperEdgeTreeNode *oldNode);
     void removeZeroLengthEdges(HyperEdgeTreeEdge *ignored);
     void writeEdgesToConns(HyperEdgeTreeEdge *ignored, size_t pass);
+    void addConns(HyperEdgeTreeEdge *ignored, Router *router, 
+            ConnRefList& oldConns, ConnRef *conn);
     void listJunctionsAndConnectors(HyperEdgeTreeEdge *ignored,
             JunctionRefList& junctions, ConnRefList& connectors);
 
@@ -79,6 +83,7 @@ struct HyperEdgeTreeNode
     JunctionRef *junction;
     Point point;
     OrderedHENodeSet *shiftSegmentNodeSet;
+    VertInf *finalVertex;
 };
 
 struct HyperEdgeTreeEdge
@@ -96,6 +101,8 @@ struct HyperEdgeTreeEdge
     void removeOtherJunctionsFrom(HyperEdgeTreeNode *ignored, 
             JunctionSet &treeRoots);
     void writeEdgesToConns(HyperEdgeTreeNode *ignored, size_t pass);
+    void addConns(HyperEdgeTreeNode *ignored, Router *router,
+            ConnRefList& oldConns);
     void disconnectEdge(void);
     void replaceNode(HyperEdgeTreeNode *oldNode,
             HyperEdgeTreeNode *newNode);
@@ -106,17 +113,8 @@ struct HyperEdgeTreeEdge
     ConnRef *conn;
 };
 
-struct CmpHETNEndpoints
-{
-    bool operator()(const HyperEdgeTreeNode *lhs,
-            const HyperEdgeTreeNode *rhs) const
-    {
-        return lhs->point < rhs->point;
-    }
-};
 
-typedef std::multiset<HyperEdgeTreeNode *, CmpHETNEndpoints>
-        HyperEdgeTreeNodeMultiSet;
+typedef std::map<VertInf *, HyperEdgeTreeNode *> VertexNodeMap;
 
 
 struct CmpNodesInDim

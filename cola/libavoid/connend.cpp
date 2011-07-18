@@ -40,6 +40,16 @@
 namespace Avoid {
 
     
+ConnEnd::ConnEnd()
+    : m_point(Point(0,0)),
+      m_directions(ConnDirAll),
+      m_connection_pin_class_id(CONNECTIONPIN_UNSET),
+      m_anchor_obj(NULL),
+      m_conn_ref(NULL),
+      m_active_pin(NULL)
+{
+}
+
 ConnEnd::ConnEnd(const Point& point) 
     : m_point(point),
       m_directions(ConnDirAll),

@@ -187,7 +187,7 @@ class Router {
         //! @note   Destroying a router instance will delete all remaining
         //!         shapes and connectors, thereby invalidating any existing
         //!         pointers to them.
-        ~Router();
+        virtual ~Router();
 
         ObstacleList m_obstacles;
         ConnRefList connRefs;
@@ -511,6 +511,7 @@ class Router {
         friend class Obstacle;
         friend class ClusterRef;
         friend class MinimumTerminalSpanningTree;
+        friend struct HyperEdgeTreeNode;
 
         unsigned int assignId(const unsigned int suggestedId);
         void addShape(ShapeRef *shape);

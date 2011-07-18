@@ -273,6 +273,8 @@ class ConnRef
         //!
         std::pair<Obstacle *, Obstacle *> endpointAnchors(void) const;
 
+        std::pair<ConnEnd, ConnEnd> endpointConnEnds(void) const;
+
         // @brief   Returns the source endpoint vertex in the visibility graph.
         // @returns The source endpoint vertex.
         VertInf *src(void);
@@ -303,6 +305,7 @@ class ConnRef
         friend class ConnRerouteFlagDelegate;
         friend struct ImproveHyperEdges;
         friend struct HyperEdgeTreeEdge;
+        friend struct HyperEdgeTreeNode;
         friend class HyperedgeRerouter;
 
         PolyLine& routeRef(void);
@@ -317,6 +320,8 @@ class ConnRef
         void updateEndPoint(const unsigned int type, const ConnEnd& connEnd);
         void common_updateEndPoint(const unsigned int type, ConnEnd connEnd);
         void freeActivePins(void);
+        bool getConnEndForEndpointVertex(VertInf *vertex, ConnEnd& connEnd) 
+                const;
 
         Router *m_router;
         unsigned int m_id;

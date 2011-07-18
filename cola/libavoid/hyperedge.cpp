@@ -283,8 +283,15 @@ void HyperedgeRerouter::performRerouting(void)
                 &hyperEdgeTreeJunctions);
         mtst.execute();
 
+        HyperEdgeTreeNode *treeRoot = mtst.rootJunction();
+        COLA_ASSERT(treeRoot);
+        
+        // Fill in connector information and join them to junctions of endpoints
+        // of original connectors.
+        treeRoot->addConns(NULL, m_router, 
+                m_deleted_connectors_vector[i], NULL);
+
         // Output the list of new junctions and connectors from hyperedge tree.
-        HyperEdgeTreeNode *treeRoot = hyperEdgeTreeJunctions.begin()->second;
         treeRoot->listJunctionsAndConnectors(NULL, m_new_junctions_vector[i],
                 m_new_connectors_vector[i]);
 

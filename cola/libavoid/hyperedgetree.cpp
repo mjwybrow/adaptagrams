@@ -27,6 +27,8 @@
 #include "libavoid/hyperedgetree.h"
 #include "libavoid/geometry.h"
 #include "libavoid/connector.h"
+#include "libavoid/router.h"
+#include "libavoid/connend.h"
 #include "libavoid/assertions.h"
 
 namespace Avoid {
@@ -36,7 +38,8 @@ namespace Avoid {
 //
 HyperEdgeTreeNode::HyperEdgeTreeNode()
     : junction(NULL),
-      shiftSegmentNodeSet(NULL)
+      shiftSegmentNodeSet(NULL),
+      finalVertex(NULL)
 {
 }
 
@@ -103,6 +106,47 @@ void HyperEdgeTreeNode::writeEdgesToConns(HyperEdgeTreeEdge *ignored,
         }
     }
 }
+
+// This method traverses the hyperedge tree and creates connectors for each
+// segmentment bridging junction and/or terminals.  It also sets the 
+// appropriate ConnEnds for each connector.
+//
+void HyperEdgeTreeNode::addConns(HyperEdgeTreeEdge *ignored, Router *router,
+        ConnRefList& oldConns, ConnRef *conn)
+{
+    // If no connector is set, then we must be starting off at a junction.
+    COLA_ASSERT(conn || junction);
+
+    for (std::list<HyperEdgeTreeEdge *>::iterator curr = edges.begin();
+            curr != edges.end(); ++curr)
+    {
+        if (*curr != ignored)
+        {
+            // If we're not at a junction, then use the connector value being
+            // passed in to the method.
+
+            if (junction)
+            {
+                // If we're at a junction, then we are effectively starting
+                // our taversal along a connector, so creat this new connector
+                // and set it's start ConnEnd to be this junction.
+                conn = new ConnRef(router);
+                router->removeObjectFromQueuedActions(conn);
+                conn->makeActive();
+                conn->m_initialised = true;
+                ConnEnd connend(junction);
+                conn->updateEndPoint(VertID::src, connend);
+            }
+    
+            // Set the connector for this edge.
+            (*curr)->conn = conn;
+            
+            // Continue recursive traversal.
+            (*curr)->addConns(this, router, oldConns);
+        }
+    }
+}
+
 
 // This method traverses the hyperedge tree and returns a list of the junctions
 // and connectors that make up the hyperedge.
@@ -470,6 +514,55 @@ void HyperEdgeTreeEdge::writeEdgesToConns(HyperEdgeTreeNode *ignored,
     if (ends.second && (ends.second != ignored))
     {
         ends.second->writeEdgesToConns(this, pass);
+    }
+}
+
+// This method traverses the hyperedge tree and creates connectors for each
+// segmentment bridging junction and/or terminals.  It also sets the 
+// appropriate ConnEnds for each connector.
+//
+void HyperEdgeTreeEdge::addConns(HyperEdgeTreeNode *ignored, Router *router,
+        ConnRefList& oldConns)
+{
+    COLA_ASSERT(conn != NULL);
+    HyperEdgeTreeNode *endNode = NULL;
+    if (ends.first && (ends.first != ignored))
+    {
+        endNode = ends.first;
+        ends.first->addConns(this, router, oldConns, conn);
+    }
+
+    if (ends.second && (ends.second != ignored))
+    {
+        endNode = ends.second;
+        ends.second->addConns(this, router, oldConns, conn);
+    }
+
+    if (endNode->finalVertex)
+    {
+        // We have reached a terminal of the hyperedge, so set a ConnEnd for
+        // the original connector endpoint
+        ConnEnd connend;
+        bool result = false;
+        // Find the ConnEnd from the list of original connectors.
+        for (ConnRefList::iterator curr = oldConns.begin(); 
+                curr != oldConns.end(); ++curr)
+        {
+            result |= (*curr)->getConnEndForEndpointVertex(
+                    endNode->finalVertex, connend);
+            if (result)
+            {
+                break;
+            }
+        }
+        COLA_ASSERT(result);
+        conn->updateEndPoint(VertID::tar, connend);
+    }
+    else if (endNode->junction)
+    {
+        // Or, set a ConnEnd connecting to the junction we have reached.
+        ConnEnd connend(endNode->junction);
+        conn->updateEndPoint(VertID::tar, connend);
     }
 }
 

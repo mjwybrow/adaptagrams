@@ -78,6 +78,7 @@ MinimumTerminalSpanningTree::MinimumTerminalSpanningTree(Router *router,
     : router(router),
       terminals(terminals),
       hyperEdgeTreeJunctions(hyperEdgeTreeJunctions),
+      m_rootJunction(NULL),
       bendCost(2000),
       debug_fp(NULL),
       debug_count(0)
@@ -90,6 +91,12 @@ void MinimumTerminalSpanningTree::setDebuggingOutput(FILE *fp,
 {
     debug_fp = fp;
     debug_count = counter;
+}
+
+
+HyperEdgeTreeNode *MinimumTerminalSpanningTree::rootJunction(void) const
+{
+    return m_rootJunction;
 }
 
 
@@ -124,46 +131,83 @@ void MinimumTerminalSpanningTree::unionSets(VertexSetList::iterator s1,
     allsets.push_back(s);
 }
 
-void MinimumTerminalSpanningTree::buildHyperEdgeTreeToRoot(VertInf *curr,
-        HyperEdgeTreeNode *prevNode, HyperEdgeTreeNode *prevPrevNode,
+HyperEdgeTreeNode *MinimumTerminalSpanningTree::addNode(VertInf *vertex, 
+        HyperEdgeTreeNode *prevNode)
+{
+    // Do we already have a node for this vertex?
+    VertexNodeMap::iterator match = nodes.find(vertex);
+    if (match == nodes.end())
+    {
+        // Not found.  Create new node.
+        HyperEdgeTreeNode *newNode = new HyperEdgeTreeNode();
+        newNode->point = vertex->point;
+        // Remember it.
+        nodes[vertex] = newNode;
+        // Join it to the previous node.
+        new HyperEdgeTreeEdge(prevNode, newNode, NULL);
+
+        return newNode;
+    }
+    else
+    {
+        // Found.
+        HyperEdgeTreeNode *junctionNode = match->second;
+        if (junctionNode->junction == NULL)
+        {
+            // Create a junction, if one has not already been created.
+            junctionNode->junction = new JunctionRef(router, vertex->point);
+            if (m_rootJunction == NULL)
+            {
+                // Remember the first junction node, so we can use it to 
+                // traverse the tree, added and connecting connectors to 
+                // junctions and endpoints.
+                m_rootJunction = junctionNode;
+            }
+            router->removeObjectFromQueuedActions(junctionNode->junction);
+            junctionNode->junction->makeActive();
+        }
+        // Joint to junction
+        new HyperEdgeTreeEdge(prevNode, junctionNode, NULL);
+
+        return NULL;
+    }
+}
+
+void MinimumTerminalSpanningTree::buildHyperEdgeTreeToRoot(VertInf *currVert,
+        HyperEdgeTreeNode *currNode, HyperEdgeTreeNode *prevNode,
         ConnRef *newConnRef)
 {
     // This method follows branches in a shortest path tree back to the
     // root, generating hyperedge tree nodes and branches as it goes.
-
-    while (curr->pathNext != NULL)
+    while (currVert)
     {
-        VertInf *prev = curr->pathNext;
-        if (hyperEdgeTreeJunctions)
-        {
-            HyperEdgeTreeNode *newNode = NULL;
-            if (vecDir(prevPrevNode->point, prevNode->point, curr->point) == 0)
-            {
-                newNode = prevNode;
-            }
-            else
-            {
-                newNode = new HyperEdgeTreeNode();
-                new HyperEdgeTreeEdge(prevNode, newNode, newConnRef);
-            }
-            newNode->point = curr->point;
-
-            prevNode = newNode;
-
-        }
+        // Add the node, if necessary.
+        HyperEdgeTreeNode *addedNode = addNode(currVert, prevNode);
+        
         if (debug_fp)
         {
             fprintf(debug_fp, "<path d=\"M %g %g L %g %g\" "
                     "style=\"fill: none; stroke: %s; "
                     "stroke-width: 1px;\" />\n",
-                    curr->point.x, curr->point.y,
-                    prev->point.x, prev->point.y, "blue");
+                    currVert->point.x, currVert->point.y,
+                    prevNode->point.x, prevNode->point.y, "blue");
         }
-        curr = curr->pathNext;
-    }
-    if (hyperEdgeTreeJunctions)
-    {
-        ends.insert(prevNode);
+        
+        if (addedNode == NULL)
+        {
+            // We've reached a junction, so stop.
+            break;
+        }
+
+        if (currVert->pathNext == NULL)
+        {
+            // This is a terminal of the hyperedge, mark the node with the 
+            // vertex representing the endpoint of the connector so we can
+            // later use this to set the correct ConnEnd for the connector.
+            addedNode->finalVertex = currVert;
+        }
+        prevNode = addedNode;
+        currVert = currVert->pathNext;
     }
 }
 
@@ -382,10 +426,6 @@ void MinimumTerminalSpanningTree::execute(void)
             ConnRef *newConnRef = NULL;
             if (hyperEdgeTreeJunctions)
             {
-                newConnRef = new ConnRef(router);
-                router->removeObjectFromQueuedActions(newConnRef);
-                newConnRef->makeActive();
-
                 node1 = new HyperEdgeTreeNode();
                 node1->point = e->m_vert1->point;
 
@@ -404,43 +444,6 @@ void MinimumTerminalSpanningTree::execute(void)
             }
             buildHyperEdgeTreeToRoot(e->m_vert1, node1, node2, newConnRef);
             buildHyperEdgeTreeToRoot(e->m_vert2, node2, node1, newConnRef);
-        }
-    }
-
-    if (hyperEdgeTreeJunctions)
-    {
-        // If we are building the hyperedge from the MTST, then we will
-        // at this point just have several paths, one for each of the shorest
-        // paths found when bridging the shorest path terminal forest.  Where
-        // these end at the same terminal, we create a junction that will
-        // later be moved by the local optimisation, simplifying the tree.
-        HyperEdgeTreeNodeMultiSet::iterator it;
-        HyperEdgeTreeNodeMultiSet::iterator prev = ends.end();
-        // Terminals in "ends" will be adjacent to each other when iterating.
-        for (it = ends.begin(); it != ends.end(); ++it)
-        {
-            if (prev != ends.end())
-            {
-                if ((*prev)->point == (*it)->point)
-                {
-                    // This endpoint is at the same position as the previous
-                    // so merge them.
-                    if ((*prev)->junction == NULL)
-                    {
-                        // Create a new junction if the previous endpoint
-                        // doesn't have one associated with it.
-                        (*prev)->junction =
-                                new JunctionRef(router, (*prev)->point);
-                        router->removeObjectFromQueuedActions((*prev)->junction);
-                        (*prev)->junction->makeActive();
-                    }
-                    (*it)->spliceEdgesFrom(*prev);
-                    (*it)->junction = (*prev)->junction;
-                    delete *prev;
-                    (*hyperEdgeTreeJunctions)[(*it)->junction] = (*it);
-                }
-            }
-            prev = it;
         }
     }
     if (debug_fp)
