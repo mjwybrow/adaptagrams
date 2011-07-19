@@ -82,6 +82,23 @@ enum ConnDirFlag {
 typedef unsigned int ConnDirFlags;
 
 
+//! @brief  Types that describe the kind a connection that a ConnEnd 
+//!         represents.
+//!
+enum ConnEndType {
+    //! @brief  The ConnEnd represents a free-floating point that may or may 
+    //!         not have visibility in specific directions.
+    ConnEndPoint,
+    //! @brief  The ConnEnd attaches to a specific ShapeConnectionPin on a 
+    //!         shape.
+    ConnEndShapePin,
+    //! @brief  The ConnEnd attaches to a junction.
+    ConnEndJunction,
+    //! @brief  The ConnEnd is empty and doesn't have any information set.
+    ConnEndEmpty
+};
+
+
 // Used to specify position on shape when constructing a shape-attached ConnEnd.
 //
 static const double ATTACH_POS_TOP = 0;
@@ -105,6 +122,19 @@ class ConnEnd
         //! @param[in]  point  The position of the connector endpoint.
         //!
         ConnEnd(const Point& point);
+
+        //! @brief Constructs a ConnEnd from a free-floating point as well
+        //!        as a set of flags specifying visibility for this point 
+        //!        if it is located inside a shape.
+        //!
+        //! @param[in]  point    The position of the connector endpoint.
+        //! @param[in]  visDirs  One or more Avoid::ConnDirFlag options 
+        //!                      specifying the directions that this point 
+        //!                      should be given visibility if it is inside 
+        //!                      a shape.  Currently has no effect if outside
+        //!                      of shapes.
+        //!
+        ConnEnd(const Point& point, const ConnDirFlags visDirs);
 
         //! @brief Constructs a ConnEnd attached to one of a particular set of
         //!        connection pins on a shape.
@@ -134,18 +164,12 @@ class ConnEnd
         //!
         ConnEnd(JunctionRef *junctionRef);
 
-        //! @brief Constructs a ConnEnd from a free-floating point as well
-        //!        as a set of flags specifying visibility for this point 
-        //!        if it is located inside a shape.
+
+        //! @brief Returns the kind of connection this ConnEnd represents.
         //!
-        //! @param[in]  point    The position of the connector endpoint.
-        //! @param[in]  visDirs  One or more Avoid::ConnDirFlag options 
-        //!                      specifying the directions that this point 
-        //!                      should be given visibility if it is inside 
-        //!                      a shape.  Currently has no effect if outside
-        //!                      of shapes.
+        //! @return The ConnEndType represented by this ConnEnd.
         //!
-        ConnEnd(const Point& point, const ConnDirFlags visDirs);
+        ConnEndType type(void) const;
 
         //! @brief Returns the position of this connector endpoint.
         //!
@@ -159,6 +183,32 @@ class ConnEnd
         //! @return The visibility directions for this connector endpoint.
         //!
         ConnDirFlags directions(void) const;
+
+        //! @brief Returns the shape this ConnEnd attaches to, or NULL.
+        //!
+        //! Will be valid only if type() == ConnEndShapePin.
+        //!
+        //! @return The ShapeRef pointer that the ConnEnd attaches to, or NULL.
+        //!
+        ShapeRef *shape(void) const;
+
+        //! @brief Returns the junction this ConnEnd attaches to, or NULL.
+        //!
+        //! Will be valid only if type() == ConnEndJunction.
+        //!
+        //! @return The JunctionRef pointer that the ConnEnd attaches to,
+        //!         or NULL.
+        //!
+        JunctionRef *junction(void) const;
+
+        //! @brief Returns the pin class ID for a ConnEnd attached to a shape.
+        //!
+        //! Will be valid only if type() == ConnEndShapePin.
+        //!
+        //! @return An unsigned int representing the pin class ID for the
+        //!         ConnEnd.
+        //!
+        unsigned int pinClassId(void) const;
 
         ConnEnd();
         ~ConnEnd();
@@ -177,7 +227,7 @@ class ConnEnd
         void usePin(ShapeConnectionPin *pin);
         void usePinVertex(VertInf *pinVert);
         void freeActivePin(void);
-        unsigned int type(void) const;
+        unsigned int endpointType(void) const;
         bool isPinConnection(void) const;
         std::vector<Point> possiblePinPoints(void) const;
         void assignPinVisibilityTo(VertInf *dummyConnectionVert, 
@@ -186,12 +236,15 @@ class ConnEnd
                 unsigned int num = 0) const;
         std::pair<bool, VertInf *> getHyperedgeVertex(Router *router) const;
 
+    public:
+        ConnEndType m_type;
         Point m_point;
         ConnDirFlags m_directions;
         unsigned int m_connection_pin_class_id;
         
         // For referencing ConnEnds
         Obstacle *m_anchor_obj;  // The shape/junction this is attached to.
+    private:
         ConnRef *m_conn_ref;    // The parent connector.
         
         // The pin to which the ConnEnd is attached.

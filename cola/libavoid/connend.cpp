@@ -41,7 +41,8 @@ namespace Avoid {
 
     
 ConnEnd::ConnEnd()
-    : m_point(Point(0,0)),
+    : m_type(ConnEndEmpty),
+      m_point(Point(0,0)),
       m_directions(ConnDirAll),
       m_connection_pin_class_id(CONNECTIONPIN_UNSET),
       m_anchor_obj(NULL),
@@ -51,7 +52,8 @@ ConnEnd::ConnEnd()
 }
 
 ConnEnd::ConnEnd(const Point& point) 
-    : m_point(point),
+    : m_type(ConnEndPoint),
+      m_point(point),
       m_directions(ConnDirAll),
       m_connection_pin_class_id(CONNECTIONPIN_UNSET),
       m_anchor_obj(NULL),
@@ -62,7 +64,8 @@ ConnEnd::ConnEnd(const Point& point)
 
 
 ConnEnd::ConnEnd(const Point& point, const ConnDirFlags visDirs) 
-    : m_point(point),
+    : m_type(ConnEndPoint),
+      m_point(point),
       m_directions(visDirs),
       m_connection_pin_class_id(CONNECTIONPIN_UNSET),
       m_anchor_obj(NULL),
@@ -73,7 +76,8 @@ ConnEnd::ConnEnd(const Point& point, const ConnDirFlags visDirs)
 
 
 ConnEnd::ConnEnd(ShapeRef *shapeRef, const unsigned int connectionPinClassID)
-    : m_point(Point(0,0)),
+    : m_type(ConnEndShapePin),
+      m_point(Point(0,0)),
       m_directions(ConnDirAll),
       m_connection_pin_class_id(connectionPinClassID),
       m_anchor_obj(shapeRef),
@@ -89,7 +93,8 @@ ConnEnd::ConnEnd(ShapeRef *shapeRef, const unsigned int connectionPinClassID)
 
 
 ConnEnd::ConnEnd(JunctionRef *junctionRef)
-    : m_directions(ConnDirAll),
+    : m_type(ConnEndJunction),
+      m_directions(ConnDirAll),
       m_connection_pin_class_id(CONNECTIONPIN_CENTRE),
       m_anchor_obj(junctionRef),
       m_conn_ref(NULL),
@@ -107,12 +112,67 @@ ConnEnd::~ConnEnd()
 }
 
 
-bool ConnEnd::isPinConnection(void) const
+ConnEndType ConnEnd::type(void) const
 {
-    return m_anchor_obj && (m_connection_pin_class_id != CONNECTIONPIN_UNSET);
+    return m_type;
 }
 
-unsigned int ConnEnd::type(void) const
+
+const Point ConnEnd::position(void) const
+{
+    if (m_active_pin)  // Attached to a pin!
+    {
+        return m_active_pin->position();
+    }
+    else if (m_anchor_obj)
+    {
+        return m_anchor_obj->position();
+    }
+    else
+    {
+        return m_point;
+    }
+}
+
+
+ConnDirFlags ConnEnd::directions(void) const
+{
+    if (m_active_pin)  // Attached to a pin!
+    {
+        return m_active_pin->directions();
+    }
+    else
+    {
+        return m_directions;
+    }
+}
+
+
+ShapeRef *ConnEnd::shape(void) const
+{
+    return dynamic_cast<ShapeRef *> (m_anchor_obj);
+}
+
+
+JunctionRef *ConnEnd::junction(void) const
+{
+    return dynamic_cast<JunctionRef *> (m_anchor_obj);
+}
+
+
+unsigned int ConnEnd::pinClassId(void) const
+{
+    return m_connection_pin_class_id;
+}
+
+
+
+bool ConnEnd::isPinConnection(void) const
+{
+    return (m_type & (ConnEndShapePin | ConnEndJunction));
+}
+
+unsigned int ConnEnd::endpointType(void) const
 {
     COLA_ASSERT(m_conn_ref != NULL);
     return (m_conn_ref->m_dst_connend == this) ? VertID::tar : VertID::src;
@@ -202,36 +262,6 @@ void ConnEnd::disconnect(const bool shapeDeleted)
         // Turn this into a manual ConnEnd.
         m_point = position();
         m_anchor_obj = NULL;
-    }
-}
-
-
-const Point ConnEnd::position(void) const
-{
-    if (m_active_pin)  // Attached to a pin!
-    {
-        return m_active_pin->position();
-    }
-    else if (m_anchor_obj)
-    {
-        return m_anchor_obj->position();
-    }
-    else
-    {
-        return m_point;
-    }
-}
-
-
-ConnDirFlags ConnEnd::directions(void) const
-{
-    if (m_active_pin)  // Attached to a pin!
-    {
-        return m_active_pin->directions();
-    }
-    else
-    {
-        return m_directions;
     }
 }
 
@@ -366,12 +396,12 @@ void ConnEnd::outputCode(FILE *fp, const char *srcDst, unsigned int num) const
         num = m_conn_ref->id();
     }
 
-    if (dynamic_cast<JunctionRef *> (m_anchor_obj))
+    if (junction())
     {
         fprintf(fp, "    ConnEnd %sPt%u(junctionRef%u);\n", srcDst,
                 num, m_anchor_obj->id());
     }
-    else if (dynamic_cast<ShapeRef *> (m_anchor_obj))
+    else if (shape())
     {
         fprintf(fp, "    ConnEnd %sPt%u(shapeRef%u, %u);\n", srcDst,
                 num, m_anchor_obj->id(), m_connection_pin_class_id);

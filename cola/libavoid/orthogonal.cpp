@@ -3662,14 +3662,12 @@ struct ImproveHyperEdges
 
             if (connRef->m_src_connend)
             {
-                jFront = dynamic_cast<JunctionRef *> 
-                        (connRef->m_src_connend->m_anchor_obj);
+                jFront = connRef->m_src_connend->junction();
             }
 
             if (connRef->m_dst_connend)
             {
-                jBack = dynamic_cast<JunctionRef *>        
-                        (connRef->m_dst_connend->m_anchor_obj);
+                jBack = connRef->m_dst_connend->junction();
             }
 
             if (jFront && jFront->positionFixed())
