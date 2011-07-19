@@ -261,18 +261,17 @@ class ConnRef
         //!          route via.
         std::vector<Point> routingCheckpoints(void) const;
         
-        //! @brief   Returns the anchor objects that this connector is 
+        //! @brief   Returns ConnEnds specifying what this connector is 
         //!          attached to.
         //!
         //! This may be useful during hyperedge rerouting.  You can check the 
-        //! IDs of the anchor objects or try casting them to JunctionRefs or
-        //! ShapeRefs to find out what they are.
+        //! type and properties of the ConnEnd objects to find out what this 
+        //! connector is attached to.  The ConnEnd::type() will be ConnEndEmpty
+        //! if the connector has not had its endpoints initialised.
         //!
-        //! @returns A pair with pointers to the two objects that the connector
-        //!          is attached to, or NULL if it is not attached.
+        //! @returns A pair of ConnEnd objects specifying what the connector
+        //!          is attached to.
         //!
-        std::pair<Obstacle *, Obstacle *> endpointAnchors(void) const;
-
         std::pair<ConnEnd, ConnEnd> endpointConnEnds(void) const;
 
         // @brief   Returns the source endpoint vertex in the visibility graph.
@@ -322,6 +321,8 @@ class ConnRef
         void freeActivePins(void);
         bool getConnEndForEndpointVertex(VertInf *vertex, ConnEnd& connEnd) 
                 const;
+        std::pair<Obstacle *, Obstacle *> endpointAnchors(void) const;
+
 
         Router *m_router;
         unsigned int m_id;
