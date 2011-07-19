@@ -236,7 +236,6 @@ class ConnEnd
                 unsigned int num = 0) const;
         std::pair<bool, VertInf *> getHyperedgeVertex(Router *router) const;
 
-    public:
         ConnEndType m_type;
         Point m_point;
         ConnDirFlags m_directions;
@@ -244,7 +243,6 @@ class ConnEnd
         
         // For referencing ConnEnds
         Obstacle *m_anchor_obj;  // The shape/junction this is attached to.
-    private:
         ConnRef *m_conn_ref;    // The parent connector.
         
         // The pin to which the ConnEnd is attached.
