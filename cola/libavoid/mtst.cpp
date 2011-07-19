@@ -174,9 +174,10 @@ HyperEdgeTreeNode *MinimumTerminalSpanningTree::addNode(VertInf *vertex,
 }
 
 void MinimumTerminalSpanningTree::buildHyperEdgeTreeToRoot(VertInf *currVert,
-        HyperEdgeTreeNode *currNode, HyperEdgeTreeNode *prevNode,
-        ConnRef *newConnRef)
+        HyperEdgeTreeNode *prevNode)
 {
+    COLA_ASSERT(currVert != NULL);
+
     // This method follows branches in a shortest path tree back to the
     // root, generating hyperedge tree nodes and branches as it goes.
     while (currVert)
@@ -423,16 +424,17 @@ void MinimumTerminalSpanningTree::execute(void)
             // and edges for this edge and the path back to the tree root.
             HyperEdgeTreeNode *node1 = NULL;
             HyperEdgeTreeNode *node2 = NULL;
-            ConnRef *newConnRef = NULL;
             if (hyperEdgeTreeJunctions)
             {
                 node1 = new HyperEdgeTreeNode();
                 node1->point = e->m_vert1->point;
+                nodes[e->m_vert1] = node1;
 
                 node2 = new HyperEdgeTreeNode();
                 node2->point = e->m_vert2->point;
+                nodes[e->m_vert2] = node2;
 
-                new HyperEdgeTreeEdge(node1, node2, newConnRef);
+                new HyperEdgeTreeEdge(node1, node2, NULL);
             }
             if (debug_fp)
             {
@@ -442,8 +444,8 @@ void MinimumTerminalSpanningTree::execute(void)
                         e->m_vert1->point.y, e->m_vert2->point.x,
                         e->m_vert2->point.y, "red");
             }
-            buildHyperEdgeTreeToRoot(e->m_vert1, node1, node2, newConnRef);
-            buildHyperEdgeTreeToRoot(e->m_vert2, node2, node1, newConnRef);
+            buildHyperEdgeTreeToRoot(e->m_vert1->pathNext, node1);
+            buildHyperEdgeTreeToRoot(e->m_vert2->pathNext, node2);
         }
     }
     if (debug_fp)

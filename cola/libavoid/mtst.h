@@ -56,8 +56,7 @@ class MinimumTerminalSpanningTree
 
     private:
         void buildHyperEdgeTreeToRoot(VertInf *curr,
-                HyperEdgeTreeNode *prevNode, HyperEdgeTreeNode *prevPrevNode,
-                ConnRef *newConnRef);
+                HyperEdgeTreeNode *prevNode);
 
         void makeSet(VertInf *vertex);
         VertexSetList::iterator findSet(VertInf *vertex);

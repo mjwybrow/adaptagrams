@@ -733,7 +733,7 @@ struct Node
         Node *curr = firstAbove; 
         while (curr) 
         {
-            if (curr->max[dim] < pos)
+            if (curr->max[dim] <= pos)
             {
                 result = std::max(curr->max[dim], result);
             }
@@ -747,7 +747,7 @@ struct Node
         Node *curr = firstBelow; 
         while (curr) 
         { 
-            if (curr->min[dim] > pos)
+            if (curr->min[dim] >= pos)
             {
                 result = std::min(curr->min[dim], result);
             }
@@ -1779,14 +1779,16 @@ static void processEventVert(Router *router, NodeSet& scanline,
             double minLimit = v->firstPointAbove(XDIM);
             double maxLimit = v->firstPointBelow(XDIM);
             bool inShape = v->isInsideShape(XDIM);
-
+            
+            // Insert if we have visibility in that direction and the segment
+            // length is greater than zero.
             LineSegment *line1 = NULL, *line2 = NULL;
-            if (centreVert->visDirections & ConnDirLeft)
+            if ((centreVert->visDirections & ConnDirLeft) && (minLimit < cp.x))
             {
                 line1 = segments.insert(LineSegment(minLimit, cp.x, e->pos, 
                         true, NULL, centreVert));
             }
-            if (centreVert->visDirections & ConnDirRight)
+            if ((centreVert->visDirections & ConnDirRight) && (cp.x < maxLimit))
             {
                 line2 = segments.insert(LineSegment(cp.x, maxLimit, e->pos, 
                         true, centreVert, NULL));
@@ -1948,13 +1950,15 @@ static void processEventHori(Router *router, NodeSet& scanline,
             // As far as we can see.
             double minLimit = v->firstPointAbove(YDIM);
             double maxLimit = v->firstPointBelow(YDIM);
-            //bool inShape = v->isInsideShape(YDIM);
             
-            if (centreVert->visDirections & ConnDirUp)
+            // Insert if we have visibility in that direction and the segment
+            // length is greater than zero.
+            if ((centreVert->visDirections & ConnDirUp) && (minLimit < cp.y))
             {
                 segments.insert(LineSegment(minLimit, cp.y, e->pos));
             }
-            if (centreVert->visDirections & ConnDirDown)
+
+            if ((centreVert->visDirections & ConnDirDown) && (cp.y < maxLimit))
             {
                 segments.insert(LineSegment(cp.y, maxLimit, e->pos));
             }
