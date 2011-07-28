@@ -30,7 +30,7 @@ These libraries are collectively known as cola (for Constraint Layout). The
 newest version of the C++ source code for cola can be found in the 
 Adaptagrams github repository:
 
-    [https://github.com/mjwybrow/adaptagrams/][repo]
+ *  [https://github.com/mjwybrow/adaptagrams/][repo]
 
 The Adaptagrams code is maintained by [Michael Wybrow][mw].
 
