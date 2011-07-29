@@ -8,15 +8,6 @@ libavoid is a cross-platform C++ library providing fast, object-avoiding
 orthogonal and polyline connector routing for use in interactive diagram 
 editors.
 
-<div style="border: dotted 1px #900; padding: 0.3em; background-color: #ffe;">
-For GD 2011 Reviewers:
-<ul>
-<li>An error was discovered in the implementation after submission. A
-short errata to reflect the fixes is available <a
-href="http://www.csse.monash.edu.au/~mwybrow/dunnart/gd11-errata.pdf">here</a>.</li>
-<li>Hyperedge changes to libavoid have now been committed.</li>
-</ul></div>
-
 libavoid is part of the 
 <a href="http://adaptagrams.sourceforge.net/">Adaptagrams project</a>. 
 There are no official releases yet, though the code is stable and 
