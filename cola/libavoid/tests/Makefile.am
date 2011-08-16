@@ -50,7 +50,8 @@ check_PROGRAMS = \
 	freeFloatingDirection01 \
 	restrictedNudging \
 	performance01 \
-	hyperedge01
+	hyperedge01 \
+	validPaths01
 
 performance01_SOURCES = performance01.cpp
 
@@ -73,6 +74,7 @@ lineSegWrapperCrash7_SOURCES = lineSegWrapperCrash7.cpp
 lineSegWrapperCrash8_SOURCES = lineSegWrapperCrash8.cpp
 
 example_SOURCES = example.cpp
+validPaths01_SOURCES = validPaths01.cpp
 
 multiconnact_SOURCES = multiconnact.cpp
 

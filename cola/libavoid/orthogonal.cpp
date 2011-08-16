@@ -729,11 +729,18 @@ struct Node
     }
     double firstPointAbove(size_t dim) 
     {
+        // We are looking for the first obstacle above this position,
+        // though we ignore shape edges if this point is inline with
+        // the edge of the obstacle.  That is, points have visibility
+        // along the edge of shapes.
+        size_t altDim = (dim + 1) % 2;
         double result = -DBL_MAX;
         Node *curr = firstAbove; 
         while (curr) 
         {
-            if (curr->max[dim] <= pos)
+            bool inLineWithEdge = (min[altDim] == curr->min[altDim]) ||
+                    (min[altDim] == curr->max[altDim]);
+            if ( ! inLineWithEdge && (curr->max[dim] <= pos) )
             {
                 result = std::max(curr->max[dim], result);
             }
@@ -743,11 +750,18 @@ struct Node
     } 
     double firstPointBelow(size_t dim) 
     { 
+        // We are looking for the first obstacle below this position,
+        // though we ignore shape edges if this point is inline with
+        // the edge of the obstacle.  That is, points have visibility
+        // along the edge of shapes.
+        size_t altDim = (dim + 1) % 2;
         double result = DBL_MAX;
         Node *curr = firstBelow; 
         while (curr) 
         { 
-            if (curr->min[dim] >= pos)
+            bool inLineWithEdge = (min[altDim] == curr->min[altDim]) ||
+                    (min[altDim] == curr->max[altDim]);
+            if ( ! inLineWithEdge && (curr->min[dim] >= pos) )
             {
                 result = std::min(curr->min[dim], result);
             }

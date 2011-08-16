@@ -500,9 +500,12 @@ class Router {
         void setStaticGraphInvalidated(const bool invalidated);
         ConnType validConnType(const ConnType select = ConnType_None) const;
         double& penaltyRef(const PenaltyType penType);
+        
+        // Testing and debugging methods.
         bool existsOrthogonalPathOverlap(void);
         bool existsOrthogonalTouchingPaths(void);
         int  existsOrthogonalCrossings(void);
+        bool existsInvalidOrthogonalPaths(void);
 
     private:
         friend class ShapeRef;

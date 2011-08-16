@@ -1812,6 +1812,34 @@ int Router::existsOrthogonalCrossings(void)
     return count;
 }
 
+// Looks for non-orthogonal segments in orthogonal connectors and 
+// returns true if it finds any.
+bool Router::existsInvalidOrthogonalPaths(void)
+{
+    // For each connector...
+    ConnRefList::iterator fin = connRefs.end();
+    for (ConnRefList::iterator i = connRefs.begin(); i != fin; ++i) 
+    {
+        // If it is an orthogonal connector...
+        if ((*i)->routingType() == Avoid::ConnType_Orthogonal)
+        {
+            // Check each segment of the path...
+            Avoid::Polygon iRoute = (*i)->displayRoute();
+            for (size_t iInd = 1; iInd < iRoute.size(); ++iInd)
+            {
+                // And if it isn't either vertical or horizontal...
+                if ( (iRoute.at(iInd - 1).x != iRoute.at(iInd).x) &&
+                     (iRoute.at(iInd - 1).y != iRoute.at(iInd).y) )
+                {
+                    // Then we've found an invalid path.
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
 
 void Router::outputInstanceToSVG(std::string instanceName)
 {
