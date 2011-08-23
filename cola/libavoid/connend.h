@@ -111,8 +111,9 @@ static const double ATTACH_POS_RIGHT = ATTACH_POS_BOTTOM;
 //! @brief  The ConnEnd class represents different possible endpoints for 
 //!         connectors.
 //!
-//! Currently this class just allows free-floating endpoints, but in future
-//! will be capable of representing attachment to connection points on shapes.
+//! ConnEnds may be free-floating points, points attached to junctions (between
+//! multiple connectors), or points attached to shapes (either to the centre of 
+//! the shape or to particular pin positions on the shape).
 //! 
 class ConnEnd 
 {
@@ -139,10 +140,15 @@ class ConnEnd
         //! @brief Constructs a ConnEnd attached to one of a particular set of
         //!        connection pins on a shape.
         //!
-        //! This is the ideal method for connecting to shapes that may later be
-        //! moved or resized and you don't want to track and specify the 
-        //! connections yourself.  See the ShapeConnectionPin documentation 
-        //! for more information.
+        //! This is the recommended method for connecting to shapes that may 
+        //! later be moved or resized and for which you don't want to track 
+        //! and specify the connections yourself.  See the ShapeConnectionPin 
+        //! documentation for more information.
+        //!
+        //! If a pin with the specified pin class ID doesn't exist then you
+        //! will get a warning and a straight-line path between the source 
+        //! and destination endpoints of the connector will be returned 
+        //! during routing.
         //!
         //! @param[in]  shapeRef              A pointer to the containing shape's
         //!                                   ShapeRef.
@@ -155,8 +161,8 @@ class ConnEnd
         //! @brief Constructs a ConnEnd attached to one of the connection 
         //!        pins on a junction.
         //!
-        //! This is the ideal method for connecting to junctions that may 
-        //! later be moved.  See the ShapeConnectionPin documentation for 
+        //! This is the recommended method for connecting to junctions that 
+        //! may later be moved.  See the ShapeConnectionPin documentation for 
         //! more information.
         //!
         //! @param[in]  junctionRef           A pointer to the containing 

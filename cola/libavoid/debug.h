@@ -27,45 +27,34 @@
 #define AVOID_DEBUG_H
 
 
-#ifdef LIBAVOID_DEBUG
-
-  #ifdef _MSC_VER
+#ifdef _MSC_VER
     // Compiling with Microsoft Visual C++ compiler
 
     // Prevent inclusion of min and max macros.
     #define NOMINMAX
 
     #include <afx.h>
-
-  #endif
+#endif
 
 #include <stdarg.h>
 #include <iostream>
 
-#endif
 
 namespace Avoid {
 
+// db_printf is debugging output for verifying behaviour of the router:
 #ifdef LIBAVOID_DEBUG
 
   #ifdef _MSC_VER
     // Compiling with Microsoft Visual C++ compiler
 
     #define db_printf  ATL::AtlTrace
-    #define err_printf ATL::AtlTrace
   #else
     inline void db_printf(const char *fmt, ...)
     {
         va_list ap;
         va_start(ap, fmt);
         vfprintf(stdout, fmt, ap);
-        va_end(ap);
-    }
-    inline void err_printf(const char *fmt, ...)
-    {
-        va_list ap;
-        va_start(ap, fmt);
-        vfprintf(stderr, fmt, ap);
         va_end(ap);
     }
   #endif
@@ -75,8 +64,31 @@ namespace Avoid {
     inline void db_printf(const char *, ...)
     {
     }
+
+#endif
+
+// err_printf are critical errors that mean something pretty bad has happened:
+#ifdef _MSC_VER
+
+  // For Microsoft Visual C++ compiler we only display them if LIBAVOID_DEBUG
+  // is defined.
+  #ifdef LIBAVOID_DEBUG
+    #define err_printf ATL::AtlTrace
+  #else
     inline void err_printf(const char *, ...)
     {
+    }
+  #endif
+
+#else
+
+    // For other environments we always show these errors.
+    inline void err_printf(const char *fmt, ...)
+    {
+        va_list ap;
+        va_start(ap, fmt);
+        vfprintf(stderr, fmt, ap);
+        va_end(ap);
     }
 
 #endif

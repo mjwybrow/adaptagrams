@@ -343,6 +343,15 @@ void ConnRef::setDestEndpoint(const ConnEnd& dstPoint)
 bool ConnRef::getConnEndForEndpointVertex(VertInf *vertex, 
         ConnEnd& connEnd) const 
 {
+    if (vertex == NULL)
+    {
+        err_printf("Warning: In ConnRef::getConnEndForEndpointVertex():\n"
+                   "         ConnEnd for connector %d is uninitialised.  It may have been\n"
+                   "         set but Router::processTrancaction has not yet been called.\n",
+                   (int) id());
+        return false;
+    }
+
     if (vertex == m_src_vert)
     {
         if (m_src_connend)

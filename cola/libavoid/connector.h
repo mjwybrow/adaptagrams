@@ -269,6 +269,12 @@ class ConnRef
         //! connector is attached to.  The ConnEnd::type() will be ConnEndEmpty
         //! if the connector has not had its endpoints initialised.
         //!
+        //! @note  If the router is using transactions, you might get 
+        //!        unexpected results if you call this after changing objects
+        //!        but before calling Router::processTransaction().  In this
+        //!        case changes to ConnEnds for the connector may be queued 
+        //!        and not yet applied, so you will get old (or empty) values.
+        //!
         //! @returns A pair of ConnEnd objects specifying what the connector
         //!          is attached to.
         //!

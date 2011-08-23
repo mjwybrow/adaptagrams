@@ -271,6 +271,8 @@ void ConnEnd::disconnect(const bool shapeDeleted)
 void ConnEnd::assignPinVisibilityTo(VertInf *dummyConnectionVert, 
         VertInf *targetVert)
 {
+    unsigned int validPinCount = 0;
+
     COLA_ASSERT(m_anchor_obj);
     COLA_ASSERT(m_connection_pin_class_id != CONNECTIONPIN_UNSET);
  
@@ -346,7 +348,21 @@ void ConnEnd::assignPinVisibilityTo(VertInf *dummyConnectionVert,
                             currPin->m_vertex->point) + 
                         std::max(0.001, routingCost));
             }
+
+            // Increment the number of valid pins for this ConnEnd connection.
+            validPinCount++;
         }
+    }
+
+    if (validPinCount == 0)
+    {
+        // There should be at least one pin, otherwise we will have 
+        // problems finding connecotr routes.
+        err_printf("Warning: In ConnEnd::assignPinVisibilityTo():\n"
+                   "         ConnEnd for connector %d can't connect to shape %d\n"
+                   "         since it has no pins with class id of %u.\n", 
+                   (int) m_conn_ref->id(), (int) m_anchor_obj->id(), 
+                   m_connection_pin_class_id);
     }
 }
 
