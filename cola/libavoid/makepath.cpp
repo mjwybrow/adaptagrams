@@ -721,12 +721,15 @@ void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar, VertInf *start)
                 // connection point we are looking for.  Though allow them
                 // if we haven't yet turned from the source point, since it
                 // may be a free-floating endpoint with directional visibility.
+                // Also, don't check if the previous point was a dummy for a
+                // connection pin and this happens to be placed diagonally 
+                // from here, i.e., when both of notInline{X,Y} are true.
                 Point& bestPt = BestNode.inf->point;
                 Point& nextPt = Node.inf->point;
 
                 bool notInlineX = prevInf && (prevInf->point.x != bestPt.x);
                 bool notInlineY = prevInf && (prevInf->point.y != bestPt.y);
-                if ((bestPt.x == nextPt.x) && notInlineX &&
+                if ((bestPt.x == nextPt.x) && notInlineX && !notInlineY &&
                         (bestPt[YDIM] != src->point[YDIM]))
                 {
                     if (nextPt.y < bestPt.y)
@@ -746,7 +749,7 @@ void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar, VertInf *start)
                         }
                     }
                 }
-                if ((bestPt.y == nextPt.y) && notInlineY && 
+                if ((bestPt.y == nextPt.y) && notInlineY && !notInlineX &&
                         (bestPt[XDIM] != src->point[XDIM]))
                 {
                     if (nextPt.x < bestPt.x)

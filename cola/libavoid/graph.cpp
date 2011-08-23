@@ -78,13 +78,16 @@ EdgeInf::~EdgeInf()
 //    1 : Point c is a left-hand 90 degree turn.
 //    2 : Point c is a right-hand 90 degree turn.
 //    3 : Point c is straight ahead (collinear).
+//    4 : Point c is not orthogonally positioned.
 //
 static inline int orthogTurnOrder(const Point& a, const Point& b, 
         const Point& c)
 {
-    // We should only be calling this with orthogonal points, 
-    COLA_ASSERT((c.x == b.x) || (c.y == b.y));
-    COLA_ASSERT((a.x == b.x) || (a.y == b.y));
+    if ( ((c.x != b.x) && (c.y != b.y)) || ((a.x != b.x) && (a.y != b.y)) )
+    {
+        // Not orthogonally positioned.
+        return 4;
+    }
 
     int direction = vecDir(a, b, c);
 
