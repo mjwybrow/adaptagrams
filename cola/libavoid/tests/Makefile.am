@@ -51,7 +51,8 @@ check_PROGRAMS = \
 	restrictedNudging \
 	performance01 \
 	hyperedge01 \
-	validPaths01
+	validPaths01 \
+	validPaths02 
 
 performance01_SOURCES = performance01.cpp
 
@@ -75,6 +76,7 @@ lineSegWrapperCrash8_SOURCES = lineSegWrapperCrash8.cpp
 
 example_SOURCES = example.cpp
 validPaths01_SOURCES = validPaths01.cpp
+validPaths02_SOURCES = validPaths02.cpp
 
 multiconnact_SOURCES = multiconnact.cpp
 
