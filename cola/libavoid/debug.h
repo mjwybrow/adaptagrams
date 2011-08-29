@@ -36,7 +36,8 @@
     #include <afx.h>
 #endif
 
-#include <stdarg.h>
+#include <cstdarg>
+#include <cstdio>
 #include <iostream>
 
 

@@ -29,6 +29,7 @@
 #ifndef AVOID_GEOMTYPES_H
 #define AVOID_GEOMTYPES_H
 
+#include <cstdlib>
 #include <vector>
 #include <utility>
 
