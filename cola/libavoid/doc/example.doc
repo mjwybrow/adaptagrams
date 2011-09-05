@@ -8,7 +8,7 @@ libavoid is a C++ library.  Its code is all within the <code>Avoid::</code> name
 First, you must create an instance of the router. 
 <pre>Avoid::Router *router = new Avoid::Router(Avoid::PolyLineRouting);</pre>
 
-To add a shape (obstacle) to the router, you first create a <code>ShapeRef</code> by giving the bounding box of the obstacle.
+To add a shape (obstacle) to the router, you first create a <code>ShapeRef</code> by giving the bounding box of the obstacle.  This adds the shape to the router (and cause rerouting of connectors it intersects).  It also passes ownership of the shapeRef object to the router instance, though it is still fine for you to keep a reference to it.
 <pre>// Create the ShapeRef:
 Avoid::Rectangle rectangle(Avoid::Point(20.0, 35.0), Avoid::Point(40.0, 12.0));
 Avoid::ShapeRef *shapeRef = new Avoid::ShapeRef(router, rectangle);</pre>
@@ -25,9 +25,6 @@ The relevant prototypes (all in the Avoid namespace) are as follows.  If a shape
 Avoid::Rectangle(const Avoid::Point& centre, const double width, const double height);
 Avoid::ShapeRef(Avoid::Router *router, const Avoid::Polygon& polygon, unsigned int id = 0);</pre>
 
-To actually add the shape to the router (and cause rerouting of connectors it intersects) you do the following:
-<pre>router-&gt;addShape(shapeRef);</pre>
-This passes ownership of the shapeRef object to the router instance, though it is still fine for you to keep a reference to it.
 
 To move or resize a shape already in the router, you do the following:
 <pre>router-&gt;moveShape(shapeRef, newPolygon);</pre>
