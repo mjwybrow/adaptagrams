@@ -252,7 +252,7 @@ Router::~Router()
 
 
 void Router::modifyConnector(ConnRef *conn, const unsigned int type,
-        const ConnEnd& connEnd)
+        const ConnEnd& connEnd, bool connPinUpdate)
 {
     ActionInfo modInfo(ConnChange, conn);
     
@@ -263,8 +263,11 @@ void Router::modifyConnector(ConnRef *conn, const unsigned int type,
         modInfo.conns.push_back(std::make_pair(type, connEnd));
         actionList.push_back(modInfo);
     }
-    else
+    else if (!connPinUpdate)
     {
+        // If this is a connPinUpdate, then leave the user created update
+        // that was found.  But if this is a user change, then overwrite the
+        // previous change.
         found->conns.push_back(std::make_pair(type, connEnd));
     }
 

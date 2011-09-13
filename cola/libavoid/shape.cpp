@@ -62,8 +62,9 @@ void ShapeRef::moveAttachedConns(const Polygon& newPoly)
     {
         ConnEnd *connEnd = *curr;
         COLA_ASSERT(connEnd->m_conn_ref != NULL);
+        bool connPinUpdate = true;
         m_router->modifyConnector(connEnd->m_conn_ref, connEnd->endpointType(), 
-                *connEnd);
+                *connEnd, connPinUpdate);
     }
     for (ShapeConnectionPinSet::iterator curr = 
             m_connection_pins.begin(); curr != m_connection_pins.end(); ++curr)

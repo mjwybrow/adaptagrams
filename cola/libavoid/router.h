@@ -522,7 +522,7 @@ class Router {
         void addCluster(ClusterRef *cluster);
         void modifyConnector(ConnRef *conn);
         void modifyConnector(ConnRef *conn, unsigned int type,
-                const ConnEnd &connEnd);
+                const ConnEnd &connEnd, bool connPinUpdate = false);
         void modifyConnectionPin(ShapeConnectionPin *pin);
 
         void removeObjectFromQueuedActions(const void *object);
