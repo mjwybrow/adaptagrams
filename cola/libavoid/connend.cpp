@@ -169,7 +169,7 @@ unsigned int ConnEnd::pinClassId(void) const
 
 bool ConnEnd::isPinConnection(void) const
 {
-    return (m_type & (ConnEndShapePin | ConnEndJunction));
+    return (m_type == ConnEndShapePin) || (m_type == ConnEndJunction);
 }
 
 unsigned int ConnEnd::endpointType(void) const
@@ -237,6 +237,8 @@ void ConnEnd::freeActivePin(void)
 // Creates the connection between a connector and a shape/junction.
 void ConnEnd::connect(ConnRef *conn)
 {
+    COLA_ASSERT(isPinConnection());
+    COLA_ASSERT(m_anchor_obj);
     COLA_ASSERT(m_conn_ref == NULL);
 
     m_anchor_obj->addFollowingConnEnd(this);
@@ -262,6 +264,8 @@ void ConnEnd::disconnect(const bool shapeDeleted)
         // Turn this into a manual ConnEnd.
         m_point = position();
         m_anchor_obj = NULL;
+        m_type = ConnEndPoint;
+        m_connection_pin_class_id = CONNECTIONPIN_UNSET;
     }
 }
 

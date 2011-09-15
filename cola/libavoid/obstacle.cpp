@@ -144,7 +144,17 @@ void Obstacle::makeActive(void)
         m_router->vertices.addVertex(tmp);
     }
     while (it != m_first_vert);
-    
+   
+    // It may be that the the polygon for the shape has been updated after 
+    // creating the shape.  These events may have been combined for a single
+    // transaction, so update pin positions.
+    for (ShapeConnectionPinSet::iterator curr = 
+            m_connection_pins.begin(); curr != m_connection_pins.end(); ++curr)
+    {
+        ShapeConnectionPin *pin = *curr;
+        pin->updatePosition(polygon());
+    }
+ 
     m_active = true;
 }
 
