@@ -122,6 +122,38 @@ class ActionInfo {
         {
             return (dynamic_cast<JunctionRef *> (obstacle()));
         }
+        void addConnEndUpdate(const unsigned int type, const ConnEnd& connEnd,
+                bool isConnPinMoveUpdate)
+        {
+            bool alreadyExists = false;
+            for (ConnUpdateList::iterator conn = conns.begin();
+                    conn != conns.end(); ++conn)
+            {
+                // Look for an existing queued change to the same end.
+                if (conn->first == type)
+                {
+                    // Found a queued change to the same endpoint of the
+                    // connector. If this is a pin change as a result of a
+                    // shape move, then leave the user created update
+                    // that was found (since it may be moving the connection
+                    // to connect to a different shape/pin.  But if this is a
+                    // user change, then overwrite the previous change.
+                    alreadyExists = true;
+                    if (!isConnPinMoveUpdate)
+                    {
+                        // Overwrite the queued change with this one.
+                        conn->second = connEnd;
+                    }
+                    break;
+                }
+            }
+
+            if (!alreadyExists)
+            {
+                // Matching change not found, so add this one.
+                conns.push_back(std::make_pair(type, connEnd));
+            }
+        }
         bool operator==(const ActionInfo& rhs) const
         {
             return (type == rhs.type) && (objPtr == rhs.objPtr);
@@ -140,7 +172,7 @@ class ActionInfo {
             else if (type == ConnectionPinChange)
             {
                 // NOTE Comparing pointers may not preserve the order of
-                //      objects, but the order of Connection Pins is not 
+                //      objects, but the order of Connection Pins is not
                 //      used so this is not an issue here.
                 return objPtr < rhs.objPtr;
             }
@@ -252,7 +284,7 @@ Router::~Router()
 
 
 void Router::modifyConnector(ConnRef *conn, const unsigned int type,
-        const ConnEnd& connEnd, bool connPinUpdate)
+        const ConnEnd& connEnd, bool connPinMoveUpdate)
 {
     ActionInfo modInfo(ConnChange, conn);
     
@@ -260,15 +292,14 @@ void Router::modifyConnector(ConnRef *conn, const unsigned int type,
             find(actionList.begin(), actionList.end(), modInfo);
     if (found == actionList.end())
     {
+        // Matching action not found, so add.
         modInfo.conns.push_back(std::make_pair(type, connEnd));
         actionList.push_back(modInfo);
     }
-    else if (!connPinUpdate)
+    else
     {
-        // If this is a connPinUpdate, then leave the user created update
-        // that was found.  But if this is a user change, then overwrite the
-        // previous change.
-        found->conns.push_back(std::make_pair(type, connEnd));
+        // Update the found action as necessary.
+        found->addConnEndUpdate(type, connEnd, connPinMoveUpdate);
     }
 
     if (!_consolidateActions)
