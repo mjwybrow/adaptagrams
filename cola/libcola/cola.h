@@ -489,7 +489,6 @@ private:
             /*,topology::TopologyConstraints *s=NULL*/);
     void computePathLengths(
             const std::vector<Edge>& es,
-            const double idealLength,
             const std::valarray<double> * eLengths);
     void generateNonOverlapAndClusterCompoundConstraints(
             vpsc::Variables (&vs)[2]);
@@ -520,6 +519,7 @@ private:
     
     RootCluster *clusterHierarchy;
     double rectClusterBuffer;
+    double m_idealEdgeLength;
     bool m_generateNonOverlapConstraints;
 };
 

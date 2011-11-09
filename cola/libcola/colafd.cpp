@@ -97,6 +97,7 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
       desiredPositions(NULL),
       clusterHierarchy(NULL),
       rectClusterBuffer(0),
+      m_idealEdgeLength(idealLength),
       m_generateNonOverlapConstraints(preventOverlaps)
 {
     topologyNodes.clear(),
@@ -119,10 +120,10 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
     }
 
     if(eLengths == NULL) {
-        computePathLengths(es,idealLength,NULL);
+        computePathLengths(es,NULL);
     } else {
         valarray<double> eLengthsArray(eLengths,es.size());
-        computePathLengths(es,idealLength,&eLengthsArray);
+        computePathLengths(es,&eLengthsArray);
     }    
 }
 
@@ -136,9 +137,9 @@ void dijkstra(const unsigned s, const unsigned n, double* d,
 /**
  * Sets up the D and G matrices.  D is the required euclidean distances
  * between pairs of nodes based on the shortest paths between them (using
- * idealLength*eLengths[edge] as the edge length, if eLengths array 
- * is provided otherwise just idealLength).  G is a matrix of unsigned ints
- * such that G[u][v]=
+ * m_idealEdgeLength*eLengths[edge] as the edge length, if eLengths array 
+ * is provided otherwise just m_idealEdgeLength).  G is a matrix of 
+ * unsigned ints such that G[u][v]=
  *   0 if there are no forces required between u and v 
  *     (for example, if u and v are in unconnected components)
  *   1 if attractive forces are required between u and v
@@ -150,7 +151,6 @@ void dijkstra(const unsigned s, const unsigned n, double* d,
  */
 void ConstrainedFDLayout::computePathLengths(
         const vector<Edge>& es,
-        const double idealLength,
         const std::valarray<double>* eLengths) 
 {
     shortest_paths::johnsons(n,D,es,eLengths);
@@ -165,7 +165,7 @@ void ConstrainedFDLayout::computePathLengths(
                 // i and j are in disconnected subgraphs
                 p=0;
             } else if(!eLengths) {
-                D[i][j]*=idealLength;
+                D[i][j]*=m_idealEdgeLength;
             }
         }
     }
@@ -1319,15 +1319,15 @@ void ConstrainedFDLayout::outputInstanceToSVG(std::string instanceName)
     fprintf(fp, "<svg xmlns:inkscape=\"http://www.inkscape.org/namespaces/inkscape\" xmlns=\"http://www.w3.org/2000/svg\" width=\"100%%\" height=\"100%%\" viewBox=\"%g %g %g %g\">\n", minX, minY, maxX - minX, maxY - minY);
 
     // Output source code to generate this ConstrainedFDLayout instance.
-    // XXX: This is not yet complete... it does not output everything.
     fprintf(fp, "<!-- Source code to generate this instance:\n");
     fprintf(fp, "#include <vector>\n");
+    fprintf(fp, "#include <utility>\n");
     fprintf(fp, "#include \"libcola/cola.h\"\n");
     fprintf(fp, "using namespace cola;\n");
     fprintf(fp, "int main(void) {\n");
     fprintf(fp, "    CompoundConstraints ccs;\n");
     fprintf(fp, "    std::vector<Edge> es;\n");
-    fprintf(fp, "    double defaultEdgeLength=40;\n");
+    fprintf(fp, "    double defaultEdgeLength=%g;\n", m_idealEdgeLength);
     fprintf(fp, "    std::vector<vpsc::Rectangle*> rs;\n");
     fprintf(fp, "    vpsc::Rectangle *rect = NULL;\n\n");
     for (size_t i = 0; i < boundingBoxes.size(); ++i)
@@ -1337,6 +1337,18 @@ void ConstrainedFDLayout::outputInstanceToSVG(std::string instanceName)
                boundingBoxes[i]->getMinY(), boundingBoxes[i]->getMaxY());
         fprintf(fp, "    rs.push_back(rect);\n\n");
     }
+    
+    for (size_t i = 0; i < n; ++i)
+    {
+        for (size_t j =  i + 1; j < n; ++j)
+        {
+            if (G[i][j] == 1)
+            {
+                fprintf(fp, "    es.push_back(std::make_pair(%lu, %lu));\n", i, j);
+            }
+        }
+    }
+    fprintf(fp, "\n");
 
     for (cola::CompoundConstraints::iterator c = ccs.begin(); 
             c != ccs.end(); ++c)
