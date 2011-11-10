@@ -1384,6 +1384,25 @@ void ConstrainedFDLayout::outputInstanceToSVG(std::string instanceName)
     }
     fprintf(fp, "</g>\n");
 
+    fprintf(fp, "<g inkscape:groupmode=\"layer\" "
+            "inkscape:label=\"Edges\">\n");
+    for (size_t i = 0; i < n; ++i)
+    {
+        for (size_t j =  i + 1; j < n; ++j)
+        {
+            if (G[i][j] == 1)
+            {
+                fprintf(fp, "<path d=\"M %g %g L %g %g\" "
+                        "style=\"stroke-width: 1px; stroke: black;\" />\n",
+                        boundingBoxes[i]->getCentreX(),
+                        boundingBoxes[i]->getCentreY(),
+                        boundingBoxes[j]->getCentreX(),
+                        boundingBoxes[j]->getCentreY());
+            }
+        }
+    }
+    fprintf(fp, "</g>\n");
+
     fprintf(fp, "</svg>\n");
     fclose(fp);
 }
