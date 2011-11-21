@@ -30,6 +30,7 @@
 #include "libavoid/vertices.h"
 #include "libavoid/router.h"
 #include "libavoid/visibility.h"
+#include "libavoid/debug.h"
 
 
 namespace Avoid {
@@ -51,6 +52,18 @@ ShapeConnectionPin::ShapeConnectionPin(ShapeRef *shape,
 {
     COLA_ASSERT(m_shape != NULL);
     COLA_ASSERT(m_class_id > 0);
+
+    // Parameter checking
+    if ((xPortionOffset < 0) || (xPortionOffset > 1))
+    {
+        err_printf("xPortionOffset value (%g) in ShapeConnectionPin constructor not "
+                "between 0 and 1.\n", xPortionOffset);
+    }
+    if ((yPortionOffset < 0) || (yPortionOffset > 1))
+    {
+        err_printf("yPortionOffset value (%g) in ShapeConnectionPin constructor not "
+                "between 0 and 1.\n", yPortionOffset);
+    }
 
     m_router = m_shape->router();
     m_shape->addConnectionPin(this);
