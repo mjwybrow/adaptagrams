@@ -234,6 +234,7 @@ Router::Router(const unsigned int flags)
     {
         _routingPenalties[p] = 0.0;
     }
+    _routingPenalties[segmentPenalty] = 10;
     _routingPenalties[clusterCrossingPenalty] = 4000;
     _routingPenalties[portDirectionPenalty] = 100;
     _routingOptions[nudgeOrthogonalSegmentsConnectedToShapes] = false;

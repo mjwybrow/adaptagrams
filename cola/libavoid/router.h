@@ -93,6 +93,10 @@ enum PenaltyType
     //!         is some evidence that tighter corners are worse for 
     //!         readability, but that slight bends might not be so bad, 
     //!         especially when smoothed by curves.
+    //! @note   If penalty is not set (i.e., is equal to zero) then orthgonal
+    //!         connector routes will not be nudged apart.  It is highly 
+    //!         recommended you set even a small value for this penalty,
+    //!         since there is really no downside to doing so.
     anglePenalty,
     //! @brief  This penalty is applied whenever a connector path crosses 
     //!         another connector path.  It takes shared paths into 
