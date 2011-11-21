@@ -63,7 +63,7 @@ class VertInf;
 //! Pins with a specified direction are exclusive by default, those with
 //! visibility in all directions are non-exclusive by default.  This 
 //! behaviour can be changed by calling the ShapeConnectionPin::setExclusive() 
-//! method.
+//! method.  Exclusive pins may only have a single connector attached to them.
 //!
 class ShapeConnectionPin
 {
