@@ -257,7 +257,7 @@ class ConnRef
 
         //! @brief   Returns the current set of routing checkpoints for this
         //!          connector.
-        //! @returns The ordered list of Points that this connecotr will 
+        //! @returns The ordered list of Points that this connector will 
         //!          route via.
         std::vector<Point> routingCheckpoints(void) const;
         
