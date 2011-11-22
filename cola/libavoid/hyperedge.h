@@ -185,7 +185,7 @@ class HyperedgeRerouter
         void setRouter(Router *router);
 
         ConnRefSet calcHyperedgeConnectors(void);
-        // Calledby Router during processTransaction().
+        // Called by Router during processTransaction().
         void performRerouting(void);
         void outputInstanceToSVG(FILE *fp);
         void findAttachedObjects(size_t index, ConnRef *connector,

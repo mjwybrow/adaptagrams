@@ -284,7 +284,7 @@ HyperEdgeTreeNode *HyperEdgeTreeNode::moveJunctionAlongCommonEdge(
     std::vector<HyperEdgeTreeEdge *> commonEdges;
     std::vector<HyperEdgeTreeEdge *> otherEdges;
 
-    // Move junction
+    // Consider each edge from this node in turn.
     for (std::list<HyperEdgeTreeEdge *>::iterator curr = self->edges.begin();
             curr != self->edges.end(); ++curr)
     {
@@ -299,35 +299,45 @@ HyperEdgeTreeNode *HyperEdgeTreeNode::moveJunctionAlongCommonEdge(
             continue;
         }
 
+        // The current edge is a common edge we are looking to shift along.
         commonEdges.push_back(currEdge);
+
+        // Consider each of the other edges.
         for (std::list<HyperEdgeTreeEdge *>::iterator curr2 = 
                 self->edges.begin(); curr2 != self->edges.end(); ++curr2)
         {
             if (curr == curr2)
             {
+                // Except the current (curr) one.
                 continue;
             }
             
             HyperEdgeTreeEdge *otherEdge = *curr2;
             HyperEdgeTreeNode *otherNode = otherEdge->followFrom(self);
-            if (otherNode->junction)
-            {
-                otherEdges.push_back(otherEdge);
-                continue;
-            }
-
             if (otherNode->point == currNode->point)
             {
-                commonEdges.push_back(otherEdge);
+                // A common edge can be at the same point, but can't have
+                // a junction at it.
+                if (otherNode->junction)
+                {
+                    otherEdges.push_back(otherEdge);
+                }
+                else
+                {
+                    commonEdges.push_back(otherEdge);
+                }
             }
             else if (pointOnLine(self->point, otherNode->point, 
                     currNode->point))
             {
+                // A common edge can be a (longer) collinear line, but we
+                // need to split the longer line at the other end of curr.
                 otherEdge->splitFromNodeAtPoint(self, currNode->point);
                 commonEdges.push_back(otherEdge);
             }
             else
             {
+                // If the edge goes in another direction it is not common.
                 otherEdges.push_back(otherEdge);
             }
         }
@@ -590,21 +600,33 @@ void HyperEdgeTreeEdge::listJunctionsAndConnectors(HyperEdgeTreeNode *ignored,
     }
 }
 
+// This method splits the current edge, adding a node at the given point.
+// The current edge will connect the source node and the newly created node.
+// A new edge will connect the new node and the node at the other end of the
+// original edge.
+//
 void HyperEdgeTreeEdge::splitFromNodeAtPoint(HyperEdgeTreeNode *source, 
         const Point& point)
 {
+    // Make the source the first of the two nodes.
     if (ends.second == source)
     {
         std::swap(ends.second, ends.first);
     }
     COLA_ASSERT(ends.first == source);
+
+    // Remember the other end.
     HyperEdgeTreeNode *target = ends.second;
 
+    // Create a new node for the split point at the given position.
     HyperEdgeTreeNode *split = new HyperEdgeTreeNode();
     split->point = point;
 
+    // Create a new edge between the split point and the other end.
     new HyperEdgeTreeEdge(split, target, conn);
     
+    // Disconnect the current edge from the other end and connect it to 
+    // the new split point node.
     target->disconnectEdge(this);
     ends.second = split;
     split->edges.push_back(this);
