@@ -4,6 +4,9 @@ using namespace Avoid;
 
 void outputInstanceToSVG(Avoid::Router * router)
 {
+	// Don't output debug file.
+	return;
+
 	static int counter = 0;
 	std::ostringstream os;
 	os << (++counter);

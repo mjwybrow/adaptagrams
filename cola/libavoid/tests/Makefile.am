@@ -30,7 +30,6 @@ check_PROGRAMS = \
 	connectionpin01 \
 	connectionpin02 \
 	connectionpin03 \
-	connectionpin04 \
 	junction01 \
 	junction02 \
 	junction03 \
@@ -126,7 +125,6 @@ connendmove_SOURCES = connendmove.cpp
 connectionpin01_SOURCES = connectionpin01.cpp
 connectionpin02_SOURCES = connectionpin02.cpp
 connectionpin03_SOURCES = connectionpin03.cpp
-connectionpin04_SOURCES = connectionpin04.cpp
 
 junction01_SOURCES = junction01.cpp
 junction02_SOURCES = junction02.cpp
