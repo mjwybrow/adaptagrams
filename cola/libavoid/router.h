@@ -463,6 +463,10 @@ class Router {
         //! @brief  Generates an SVG file containing debug output and code that
         //!         can be used to regenerate the instance.
         //!
+        //! If transactions are being used, then this method should be called 
+        //! after processTransaction() has been called, so that it includes any
+        //! changes being queued by the router.
+        //!
         //! @param[in] filename  The filename to use for the output file, if
         //!                      not given "libavoid-debug.svg" will be used.
         //!
