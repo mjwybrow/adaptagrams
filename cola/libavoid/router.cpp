@@ -602,6 +602,14 @@ bool Router::processTransaction(void)
         //      Feedback.  Without this the blocked edges still route
         //      around the shape until it leaves the connector.
         obstacle->makeInactive();
+
+        if (!isMove)
+        {
+            // Free deleted obstacle.
+            m_currently_calling_destructors = true;
+            delete obstacle;
+            m_currently_calling_destructors = false;
+        }
     }
     
     if (seenShapeMovesOrDeletes && _polyLineRouting)
