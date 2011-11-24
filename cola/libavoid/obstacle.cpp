@@ -74,14 +74,7 @@ Obstacle::Obstacle(Router *router, Polygon ply, const unsigned int id)
 
 Obstacle::~Obstacle()
 {
-    m_router->removeObjectFromQueuedActions(this);
-
-    if (m_active)
-    {
-        makeInactive();
-        m_router->processTransaction();
-    }
-
+    COLA_ASSERT(m_active == false);
     COLA_ASSERT(m_first_vert != NULL);
     
     VertInf *it = m_first_vert;
