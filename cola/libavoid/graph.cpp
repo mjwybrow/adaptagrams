@@ -612,7 +612,7 @@ EdgeInf *EdgeInf::checkEdgeVisibility(VertInf *i, VertInf *j, bool knownNew)
 }
 
 
-    // XXX: This function is ineffecient, and shouldn't even really be
+    // XXX: This function is inefficient, and shouldn't even really be
     //      required.
 EdgeInf *EdgeInf::existingEdge(VertInf *i, VertInf *j)
 {
@@ -631,7 +631,7 @@ EdgeInf *EdgeInf::existingEdge(VertInf *i, VertInf *j)
         }
     }
 
-    // Look through orthogonal visbility edges.
+    // Look through orthogonal visibility edges.
     selected = (i->orthogVisListSize <= j->orthogVisListSize) ? i : j;
     EdgeInfList& orthogVisList = selected->orthogVisList;
     finish = orthogVisList.end();
@@ -644,7 +644,7 @@ EdgeInf *EdgeInf::existingEdge(VertInf *i, VertInf *j)
         }
     }
 
-    // Look through poly-line invisbility edges.
+    // Look through poly-line invisibility edges.
     selected = (i->invisListSize <= j->invisListSize) ? i : j;
     EdgeInfList& invisList = selected->invisList;
     finish = invisList.end();

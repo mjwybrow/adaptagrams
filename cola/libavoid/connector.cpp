@@ -1238,7 +1238,7 @@ void PtOrder::sort(const size_t dim)
 
     size_t n = nodes[dim].size();
 
-    // Build an adjacancy matrix for easy lookup.
+    // Build an adjacency matrix for easy lookup.
     std::vector<std::vector<bool> > adjacencyMatrix(n);
     for (size_t i = 0; i < n; ++i)
     {
@@ -1247,7 +1247,7 @@ void PtOrder::sort(const size_t dim)
     std::vector<int> incomingDegree(n);
     std::queue<size_t> queue;
 
-    // Populate the dependancy matrix.
+    // Populate the dependency matrix.
     for (NodeIndexPairLinkList::iterator it = links[dim].begin(); 
             it != links[dim].end(); ++it)
     {
@@ -1710,7 +1710,7 @@ void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
                             ((trace_p >= 0) && (trace_p < (int) poly_size))) )
                 {
                     // If poly is a cluster boundary, then it is a closed 
-                    // poly-line and so it wraps arounds.
+                    // poly-line and so it wraps around.
                     size_t index_p = (size_t)
                             ((trace_p + (2 * poly_size)) % poly_size);
                     size_t index_c = (size_t) trace_c;

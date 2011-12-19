@@ -54,7 +54,7 @@ class ANode
         double f;        // Formula f = g + h
         
         int prevIndex;   // Index into DONE for the previous ANode.
-        int timeStamp;   // Timestamp used to determine explaration order of
+        int timeStamp;   // Time-stamp used to determine exploration order of
                          // seemingly equal paths during orthogonal routing.
 
         ANode(VertInf *vinf, int time)
@@ -82,7 +82,7 @@ class ANode
 // the head node of the heap will be the smallest value, rather than the 
 // largest.  This saves us from having to sort the heap (and then reorder
 // it back into a heap) when getting the next node to examine.  This way we
-// get better complexity -- logarithmic pushs and pops to the heap.
+// get better complexity -- logarithmic pushes and pops to the heap.
 //
 bool operator<(const ANode &a, const ANode &b)
 {
@@ -294,7 +294,7 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
 
     if (!router->_inCrossingPenaltyReroutingStage)
     {
-        // Return here if we are not in the postprocessing stage 
+        // Return here if we are not in the post-processing stage 
         return result;
     }
 
@@ -330,7 +330,7 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
                     (cross.crossingFlags & CROSSING_SHARES_FIXED_SEGMENT) &&
                     !(cross.crossingFlags & CROSSING_SHARES_PATH_AT_END))
             {
-                // Penalise unecessary shared paths in the middle of
+                // Penalise unnecessary shared paths in the middle of
                 // connectors.
                 result += shared_path_penalty;
             }
@@ -699,7 +699,7 @@ void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar, VertInf *start)
                       )
                 {
                     // Don't check connection pins if they don't have the 
-                    // target vertex as a direct neightbour, or are directly
+                    // target vertex as a direct neighbour, or are directly
                     // leaving the source vertex.
                     continue;
                 }

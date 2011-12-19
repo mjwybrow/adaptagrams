@@ -196,7 +196,7 @@ class HyperEdgeShiftSegment : public ShiftSegment
                 m_at_limit = true;
             }
 
-            // Add nodes from collapsed segments, incase they are not part of
+            // Add nodes from collapsed segments, in case they are not part of
             // a segment that will be merged.
             for (OrderedHENodeSet::iterator curr = nodes.begin();
                     curr != nodes.end(); ++curr)
@@ -483,7 +483,7 @@ class NudgingShiftSegment : public ShiftSegment
             else if ( (lowPt[altDim] == rhsHighPt[altDim]) || 
                       (rhsLowPt[altDim] == highPt[altDim]) )
             {
-                // The segments touch at one end, so count them as overlaping
+                // The segments touch at one end, so count them as overlapping
                 // for nudging if they are both s-bends or both z-bends, i.e.,
                 // when the ordering would matter.
                 if ( (minSpaceLimit <= rhs->maxSpaceLimit) &&
@@ -696,7 +696,7 @@ struct Node
             {
                 // The events are at a shared beginning or end of a shape or 
                 // connection point.  Note, connection points have the same 
-                // min and max value in the the !dim dimension.
+                // min and max value in the !dim dimension.
                 eventsAtSamePos = 
                         (((linePos == max[!dim]) && 
                           (linePos == curr->max[!dim])) || 
@@ -1150,7 +1150,7 @@ public:
     }
 
     // Converts a section of the points list to a set of breakPoints.  
-    // Returns the first of the intersection points occuring at finishPos.
+    // Returns the first of the intersection points occurring at finishPos.
     VertSet::iterator addSegmentsUpTo(double finishPos)
     {
         VertSet::iterator firstIntersectionPt = vertInfs.end();
@@ -1483,7 +1483,7 @@ public:
                 
                 // The normal case.
                 //
-                // Note: It's okay to give two connector endpoints visbility 
+                // Note: It's okay to give two connector endpoints visibility 
                 // here since we only consider the partner endpoint as a 
                 // candidate while searching if it is the other endpoint of
                 // the connector in question.
@@ -1686,7 +1686,7 @@ static void intersectSegments(Router *router, SegmentList& segments,
 
 
 // Processes an event for the vertical sweep used for computing the static 
-// orthogonal visibility graph.  This adds possible visibility sgments to 
+// orthogonal visibility graph.  This adds possible visibility segments to 
 // the segments list.
 // The first pass is adding the event to the scanline, the second is for
 // processing the event and the third for removing it from the scanline.
@@ -1868,7 +1868,7 @@ static void processEventVert(Router *router, NodeSet& scanline,
 
 
 // Processes an event for the vertical sweep used for computing the static 
-// orthogonal visibility graph.  This adds possible visibility sgments to 
+// orthogonal visibility graph.  This adds possible visibility segments to 
 // the segments list.
 // The first pass is adding the event to the scanline, the second is for
 // processing the event and the third for removing it from the scanline.
@@ -2430,7 +2430,7 @@ static void buildOrthogonalNudgingSegments(Router *router,
                 if (containsCheckpoint)
                 {
                     // This segment includes one of the routing
-                    // checkpoints so we shouldn's shift it.
+                    // checkpoints so we shouldn't shift it.
                     segmentList.push_back(new NudgingShiftSegment(
                             *curr, indexLow, indexHigh, dim));
                     continue;
@@ -2948,8 +2948,8 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
 {
     double baseSepDist = router->orthogonalNudgeDistance();
     COLA_ASSERT(baseSepDist >= 0);
-    // If we can fit things with the desired separtation distance, then
-    // we try 10 times, reducing eac time by a 10th of the original amount.
+    // If we can fit things with the desired separation distance, then
+    // we try 10 times, reducing each time by a 10th of the original amount.
     double reductionSteps = 10.0;
 
     // Do the actual nudging.
@@ -2979,7 +2979,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             {
                 currentRegion.push_back(*curr);
                 segmentList.erase(curr);
-                // Consider segments from the beginning, since we mave have
+                // Consider segments from the beginning, since we may have
                 // since passed segments that overlap with the new set.
                 curr = segmentList.begin();
             }

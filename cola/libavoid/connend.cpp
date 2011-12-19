@@ -361,7 +361,7 @@ void ConnEnd::assignPinVisibilityTo(VertInf *dummyConnectionVert,
     if (validPinCount == 0)
     {
         // There should be at least one pin, otherwise we will have 
-        // problems finding connecotr routes.
+        // problems finding connector routes.
         err_printf("Warning: In ConnEnd::assignPinVisibilityTo():\n"
                    "         ConnEnd for connector %d can't connect to shape %d\n"
                    "         since it has no pins with class id of %u.\n", 

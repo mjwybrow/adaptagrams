@@ -96,7 +96,7 @@ void JunctionRef::setPositionFixed(bool fixed)
     }
     else
     {
-        // For non-fixed Junctions, use a single non-excluusive pin.
+        // For non-fixed Junctions, use a single non-exclusive pin.
         ShapeConnectionPin *pin = new Avoid::ShapeConnectionPin(this,
                 Avoid::CONNECTIONPIN_CENTRE, ConnDirAll);
         pin->setExclusive(false);

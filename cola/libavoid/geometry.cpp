@@ -385,7 +385,7 @@ bool inPolyGen(const PolygonInterface& argpoly, const Point& q)
     std::vector<Point>& P = poly.ps;
     size_t    n = poly.size();
 
-    // Shift so that q is the origin. This is done for pedogical clarity.
+    // Shift so that q is the origin. This is done for pedagogical clarity.
     for (size_t i = 0; i < n; ++i)
     {
         P[i].x = P[i].x - q.x;
@@ -603,7 +603,7 @@ int rayIntersectPoint(const Point& a1, const Point& a2,
     return DO_INTERSECT;
 }
 
-// Returns the rootationalAngle, between 0 and 360, of this point from (0,0).
+// Returns the rotationalAngle, between 0 and 360, of this point from (0,0).
 //
 double rotationalAngle(const Point& p)
 {

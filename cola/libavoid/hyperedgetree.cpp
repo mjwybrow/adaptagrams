@@ -108,7 +108,7 @@ void HyperEdgeTreeNode::writeEdgesToConns(HyperEdgeTreeEdge *ignored,
 }
 
 // This method traverses the hyperedge tree and creates connectors for each
-// segmentment bridging junction and/or terminals.  It also sets the 
+// segment bridging junction and/or terminals.  It also sets the 
 // appropriate ConnEnds for each connector.
 //
 void HyperEdgeTreeNode::addConns(HyperEdgeTreeEdge *ignored, Router *router,
@@ -128,7 +128,7 @@ void HyperEdgeTreeNode::addConns(HyperEdgeTreeEdge *ignored, Router *router,
             if (junction)
             {
                 // If we're at a junction, then we are effectively starting
-                // our taversal along a connector, so creat this new connector
+                // our traversal along a connector, so create this new connector
                 // and set it's start ConnEnd to be this junction.
                 conn = new ConnRef(router);
                 router->removeObjectFromQueuedActions(conn);
@@ -528,7 +528,7 @@ void HyperEdgeTreeEdge::writeEdgesToConns(HyperEdgeTreeNode *ignored,
 }
 
 // This method traverses the hyperedge tree and creates connectors for each
-// segmentment bridging junction and/or terminals.  It also sets the 
+// segment bridging junction and/or terminals.  It also sets the 
 // appropriate ConnEnds for each connector.
 //
 void HyperEdgeTreeEdge::addConns(HyperEdgeTreeNode *ignored, Router *router,

@@ -229,7 +229,7 @@ void MinimumTerminalSpanningTree::execute(void)
     std::vector<EdgeInf *> beHeap;
     CmpEdgeInf beHeapCompare;
 
-    // Initalisation
+    // Initialisation
     //
     VertInf *endVert = router->vertices.end();
     for (VertInf *k = router->vertices.connsBegin(); k != endVert;

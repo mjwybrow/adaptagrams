@@ -59,7 +59,7 @@ class Obstacle
         //! @brief  Obstacle reference constructor.
         //!
         //! Creates an obstacle object reference.  It is expected that you
-        //! would not instantiate an Ostacle directly, but would instead
+        //! would not instantiate an Obstacle directly, but would instead
         //! use either ShapeRef() or JunctionRef().
         //!
         //! @param[in]  router  The router scene to place the shape into.

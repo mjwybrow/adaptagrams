@@ -117,7 +117,7 @@ void Obstacle::setNewPoly(const Polygon& poly)
         
     m_polygon = poly;
 
-    // It may be that the the polygon for the obstacle has been updated after
+    // It may be that the polygon for the obstacle has been updated after
     // creating the shape.  These events may have been combined for a single
     // transaction, so update pin positions.
     for (ShapeConnectionPinSet::iterator curr =
