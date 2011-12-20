@@ -328,7 +328,9 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
 
             if ((cross.crossingFlags & CROSSING_SHARES_PATH) &&
                     (cross.crossingFlags & CROSSING_SHARES_FIXED_SEGMENT) &&
-                    !(cross.crossingFlags & CROSSING_SHARES_PATH_AT_END))
+                    (router->routingOption(
+                            penaliseOrthogonalSharedPathsAtConnEnds) || 
+                     !(cross.crossingFlags & CROSSING_SHARES_PATH_AT_END))) 
             {
                 // Penalise unnecessary shared paths in the middle of
                 // connectors.
@@ -387,13 +389,6 @@ static double estimatedCost(ConnRef *lineRef, const Point *last,
 
         return manhattanDist(a, b) + penalty;
     }
-}
-
-
-double estimatedCost(ConnRef *lineRef)
-{
-    return estimatedCost(lineRef, NULL, lineRef->src()->point, 
-            lineRef->dst()->point);
 }
 
 

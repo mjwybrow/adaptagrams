@@ -141,6 +141,17 @@ enum RoutingOption
     //!         will effectively move junctions, setting new ideal positions
     //!         ( JunctionRef::recommendedPosition() ) for each junction.
     improveHyperedgeRoutesMovingJunctions,
+    //! @brief  This option penalises and attempts to reroute orthogonal 
+    //!         shared connector paths terminating at a common junction or 
+    //!         shape connection pin.  When multiple connector paths 
+    //!         enter or leave the same side of a junction (or shape pin), 
+    //!         the router will attempt to reroute these to different sides 
+    //!         of the junction or different shape pins.  This option depends
+    //!         on the fixedSharedPathPenalty penalty having been set.
+    //! @sa     fixedSharedPathPenalty
+    //! @note   This option is still experimental!  It is not recommended
+    //!         for normal use.
+    penaliseOrthogonalSharedPathsAtConnEnds,
     // Used for determining the size of the routing options array.
     // This should always we the last value in the enum.
     lastRoutingOptionMarker
@@ -508,7 +519,7 @@ class Router {
         double& penaltyRef(const PenaltyType penType);
         
         // Testing and debugging methods.
-        bool existsOrthogonalPathOverlap(void);
+        bool existsOrthogonalPathOverlap(const bool atEnds = false);
         bool existsOrthogonalTouchingPaths(void);
         int  existsOrthogonalCrossings(void);
         bool existsInvalidOrthogonalPaths(void);
@@ -519,6 +530,7 @@ class Router {
         friend class JunctionRef;
         friend class Obstacle;
         friend class ClusterRef;
+        friend class ShapeConnectionPin;
         friend class MinimumTerminalSpanningTree;
         friend struct HyperEdgeTreeNode;
 
@@ -553,7 +565,7 @@ class Router {
 
         ConnRerouteFlagDelegate m_conn_reroute_flags;
         HyperedgeRerouter m_hyperedge_rerouter;
-public:
+    public:
         // Overall modes:
         bool _polyLineRouting;
         bool _orthogonalRouting;

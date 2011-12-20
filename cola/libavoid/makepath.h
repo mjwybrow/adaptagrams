@@ -33,7 +33,6 @@ class ConnRef;
 
 extern void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
         VertInf *start);
-extern double estimatedCost(ConnRef *lineRef);
 
 }
 

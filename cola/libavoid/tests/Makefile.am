@@ -53,7 +53,8 @@ check_PROGRAMS = \
 	hyperedge01 \
 	improveHyperedge01 \
 	validPaths01 \
-	validPaths02 
+	validPaths02 \
+	2junctions
 
 improveHyperedge01_SOURCES = improveHyperedge01.cpp
 
@@ -66,6 +67,7 @@ freeFloatingDirection01_SOURCES = freeFloatingDirection01.cpp
 checkpoints01_SOURCES = checkpoints01.cpp
 inlineShapes_SOURCES = inlineShapes.cpp
 
+2junctions_SOURCES = 2junctions.cpp
 overlappingRects_SOURCES = overlappingRects.cpp
 
 lineSegWrapperCrash1_SOURCES = lineSegWrapperCrash1.cpp
