@@ -321,10 +321,11 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
             bool isConn = true;
             Polygon dynamic_route2(route2);
             Polygon dynamic_conn_route(connRoute);
+            const bool finalSegment = (inf3->point == lineRef->dst()->point);
             ConnectorCrossings cross(dynamic_route2, isConn, 
                     dynamic_conn_route, connRef, lineRef);
             cross.checkForBranchingSegments = true;
-            cross.countForSegment(connRoute.size() - 1, false);
+            cross.countForSegment(connRoute.size() - 1, finalSegment);
 
             if ((cross.crossingFlags & CROSSING_SHARES_PATH) &&
                     (cross.crossingFlags & CROSSING_SHARES_FIXED_SEGMENT) &&

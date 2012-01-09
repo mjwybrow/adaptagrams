@@ -419,6 +419,9 @@ class ConnectorCrossings
         PointSet *crossingPoints;
         PtOrderMap *pointOrders;
         SharedPathList *sharedPaths;
+        
+        double firstSharedPathAtEndLength;
+        double secondSharedPathAtEndLength;
 };
 
 extern void splitBranchingSegments(Avoid::Polygon& poly, bool polyIsConn,
