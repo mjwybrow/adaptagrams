@@ -1146,7 +1146,8 @@ void Router::improveCrossings(void)
     
     // Find crossings and reroute connectors.
     _inCrossingPenaltyReroutingStage = true;
-    ConnCostRefSetList crossingConns;
+    ConnCostRefSet crossingConns;
+    ConnCostRefSetList fixedSharedPathConns;
     ConnRefList::iterator fin = connRefs.end();
     for (ConnRefList::iterator i = connRefs.begin(); i != fin; ++i) 
     {
@@ -1156,14 +1157,15 @@ void Router::improveCrossings(void)
         for (++j; j != fin; ++j) 
         {
             ConnCostRef jCostRef = std::make_pair(DBL_MAX, *j);
-            if (connsKnownToCross(crossingConns, iCostRef, jCostRef))
+            if (connsKnownToCross(fixedSharedPathConns, iCostRef, jCostRef) ||
+                    (crossingConns.count(iCostRef) && 
+                     crossingConns.count(jCostRef)))
             {
                 // We already know both these have crossings.
                 continue;
             }
             // Determine if this pair cross.
             Avoid::Polygon& jRoute = (*j)->routeRef();
-            bool meetsPenaltyCriteria = false;
             ConnectorCrossings cross(iRoute, true, jRoute, *i, *j);
             for (size_t jInd = 1; jInd < jRoute.size(); ++jInd)
             {
@@ -1178,27 +1180,26 @@ void Router::improveCrossings(void)
                 {
                     // We are penalising fixedSharedPaths and there is a
                     // fixedSharedPath.
-                    meetsPenaltyCriteria = true;
+
+                    // Get costs of each path from the crossings object.  For 
+                    // shared paths that cross at the end, these will be the 
+                    // shared path length minus some amount if the diverging 
+                    // segment is not a bend.  For every other path it will 
+                    // be DBL_MAX.  We want low costs for straight segments
+                    // so these are not rerouted.
+                    iCostRef.first = cross.firstSharedPathAtEndLength;
+                    jCostRef.first = cross.secondSharedPathAtEndLength;
+                    addCrossingConnsToSetList(fixedSharedPathConns, 
+                            iCostRef, jCostRef);
                     break;
                 }
                 else if ((crossing_penalty > 0) && (cross.crossingCount > 0))
                 {
                     // We are penalising crossings and this is a crossing.
-                    meetsPenaltyCriteria = true;
+                    crossingConns.insert(iCostRef);
+                    crossingConns.insert(jCostRef);
                     break;
                 }
-            }
-            if (meetsPenaltyCriteria)
-            {
-                // Get costs of each path from the crossings object.  For 
-                // shared paths that cross at the end, these will be the shared
-                // path length minus some amount if the diverging segment is 
-                // not a bend.  For every other path it will be DBL_MAX.  We 
-                // want low costs for straight segments so these are not 
-                // rerouted.
-                iCostRef.first = cross.firstSharedPathAtEndLength;
-                jCostRef.first = cross.secondSharedPathAtEndLength;
-                addCrossingConnsToSetList(crossingConns, iCostRef, jCostRef);
             }
         }
     }
@@ -1206,43 +1207,75 @@ void Router::improveCrossings(void)
     // At this point we have a list containing sets of interacting (crossing) 
     // connectors.  The first element in each set is the ideal candidate to 
     // keep the route for.  The others should be rerouted.  We do this via
-    // three passes: 1) clear existing routes, 2) free pin assignments, and
-    // 3) compute new routes.
-    for (int pass = 0; pass < 3; ++pass)
+    // two passes: 1) clear existing routes andfree pin assignments, and
+    // 2) compute new routes.
+    for (int pass = 0; pass < 2; ++pass)
     {
-        for (ConnCostRefSetList::iterator setIt = crossingConns.begin(); 
-                setIt != crossingConns.end(); ++setIt)
+        // First deal with the fixed shared paths, if there are any.
+        for (ConnCostRefSetList::iterator setIt = fixedSharedPathConns.begin(); 
+                setIt != fixedSharedPathConns.end(); ++setIt)
         {
             for (ConnCostRefSet::iterator connIt = setIt->begin(); 
                     connIt != setIt->end(); ++connIt)
             {
+                if (pass == 0)
+                {
+                    // Remove these connectors from the crossingConns set. 
+                    // We reroute them here, so don't need to do it again later.
+                    crossingConns.erase(*connIt);
+                }
+
                 if (connIt == setIt->begin())
                 {
-                    // Don't reroute the first connector in each crossing set.
+                    // Don't reroute the first connector in each set of 
+                    // fixed shared paths.
                     continue;
                 }
 
                 ConnRef *conn = connIt->second;
                 if (pass == 0)
                 {
-                    // Mark the crossing connector path as being invalid.
+                    // Mark the fixed shared path as being invalid.
                     conn->makePathInvalid();
-                    // Freeing the routes here means that, if possible, we 
-                    // reroute all the crossing routes one by one, threading 
-                    // them through the non-crossing routes to avoid as many 
-                    // crossings as possible.
+                    
+                    // Free the previous path, so it is not noticed by other 
+                    // connectors during rerouting.
                     conn->freeRoutes();
-                }
-                else if (pass == 1)
-                {
+                    
                     // Free pin assignments.
                     conn->freeActivePins();
                 }
-                else if (pass == 2)
+                else if (pass == 1)
                 {
-                    // Recompute paths.
+                    // Recompute this path.
                     conn->generatePath();
                 }
+            }
+        }
+
+        // Deal with crossing connector rerouting after the 
+        // finxedSharedPath routing has been completed.
+        for (ConnCostRefSet::iterator connIt = crossingConns.begin(); 
+                    connIt != crossingConns.end(); ++connIt)
+        {
+            ConnRef *conn = connIt->second;
+            if (pass == 0)
+            {
+                // Mark the crossing connector path as being invalid.
+                conn->makePathInvalid();
+                // Freeing the routes here means that, if possible, we 
+                // reroute all the crossing routes one by one, threading 
+                // them through the non-crossing routes to avoid as many 
+                // crossings as possible.
+                conn->freeRoutes();
+                
+                // Free pin assignments.
+                conn->freeActivePins();
+            }
+            else if (pass == 1)
+            {
+                // Recompute this path.
+                conn->generatePath();
             }
         }
     }
