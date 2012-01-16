@@ -1134,6 +1134,35 @@ static bool connsKnownToCross(ConnCostRefSetList &setList, ConnCostRef conn1,
 }
 
 
+static double cheapEstimatedCost(ConnRef *lineRef)
+{
+    Point& a = lineRef->src()->point;
+    Point& b = lineRef->dst()->point;
+
+    if (lineRef->routingType() == ConnType_PolyLine)
+    {
+        return euclideanDist(a, b);
+    }
+    else // Orthogonal
+    {
+        int minimumBends = 0;
+        double xDiff = b.x - a.x;
+        double yDiff = b.y - a.y;
+
+        if ((xDiff != 0) && (yDiff != 0))
+        {
+            minimumBends += 1;
+        }
+
+        // Use a large penalty here, so we don't reroute straight line
+        // connectors.
+        double penalty = minimumBends * 2000;
+
+        return manhattanDist(a, b) + penalty;
+    }
+}
+
+
 void Router::improveCrossings(void)
 {
     const double crossing_penalty = routingPenalty(crossingPenalty);
@@ -1152,11 +1181,11 @@ void Router::improveCrossings(void)
     for (ConnRefList::iterator i = connRefs.begin(); i != fin; ++i) 
     {
         Avoid::Polygon& iRoute = (*i)->routeRef();
-        ConnCostRef iCostRef = std::make_pair(DBL_MAX, *i);
+        ConnCostRef iCostRef = std::make_pair(cheapEstimatedCost(*i), *i);
         ConnRefList::iterator j = i;
         for (++j; j != fin; ++j) 
         {
-            ConnCostRef jCostRef = std::make_pair(DBL_MAX, *j);
+            ConnCostRef jCostRef = std::make_pair(cheapEstimatedCost(*j), *j);
             if (connsKnownToCross(fixedSharedPathConns, iCostRef, jCostRef) ||
                     (crossingConns.count(iCostRef) && 
                      crossingConns.count(jCostRef)))
@@ -1181,14 +1210,18 @@ void Router::improveCrossings(void)
                     // We are penalising fixedSharedPaths and there is a
                     // fixedSharedPath.
 
-                    // Get costs of each path from the crossings object.  For 
-                    // shared paths that cross at the end, these will be the 
-                    // shared path length minus some amount if the diverging 
-                    // segment is not a bend.  For every other path it will 
-                    // be DBL_MAX.  We want low costs for straight segments
-                    // so these are not rerouted.
-                    iCostRef.first = cross.firstSharedPathAtEndLength;
-                    jCostRef.first = cross.secondSharedPathAtEndLength;
+                    if (_routingOptions[penaliseOrthogonalSharedPathsAtConnEnds])
+                    {
+                        // Get costs of each path from the crossings object.
+                        // For shared paths that cross at the end, these will 
+                        // be the shared path length minus some amount if the
+                        //  diverging segment is not a bend.  For every
+                        // other path it will be cheapEstimatedCost().  We 
+                        // want low costs for straight segments so these are 
+                        // not rerouted.
+                        iCostRef.first = cross.firstSharedPathAtEndLength;
+                        jCostRef.first = cross.secondSharedPathAtEndLength;
+                    }
                     addCrossingConnsToSetList(fixedSharedPathConns, 
                             iCostRef, jCostRef);
                     break;

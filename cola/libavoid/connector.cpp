@@ -1929,7 +1929,7 @@ void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
                     double straightModifier = 200;
                     firstSharedPathAtEndLength = secondSharedPathAtEndLength = 
                             pathLength(c_path, p_path, size);
-                    if (back_same)
+                    if (back_same && (size > 2))
                     {
                         if (vecDir(*p_path[0], *p_path[1], *p_path[2]) == 0)
                         {
@@ -1941,7 +1941,7 @@ void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
                             secondSharedPathAtEndLength -= straightModifier;
                         }
                     }
-                    else if (front_same)
+                    else if (front_same && (size > 2))
                     {
                         if (vecDir(*p_path[size - 3], *p_path[size - 2],
                                     *p_path[size - 1]) == 0)
