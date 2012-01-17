@@ -1136,8 +1136,9 @@ static bool connsKnownToCross(ConnCostRefSetList &setList, ConnCostRef conn1,
 
 static double cheapEstimatedCost(ConnRef *lineRef)
 {
-    Point& a = lineRef->src()->point;
-    Point& b = lineRef->dst()->point;
+    const PolyLine& route = lineRef->route();
+    const Point& a = route.ps[0];
+    const Point& b = route.ps[route.size() - 1];
 
     if (lineRef->routingType() == ConnType_PolyLine)
     {
