@@ -1210,7 +1210,7 @@ void Router::improveCrossings(void)
                     // We are penalising fixedSharedPaths and there is a
                     // fixedSharedPath.
 
-                    if (_routingOptions[penaliseOrthogonalSharedPathsAtConnEnds])
+                    if (cross.crossingFlags & CROSSING_SHARES_PATH_AT_END)
                     {
                         // Get costs of each path from the crossings object.
                         // For shared paths that cross at the end, these will 
@@ -1287,7 +1287,7 @@ void Router::improveCrossings(void)
         }
 
         // Deal with crossing connector rerouting after the 
-        // finxedSharedPath routing has been completed.
+        // fixedSharedPath routing has been completed.
         for (ConnCostRefSet::iterator connIt = crossingConns.begin(); 
                     connIt != crossingConns.end(); ++connIt)
         {
