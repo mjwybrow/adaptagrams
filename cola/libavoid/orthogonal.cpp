@@ -185,6 +185,16 @@ class HyperEdgeShiftSegment : public ShiftSegment
                     m_next_pos_lower : m_next_pos_upper;
             double limit = (m_balance_count < 0) ?
                     minSpaceLimit : maxSpaceLimit;
+            if (lowPoint()[dimension] == newPos)
+            {
+                // If aren't actually moving this segment, then mark it 
+                // as at-limit.
+                // XXX This seems to be because of a segment with an 
+                //     incorrectly marked limit, possibly due to a 
+                //     junction positioned within a shape.
+                m_at_limit = true;
+            }
+
             for (OrderedHENodeSet::iterator curr = nodes.begin();
                     curr != nodes.end(); ++curr)
             {
@@ -3338,7 +3348,7 @@ struct ImproveHyperEdges
     }
 
     // During creation and nudging of shift segments it is often necessary
-    // to merge colinear  or overlapping segments.  This method does the
+    // to merge collinear or overlapping segments.  This method does the
     // merging for these cases.  Effectively merging is done by adding
     // additional vertex pointers to the shift segment.
     void mergeOverlappingSegments(ShiftSegmentList& segments)
@@ -3439,7 +3449,7 @@ struct ImproveHyperEdges
     // for the hyperedge.
     void nudgeHyperEdgeSegments(size_t dimension, unsigned int& versionNumber)
     {
-        // FOr each hyperedge...
+        // For each hyperedge...
         for (JunctionSet::iterator curr = hyperEdgeTreeRoots.begin();
                 curr != hyperEdgeTreeRoots.end(); ++curr)
         {

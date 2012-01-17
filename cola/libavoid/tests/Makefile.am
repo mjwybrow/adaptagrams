@@ -54,7 +54,12 @@ check_PROGRAMS = \
 	improveHyperedge01 \
 	validPaths01 \
 	validPaths02 \
-	2junctions
+	2junctions \
+	hyperedgeLoop1
+
+# problem_SOURCES = problem.cpp
+
+hyperedgeLoop1_SOURCES = hyperedgeLoop1.cpp
 
 improveHyperedge01_SOURCES = improveHyperedge01.cpp
 
