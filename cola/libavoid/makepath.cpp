@@ -316,7 +316,7 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
             {
                 continue;
             }
-            const Avoid::PolyLine& route2 = connRef->route();
+            const Avoid::PolyLine& route2 = connRef->displayRoute();
             
             bool isConn = true;
             Polygon dynamic_route2(route2);
