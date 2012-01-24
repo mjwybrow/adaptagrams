@@ -213,6 +213,7 @@ Router::Router(const unsigned int flags)
       _consolidateActions(true),
       m_currently_calling_destructors(false),
       _orthogonalNudgeDistance(4.0),
+      m_slow_routing_callback(NULL),
       // Mode options:
       _polyLineRouting(false),
       _orthogonalRouting(false),
@@ -545,6 +546,9 @@ bool Router::processTransaction(void)
 {
     bool notPartialTime = !(PartialFeedback && PartialTime);
     bool seenShapeMovesOrDeletes = false;
+
+    m_transaction_start_time = clock();
+    m_abort_transaction = false;
 
     // If SimpleRouting, then don't update here.
     if ((actionList.empty() && (m_hyperedge_rerouter.count() == 0)) ||
@@ -1164,6 +1168,27 @@ static double cheapEstimatedCost(ConnRef *lineRef)
 }
 
 
+void Router::performSlowRoutingCallBack(double completeFraction)
+{
+    if (m_slow_routing_callback)
+    {
+        // Compute the elapsed time in msec since the beginning of the 
+        // transaction.
+        unsigned int elapsedTime = (clock() - m_transaction_start_time) / 
+                (CLOCKS_PER_SEC / (double) 1000);
+    
+        bool shouldContinueWithPenalties = m_slow_routing_callback(elapsedTime, 
+                completeFraction * 100);
+        if (!shouldContinueWithPenalties)
+        {
+            // Host program has asked us not to continue with penalties.
+            _inCrossingPenaltyReroutingStage = false;
+            m_abort_transaction = true;
+        }
+    }
+}
+
+
 void Router::improveCrossings(void)
 {
     const double crossing_penalty = routingPenalty(crossingPenalty);
@@ -1171,6 +1196,14 @@ void Router::improveCrossings(void)
     if ((crossing_penalty == 0) && (shared_path_penalty == 0))
     {
         // No penalties, return.
+        return;
+    }
+    
+    // If routing is already slow, check we want to continue with the
+    // slow rerouting operation.
+    performSlowRoutingCallBack(0.0);
+    if (m_abort_transaction)
+    {
         return;
     }
     
@@ -1238,6 +1271,16 @@ void Router::improveCrossings(void)
         }
     }
 
+    // Again check we want to continue with the slow rerouting operation,
+    // now that we've spent the time looking for crossings.
+    performSlowRoutingCallBack(0.0);
+    if (m_abort_transaction)
+    {
+        return;
+    }
+
+    unsigned int numOfConnsToReroute = 1;
+    unsigned int numOfConnsRerouted = 1;
     // At this point we have a list containing sets of interacting (crossing) 
     // connectors.  The first element in each set is the ideal candidate to 
     // keep the route for.  The others should be rerouted.  We do this via
@@ -1269,6 +1312,8 @@ void Router::improveCrossings(void)
                 ConnRef *conn = connIt->second;
                 if (pass == 0)
                 {
+                    ++numOfConnsToReroute;
+
                     // Mark the fixed shared path as being invalid.
                     conn->makePathInvalid();
                     
@@ -1281,6 +1326,9 @@ void Router::improveCrossings(void)
                 }
                 else if (pass == 1)
                 {
+                    performSlowRoutingCallBack(numOfConnsRerouted / 
+                            (double) numOfConnsToReroute);
+                    ++numOfConnsRerouted;
                     // Recompute this path.
                     conn->generatePath();
                 }
@@ -1295,6 +1343,8 @@ void Router::improveCrossings(void)
             ConnRef *conn = connIt->second;
             if (pass == 0)
             {
+                ++numOfConnsToReroute;
+
                 // Mark the crossing connector path as being invalid.
                 conn->makePathInvalid();
                 // Freeing the routes here means that, if possible, we 
@@ -1308,6 +1358,9 @@ void Router::improveCrossings(void)
             }
             else if (pass == 1)
             {
+                performSlowRoutingCallBack(numOfConnsRerouted / 
+                        (double) numOfConnsToReroute);
+                ++numOfConnsRerouted;
                 // Recompute this path.
                 conn->generatePath();
             }
@@ -2038,6 +2091,12 @@ bool Router::existsInvalidOrthogonalPaths(void)
         }
     }
     return false;
+}
+
+
+void Router::setSlowRoutingCallback(bool (*func)(unsigned int, double))
+{
+    m_slow_routing_callback = func;
 }
 
 

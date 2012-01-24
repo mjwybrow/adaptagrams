@@ -29,6 +29,7 @@
 #ifndef AVOID_ROUTER_H
 #define AVOID_ROUTER_H
 
+#include <ctime>
 #include <list>
 #include <utility>
 #include <string>
@@ -107,6 +108,9 @@ enum PenaltyType
     //!         a cluster boundary.
     //! @note   This penalty is still experimental!  It is not recommended
     //!         for normal use.
+    //! @note   This penalty is very slow, see Router::setSlowRoutingCallback()
+    //!         as a method of checking progress or cancelling overly slow
+    //!         operations.
     clusterCrossingPenalty,
     //! @brief  This penalty is applied whenever a connector path shares 
     //!         some segments with an immovable portion of an existing 
@@ -121,6 +125,9 @@ enum PenaltyType
     //!         visibility directions for the port.
     //! @note   This penalty is still experimental!  It is not recommended
     //!         for normal use.
+    //! @note   This penalty is very slow, see Router::setSlowRoutingCallback()
+    //!         as a method of checking progress or cancelling overly slow
+    //!         operations.
     portDirectionPenalty,
     // Used for determining the size of the penalty array.  
     // This should always we the last value in the enum.
@@ -503,6 +510,27 @@ class Router {
         //! @return  A boolean denoting that the given ID is unused.
         //!
         bool objectIdIsUnused(const unsigned int id) const;
+        
+        //! @brief  Register a callback function that will be called during
+        //!         slow, expensive connector rerouting.
+        //! 
+        //! If set, this function will be called approximately once a second
+        //! during slow connector rerouting with crossing or shared path 
+        //! penalties.
+        //!
+        //! The function will be passed as arguments the elapsed time in
+        //! msec, and the estimated percentage completeness.  It should 
+        //! return a boolean value indicating whether the router should
+        //! continue using expensive crossing penalties or reroute the 
+        //! remaining connectors without the crossing and shared path 
+        //! penalties.  If the function returns false, it will still be 
+        //! continued to be called to indicate completeness of the 
+        //! connector rerouting but the return value will be ignored for 
+        //! the rest of the transaction.
+        //!
+        //! @param[in]  func  A function pointer for the function to call.
+        //!
+        void setSlowRoutingCallback(bool (*func)(unsigned int, double));
 
         void deleteCluster(ClusterRef *cluster);
         void attachedShapes(IntList &shapes, const unsigned int shapeId,
@@ -554,6 +582,7 @@ class Router {
         void adjustClustersWithDel(const int p_cluster);
         void rerouteAndCallbackConnectors(void);
         void improveCrossings(void);
+        void performSlowRoutingCallBack(double completeFraction);
 
         ActionInfoList actionList;
         unsigned int m_largest_assigned_id;
@@ -562,9 +591,15 @@ class Router {
         double _orthogonalNudgeDistance;
         double _routingPenalties[lastPenaltyMarker];
         bool _routingOptions[lastRoutingOptionMarker];
-
+        
         ConnRerouteFlagDelegate m_conn_reroute_flags;
         HyperedgeRerouter m_hyperedge_rerouter;
+        
+        // Slow-routing callback member variables. 
+        bool (*m_slow_routing_callback)(unsigned int, double);
+        clock_t m_transaction_start_time;
+        bool m_abort_transaction;
+
     public:
         // Overall modes:
         bool _polyLineRouting;
