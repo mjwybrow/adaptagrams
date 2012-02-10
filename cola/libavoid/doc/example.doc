@@ -3,102 +3,118 @@
 
 @page example Documented libavoid code example
 
-libavoid is a C++ library.  Its code is all within the <code>Avoid::</code> namespace.
+libavoid is a C++ library.  Its code is all within the Avoid namespace.
 
 First, you must create an instance of the router. 
-<pre>Avoid::Router *router = new Avoid::Router(Avoid::PolyLineRouting);</pre>
+@code
+Avoid::Router *router = new Avoid::Router(Avoid::PolyLineRouting); @endcode
 
-To add a shape (obstacle) to the router, you first create a <code>ShapeRef</code> by giving the bounding box of the obstacle.  This adds the shape to the router (and cause rerouting of connectors it intersects).  It also passes ownership of the shapeRef object to the router instance, though it is still fine for you to keep a reference to it.
-<pre>// Create the ShapeRef:
+To add a shape (obstacle) to the router, you first create a Avoid::ShapeRef by giving the bounding box of the obstacle.  This adds the shape to the router (and cause rerouting of connectors it intersects).  It also passes ownership of the shapeRef object to the router instance, though it is still fine for you to keep a reference to it.
+@code
+// Create the ShapeRef:
 Avoid::Rectangle rectangle(Avoid::Point(20.0, 35.0), Avoid::Point(40.0, 12.0));
-Avoid::ShapeRef *shapeRef = new Avoid::ShapeRef(router, rectangle);</pre>
+Avoid::ShapeRef *shapeRef = new Avoid::ShapeRef(router, rectangle); @endcode
 or
-<pre>
+@code 
 Avoid::Polygon shapePoly(3);
 shapePoly.ps[0] = Avoid::Point(1.0, 1.0);
 shapePoly.ps[1] = Avoid::Point(2.5, 1.5);
 shapePoly.ps[2] = Avoid::Point(1.5, 2.5);
-Avoid::ShapeRef *shapeRef = new Avoid::ShapeRef(router, shapePoly);</pre>
+Avoid::ShapeRef *shapeRef = new Avoid::ShapeRef(router, shapePoly); @endcode
 
 The relevant prototypes (all in the Avoid namespace) are as follows.  If a shape ID is specified, it should be non-zero and unique among all shapes and connectors.
-<pre>Avoid::Rectangle(const Avoid::Point& topLeft, const Avoid::Point& bottomRight);
+@code
+Avoid::Rectangle(const Avoid::Point& topLeft, const Avoid::Point& bottomRight);
 Avoid::Rectangle(const Avoid::Point& centre, const double width, const double height);
-Avoid::ShapeRef(Avoid::Router *router, const Avoid::Polygon& polygon, unsigned int id = 0);</pre>
+Avoid::ShapeRef(Avoid::Router *router, const Avoid::Polygon& polygon, unsigned int id = 0); @endcode
 
 
 To move or resize a shape already in the router, you do the following:
-<pre>router-&gt;moveShape(shapeRef, newPolygon);</pre>
+@code
+router->moveShape(shapeRef, newPolygon); @endcode
 or
-<pre>double xmove = 20, ymove = 15;
-router-&gt;moveShape(shapeRef, xmove, ymove);</pre>
+@code
+double xmove = 20, ymove = 15;
+router->moveShape(shapeRef, xmove, ymove); @endcode
 
-In its default mode the router will queue multiple shape movements and perform the changes to the visibility graph in an optimised order.  Thus you make several calls to <code>router-&gt;moveShape()</code> for different shapes and then tell the router to process the moves.  This tend to be useful in interactive applications where the user may move multiple shapes at once.
-<pre>router-&gt;moveShape(shapeRef1, newPolygon1);
-router-&gt;moveShape(shapeRef2, newPolygon2);
-router-&gt;processTransaction();
-</pre>
+In its default mode the router will queue multiple shape movements and perform the changes to the visibility graph in an optimised order.  Thus you make several calls to Avoid::Router::moveShape() for different shapes and then tell the router to process the moves.  This tend to be useful in interactive applications where the user may move multiple shapes at once.
+@code
+router->moveShape(shapeRef1, newPolygon1);
+router->moveShape(shapeRef2, newPolygon2);
+router->processTransaction();
+ @endcode
 
 To delete a shape from the router (and reroute connectors that then have a better path) you do the following.  
-<pre>router-&gt;deleteShape(shapeRef);</pre>
+@code
+router->deleteShape(shapeRef); @endcode
 This will cause the router to free the memory for the shapeRef.  You should discard your reference to the shapeRef after this call.
 
 To add a new connector to the router, you do the following:
-<pre>
+@code 
 Avoid::ConnEnd srcPt(Avoid::Point(1.2, 0.5));
 Avoid::ConnEnd dstPt(Avoid::Point(3.0, 4.0));
-Avoid::ConnRef *connRef = new Avoid::ConnRef(router, srcPt, dstPt);</pre>
+Avoid::ConnRef *connRef = new Avoid::ConnRef(router, srcPt, dstPt); @endcode
 This passes ownership of the connRef object to the router instance, though it is still fine for you to keep a reference to it.
 
 To remove a connector from the router:
-<pre>router-&gt;deleteConnector(connRef);</pre>
+@code
+router->deleteConnector(connRef); @endcode
 This will cause the router to free the memory for the connRef.  You should discard your reference to the connRef after this call.
 
-You can set a function to be called when the connector needs to be redrawn.  When called, this function will be passed the pointer given as a second argument to <code>setCallback</code>:
-<pre>void connCallback(void *ptr)
+You can set a function to be called when the connector needs to be redrawn.  When called, this function will be passed the pointer given as a second argument to Avoid::ConnRef::setCallback():
+@code
+void connCallback(void *ptr)
 {
     Avoid::ConnRef *connRef = (Avoid::ConnRef *) ptr;
-    printf("Connector %u needs rerouting!\n", connRef-&gt;id());
+    printf("Connector %u needs rerouting!\n", connRef->id());
 }
-connRef-&gt;setCallback(connCallback, connRef);</pre>
+connRef->setCallback(connCallback, connRef); @endcode
 
 The callback will be triggered by movement, addition and deletion of shapes, as well as by adjustment of the connector endpoints, or by processing a transaction that includes any of these events.  You can check if a connector path has changed, and hence the object requires repainting (say because a better path is available due to a shape being deleted):
-<pre>if (connRef-&gt;needsRepaint()) ...</pre>
+@code
+if (connRef->needsRepaint()) ... @endcode
 
 If you want to trigger the callback for a connector after moving its endpoints (or when it is first created you can do this via:
-<pre>connRef->processTransaction();</pre>
+@code
+connRef->processTransaction(); @endcode
 
 You can then get the new path as follows:
 
-<pre>const Avoid::PolyLine route = connRef-&gt;dispayRoute();
+@code
+const Avoid::PolyLine route = connRef->dispayRoute();
 for (size_t i = 0; i &lt; route.size(); ++i) 
 {
     Avoid::Point point = route.at(i);
     printf("%f, %f\n", point.x, point.y);
-}</pre>       
+} @endcode       
 
 Obviously the alternative to using the callback mechanism is to iterate through all connectors and check their needsRepaint() value after having called processTransaction().
 
 You can update the endpoints of a connector with:
-<pre>Avoid::ConnEnd newSrcPt(Avoid::Point(6, 3));
+@code
+Avoid::ConnEnd newSrcPt(Avoid::Point(6, 3));
 Avoid::ConnEnd newDstPt(Avoid::Point(12, 67));
-connRef-&gt;setEndpoints(newSrcPt, newDstPt);</pre>
+connRef->setEndpoints(newSrcPt, newDstPt); @endcode
 or
-<pre>Avoid::ConnEnd newSrcPt(Avoid::Point(6, 3));
-connRef-&gt;setSourceEndpoint(newSrcPt);
+@code
+Avoid::ConnEnd newSrcPt(Avoid::Point(6, 3));
+connRef->setSourceEndpoint(newSrcPt);
 
 Avoid::ConnEnd newDstPt(Avoid::Point(6, 3));
-connRef-&gt;setDestEndpoint(newDstPt);</pre>
+connRef->setDestEndpoint(newDstPt); @endcode
 
 You can also create connection pins on shapes and attach connectors directly to these.  Then when you move or resize the shapes, the connector endpoints attached to them will be automatically rerouted.
 
 You can create a connection pin as follows:
-<pre>const unsigned int CENTRE = 1;
-new Avoid::ShapeConnectionPin(shapeRef, CENTRE, Avoid::ATTACH_POS_CENTRE, Avoid::ATTACH_POS_CENTRE);</pre>
+@code
+const unsigned int CENTRE = 1;
+new Avoid::ShapeConnectionPin(shapeRef, CENTRE, Avoid::ATTACH_POS_CENTRE, Avoid::ATTACH_POS_CENTRE); @endcode
 This one connects to the centre of the shape, but the position can be specified anywhere within the shape as a proportion of the shape's width and height.  
 
 You can then attach a connector to the connection pin be doing the following:
-<pre>Avoid::ConnEnd newSrcPt(shapeRef, CENTRE);
-connRef-&gt;setSourceEndpoint(newSrcPt);</pre>
+@code
+Avoid::ConnEnd newSrcPt(shapeRef, CENTRE);
+connRef->setSourceEndpoint(newSrcPt); @endcode
 
 
 See also a short example: example.cpp in the libavoid/tests directory
