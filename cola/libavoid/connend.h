@@ -142,8 +142,19 @@ class ConnEnd
         //!
         //! This is the recommended method for connecting to shapes that may 
         //! later be moved or resized and for which you don't want to track 
-        //! and specify the connections yourself.  See the ShapeConnectionPin 
-        //! documentation for more information.
+        //! and specify the connector endpoints yourself.  See the 
+        //! ShapeConnectionPin documentation for more information.
+        //! 
+        //! If you to just connect to the centre of a shape you should just
+        //! create a centre connection pin
+        //! @code
+        //! const unsigned int CENTRE = 1;
+        //! new Avoid::ShapeConnectionPin(shapeRef, CENTRE, Avoid::ATTACH_POS_CENTRE, Avoid::ATTACH_POS_CENTRE);
+        //! @endcode
+        //! and attach to that with
+        //! @code
+        //! ConnEnd(shapeRef, CENTRE);
+        //! @endcode
         //!
         //! If a pin with the specified pin class ID doesn't exist then you
         //! will get a warning and a straight-line path between the source 

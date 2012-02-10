@@ -104,9 +104,13 @@ class ShapeConnectionPin
         //! yPortionOffset, it is usually much easier and more readable to not 
         //! have to specify the visibility directions manually and to write 
         //! something like
-        //! <pre>  ShapeConnectionPin(shapeRef, pinClassId, ATTACH_POS_RIGHT, ATTACH_POS_CENTRE, 5);</pre>
+        //! @code
+        //! ShapeConnectionPin(shapeRef, pinClassId, ATTACH_POS_RIGHT, ATTACH_POS_CENTRE, 5);
+        //! @endcode
         //! rather than
-        //! <pre>  ShapeConnectionPin(shapeRef, pinClassId, 1 - 5/shapeWidth, ATTACH_POS_CENTRE, 0, ConnDirRight);</pre>
+        //! @code
+        //! ShapeConnectionPin(shapeRef, pinClassId, 1 - 5/shapeWidth, ATTACH_POS_CENTRE, 0, ConnDirRight);
+        //! @endcode
         //! 
         //! @param[in]  shape          A pointer to the containing parent 
         //!                            shape's ShapeRef.
