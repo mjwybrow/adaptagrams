@@ -927,4 +927,5 @@ int main(void) {
     alg.makeFeasible();
     alg.outputInstanceToSVG();
     //alg.run();
+    return 0;
 };

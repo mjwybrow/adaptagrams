@@ -102,6 +102,7 @@ int main() {
     printf("PASS: simple1\n");
     simple2();
     printf("PASS: simple2\n");
+    return 0;
 }
 /*
  * vim: set cindent 

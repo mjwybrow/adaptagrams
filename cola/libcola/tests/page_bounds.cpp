@@ -97,5 +97,6 @@ int main() {
     run_test(startpos,es,defaultEdgeLength,cx,cy,SGP,true,"random", "csgp");
     */
     run_test(startpos,es,defaultEdgeLength,ccs,UGP,true,"random", "cugp");
+    return 0;
 }
-// vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:encoding=utf-8:textwidth=99 :
+// vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:textwidth=99 :

@@ -67,4 +67,5 @@ int main() {
 	for(unsigned i=0;i<V;i++) {
 		delete rs[i];
 	}
+    return 0;
 }

@@ -82,6 +82,7 @@ void test(int (*generate)(const unsigned, cola::SparseMatrix::SparseMap&, mapped
 int main() {
     test(&dense_test);
     test(&sparse_test);
+    return 0;
 }
 
 // vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4 :

@@ -214,5 +214,6 @@ int main(void) {
     alg.makeFeasible();
     alg.run();
     alg.outputInstanceToSVG("test-StillOverlap01");
+    return 0;
 };
 

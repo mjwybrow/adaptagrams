@@ -102,4 +102,5 @@ void test2() {
 }
 int main() {
 	test1();
+    return 0;
 }

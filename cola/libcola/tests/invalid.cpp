@@ -67,7 +67,7 @@ int main() {
 	    alg.run();
     } catch (cola::InvalidVariableIndexException& e) {
         cerr << e.what() << endl;
-		exit(0);
+		return 0;
     }
 	//assert(fabs(rs[0]->getCentreX()-rs[3]->getCentreX())<0.001);
 	cout<<rs[0]->getCentreX()<<","<<rs[1]->getCentreX()<<endl;
@@ -75,6 +75,6 @@ int main() {
 	for(unsigned i=0;i<V;i++) {
 		delete rs[i];
 	}
-    exit(1);
+    return 1;
 }
-// vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:encoding=utf-8:textwidth=99 :
+// vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:textwidth=99 :

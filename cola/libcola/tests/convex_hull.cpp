@@ -99,6 +99,7 @@ int main(int argc, char** argv) {
     randTest(20,X,Y);
     hull::convex(X,Y,h);
     drawCairo("convex_hull_random.svg",X,Y,h);
+    return 0;
 }
 
 /***********CAIRO CODE***************************************************/

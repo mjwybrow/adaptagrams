@@ -44,4 +44,5 @@ int main(void) {
 
     // Can be used to output a "libcola-debug.svg" file:
     //alg.outputInstanceToSVG();
+    return 0;
 };

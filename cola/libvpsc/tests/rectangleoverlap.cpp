@@ -656,4 +656,5 @@ int main() {
 		time/=repeats;
 		cout << i << "," << time << "," << disp << endl;
 	}
+    return 0;
 }
