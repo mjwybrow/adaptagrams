@@ -694,5 +694,17 @@ void HyperEdgeTreeEdge::deleteNodesExcept(HyperEdgeTreeNode *ignored)
 }
 
 
+CmpNodesInDim::CmpNodesInDim(const size_t dim)
+    : m_dimension(dim)
+{
+}
+
+
+bool CmpNodesInDim::operator()(const HyperEdgeTreeNode *lhs,
+        const HyperEdgeTreeNode *rhs) const
+{
+    return lhs->point[m_dimension] < rhs->point[m_dimension];
+}
+
 }
 

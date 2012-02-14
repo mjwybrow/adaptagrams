@@ -89,6 +89,7 @@ class HyperEdgeShiftSegment : public ShiftSegment
         HyperEdgeShiftSegment(HyperEdgeTreeNode *n1, HyperEdgeTreeNode *n2, 
                 const size_t dim, bool immovable)
             : ShiftSegment(dim),
+              nodes((dim + 1) % 2),
               isImmovable(immovable),
               m_balance_count(0),
               m_balance_count_set(false),

@@ -55,7 +55,7 @@ typedef std::set<JunctionRef *> JunctionSet;
 typedef std::list<JunctionRef *> JunctionRefList;
 typedef std::list<ConnRef *> ConnRefList;
 
-struct CmpNodesInDim;
+class CmpNodesInDim;
 
 typedef std::set<HyperEdgeTreeNode *, CmpNodesInDim> OrderedHENodeSet;
 
@@ -117,18 +117,14 @@ struct HyperEdgeTreeEdge
 typedef std::map<VertInf *, HyperEdgeTreeNode *> VertexNodeMap;
 
 
-struct CmpNodesInDim
+class CmpNodesInDim
 {
-    bool operator()(const HyperEdgeTreeNode *lhs,
-            const HyperEdgeTreeNode *rhs) const
-    {
-        size_t dim = (lhs->point[0] == rhs->point[0]) ? 1 : 0;
-        if ( lhs->point[dim] == rhs->point[dim] )
-        {
-            return lhs < rhs;
-        }
-        return lhs->point[dim] < rhs->point[dim];
-    }
+    public:
+        CmpNodesInDim(const size_t dim);
+        bool operator()(const HyperEdgeTreeNode *lhs,
+                const HyperEdgeTreeNode *rhs) const;
+    private:
+        const size_t m_dimension;
 };
 
 }
