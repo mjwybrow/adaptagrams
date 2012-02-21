@@ -3323,7 +3323,7 @@ struct ImproveHyperEdges
             const size_t dim, HyperEdgeTreeNode *ignore, 
             ShiftSegmentList& segments)
     {
-        if (edge->hasOrientation(dim))
+        if (edge->hasOrientation(dim) && ! edge->zeroLength())
         {
             bool immovable = (edge->ends.first->edges.size() == 1) || 
                     (edge->ends.second->edges.size() == 1);

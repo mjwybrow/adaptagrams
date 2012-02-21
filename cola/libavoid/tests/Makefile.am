@@ -55,9 +55,12 @@ check_PROGRAMS = \
 	validPaths01 \
 	validPaths02 \
 	2junctions \
-	hyperedgeLoop1
+	hyperedgeLoop1 \
+	buildOrthogonalChannelInfo1
 
 # problem_SOURCES = problem.cpp
+
+buildOrthogonalChannelInfo1_SOURCES = buildOrthogonalChannelInfo1.cpp
 
 hyperedgeLoop1_SOURCES = hyperedgeLoop1.cpp
 
