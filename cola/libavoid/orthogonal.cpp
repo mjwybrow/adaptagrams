@@ -841,8 +841,6 @@ struct Event
     double pos;
 };
 
-Event **events;
-
 
 // Used for quicksort.  Must return <0, 0, or >0.
 int compare_events(const void *a, const void *b)
@@ -2026,7 +2024,7 @@ extern void generateStaticOrthogonalVisGraph(Router *router)
     const unsigned cpn = router->vertices.connsSize();
     // Set up the events for the vertical sweep.
     size_t totalEvents = (2 * n) + cpn;
-    events = new Event*[totalEvents];
+    Event **events = new Event*[totalEvents];
     unsigned ctr = 0;
     ObstacleList::iterator obstacleIt = router->m_obstacles.begin();
     for (unsigned i = 0; i < n; i++)
@@ -2621,7 +2619,7 @@ static void buildOrthogonalChannelInfo(Router *router,
     const size_t cpn = segmentList.size();
     // Set up the events for the sweep.
     size_t totalEvents = 2 * (n + cpn);
-    events = new Event*[totalEvents];
+    Event **events = new Event*[totalEvents];
     unsigned ctr = 0;
     ObstacleList::iterator obstacleIt = router->m_obstacles.begin();
     for (unsigned i = 0; i < n; i++)
