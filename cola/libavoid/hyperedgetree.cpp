@@ -700,10 +700,16 @@ CmpNodesInDim::CmpNodesInDim(const size_t dim)
 }
 
 
+// Nodes in set are ordered by position along a line in a certain dimension, 
+// and then by Node pointer since multiple may exist at a particular position.
 bool CmpNodesInDim::operator()(const HyperEdgeTreeNode *lhs,
         const HyperEdgeTreeNode *rhs) const
 {
-    return lhs->point[m_dimension] < rhs->point[m_dimension];
+    if (lhs->point[m_dimension] != rhs->point[m_dimension])
+    {
+        return lhs->point[m_dimension] < rhs->point[m_dimension];
+    }
+    return lhs < rhs;
 }
 
 }
