@@ -236,7 +236,6 @@ void ConnRef::common_updateEndPoint(const unsigned int type, ConnEnd connEnd)
     }
     
     VertInf *altered = NULL;
-    VertInf *partner = NULL;
 
     VertIDProps properties = VertID::PROP_ConnPoint;
     if (connEnd.isPinConnection())
@@ -271,7 +270,6 @@ void ConnRef::common_updateEndPoint(const unsigned int type, ConnEnd connEnd)
         }
         
         altered = m_src_vert;
-        partner = m_dst_vert;
     }
     else // if (type == (unsigned int) VertID::tar)
     {
@@ -300,7 +298,6 @@ void ConnRef::common_updateEndPoint(const unsigned int type, ConnEnd connEnd)
         }
         
         altered = m_dst_vert;
-        partner = m_src_vert;
     }
     
     // XXX: Seems to be faster to just remove the edges and recreate
@@ -2170,6 +2167,8 @@ void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
                                 std::make_pair(&a1, connConnRef),
                                 !reversedY);
                     }
+#if 0
+// Unused code.
                     else
                     {
                         int turnDirA = vecDir(a0, a1, a2); 
@@ -2197,6 +2196,7 @@ void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
                         VertID vID(b1.id, b1.vn);
                         //(*pointOrders)[b1].addOrderedPoints(&b1, &a1, reversed);
                     }
+#endif
                 }
             }
         }
