@@ -23,6 +23,7 @@
 */
 
 
+
 #include <cstdlib>
 #include <cfloat>
 #include <cmath>
@@ -2891,8 +2892,7 @@ class CmpLineOrder
             // We consider things at effectively the same position to 
             // be ordered based on their order and fixedOrder, so only 
             // compare segments further apart than the nudgeDistance.
-            if (fabs(lhsLow[dimension] - rhsLow[dimension]) > 
-                    lhs->nudgeDistance())
+            if (lhsLow[dimension] != rhsLow[dimension])
             {
                 return lhsLow[dimension] < rhsLow[dimension];
             }
@@ -2906,18 +2906,6 @@ class CmpLineOrder
             if (oneIsFixed && (lhsFixedOrder != rhsFixedOrder))
             {
                 return lhsFixedOrder < rhsFixedOrder;
-            }
-
-            // Further comparisons require the position of the segments to be
-            // equal.  If they are not, then just mark as uncomparable, but 
-            // be consistent.
-            if (lhsLow[dimension] != rhsLow[dimension]) 
-            {
-                if (comparable)
-                {
-                    *comparable = false;
-                }
-                return lhsLow[dimension] < rhsLow[dimension];
             }
 
             // C-bends that did not have a clear order with s-bends might 

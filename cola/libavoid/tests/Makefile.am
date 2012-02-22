@@ -57,11 +57,13 @@ check_PROGRAMS = \
 	2junctions \
 	hyperedgeLoop1 \
 	buildOrthogonalChannelInfo1 \
-	finalSegmentNudging1
+	finalSegmentNudging1 \
+	finalSegmentNudging2
 
 # problem_SOURCES = problem.cpp
 
 finalSegmentNudging1_SOURCES = finalSegmentNudging1.cpp
+finalSegmentNudging2_SOURCES = finalSegmentNudging2.cpp
 
 buildOrthogonalChannelInfo1_SOURCES = buildOrthogonalChannelInfo1.cpp
 
