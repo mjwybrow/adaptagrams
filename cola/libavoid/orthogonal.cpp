@@ -315,6 +315,27 @@ static bool CmpHyperEdgeSegmentDirOrder(const ShiftSegment *lhsSuper,
 }
 #endif
 
+// Used to sort points when merging NudgingShiftSegments.
+// Sorts the indexes, by point position in one dimension.
+class CmpIndexes
+{
+    public:
+        CmpIndexes(ConnRef *conn, size_t dim)
+            : connRef(conn),
+              dimension(dim)
+        {
+        }
+        bool operator()(size_t lhs, size_t rhs)
+        {
+            return connRef->displayRoute().ps[lhs][dimension] < 
+                    connRef->displayRoute().ps[rhs][dimension];
+        }
+    private:
+        ConnRef *connRef;
+        size_t dimension;
+};
+
+
 class NudgingShiftSegment : public ShiftSegment
 {
     public:
@@ -325,16 +346,16 @@ class NudgingShiftSegment : public ShiftSegment
             : ShiftSegment(dim),
               connRef(conn),
               variable(NULL),
-              indexLow(low),
-              indexHigh(high),
               fixed(false),
               finalSegment(false),
               endsInShape(false),
               sBend(isSBend),
               zBend(isZBend)
         {
-              minSpaceLimit = minLim;
-              maxSpaceLimit = maxLim;
+            indexes.push_back(low);
+            indexes.push_back(high);
+            minSpaceLimit = minLim;
+            maxSpaceLimit = maxLim;
         }
         // For fixed segments.
         NudgingShiftSegment(ConnRef *conn, const size_t low, const size_t high, 
@@ -342,14 +363,14 @@ class NudgingShiftSegment : public ShiftSegment
             : ShiftSegment(dim),
               connRef(conn),
               variable(NULL),
-              indexLow(low),
-              indexHigh(high),
               fixed(true),
               finalSegment(false),
               endsInShape(false),
               sBend(false),
               zBend(false)
         {
+            indexes.push_back(low);
+            indexes.push_back(high);
             // This has no space to shift.
             minSpaceLimit = lowPoint()[dim];
             maxSpaceLimit = lowPoint()[dim];
@@ -359,19 +380,19 @@ class NudgingShiftSegment : public ShiftSegment
         }
         Point& lowPoint(void)
         {
-            return connRef->displayRoute().ps[indexLow];
+            return connRef->displayRoute().ps[indexes.front()];
         }
         Point& highPoint(void)
         {
-            return connRef->displayRoute().ps[indexHigh];
+            return connRef->displayRoute().ps[indexes.back()];
         }
         const Point& lowPoint(void) const
         {
-            return connRef->displayRoute().ps[indexLow];
+            return connRef->displayRoute().ps[indexes.front()];
         }
         const Point& highPoint(void) const 
         {
-            return connRef->displayRoute().ps[indexHigh];
+            return connRef->displayRoute().ps[indexes.back()];
         }
         double nudgeDistance(void) const
         {
@@ -423,14 +444,15 @@ class NudgingShiftSegment : public ShiftSegment
             {
                 return;
             }
-            Point& lowPt = lowPoint();
-            Point& highPt = highPoint();
             double newPos = variable->finalPosition;
 #ifdef NUDGE_DEBUG
             printf("Pos: %lX, %g\n", (long) connRef, newPos);
 #endif
-            lowPt[dimension] = newPos;
-            highPt[dimension] = newPos;
+            for (size_t it = 0; it < indexes.size(); ++it)
+            {
+                size_t index = indexes[it];
+                connRef->displayRoute().ps[index][dimension] = newPos;
+            }
         }
         int fixedOrder(bool& isFixed) const
         {
@@ -533,11 +555,48 @@ class NudgingShiftSegment : public ShiftSegment
             }
             return false;
         }
+        // Used for merging segments with end segments that should appear as
+        // a single segment.
+        void mergeWith(const ShiftSegment *rhsSuper, const size_t dim)
+        {
+            // Adjust limits.
+            minSpaceLimit = std::max(minSpaceLimit, rhsSuper->minSpaceLimit);
+            maxSpaceLimit = std::min(maxSpaceLimit, rhsSuper->maxSpaceLimit);
+ 
+            // Find a new position for the segment, taking into account
+            // the two original positions and the combined limits.
+            double segmentPos = lowPoint()[dimension];
+            double segment2Pos = rhsSuper->lowPoint()[dimension];
+            if (segment2Pos < segmentPos)
+            {
+                segmentPos -= ((segmentPos - segment2Pos) / 2.0);
+            }
+            else if (segment2Pos > segmentPos)
+            {
+                segmentPos += ((segment2Pos - segmentPos) / 2.0);
+            }
+            segmentPos = std::max(minSpaceLimit, segmentPos);
+            segmentPos = std::min(maxSpaceLimit, segmentPos);
+
+            // Merge the index lists and sort the new list.
+            const NudgingShiftSegment *rhs = 
+                    dynamic_cast<const NudgingShiftSegment *> (rhsSuper);
+            indexes.insert(indexes.end(), rhs->indexes.begin(), rhs->indexes.end());
+            size_t altDim = (dim + 1) % 2;
+            CmpIndexes compare(connRef, altDim);
+            sort(indexes.begin(), indexes.end(), compare);
+
+            // Apply the new positon to all points to keep them constant.
+            for (size_t it = 0; it < indexes.size(); ++it)
+            {
+                size_t index = indexes[it];
+                connRef->displayRoute().ps[index][dimension] = segmentPos;
+            }
+        }
 
         ConnRef *connRef;
         Variable *variable;
-        size_t indexLow;
-        size_t indexHigh;
+        std::vector<size_t> indexes;
         bool fixed;
         bool finalSegment;
         bool endsInShape;
@@ -2821,14 +2880,13 @@ class CmpLineOrder
             }
             Point lhsLow  = lhs->lowPoint(); 
             Point rhsLow  = rhs->lowPoint(); 
+            size_t altDim = (dimension + 1) % 2;
 #ifndef NDEBUG
             const Point& lhsHigh = lhs->highPoint(); 
             const Point& rhsHigh = rhs->highPoint(); 
-#endif
-            size_t altDim = (dimension + 1) % 2;
-
             COLA_ASSERT(lhsLow[dimension] == lhsHigh[dimension]);
             COLA_ASSERT(rhsLow[dimension] == rhsHigh[dimension]);
+#endif
 
             // We consider things at effectively the same position to 
             // be ordered based on their order and fixedOrder, so only 
@@ -2848,6 +2906,18 @@ class CmpLineOrder
             if (oneIsFixed && (lhsFixedOrder != rhsFixedOrder))
             {
                 return lhsFixedOrder < rhsFixedOrder;
+            }
+
+            // Further comparisons require the position of the segments to be
+            // equal.  If they are not, then just mark as uncomparable, but 
+            // be consistent.
+            if (lhsLow[dimension] != rhsLow[dimension]) 
+            {
+                if (comparable)
+                {
+                    *comparable = false;
+                }
+                return lhsLow[dimension] < rhsLow[dimension];
             }
 
             // C-bends that did not have a clear order with s-bends might 
@@ -2897,9 +2967,39 @@ class CmpLineOrder
 // the case of them not being able to be compared is handled by not setting 
 // up any constraints between such segments when doing the nudging.
 //
-static ShiftSegmentList linesort(ShiftSegmentList origList, 
-        CmpLineOrder& comparison)
+static ShiftSegmentList linesort(bool nudgeFinalSegments, 
+        ShiftSegmentList origList, CmpLineOrder& comparison)
 {
+    // Cope with end segments that are getting moved and will line up with
+    // other segments of the same connector.  We do this by merging them into
+    // a single NudgingShiftSegment.
+    if (nudgeFinalSegments)
+    {
+        for (ShiftSegmentList::iterator currSegIt = origList.begin();
+                currSegIt != origList.end(); ++currSegIt)
+        {
+            for (ShiftSegmentList::iterator otherSegIt = currSegIt;
+                    otherSegIt != origList.end(); )
+            {
+                NudgingShiftSegment *currSeg = 
+                        dynamic_cast<NudgingShiftSegment *> (*currSegIt);
+                NudgingShiftSegment *otherSeg = 
+                        dynamic_cast<NudgingShiftSegment *> (*otherSegIt);
+                if ((currSegIt != otherSegIt) && currSeg && otherSeg && 
+                        currSeg->shouldAlignWith(otherSeg, comparison.dimension))
+                {
+                    currSeg->mergeWith(otherSeg, comparison.dimension);
+                    delete otherSeg;
+                    otherSegIt = origList.erase(otherSegIt);
+                }
+                else
+                {
+                    ++otherSegIt;
+                }
+            }
+        }
+    }
+
     ShiftSegmentList resultList;
 
     size_t origListSize = origList.size();
@@ -2917,7 +3017,6 @@ static ShiftSegmentList linesort(ShiftSegmentList origList,
         {
             bool comparable = false;
             bool lessThan = comparison(segment, *curr, &comparable);
-
             allComparable &= comparable;
 
             if (comparable && lessThan)
@@ -2955,11 +3054,14 @@ typedef std::list<ShiftSegment *> ShiftSegmentPtrList;
 static void nudgeOrthogonalRoutes(Router *router, size_t dimension, 
         PtOrderMap& pointOrders, ShiftSegmentList& segmentList)
 {
+    bool nudgeFinalSegments = router->routingOption(
+            nudgeOrthogonalSegmentsConnectedToShapes);
     double baseSepDist = router->orthogonalNudgeDistance();
     COLA_ASSERT(baseSepDist >= 0);
     // If we can fit things with the desired separation distance, then
     // we try 10 times, reducing each time by a 10th of the original amount.
     double reductionSteps = 10.0;
+    bool justCentring = pointOrders.empty();
 
     // Do the actual nudging.
     ShiftSegmentList currentRegion;
@@ -2998,17 +3100,18 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             }
         }
 
-        if (!pointOrders.empty())
+        if (! justCentring)
         {
             CmpLineOrder lineSortComp(pointOrders, dimension);
-            currentRegion = linesort(currentRegion, lineSortComp);
+            currentRegion = linesort(nudgeFinalSegments, currentRegion,
+                    lineSortComp);
         }
 
         if (currentRegion.size() == 1)
         {
             // Save creating the solver instance if there is just one
-            // immovable segment.
-            if (currentRegion.front()->immovable())
+            // immovable segment, or we're nudging a single segment.
+            if ( !justCentring || currentRegion.front()->immovable() )
             {
                 delete currentRegion.front();
                 continue;
@@ -3025,25 +3128,19 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
         printf("-------------------------------------------------------\n");
         printf("Nudge -- size: %d\n", (int) currentRegion.size());
 #endif
+#ifdef NUDGE_DEBUG_SVG
+        printf("\n\n");
+#endif
         ShiftSegmentList::iterator matchingConnSegment = currentRegion.end();
         for (ShiftSegmentList::iterator currSegmentIt = currentRegion.begin();
                 currSegmentIt != currentRegion.end(); ++currSegmentIt )
         {
-            if (matchingConnSegment != currentRegion.end())
-            {
-                // If we have a segment that should be aligned with the last
-                // processed segment, then we take it out of order, inserting
-                // it at the current position. 
-                currentRegion.insert(currSegmentIt, *matchingConnSegment);
-                currentRegion.erase(matchingConnSegment);
-                --currSegmentIt;
-            }
             NudgingShiftSegment *currSegment = dynamic_cast<NudgingShiftSegment *> (*currSegmentIt);
             
             // Create a solver variable for the position of this segment.
             currSegment->createSolverVariable();
             
-            if (pointOrders.empty())
+            if (justCentring)
             {
                 // If we are just doing centring, then we should use the
                 // same weights, otherwise we might move overlapping paths
@@ -3057,26 +3154,28 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             fprintf(stderr,"line(%d)  %.15f  dim: %d pos: %g   min: %g  max: %g\n"
                    "minEndPt: %g  maxEndPt: %g weight: %g\n",
                     currSegment->connRef->id(),
-                    lowPt[dimension], (int) dimension, idealPos, 
+                    currSegment->lowPoint()[dimension], (int) dimension, 
+                    currSegment->variable->desiredPosition, 
                     currSegment->minSpaceLimit, currSegment->maxSpaceLimit,
-                    lowPt[!dimension], currSegment->highPoint()[!dimension], weight);
+                    currSegment->lowPoint()[!dimension], currSegment->highPoint()[!dimension], 
+                    currSegment->variable->weight);
 #endif
-#if 0
+#ifdef NUDGE_DEBUG_SVG
             // Debugging info:
             double minP = std::max(currSegment->minSpaceLimit, -5000.0);
             double maxP = std::min(currSegment->maxSpaceLimit, 5000.0);
             fprintf(stdout, "<rect style=\"fill: #f00; opacity: 0.2;\" "
                     "x=\"%g\" y=\"%g\" width=\"%g\" height=\"%g\" />\n",
-                    lowPt[XDIM], minP, 
-                    currSegment->highPoint()[XDIM] - lowPt[XDIM], 
+                    currSegment->lowPoint()[XDIM], minP, 
+                    currSegment->highPoint()[XDIM] - currSegment->lowPoint()[XDIM], 
                     maxP - minP);
             fprintf(stdout, "<line style=\"stroke: #000;\" x1=\"%g\" "
                     "y1=\"%g\" x2=\"%g\" y2=\"%g\" />\n",
-                    lowPt[XDIM], lowPt[YDIM], currSegment->highPoint()[XDIM], 
-                    currSegment->highPoint()[YDIM]);
+                    currSegment->lowPoint()[XDIM], currSegment->lowPoint()[YDIM],
+                    currSegment->highPoint()[XDIM], currSegment->highPoint()[YDIM]);
 #endif
 
-            if (pointOrders.empty())
+            if (justCentring)
             {
                 // Just doing centring, not nudging.
                 // Thus, we don't need to constrain position.
@@ -3157,26 +3256,6 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             }
 
             prevVars.push_back(&(*currSegment));
-
-            // Here we look for segments that should be aligned with the 
-            // current segment.  We record a reference to them here so that
-            // we may load them out of order.
-            matchingConnSegment = currentRegion.end();
-            if (currSegment->finalSegment)
-            {
-                for (ShiftSegmentList::iterator matchingSegment = currSegmentIt;
-                        matchingSegment != currentRegion.end(); ++matchingSegment)
-                {
-                    if (matchingSegment == currSegmentIt)
-                    {
-                        continue;
-                    }
-                    if ((*matchingSegment)->shouldAlignWith(currSegment, dimension))
-                    {
-                        matchingConnSegment = matchingSegment;
-                    }
-                }
-            }
         }
 #ifdef NUDGE_DEBUG
         for (unsigned i = 0;i < vs.size(); ++i)
@@ -3232,12 +3311,25 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                 segment->updatePositionsFromSolver();
             }
         }
-        for_each(currentRegion.begin(), currentRegion.end(), delete_object());
 #ifdef NUDGE_DEBUG
         for(unsigned i=0;i<vs.size();i++) {
             printf("+vs[%d]=%f\n",i,vs[i]->finalPosition);
         }
 #endif
+#ifdef NUDGE_DEBUG_SVG
+        for (ShiftSegmentList::iterator currSegment = currentRegion.begin();
+                currSegment != currentRegion.end(); ++currSegment)
+        {
+            NudgingShiftSegment *segment =
+                    dynamic_cast<NudgingShiftSegment *> (*currSegment);
+
+            fprintf(stdout, "<line style=\"stroke: #00F;\" x1=\"%g\" "
+                    "y1=\"%g\" x2=\"%g\" y2=\"%g\" />\n",
+                    segment->lowPoint()[XDIM], segment->variable->finalPosition,
+                    segment->highPoint()[XDIM], segment->variable->finalPosition);
+        }
+#endif
+        for_each(currentRegion.begin(), currentRegion.end(), delete_object());
         for_each(vs.begin(), vs.end(), delete_object());
         for_each(cs.begin(), cs.end(), delete_object());
     }
@@ -3282,7 +3374,7 @@ extern void improveOrthogonalRoutes(Router *router)
         buildOrthogonalChannelInfo(router, dimension, segmentList);
         nudgeOrthogonalRoutes(router, dimension, pointOrders, segmentList);
     }
-    
+
     // Resimplify all the display routes that may have been split.
     simplifyOrthogonalRoutes(router);
 
