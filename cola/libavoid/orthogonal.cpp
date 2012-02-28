@@ -74,8 +74,6 @@ class ShiftSegment
         virtual const Point& highPoint(void) const = 0;
         virtual bool overlapsWith(const ShiftSegment *rhs,
                 const size_t dim) const = 0;
-        virtual bool shouldAlignWith(const ShiftSegment *rhs,
-                const size_t dim) const = 0;
         virtual bool immovable(void) const = 0;
         
         size_t dimension;
@@ -245,14 +243,6 @@ class HyperEdgeShiftSegment : public ShiftSegment
                     return true;
                 }
             }
-            return false;
-        }
-        bool shouldAlignWith(const ShiftSegment *rhs, const size_t dim) const
-        {
-            // Avoid unused parameter warning.
-            (void)(rhs);
-            (void)(dim);
-
             return false;
         }
         bool immovable(void) const
