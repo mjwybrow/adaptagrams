@@ -81,7 +81,7 @@ ShapeConnectionPin::ShapeConnectionPin(ShapeRef *shape,
         m_exclusive = false;
     }
 
-    if (m_router->_polyLineRouting)
+    if (m_router->m_allows_polyline_routing)
     {
         vertexVisibility(m_vertex, NULL, true, true);
     }
@@ -111,7 +111,7 @@ ShapeConnectionPin::ShapeConnectionPin(JunctionRef *junction,
     m_vertex = new VertInf(m_router, id, m_junction->position());
     m_vertex->visDirections = visDirs;
 
-    if (m_router->_polyLineRouting)
+    if (m_router->m_allows_polyline_routing)
     {
         vertexVisibility(m_vertex, NULL, true, true);
     }
@@ -156,7 +156,7 @@ void ShapeConnectionPin::updatePositionAndVisibility(void)
 void ShapeConnectionPin::updateVisibility(void)
 {
     m_vertex->removeFromGraph();
-    if (m_router->_polyLineRouting)
+    if (m_router->m_allows_polyline_routing)
     {
         vertexVisibility(m_vertex, NULL, true, true);
     }

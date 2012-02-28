@@ -212,8 +212,8 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
     Router *router = inf2->_router;
     if (inf1 != NULL)
     {
-        const double angle_penalty = router->routingPenalty(anglePenalty);
-        const double segmt_penalty = router->routingPenalty(segmentPenalty);
+        const double angle_penalty = router->routingParameter(anglePenalty);
+        const double segmt_penalty = router->routingParameter(segmentPenalty);
 
         // This is not the first segment, so there is a bend
         // between it and the last one in the existing path.
@@ -252,7 +252,7 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
     }
 
     const double cluster_crossing_penalty = 
-            router->routingPenalty(clusterCrossingPenalty);
+            router->routingParameter(clusterCrossingPenalty);
     // XXX: Clustered routing doesn't yet work with orthogonal connectors.
     if (router->ClusteredRouting && !router->clusterRefs.empty() &&
             (cluster_crossing_penalty > 0))
@@ -292,15 +292,15 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
         }
     }
 
-    if (!router->_inCrossingPenaltyReroutingStage)
+    if (!router->isInCrossingPenaltyReroutingStage())
     {
         // Return here if we are not in the post-processing stage 
         return result;
     }
 
-    const double crossing_penalty = router->routingPenalty(crossingPenalty);
+    const double crossing_penalty = router->routingParameter(crossingPenalty);
     const double shared_path_penalty = 
-            router->routingPenalty(fixedSharedPathPenalty);
+            router->routingParameter(fixedSharedPathPenalty);
     if ((shared_path_penalty > 0) || (crossing_penalty > 0))
     {
         if (connRoute.empty())
@@ -386,7 +386,7 @@ static double estimatedCost(ConnRef *lineRef, const Point *last,
             }
         }
         double penalty = num_penalties * 
-                lineRef->router()->routingPenalty(segmentPenalty);
+                lineRef->router()->routingParameter(segmentPenalty);
 
         return manhattanDist(a, b) + penalty;
     }

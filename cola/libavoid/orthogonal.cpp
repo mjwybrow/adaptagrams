@@ -2404,7 +2404,7 @@ static bool insideRectBounds(const Point& point, const RectBounds& rectBounds)
 static void buildOrthogonalNudgingSegments(Router *router, 
         const size_t dim, ShiftSegmentList& segmentList)
 {
-    if (router->routingPenalty(segmentPenalty) == 0)
+    if (router->routingParameter(segmentPenalty) == 0)
     {
         // The nudging code assumes the routes are pretty optimal.  This will
         // only be true if a segment penalty is set, so just return if this 

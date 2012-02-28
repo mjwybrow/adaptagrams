@@ -324,10 +324,10 @@ void ConnEnd::assignPinVisibilityTo(VertInf *dummyConnectionVert,
             }
             if (!inVisibilityRange)
             {
-                routingCost += router->routingPenalty(portDirectionPenalty);
+                routingCost += router->routingParameter(portDirectionPenalty);
             }
 
-            if (router->_orthogonalRouting)
+            if (router->m_allows_orthogonal_routing)
             {
                 // This has same ID and is either unconnected or not 
                 // exclusive, so give it visibility.
@@ -340,7 +340,7 @@ void ConnEnd::assignPinVisibilityTo(VertInf *dummyConnectionVert,
                         std::max(0.001, routingCost));
             }
 
-            if (router->_polyLineRouting)
+            if (router->m_allows_orthogonal_routing)
             {
                 // This has same ID and is either unconnected or not 
                 // exclusive, so give it visibility.
@@ -399,7 +399,7 @@ std::pair<bool, VertInf *> ConnEnd::getHyperedgeVertex(Router *router) const
         vertex->visDirections = m_directions;
         addedVertex = true;
 
-        if (router->_polyLineRouting)
+        if (router->m_allows_orthogonal_routing)
         {
             vertexVisibility(vertex, NULL, true, true);
         }

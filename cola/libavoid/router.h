@@ -78,9 +78,10 @@ static const unsigned int runningTo = 1;
 static const unsigned int runningFrom = 2;
 static const unsigned int runningToAndFrom = runningTo | runningFrom;
 
-//! @brief  Types of penalty cases that can be used to improve the quality 
-//!         of the connector routes produced.
-enum PenaltyType
+//! @brief  Types of routing parameters and penalties that can be used to 
+//!         tailor the style and improve the quality of the connector 
+//!         routes produced.
+enum RoutingParameter
 {
     //! @brief  This penalty is applied for each segment in the connector 
     //!         path beyond the first.  This should always normally be set
@@ -129,10 +130,14 @@ enum PenaltyType
     //!         as a method of checking progress or cancelling overly slow
     //!         operations.
     portDirectionPenalty,
-    // Used for determining the size of the penalty array.  
+
+    // Used for determining the size of the routing parameter array..  
     // This should always we the last value in the enum.
-    lastPenaltyMarker
+    lastRoutingParameterMarker
 };
+
+// Backwards compatibility
+typedef enum RoutingParameter PenaltyType;
 
 
 //! @brief  Types of routing options that can be enabled.
@@ -142,6 +147,10 @@ enum RoutingOption
     //!         are attached to shapes, to be nudged apart.  Usually these
     //!         segments are fixed, since they are considered to be attached
     //!         to ports.  This option is not set by default.
+    //! @note   This will allow routes to be nudged up to the bounds of shapes, 
+    //!         additional space for this nudging can be specified via the 
+    //!         extraSpaceForNudgingOrthogonalSegmentsConnectedToShapes
+    //!         routing parameter.
     nudgeOrthogonalSegmentsConnectedToShapes = 0,
     //! @brief  This option causes hyperedge routes to be locally improved
     //!         fixing obviously bad paths.  As part of this process libavoid
@@ -159,6 +168,7 @@ enum RoutingOption
     //! @note   This option is still experimental!  It is not recommended
     //!         for normal use.
     penaliseOrthogonalSharedPathsAtConnEnds,
+
     // Used for determining the size of the routing options array.
     // This should always we the last value in the enum.
     lastRoutingOptionMarker
@@ -185,8 +195,8 @@ class ConnRerouteFlagDelegate {
         std::list<std::pair<ConnRef *, bool> > m_mapping;
 };
 
-static const double noPenalty = 0;
-static const double chooseSensiblePenalty = -1;
+static const double zeroParamValue = 0;
+static const double chooseSensibleParamValue = -1;
 
 
 //! @brief   The Router class represents a libavoid router instance.
@@ -428,34 +438,39 @@ class Router {
         //!
         double orthogonalNudgeDistance(void) const;
 
-        //! @brief  Sets or removes penalty values that are applied during 
-        //!         connector routing.
+        //! @brief  Sets values for routing parameters, including routing 
+        //!         penalties.
         //!
-        //! By default, libavoid will produce shortest path routes between
-        //! the source and destination points for each connector.  There are
-        //! several penalties that can be applied during this stage to 
-        //! improve the aesthetics of the routes generated.  These different
-        //! penalties are specified and explained by the PenaltyType enum.
+        //! libavoid uses a set of parameters to allow the user more control
+        //! over routing style and quality.  These different parameters are
+        //! described and explained by the RoutingParameter enum.  All 
+        //! parameters have sensible defaults.
+        //!
+        //! Regarding routing penalties, libavoid will by default produce
+        //! shortest path routes between the source and destination points 
+        //! for each connector.  There are several penalties that can be 
+        //! applied during this stage to penalise certain conditions and
+        //! thus improve the aesthetics of the routes generated.  
         //! 
-        //! If a value of zero or Avoid::noPenalty is given then the penalty 
-        //! for this case will be removed.  If no penalty argument (or a 
-        //! negative value) is specified when calling this method, then a 
-        //! sensible penalty value will be automatically chosen.
+        //! If a value of zero or Avoid::zeroParamValue is given then the 
+        //! particular parameter value or penalty will be removed.  If no 
+        //! parameter value argument (or a negative value) is specified 
+        //! when calling this method, then a sensible penalty value will 
+        //! be automatically chosen.
         //!
-        //! @param[in] penType  The type of penalty, a PenaltyType.
-        //! @param[in] penVal   The value to be applied for each occurance
-        //!                     of the penalty case.  
+        //! @param[in] parameter  The type of penalty, a RoutingParameter.
+        //! @param[in] value      The value to be set for that parameter.
         //!
-        void setRoutingPenalty(const PenaltyType penType, 
-                const double penVal = chooseSensiblePenalty);
+        void setRoutingParameter(const RoutingParameter parameter, 
+                const double value = chooseSensibleParamValue);
 
-        //! @brief  Returns the current penalty value for a particular 
-        //!         routing penalty case.
+        //! @brief  Returns the current value for a particular routing
+        //!         parameter of a given type.
         //!
-        //! @param[in] penType  The type of penalty, a PenaltyType.
-        //! @return  The penalty value for the specified penalty case.
+        //! @param[in] parameter  The type of parameter, a RoutingParameter.
+        //! @return  The value for the specified routing parameter.
         //!
-        double routingPenalty(const PenaltyType penType) const;
+        double routingParameter(const RoutingParameter parameter) const;
 
         //! @brief  Turn specific routing options on or off.
         //!
@@ -470,6 +485,19 @@ class Router {
         //! @return  A boolean representing the option state.
         //!
         bool routingOption(const RoutingOption option) const;
+
+        //! @brief  Sets or removes penalty values that are applied during 
+        //!         connector routing.
+        //!
+        //! @note   This is a convenience wrapper for the setRoutingParameter()
+        //          method.  See its documentation for more details.
+        //!
+        //! @param[in] penType  The type of penalty, a RoutingParameter.
+        //! @param[in] penVal   The value to be applied for each occurrence
+        //!                     of the penalty case.  
+        //!
+        void setRoutingPenalty(const RoutingParameter penType, 
+                const double penVal = chooseSensibleParamValue);
 
         //! @brief  Returns a pointer to the hyperedge rerouter for the router.
         //!
@@ -544,7 +572,7 @@ class Router {
         void destroyOrthogonalVisGraph(void);
         void setStaticGraphInvalidated(const bool invalidated);
         ConnType validConnType(const ConnType select = ConnType_None) const;
-        double& penaltyRef(const PenaltyType penType);
+        bool isInCrossingPenaltyReroutingStage(void) const;
         
         // Testing and debugging methods.
         bool existsOrthogonalPathOverlap(const bool atEnds = false);
@@ -560,6 +588,7 @@ class Router {
         friend class ClusterRef;
         friend class ShapeConnectionPin;
         friend class MinimumTerminalSpanningTree;
+        friend class ConnEnd;
         friend struct HyperEdgeTreeNode;
 
         unsigned int assignId(const unsigned int suggestedId);
@@ -586,11 +615,11 @@ class Router {
 
         ActionInfoList actionList;
         unsigned int m_largest_assigned_id;
-        bool _consolidateActions;
+        bool m_consolidate_actions;
         bool m_currently_calling_destructors;
-        double _orthogonalNudgeDistance;
-        double _routingPenalties[lastPenaltyMarker];
-        bool _routingOptions[lastRoutingOptionMarker];
+        double m_orthogonal_nudge_distance;
+        double m_routing_parameters[lastRoutingParameterMarker];
+        bool m_routing_options[lastRoutingOptionMarker];
         
         ConnRerouteFlagDelegate m_conn_reroute_flags;
         HyperedgeRerouter m_hyperedge_rerouter;
@@ -600,13 +629,12 @@ class Router {
         clock_t m_transaction_start_time;
         bool m_abort_transaction;
 
-    public:
         // Overall modes:
-        bool _polyLineRouting;
-        bool _orthogonalRouting;
-
-        bool _staticGraphInvalidated;
-        bool _inCrossingPenaltyReroutingStage;
+        bool m_allows_polyline_routing;
+        bool m_allows_orthogonal_routing;
+        
+        bool m_static_orthogonal_graph_invalidated;
+        bool m_in_crossing_rerouting_stage;
 };
 
 
