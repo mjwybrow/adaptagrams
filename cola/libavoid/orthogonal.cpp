@@ -43,6 +43,8 @@
 #include "libavoid/hyperedgetree.h"
 #include "libavoid/mtst.h"
 
+//#define NUDGE_DEBUG
+
 namespace Avoid {
 
 
@@ -340,6 +342,7 @@ class NudgingShiftSegment : public ShiftSegment
               fixed(false),
               finalSegment(false),
               endsInShape(false),
+              containsCheckpoint(false),
               sBend(isSBend),
               zBend(isZBend)
         {
@@ -357,6 +360,7 @@ class NudgingShiftSegment : public ShiftSegment
               fixed(true),
               finalSegment(false),
               endsInShape(false),
+              containsCheckpoint(false),
               sBend(false),
               zBend(false)
         {
@@ -401,6 +405,10 @@ class NudgingShiftSegment : public ShiftSegment
             double varPos = lowPoint()[dimension];
             double weight = freeWeight;
             if (nudgeFinalSegments && finalSegment)
+            {
+                weight = strongWeight;
+            }
+            else if (containsCheckpoint)
             {
                 weight = strongWeight;
             }
@@ -507,6 +515,9 @@ class NudgingShiftSegment : public ShiftSegment
             else if ( (lowPt[altDim] == rhsHighPt[altDim]) || 
                       (rhsLowPt[altDim] == highPt[altDim]) )
             {
+                bool nudgeColinearSegments = connRef->router()->routingOption(
+                        nudgeOrthogonalTouchingColinearSegments);
+
                 // The segments touch at one end, so count them as overlapping
                 // for nudging if they are both s-bends or both z-bends, i.e.,
                 // when the ordering would matter.
@@ -515,12 +526,12 @@ class NudgingShiftSegment : public ShiftSegment
                 {
                     if ((rhs->sBend && sBend) || (rhs->zBend && zBend))
                     {
-                        return true;
+                        return nudgeColinearSegments;
                     }
                     else if ((rhs->finalSegment && finalSegment) &&
                             (rhs->connRef == connRef))
                     {
-                        return true;
+                        return nudgeColinearSegments;
                     }
                 }
             }
@@ -591,6 +602,7 @@ class NudgingShiftSegment : public ShiftSegment
         bool fixed;
         bool finalSegment;
         bool endsInShape;
+        bool containsCheckpoint;
     private:
         bool sBend;
         bool zBend;
@@ -2477,8 +2489,8 @@ static void buildOrthogonalNudgingSegments(Router *router,
                 bool containsCheckpoint = false;
                 for (size_t cpi = 0; cpi < checkpoints.size(); ++cpi)
                 {
-                    if ( (displayRoute.ps[i] == checkpoints[cpi]) ||
-                         (displayRoute.ps[i - 1] == checkpoints[cpi]) ||
+                    if ( (displayRoute.ps[i].equals(checkpoints[cpi])) ||
+                         (displayRoute.ps[i - 1].equals(checkpoints[cpi])) ||
                          pointOnLine(displayRoute.ps[i - 1], \
                              displayRoute.ps[i], checkpoints[cpi]) )
                     {
@@ -2486,7 +2498,7 @@ static void buildOrthogonalNudgingSegments(Router *router,
                         break;
                     }
                 }
-                if (containsCheckpoint)
+                if (containsCheckpoint && !nudgeFinalSegments)
                 {
                     // This segment includes one of the routing
                     // checkpoints so we shouldn't shift it.
@@ -2646,9 +2658,11 @@ static void buildOrthogonalNudgingSegments(Router *router,
                     }
                 }
 
-                segmentList.push_back(new NudgingShiftSegment(*curr, 
-                        indexLow, indexHigh, isSBend, isZBend, dim, 
-                        minLim, maxLim));
+                NudgingShiftSegment *nss = new NudgingShiftSegment(*curr,
+                        indexLow, indexHigh, isSBend, isZBend, dim,
+                        minLim, maxLim);
+                nss->containsCheckpoint = containsCheckpoint;
+                segmentList.push_back(nss);
             }
         }
     }
@@ -3130,13 +3144,14 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             size_t index = vs.size() - 1;
 #ifdef NUDGE_DEBUG
             fprintf(stderr,"line(%d)  %.15f  dim: %d pos: %g   min: %g  max: %g\n"
-                   "minEndPt: %g  maxEndPt: %g weight: %g\n",
+                   "minEndPt: %g  maxEndPt: %g weight: %g cc: %d\n",
                     currSegment->connRef->id(),
                     currSegment->lowPoint()[dimension], (int) dimension, 
                     currSegment->variable->desiredPosition, 
                     currSegment->minSpaceLimit, currSegment->maxSpaceLimit,
                     currSegment->lowPoint()[!dimension], currSegment->highPoint()[!dimension], 
-                    currSegment->variable->weight);
+                    currSegment->variable->weight, 
+                    (int) currSegment->containsCheckpoint);
 #endif
 #ifdef NUDGE_DEBUG_SVG
             // Debugging info:

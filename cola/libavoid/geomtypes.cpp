@@ -73,6 +73,16 @@ bool Point::operator!=(const Point& rhs) const
 }
 
 
+bool Point::equals(const Point& rhs, double epsilon) const
+{
+    if ( (fabs(x - rhs.x) < epsilon) && (fabs(y - rhs.y) < epsilon) )
+    {
+        return true;
+    }
+    return false;
+}
+
+
 // Just defined to allow std::set<Point>.  Not particularly meaningful!
 bool Point::operator<(const Point& rhs) const
 {

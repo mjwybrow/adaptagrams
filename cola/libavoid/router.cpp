@@ -243,7 +243,8 @@ Router::Router(const unsigned int flags)
     m_routing_options[nudgeOrthogonalSegmentsConnectedToShapes] = false;
     m_routing_options[improveHyperedgeRoutesMovingJunctions] = true;
     m_routing_options[penaliseOrthogonalSharedPathsAtConnEnds] = false;
-      
+    m_routing_options[nudgeOrthogonalTouchingColinearSegments] = false;
+
     m_hyperedge_rerouter.setRouter(this);
 }
 
@@ -2444,7 +2445,7 @@ void Router::outputInstanceToSVG(std::string instanceName)
             fprintf(fp, "style=\"fill: none; stroke: black; "
                     "stroke-width: 1px;\" />\n");
         }
-        
+
         ++connRefIt;
     }
     fprintf(fp, "</g>\n");
@@ -2521,6 +2522,27 @@ void Router::outputInstanceToSVG(std::string instanceName)
             }
             fprintf(fp, "style=\"fill: none; stroke: black; "
                     "stroke-width: 1px;\" />\n");
+        }
+        
+        ++connRefIt;
+    }
+    fprintf(fp, "</g>\n");
+
+    fprintf(fp, "<g inkscape:groupmode=\"layer\" "
+            "inkscape:label=\"ConnectorCheckpoints\""
+            ">\n");
+    connRefIt = connRefs.begin();
+    while (connRefIt != connRefs.end())
+    {
+        ConnRef *connRef = *connRefIt;
+    
+        for (size_t i = 0; i < connRef->m_checkpoints.size(); ++i)
+        {
+            fprintf(fp, "<circle id=\"checkpoint-%u-%d\" cx=\"%g\" cy=\"%g\" "
+                    "r=\"8\" style=\"stroke: none; fill: red; "
+                    "fill-opacity: 0.25;\"  />\n", connRef->id(), (int) i,
+                    connRef->m_checkpoints[i].x, 
+                    connRef->m_checkpoints[i].y);
         }
         
         ++connRefIt;

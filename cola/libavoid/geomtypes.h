@@ -64,8 +64,17 @@ class Point
         //!
         //! @param[in]  rhs  The point to compare with this one.
         //! @return          The result of the comparison.
-        //!
+        //! @sa         equals()
         bool operator==(const Point& rhs) const;
+        //! @brief  Comparison operator. Returns true if at same position,
+        //!         or at effectively the same position for a given value of
+        //!         epsilson.
+        //!
+        //! @param[in]  rhs      The point to compare with this one.
+        //! @param[in]  epsilon  Value of epsilon to use during comparison.
+        //! @return              The result of the comparison.
+        //! @sa         operator==()
+        bool equals(const Point& rhs, double epsilon = 0.0001) const;
         //! @brief  Comparison operator. Returns true if at different positions.
         //!
         //! @param[in]  rhs  The point to compare with this one.

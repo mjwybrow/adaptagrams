@@ -168,7 +168,14 @@ enum RoutingOption
     //! @note   This option is still experimental!  It is not recommended
     //!         for normal use.
     penaliseOrthogonalSharedPathsAtConnEnds,
-
+    //! @brief  This option can be used to control whether colinear line 
+    //!         segments that touch just at their ends will be nudged apart.
+    //!         The overlap will usually be resolved in the other dimension,
+    //!         so this is not usually required and is not set by default.
+    //! @note   This will allow routes to be nudged up to the bounds of shapes, 
+    //!         additional space for this nudging can be specified via the 
+    nudgeOrthogonalTouchingColinearSegments,
+    
     // Used for determining the size of the routing options array.
     // This should always we the last value in the enum.
     lastRoutingOptionMarker
