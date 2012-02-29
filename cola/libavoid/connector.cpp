@@ -409,6 +409,55 @@ void ConnRef::updateEndPoint(const unsigned int type, const ConnEnd& connEnd)
 }
 
 
+void ConnRef::outputCode(FILE *fp) const
+{
+    fprintf(fp, "    ConnRef *connRef%u = new ConnRef(router, %u);\n",
+            id(), id());
+    if (m_src_connend)
+    {
+        m_src_connend->outputCode(fp, "src");
+        fprintf(fp, "    connRef%u->setSourceEndpoint(srcPt%u);\n",
+                id(), id());
+    }
+    else if (src())
+    {
+        fprintf(fp, "    ConnEnd srcPt%u(Point(%g, %g), %u);\n",
+                id(), src()->point.x, src()->point.y, src()->visDirections);
+        fprintf(fp, "    connRef%u->setSourceEndpoint(srcPt%u);\n",
+                id(), id());
+    }
+    if (m_dst_connend)
+    {
+        m_dst_connend->outputCode(fp, "dst");
+        fprintf(fp, "    connRef%u->setDestEndpoint(dstPt%u);\n",
+                id(), id());
+    }
+    else if (dst())
+    {
+        fprintf(fp, "    ConnEnd dstPt%u(Point(%g, %g), %u);\n",
+                id(), dst()->point.x, dst()->point.y, dst()->visDirections);
+        fprintf(fp, "    connRef%u->setDestEndpoint(dstPt%u);\n",
+                id(), id());
+    }
+    fprintf(fp, "    connRef%u->setRoutingType((ConnType)%u);\n", 
+            id(), routingType());
+
+    if (!m_checkpoints.empty())
+    {
+        fprintf(fp, "    std::vector<Point> checkpoints%u(%d);\n", id(),
+                (int) m_checkpoints.size());
+        for (size_t cInd = 0; cInd < m_checkpoints.size(); ++cInd)
+        {
+            fprintf(fp, "    checkpoints%u[%d] = Point(%g, %g);\n", id(),
+                    (int) cInd, m_checkpoints[cInd].x, m_checkpoints[cInd].y);
+        }
+        fprintf(fp, "    connRef%u->setRoutingCheckpoints(checkpoints%u);\n", 
+                id(), id());
+    }
+    fprintf(fp, "\n");
+}
+
+
 std::pair<Obstacle *, Obstacle *> ConnRef::endpointAnchors(void) const
 {
     std::pair<Obstacle *, Obstacle *> anchors;
@@ -612,13 +661,13 @@ std::pair<JunctionRef *, ConnRef *> ConnRef::splitAtSegment(
 }
 
 
-VertInf *ConnRef::src(void)
+VertInf *ConnRef::src(void) const
 {
     return m_src_vert;
 }
 
     
-VertInf *ConnRef::dst(void)
+VertInf *ConnRef::dst(void) const
 {
     return m_dst_vert;
 }

@@ -2212,38 +2212,7 @@ void Router::outputInstanceToSVG(std::string instanceName)
     while (revConnRefIt != connRefs.rend())
     {
         ConnRef *connRef = *revConnRefIt;
-        fprintf(fp, "    ConnRef *connRef%u = new ConnRef(router, %u);\n",
-                connRef->id(), connRef->id());
-        if (connRef->m_src_connend)
-        {
-            connRef->m_src_connend->outputCode(fp, "src");
-            fprintf(fp, "    connRef%u->setSourceEndpoint(srcPt%u);\n",
-                    connRef->id(), connRef->id());
-        }
-        else if (connRef->src())
-        {
-            fprintf(fp, "    ConnEnd srcPt%u(Point(%g, %g), %u);\n",
-                    connRef->id(), connRef->src()->point.x,
-                    connRef->src()->point.y, connRef->src()->visDirections);
-            fprintf(fp, "    connRef%u->setSourceEndpoint(srcPt%u);\n",
-                    connRef->id(), connRef->id());
-        }
-        if (connRef->m_dst_connend)
-        {
-            connRef->m_dst_connend->outputCode(fp, "dst");
-            fprintf(fp, "    connRef%u->setDestEndpoint(dstPt%u);\n",
-                    connRef->id(), connRef->id());
-        }
-        else if (connRef->dst())
-        {
-            fprintf(fp, "    ConnEnd dstPt%u(Point(%g, %g), %u);\n",
-                    connRef->id(), connRef->dst()->point.x,
-                    connRef->dst()->point.y, connRef->dst()->visDirections);
-            fprintf(fp, "    connRef%u->setDestEndpoint(dstPt%u);\n",
-                    connRef->id(), connRef->id());
-        }
-        fprintf(fp, "    connRef%u->setRoutingType((ConnType)%u);\n\n", 
-                connRef->id(), connRef->routingType());
+        connRef->outputCode(fp);
         ++revConnRefIt;
     }
     fprintf(fp, "    router->processTransaction();\n");

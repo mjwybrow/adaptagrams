@@ -282,11 +282,11 @@ class ConnRef
 
         // @brief   Returns the source endpoint vertex in the visibility graph.
         // @returns The source endpoint vertex.
-        VertInf *src(void);
+        VertInf *src(void) const;
         // @brief   Returns the destination endpoint vertex in the 
         //          visibility graph.
         // @returns The destination endpoint vertex.
-        VertInf *dst(void);
+        VertInf *dst(void) const;
         
         void set_route(const PolyLine& route);
         void calcRouteDist(void);
@@ -328,6 +328,7 @@ class ConnRef
         bool getConnEndForEndpointVertex(VertInf *vertex, ConnEnd& connEnd) 
                 const;
         std::pair<Obstacle *, Obstacle *> endpointAnchors(void) const;
+        void outputCode(FILE *fp) const;
 
 
         Router *m_router;
