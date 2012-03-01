@@ -458,7 +458,7 @@ Polygon Polygon::simplify(void) const
                 simplified.ps[j]) == 0)
         {
             // These three points make up two collinear segments, so just
-            // compine them into a single segment.
+            // combine them into a single segment.
             it = simplified.ps.erase(it);
         }
         else

@@ -1597,7 +1597,7 @@ static double pathLength(Avoid::Point **c_path, Avoid::Point **p_path,
             // This segment is shared by both paths.
             //
             // This function will only be used for orthogonal paths, so we 
-            // can use manhattan distance here since it will be faster to 
+            // can use Manhattan distance here since it will be faster to 
             // compute.
             length += manhattanDist(*(c_path[ind - 1]), *(c_path[ind]));
         }
@@ -1622,7 +1622,7 @@ void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
         // routing where connectors could otherwise route cheaply through
         // shape corners that were not quite on the cluster boundary, but
         // reported to be on there by the line segment intersection code,
-        // which I suspect is not numerically accurate enough.  This occured
+        // which I suspect is not numerically accurate enough.  This occurred
         // for points that only differed by about 10^-12 in the y-dimension.
         double tolerance = (!polyIsConn) ? 0.00001 : 0.0;
         splitBranchingSegments(poly, polyIsConn, conn, tolerance);
