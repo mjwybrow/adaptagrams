@@ -286,6 +286,15 @@ class Polygon : public PolygonInterface
         //! @note   This vector will currently only be populated for polygons 
         //!         returned by curvedPolyline().  
         std::vector<char> ts;
+
+        //! @brief  If used, denotes whether the corresponding segment contains a
+        //!         checkpoint for the connector.
+        //!
+        //! Set and used by the orthogonal routing code.
+        //!
+        //! Where a checkpoint occurs on a bend in the connector, both the neighbouring
+        //! segments will be marked as being restricted by a checkpoint.
+        std::vector<bool> segmentHasCheckpoint;
 };
 
 

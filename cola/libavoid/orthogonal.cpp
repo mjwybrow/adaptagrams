@@ -2486,18 +2486,9 @@ static void buildOrthogonalNudgingSegments(Router *router,
                     indexHigh = i - 1;
                 }
 
-                bool containsCheckpoint = false;
-                for (size_t cpi = 0; cpi < checkpoints.size(); ++cpi)
-                {
-                    if ( (displayRoute.ps[i].equals(checkpoints[cpi])) ||
-                         (displayRoute.ps[i - 1].equals(checkpoints[cpi])) ||
-                         pointOnLine(displayRoute.ps[i - 1], \
-                             displayRoute.ps[i], checkpoints[cpi]) )
-                    {
-                        containsCheckpoint = true;
-                        break;
-                    }
-                }
+                bool containsCheckpoint = (displayRoute.segmentHasCheckpoint.empty()) ?
+                        false : displayRoute.segmentHasCheckpoint[i - 1];
+                
                 if (containsCheckpoint && !nudgeFinalSegments)
                 {
                     // This segment includes one of the routing
@@ -2780,6 +2771,8 @@ static void simplifyOrthogonalRoutes(Router *router)
     }
 }
 
+typedef std::vector<ConnRef *> ConnRefVector;
+typedef std::vector<Polygon> RouteVector;
 
 static void buildOrthogonalNudgingOrderInfo(Router *router, 
         PtOrderMap& pointOrders)
@@ -2789,61 +2782,62 @@ static void buildOrthogonalNudgingOrderInfo(Router *router,
 
     int crossingsN = 0;
 
-    // Do segment splitting.
-    for (ConnRefList::const_iterator curr = router->connRefs.begin(); 
-            curr != router->connRefs.end(); ++curr) 
+    // Make a vector of the ConnRefList, for convenience.
+    ConnRefVector connRefs(router->connRefs.begin(), router->connRefs.end());
+    
+    // Make a temporary copy of all the connector displayRoutes.
+    RouteVector connRoutes(connRefs.size());
+    for (size_t ind = 0; ind < connRefs.size(); ++ind)
     {
-        if ((*curr)->routingType() != ConnType_Orthogonal)
+        connRoutes[ind] = connRefs[ind]->displayRoute();
+    }
+
+    // Do segment splitting.
+    for (size_t ind1 = 0; ind1 < connRefs.size(); ++ind1)
+    {
+        ConnRef *conn = connRefs[ind1];
+        if (conn->routingType() != ConnType_Orthogonal)
         {
             continue;
         }
-        ConnRef *conn = *curr;
         
-        for (ConnRefList::const_iterator curr2 = router->connRefs.begin(); 
-                curr2 != router->connRefs.end(); ++curr2) 
+        for (size_t ind2 = 0; ind2 < connRefs.size(); ++ind2)
         {
-            if ((*curr2)->routingType() != ConnType_Orthogonal)
-            {
-                continue;
-            }
-            ConnRef *conn2 = *curr2;
-            
-            if (conn == conn2)
+            if (ind1 == ind2)
             {
                 continue;
             }
             
-            Avoid::Polygon& route = conn->displayRoute();
-            Avoid::Polygon& route2 = conn2->displayRoute();
+            ConnRef *conn2 = connRefs[ind2];
+            if (conn2->routingType() != ConnType_Orthogonal)
+            {
+                continue;
+            }
+            
+            Avoid::Polygon& route = connRoutes[ind1];
+            Avoid::Polygon& route2 = connRoutes[ind2];
             splitBranchingSegments(route2, true, route);
         }
     }
 
-    for (ConnRefList::const_iterator curr = router->connRefs.begin(); 
-            curr != router->connRefs.end(); ++curr) 
+    for (size_t ind1 = 0; ind1 < connRefs.size(); ++ind1)
     {
-        if ((*curr)->routingType() != ConnType_Orthogonal)
+        ConnRef *conn = connRefs[ind1];
+        if (conn->routingType() != ConnType_Orthogonal)
         {
             continue;
         }
-        ConnRef *conn = *curr;
         
-        for (ConnRefList::const_iterator curr2 = curr; 
-                curr2 != router->connRefs.end(); ++curr2) 
+        for (size_t ind2 = ind1 + 1; ind2 < connRefs.size(); ++ind2)
         {
-            if ((*curr2)->routingType() != ConnType_Orthogonal)
-            {
-                continue;
-            }
-            ConnRef *conn2 = *curr2;
-
-            if (conn == conn2)
+            ConnRef *conn2 = connRefs[ind2];
+            if (conn2->routingType() != ConnType_Orthogonal)
             {
                 continue;
             }
             
-            Avoid::Polygon& route = conn->displayRoute();
-            Avoid::Polygon& route2 = conn2->displayRoute();
+            Avoid::Polygon& route = connRoutes[ind1];
+            Avoid::Polygon& route2 = connRoutes[ind2];
             int crossings = 0;
             ConnectorCrossings cross(route2, true, route, conn2, conn);
             cross.pointOrders = &pointOrders;
@@ -3328,12 +3322,87 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
     }
 }
 
+static void buildConnectorRouteCheckpointCache(Router *router)
+{
+    for (ConnRefList::const_iterator curr = router->connRefs.begin(); 
+            curr != router->connRefs.end(); ++curr) 
+    {
+        ConnRef *conn = *curr;
+        if (conn->routingType() != ConnType_Orthogonal)
+        {
+            continue;
+        }
+
+        PolyLine& displayRoute = conn->displayRoute();
+        std::vector<Point> checkpoints = conn->routingCheckpoints();
+       
+        // Initialise checkpoint vector and set to false.  There will be
+        // one entry for each *segment* in the path, and the value indicates
+        // whether the segment is affected by a checkpoint.
+        displayRoute.segmentHasCheckpoint = 
+                std::vector<bool>(displayRoute.size() - 1, false);
+        size_t nCheckpoints = displayRoute.segmentHasCheckpoint.size();
+
+        for (size_t cpi = 0; cpi < checkpoints.size(); ++cpi)
+        {
+            for (size_t ind = 0; ind < displayRoute.size(); ++ind)
+            {
+                if (displayRoute.ps[ind].equals(checkpoints[cpi]))
+                {
+                    // The checkpoint is at a bendpoint, so mark the edge
+                    // before and after and being affected by checkpoints.
+                    if (ind > 0)
+                    {
+                        displayRoute.segmentHasCheckpoint[ind - 1] = true;
+                    }
+
+                    if (ind < nCheckpoints)
+                    {
+                        displayRoute.segmentHasCheckpoint[ind] = true;
+                    }
+                }
+                else if ((ind > 0) && pointOnLine(displayRoute.ps[ind - 1], 
+                         displayRoute.ps[ind], checkpoints[cpi]) )
+                {
+                    // If the checkpoint is on a segment, only that segment is
+                    // affected.
+                    displayRoute.segmentHasCheckpoint[ind - 1] = true;
+                }
+            }
+        }
+    }
+}
+
+
+static void clearConnectorRouteCheckpointCache(Router *router)
+{
+    for (ConnRefList::const_iterator curr = router->connRefs.begin(); 
+            curr != router->connRefs.end(); ++curr) 
+    {
+        ConnRef *conn = *curr;
+        if (conn->routingType() != ConnType_Orthogonal)
+        {
+            continue;
+        }
+
+        // Clear the cache.
+        PolyLine& displayRoute = conn->displayRoute();
+        displayRoute.segmentHasCheckpoint.clear();
+    }
+}
+
+
 extern void improveOrthogonalRoutes(Router *router)
 {
     router->timers.Register(tmOrthogNudge, timerStart);
 
     // Simplify routes.
     simplifyOrthogonalRoutes(router);
+
+    // Build a cache that denotes whether a certain segment of a connector
+    // contains a checkpoint.  We can't just compare positions, since routes
+    // can be moved away from their original positions during nudging.
+    buildConnectorRouteCheckpointCache(router);
 
     // Do centring first, by itself, to make nudging results a little better.
     // XXX This is still not great.  In some ways we really want to consider
@@ -3351,6 +3420,7 @@ extern void improveOrthogonalRoutes(Router *router)
         nudgeOrthogonalRoutes(router, dimension, pointOrders, segmentList);
     }
 
+    // Do the nudging itself.
     for (size_t dimension = 0; dimension < 2; ++dimension)
     {
         // Build nudging info.
@@ -3358,8 +3428,6 @@ extern void improveOrthogonalRoutes(Router *router)
         //     points.  Maybe we could modify the point orders.
         PtOrderMap pointOrders;
         buildOrthogonalNudgingOrderInfo(router, pointOrders);
-
-        simplifyOrthogonalRoutes(router);
 
         // Do the centring and nudging.
         ShiftSegmentList segmentList;
@@ -3370,6 +3438,9 @@ extern void improveOrthogonalRoutes(Router *router)
 
     // Resimplify all the display routes that may have been split.
     simplifyOrthogonalRoutes(router);
+ 
+    // Clear the segment-checkpoint cache for connectors.
+    clearConnectorRouteCheckpointCache(router);
 
     router->timers.Stop();
 }

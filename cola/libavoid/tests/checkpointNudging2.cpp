@@ -17,7 +17,6 @@ int main(void) {
     router->setOrthogonalNudgeDistance(4);
 
 
-#ifdef ALL
     Polygon poly1(4);
     poly1.ps[0] = Point(1201.5, 1180.75);
     poly1.ps[1] = Point(1201.5, 1212.75);
@@ -25,6 +24,7 @@ int main(void) {
     poly1.ps[3] = Point(1181.5, 1180.75);
     new ShapeRef(router, poly1, 1);
 
+#ifdef ALL
     Polygon poly2(4);
     poly2.ps[0] = Point(785.5, 2338.79);
     poly2.ps[1] = Point(785.5, 2358.79);
@@ -52,6 +52,7 @@ int main(void) {
     poly5.ps[2] = Point(220.5, 2410.79);
     poly5.ps[3] = Point(220.5, 2348.79);
     new ShapeRef(router, poly5, 5);
+#endif
 
     Polygon poly6(4);
     poly6.ps[0] = Point(1643.5, 817.25);
@@ -60,6 +61,7 @@ int main(void) {
     poly6.ps[3] = Point(1421.5, 817.25);
     new ShapeRef(router, poly6, 6);
 
+#ifdef ALL
     Polygon poly7(4);
     poly7.ps[0] = Point(1311.5, 45);
     poly7.ps[1] = Point(1311.5, 219);
@@ -430,6 +432,7 @@ int main(void) {
     poly59.ps[2] = Point(1160.5, 1686.42);
     poly59.ps[3] = Point(1160.5, 1624.42);
     new ShapeRef(router, poly59, 59);
+#endif
 
     Polygon poly60(4);
     poly60.ps[0] = Point(1222.5, 1424.42);
@@ -438,6 +441,7 @@ int main(void) {
     poly60.ps[3] = Point(1160.5, 1424.42);
     new ShapeRef(router, poly60, 60);
 
+#ifdef ALL
     Polygon poly61(4);
     poly61.ps[0] = Point(1463.5, 2138.42);
     poly61.ps[1] = Point(1463.5, 2200.42);
@@ -535,7 +539,7 @@ int main(void) {
     poly74.ps[2] = Point(185.5, 1209);
     poly74.ps[3] = Point(185.5, 1147);
     new ShapeRef(router, poly74, 74);
-#endif
+    
     Polygon poly75(4);
     poly75.ps[0] = Point(715.439, 1924.42);
     poly75.ps[1] = Point(715.439, 1944.42);
@@ -550,14 +554,12 @@ int main(void) {
     poly76.ps[3] = Point(220.5, 1872.42);
     new ShapeRef(router, poly76, 76);
 
-#ifdef ALL
     Polygon poly77(4);
     poly77.ps[0] = Point(1105.5, 2400.79);
     poly77.ps[1] = Point(1105.5, 2420.79);
     poly77.ps[2] = Point(1073.5, 2420.79);
     poly77.ps[3] = Point(1073.5, 2400.79);
     new ShapeRef(router, poly77, 77);
-#endif
 
     Polygon poly78(4);
     poly78.ps[0] = Point(715.439, 1862.42);
@@ -566,7 +568,6 @@ int main(void) {
     poly78.ps[3] = Point(683.439, 1862.42);
     new ShapeRef(router, poly78, 78);
 
-#ifdef ALL
     Polygon poly79(4);
     poly79.ps[0] = Point(1506.5, 2243.29);
     poly79.ps[1] = Point(1506.5, 2408.29);
@@ -580,6 +581,7 @@ int main(void) {
     poly80.ps[2] = Point(1212.5, 1359.42);
     poly80.ps[3] = Point(1212.5, 1327.42);
     new ShapeRef(router, poly80, 80);
+#endif
 
     Polygon poly81(4);
     poly81.ps[0] = Point(1250.5, 1491.42);
@@ -595,12 +597,14 @@ int main(void) {
     poly82.ps[3] = Point(1321.5, 1491.42);
     new ShapeRef(router, poly82, 82);
 
+#ifdef ALL
     Polygon poly83(4);
     poly83.ps[0] = Point(570.5, 2030.42);
     poly83.ps[1] = Point(570.5, 2050.42);
     poly83.ps[2] = Point(538.5, 2050.42);
     poly83.ps[3] = Point(538.5, 2030.42);
     new ShapeRef(router, poly83, 83);
+#endif
 
     Polygon poly84(4);
     poly84.ps[0] = Point(1432.5, 1491.42);
@@ -609,6 +613,7 @@ int main(void) {
     poly84.ps[3] = Point(1412.5, 1491.42);
     new ShapeRef(router, poly84, 84);
 
+#ifdef ALL
     Polygon poly85(4);
     poly85.ps[0] = Point(980.5, 1538.42);
     poly85.ps[1] = Point(980.5, 1600.42);
@@ -629,6 +634,7 @@ int main(void) {
     poly87.ps[2] = Point(1084.5, 1465.42);
     poly87.ps[3] = Point(1084.5, 1445.42);
     new ShapeRef(router, poly87, 87);
+#endif
 
     Polygon poly88(4);
     poly88.ps[0] = Point(1222.5, 1260.42);
@@ -637,6 +643,7 @@ int main(void) {
     poly88.ps[3] = Point(1160.5, 1260.42);
     new ShapeRef(router, poly88, 88);
 
+#ifdef ALL
     Polygon poly89(4);
     poly89.ps[0] = Point(170.5, 2215.42);
     poly89.ps[1] = Point(170.5, 2247.42);
@@ -965,7 +972,6 @@ int main(void) {
     poly135.ps[2] = Point(526.5, 1168);
     poly135.ps[3] = Point(526.5, 1108);
     new ShapeRef(router, poly135, 135);
-#endif
 
     Polygon poly136(4);
     poly136.ps[0] = Point(727.439, 1944.42);
@@ -974,14 +980,12 @@ int main(void) {
     poly136.ps[3] = Point(671.439, 1944.42);
     new ShapeRef(router, poly136, 136);
 
-#ifdef ALL
     Polygon poly137(4);
     poly137.ps[0] = Point(1117.5, 2420.79);
     poly137.ps[1] = Point(1117.5, 2480.79);
     poly137.ps[2] = Point(1061.5, 2480.79);
     poly137.ps[3] = Point(1061.5, 2420.79);
     new ShapeRef(router, poly137, 137);
-#endif
 
     Polygon poly138(4);
     poly138.ps[0] = Point(727.439, 1802.42);
@@ -989,8 +993,8 @@ int main(void) {
     poly138.ps[2] = Point(671.439, 1862.42);
     poly138.ps[3] = Point(671.439, 1802.42);
     new ShapeRef(router, poly138, 138);
+#endif
 
-#ifdef ALL
     Polygon poly139(4);
     poly139.ps[0] = Point(1308.5, 1323.42);
     poly139.ps[1] = Point(1308.5, 1363.42);
@@ -1012,6 +1016,7 @@ int main(void) {
     poly141.ps[3] = Point(1341.5, 1487.42);
     new ShapeRef(router, poly141, 141);
 
+#ifdef ALL
     Polygon poly142(4);
     poly142.ps[0] = Point(582.5, 1970.42);
     poly142.ps[1] = Point(582.5, 2030.42);
@@ -1046,6 +1051,7 @@ int main(void) {
     poly146.ps[2] = Point(74.5, 2251.42);
     poly146.ps[3] = Point(74.5, 2211.42);
     new ShapeRef(router, poly146, 146);
+#endif
 
     Polygon poly147(4);
     poly147.ps[0] = Point(1399.5, 1043.75);
@@ -1054,6 +1060,7 @@ int main(void) {
     poly147.ps[3] = Point(1323.5, 1043.75);
     new ShapeRef(router, poly147, 147);
 
+#ifdef ALL
     Polygon poly148(4);
     poly148.ps[0] = Point(735.5, 700);
     poly148.ps[1] = Point(735.5, 760);
@@ -1881,7 +1888,6 @@ int main(void) {
     std::vector<Point> checkpoints249(1);
     checkpoints249[0] = Point(737.439, 1903.42);
     connRef249->setRoutingCheckpoints(checkpoints249);
-#endif
 
     ConnRef *connRef250 = new ConnRef(router, 250);
     ConnEnd srcPt250(Point(251.5, 1903.42), 15);
@@ -1903,7 +1909,6 @@ int main(void) {
     checkpoints251[0] = Point(661.439, 1903.42);
     connRef251->setRoutingCheckpoints(checkpoints251);
 
-#ifdef ALL
     ConnRef *connRef252 = new ConnRef(router, 252);
     ConnEnd srcPt252(Point(1222.5, 1328.42), 1);
     connRef252->setSourceEndpoint(srcPt252);
@@ -1934,6 +1939,7 @@ int main(void) {
     ConnEnd dstPt255(Point(949.5, 1569.42), 15);
     connRef255->setDestEndpoint(dstPt255);
     connRef255->setRoutingType((ConnType)2);
+#endif
 
     ConnRef *connRef256 = new ConnRef(router, 256);
     ConnEnd srcPt256(Point(1191.5, 1291.42), 15);
@@ -1942,7 +1948,7 @@ int main(void) {
     connRef256->setDestEndpoint(dstPt256);
     connRef256->setRoutingType((ConnType)2);
     std::vector<Point> checkpoints256(1);
-    checkpoints256[0] = Point(1265.5, 1477.42);
+    checkpoints256[0] = Point(1331.5, 1477.42);
     connRef256->setRoutingCheckpoints(checkpoints256);
 
     ConnRef *connRef257 = new ConnRef(router, 257);
@@ -1952,8 +1958,8 @@ int main(void) {
     connRef257->setDestEndpoint(dstPt257);
     connRef257->setRoutingType((ConnType)2);
     std::vector<Point> checkpoints257(1);
-    checkpoints257[0] = Point(1265.5, 1477.42);
-    connRef257->setRoutingCheckpoints(checkpoints257);
+    checkpoints257[0] = Point(1331.5, 1477.42);
+    connRef257->setRoutingCheckpoints(checkpoints256);
 
     ConnRef *connRef258 = new ConnRef(router, 258);
     ConnEnd srcPt258(Point(1191.5, 1291.42), 15);
@@ -1962,9 +1968,10 @@ int main(void) {
     connRef258->setDestEndpoint(dstPt258);
     connRef258->setRoutingType((ConnType)2);
     std::vector<Point> checkpoints258(1);
-    checkpoints258[0] = Point(1265.5, 1477.42);
-    connRef258->setRoutingCheckpoints(checkpoints258);
+    checkpoints258[0] = Point(1331.5, 1477.42);
+    connRef258->setRoutingCheckpoints(checkpoints256);
 
+#ifdef ALL
     ConnRef *connRef259 = new ConnRef(router, 259);
     ConnEnd srcPt259(Point(160.5, 2216.42), 1);
     connRef259->setSourceEndpoint(srcPt259);
@@ -2526,6 +2533,7 @@ int main(void) {
     ConnEnd dstPt334(Point(1427, 986.25), 4);
     connRef334->setDestEndpoint(dstPt334);
     connRef334->setRoutingType((ConnType)2);
+#endif
 
     ConnRef *connRef335 = new ConnRef(router, 335);
     ConnEnd srcPt335(Point(1191.5, 1291.42), 15);
@@ -2534,6 +2542,7 @@ int main(void) {
     connRef335->setDestEndpoint(dstPt335);
     connRef335->setRoutingType((ConnType)2);
 
+#ifdef ALL
     ConnRef *connRef336 = new ConnRef(router, 336);
     ConnEnd srcPt336(Point(1191.5, 1779.42), 15);
     connRef336->setSourceEndpoint(srcPt336);
@@ -2585,9 +2594,14 @@ int main(void) {
 #endif
 
     router->processTransaction();
-    //router->outputInstanceToSVG("test-checkpointNudging1");
-    bool atEnds = true;
-    bool overlap = router->existsOrthogonalPathOverlap(atEnds);
+    //router->outputInstanceToSVG("test-checkpointNudging2");
+
+    // Second last segment of connector 256 and 258 should be in line with each other 
+    // in the y dimension, in line with the checkpoint.
+    bool areInline = (connRef258->displayRoute().ps[2].y == connRef258->displayRoute().ps[3].y) &&
+    		     (connRef258->displayRoute().ps[2].y == connRef256->displayRoute().ps[2].y) &&
+    		     (connRef258->displayRoute().ps[2].y == connRef256->displayRoute().ps[3].y);
+
     delete router;
-    return (overlap) ? 1 : 0;
+    return (areInline) ? 0 : 1;
 };

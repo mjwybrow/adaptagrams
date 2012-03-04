@@ -59,11 +59,13 @@ check_PROGRAMS = \
 	buildOrthogonalChannelInfo1 \
 	finalSegmentNudging1 \
 	finalSegmentNudging2 \
-	checkpointNudging1
+	checkpointNudging1 \
+	checkpointNudging2
 
 # problem_SOURCES = problem.cpp
 
 checkpointNudging1_SOURCES = checkpointNudging1.cpp
+checkpointNudging2_SOURCES = checkpointNudging2.cpp
 
 finalSegmentNudging1_SOURCES = finalSegmentNudging1.cpp
 finalSegmentNudging2_SOURCES = finalSegmentNudging2.cpp
