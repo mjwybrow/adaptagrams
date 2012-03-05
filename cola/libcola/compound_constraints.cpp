@@ -30,9 +30,9 @@
 #include <libvpsc/constraint.h>
 #include <libvpsc/assertions.h>
 
-#include "cola.h"
-#include "compound_constraints.h"
-#include "exceptions.h"
+#include "libcola/cola.h"
+#include "libcola/compound_constraints.h"
+#include "libcola/exceptions.h"
 
 using std::vector;
 using vpsc::XDIM;

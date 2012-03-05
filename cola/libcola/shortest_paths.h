@@ -100,6 +100,6 @@ void dijkstra(unsigned const s, unsigned const n, T* d,
 
 } //namespace shortest_paths
 
-#include "shortest_paths.cpp"
+#include "libcola/shortest_paths.cpp"
 
 #endif //SHORTEST_PATHS_H

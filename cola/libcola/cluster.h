@@ -31,8 +31,8 @@
 #include "libvpsc/rectangle.h"
 #include "libvpsc/variable.h"
 
-#include "compound_constraints.h"
-#include "commondefs.h"
+#include "libcola/compound_constraints.h"
+#include "libcola/commondefs.h"
 
 namespace cola {
 

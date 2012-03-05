@@ -30,7 +30,7 @@
 #include <map>
 #include <vector>
 #include <stack>
-#include "cola.h"
+#include "libcola/cola.h"
 
 namespace max_acyclic_subgraph  {  
   typedef std::vector<cola::Edge> Edges;

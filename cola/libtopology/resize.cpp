@@ -27,7 +27,7 @@
 #include "libvpsc/rectangle.h"
 #include "libvpsc/constraint.h"
 #include "libcola/cola.h"
-#include "topology_constraints.h"
+#include "libtopology/topology_constraints.h"
 
 namespace topology {
 using namespace std;

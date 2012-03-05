@@ -25,9 +25,9 @@
  *
 */
 
-#include "cola.h"
-#include "compound_constraints.h"
-#include "cc_nonoverlapconstraints.h"
+#include "libcola/cola.h"
+#include "libcola/compound_constraints.h"
+#include "libcola/cc_nonoverlapconstraints.h"
 
 using vpsc::XDIM;
 using vpsc::YDIM;

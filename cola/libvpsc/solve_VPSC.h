@@ -43,7 +43,7 @@
 #define SEEN_LIBVPSC_SOLVE_VPSC_H
 
 #include <vector>
-#include "exceptions.h"
+#include "libvpsc/exceptions.h"
 
 /**
  * the vpsc namespace delineates the libvpsc Variable Placement with

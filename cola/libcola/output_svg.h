@@ -26,8 +26,8 @@
 #ifndef _OUTPUT_SVG_H
 #define _OUTPUT_SVG_H
 
-#include "config.h"
-#include "cola.h"
+#include "libcola/config.h"
+#include "libcola/cola.h"
 
 #ifdef HAVE_CAIROMM
 #include <cairomm/context.h>

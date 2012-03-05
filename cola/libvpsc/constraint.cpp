@@ -35,8 +35,8 @@
 #include <cassert>
 #include <cfloat>
 
-#include "constraint.h"
-#include "variable.h"
+#include "libvpsc/constraint.h"
+#include "libvpsc/variable.h"
 
 namespace vpsc {
 Constraint::Constraint(Variable *left, Variable *right, double gap, bool equality)
@@ -94,7 +94,7 @@ std::ostream& operator <<(std::ostream &os, const Constraint &c)
     }
     return os;
 }
-#include "block.h"
+#include "libvpsc/block.h"
 bool CompareConstraints::operator() (
     Constraint *const &l, Constraint *const &r
 ) const {

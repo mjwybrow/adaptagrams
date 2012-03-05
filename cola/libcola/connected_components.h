@@ -25,7 +25,7 @@
 
 #ifndef CONNECTED_COMPONENTS_H
 #define CONNECTED_COMPONENTS_H
-#include "cola.h"
+#include "libcola/cola.h"
 #include <vector>
 
 namespace cola {

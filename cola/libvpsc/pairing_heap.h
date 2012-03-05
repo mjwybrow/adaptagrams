@@ -46,7 +46,7 @@
 #include <vector>
 #include <list>
 
-#include "assertions.h"
+#include "libvpsc/assertions.h"
 
 class Underflow { };
 

@@ -40,10 +40,10 @@
 #include <libvpsc/constraint.h>
 #include <libvpsc/assertions.h>
 
-#include "cluster.h"
-#include "gradient_projection.h"
-#include "straightener.h"
-#include "commondefs.h"
+#include "libcola/cluster.h"
+#include "libcola/gradient_projection.h"
+#include "libcola/straightener.h"
+#include "libcola/commondefs.h"
 //#define CHECK_CONVERGENCE_BY_COST 1
 
 

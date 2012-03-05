@@ -38,10 +38,10 @@
 #include <cmath>
 
 #include "libvpsc/assertions.h"
-#include "commondefs.h"
-#include "cola.h"
-#include "compound_constraints.h"
-#include "straightener.h"
+#include "libcola/commondefs.h"
+#include "libcola/cola.h"
+#include "libcola/compound_constraints.h"
+#include "libcola/straightener.h"
 
 //#define STRAIGHTENER_DEBUG 1
 

@@ -32,8 +32,8 @@
 #include <valarray>
 
 #include "libvpsc/assertions.h"
-#include "commondefs.h"
-#include "conjugate_gradient.h"
+#include "libcola/commondefs.h"
+#include "libcola/conjugate_gradient.h"
 
 /* lifted wholely from wikipedia.  Well, apart from the bug in the wikipedia version. */
 

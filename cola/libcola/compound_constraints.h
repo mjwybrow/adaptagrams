@@ -31,7 +31,7 @@
 #include <set>
 #include <utility>
 
-#include "sparse_matrix.h"
+#include "libcola/sparse_matrix.h"
 
 
 namespace vpsc {

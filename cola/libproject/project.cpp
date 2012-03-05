@@ -41,9 +41,9 @@
 #include <cfloat>
 #include <cassert>
 #include <iterator>
-#include "util.h"
-#include "project.h"
-#include "project_log.h"
+#include "libproject/util.h"
+#include "libproject/project.h"
+#include "libproject/project_log.h"
 
 #ifndef NDEBUG
 static double lastCost;

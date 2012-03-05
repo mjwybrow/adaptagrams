@@ -32,13 +32,13 @@
  *   Tim Dwyer <tgdwyer@gmail.com>
  */
 
-#include "block.h"
-#include "variable.h"
-#include "assert.h"
-#include "pairing_heap.h"
-#include "constraint.h"
-#include "exceptions.h"
-#include "blocks.h"
+#include "libvpsc/block.h"
+#include "libvpsc/variable.h"
+#include <cassert>
+#include "libvpsc/pairing_heap.h"
+#include "libvpsc/constraint.h"
+#include "libvpsc/exceptions.h"
+#include "libvpsc/blocks.h"
 
 #ifdef LIBVPSC_LOGGING
 #include <fstream>

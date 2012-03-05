@@ -28,12 +28,12 @@
 
 #include "libvpsc/assertions.h"
 #include "libvpsc/isnan.h"
-#include "commondefs.h"
-#include "cola.h"
-#include "conjugate_gradient.h"
-#include "straightener.h"
-#include "shortest_paths.h"
-#include "cluster.h"
+#include "libcola/commondefs.h"
+#include "libcola/cola.h"
+#include "libcola/conjugate_gradient.h"
+#include "libcola/straightener.h"
+#include "libcola/shortest_paths.h"
+#include "libcola/cluster.h"
 
 using namespace std;
 using namespace vpsc;

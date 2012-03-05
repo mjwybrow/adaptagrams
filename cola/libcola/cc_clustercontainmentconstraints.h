@@ -26,7 +26,7 @@
 */
 
 #include <vector>
-#include "compound_constraints.h"
+#include "libcola/compound_constraints.h"
 
 namespace vpsc {
 class Rectangle;

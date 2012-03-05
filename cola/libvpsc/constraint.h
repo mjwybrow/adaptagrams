@@ -38,7 +38,7 @@
 #include <iostream>
 #include <vector>
 
-#include "constraint.h"
+#include "libvpsc/constraint.h"
 
 namespace vpsc {
 

@@ -38,7 +38,7 @@
 #include <cassert>
 #include <cmath>
 
-#include "assertions.h"
+#include "libvpsc/assertions.h"
 
 namespace vpsc {
 enum Dim { 

@@ -34,8 +34,8 @@
 #include <cassert>
 
 #include "libvpsc/assertions.h"
-#include "commondefs.h"
-#include "cycle_detector.h"
+#include "libcola/commondefs.h"
+#include "libcola/cycle_detector.h"
 
 
 using namespace std;

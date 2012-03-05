@@ -31,9 +31,9 @@
  */
 #include <cfloat>
 
-#include "cbuffer.h"
-#include "constraint.h"
-#include "assertions.h"
+#include "libvpsc/cbuffer.h"
+#include "libvpsc/constraint.h"
+#include "libvpsc/assertions.h"
 
 namespace vpsc {
     static const double ZERO_UPPERBOUND=-0.0000001;

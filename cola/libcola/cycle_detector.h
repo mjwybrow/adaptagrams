@@ -30,7 +30,7 @@
 #include <vector>
 #include <stack>
 
-#include "cola.h"
+#include "libcola/cola.h"
 
 
 namespace cycle_detector  {

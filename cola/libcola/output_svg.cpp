@@ -28,9 +28,9 @@
 #include <sstream>
 #include <list>
 
-#include "output_svg.h"
-#include "cola.h"
-#include "straightener.h"
+#include "libcola/output_svg.h"
+#include "libcola/cola.h"
+#include "libcola/straightener.h"
 
 using namespace cola;
 using vpsc::Rectangle;

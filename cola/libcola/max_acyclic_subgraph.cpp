@@ -32,8 +32,8 @@
 #include <vector>
 
 #include "libvpsc/assertions.h"
-#include "commondefs.h"
-#include "max_acyclic_subgraph.h"
+#include "libcola/commondefs.h"
+#include "libcola/max_acyclic_subgraph.h"
 
 using namespace std;
 using namespace cola;

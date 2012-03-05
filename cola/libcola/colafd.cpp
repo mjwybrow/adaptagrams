@@ -37,16 +37,16 @@
 #include "libtopology/topology_graph.h"
 #include "libtopology/topology_constraints.h"
 
-#include "commondefs.h"
-#include "cola.h"
-#include "shortest_paths.h"
-#include "straightener.h"
-#include "cola_log.h"
-#include "cc_clustercontainmentconstraints.h"
-#include "cc_nonoverlapconstraints.h"
+#include "libcola/commondefs.h"
+#include "libcola/cola.h"
+#include "libcola/shortest_paths.h"
+#include "libcola/straightener.h"
+#include "libcola/cola_log.h"
+#include "libcola/cc_clustercontainmentconstraints.h"
+#include "libcola/cc_nonoverlapconstraints.h"
 
 #ifdef MAKEFEASIBLE_DEBUG
-  #include "output_svg.h"
+  #include "libcola/output_svg.h"
 #endif
 
 using vpsc::XDIM;
