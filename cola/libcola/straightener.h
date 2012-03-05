@@ -28,7 +28,7 @@
 #include <set>
 #include <libvpsc/rectangle.h>
 #include <cfloat>
-#include "commondefs.h"
+#include "libcola/commondefs.h"
 #include <iostream>
 #include <iterator>
 namespace cola {

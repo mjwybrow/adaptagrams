@@ -26,10 +26,10 @@
 */
 
 #include "libvpsc/assertions.h"
-#include "commondefs.h"
-#include "cola.h"
-#include "convex_hull.h"
-#include "cluster.h"
+#include "libcola/commondefs.h"
+#include "libcola/cola.h"
+#include "libcola/convex_hull.h"
+#include "libcola/cluster.h"
 
 using vpsc::generateXConstraints;
 using vpsc::generateYConstraints;

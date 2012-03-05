@@ -28,7 +28,7 @@
  * Authors:
  *   Tim Dwyer <tgdwyer@gmail.com>
  */
-#include "variable.h"
+#include "libvpsc/variable.h"
 namespace vpsc {
 std::ostream& operator <<(std::ostream &os, const Variable &v) {
     if(v.block)

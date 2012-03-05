@@ -39,9 +39,9 @@
 #include "libcola/straightener.h"
 #include "libcola/cluster.h"
 
-#include "topology_log.h"
-#include "topology_graph.h"
-#include "topology_constraints.h"
+#include "libtopology/topology_log.h"
+#include "libtopology/topology_graph.h"
+#include "libtopology/topology_constraints.h"
 using namespace std;
 using vpsc::Rectangle;
 namespace topology {

@@ -39,7 +39,7 @@
 #include "libvpsc/assertions.h"
 #include "libvpsc/rectangle.h"
 
-#include "util.h"
+#include "libtopology/util.h"
 
 namespace vpsc {
     class Variable;

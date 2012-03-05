@@ -36,13 +36,13 @@
 #include <map>
 #include <cfloat>
 
-#include "constraint.h"
-#include "block.h"
-#include "blocks.h"
-#include "solve_VPSC.h"
-#include "cbuffer.h"
-#include "variable.h"
-#include "assertions.h"
+#include "libvpsc/constraint.h"
+#include "libvpsc/block.h"
+#include "libvpsc/blocks.h"
+#include "libvpsc/solve_VPSC.h"
+#include "libvpsc/cbuffer.h"
+#include "libvpsc/variable.h"
+#include "libvpsc/assertions.h"
 
 #ifdef LIBVPSC_LOGGING
 #include <fstream>

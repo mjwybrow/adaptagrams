@@ -33,8 +33,8 @@
 
 #include "libvpsc/assertions.h"
 #include "libcola/sparse_matrix.h"
-#include "topology_constraints.h"
-#include "topology_log.h"
+#include "libtopology/topology_constraints.h"
+#include "libtopology/topology_log.h"
 using std::valarray;
 
 namespace topology {

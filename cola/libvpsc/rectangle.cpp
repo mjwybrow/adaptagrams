@@ -37,13 +37,13 @@
 #include <algorithm>
 #include <cstdio>
 
-#include "assertions.h"
-#include "solve_VPSC.h"
-#include "rectangle.h"
-#include "constraint.h"
-#include "variable.h"
+#include "libvpsc/assertions.h"
+#include "libvpsc/solve_VPSC.h"
+#include "libvpsc/rectangle.h"
+#include "libvpsc/constraint.h"
+#include "libvpsc/variable.h"
 
-#include "isnan.h" /* Include last */
+#include "libvpsc/isnan.h" /* Include last */
 
 using std::set;
 using std::vector;
@@ -389,7 +389,7 @@ void generateYConstraints(const Rectangles& rs, const Variables& vars, Constrain
     COLA_ASSERT(deletes==n);
     delete [] events;
 }
-#include "linesegment.h"
+#include "libvpsc/linesegment.h"
 using namespace linesegment;
 inline bool checkIntersection(
         const LineSegment::IntersectResult result, 

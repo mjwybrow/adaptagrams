@@ -25,9 +25,9 @@
  *
 */
 
-#include "cola.h"
-#include "compound_constraints.h"
-#include "cc_clustercontainmentconstraints.h"
+#include "libcola/cola.h"
+#include "libcola/compound_constraints.h"
+#include "libcola/cc_clustercontainmentconstraints.h"
 
 using vpsc::XDIM;
 using vpsc::YDIM;

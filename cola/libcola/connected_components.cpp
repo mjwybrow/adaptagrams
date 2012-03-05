@@ -29,8 +29,8 @@
 
 #include "libvpsc/rectangle.h"
 #include "libvpsc/assertions.h"
-#include "commondefs.h"
-#include "connected_components.h"
+#include "libcola/commondefs.h"
+#include "libcola/connected_components.h"
 
 using namespace std;
 using namespace vpsc;

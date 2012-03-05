@@ -9,6 +9,7 @@ libcola_la_SOURCES = cola.h\
 	colafd.cpp\
 	conjugate_gradient.cpp\
 	conjugate_gradient.h\
+	exceptions.h\
 	gradient_projection.cpp\
 	gradient_projection.h\
 	shortest_paths.h\
@@ -34,6 +35,7 @@ libcolainclude_HEADERS = cola.h\
 	cluster.h\
 	commondefs.h\
 	compound_constraints.h\
+	exceptions.h\
 	gradient_projection.h\
 	sparse_matrix.h\
 	straightener.h \

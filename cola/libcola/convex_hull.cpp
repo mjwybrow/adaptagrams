@@ -28,7 +28,7 @@
 #include <algorithm>
 
 #include "libvpsc/assertions.h"
-#include "convex_hull.h"
+#include "libcola/convex_hull.h"
 
 
 namespace hull {

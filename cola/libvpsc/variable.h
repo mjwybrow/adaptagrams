@@ -33,7 +33,7 @@
 
 #include <vector>
 #include <iostream>
-#include "block.h"
+#include "libvpsc/block.h"
 
 namespace vpsc {
 

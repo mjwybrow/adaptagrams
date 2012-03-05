@@ -36,10 +36,10 @@
 #include <cmath>
 #include <iostream>
 
-#include "gradient_projection.h"
-#include "cluster.h"
-#include "straightener.h"
-#include "exceptions.h"
+#include "libcola/gradient_projection.h"
+#include "libcola/cluster.h"
+#include "libcola/straightener.h"
+#include "libcola/exceptions.h"
 
 namespace vpsc { class Rectangle; }
 namespace topology { 
