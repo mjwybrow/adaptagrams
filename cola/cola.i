@@ -165,7 +165,7 @@ class ColaException {
         Avoid::ConnRef,
         Avoid::ClusterRef,
         Avoid::JunctionRef,
-		Avoid::Obstacle,
+        Avoid::Obstacle,
         Avoid::ShapeConnectionPin
         %{%}
 
