@@ -1,11 +1,11 @@
-#!/bin/sh -x
+#!/bin/sh -x -e
 #
 # We use gnu automake to build.  I've tried to make the contents of the
 # repository as platform agnostic as possible, so you'll need to call
 # autoreconf before configure.
 
 # Make m4 directory, otherwise autoreconf fails when it doesn't exist.
-mkdir m4
+mkdir -p m4
 
 autoreconf --install --verbose
 
