@@ -1003,7 +1003,7 @@ void ConnRef::generateCheckpointsPath(std::vector<Point>& path,
         {
             err_printf("Warning: skipping checkpoint for connector "
                     "%d at (%g, %g).\n", (int) id(), 
-                    vertices[i]->point.x, vertices[i]->point.y);
+                    checkpoints[i]->point.x, checkpoints[i]->point.y);
             fflush(stderr);
         }
     }
