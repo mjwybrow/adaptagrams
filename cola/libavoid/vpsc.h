@@ -229,7 +229,7 @@ public:
     bool solve();
     void moveBlocks();
     void splitBlocks();
-    IncSolver(Variables const &vs, Constraints const &cs);
+    IncSolver(Variables const &vs, Constraints const &cs); 
 
     ~IncSolver();
     Variables const & getVariables() { return vs; }
@@ -255,6 +255,8 @@ struct delete_object
     void operator()(T *ptr){ delete ptr;}
 };
 
+extern Constraints constraintsRemovingRedundantEqualities(
+        Variables const &vars, Constraints const &constraints);
 
 }
 

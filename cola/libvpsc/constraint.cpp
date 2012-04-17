@@ -21,19 +21,18 @@
  * write to the Free Software Foundation, Inc., 59 Temple Place, 
  * Suite 330, Boston, MA  02111-1307  USA
  *
-*/
-
-/**
- * \brief A constraint determines a minimum or exact spacing required between
- * two variables.
- *
  * Authors:
  *   Tim Dwyer <tgdwyer@gmail.com>
- */
+*/
 
+
+#include <map>
+#include <list>
 #include <sstream>
 #include <cassert>
 #include <cfloat>
+#include <cmath>
+
 
 #include "libvpsc/constraint.h"
 #include "libvpsc/variable.h"
@@ -117,4 +116,107 @@ bool CompareConstraints::operator() (
     }
     return sl < sr;
 }
+
+
+typedef std::list<std::map<Variable *, double> > VarOffsetMapList;
+
+class EqualityConstraintSet
+{
+    public:
+        EqualityConstraintSet(Variables vs)
+        {
+            for (size_t i = 0; i < vs.size(); ++i)
+            {
+                std::map<Variable *, double> varSet;
+                varSet[vs[i]] = 0;
+                variableGroups.push_back(varSet);
+            }
+        }
+        bool isRedundant(Variable *lhs, Variable *rhs, double sep)
+        {
+            VarOffsetMapList::iterator lhsSet = setForVar(lhs);
+            VarOffsetMapList::iterator rhsSet = setForVar(rhs);
+            if (lhsSet == rhsSet)
+            {
+                // Check if this is a redundant constraint.
+                if (fabs(((*lhsSet)[lhs] + sep) - (*rhsSet)[rhs]) < 0.0001)
+                {
+                    // If so, return true.
+                    return true;
+                }
+            }
+            return false;
+        }
+        void mergeSets(Variable *lhs, Variable *rhs, double sep)
+        {
+            VarOffsetMapList::iterator lhsSet = setForVar(lhs);
+            VarOffsetMapList::iterator rhsSet = setForVar(rhs);
+            if (lhsSet == rhsSet)
+            {
+                return;
+            }
+
+            double rhsOldOffset = (*rhsSet)[rhs];
+            double rhsNewOffset = (*lhsSet)[lhs] + sep;
+            double offset = rhsNewOffset - rhsOldOffset;
+
+            // Update offsets
+            for (std::map<Variable *, double>::iterator it = rhsSet->begin();
+                    it != rhsSet->end(); ++it)
+            {
+                it->second += offset;
+            }
+            
+            // Merge rhsSet into lhsSet
+            lhsSet->insert(rhsSet->begin(), rhsSet->end());
+            variableGroups.erase(rhsSet);
+        }
+
+    private:
+        VarOffsetMapList::iterator setForVar(Variable *var)
+        {
+            for (VarOffsetMapList::iterator it = variableGroups.begin();
+                    it != variableGroups.end(); ++it)
+            {
+                if (it->find(var) != it->end())
+                {
+                    return it;
+                }
+            }
+            return variableGroups.end();
+        }
+
+    VarOffsetMapList variableGroups;
+};
+
+Constraints constraintsRemovingRedundantEqualities(Variables const &vars, 
+        Constraints const &constraints)
+{
+    EqualityConstraintSet equalitySets(vars);
+    Constraints cs = Constraints(constraints.size());
+    int csSize = 0;
+
+    for (unsigned i = 0; i < constraints.size(); ++i)
+    {
+        Constraint *c = constraints[i];
+        if (c->equality)
+        {
+            if (!equalitySets.isRedundant(c->left, c->right, c->gap))
+            {
+                // Only add non-redundant equalities
+                equalitySets.mergeSets(c->left, c->right, c->gap);
+                cs[csSize++] = c;
+            }
+        }
+        else
+        {
+            // Add all non-equalities
+            cs[csSize++] = c;
+        }
+    }
+    cs.resize(csSize);
+    return cs;
+}
+
+
 }

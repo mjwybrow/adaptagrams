@@ -53,9 +53,10 @@ namespace Avoid {
 static const double ZERO_UPPERBOUND=-1e-10;
 static const double LAGRANGIAN_TOLERANCE=-1e-4;
 
-IncSolver::IncSolver(vector<Variable*> const &vs, vector<Constraint *> const &cs) 
-    : m(cs.size()), 
-      cs(cs), 
+
+IncSolver::IncSolver(Variables const &vs, Constraints const &cs)
+    : m(cs.size()),
+      cs(cs),
       n(vs.size()), 
       vs(vs) 
 {
@@ -290,12 +291,14 @@ bool IncSolver::satisfy() {
                 }
             } catch(UnsatisfiableException e) {
                 e.path.push_back(v);
+                /*
                 std::cerr << "Unsatisfiable:" << std::endl;
                 for(std::vector<Constraint*>::iterator r=e.path.begin();
                         r!=e.path.end();++r)
                 {
                     std::cerr << **r <<std::endl;
                 }
+                */
                 v->unsatisfiable=true;
                 continue;
             }
@@ -1079,7 +1082,7 @@ Constraint *Block::findMinLMBetween(Variable* const lv, Variable* const rv) {
     }
 #else
     if(min_lm==NULL) {
-        err_printf("Couldn't find split point!\n");
+        //err_printf("Couldn't find split point!\n");
         UnsatisfiableException e;
         getActivePathBetween(e.path,lv,rv,NULL);
         throw e;
@@ -1301,5 +1304,106 @@ std::ostream& operator <<(std::ostream &os, const Variable &v) {
         os << "(" << v.id << "=" << v.desiredPosition << ")";
     return os;
 }
+
+typedef std::list<std::map<Variable *, double> > VarOffsetMapList;
+
+class EqualityConstraintSet
+{
+    public:
+        EqualityConstraintSet(Variables vs)
+        {
+            for (size_t i = 0; i < vs.size(); ++i)
+            {
+                std::map<Variable *, double> varSet;
+                varSet[vs[i]] = 0;
+                variableGroups.push_back(varSet);
+            }
+        }
+        bool isRedundant(Variable *lhs, Variable *rhs, double sep)
+        {
+            VarOffsetMapList::iterator lhsSet = setForVar(lhs);
+            VarOffsetMapList::iterator rhsSet = setForVar(rhs);
+            if (lhsSet == rhsSet)
+            {
+                // Check if this is a redundant constraint.
+                if (fabs(((*lhsSet)[lhs] + sep) - (*rhsSet)[rhs]) < 0.0001)
+                {
+                    // If so, return true.
+                    return true;
+                }
+            }
+            return false;
+        }
+        void mergeSets(Variable *lhs, Variable *rhs, double sep)
+        {
+            VarOffsetMapList::iterator lhsSet = setForVar(lhs);
+            VarOffsetMapList::iterator rhsSet = setForVar(rhs);
+            if (lhsSet == rhsSet)
+            {
+                return;
+            }
+
+            double rhsOldOffset = (*rhsSet)[rhs];
+            double rhsNewOffset = (*lhsSet)[lhs] + sep;
+            double offset = rhsNewOffset - rhsOldOffset;
+
+            // Update offsets
+            for (std::map<Variable *, double>::iterator it = rhsSet->begin();
+                    it != rhsSet->end(); ++it)
+            {
+                it->second += offset;
+            }
+            
+            // Merge rhsSet into lhsSet
+            lhsSet->insert(rhsSet->begin(), rhsSet->end());
+            variableGroups.erase(rhsSet);
+        }
+
+    private:
+        VarOffsetMapList::iterator setForVar(Variable *var)
+        {
+            for (VarOffsetMapList::iterator it = variableGroups.begin();
+                    it != variableGroups.end(); ++it)
+            {
+                if (it->find(var) != it->end())
+                {
+                    return it;
+                }
+            }
+            return variableGroups.end();
+        }
+
+    VarOffsetMapList variableGroups;
+};
+
+Constraints constraintsRemovingRedundantEqualities(Variables const &vars, 
+        Constraints const &constraints)
+{
+    EqualityConstraintSet equalitySets(vars);
+    Constraints cs = Constraints(constraints.size());
+    int csSize = 0;
+
+    for (unsigned i = 0; i < constraints.size(); ++i)
+    {
+        Constraint *c = constraints[i];
+        if (c->equality)
+        {
+            if (!equalitySets.isRedundant(c->left, c->right, c->gap))
+            {
+                // Only add non-redundant equalities
+                equalitySets.mergeSets(c->left, c->right, c->gap);
+                cs[csSize++] = c;
+            }
+        }
+        else
+        {
+            // Add all non-equalities
+            cs[csSize++] = c;
+        }
+    }
+    cs.resize(csSize);
+    return cs;
+}
+
 
 }

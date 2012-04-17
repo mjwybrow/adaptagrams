@@ -21,16 +21,10 @@
  * write to the Free Software Foundation, Inc., 59 Temple Place, 
  * Suite 330, Boston, MA  02111-1307  USA
  *
-*/
-
-/**
- * \brief A constraint determines a minimum or exact spacing required between
- * two variables.
- *
  * Authors:
  *   Tim Dwyer <tgdwyer@gmail.com>
- *
- */
+*/
+
 
 #ifndef SEEN_LIBVPSC_CONSTRAINT_H
 #define SEEN_LIBVPSC_CONSTRAINT_H
@@ -43,7 +37,11 @@
 namespace vpsc {
 
 class Variable;
+typedef std::vector<Variable *> Variables;
 
+/** @brief A constraint determines a minimum or exact spacing required between
+ *         two variables.
+ */
 class Constraint
 {
 	friend std::ostream& operator <<(std::ostream &os,const Constraint &c);
@@ -65,6 +63,17 @@ public:
 	bool operator() (Constraint *const &l, Constraint *const &r) const;
 };
 typedef std::vector<Constraint*> Constraints;
+
+/** @brief Given a set of variables and constraints, returns a modified set
+ *         of constraints with all redundant equality constraints removed.
+ *
+ * VPSC doesn't work well with redundant equality constraints, usually showing
+ * them as unsatisfiable.  This function looks for cycles of equality 
+ * constraints and removes the redundant ones.
+ */
+extern Constraints constraintsRemovingRedundantEqualities(
+        Variables const &vars, Constraints const &constraints);
+
 }
 
 #endif // SEEN_LIBVPSC_CONSTRAINT_H
