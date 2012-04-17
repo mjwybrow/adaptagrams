@@ -180,6 +180,7 @@ BoundaryConstraint::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
 
 AlignmentConstraint::AlignmentConstraint(const vpsc::Dim dim, double position)
     : CompoundConstraint(dim),
+      indicator(NULL),
       variable(NULL),
       _position(position), 
       _isFixed(false)
@@ -618,6 +619,7 @@ class AlignmentPair : public SubConstraintInfo
 MultiSeparationConstraint::MultiSeparationConstraint(const vpsc::Dim dim, 
         double minSep, bool equality)
     : CompoundConstraint(dim),
+      indicator(NULL),
       sep(minSep), 
       equality(equality)
 { 
@@ -726,7 +728,8 @@ void MultiSeparationConstraint::generateSeparationConstraints(
 //-----------------------------------------------------------------------------
 
 DistributionConstraint::DistributionConstraint(const vpsc::Dim dim)
-    : CompoundConstraint(dim)
+    : CompoundConstraint(dim),
+      indicator(NULL)
 {
 }
 

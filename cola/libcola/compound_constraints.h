@@ -238,10 +238,10 @@ class AlignmentConstraint : public CompoundConstraint
         bool isFixed(void) const;
         void printCreationCode(FILE *fp) const;
         
-        /** the guide pointer is used by dunnart to keep a ref to it's local
-         * representation of the alignment constraint
+        /** the indicator pointer is used by dunnart to keep a ref to it's 
+         * local representation of the alignment constraint
          */
-        void* guide;
+        void *indicator;
         vpsc::Variable* variable;
     private:
         // The position of the alignment line
