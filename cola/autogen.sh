@@ -1,4 +1,4 @@
-#!/bin/sh -x -e
+#!/bin/sh -xe
 #
 # We use gnu automake to build.  I've tried to make the contents of the
 # repository as platform agnostic as possible, so you'll need to call
