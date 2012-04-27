@@ -37,6 +37,33 @@
 #ifndef LIBAVOID_VPSC_H
 #define LIBAVOID_VPSC_H
 
+
+#ifdef USELIBVPSC
+
+// By default, libavoid will use it's own version of VPSC defined in this file.
+//
+// Alternatively, you can directly use IncSolver from libvpsc.  This
+// introduces a dependency on libvpsc but it can be preferable in cases 
+// where you are building all of Adaptagrams together and want to work
+// with a set of CompoundConstraints or other classes built upon the 
+// base libvpsc Constraint classes.
+
+// Include necessary headers from libvpsc.
+#include "libvpsc/variable.h"
+#include "libvpsc/constraint.h"
+#include "libvpsc/rectangle.h"
+#include "libvpsc/solve_VPSC.h"
+
+// Use the libvpsc versions of things needed by libavoid.
+using vpsc::Variable;
+using vpsc::Variables;
+using vpsc::Constraint;
+using vpsc::Constraints;
+using vpsc::IncSolver;
+using vpsc::delete_object;
+
+#else
+
 #include <vector>
 #include <list>
 #include <set>
@@ -260,4 +287,7 @@ extern Constraints constraintsRemovingRedundantEqualities(
 
 }
 
+#endif // ! USELIBVPSC
+
 #endif // AVOID_VPSC_H
+

@@ -34,6 +34,10 @@
  *
 */
 
+#include "libavoid/vpsc.h"
+
+#ifndef USELIBVPSC
+
 #include <iostream>
 #include <math.h>
 #include <sstream>
@@ -41,7 +45,6 @@
 #include <cfloat>
 #include <cstdio>
 
-#include "libavoid/vpsc.h"
 #include "libavoid/assertions.h"
 #include "libavoid/debug.h"
 
@@ -1407,3 +1410,5 @@ Constraints constraintsRemovingRedundantEqualities(Variables const &vars,
 
 
 }
+
+#endif
