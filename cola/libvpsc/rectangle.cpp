@@ -696,10 +696,12 @@ bool Rectangle::overlaps(double x1, double y1, double x2, double y2)
                 return false;
             }
         }
-        printf("Rectangle/Segment intersection!\n");
-        printf("Line[{{%f,%f},{%f,%f}}],\n",x1,y1,x2,y2);
-        printf("Rectangle[{%f,%f},{%f,%f}]\n",
-                getMinX(),getMinY(),getMaxX(),getMaxY());
+        printf("Rectangle/Segment intersection (SVG):\n");
+        printf("<svg style=\"stroke: black; fill: none;\">\n");
+        printf("<polyline points=\"%f,%f %f,%f\" />\n",x1,y1,x2,y2);
+        printf("<rect x=\"%f\" y=\"%f\" width=\"%f\" height=\"%f\" />\n",
+                getMinX(),getMinY(),width(),height());
+        printf("</svg>\n");
         ri.print();
         return true;
     }
