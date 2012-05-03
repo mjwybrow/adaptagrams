@@ -20,15 +20,15 @@ Currently, the Adaptagrams repository includes:
 		method subject to separation constraints. Applications 
 		include layout with non-overlapping nodes and clusters, 
 		directed graph layout and layout preserving the crossing 
-		properties of a given starting layout.
+		properties of a given starting layout.  
 	      - libcola depends on libvpsc.
  *  [libavoid][libavoid]  
     	      - a cross-platform C++ library providing fast, polyline and
     		orthogonal object-avoiding connector routing for use in 
 		interactive diagram editors.  
- *  libtopology
+ *  libtopology  
               - a library containing extensions to libcola to support 
-		topology preserving constraint-based layout.
+		topology preserving constraint-based layout.  
 	      - libtopology depends on libavoid, libcola and libvpsc.
 
 These libraries are collectively known as cola (for Constraint Layout). The
