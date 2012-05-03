@@ -271,4 +271,4 @@ void writeDunnartFile(const topology::Nodes& vs, const vector<std::pair<unsigned
 #endif
 }
 
-// vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:encoding=utf-8:textwidth=99 :
+// vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:

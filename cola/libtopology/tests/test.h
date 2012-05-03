@@ -124,7 +124,7 @@ void check(const TopologyConstraints& t, valarray<double>& g, cola::SparseMap& h
         printf("\n");
     }
 }
-void setVariableDesiredPositions(vpsc::Variables& vs, const topology::DesiredPositions& des, valarray<double>& coords) {
+void setVariableDesiredPositions(vpsc::Variables& vs, const cola::DesiredPositionsInDim& des, valarray<double>& coords) {
     unsigned n=coords.size();
     assert(vs.size()>=n);
     for(unsigned i=0;i<n;++i) {
@@ -132,7 +132,7 @@ void setVariableDesiredPositions(vpsc::Variables& vs, const topology::DesiredPos
         v->desiredPosition = coords[i];
         v->weight=1;
     }
-    for(topology::DesiredPositions::const_iterator d=des.begin();
+    for(cola::DesiredPositionsInDim::const_iterator d=des.begin();
             d!=des.end();++d) {
         assert(d->first<vs.size());
         vpsc::Variable* v=vs[d->first];
@@ -165,4 +165,4 @@ double computeStepSize(
     if(denominator==0) return 0;
     return numerator/denominator;
 }
-// vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:encoding=utf-8:textwidth=80 :
+// vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:textwidth=80 :

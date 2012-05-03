@@ -1,8 +1,7 @@
 /*
  * vim: ts=4 sw=4 et tw=0 wm=0
  *
- * libcola - A library providing force-directed network layout using the 
- *           stress-majorization method subject to separation constraints.
+ * libtopology - Classes used in generating and managing topology constraints.
  *
  * Copyright (C) 2006-2008  Monash University
  *
@@ -21,6 +20,8 @@
  * write to the Free Software Foundation, Inc., 59 Temple Place, 
  * Suite 330, Boston, MA  02111-1307  USA
  *
+ * Authors:
+ *   Tim Dwyer <tgdwyer@gmail.com>
 */
 
 #include <iostream>
@@ -29,10 +30,11 @@
 #include <time.h>
 #include <valarray>
 #include <fstream>
-#include <libavoid/libavoid.h>
-#include <libavoid/router.h>
 
-#include "graphlayouttest.h"
+#include "libavoid/libavoid.h"
+#include "libavoid/router.h"
+#include "libtopology/cola_topology_addon.h"
+#include "libcola/tests/graphlayouttest.h"
 
 using namespace std;
 using namespace cola;
@@ -340,7 +342,8 @@ int main() {
     cout<<"makefeasible ran in "<<makefeasibletime<<" seconds"<<endl;
     clock_t beautifystarttime=clock();
     test.reset();
-    alg2.setTopology(&topologyNodes, &routes);
+    topology::ColaTopologyAddon topology(topologyNodes, routes);
+    alg2.setTopology(&topology);
     writeFile(topologyNodes,routes,"beautify1.svg");
     char dunnartfile[50];
     sprintf(dunnartfile, "v%de%d.svg", V, (int) es.size());

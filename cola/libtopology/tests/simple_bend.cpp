@@ -20,6 +20,8 @@
  * write to the Free Software Foundation, Inc., 59 Temple Place, 
  * Suite 330, Boston, MA  02111-1307  USA
  *
+ * Authors:
+ *   Tim Dwyer <tgdwyer@gmail.com>
 */
 
 /**
@@ -42,7 +44,7 @@
 using namespace std;
 using namespace topology;
 #include "test.h"
-void test1(Nodes& vs, EdgePoints& ps, DesiredPositions& d, string& name) {
+void test1(Nodes& vs, EdgePoints& ps, cola::DesiredPositionsInDim& d, string& name) {
     name=string("test1");
     addNode(vs,400,170,50,30);
     addNode(vs,420,65,50,30);
@@ -51,7 +53,7 @@ void test1(Nodes& vs, EdgePoints& ps, DesiredPositions& d, string& name) {
     addToPath(ps,vs[1],EdgePoint::RectIntersect(4));
     d.push_back(make_pair(0,361.000000));
 }
-void test2(Nodes& vs, EdgePoints& ps, DesiredPositions& d, string& name) {
+void test2(Nodes& vs, EdgePoints& ps, cola::DesiredPositionsInDim& d, string& name) {
     name=string("test2");
     addNode(vs,0,0,54,34);
     addNode(vs,100,100,54,34);
@@ -60,7 +62,7 @@ void test2(Nodes& vs, EdgePoints& ps, DesiredPositions& d, string& name) {
     addToPath(ps,vs[1],EdgePoint::RectIntersect(4));
     d.push_back(make_pair(2,150));
 }
-void test3(Nodes& vs, EdgePoints& ps, DesiredPositions& d, string& name) {
+void test3(Nodes& vs, EdgePoints& ps, cola::DesiredPositionsInDim& d, string& name) {
     name=string("test3");
     addNode(vs,0,0,54,34);
     addNode(vs,100,100,54,34);
@@ -69,7 +71,7 @@ void test3(Nodes& vs, EdgePoints& ps, DesiredPositions& d, string& name) {
     addToPath(ps,vs[1],EdgePoint::RectIntersect(4));
     d.push_back(make_pair(2,0));
 }
-void test4(Nodes& vs, EdgePoints& ps, DesiredPositions& d, string& name) {
+void test4(Nodes& vs, EdgePoints& ps, cola::DesiredPositionsInDim& d, string& name) {
     name=string("test4");
     //double gradient[]={0,3.03652e-19,-3.03652e-19,}
     addNode(vs,455.950000,324.166331,54.000000,34.000000);
@@ -103,7 +105,7 @@ void test4(Nodes& vs, EdgePoints& ps, DesiredPositions& d, string& name) {
 //     -----
 //     |   |
 //     -----
-void test5(Nodes& vs, EdgePoints& ps, DesiredPositions& d, string& name) {
+void test5(Nodes& vs, EdgePoints& ps, cola::DesiredPositionsInDim& d, string& name) {
     name=string("test5");
     //double gradient[]={0,3.03652e-19,-3.03652e-19,}
     addNode(vs,0,0,10,10);
@@ -120,10 +122,10 @@ void test5(Nodes& vs, EdgePoints& ps, DesiredPositions& d, string& name) {
     addToPath(ps,vs[1],(topology::EdgePoint::RectIntersect)4);
     d.push_back(make_pair(2,40));
 }
-void simple(void test(Nodes&, EdgePoints&, DesiredPositions&,string&)){
+void simple(void test(Nodes&, EdgePoints&, cola::DesiredPositionsInDim&,string&)){
     Nodes nodes;
     EdgePoints ps;
-    DesiredPositions d;
+    cola::DesiredPositionsInDim d;
     string name;
     test(nodes,ps,d,name);
     const size_t V = nodes.size();
@@ -182,4 +184,4 @@ int main() {
     simple(test5);
     return 0;
 }
-// vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:encoding=utf-8:textwidth=80 :
+// vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4:textwidth=80 :

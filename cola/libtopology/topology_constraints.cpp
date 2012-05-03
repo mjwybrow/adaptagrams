@@ -209,17 +209,21 @@ struct transferStraightConstraintChoose {
     StraightConstraint* ignore;
 };
 bool sameCorner(const EdgePoint* a, const EdgePoint* b) {
+    COLA_UNUSED(a);
+    COLA_UNUSED(b);
     COLA_ASSERT( !(a->node->id==b->node->id
                 &&a->rectIntersect==b->rectIntersect));
     return false;
 }
 bool zigzag(const EdgePoint* a, const Segment* s) {
+    COLA_UNUSED(a);
     if(s!=NULL) {
         COLA_ASSERT(!sameCorner(a,s->end));
     }
     return false;
 }
 bool zagzig(const EdgePoint* a, const Segment* s) {
+    COLA_UNUSED(a);
     if(s!=NULL) {
         COLA_ASSERT(!sameCorner(a,s->start));
     }

@@ -35,7 +35,7 @@
  */
 #ifndef TOPOLOGY_CONSTRAINTS_H
 #define TOPOLOGY_CONSTRAINTS_H
-#include <libcola/commondefs.h>
+#include "libcola/commondefs.h"
 #include "libtopology/topology_graph.h"
 #include <valarray>
 #include <vector>
@@ -52,8 +52,8 @@ namespace cola {
     class RootCluster;
 }
 /**
- * namespace for classes uses in generating and solving forces and constraints associated with
- * topology preserving layout.
+ * namespace for classes used in generating and solving forces and constraints 
+ * associated with topology preserving layout.
  */
 namespace topology {
     class StraightConstraint;
@@ -174,13 +174,6 @@ namespace topology {
             return segment->edge->id;
         }
     };
-    /**
-     * desired positions which should override those computed by applying forces
-     * are passed in for a set of nodes.  The first entry is the Node->id, the
-     * second is the desired position.
-     */
-    typedef std::pair<unsigned,double> DesiredPosition;
-    typedef std::vector<DesiredPosition> DesiredPositions;
     /**
      * Define a topology over a diagram by generating a set of
      * TopologyConstraint

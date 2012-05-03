@@ -13,18 +13,23 @@ Currently, the Adaptagrams repository includes:
 		problem in which the squared differences between a 
 		placement vector and some ideal placement are minimised 
 		subject to a set of separation constraints. This is very 
-		useful in a number of layout problems.  
+		useful in a number of layout problems.
  *  libcola  
     	      - a library for constraint graph layout.  Specifically, 
     		force-directed layout using the stress-majorization 
 		method subject to separation constraints. Applications 
 		include layout with non-overlapping nodes and clusters, 
 		directed graph layout and layout preserving the crossing 
-		properties of a given starting layout.  
+		properties of a given starting layout.
+	      - libcola depends on libvpsc.
  *  [libavoid][libavoid]  
     	      - a cross-platform C++ library providing fast, polyline and
     		orthogonal object-avoiding connector routing for use in 
 		interactive diagram editors.  
+ *  libtopology
+              - a library containing extensions to libcola to support 
+		topology preserving constraint-based layout.
+	      - libtopology depends on libavoid, libcola and libvpsc.
 
 These libraries are collectively known as cola (for Constraint Layout). The
 newest version of the C++ source code for cola can be found in the 

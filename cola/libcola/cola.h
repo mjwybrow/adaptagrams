@@ -43,10 +43,7 @@
 
 namespace vpsc { class Rectangle; }
 namespace topology { 
-    class Node; 
-    class Edge;
-    class TopologyConstraints;
-    typedef std::vector<Node*> Nodes;
+    class ColaTopologyAddon;
 }
 
 /**
@@ -111,6 +108,15 @@ struct DesiredPosition {
     double weight;
 };
 typedef std::vector<cola::DesiredPosition> DesiredPositions;
+
+/**
+ * desired positions which should override those computed by applying forces
+ * are passed in for a set of nodes.  The first entry is the Node->id, the
+ * second is the desired position.
+ */
+typedef std::pair<unsigned,double> DesiredPositionInDim;
+typedef std::vector<DesiredPositionInDim> DesiredPositionsInDim;
+
 /** 
  * provides a functor that is called before each iteration in the main loop of
  * the ConstrainedMajorizationLayout::run() method.
@@ -393,6 +399,88 @@ private:
 
 vpsc::Rectangle bounds(std::vector<vpsc::Rectangle*>& rs);
 
+class ConstrainedFDLayout;
+
+// Interface for writing COLA addons to handle topology preserving layout.
+class TopologyAddonInterface 
+{
+    public:
+        TopologyAddonInterface()
+        {
+        }
+
+        virtual ~TopologyAddonInterface()
+        {
+        }
+
+        virtual TopologyAddonInterface *clone(void) const
+        {
+            return new TopologyAddonInterface(*this);
+        }
+        
+        virtual void handleResizes(const Resizes& resizeList, unsigned n,
+                std::valarray<double>& X, std::valarray<double>& Y, 
+                cola::CompoundConstraints& ccs, 
+                vpsc::Rectangles& boundingBoxes,
+                cola::RootCluster* clusterHierarchy)
+        {
+            COLA_UNUSED(resizeList);
+            COLA_UNUSED(n);
+            COLA_UNUSED(X);
+            COLA_UNUSED(Y);
+            COLA_UNUSED(ccs);
+            COLA_UNUSED(boundingBoxes);
+            COLA_UNUSED(clusterHierarchy);
+        }
+        virtual void computePathLengths(unsigned short** G)
+        {
+            COLA_UNUSED(G);
+        }
+        virtual double computeStress(void) const
+        {
+            return 0;
+        }
+        virtual bool useTopologySolver(void) const
+        {
+            return false;
+        }
+        virtual void makeFeasible(bool generateNonOverlapConstraints, 
+                vpsc::Rectangles& boundingBoxes, 
+                cola::RootCluster* clusterHierarchy)
+        {
+            COLA_UNUSED(generateNonOverlapConstraints);
+            COLA_UNUSED(boundingBoxes);
+            COLA_UNUSED(clusterHierarchy);
+        }
+        virtual void moveTo(const vpsc::Dim dim, vpsc::Variables& vs, 
+                vpsc::Constraints& cs, std::valarray<double> &coords,
+                cola::RootCluster* clusterHierarchy)
+        {
+            COLA_UNUSED(dim);
+            COLA_UNUSED(vs);
+            COLA_UNUSED(cs);
+            COLA_UNUSED(coords);
+            COLA_UNUSED(clusterHierarchy);
+        }
+        virtual double applyForcesAndConstraints(ConstrainedFDLayout *layout, 
+                const vpsc::Dim dim, std::valarray<double>& g, 
+                vpsc::Variables& vs, vpsc::Constraints& cs, 
+                std::valarray<double> &coords,
+                DesiredPositionsInDim& des, double oldStress)
+        {
+            COLA_UNUSED(layout);
+            COLA_UNUSED(dim);
+            COLA_UNUSED(g);
+            COLA_UNUSED(vs);
+            COLA_UNUSED(cs);
+            COLA_UNUSED(coords);
+            COLA_UNUSED(des);
+            COLA_UNUSED(oldStress);
+            return 0;
+        }
+};
+
+
 /**
  * This class implements a constrained layout method based on a non-linear
  * gradient projection technique, conceptually it's similar to a force
@@ -434,10 +522,17 @@ public:
     {
         this->ccs = ccs;
     }
-    void setTopology(std::vector<topology::Node*> *tnodes, 
-            std::vector<topology::Edge*> *routes);
-    void getTopology(std::vector<topology::Node*> *tnodes, 
-            std::vector<topology::Edge*> *routes);
+
+    /** 
+     *  @brief  Set an addon for doing topology preserving layout.
+     *
+     *  It is expected that you would use the topology::ColaTopologyAddon() 
+     *  from libtopology rather than write your own.  This is done so that 
+     *  libcola does not have to depend on libtopology.
+     */
+    void setTopology(TopologyAddonInterface *topology); 
+    TopologyAddonInterface *getTopology(void);
+    
     void setDesiredPositions(std::vector<DesiredPosition>* desiredPositions) {
         this->desiredPositions = desiredPositions;
     }
@@ -510,8 +605,8 @@ private:
     cola::CompoundConstraints ccs;
     double** D;
     unsigned short** G;
-    std::vector<topology::Node*> topologyNodes;
-    std::vector<topology::Edge*> topologyRoutes;
+
+    TopologyAddonInterface *topologyAddon;
     std::vector<UnsatisfiableConstraintInfos*> unsatisfiable;
     bool rungekutta;
     std::vector<DesiredPosition>* desiredPositions;
@@ -521,6 +616,8 @@ private:
     double rectClusterBuffer;
     double m_idealEdgeLength;
     bool m_generateNonOverlapConstraints;
+
+    friend class topology::ColaTopologyAddon;
 };
 
 /**
@@ -538,6 +635,13 @@ void dijkstra(const unsigned s, const unsigned n, double* d,
 void removeClusterOverlapFast(RootCluster& clusterHierarchy, vpsc::Rectangles& rs, Locks& locks);
 #endif
 
+void setupVarsAndConstraints(unsigned n, const CompoundConstraints& ccs,
+        const vpsc::Dim dim, std::vector<vpsc::Rectangle*>& boundingBoxes,
+        RootCluster *clusterHierarchy,
+        vpsc::Variables& vs, vpsc::Constraints& cs, 
+        std::valarray<double> &coords);
+void setVariableDesiredPositions(vpsc::Variables& vs, vpsc::Constraints& cs,
+        const DesiredPositionsInDim& des, std::valarray<double>& coords);
 
 }
 

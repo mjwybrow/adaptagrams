@@ -1,8 +1,7 @@
 /*
  * vim: ts=4 sw=4 et tw=0 wm=0
  *
- * libcola - A library providing force-directed network layout using the 
- *           stress-majorization method subject to separation constraints.
+ * libtopology - Classes used in generating and managing topology constraints.
  *
  * Copyright (C) 2006-2008  Monash University
  *
@@ -21,6 +20,8 @@
  * write to the Free Software Foundation, Inc., 59 Temple Place, 
  * Suite 330, Boston, MA  02111-1307  USA
  *
+ * Authors:
+ *   Tim Dwyer <tgdwyer@gmail.com>
 */
 
 /** \file nodedragging.cpp
@@ -29,14 +30,7 @@
  * shapes.  One shape is "dragged" through the others.  Overlaps should be
  * avoided.
  */
-/*
-* Authors:
-*   Tim Dwyer <tgdwyer@gmail.com>
-*
-* Copyright (C) 2005 Authors
-*
-* Released under GNU GPL.  Read the file 'COPYING' for more information.
-*/
+
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -45,9 +39,10 @@
 #include <valarray>
 #include <algorithm>
 #include <float.h>
-#include <libcola/cola.h>
-#include <libtopology/topology_graph.h>
-#include "graphlayouttest.h"
+#include "libcola/cola.h"
+#include "libtopology/topology_graph.h"
+#include "libtopology/cola_topology_addon.h"
+#include "libcola/tests/graphlayouttest.h"
 using namespace std;
 using namespace cola;
 
@@ -113,7 +108,8 @@ void nodeDragging() {
     PreIteration preIteration(locks);
     Test test(0.00001,100,vs,tes);
     ConstrainedFDLayout alg(rs,es,idealLength, true, NULL,test,&preIteration);
-    alg.setTopology(&vs, &tes);
+    topology::ColaTopologyAddon topology(vs, tes);
+    alg.setTopology(&topology);
 
     double step=1;
     for(unsigned i=0;i<100;i++) {

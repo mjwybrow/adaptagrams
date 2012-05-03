@@ -85,7 +85,7 @@ Log<T>::~Log()
 template <typename T>
 TLogLevel& Log<T>::ReportingLevel()
 {
-    static TLogLevel reportingLevel = logDEBUG4;
+    static TLogLevel reportingLevel = cola::logDEBUG4;
     return reportingLevel;
 }
 
@@ -157,13 +157,13 @@ class FILELOG_DECLSPEC FILELog : public Log<Output2FILE> {};
 //typedef Log<Output2FILE> FILELog;
 
 #ifndef FILELOG_MAX_LEVEL
-#define FILELOG_MAX_LEVEL logDEBUG4
+#define FILELOG_MAX_LEVEL cola::logDEBUG4
 #endif
 
 #define FILE_LOG(level) \
     if (level > FILELOG_MAX_LEVEL) ;\
-    else if (level > FILELog::ReportingLevel() || !Output2FILE::Stream()) ; \
-    else FILELog().Get(level)
+    else if (level > cola::FILELog::ReportingLevel() || !cola::Output2FILE::Stream()) ; \
+    else cola::FILELog().Get(level)
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
 
