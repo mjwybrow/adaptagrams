@@ -207,7 +207,7 @@ void ConnRef::setRoutingCheckpoints(const std::vector<Point>& checkpoints)
 
         m_checkpoint_vertices.push_back(vertex);
     }
-    if (m_router->m_allows_orthogonal_routing)
+    if (m_router->m_allows_polyline_routing)
     {
         for (size_t i = 0; i < m_checkpoints.size(); ++i)
         {
@@ -383,7 +383,7 @@ void ConnRef::updateEndPoint(const unsigned int type, const ConnEnd& connEnd)
 {
     common_updateEndPoint(type, connEnd);
 
-    if (m_router->m_allows_orthogonal_routing)
+    if (m_router->m_allows_polyline_routing)
     {
         bool knownNew = true;
         bool genContains = true;
