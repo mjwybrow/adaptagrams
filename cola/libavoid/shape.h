@@ -37,6 +37,9 @@
 #include "libavoid/geometry.h"
 #include "libavoid/obstacle.h"
 
+namespace topology {
+    class LayoutObstacle;
+}
 
 namespace Avoid {
 
@@ -134,12 +137,14 @@ class ShapeRef : public Obstacle
         friend class Router;
         friend class ConnEnd;
         friend class ShapeConnectionPin;
+        friend class topology::LayoutObstacle;
 
         void outputCode(FILE *fp) const;
         Point position(void) const;
         void moveAttachedConns(const Polygon& newPoly);
         void assignPinVisibilityTo(const unsigned int pinClassId,
                 VertInf *dummyConnectionVert);
+        void setCentrePos(const Point& newCentre);
 };
 
 

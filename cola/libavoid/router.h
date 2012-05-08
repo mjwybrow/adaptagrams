@@ -50,6 +50,15 @@
 
 namespace Avoid {
 
+// LineReps: Used for highlighting certain areas in debugging output.
+struct LineRep
+{
+    Point begin;
+    Point end;
+};
+typedef std::list<LineRep> LineReps;
+
+
 typedef std::list<unsigned int> IntList;
 
 class ActionInfo;
@@ -204,6 +213,30 @@ class ConnRerouteFlagDelegate {
 
 static const double zeroParamValue = 0;
 static const double chooseSensibleParamValue = -1;
+
+// NOTE: This is an internal helper class that should not be used by the user.
+//
+// It is used by libtopology to add additional functionality to libavoid
+// while keeping libavoid dependency free.
+class TopologyAddonInterface
+{
+    public:
+        TopologyAddonInterface()
+        {
+        }
+        virtual ~TopologyAddonInterface()
+        {
+        }
+        virtual TopologyAddonInterface *clone(void) const
+        {
+            return new TopologyAddonInterface(*this);
+        }
+
+        virtual void improveOrthogonalTopology(Router *router)
+        {
+            (void)(router);  // Avoid unused parameter warning.
+        }
+};
 
 
 //! @brief   The Router class represents a libavoid router instance.
@@ -581,11 +614,24 @@ class Router {
         ConnType validConnType(const ConnType select = ConnType_None) const;
         bool isInCrossingPenaltyReroutingStage(void) const;
         
+        // Interface for libtopology to be able to set an addon to 
+        // provide additional topology improving layout using libavoid
+        // routing.
+        void setTopologyAddon(TopologyAddonInterface *topologyAddon);
+        void improveOrthogonalTopology(void);
+
         // Testing and debugging methods.
         bool existsOrthogonalPathOverlap(const bool atEnds = false);
         bool existsOrthogonalTouchingPaths(void);
         int  existsOrthogonalCrossings(void);
         bool existsInvalidOrthogonalPaths(void);
+
+        // Outputs the current diagram.  Used for visualising individual
+        // steps of various algorithms.  lineReps can be used to draw 
+        // attention to specific parts of the diagram that have changed
+        // between steps.
+        void outputDiagramSVG(std::string instanceName, 
+                LineReps *lineReps = NULL);
 
     private:
         friend class ShapeRef;
@@ -635,6 +681,8 @@ class Router {
         bool (*m_slow_routing_callback)(unsigned int, double);
         clock_t m_transaction_start_time;
         bool m_abort_transaction;
+        
+        TopologyAddonInterface *m_topology_addon;
 
         // Overall modes:
         bool m_allows_polyline_routing;

@@ -93,6 +93,21 @@ class SubConstraintInfo
 typedef std::vector<SubConstraintInfo *> SubConstraintInfoList;
 
 
+class VariableIDMap
+{
+    public:
+        VariableIDMap();
+        ~VariableIDMap();
+
+        bool addMappingForVariable(const unsigned from, const unsigned to);
+        unsigned getMappingForVariable(const unsigned var) const;
+        unsigned getReverseMappingForVariable(const unsigned var) const;
+        void clear(void);
+
+    private:
+        std::list<std::pair<unsigned, unsigned> > m_mapping;
+};
+
 /** 
  * A compound constraint is a conceptual, diagramming application oriented
  * type of constraint, which can be translated into a set of simple
@@ -134,7 +149,11 @@ public:
     virtual ~CompoundConstraint();
     vpsc::Dim dimension(void) const;
     unsigned int priority(void) const;
-    
+    virtual void updateVarIDsWithMapping(const VariableIDMap& idMap,
+            bool forward = true)
+    {
+    }
+
     // The following methods are only needed for initially solving feasibility
     // of the constraints, and do not need to be implemented for most compound
     // constraints.
@@ -237,6 +256,8 @@ class AlignmentConstraint : public CompoundConstraint
         double position(void) const;
         bool isFixed(void) const;
         void printCreationCode(FILE *fp) const;
+        void updateVarIDsWithMapping(const VariableIDMap& idMap, 
+                bool forward = true);
         
         /** the indicator pointer is used by dunnart to keep a ref to it's 
          * local representation of the alignment constraint

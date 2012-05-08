@@ -214,6 +214,7 @@ Router::Router(const unsigned int flags)
       m_currently_calling_destructors(false),
       m_orthogonal_nudge_distance(4.0),
       m_slow_routing_callback(NULL),
+      m_topology_addon(new TopologyAddonInterface()),
       // Mode options:
       m_allows_polyline_routing(false),
       m_allows_orthogonal_routing(false),
@@ -286,6 +287,8 @@ Router::~Router()
     COLA_ASSERT(m_obstacles.size() == 0);
     COLA_ASSERT(connRefs.size() == 0);
     COLA_ASSERT(visGraph.size() == 0);
+
+    delete m_topology_addon;
 }
 
 
@@ -2109,6 +2112,19 @@ void Router::setSlowRoutingCallback(bool (*func)(unsigned int, double))
 }
 
 
+void Router::setTopologyAddon(TopologyAddonInterface *topologyAddon)
+{
+    COLA_ASSERT(m_topology_addon);
+    delete m_topology_addon;
+    m_topology_addon = topologyAddon->clone();
+}
+
+void Router::improveOrthogonalTopology(void)
+{
+    COLA_ASSERT(m_topology_addon);
+    m_topology_addon->improveOrthogonalTopology(this);
+}
+
 void Router::outputInstanceToSVG(std::string instanceName)
 {
     std::string filename;
@@ -2555,6 +2571,147 @@ void Router::outputInstanceToSVG(std::string instanceName)
     //printInfo();
 }
 
+void Router::outputDiagramSVG(std::string instanceName, LineReps *lineReps)
+{
+    std::string filename;
+    if (!instanceName.empty())
+    {
+        filename = instanceName;
+    }
+    else
+    {
+        filename = "libavoid-diagram";
+    }
+    filename += ".svg";
+    FILE *fp = fopen(filename.c_str(), "w");
+
+    if (fp == NULL)
+    {
+        return;
+    }
+
+    double minX = LIMIT;
+    double minY = LIMIT;
+    double maxX = -LIMIT;
+    double maxY = -LIMIT;
+
+    VertInf *curr = vertices.connsBegin();
+    while (curr)
+    {
+        Point p = curr->point;
+
+        reduceRange(p.x);
+        reduceRange(p.y);
+        
+        if (p.x > -LIMIT)
+        {
+            minX = std::min(minX, p.x);
+        }
+        if (p.x < LIMIT)
+        {
+            maxX = std::max(maxX, p.x);
+        }
+        if (p.y > -LIMIT)
+        {
+            minY = std::min(minY, p.y);
+        }
+        if (p.y < LIMIT)
+        {
+            maxY = std::max(maxY, p.y);
+        }
+        curr = curr->lstNext;
+    }
+    minX -= 8;
+    minY -= 8;
+    maxX += 8;
+    maxY += 8;
+
+    fprintf(fp, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+    fprintf(fp, "<svg xmlns:inkscape=\"http://www.inkscape.org/namespaces/inkscape\" xmlns=\"http://www.w3.org/2000/svg\" width=\"100%%\" height=\"100%%\" viewBox=\"%g %g %g %g\">\n", minX, minY, maxX - minX, maxY - minY);
+
+    fprintf(fp, "<g inkscape:groupmode=\"layer\" "
+            "inkscape:label=\"ShapesRect\">\n");
+    ObstacleList::iterator obstacleIt = m_obstacles.begin();
+    while (obstacleIt != m_obstacles.end())
+    {
+        Obstacle *obstacle = *obstacleIt;
+        bool isShape = (NULL != dynamic_cast<ShapeRef *> (obstacle));
+
+        if ( ! isShape )
+        {
+            // Don't output obstacles here, for now.
+            ++obstacleIt;
+            continue;
+        }
+
+        double minX, minY, maxX, maxY;
+        obstacle->polygon().getBoundingRect(&minX, &minY, &maxX, &maxY);
+
+        fprintf(fp, "<rect id=\"rect-%u\" x=\"%g\" y=\"%g\" width=\"%g\" "
+                "height=\"%g\" style=\"stroke-width: 1px; stroke: black; "
+                "fill: grey; stroke-opacity: 0.5; fill-opacity: 0.4;\" />\n",
+                obstacle->id(), minX, minY, maxX - minX, maxY - minY);
+        ++obstacleIt;
+    }
+    fprintf(fp, "</g>\n");
+
+    fprintf(fp, "<g inkscape:groupmode=\"layer\" "
+            "inkscape:label=\"DisplayConnectors\""
+            ">\n");
+    ConnRefList::iterator connRefIt = connRefs.begin();
+    while (connRefIt != connRefs.end())
+    {
+        ConnRef *connRef = *connRefIt;
+    
+        PolyLine route = connRef->displayRoute();
+        if (!route.empty())
+        {
+            fprintf(fp, "<path id=\"disp-%u\" d=\"M %g %g ", connRef->id(),
+                    route.ps[0].x, route.ps[0].y);
+            for (size_t i = 1; i < route.size(); ++i)
+            {
+                fprintf(fp, "L %g %g ", route.ps[i].x, route.ps[i].y);
+            }
+            fprintf(fp, "\" ");
+            fprintf(fp, "style=\"fill: none; stroke: black; "
+                    "stroke-width: 1px;\" />\n");
+
+            /*
+            for (size_t i = 1; i < route.size(); ++i)
+            {
+                if (route.segmentHasCheckpoint[i - 1])
+                {
+                    fprintf(fp, "<path d=\"M %g %g ", 
+                            route.ps[i - 1].x, route.ps[i - 1].y);
+                    fprintf(fp, "L %g %g\" ", route.ps[i].x, route.ps[i].y);
+                    fprintf(fp, "style=\"fill: none; stroke: red; "
+                            "stroke-width: 1px; stroke-opacity: 1;\" />\n");
+                }
+            }
+            */
+        }
+        
+        ++connRefIt;
+    }
+    fprintf(fp, "</g>\n");
+
+    if (lineReps)
+    {
+
+        for (LineReps::iterator it = lineReps->begin(); it != lineReps->end();
+                ++it)
+        {
+            fprintf(fp, "<path d=\"M %g %g ", 
+                    it->begin.x, it->begin.y);
+            fprintf(fp, "L %g %g\" ", it->end.x, it->end.y);
+            fprintf(fp, "style=\"fill: none; stroke: red; "
+                    "stroke-width: 1px; stroke-opacity: 0.7;\" />\n");
+        }
+    }
+
+    fprintf(fp, "</svg>\n");
+    fclose(fp);
+}
 
 ConnRerouteFlagDelegate::ConnRerouteFlagDelegate()
 {

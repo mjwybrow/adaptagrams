@@ -14,6 +14,7 @@
 #include <libcola/compound_constraints.h>
 #include <libcola/exceptions.h>
 #include <libtopology/topology_graph.h>
+#include <libtopology/cola_topology_addon.h>
 #include <libavoid/libavoid.h>
 /* Includes the header in the wrapper code */
 
@@ -170,9 +171,9 @@ class ColaException {
         %{%}
 
 %template(UnsatisfiableConstraintInfoVector) std::vector<cola::UnsatisfiableConstraintInfo *>;
-%template(EdgeVector) std::vector<cola::Edge>;
-%template(CharVector) std::vector<char>;
 %template(ColaEdge) std::pair<unsigned,unsigned>;
+%template(EdgeVector) std::vector< std::pair<unsigned,unsigned> >;
+%template(CharVector) std::vector<char>;
 %template(RectPtrVector) std::vector<vpsc::Rectangle*>;
 %template(CompoundConstraintsVector) std::vector<cola::CompoundConstraint*>;
 %template(ColaLocks) std::vector<cola::Lock>;
@@ -220,6 +221,7 @@ void deleteDoubleArray(double* a) {
 %include "libcola/convex_hull.h"
 %include "libcola/exceptions.h"
 %include "libtopology/topology_graph.h"
+%include "libtopology/cola_topology_addon.h"
 
 %include "libavoid/geometry.h"
 %include "libavoid/geomtypes.h"

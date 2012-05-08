@@ -236,5 +236,11 @@ Point ShapeRef::position(void) const
 }
 
 
+void ShapeRef::setCentrePos(const Point& newCentre)
+{
+    Point diff = newCentre - position();
+    m_polygon.translate(diff.x, diff.y);
+}
+
 }
 

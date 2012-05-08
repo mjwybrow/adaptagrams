@@ -42,6 +42,7 @@
 #include "libavoid/assertions.h"
 #include "libavoid/hyperedgetree.h"
 #include "libavoid/mtst.h"
+#include "libavoid/scanline.h"
 
 //#define NUDGE_DEBUG
 
@@ -57,31 +58,6 @@ static const int fixedID   = 1;
 static const double freeWeight   = 0.00001;
 static const double strongWeight = 0.001;
 static const double fixedWeight  = 100000;
-
-
-// ShiftSegment interface.
-class ShiftSegment
-{ 
-    public:
-        ShiftSegment(const size_t dim)
-            : dimension(dim)
-        {
-        }
-        virtual ~ShiftSegment()
-        {
-        }
-        virtual Point& lowPoint(void) = 0;
-        virtual Point& highPoint(void) = 0;
-        virtual const Point& lowPoint(void) const = 0;
-        virtual const Point& highPoint(void) const = 0;
-        virtual bool overlapsWith(const ShiftSegment *rhs,
-                const size_t dim) const = 0;
-        virtual bool immovable(void) const = 0;
-        
-        size_t dimension;
-        double minSpaceLimit;
-        double maxSpaceLimit;
-};
 
 
 class HyperEdgeShiftSegment : public ShiftSegment
@@ -631,295 +607,6 @@ class NudgingShiftSegment : public ShiftSegment
 };
 typedef std::list<ShiftSegment *> ShiftSegmentList;
 
-
-struct Node;
-struct CmpNodePos { bool operator()(const Node* u, const Node* v) const; };
-
-typedef std::set<Node*,CmpNodePos> NodeSet;
-struct Node 
-{
-    Obstacle *v;
-    VertInf *c;
-    ShiftSegment *ss;
-    double pos;
-    double min[2], max[2];
-    Node *firstAbove, *firstBelow;
-    NodeSet::iterator iter;
-
-    Node(Obstacle *v, const double p)
-        : v(v),
-          c(NULL),
-          ss(NULL),
-          pos(p),
-          firstAbove(NULL),
-          firstBelow(NULL)
-    {   
-        //COLA_ASSERT(r->width()<1e40);
-        v->polygon().getBoundingRect(
-                &min[XDIM], &min[YDIM], &max[XDIM], &max[YDIM]);
-    }   
-    Node(VertInf *c, const double p)
-        : v(NULL),
-          c(c),
-          ss(NULL),
-          pos(p),
-          firstAbove(NULL),
-          firstBelow(NULL)
-    {
-        min[XDIM] = max[XDIM] = c->point.x;
-        min[YDIM] = max[YDIM] = c->point.y;
-    }   
-    Node(ShiftSegment *ss, const double p)
-        : v(NULL),
-          c(NULL),
-          ss(ss),
-          pos(p),
-          firstAbove(NULL),
-          firstBelow(NULL)
-    {
-        // These values shouldn't ever be used, so they don't matter.
-        min[XDIM] = max[XDIM] = min[YDIM] = max[YDIM] = 0;
-    }   
-    ~Node() 
-    {
-    }
-    // Find the first Node above in the scanline that is a shape edge,
-    // and does not have an open or close event at this position (meaning
-    // it is just about to be removed).
-    double firstObstacleAbove(size_t dim)
-    {
-        Node *curr = firstAbove;
-        while (curr && (curr->ss || (curr->max[dim] > pos)))
-        {
-            curr = curr->firstAbove;
-        }
-       
-        if (curr)
-        {
-            return curr->max[dim];
-        }
-        return -DBL_MAX;
-    }
-    // Find the first Node below in the scanline that is a shape edge,
-    // and does not have an open or close event at this position (meaning
-    // it is just about to be removed).
-    double firstObstacleBelow(size_t dim)
-    {
-        Node *curr = firstBelow;
-        while (curr && (curr->ss || (curr->min[dim] < pos)))
-        {
-            curr = curr->firstBelow;
-        }
-        
-        if (curr)
-        {
-            return curr->min[dim];
-        }
-        return DBL_MAX;
-    }
-    // Mark all connector segments above in the scanline as being able 
-    // to see to this shape edge.
-    void markShiftSegmentsAbove(size_t dim)
-    {
-        Node *curr = firstAbove;
-        while (curr && (curr->ss || (curr->pos > min[dim])))
-        {
-            if (curr->ss && (curr->pos <= min[dim]))
-            {
-                curr->ss->maxSpaceLimit = 
-                        std::min(min[dim], curr->ss->maxSpaceLimit);
-            }
-            curr = curr->firstAbove;
-        }
-    }
-    // Mark all connector segments below in the scanline as being able 
-    // to see to this shape edge.
-    void markShiftSegmentsBelow(size_t dim)
-    {
-        Node *curr = firstBelow;
-        while (curr && (curr->ss || (curr->pos < max[dim])))
-        {
-            if (curr->ss && (curr->pos >= max[dim]))
-            {
-                curr->ss->minSpaceLimit = 
-                        std::max(max[dim], curr->ss->minSpaceLimit);
-            }
-            curr = curr->firstBelow;
-        }
-    }
-    void findFirstPointAboveAndBelow(const size_t dim, const double linePos,
-            double& firstAbovePos, double& firstBelowPos, 
-            double& lastAbovePos, double& lastBelowPos)
-    {
-        firstAbovePos = -DBL_MAX;
-        firstBelowPos = DBL_MAX;
-        // We start looking left from the right side of the shape, 
-        // and vice versa. 
-        lastAbovePos = max[dim];
-        lastBelowPos = min[dim];
-
-        Node *curr = NULL;
-        bool eventsAtSamePos = false;
-        for (int direction = 0; direction < 2; ++direction)
-        {
-            // Look for obstacles in one direction, then the other.
-            curr = (direction == 0) ? firstAbove: firstBelow;
-
-            while (curr)
-            {
-                // The events are at a shared beginning or end of a shape or 
-                // connection point.  Note, connection points have the same 
-                // min and max value in the !dim dimension.
-                eventsAtSamePos = 
-                        (((linePos == max[!dim]) && 
-                          (linePos == curr->max[!dim])) || 
-                         ((linePos == min[!dim]) && 
-                          (linePos == curr->min[!dim])));
-                
-                if (curr->max[dim] <= min[dim])
-                {
-                    // Curr shape is completely to the left, 
-                    // so add it's right side as a limit
-                    firstAbovePos = std::max(curr->max[dim], firstAbovePos);
-                }
-                else if (curr->min[dim] >= max[dim])
-                {
-                    // Curr shape is completely to the right, 
-                    // so add it's left side as a limit
-                    firstBelowPos = std::min(curr->min[dim], firstBelowPos);
-                }
-                else if (!eventsAtSamePos)
-                {
-                    // Shapes that open or close at the same position do not
-                    // block visibility, so if they are not at same position
-                    // determine where they overlap.
-                    lastAbovePos = std::min(curr->min[dim], lastAbovePos);
-                    lastBelowPos = std::max(curr->max[dim], lastBelowPos);
-                }
-                curr = (direction == 0) ? curr->firstAbove : curr->firstBelow;
-            }
-        }    
-    }
-    double firstPointAbove(size_t dim) 
-    {
-        // We are looking for the first obstacle above this position,
-        // though we ignore shape edges if this point is inline with
-        // the edge of the obstacle.  That is, points have visibility
-        // along the edge of shapes.
-        size_t altDim = (dim + 1) % 2;
-        double result = -DBL_MAX;
-        Node *curr = firstAbove; 
-        while (curr) 
-        {
-            bool inLineWithEdge = (min[altDim] == curr->min[altDim]) ||
-                    (min[altDim] == curr->max[altDim]);
-            if ( ! inLineWithEdge && (curr->max[dim] <= pos) )
-            {
-                result = std::max(curr->max[dim], result);
-            }
-            curr = curr->firstAbove; 
-        } 
-        return result; 
-    } 
-    double firstPointBelow(size_t dim) 
-    { 
-        // We are looking for the first obstacle below this position,
-        // though we ignore shape edges if this point is inline with
-        // the edge of the obstacle.  That is, points have visibility
-        // along the edge of shapes.
-        size_t altDim = (dim + 1) % 2;
-        double result = DBL_MAX;
-        Node *curr = firstBelow; 
-        while (curr) 
-        { 
-            bool inLineWithEdge = (min[altDim] == curr->min[altDim]) ||
-                    (min[altDim] == curr->max[altDim]);
-            if ( ! inLineWithEdge && (curr->min[dim] >= pos) )
-            {
-                result = std::min(curr->min[dim], result);
-            }
-            curr = curr->firstBelow; 
-        }
-        return result;
-    } 
-    // This is a bit inefficient, but we won't need to do it once we have 
-    // connection points.
-    bool isInsideShape(size_t dimension)
-    {
-        for (Node *curr = firstBelow; curr; curr = curr->firstBelow)
-        {
-            if ((curr->min[dimension] < pos) && (pos < curr->max[dimension]))
-            {
-                return true;
-            }
-        }
-        for (Node *curr = firstAbove; curr; curr = curr->firstAbove)
-        {
-            if ((curr->min[dimension] < pos) && (pos < curr->max[dimension]))
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-};
-
-
-bool CmpNodePos::operator() (const Node* u, const Node* v) const 
-{
-    if (u->pos != v->pos) 
-    {
-        return u->pos < v->pos;
-    }
-    
-    // Use the pointers to the base objects to differentiate them.
-    void *up = (u->v) ? (void *) u->v : 
-            ((u->c) ? (void *) u->c : (void *) u->ss);
-    void *vp = (v->v) ? (void *) v->v : 
-            ((v->c) ? (void *) v->c : (void *) v->ss);
-    return up < vp;
-}
-
-
-// Note: Open must come first.
-typedef enum {
-    Open = 1,
-    SegOpen = 2,
-    ConnPoint = 3, 
-    SegClose = 4,
-    Close = 5
-} EventType;
-
-
-struct Event
-{
-    Event(EventType t, Node *v, double p) 
-        : type(t),
-          v(v),
-          pos(p)
-    {};
-    EventType type;
-    Node *v;
-    double pos;
-};
-
-
-// Used for quicksort.  Must return <0, 0, or >0.
-int compare_events(const void *a, const void *b)
-{
-	Event *ea = *(Event**) a;
-	Event *eb = *(Event**) b;
-    if (ea->pos != eb->pos)
-    {
-        return (ea->pos < eb->pos) ? -1 : 1;
-    }
-    if (ea->type != eb->type)
-    {
-        return ea->type - eb->type;
-    }
-    COLA_ASSERT(ea->v != eb->v);
-    return ea->v - eb->v;
-}
 
 
 enum ScanVisDirFlag {
@@ -3255,7 +2942,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
         bool satisfied;
         do 
         {
-            IncSolver f(vs,cs);
+            IncSolver f(vs, cs);
             f.solve();
             satisfied = true;
             for (size_t i = 0; i < vs.size(); ++i) 
@@ -3322,76 +3009,6 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
     }
 }
 
-static void buildConnectorRouteCheckpointCache(Router *router)
-{
-    for (ConnRefList::const_iterator curr = router->connRefs.begin(); 
-            curr != router->connRefs.end(); ++curr) 
-    {
-        ConnRef *conn = *curr;
-        if (conn->routingType() != ConnType_Orthogonal)
-        {
-            continue;
-        }
-
-        PolyLine& displayRoute = conn->displayRoute();
-        std::vector<Point> checkpoints = conn->routingCheckpoints();
-       
-        // Initialise checkpoint vector and set to false.  There will be
-        // one entry for each *segment* in the path, and the value indicates
-        // whether the segment is affected by a checkpoint.
-        displayRoute.segmentHasCheckpoint = 
-                std::vector<bool>(displayRoute.size() - 1, false);
-        size_t nCheckpoints = displayRoute.segmentHasCheckpoint.size();
-
-        for (size_t cpi = 0; cpi < checkpoints.size(); ++cpi)
-        {
-            for (size_t ind = 0; ind < displayRoute.size(); ++ind)
-            {
-                if (displayRoute.ps[ind].equals(checkpoints[cpi]))
-                {
-                    // The checkpoint is at a bendpoint, so mark the edge
-                    // before and after and being affected by checkpoints.
-                    if (ind > 0)
-                    {
-                        displayRoute.segmentHasCheckpoint[ind - 1] = true;
-                    }
-
-                    if (ind < nCheckpoints)
-                    {
-                        displayRoute.segmentHasCheckpoint[ind] = true;
-                    }
-                }
-                else if ((ind > 0) && pointOnLine(displayRoute.ps[ind - 1], 
-                         displayRoute.ps[ind], checkpoints[cpi]) )
-                {
-                    // If the checkpoint is on a segment, only that segment is
-                    // affected.
-                    displayRoute.segmentHasCheckpoint[ind - 1] = true;
-                }
-            }
-        }
-    }
-}
-
-
-static void clearConnectorRouteCheckpointCache(Router *router)
-{
-    for (ConnRefList::const_iterator curr = router->connRefs.begin(); 
-            curr != router->connRefs.end(); ++curr) 
-    {
-        ConnRef *conn = *curr;
-        if (conn->routingType() != ConnType_Orthogonal)
-        {
-            continue;
-        }
-
-        // Clear the cache.
-        PolyLine& displayRoute = conn->displayRoute();
-        displayRoute.segmentHasCheckpoint.clear();
-    }
-}
-
-
 extern void improveOrthogonalRoutes(Router *router)
 {
     router->timers.Register(tmOrthogNudge, timerStart);
@@ -3438,6 +3055,8 @@ extern void improveOrthogonalRoutes(Router *router)
 
     // Resimplify all the display routes that may have been split.
     simplifyOrthogonalRoutes(router);
+
+    router->improveOrthogonalTopology();
  
     // Clear the segment-checkpoint cache for connectors.
     clearConnectorRouteCheckpointCache(router);

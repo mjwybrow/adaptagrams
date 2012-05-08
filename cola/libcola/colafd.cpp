@@ -758,7 +758,7 @@ void setupVarsAndConstraints(unsigned n, const CompoundConstraints& ccs,
     {
         // Create variables for clusters
         clusterHierarchy->computeBoundingRect(boundingBoxes);
-        clusterHierarchy->createVars(dim,boundingBoxes,vs);
+        clusterHierarchy->createVars(dim, boundingBoxes, vs);
     }
 
     for (CompoundConstraints::const_iterator c = ccs.begin();

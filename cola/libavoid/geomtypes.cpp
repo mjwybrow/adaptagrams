@@ -447,7 +447,12 @@ void Polygon::translate(const double xDist, const double yDist)
 
 Polygon Polygon::simplify(void) const
 {
+    // Copy the PolyLine.
     Polygon simplified = *this;
+    
+    std::vector<bool>::iterator cpIt = simplified.segmentHasCheckpoint.begin();
+    bool hasCheckpointInfo = !(simplified.segmentHasCheckpoint.empty());
+
     std::vector<Point>::iterator it = simplified.ps.begin();
     if (it != simplified.ps.end()) ++it;
 
@@ -460,11 +465,21 @@ Polygon Polygon::simplify(void) const
             // These three points make up two collinear segments, so just
             // combine them into a single segment.
             it = simplified.ps.erase(it);
+
+            if (hasCheckpointInfo)
+            {
+                bool hasCp = simplified.segmentHasCheckpoint[j - 2] || 
+                             simplified.segmentHasCheckpoint[j - 1];
+                simplified.segmentHasCheckpoint[j - 2] = hasCp;
+                cpIt = simplified.segmentHasCheckpoint.erase(cpIt);
+            }
         }
         else
         {
             ++j;
             ++it;
+            
+            if (hasCheckpointInfo) ++cpIt;
         }
     }
 
