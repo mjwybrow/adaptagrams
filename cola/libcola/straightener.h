@@ -25,12 +25,15 @@
 
 #ifndef STRAIGHTENER_H
 #define STRAIGHTENER_H
+
 #include <set>
-#include <libvpsc/rectangle.h>
 #include <cfloat>
-#include "libcola/commondefs.h"
 #include <iostream>
 #include <iterator>
+
+#include "libvpsc/rectangle.h"
+#include "libcola/commondefs.h"
+
 namespace cola {
     class Cluster;
     class ConvexCluster;

@@ -39,7 +39,7 @@
 #ifndef USELIBVPSC
 
 #include <iostream>
-#include <math.h>
+#include <cmath>
 #include <sstream>
 #include <map>
 #include <cfloat>

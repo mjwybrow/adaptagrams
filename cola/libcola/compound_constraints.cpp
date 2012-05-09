@@ -1346,7 +1346,7 @@ bool VariableIDMap::addMappingForVariable(const unsigned from,
         m_mapping.push_back(std::make_pair(from, to));
         return true;
     }
-    fprintf(stderr, "VariableIDMap: mapping already exists for var %u\n", from);
+    //fprintf(stderr, "VariableIDMap: mapping already exists for var %u\n", from);
     return false;
 }
 
@@ -1362,7 +1362,10 @@ unsigned VariableIDMap::getMappingForVariable(const unsigned var) const
             return ids.second;
         }
     }
-    fprintf(stderr, "Warning: mapping not found for var %u\n", var);
+
+    //fprintf(stderr, "Warning: mapping not found for var %u\n", var);
+    
+    // Just return original variable index.
     return var;
 }
 
@@ -1378,7 +1381,10 @@ unsigned VariableIDMap::getReverseMappingForVariable(const unsigned var) const
             return ids.first;
         }
     }
-    fprintf(stderr, "Warning: reverse mapping not found for var %u\n", var);
+
+    //fprintf(stderr, "Warning: reverse mapping not found for var %u\n", var);
+    
+    // Just return original variable index.
     return var;
 }
 

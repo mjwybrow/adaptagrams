@@ -68,6 +68,7 @@ using vpsc::delete_object;
 #include <list>
 #include <set>
 #include <queue>
+#include <iostream>
 
 namespace Avoid {
 

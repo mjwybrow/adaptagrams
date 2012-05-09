@@ -36,7 +36,7 @@ Description: Unpublished source code accompanying the article by Petru Marginean
 
 #include <sstream>
 #include <string>
-#include <stdio.h>
+#include <cstdio>
 
 namespace cola {
 inline std::string NowTime();

@@ -26,19 +26,20 @@
 #ifndef _GRADIENT_PROJECTION_H
 #define _GRADIENT_PROJECTION_H
 
-#include <libvpsc/solve_VPSC.h>
-#include <libvpsc/variable.h>
-#include <libvpsc/constraint.h>
-#include <libvpsc/rectangle.h>
 #include <iostream>
 #include <cmath>
 #include <valarray>
+
+#include "libvpsc/solve_VPSC.h"
+#include "libvpsc/variable.h"
+#include "libvpsc/constraint.h"
+#include "libvpsc/rectangle.h"
 #include "libcola/commondefs.h"
 #include "libcola/compound_constraints.h"
 #include "libcola/cluster.h"
 #include "libcola/sparse_matrix.h"
 #ifdef MOSEK_AVAILABLE
-#include <libvpsc/mosek_quad_solve.h>
+#include "libvpsc/mosek_quad_solve.h"
 #endif
 
 namespace straightener {

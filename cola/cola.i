@@ -16,6 +16,7 @@
 #include <libtopology/topology_graph.h>
 #include <libtopology/cola_topology_addon.h>
 #include <libavoid/libavoid.h>
+#include <libtopology/orthogonal_topology.h>
 /* Includes the header in the wrapper code */
 
 using namespace Avoid;
@@ -206,6 +207,7 @@ void deleteDoubleArray(double* a) {
 
 %rename(Avoid_Edge) Avoid::Edge;
 %rename(Avoid_Rectangle) Avoid::Rectangle;
+%rename(Avoid_TopologyAddonInterface) Avoid::TopologyAddonInterface;
 
 %rename(getVarOrig) topology::Node::getVar() const;
 
@@ -216,12 +218,11 @@ void deleteDoubleArray(double* a) {
 %include "libvpsc/rectangle.h"
 %include "libvpsc/assertions.h"
 %include "libcola/compound_constraints.h"
+
 %include "libcola/cola.h"
 %include "libcola/cluster.h"
 %include "libcola/convex_hull.h"
 %include "libcola/exceptions.h"
-%include "libtopology/topology_graph.h"
-%include "libtopology/cola_topology_addon.h"
 
 %include "libavoid/geometry.h"
 %include "libavoid/geomtypes.h"
@@ -234,6 +235,9 @@ void deleteDoubleArray(double* a) {
 %include "libavoid/viscluster.h"
 %include "libavoid/connectionpin.h"
 
+%include "libtopology/topology_graph.h"
+%include "libtopology/cola_topology_addon.h"
+%include "libtopology/orthogonal_topology.h"
 
 /*
 %include "libavoid/libavoid.h"
