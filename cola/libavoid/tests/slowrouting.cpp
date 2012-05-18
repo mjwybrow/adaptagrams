@@ -389,7 +389,7 @@ JunctionRef *junctionRef394539723 = new JunctionRef(router, Point(23550, 26350),
     poly396658490.ps[1] = Point(27754, 28010);
     poly396658490.ps[2] = Point(27696, 28010);
     poly396658490.ps[3] = Point(27696, 27925);
-    ShapeRef *shapeRef396658490 = new ShapeRef(router, poly396658490, 396658490);
+    new ShapeRef(router, poly396658490, 396658490);
 
     Polygon poly408762900(4);
     poly408762900.ps[0] = Point(24979, 27350);

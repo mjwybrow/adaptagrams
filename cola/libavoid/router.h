@@ -623,7 +623,7 @@ class Router {
         // Testing and debugging methods.
         bool existsOrthogonalPathOverlap(const bool atEnds = false);
         bool existsOrthogonalTouchingPaths(void);
-        int  existsOrthogonalCrossings(void);
+        int  existsCrossings(const bool optimisedForConnectorType = false);
         bool existsInvalidOrthogonalPaths(void);
 
         // Outputs the current diagram.  Used for visualising individual

@@ -53,13 +53,13 @@ void test()
 	Avoid::JunctionRef * junction502411221 = new Avoid::JunctionRef(router1, Avoid::Point(50825, 50850), 502411221);
 	end1 = Avoid::ConnEnd(shape386142480, 2);
 	end2 = Avoid::ConnEnd(junction502411221);
-	Avoid::ConnRef * conn153915090 = new Avoid::ConnRef(router1, end1, end2);
+	new Avoid::ConnRef(router1, end1, end2);
 	end1 = Avoid::ConnEnd(junction502411221);
 	end2 = Avoid::ConnEnd(shape300136482, 1);
-	Avoid::ConnRef * conn114162789 = new Avoid::ConnRef(router1, end1, end2);
+	new Avoid::ConnRef(router1, end1, end2);
 	end1 = Avoid::ConnEnd(shape51003942, 1);
 	end2 = Avoid::ConnEnd(junction502411221);
-	Avoid::ConnRef * conn80701218 = new Avoid::ConnRef(router1, end1, end2);
+	new Avoid::ConnRef(router1, end1, end2);
 	router1->processTransaction();
 
 	outputInstanceToSVG(router1);

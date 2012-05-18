@@ -2723,6 +2723,52 @@ static ShiftSegmentList linesort(bool nudgeFinalSegments,
 
 typedef std::list<ShiftSegment *> ShiftSegmentPtrList;
 
+class PotentialSegmentConstraint
+{
+    public:
+        PotentialSegmentConstraint(unsigned index1, unsigned index2, 
+                const Variables& vs)
+            : index1(index1),
+              index2(index2),
+              vs(vs)
+        {
+        }
+
+        bool operator<(const PotentialSegmentConstraint rhs) const
+        {
+            return sepDistance() < rhs.sepDistance();
+        }
+        double sepDistance(void) const
+        {
+            if (!stillValid())
+            {
+                return 0;
+            }
+            return fabs(vs[index1]->finalPosition - vs[index2]->finalPosition);
+        }
+        bool stillValid(void) const
+        {
+            return (index1 != index2);
+        }
+        void rewriteIndex(unsigned oldIndex, unsigned newIndex)
+        {
+            if (index1 == oldIndex)
+            {
+                index1 = newIndex;
+            }
+
+            if (index2 == oldIndex)
+            {
+                index2 = newIndex;
+            }
+        }
+
+        unsigned index1;
+        unsigned index2;
+
+    private:
+        const Variables& vs;
+};
 
 static void nudgeOrthogonalRoutes(Router *router, size_t dimension, 
         PtOrderMap& pointOrders, ShiftSegmentList& segmentList)
@@ -2734,7 +2780,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
     // If we can fit things with the desired separation distance, then
     // we try 10 times, reducing each time by a 10th of the original amount.
     double reductionSteps = 10.0;
-    bool justCentring = pointOrders.empty();
+    bool justUnifying = pointOrders.empty();
 
     // Do the actual nudging.
     ShiftSegmentList currentRegion;
@@ -2773,7 +2819,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             }
         }
 
-        if (! justCentring)
+        if (! justUnifying)
         {
             CmpLineOrder lineSortComp(pointOrders, dimension);
             currentRegion = linesort(nudgeFinalSegments, currentRegion,
@@ -2784,7 +2830,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
         {
             // Save creating the solver instance if there is just one
             // immovable segment, or we're nudging a single segment.
-            if ( !justCentring || currentRegion.front()->immovable() )
+            if ( !justUnifying || currentRegion.front()->immovable() )
             {
                 delete currentRegion.front();
                 continue;
@@ -2792,6 +2838,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
         }
 
         // Process these segments.
+        std::list<unsigned> freeIndexes;
         Variables vs;
         Constraints cs;
         Constraints gapcs;
@@ -2813,14 +2860,6 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             // Create a solver variable for the position of this segment.
             currSegment->createSolverVariable();
             
-            if (justCentring)
-            {
-                // If we are just doing centring, then we should use the
-                // same weights, otherwise we might move overlapping paths
-                // a tiny distance apart if they have different weights.
-                currSegment->variable->weight = freeWeight;
-            }
-
             vs.push_back(currSegment->variable);
             size_t index = vs.size() - 1;
 #ifdef NUDGE_DEBUG
@@ -2849,10 +2888,41 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                     currSegment->highPoint()[XDIM], currSegment->highPoint()[YDIM]);
 #endif
 
-            if (justCentring)
+            // Constrain to channel boundary.
+            if (!currSegment->fixed)
+            {
+                // If this segment sees a channel boundary to its left,
+                // then constrain its placement as such.
+                if (currSegment->minSpaceLimit > -CHANNEL_MAX)
+                {
+                    vs.push_back(new Variable(fixedID,
+                                currSegment->minSpaceLimit, fixedWeight));
+                    cs.push_back(new Constraint(vs[vs.size() - 1], vs[index],
+                                0.0));
+                }
+
+                // If this segment sees a channel boundary to its right,
+                // then constrain its placement as such.
+                if (currSegment->maxSpaceLimit < CHANNEL_MAX)
+                {
+                    vs.push_back(new Variable(fixedID,
+                                currSegment->maxSpaceLimit, fixedWeight));
+                    cs.push_back(new Constraint(vs[index], vs[vs.size() - 1],
+                                0.0));
+                }
+            }
+
+            if (justUnifying)
             {
                 // Just doing centring, not nudging.
-                // Thus, we don't need to constrain position.
+                // Record the index of the variable so we can use it as 
+                // a segment to potentially constrain to other segments.
+                if (currSegment->variable->weight == freeWeight)
+                {
+                    freeIndexes.push_back(index);
+                }
+                // Thus, we don't need to constrain position against other
+                // segments.
                 prevVars.push_back(&(*currSegment));
                 continue;
             }
@@ -2906,30 +2976,26 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                 }
             }
 
-            if (!currSegment->fixed)
-            {
-                // If this segment sees a channel boundary to its left,
-                // then constrain its placement as such.
-                if (currSegment->minSpaceLimit > -CHANNEL_MAX)
-                {
-                    vs.push_back(new Variable(fixedID,
-                                currSegment->minSpaceLimit, fixedWeight));
-                    cs.push_back(new Constraint(vs[vs.size() - 1], vs[index],
-                                0.0));
-                }
+            prevVars.push_back(&(*currSegment));
+        }
 
-                // If this segment sees a channel boundary to its right,
-                // then constrain its placement as such.
-                if (currSegment->maxSpaceLimit < CHANNEL_MAX)
+        std::list<PotentialSegmentConstraint> potentialConstraints;
+        if (justUnifying)
+        {
+            for (std::list<unsigned>::iterator curr = freeIndexes.begin();
+                    curr != freeIndexes.end(); ++curr)
+            {
+                for (std::list<unsigned>::iterator curr2 = curr;
+                        curr2 != freeIndexes.end(); ++curr2)
                 {
-                    vs.push_back(new Variable(fixedID,
-                                currSegment->maxSpaceLimit, fixedWeight));
-                    cs.push_back(new Constraint(vs[index], vs[vs.size() - 1],
-                                0.0));
+                    if (curr == curr2)
+                    {
+                        continue;
+                    }
+                    potentialConstraints.push_back(
+                            PotentialSegmentConstraint(*curr, *curr2, vs));
                 }
             }
-
-            prevVars.push_back(&(*currSegment));
         }
 #ifdef NUDGE_DEBUG
         for (unsigned i = 0;i < vs.size(); ++i)
@@ -2937,8 +3003,15 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             printf("-vs[%d]=%f\n", i, vs[i]->desiredPosition);
         }
 #endif
-        // Repeatedly try solving this with smaller separation distances till
-        // we find a solution that is satisfied.
+        // Repeatedly try solving this.  There are two cases:
+        //  -  When Unifying, we greedily place as many free segments as 
+        //     possible at the same positions, that way they have more 
+        //     accurate nudging orders determined for them in the Nudging
+        //     stage.
+        //  -  When Nudging, if we can't fit all the segments with the 
+        //     default nudging distance we try smaller separation 
+        //     distances till we find a solution that is satisfied.
+        bool justAddedConstraint = false;
         bool satisfied;
         do 
         {
@@ -2958,17 +3031,85 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                 }
             }
 
-            if (!satisfied)
+            if (justUnifying)
             {
-                // Reduce the separation distance.
-                sepDist -= (baseSepDist / reductionSteps);
-                // And rewrite all the gap constraints to have the new reduced
-                // separation distance.
-                for (Constraints::iterator cIt = gapcs.begin(); 
-                        cIt != gapcs.end(); ++cIt)
+                // When we're centring, we'd like to greedily place as many
+                // segments as possible at the same positions, that way they
+                // have more accurate nudging orders determined for them.
+                // 
+                // We do this by taking pairs of adjoining free segments and 
+                // attempting to constrain them to have the same position, 
+                // starting from the closest up to the furthest.
+
+                if (justAddedConstraint)
                 {
-                    Constraint *constraint = *cIt;
-                    constraint->gap = sepDist;
+                    COLA_ASSERT(potentialConstraints.size() > 0);
+                    if (!satisfied)
+                    {
+                        // We couldn't satisfy the problem with the added
+                        // potential constraint, so we can't position these
+                        // segments together.  Roll back.
+                        potentialConstraints.pop_front();
+                        delete cs.back();
+                        cs.pop_back();
+                    }
+                    else
+                    {
+                        // We could position these two segments together.
+                        PotentialSegmentConstraint& pc =
+                                potentialConstraints.front();
+
+                        // Rewrite the indexes of these two variables to 
+                        // one, so we need not worry about redundant 
+                        // equality constraints.
+                        for (std::list<PotentialSegmentConstraint>::iterator
+                                it = potentialConstraints.begin();
+                                it != potentialConstraints.end(); ++it)
+                        {
+                            it->rewriteIndex(pc.index1, pc.index2);
+                        }
+                        potentialConstraints.pop_front();
+                    }
+                }
+                potentialConstraints.sort();
+                justAddedConstraint = false;
+
+                // Remove now invalid potential segment constraints.
+                // This could have been caused by the variable rewriting.
+                while (!potentialConstraints.empty() && 
+                       !potentialConstraints.front().stillValid())
+                {
+                    potentialConstraints.pop_front();
+                }
+
+                if (!potentialConstraints.empty())
+                {
+                    // We still have more possibilities to consider.
+                    // Create a constraint for this, add it, and mark as
+                    // unsatisfied, so the problem gets re-solved.
+                    PotentialSegmentConstraint& pc =
+                            potentialConstraints.front();
+                    COLA_ASSERT(pc.index1 != pc.index2);
+                    cs.push_back(new Constraint(vs[pc.index1], vs[pc.index2],
+                            0, true));
+                    satisfied = false;
+                    justAddedConstraint = true;
+                }
+            }
+            else
+            {
+                if (!satisfied)
+                {
+                    // Reduce the separation distance.
+                    sepDist -= (baseSepDist / reductionSteps);
+                    // And rewrite all the gap constraints to have the new 
+                    // reduced separation distance.
+                    for (Constraints::iterator cIt = gapcs.begin(); 
+                            cIt != gapcs.end(); ++cIt)
+                    {
+                        Constraint *constraint = *cIt;
+                        constraint->gap = sepDist;
+                    }
                 }
             }
         }
@@ -3021,23 +3162,28 @@ extern void improveOrthogonalRoutes(Router *router)
     // can be moved away from their original positions during nudging.
     buildConnectorRouteCheckpointCache(router);
 
-    // Do centring first, by itself, to make nudging results a little better.
-    // XXX This is still not great.  In some ways we really want to consider
-    //     the ordering for all segments within a channel, rather than just
-    //     the overlapping cases.  This would address the problem where
-    //     initial routings can force crossings that could be avoided.
-    for (size_t dimension = 0; dimension < 2; ++dimension)
+    // Do Unifying first, by itself.  This greedily tries to position free
+    // segments in overlaping channels at the same position.  This way they
+    // have correct nudging orders determined for them since they will form
+    // shared paths, rather than segments just positioned as an results of
+    // the routing process.  Of course, don't do this when rerouting with
+    // a fixedSharedPathPenalty since these routes include extra segments 
+    // we want to keep apart which prevent some shared paths.
+    if (router->routingParameter(fixedSharedPathPenalty) == 0)
     {
-        // Empty pointOrders, so no nudging is conducted.
-        PtOrderMap pointOrders;
+        for (size_t dimension = 0; dimension < 2; ++dimension)
+        {
+            // Empty pointOrders, so no nudging is conducted.
+            PtOrderMap pointOrders;
 
-        ShiftSegmentList segmentList;
-        buildOrthogonalNudgingSegments(router, dimension, segmentList);
-        buildOrthogonalChannelInfo(router, dimension, segmentList);
-        nudgeOrthogonalRoutes(router, dimension, pointOrders, segmentList);
+            ShiftSegmentList segmentList;
+            buildOrthogonalNudgingSegments(router, dimension, segmentList);
+            buildOrthogonalChannelInfo(router, dimension, segmentList);
+            nudgeOrthogonalRoutes(router, dimension, pointOrders, segmentList);
+        }
     }
 
-    // Do the nudging itself.
+    // Do the Nudging and centring.
     for (size_t dimension = 0; dimension < 2; ++dimension)
     {
         // Build nudging info.

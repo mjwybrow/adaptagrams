@@ -2047,8 +2047,14 @@ bool Router::existsOrthogonalTouchingPaths(void)
 }
 
 
-// XXX: Currently just looks for normal crossings (not orthogonal specific).
-int Router::existsOrthogonalCrossings(void)
+// Counts the number of crossings between all connectors.
+//
+// If optimisedForConnectorType is set, This will only count crossings 
+// between orthogonal connectors if they appear at segment endpoints. 
+// Thus, it can be used on raw connectors but not on simplified orthogonal
+// connectors.
+//
+int Router::existsCrossings(const bool optimisedForConnectorType)
 {
     int count = 0;
     ConnRefList::iterator fin = connRefs.end();
@@ -2060,7 +2066,9 @@ int Router::existsOrthogonalCrossings(void)
         {
             // Determine if this pair overlap
             Avoid::Polygon jRoute = (*j)->displayRoute();
-            ConnectorCrossings cross(iRoute, true, jRoute, *i, *j);
+            ConnRef *iConn = (optimisedForConnectorType) ? *i : NULL;
+            ConnRef *jConn = (optimisedForConnectorType) ? *j : NULL;
+            ConnectorCrossings cross(iRoute, true, jRoute, iConn, jConn);
             cross.checkForBranchingSegments = true;
             for (size_t jInd = 1; jInd < jRoute.size(); ++jInd)
             {

@@ -5219,7 +5219,10 @@ int main(void) {
 
     router->processTransaction();
     //router->outputInstanceToSVG("test-finalSegmentNudging1");
-    int crossings = router->existsOrthogonalCrossings();
+
+    bool optimisedForConnectorType = true;
+    int crossings = router->existsCrossings(optimisedForConnectorType);
+
     delete router;
     return (crossings > 0) ? 1 : 0;
 };

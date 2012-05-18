@@ -60,9 +60,12 @@ check_PROGRAMS = \
 	finalSegmentNudging1 \
 	finalSegmentNudging2 \
 	checkpointNudging1 \
-	checkpointNudging2
+	checkpointNudging2 \
+	nudgeCrossing01
 
 # problem_SOURCES = problem.cpp
+
+nudgeCrossing01_SOURCES = nudgeCrossing01.cpp
 
 checkpointNudging1_SOURCES = checkpointNudging1.cpp
 checkpointNudging2_SOURCES = checkpointNudging2.cpp
