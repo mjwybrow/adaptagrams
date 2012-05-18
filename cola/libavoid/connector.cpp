@@ -29,6 +29,7 @@
 #include <cstdlib>
 #include <algorithm>
 #include <queue>
+#include <limits>
 
 #include "libavoid/connector.h"
 #include "libavoid/connend.h"
@@ -1616,6 +1617,7 @@ void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
     clear();
     if (checkForBranchingSegments)
     {
+        double epsilon = std::numeric_limits<double>::epsilon();
         size_t conn_pn = conn.size();
         // XXX When doing the pointOnLine test we allow the points to be 
         // slightly non-collinear.  This addresses a problem with clustered
@@ -1624,7 +1626,7 @@ void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
         // reported to be on there by the line segment intersection code,
         // which I suspect is not numerically accurate enough.  This occurred
         // for points that only differed by about 10^-12 in the y-dimension.
-        double tolerance = (!polyIsConn) ? 0.00001 : 0.0;
+        double tolerance = (!polyIsConn) ? epsilon : 0.0;
         splitBranchingSegments(poly, polyIsConn, conn, tolerance);
         // cIndex is going to be the last, so take into account added points.
         cIndex += (conn.size() - conn_pn);

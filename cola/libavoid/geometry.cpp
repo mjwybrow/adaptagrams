@@ -37,13 +37,14 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
+#include <limits>
+
 #include "libavoid/graph.h"
 #include "libavoid/geometry.h"
 #include "libavoid/assertions.h"
 
 
 namespace Avoid {
-
 
 
 // Returns true iff the point c lies on the closed segment ab.
@@ -53,11 +54,13 @@ namespace Avoid {
 //
 bool inBetween(const Point& a, const Point& b, const Point& c)
 {
+    double epsilon = std::numeric_limits<double>::epsilon();
+
     // We only call this when we know the points are collinear,
     // otherwise we should be checking this here.
-    COLA_ASSERT(vecDir(a, b, c, 0.0001) == 0);
+    COLA_ASSERT(vecDir(a, b, c, epsilon) == 0);
 
-    if ((fabs(a.x - b.x) > 1) && (a.x != b.x))
+    if (fabs(a.x - b.x) > epsilon)
     {
         // not vertical
         return (((a.x < c.x) && (c.x < b.x)) ||

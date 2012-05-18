@@ -546,8 +546,7 @@ void vertexSweep(VertInf *vert)
                 EdgePair intPair = EdgePair(*t, kPrev);
                 e.push_back(intPair);
             }
-            if ((vecDir(kPrev->point, k->point, centerInf->point) == 0) &&
-                    inBetween(kPrev->point, k->point, centerInf->point))
+            if (pointOnLine(kPrev->point, k->point, centerInf->point))
             {
                 // Record that centerPoint is on an obstacle line.
                 onBorderIDs.insert(k->id.objID);
@@ -562,8 +561,7 @@ void vertexSweep(VertInf *vert)
                 EdgePair intPair = EdgePair(*t, kNext);
                 e.push_back(intPair);
             }
-            if ((vecDir(kNext->point, k->point, centerInf->point) == 0) &&
-                    inBetween(kNext->point, k->point, centerInf->point))
+            if (pointOnLine(kNext->point, k->point, centerInf->point))
             {
                 // Record that centerPoint is on an obstacle line.
                 onBorderIDs.insert(k->id.objID);
