@@ -236,6 +236,11 @@ class TopologyAddonInterface
         {
             (void)(router);  // Avoid unused parameter warning.
         }
+        virtual bool outputCode(FILE *fp) const
+        {
+            (void)(fp);  // Avoid unused parameter warning.
+            return false;
+        }
 };
 
 

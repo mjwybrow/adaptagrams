@@ -1350,6 +1350,18 @@ bool VariableIDMap::addMappingForVariable(const unsigned from,
     return false;
 }
 
+void VariableIDMap::printCreationCode(FILE *fp) const
+{
+    fprintf(fp, "    cola::VariableIDMap idMap;\n");
+    for (IDPairList::const_iterator it = m_mapping.begin();
+            it != m_mapping.end(); ++it)
+    {
+        fprintf(fp, "    idMap.addMappingForVariable(%u, %u);\n", 
+                it->first, it->second);
+    }
+    fprintf(fp, "    \n");
+}
+
 unsigned VariableIDMap::getMappingForVariable(const unsigned var) const
 {
     for (IDPairList::const_iterator it = m_mapping.begin(); 

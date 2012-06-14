@@ -4501,12 +4501,12 @@ int main(void) {
     {
          idMap.addMappingForVariable(i, i + 1);
     }
-    topology::AvoidTopologyAddon topologyAddon(ccs, cluster140043788768352, 
+    topology::AvoidTopologyAddon topologyAddon(rs, ccs, cluster140043788768352, 
 		    idMap);
     router->setTopologyAddon(&topologyAddon);
 
     router->processTransaction();
-    router->outputInstanceToSVG();
+    //router->outputInstanceToSVG("test-orthogonalOpt");
     delete router;
     return 0;
 };

@@ -1212,6 +1212,8 @@ void ConstrainedFDLayout::outputInstanceToSVG(std::string instanceName)
     if (clusterHierarchy)
     {
         clusterHierarchy->printCreationCode(fp);
+        fprintf(fp, "    alg.setClusterHierarchy(cluster%llu);\n",
+                (unsigned long long) clusterHierarchy);
     }
     fprintf(fp, "    alg.setConstraints(ccs);\n");
     fprintf(fp, "    alg.makeFeasible();\n");

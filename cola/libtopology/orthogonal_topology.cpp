@@ -1501,9 +1501,11 @@ class CmpLineOrder
         const size_t dimension;
 };
 
-AvoidTopologyAddon::AvoidTopologyAddon(cola::CompoundConstraints& cs, 
-        cola::RootCluster *ch, cola::VariableIDMap& map)
+AvoidTopologyAddon::AvoidTopologyAddon(vpsc::Rectangles& rs,
+        cola::CompoundConstraints& cs, cola::RootCluster *ch,
+        cola::VariableIDMap& map)
     : Avoid::TopologyAddonInterface(),
+      rectangles(rs),
       constraints(cs),
       clusterHierarchy(ch),
       idMap(map)
@@ -1546,6 +1548,48 @@ void AvoidTopologyAddon::improveOrthogonalTopology(Router *router)
     }
 
     //router->timers.Stop();
+}
+
+
+bool AvoidTopologyAddon::outputCode(FILE *fp) const
+{
+    if (fp)
+    {
+        fprintf(fp, "    CompoundConstraints ccs;\n");
+        fprintf(fp, "    std::vector<vpsc::Rectangle*> rs;\n");
+        fprintf(fp, "    vpsc::Rectangle *rect = NULL;\n\n");
+        for (size_t i = 0; i < rectangles.size(); ++i)
+        {
+            fprintf(fp, "    rect = new vpsc::Rectangle(%g, %g, %g, %g);\n",
+                   rectangles[i]->getMinX(), rectangles[i]->getMaxX(),
+                   rectangles[i]->getMinY(), rectangles[i]->getMaxY());
+            fprintf(fp, "    rs.push_back(rect);\n\n");
+        }
+    
+        for (cola::CompoundConstraints::const_iterator c = constraints.begin(); 
+                c != constraints.end(); ++c)
+        {
+            (*c)->printCreationCode(fp);
+        }
+
+        if (clusterHierarchy)
+        {
+            clusterHierarchy->printCreationCode(fp);
+        }
+        else
+        {
+            fprintf(fp, "    RootCluster *cluster%llu = NULL;\n\n",
+                    (unsigned long long) clusterHierarchy);
+        }
+
+        idMap.printCreationCode(fp);
+
+        fprintf(fp, "    topology::AvoidTopologyAddon topologyAddon(rs, ccs, "
+                "cluster%llu, idMap);\n", 
+                (unsigned long long) clusterHierarchy);
+        fprintf(fp, "    router->setTopologyAddon(&topologyAddon);\n");
+    }
+    return true;
 }
 
 

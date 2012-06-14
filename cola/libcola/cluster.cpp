@@ -362,8 +362,6 @@ void RootCluster::printCreationCode(FILE *fp) const
         fprintf(fp, "    cluster%llu->clusters.push_back(cluster%llu);\n",
                 (unsigned long long) this, (unsigned long long) *i);
     }
-    fprintf(fp, "    alg.setClusterHierarchy(cluster%llu);\n",
-            (unsigned long long) this);
 }
 
 

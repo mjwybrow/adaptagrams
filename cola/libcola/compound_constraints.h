@@ -103,6 +103,7 @@ class VariableIDMap
         unsigned getMappingForVariable(const unsigned var) const;
         unsigned getReverseMappingForVariable(const unsigned var) const;
         void clear(void);
+        void printCreationCode(FILE *fp) const;
 
     private:
         std::list<std::pair<unsigned, unsigned> > m_mapping;

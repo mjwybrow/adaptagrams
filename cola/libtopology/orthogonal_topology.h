@@ -35,14 +35,17 @@ namespace topology {
 class AvoidTopologyAddon : public Avoid::TopologyAddonInterface
 {
     public:
-        AvoidTopologyAddon(cola::CompoundConstraints& cs, 
+        AvoidTopologyAddon(vpsc::Rectangles& rs, cola::CompoundConstraints& cs, 
                 cola::RootCluster *ch, cola::VariableIDMap& map);
         ~AvoidTopologyAddon();
         Avoid::TopologyAddonInterface *clone(void) const;
 
         void improveOrthogonalTopology(Avoid::Router *router);
+        bool outputCode(FILE *fp) const;
 
     private:
+        vpsc::Rectangles rectangles;  // Currently unused, for debugging.
+
         cola::CompoundConstraints constraints;
         cola::RootCluster *clusterHierarchy;
         cola::VariableIDMap idMap;

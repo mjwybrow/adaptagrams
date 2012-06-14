@@ -2194,6 +2194,12 @@ void Router::outputInstanceToSVG(std::string instanceName)
     // Output source code to generate this instance of the router.
     fprintf(fp, "<!-- Source code to generate this instance:\n");
     fprintf(fp, "#include \"libavoid/libavoid.h\"\n");
+    if (m_topology_addon->outputCode(NULL))
+    {
+        fprintf(fp, "#include \"libcola/cola.h\"\n");
+        fprintf(fp, "#include \"libtopology/orthogonal_topology.h\"\n");
+        fprintf(fp, "using namespace cola;\n");
+    }
     fprintf(fp, "using namespace Avoid;\n");
     fprintf(fp, "int main(void) {\n");
     fprintf(fp, "    Router *router = new Router(\n");
@@ -2240,6 +2246,9 @@ void Router::outputInstanceToSVG(std::string instanceName)
         connRef->outputCode(fp);
         ++revConnRefIt;
     }
+
+    m_topology_addon->outputCode(fp);
+
     fprintf(fp, "    router->processTransaction();\n");
     fprintf(fp, "    router->outputInstanceToSVG();\n");
     fprintf(fp, "    delete router;\n");
