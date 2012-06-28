@@ -54,7 +54,9 @@ class VertInf;
 //! Pins have a visibility direction and numeric class ID (e.g., to specify 
 //! types of pins such as "input" or "output").  They may optionally have a 
 //! priority which means when routing connectors to a particular class ID then
-//! one pin will be selected over another.
+//! one pin will be selected over another, rather than libavoid just choosing 
+//! the best pin with that classId.  You can also give each pin a unique 
+//! classId if you want to attach connectors to particular pins.
 //! 
 //! Pins have a position that is specified relative to its parent shape.  
 //! Then the shape is moved or resized, The pin will be automatically moved 
