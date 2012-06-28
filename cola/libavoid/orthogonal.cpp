@@ -57,6 +57,7 @@ static const int fixedID   = 1;
 // Weights:
 static const double freeWeight   = 0.00001;
 static const double strongWeight = 0.001;
+static const double strongerWeight = 1.0;
 static const double fixedWeight  = 100000;
 
 
@@ -318,6 +319,7 @@ class NudgingShiftSegment : public ShiftSegment
               fixed(false),
               finalSegment(false),
               endsInShape(false),
+              singleConnectedSegment(false),
               containsCheckpoint(false),
               sBend(isSBend),
               zBend(isZBend)
@@ -336,6 +338,7 @@ class NudgingShiftSegment : public ShiftSegment
               fixed(true),
               finalSegment(false),
               endsInShape(false),
+              singleConnectedSegment(false),
               containsCheckpoint(false),
               sBend(false),
               zBend(false)
@@ -383,6 +386,14 @@ class NudgingShiftSegment : public ShiftSegment
             if (nudgeFinalSegments && finalSegment)
             {
                 weight = strongWeight;
+                
+                if (singleConnectedSegment)
+                {
+                    // This is a single segment connector bridging
+                    // two shapes.  So, we want to try to keep it
+                    // centred rather than shift it.
+                    weight = strongerWeight;
+                }
             }
             else if (containsCheckpoint)
             {
@@ -578,6 +589,7 @@ class NudgingShiftSegment : public ShiftSegment
         bool fixed;
         bool finalSegment;
         bool endsInShape;
+        bool singleConnectedSegment;
         bool containsCheckpoint;
     private:
         bool sBend;
@@ -2230,7 +2242,9 @@ static void buildOrthogonalNudgingSegments(Router *router,
                             }
                         }
 
-                        bool withinShape = false;
+                        // Bitflags indicating whether this segment starts 
+                        // and/or ends in a shape.
+                        unsigned int endsInShapes = 0;
                         // Also limit their movement to the edges of the 
                         // shapes they begin or end within.
                         for (size_t k = 0; k < shapeLimits.size(); ++k)
@@ -2242,18 +2256,18 @@ static void buildOrthogonalNudgingSegments(Router *router,
                             {
                                 minLim = std::max(minLim, shapeMin);
                                 maxLim = std::min(maxLim, shapeMax);
-                                withinShape = true;
+                                endsInShapes |= 0x01;
                             }
                             if (insideRectBounds(displayRoute.ps[i], 
                                         shapeLimits[k]))
                             {
                                 minLim = std::max(minLim, shapeMin);
                                 maxLim = std::min(maxLim, shapeMax);
-                                withinShape = true;
+                                endsInShapes |= 0x10;
                             }
                         }
 
-                        if ( ! withinShape )
+                        if ( endsInShapes == 0 )
                         {
                             // If the segment is not within a shape, then we
                             // should limit it's nudging buffer so we don't
@@ -2277,7 +2291,15 @@ static void buildOrthogonalNudgingSegments(Router *router,
                                     *curr, indexLow, indexHigh, false, false, dim, 
                                     minLim, maxLim);
                             segment->finalSegment = true;
-                            segment->endsInShape = withinShape;
+                            segment->endsInShape = (endsInShapes > 0);
+                            if ((displayRoute.size() == 2) && 
+                                    (endsInShapes = 0x11))
+                            {
+                                // This is a single segment connector bridging
+                                // two shapes.  So, we want to try to keep the
+                                // segment centred rather than shift it.
+                                segment->singleConnectedSegment = true;
+                            }
                             segmentList.push_back(segment);
                         }
                     }
