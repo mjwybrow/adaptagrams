@@ -24,7 +24,30 @@ libavoid_la_SOURCES = connectionpin.cpp \
 			mtst.cpp \
 			hyperedgetree.cpp \
 			scanline.cpp \
-			libavoid.h
+			assertions.h \
+			connector.h \
+			connectionpin.h \
+			connend.h \
+			debug.h \
+			geometry.h \
+			geomtypes.h \
+			graph.h \
+			junction.h \
+			libavoid.h \
+			makepath.h \
+			obstacle.h \
+			orthogonal.h \
+			router.h \
+			shape.h \
+			timer.h \
+			vertices.h \
+			viscluster.h \
+			visibility.h \
+			hyperedge.h \
+			mtst.h \
+			hyperedgetree.h \
+			scanline.h \
+			vpsc.h
 
 libavoidincludedir = ${includedir}/libavoid
 libavoidinclude_HEADERS = assertions.h \
