@@ -140,7 +140,7 @@ void Timer::PrintAll(FILE *fp)
 
 void Timer::PrintHyperedgePaper(FILE *fp)
 {
-    printf("%5lld & %5lld & %5lld & %5lld\n\n",
+    fprintf(fp, "%5lld & %5lld & %5lld & %5lld\n\n",
         toMsec(cTotal[tmOrthogGraph]),
         toMsec(cTotal[tmHyperedgeForest] + cTotal[tmHyperedgeMTST]),
         toMsec(cTotal[tmHyperedgeAlt]),

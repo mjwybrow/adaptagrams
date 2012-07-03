@@ -640,12 +640,10 @@ void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar, VertInf *start)
             
             // Correct all the pathNext pointers.
             ANode curr;
-            int currIndex = DONE_size - 1;
             for (curr = BestNode; curr.prevIndex > 0; 
                     curr = DONE[curr.prevIndex])
             {
                 curr.inf->pathNext = DONE[curr.prevIndex].inf;
-                currIndex = curr.prevIndex;
             }
             // Check that we've gone through the complete path.
             COLA_ASSERT(curr.prevIndex == 0);

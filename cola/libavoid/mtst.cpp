@@ -34,6 +34,7 @@
 #include <cfloat>
 #include <vector>
 #include <algorithm>
+#include <cstring>
 
 
 #include "libavoid/hyperedgetree.h"
@@ -803,7 +804,8 @@ void MinimumTerminalSpanningTree::constructInterleaved(void)
     if (debug_fp)
     {
         fprintf(debug_fp, "</g>\n</g>\n");
-        printf("-- %lu %lu %lu\n", origTerminals.size(), vHeap.size(), beHeap.size());
+        //printf("-- %d %d %d\n", (int) origTerminals.size(), 
+        //        (int) vHeap.size(), (int) beHeap.size());
     }
     router->timers.Stop();
 

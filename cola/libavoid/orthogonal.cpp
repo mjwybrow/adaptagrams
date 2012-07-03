@@ -1631,6 +1631,7 @@ static void processEventVert(Router *router, NodeSet& scanline,
             size_t result;
             result = scanline.erase(v);
             COLA_ASSERT(result == 1);
+            COLA_UNUSED(result);  // Avoid warning.
             delete v;
         }
     }
@@ -1773,6 +1774,7 @@ static void processEventHori(Router *router, NodeSet& scanline,
             size_t result;
             result = scanline.erase(v);
             COLA_ASSERT(result == 1);
+            COLA_UNUSED(result);  // Avoid warning.
             delete v;
         }
     }
@@ -2072,6 +2074,7 @@ static void processShiftEvent(NodeSet& scanline, Event *e, size_t dim,
         size_t result;
         result = scanline.erase(v);
         COLA_ASSERT(result == 1);
+        COLA_UNUSED(result);  // Avoid warning.
         delete v;
     }
 }
