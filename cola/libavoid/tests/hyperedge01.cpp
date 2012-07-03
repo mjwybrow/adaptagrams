@@ -10,17 +10,6 @@ int main(void) {
     //router->setRoutingPenalty((PenaltyType)4, 110);
     router->setOrthogonalNudgeDistance(25);
 
-    Polygon poly219926511(4);
-    poly219926511.ps[0] = Point(50760, 51240);
-    poly219926511.ps[1] = Point(50760, 51260);
-    poly219926511.ps[2] = Point(50740, 51260);
-    poly219926511.ps[3] = Point(50740, 51240);
-    ShapeRef *shapeRef219926511 = new ShapeRef(router, poly219926511, 219926511);
-    new ShapeConnectionPin(shapeRef219926511, 2147483646, 0.5, 0.5, 0, (ConnDirFlags) 4);
-    new ShapeConnectionPin(shapeRef219926511, 2147483646, 0.5, 0.5, 0, (ConnDirFlags) 1);
-    new ShapeConnectionPin(shapeRef219926511, 2147483646, 0.5, 0.5, 0, (ConnDirFlags) 8);
-    new ShapeConnectionPin(shapeRef219926511, 2147483646, 0.5, 0.5, 0, (ConnDirFlags) 2);
-
     JunctionRef *shapeRef171026375 = new JunctionRef(router, Point(51075, 51225), 171026375);
 
     Polygon poly878674(4);
@@ -50,17 +39,6 @@ int main(void) {
     poly342721632.ps[2] = Point(51825, 51004);
     poly342721632.ps[3] = Point(51825, 50946);
     new ShapeRef(router, poly342721632, 342721632);
-
-    Polygon poly223927132(4);
-    poly223927132.ps[0] = Point(51510, 51190);
-    poly223927132.ps[1] = Point(51510, 51210);
-    poly223927132.ps[2] = Point(51490, 51210);
-    poly223927132.ps[3] = Point(51490, 51190);
-    ShapeRef *shapeRef223927132 = new ShapeRef(router, poly223927132, 223927132);
-    new ShapeConnectionPin(shapeRef223927132, 2147483646, 0.5, 0.5, 0, (ConnDirFlags) 4);
-    new ShapeConnectionPin(shapeRef223927132, 2147483646, 0.5, 0.5, 0, (ConnDirFlags) 1);
-    new ShapeConnectionPin(shapeRef223927132, 2147483646, 0.5, 0.5, 0, (ConnDirFlags) 8);
-    new ShapeConnectionPin(shapeRef223927132, 2147483646, 0.5, 0.5, 0, (ConnDirFlags) 2);
 
     JunctionRef *shapeRef102578723 = new JunctionRef(router, Point(51275, 50725), 102578723);
 
@@ -300,9 +278,6 @@ int main(void) {
     
     router->processTransaction();
     router->outputInstanceToSVG("test-hyperedge01-2");
-
-    router->processTransaction();
-    router->outputInstanceToSVG("test-hyperedge01-3");
 
     delete router;
     return 0;

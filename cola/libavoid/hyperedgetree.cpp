@@ -565,8 +565,11 @@ void HyperEdgeTreeEdge::addConns(HyperEdgeTreeNode *ignored, Router *router,
                 break;
             }
         }
-        COLA_ASSERT(result);
-        conn->updateEndPoint(VertID::tar, connend);
+        if (result)
+        {
+            // XXX: Create new conn here.
+            conn->updateEndPoint(VertID::tar, connend);
+        }
     }
     else if (endNode->junction)
     {

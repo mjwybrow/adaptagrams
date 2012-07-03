@@ -29,6 +29,7 @@
 #include "libavoid/connector.h"
 #include "libavoid/vertices.h"
 #include "libavoid/connend.h"
+#include "libavoid/shape.h"
 #include "libavoid/router.h"
 #include "libavoid/assertions.h"
 
@@ -262,6 +263,38 @@ ConnRefSet HyperedgeRerouter::calcHyperedgeConnectors(void)
     return allRegisteredHyperedgeConns;
 }
 
+#ifdef HYPEREDGE_DEBUG
+static const double LIMIT = 100000000;
+
+static void reduceRange(double& val)
+{
+    val = std::min(val, LIMIT);
+    val = std::max(val, -LIMIT);
+}
+
+#if 0
+static bool shapeContainsEndpointVertex(Obstacle *obstacle)
+{
+    Router *router = obstacle->router();
+    ShapeRef *shape = dynamic_cast<ShapeRef *> (obstacle);
+
+    if (!router || !shape)
+    {
+        return false;
+    }
+
+    for (VertInf *k = router->vertices.connsBegin(); 
+            k != router->vertices.shapesBegin(); k = k->lstNext)
+    {
+        if (inPolyGen(shape->polygon(), k->point))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+#endif
+#endif
 
 void HyperedgeRerouter::performRerouting(void)
 {
@@ -272,6 +305,111 @@ void HyperedgeRerouter::performRerouting(void)
     m_new_connectors_vector.clear();
     m_new_connectors_vector.resize(count());
 
+#ifdef HYPEREDGE_DEBUG
+    double minX = LIMIT;
+    double minY = LIMIT;
+    double maxX = -LIMIT;
+    double maxY = -LIMIT;
+
+    VertInf *curr = m_router->vertices.connsBegin();
+    while (curr)
+    {
+        Point p = curr->point;
+
+        reduceRange(p.x);
+        reduceRange(p.y);
+        
+        if (p.x > -LIMIT)
+        {
+            minX = std::min(minX, p.x);
+        }
+        if (p.x < LIMIT)
+        {
+            maxX = std::max(maxX, p.x);
+        }
+        if (p.y > -LIMIT)
+        {
+            minY = std::min(minY, p.y);
+        }
+        if (p.y < LIMIT)
+        {
+            maxY = std::max(maxY, p.y);
+        }
+        curr = curr->lstNext;
+    }
+    minX -= 8;
+    minY -= 8;
+    maxX += 8;
+    maxY += 8;
+
+    FILE *fp = fopen("hyperedge-debug.svg", "w");
+    fprintf(fp, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+    // width=\"100%%\" height=\"100%%\" 
+    fprintf(fp, "<svg xmlns:inkscape=\"http://www.inkscape.org/namespaces/inkscape\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"%g %g %g %g\">\n", minX, minY, maxX - minX, maxY - minY);
+    fprintf(fp, "<defs>\n");
+    fprintf(fp, "<style type=\"text/css\" ><![CDATA[\n");
+    fprintf(fp, ".shape { stroke-width: 1px; stroke: black; fill: blue; stroke-opacity: 0.50; fill-opacity: 0.50; }\n");
+    fprintf(fp, ".graph { opacity: 0; fill: none; stroke: red; stroke-width: 1px; }\n");
+    fprintf(fp, ".forest { fill: none; stroke: purple; stroke-width: 1px; }\n");
+    fprintf(fp, ".hyperedge { fill: none; stroke-width: 1px; }\n");
+    fprintf(fp, "]]></style>\n");
+    fprintf(fp, "</defs>\n");
+
+    fprintf(fp, "<g inkscape:groupmode=\"layer\" "
+            "inkscape:label=\"ShapesRect\">\n");
+    ObstacleList::iterator obstacleIt = m_router->m_obstacles.begin();
+    double shapePad = 5;
+    while (obstacleIt != m_router->m_obstacles.end())
+    {
+        Obstacle *obstacle = *obstacleIt;
+        bool isShape = (NULL != dynamic_cast<ShapeRef *> (obstacle));
+
+        if ( ! isShape )
+        {
+            // Don't output obstacles here, for now.
+            ++obstacleIt;
+            continue;
+        }
+
+        double minX, minY, maxX, maxY;
+        obstacle->polygon().getBoundingRect(&minX, &minY, &maxX, &maxY);
+
+        fprintf(fp, "<rect id=\"rect-%u\" x=\"%g\" y=\"%g\" width=\"%g\" "
+                "height=\"%g\" class=\"shape\" />\n",
+                obstacle->id(), minX + shapePad, minY + shapePad, 
+                maxX - minX - (shapePad * 2),
+                maxY - minY - (shapePad * 2));
+        // shapeContainsEndpointVertex(obstacle) ? "style=\"fill: green;\"" : "");
+        ++obstacleIt;
+    }
+    fprintf(fp, "</g>\n");
+
+    fprintf(fp, "<g inkscape:groupmode=\"layer\" "
+            "id=\"graph\" style=\"display: none;\" "
+            "inkscape:label=\"OrthogVisGraph\">\n");
+    EdgeInf *finish = m_router->visOrthogGraph.end();
+    for (EdgeInf *t = m_router->visOrthogGraph.begin(); t != finish; t = t->lstNext)
+    {
+        std::pair<Point, Point> ptpair = t->points();
+        Point p1 = ptpair.first;
+        Point p2 = ptpair.second;
+        
+        reduceRange(p1.x);
+        reduceRange(p1.y);
+        reduceRange(p2.x);
+        reduceRange(p2.y);
+        
+        std::pair<VertID, VertID> ids = t->ids();
+
+        // (ids.first.isConnPt() || ids.second.isConnPt()) ? "style=\"stroke: green\" " : ""
+        fprintf(fp, "<path class=\"graph\" d=\"M %g %g L %g %g\" "
+                "%s />\n", p1.x, p1.y, p2.x, p2.y,
+                ""
+                );
+    }
+    fprintf(fp, "</g>\n");
+#endif
+    
     // For each hyperedge...
     const size_t num_hyperedges = count();
     for (size_t i = 0; i < num_hyperedges; ++i)
@@ -279,9 +417,17 @@ void HyperedgeRerouter::performRerouting(void)
         // Execute the MTST method to find good junction positions and an
         // initial path.  A hyperedge tree will be build for the new route.
         JunctionHyperEdgeTreeNodeMap hyperEdgeTreeJunctions;
-        MinimumTerminalSpanningTree mtst(m_router, m_terminal_vertices_vector[i],
-                &hyperEdgeTreeJunctions);
-        mtst.execute();
+        MinimumTerminalSpanningTree mtst(m_router, 
+                m_terminal_vertices_vector[i], &hyperEdgeTreeJunctions);
+#ifdef HYPEREDGE_DEBUG
+        mtst.setDebuggingOutput(fp, i);
+#endif
+        // The older MTST construction method (faster, worse results).
+        //mtst.constructSequential();
+        
+        // The preferred MTST construction method.
+        // Slightly slower, better quality results.
+        mtst.constructInterleaved();
 
         HyperEdgeTreeNode *treeRoot = mtst.rootJunction();
         COLA_ASSERT(treeRoot);
@@ -304,12 +450,14 @@ void HyperedgeRerouter::performRerouting(void)
 
         // Tell the router that we are deleting the objects used for the
         // previous path for the hyperedge.
-        for (ConnRefList::iterator curr = m_deleted_connectors_vector[i].begin();
+        for (ConnRefList::iterator curr = 
+                m_deleted_connectors_vector[i].begin();
                 curr != m_deleted_connectors_vector[i].end(); ++curr)
         {
             m_router->deleteConnector(*curr);
         }
-        for (JunctionRefList::iterator curr = m_deleted_junctions_vector[i].begin();
+        for (JunctionRefList::iterator curr = 
+                m_deleted_junctions_vector[i].begin();
                 curr != m_deleted_junctions_vector[i].end(); ++curr)
         {
             m_router->deleteJunction(*curr);
@@ -330,6 +478,10 @@ void HyperedgeRerouter::performRerouting(void)
         delete *curr;
     }
     m_added_vertices.clear();
+#ifdef HYPEREDGE_DEBUG
+    fprintf(fp, "</svg>\n");
+    fclose(fp);
+#endif
 }
 
 

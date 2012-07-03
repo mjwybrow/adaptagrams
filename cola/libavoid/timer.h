@@ -65,6 +65,7 @@ enum TimerIndex
     tmHyperedgeForest,
     tmHyperedgeMTST,
     tmHyperedgeImprove,
+    tmHyperedgeAlt,
     tmCount
 };
 
@@ -83,6 +84,7 @@ class Timer
         void Reset(void);
         void Print(TimerIndex, FILE *fp);
         void PrintAll(FILE *fp);
+        void PrintHyperedgePaper(FILE *fp);
 
     private:
         clock_t cStart[tmCount];

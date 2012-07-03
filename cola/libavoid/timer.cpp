@@ -135,9 +135,17 @@ void Timer::PrintAll(FILE *fp)
     }
 }
 
-
 #define toMsec(tot) ((bigclock_t) ((tot) / (((double) CLOCKS_PER_SEC) / 1000)))
 #define toAvg(tot, cnt) ((((cnt) > 0) ? ((long double) (tot)) / (cnt) : 0))
+
+void Timer::PrintHyperedgePaper(FILE *fp)
+{
+    printf("%5lld & %5lld & %5lld & %5lld\n\n",
+        toMsec(cTotal[tmOrthogGraph]),
+        toMsec(cTotal[tmHyperedgeForest] + cTotal[tmHyperedgeMTST]),
+        toMsec(cTotal[tmHyperedgeAlt]),
+        toMsec(cTotal[tmHyperedgeImprove]));
+}
 
 void Timer::Print(const TimerIndex t, FILE *fp)
 {
@@ -146,7 +154,7 @@ void Timer::Print(const TimerIndex t, FILE *fp)
    bigclock_t pavg = toMsec(toAvg(cPath[t], cTally[t]));
    double max = toMsec(cMax[t]); 
    double pmax = toMsec(cPathMax[t]);
-   fprintf(fp, "\t%lld %d %lld %.0f %lld %d %lld %.0f %lld\n",
+   fprintf(fp, "%lld %d %lld %.0f %lld %d %lld %.0f %lld\n",
            cTotal[t], cTally[t], avg, max,
            cPath[t], cPathTally[t], pavg, pmax, pind);
 }

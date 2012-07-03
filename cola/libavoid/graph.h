@@ -70,13 +70,17 @@ class EdgeInf
                 bool knownNew = false);
         static EdgeInf *existingEdge(VertInf *i, VertInf *j);
         int blocker(void) const;
+        
+        bool isHyperedgeSegment(void) const;
+        void setHyperedgeSegment(const bool hyperedge);
         double mtstDist(void) const;
-        void setMtstDist(VertInf *from, const double bendCost);
+        void setMtstDist(const double joinCost);
 
         EdgeInf *lstPrev;
         EdgeInf *lstNext;
     private:
         friend class MinimumTerminalSpanningTree;
+        friend class VertInf;
 
         void makeActive(void);
         void makeInactive(void);
@@ -88,6 +92,7 @@ class EdgeInf
         bool m_added;
         bool m_visible;
         bool m_orthogonal;
+        bool m_isHyperedgeSegment;
         VertInf *m_vert1;
         VertInf *m_vert2;
         EdgeInfList::iterator m_pos1;

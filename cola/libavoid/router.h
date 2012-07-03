@@ -648,6 +648,7 @@ class Router {
         friend class MinimumTerminalSpanningTree;
         friend class ConnEnd;
         friend struct HyperEdgeTreeNode;
+        friend class HyperedgeRerouter;
 
         unsigned int assignId(const unsigned int suggestedId);
         void addShape(ShapeRef *shape);

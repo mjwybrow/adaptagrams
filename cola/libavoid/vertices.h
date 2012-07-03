@@ -31,15 +31,18 @@
 #include <map>
 #include <iostream>
 #include <cstdio>
+#include <utility>
 
 #include "libavoid/geomtypes.h"
 
 namespace Avoid {
 
 class EdgeInf;
+class VertInf;
 class Router;
 
 typedef std::list<EdgeInf *> EdgeInfList;
+typedef std::pair<VertInf *, VertInf *> VertexPair;
 
 typedef unsigned int ConnDirFlags;
 typedef unsigned short VertIDProps;
@@ -122,8 +125,18 @@ class VertInf
         unsigned int pathLeadsBackTo(const VertInf *start) const;
 
         // Checks if this vertex has the target as a visibility neighbour.
-        bool hasNeighbour(VertInf *target, bool orthogonal) const;
-        
+        EdgeInf *hasNeighbour(VertInf *target, bool orthogonal) const;
+        void orphan(void);
+
+        VertInf **makeTreeRootPointer(VertInf *root);
+        VertInf *treeRoot(void) const;
+        VertInf **treeRootPointer(void) const;
+        void setTreeRootPointer(VertInf **pointer);
+        void clearTreeRootPointer(void);
+
+        void setSPTFRoot(VertInf *root);
+        VertInf *sptfRoot(void) const;
+
         Router *_router;
         VertID id;
         Point  point;
@@ -140,7 +153,12 @@ class VertInf
         VertInf *pathNext;
 
         // The tree root and distance value used when computing MTSTs.
-        VertInf *sptfRoot;
+        // XXX: Maybe these should be allocated as a separate struct
+        //      and referenced via a pointer.  This would be slower due
+        //      to memory allocation, but would save 2 x 8 = 24 bytes per 
+        //      VertInf on 64-bit machines.
+        VertInf *m_orthogonalPartner;
+        VertInf **m_treeRoot;
         double sptfDist;
 
         ConnDirFlags visDirections;

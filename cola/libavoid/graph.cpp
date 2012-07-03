@@ -48,6 +48,7 @@ EdgeInf::EdgeInf(VertInf *v1, VertInf *v2, const bool orthogonal)
       m_added(false),
       m_visible(false),
       m_orthogonal(orthogonal),
+      m_isHyperedgeSegment(false),
       m_vert1(v1),
       m_vert2(v2),
       m_dist(-1)
@@ -273,29 +274,24 @@ void EdgeInf::setDist(double dist)
 }
 
 
-void EdgeInf::setMtstDist(VertInf *from, const double bendCost)
+void EdgeInf::setMtstDist(const double joinCost)
 {
-    VertInf *other = otherVert(from);
-
-    // The default cost is the cost back to the root of each forest plus the
-    // length of this edge.
-    double cost = m_vert1->sptfDist + m_vert2->sptfDist + getDist();
-
-    // If the other end is connecting to a forest via a bend, then add a
-    // penalty for it.  Note, the penalty is already added for the side
-    // we are connecting from.
-    if (other->pathNext && ! colinear(other->pathNext->point,
-            other->point, from->point))
-    {
-        cost += bendCost;
-    }
-
-    m_mtst_dist = cost;
+    m_mtst_dist = joinCost;
 }
 
 double EdgeInf::mtstDist(void) const
 {
     return m_mtst_dist;
+}
+
+bool EdgeInf::isHyperedgeSegment(void) const
+{
+    return m_isHyperedgeSegment;
+}
+
+void EdgeInf::setHyperedgeSegment(const bool hyperedge)
+{
+    m_isHyperedgeSegment = hyperedge;
 }
 
 bool EdgeInf::added(void)
@@ -570,7 +566,7 @@ bool EdgeInf::isDummyConnection(void) const
 }
 
 
-VertInf *EdgeInf::otherVert(const VertInf *vert) const 
+VertInf *EdgeInf::otherVert(const VertInf *vert) const
 {
     COLA_ASSERT((vert == m_vert1) || (vert == m_vert2));
 

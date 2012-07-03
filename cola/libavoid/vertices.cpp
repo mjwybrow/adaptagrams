@@ -166,6 +166,8 @@ VertInf::VertInf(Router *router, const VertID& vid, const Point& vpoint,
       orthogVisListSize(0),
       invisListSize(0),
       pathNext(NULL),
+      m_orthogonalPartner(NULL),
+      m_treeRoot(NULL),
       visDirections(ConnDirNone),
       orthogVisPropFlags(0)
 {
@@ -185,19 +187,18 @@ VertInf::~VertInf()
 }
 
 
-bool VertInf::hasNeighbour(VertInf *target, bool orthogonal) const
+EdgeInf *VertInf::hasNeighbour(VertInf *target, bool orthogonal) const
 {
     const EdgeInfList& visEdgeList = (orthogonal) ? orthogVisList : visList;
     EdgeInfList::const_iterator finish = visEdgeList.end();
-    for (EdgeInfList::const_iterator edge = visEdgeList.begin(); 
-            edge != finish; ++edge)
+    for (EdgeInfList::const_iterator edge = visEdgeList.begin(); edge != finish; ++edge)
     {
         if ((*edge)->otherVert(this) == target)
         {
-            return true;
+            return *edge;
         }
     }
-    return false;
+    return NULL;
 }
 
 void VertInf::Reset(const VertID& vid, const Point& vpoint)
@@ -258,6 +259,33 @@ void VertInf::removeFromGraph(const bool isConnVert)
 }
 
 
+void VertInf::orphan(void)
+{
+    // For each vertex.
+    EdgeInfList::const_iterator finish = visList.end();
+    EdgeInfList::const_iterator edge;
+    while ((edge = visList.begin()) != finish)
+    {
+        // Remove each visibility edge
+        (*edge)->makeInactive();
+    }
+
+    finish = orthogVisList.end();
+    while ((edge = orthogVisList.begin()) != finish)
+    {
+        // Remove each orthogonal visibility edge.
+        (*edge)->makeInactive();
+    }
+
+    finish = invisList.end();
+    while ((edge = invisList.begin()) != finish)
+    {
+        // Remove each invisibility edge
+        (*edge)->makeInactive();
+    }
+}
+
+
 // Number of points in path from end back to start, or zero if no path exists.
 //
 unsigned int VertInf::pathLeadsBackTo(const VertInf *start) const
@@ -277,6 +305,47 @@ unsigned int VertInf::pathLeadsBackTo(const VertInf *start) const
     }
     return pathlen;
 }
+
+VertInf **VertInf::makeTreeRootPointer(VertInf *root)
+{
+    m_treeRoot = (VertInf **) malloc(sizeof(VertInf *));
+    *m_treeRoot = root;
+    return m_treeRoot;
+}
+
+VertInf *VertInf::treeRoot(void) const
+{
+    return (m_treeRoot) ? *m_treeRoot : NULL;
+}
+
+VertInf **VertInf::treeRootPointer(void) const
+{
+    return m_treeRoot;
+}
+
+void VertInf::clearTreeRootPointer(void)
+{
+    m_treeRoot = NULL;
+}
+
+void VertInf::setTreeRootPointer(VertInf **pointer)
+{
+    m_treeRoot = pointer;
+}
+        
+void VertInf::setSPTFRoot(VertInf *root)
+{
+    // Use the m_treeRoot instance var, but as just a normal VertInf pointer.
+    m_treeRoot = (VertInf **) root;
+}
+
+
+VertInf *VertInf::sptfRoot(void) const
+{
+    // Use the m_treeRoot instance var, but as just a normal VertInf pointer.
+    return (VertInf *) m_treeRoot;
+}
+
 
 bool directVis(VertInf *src, VertInf *dst)
 {

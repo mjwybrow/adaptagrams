@@ -51,6 +51,7 @@ check_PROGRAMS = \
 	restrictedNudging \
 	performance01 \
 	hyperedge01 \
+	hyperedge02 \
 	improveHyperedge01 \
 	validPaths01 \
 	validPaths02 \
@@ -136,6 +137,7 @@ orthordering02_SOURCES = orthordering02.cpp
 tjunct_SOURCES = tjunct.cpp
 
 hyperedge01_SOURCES = hyperedge01.cpp
+hyperedge02_SOURCES = hyperedge02.cpp
 
 nudgeintobug_SOURCES = nudgeintobug.cpp
 
