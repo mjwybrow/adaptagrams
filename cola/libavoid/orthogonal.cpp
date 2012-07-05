@@ -505,12 +505,13 @@ class NudgingShiftSegment : public ShiftSegment
                 bool nudgeColinearSegments = connRef->router()->routingOption(
                         nudgeOrthogonalTouchingColinearSegments);
 
-                // The segments touch at one end, so count them as overlapping
-                // for nudging if they are both s-bends or both z-bends, i.e.,
-                // when the ordering would matter.
                 if ( (minSpaceLimit <= rhs->maxSpaceLimit) &&
                         (rhs->minSpaceLimit <= maxSpaceLimit) )
                 {
+                    // The segments could touch at one end, so count them as 
+                    // overlapping for nudging if they are both s-bends 
+                    // or both z-bends, i.e., when the ordering would 
+                    // matter.
                     if ((rhs->sBend && sBend) || (rhs->zBend && zBend))
                     {
                         return nudgeColinearSegments;
@@ -519,6 +520,14 @@ class NudgingShiftSegment : public ShiftSegment
                             (rhs->connRef == connRef))
                     {
                         return nudgeColinearSegments;
+                    }
+                    else if (connRef->router()->routingParameter(
+                            fixedSharedPathPenalty) > 0)
+                    {
+                        // Or if we are routing with a fixedSharedPathPenalty
+                        // then we don't want these segments to slide past
+                        // each other.
+                        return true;
                     }
                 }
             }
@@ -2796,7 +2805,8 @@ class PotentialSegmentConstraint
 };
 
 static void nudgeOrthogonalRoutes(Router *router, size_t dimension, 
-        PtOrderMap& pointOrders, ShiftSegmentList& segmentList)
+        PtOrderMap& pointOrders, ShiftSegmentList& segmentList, 
+        bool justUnifying = false)
 {
     bool nudgeFinalSegments = router->routingOption(
             nudgeOrthogonalSegmentsConnectedToShapes);
@@ -2805,7 +2815,6 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
     // If we can fit things with the desired separation distance, then
     // we try 10 times, reducing each time by a 10th of the original amount.
     double reductionSteps = 10.0;
-    bool justUnifying = pointOrders.empty();
 
     // Do the actual nudging.
     ShiftSegmentList currentRegion;
@@ -3196,15 +3205,16 @@ extern void improveOrthogonalRoutes(Router *router)
     // we want to keep apart which prevent some shared paths.
     if (router->routingParameter(fixedSharedPathPenalty) == 0)
     {
+        PtOrderMap pointOrders;
         for (size_t dimension = 0; dimension < 2; ++dimension)
         {
-            // Empty pointOrders, so no nudging is conducted.
-            PtOrderMap pointOrders;
-
+            // Just perform Unifying operation.
+            bool justUnifying = true;
             ShiftSegmentList segmentList;
             buildOrthogonalNudgingSegments(router, dimension, segmentList);
             buildOrthogonalChannelInfo(router, dimension, segmentList);
-            nudgeOrthogonalRoutes(router, dimension, pointOrders, segmentList);
+            nudgeOrthogonalRoutes(router, dimension, pointOrders, segmentList,
+                    justUnifying);
         }
     }
 
