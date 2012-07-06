@@ -376,7 +376,7 @@ class NudgingShiftSegment : public ShiftSegment
         {
             return ! zigzag();
         }
-        void createSolverVariable(void)
+        void createSolverVariable(const bool justUnifying)
         {
             bool nudgeFinalSegments = connRef->router()->routingOption(
                     nudgeOrthogonalSegmentsConnectedToShapes);
@@ -387,11 +387,15 @@ class NudgingShiftSegment : public ShiftSegment
             {
                 weight = strongWeight;
                 
-                if (singleConnectedSegment)
+                if (singleConnectedSegment && !justUnifying)
                 {
                     // This is a single segment connector bridging
                     // two shapes.  So, we want to try to keep it
                     // centred rather than shift it.
+                    // Don't do this during Unifying stage, or else 
+                    // these connectors could end up at slightly 
+                    // different positions and get the wrong ordering
+                    // for nudging.
                     weight = strongerWeight;
                 }
             }
@@ -2892,7 +2896,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             NudgingShiftSegment *currSegment = dynamic_cast<NudgingShiftSegment *> (*currSegmentIt);
             
             // Create a solver variable for the position of this segment.
-            currSegment->createSolverVariable();
+            currSegment->createSolverVariable(justUnifying);
             
             vs.push_back(currSegment->variable);
             size_t index = vs.size() - 1;

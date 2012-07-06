@@ -61,6 +61,7 @@ check_PROGRAMS = \
 	buildOrthogonalChannelInfo1 \
 	finalSegmentNudging1 \
 	finalSegmentNudging2 \
+	finalSegmentNudging3 \
 	checkpointNudging1 \
 	checkpointNudging2 \
 	nudgeCrossing01
@@ -74,6 +75,7 @@ checkpointNudging2_SOURCES = checkpointNudging2.cpp
 
 finalSegmentNudging1_SOURCES = finalSegmentNudging1.cpp
 finalSegmentNudging2_SOURCES = finalSegmentNudging2.cpp
+finalSegmentNudging3_SOURCES = finalSegmentNudging3.cpp
 
 buildOrthogonalChannelInfo1_SOURCES = buildOrthogonalChannelInfo1.cpp
 
