@@ -435,6 +435,13 @@ class NudgingShiftSegment : public ShiftSegment
                 return;
             }
             double newPos = variable->finalPosition;
+
+            // The solver can sometimes cause variables to be outside their
+            // limits by a tiny amount, since all variables are held by
+            // weights.  Thus, just make sure they stay in their limits.
+            newPos = std::max(newPos, minSpaceLimit);
+            newPos = std::min(newPos, maxSpaceLimit);
+
 #ifdef NUDGE_DEBUG
             printf("Pos: %lX, %g\n", (long) connRef, newPos);
 #endif
