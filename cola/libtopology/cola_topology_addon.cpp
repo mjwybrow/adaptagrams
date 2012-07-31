@@ -27,10 +27,13 @@
 
 #include "libvpsc/rectangle.h"
 #include "libvpsc/constraint.h"
-#include "libcola/cola_log.h"
 #include "libcola/compound_constraints.h"
 #include "libtopology/topology_constraints.h"
 #include "libtopology/cola_topology_addon.h"
+
+// Needs to come last since it will include windows.h on WIN32 and
+// may mess up C++ std library include on GCC 4.4
+#include "libcola/cola_log.h"
 
 namespace topology {
 

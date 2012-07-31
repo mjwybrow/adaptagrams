@@ -39,13 +39,16 @@
 #include "libcola/cola.h"
 #include "libcola/shortest_paths.h"
 #include "libcola/straightener.h"
-#include "libcola/cola_log.h"
 #include "libcola/cc_clustercontainmentconstraints.h"
 #include "libcola/cc_nonoverlapconstraints.h"
 
 #ifdef MAKEFEASIBLE_DEBUG
   #include "libcola/output_svg.h"
 #endif
+
+// Needs to come last since it will include windows.h on WIN32 and
+// may mess up C++ std library include on GCC 4.4
+#include "libcola/cola_log.h"
 
 using vpsc::XDIM;
 using vpsc::YDIM;
