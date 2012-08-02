@@ -370,7 +370,7 @@ class NudgingShiftSegment : public ShiftSegment
         }
         double nudgeDistance(void) const
         {
-            return connRef->router()->orthogonalNudgeDistance();
+            return connRef->router()->routingParameter(idealNudgingDistance);
         }
         bool immovable(void) const
         {
@@ -2145,7 +2145,7 @@ static void buildOrthogonalNudgingSegments(Router *router,
         const size_t n = router->m_obstacles.size();
         shapeLimits = std::vector<RectBounds>(n);
 
-        double nudgeDistance = router->orthogonalNudgeDistance();
+        double nudgeDistance = router->routingParameter(idealNudgingDistance);
 
         ObstacleList::iterator obstacleIt = router->m_obstacles.begin();
         for (unsigned i = 0; i < n; i++)
@@ -2821,7 +2821,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
 {
     bool nudgeFinalSegments = router->routingOption(
             nudgeOrthogonalSegmentsConnectedToShapes);
-    double baseSepDist = router->orthogonalNudgeDistance();
+    double baseSepDist = router->routingParameter(idealNudgingDistance);
     COLA_ASSERT(baseSepDist >= 0);
     // If we can fit things with the desired separation distance, then
     // we try 10 times, reducing each time by a 10th of the original amount.

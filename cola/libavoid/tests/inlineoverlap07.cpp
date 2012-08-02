@@ -9,7 +9,7 @@ int main(void) {
     router->setRoutingPenalty((PenaltyType)3, 4000);
     router->setRoutingPenalty((PenaltyType)4, 110);
     router->setRoutingPenalty((PenaltyType)5, 100);
-    router->setOrthogonalNudgeDistance(25);
+    router->setRoutingParameter(idealNudgingDistance, 25);
 
     Polygon poly186982048(4);
     poly186982048.ps[0] = Point(52660, 50490);

@@ -3,7 +3,7 @@ using namespace Avoid;
 int main(void) {
     Router *router = new Router(OrthogonalRouting);
     router->setRoutingPenalty(segmentPenalty, 50);
-    router->setOrthogonalNudgeDistance(10);
+    router->setRoutingParameter(idealNudgingDistance, 10);
     Rectangle rect47(Point(51145, 50195), Point(51145+360, 50195+685));
     new ShapeRef(router, rect47);
     Rectangle rect46(Point(51920, 49770), Point(51920+360, 49770+310));

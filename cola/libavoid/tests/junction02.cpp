@@ -7,7 +7,7 @@ int main(void) {
     router->setRoutingPenalty((PenaltyType)2, 0);
     router->setRoutingPenalty((PenaltyType)3, 4000);
     router->setRoutingPenalty((PenaltyType)4, 105);
-    router->setOrthogonalNudgeDistance(25);
+    router->setRoutingParameter(idealNudgingDistance, 25);
 
     JunctionRef *junction478845150 = new JunctionRef(router, Point(50700, 51075));
     

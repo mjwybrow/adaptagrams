@@ -9,7 +9,6 @@ int main(void) {
     router->setRoutingPenalty((PenaltyType)3, 4000);
     router->setRoutingPenalty((PenaltyType)4, 0);
     router->setRoutingOption(nudgeOrthogonalSegmentsConnectedToShapes, true);
-    router->setOrthogonalNudgeDistance(4);
 
     Polygon poly57(4);
     poly57.ps[0] = Point(-66.016, 38.6079);

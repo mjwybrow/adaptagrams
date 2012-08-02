@@ -155,7 +155,7 @@ class LayoutEdgeSegment : public ShiftSegment
         }
         double nudgeDistance(void) const
         {
-            return connRef->router()->orthogonalNudgeDistance();
+            return connRef->router()->routingParameter(idealNudgingDistance);
         }
         bool immovable(void) const
         {

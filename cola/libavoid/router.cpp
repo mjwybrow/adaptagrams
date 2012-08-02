@@ -61,7 +61,6 @@ Router::Router(const unsigned int flags)
       m_largest_assigned_id(0),
       m_consolidate_actions(true),
       m_currently_calling_destructors(false),
-      m_orthogonal_nudge_distance(4.0),
       m_slow_routing_callback(NULL),
       m_topology_addon(new TopologyAddonInterface()),
       // Mode options:
@@ -89,6 +88,7 @@ Router::Router(const unsigned int flags)
     m_routing_parameters[segmentPenalty] = 10;
     m_routing_parameters[clusterCrossingPenalty] = 4000;
     m_routing_parameters[portDirectionPenalty] = 100;
+    m_routing_parameters[idealNudgingDistance] = 4.0;
 
     m_routing_options[nudgeOrthogonalSegmentsConnectedToShapes] = false;
     m_routing_options[improveHyperedgeRoutesMovingJunctions] = true;
@@ -707,19 +707,6 @@ void Router::deleteCluster(ClusterRef *cluster)
     unsigned int pid = cluster->id();
     
     adjustClustersWithDel(pid);
-}
-
-
-void Router::setOrthogonalNudgeDistance(const double dist)
-{
-    COLA_ASSERT(dist >= 0);
-    m_orthogonal_nudge_distance = dist;
-}
-
-
-double Router::orthogonalNudgeDistance(void) const
-{
-    return m_orthogonal_nudge_distance;
 }
 
 
@@ -1662,7 +1649,7 @@ void Router::setRoutingParameter(const RoutingParameter parameter,
     COLA_ASSERT(parameter < lastRoutingParameterMarker);
     if (value < 0)
     {
-        // Set some sensible parameter value for the parameter being 'active'..
+        // Set some sensible parameter value for the parameter being 'active'.
         switch (parameter)
         {
             case segmentPenalty:
@@ -1679,6 +1666,9 @@ void Router::setRoutingParameter(const RoutingParameter parameter,
                 break;
             case clusterCrossingPenalty:
                 m_routing_parameters[parameter] = 4000;
+                break;
+            case idealNudgingDistance:
+                m_routing_parameters[parameter] = 4.0;
                 break;
             default:
                 m_routing_parameters[parameter] = 50;
@@ -2063,8 +2053,6 @@ void Router::outputInstanceToSVG(std::string instanceName)
         fprintf(fp, "    router->setRoutingOption((RoutingOption)%lu, %s);\n", 
                 (unsigned long)p, (m_routing_options[p]) ? "true" : "false");
     }
-    fprintf(fp, "    router->setOrthogonalNudgeDistance(%g);\n\n",
-            orthogonalNudgeDistance());
     ClusterRefList::reverse_iterator revClusterRefIt = clusterRefs.rbegin();
     while (revClusterRefIt != clusterRefs.rend())
     {

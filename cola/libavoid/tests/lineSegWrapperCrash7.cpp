@@ -7,7 +7,6 @@ int main(void) {
     router->setRoutingPenalty((PenaltyType)2, 0);
     router->setRoutingPenalty((PenaltyType)3, 4000);
     router->setRoutingPenalty((PenaltyType)4, 0);
-    router->setOrthogonalNudgeDistance(4);
 
     Polygon poly51(4);
     poly51.ps[0] = Point(1038.92, 323.557);

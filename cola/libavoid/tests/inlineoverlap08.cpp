@@ -13,7 +13,6 @@ int main(void) {
     router->setRoutingOption((RoutingOption)1, true);
     router->setRoutingOption((RoutingOption)2, false);
     router->setRoutingOption((RoutingOption)3, false);
-    router->setOrthogonalNudgeDistance(4);
 
     Polygon poly1(4);
     poly1.ps[0] = Point(99, -20);

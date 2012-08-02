@@ -7,7 +7,7 @@ int main(void) {
     router->setRoutingPenalty((PenaltyType)2, 0);
     router->setRoutingPenalty((PenaltyType)3, 4000);
     router->setRoutingPenalty((PenaltyType)4, 105);
-    router->setOrthogonalNudgeDistance(25);
+    router->setRoutingParameter(idealNudgingDistance, 25);
     Rectangle rect478845150(Point(50695, 51070), Point(50705, 51080));
     ShapeRef *shapeRef478845150 = new ShapeRef(router, rect478845150, 478845150);
     ShapeConnectionPin *pin = new Avoid::ShapeConnectionPin(shapeRef478845150, 

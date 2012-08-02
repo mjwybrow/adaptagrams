@@ -131,8 +131,19 @@ enum RoutingParameter
     //!         as a method of checking progress or cancelling overly slow
     //!         operations.
     portDirectionPenalty,
+    //! @brief This parameter defines the spacing distance that will be added
+    //!        to the sides of each shape when determining obstacle sizes for
+    //!        routing.  This controls how closely connectors pass shapes, and
+    //!        can be used to prevent connectors overlapping with shape 
+    //!        boundaries. By default, this distance is set to a value of 0.
+    //! @note  Currently used.
+    shapeBufferDistance,
+    //! @brief This parameter defines the spacing distance that will be used
+    //!        for nudging apart overlapping corners and line segments of 
+    //!        connectors.  By default, this distance is set to a value of 4.
+    idealNudgingDistance,
 
-    // Used for determining the size of the routing parameter array..  
+    // Used for determining the size of the routing parameter array.
     // This should always we the last value in the enum.
     lastRoutingParameterMarker
 };
@@ -453,25 +464,6 @@ class Router {
         void moveJunction(JunctionRef *junction, const double xDiff, 
                 const double yDiff);
         
-        //! @brief Sets a spacing distance for overlapping orthogonal 
-        //!        connectors to be nudged apart.
-        //!         
-        //! By default, this distance is set to a value of 4.
-        //!
-        //! This method does not re-trigger post-processing of connectors.
-        //! The new distance will be used the next time rerouting is performed.
-        //!
-        //! @param[in]  dist  The distance to be used for orthogonal nudging.
-        //!
-        void setOrthogonalNudgeDistance(const double dist);
-
-        //! @brief   Returns the spacing distance that overlapping orthogonal
-        //!          connectors are nudged apart.
-        //!
-        //! @return  The current spacing distance used for orthogonal nudging.
-        //!
-        double orthogonalNudgeDistance(void) const;
-
         //! @brief  Sets values for routing parameters, including routing 
         //!         penalties.
         //!
@@ -491,6 +483,9 @@ class Router {
         //! parameter value argument (or a negative value) is specified 
         //! when calling this method, then a sensible penalty value will 
         //! be automatically chosen.
+        //!
+        //! This method does not re-trigger processing of connectors. The new
+        //! parameter value will be used the next time rerouting is performed.
         //!
         //! @param[in] parameter  The type of penalty, a RoutingParameter.
         //! @param[in] value      The value to be set for that parameter.
@@ -665,7 +660,6 @@ class Router {
         unsigned int m_largest_assigned_id;
         bool m_consolidate_actions;
         bool m_currently_calling_destructors;
-        double m_orthogonal_nudge_distance;
         double m_routing_parameters[lastRoutingParameterMarker];
         bool m_routing_options[lastRoutingOptionMarker];
         

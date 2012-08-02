@@ -7,7 +7,7 @@ int main(void) {
     router->setRoutingPenalty((Avoid::PenaltyType)2, 200);
     router->setRoutingPenalty((Avoid::PenaltyType)3, 4000);
     router->setRoutingPenalty((Avoid::PenaltyType)4, 110);
-    router->setOrthogonalNudgeDistance(25);
+    router->setRoutingParameter(idealNudgingDistance, 25);
     Rectangle rect548374163(Point(51900, 50400), Point(52300, 50900));
     new ShapeRef(router, rect548374163, 548374163);
     Rectangle rect901116812(Point(51131, 49750), Point(51531, 50100));

@@ -21,7 +21,6 @@ int main(void) {
     router->setRoutingOption((RoutingOption)1, true);
     router->setRoutingOption((RoutingOption)2, false);
     router->setRoutingOption((RoutingOption)3, false);
-    router->setOrthogonalNudgeDistance(4);
 
 #if 0
     Polygon poly1(4);

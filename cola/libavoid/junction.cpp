@@ -63,7 +63,7 @@ Rectangle JunctionRef::makeRectangle(Router *router, const Point& position)
 {
     COLA_ASSERT(router);
 
-    double nudgeDist = router->orthogonalNudgeDistance();
+    double nudgeDist = router->routingParameter(idealNudgingDistance);
 
     Point low = position;
     low.x -= nudgeDist;

@@ -22,7 +22,7 @@ void test()
 	router1->setRoutingPenalty(Avoid::segmentPenalty);
 	router1->setRoutingPenalty(Avoid::crossingPenalty);
 	router1->setRoutingPenalty(Avoid::fixedSharedPathPenalty, 9000);
-	router1->setOrthogonalNudgeDistance(25);
+	router1->setRoutingParameter(idealNudgingDistance, 25);
 
 	poly = Avoid::Polygon(4);
 	poly.setPoint(0, Avoid::Point(50760, 50620));

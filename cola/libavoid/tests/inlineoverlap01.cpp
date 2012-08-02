@@ -4,7 +4,7 @@ int main(void) {
     Router *router = new Router(OrthogonalRouting);
     router->setRoutingPenalty(segmentPenalty);
     router->setRoutingPenalty(fixedSharedPathPenalty);
-    router->setOrthogonalNudgeDistance(20);
+    router->setRoutingParameter(idealNudgingDistance, 20);
     Rectangle rect335855988(Point(51140, 50190), Point(51510, 50885));
     new ShapeRef(router, rect335855988, 335855988);
     Rectangle rect548374163(Point(51915, 50415), Point(52285, 50885));
