@@ -2896,7 +2896,6 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
 #ifdef NUDGE_DEBUG_SVG
         printf("\n\n");
 #endif
-        ShiftSegmentList::iterator matchingConnSegment = currentRegion.end();
         for (ShiftSegmentList::iterator currSegmentIt = currentRegion.begin();
                 currSegmentIt != currentRegion.end(); ++currSegmentIt )
         {

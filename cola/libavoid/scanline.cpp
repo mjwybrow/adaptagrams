@@ -282,7 +282,7 @@ Event::Event(EventType t, Node *v, double p)
       v(v),
       pos(p)
 {
-};
+}
 
 
 // Used for quicksort.  Must return <0, 0, or >0.

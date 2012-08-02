@@ -189,7 +189,7 @@ class HyperedgeRerouter
         void performRerouting(void);
         void outputInstanceToSVG(FILE *fp);
         void findAttachedObjects(size_t index, ConnRef *connector,
-                JunctionRef *ignore, ConnRefSet& hyperedgeConns);;
+                JunctionRef *ignore, ConnRefSet& hyperedgeConns);
         void findAttachedObjects(size_t index, JunctionRef *junction,
                 ConnRef *ignore, ConnRefSet& hyperedgeConns);
 
