@@ -33,7 +33,7 @@
 
 #else // Not NDEBUG
 
-  #ifdef _MSC_VER
+  #if defined(_MSC_VER) && defined(_ATL_DLL)
     // Compiling with Microsoft Visual C++ compiler
 
     // Prevent inclusion of min and max macros.

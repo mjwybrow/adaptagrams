@@ -27,7 +27,7 @@
 #define AVOID_DEBUG_H
 
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && defined(_ATL_DLL)
     // Compiling with Microsoft Visual C++ compiler
 
     // Prevent inclusion of min and max macros.
@@ -68,7 +68,7 @@ namespace Avoid {
 #endif
 
 // err_printf are critical errors that mean something pretty bad has happened:
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && _MSC_VER < 1600
 
     // Compiling with Microsoft Visual C++ compiler
     #define err_printf ATL::AtlTrace
