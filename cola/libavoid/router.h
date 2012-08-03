@@ -61,8 +61,46 @@ typedef std::list<LineRep> LineReps;
 
 typedef std::list<unsigned int> IntList;
 
-class ActionInfo;
+enum ActionType {
+    ShapeMove,
+    ShapeAdd,
+    ShapeRemove,
+    JunctionMove,
+    JunctionAdd,
+    JunctionRemove,
+    ConnChange,
+    ConnectionPinChange
+};
+
+typedef std::list<std::pair<unsigned int, ConnEnd> > ConnUpdateList;
+
+class ActionInfo {
+    public:
+        ActionInfo(ActionType t, ShapeRef *s, const Polygon& p, bool fM);
+        ActionInfo(ActionType t, ShapeRef *s);
+        ActionInfo(ActionType t, JunctionRef *j, const Point& p);
+        ActionInfo(ActionType t, JunctionRef *j);
+        ActionInfo(ActionType t, ConnRef *c);
+        ActionInfo(ActionType t, ShapeConnectionPin *p);
+        ~ActionInfo() {}
+        Obstacle *obstacle(void) const;
+        ShapeRef *shape(void) const;
+        ConnRef *conn(void) const;
+        JunctionRef *junction(void) const;
+        void addConnEndUpdate(const unsigned int type, const ConnEnd& connEnd,
+                bool isConnPinMoveUpdate);
+        bool operator==(const ActionInfo& rhs) const;
+        bool operator<(const ActionInfo& rhs) const;
+        ActionType type;
+        void *objPtr;
+        Polygon newPoly;
+        Point newPosition;
+        bool firstMove;
+        ConnUpdateList conns;
+};
+
 typedef std::list<ActionInfo> ActionInfoList;
+
 class ShapeRef;
 class JunctionRef;
 class ClusterRef;
