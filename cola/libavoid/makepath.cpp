@@ -39,9 +39,6 @@
 #include "libavoid/router.h"
 #include "libavoid/debug.h"
 #include "libavoid/assertions.h"
-#ifdef ASTAR_DEBUG
-  #include <SDL_gfxPrimitives.h>
-#endif
 
 namespace Avoid {
 
@@ -584,50 +581,6 @@ void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar, VertInf *start)
             //prevInf->id.db_print();
         }
         db_printf("\n");
-#endif
-
-#if defined(ASTAR_DEBUG)
-        if (router->avoid_screen)
-        {
-            int radius = 5;
-            ANode curr;
-            for (curr = BestNode; curr.prevIndex >= 0; 
-                    curr = DONE[curr.prevIndex])
-            {
-                filledCircleRGBA(router->avoid_screen, 
-                        (int) curr.inf->point.x,
-                        (int) curr.inf->point.y,
-                        radius, 0, 0, 255, 128);
-            }
-            filledCircleRGBA(router->avoid_screen, 
-                    (int) BestNode.inf->point.x,
-                    (int) BestNode.inf->point.y,
-                    radius, 255, 0, 0, 255);
-
-            SDL_Flip(router->avoid_screen);
-            SDL_Delay(500);
-
-            filledCircleRGBA(router->avoid_screen, 
-                    (int) BestNode.inf->point.x,
-                    (int) BestNode.inf->point.y,
-                    radius, 255, 255, 255, 255);
-            filledCircleRGBA(router->avoid_screen, 
-                    (int) BestNode.inf->point.x,
-                    (int) BestNode.inf->point.y,
-                    radius, 0, 255, 0, 128);
-            for (curr = BestNode; curr.prevIndex >= 0; 
-                    curr = DONE[curr.prevIndex])
-            {
-                filledCircleRGBA(router->avoid_screen, 
-                        (int) curr.inf->point.x,
-                        (int) curr.inf->point.y,
-                        radius, 255, 255, 255, 255);
-                filledCircleRGBA(router->avoid_screen, 
-                        (int) curr.inf->point.x,
-                        (int) curr.inf->point.y,
-                        radius, 0, 255, 0, 128);
-            }
-        }
 #endif
 
         if (BestNode.inf == tar)
