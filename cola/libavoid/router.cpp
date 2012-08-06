@@ -206,9 +206,6 @@ Router::Router(const unsigned int flags)
       RubberBandRouting(false),
       // Instrumentation:
       st_checked_edges(0),
-#ifdef LIBAVOID_SDL
-      avoid_screen(NULL),
-#endif
       m_largest_assigned_id(0),
       m_consolidate_actions(true),
       m_currently_calling_destructors(false),

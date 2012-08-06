@@ -40,13 +40,6 @@
 #include "libavoid/timer.h"
 #include "libavoid/hyperedge.h"
 
-#if defined(LINEDEBUG) || defined(ASTAR_DEBUG) || defined(LIBAVOID_SDL)
-    #include <SDL.h>
-    #ifndef LIBAVOID_SDL
-        #define LIBAVOID_SDL
-    #endif
-#endif
-
 
 namespace Avoid {
 
@@ -293,9 +286,6 @@ class Router {
         // Instrumentation:
         Timer timers;
         int st_checked_edges;
-#ifdef LIBAVOID_SDL
-        SDL_Surface *avoid_screen;
-#endif
 
         //! @brief Allows setting of the behaviour of the router in regard
         //!        to transactions.  This controls whether transactions are
