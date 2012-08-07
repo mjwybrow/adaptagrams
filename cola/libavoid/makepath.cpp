@@ -22,14 +22,14 @@
  * Author(s):   Michael Wybrow <mjwybrow@users.sourceforge.net>
 */
 
+// For M_PI.
+// This should be first include for MSVC.
+#define _USE_MATH_DEFINES
+#include <cmath>
 
 #include <algorithm>
 #include <vector>
 #include <climits>
-
-// For M_PI:
-#define _USE_MATH_DEFINES
-#include <cmath>
 
 #include "libavoid/vertices.h"
 #include "libavoid/geometry.h"

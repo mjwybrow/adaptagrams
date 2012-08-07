@@ -39,6 +39,7 @@
 #include "libavoid/graph.h"
 #include "libavoid/timer.h"
 #include "libavoid/hyperedge.h"
+#include "libavoid/actioninfo.h"
 
 
 namespace Avoid {
@@ -54,8 +55,6 @@ typedef std::list<LineRep> LineReps;
 
 typedef std::list<unsigned int> IntList;
 
-class ActionInfo;
-typedef std::list<ActionInfo> ActionInfoList;
 class ShapeRef;
 class JunctionRef;
 class ClusterRef;

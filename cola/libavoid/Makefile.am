@@ -24,6 +24,7 @@ libavoid_la_SOURCES = connectionpin.cpp \
 			mtst.cpp \
 			hyperedgetree.cpp \
 			scanline.cpp \
+			actioninfo.cpp \
 			assertions.h \
 			connector.h \
 			connectionpin.h \
@@ -47,6 +48,7 @@ libavoid_la_SOURCES = connectionpin.cpp \
 			mtst.h \
 			hyperedgetree.h \
 			scanline.h \
+			actioninfo.h \
 			vpsc.h
 
 libavoidincludedir = ${includedir}/libavoid
@@ -73,6 +75,7 @@ libavoidinclude_HEADERS = assertions.h \
 			mtst.h \
 			hyperedgetree.h \
 			scanline.h \
+			actioninfo.h \
 			vpsc.h
 
 SUBDIRS = . tests
