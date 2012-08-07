@@ -33,8 +33,8 @@
 
 #else // Not NDEBUG
 
-  #ifdef _MSC_VER
-    // Compiling with Microsoft Visual C++ compiler
+  #if defined(_MSC_VER) && !defined(WITHOUT_MS_MFCATL)
+    // Compiling with Microsoft Visual C++ compiler with MFC support
 
     // Prevent inclusion of min and max macros.
     #define NOMINMAX
