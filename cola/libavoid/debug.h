@@ -27,7 +27,7 @@
 #define AVOID_DEBUG_H
 
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(WITHOUT_MS_MFCATL)
     // Compiling with Microsoft Visual C++ compiler
 
     // Prevent inclusion of min and max macros.
@@ -46,8 +46,8 @@ namespace Avoid {
 // db_printf is debugging output for verifying behaviour of the router:
 #ifdef LIBAVOID_DEBUG
 
-  #ifdef _MSC_VER
-    // Compiling with Microsoft Visual C++ compiler
+  #if defined(_MSC_VER) && !defined(WITHOUT_MS_MFCATL)
+    // Compiling with Microsoft Visual C++ compiler with MFC support
     #define db_printf  ATL::AtlTrace
   #else
     inline void db_printf(const char *fmt, ...)
@@ -68,9 +68,9 @@ namespace Avoid {
 #endif
 
 // err_printf are critical errors that mean something pretty bad has happened:
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(WITHOUT_MS_MFCATL)
 
-    // Compiling with Microsoft Visual C++ compiler
+    // Compiling with Microsoft Visual C++ compiler with MFC support
     #define err_printf ATL::AtlTrace
 
 #else
