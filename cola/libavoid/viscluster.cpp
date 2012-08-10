@@ -36,7 +36,7 @@ namespace Avoid {
 ClusterRef::ClusterRef(Router *router, Polygon& polygon, const unsigned int id)
     : m_router(router),
       m_polygon(polygon, router),
-      m_rectangular_polygon(m_polygon.boundingRect()),
+      m_rectangular_polygon(m_polygon.boundingRectPolygon()),
       m_active(false)
 {
     COLA_ASSERT(m_router != NULL);
@@ -83,7 +83,7 @@ void ClusterRef::makeInactive(void)
 void ClusterRef::setNewPoly(Polygon& poly)
 {
     m_polygon = ReferencingPolygon(poly, m_router);
-    m_rectangular_polygon = m_polygon.boundingRect();
+    m_rectangular_polygon = m_polygon.boundingRectPolygon();
 }
 
 

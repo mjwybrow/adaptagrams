@@ -42,13 +42,14 @@ Obstacle::Obstacle(Router *router, Polygon ply, const unsigned int id)
     m_id = m_router->assignId(id);
 
     VertID i = VertID(m_id, 0);
-    
+
+    Polygon routingPoly = routingPolygon();
     const bool addToRouterNow = false;
     VertInf *last = NULL;
     VertInf *node = NULL;
-    for (size_t pt_i = 0; pt_i < m_polygon.size(); ++pt_i)
+    for (size_t pt_i = 0; pt_i < routingPoly.size(); ++pt_i)
     {
-        node = new VertInf(m_router, i, m_polygon.ps[pt_i], addToRouterNow);
+        node = new VertInf(m_router, i, routingPoly.ps[pt_i], addToRouterNow);
 
         if (!m_first_vert)
         {
@@ -101,22 +102,23 @@ void Obstacle::setNewPoly(const Polygon& poly)
     COLA_ASSERT(m_first_vert != NULL);
     COLA_ASSERT(m_polygon.size() == poly.size());
     
+    m_polygon = poly;
+    Polygon routingPoly = routingPolygon();
+
     VertInf *curr = m_first_vert;
-    for (size_t pt_i = 0; pt_i < m_polygon.size(); ++pt_i)
+    for (size_t pt_i = 0; pt_i < routingPoly.size(); ++pt_i)
     {
         COLA_ASSERT(curr->visListSize == 0);
         COLA_ASSERT(curr->invisListSize == 0);
 
         // Reset with the new polygon point.
-        curr->Reset(poly.ps[pt_i]);
+        curr->Reset(routingPoly.ps[pt_i]);
         curr->pathNext = NULL;
         
         curr = curr->shNext;
     }
     COLA_ASSERT(curr == m_first_vert);
         
-    m_polygon = poly;
-
     // It may be that the polygon for the obstacle has been updated after
     // creating the shape.  These events may have been combined for a single
     // transaction, so update pin positions.
@@ -262,36 +264,33 @@ Router *Obstacle::router(void) const
 }
 
 
-void Obstacle::boundingBox(BBox& bbox)
+Box Obstacle::routingBox(void) const
 {
     COLA_ASSERT(!m_polygon.empty());
+    COLA_ASSERT(m_router);
 
-    bbox.a = bbox.b = m_polygon.ps[0];
-    Point& a = bbox.a;
-    Point& b = bbox.b;
+    double bufferSpace = m_router->routingParameter(shapeBufferDistance);
+    return m_polygon.offsetBoundingBox(bufferSpace);
+}
 
-    for (size_t i = 1; i < m_polygon.size(); ++i)
-    {
-        const Point& p = m_polygon.ps[i];
 
-        a.x = std::min(p.x, a.x);
-        a.y = std::min(p.y, a.y);
-        b.x = std::max(p.x, b.x);
-        b.y = std::max(p.y, b.y);
-    }
+Polygon Obstacle::routingPolygon(void) const
+{
+    COLA_ASSERT(!m_polygon.empty());
+    COLA_ASSERT(m_router);
+
+    double bufferSpace = m_router->routingParameter(shapeBufferDistance);
+    return m_polygon.offsetPolygon(bufferSpace);
 }
 
 
 Point Obstacle::shapeCentre(void)
 {
-    BBox bb;
-    boundingBox(bb);
+    Box bb = routingBox();
 
     Point centre;
-
-    centre.x = bb.a.x + (0.5 * (bb.b.x - bb.a.x));
-    centre.y = bb.a.y + (0.5 * (bb.b.y - bb.a.y));
-
+    centre.x = bb.min.x + (0.5 * (bb.max.x - bb.min.x));
+    centre.y = bb.min.y + (0.5 * (bb.max.y - bb.min.y));
     return centre;
 }
 

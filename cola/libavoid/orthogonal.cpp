@@ -1824,12 +1824,11 @@ extern void generateStaticOrthogonalVisGraph(Router *router)
         }
 #endif
 
-        double minX, minY, maxX, maxY;
-        obstacle->polygon().getBoundingRect(&minX, &minY, &maxX, &maxY);
-        double midX = minX + ((maxX - minX) / 2);
+        Box bbox = obstacle->routingBox();
+        double midX = bbox.min.x + ((bbox.max.x - bbox.min.x) / 2);
         Node *v = new Node(obstacle, midX);
-        events[ctr++] = new Event(Open, v, minY);
-        events[ctr++] = new Event(Close, v, maxY);
+        events[ctr++] = new Event(Open, v, bbox.min.y);
+        events[ctr++] = new Event(Close, v, bbox.max.y);
 
         ++obstacleIt;
     }
@@ -1915,12 +1914,11 @@ extern void generateStaticOrthogonalVisGraph(Router *router)
             continue;
         }
 #endif
-        double minX, minY, maxX, maxY;
-        obstacle->polygon().getBoundingRect(&minX, &minY, &maxX, &maxY);
-        double midY = minY + ((maxY - minY) / 2);
+        Box bbox = obstacle->routingBox();
+        double midY = bbox.min.y + ((bbox.max.y - bbox.min.y) / 2);
         Node *v = new Node(obstacle, midY);
-        events[ctr++] = new Event(Open, v, minX);
-        events[ctr++] = new Event(Close, v, maxX);
+        events[ctr++] = new Event(Open, v, bbox.min.x);
+        events[ctr++] = new Event(Close, v, bbox.max.x);
 
         ++obstacleIt;
     }
@@ -2145,7 +2143,7 @@ static void buildOrthogonalNudgingSegments(Router *router,
         const size_t n = router->m_obstacles.size();
         shapeLimits = std::vector<RectBounds>(n);
 
-        double nudgeDistance = router->routingParameter(idealNudgingDistance);
+        double zeroBufferDist = 0.0;
 
         ObstacleList::iterator obstacleIt = router->m_obstacles.begin();
         for (unsigned i = 0; i < n; i++)
@@ -2154,15 +2152,9 @@ static void buildOrthogonalNudgingSegments(Router *router,
             JunctionRef *junction = dynamic_cast<JunctionRef *> (*obstacleIt);
             if (shape)
             {
-                // Take the bounds of the shape
-                Point min, max;
-                shape->polygon().getBoundingRect(
-                        &min.x, &min.y, &max.x, &max.y);
-                min.x += nudgeDistance;
-                min.y += nudgeDistance;
-                max.x -= nudgeDistance;
-                max.y -= nudgeDistance;
-                shapeLimits[i] = std::make_pair(min, max);
+                // Take the real bounds of the shape
+                Box bBox = shape->polygon().offsetBoundingBox(zeroBufferDist);
+                shapeLimits[i] = std::make_pair(bBox.min, bBox.max);
             }
             else if (junction)
             {
@@ -2420,8 +2412,9 @@ static void buildOrthogonalChannelInfo(Router *router,
             totalEvents -= 2;
             continue;
         }
-        Point min, max;
-        obstacle->polygon().getBoundingRect(&min.x, &min.y, &max.x, &max.y);
+        Box bBox = obstacle->routingBox();
+        Point min = bBox.min;
+        Point max = bBox.max;
         double mid = min[dim] + ((max[dim] - min[dim]) / 2);
         Node *v = new Node(obstacle, mid);
         events[ctr++] = new Event(Open, v, min[altDim]);
@@ -3559,13 +3552,13 @@ struct ImproveHyperEdges
                 continue;
             }
 
-            double minX, minY, maxX, maxY;
-            obstacle->polygon().getBoundingRect(&minX, &minY, &maxX, &maxY);
+            Box bBox = obstacle->polygon().offsetBoundingBox(0.0);
 
             fprintf(fp, "<rect id=\"rect-%u\" x=\"%g\" y=\"%g\" width=\"%g\" "
                     "height=\"%g\" style=\"stroke-width: 1px; stroke: %s; "
                     "fill: blue; fill-opacity: 0.3;\" />\n",
-                    obstacle->id(), minX, minY, maxX - minX, maxY - minY,
+                    obstacle->id(), bBox.min.x, bBox.min.y,
+                    bBox.max.x - bBox.min.x, bBox.max.y - bBox.min.y,
                     (isShape) ? "blue" : "red");
             ++obstacleIt;
         }

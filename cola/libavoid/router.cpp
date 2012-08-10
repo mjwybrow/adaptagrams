@@ -286,12 +286,44 @@ void Router::deleteConnector(ConnRef *connector)
 
 void Router::moveShape(ShapeRef *shape, const double xDiff, const double yDiff)
 {
-    Polygon newPoly = shape->polygon();
+    ActionInfo moveInfo(ShapeMove, shape, Polygon(), false);
+    ActionInfoList::iterator found =
+            find(actionList.begin(), actionList.end(), moveInfo);
+
+    Polygon newPoly;
+    if (found != actionList.end())
+    {
+        // The shape already has a queued move, so use that shape position.
+        newPoly = found->newPoly;
+    }
+    else
+    {
+        // Just use the existing position.
+        newPoly = shape->polygon();
+    }
     newPoly.translate(xDiff, yDiff);
 
     moveShape(shape, newPoly);
 }
 
+
+void Router::markAllObstaclesAsMoved(void)
+{
+    for (ObstacleList::iterator obstacleIt = m_obstacles.begin();
+            obstacleIt != m_obstacles.end(); ++obstacleIt)
+    {
+        ShapeRef *shape = dynamic_cast<ShapeRef *> (*obstacleIt);
+        JunctionRef *junction = dynamic_cast<JunctionRef *> (*obstacleIt);
+        if (shape)
+        {
+            moveShape(shape, 0, 0);
+        }
+        else if (junction)
+        {
+            moveJunction(junction, 0, 0);
+        }
+    }
+}
 
 void Router::moveShape(ShapeRef *shape, const Polygon& newPoly, 
         const bool first_move)
@@ -532,7 +564,7 @@ bool Router::processTransaction(void)
                 junction->setPosition(actInf.newPosition);
             }
         }
-        const Polygon& shapePoly = obstacle->polygon();
+        const Polygon& shapePoly = obstacle->routingPolygon();
 
         adjustContainsWithAdd(shapePoly, pid);
 
@@ -642,7 +674,21 @@ void Router::deleteJunction(JunctionRef *junction)
 void Router::moveJunction(JunctionRef *junction, const double xDiff, 
         const double yDiff)
 {
-    Point newPosition = junction->position();
+    ActionInfo moveInfo(JunctionMove, junction, Point());
+    ActionInfoList::iterator found =
+            find(actionList.begin(), actionList.end(), moveInfo);
+
+    Point newPosition;
+    if (found != actionList.end())
+    {
+        // The junction already has a queued move, so use that position.
+        newPosition = found->newPosition;
+    }
+    else
+    {
+        // Just use the existing position.
+        newPosition = junction->position();
+    }
     newPosition.x += xDiff;
     newPosition.y += yDiff;
 
@@ -2125,7 +2171,7 @@ void Router::outputInstanceToSVG(std::string instanceName)
 
     fprintf(fp, "<g inkscape:groupmode=\"layer\" "
     "style=\"display: none;\" "
-            "inkscape:label=\"ShapesPoly\">\n");
+            "inkscape:label=\"ShapePolygons\">\n");
     ObstacleList::iterator obstacleIt = m_obstacles.begin();
     while (obstacleIt != m_obstacles.end())
     {
@@ -2153,6 +2199,36 @@ void Router::outputInstanceToSVG(std::string instanceName)
     fprintf(fp, "</g>\n");
 
     fprintf(fp, "<g inkscape:groupmode=\"layer\" "
+    "style=\"display: none;\" "
+            "inkscape:label=\"ObstaclePolygons\">\n");
+    obstacleIt = m_obstacles.begin();
+    while (obstacleIt != m_obstacles.end())
+    {
+        Obstacle *obstacle = *obstacleIt;
+        bool isShape = (NULL != dynamic_cast<ShapeRef *> (obstacle));
+
+        if ( ! isShape )
+        {
+            // Don't output obstacles here, for now.
+            ++obstacleIt;
+            continue;
+        }
+
+        Polygon polygon = obstacle->routingPolygon();
+        fprintf(fp, "<path id=\"poly-%u\" style=\"stroke-width: 1px; "
+                "stroke: black; fill: %s; fill-opacity: 0.3;\" d=\"", 
+                obstacle->id(), (isShape) ? "grey" : "red");
+        for (size_t i = 0; i < polygon.size(); ++i)
+        {
+            fprintf(fp, "%c %g %g ", ((i == 0) ? 'M' : 'L'), 
+                    polygon.at(i).x, polygon.at(i).y);
+        }
+        fprintf(fp, "Z\" />\n");
+        ++obstacleIt;
+    }
+    fprintf(fp, "</g>\n");
+
+    fprintf(fp, "<g inkscape:groupmode=\"layer\" "
             "style=\"display: none;\" "
             "inkscape:label=\"IdealJunctions\">\n");
     for (ObstacleList::iterator obstacleIt = m_obstacles.begin();
@@ -2172,7 +2248,7 @@ void Router::outputInstanceToSVG(std::string instanceName)
     fprintf(fp, "</g>\n");
 
     fprintf(fp, "<g inkscape:groupmode=\"layer\" "
-            "inkscape:label=\"ShapesRect\">\n");
+            "inkscape:label=\"ObstacleRects\">\n");
     obstacleIt = m_obstacles.begin();
     while (obstacleIt != m_obstacles.end())
     {
@@ -2186,14 +2262,13 @@ void Router::outputInstanceToSVG(std::string instanceName)
             continue;
         }
 
-        double minX, minY, maxX, maxY;
-        obstacle->polygon().getBoundingRect(&minX, &minY, &maxX, &maxY);
+        Box bBox = obstacle->routingBox();
 
         fprintf(fp, "<rect id=\"rect-%u\" x=\"%g\" y=\"%g\" width=\"%g\" "
                 "height=\"%g\" style=\"stroke-width: 1px; stroke: black; "
                 "fill: grey; stroke-opacity: 0.1; fill-opacity: 0.1;\" />\n",
-                obstacle->id(), minX + 3, minY + 3, maxX - minX - 6, maxY - minY - 6
-                );
+                obstacle->id(), bBox.min.x, bBox.min.y, 
+                bBox.max.x - bBox.min.x, bBox.max.y - bBox.min.y);
         ++obstacleIt;
     }
     fprintf(fp, "</g>\n");
@@ -2493,18 +2568,18 @@ void Router::outputDiagramSVG(std::string instanceName, LineReps *lineReps)
 
         if ( ! isShape )
         {
-            // Don't output obstacles here, for now.
+            // Don't output non-shape obstacles here, for now.
             ++obstacleIt;
             continue;
         }
 
-        double minX, minY, maxX, maxY;
-        obstacle->polygon().getBoundingRect(&minX, &minY, &maxX, &maxY);
+        Box bBox = obstacle->polygon().offsetBoundingBox(0.0);
 
         fprintf(fp, "<rect id=\"rect-%u\" x=\"%g\" y=\"%g\" width=\"%g\" "
                 "height=\"%g\" style=\"stroke-width: 1px; stroke: black; "
                 "fill: grey; stroke-opacity: 0.5; fill-opacity: 0.4;\" />\n",
-                obstacle->id(), minX, minY, maxX - minX, maxY - minY);
+                obstacle->id(), bBox.min.x, bBox.min.y,
+                bBox.max.x - bBox.min.x, bBox.max.y - bBox.min.y);
         ++obstacleIt;
     }
     fprintf(fp, "</g>\n");

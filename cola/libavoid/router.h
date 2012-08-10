@@ -602,7 +602,8 @@ class Router {
         void setStaticGraphInvalidated(const bool invalidated);
         ConnType validConnType(const ConnType select = ConnType_None) const;
         bool isInCrossingPenaltyReroutingStage(void) const;
-        
+        void markAllObstaclesAsMoved(void);
+
         // Interface for libtopology to be able to set an addon to 
         // provide additional topology improving layout using libavoid
         // routing.

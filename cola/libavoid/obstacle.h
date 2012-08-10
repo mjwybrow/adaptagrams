@@ -89,7 +89,8 @@ class Obstacle
         void setNewPoly(const Polygon& poly);
         VertInf *firstVert(void);
         VertInf *lastVert(void);
-        void boundingBox(BBox& bbox);
+        Box routingBox(void) const;
+        Polygon routingPolygon(void) const;
         ConnRefList attachedConnectors(void) const;
 
     private:

@@ -206,38 +206,29 @@ const Point& ReferencingPolygon::at(size_t index) const
 }
 
 
-void PolygonInterface::getBoundingRect(double *minX, double *minY,
-        double *maxX, double *maxY) const
+Box PolygonInterface::offsetBoundingBox(double offset) const
 {
-    double progressiveMinX = DBL_MAX;
-    double progressiveMinY = DBL_MAX;
-    double progressiveMaxX = -DBL_MAX;
-    double progressiveMaxY = -DBL_MAX;
+    Box bBox;
+    bBox.min.x = DBL_MAX;
+    bBox.min.y = DBL_MAX;
+    bBox.max.x = -DBL_MAX;
+    bBox.max.y = -DBL_MAX;
 
     for (size_t i = 0; i < size(); ++i)
     {
-        progressiveMinX = std::min(progressiveMinX, at(i).x);
-        progressiveMinY = std::min(progressiveMinY, at(i).y);
-        progressiveMaxX = std::max(progressiveMaxX, at(i).x);
-        progressiveMaxY = std::max(progressiveMaxY, at(i).y);
+        bBox.min.x = std::min(bBox.min.x, at(i).x);
+        bBox.min.y = std::min(bBox.min.y, at(i).y);
+        bBox.max.x = std::max(bBox.max.x, at(i).x);
+        bBox.max.y = std::max(bBox.max.y, at(i).y);
     }
 
-    if (minX)
-    {
-        *minX = progressiveMinX;
-    }
-    if (maxX)
-    {
-        *maxX = progressiveMaxX;
-    }
-    if (minY)
-    {
-        *minY = progressiveMinY;
-    }
-    if (maxY)
-    {
-        *maxY = progressiveMaxY;
-    }
+    // Add buffer space.
+    bBox.min.x -= offset;
+    bBox.min.y -= offset;
+    bBox.max.x += offset;
+    bBox.max.y += offset;
+
+    return bBox;
 }
 
 
@@ -269,14 +260,88 @@ Polygon::Polygon(const PolygonInterface& poly)
 }
 
 
-Polygon PolygonInterface::boundingRect(void) const
+Polygon PolygonInterface::boundingRectPolygon(void) const
 {
-    double minX, minY, maxX, maxY;
-    getBoundingRect(&minX, &minY, &maxX, &maxY);
+    Box boundingBox = offsetBoundingBox(0.0);
     
-    return Rectangle(Point(minX, minY), Point(maxX, maxY));
+    return Rectangle(boundingBox.min, boundingBox.max);
 }
 
+static Point unitNormalForEdge(const Point &pt1, const Point &pt2)
+{
+    if (pt2 == pt1)
+    {
+        return Point(0, 0);
+    }
+    double dx = pt2.x - pt1.x;
+    double dy = pt2.y - pt1.y;
+    double f = 1.0 / std::sqrt((dx * dx) + (dy * dy));
+    dx *= f;
+    dy *= f;
+    return Point(dy, -dx);
+}
+
+Polygon PolygonInterface::offsetPolygon(double offset) const
+{
+    Polygon newPoly;
+    newPoly._id = id();
+    if (offset == 0)
+    {
+        for (size_t i = 0; i < size(); ++i)
+        {
+            newPoly.ps.push_back(at(i));
+        }
+        return newPoly;
+    }
+
+    size_t numOfEdges = size();
+    std::vector<Vector> normals(numOfEdges);
+    for (size_t i = 0; i < numOfEdges; ++i)
+    {
+        normals[i] = unitNormalForEdge(at(i), at((i + 1) % numOfEdges));
+    }
+
+    size_t j = numOfEdges - 1;
+    for (size_t i = 0; i < numOfEdges; ++i)
+    {
+        double R = 1 + ((normals[i].x * normals[j].x) + 
+                (normals[i].y * normals[j].y));
+        if (((normals[j].x * normals[i].y) - (normals[i].x * normals[j].y)) *
+                offset >= 0)
+        {
+            double q = offset / R;
+            Point pt = Point(at(i).x + (normals[j].x + normals[i].x) * q,
+                    at(i).y + (normals[j].y + normals[i].y) * q);
+
+            pt.id = id();
+            pt.vn = newPoly.size();
+            newPoly.ps.push_back(pt);
+        }
+        else
+        {
+            Point pt1 = Point(at(i).x + normals[j].x * offset, 
+                    at(i).y + normals[j].y * offset);
+            Point pt2 = at(i);
+            Point pt3 = Point(at(i).x + normals[i].x * offset,
+                    at(i).y + normals[i].y * offset);
+
+            pt1.id = id();
+            pt1.vn = newPoly.size();
+            newPoly.ps.push_back(pt1);
+
+            pt2.id = id();
+            pt2.vn = newPoly.size();
+            newPoly.ps.push_back(pt2);
+
+            pt3.id = id();
+            pt3.vn = newPoly.size();
+            newPoly.ps.push_back(pt3);
+        }
+        j = i;
+    }
+
+    return newPoly;
+}
 
 void Polygon::clear(void)
 {

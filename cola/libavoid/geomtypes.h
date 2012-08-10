@@ -125,6 +125,19 @@ static const unsigned short kShapeConnectionPin = 9;
 //!
 typedef Point Vector;
 
+//! @brief  A bounding box, represented by the top-left and
+//!         bottom-right corners.
+//!
+class Box
+{
+    public:
+        //! The top-left point.
+        Point min;
+        //! The bottom-right point.
+        Point max;
+};
+
+
 
 //! @brief  A common interface used by the Polygon classes.
 //!
@@ -146,21 +159,27 @@ class PolygonInterface
         //! @brief  Returns a specific point in the polygon.
         //! @param[in]  index  The array index of the point to be returned.
         virtual const Point& at(size_t index) const = 0;
-        //! @brief  Returns the bounding rectangle that contains this polygon.
+        //! @brief  Returns the bounding rectangle for this polygon.
+        //!
+        //! @return A new Rectangle representing the bounding box.
+        Polygon boundingRectPolygon(void) const;
+        //! @brief  Returns the bounding rectangle that contains this polygon
+        //!         wtih optionally some buffer space around it for routing.
         //!
         //! If a NULL pointer is passed for any of the arguments, then that
         //! value is ignored and not returned.
         //!
+        //! If a buffer distance of zero is given, then this method returns
+        //! the bounding rectangle for the shape's polygon.
+        //!
+        //! @param     offset  Extra distance to pad each side of the rect.
         //! @param[out]  minX  The left hand side of the bounding box.
         //! @param[out]  minY  The top of the bounding box.
         //! @param[out]  maxX  The right hand side of the bounding box.
         //! @param[out]  maxY  The bottom of the bounding box.
-        void getBoundingRect(double *minX, double *minY,
-                double *maxX, double *maxY) const;
-        //! @brief  Returns the bounding rectangle for this polygon.
-        //!
-        //! @return A new Rectangle representing the bounding box.
-        Polygon boundingRect(void) const;
+        Box offsetBoundingBox(double offset) const;
+
+        Polygon offsetPolygon(double offset) const;
 };
 
 
@@ -174,12 +193,6 @@ class Edge
         //! The second point.
         Point b;
 };
-
-
-//! @brief  A bounding box, represented with an Edge between top-left and
-//!         bottom-right corners.
-//!
-typedef Edge BBox;
 
 
 class Router;

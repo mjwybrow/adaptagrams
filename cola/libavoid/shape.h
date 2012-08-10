@@ -131,8 +131,7 @@ class ShapeRef : public Obstacle
         //! 
         void transformConnectionPinPositions(ShapeTransformationType transform);
  
-        void boundingBox(BBox& bbox) const;
-
+        Point position(void) const;
     private:
         friend class Router;
         friend class ConnEnd;
@@ -140,7 +139,6 @@ class ShapeRef : public Obstacle
         friend class topology::LayoutObstacle;
 
         void outputCode(FILE *fp) const;
-        Point position(void) const;
         void moveAttachedConns(const Polygon& newPoly);
         void assignPinVisibilityTo(const unsigned int pinClassId,
                 VertInf *dummyConnectionVert);

@@ -202,35 +202,14 @@ void ShapeRef::outputCode(FILE *fp) const
 }
 
 
-void ShapeRef::boundingBox(BBox& bbox) const
-{
-    COLA_ASSERT(!m_polygon.empty());
-
-    bbox.a = bbox.b = m_polygon.ps[0];
-    Point& a = bbox.a;
-    Point& b = bbox.b;
-
-    for (size_t i = 1; i < m_polygon.size(); ++i)
-    {
-        const Point& p = m_polygon.ps[i];
-
-        a.x = std::min(p.x, a.x);
-        a.y = std::min(p.y, a.y);
-        b.x = std::max(p.x, b.x);
-        b.y = std::max(p.y, b.y);
-    }
-}
-
-
 Point ShapeRef::position(void) const
 {
-    BBox bb;
-    boundingBox(bb);
+    Box bBox = routingBox();
 
     Point centre;
 
-    centre.x = bb.a.x + (0.5 * (bb.b.x - bb.a.x));
-    centre.y = bb.a.y + (0.5 * (bb.b.y - bb.a.y));
+    centre.x = bBox.min.x + (0.5 * (bBox.max.x - bBox.min.x));
+    centre.y = bBox.min.y + (0.5 * (bBox.max.y - bBox.min.y));
 
     return centre;
 }
