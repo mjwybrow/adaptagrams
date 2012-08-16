@@ -25,6 +25,7 @@ libcola_la_SOURCES = cola.h\
 	compound_constraints.cpp\
 	output_svg.cpp\
 	output_svg.h \
+	unused.h \
 	cc_clustercontainmentconstraints.cpp \
 	cc_clustercontainmentconstraints.h \
 	cc_nonoverlapconstraints.cpp \
@@ -40,6 +41,7 @@ libcolainclude_HEADERS = cola.h\
 	sparse_matrix.h\
 	straightener.h \
 	output_svg.h \
+	unused.h \
 	cc_clustercontainmentconstraints.h \
 	cc_nonoverlapconstraints.h
 

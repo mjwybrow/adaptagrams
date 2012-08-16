@@ -32,7 +32,7 @@
 #include <utility>
 
 #include "libcola/sparse_matrix.h"
-
+#include "libcola/unused.h"
 
 namespace vpsc {
     class Constraint;
@@ -144,8 +144,7 @@ public:
      */
     virtual void updatePosition(const vpsc::Dim dim)
     {
-        // Suppress unused parameter warning.
-        (void) dim;
+        COLA_UNUSED(dim);
     }
     virtual ~CompoundConstraint();
     vpsc::Dim dimension(void) const;
@@ -153,6 +152,8 @@ public:
     virtual void updateVarIDsWithMapping(const VariableIDMap& idMap,
             bool forward = true)
     {
+        COLA_UNUSED(idMap);
+        COLA_UNUSED(forward);
     }
 
     // The following methods are only needed for initially solving feasibility

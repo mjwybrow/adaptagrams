@@ -246,7 +246,7 @@ struct SegmentClose : SegmentEvent {
     {
         COLA_UNUSED(openNodes);
 
-        OpenSegments::iterator i=openSegments.erase(opening->openListIndex);
+        openSegments.erase(opening->openListIndex);
         delete opening;
         delete this;
     }

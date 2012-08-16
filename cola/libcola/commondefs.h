@@ -45,8 +45,6 @@ inline bool isinf(double const &x) { return !(_finite(x) || _isnan(x)); }
 #include "libvpsc/assertions.h"
 #include <valarray>
 
-#define COLA_UNUSED(expr) do { (void)(expr); } while (0)
-
 namespace cola {
 
 /**
