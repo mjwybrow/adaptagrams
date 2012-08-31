@@ -2866,9 +2866,14 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
 
         if (currentRegion.size() == 1)
         {
+            // Centring is usually done at the unifying stage, but this 
+            // stage isn't performed if there is a fixedSharedPathPenalty.
+            bool needsCentring = !justUnifying && 
+                    (router->routingParameter(fixedSharedPathPenalty) > 0);
             // Save creating the solver instance if there is just one
-            // immovable segment, or we're nudging a single segment.
-            if ( !justUnifying || currentRegion.front()->immovable() )
+            // immovable segment, or we're nudging a single segment
+            // that doesn't require centring.
+            if (currentRegion.front()->immovable() || !needsCentring)
             {
                 delete currentRegion.front();
                 continue;
