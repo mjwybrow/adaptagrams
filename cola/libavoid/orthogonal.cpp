@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2009-2011  Monash University
+ * Copyright (C) 2009-2012  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -443,7 +443,7 @@ class NudgingShiftSegment : public ShiftSegment
             newPos = std::min(newPos, maxSpaceLimit);
 
 #ifdef NUDGE_DEBUG
-            printf("Pos: %lX, %g\n", (long) connRef, newPos);
+            printf("Pos: %lX, %.16f\n", (long) connRef, newPos);
 #endif
             for (size_t it = 0; it < indexes.size(); ++it)
             {
@@ -519,26 +519,27 @@ class NudgingShiftSegment : public ShiftSegment
                 if ( (minSpaceLimit <= rhs->maxSpaceLimit) &&
                         (rhs->minSpaceLimit <= maxSpaceLimit) )
                 {
-                    // The segments could touch at one end, so count them as 
-                    // overlapping for nudging if they are both s-bends 
-                    // or both z-bends, i.e., when the ordering would 
-                    // matter.
-                    if ((rhs->sBend && sBend) || (rhs->zBend && zBend))
+                    // The segments could touch at one end.
+                    if (connRef->router()->routingParameter(
+                            fixedSharedPathPenalty) > 0)
                     {
+                        // If we are routing with a fixedSharedPathPenalty
+                        // then we don't want these segments to ever touch
+                        // or slide past each other, so they are always 
+                        // considered to be overlapping.
+                        return true;
+                    }
+                    else if ((rhs->sBend && sBend) || (rhs->zBend && zBend))
+                    {
+                        // Ccount them as overlapping for nudging if they 
+                        // are both // s-bends or both z-bends, i.e., when 
+                        // the ordering would matter.
                         return nudgeColinearSegments;
                     }
                     else if ((rhs->finalSegment && finalSegment) &&
                             (rhs->connRef == connRef))
                     {
                         return nudgeColinearSegments;
-                    }
-                    else if (connRef->router()->routingParameter(
-                            fixedSharedPathPenalty) > 0)
-                    {
-                        // Or if we are routing with a fixedSharedPathPenalty
-                        // then we don't want these segments to slide past
-                        // each other.
-                        return true;
                     }
                 }
             }
@@ -2888,8 +2889,9 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
         ShiftSegmentPtrList prevVars;
         double sepDist = baseSepDist;
 #ifdef NUDGE_DEBUG 
-        printf("-------------------------------------------------------\n");
-        printf("Nudge -- size: %d\n", (int) currentRegion.size());
+        fprintf(stderr, "-------------------------------------------------------\n");
+        fprintf(stderr, "%s -- size: %d\n", (justUnifying) ? "Unifying" : "Nudging",
+                (int) currentRegion.size());
 #endif
 #ifdef NUDGE_DEBUG_SVG
         printf("\n\n");
@@ -2905,8 +2907,9 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             vs.push_back(currSegment->variable);
             size_t index = vs.size() - 1;
 #ifdef NUDGE_DEBUG
-            fprintf(stderr,"line(%d)  %.15f  dim: %d pos: %g   min: %g  max: %g\n"
-                   "minEndPt: %g  maxEndPt: %g weight: %g cc: %d\n",
+            fprintf(stderr,"line(%d)  %.15f  dim: %d pos: %.16f\n"
+                   "min: %.16f  max: %.16f\n"
+                   "minEndPt: %.16f  maxEndPt: %.16f weight: %g cc: %d\n",
                     currSegment->connRef->id(),
                     currSegment->lowPoint()[dimension], (int) dimension, 
                     currSegment->variable->desiredPosition, 
@@ -3005,7 +3008,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                         // Here, we let such segments drift back together.
                         thisSepDist = 0;
                     }
-                    
+
                     Constraint *constraint = new Constraint(prevVar, 
                             vs[index], thisSepDist, equality);
                     cs.push_back(constraint);
@@ -3042,7 +3045,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
 #ifdef NUDGE_DEBUG
         for (unsigned i = 0;i < vs.size(); ++i)
         {
-            printf("-vs[%d]=%f\n", i, vs[i]->desiredPosition);
+            fprintf(stderr, "-vs[%d]=%f\n", i, vs[i]->desiredPosition);
         }
 #endif
         // Repeatedly try solving this.  There are two cases:
@@ -3067,6 +3070,9 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                     if (fabs(vs[i]->finalPosition - 
                             vs[i]->desiredPosition) > 0.01)
                     {
+#ifdef NUDGE_DEBUG
+                        fprintf(stderr,"unsatisfied\n");
+#endif
                         satisfied = false;
                         break;
                     }
@@ -3159,6 +3165,9 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
 
         if (satisfied)
         {
+#ifdef NUDGE_DEBUG
+            fprintf(stderr,"satisfied at nudgeDist = %g\n", sepDist);
+#endif
             for (ShiftSegmentList::iterator currSegment = currentRegion.begin();
                     currSegment != currentRegion.end(); ++currSegment)
             {
@@ -3170,7 +3179,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
         }
 #ifdef NUDGE_DEBUG
         for(unsigned i=0;i<vs.size();i++) {
-            printf("+vs[%d]=%f\n",i,vs[i]->finalPosition);
+            fprintf(stderr, "+vs[%d]=%f\n",i,vs[i]->finalPosition);
         }
 #endif
 #ifdef NUDGE_DEBUG_SVG

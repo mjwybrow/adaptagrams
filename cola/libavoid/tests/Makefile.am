@@ -20,6 +20,7 @@ check_PROGRAMS = \
 	inlineoverlap06 \
 	inlineoverlap07 \
 	inlineoverlap08 \
+	inlineOverlap09 \
 	nudgeintobug \
 	slowrouting \
 	tjunct \
@@ -132,6 +133,7 @@ inlineoverlap05_SOURCES = inlineoverlap05.cpp
 inlineoverlap06_SOURCES = inlineoverlap06.cpp
 inlineoverlap07_SOURCES = inlineoverlap07.cpp
 inlineoverlap08_SOURCES = inlineoverlap08.cpp
+inlineOverlap09_SOURCES = inlineOverlap09.cpp
 
 # corneroverlap01_SOURCES = corneroverlap01.cpp
 
