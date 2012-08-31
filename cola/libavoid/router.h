@@ -88,6 +88,9 @@ enum RoutingParameter
     //!         path beyond the first.  This should always normally be set
     //!         when doing orthogonal routing to prevent step-like connector
     //!         paths.
+    //! @note   This penalty must be set (i.e., be greater than zero) in 
+    //!         order for orthogonal connector nudging to be performed, since
+    //!         this requires reasonable initial routes. 
     segmentPenalty = 0,
     //! @brief  This penalty is applied in its full amount to tight acute 
     //!         bends in the connector path.  A smaller portion of the penalty
@@ -96,8 +99,6 @@ enum RoutingParameter
     //!         is some evidence that tighter corners are worse for 
     //!         readability, but that slight bends might not be so bad, 
     //!         especially when smoothed by curves.
-    //! @note   If this penalty is not set (i.e., is equal to zero) then 
-    //!         orthogonal connector routes will not get nudged apart.  
     anglePenalty,
     //! @brief  This penalty is applied whenever a connector path crosses 
     //!         another connector path.  It takes shared paths into 
