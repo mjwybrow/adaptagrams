@@ -191,6 +191,8 @@ void Blocks::cleanup() {
  */
 void Blocks::split(Block *b, Block *&l, Block *&r, Constraint *c) {
     b->split(l,r,c);
+    insert(l);
+    insert(r);
 #ifdef LIBVPSC_LOGGING
     ofstream f(LOGFILE,ios::app);
     f<<"Split left: "<<*l<<endl;
@@ -207,8 +209,6 @@ void Blocks::split(Block *b, Block *&l, Block *&r, Constraint *c) {
     mergeRight(r);
     removeBlock(b);
 
-    insert(l);
-    insert(r);
     COLA_ASSERT(__NOTNAN(l->posn));
     COLA_ASSERT(__NOTNAN(r->posn));
 }
