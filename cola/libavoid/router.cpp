@@ -2134,6 +2134,8 @@ void Router::outputInstanceToSVG(std::string instanceName)
 
     fprintf(fp, "    router->processTransaction();\n");
     fprintf(fp, "    router->outputInstanceToSVG();\n");
+
+    m_topology_addon->outputDeletionCode(fp);
     fprintf(fp, "    delete router;\n");
     fprintf(fp, "    return 0;\n");
     fprintf(fp, "};\n");

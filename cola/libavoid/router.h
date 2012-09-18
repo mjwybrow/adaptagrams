@@ -245,6 +245,11 @@ class TopologyAddonInterface
             (void)(fp);  // Avoid unused parameter warning.
             return false;
         }
+        virtual bool outputDeletionCode(FILE *fp) const
+        {
+            (void)(fp);  // Avoid unused parameter warning.
+            return false;
+        }
 };
 
 

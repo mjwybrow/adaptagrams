@@ -42,6 +42,7 @@ class AvoidTopologyAddon : public Avoid::TopologyAddonInterface
 
         void improveOrthogonalTopology(Avoid::Router *router);
         bool outputCode(FILE *fp) const;
+        bool outputDeletionCode(FILE *fp) const;
 
     private:
         vpsc::Rectangles rectangles;  // Currently unused, for debugging.

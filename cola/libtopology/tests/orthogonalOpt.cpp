@@ -4506,6 +4506,11 @@ int main(void) {
 
     router->processTransaction();
     //router->outputInstanceToSVG("test-orthogonalOpt");
+
+    delete cluster140043788768352;
+    for_each(rs.begin(), rs.end(), cola::delete_object());
+    for_each(ccs.begin(), ccs.end(), cola::delete_object());
+
     delete router;
     return 0;
 };
