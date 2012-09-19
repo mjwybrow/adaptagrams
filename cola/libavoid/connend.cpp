@@ -428,7 +428,7 @@ void ConnEnd::outputCode(FILE *fp, const char *srcDst, unsigned int num) const
     }
     else
     {
-        fprintf(fp, "   ConnEnd %sPt%u(Point(%g, %g), (ConnDirFlags) %u);\n",
+        fprintf(fp, "   ConnEnd %sPt%u(Point(%.16g, %.16g), (ConnDirFlags) %u);\n",
                 srcDst, num, m_point.x, m_point.y, m_directions);
     }
 }

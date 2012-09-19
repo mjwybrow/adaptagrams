@@ -422,7 +422,7 @@ void ConnRef::outputCode(FILE *fp) const
     }
     else if (src())
     {
-        fprintf(fp, "    ConnEnd srcPt%u(Point(%g, %g), %u);\n",
+        fprintf(fp, "    ConnEnd srcPt%u(Point(%.16g, %.16g), %u);\n",
                 id(), src()->point.x, src()->point.y, src()->visDirections);
         fprintf(fp, "    connRef%u->setSourceEndpoint(srcPt%u);\n",
                 id(), id());
@@ -435,7 +435,7 @@ void ConnRef::outputCode(FILE *fp) const
     }
     else if (dst())
     {
-        fprintf(fp, "    ConnEnd dstPt%u(Point(%g, %g), %u);\n",
+        fprintf(fp, "    ConnEnd dstPt%u(Point(%.16g, %.16g), %u);\n",
                 id(), dst()->point.x, dst()->point.y, dst()->visDirections);
         fprintf(fp, "    connRef%u->setDestEndpoint(dstPt%u);\n",
                 id(), id());
@@ -449,7 +449,7 @@ void ConnRef::outputCode(FILE *fp) const
                 (int) m_checkpoints.size());
         for (size_t cInd = 0; cInd < m_checkpoints.size(); ++cInd)
         {
-            fprintf(fp, "    checkpoints%u[%d] = Point(%g, %g);\n", id(),
+            fprintf(fp, "    checkpoints%u[%d] = Point(%.16g, %.16g);\n", id(),
                     (int) cInd, m_checkpoints[cInd].x, m_checkpoints[cInd].y);
         }
         fprintf(fp, "    connRef%u->setRoutingCheckpoints(checkpoints%u);\n", 
