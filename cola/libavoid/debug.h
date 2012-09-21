@@ -87,6 +87,13 @@ namespace Avoid {
 
 }
 
+// Precision of numbers in libavoid SVG debug file.  Used in printf
+// strings ("%" PREC "g"), e.g., "%.16g"
+#if defined(HIGH_PRECISION_DEBUG)
+    #define PREC ".16"
+#else
+    #define PREC ""
+#endif
 
 #endif
 

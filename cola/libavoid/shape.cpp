@@ -181,7 +181,7 @@ void ShapeRef::outputCode(FILE *fp) const
             id(), (unsigned long) polygon().size());
     for (size_t i = 0; i < polygon().size(); ++i)
     {
-        fprintf(fp, "    poly%u.ps[%lu] = Point(%.16g, %.16g);\n", 
+        fprintf(fp, "    poly%u.ps[%lu] = Point(%" PREC "g, %" PREC "g);\n", 
                 id(), (unsigned long) i, polygon().at(i).x,
                 polygon().at(i).y);
     }
