@@ -83,7 +83,11 @@ class ANode
 //
 bool operator<(const ANode &a, const ANode &b)
 {
-    if (a.f != b.f)
+    // We need to use an epsilon here since otherwise the multiple addition
+    // of floating point numbers that makes up the 'f' values cause a problem
+    // with routings occasionally being non-deterministic.
+    double epsilon = 0.0000001;
+    if (fabs(a.f - b.f) > epsilon)
     {
         return a.f > b.f;
     }
