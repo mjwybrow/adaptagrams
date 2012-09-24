@@ -2178,7 +2178,6 @@ static void buildOrthogonalNudgingSegments(Router *router,
             continue;
         }
         Polygon& displayRoute = (*curr)->displayRoute();
-        std::vector<Point> checkpoints = (*curr)->routingCheckpoints();
         // Determine all line segments that we are interested in shifting. 
         // We don't consider the first or last segment of a path.
         for (size_t i = 1; i < displayRoute.size(); ++i)
