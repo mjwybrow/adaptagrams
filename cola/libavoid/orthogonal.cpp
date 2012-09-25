@@ -52,8 +52,10 @@ namespace Avoid {
 static const double CHANNEL_MAX = 100000000;
 
 // IDs:
-static const int freeID    = 0;
-static const int fixedID   = 1;
+static const int freeSegmentID  = 0;
+static const int fixedSegmentID = 1;
+static const int channelLeftID  = 2;
+static const int channelRightID = 3;
 // Weights:
 static const double freeWeight   = 0.00001;
 static const double strongWeight = 0.001;
@@ -380,7 +382,7 @@ class NudgingShiftSegment : public ShiftSegment
         {
             bool nudgeFinalSegments = connRef->router()->routingOption(
                     nudgeOrthogonalSegmentsConnectedToShapes);
-            int varID = freeID;
+            int varID = freeSegmentID;
             double varPos = lowPoint()[dimension];
             double weight = freeWeight;
             if (nudgeFinalSegments && finalSegment)
@@ -415,7 +417,7 @@ class NudgingShiftSegment : public ShiftSegment
             {
                 // Fixed segments shouldn't get moved.
                 weight = fixedWeight;
-                varID = fixedID;
+                varID = fixedSegmentID;
             }
             else if ( ! finalSegment )
             {
@@ -2934,19 +2936,9 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                 // then constrain its placement as such.
                 if (currSegment->minSpaceLimit > -CHANNEL_MAX)
                 {
-                    vs.push_back(new Variable(fixedID,
+                    vs.push_back(new Variable(channelLeftID,
                                 currSegment->minSpaceLimit, fixedWeight));
                     cs.push_back(new Constraint(vs[vs.size() - 1], vs[index],
-                                0.0));
-                }
-
-                // If this segment sees a channel boundary to its right,
-                // then constrain its placement as such.
-                if (currSegment->maxSpaceLimit < CHANNEL_MAX)
-                {
-                    vs.push_back(new Variable(fixedID,
-                                currSegment->maxSpaceLimit, fixedWeight));
-                    cs.push_back(new Constraint(vs[index], vs[vs.size() - 1],
                                 0.0));
                 }
             }
@@ -3015,6 +3007,19 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                 }
             }
 
+            if (!currSegment->fixed)
+            {
+                // If this segment sees a channel boundary to its right,
+                // then constrain its placement as such.
+                if (currSegment->maxSpaceLimit < CHANNEL_MAX)
+                {
+                    vs.push_back(new Variable(channelRightID,
+                                currSegment->maxSpaceLimit, fixedWeight));
+                    cs.push_back(new Constraint(vs[index], vs[vs.size() - 1],
+                                0.0));
+                }
+            }
+
             prevVars.push_back(&(*currSegment));
         }
 
@@ -3052,26 +3057,81 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
         //     distances till we find a solution that is satisfied.
         bool justAddedConstraint = false;
         bool satisfied;
+
+        typedef std::pair<size_t, size_t> UnsatisfiedRange;
+        std::list<UnsatisfiedRange> unsatisfiedRanges;
         do 
         {
             IncSolver f(vs, cs);
             f.solve();
+
+            // Determine if the problem was satisfied.
             satisfied = true;
             for (size_t i = 0; i < vs.size(); ++i) 
             {
-                if (vs[i]->id == fixedID)
+                // For each variable...
+                if (vs[i]->id >= fixedSegmentID)
                 {
+                    // If it is a fixed segment (should stay still)
                     if (fabs(vs[i]->finalPosition - 
                             vs[i]->desiredPosition) > 0.01)
                     {
-#ifdef NUDGE_DEBUG
-                        fprintf(stderr,"unsatisfied\n");
-#endif
+                        // And it is not at it's desired position, then 
+                        // we consider the problem to be unsatisfied.
                         satisfied = false;
-                        break;
+
+                        // We record ranges of unsatisfied variables based on
+                        // the channel edges.
+                        if (vs[i]->id == channelLeftID)
+                        {
+                            // This is the left-hand-side of a channel.
+                            if (unsatisfiedRanges.empty() || 
+                                    (unsatisfiedRanges.back().first !=
+                                    unsatisfiedRanges.back().second))
+                            {
+                                // There are no existing unsatisfied ranges,
+                                // or there are but they are a valid range 
+                                // (we've encountered the right-hand channel
+                                // edges already).
+                                // So, start a new unsatisfied range.
+                                unsatisfiedRanges.push_back(
+                                        std::make_pair(i, i));
+                            }
+                        }
+                        else if (vs[i]->id == channelRightID)
+                        {
+                            // This is the left-hand-side of a channel.
+                            COLA_ASSERT(unsatisfiedRanges.size() > 0);
+                            // Expand the existing range to include it.
+                            unsatisfiedRanges.back().second = i;
+                        }
+                        else if (vs[i]->id == fixedSegmentID)
+                        {
+                            // Fixed connector segments can also start and 
+                            // extend unsatisfied variable ranges.
+                            if (unsatisfiedRanges.empty())
+                            {
+                                // There are no existing unsatisfied ranges,
+                                // so start a new unsatisfied range.
+                                unsatisfiedRanges.push_back(
+                                        std::make_pair(i, i));
+                            }
+                            else
+                            {
+                                // Expand the existing range to include index.
+                                unsatisfiedRanges.back().second = i;
+                            }
+                        }
                     }
                 }
             }
+
+#ifdef NUDGE_DEBUG
+            if (!satisfied)
+            {
+                fprintf(stderr,"unsatisfied\n");
+            }
+#endif
 
             if (justUnifying)
             {
@@ -3142,15 +3202,52 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             {
                 if (!satisfied)
                 {
+                    COLA_ASSERT(unsatisfiedRanges.size() > 0);
                     // Reduce the separation distance.
                     sepDist -= (baseSepDist / reductionSteps);
+#ifdef NUDGE_DEBUG
+                    for (std::list<UnsatisfiedRange>::iterator it =
+                            unsatisfiedRanges.begin(); 
+                            it != unsatisfiedRanges.end(); ++it)
+                    {
+                        fprintf(stderr, "unsatisfiedVarRange(%ld, %ld)\n", 
+                                it->first, it->second);
+                    }
+                    fprintf(stderr, "unsatisfied, trying %g\n", sepDist);
+#endif
                     // And rewrite all the gap constraints to have the new 
                     // reduced separation distance.
-                    for (Constraints::iterator cIt = gapcs.begin(); 
-                            cIt != gapcs.end(); ++cIt)
+                    bool withinUnsatisfiedGroup = false;
+                    for (Constraints::iterator cIt = cs.begin(); 
+                            cIt != cs.end(); ++cIt)
                     {
+                        UnsatisfiedRange& range = unsatisfiedRanges.front();
                         Constraint *constraint = *cIt;
-                        constraint->gap = sepDist;
+
+                        if (constraint->left == vs[range.first])
+                        {
+                            // Entered an unsatisfied range of variables.
+                            withinUnsatisfiedGroup = true;
+                        }
+
+                        if (withinUnsatisfiedGroup && (constraint->gap > 0))
+                        {
+                            // Rewrite constraints in unsatisfied ranges 
+                            // that have a non-zero gap.
+                            constraint->gap = sepDist;
+                        }
+                        
+                        if (constraint->right == vs[range.second])
+                        {
+                            // Left an unsatisfied range of variables.
+                            withinUnsatisfiedGroup = false;
+                            unsatisfiedRanges.pop_front();
+                            if (unsatisfiedRanges.empty())
+                            {
+                                // And there are no more unsatisfied variables.
+                                break;
+                            }
+                        }
                     }
                 }
             }

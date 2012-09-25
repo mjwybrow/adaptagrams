@@ -60,7 +60,7 @@ int main(void) {
     connRef421608980->setRoutingType((ConnType)2);
 
     router->processTransaction();
-    router->outputInstanceToSVG("test-restrictedOverlap");
+    //router->outputInstanceToSVG("test-restrictedNudging");
     
     bool overlap = router->existsOrthogonalTouchingPaths();
     delete router;
