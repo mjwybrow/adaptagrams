@@ -84,8 +84,7 @@ int main(void) {
     router->processTransaction();
     router->outputInstanceToSVG("test-orthordering-02");
     
-    bool optimisedForConnectorType = true;
-    int crossings = router->existsCrossings(optimisedForConnectorType);
+    int crossings = router->existsCrossings();
 
     delete router;
     return (crossings > 0) ? 1 : 0;
