@@ -2499,8 +2499,8 @@ void Router::outputInstanceToSVG(std::string instanceName)
             fprintf(fp, "<circle id=\"checkpoint-%u-%d\" cx=\"%g\" cy=\"%g\" "
                     "r=\"8\" style=\"stroke: none; fill: red; "
                     "fill-opacity: 0.25;\"  />\n", connRef->id(), (int) i,
-                    connRef->m_checkpoints[i].x, 
-                    connRef->m_checkpoints[i].y);
+                    connRef->m_checkpoints[i].point.x, 
+                    connRef->m_checkpoints[i].point.y);
         }
         
         ++connRefIt;

@@ -187,6 +187,7 @@ class ColaException {
 %template(UnsignedVector) std::vector<unsigned>;
 %template(ClusterVector) std::vector<cola::Cluster*>;
 %template(PointVector) std::vector<Avoid::Point>;
+%template(CheckpointVector) std::vector<Avoid::Checkpoint>;
 
 %inline %{
 void doubleArraySet(double *a, int i, double val) {

@@ -43,7 +43,7 @@ int main(void) {
     ConnEnd srcPt92802970(Point(50990, 50450), 8);
     ConnEnd dstPt92802970(Point(51275, 50485), 1);
     ConnRef *conn = new ConnRef(router, srcPt92802970, dstPt92802970, 92802970);
-    std::vector<Point> checkpoints;
+    std::vector<Checkpoint> checkpoints;
     checkpoints.push_back(Point(50000, 50000));
     checkpoints.push_back(Point(50200, 50000));
     checkpoints.push_back(Point(50200, 50200));

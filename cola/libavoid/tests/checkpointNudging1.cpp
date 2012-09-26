@@ -1164,7 +1164,7 @@ int main(void) {
     ConnEnd dstPt163(Point(251.5, 2379.79), 15);
     connRef163->setDestEndpoint(dstPt163);
     connRef163->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints163(1);
+    std::vector<Checkpoint> checkpoints163(1);
     checkpoints163[0] = Point(807.5, 2379.79);
     connRef163->setRoutingCheckpoints(checkpoints163);
 
@@ -1174,7 +1174,7 @@ int main(void) {
     ConnEnd dstPt164(Point(829.5, 2379.79), 15);
     connRef164->setDestEndpoint(dstPt164);
     connRef164->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints164(1);
+    std::vector<Checkpoint> checkpoints164(1);
     checkpoints164[0] = Point(731.5, 2379.79);
     connRef164->setRoutingCheckpoints(checkpoints164);
 
@@ -1184,7 +1184,7 @@ int main(void) {
     ConnEnd dstPt165(Point(251.5, 2379.79), 15);
     connRef165->setDestEndpoint(dstPt165);
     connRef165->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints165(1);
+    std::vector<Checkpoint> checkpoints165(1);
     checkpoints165[0] = Point(226.5, 2261.42);
     connRef165->setRoutingCheckpoints(checkpoints165);
 
@@ -1194,7 +1194,7 @@ int main(void) {
     ConnEnd dstPt166(Point(251.5, 2379.79), 15);
     connRef166->setDestEndpoint(dstPt166);
     connRef166->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints166(1);
+    std::vector<Checkpoint> checkpoints166(1);
     checkpoints166[0] = Point(807.5, 2379.79);
     connRef166->setRoutingCheckpoints(checkpoints166);
 
@@ -1204,7 +1204,7 @@ int main(void) {
     ConnEnd dstPt167(Point(829.5, 2379.79), 15);
     connRef167->setDestEndpoint(dstPt167);
     connRef167->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints167(1);
+    std::vector<Checkpoint> checkpoints167(1);
     checkpoints167[0] = Point(731.5, 2379.79);
     connRef167->setRoutingCheckpoints(checkpoints167);
 
@@ -1214,7 +1214,7 @@ int main(void) {
     ConnEnd dstPt168(Point(160.5, 2246.42), 2);
     connRef168->setDestEndpoint(dstPt168);
     connRef168->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints168(1);
+    std::vector<Checkpoint> checkpoints168(1);
     checkpoints168[0] = Point(226.5, 2261.42);
     connRef168->setRoutingCheckpoints(checkpoints168);
 
@@ -1231,7 +1231,7 @@ int main(void) {
     ConnEnd dstPt170(Point(829.5, 2379.79), 15);
     connRef170->setDestEndpoint(dstPt170);
     connRef170->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints170(1);
+    std::vector<Checkpoint> checkpoints170(1);
     checkpoints170[0] = Point(1051.5, 2379.79);
     connRef170->setRoutingCheckpoints(checkpoints170);
 
@@ -1241,7 +1241,7 @@ int main(void) {
     ConnEnd dstPt171(Point(829.5, 2379.79), 15);
     connRef171->setDestEndpoint(dstPt171);
     connRef171->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints171(1);
+    std::vector<Checkpoint> checkpoints171(1);
     checkpoints171[0] = Point(1051.5, 2379.79);
     connRef171->setRoutingCheckpoints(checkpoints171);
 
@@ -1349,7 +1349,7 @@ int main(void) {
     ConnEnd dstPt186(Point(1191.5, 1455.42), 15);
     connRef186->setDestEndpoint(dstPt186);
     connRef186->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints186(1);
+    std::vector<Checkpoint> checkpoints186(1);
     checkpoints186[0] = Point(1191.5, 1373.42);
     connRef186->setRoutingCheckpoints(checkpoints186);
 
@@ -1359,7 +1359,7 @@ int main(void) {
     ConnEnd dstPt187(Point(1191.5, 1291.42), 15);
     connRef187->setDestEndpoint(dstPt187);
     connRef187->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints187(1);
+    std::vector<Checkpoint> checkpoints187(1);
     checkpoints187[0] = Point(1191.5, 1313.42);
     connRef187->setRoutingCheckpoints(checkpoints187);
 
@@ -1383,7 +1383,7 @@ int main(void) {
     ConnEnd dstPt190(Point(1191.5, 1115.75), 15);
     connRef190->setDestEndpoint(dstPt190);
     connRef190->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints190(1);
+    std::vector<Checkpoint> checkpoints190(1);
     checkpoints190[0] = Point(1191.5, 1033.75);
     connRef190->setRoutingCheckpoints(checkpoints190);
 
@@ -1393,7 +1393,7 @@ int main(void) {
     ConnEnd dstPt191(Point(1191.5, 883), 15);
     connRef191->setDestEndpoint(dstPt191);
     connRef191->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints191(1);
+    std::vector<Checkpoint> checkpoints191(1);
     checkpoints191[0] = Point(1191.5, 1093.75);
     connRef191->setRoutingCheckpoints(checkpoints191);
 
@@ -1452,7 +1452,7 @@ int main(void) {
     ConnEnd dstPt199(Point(736.5, 883), 15);
     connRef199->setDestEndpoint(dstPt199);
     connRef199->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints199(1);
+    std::vector<Checkpoint> checkpoints199(1);
     checkpoints199[0] = Point(438.5, 883);
     connRef199->setRoutingCheckpoints(checkpoints199);
 
@@ -1462,7 +1462,7 @@ int main(void) {
     ConnEnd dstPt200(Point(736.5, 883), 15);
     connRef200->setDestEndpoint(dstPt200);
     connRef200->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints200(1);
+    std::vector<Checkpoint> checkpoints200(1);
     checkpoints200[0] = Point(438.5, 883);
     connRef200->setRoutingCheckpoints(checkpoints200);
 
@@ -1514,7 +1514,7 @@ int main(void) {
     ConnEnd dstPt207(Point(1191.5, 584), 15);
     connRef207->setDestEndpoint(dstPt207);
     connRef207->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints207(1);
+    std::vector<Checkpoint> checkpoints207(1);
     checkpoints207[0] = Point(669.5, 584);
     connRef207->setRoutingCheckpoints(checkpoints207);
 
@@ -1524,7 +1524,7 @@ int main(void) {
     ConnEnd dstPt208(Point(1191.5, 584), 15);
     connRef208->setDestEndpoint(dstPt208);
     connRef208->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints208(1);
+    std::vector<Checkpoint> checkpoints208(1);
     checkpoints208[0] = Point(669.5, 584);
     connRef208->setRoutingCheckpoints(checkpoints208);
 
@@ -1534,7 +1534,7 @@ int main(void) {
     ConnEnd dstPt209(Point(286.5, 584), 15);
     connRef209->setDestEndpoint(dstPt209);
     connRef209->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints209(1);
+    std::vector<Checkpoint> checkpoints209(1);
     checkpoints209[0] = Point(745.5, 584);
     connRef209->setRoutingCheckpoints(checkpoints209);
 
@@ -1579,7 +1579,7 @@ int main(void) {
     ConnEnd dstPt215(Point(1191.5, 584), 15);
     connRef215->setDestEndpoint(dstPt215);
     connRef215->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints215(1);
+    std::vector<Checkpoint> checkpoints215(1);
     checkpoints215[0] = Point(669.5, 584);
     connRef215->setRoutingCheckpoints(checkpoints215);
 
@@ -1589,7 +1589,7 @@ int main(void) {
     ConnEnd dstPt216(Point(736.5, 883), 15);
     connRef216->setDestEndpoint(dstPt216);
     connRef216->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints216(1);
+    std::vector<Checkpoint> checkpoints216(1);
     checkpoints216[0] = Point(438.5, 883);
     connRef216->setRoutingCheckpoints(checkpoints216);
 
@@ -1634,7 +1634,7 @@ int main(void) {
     ConnEnd dstPt222(Point(692.5, 615), 4);
     connRef222->setDestEndpoint(dstPt222);
     connRef222->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints222(1);
+    std::vector<Checkpoint> checkpoints222(1);
     checkpoints222[0] = Point(745.5, 584);
     connRef222->setRoutingCheckpoints(checkpoints222);
 
@@ -1644,7 +1644,7 @@ int main(void) {
     ConnEnd dstPt223(Point(692.5, 690), 4);
     connRef223->setDestEndpoint(dstPt223);
     connRef223->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints223(1);
+    std::vector<Checkpoint> checkpoints223(1);
     checkpoints223[0] = Point(745.5, 584);
     connRef223->setRoutingCheckpoints(checkpoints223);
 
@@ -1654,7 +1654,7 @@ int main(void) {
     ConnEnd dstPt224(Point(461.5, 914), 4);
     connRef224->setDestEndpoint(dstPt224);
     connRef224->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints224(1);
+    std::vector<Checkpoint> checkpoints224(1);
     checkpoints224[0] = Point(514.5, 883);
     connRef224->setRoutingCheckpoints(checkpoints224);
 
@@ -1664,7 +1664,7 @@ int main(void) {
     ConnEnd dstPt225(Point(286.5, 883), 15);
     connRef225->setDestEndpoint(dstPt225);
     connRef225->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints225(1);
+    std::vector<Checkpoint> checkpoints225(1);
     checkpoints225[0] = Point(514.5, 883);
     connRef225->setRoutingCheckpoints(checkpoints225);
 
@@ -1674,7 +1674,7 @@ int main(void) {
     ConnEnd dstPt226(Point(736.5, 883), 15);
     connRef226->setDestEndpoint(dstPt226);
     connRef226->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints226(1);
+    std::vector<Checkpoint> checkpoints226(1);
     checkpoints226[0] = Point(438.5, 883);
     connRef226->setRoutingCheckpoints(checkpoints226);
 
@@ -1684,7 +1684,7 @@ int main(void) {
     ConnEnd dstPt227(Point(1313.5, 1048.75), 1);
     connRef227->setDestEndpoint(dstPt227);
     connRef227->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints227(1);
+    std::vector<Checkpoint> checkpoints227(1);
     checkpoints227[0] = Point(1191.5, 1093.75);
     connRef227->setRoutingCheckpoints(checkpoints227);
 
@@ -1694,7 +1694,7 @@ int main(void) {
     ConnEnd dstPt228(Point(1191.5, 1903.42), 15);
     connRef228->setDestEndpoint(dstPt228);
     connRef228->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints228(1);
+    std::vector<Checkpoint> checkpoints228(1);
     checkpoints228[0] = Point(737.439, 1903.42);
     connRef228->setRoutingCheckpoints(checkpoints228);
 
@@ -1704,7 +1704,7 @@ int main(void) {
     ConnEnd dstPt229(Point(1191.5, 1655.42), 15);
     connRef229->setDestEndpoint(dstPt229);
     connRef229->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints229(1);
+    std::vector<Checkpoint> checkpoints229(1);
     checkpoints229[0] = Point(1265.5, 1537.42);
     connRef229->setRoutingCheckpoints(checkpoints229);
 
@@ -1714,7 +1714,7 @@ int main(void) {
     ConnEnd dstPt230(Point(1191.5, 1655.42), 15);
     connRef230->setDestEndpoint(dstPt230);
     connRef230->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints230(1);
+    std::vector<Checkpoint> checkpoints230(1);
     checkpoints230[0] = Point(1265.5, 1537.42);
     connRef230->setRoutingCheckpoints(checkpoints230);
 
@@ -1724,7 +1724,7 @@ int main(void) {
     ConnEnd dstPt231(Point(1191.5, 1655.42), 15);
     connRef231->setDestEndpoint(dstPt231);
     connRef231->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints231(1);
+    std::vector<Checkpoint> checkpoints231(1);
     checkpoints231[0] = Point(1265.5, 1537.42);
     connRef231->setRoutingCheckpoints(checkpoints231);
 
@@ -1734,7 +1734,7 @@ int main(void) {
     ConnEnd dstPt232(Point(1191.5, 1455.42), 15);
     connRef232->setDestEndpoint(dstPt232);
     connRef232->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints232(1);
+    std::vector<Checkpoint> checkpoints232(1);
     checkpoints232[0] = Point(1191.5, 1373.42);
     connRef232->setRoutingCheckpoints(checkpoints232);
 
@@ -1751,7 +1751,7 @@ int main(void) {
     ConnEnd dstPt234(Point(1327.5, 2379.79), 15);
     connRef234->setDestEndpoint(dstPt234);
     connRef234->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints234(1);
+    std::vector<Checkpoint> checkpoints234(1);
     checkpoints234[0] = Point(1127.5, 2379.79);
     connRef234->setRoutingCheckpoints(checkpoints234);
 
@@ -1761,7 +1761,7 @@ int main(void) {
     ConnEnd dstPt235(Point(1327.5, 2379.79), 15);
     connRef235->setDestEndpoint(dstPt235);
     connRef235->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints235(1);
+    std::vector<Checkpoint> checkpoints235(1);
     checkpoints235[0] = Point(1127.5, 2379.79);
     connRef235->setRoutingCheckpoints(checkpoints235);
 
@@ -1771,7 +1771,7 @@ int main(void) {
     ConnEnd dstPt236(Point(1327.5, 2379.79), 15);
     connRef236->setDestEndpoint(dstPt236);
     connRef236->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints236(1);
+    std::vector<Checkpoint> checkpoints236(1);
     checkpoints236[0] = Point(1127.5, 2379.79);
     connRef236->setRoutingCheckpoints(checkpoints236);
 
@@ -1781,7 +1781,7 @@ int main(void) {
     ConnEnd dstPt237(Point(1327.5, 2379.79), 15);
     connRef237->setDestEndpoint(dstPt237);
     connRef237->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints237(1);
+    std::vector<Checkpoint> checkpoints237(1);
     checkpoints237[0] = Point(1127.5, 2379.79);
     connRef237->setRoutingCheckpoints(checkpoints237);
 
@@ -1812,7 +1812,7 @@ int main(void) {
     ConnEnd dstPt241(Point(829.5, 2379.79), 15);
     connRef241->setDestEndpoint(dstPt241);
     connRef241->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints241(1);
+    std::vector<Checkpoint> checkpoints241(1);
     checkpoints241[0] = Point(1051.5, 2379.79);
     connRef241->setRoutingCheckpoints(checkpoints241);
 
@@ -1822,7 +1822,7 @@ int main(void) {
     ConnEnd dstPt242(Point(829.5, 2379.79), 15);
     connRef242->setDestEndpoint(dstPt242);
     connRef242->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints242(1);
+    std::vector<Checkpoint> checkpoints242(1);
     checkpoints242[0] = Point(1051.5, 2379.79);
     connRef242->setRoutingCheckpoints(checkpoints242);
 
@@ -1839,7 +1839,7 @@ int main(void) {
     ConnEnd dstPt244(Point(1160.5, 1078.75), 2);
     connRef244->setDestEndpoint(dstPt244);
     connRef244->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints244(1);
+    std::vector<Checkpoint> checkpoints244(1);
     checkpoints244[0] = Point(1191.5, 1033.75);
     connRef244->setRoutingCheckpoints(checkpoints244);
 
@@ -1877,7 +1877,7 @@ int main(void) {
     ConnEnd dstPt249(Point(1191.5, 1903.42), 15);
     connRef249->setDestEndpoint(dstPt249);
     connRef249->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints249(1);
+    std::vector<Checkpoint> checkpoints249(1);
     checkpoints249[0] = Point(737.439, 1903.42);
     connRef249->setRoutingCheckpoints(checkpoints249);
 #endif
@@ -1888,7 +1888,7 @@ int main(void) {
     ConnEnd dstPt250(Point(684.439, 1934.42), 4);
     connRef250->setDestEndpoint(dstPt250);
     connRef250->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints250(1);
+    std::vector<Checkpoint> checkpoints250(1);
     checkpoints250[0] = Point(661.439, 1903.42);
     connRef250->setRoutingCheckpoints(checkpoints250);
 
@@ -1898,7 +1898,7 @@ int main(void) {
     ConnEnd dstPt251(Point(684.439, 1872.42), 4);
     connRef251->setDestEndpoint(dstPt251);
     connRef251->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints251(1);
+    std::vector<Checkpoint> checkpoints251(1);
     checkpoints251[0] = Point(661.439, 1903.42);
     connRef251->setRoutingCheckpoints(checkpoints251);
 
@@ -1909,7 +1909,7 @@ int main(void) {
     ConnEnd dstPt252(Point(1191.5, 1291.42), 15);
     connRef252->setDestEndpoint(dstPt252);
     connRef252->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints252(1);
+    std::vector<Checkpoint> checkpoints252(1);
     checkpoints252[0] = Point(1191.5, 1313.42);
     connRef252->setRoutingCheckpoints(checkpoints252);
 
@@ -1940,7 +1940,7 @@ int main(void) {
     ConnEnd dstPt256(Point(1240.5, 1492.42), 1);
     connRef256->setDestEndpoint(dstPt256);
     connRef256->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints256(1);
+    std::vector<Checkpoint> checkpoints256(1);
     checkpoints256[0] = Point(1265.5, 1477.42);
     connRef256->setRoutingCheckpoints(checkpoints256);
 
@@ -1950,7 +1950,7 @@ int main(void) {
     ConnEnd dstPt257(Point(1331.5, 1492.42), 1);
     connRef257->setDestEndpoint(dstPt257);
     connRef257->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints257(1);
+    std::vector<Checkpoint> checkpoints257(1);
     checkpoints257[0] = Point(1265.5, 1477.42);
     connRef257->setRoutingCheckpoints(checkpoints257);
 
@@ -1960,7 +1960,7 @@ int main(void) {
     ConnEnd dstPt258(Point(1422.5, 1492.42), 1);
     connRef258->setDestEndpoint(dstPt258);
     connRef258->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints258(1);
+    std::vector<Checkpoint> checkpoints258(1);
     checkpoints258[0] = Point(1265.5, 1477.42);
     connRef258->setRoutingCheckpoints(checkpoints258);
 
@@ -1970,7 +1970,7 @@ int main(void) {
     ConnEnd dstPt259(Point(251.5, 2169.42), 15);
     connRef259->setDestEndpoint(dstPt259);
     connRef259->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints259(1);
+    std::vector<Checkpoint> checkpoints259(1);
     checkpoints259[0] = Point(226.5, 2201.42);
     connRef259->setRoutingCheckpoints(checkpoints259);
 
@@ -1980,7 +1980,7 @@ int main(void) {
     ConnEnd dstPt260(Point(1191.5, 1115.75), 15);
     connRef260->setDestEndpoint(dstPt260);
     connRef260->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints260(1);
+    std::vector<Checkpoint> checkpoints260(1);
     checkpoints260[0] = Point(1191.5, 1033.75);
     connRef260->setRoutingCheckpoints(checkpoints260);
 
@@ -1990,7 +1990,7 @@ int main(void) {
     ConnEnd dstPt261(Point(1191.5, 584), 15);
     connRef261->setDestEndpoint(dstPt261);
     connRef261->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints261(1);
+    std::vector<Checkpoint> checkpoints261(1);
     checkpoints261[0] = Point(669.5, 584);
     connRef261->setRoutingCheckpoints(checkpoints261);
 
@@ -2406,7 +2406,7 @@ int main(void) {
     ConnEnd dstPt320(Point(251.5, 2216.42), 1);
     connRef320->setDestEndpoint(dstPt320);
     connRef320->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints320(1);
+    std::vector<Checkpoint> checkpoints320(1);
     checkpoints320[0] = Point(226.5, 2201.42);
     connRef320->setRoutingCheckpoints(checkpoints320);
 
@@ -2451,7 +2451,7 @@ int main(void) {
     ConnEnd dstPt326(Point(1222.5, 1048.75), 1);
     connRef326->setDestEndpoint(dstPt326);
     connRef326->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints326(1);
+    std::vector<Checkpoint> checkpoints326(1);
     checkpoints326[0] = Point(1191.5, 1093.75);
     connRef326->setRoutingCheckpoints(checkpoints326);
 
@@ -2461,7 +2461,7 @@ int main(void) {
     ConnEnd dstPt327(Point(461.5, 777), 4);
     connRef327->setDestEndpoint(dstPt327);
     connRef327->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints327(1);
+    std::vector<Checkpoint> checkpoints327(1);
     checkpoints327[0] = Point(514.5, 883);
     connRef327->setRoutingCheckpoints(checkpoints327);
 
@@ -2471,7 +2471,7 @@ int main(void) {
     ConnEnd dstPt328(Point(461.5, 852), 4);
     connRef328->setDestEndpoint(dstPt328);
     connRef328->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints328(1);
+    std::vector<Checkpoint> checkpoints328(1);
     checkpoints328[0] = Point(514.5, 883);
     connRef328->setRoutingCheckpoints(checkpoints328);
 
@@ -2481,7 +2481,7 @@ int main(void) {
     ConnEnd dstPt329(Point(692.5, 478), 4);
     connRef329->setDestEndpoint(dstPt329);
     connRef329->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints329(1);
+    std::vector<Checkpoint> checkpoints329(1);
     checkpoints329[0] = Point(745.5, 584);
     connRef329->setRoutingCheckpoints(checkpoints329);
 
@@ -2491,7 +2491,7 @@ int main(void) {
     ConnEnd dstPt330(Point(692.5, 553), 4);
     connRef330->setDestEndpoint(dstPt330);
     connRef330->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints330(1);
+    std::vector<Checkpoint> checkpoints330(1);
     checkpoints330[0] = Point(745.5, 584);
     connRef330->setRoutingCheckpoints(checkpoints330);
 
@@ -2501,7 +2501,7 @@ int main(void) {
     ConnEnd dstPt331(Point(722.5, 403), 8);
     connRef331->setDestEndpoint(dstPt331);
     connRef331->setRoutingType((ConnType)2);
-    std::vector<Point> checkpoints331(1);
+    std::vector<Checkpoint> checkpoints331(1);
     checkpoints331[0] = Point(669.5, 584);
     connRef331->setRoutingCheckpoints(checkpoints331);
 

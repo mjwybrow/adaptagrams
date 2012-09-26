@@ -318,7 +318,7 @@ void buildConnectorRouteCheckpointCache(Router *router)
         }
 
         PolyLine& displayRoute = conn->displayRoute();
-        std::vector<Point> checkpoints = conn->routingCheckpoints();
+        std::vector<Checkpoint> checkpoints = conn->routingCheckpoints();
        
         // Initialise checkpoint vector and set to false.  There will be
         // one entry for each *segment* in the path, and the value indicates
@@ -331,7 +331,7 @@ void buildConnectorRouteCheckpointCache(Router *router)
         {
             for (size_t ind = 0; ind < displayRoute.size(); ++ind)
             {
-                if (displayRoute.ps[ind].equals(checkpoints[cpi]))
+                if (displayRoute.ps[ind].equals(checkpoints[cpi].point))
                 {
                     // The checkpoint is at a bendpoint, so mark the edge
                     // before and after and being affected by checkpoints.
@@ -346,7 +346,7 @@ void buildConnectorRouteCheckpointCache(Router *router)
                     }
                 }
                 else if ((ind > 0) && pointOnLine(displayRoute.ps[ind - 1], 
-                         displayRoute.ps[ind], checkpoints[cpi]) )
+                         displayRoute.ps[ind], checkpoints[cpi].point) )
                 {
                     // If the checkpoint is on a segment, only that segment is
                     // affected.

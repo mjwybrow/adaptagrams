@@ -180,13 +180,13 @@ void ConnRef::setRoutingType(ConnType type)
 }
 
 
-std::vector<Point> ConnRef::routingCheckpoints(void) const
+std::vector<Checkpoint> ConnRef::routingCheckpoints(void) const
 {
     return m_checkpoints;
 }
 
 
-void ConnRef::setRoutingCheckpoints(const std::vector<Point>& checkpoints)
+void ConnRef::setRoutingCheckpoints(const std::vector<Checkpoint>& checkpoints)
 {
     m_checkpoints = checkpoints;
     
@@ -203,7 +203,7 @@ void ConnRef::setRoutingCheckpoints(const std::vector<Point>& checkpoints)
     {
         VertID ptID(m_id, 2 + i, 
                 VertID::PROP_ConnPoint | VertID::PROP_ConnCheckpoint);
-        VertInf *vertex = new VertInf(m_router, ptID, m_checkpoints[i]);
+        VertInf *vertex = new VertInf(m_router, ptID, m_checkpoints[i].point);
         vertex->visDirections = ConnDirAll;
 
         m_checkpoint_vertices.push_back(vertex);
@@ -449,8 +449,12 @@ void ConnRef::outputCode(FILE *fp) const
                 (int) m_checkpoints.size());
         for (size_t cInd = 0; cInd < m_checkpoints.size(); ++cInd)
         {
-            fprintf(fp, "    checkpoints%u[%d] = Point(%" PREC "g, %" PREC "g);\n", id(),
-                    (int) cInd, m_checkpoints[cInd].x, m_checkpoints[cInd].y);
+            fprintf(fp, "    checkpoints%u[%d] = Checkpoint(Point("
+                    "%" PREC "g, %" PREC "g), (ConnDirFlags) %d, "
+                    "(ConnDirFlags) %d);\n", id(), (int) cInd, 
+                    m_checkpoints[cInd].point.x, m_checkpoints[cInd].point.y,
+                    m_checkpoints[cInd].arrivalDirections,
+                    m_checkpoints[cInd].departureDirections);
         }
         fprintf(fp, "    connRef%u->setRoutingCheckpoints(checkpoints%u);\n", 
                 id(), id());
@@ -956,13 +960,45 @@ void ConnRef::generateCheckpointsPath(std::vector<Point>& path,
     vertices.clear();
     path.push_back(src()->point);
     vertices.push_back(src());
-    
+ 
     size_t lastSuccessfulIndex = 0;
     for (size_t i = 1; i < checkpoints.size(); ++i)
     {
         VertInf *start = checkpoints[lastSuccessfulIndex];
         VertInf *end = checkpoints[i];
+        
+        // Handle checkpoint directions by disabling some visibility edges.
+        if (lastSuccessfulIndex > 0)
+        {
+            Checkpoint& srcCP = m_checkpoints[lastSuccessfulIndex - 1];
+            if (srcCP.departureDirections != ConnDirAll)
+            {
+                start->setVisibleDirections(srcCP.departureDirections);
+            }
+        }
+        if ((i + 1) < checkpoints.size())
+        {
+            Checkpoint& dstCP = m_checkpoints[i - 1];
+            if (dstCP.departureDirections != ConnDirAll)
+            {
+                end->setVisibleDirections(dstCP.departureDirections);
+            }
+        }
+        
+        // Route the connector
         aStarPath(this, start, end, end); 
+
+        // Restore changes made for checkpoint visbility directions.
+        if (lastSuccessfulIndex > 0)
+        {
+            start->setVisibleDirections(ConnDirAll);
+        }
+        if ((i + 1) < checkpoints.size())
+        {
+            end->setVisibleDirections(ConnDirAll);
+        }
+
+        // Process the path.
         int pathlen = end->pathLeadsBackTo(start);
         if (pathlen >= 2)
         {

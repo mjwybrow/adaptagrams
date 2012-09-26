@@ -123,7 +123,8 @@ class VertInf
         bool orphaned(void);
 
         unsigned int pathLeadsBackTo(const VertInf *start) const;
-
+        void setVisibleDirections(const ConnDirFlags directions);
+        ConnDirFlags directionFrom(const VertInf *other) const;
         // Checks if this vertex has the target as a visibility neighbour.
         EdgeInf *hasNeighbour(VertInf *target, bool orthogonal) const;
         void orphan(void);

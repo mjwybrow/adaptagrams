@@ -285,6 +285,72 @@ void VertInf::orphan(void)
     }
 }
 
+// Returns the direction of this vertex relative to the other specified vertex.
+//
+ConnDirFlags VertInf::directionFrom(const VertInf *other) const
+{
+    double epsilon = 0.000001;
+    Point thisPoint = point;
+    Point otherPoint = other->point;
+    Point diff = thisPoint - otherPoint;
+
+    ConnDirFlags directions = ConnDirNone;
+    if (diff.y > epsilon)
+    {
+        directions |= ConnDirUp;
+    }
+    if (diff.y < -epsilon)
+    {
+        directions |= ConnDirDown;
+    }
+    if (diff.x > epsilon)
+    {
+        directions |= ConnDirRight;
+    }
+    if (diff.x < -epsilon)
+    {
+        directions |= ConnDirLeft;
+    }
+    return directions;
+}
+
+// Given a set of directions, mark visibility edges in all other directions
+// as being invalid so they get ignored during the search.
+//
+void VertInf::setVisibleDirections(const ConnDirFlags directions)
+{
+    for (EdgeInfList::const_iterator edge = visList.begin();
+            edge != visList.end(); ++edge)
+    {
+        if (directions == ConnDirAll)
+        {
+            (*edge)->setDisabled(false);
+        }
+        else
+        {
+            VertInf *otherVert = (*edge)->otherVert(this);
+            ConnDirFlags direction = otherVert->directionFrom(this);
+            bool visible = (direction & directions);
+            (*edge)->setDisabled(!visible);
+        }
+    }
+
+    for (EdgeInfList::const_iterator edge = orthogVisList.begin();
+            edge != orthogVisList.end(); ++edge)
+    {
+        if (directions == ConnDirAll)
+        {
+            (*edge)->setDisabled(false);
+        }
+        else
+        {
+            VertInf *otherVert = (*edge)->otherVert(this);
+            ConnDirFlags direction = otherVert->directionFrom(this);
+            bool visible = (direction & directions);
+            (*edge)->setDisabled(!visible);
+        }
+    }
+}
 
 // Number of points in path from end back to start, or zero if no path exists.
 //

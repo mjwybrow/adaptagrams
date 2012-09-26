@@ -625,6 +625,12 @@ void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar, VertInf *start)
         for (EdgeInfList::const_iterator edge = visList.begin(); 
                 edge != finish; ++edge)
         {
+            if ((*edge)->isDisabled())
+            {
+                // Skip disabled edges.
+                continue;
+            }
+
             Node = ANode((*edge)->otherVert(BestNode.inf), timestamp++);
 
             // Set the index to the previous ANode that we reached

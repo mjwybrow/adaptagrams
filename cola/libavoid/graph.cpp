@@ -49,6 +49,7 @@ EdgeInf::EdgeInf(VertInf *v1, VertInf *v2, const bool orthogonal)
       m_visible(false),
       m_orthogonal(orthogonal),
       m_isHyperedgeSegment(false),
+      m_disabled(false),
       m_vert1(v1),
       m_vert2(v2),
       m_dist(-1)
@@ -289,6 +290,16 @@ bool EdgeInf::isHyperedgeSegment(void) const
     return m_isHyperedgeSegment;
 }
 
+bool EdgeInf::isDisabled(void) const
+{
+    return m_disabled;
+}
+
+void EdgeInf::setDisabled(const bool disabled)
+{
+    m_disabled = disabled;
+}
+
 void EdgeInf::setHyperedgeSegment(const bool hyperedge)
 {
     m_isHyperedgeSegment = hyperedge;
@@ -299,12 +310,10 @@ bool EdgeInf::added(void)
     return m_added;
 }
 
-
 int EdgeInf::blocker(void) const
 {
     return m_blocker;
 }
-
 
 void EdgeInf::alertConns(void)
 {

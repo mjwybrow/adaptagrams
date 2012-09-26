@@ -59,6 +59,56 @@ enum ConnType {
     ConnType_Orthogonal = 2
 };
 
+//! @brief  A checkpoint is a point that the route for a particular connector
+//!         must visit.  They may optionally be given an arrival/departure
+//!         direction.
+//!
+class Checkpoint
+{
+    public:
+        //! @brief  A point that a route must visit.
+        //!
+        //! The connector will be able to enter and leave this checkpoint from 
+        //! any direction.
+        //!
+        //! @param[in] p  The Point that must be visited.
+        Checkpoint(const Point& p)
+            : point(p),
+              arrivalDirections(ConnDirAll),
+              departureDirections(ConnDirAll)
+        {
+        }
+        //! @brief  A point that a route must visit.
+        //!
+        //! The connector will be able to enter and leave this checkpoint from 
+        //! the directions specified.  Give Avoid::ConnDirAll to specify all
+        //! directions.
+        //!
+        //! @param[in] p  The Point that must be visited.
+        //! @param[in] ad Avoid::ConnDirFlags denoting arrival directions for
+        //!               the connector portion leading up to this checkpoint.
+        //! @param[in] dd Avoid::ConnDirFlags denoting departure directions 
+        //!               for the connector portion leading away from this 
+        //!               checkpoint.
+        Checkpoint(const Point& p, ConnDirFlags ad, ConnDirFlags dd)
+            : point(p),
+              arrivalDirections(ad),
+              departureDirections(dd)
+        {
+        }
+        // Default constructor.
+        Checkpoint()
+            : point(Point()),
+              arrivalDirections(ConnDirAll),
+              departureDirections(ConnDirAll)
+        {
+        }
+
+        Point point;
+        ConnDirFlags arrivalDirections;
+        ConnDirFlags departureDirections;
+};
+
 
 //! @brief   The ConnRef class represents a connector object.
 //!
@@ -251,15 +301,15 @@ class ConnRef
         //! etc.  If a checkpoint is unreachable because it lies inside an
         //! obstacle, then that checkpoint will be skipped.
         //! 
-        //! @param[in] checkpoints  An ordered list of points that the 
+        //! @param[in] checkpoints  An ordered list of Checkpoints that the 
         //!                         connector will attempt to route via.
-        void setRoutingCheckpoints(const std::vector<Point>& checkpoints);
+        void setRoutingCheckpoints(const std::vector<Checkpoint>& checkpoints);
 
         //! @brief   Returns the current set of routing checkpoints for this
         //!          connector.
-        //! @returns The ordered list of Points that this connector will 
+        //! @returns The ordered list of Checkpoints that this connector will 
         //!          route via.
-        std::vector<Point> routingCheckpoints(void) const;
+        std::vector<Checkpoint> routingCheckpoints(void) const;
         
         //! @brief   Returns ConnEnds specifying what this connector is 
         //!          attached to.
@@ -352,7 +402,7 @@ class ConnRef
         void *m_connector;
         ConnEnd *m_src_connend;
         ConnEnd *m_dst_connend;
-        std::vector<Point> m_checkpoints;
+        std::vector<Checkpoint> m_checkpoints;
         std::vector<VertInf *> m_checkpoint_vertices;
 };
 

@@ -60,6 +60,8 @@ class EdgeInf
         bool added(void);
         bool isOrthogonal(void) const;
         bool isDummyConnection(void) const;
+        bool isDisabled(void) const;
+        void setDisabled(const bool disabled);
         bool rotationLessThan(const VertInf* last, const EdgeInf *rhs) const;
         std::pair<VertID, VertID> ids(void) const;
         std::pair<Point, Point> points(void) const;
@@ -93,6 +95,7 @@ class EdgeInf
         bool m_visible;
         bool m_orthogonal;
         bool m_isHyperedgeSegment;
+        bool m_disabled;
         VertInf *m_vert1;
         VertInf *m_vert2;
         EdgeInfList::iterator m_pos1;
