@@ -979,9 +979,9 @@ void ConnRef::generateCheckpointsPath(std::vector<Point>& path,
         if ((i + 1) < checkpoints.size())
         {
             Checkpoint& dstCP = m_checkpoints[i - 1];
-            if (dstCP.departureDirections != ConnDirAll)
+            if (dstCP.arrivalDirections != ConnDirAll)
             {
-                end->setVisibleDirections(dstCP.departureDirections);
+                end->setVisibleDirections(dstCP.arrivalDirections);
             }
         }
         
