@@ -4,7 +4,7 @@
  * libvpsc - A solver for the problem of Variable Placement with 
  *           Separation Constraints.
  *
- * Copyright (C) 2005-2008  Monash University
+ * Copyright (C) 2005-2012  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -32,6 +32,7 @@
  *
  * Authors:
  *   Tim Dwyer <tgdwyer@gmail.com>
+ *   Michael Wybrow <mjwybrow@users.sourceforge.net>
  */
 
 #ifndef SEEN_LIBVPSC_BLOCKS_H
@@ -54,7 +55,7 @@ class Constraint;
  * 1 or more variables, with the invariant that all constraints inside a block
  * are satisfied by keeping the variables fixed relative to one another
  */
-class Blocks : public std::set<Block*>
+class Blocks
 {
 public:
 	Blocks(std::vector<Variable*> const &vs);
@@ -65,14 +66,35 @@ public:
 	std::list<Variable*> *totalOrder();
 	void cleanup();
 	double cost();
+
+    size_t size() const;
+    Block *at(size_t index) const;
+    void insert(Block *block);
     
     long blockTimeCtr;
 private:
 	void dfsVisit(Variable *v, std::list<Variable*> *order);
 	void removeBlock(Block *doomed);
+    
+    std::vector<Block*> m_blocks;
 	std::vector<Variable*> const &vs;
 	int nvs;
 };
+
+inline size_t Blocks::size() const
+{
+    return m_blocks.size();
+}
+
+inline Block *Blocks::at(size_t index) const
+{
+    return m_blocks[index];
+}
+
+inline void Blocks::insert(Block *block)
+{
+    m_blocks.push_back(block);
+}
 
 }
 #endif // SEEN_LIBVPSC_BLOCKS_H

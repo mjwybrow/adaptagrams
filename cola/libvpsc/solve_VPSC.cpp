@@ -151,13 +151,16 @@ void Solver::refine() {
     while(!solved&&maxtries>0) {
         solved=true;
         maxtries--;
-        for(set<Block*>::const_iterator i=bs->begin();i!=bs->end();++i) {
-            Block *b=*i;
+        size_t length = bs->size();
+        for (size_t i = 0; i < length; ++i)
+        {
+            Block *b = bs->at(i);
             b->setUpInConstraints();
             b->setUpOutConstraints();
         }
-        for(set<Block*>::const_iterator i=bs->begin();i!=bs->end();++i) {
-            Block *b=*i;
+        for (size_t i = 0; i < length; ++i)
+        {
+            Block *b = bs->at(i);
             Constraint *c=b->findMinLM();
             if(c!=NULL && c->lm<LAGRANGIAN_TOLERANCE) {
 #ifdef LIBVPSC_LOGGING
@@ -323,8 +326,10 @@ void IncSolver::moveBlocks() {
     ofstream f(LOGFILE,ios::app);
     f<<"moveBlocks()..."<<endl;
 #endif
-    for(set<Block*>::const_iterator i(bs->begin());i!=bs->end();++i) {
-        Block *b = *i;
+    size_t length = bs->size();
+    for (size_t i = 0; i < length; ++i)
+    {
+        Block *b = bs->at(i);
         b->updateWeightedPosition();
         //b->posn = b->wposn / b->weight;
     }
@@ -339,8 +344,10 @@ void IncSolver::splitBlocks() {
     moveBlocks();
     splitCnt=0;
     // Split each block if necessary on min LM
-    for(set<Block*>::const_iterator i(bs->begin());i!=bs->end();++i) {
-        Block* b = *i;
+    size_t length = bs->size();
+    for (size_t i = 0; i < length; ++i)
+    {
+        Block *b = bs->at(i);
         Constraint* v=b->findMinLM();
         if(v!=NULL && v->lm < LAGRANGIAN_TOLERANCE) {
             COLA_ASSERT(!v->equality);
@@ -468,14 +475,17 @@ bool Solver::constraintGraphIsCyclic(const unsigned n, Variable* const vs[]) {
 bool Solver::blockGraphIsCyclic() {
     map<Block*, node*> bmap;
     vector<node*> graph;
-    for(set<Block*>::const_iterator i=bs->begin();i!=bs->end();++i) {
-        Block *b=*i;
+    size_t length = bs->size();
+    for (size_t i = 0; i < length; ++i)
+    {
+        Block *b = bs->at(i);
         node *u=new node;
         graph.push_back(u);
         bmap[b]=u;
     }
-    for(set<Block*>::const_iterator i=bs->begin();i!=bs->end();++i) {
-        Block *b=*i;
+    for (size_t i = 0; i < length; ++i)
+    {
+        Block *b = bs->at(i);
         b->setUpInConstraints();
         Constraint *c=b->findMinInConstraint();
         while(c!=NULL) {

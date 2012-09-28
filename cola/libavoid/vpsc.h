@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2005-2009  Monash University
+ * Copyright (C) 2005-2012  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -20,10 +20,11 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
  *
  * Author(s):   Tim Dwyer  <Tim.Dwyer@csse.monash.edu.au>
+ *              Michael Wybrow  <mjwybrow@users.sourceforge.net>
  *
  * --------------
  *
- * This file contains a slightly modified version of Solver() from libvpsc:
+ * This file contains a slightly modified version of IncSolver() from libvpsc:
  * A solver for the problem of Variable Placement with Separation Constraints.
  * It has the following changes from the Adaptagrams VPSC version:
  *  -  The required VPSC code has been consolidated into a single file.
@@ -218,7 +219,7 @@ public:
  * 1 or more variables, with the invariant that all constraints inside a block
  * are satisfied by keeping the variables fixed relative to one another
  */
-class Blocks : public std::set<Block*>
+class Blocks
 {
 public:
     Blocks(Variables const &vs);
@@ -230,15 +231,34 @@ public:
     void cleanup();
     double cost();
     
+    size_t size() const;
+    Block *at(size_t index) const;
+    void insert(Block *block);
+
     long blockTimeCtr;
 private:
     void dfsVisit(Variable *v, std::list<Variable*> *order);
     void removeBlock(Block *doomed);
+
+    std::vector<Block *> m_blocks;
     Variables const &vs;
     int nvs;
 };
 
-extern long blockTimeCtr;
+inline size_t Blocks::size() const
+{
+    return m_blocks.size();
+}
+
+inline Block *Blocks::at(size_t index) const
+{
+    return m_blocks[index];
+}
+
+inline void Blocks::insert(Block *block)
+{
+    m_blocks.push_back(block);
+}
 
 struct UnsatisfiableException {
     Constraints path;

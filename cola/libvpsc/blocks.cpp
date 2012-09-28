@@ -4,7 +4,7 @@
  * libvpsc - A solver for the problem of Variable Placement with 
  *           Separation Constraints.
  *
- * Copyright (C) 2005-2008  Monash University
+ * Copyright (C) 2005-2012  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -32,9 +32,9 @@
  *
  * Authors:
  *   Tim Dwyer <tgdwyer@gmail.com>
+ *   Michael Wybrow <mjwybrow@users.sourceforge.net>
  */
 
-#include <cassert>
 #include "libvpsc/blocks.h"
 #include "libvpsc/block.h"
 #include "libvpsc/constraint.h"
@@ -59,17 +59,20 @@ namespace vpsc {
 
 Blocks::Blocks(vector<Variable*> const &vs) : vs(vs),nvs(vs.size()) {
     blockTimeCtr=0;
+    m_blocks.resize(nvs);
     for(int i=0;i<nvs;i++) {
-        insert(new Block(this, vs[i]));
+        m_blocks[i] = new Block(this, vs[i]);
     }
 }
 Blocks::~Blocks(void)
 {
     blockTimeCtr=0;
-    for(set<Block*>::iterator i=begin();i!=end();++i) {
-        delete *i;
+    size_t length = m_blocks.size();
+    for (size_t i = 0; i < length; ++i)
+    {
+        delete m_blocks[i];
     }
-    clear();
+    m_blocks.clear();
 }
 
 /**
@@ -175,15 +178,40 @@ void Blocks::removeBlock(Block *doomed) {
     doomed->deleted=true;
     //erase(doomed);
 }
-void Blocks::cleanup() {
-    vector<Block*> bcopy(begin(),end());
-    for(vector<Block*>::iterator i=bcopy.begin();i!=bcopy.end();++i) {
-        Block *b=*i;
-        if(b->deleted) {
-            erase(b);
-            delete b;
+
+// Clears up deleted blocks from the blocks list.
+void Blocks::cleanup(void)
+{
+    // We handle removal of items in-place by doing a single linear pass over 
+    // the vector. We use two indexes, j to refer to elements we've checked
+    // from the original list and i to refer to the current position we are
+    // writing in the updated list.
+    size_t i = 0;
+    
+    // For all items in the current blocks list...
+    size_t length = m_blocks.size();
+    for (size_t j = 0; j < length; )
+    {
+        if (m_blocks[j]->deleted)
+        {
+            // The element is deleted, so free it and increment j.
+            delete m_blocks[j];
+            ++j;
+        }
+        else
+        {
+            // The current element is still valid.
+            if (j > i)
+            {
+                // If we've not looking at same element, then copy from j to i.
+                m_blocks[i] = m_blocks[j];
+            }
+            // Increment both indexes.
+            ++i;
+            ++j;
         }
     }
+    m_blocks.resize(i);
 }
 /**
  * Splits block b across constraint c into two new blocks, l and r (c's left
@@ -191,8 +219,8 @@ void Blocks::cleanup() {
  */
 void Blocks::split(Block *b, Block *&l, Block *&r, Constraint *c) {
     b->split(l,r,c);
-    insert(l);
-    insert(r);
+    m_blocks.push_back(l);
+    m_blocks.push_back(r);
 #ifdef LIBVPSC_LOGGING
     ofstream f(LOGFILE,ios::app);
     f<<"Split left: "<<*l<<endl;
@@ -218,8 +246,10 @@ void Blocks::split(Block *b, Block *&l, Block *&r, Constraint *c) {
  */
 double Blocks::cost() {
     double c = 0;
-    for(set<Block*>::iterator i=begin();i!=end();++i) {
-        c += (*i)->cost();
+    size_t length = m_blocks.size();
+    for (size_t i = 0; i < length; ++i)
+    {
+        c += m_blocks[i]->cost();
     }
     return c;
 }
