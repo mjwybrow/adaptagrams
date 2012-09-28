@@ -445,7 +445,7 @@ void ConnRef::outputCode(FILE *fp) const
 
     if (!m_checkpoints.empty())
     {
-        fprintf(fp, "    std::vector<Point> checkpoints%u(%d);\n", id(),
+        fprintf(fp, "    std::vector<Checkpoint> checkpoints%u(%d);\n", id(),
                 (int) m_checkpoints.size());
         for (size_t cInd = 0; cInd < m_checkpoints.size(); ++cInd)
         {
