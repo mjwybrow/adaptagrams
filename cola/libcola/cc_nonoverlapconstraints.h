@@ -64,9 +64,14 @@ class NonOverlapConstraints : public CompoundConstraint {
                 std::vector<vpsc::Rectangle*>& boundingBoxes);
 
     private:
+        void computeOverlapForShapePairInfo(ShapePairInfo& info,
+                vpsc::Variables vs[]);
+        
         std::list<ShapePairInfo> pairInfoList;
         std::map<unsigned, OverlapShapeOffsets> shapeOffsets;
-        
+        bool pairInfoListSorted;
+        bool initialSortCompleted;
+
         // Cluster variables
         size_t clusterVarStartIndex;
         size_t currClusterIndex;

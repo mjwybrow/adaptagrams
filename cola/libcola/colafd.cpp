@@ -568,6 +568,11 @@ void ConstrainedFDLayout::makeFeasible(void)
                     cc->getCurrSubConstraintAlternatives(vs);
             alternatives.sort();
 
+            if (alternatives.empty())
+            {
+                continue;
+            }
+
             while (!alternatives.empty())
             {
                 // Reset subConstraintSatisfiable for new solve.
