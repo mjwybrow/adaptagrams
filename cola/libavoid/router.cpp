@@ -2020,7 +2020,14 @@ void Router::setTopologyAddon(TopologyAddonInterface *topologyAddon)
 {
     COLA_ASSERT(m_topology_addon);
     delete m_topology_addon;
-    m_topology_addon = topologyAddon->clone();
+    if (topologyAddon)
+    {
+        m_topology_addon = topologyAddon->clone();
+    }
+    else
+    {
+        m_topology_addon = new TopologyAddonInterface();
+    }
 }
 
 void Router::improveOrthogonalTopology(void)
