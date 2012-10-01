@@ -36,7 +36,7 @@
 #include <algorithm>
 #include <float.h>
 #include <libcola/cola.h>
-//#include <libvspc/exceptions.h>
+#include <libvpsc/exceptions.h>
 #include <libvpsc/constraint.h>
 #include "graphlayouttest.h"
 
