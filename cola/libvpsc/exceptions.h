@@ -23,8 +23,9 @@
  *
 */
 
-#ifndef SEEN_LIBVPSC_EXCEPTIONS_H
-#define SEEN_LIBVPSC_EXCEPTIONS_H
+#ifndef VPSC_EXCEPTIONS_H
+#define VPSC_EXCEPTIONS_H
+
 #include <vector>
 namespace vpsc {
 class Constraint;
@@ -36,4 +37,5 @@ struct UnsatisfiedConstraint {
 	Constraint& c;
 };
 } // namespace vpsc
-#endif //SEEN_LIBVPSC_EXCEPTIONS_H
+
+#endif // VPSC_EXCEPTIONS_H

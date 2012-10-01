@@ -23,8 +23,8 @@
  *
 */
 
-#ifndef _LIBVPSC_ASSERTIONS_H
-#define _LIBVPSC_ASSERTIONS_H
+#ifndef VPSC_ASSERTIONS_H
+#define VPSC_ASSERTIONS_H
 
 #ifdef NDEBUG 
 
@@ -100,5 +100,5 @@ class CriticalFailure
 #endif // NDEBUG
 
 
-#endif // _LIBVPSC_ASSERTIONS_H
+#endif // VPSC_ASSERTIONS_H
 

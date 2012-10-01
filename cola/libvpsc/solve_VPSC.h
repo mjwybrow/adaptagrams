@@ -39,11 +39,10 @@
 // Also, a lot of the code specific to one or other of these concrete
 // implementations should be moved from Block and Blocks: e.g. mergeLeft etc.
 //
-#ifndef SEEN_LIBVPSC_SOLVE_VPSC_H
-#define SEEN_LIBVPSC_SOLVE_VPSC_H
+#ifndef VPSC_SOLVE_VPSC_H
+#define VPSC_SOLVE_VPSC_H
 
 #include <vector>
-#include "libvpsc/exceptions.h"
 
 /**
  * the vpsc namespace delineates the libvpsc Variable Placement with
@@ -100,4 +99,4 @@ private:
 	Constraint* mostViolated(Constraints &l);
 };
 }
-#endif // SEEN_LIBVPSC_SOLVE_VPSC_H
+#endif // VPSC_SOLVE_VPSC_H

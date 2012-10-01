@@ -16,7 +16,7 @@ libvpsc_la_SOURCES = block.cpp\
 	blocks.h\
 	constraint.h\
 	rectangle.h\
-	pairingheap/PairingHeap.h\
+	pairingheap.h\
 	solve_VPSC.h\
 	variable.h\
 	cbuffer.h\

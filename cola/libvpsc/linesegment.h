@@ -33,8 +33,9 @@
 // 
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef SEEN_LIBVPSC_LINESEGMENT_H
-#define SEEN_LIBVPSC_LINESEGMENT_H
+#ifndef VPSC_LINESEGMENT_H
+#define VPSC_LINESEGMENT_H
+
 namespace linesegment {
 class Vector
 {
@@ -139,4 +140,4 @@ int test()
 }
 } // namespace linesegment
 
-#endif // SEEN_LIBVPSC_LINESEGMENT_H
+#endif // VPSC_LINESEGMENT_H

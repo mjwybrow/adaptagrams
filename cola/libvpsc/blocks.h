@@ -35,16 +35,18 @@
  *   Michael Wybrow <mjwybrow@users.sourceforge.net>
  */
 
-#ifndef SEEN_LIBVPSC_BLOCKS_H
-#define SEEN_LIBVPSC_BLOCKS_H
+#ifndef VPSC_BLOCKS_H
+#define VPSC_BLOCKS_H
 
 #ifdef LIBVPSC_LOGGING
 #define LOGFILE "libvpsc.log"
 #endif
 
-#include <set>
 #include <list>
 #include <vector>
+
+// size_t is strangely not defined on some older MinGW GCC versions. 
+#include <cstddef>
 
 namespace vpsc {
 class Block;
@@ -97,4 +99,4 @@ inline void Blocks::insert(Block *block)
 }
 
 }
-#endif // SEEN_LIBVPSC_BLOCKS_H
+#endif // VPSC_BLOCKS_H

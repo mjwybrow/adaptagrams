@@ -26,13 +26,11 @@
 */
 
 
-#ifndef SEEN_LIBVPSC_CONSTRAINT_H
-#define SEEN_LIBVPSC_CONSTRAINT_H
+#ifndef VPSC_CONSTRAINT_H
+#define VPSC_CONSTRAINT_H
 
 #include <iostream>
 #include <vector>
-
-#include "libvpsc/constraint.h"
 
 namespace vpsc {
 
@@ -76,4 +74,4 @@ extern Constraints constraintsRemovingRedundantEqualities(
 
 }
 
-#endif // SEEN_LIBVPSC_CONSTRAINT_H
+#endif // VPSC_CONSTRAINT_H

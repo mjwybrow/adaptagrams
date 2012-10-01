@@ -38,8 +38,8 @@
  *   Tim Dwyer <tgdwyer@gmail.com>
  *
  */
-#ifndef PAIRING_HEAP_H_
-#define PAIRING_HEAP_H_
+#ifndef VPSC_PAIRING_HEAP_H
+#define VPSC_PAIRING_HEAP_H
 
 #include <cstdlib>
 #include <fstream>
@@ -398,4 +398,4 @@ std::ostream& operator <<(std::ostream &os, const PairingHeap<T,TCompare> &b)
 	return os;
 }
 
-#endif /* !PAIRING_HEAP_H_ */
+#endif /* VPSC_PAIRING_HEAP_H */

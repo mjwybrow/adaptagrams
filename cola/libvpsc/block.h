@@ -32,8 +32,8 @@
  *   Tim Dwyer <tgdwyer@gmail.com>
  */
 
-#ifndef SEEN_LIBVPSC_BLOCK_H
-#define SEEN_LIBVPSC_BLOCK_H
+#ifndef VPSC_BLOCK_H
+#define VPSC_BLOCK_H
 
 #include <iostream>
 #include <vector>
@@ -117,4 +117,4 @@ private:
 };
 }
 
-#endif // SEEN_LIBVPSC_BLOCK_H
+#endif // VPSC_BLOCK_H

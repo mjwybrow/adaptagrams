@@ -28,8 +28,8 @@
  * Authors:
  *   Tim Dwyer <tgdwyer@gmail.com>
  */
-#ifndef SEEN_REMOVEOVERLAP_VARIABLE_H
-#define SEEN_REMOVEOVERLAP_VARIABLE_H
+#ifndef VPSC_VARIABLE_H
+#define VPSC_VARIABLE_H
 
 #include <vector>
 #include <iostream>
@@ -82,4 +82,4 @@ private:
 };
 typedef std::vector<Variable*> Variables;
 }
-#endif // SEEN_REMOVEOVERLAP_VARIABLE_H
+#endif // VPSC_VARIABLE_H

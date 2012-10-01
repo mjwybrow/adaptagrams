@@ -23,8 +23,8 @@
  *
 */
 
-#ifndef __ISNAN_H__
-#define __ISNAN_H__
+#ifndef VPSC_ISNAN_H
+#define VPSC_ISNAN_H
 
 /*
  * Temporary fix for various misdefinitions of isnan().
@@ -76,4 +76,4 @@
  */
 
 
-#endif /* __ISNAN_H__ */
+#endif /* VPSC_ISNAN_H */

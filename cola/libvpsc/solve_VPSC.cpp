@@ -35,6 +35,7 @@
 #include <sstream>
 #include <map>
 #include <cfloat>
+#include <set>
 
 #include "libvpsc/constraint.h"
 #include "libvpsc/block.h"
@@ -43,6 +44,7 @@
 #include "libvpsc/cbuffer.h"
 #include "libvpsc/variable.h"
 #include "libvpsc/assertions.h"
+#include "libvpsc/exceptions.h"
 
 #ifdef LIBVPSC_LOGGING
 #include <fstream>

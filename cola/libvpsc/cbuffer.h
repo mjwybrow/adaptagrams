@@ -31,6 +31,9 @@
  *   Tim Dwyer <tgdwyer@gmail.com>
  *
  */
+#ifndef VPSC_CBUFFER_H
+#define VPSC_CBUFFER_H
+
 #include <vector>
 
 namespace vpsc {
@@ -53,3 +56,6 @@ namespace vpsc {
         unsigned size;
     };
 }
+
+#endif // VPSC_CBUFFER_H
+

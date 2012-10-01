@@ -29,8 +29,8 @@
  * rectangular node overlap removal problem.
  *
  */
-#ifndef SEEN_LIBVPSC_RECTANGLE_H
-#define SEEN_LIBVPSC_RECTANGLE_H
+#ifndef VPSC_RECTANGLE_H
+#define VPSC_RECTANGLE_H
 
 #include <iostream>
 #include <vector>
@@ -274,5 +274,5 @@ struct delete_object
 
 } // namespace vpsc
 
-#endif // SEEN_LIBVPSC_RECTANGLE_H
+#endif // VPSC_RECTANGLE_H
 // vim: cindent ts=4 sw=4 et tw=0 wm=0

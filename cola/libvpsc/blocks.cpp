@@ -47,7 +47,6 @@ using std::ios;
 using std::ofstream;
 using std::endl;
 #endif
-using std::set;
 using std::vector;
 using std::iterator;
 using std::list;
