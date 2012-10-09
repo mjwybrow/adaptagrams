@@ -591,7 +591,7 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
         Event *e, size_t dim,  LayoutObstacleVector& obstacleVector, 
         LineReps *lineReps, vpsc::Constraints& cs, 
         LayoutEdgeSegmentSeparations& less, unsigned int pass,
-        const double moveLimit)
+        const double moveLimit, const double idealNudgeDist)
 {
     COLA_UNUSED(lineReps);
 
@@ -750,7 +750,7 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
                 {
                     // Normal segments.  Constrain them with Nudging distance
                     // or the current distance apart, if this is smalled.
-                    double sepDist = std::min(4.0, 
+                    double sepDist = std::min(idealNudgeDist, 
                             (les->lowPoint()[les->dimension] - 
                              beforeLes->lowPoint()[les->dimension]));
                     sepDist = std::max(sepDist, 0.0);
@@ -791,7 +791,7 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
                 {
                     // Normal segments.  Constrain them with Nudging distance
                     // or the current distance apart, if this is smalled.
-                    double sepDist = std::min(4.0, 
+                    double sepDist = std::min(idealNudgeDist, 
                             (afterLes->lowPoint()[les->dimension] -
                                     les->lowPoint()[les->dimension]));
                     sepDist = std::max(sepDist, 0.0);
@@ -1325,6 +1325,7 @@ static void setupOrthogonalLayoutConstraints(Router *router,
         cc->updateShapeOffsetsForDifferentCentres(offsetsVector);
     }
 
+    double idealNudgeDist = router->routingParameter(idealNudgingDistance);
     // Process the sweep.
     LayoutScanlineNodeSet scanline;
     double thisPos = (totalEvents > 0) ? events[0]->pos : 0;
@@ -1343,7 +1344,7 @@ static void setupOrthogonalLayoutConstraints(Router *router,
                 {
                     processLayoutConstraintEvent(scanline, events[j], dim, 
                             obstacleVector, lineReps, cs, less, pass, 
-                            moveLimit);
+                            moveLimit, idealNudgeDist);
                 }
             }
 
@@ -1361,7 +1362,8 @@ static void setupOrthogonalLayoutConstraints(Router *router,
         // structure of the scanline.
         const int pass = 1;
         processLayoutConstraintEvent(scanline, events[i], dim, 
-                obstacleVector, lineReps, cs, less, pass, moveLimit);
+                obstacleVector, lineReps, cs, less, pass, moveLimit,
+                idealNudgeDist);
     }
     COLA_ASSERT(scanline.size() == 0);
     for (unsigned i = 0; i < totalEvents; ++i)
