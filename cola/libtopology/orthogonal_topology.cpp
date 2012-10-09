@@ -49,6 +49,11 @@
 #include "libvpsc/variable.h"
 #include "libvpsc/constraint.h"
 
+//#define ORTHOG_TOPOLOGY_DEBUG
+
+#define CONSTRAIN_CHECKPOINTS  false
+
+
 namespace topology {
 
 using namespace Avoid;
@@ -82,6 +87,7 @@ class LayoutEdgeSegmentSeparation
     double distance;
     vpsc::Variable *var1;
     vpsc::Variable *var2;
+    ConnRef *connRef;
 
     bool operator<(const LayoutEdgeSegmentSeparation& rhs) const
     {
@@ -163,14 +169,20 @@ class LayoutEdgeSegment : public ShiftSegment
         }
         void createSolverVariable(void)
         {
-            int varID = 1;
+            int varID = connRef->id();
             double varPos = lowPoint()[dimension];
+            
+            // Use a low weight for segments.  
+            // (Constraints will hold them in place on shapes.)
             double weight = 0.001;
 
             variable = new vpsc::Variable(varID, varPos, weight);
         }
         bool overlapsWith(const ShiftSegment *rhs, const size_t dim) const
         {
+            COLA_UNUSED(rhs);
+            COLA_UNUSED(dim);
+
             return false;
         }
         void updatePositionsFromSolver(void)
@@ -180,9 +192,6 @@ class LayoutEdgeSegment : public ShiftSegment
                 return;
             }
             double newPos = variable->finalPosition;
-#ifdef NUDGE_DEBUG
-            printf("Pos: %lX, %g\n", (long) connRef, newPos);
-#endif
             for (size_t it = 0; it < indexes.size(); ++it)
             {
                 size_t index = indexes[it];
@@ -325,16 +334,19 @@ class LayoutObstacle
     }
     void createSolverVariable(void)
     {
-        int varID = 1;
-        double weight = 0.001;
+        int varID = obstacle->id();
+        
+        // Use higher weight than alignment variables (0.001) so we don't
+        // get moved by them.
+        double weight = 1.0;
 
         variable = new vpsc::Variable(varID, centre()[dimension], weight);
     }
     void updatePositionsFromSolver(void)
     {
         double varVal = variable->finalPosition;
-#ifdef NUDGE_DEBUG
-        printf("Obstacle Pos: %lX, %g\n", (long) obstacle, varVal);
+#ifdef ORTHOG_TOPOLOGY_DEBUG
+        fprintf(stderr, "Obstacle Pos: %d, %g\n", obstacle->id(), varVal);
 #endif
         ShapeRef *shapeRef = shape();
         if (shapeRef)
@@ -436,6 +448,8 @@ public:
           pos(p),
           shapeSide(ss)
     {
+        COLA_UNUSED(bvi);
+        COLA_UNUSED(fvi);
         COLA_ASSERT(begin < finish);
     }
     LineSegment(const double& bf, const double& p, VertInf *bfvi = NULL)
@@ -444,6 +458,7 @@ public:
           pos(p),
           shapeSide(false)
     {
+        COLA_UNUSED(bfvi);
     }
  
     // Order by begin, pos, finish.
@@ -567,12 +582,19 @@ struct LayoutScanlineCmpNodePos
 typedef std::set<Node*,LayoutScanlineCmpNodePos> LayoutScanlineNodeSet;
 
 // Processes sweep events to determine orthogonal constraints affecting each
-// shape and line segment.
+// shape and line segment.  This is done in three passes to cater for events
+// that occur at the same position.  First pass adds all obejcts at position 
+// to the scanline.  The second pass processes the scanline and generates 
+// constraints.  The third pass removes any objects ending at that position
+// from the scanline.
 static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline, 
         Event *e, size_t dim,  LayoutObstacleVector& obstacleVector, 
         LineReps *lineReps, vpsc::Constraints& cs, 
-        LayoutEdgeSegmentSeparations& less)
+        LayoutEdgeSegmentSeparations& less, unsigned int pass,
+        const double moveLimit)
 {
+    COLA_UNUSED(lineReps);
+
     //size_t altDim = (dim + 1) % 2;
     Node *v = e->v;
 
@@ -580,8 +602,10 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
     bool NonEquality = false;
     
     // Scanline housekeeping.
-    if ( (e->type == Open) || (e->type == SegOpen) )
+    if ( (pass == 1) && ((e->type == Open) || (e->type == SegOpen)) )
     {
+        // Opening events.  First pass.
+
         std::pair<LayoutScanlineNodeSet::iterator, bool> result = 
                 scanline.insert(v);
         v->iter = result.first;
@@ -603,11 +627,38 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
             u->firstAbove = v;
         }
     }
+    else if ( (pass == 3) &&  ((e->type == SegClose) || (e->type == Close)) )
+    {
+        // Closing events.  Third pass.
+
+        // Clean up neighbour pointers.
+        Node *l = v->firstAbove, *r = v->firstBelow;
+        if (l != NULL) 
+        {
+            l->firstBelow = v->firstBelow;
+        }
+        if (r != NULL)
+        {
+            r->firstAbove = v->firstAbove;
+        }
+
+        size_t result;
+        result = scanline.erase(v);
+        COLA_ASSERT(result == 1);
+        delete v;
+    }
     
+    if (pass != 2)
+    {
+        // Do remaining stuff only if we are in the second pass.
+        return;
+    }
+
     if ((e->type == SegClose) || (e->type == SegOpen))
     {
-        bool endsInShape = false;
-        // Constraint edges that end in shapes to be fixed to those
+        // This is an edge segment from a connector.
+
+        // Constraint edge segments that end in shapes to be fixed to those
         // shapes in the shift dimension.
         LayoutEdgeSegment *les = dynamic_cast<LayoutEdgeSegment *> (v->ss);
         for (std::list<int>::iterator it = les->endsInShapeIndexes.begin();
@@ -620,10 +671,10 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
             {
                 double sepDist = obstacleVector[*it].centre()[dim] -
                         les->lowPoint()[dim];
-                vpsc::Constraint *constraint = new vpsc::Constraint(les->variable, 
-                        obstacleVector[*it].variable, sepDist, Equality);
+                vpsc::Constraint *constraint = new vpsc::Constraint(
+                        les->variable, obstacleVector[*it].variable, 
+                        sepDist, Equality);
                 cs.push_back(constraint);
-                endsInShape = true;
             }
 
             /*
@@ -639,110 +690,130 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
             */
         }
 
-
-        if (!endsInShape)
+        // Constrain edge segment to separate from left neighbouring shape.
+        Node *beforeV = v->firstAbove;
+        LayoutNode *beforeLayoutV = dynamic_cast<LayoutNode *> (beforeV);
+        if (beforeLayoutV && (beforeLayoutV->side == SIDE_RIGHT))
         {
-            // Constrain to separate from neighbours.
-            Node *beforeV = v->firstAbove;
-            LayoutNode *beforeLayoutV = dynamic_cast<LayoutNode *> (beforeV);
+            double sepDist =
+                    beforeLayoutV->layoutObstacle->halfSizeInDim(dim);
+
+            COLA_ASSERT(sepDist >= 0);
+            vpsc::Constraint *constraint = new vpsc::Constraint(
+                    beforeLayoutV->layoutObstacle->variable, 
+                    les->variable, sepDist, NonEquality);
+            cs.push_back(constraint);
+
+        }
+
+        // Constrain edge segment to separate from right neighbouring shape.
+        Node *afterV = v->firstBelow;
+        LayoutNode *afterLayoutV = dynamic_cast<LayoutNode *> (afterV);
+        if (afterLayoutV && (afterLayoutV->side == SIDE_LEFT))
+        {
+            double sepDist = 
+                    afterLayoutV->layoutObstacle->halfSizeInDim(dim);
             
-            Node *afterV = v->firstBelow;
-            LayoutNode *afterLayoutV = dynamic_cast<LayoutNode *> (afterV);
+            COLA_ASSERT(sepDist >= 0);
+            vpsc::Constraint *constraint = new vpsc::Constraint(
+                    les->variable, afterLayoutV->layoutObstacle->variable, 
+                    sepDist, NonEquality);
+            cs.push_back(constraint);
 
-            if (beforeLayoutV && (beforeLayoutV->side == SIDE_RIGHT))
+        }
+
+        // Constrain edge segment to separate from left neighbouring segment.
+        if (beforeV && beforeV->ss)
+        {
+            LayoutEdgeSegment *beforeLes = 
+                dynamic_cast<LayoutEdgeSegment *> (beforeV->ss);
+            assert(beforeLes);
+
+            if (les->connRef != beforeLes->connRef)
             {
-                double sepDist =
-                        beforeLayoutV->layoutObstacle->halfSizeInDim(dim);
-
-                vpsc::Constraint *constraint = new vpsc::Constraint(
-                        beforeLayoutV->layoutObstacle->variable, 
-                        les->variable, sepDist, NonEquality);
-                cs.push_back(constraint);
-
-            }
-
-            if (afterLayoutV && (afterLayoutV->side == SIDE_LEFT))
-            {
-                double sepDist = 
-                        afterLayoutV->layoutObstacle->halfSizeInDim(dim);
-                
-                vpsc::Constraint *constraint = new vpsc::Constraint(
-                        les->variable, afterLayoutV->layoutObstacle->variable, 
-                        sepDist, NonEquality);
-                cs.push_back(constraint);
-
-            }
-
-            if (beforeV && beforeV->ss)
-            {
-                LayoutEdgeSegment *beforeLes = 
-                    dynamic_cast<LayoutEdgeSegment *> (beforeV->ss);
-                assert(beforeLes);
-
-                if (les->connRef != beforeLes->connRef)
+                // If not segments from same edge.
+                if (CONSTRAIN_CHECKPOINTS && les->containsCheckpoint && 
+                        beforeLes->containsCheckpoint)
                 {
-                    if (les->containsCheckpoint && beforeLes->containsCheckpoint)
-                    {
-                        double sepDist =  
-                                (les->lowPoint()[les->dimension] - 
-                                        beforeLes->lowPoint()[les->dimension]);
+                    // Both segments are passing a checkpoint.a
+                    // Constrain them together.
+                    double sepDist =  
+                            (les->lowPoint()[les->dimension] - 
+                                    beforeLes->lowPoint()[les->dimension]);
 
-                        vpsc::Constraint *constraint = new vpsc::Constraint(beforeLes->variable,
-                                les->variable, sepDist, Equality);
-                        cs.push_back(constraint);
-                    }
-                    else
-                    {
-                        double sepDist = std::min(4.0, 
-                                (les->lowPoint()[les->dimension] - 
-                                        beforeLes->lowPoint()[les->dimension]));
-
-                        vpsc::Constraint *constraint = new vpsc::Constraint(beforeLes->variable,
-                                les->variable, sepDist, NonEquality);
-                        cs.push_back(constraint);
-                    }
+                    vpsc::Constraint *constraint = new vpsc::Constraint(
+                            beforeLes->variable, les->variable, 
+                            sepDist, Equality);
+                    cs.push_back(constraint);
+                }
+                else
+                {
+                    // Normal segments.  Constrain them with Nudging distance
+                    // or the current distance apart, if this is smalled.
+                    double sepDist = std::min(4.0, 
+                            (les->lowPoint()[les->dimension] - 
+                             beforeLes->lowPoint()[les->dimension]));
+                    sepDist = std::max(sepDist, 0.0);
+                    COLA_ASSERT(sepDist >= 0);
+                    vpsc::Constraint *constraint = new vpsc::Constraint(
+                            beforeLes->variable, les->variable, 
+                            sepDist, NonEquality);
+                    cs.push_back(constraint);
                 }
             }
-            
-            if (afterV && afterV->ss)
+        }
+        
+        // Constrain edge segment to separate from right neighbouring segment.
+        if (afterV && afterV->ss)
+        {
+            LayoutEdgeSegment *afterLes = 
+                dynamic_cast<LayoutEdgeSegment *> (afterV->ss);
+            assert(afterLes);
+
+            if (les->connRef != afterLes->connRef)
             {
-                LayoutEdgeSegment *afterLes = 
-                    dynamic_cast<LayoutEdgeSegment *> (afterV->ss);
-                assert(afterLes);
-
-                if (les->connRef != afterLes->connRef)
+                // If not segments from same edge.
+                if (CONSTRAIN_CHECKPOINTS && les->containsCheckpoint &&
+                        afterLes->containsCheckpoint)
                 {
-                    if (les->containsCheckpoint && afterLes->containsCheckpoint)
-                    {
-                        double sepDist = 
-                                (afterLes->lowPoint()[les->dimension] -
-                                        les->lowPoint()[les->dimension]);
+                    // Both segments are passing a checkpoint.a
+                    // Constrain them together.
+                    double sepDist = 
+                            (afterLes->lowPoint()[les->dimension] -
+                             les->lowPoint()[les->dimension]);
 
-                        vpsc::Constraint *constraint = new vpsc::Constraint(les->variable,
-                                afterLes->variable, sepDist, Equality);
-                        cs.push_back(constraint);
-                    }
-                    else
-                    {
-                        double sepDist = std::min(4.0, 
-                                (afterLes->lowPoint()[les->dimension] -
-                                        les->lowPoint()[les->dimension]));
-
-                        vpsc::Constraint *constraint = new vpsc::Constraint(les->variable,
-                                afterLes->variable, sepDist, NonEquality);
-                        cs.push_back(constraint);
-                    }
+                    vpsc::Constraint *constraint = new vpsc::Constraint(
+                            les->variable, afterLes->variable, 
+                            sepDist, Equality);
+                    cs.push_back(constraint);
+                }
+                else
+                {
+                    // Normal segments.  Constrain them with Nudging distance
+                    // or the current distance apart, if this is smalled.
+                    double sepDist = std::min(4.0, 
+                            (afterLes->lowPoint()[les->dimension] -
+                                    les->lowPoint()[les->dimension]));
+                    sepDist = std::max(sepDist, 0.0);
+                    COLA_ASSERT(sepDist >= 0);
+                    
+                    vpsc::Constraint *constraint = new vpsc::Constraint(
+                            les->variable, afterLes->variable, 
+                            sepDist, NonEquality);
+                    cs.push_back(constraint);
                 }
             }
         }
     }
+    
     if ((e->type == Close) || (e->type == Open))
     {
+        // This is a left or right shape side, beginning or ending.
+
         LayoutNode *ln = dynamic_cast<LayoutNode *> (v);
 
         if (ln->side == SIDE_LEFT)
         {
-            // Constrain to separate from neighbours.
             Node *beforeV = v->firstAbove;
             LayoutNode *beforeLayoutV = dynamic_cast<LayoutNode *> (beforeV);
             LayoutEdgeSegment *beforeLes = (beforeV == NULL) ? NULL :
@@ -750,9 +821,12 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
             
             if (beforeLayoutV && (beforeLayoutV->side == SIDE_RIGHT))
             {
+                // Constrain this left shape side to be separated from 
+                // a neighbouring shape right side to the left.
                 double sepDist =
                         ln->layoutObstacle->halfSizeInDim(dim) + 
                         beforeLayoutV->layoutObstacle->halfSizeInDim(dim);
+                COLA_ASSERT(sepDist >= 0);
 
                 vpsc::Constraint *constraint = new vpsc::Constraint(
                         beforeLayoutV->layoutObstacle->variable, 
@@ -762,11 +836,15 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
             }
             else if (beforeLes)
             {
+                // Constrain this left shape side to be separated from 
+                // a neighbouring edge segment to the left.
                 double sepDist = 
                         ln->layoutObstacle->halfSizeInDim(dim);
+                COLA_ASSERT(sepDist >= 0);
 
-                vpsc::Constraint *constraint = new vpsc::Constraint(beforeLes->variable,
-                        ln->layoutObstacle->variable, sepDist, NonEquality);
+                vpsc::Constraint *constraint = new vpsc::Constraint(
+                        beforeLes->variable, ln->layoutObstacle->variable,
+                        sepDist, NonEquality);
                 cs.push_back(constraint);
             }
         }
@@ -779,9 +857,12 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
 
             if (afterLayoutV && (afterLayoutV->side == SIDE_LEFT))
             {
+                // Constrain this right shape side to be separated from 
+                // a neighbouring shape left side to the right.
                 double sepDist = 
                         ln->layoutObstacle->halfSizeInDim(dim) + 
                         afterLayoutV->layoutObstacle->halfSizeInDim(dim);
+                COLA_ASSERT(sepDist >= 0);
                 
                 vpsc::Constraint *constraint = new vpsc::Constraint(
                         ln->layoutObstacle->variable, 
@@ -792,8 +873,11 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
             }
             else if (afterLes)
             {
+                // Constrain this right shape side to be separated from 
+                // a neighbouring edge segment to the right.
                 double sepDist = 
                         ln->layoutObstacle->halfSizeInDim(dim);
+                COLA_ASSERT(sepDist >= 0);
 
                 vpsc::Constraint *constraint = new vpsc::Constraint(
                         ln->layoutObstacle->variable, afterLes->variable, 
@@ -829,7 +913,11 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
                         otherLes->lowPoint()[les->dimension]);
                 newLess.var1 = les->variable;
                 newLess.var2 = otherLes->variable;
-                less.insert(newLess);
+                newLess.connRef = les->connRef;
+                if (newLess.distance < moveLimit)
+                {
+                    less.insert(newLess);
+                }
                 
                 /*
                 if (lineReps)
@@ -844,27 +932,6 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
                 */
             }
         }
-    }
-
-
-    // Scanline housekeeping.
-    if ( ((e->type == SegClose)) || ((e->type == Close)) )
-    {
-        // Clean up neighbour pointers.
-        Node *l = v->firstAbove, *r = v->firstBelow;
-        if (l != NULL) 
-        {
-            l->firstBelow = v->firstBelow;
-        }
-        if (r != NULL)
-        {
-            r->firstAbove = v->firstAbove;
-        }
-
-        size_t result;
-        result = scanline.erase(v);
-        COLA_ASSERT(result == 1);
-        delete v;
     }
 }
 
@@ -1013,14 +1080,16 @@ static void buildOrthogonalLayoutSegments(Router *router,
                         }
                     }
 
+                    std::list<int> endsInShapeIndexes;
+                    if (first || last)
+                    {
                     // Also limit their movement to the edges of the 
                     // shapes they begin or end within.
-                    std::list<int> endsInShapeIndexes;
                     for (size_t k = 0; k < obstacleVector.size(); ++k)
                     {
                         double shapeMin = obstacleVector[k].min[dim];
                         double shapeMax = obstacleVector[k].max[dim];
-                        if (insideLayoutObstacleBounds(displayRoute.ps[i - 1], 
+                        if (first && insideLayoutObstacleBounds(displayRoute.ps[i - 1], 
                                     obstacleVector[k]))
                         {
                             minLim = std::max(minLim, shapeMin);
@@ -1028,13 +1097,14 @@ static void buildOrthogonalLayoutSegments(Router *router,
                             endsInShapeIndexes.push_back(k);
                             continue;
                         }
-                        if (insideLayoutObstacleBounds(displayRoute.ps[i], 
+                        if (last && insideLayoutObstacleBounds(displayRoute.ps[i], 
                                     obstacleVector[k]))
                         {
                             minLim = std::max(minLim, shapeMin);
                             maxLim = std::min(maxLim, shapeMax);
                             endsInShapeIndexes.push_back(k);
                         }
+                    }
                     }
 
                     // Shiftable.
@@ -1154,16 +1224,19 @@ static void setupOrthogonalLayoutConstraints(Router *router,
         LayoutObstacleVector& obstacleVector,
         EndpointAnchorList& extraTerminalsList, 
         cola::CompoundConstraints& ccs, cola::VariableIDMap& idMap,
-        cola::RootCluster *clusterHierarchy,
-        LineReps *lineReps)
+        cola::RootCluster *clusterHierarchy, vpsc::Rectangles& rs,
+        LineReps *lineReps, const double moveLimit)
 {
+    COLA_UNUSED(router);
+
     int count = 1;
     if (segmentList.empty())
     {
         // There are no segments, so we can just return now.
         return;
     }
-    
+ 
+
     vpsc::Variables vs;
     vpsc::Constraints cs;
     vpsc::Rectangles boundingBoxes;
@@ -1174,6 +1247,7 @@ static void setupOrthogonalLayoutConstraints(Router *router,
     size_t altDim = (dim + 1) % 2;
     const size_t ovn = obstacleVector.size();
     const size_t cpn = segmentList.size();
+    std::vector<double> offsetsVector(ovn, 0.0);
     // Set up the events for the sweep.
     size_t totalEvents = (4 * ovn) + (2 * cpn);
     Event **events = new Event*[totalEvents];
@@ -1207,6 +1281,24 @@ static void setupOrthogonalLayoutConstraints(Router *router,
         {
             colaToCurrMap.addMappingForVariable(colaIndex, index);
         }
+        
+        // Calculate offsets in case the cola and libavoid shapes have 
+        // different sizes.
+        if (colaIndex < rs.size())
+        {
+            double offset = rs[colaIndex]->getCentreD(dim) -
+                    obstacleVector[i].centre()[dim];
+            if (fabs(offset) > 0.001)
+            {
+                offsetsVector[i] = offset;
+            }
+#ifdef ORTHOG_TOPOLOGY_DEBUG
+            fprintf(stderr, "Shape %03d (cola: %03d) centre offset %g "
+                    "(from %g, %g)\n", index, colaIndex, 
+                    offsetsVector[i], obstacleVector[i].centre()[dim],
+                    rs[colaIndex]->getCentreD(dim));
+#endif
+        }
     }
     for (LayoutEdgeSegmentList::iterator curr = segmentList.begin(); 
             curr != segmentList.end(); ++curr)
@@ -1230,16 +1322,46 @@ static void setupOrthogonalLayoutConstraints(Router *router,
     {
         cola::CompoundConstraint *cc = ccs[i];
         cc->updateVarIDsWithMapping(colaToCurrMap);
+        cc->updateShapeOffsetsForDifferentCentres(offsetsVector);
     }
 
     // Process the sweep.
     LayoutScanlineNodeSet scanline;
-    for (unsigned i = 0; i < totalEvents; ++i)
+    double thisPos = (totalEvents > 0) ? events[0]->pos : 0;
+    unsigned int posStartIndex = 0;
+    unsigned int posFinishIndex = 0;
+    for (unsigned i = 0; i <= totalEvents; ++i)
     {
+        // If we have finished the current scanline or all events, then we
+        // process the events on the current scanline in a couple of passes.
+        if ((i == totalEvents) || (events[i]->pos != thisPos))
+        {
+            posFinishIndex = i;
+            for (int pass = 2; pass <= 3; ++pass)
+            {
+                for (unsigned j = posStartIndex; j < posFinishIndex; ++j)
+                {
+                    processLayoutConstraintEvent(scanline, events[j], dim, 
+                            obstacleVector, lineReps, cs, less, pass, 
+                            moveLimit);
+                }
+            }
+
+            if (i == totalEvents)
+            {
+                // We have cleaned up, so we can now break out of loop.
+                break;
+            }
+
+            thisPos = events[i]->pos;
+            posStartIndex = i;
+        }
+
         // Do the first sweep event handling -- building the correct 
         // structure of the scanline.
+        const int pass = 1;
         processLayoutConstraintEvent(scanline, events[i], dim, 
-                obstacleVector, lineReps, cs, less);
+                obstacleVector, lineReps, cs, less, pass, moveLimit);
     }
     COLA_ASSERT(scanline.size() == 0);
     for (unsigned i = 0; i < totalEvents; ++i)
@@ -1297,32 +1419,83 @@ static void setupOrthogonalLayoutConstraints(Router *router,
             valid[i]->unsatisfiable = false;
         }
 
-        // Some solving...
-        try
-        {
-            // Add the constraint from this alternative to the 
-            // valid constraint set.
-            valid.push_back(new vpsc::Constraint(sepChoice.var1, 
-                    sepChoice.var2, 0, true));
+        // Add the constraint from this alternative to the 
+        // valid constraint set.
+        valid.push_back(new vpsc::Constraint(sepChoice.var1, 
+                sepChoice.var2, 0, true));
 
-            //fprintf(stderr, ".%d %3d - ", dim, valid[dim].size());
+#ifdef ORTHOG_TOPOLOGY_DEBUG
+        fprintf(stderr, "Try removing sep in %c on connector %03d...",
+                (dim == XDIM) ? 'X' : 'Y', sepChoice.connRef->id());
+#endif
+        
+        bool needsSolving = true;
+        while (needsSolving)
+        {
             // Solve with this constraint set.
             vpsc::Constraints nonRedundantCs = 
                     constraintsRemovingRedundantEqualities(vs, valid);
             vpsc::IncSolver vpscInstance(vs, nonRedundantCs);
+#ifdef ORTHOG_TOPOLOGY_DEBUG
+            fprintf(stderr, "Solving...!\n");
+#endif
             vpscInstance.satisfy();
-        }
-        catch (char *str)
-        {
-            subConstraintSatisfiable = false;
+            needsSolving = false;
 
-            std::cerr << "++++ IN ERROR BLOCK" << std::endl;
-            std::cerr << str << std::endl;
+            for (vpsc::Constraints::iterator it = valid.begin(); 
+                    it != valid.end(); )
+            {
+                vpsc::Constraint *constraint = *it;
+                if (constraint->unsatisfiable && 
+                    (fabs((constraint->left->finalPosition + constraint->gap) - 
+                          constraint->right->finalPosition) < 0.01))
+                {
+                    // This is an almost satisfiable constraint.
+#ifdef ORTHOG_TOPOLOGY_DEBUG
+                    fprintf(stderr, "%s constraint: "
+                            "(%d)%.12g + %g %s (%d)%.12g\n",
+                            constraint->equality ? "Dropped redundant" :
+                            "Relaxed", constraint->left->id,
+                            constraint->left->finalPosition, constraint->gap, 
+                            constraint->equality ? "==" : "<=", 
+                            constraint->right->id,
+                            constraint->right->finalPosition);
+#endif
+    
+                    if (constraint->equality)
+                    {
+                        // Drop redundant equality constraint.
+                        // We know these occur due to cycles of equalities.
+                        it = valid.erase(it);
+                    }
+                    else
+                    {
+                        // Relax seemingly unsatisfiable inequality.
+                        constraint->gap -= 0.01;
+                        constraint->unsatisfiable = false;
+                        ++it;
+                    }
+                    // And now we need to resatisfy the problem..
+                    needsSolving = true;
+                }
+                else
+                {
+                    ++it;
+                }
+            }
         }
         for (size_t i = 0; i < valid.size(); ++i)
         {
             if (valid[i]->unsatisfiable)
             {
+#ifdef ORTHOG_TOPOLOGY_DEBUG
+                fprintf(stderr, "Unsatisfiable: (%d)%.12g + %g %s (%d)%.12g\n", 
+                        valid[i]->left->id,
+                        valid[i]->left->finalPosition, valid[i]->gap, 
+                        valid[i]->equality ? "==" : "<=", 
+                        valid[i]->right->id,
+                        valid[i]->right->finalPosition);
+#endif
                 // It might have made one of the earlier added 
                 // constraints unsatisfiable, so we mark that one 
                 // as okay since we will be reverting the most 
@@ -1335,8 +1508,9 @@ static void setupOrthogonalLayoutConstraints(Router *router,
 
         if (!subConstraintSatisfiable)
         {
-            //fprintf(stderr, "\tInvalid\n");
-
+#ifdef ORTHOG_TOPOLOGY_DEBUG
+            fprintf(stderr, "\tInvalid\n");
+#endif
             // Restore previous values for variables.
             for (unsigned int i = 0; i < priorPos.size(); ++i)
             {
@@ -1350,7 +1524,9 @@ static void setupOrthogonalLayoutConstraints(Router *router,
         }
         else
         {
-            //fprintf(stderr, "Valid %d\n", count);
+#ifdef ORTHOG_TOPOLOGY_DEBUG
+            fprintf(stderr, "Valid %d\n", count);
+#endif
             for (unsigned i = 0; i < ovn; i++)
             {
                 LayoutObstacle& obstacle = obstacleVector[i];
@@ -1381,6 +1557,8 @@ static void setupOrthogonalLayoutConstraints(Router *router,
     for (size_t i = 0; i < ccs.size(); ++i)
     {
         cola::CompoundConstraint *cc = ccs[i];
+        cc->updateShapeOffsetsForDifferentCentres(offsetsVector,
+                reversed);
         cc->updateVarIDsWithMapping(colaToCurrMap, reversed);
     }
     for_each(valid.begin(), valid.end(), cola::delete_object());
@@ -1498,12 +1676,13 @@ class CmpLineOrder
 
 AvoidTopologyAddon::AvoidTopologyAddon(vpsc::Rectangles& rs,
         cola::CompoundConstraints& cs, cola::RootCluster *ch,
-        cola::VariableIDMap& map)
+        cola::VariableIDMap& map, const double moveLimit)
     : Avoid::TopologyAddonInterface(),
-      rectangles(rs),
-      constraints(cs),
-      clusterHierarchy(ch),
-      idMap(map)
+      m_rectangles(rs),
+      m_constraints(cs),
+      m_cluster_hierarchy(ch),
+      m_id_map(map),
+      m_move_limit(moveLimit)
 {
 }
 
@@ -1536,8 +1715,8 @@ void AvoidTopologyAddon::improveOrthogonalTopology(Router *router)
         buildOrthogonalLayoutSegments(router, dimension, segmentList,
                 obstacleVector, extraTerminalsList);
         setupOrthogonalLayoutConstraints(router, dimension, segmentList,
-                obstacleVector, extraTerminalsList, constraints, idMap,
-                clusterHierarchy, &lineReps);
+                obstacleVector, extraTerminalsList, m_constraints, m_id_map,
+                m_cluster_hierarchy, m_rectangles, &lineReps, m_move_limit);
         
         simplifyOrthogonalRoutes(router);
     }
@@ -1553,35 +1732,35 @@ bool AvoidTopologyAddon::outputCode(FILE *fp) const
         fprintf(fp, "    CompoundConstraints ccs;\n");
         fprintf(fp, "    std::vector<vpsc::Rectangle*> rs;\n");
         fprintf(fp, "    vpsc::Rectangle *rect = NULL;\n\n");
-        for (size_t i = 0; i < rectangles.size(); ++i)
+        for (size_t i = 0; i < m_rectangles.size(); ++i)
         {
             fprintf(fp, "    rect = new vpsc::Rectangle(%g, %g, %g, %g);\n",
-                   rectangles[i]->getMinX(), rectangles[i]->getMaxX(),
-                   rectangles[i]->getMinY(), rectangles[i]->getMaxY());
+                   m_rectangles[i]->getMinX(), m_rectangles[i]->getMaxX(),
+                   m_rectangles[i]->getMinY(), m_rectangles[i]->getMaxY());
             fprintf(fp, "    rs.push_back(rect);\n\n");
         }
     
-        for (cola::CompoundConstraints::const_iterator c = constraints.begin(); 
-                c != constraints.end(); ++c)
+        for (cola::CompoundConstraints::const_iterator c = 
+                m_constraints.begin(); c != m_constraints.end(); ++c)
         {
             (*c)->printCreationCode(fp);
         }
 
-        if (clusterHierarchy)
+        if (m_cluster_hierarchy)
         {
-            clusterHierarchy->printCreationCode(fp);
+            m_cluster_hierarchy->printCreationCode(fp);
         }
         else
         {
             fprintf(fp, "    RootCluster *cluster%llu = NULL;\n\n",
-                    (unsigned long long) clusterHierarchy);
+                    (unsigned long long) m_cluster_hierarchy);
         }
 
-        idMap.printCreationCode(fp);
+        m_id_map.printCreationCode(fp);
 
         fprintf(fp, "    topology::AvoidTopologyAddon topologyAddon(rs, ccs, "
                 "cluster%llu, idMap);\n", 
-                (unsigned long long) clusterHierarchy);
+                (unsigned long long) m_cluster_hierarchy);
         fprintf(fp, "    router->setTopologyAddon(&topologyAddon);\n");
     }
     return true;
@@ -1592,10 +1771,10 @@ bool AvoidTopologyAddon::outputDeletionCode(FILE *fp) const
 {
     if (fp)
     {
-        if (clusterHierarchy)
+        if (m_cluster_hierarchy)
         {
             fprintf(fp, "\n    delete cluster%llu;\n",
-                    (unsigned long long) clusterHierarchy);
+                    (unsigned long long) m_cluster_hierarchy);
         }
         fprintf(fp, "    for_each(rs.begin(), rs.end(), cola::delete_object());\n");
         fprintf(fp, "    for_each(ccs.begin(), ccs.end(), cola::delete_object());\n\n");

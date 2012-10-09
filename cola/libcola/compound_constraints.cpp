@@ -283,6 +283,29 @@ void AlignmentConstraint::updateVarIDsWithMapping(const VariableIDMap& idMap,
     }
 }
 
+void AlignmentConstraint::updateShapeOffsetsForDifferentCentres(
+        const std::vector<double>& offsets, bool forward)
+{
+    for (SubConstraintInfoList::iterator o = _subConstraintInfo.begin();
+            o != _subConstraintInfo.end(); ++o) 
+    {
+        Offset *info = static_cast<Offset *> (*o);
+        if (offsets[info->varIndex] == 0)
+        {
+            continue;
+        }
+
+        if (forward)
+        {
+            info->distOffset -= offsets[info->varIndex];
+        }
+        else
+        {
+            info->distOffset += offsets[info->varIndex];
+        }
+    }
+}
+
 void AlignmentConstraint::printCreationCode(FILE *fp) const
 {
     fprintf(fp, "    AlignmentConstraint *alignment%llu = "

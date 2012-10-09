@@ -36,7 +36,8 @@ class AvoidTopologyAddon : public Avoid::TopologyAddonInterface
 {
     public:
         AvoidTopologyAddon(vpsc::Rectangles& rs, cola::CompoundConstraints& cs, 
-                cola::RootCluster *ch, cola::VariableIDMap& map);
+                cola::RootCluster *ch, cola::VariableIDMap& map,
+                const double moveLimit = 120);
         ~AvoidTopologyAddon();
         Avoid::TopologyAddonInterface *clone(void) const;
 
@@ -45,11 +46,11 @@ class AvoidTopologyAddon : public Avoid::TopologyAddonInterface
         bool outputDeletionCode(FILE *fp) const;
 
     private:
-        vpsc::Rectangles rectangles;  // Currently unused, for debugging.
-
-        cola::CompoundConstraints constraints;
-        cola::RootCluster *clusterHierarchy;
-        cola::VariableIDMap idMap;
+        vpsc::Rectangles m_rectangles;
+        cola::CompoundConstraints m_constraints;
+        cola::RootCluster *m_cluster_hierarchy;
+        cola::VariableIDMap m_id_map;
+        double m_move_limit;
 };
 
 

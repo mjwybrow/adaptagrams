@@ -155,6 +155,12 @@ public:
         COLA_UNUSED(idMap);
         COLA_UNUSED(forward);
     }
+    virtual void updateShapeOffsetsForDifferentCentres(
+                const std::vector<double>& offsets, bool forward = true)
+    {
+        COLA_UNUSED(offsets);
+        COLA_UNUSED(forward);
+    }
 
     // The following methods are only needed for initially solving feasibility
     // of the constraints, and do not need to be implemented for most compound
@@ -260,6 +266,8 @@ class AlignmentConstraint : public CompoundConstraint
         void printCreationCode(FILE *fp) const;
         void updateVarIDsWithMapping(const VariableIDMap& idMap, 
                 bool forward = true);
+        void updateShapeOffsetsForDifferentCentres(
+                const std::vector<double>& offsets, bool forward = true);
         
         /** the indicator pointer is used by dunnart to keep a ref to it's 
          * local representation of the alignment constraint
