@@ -553,6 +553,7 @@ OrthogonalEdgeConstraint::getCurrSubConstraintAlternatives(
     COLA_UNUSED(vs);
 
     // XXX: What to do here?
+    _currSubConstraintIndex = _subConstraintInfo.size();
     return SubConstraintAlternatives();
 }
 
@@ -1097,6 +1098,7 @@ PageBoundaryConstraints::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
 
     // Page boundary constraints do not need to be evaluated at the
     // time of makeFeasible, so we return an empty list here.
+    _currSubConstraintIndex = _subConstraintInfo.size();
     return SubConstraintAlternatives();
 }
 
