@@ -29,6 +29,7 @@
 #ifndef AVOID_CONNECTOR_H
 #define AVOID_CONNECTOR_H
 
+#include <utility>
 #include <list>
 #include <vector>
 
@@ -379,6 +380,7 @@ class ConnRef
                 const;
         std::pair<Obstacle *, Obstacle *> endpointAnchors(void) const;
         void outputCode(FILE *fp) const;
+        std::pair<bool, bool> assignConnectionPinVisibility(const bool connect);
 
 
         Router *m_router;

@@ -146,6 +146,8 @@ void HyperedgeRerouter::outputInstanceToSVG(FILE *fp)
 void HyperedgeRerouter::findAttachedObjects(size_t index,
         ConnRef *connector, JunctionRef *ignore, ConnRefSet& hyperedgeConns)
 {
+    connector->assignConnectionPinVisibility(true);
+
     m_deleted_connectors_vector[index].push_back(connector);
     hyperedgeConns.insert(connector);
 
@@ -358,7 +360,6 @@ void HyperedgeRerouter::performRerouting(void)
     fprintf(fp, "<g inkscape:groupmode=\"layer\" "
             "inkscape:label=\"ShapesRect\">\n");
     ObstacleList::iterator obstacleIt = m_router->m_obstacles.begin();
-    double shapePad = 5;
     while (obstacleIt != m_router->m_obstacles.end())
     {
         Obstacle *obstacle = *obstacleIt;
@@ -371,14 +372,12 @@ void HyperedgeRerouter::performRerouting(void)
             continue;
         }
 
-        double minX, minY, maxX, maxY;
-        obstacle->polygon().getBoundingRect(&minX, &minY, &maxX, &maxY);
+        Box bb = obstacle->routingBox();
 
         fprintf(fp, "<rect id=\"rect-%u\" x=\"%g\" y=\"%g\" width=\"%g\" "
                 "height=\"%g\" class=\"shape\" />\n",
-                obstacle->id(), minX + shapePad, minY + shapePad, 
-                maxX - minX - (shapePad * 2),
-                maxY - minY - (shapePad * 2));
+                obstacle->id(), bb.min.x, bb.min.y, 
+                bb.max.x - bb.min.x, bb.max.y - bb.min.y);
         // shapeContainsEndpointVertex(obstacle) ? "style=\"fill: green;\"" : "");
         ++obstacleIt;
     }
@@ -399,8 +398,7 @@ void HyperedgeRerouter::performRerouting(void)
         reduceRange(p2.x);
         reduceRange(p2.y);
         
-        std::pair<VertID, VertID> ids = t->ids();
-
+        // std::pair<VertID, VertID> ids = t->ids();
         // (ids.first.isConnPt() || ids.second.isConnPt()) ? "style=\"stroke: green\" " : ""
         fprintf(fp, "<path class=\"graph\" d=\"M %g %g L %g %g\" "
                 "%s />\n", p1.x, p1.y, p2.x, p2.y,
@@ -454,6 +452,9 @@ void HyperedgeRerouter::performRerouting(void)
                 m_deleted_connectors_vector[i].begin();
                 curr != m_deleted_connectors_vector[i].end(); ++curr)
         {
+            // Clear visibility assigned for connection pins.
+            (*curr)->assignConnectionPinVisibility(false);
+
             m_router->deleteConnector(*curr);
         }
         for (JunctionRefList::iterator curr = 

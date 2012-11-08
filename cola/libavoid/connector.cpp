@@ -832,6 +832,34 @@ bool validateBendPoint(VertInf *aInf, VertInf *bInf, VertInf *cInf)
 }
 
 
+std::pair<bool, bool> ConnRef::assignConnectionPinVisibility(const bool connect)
+{
+    // XXX This is kind of a hack for connection pins.  Probably we want to
+    //     not use m_src_vert and m_dst_vert.  For the moment we will clear
+    //     their visibility and give them visibility to the pins.
+    bool dummySrc = m_src_connend && m_src_connend->isPinConnection();
+    if (dummySrc)
+    {
+        m_src_vert->removeFromGraph();
+        if (connect)
+        {
+            m_src_connend->assignPinVisibilityTo(m_src_vert, m_dst_vert);
+        }
+    }
+    bool dummyDst = m_dst_connend && m_dst_connend->isPinConnection();
+    if (dummyDst)
+    {
+        m_dst_vert->removeFromGraph();
+        if (connect)
+        {
+            m_dst_connend->assignPinVisibilityTo(m_dst_vert, m_src_vert);
+        }
+    }
+
+    return std::make_pair(dummySrc, dummyDst);
+}
+
+
 bool ConnRef::generatePath(void)
 {
     if (!m_false_path && !m_needs_reroute_flag)
@@ -842,7 +870,7 @@ bool ConnRef::generatePath(void)
 
     if (!m_dst_vert || !m_src_vert)
     {
-        // Connector is not fully initialised..
+        // Connector is not fully initialised.
         return false;
     }
     
@@ -853,21 +881,8 @@ bool ConnRef::generatePath(void)
 
     m_start_vert = m_src_vert;
 
-    // XXX This is kind of a hack for connection pins.  Probably we want to
-    //     not use m_src_vert and m_dst_vert.  For the moment we will clear
-    //     their visibility and give them visibility to the pins.
-    bool dummySrc = m_src_connend && m_src_connend->isPinConnection();
-    if (dummySrc)
-    {
-        m_src_vert->removeFromGraph();
-        m_src_connend->assignPinVisibilityTo(m_src_vert, m_dst_vert);
-    }
-    bool dummyDst = m_dst_connend && m_dst_connend->isPinConnection();
-    if (dummyDst)
-    {
-        m_dst_vert->removeFromGraph();
-        m_dst_connend->assignPinVisibilityTo(m_dst_vert, m_src_vert);
-    }
+    // Visibility assignment for connection pins.
+    std::pair<bool, bool> isDummyAtEnd = assignConnectionPinVisibility(true);
     
     std::vector<Point> path;
     std::vector<VertInf *> vertices;
@@ -917,12 +932,12 @@ bool ConnRef::generatePath(void)
     std::vector<Point> clippedPath;
     std::vector<Point>::iterator pathBegin = path.begin();
     std::vector<Point>::iterator pathEnd = path.end();
-    if (path.size() > 2 && dummySrc)
+    if (path.size() > 2 && isDummyAtEnd.first)
     {
         ++pathBegin;
         m_src_connend->usePinVertex(vertices[1]);
     }
-    if (path.size() > 2 && dummyDst)
+    if (path.size() > 2 && isDummyAtEnd.second)
     {
         --pathEnd;
         m_dst_connend->usePinVertex(vertices[vertices.size() - 2]);
@@ -930,6 +945,9 @@ bool ConnRef::generatePath(void)
     clippedPath.insert(clippedPath.end(), pathBegin, pathEnd);
 
     // Would clear visibility for endpoints here if required.
+    
+    // Undo visibility assignment for connection pins.
+    assignConnectionPinVisibility(false);
 
     freeRoutes();
     PolyLine& output_route = m_route;

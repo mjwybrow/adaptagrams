@@ -895,7 +895,8 @@ void Router::rerouteAndCallbackConnectors(void)
     }
 
     // Calculate and return connectors that are part of hyperedges and will
-    // be completely rerouted by that code so don't need to be rerouted here.
+    // be completely rerouted by that code and thus don't need to have routes
+    // generated here.
     ConnRefSet hyperedgeConns =
             m_hyperedge_rerouter.calcHyperedgeConnectors();
 
