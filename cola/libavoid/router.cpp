@@ -1109,6 +1109,12 @@ void Router::improveCrossings(void)
     for (ConnRefList::iterator i = connRefs.begin(); i != fin; ++i) 
     {
         Avoid::Polygon& iRoute = (*i)->routeRef();
+        if (iRoute.size() == 0)
+        {
+            // Rerouted hyperedges will have an empty route.
+            // We can't reroute these.
+            continue;
+        }
         ConnCostRef iCostRef = std::make_pair(cheapEstimatedCost(*i), *i);
         ConnRefList::iterator j = i;
         for (++j; j != fin; ++j) 

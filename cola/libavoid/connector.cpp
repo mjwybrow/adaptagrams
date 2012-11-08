@@ -52,7 +52,6 @@ ConnRef::ConnRef(Router *router, const unsigned int id)
       m_false_path(false),
       m_needs_repaint(false),
       m_active(false),
-      m_initialised(false),
       m_hate_crossings(false),
       m_route_dist(0),
       m_src_vert(NULL),
@@ -82,7 +81,6 @@ ConnRef::ConnRef(Router *router, const ConnEnd& src, const ConnEnd& dst,
       m_false_path(false),
       m_needs_repaint(false),
       m_active(false),
-      m_initialised(false),
       m_hate_crossings(false),
       m_route_dist(0),
       m_src_vert(NULL),
@@ -230,10 +228,9 @@ void ConnRef::common_updateEndPoint(const unsigned int type, ConnEnd connEnd)
     // so don't leave it looking like it is still connected.
     connEnd.m_conn_ref = NULL;
 
-    if (!m_initialised)
+    if (!m_active)
     {
         makeActive();
-        m_initialised = true;
     }
     
     VertInf *altered = NULL;
@@ -686,7 +683,7 @@ VertInf *ConnRef::start(void)
 
 bool ConnRef::isInitialised(void)
 {
-    return m_initialised;
+    return m_active;
 }
 
 
@@ -695,7 +692,6 @@ void ConnRef::unInitialise(void)
     m_router->vertices.removeVertex(m_src_vert);
     m_router->vertices.removeVertex(m_dst_vert);
     makeInactive();
-    m_initialised = false;
 }
 
 
