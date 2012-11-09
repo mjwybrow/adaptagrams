@@ -1149,10 +1149,10 @@ void Router::improveCrossings(void)
                         // Get costs of each path from the crossings object.
                         // For shared paths that cross at the end, these will 
                         // be the shared path length minus some amount if the
-                        //  diverging segment is not a bend.  For every
-                        // other path it will be cheapEstimatedCost().  We 
-                        // want low costs for straight segments so these are 
-                        // not rerouted.
+                        // diverging segment is not a bend.  For every other 
+                        // path it will be cheapEstimatedCost().  We want 
+                        // low costs for straight segments so these are not 
+                        // rerouted.
                         iCostRef.first = cross.firstSharedPathAtEndLength;
                         jCostRef.first = cross.secondSharedPathAtEndLength;
                     }

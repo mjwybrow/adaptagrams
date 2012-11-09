@@ -1854,6 +1854,40 @@ void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
                 bool front_same = (*(c_path[0]) == *(p_path[0]));
                 bool back_same  = (*(c_path[size - 1]) == *(p_path[size - 1]));
 
+                // Determine if the shared path originates at a junction.
+                bool terminatesAtJunction = false;
+                if (polyConnRef && connConnRef && (front_same || back_same))
+                {
+                    // To do this we find the two ConnEnds at the common 
+                    // end of the shared path.  Then check if they are 
+                    // attached to a junction and it is the same one.
+                    std::pair<ConnEnd, ConnEnd> connEnds = 
+                            connConnRef->endpointConnEnds();
+                    JunctionRef *connJunction = NULL;
+
+                    std::pair<ConnEnd, ConnEnd> polyEnds = 
+                            polyConnRef->endpointConnEnds();
+                    JunctionRef *polyJunction = NULL;
+                   
+                    // The front of the c_path corresponds to destination 
+                    // of the connector.
+                    connJunction = (front_same) ? connEnds.second.junction() : 
+                            connEnds.first.junction();
+                    bool use_first = back_same;
+                    if (p_dir_back)
+                    {
+                        // Reversed, so use opposite.
+                        use_first = !use_first;
+                    }
+                    // The front of the p_path corresponds to destination 
+                    // of the connector.
+                    polyJunction = (use_first) ? polyEnds.second.junction() :
+                            polyEnds.first.junction();
+                    
+                    terminatesAtJunction = (connJunction && 
+                            (connJunction == polyJunction));
+                }
+
                 if (sharedPaths)
                 {
                     // Store a copy of the shared path
@@ -1879,11 +1913,14 @@ void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
                         {
                             double pos = (*c_path[startPt])[dim];
                             // See if this is inline with either the start
-                            // or end point of both connectors.
+                            // or end point of both connectors.  We don't
+                            // count them as crossing if they originate at a
+                            // junction and are part of the same hyperedge.
                             if ( ((pos == poly.ps[0][dim]) ||
                                     (pos == poly.ps[poly_size - 1][dim])) &&
                                  ((pos == conn.ps[0][dim]) ||
-                                    (pos == conn.ps[cIndex][dim])) )
+                                    (pos == conn.ps[cIndex][dim])) &&
+                                 (terminatesAtJunction == false))
                             {
                                 crossingFlags |= CROSSING_SHARES_FIXED_SEGMENT;
                             }
