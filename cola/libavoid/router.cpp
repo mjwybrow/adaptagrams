@@ -440,7 +440,6 @@ bool Router::processTransaction(void)
     if ((actionList.empty() && (m_hyperedge_rerouter.count() == 0)) ||
             SimpleRouting)
     {
-        actionList.clear();
         return false;
     }
 
