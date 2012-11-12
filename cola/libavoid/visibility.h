@@ -33,8 +33,6 @@ class VertInf;
 
 extern void vertexVisibility(VertInf *point, VertInf *partner, bool knownNew,
             const bool gen_contains = false);
-extern void vertexSweep(VertInf *point);
-extern void computeCompleteVis(void);
 
 }
 

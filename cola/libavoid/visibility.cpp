@@ -47,6 +47,8 @@
 namespace Avoid {
 
 
+static void vertexSweep(VertInf *vert);
+
 void Obstacle::computeVisibilityNaive(void)
 {
     if ( !(router()->InvisibilityGrph) )
@@ -431,7 +433,7 @@ static bool sweepVisible(SweepEdgeList& T, const PointPair& point,
 }
 
 
-void vertexSweep(VertInf *vert)
+static void vertexSweep(VertInf *vert)
 {
     Router *router = vert->_router;
     VertID& pID = vert->id;
@@ -510,6 +512,7 @@ void vertexSweep(VertInf *vert)
     SweepEdgeList e;
     VertSet::const_iterator vbegin = v.begin();
     VertSet::const_iterator vend = v.end();
+    const Point xaxis(DBL_MAX, centerInf->point.y);
     for (VertSet::const_iterator t = vbegin; t != vend; ++t)
     {
         VertInf *k = t->vInf;
@@ -517,8 +520,6 @@ void vertexSweep(VertInf *vert)
         COLA_ASSERT(centerInf != k);
         COLA_ASSERT(!(centerID.isConnPt()) || 
                 (ss.find(k->id.objID) == ss.end()));
-
-        Point xaxis(DBL_MAX, centerInf->point.y);
 
         VertInf *kPrev = k->shPrev;
         VertInf *kNext = k->shNext;
