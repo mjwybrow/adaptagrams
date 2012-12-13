@@ -595,6 +595,10 @@ class Router {
         //!
         void setSlowRoutingCallback(bool (*func)(unsigned int, double));
 
+        // Processes the actions list for the transaction.  You shouldn't
+        // need to cal this.  Instead use processTransaction().
+        void processActions(void);
+        
         void deleteCluster(ClusterRef *cluster);
         void attachedShapes(IntList &shapes, const unsigned int shapeId,
                 const unsigned int type);

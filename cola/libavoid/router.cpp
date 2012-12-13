@@ -428,20 +428,14 @@ void Router::setTransactionUse(const bool transactions)
 }
 
 
-bool Router::processTransaction(void)
+// Processes the action list.
+void Router::processActions(void)
 {
     bool notPartialTime = !(PartialFeedback && PartialTime);
     bool seenShapeMovesOrDeletes = false;
 
     m_transaction_start_time = clock();
     m_abort_transaction = false;
-
-    // If SimpleRouting, then don't update here.
-    if ((actionList.empty() && (m_hyperedge_rerouter.count() == 0)) ||
-            SimpleRouting)
-    {
-        return false;
-    }
 
     actionList.sort();
     ActionInfoList::iterator curr;
@@ -460,7 +454,7 @@ bool Router::processTransaction(void)
         Obstacle *obstacle = actInf.obstacle();
         ShapeRef *shape = actInf.shape();
         JunctionRef *junction = actInf.junction();
-        bool isMove = (actInf.type == ShapeMove) || 
+        bool isMove = (actInf.type == ShapeMove) ||
                 (actInf.type == JunctionMove);;
         bool first_move = actInf.firstMove;
 
@@ -468,14 +462,14 @@ bool Router::processTransaction(void)
 
         // o  Remove entries related to this shape's vertices
         obstacle->removeFromGraph();
-        
+
         if (SelectiveReroute && (!isMove || notPartialTime || first_move))
         {
             markConnectors(obstacle);
         }
 
         adjustContainsWithDel(pid);
-        
+
         if (isMove)
         {
             if (shape)
@@ -502,7 +496,7 @@ bool Router::processTransaction(void)
             m_currently_calling_destructors = false;
         }
     }
-    
+
     if (seenShapeMovesOrDeletes && m_allows_polyline_routing)
     {
         if (InvisibilityGrph)
@@ -510,9 +504,9 @@ bool Router::processTransaction(void)
             for (curr = actionList.begin(); curr != finish; ++curr)
             {
                 ActionInfo& actInf = *curr;
-                if (!((actInf.type == ShapeRemove) || 
+                if (!((actInf.type == ShapeRemove) ||
                       (actInf.type == ShapeMove) ||
-                      (actInf.type == JunctionRemove) || 
+                      (actInf.type == JunctionRemove) ||
                       (actInf.type == JunctionMove)))
                 {
                     // Not a move or remove action, so don't do anything.
@@ -544,14 +538,14 @@ bool Router::processTransaction(void)
         ShapeRef *shape = actInf.shape();
         JunctionRef *junction = actInf.junction();
         Polygon& newPoly = actInf.newPoly;
-        bool isMove = (actInf.type == ShapeMove) || 
+        bool isMove = (actInf.type == ShapeMove) ||
                 (actInf.type == JunctionMove);
 
         unsigned int pid = obstacle->id();
 
         // Restore this shape for visibility.
         obstacle->makeActive();
-        
+
         if (isMove)
         {
             if (shape)
@@ -605,7 +599,19 @@ bool Router::processTransaction(void)
     }
     // Clear the actionList.
     actionList.clear();
-    
+}
+
+bool Router::processTransaction(void)
+{
+    // If SimpleRouting, then don't update here.
+    if ((actionList.empty() && (m_hyperedge_rerouter.count() == 0)) ||
+            SimpleRouting)
+    {
+        return false;
+    }
+
+    processActions();
+
     m_static_orthogonal_graph_invalidated = true;
     rerouteAndCallbackConnectors();
 
