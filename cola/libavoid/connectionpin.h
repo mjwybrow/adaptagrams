@@ -33,6 +33,7 @@
 #include <set>
 #include <climits>
 
+#include "libavoid/dllexport.h"
 #include "libavoid/connend.h"
 #include "libavoid/geomtypes.h"
 
@@ -67,7 +68,7 @@ class VertInf;
 //! behaviour can be changed by calling the ShapeConnectionPin::setExclusive() 
 //! method.  Exclusive pins may only have a single connector attached to them.
 //!
-class ShapeConnectionPin
+class AVOID_EXPORT ShapeConnectionPin
 {
     public:
         //! @brief Constructs a ShapeConnectionPin at a specified position on a

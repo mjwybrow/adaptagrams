@@ -34,6 +34,7 @@
 
 #include "libavoid/geomtypes.h"
 #include "libavoid/obstacle.h"
+#include "libavoid/dllexport.h"
 
 namespace Avoid {
 
@@ -53,7 +54,7 @@ typedef std::list<JunctionRef *> JunctionRefList;
 //! be used to specify an intermediate point that a single connector must route
 //! through.
 //!
-class JunctionRef : public Obstacle
+class AVOID_EXPORT JunctionRef : public Obstacle
 {
     public:
         //! @brief  Junction reference constructor.

@@ -33,6 +33,8 @@
 #include <vector>
 #include <utility>
 
+#include "libavoid/dllexport.h"
+
 
 namespace Avoid
 {
@@ -47,7 +49,7 @@ class Polygon;
 //! Points consist of an x and y value.  They may also have an ID and vertex
 //! number associated with them.
 //!
-class Point
+class AVOID_EXPORT Point
 {
     public:
         //! @brief  Default constructor.
@@ -128,7 +130,7 @@ typedef Point Vector;
 //! @brief  A bounding box, represented by the top-left and
 //!         bottom-right corners.
 //!
-class Box
+class AVOID_EXPORT Box
 {
     public:
         //! The top-left point.
@@ -141,7 +143,7 @@ class Box
 
 //! @brief  A common interface used by the Polygon classes.
 //!
-class PolygonInterface
+class AVOID_EXPORT PolygonInterface
 {
     public:
         //! @brief  Constructor.
@@ -185,7 +187,7 @@ class PolygonInterface
 
 //! @brief  A line between two points. 
 //!
-class Edge
+class AVOID_EXPORT Edge
 {
     public:
         //! The first point.
@@ -204,7 +206,7 @@ class ReferencingPolygon;
 //! @note The Rectangle class can be used as an easy way of constructing a
 //!       square or rectangular polygon.
 //!
-class Polygon : public PolygonInterface
+class AVOID_EXPORT Polygon : public PolygonInterface
 {
     public:
         //! @brief  Constructs an empty polygon (with zero points). 
@@ -321,7 +323,7 @@ typedef Polygon PolyLine;
 //! This type of Polygon is used to accurately represent cluster boundaries 
 //! made up from the corner points of shapes.
 //!
-class ReferencingPolygon : public PolygonInterface
+class AVOID_EXPORT ReferencingPolygon : public PolygonInterface
 {
     public:
         ReferencingPolygon();
@@ -341,7 +343,7 @@ class ReferencingPolygon : public PolygonInterface
 //! @brief  A Rectangle, a simpler way to define the polygon for square or
 //!         rectangular shapes.
 //!
-class Rectangle : public Polygon
+class AVOID_EXPORT Rectangle : public Polygon
 {
     public:
         //! @brief  Constructs a rectangular polygon given two opposing 

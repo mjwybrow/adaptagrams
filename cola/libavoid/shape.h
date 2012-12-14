@@ -34,6 +34,7 @@
 
 #include <cstdio>
 
+#include "libavoid/dllexport.h"
 #include "libavoid/geometry.h"
 #include "libavoid/obstacle.h"
 
@@ -77,7 +78,7 @@ enum ShapeTransformationType
 //! Usually, it is expected that you would create a ShapeRef for each shape 
 //! in your diagram and keep that reference in your own shape class.
 //!
-class ShapeRef : public Obstacle
+class AVOID_EXPORT ShapeRef : public Obstacle
 {
     public:
         //! @brief  Shape reference constructor.

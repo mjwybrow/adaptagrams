@@ -33,6 +33,8 @@
 #include <vector>
 #include <set>
 
+#include "libavoid/dllexport.h"
+
 namespace Avoid {
 
 class ConnRef;
@@ -85,7 +87,7 @@ typedef std::vector<VertexSet> VertexSetVector;
 //! any more from your own code (the router will free them at it's
 //! convenience) and you should refer only to the new connectors and junctions.
 //!
-class HyperedgeRerouter
+class AVOID_EXPORT HyperedgeRerouter
 {
     public:
         //! @brief  Constructor for hyperedge rerouter object.

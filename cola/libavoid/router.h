@@ -34,6 +34,7 @@
 #include <utility>
 #include <string>
 
+#include "libavoid/dllexport.h"
 #include "libavoid/connector.h"
 #include "libavoid/vertices.h"
 #include "libavoid/graph.h"
@@ -258,7 +259,7 @@ class TopologyAddonInterface
 //! Usually you would keep a separate Router instance for each diagram
 //! or layout you have open in your application.
 //
-class Router {
+class AVOID_EXPORT Router {
     public:
         //! @brief  Constructor for router instance.
         //!

@@ -33,6 +33,7 @@
 #include <list>
 #include <vector>
 
+#include "libavoid/dllexport.h"
 #include "libavoid/vertices.h"
 #include "libavoid/geometry.h"
 #include "libavoid/connend.h"
@@ -64,7 +65,7 @@ enum ConnType {
 //!         must visit.  They may optionally be given an arrival/departure
 //!         direction.
 //!
-class Checkpoint
+class AVOID_EXPORT Checkpoint
 {
     public:
         //! @brief  A point that a route must visit.
@@ -127,7 +128,7 @@ class Checkpoint
 //! Usually, it is expected that you would create a ConnRef for each connector 
 //! in your diagram and keep that reference in your own connector class.
 //!
-class ConnRef
+class AVOID_EXPORT ConnRef
 {
     public:
         //! @brief Constructs a connector with no endpoints specified.

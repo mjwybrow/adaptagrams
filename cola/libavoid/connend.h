@@ -35,6 +35,7 @@
 #include <vector>
 #include <utility>
 
+#include "libavoid/dllexport.h"
 #include "libavoid/geometry.h"
 
 
@@ -115,7 +116,7 @@ static const double ATTACH_POS_RIGHT = ATTACH_POS_BOTTOM;
 //! multiple connectors), or points attached to shapes (either to the centre of 
 //! the shape or to particular pin positions on the shape).
 //! 
-class ConnEnd 
+class AVOID_EXPORT ConnEnd 
 {
     public:
         //! @brief Constructs a ConnEnd from a free-floating point.

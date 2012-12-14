@@ -31,7 +31,7 @@
 #include <list>
 
 #include "libavoid/geometry.h"
-
+#include "libavoid/dllexport.h"
 
 namespace Avoid {
 
@@ -52,7 +52,7 @@ typedef std::list<ClusterRef *> ClusterRefList;
 //!         experimental you will likely suffer a large performance hit
 //!         when using it.
 //!
-class ClusterRef
+class AVOID_EXPORT ClusterRef
 {
     public:
         //! @brief  Cluster reference constructor.
