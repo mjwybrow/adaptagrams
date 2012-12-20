@@ -225,6 +225,7 @@ void deleteDoubleArray(double* a) {
 %include "libcola/convex_hull.h"
 %include "libcola/exceptions.h"
 
+%include "libavoid/dllexport.h"
 %include "libavoid/geometry.h"
 %include "libavoid/geomtypes.h"
 %include "libavoid/connend.h"
