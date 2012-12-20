@@ -1000,7 +1000,7 @@ void ConnRef::generateCheckpointsPath(std::vector<Point>& path,
         }
         
         // Route the connector
-        aStarPath(this, start, end, end); 
+        aStarPath(this, start, end, NULL); 
 
         // Restore changes made for checkpoint visbility directions.
         if (lastSuccessfulIndex > 0)

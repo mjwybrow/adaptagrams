@@ -534,11 +534,24 @@ void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar, VertInf *start)
     }
     else
     {
+        if (start->pathNext)
+        {
+            // If we are doing checkpoint routing and have already done one
+            // path, then we have an existing segment to consider for the 
+            // cost of the  choice from the start node, so we add a dummy 
+            // node to the DONE list representing it.  This causes us to 
+            // search in a collinear direction from the previous segment.
+            ANode node = ANode(start->pathNext, timestamp++);
+            DONE.push_back(node);
+            DONE_size++;
+        }
+
         // Create the start node
         Node = ANode(src, timestamp++);
         Node.g = 0;
         Node.h = estimatedCost(lineRef, NULL, Node.inf->point, tar->point);
         Node.f = Node.g + Node.h;
+        Node.prevIndex = DONE_size - 1;
         // Set a null parent, so cost function knows this is the first segment.
 
         // Populate the PENDING container with the first location
