@@ -322,7 +322,6 @@ class NudgingShiftSegment : public ShiftSegment
               finalSegment(false),
               endsInShape(false),
               singleConnectedSegment(false),
-              containsCheckpoint(false),
               sBend(isSBend),
               zBend(isZBend)
         {
@@ -341,7 +340,6 @@ class NudgingShiftSegment : public ShiftSegment
               finalSegment(false),
               endsInShape(false),
               singleConnectedSegment(false),
-              containsCheckpoint(false),
               sBend(false),
               zBend(false)
         {
@@ -401,7 +399,7 @@ class NudgingShiftSegment : public ShiftSegment
                     weight = strongerWeight;
                 }
             }
-            else if (containsCheckpoint)
+            else if (checkpoints.size() > 0)
             {
                 weight = strongWeight;
             }
@@ -613,7 +611,7 @@ class NudgingShiftSegment : public ShiftSegment
         bool finalSegment;
         bool endsInShape;
         bool singleConnectedSegment;
-        bool containsCheckpoint;
+        std::vector<Point> checkpoints;
     private:
         bool sBend;
         bool zBend;
@@ -2202,10 +2200,14 @@ static void buildOrthogonalNudgingSegments(Router *router,
                     indexHigh = i - 1;
                 }
 
-                bool containsCheckpoint = (displayRoute.segmentHasCheckpoint.empty()) ?
-                        false : displayRoute.segmentHasCheckpoint[i - 1];
-                
-                if (containsCheckpoint && !nudgeFinalSegments)
+                std::vector<Point> prevCheckpoints = 
+                        displayRoute.checkpointOnSegment(i - 2);
+                std::vector<Point> checkpoints = 
+                        displayRoute.checkpointOnSegment(i - 1);
+                std::vector<Point> nextCheckpoints = 
+                        displayRoute.checkpointOnSegment(i);
+                bool hasCheckpoints = (checkpoints.size() > 0); 
+                if (hasCheckpoints && !nudgeFinalSegments)
                 {
                     // This segment includes one of the routing
                     // checkpoints so we shouldn't shift it.
@@ -2230,10 +2232,6 @@ static void buildOrthogonalNudgingSegments(Router *router,
                         bool first = (i == 1) ? true : false;
                         bool last = ((i + 1) == displayRoute.size()) ? 
                                 true : false;
-                        // If the position of the opposite end of the
-                        // attached segment is within the shape boundaries
-                        // then we want to use this as an ideal position
-                        // for the segment.
                         if (!first)
                         {
                             double prevPos = displayRoute.ps[i - 2][dim];
@@ -2258,6 +2256,11 @@ static void buildOrthogonalNudgingSegments(Router *router,
                                 maxLim = std::min(maxLim, nextPos);
                             }
                         }
+
+                        // If the position of the opposite end of the
+                        // attached segment is within the shape boundaries
+                        // then we want to use this as an ideal position
+                        // for the segment.
 
                         // Bitflags indicating whether this segment starts 
                         // and/or ends in a shape.
@@ -2343,7 +2346,6 @@ static void buildOrthogonalNudgingSegments(Router *router,
                 if ( ((prevPos < thisPos) && (nextPos > thisPos)) ||
                      ((prevPos > thisPos) && (nextPos < thisPos)) )
                 {
-
                     // Determine limits if the s-bend is not due to an 
                     // obstacle.  In this case we need to limit the channel 
                     // to the span of the adjoining segments to this one.
@@ -2352,12 +2354,40 @@ static void buildOrthogonalNudgingSegments(Router *router,
                         minLim = std::max(minLim, prevPos);
                         maxLim = std::min(maxLim, nextPos);
                         isZBend = true;
+                    
+                        // Constrain these segments by checkpoints along the
+                        // adjoining paths.  XXX Perhaps this should not
+                        // affect the ideal centre position in the channel.
+                        for (size_t cp = 0; cp < prevCheckpoints.size(); ++cp)
+                        {
+                            minLim = std::max(minLim, 
+                                    prevCheckpoints[cp][dim]);
+                        }
+                        for (size_t cp = 0; cp < nextCheckpoints.size(); ++cp)
+                        {
+                            maxLim = std::min(maxLim, 
+                                    nextCheckpoints[cp][dim]);
+                        }
                     }
                     else
                     {
                         minLim = std::max(minLim, nextPos);
                         maxLim = std::min(maxLim, prevPos);
                         isSBend = true;
+                        
+                        // Constrain these segments by checkpoints along the
+                        // adjoining paths.  XXX Perhaps this should not
+                        // affect the ideal centre position in the channel.
+                        for (size_t cp = 0; cp < nextCheckpoints.size(); ++cp)
+                        {
+                            minLim = std::max(minLim, 
+                                    nextCheckpoints[cp][dim]);
+                        }
+                        for (size_t cp = 0; cp < prevCheckpoints.size(); ++cp)
+                        {
+                            maxLim = std::min(maxLim, 
+                                    prevCheckpoints[cp][dim]);
+                        }
                     }
                 }
                 else
@@ -2378,7 +2408,7 @@ static void buildOrthogonalNudgingSegments(Router *router,
                 NudgingShiftSegment *nss = new NudgingShiftSegment(*curr,
                         indexLow, indexHigh, isSBend, isZBend, dim,
                         minLim, maxLim);
-                nss->containsCheckpoint = containsCheckpoint;
+                nss->checkpoints = checkpoints;
                 segmentList.push_back(nss);
             }
         }
@@ -2912,7 +2942,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                     currSegment->minSpaceLimit, currSegment->maxSpaceLimit,
                     currSegment->lowPoint()[!dimension], currSegment->highPoint()[!dimension], 
                     currSegment->variable->weight, 
-                    (int) currSegment->containsCheckpoint);
+                    (int) currSegment->checkpoints.size());
 #endif
 #ifdef NUDGE_DEBUG_SVG
             // Debugging info:

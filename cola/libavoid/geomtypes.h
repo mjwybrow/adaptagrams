@@ -302,14 +302,22 @@ class AVOID_EXPORT Polygon : public PolygonInterface
         //!         returned by curvedPolyline().  
         std::vector<char> ts;
 
-        //! @brief  If used, denotes whether the corresponding segment contains a
-        //!         checkpoint for the connector.
-        //!
-        //! Set and used by the orthogonal routing code.
-        //!
-        //! Where a checkpoint occurs on a bend in the connector, both the neighbouring
-        //! segments will be marked as being restricted by a checkpoint.
-        std::vector<bool> segmentHasCheckpoint;
+        // @brief  If used, denotes checkpoints through which the route travels
+        //         and the relevant segment of the route.
+        //
+        // Set and used by the orthogonal routing code. Note the first value
+        // in the pair doesn't correspond to the segment index containing the 
+        // checkpoint, but rather the segment or bendpoint on which it lies.
+        //    0 if on ps[0]
+        //    1 if on line ps[0]-ps[1]
+        //    2 if on ps[1]
+        //    3 if on line ps[1]-ps[2]
+        //    etc.
+        std::vector<std::pair<size_t, Point> > checkpointsOnRoute;
+
+        // Returns true if at least one checkpoint lies on the line segment
+        // or at either end of it.
+        std::vector<Point> checkpointOnSegment(size_t segmentLowerIndex) const;
 };
 
 

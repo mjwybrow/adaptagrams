@@ -323,34 +323,33 @@ void buildConnectorRouteCheckpointCache(Router *router)
         // Initialise checkpoint vector and set to false.  There will be
         // one entry for each *segment* in the path, and the value indicates
         // whether the segment is affected by a checkpoint.
-        displayRoute.segmentHasCheckpoint = 
-                std::vector<bool>(displayRoute.size() - 1, false);
-        size_t nCheckpoints = displayRoute.segmentHasCheckpoint.size();
+        displayRoute.checkpointsOnRoute = 
+                std::vector<std::pair<size_t, Point> >();
 
-        for (size_t cpi = 0; cpi < checkpoints.size(); ++cpi)
+        for (size_t ind = 0; ind < displayRoute.size(); ++ind)
         {
-            for (size_t ind = 0; ind < displayRoute.size(); ++ind)
+            if (ind > 0)
+            {
+                for (size_t cpi = 0; cpi < checkpoints.size(); ++cpi)
+                {
+                    if (pointOnLine(displayRoute.ps[ind - 1], 
+                             displayRoute.ps[ind], checkpoints[cpi].point) )
+                    {
+                        // The checkpoint is on a segment.
+                        displayRoute.checkpointsOnRoute.push_back(
+                                std::make_pair((ind * 2) - 1, 
+                                    checkpoints[cpi].point));
+                    }
+                }
+            }
+
+            for (size_t cpi = 0; cpi < checkpoints.size(); ++cpi)
             {
                 if (displayRoute.ps[ind].equals(checkpoints[cpi].point))
                 {
-                    // The checkpoint is at a bendpoint, so mark the edge
-                    // before and after and being affected by checkpoints.
-                    if (ind > 0)
-                    {
-                        displayRoute.segmentHasCheckpoint[ind - 1] = true;
-                    }
-
-                    if (ind < nCheckpoints)
-                    {
-                        displayRoute.segmentHasCheckpoint[ind] = true;
-                    }
-                }
-                else if ((ind > 0) && pointOnLine(displayRoute.ps[ind - 1], 
-                         displayRoute.ps[ind], checkpoints[cpi].point) )
-                {
-                    // If the checkpoint is on a segment, only that segment is
-                    // affected.
-                    displayRoute.segmentHasCheckpoint[ind - 1] = true;
+                    // The checkpoint is at a bendpoint.
+                    displayRoute.checkpointsOnRoute.push_back(
+                            std::make_pair(ind * 2, checkpoints[cpi].point));
                 }
             }
         }
@@ -371,7 +370,7 @@ void clearConnectorRouteCheckpointCache(Router *router)
 
         // Clear the cache.
         PolyLine& displayRoute = conn->displayRoute();
-        displayRoute.segmentHasCheckpoint.clear();
+        displayRoute.checkpointsOnRoute.clear();
     }
 }
 

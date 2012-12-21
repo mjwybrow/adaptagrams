@@ -515,8 +515,10 @@ Polygon Polygon::simplify(void) const
     // Copy the PolyLine.
     Polygon simplified = *this;
     
-    std::vector<bool>::iterator cpIt = simplified.segmentHasCheckpoint.begin();
-    bool hasCheckpointInfo = !(simplified.segmentHasCheckpoint.empty());
+    std::vector<std::pair<size_t, Point> >& checkpoints = 
+            simplified.checkpointsOnRoute;
+    size_t checkpointIndex = 0;
+    bool hasCheckpointInfo = !(checkpoints.empty());
 
     std::vector<Point>::iterator it = simplified.ps.begin();
     if (it != simplified.ps.end()) ++it;
@@ -533,22 +535,70 @@ Polygon Polygon::simplify(void) const
 
             if (hasCheckpointInfo)
             {
-                bool hasCp = simplified.segmentHasCheckpoint[j - 2] || 
-                             simplified.segmentHasCheckpoint[j - 1];
-                simplified.segmentHasCheckpoint[j - 2] = hasCp;
-                cpIt = simplified.segmentHasCheckpoint.erase(cpIt);
+                // 0     1     2     3     4   <- vertices on path
+                // +-----+-----+-----+-----+
+                // 0  1  2  3  4  5  6  7  8   <- checkpoints on points & edges
+                //             |
+                //             \_ deletedPointValue = 4
+                //
+                // If 1-2-3 is collinear then we want to end up with
+                //
+                // 0     1           2     3
+                // +-----+-----------+-----+
+                // 0  1  2  3  3  3  4  5  6
+                //
+                //
+                //
+                size_t deletedPointValue = (j - 1) - 1;
+                while (checkpoints[checkpointIndex].first < deletedPointValue)
+                {
+                    ++checkpointIndex;
+                }
+                size_t checkpointIndexAtDeletionPoint = checkpointIndex;
+                while (checkpoints[checkpointIndex].first == deletedPointValue)
+                {
+                    checkpoints[checkpointIndex].first = deletedPointValue - 1;
+                    ++checkpointIndex;
+                }
+                while (checkpointIndex < checkpoints.size())
+                {
+                    checkpoints[checkpointIndex].first -= 2;
+                    ++checkpointIndex;
+                }
+                checkpointIndex = checkpointIndexAtDeletionPoint;
             }
         }
         else
         {
             ++j;
             ++it;
-            
-            if (hasCheckpointInfo) ++cpIt;
         }
     }
 
     return simplified;
+}
+
+std::vector<Point> Polygon::checkpointOnSegment(size_t segmentLowerIndex) const
+{
+    std::vector<Point> checkpoints;
+    // 0     1     2     3     4   <- vertices on path
+    // +-----+-----+-----+-----+
+    // 0  1  2  3  4  5  6  7  8   <- checkpoints on points & edges
+ 
+    size_t checkpointLowerValue = 2 * segmentLowerIndex;
+    size_t checkpointUpperValue = checkpointLowerValue + 2;
+    size_t index = 0;
+
+    while (index < checkpointsOnRoute.size())
+    {
+        if ((checkpointsOnRoute[index].first >= checkpointLowerValue) &&
+                (checkpointsOnRoute[index].first <= checkpointUpperValue))
+        {
+            checkpoints.push_back(checkpointsOnRoute[index].second);
+        }
+        ++index;
+    }
+    return checkpoints;
 }
 
 
