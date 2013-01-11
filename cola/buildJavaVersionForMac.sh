@@ -7,7 +7,7 @@ FATFLAGS="-arch i386 -arch x86_64"
 mkdir -p m4
 autoreconf --install --verbose
 
-./configure --disable-dependency-tracking CPPFLAGS="-DUSE_ASSERT_EXCEPTIONS" CXXFLAGS="$FATFLAGS" LDFLAGS="$FATFLAGS"
+./configure --disable-dependency-tracking CPPFLAGS="-DNDEBUG -O3 -DUSE_ASSERT_EXCEPTIONS" CXXFLAGS="$FATFLAGS" LDFLAGS="$FATFLAGS"
 
 make clean
 make
