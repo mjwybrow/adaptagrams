@@ -743,9 +743,9 @@ Router *ConnRef::router(void) const
 //
 bool validateBendPoint(VertInf *aInf, VertInf *bInf, VertInf *cInf)
 {
-    if (bInf->id.isConnectionPin())
+    if (bInf->id.isConnectionPin() || bInf->id.isConnCheckpoint())
     {
-        // We shouldn't check connection pins.
+        // We shouldn't check connection pins or checkpoints.
         return true;
     }
     bool bendOkay = true;
@@ -1039,7 +1039,7 @@ void ConnRef::generateCheckpointsPath(std::vector<Point>& path,
             }
             lastSuccessfulIndex = i;
         }
-        else if (i + 1 == vertices.size())
+        else if (i + 1 == checkpoints.size())
         {
             // There is no valid path.
             db_printf("Warning: Path not found...\n");
@@ -1048,7 +1048,7 @@ void ConnRef::generateCheckpointsPath(std::vector<Point>& path,
             path.push_back(dst()->point);
             vertices.push_back(dst());
 
-            COLA_ASSERT(path.size() == 2);
+            COLA_ASSERT(path.size() >= 2);
         }
         else
         {
