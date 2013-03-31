@@ -57,6 +57,7 @@ libavoidinclude_HEADERS = assertions.h \
 			connectionpin.h \
 			connend.h \
 			debug.h \
+                        dllexport.h \
 			geometry.h \
 			geomtypes.h \
 			graph.h \
