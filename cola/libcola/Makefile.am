@@ -1,7 +1,6 @@
 INCLUDES = -I$(top_srcdir) $(CAIROMM_CFLAGS)
 
 lib_LTLIBRARIES = libcola.la
-# libavoid_la_LIBADD = ../common/libjupcommon.a
 libavoid_la_CPPFLAGS = -I{includedir}/libcola -fPIC
 
 libcola_la_SOURCES = cola.h\

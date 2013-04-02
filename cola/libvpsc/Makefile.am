@@ -1,6 +1,8 @@
 INCLUDES = -I$(top_srcdir) 
 
 lib_LTLIBRARIES = libvpsc.la
+libvpsc_la_CPPFLAGS = -I{includedir}/libvpsc -fPIC
+
 #DEFS=-DLIBVPSC_LOGGING
 
 
