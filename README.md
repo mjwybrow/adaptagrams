@@ -47,9 +47,9 @@ Software using one or more of the Adaptagrams libraries include:
  *  [Dunnart][dunnart], constraint-based diagram editor,
  *  [Inkscape][inkscape], the popular open source vector graphics editor,
  *  [Graphviz][graphviz], open source graph visualisation software,
- *  [Arcadia][arcadia], a visualisation tool for metabolic pathways, and
- *  [Gaphas][gaphor], an open source Python-based diagramming widget for GTK+.
-
+ *  [Arcadia][arcadia], a visualisation tool for metabolic pathways,
+ *  [Gaphas][gaphor], an open source Python-based diagramming widget for GTK+, and
+ *  [BRL-CAD][brlcad], a powerful cross-platform open source solid modeling system that includes interactive geometry editing, high-performance ray-tracing for rendering and geometric analysis, image and signal-processing tools, a system performance analysis benchmark suite, libraries for robust geometric representation, with more than 20 years of active development.
 
 The algorithms were developed by [Kim Marriott][km]'s Adaptive Diagrams Research Group at [Monash University][monash] in Melbourne, Australia.  The Adaptagrams libraries were originally written by [Tim Dwyer][td] and [Michael Wybrow][mw].
 
@@ -82,4 +82,5 @@ Run `./autogen.sh` to compile from scratch.
 [gaphor]: http://gaphor.sourceforge.net/
 [cairo]: http://cairographics.org/
 [repo]: https://github.com/mjwybrow/adaptagrams/
+[brlcad]: http://brlcad.org/
 

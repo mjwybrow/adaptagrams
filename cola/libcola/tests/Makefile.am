@@ -1,5 +1,12 @@
 INCLUDES = -I$(top_srcdir) $(CAIROMM_CFLAGS)
-LDADD = $(top_builddir)/libcola/libcola.la $(top_builddir)/libvpsc/libvpsc.la $(top_builddir)/libtopology/libtopology.la $(CAIROMM_LIBS)
+
+LDADD = \
+  $(top_builddir)/libvpsc/libvpsc.la \
+  $(top_builddir)/libtopology/libtopology.la \
+  $(top_builddir)/libcola/libcola.la \
+  $(top_builddir)/libavoid/libavoid.la \
+  $(CAIROMM_LIBS)
+
 check_PROGRAMS = random_graph page_bounds constrained unsatisfiable invalid makefeasible rectclustershapecontainment FixedRelativeConstraint01 StillOverlap01 StillOverlap02
 #check_PROGRAMS = unconstrained constrained containment shortest_paths connected_components large_graph convex_hull scale_free trees random_graph large_graph topology boundary planar #resize
 #check_PROGRAMS = topology boundary planar resize resizealignment

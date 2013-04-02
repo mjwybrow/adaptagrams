@@ -4,6 +4,7 @@
 INCLUDES = -I$(top_srcdir)
 
 lib_LTLIBRARIES = libproject.la
+libproject_la_CPPFLAGS = -I{includedir}/libproject -fPIC
 
 libproject_la_SOURCES = project.cpp \
 			util.h \

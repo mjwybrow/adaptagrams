@@ -1,7 +1,7 @@
 INCLUDES = -I$(top_srcdir)
 
 lib_LTLIBRARIES = libavoid.la
-
+libavoid_la_CPPFLAGS = -I{includedir}/libavoid -fPIC
 
 libavoid_la_SOURCES = connectionpin.cpp \
 			connector.cpp \
@@ -57,6 +57,7 @@ libavoidinclude_HEADERS = assertions.h \
 			connectionpin.h \
 			connend.h \
 			debug.h \
+                        dllexport.h \
 			geometry.h \
 			geomtypes.h \
 			graph.h \

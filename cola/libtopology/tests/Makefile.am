@@ -6,7 +6,7 @@ check_PROGRAMS = simple_bend nooverlap nodedragging beautify orthogonalOpt
 simple_bend_SOURCES = simple_bend.cpp 
 nooverlap_SOURCES = nooverlap.cpp 
 nodedragging_SOURCES = nodedragging.cpp 
-problem_SOURCES = problem.cpp 
+#problem_SOURCES = problem.cpp
 beautify_SOURCES = beautify.cpp
 orthogonalOpt_SOURCES = orthogonalOpt.cpp
 
