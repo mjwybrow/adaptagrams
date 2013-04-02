@@ -82,4 +82,5 @@ Run `./autogen.sh` to compile from scratch.
 [gaphor]: http://gaphor.sourceforge.net/
 [cairo]: http://cairographics.org/
 [repo]: https://github.com/mjwybrow/adaptagrams/
+[brlcad]: http://brlcad.org/
 
