@@ -3,9 +3,9 @@ AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR(libcola/cola.h)
 AC_CONFIG_HEADERS([libcola/config.h])
 AM_INIT_AUTOMAKE
-# TB:choose ONE of the following
+# able to choose or disable these two at configure time:
 AC_ENABLE_STATIC
-#AC_DISABLE_SHARED
+AC_ENABLE_SHARED
 AC_PROG_CXX
 AC_PROG_CC
 AC_PROG_LIBTOOL
