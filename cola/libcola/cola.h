@@ -271,7 +271,7 @@ public:
         RootCluster* clusterHierarchy,
         const double idealLength,
         const double* eLengths=NULL,
-        TestConvergence done = TestConvergence(0.0001,100),
+        TestConvergence *doneTest = NULL,
         PreIteration* preIteration=NULL);
     /**
      * @brief  Specify a set of compound constraints to apply to the layout.
@@ -370,6 +370,11 @@ public:
     }
 
     ~ConstrainedMajorizationLayout() {
+        if (using_default_done)
+        {
+            delete done;
+        }
+
         if(constrainedLayout) {
             delete gpX;
             delete gpY;
@@ -417,7 +422,8 @@ private:
     std::valarray<double> Q; //< quadratic terms matrix used in computations
     std::valarray<double> Dij; //< all pairs shortest path distances
     double tol; //< convergence tolerance
-    TestConvergence done; //< functor used to determine if layout is finished
+    TestConvergence *done; //< functor used to determine if layout is finished
+    bool using_default_done; // Whether we allocated a default TestConvergence object.
     PreIteration* preIteration; //< client can use this to create locks on nodes
     vpsc::Rectangles boundingBoxes; //< node bounding boxes
     /*
@@ -599,7 +605,8 @@ public:
      *                      if eLengths is NULL then just idealLength is used 
      *                      (i.e., eLengths[i] is assumed to be 1).
      * @param[in] done  A test of convergence operation called at the end of 
-     *                  each iteration (optional).
+     *                  each iteration (optional).  If not given, uses a
+     *                  default TestConvergence object.
      * @param[in] preIteration  An operation called before each iteration
      *                          (optional).
      */
@@ -609,7 +616,7 @@ public:
         const double idealLength,
         const bool preventOverlaps,
         const double* eLengths=NULL,
-        TestConvergence done = TestConvergence(0.0001,100),
+        TestConvergence* doneTest = NULL,
         PreIteration* preIteration=NULL);
     ~ConstrainedFDLayout();
   
@@ -760,7 +767,8 @@ private:
 
     std::vector<std::vector<unsigned> > neighbours;
     std::vector<std::vector<double> > neighbourLengths;
-    TestConvergence done;
+    TestConvergence *done;
+    bool using_default_done; // Whether we allocated a default TestConvergence object.
     PreIteration* preIteration;
     cola::CompoundConstraints ccs;
     double** D;

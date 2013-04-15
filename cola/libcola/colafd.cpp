@@ -83,11 +83,12 @@ void dumpSquareMatrix(unsigned n, T** L) {
 ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
         const std::vector< Edge >& es, const double idealLength,
         const bool preventOverlaps, const double* eLengths, 
-        TestConvergence done, PreIteration* preIteration) 
+        TestConvergence *doneTest, PreIteration* preIteration)
     : n(rs.size()),
       X(valarray<double>(n)),
       Y(valarray<double>(n)),
-      done(done),
+      done(doneTest),
+      using_default_done(false),
       preIteration(preIteration),
       topologyAddon(new TopologyAddonInterface()),
       rungekutta(true),
@@ -97,10 +98,16 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
       m_idealEdgeLength(idealLength),
       m_generateNonOverlapConstraints(preventOverlaps)
 {
+    if (done == NULL)
+    {
+        done = new TestConvergence();
+        using_default_done = true;
+    }
+
     //FILELog::ReportingLevel() = logDEBUG1;
     FILELog::ReportingLevel() = logERROR;
     boundingBoxes = rs;
-    done.reset();
+    done->reset();
     unsigned i=0;
     for(vpsc::Rectangles::const_iterator ri=rs.begin();ri!=rs.end();++ri,++i) {
         X[i]=(*ri)->getCentreX();
@@ -264,7 +271,7 @@ void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis)
         setPosition(x1);
         stress=computeStress();
         FILE_LOG(logDEBUG) << "stress="<<stress;
-    } while(!done(stress,X,Y));
+    } while(!(*done)(stress,X,Y));
     for(unsigned i=0;i<n;i++) {
         vpsc::Rectangle *r=boundingBoxes[i];
     FILE_LOG(logDEBUG) << *r;
@@ -696,6 +703,11 @@ void ConstrainedFDLayout::makeFeasible(void)
 
 ConstrainedFDLayout::~ConstrainedFDLayout()
 {
+    if (using_default_done)
+    {
+        delete done;
+    }
+
     for (unsigned i = 0; i < n; ++i)
     {
         delete [] G[i];

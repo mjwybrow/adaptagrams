@@ -107,7 +107,7 @@ void nodeDragging() {
     Lock& lock=locks[0];
     PreIteration preIteration(locks);
     Test test(0.00001,100,vs,tes);
-    ConstrainedFDLayout alg(rs,es,idealLength, true, NULL,test,&preIteration);
+    ConstrainedFDLayout alg(rs,es,idealLength, true, NULL,&test,&preIteration);
     topology::ColaTopologyAddon topology(vs, tes);
     alg.setTopology(&topology);
 

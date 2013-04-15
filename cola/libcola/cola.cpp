@@ -43,12 +43,15 @@ ConstrainedMajorizationLayout
         RootCluster *clusterHierarchy,
         const double idealLength,
         const double * eLengths,
-        TestConvergence done,
+        TestConvergence *doneTest,
         PreIteration* preIteration)
     : n(rs.size()),
       lap2(valarray<double>(n*n)), 
       Dij(valarray<double>(n*n)),
-      tol(1e-7), done(done), preIteration(preIteration),
+      tol(1e-7),
+      done(doneTest),
+      using_default_done(false),
+      preIteration(preIteration),
       X(valarray<double>(n)), Y(valarray<double>(n)),
       stickyNodes(false), 
       startX(valarray<double>(n)), startY(valarray<double>(n)),
@@ -66,10 +69,16 @@ ConstrainedMajorizationLayout
       externalSolver(false),
       majorization(true)
 {
+    if (done == NULL)
+    {
+        done = new TestConvergence();
+        using_default_done = true;
+    }
+
     boundingBoxes.resize(rs.size());
     copy(rs.begin(),rs.end(),boundingBoxes.begin());
 
-    done.reset();
+    done->reset();
 
     COLA_ASSERT(!straightenEdges||straightenEdges->size()==es.size());
 
@@ -357,7 +366,7 @@ void ConstrainedMajorizationLayout::run(bool x, bool y) {
                 gpY->unfixPos(l->getID());
             }
         }
-    } while(!done(compute_stress(Dij),X,Y));
+    } while(!(*done)(compute_stress(Dij),X,Y));
 }
 double ConstrainedMajorizationLayout::computeStress() {
     return compute_stress(Dij);
