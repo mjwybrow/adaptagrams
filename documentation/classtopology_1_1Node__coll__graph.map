@@ -1,0 +1,4 @@
+<map id="topology::Node" name="topology::Node">
+<area shape="rect" id="node2" href="$classvpsc_1_1Rectangle.html" title="A rectangle represents a fixed&#45;size shape in the diagram that may be moved to prevent overlaps and sa..." alt="" coords="5,6,117,274"/>
+<area shape="rect" id="node3" href="$classvpsc_1_1Variable.html" title="A variable is comprised of an ideal position, final position and a weight." alt="" coords="143,13,289,267"/>
+</map>

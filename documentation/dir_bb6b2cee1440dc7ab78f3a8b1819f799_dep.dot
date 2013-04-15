@@ -1,0 +1,6 @@
+digraph "libvpsc" {
+  compound=true
+  node [ fontsize="10", fontname="Helvetica"];
+  edge [ labelfontsize="10", labelfontname="Helvetica"];
+  dir_bb6b2cee1440dc7ab78f3a8b1819f799 [shape=box, label="libvpsc", style="filled", fillcolor="#eeeeff", pencolor="black", URL="dir_bb6b2cee1440dc7ab78f3a8b1819f799.html"];
+}

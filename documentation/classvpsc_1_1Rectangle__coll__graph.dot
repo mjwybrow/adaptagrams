@@ -1,0 +1,6 @@
+digraph "vpsc::Rectangle"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node1 [label="{vpsc::Rectangle\n|+ xBorder\l+ yBorder\l|+ Rectangle()\l+ Rectangle()\l+ Rectangle()\l+ isValid()\l+ unionWith()\l+ reset()\l+ getMaxX()\l+ getMaxY()\l+ getMinX()\l+ getMinY()\land 27 more...\l+ setXBorder()\l+ setYBorder()\l}",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled" fontcolor="black"];
+}

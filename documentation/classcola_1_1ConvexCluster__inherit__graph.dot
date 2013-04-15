@@ -1,0 +1,8 @@
+digraph "cola::ConvexCluster"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node1 [label="{cola::ConvexCluster\n|+ hullRIDs\l+ hullCorners\l|+ computeBoundary()\l+ printCreationCode()\l}",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled" fontcolor="black"];
+  Node2 -> Node1 [dir="back",color="midnightblue",fontsize="10",style="solid",arrowtail="onormal",fontname="Helvetica"];
+  Node2 [label="{cola::Cluster\n|+ bounds\l+ vXMin\l+ vXMax\l+ vYMin\l+ vYMax\l+ clusterVarId\l+ rectBuffer\l+ varWeight\l+ internalEdgeWeightFactor\l+ nodes\l+ clusters\l+ hullX\l+ hullY\l|+ Cluster()\l+ ~Cluster()\l+ computeBoundary()\l+ computeBoundingRect()\l+ addChildNode()\l+ addChildCluster()\l+ setDesiredBounds()\l+ unsetDesiredBounds()\l+ createVars()\l+ setRectBuffers()\l+ printCreationCode()\l+ containsShape()\l+ clusterIsFromFixedRectangle()\l+ area()\l+ updateBounds()\l}",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcola_1_1Cluster.html",tooltip="A cluster defines a hierarchical partitioning over the nodes which should be kept disjoint by the lay..."];
+}

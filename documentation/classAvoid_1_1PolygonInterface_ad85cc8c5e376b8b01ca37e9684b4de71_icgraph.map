@@ -1,0 +1,6 @@
+<map id="Avoid::PolygonInterface::at" name="Avoid::PolygonInterface::at">
+<area shape="rect" id="node2" href="$classAvoid_1_1PolygonInterface.html#af92b37a9eddfc22618faf49f74aa0df7" title="Returns the bounding rectangle that contains this polygon wtih optionally some buffer space around it..." alt="" coords="227,5,381,46"/>
+<area shape="rect" id="node5" href="$classAvoid_1_1Polygon.html#a73f9d5bd92622bd8db898246b0c2e194" title="Constructs a new polygon from an existing Polygon." alt="" coords="225,71,383,97"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1PolygonInterface.html#ae1f5a611c54292d95b37d3abd9b80804" title="Returns the bounding rectangle for this polygon." alt="" coords="433,5,586,46"/>
+<area shape="rect" id="node4" href="$classAvoid_1_1ClusterRef.html#a8bdf3a48e06ae25ae25121e781522f5f" title="Update the polygon boundary for this cluster." alt="" coords="635,5,760,46"/>
+</map>

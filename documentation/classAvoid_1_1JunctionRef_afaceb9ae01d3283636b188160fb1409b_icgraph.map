@@ -1,0 +1,7 @@
+<map id="Avoid::JunctionRef::position" name="Avoid::JunctionRef::position">
+<area shape="rect" id="node2" href="$classAvoid_1_1Router.html#a94e5639b590902b5e734a1068fdc663c" title="Move an existing junction within the router scene by a relative distance." alt="" coords="180,5,359,32"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1ShapeConnectionPin.html#ad2b8489330ed961df41adad3e4a5f88d" title="Returns the position of this connection pin." alt="" coords="179,57,359,98"/>
+<area shape="rect" id="node6" href="$classAvoid_1_1ShapeConnectionPin.html#afa2e31949ff244bf4cacd996097867dd" title="Constructs a ShapeConnectionPin on a JunctionRef." alt="" coords="179,122,359,163"/>
+<area shape="rect" id="node4" href="$classAvoid_1_1ConnEnd.html#a76b8fc2d233cff0925b0fa3fc47e61d8" title="Returns the position of this connector endpoint." alt="" coords="417,35,580,61"/>
+<area shape="rect" id="node5" href="$classAvoid_1_1ShapeConnectionPin.html#a8dc56d20fdd481de3ffc0a11f54ae373" title="Constructs a ShapeConnectionPin at a specified position on a parent shape." alt="" coords="409,86,589,127"/>
+</map>

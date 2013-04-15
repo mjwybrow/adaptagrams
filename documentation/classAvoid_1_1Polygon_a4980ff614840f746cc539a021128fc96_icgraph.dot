@@ -1,0 +1,11 @@
+digraph "Avoid::Polygon::at"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node1 [label="Avoid::Polygon::at",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled" fontcolor="black"];
+  Node1 -> Node2 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node2 [label="Avoid::Router::outputInstance\lToSVG",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Router.html#a458aae2d6447e0958e4916a8c29bbb47",tooltip="Generates an SVG file containing debug output and code that can be used to regenerate the instance..."];
+  Node1 -> Node3 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node3 [label="Avoid::ConnRef::splitAtSegment",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ConnRef.html#a372f58a93c0296814de8d4a3075ad5e4",tooltip="Splits a connector in the centre of the segmentNth segment and creates a junction point there as well..."];
+}

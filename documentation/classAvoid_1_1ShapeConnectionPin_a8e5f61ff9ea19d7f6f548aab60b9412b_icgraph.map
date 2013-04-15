@@ -1,0 +1,4 @@
+<map id="Avoid::ShapeConnectionPin::directions" name="Avoid::ShapeConnectionPin::directions">
+<area shape="rect" id="node2" href="$classAvoid_1_1ConnEnd.html#a62e361f05b7ef65f95162dc2c12d0e21" title="Returns the directions in which this connector endpoint should be given visibility." alt="" coords="240,5,411,32"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1ShapeConnectionPin.html#a8dc56d20fdd481de3ffc0a11f54ae373" title="Constructs a ShapeConnectionPin at a specified position on a parent shape." alt="" coords="235,57,415,98"/>
+</map>

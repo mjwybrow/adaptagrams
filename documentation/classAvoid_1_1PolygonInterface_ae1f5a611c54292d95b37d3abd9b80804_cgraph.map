@@ -1,0 +1,5 @@
+<map id="Avoid::PolygonInterface::boundingRectPolygon" name="Avoid::PolygonInterface::boundingRectPolygon">
+<area shape="rect" id="node2" href="$classAvoid_1_1PolygonInterface.html#af92b37a9eddfc22618faf49f74aa0df7" title="Returns the bounding rectangle that contains this polygon wtih optionally some buffer space around it..." alt="" coords="209,34,362,75"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1PolygonInterface.html#ac9ce0706613e5870e5e7136d147673f6" title="Returns the number of points in this polygon." alt="" coords="419,5,573,46"/>
+<area shape="rect" id="node4" href="$classAvoid_1_1PolygonInterface.html#ad85cc8c5e376b8b01ca37e9684b4de71" title="Returns a specific point in the polygon." alt="" coords="411,71,581,97"/>
+</map>

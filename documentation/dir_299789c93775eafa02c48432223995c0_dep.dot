@@ -1,0 +1,6 @@
+digraph "libcola" {
+  compound=true
+  node [ fontsize="10", fontname="Helvetica"];
+  edge [ labelfontsize="10", labelfontname="Helvetica"];
+  dir_299789c93775eafa02c48432223995c0 [shape=box, label="libcola", style="filled", fillcolor="#eeeeff", pencolor="black", URL="dir_299789c93775eafa02c48432223995c0.html"];
+}

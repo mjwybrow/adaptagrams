@@ -1,0 +1,13 @@
+digraph "Graphical Class Hierarchy"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node1 [label="Avoid::PolygonInterface",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1PolygonInterface.html",tooltip="A common interface used by the Polygon classes."];
+  Node1 -> Node2 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node2 [label="Avoid::Polygon",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Polygon.html",tooltip="A dynamic Polygon, to which points can be easily added and removed."];
+  Node2 -> Node3 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node3 [label="Avoid::Rectangle",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Rectangle.html",tooltip="A Rectangle, a simpler way to define the polygon for square or rectangular shapes."];
+  Node1 -> Node4 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node4 [label="Avoid::ReferencingPolygon",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ReferencingPolygon.html",tooltip="A Polygon which just references its points from other Polygons."];
+}

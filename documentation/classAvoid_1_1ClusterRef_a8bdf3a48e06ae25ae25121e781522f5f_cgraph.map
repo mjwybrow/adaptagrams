@@ -1,0 +1,6 @@
+<map id="Avoid::ClusterRef::setNewPoly" name="Avoid::ClusterRef::setNewPoly">
+<area shape="rect" id="node2" href="$classAvoid_1_1PolygonInterface.html#ae1f5a611c54292d95b37d3abd9b80804" title="Returns the bounding rectangle for this polygon." alt="" coords="179,27,333,69"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1PolygonInterface.html#af92b37a9eddfc22618faf49f74aa0df7" title="Returns the bounding rectangle that contains this polygon wtih optionally some buffer space around it..." alt="" coords="382,27,535,69"/>
+<area shape="rect" id="node4" href="$classAvoid_1_1PolygonInterface.html#ad85cc8c5e376b8b01ca37e9684b4de71" title="Returns a specific point in the polygon." alt="" coords="584,5,755,32"/>
+<area shape="rect" id="node5" href="$classAvoid_1_1PolygonInterface.html#ac9ce0706613e5870e5e7136d147673f6" title="Returns the number of points in this polygon." alt="" coords="593,57,746,98"/>
+</map>

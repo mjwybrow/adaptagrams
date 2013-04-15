@@ -1,0 +1,9 @@
+digraph "Avoid::ConnRef::ConnRef"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node1 [label="Avoid::ConnRef::ConnRef",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled" fontcolor="black"];
+  Node1 -> Node2 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node2 [label="Avoid::ConnRef::splitAtSegment",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ConnRef.html#a372f58a93c0296814de8d4a3075ad5e4",tooltip="Splits a connector in the centre of the segmentNth segment and creates a junction point there as well..."];
+}

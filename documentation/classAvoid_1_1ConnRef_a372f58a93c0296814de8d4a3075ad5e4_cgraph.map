@@ -1,0 +1,8 @@
+<map id="Avoid::ConnRef::splitAtSegment" name="Avoid::ConnRef::splitAtSegment">
+<area shape="rect" id="node2" href="$classAvoid_1_1Polygon.html#a4980ff614840f746cc539a021128fc96" title="Returns a specific point in the polygon." alt="" coords="300,56,423,83"/>
+<area shape="rect" id="node4" href="$classAvoid_1_1ConnRef.html#a2e08b9bb04ccf383700487932f13c980" title="Constructs a connector with no endpoints specified." alt="" coords="277,5,445,32"/>
+<area shape="rect" id="node6" href="$classAvoid_1_1ConnRef.html#afdf38806b8b56e43300646a7db58443a" title="Returns a pointer to the router scene this connector is in." alt="" coords="288,107,435,133"/>
+<area shape="rect" id="node7" href="$classAvoid_1_1ConnRef.html#a7b216c9aa42811f1f2786adbda84f02e" title="Sets just a new destination endpoint for this connector." alt="" coords="256,157,467,184"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1Polygon.html#a58c011bded47396fb1bbda2c1eeb9552" title="Returns the number of points in this polygon." alt="" coords="517,132,651,159"/>
+<area shape="rect" id="node5" href="$classAvoid_1_1Polygon.html#aae0e8e58b2f358ec3f203a5e6485c660" title="Resets this to the empty polygon." alt="" coords="515,5,653,32"/>
+</map>

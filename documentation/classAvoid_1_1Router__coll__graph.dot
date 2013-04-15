@@ -1,0 +1,6 @@
+digraph "Avoid::Router"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node1 [label="{Avoid::Router\n|+ m_obstacles\l+ connRefs\l+ clusterRefs\l+ visGraph\l+ invisGraph\l+ visOrthogGraph\l+ contains\l+ vertices\l+ enclosingClusters\l+ PartialTime\land 10 more...\l|+ Router()\l+ ~Router()\l+ setTransactionUse()\l+ transactionUse()\l+ processTransaction()\l+ deleteShape()\l+ moveShape()\l+ moveShape()\l+ deleteJunction()\l+ deleteConnector()\land 32 more...\l}",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled" fontcolor="black"];
+}

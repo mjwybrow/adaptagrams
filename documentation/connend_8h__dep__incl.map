@@ -1,0 +1,10 @@
+<map id="libavoid/connend.h" name="libavoid/connend.h">
+<area shape="rect" id="node2" href="$actioninfo_8h_source.html" title="libavoid/actioninfo.h" alt="" coords="1400,155,1531,181"/>
+<area shape="rect" id="node25" href="$connectionpin_8h.html" title="Contains the interface for the ShapeConnectionPin class." alt="" coords="703,80,857,107"/>
+<area shape="rect" id="node29" href="$connector_8h.html" title="Contains the interface for the ConnRef class." alt="" coords="1865,155,1996,181"/>
+<area shape="rect" id="node13" href="$libavoid_8h.html" title="Standard libavoid include file which includes all libavoid header files." alt="" coords="328,312,451,339"/>
+<area shape="rect" id="node4" href="$router_8h.html" title="Contains the interface for the Router class." alt="" coords="1680,229,1789,256"/>
+<area shape="rect" id="node26" href="$obstacle_8h.html" title="Contains the interface for the Obstacle class, the superclass for ShapeRef and JunctionRef." alt="" coords="1015,155,1141,181"/>
+<area shape="rect" id="node27" href="$shape_8h.html" title="Contains the interface for the ShapeRef class." alt="" coords="1021,229,1136,256"/>
+<area shape="rect" id="node28" href="$junction_8h.html" title="Contains the interface for the JunctionRef class." alt="" coords="1161,229,1281,256"/>
+</map>

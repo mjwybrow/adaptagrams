@@ -1,0 +1,9 @@
+digraph "Avoid::Router::moveJunction"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node1 [label="Avoid::Router::moveJunction",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled" fontcolor="black"];
+  Node1 -> Node2 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node2 [label="Avoid::Router::moveJunction",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Router.html#a94e5639b590902b5e734a1068fdc663c",tooltip="Move an existing junction within the router scene by a relative distance."];
+}

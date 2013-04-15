@@ -1,0 +1,13 @@
+<map id="libavoid/router.h" name="libavoid/router.h">
+<area shape="rect" id="node6" href="$dllexport_8h_source.html" title="libavoid/dllexport.h" alt="" coords="1271,379,1396,405"/>
+<area shape="rect" id="node7" href="$connector_8h.html" title="Contains the interface for the ConnRef class." alt="" coords="678,80,809,107"/>
+<area shape="rect" id="node9" href="$vertices_8h_source.html" title="libavoid/vertices.h" alt="" coords="842,155,963,181"/>
+<area shape="rect" id="node20" href="$graph_8h_source.html" title="libavoid/graph.h" alt="" coords="301,80,413,107"/>
+<area shape="rect" id="node21" href="$timer_8h_source.html" title="libavoid/timer.h" alt="" coords="5,80,109,107"/>
+<area shape="rect" id="node22" href="$hyperedge_8h.html" title="Contains the interface for the HyperedgeRerouter class." alt="" coords="1055,155,1193,181"/>
+<area shape="rect" id="node23" href="$actioninfo_8h_source.html" title="libavoid/actioninfo.h" alt="" coords="488,80,619,107"/>
+<area shape="rect" id="node16" href="$geometry_8h_source.html" title="libavoid/geometry.h" alt="" coords="501,229,632,256"/>
+<area shape="rect" id="node19" href="$connend_8h.html" title="Contains the interface for the ConnEnd class." alt="" coords="691,155,817,181"/>
+<area shape="rect" id="node14" href="$geomtypes_8h.html" title="Contains the interface for various geometry types and classes." alt="" coords="730,304,872,331"/>
+<area shape="rect" id="node17" href="$libavoid_2assertions_8h_source.html" title="libavoid/assertions.h" alt="" coords="453,304,589,331"/>
+</map>

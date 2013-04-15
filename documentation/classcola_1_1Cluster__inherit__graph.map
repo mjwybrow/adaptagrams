@@ -1,0 +1,5 @@
+<map id="cola::Cluster" name="cola::Cluster">
+<area shape="rect" id="node2" href="$classcola_1_1ConvexCluster.html" title="Defines a cluster that will be treated as a convex boundary around the child nodes and clusters..." alt="" coords="5,579,149,685"/>
+<area shape="rect" id="node3" href="$classcola_1_1RectangularCluster.html" title="Defines a rectangular cluster, either variable&#45;sized with floating sides or a fixed size based on a p..." alt="" coords="175,513,417,751"/>
+<area shape="rect" id="node4" href="$classcola_1_1RootCluster.html" title="Holds the cluster hierarchy specification for a diagram." alt="" coords="442,579,587,685"/>
+</map>

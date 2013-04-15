@@ -1,0 +1,6 @@
+digraph "cola::ConstrainedMajorizationLayout"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node1 [label="{cola::ConstrainedMajorization\lLayout\n||+ ConstrainedMajorizationLayout()\l+ setConstraints()\l+ setUnsatisfiableConstraintInfo()\l+ setStickyNodes()\l+ setScaling()\l+ setExternalSolver()\l+ setAvoidOverlaps()\l+ setNonOverlappingClusters()\l+ setStraightenEdges()\l+ moveBoundingBoxes()\land 6 more...\l}",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled" fontcolor="black"];
+}

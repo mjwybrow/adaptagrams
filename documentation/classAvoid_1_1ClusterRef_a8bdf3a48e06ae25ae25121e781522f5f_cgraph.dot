@@ -1,0 +1,15 @@
+digraph "Avoid::ClusterRef::setNewPoly"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node1 [label="Avoid::ClusterRef::\lsetNewPoly",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled" fontcolor="black"];
+  Node1 -> Node2 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node2 [label="Avoid::PolygonInterface\l::boundingRectPolygon",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1PolygonInterface.html#ae1f5a611c54292d95b37d3abd9b80804",tooltip="Returns the bounding rectangle for this polygon."];
+  Node2 -> Node3 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node3 [label="Avoid::PolygonInterface\l::offsetBoundingBox",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1PolygonInterface.html#af92b37a9eddfc22618faf49f74aa0df7",tooltip="Returns the bounding rectangle that contains this polygon wtih optionally some buffer space around it..."];
+  Node3 -> Node4 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node4 [label="Avoid::PolygonInterface::at",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1PolygonInterface.html#ad85cc8c5e376b8b01ca37e9684b4de71",tooltip="Returns a specific point in the polygon."];
+  Node3 -> Node5 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node5 [label="Avoid::PolygonInterface\l::size",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1PolygonInterface.html#ac9ce0706613e5870e5e7136d147673f6",tooltip="Returns the number of points in this polygon."];
+}

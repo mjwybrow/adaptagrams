@@ -1,0 +1,7 @@
+<map id="Avoid::ConnEnd::position" name="Avoid::ConnEnd::position">
+<area shape="rect" id="node2" href="$classAvoid_1_1ShapeConnectionPin.html#ad2b8489330ed961df41adad3e4a5f88d" title="Returns the position of this connection pin." alt="" coords="217,78,397,119"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1Polygon.html#a972b0d1e8116907610b4a52973b255f4" title="Returns true if this polygon is empty." alt="" coords="457,5,604,32"/>
+<area shape="rect" id="node4" href="$classAvoid_1_1ShapeRef.html#a7fc77a8dfd21e19d911266258253c429" title="Returns a reference to the polygon boundary of this shape." alt="" coords="445,56,616,83"/>
+<area shape="rect" id="node5" href="$classAvoid_1_1JunctionRef.html#afaceb9ae01d3283636b188160fb1409b" title="Returns the position of this junction." alt="" coords="468,107,593,149"/>
+<area shape="rect" id="node6" href="$classAvoid_1_1Polygon.html#a58c011bded47396fb1bbda2c1eeb9552" title="Returns the number of points in this polygon." alt="" coords="463,173,598,200"/>
+</map>
