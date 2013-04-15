@@ -78,7 +78,10 @@ Run `./autogen.sh` to compile from scratch.
 [km]: http://www.csse.monash.edu.au/~kmarriott/
 [mw]: http://www.csse.monash.edu.au/~mwybrow/
 [monash]: http://wwww.csse.monash.edu.au/
-[libavoid]: http://adaptagrams.sourceforge.net/libavoid/
+[libvpsc]: http://www.adaptagrams.org/libvpsc/
+[libavoid]: http://www.adaptagrams.org/libavoid/
+[libcola]: http://www.adaptagrams.org/libcola/
+[libtopology]: http://www.adaptagrams.org/libtopology/
 [dunnart]: http://www.dunnart.org/
 [inkscape]: http://www.inkscape.org/
 [graphviz]: http://www.graphviz.org/
