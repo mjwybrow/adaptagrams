@@ -18,24 +18,44 @@ applications, for example: drawing tools, automated document and diagram
 layout, smart presentation software, graph drawing, chart layout, etc.</p>
 
 <p>Currently, the <a
-href="https://github.com/mjwybrow/adaptagrams">Adaptagrams repository</a> includes:</p>
+href="https://github.com/mjwybrow/adaptagrams">Adaptagrams repository</a> includes several cross-platform C++ libraries:</p>
 <ul>
-<li><b>libvpsc</b> &mdash; a solver for the Variable Placement with Separation
+<li><b><a href="libvpsc/">libvpsc</a></b> &mdash; a solver for the Variable Placement with Separation
 Constraints problem.  This is a quadratic programming problem in which the
 squared differences between a placement vector and some ideal placement are
 minimised subject to a set of separation constraints.  This is very useful in a
 number of layout problems.  </li>
-<li><b>libcola</b> &mdash; a library for constraint graph layout.
+<li><b><a href="libcola/">libcola</a></b> &mdash; a library for constraint graph layout.
 Specifically, force-directed layout using the stress-majorization method
 subject to separation constraints.  Applications include layout with
 non-overlapping nodes and clusters, directed graph layout and layout preserving
 the crossing properties of a given starting layout.  </li>
-<li><b><a href="libavoid/">libavoid</a></b> &mdash; a cross-platform C++ library providing fast, polyline and orthogonal object-avoiding connector routing for 
-use in interactive diagram editors.</li>
+<li><b><a href="libavoid/">libavoid</a></b> &mdash; a library for object-avoiding polyline and orthogonal connector routing for use in interactive diagram editors.</li>
+<li><b><a href="libtopology/">libtopology</a></b> &mdash; extensions to other libraries to support topology-preserving layout.</li>
 </ul>
 
 <p>These libraries are collectively known as <code>cola</code> (for
-<b>Co</b>nstraint <b>La</b>yout).  You can find the C++ source code for
+<b>Co</b>nstraint <b>La</b>yout).</p>
+
+<p><a href="http://marvl.infotech.monash.edu.au/"><img src="MArVL-logo.png" style="border: 0px; width: 120px; margin-right: 15px; margin-bottom: 15px; float:left;" /></a>The Adaptagrams code is written and maintained by <a
+href="http://www.csse.monash.edu.au/~tdwyer/">Tim Dwyer</a> and <a
+href="http://www.csse.monash.edu.au/~mwybrow/">Michael Wybrow</a>, members of the <a href="http://marvl.infotech.monash.edu.au/">MArVL: Monash Adaptive Visualisation Lab</a> at Monash University.  A number of
+papers describing the algorithms used in these libraries are listed on the documentation pages and our websites (<a
+href="http://www.csse.monash.edu.au/~tdwyer/">here</a> and <a
+href="http://www.csse.monash.edu.au/~mwybrow/#publications">here</a>).</p>
+
+<h2 style="clear: left;">Documentation</h2>
+
+<p>Doxygen generated documentation for each of the libraries can be found here:
+</p>
+<li><a href="libvpsc/">libvpsc</a></li>
+<li><a href="libcola/">libcola</a></li>
+<li><a href="libavoid/">libavoid</a></li>
+<li><a href="libtopology/">libtopology</a></li>
+</ul>
+
+<h2 style="clear: left;">Source Code</h2>
+<p>You can find the C++ source code for
 <code>cola</code> in the git repository on github:</p>
 
 <p> <tt>
@@ -47,18 +67,14 @@ use in interactive diagram editors.</li>
 documentation by running doxygen in the cola directory.</p>
 
 <p> All code in the Adaptagrams repository is released as open source under the
-terms of the <a href="http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html">LGPL</a>.
-Software using the above libraries include: <a
+terms of the <a href="http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html">LGPL</a>.</p>
+
+<p>We also dual-license the Adaptagrams libraries and for a fee we can provide them under a less-restrictive commercial license as well as extend them to fit your needs (contact us). For this reason, if you contribute code to the project and would like it to appear in the main Adaptagrams repository, we require that you assign the copyright on your changes to Monash Univeristy with the following statement: &quot;I hereby assign copyright in this code to Monash University, to be licensed under the same terms as the rest of the code.&quot;</p>
+
+<p>Software using the above libraries include: <a
 href="http://www.inkscape.org">Inkscape</a>, <a
 href="http://www.graphviz.org">Graphviz</a> and <a
-href="http://www.csse.monash.edu.au/~mwybrow/dunnart">Dunnart</a>.  </p>
-
-<p><a href="http://marvl.infotech.monash.edu.au/"><img src="MArVL-logo.png" style="border: 0px; width: 120px; margin-right: 15px; margin-bottom: 15px; float:left;" /></a>The Adaptagrams code is written and maintained by <a
-href="http://www.csse.monash.edu.au/~tdwyer/">Tim Dwyer</a> and <a
-href="http://www.csse.monash.edu.au/~mwybrow/">Michael Wybrow</a>, members of the <a href="http://marvl.infotech.monash.edu.au/">MArVL: Monash Adaptive Visualisation Lab</a> at Monash University.  A number of
-papers describing the algorithms used in these libraries are listed <a
-href="http://www.csse.monash.edu.au/~tdwyer/">here</a> and <a
-href="http://www.csse.monash.edu.au/~mwybrow/#publications">here</a>.  </p>
+href="http://www.dunnart.org/">Dunnart</a>.</p>
 
 <h2 style="clear: left;">Examples</h2>
 
