@@ -175,10 +175,7 @@ class AVOID_EXPORT PolygonInterface
         //! the bounding rectangle for the shape's polygon.
         //!
         //! @param     offset  Extra distance to pad each side of the rect.
-        //! @param[out]  minX  The left hand side of the bounding box.
-        //! @param[out]  minY  The top of the bounding box.
-        //! @param[out]  maxX  The right hand side of the bounding box.
-        //! @param[out]  maxY  The bottom of the bounding box.
+        //! @return    The bounding box for the polygon.
         Box offsetBoundingBox(double offset) const;
 
         Polygon offsetPolygon(double offset) const;

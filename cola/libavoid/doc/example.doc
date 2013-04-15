@@ -1,7 +1,7 @@
 
 /*!
 
-@page example Documented libavoid code example
+@page libavoid_example libavoid &mdash; Documented code example
 
 libavoid is a C++ library.  Its code is all within the Avoid namespace.
 

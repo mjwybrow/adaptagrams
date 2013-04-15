@@ -9,16 +9,11 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
+ * See the file LICENSE.LGPL distributed with the library.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library in the file LICENSE; if not, 
- * write to the Free Software Foundation, Inc., 59 Temple Place, 
- * Suite 330, Boston, MA  02111-1307  USA
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
 */
 
@@ -33,7 +28,7 @@
 #include "libtopology/topology_log.h"
 using namespace std;
 namespace topology {
-/** 
+/* 
  * @return the maximum move we can make along the line from initial to
  * final positions without violating this constraint
  */
@@ -106,7 +101,7 @@ ostream& operator<< (ostream& os, const TriConstraint& c) {
        <<  " left=" << c.leftOf; 
     return os;
 }
-/**
+/*
  * The bend has become straight, remove bend
  */
 void BendConstraint::satisfy()
@@ -140,7 +135,7 @@ unsigned BendConstraint::getEdgeID() const {
     COLA_ASSERT(bendPoint->outSegment!=NULL);
     return bendPoint->inSegment->edge->id;
 }
-/**
+/*
  * functor that transfers each StraightConstraint associated with a segment
  * to be replaced, to either of the two new segments.
  * Choice is made depending on which of the segments the scan pos of the
@@ -149,7 +144,7 @@ unsigned BendConstraint::getEdgeID() const {
  * the choice is made based the side of the node associated with the constraint.
  */
 struct transferStraightConstraintChoose {
-    /**
+    /*
      * @param target1 the first of two possible target segments for the transfer
      * @param target2 the second of two possible target segments for the
      * transfer
@@ -181,7 +176,7 @@ struct transferStraightConstraintChoose {
             rMax = max1;
         }
     }
-    /**
+    /*
      * @param c constraint to transfer to target1 or target2
      */
     void operator() (StraightConstraint* c)
@@ -229,7 +224,7 @@ bool zagzig(const EdgePoint* a, const Segment* s) {
     }
     return false;
 }
-/**
+/*
  * Segment needs to bend
  */
 void StraightConstraint::satisfy() {
@@ -268,7 +263,7 @@ void StraightConstraint::satisfy() {
     e->nSegments++;
     delete segment;
 }
-/**
+/*
  * asserts that this TriConstraint is feasible at the initial positions of
  * variables.  Note that we don't apply this check for massive p because this
  * most likely indicates a segment that is near parallel to the scanline and
@@ -387,7 +382,7 @@ bool TopologyConstraints::solve() {
     FILE_LOG(logDEBUG)<<"TopologyConstraints::solve... done";
     return minT!=NULL;
 }
-/**
+/*
  * a Functor for use in a sum_over a collection of edges
  * which computes the total stress based on the difference in total
  * pathLength for each edge and idealLength.
@@ -407,7 +402,7 @@ struct ComputeStress {
         return s;
     }
 };
-/**
+/*
  * compute the stress:
  * \f[
  *   \sigma = \sum_{e \in E} \left( d_e - \sum_{s \in S(e)} |s| \right)^2

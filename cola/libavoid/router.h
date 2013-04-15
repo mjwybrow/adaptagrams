@@ -138,7 +138,6 @@ enum RoutingParameter
     //!        routing.  This controls how closely connectors pass shapes, and
     //!        can be used to prevent connectors overlapping with shape 
     //!        boundaries. By default, this distance is set to a value of 0.
-    //! @note  Currently used.
     shapeBufferDistance,
     //! @brief This parameter defines the spacing distance that will be used
     //!        for nudging apart overlapping corners and line segments of 
@@ -615,9 +614,13 @@ class AVOID_EXPORT Router {
         bool isInCrossingPenaltyReroutingStage(void) const;
         void markAllObstaclesAsMoved(void);
 
-        // Interface for libtopology to be able to set an addon to 
-        // provide additional topology improving layout using libavoid
-        // routing.
+        /** 
+         *  @brief  Set an addon for doing orthogonal topology improvement.
+         *
+         *  It is expected that you would use the topology::AvoidTopologyAddon() 
+         *  from libtopology rather than write your own.  This is done so that 
+         *  libavoid does not have to depend on libtopology.
+         */
         void setTopologyAddon(TopologyAddonInterface *topologyAddon);
         void improveOrthogonalTopology(void);
 

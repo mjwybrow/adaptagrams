@@ -10,29 +10,22 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
+ * See the file LICENSE.LGPL distributed with the library.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library in the file LICENSE; if not, 
- * write to the Free Software Foundation, Inc., 59 Temple Place, 
- * Suite 330, Boston, MA  02111-1307  USA
- *
+ * Author(s):  Tim Dwyer
+ *             Michael Wybrow
 */
 
-/**
- * \brief A block structure defined over the variables
+/*
+ * @brief A block structure defined over the variables
  *
  * A block structure defined over the variables such that each block contains
  * 1 or more variables, with the invariant that all constraints inside a block
  * are satisfied by keeping the variables fixed relative to one another
- *
- * Authors:
- *   Tim Dwyer <tgdwyer@gmail.com>
- *   Michael Wybrow <mjwybrow@users.sourceforge.net>
  */
 
 #include "libvpsc/blocks.h"
@@ -74,7 +67,7 @@ Blocks::~Blocks(void)
     m_blocks.clear();
 }
 
-/**
+/*
  * returns a list of variables with total ordering determined by the constraint 
  * DAG
  */
@@ -107,7 +100,7 @@ void Blocks::dfsVisit(Variable *v, list<Variable*> *order) {
 #endif
     order->push_front(v);
 }
-/**
+/*
  * Processes incoming constraints, most violated to least, merging with the
  * neighbouring (left) block until no more violated constraints are found
  */
@@ -142,7 +135,7 @@ void Blocks::mergeLeft(Block *r) {
     f<<"merged "<<*r<<endl;
 #endif
 }    
-/**
+/*
  * Symmetrical to mergeLeft
  */
 void Blocks::mergeRight(Block *l) {    
@@ -212,7 +205,7 @@ void Blocks::cleanup(void)
     }
     m_blocks.resize(i);
 }
-/**
+/*
  * Splits block b across constraint c into two new blocks, l and r (c's left
  * and right sides respectively)
  */
@@ -239,7 +232,7 @@ void Blocks::split(Block *b, Block *&l, Block *&r, Constraint *c) {
     COLA_ASSERT(__NOTNAN(l->posn));
     COLA_ASSERT(__NOTNAN(r->posn));
 }
-/**
+/*
  * returns the cost total squared distance of variables from their desired
  * positions
  */

@@ -10,26 +10,19 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
+ * See the file LICENSE.LGPL distributed with the library.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library in the file LICENSE; if not, 
- * write to the Free Software Foundation, Inc., 59 Temple Place, 
- * Suite 330, Boston, MA  02111-1307  USA
- *
+ * Author(s):  Tim Dwyer
 */
 
-/**
- * @file rectangle.cpp
+/*
  * @brief Functions to automatically generate constraints for the
  * rectangular node overlap removal problem.
  *
- * Authors:
- *   Tim Dwyer <tgdwyer@gmail.com>
  */
 
 #include <set>
@@ -231,12 +224,16 @@ int compare_events(const void *a, const void *b) {
     return 0;
 }
 
-/**
- * Prepares constraints in order to apply VPSC horizontally.  Assumes variables have already been created.
- * useNeighbourLists determines whether or not a heuristic is used to deciding whether to resolve
- * all overlap in the x pass, or leave some overlaps for the y pass.
+/*
+ * Prepares constraints in order to apply VPSC horizontally.  Assumes 
+ * variables have already been created.
+ * useNeighbourLists determines whether or not a heuristic is used to 
+ * deciding whether to resolve all overlap in the x pass, or leave some
+ * overlaps for the y pass.
  */
-void generateXConstraints(vector<Rectangle*> const & rs, vector<Variable*> const &vars, vector<Constraint*> &cs, const bool useNeighbourLists) {
+void generateXConstraints(const Rectangles& rs, const Variables& vars,
+        Constraints& cs, const bool useNeighbourLists)
+{
     const unsigned n = rs.size();
     COLA_ASSERT(vars.size()>=n);
     events=new Event*[2*n];
@@ -320,10 +317,13 @@ void generateXConstraints(vector<Rectangle*> const & rs, vector<Variable*> const
     delete [] events;
 }
 
-/**
- * Prepares constraints in order to apply VPSC vertically to remove ALL overlap.
+/*
+ * Prepares constraints in order to apply VPSC vertically to remove ALL
+ * overlap.
  */
-void generateYConstraints(const Rectangles& rs, const Variables& vars, Constraints& cs) {
+void generateYConstraints(const Rectangles& rs, const Variables& vars,
+        Constraints& cs)
+{
     const unsigned n = rs.size();
     COLA_ASSERT(vars.size()>=n);
     events=new Event*[2*n];
@@ -554,6 +554,7 @@ void Rectangle::routeAround(double x1, double y1, double x2, double y2,
     xs.push_back(x2);
     ys.push_back(y2);
 }
+
 /* 
  * moves all the rectangles to remove all overlaps.  Heuristic
  * attempts to move by as little as possible.
@@ -565,7 +566,7 @@ void removeoverlaps(Rectangles& rs) {
     removeoverlaps(rs,fixed);
 }
 #define ISNOTNAN(d) (d)==(d)
-/** 
+/*
  * Moves rectangles to remove all overlaps.  A heuristic
  * attempts to move by as little as possible.  The heuristic is
  * that the overlaps are removed horizontally and then vertically,
@@ -743,13 +744,3 @@ void RectangleIntersections::nearest(double x, double y, double &xi, double &yi)
 }
 
 }
-/*
-  Local Variables:
-  mode:c++
-  c-file-style:"stroustrup"
-  c-file-offsets:((innamespace . 0)(inline-open . 0))
-  indent-tabs-mode:nil
-  fill-column:99
-  End:
-*/
-// vim: filetype=cpp:cindent:expandtab:shiftwidth=4:tabstop=4:softtabstop=4 :

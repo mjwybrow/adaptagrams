@@ -10,26 +10,14 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
+ * See the file LICENSE.LGPL distributed with the library.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library in the file LICENSE; if not, 
- * write to the Free Software Foundation, Inc., 59 Temple Place, 
- * Suite 330, Boston, MA  02111-1307  USA
- *
+ * Author(s):  Tim Dwyer
 */
-
-/**
- * \file Solve an instance of the "Variable Placement with Separation
- * Constraints" problem.
- *
- * Authors:
- *   Tim Dwyer <tgdwyer@gmail.com>
- */
 
 #include <cmath>
 #include <sstream>
@@ -57,14 +45,20 @@ namespace vpsc {
 static const double ZERO_UPPERBOUND=-1e-10;
 static const double LAGRANGIAN_TOLERANCE=-1e-4;
 
-IncSolver::IncSolver(vector<Variable*> const &vs, vector<Constraint *> const &cs) 
-    : Solver(vs,cs) {
+IncSolver::IncSolver(Variables const &vs, Constraints const &cs) 
+    : Solver(vs,cs)
+{
     inactive=cs;
     for(Constraints::iterator i=inactive.begin();i!=inactive.end();++i) {
         (*i)->active=false;
     }
 }
-Solver::Solver(vector<Variable*> const &vs, vector<Constraint*> const &cs) : m(cs.size()), cs(cs), n(vs.size()), vs(vs) {
+Solver::Solver(Variables const &vs, Constraints const &cs) 
+    : m(cs.size()), 
+      cs(cs),
+      n(vs.size()),
+      vs(vs) 
+{
     for(unsigned i=0;i<n;++i) {
         vs[i]->in.clear();
         vs[i]->out.clear();

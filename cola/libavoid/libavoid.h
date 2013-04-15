@@ -26,9 +26,13 @@
 //! @brief Standard libavoid include file which includes all libavoid 
 //!        header files.
 
-//! @namespace Avoid
-//! @brief The namespace used by code in the libavoid library.
-
+/**
+ * @namespace Avoid
+ * @brief libavoid: Object-avoiding orthogonal and polyline connector 
+ *        routing library.
+ *
+ * You should use libavoid via an instance of the Router class.
+ */
 #ifndef AVOID_LIBAVOID_H
 #define AVOID_LIBAVOID_H
 

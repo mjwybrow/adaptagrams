@@ -7,14 +7,14 @@ layout, smart presentation software, graph drawing, chart layout, etc.
 
 Currently, the Adaptagrams repository includes:
 
- *  libvpsc  
+ *  [libvpsc][libvpsc]  
               - a solver for the Variable Placement with Separation 
 		Constraints problem. This is a quadratic programming 
 		problem in which the squared differences between a 
 		placement vector and some ideal placement are minimised 
 		subject to a set of separation constraints. This is very 
 		useful in a number of layout problems.
- *  libcola  
+ *  [libcola][libcola] 
     	      - a library for constraint graph layout.  Specifically, 
     		force-directed layout using the stress-majorization 
 		method subject to separation constraints. Applications 
@@ -26,22 +26,28 @@ Currently, the Adaptagrams repository includes:
     	      - a cross-platform C++ library providing fast, polyline and
     		orthogonal object-avoiding connector routing for use in 
 		interactive diagram editors.  
- *  libtopology  
+ *  [libtopology][libtopology]  
               - a library containing extensions to libcola to support 
 		topology preserving constraint-based layout.  
 	      - libtopology depends on libavoid, libcola and libvpsc.
 
 These libraries are collectively known as cola (for Constraint Layout). The
 newest version of the C++ source code for cola can be found in the 
-Adaptagrams github repository:
+Adaptagrams github repository maintaied by [Michael Wybrow][mw]:
 
  *  [https://github.com/mjwybrow/adaptagrams/][repo]
-
-The Adaptagrams code is maintained by [Michael Wybrow][mw].
 
 All code in the Adaptagrams repository is released as open source under the
 terms of the LGPL 2.1 or later, see the LICENSE file. 
 
+We also dual-license the Adaptagrams libraries and for a fee we can provide
+them under a less-restrictive commercial license as well as extend them to fit
+your needs (contact us).  For this reason, if you contribute code to the
+project and would like it to appear in the main Adaptagrams repository, we
+require that you assign the copyright on your changes to Monash Univeristy with
+the following statement: "I hereby assign copyright in this code to Monash
+University, to be licensed under the same terms as the rest of the code."
+ 
 Software using one or more of the Adaptagrams libraries include: 
 
  *  [Dunnart][dunnart], constraint-based diagram editor,
@@ -62,10 +68,8 @@ The library code is all contained in the `cola` directory of the repository.
 We use GNU `automake` to build.  We've tried to make the contents of the
 repository as platform agnostic as possible, so you'll need to call `aclocal`,
 `autoconf`, and `automake` before `configure`.
- 
-A somewhat transient dependency (depending on whether `libcola/output_svg.cpp` 
-is included in the build) is [Cairo][cairo].  It's only used by a few examples 
-so you can easily build the core libraries without it.
+
+The only dependency is [Cairo][cairo] if debugging SVG output is to be included in several example test cases.  The libraries themselves have no dependencies.
 
 Run `./autogen.sh` to compile from scratch.
 

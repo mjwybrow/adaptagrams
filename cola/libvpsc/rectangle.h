@@ -10,22 +10,17 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
+ * See the file LICENSE.LGPL distributed with the library.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library in the file LICENSE; if not, 
- * write to the Free Software Foundation, Inc., 59 Temple Place, 
- * Suite 330, Boston, MA  02111-1307  USA
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  * Author(s):  Tim Dwyer
 */
 
-/**
- * \brief Functions to automatically generate constraints for the
+/*
+ * Functions to automatically generate constraints for the
  * rectangular node overlap removal problem.
  *
  */
@@ -41,13 +36,21 @@
 #include "libvpsc/assertions.h"
 
 namespace vpsc {
-enum Dim { 
+
+//! @brief Indicates the x- or y-dimension.
+enum Dim {
+    //! The x-dimension (0).
     HORIZONTAL = 0,
+    //! The x-dimension (0).
     XDIM = 0,
+    //! The y-dimension (1).
     VERTICAL = 1,
+    //! The y-dimension (1).
     YDIM = 1,
+    // The dimension is not set.
     UNSET = 2
 };
+
 inline Dim conjugate(Dim d) {
 	return static_cast<Dim>(!d);
 }
@@ -67,17 +70,25 @@ struct RectangleIntersections {
     // specified point
     void nearest(double x, double y, double & xi, double & yi);
 };
+
+/**
+ * @brief  A rectangle represents a fixed-size shape in the diagram that may
+ *         be moved to prevent overlaps and satisfy constraints.
+ */
 class Rectangle {   
 public:
     /**
-     * @param x minimum horizontal value
-     * @param X maximum horizontal value
-     * @param y minimum vertical value
-     * @param Y maximum vertical value
-     * @param allowOverlap not used currently
+     * @brief Constructs a rectangle by specifying the positions of all 
+     *        four sides.
+     *
+     * @param[in] x  Minimum horizontal value.
+     * @param[in] X  Maximum horizontal value.
+     * @param[in] y  Minimum vertical value.
+     * @param[in] Y  Maximum vertical value.
+     * @param[in] allowOverlap not used currently.
      */
     Rectangle(double x, double X, double y, double Y,
-            bool allowOverlap=false);
+            bool allowOverlap = false);
     Rectangle(Rectangle const &Other)
         :  minX(Other.minX)
         ,  maxX(Other.maxX)
@@ -87,7 +98,7 @@ public:
     Rectangle();
     bool isValid(void) const;
     Rectangle unionWith(const Rectangle& rhs) const;
-    /**
+    /*
      * reset the dimensions in one axis
      * @param d axis (0==X, 1==Y)
      * @param x min value
@@ -98,14 +109,14 @@ public:
     double getMaxY() const { return maxY+yBorder; }
     double getMinX() const { return minX-xBorder; }
     double getMinY() const { return minY-yBorder; }
-    /**
+    /*
      * @param d axis: 0=horizontal 1=vertical
      */
     double getMinD(unsigned const d) const {
         COLA_ASSERT(d==0||d==1);
         return ( d == 0 ? getMinX() : getMinY() );
     }
-    /**
+    /*
      * @param d axis: 0=horizontal 1=vertical
      */
     double getMaxD(unsigned const d) const {
@@ -118,7 +129,7 @@ public:
     { if ( d == 0) { maxX = val; } else { maxY = val; } }
     double getCentreX() const { return getMinX()+width()/2.0; }
     double getCentreY() const { return getMinY()+height()/2.0; }
-    /**
+    /*
      * @param d axis: 0=horizontal 1=vertical
      */
     double getCentreD(unsigned const d) const {
@@ -127,7 +138,7 @@ public:
     }
     double width() const { return getMaxX()-getMinX(); }
     double height() const { return getMaxY()-getMinY(); }
-    /**
+    /*
      * @param d axis: 0=width 1=height
      * @return width or height
      */
@@ -213,7 +224,7 @@ public:
     // path round the outside of the rectangle from p1 to p2 into xs, ys.
     void routeAround(double x1, double y1, double x2, double y2,
             std::vector<double> &xs, std::vector<double> &ys);
-    /**
+    /*
      * xBorder and yBorder can be set to add a border to the boundary of the
      * rectangle.  In other words, the size of the rectangle returned by the
      * getters (getMinX, getMaxX, etc) will be slightly larger than the
@@ -231,37 +242,52 @@ private:
     bool overlap;
 };
 
+//! @brief A vector of pointers to Rectangle objects.
 typedef std::vector<Rectangle*> Rectangles;
+
 std::ostream& operator<<(std::ostream& os, vpsc::Rectangle const &r);
 
 class Variable;
+typedef std::vector<Variable *> Variables;
 class Constraint;
+typedef std::vector<Constraint *> Constraints;
 
-void generateXConstraints(const Rectangles& rs, std::vector<Variable*> const & vars, std::vector<Constraint*> & cs, const bool useNeighbourLists);
-void generateYConstraints(std::vector<Rectangle*> const & rs, std::vector<Variable*> const & vars, std::vector<Constraint*> & cs);
+void generateXConstraints(const Rectangles& rs, const Variables& vars,
+        Constraints& cs, const bool useNeighbourLists);
+void generateYConstraints(const Rectangles& rs, const Variables& vars,
+        Constraints& cs);
 
-/** 
- * Moves all the rectangles to remove all overlaps.  Heuristic
- * attempts to move by as little as possible.
- * no overlaps guaranteed.
- * @param rs the rectangles which will be moved to remove overlap
+/**
+ * @brief Uses VPSC to remove overlaps between rectangles.
+ *
+ * Moves rectangles to remove all overlaps.  Heuristic attempts to move 
+ * shapes by as little as possible.
+ *
+ * @param[in,out] rs  The rectangles which will be moved to remove overlap
  */
 void removeoverlaps(Rectangles& rs);
+
 /** 
- * Moves rectangles to remove all overlaps.  A heuristic
- * attempts to move by as little as possible.  The heuristic is
- * that the overlaps are removed horizontally and then vertically,
- * each pass being a quadratic program in which the total squared movement
- * is minimised subject to non-overlap constraints.  An optional third
- * horizontal pass (in addition to the first horizontal pass and the second
- * vertical pass) can be applied wherein the x-positions of rectangles are reset to their
- * original positions and overlap removal repeated.  This may avoid some
- * unnecessary movement. 
- * @param rs the rectangles which will be moved to remove overlap
- * @param fixed a set of indices to rectangles which should not be moved
- * @param thirdPass optionally run the third horizontal pass described above.
+ * @brief Uses VPSC to remove overlaps between rectangles, excluding some 
+ *        that should not be moved.
+ *
+ * Moves rectangles to remove all overlaps.  A heuristic attempts to move 
+ * shapes by as little as possible.  The heuristic is that the overlaps 
+ * are removed horizontally and then vertically, each pass being a 
+ * quadratic program in which the total squared movement is minimised 
+ * subject to non-overlap constraints.  
+ *
+ * An optional third horizontal pass (in addition to the first horizontal
+ * pass and the second vertical pass) can be applied wherein the 
+ * x-positions of rectangles are reset to their original positions and 
+ * overlap removal repeated.  This may avoid some unnecessary movement. 
+ *
+ * @param[in,out] rs    The rectangles which will be moved to remove overlap
+ * @param[in] fixed     A set of indices to rectangles which should not be moved.
+ * @param[in] thirdPass Optionally run the third horizontal pass described above.
  */
-void removeoverlaps(Rectangles& rs, const std::set<unsigned>& fixed, bool thirdPass=true);
+void removeoverlaps(Rectangles& rs, const std::set<unsigned>& fixed, 
+        bool thirdPass = true);
 
 // Useful for assertions:
 bool noRectangleOverlaps(const Rectangles& rs);
@@ -273,6 +299,4 @@ struct delete_object
 };
 
 } // namespace vpsc
-
 #endif // VPSC_RECTANGLE_H
-// vim: cindent ts=4 sw=4 et tw=0 wm=0

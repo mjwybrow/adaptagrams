@@ -19,8 +19,8 @@ layout, smart presentation software, graph drawing, chart layout, etc.
 
 These libraries are collectively known as cola (for Constraint Layout). 
 The newest version of the C++ source code for cola can be found in the 
-Adaptagrams subversion repository:
-    https://adaptagrams.svn.sourceforge.net/svnroot/adaptagrams/trunk/cola
+git repository on github:
+    https://github.com/mjwybrow/adaptagrams
 
 All code in the Adaptagrams repository is released as open source under 
 the terms of the LGPL, see the LICENSE file.  This library is distributed
@@ -28,12 +28,19 @@ in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
 even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
 PURPOSE.  
 
-Copyright (C) 2004-2010  Monash University
-Copyright (C) 2004-2008  Michael Wybrow
+We also dual-license the Adaptagrams libraries and for a fee we can provide
+them under a less-restrictive commercial license as well as extend them to fit
+your needs (contact us).  For this reason, if you contribute code to the
+project and would like it to appear in the main Adaptagrams repository, we
+require that you assign the copyright on your changes to Monash Univeristy with
+the following statement: "I hereby assign copyright in this code to Monash
+University, to be licensed under the same terms as the rest of the code."
+
+Copyright (C) 2004-2013  Monash University
 
 The Adaptagrams code is written by:
-    Michael Wybrow  <mjwybrow@users.sourceforge.net>  and
-    Tim Dwyer  <tgdwyer@users.sourceforge.net>
+    Michael Wybrow  <Michael.Wybrow@monash.edu>  and
+    Tim Dwyer  <Tim.Dwyer@monash.edu>
 
 --------------------------------------------------------------------------
 

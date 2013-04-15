@@ -9,25 +9,18 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
+ * See the file LICENSE.LGPL distributed with the library.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library in the file LICENSE; if not, 
- * write to the Free Software Foundation, Inc., 59 Temple Place, 
- * Suite 330, Boston, MA  02111-1307  USA
+ * Author(s):  Tim Dwyer
  *
 */
 
-/**
+/*
  * Method body and support routines for topology::TopologyConstraints::computeForces.
- *
- * \file compute_forces.cpp
- * \author Tim Dwyer
- * \date Dec 2007
  */
 #include <valarray>
 
@@ -38,7 +31,7 @@
 using std::valarray;
 
 namespace topology {
-/**
+/*
  * @param u an EdgePoint
  * @param v another EdgePoint
  * @param dx x distance between u and v
@@ -224,7 +217,7 @@ static double hRule8(vpsc::Dim dim, const EdgePoint* u, const EdgePoint* v,
     COLA_ASSERT(lbc!=0);
     return (dxuv/luv - dxvw/lvw) * (dxab/lab - dxbc/lbc);
 }
-/**
+/*
  * a wrapper for a SparseMap so that we can index it by two EdgePoint
  */
 struct SparseMapMap {
@@ -234,7 +227,7 @@ struct SparseMapMap {
         return H(i->node->id,j->node->id);
     }
 };
-/**
+/*
  * a wrapper for a valarray so that we can index it by an EdgePoint
  */
 template <typename T>
@@ -245,7 +238,7 @@ struct ArrayMap {
         return a[i->node->id];
     }
 };
-/**
+/*
  * Compute the forces associated with each EdgePoint (bend or end point) along each each
  * on the nodes/rectangles in the graph.
  */

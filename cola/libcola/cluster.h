@@ -10,16 +10,11 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
+ * See the file LICENSE.LGPL distributed with the library.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library in the file LICENSE; if not, 
- * write to the Free Software Foundation, Inc., 59 Temple Place, 
- * Suite 330, Boston, MA  02111-1307  USA
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  * Author(s):  Tim Dwyer
  *             Michael Wybrow
@@ -37,8 +32,14 @@
 namespace cola {
 
 
-// A cluster defines a hierarchical partitioning over the nodes
-// which should be kept disjoint by the layout somehow
+/**
+ * @brief  A cluster defines a hierarchical partitioning over the nodes
+ *         which should be kept disjoint by the layout somehow.
+ *
+ * You should not use this directly.  This is an abstract base class.  
+ * At the top level you should be using RootCluster, and then below that 
+ * either RectangualarCLuster or ConvexCluster.
+ */
 class Cluster
 {
     public:
@@ -46,6 +47,20 @@ class Cluster
         virtual ~Cluster();
         virtual void computeBoundary(const vpsc::Rectangles& rs) = 0;
         virtual void computeBoundingRect(const vpsc::Rectangles& rs);
+
+        /**
+         * @brief Mark a rectangle as being a child of this cluster.
+         *
+         * @param[in] index  The index of the Rectangle in the rectangles vector.
+         */
+        void addChildNode(unsigned index);
+        /**
+         * @brief Mark a cluster as being a sub-cluster of this cluster.
+         *
+         * @param[in] cluster  The Cluster to be marked as a sub-cluster.
+         */
+        void addChildCluster(Cluster *cluster);
+        
         vpsc::Rectangle bounds;
         void setDesiredBounds(const vpsc::Rectangle bounds);
         void unsetDesiredBounds();
@@ -55,17 +70,14 @@ class Cluster
         virtual void printCreationCode(FILE *fp) const = 0;
         vpsc::Variable *vXMin, *vXMax, *vYMin, *vYMax;
         virtual bool containsShape(unsigned index) const;
-        void addChildNode(unsigned index);
-        void addChildCluster(Cluster *cluster);
         virtual bool clusterIsFromFixedRectangle(void) const;
-        /**
-         * @return the total area covered by contents of this cluster (not
-         * including space between nodes/clusters)
-         */
+        
+        // Returns the total area covered by contents of this cluster
+        // (not including space between nodes/clusters).
         double area(const vpsc::Rectangles& rs);
-        /**
-         * sets bounds based on the finalPositions of vMin and vMax.
-         */
+        
+        // Sets bounds based on the finalPositions of vMin and vMax.
+        //
         void updateBounds(const vpsc::Dim dim);
         
         // This will be the id of the left/bottom boundary, 
@@ -87,10 +99,18 @@ class Cluster
         vpsc::Rectangle desiredBounds;
 
         vpsc::Variable *vMin, *vMax;
-        double length;
 };
 typedef std::vector<Cluster*> Clusters;
 
+/**
+ * @brief Holds the cluster hierarchy specification for a diagram.
+ *
+ * This is not considered a cluster itself, but it records all the nodes in 
+ * the diagram not contained within any clusters, as well as optionally a 
+ * hierarchy of clusters.
+ *
+ * You can add clusters via addChildCluster() and nodes via addChildNode().
+ */
 class RootCluster : public Cluster 
 {
     public:
@@ -104,21 +124,32 @@ class RootCluster : public Cluster
         virtual void printCreationCode(FILE *fp) const;
 };
 
+/**
+ * @brief  Defines a rectangular cluster, either variable-sized with floating 
+ *         sides or a fixed size based on a particular rectangle.
+ *
+ * The chosen constructor decides the type and behaviour of the cluster.
+ */
 class RectangularCluster : public Cluster
 {
     public:
-        
-        //! @brief  A rectangular cluster with floating sides that contains
-        //!         its children.
+        /**
+         * @brief  A rectangular cluster of variable size that contains
+         *         its children.
+         */
         RectangularCluster();
-        
-        //! @brief  A fixed size rectangular cluster based on a particular 
-        //!         rectangle.  This rectangle might be constrained in the 
-        //!         other ways like other rectangles.
-        //!
-        //! @param[in]  rectIndex  The index of the rectangle that this cluster
-        //!                        represents.
+        /**
+         * @brief  A fixed size rectangular cluster based on a particular 
+         *         rectangle.
+         *
+         * This rectangle might be constrained in the other ways like normal 
+         * rectangles.
+         *
+         * @param[in]  rectIndex  The index of the rectangle that this cluster
+         *                        represents.
+         */
         RectangularCluster(unsigned rectIndex);
+
         virtual ~RectangularCluster();
         void computeBoundary(const vpsc::Rectangles& rs);
         virtual bool containsShape(unsigned index) const;
@@ -171,6 +202,10 @@ class RectangularCluster : public Cluster
         int m_rectangle_index;
 };
 
+/**
+ * @brief  Defines a cluster that will be treated as a convex boundary around
+ *         the child nodes and clusters.
+ */
 class ConvexCluster : public Cluster
 {
     public:
@@ -183,6 +218,4 @@ class ConvexCluster : public Cluster
 
 
 } // namespace cola
-
 #endif // COLA_CLUSTER_H
-// vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=8:softtabstop=4:textwidth=99 :

@@ -1,29 +1,34 @@
 /*!
 
-@mainpage Object-avoiding orthogonal and polyline connector routing library
+\if LIBAVOID_DOC
+@mainpage libavoid: Object-avoiding orthogonal and polyline connector routing library
+\endif
 
-@section info_sec libavoid Information
+\if ADAPTAGRAMS_DOC
+@page libavoid libavoid &mdash; Overview
+\endif
 
 libavoid is a cross-platform C++ library providing fast, object-avoiding 
 orthogonal and polyline connector routing for use in interactive diagram 
 editors.
 
 libavoid is part of the 
-<a href="http://adaptagrams.sourceforge.net/">Adaptagrams project</a>. 
+<a href="http://www.adaptagrams.org/">Adaptagrams project</a>. 
 There are no official releases yet, though the code is stable and 
 available from the Adaptagrams 
-<a href="http://sourceforge.net/scm/?type=svn&group_id=154331">SVN 
+<a href="https://github.com/mjwybrow/adaptagrams">github 
 repository</a>.
-The API is documented using Doxygen, thus this documentation can be 
-obtained by running doxygen in the libavoid directory. There is also 
-a simple <a href="example.html">documented example</a>.
+
+The API is documented using Doxygen.  The documentation you are currently 
+reading can be obtained by running doxygen in the cola or libavoid directory. 
+There is also 
+a simple <a href="libavoid_example.html">documented example</a> to help you get started.
 
 libavoid is written and maintained by 
 <a href="http://www.csse.monash.edu.au/~mwybrow/">Michael Wybrow</a>,
-a member of the Adaptive Diagrams and Documents lab at Monash 
-University, Australia.
+a member of <a href="http://marvl.infotech.monash.edu.au/">MArVL: the Monash Adaptive Visualisation Lab</a> at Monash University, Australia.
 
-The algorithms used for the connector routing are described in:
+The algorithms used for the connector routing are described in the following papers.  If you use libavoid, please cite the relevant paper.
 -  M. Wybrow, K. Marriott, and P.J. Stuckey. Orthogonal connector 
    routing.\n
    In Proceedings of 17th International Symposium on Graph Drawing 
@@ -38,6 +43,11 @@ The algorithms used for the connector routing are described in:
    LNCS 3843, pages 446—457. Springer-Verlag, 2006. 
    [<a href="http://dx.doi.org/10.1007/11618058_40">DOI</a>]
    [<a href="http://www.csse.monash.edu.au/~mwybrow/papers/wybrow-gd-2005.pdf">PDF</a>]
+-  M. Wybrow, K. Marriott and P.J. Stuckey.  Orthogonal hyperedge routing.\n
+   In Proceedings of 7th International Conference on the Theory and Application of Diagrams (Diagrams 2012),\n 
+   LNCS (LNAI) 7352, pages 51&ndash;64. Springer-Verlag, 2012.
+   [<a href="http://dx.doi.org/10.1007/978-3-642-31223-6_10">DOI</a>]
+   [<a href="http://www.csse.monash.edu.au/~mwybrow/papers/wybrow-diagrams-2012.pdf">PDF</a>]
 
 libavoid is currently used in the following software:
 -  A commercial circuit diagram editor,
@@ -46,8 +56,9 @@ libavoid is currently used in the following software:
 -  <a href="http://www.inkscape.org/">Inkscape</a>, the popular Open 
    Source vector graphics editor,
 -  <a href="http://arcadiapathways.sourceforge.net/">Arcadia</a>, a 
-   visualisation tool for metabolic pathways, and
--  <a href="http://gaphor.sourceforge.net/">Gaphas</a>, an open source diagramming widget for GTK+, written in Python.
+   visualisation tool for metabolic pathways,
+-  <a href="http://gaphor.sourceforge.net/">Gaphas</a>, an open source diagramming widget for GTK+, written in Python, and
+-  <a href="http://brlcad.org/">BRL-CAD</a>, Constructive Solid Geometry (CSG) solid modeling system.
 
 */
 

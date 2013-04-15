@@ -1,0 +1,35 @@
+/*!
+
+\if LIBTOPOLOGY_DOC
+@mainpage libtopology: Extensions to support Topology-preserving Layout
+\endif
+\if ADAPTAGRAMS_DOC
+@page libtopology libtopology &mdash; Overview
+\endif
+
+libtopology is a cross-platform C++ library providing extensions to the libcola and libavoid libraries to support topology-preserving layout.
+
+libtopology is part of the 
+<a href="http://www.adaptagrams.org/">Adaptagrams project</a>. 
+There are no official releases yet, though the code is stable and 
+available from the Adaptagrams 
+<a href="https://github.com/mjwybrow/adaptagrams">github 
+repository</a>.
+
+The API is documented using Doxygen.  The documentation you are currently 
+reading can be obtained by running doxygen in the cola directory. 
+
+libcola is written and maintained by 
+<a href="http://www.csse.monash.edu.au/~mwybrow/">Michael Wybrow</a> and
+<a href="http://www.csse.monash.edu.au/~tdwyer/">Tim Dwyer</a>,
+members of <a href="http://marvl.infotech.monash.edu.au/">MArVL: the Monash Adaptive Visualisation Lab</a> at Monash University, Australia.
+
+The algorithms used for Topology Preservation are described in the following papers.  If you use libtopology, please cite the relevant paper.
+-  Tim Dwyer, Kim Marriott, and Michael Wybrow. Topology preserving
+   constrained graph layout. In Proc. 16th Intl. Symp. Graph Drawing
+   (GD'08), volume 5417 of Lecture Notes in Computer Science, pages
+   230-241. Springer, 2009.
+
+*/
+
+

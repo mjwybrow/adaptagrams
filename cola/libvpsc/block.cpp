@@ -10,26 +10,20 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
+ * See the file LICENSE.LGPL distributed with the library.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library in the file LICENSE; if not, 
- * write to the Free Software Foundation, Inc., 59 Temple Place, 
- * Suite 330, Boston, MA  02111-1307  USA
- *
+ * Author(s):  Tim Dwyer
 */
 
-/**
- * \brief A block is a group of variables that must be moved together to improve
+/*
+ * @brief A block is a group of variables that must be moved together to improve
  * the goal function without violating already active constraints.
  * The variables in a block are spanned by a tree of active constraints.
  *
- * Authors:
- *   Tim Dwyer <tgdwyer@gmail.com>
  */
 
 #include "libvpsc/block.h"
@@ -162,7 +156,7 @@ Block* Block::merge(Block* b, Constraint* c) {
 #endif
     return mergeBlock;
 }
-/**
+/*
  * Merges b into this block across c.  Can be either a
  * right merge or a left merge
  * @param b block to merge into this
@@ -485,7 +479,7 @@ void Block::list_active(Variable* const v, Variable* const u) {
         }
     }
 }
-/**
+/*
  * finds the constraint with the minimum lagrange multiplier, that is, the constraint
  * that most wants to split
  */
@@ -536,7 +530,7 @@ void Block::populateSplitBlock(Block *b, Variable* v, Variable const* u) {
             populateSplitBlock(b, (*c)->right, v);
     }
 }
-/**
+/*
  * Returns the active path between variables u and v... not back tracking over w
  */
 bool Block::getActivePathBetween(Constraints& path, Variable const* u,
@@ -587,7 +581,7 @@ bool Block::getActiveDirectedPathBetween(
     }
     return false;
 }
-/**
+/*
  * Block needs to be split because of a violated constraint between vl and vr.
  * We need to search the active constraint tree between l and r and find the constraint
  * with min lagrangrian multiplier and split at that point.
@@ -610,7 +604,7 @@ Constraint* Block::splitBetween(Variable* const vl, Variable* const vr,
     return c;
 }
 
-/**
+/*
  * Creates two new blocks, l and r, and splits this block across constraint c,
  * placing the left subtree of constraints (and associated variables) into l
  * and the right into r.
@@ -625,7 +619,7 @@ void Block::split(Block* &l, Block* &r, Constraint* c) {
     //COLA_ASSERT(r->weight>0);
 }
 
-/**
+/*
  * Computes the cost (squared euclidean distance from desired positions) of the
  * current positions for variables in this block
  */

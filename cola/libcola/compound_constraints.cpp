@@ -10,17 +10,14 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
+ * See the file LICENSE.LGPL distributed with the library.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library in the file LICENSE; if not, 
- * write to the Free Software Foundation, Inc., 59 Temple Place, 
- * Suite 330, Boston, MA  02111-1307  USA
- *
+ * Author(s):  Tim Dwyer
+ *             Michael Wybrow
 */
 
 #include <algorithm>
@@ -112,7 +109,7 @@ void BoundaryConstraint::generateVariables(const vpsc::Dim dim,
 
 void BoundaryConstraint::generateSeparationConstraints(const vpsc::Dim dim,
         vpsc::Variables& vars, vpsc::Constraints& cs,
-        std::vector<vpsc::Rectangle*>& bbs) 
+        vpsc::Rectangles& bbs) 
 {
     COLA_UNUSED(bbs);
     if (dim == _primaryDim)
@@ -246,7 +243,7 @@ void AlignmentConstraint::generateVariables(const vpsc::Dim dim,
 
 void AlignmentConstraint::generateSeparationConstraints(const vpsc::Dim dim,
         vpsc::Variables& vars, vpsc::Constraints& cs,
-        std::vector<vpsc::Rectangle*>& bbs) 
+        vpsc::Rectangles& bbs) 
 {
     COLA_UNUSED(bbs);
     if (dim == _primaryDim)
@@ -468,7 +465,7 @@ SeparationConstraint::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
 
 void SeparationConstraint::generateSeparationConstraints(const vpsc::Dim dim,
             vpsc::Variables& vs, vpsc::Constraints& cs,
-            std::vector<vpsc::Rectangle*>& bbs) 
+            vpsc::Rectangles& bbs) 
 {
     COLA_UNUSED(bbs);
     if (dim == _primaryDim)
@@ -560,7 +557,7 @@ OrthogonalEdgeConstraint::getCurrSubConstraintAlternatives(
 
 void OrthogonalEdgeConstraint::generateSeparationConstraints(
         const vpsc::Dim dim, vpsc::Variables& vs, vpsc::Constraints& cs,
-        std::vector<vpsc::Rectangle*>& bbs) 
+        vpsc::Rectangles& bbs) 
 {
     COLA_UNUSED(bbs);
     if (dim == _primaryDim)
@@ -738,7 +735,7 @@ void MultiSeparationConstraint::setSeparation(double sep)
 
 void MultiSeparationConstraint::generateSeparationConstraints(
         const vpsc::Dim dim, vpsc::Variables& vs, vpsc::Constraints& gcs,
-        std::vector<vpsc::Rectangle*>& bbs) 
+        vpsc::Rectangles& bbs) 
 {
     COLA_UNUSED(vs);
     COLA_UNUSED(bbs);
@@ -845,7 +842,7 @@ DistributionConstraint::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
 
 void DistributionConstraint::generateSeparationConstraints(
         const vpsc::Dim dim, vpsc::Variables& vars, vpsc::Constraints& gcs,
-        std::vector<vpsc::Rectangle*>& bbs)
+        vpsc::Rectangles& bbs)
 {
     COLA_UNUSED(vars);
     COLA_UNUSED(bbs);
@@ -1003,7 +1000,7 @@ FixedRelativeConstraint::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
 
 void FixedRelativeConstraint::generateSeparationConstraints(
         const vpsc::Dim dim, vpsc::Variables& vars, vpsc::Constraints& gcs,
-        std::vector<vpsc::Rectangle*>& bbs)
+        vpsc::Rectangles& bbs)
 {
     COLA_UNUSED(vars);
     COLA_UNUSED(bbs);
@@ -1151,7 +1148,7 @@ void PageBoundaryConstraints::generateVariables(const vpsc::Dim dim,
 
 void PageBoundaryConstraints::generateSeparationConstraints(
         const vpsc::Dim dim, vpsc::Variables& vs, vpsc::Constraints& cs,
-        std::vector<vpsc::Rectangle*>& bbs) 
+        vpsc::Rectangles& bbs) 
 {
     COLA_UNUSED(bbs);
     // For each of the "real" variables, create a constraint that puts 
@@ -1202,7 +1199,7 @@ struct GenerateVariables
 struct GenerateSeparationConstraints 
 {
     GenerateSeparationConstraints(const vpsc::Dim dim, vpsc::Variables& vars, 
-            vpsc::Constraints& cs, std::vector<vpsc::Rectangle*>& bbs) 
+            vpsc::Constraints& cs, vpsc::Rectangles& bbs) 
         : dim(dim),
           vars(vars), 
           cs(cs),
@@ -1216,7 +1213,7 @@ struct GenerateSeparationConstraints
     const vpsc::Dim dim;
     vpsc::Variables& vars;
     vpsc::Constraints& cs;
-    std::vector<vpsc::Rectangle*>& bbs;
+    vpsc::Rectangles& bbs;
 };
 
 
@@ -1432,6 +1429,4 @@ void VariableIDMap::clear(void)
 
 
 } // namespace cola
-
-// vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4 :
 

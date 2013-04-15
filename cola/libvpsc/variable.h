@@ -10,24 +10,15 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
+ * See the file LICENSE.LGPL distributed with the library.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library in the file LICENSE; if not, 
- * write to the Free Software Foundation, Inc., 59 Temple Place, 
- * Suite 330, Boston, MA  02111-1307  USA
- *
+ * Author(s):  Tim Dwyer
 */
 
-/**
- *
- * Authors:
- *   Tim Dwyer <tgdwyer@gmail.com>
- */
 #ifndef VPSC_VARIABLE_H
 #define VPSC_VARIABLE_H
 
@@ -39,6 +30,15 @@ namespace vpsc {
 
 class Constraint;
 typedef std::vector<Constraint*> Constraints;
+
+/**
+ * @brief A variable is comprised of an ideal position, final position and 
+ *        a weight.
+ *
+ * When creating a variable you specify an ideal value, and a weight---how 
+ * much the variable wants to be at its ideal position.  After solving the 
+ * problem you can read back the final position for the variable.
+*/
 class Variable
 {
 	friend std::ostream& operator <<(std::ostream &os, const Variable &v);
@@ -80,6 +80,9 @@ private:
 		return (block->ps.scale*block->posn+offset)/scale;
 	}
 };
+
+//! @brief A vector of pointers to Variable objects.
 typedef std::vector<Variable*> Variables;
+
 }
 #endif // VPSC_VARIABLE_H

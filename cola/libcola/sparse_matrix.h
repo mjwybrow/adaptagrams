@@ -10,20 +10,16 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
+ * See the file LICENSE.LGPL distributed with the library.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library in the file LICENSE; if not, 
- * write to the Free Software Foundation, Inc., 59 Temple Place, 
- * Suite 330, Boston, MA  02111-1307  USA
- *
+ * Author(s):  Tim Dwyer
 */
 
-/**
+/*
  * Yale Sparse Matrix implementation (from Wikipedia definition).
  * It stores an initial sparse n×n matrix M in row form using three arrays, A,
  * IA, JA. NZ denotes the number of nonzero entries in matrix M. The array A
@@ -32,10 +28,6 @@
  * The length of row i is determined by IA(i+1) - IA(i). Therefore IA needs to
  * be of length N + 1. In array JA, the column index of the element A(j) is
  * stored. JA is of length NZ.
- *
- * \file sparse_matrix.h
- * \author Tim Dwyer
- * \date 2007
  */
 #ifndef _SPARSE_MATRIX_H
 #define _SPARSE_MATRIX_H
@@ -79,7 +71,7 @@ struct SparseMap {
         lookup.clear();
     }
 };
-/**
+/*
  * Yale Sparse Matrix implementation (from Wikipedia definition).
  * It stores an initial sparse n×n matrix M in row form using three arrays, A,
  * IA, JA. NZ denotes the number of nonzero entries in matrix M. The array A
@@ -146,4 +138,3 @@ private:
 };
 } //namespace cola
 #endif /* _SPARSE_MATRIX_H */
-// vim: filetype=cpp:expandtab:shiftwidth=4:tabstop=4:softtabstop=4 :

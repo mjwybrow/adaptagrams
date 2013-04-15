@@ -9,29 +9,21 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
+ * See the file LICENSE.LGPL distributed with the library.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library in the file LICENSE; if not, 
- * write to the Free Software Foundation, Inc., 59 Temple Place, 
- * Suite 330, Boston, MA  02111-1307  USA
- *
+ * Author(s):  Tim Dwyer
 */
 
-/**
+/*
  * Classes used in generating and managing topology constraints, i.e.
  * constraints of the form (e.g.) \f$w_x + \frac{1}{2}\mathrm{width}(w) \le u_x
  * + (v_x - u_x) \frac {(w_y-u_y)}{(v_y-u_y)}\f$ where (u,v) is an edge segment
  * and w is a node constrained to lie to the left of that segment.  Right-,
  * above- and below-of constraints are similarly defined.
- *
- * \file topology_constraints.h
- * \author Tim Dwyer
- * \date 2007
  */
 #ifndef TOPOLOGY_CONSTRAINTS_H
 #define TOPOLOGY_CONSTRAINTS_H
@@ -51,14 +43,14 @@ namespace cola {
     struct SparseMap;
     class RootCluster;
 }
-/**
+/*
  * namespace for classes used in generating and solving forces and constraints 
  * associated with topology preserving layout.
  */
 namespace topology {
     class StraightConstraint;
     class Edge;
-    /**
+    /*
      * A constraint between three variables \f$u,v,w\f$ where \f$w\f$ is
      * required to be to one side of the line between \f$u,v\f$.  That is, e.g.
      * if we require \f$w\f$ to be some minimum distance \f$g\f$ to the left of
@@ -67,11 +59,11 @@ namespace topology {
      */
     class TriConstraint {
     public:
-        /// A TriConstraint is associated with the positions of 3 nodes
+        // A TriConstraint is associated with the positions of 3 nodes
         const Node *u, *v, *w;
-        /// p is the parameter for the constraint line, g is the offset constant
+        // p is the parameter for the constraint line, g is the offset constant
         double p, g;
-        /** 
+        /* 
          * determines direction of inequality, w to the left of uv or to the
          * right
          */
@@ -79,20 +71,20 @@ namespace topology {
         vpsc::Dim scanDim;
         TriConstraint(vpsc::Dim dim, const Node *u,  const Node *v, const Node *w,
                 double p, double g, bool left);
-        /** 
+        /* 
          * @return the maximum move we can make along the line from initial to
          * desired positions without violating this constraint
          */
         double maxSafeAlpha() const;
-        /**
+        /*
          * amount of slack at current positions of variables
          */
         double slackAtInitial() const;
-        /**
+        /*
          * amount of slack at desired positions of variables
          */
         double slackAtFinal() const;
-        /**
+        /*
          * checks initial positions
          */
         bool assertFeasible() const;
@@ -103,7 +95,7 @@ namespace topology {
     public:
         TriConstraint* c;
         vpsc::Dim scanDim;
-        /**
+        /*
          * depending on the type of constraint (i.e. whether it is a constraint
          * between a segment and a node or between two segments) we either
          * split the segment (creating a new bend EdgePoint) or merge 
@@ -116,7 +108,7 @@ namespace topology {
         virtual ~TopologyConstraint() {
             delete c;
         }
-        /** 
+        /* 
          * checks the underlying TriConstraint to ensure that it is feasible
          * at the initial positions of its constituent variables.  Note that
          * these initial positions must be up-to-date before hand.
@@ -125,14 +117,14 @@ namespace topology {
     protected:
         TopologyConstraint(vpsc::Dim dim) : c(NULL), scanDim(dim) { }
     };
-    /**
+    /*
      * A constraint around a bend point that becomes active when the bend
      * goes straight
      */
     class BendConstraint : public TopologyConstraint {
     public:
         EdgePoint* bendPoint;
-        /**
+        /*
          * create a constraint between the two segments joined by this
          * EdgePoint such that the constraint is activated when the segments
          * are aligned.
@@ -143,7 +135,7 @@ namespace topology {
         std::string toString() const;
         unsigned getEdgeID() const;
     };
-    /**
+    /*
      * A constraint between a Node and a Segment that is activated when
      * the Node wants to move through the Segment to create a bend point
      */
@@ -153,7 +145,7 @@ namespace topology {
         Node* node;
         EdgePoint::RectIntersect ri;
         const double pos;
-        /** 
+        /* 
          * create a constraint between a segment and one corner of a node such
          * that the constraint is activated when the segment needs to be bent
          * (divided into two new segments)
@@ -174,14 +166,14 @@ namespace topology {
             return segment->edge->id;
         }
     };
-    /**
+    /*
      * Define a topology over a diagram by generating a set of
      * TopologyConstraint
      */
     class TopologyConstraints {
     public:
         const size_t n;
-        /**
+        /*
          * @param dim HORIZONTAL or VERTICAL
          * @param nodes topology nodes
          * @param edges topology edges
@@ -214,7 +206,7 @@ namespace topology {
         vpsc::Constraints& cs;
         vpsc::Dim dim;
     };
-    /**
+    /*
      * The following just copies variables in ns into vs.  May be useful
      * in calling the TopologyConstraints constructor if you're not interested
      * in constructing your own list of variables in advance.
@@ -222,7 +214,7 @@ namespace topology {
      * @param vs target list (we expect this to be 0 and resize to ns.size())
      */
     void getVariables(Nodes& ns, vpsc::Variables& vs);
-    /**
+    /*
      * Details new dimensions for a given rectangle.
      */
     struct ResizeInfo {
@@ -240,7 +232,7 @@ namespace topology {
             cola::RootCluster *clusters, ResizeMap& resizes,
             vpsc::Variables& xvs, vpsc::Constraints& xcs, 
             vpsc::Variables& yvs, vpsc::Constraints& ycs);
-    /**
+    /*
      * compute the p-stress over a set of edge paths:
      * \f[
      *   \sigma = \sum_{e \in E} \left( d_e - \sum_{s \in S(e)} |s| \right)^2

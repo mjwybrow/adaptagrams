@@ -10,29 +10,23 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
+ * See the file LICENSE.LGPL distributed with the library.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library in the file LICENSE; if not, 
- * write to the Free Software Foundation, Inc., 59 Temple Place, 
- * Suite 330, Boston, MA  02111-1307  USA
- *
+ * Author(s):  Tim Dwyer
+ *             Michael Wybrow
 */
 
-/**
- * \brief A block structure defined over the variables
+/*
+ * @brief A block structure defined over the variables
  *
  * A block structure defined over the variables such that each block contains
  * 1 or more variables, with the invariant that all constraints inside a block
  * are satisfied by keeping the variables fixed relative to one another
  *
- * Authors:
- *   Tim Dwyer <tgdwyer@gmail.com>
- *   Michael Wybrow <mjwybrow@users.sourceforge.net>
  */
 
 #ifndef VPSC_BLOCKS_H
@@ -52,7 +46,7 @@ namespace vpsc {
 class Block;
 class Variable;
 class Constraint;
-/**
+/*
  * A block structure defined over the variables such that each block contains
  * 1 or more variables, with the invariant that all constraints inside a block
  * are satisfied by keeping the variables fixed relative to one another

@@ -7,37 +7,28 @@
  * Copyright (C) 2005  Mark Allen Weiss
  * Copyright (C) 2005-2008  Monash University
  *
+ * ----------------------------------------------------------------------------
+ * Pairing heap datastructure implementation:
+ * Based on example code in "Data structures and Algorithm Analysis in C++"
+ * by Mark Allen Weiss, used and released under the LGPL by permission
+ * of the author.
+ * No promises about correctness.  Use at your own risk!
+ * ----------------------------------------------------------------------------
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
+ * See the file LICENSE.LGPL distributed with the library.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library in the file LICENSE; if not, 
- * write to the Free Software Foundation, Inc., 59 Temple Place, 
- * Suite 330, Boston, MA  02111-1307  USA
- *
+ * Author(s):  Mark Allen Weiss
+ *             Tim Dwyer
 */
 
-/**
- * \brief Pairing heap datastructure implementation
- *
- * Based on example code in "Data structures and Algorithm Analysis in C++"
- * by Mark Allen Weiss, used and released under the LGPL by permission
- * of the author.
- *
- * No promises about correctness.  Use at your own risk!
- *
- * Authors:
- *   Mark Allen Weiss
- *   Tim Dwyer <tgdwyer@gmail.com>
- *
- */
 #ifndef VPSC_PAIRING_HEAP_H
 #define VPSC_PAIRING_HEAP_H
 

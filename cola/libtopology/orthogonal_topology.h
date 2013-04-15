@@ -9,16 +9,11 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
+ * See the file LICENSE.LGPL distributed with the library.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library in the file LICENSE; if not, 
- * write to the Free Software Foundation, Inc., 59 Temple Place, 
- * Suite 330, Boston, MA  02111-1307  USA
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  * Author: Michael Wybrow
 */
@@ -31,13 +26,46 @@
 
 namespace topology {
 
-
+/** 
+ *  @brief  This class can be passed to libavoid to extend it to provide
+ *          orthogonal topology improvement functionality.
+ *
+ *  You should instantiate this class with libcola information about 
+ *  constraints on objects in the diagram and pass it to 
+ *  Avoid::Router::setTopologyAddon().
+ */
 class AvoidTopologyAddon : public Avoid::TopologyAddonInterface
 {
     public:
+        /**
+         * @brief Constructs a AvoidTopologyAddon instance for a set of COLA
+         *        diagram constraints.
+         *
+         * Passing libavoid an instance of this class with given libcola 
+         * rectangles, constraints and cluster hierarchy will cause libavoid
+         * to perform a post-processing step after routing where it will 
+         * move nodes to unify unnecessary kinks where this doesn't violate 
+         * constraints on the diagram.
+         *
+         * This information is usually available from an existing libcola
+         * instance.
+         *
+         * @param[in] rs   A vector of vpsc::Rectangle objects subject to the
+         *                 constraints.
+         * @param[in] cs   A set of cola::CompoundConstraint objects to apply
+         *                 to rs.
+         * @param[in] ch   A cola::RootCluster cluster hierarchy specification.
+         * @param[in] map  A cola::VariableIDMap specifying a mapping between
+         *                 the Rectangle indexes in rs and the libavoid ShapeRef
+         *                 IDs.
+         * @param[in] moveLimit  The maximum length of a centre S-bend 
+         *                       connector segments to attempt to improve
+         *                       (default 120.0).
+         */
         AvoidTopologyAddon(vpsc::Rectangles& rs, cola::CompoundConstraints& cs, 
                 cola::RootCluster *ch, cola::VariableIDMap& map,
                 const double moveLimit = 120);
+
         ~AvoidTopologyAddon();
         Avoid::TopologyAddonInterface *clone(void) const;
 

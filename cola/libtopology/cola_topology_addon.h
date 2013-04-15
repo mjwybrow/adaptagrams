@@ -9,16 +9,11 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
+ * See the file LICENSE.LGPL distributed with the library.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library in the file LICENSE; if not, 
- * write to the Free Software Foundation, Inc., 59 Temple Place, 
- * Suite 330, Boston, MA  02111-1307  USA
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  * Author: Michael Wybrow
 */
@@ -31,6 +26,11 @@
 #include "libcola/cola.h"
 #include "libtopology/topology_graph.h"
 
+/**
+ * @namespace topology
+ * @brief libtopology: Extensions for topology preservation for libcola 
+ *        and libavoid libraries.
+*/
 namespace topology {
 
 
@@ -44,9 +44,35 @@ namespace topology {
 class ColaTopologyAddon : public cola::TopologyAddonInterface
 {
     public:
+        /**
+         * @brief Constructs an empty ColaTopologyAddon instance for 
+         *        collecting topology information.
+         *
+         * Passing libcola an empty instance of this class will cause libcola
+         * to populate it with current topology information for nodes and 
+         * edges when cola::ConstrainedFDLayout::makeFeasible() is run.  This
+         * information is then available in the #topologyNodes and 
+         * #topologyRoutes member variables.
+         */
         ColaTopologyAddon();
-        ColaTopologyAddon(std::vector<topology::Node*>& tnodes, 
-                std::vector<topology::Edge*>& routes);
+        /**
+         * @brief Constructs a ColaTopologyAddon instance with a specified
+         *        set of topology information.
+         *
+         * Passing libcola an instance of this class with given topology 
+         * information will cause libcola to generate topology preserving
+         * constraints to prevent nodes from crossing edges, and for the 
+         * topology of the network to be preserved during layout.
+         *
+         * This topology information is usually not constructed from scratch
+         * but rather extracted from an empty ColaTopologyAddon instance
+         * after COLA has determined a feasible layout for it.
+         *
+         * @param[in] tnodes  Topology information for nodes.
+         * @param[in] routes  Topology information for edges.
+         */
+        ColaTopologyAddon(topology::Nodes& tnodes, topology::Edges& routes);
+
         cola::TopologyAddonInterface *clone(void) const;
 
         void handleResizes(const cola::Resizes& resizeList, unsigned n,
@@ -70,10 +96,10 @@ class ColaTopologyAddon : public cola::TopologyAddonInterface
                 cola::DesiredPositionsInDim& des, double oldStress);
     
         //! Topology information: node positions and sizes.
-        std::vector<topology::Node*> topologyNodes;
+        topology::Nodes topologyNodes;
         
-        //! Topology Information: edges routes.
-        std::vector<topology::Edge*> topologyRoutes;
+        //! Topology information: edges routes.
+        topology::Edges topologyRoutes;
 };
 
 }

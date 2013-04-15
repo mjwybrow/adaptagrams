@@ -9,16 +9,11 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
+ * See the file LICENSE.LGPL distributed with the library.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library in the file LICENSE; if not, 
- * write to the Free Software Foundation, Inc., 59 Temple Place, 
- * Suite 330, Boston, MA  02111-1307  USA
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  * Author(s):  Tim Dwyer
 */
@@ -44,7 +39,7 @@ void feach(Container& c, Op op) {
 }
 
 
-/**
+/*
  * Functor that creates a copy of the specified Node and creates a
  * new Rectangle and a Variable associated with the node.
  * If the node appears in the resizes lookup the rectangle is reduced
@@ -80,7 +75,7 @@ struct TransformNode {
     const ResizeMap& resizes;
     Variables& vs;
 };
-/**
+/*
  * Functor which, for the specified Resizeinfo, creates a centre and
  * right dummy node and associated variables.
  */
@@ -126,7 +121,7 @@ struct CreateLeftRightDummyNodes
     Nodes& nodes;
     Variables& vs;
 };
-/**
+/*
  * Functor to reassign EdgePoint Node pointers.  
  * If the Node associated with an EdgePoint is resizing, the EdgePoint Node
  * pointer is reassigned to either the lhs, rhs or centre dummy Node.
@@ -285,7 +280,7 @@ static bool checkFinal(vpsc::Dim dim, const Nodes& nodes,
 }
 #endif
 #endif
-/**
+/*
  * Applies the required resizes to nodes in the specified axis, rerouting edges
  * around the resized nodes.
  * @param dim axis
@@ -352,7 +347,7 @@ static void resizeAxis(vpsc::Dim dim, const Rectangles& targets,
     // clean up
     feach(tn,DeleteTempNode());
 }
-/**
+/*
  * Functor that for a given node, if that node is in the resizes lookup,
  * will create a copy of the target rectangle and adds the node id to
  * the fixed list.
@@ -377,7 +372,7 @@ struct CreateTargetRect {
     ResizeMap& resizes;
     set<unsigned>& fixed;
 };
-/**
+/*
  * Find an overlap free arrangement of resized rectangles and reroute
  * edges around them without changing topology.
  * @param nodes topology node definitions to be resized

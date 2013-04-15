@@ -9,16 +9,11 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
+ * See the file LICENSE.LGPL distributed with the library.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library in the file LICENSE; if not, 
- * write to the Free Software Foundation, Inc., 59 Temple Place, 
- * Suite 330, Boston, MA  02111-1307  USA
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
 */
 
@@ -172,7 +167,7 @@ double EdgePoint::offset(vpsc::Dim dim) const
         }
         return o;
     }
-    /**
+    /*
      * @return true if the EdgePoint is the end of an edge.
      * Note that cluster boundary edges are cycles, and therefore have no
      * ends.
@@ -329,7 +324,7 @@ void Segment::deleteStraightConstraints() {
     forEachStraightConstraint(delete_object());
     straightConstraints.clear();
 }
-/**
+/*
  * clean up topologyConstraints
  */
 Segment::~Segment() {
@@ -413,7 +408,7 @@ struct buildPath {
     }
     ConstEdgePoints& vs;
 };
-/**
+/*
  * Get a list of all the EdgePoints along the Edge path.  Note that for
  * cycles the start/end point will be at the start and end of the list,
  * i.e. it will appear in the list twice.

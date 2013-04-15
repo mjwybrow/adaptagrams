@@ -1,0 +1,36 @@
+/*!
+
+\if LIBVPSC_DOC
+@mainpage libvpsc: Variable Placement with Separation Constraints solver
+\endif
+\if ADAPTAGRAMS_DOC
+@page libvpsc libvpsc &mdash; Overview
+\endif
+
+
+libvpsc is a cross-platform C++ library for solving for the Variable Placement with Separation Constraints problem. This is a quadratic programming problem in which the squared differences between a placement vector and some ideal placement are minimised subject to a set of separation constraints. This is very useful in a number of layout problems.
+
+libvpsc is part of the 
+<a href="http://www.adaptagrams.org/">Adaptagrams project</a>. 
+There are no official releases yet, though the code is stable and 
+available from the Adaptagrams 
+<a href="https://github.com/mjwybrow/adaptagrams">github 
+repository</a>.
+
+The API is documented using Doxygen.  The documentation you are currently 
+reading can be obtained by running doxygen in the cola directory. 
+
+libcola is written and maintained by 
+<a href="http://www.csse.monash.edu.au/~mwybrow/">Michael Wybrow</a> and
+<a href="http://www.csse.monash.edu.au/~tdwyer/">Tim Dwyer</a>,
+members of <a href="http://marvl.infotech.monash.edu.au/">MArVL: the Monash Adaptive Visualisation Lab</a> at Monash University, Australia.
+
+The algorithms used for VPSC are described in the following papers.  If you use libcola, please cite the relevant paper.
+-  Tim Dwyer, Kim Marriott, and Peter J. Stuckey. Fast node overlap removal.\n
+   In Proceedings 13th International Symposium on Graph Drawing (GD '05),\n
+   volume 3843 of LNCS, pages 153-164. Springer, 2006.
+
+
+*/
+
+

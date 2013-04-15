@@ -10,27 +10,14 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
+ * See the file LICENSE.LGPL distributed with the library.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library in the file LICENSE; if not, 
- * write to the Free Software Foundation, Inc., 59 Temple Place, 
- * Suite 330, Boston, MA  02111-1307  USA
- *
+ * Author(s):  Tim Dwyer
 */
-
-/**
- * @file 
- * @brief Solve an instance of the "Variable Placement with Separation
- * Constraints" problem.
- *
- * Authors:
- *   Tim Dwyer <tgdwyer@gmail.com>
- */
 
 //
 // TODO: Really, we should have three classes: VPSC, IncrementalVPSC and
@@ -45,32 +32,46 @@
 #include <vector>
 
 /**
- * the vpsc namespace delineates the libvpsc Variable Placement with
- * Separation Constraints quadratic program solver library.
+ * @namespace vpsc
+ * @brief libvpsc: Variable Placement with Separation Constraints
+ *        quadratic program solver library.
+ *
+ * You should use VPSC via an instance of the IncSolver or Solver classes.
  */
 namespace vpsc {
 class Variable;
+typedef std::vector<Variable*> Variables;
 class Constraint;
 class Blocks;
 typedef std::vector<Constraint*> Constraints;
 
 /**
- * Variable Placement with Separation Constraints problem instance
+ * @brief Static solver for Variable Placement with Separation Constraints 
+ *        problem instance
+ *
+ * This class attempts to solve a least-squares problem subject to a set 
+ * of sepation constraints.  The solve() and satisfy() methods return true 
+ * if any constraints are active, in both cases false means an unconstrained 
+ * optimum has been found.
+ *
+ * @sa IncSolver
  */
 class Solver {
 public:
-	// the following two methods both attempt to solve a least-squares
-	// problem subject to a set of sepation constraints.  They return
-	// true if any constraints are active, in both cases false means
-	// an unconstrained optimum has been found.
-	// satisfy returns an approximate solution subject to the constraints
+	//! @brief  Results in an approximate solution subject to the constraints.
+    //! @return true if any constraints are active, or false if an unconstrained 
+    //!         optimum has been found.
 	virtual bool satisfy();
-	// solve returns an optimum solution subject to the constraints
+	//! @brief  Results in an optimum solution subject to the constraints
+    //! @return true if any constraints are active, or false if an unconstrained 
+    //!         optimum has been found.
 	virtual bool solve();
 
-	Solver(std::vector<Variable*> const &vs, std::vector<Constraint *> const &cs);
+	Solver(Variables const &vs, Constraints const &cs);
 	virtual ~Solver();
-	std::vector<Variable*> const & getVariables() { return vs; }
+    //! @brief   Returns the Variables in this problem instance.
+    //! @returns A vector of Variable objects.
+    Variables const & getVariables() { return vs; }
 protected:
 	Blocks *bs;
 	unsigned m;
@@ -85,18 +86,38 @@ private:
 	bool blockGraphIsCyclic();
 };
 
+/**
+ * @brief Incremental solver for Variable Placement with Separation Constraints 
+ *        problem instance
+ *
+ * This class attempts to solve a least-squares problem subject to a set 
+ * of sepation constraints.  The solve() and satisfy() methods return true 
+ * if any constraints are active, in both cases false means an unconstrained 
+ * optimum has been found.  This is an incremental version of that allows 
+ * refinement after blocks are moved.  This version is preferred if you are 
+ * using VPSC in an interactive context.
+ *
+ * @sa Solver
+ */
 class IncSolver : public Solver {
 public:
-	unsigned splitCnt;
+	IncSolver(Variables const &vs, Constraints const &cs);
+	//! @brief  Results in an approximate solution subject to the constraints.
+    //! @return true if any constraints are active, or false if an unconstrained 
 	bool satisfy();
+	//! @brief  Results in an optimum solution subject to the constraints
+    //! @return true if any constraints are active, or false if an unconstrained 
+    //!         optimum has been found.
 	bool solve();
+private:
 	void moveBlocks();
 	void splitBlocks();
-	IncSolver(std::vector<Variable*> const &vs, std::vector<Constraint*> const &cs);
-private:
+
+	unsigned splitCnt;
 	Constraints inactive;
 	Constraints violated;
 	Constraint* mostViolated(Constraints &l);
 };
+
 }
 #endif // VPSC_SOLVE_VPSC_H

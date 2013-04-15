@@ -9,22 +9,17 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
+ * See the file LICENSE.LGPL distributed with the library.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library in the file LICENSE; if not, 
- * write to the Free Software Foundation, Inc., 59 Temple Place, 
- * Suite 330, Boston, MA  02111-1307  USA
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  * Author(s):  Tim Dwyer
  *             Michael Wybrow
 */
 
-/**
+/*
  * Everything in here is related to creating a topology_constraints instance.
  * The main complexity here is the definition of structures representing events
  * in a plane scan algorithm for generating topology constraints between
@@ -50,26 +45,26 @@ struct NodeOpen;
 typedef list<SegmentOpen*> OpenSegments;
 typedef map<double,NodeOpen*> OpenNodes;
 
-/**
+/*
  * The scan algorithm works by processing events in the order they 
  * are encountered by the scan line.
  */
 struct Event {
-    /// an event is either an opening or closing of some object
+    // an event is either an opening or closing of some object
     bool open;
-    /// the position of the scan line at which the event is triggered
+    // the position of the scan line at which the event is triggered
     double pos;
     vpsc::Dim scanDim;
     Event(bool open, double pos) : open(open), pos(pos), scanDim(vpsc::UNSET) {}
     virtual ~Event() {};
-    /**
+    /*
      * process is called for each event in pos order as part of the scan
      * algorithm to generate topology constraints.
      */
     virtual void process(OpenNodes& openNodes, OpenSegments& openSegments) = 0;
     virtual string toString() = 0;
 };
-/**
+/*
  * There is a NodeEvent for the top and bottom (or left and right sides depending on
  * scan direction) of the rectangle associated with each node
  */
@@ -80,14 +75,14 @@ struct NodeEvent : Event {
     {
     }
     ~NodeEvent(){}
-    /**
+    /*
      * Topology constraints are generated for the opening and closing 
      * edges of each node and every open segment at pos.
      */
     void createStraightConstraints(OpenSegments& openSegments,
             const Node *leftNeighbour, const Node *rightNeighbour);
 };
-/**
+/*
  * at node openings the node is placed in the list of #openNodes and a
  * topology constraint is created for one side of the node rectangle and
  * every open segment.
@@ -133,14 +128,14 @@ struct NodeOpen : NodeEvent {
         return s.str();
     }
 };
-/**
+/*
  * at node closings the node is removed from the list of #openNodes and
  * topology constraints are created for the remaining side of the node
  * rectangle and every open segment.  Also, non-overlap constraints
  * are created between the node and its immediate neighbours in openNodes.
  */
 struct NodeClose : NodeEvent {
-    /** we store the opening corresponding to this closing so that we can
+    /* we store the opening corresponding to this closing so that we can
      * delete it and remove it from the list of OpenNodes.
      */
     NodeOpen* opening;
@@ -167,7 +162,7 @@ struct NodeClose : NodeEvent {
             cs.push_back(new vpsc::Constraint(left->var, right->var, g));
         //}
     }
-    /**
+    /*
      * remove opening from openNodes, cleanup, and generate
      * TopologyConstraints.
      */
@@ -198,7 +193,7 @@ struct NodeClose : NodeEvent {
         return s.str();
     }
 };
-/**
+/*
  * Segment events occur at each end of a segment
  */
 struct SegmentEvent : Event {
@@ -206,7 +201,7 @@ struct SegmentEvent : Event {
     SegmentEvent(vpsc::Dim dim, bool open, EdgePoint* v, Segment *s)
         : Event(open,v->pos(vpsc::conjugate(dim))), s(s) {}
 };
-/**
+/*
  * at a segment open we add the segment to the list of open segments
  */
 struct SegmentOpen : SegmentEvent {
@@ -230,7 +225,7 @@ struct SegmentOpen : SegmentEvent {
         return s.str();
     }
 };
-/**
+/*
  * at a segment closing we remove the segment from the list of openings and cleanup
  */
 struct SegmentClose : SegmentEvent {
@@ -256,7 +251,7 @@ struct SegmentClose : SegmentEvent {
         return s.str();
     }
 };
-/** 
+/* 
  * Create topology constraint from scanpos in every open segment to node.
  * Segments must not be on-top-of rectangles.
  */
@@ -399,7 +394,7 @@ bool Segment::createStraightConstraint(vpsc::Dim scanDim, Node* node, double pos
     return true;
 }
 
-/**
+/*
  * creates a copy of the StraightConstraint in our own straightConstraints
  * list, but only if this segment is not directly connected to the centre
  * of the StraightConstraint node.
@@ -410,7 +405,7 @@ void Segment::transferStraightConstraint(StraightConstraint* s) {
         createStraightConstraint(s->scanDim, s->node,s->pos);
     }
 }
-/**
+/*
  * create a constraint between a segment and a node that is
  * activated when the segment needs to be bent (divided into
  * two new segments
@@ -445,7 +440,7 @@ StraightConstraint::StraightConstraint(Segment* s, vpsc::Dim dim,
     c=new TriConstraint(scanDim, u->node,v->node,node,segmentPos,g,nodeLeft);
     assertFeasible();
 }
-/**
+/*
  * create a constraint between the two segments joined by this
  * EdgePoint such that the constraint is activated when the segments
  * are aligned.
@@ -649,12 +644,12 @@ TopologyConstraints::TopologyConstraints(const vpsc::Dim axisDim, Nodes& nodes,
       cs(cs),
       dim(axisDim)
 {
-    /**
+    /*
      * open segments are scanned on node openings and closings to create
      * topology constraints between the node and each open segment
      */
     OpenSegments openSegments;
-    /**
+    /*
      * open nodes are stored in a map keyed on position along scan line.
      * We use this to find neighbouring rectangles at a NodeClose event
      * so that we can generate non-overlap constraints between the closing

@@ -9,26 +9,18 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
+ * See the file LICENSE.LGPL distributed with the library.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library in the file LICENSE; if not, 
- * write to the Free Software Foundation, Inc., 59 Temple Place, 
- * Suite 330, Boston, MA  02111-1307  USA
- *
+ * Author(s):  Tim Dwyer
 */
 
-/**
+/*
  * Class definitions for graph elements used in determining topology
  * preserving constraints.
- *
- * \file topology_graph.h
- * \author Tim Dwyer
- * \date 2007
  */
 
 #ifndef TOPOLOGY_GRAPH_H
@@ -53,70 +45,78 @@ namespace topology {
     class BendConstraint;
     class StraightConstraint;
     class Edge;
-    class Node;
-    typedef std::vector<Node*> Nodes;
     /**
+     * @brief  Topology representation for a node.
+     *
      * Each node is associated with a rectangle and solver variables
-     * for the x and y axes
+     * for the x and y axes.
+     *
+     * @note You shouldn't need to create these yourself, but you may
+     *       extract them from an existing ColaTopologyAddon and construct
+     *       a new ColaTopologyAddon with that same topology information.
      */
     class Node {
     public:
-        /// the index of the associated node / variable / rectangle
+        // the index of the associated node / variable / rectangle
         const unsigned id;
-        /// the bounding box of the associated node
+        // the bounding box of the associated node
         vpsc::Rectangle* rect;
-        /** 
+        /*
          * When an edge path is being defined externally with a vector of
          * EdgePoint, a variable would not be specified.
          * @param id
          * @param r
          */
-        Node(unsigned id, vpsc::Rectangle*, vpsc::Variable *v = NULL);
+        Node(unsigned id, vpsc::Rectangle *r, vpsc::Variable *v = NULL);
         void setDesiredPos(double d, double weight=1.0);
         double initialPos(vpsc::Dim scanDim) const;
         double finalPos() const;
         double posOnLine(vpsc::Dim scanDim, double alpha) const;
         vpsc::Variable* getVar() const { return var; }
-        /// variable positions used by solver
+        // variable positions used by solver
         vpsc::Variable* var;
     };
-    /**
+    /** 
+     * @brief  A vector of pointers to Node objects.
+     */
+    typedef std::vector<Node *> Nodes;
+    /*
      * let n=ns.size(), where n<=vs.size(), 
      * for i<n we set the variable for ns[i] to be vs[i].
      */
     void setNodeVariables(Nodes& ns, std::vector<vpsc::Variable*>& vs);
-    /**
+    /*
      * An EdgePoint is a point along an edge path.  It must correspond to
      * either the middle of a Node (the start/end of the edge) or to a corner
      * of a Node (a bend point around an edge).
      */
     class EdgePoint {
     public:
-        /// the node / variable / rectangle associated with this EdgePoint
+        // the node / variable / rectangle associated with this EdgePoint
         Node* node;
-        /// where the EdgePoint lies on the rectangle
+        // where the EdgePoint lies on the rectangle
         enum RectIntersect { 
-            TR, ///< top right corner
-            BR, ///< bottom right corner
-            BL, ///< bottom left corner
-            TL, ///< bends around rectangle's top-left corner
-            CENTRE ///< connected to the rectangle's centre, hence the end of the edge.
+            TR, //< top right corner
+            BR, //< bottom right corner
+            BL, //< bottom left corner
+            TL, //< bends around rectangle's top-left corner
+            CENTRE //< connected to the rectangle's centre, hence the end of the edge.
         } rectIntersect;
-        /// the incoming segment to this EdgePoint on the edge path
+        // the incoming segment to this EdgePoint on the edge path
         Segment* inSegment;
-        /// the outgoing segment to this EdgePoint on the edge path
+        // the outgoing segment to this EdgePoint on the edge path
         Segment* outSegment;
-        /** each articulation EdgePoint (where isReal()==false) 
+        /* each articulation EdgePoint (where isReal()==false) 
          *  will be assigned (not immediately) a bendConstraint
          */
         BendConstraint* bendConstraint;
-        /// append bendConstraint (if not null) to ts
+        // append bendConstraint (if not null) to ts
         void getBendConstraint(std::vector<TopologyConstraint*>* ts);
-        /// @return true if constraint created
+        // @return true if constraint created
         bool createBendConstraint(vpsc::Dim scanDim);
-        /// delete the bendConstraint and reset pointer to NULL
+        // delete the bendConstraint and reset pointer to NULL
         void deleteBendConstraint();
-        /**
+        /*
          * Constructor associates the point with a node vertex but
          * not an edge.
          */
@@ -126,18 +126,18 @@ namespace topology {
                 , bendConstraint(NULL)
         {
         }
-        /** 
+        /* 
          * @param dim the axis (either horizontal or
          * vertical) of the coordinate to return
          * @return the position, computed based on rectIntersect and rectangle
          * vertices of the node
          */
         double pos(vpsc::Dim dim) const;
-        /// @return x position
+        // @return x position
         double posX() const { return pos(vpsc::HORIZONTAL); }
-        /// @return y position
+        // @return y position
         double posY() const { return pos(vpsc::VERTICAL); }
-        /** 
+        /* 
          *  @return where the EdgePoint on the rectangle as a vertex index
          *  for libavoid.
          */
@@ -156,7 +156,7 @@ namespace topology {
                     return 4;
             }
         }
-        /**
+        /*
          * for any two EdgePoint the following should always be false!
          * @param e an EdgePoint (not this one)
          */
@@ -165,36 +165,39 @@ namespace topology {
             return node==e->node && rectIntersect==e->rectIntersect;
         }
         ~EdgePoint();
-        /**
+        /*
          * @return true if the EdgePoint is the end of an edge otherwise
          * asserts that it is a valid bend point.
          */
         bool isEnd() const;
-        /**
+        /*
          * asserts that, if this is a bend point, it does not double back in either
          * the horizontal or vertical directions.
          */
         bool assertConvexBend() const;
-        /**
+        /*
          * @return offset from centre of node
          */
         double offset(vpsc::Dim scanDim) const;
-        /**
+        /*
          * remove this point from the edge replacing its in and out
          * segments with a single new Segment.
          * @return the replacement Segment
          */
         Segment* prune(vpsc::Dim scanDim);
     };
-    typedef std::vector<EdgePoint*> EdgePoints;
-    typedef std::vector<const EdgePoint*> ConstEdgePoints;
-    /**
+    /*
+     * A vector of pointers to EdgePoint objects.
+     */
+    typedef std::vector<EdgePoint *> EdgePoints;
+    typedef std::vector<const EdgePoint *> ConstEdgePoints;
+    /*
      * a Segment is one straightline segment between two EdgePoint which are
      * either bend points and/or ends of the edge.
      */
     class Segment {
     public:
-        /**
+        /*
          * Create segment for a given edge between two EdgePoints.
          * Note that segments can be zero length, for example between 
          * opposite corners of two rectangles.
@@ -212,7 +215,7 @@ namespace topology {
             start->outSegment=this;
             end->inSegment=this;
         }
-        /**
+        /*
          * add a new StraightConstraint to this segment (if necessary)
          * @param node the node with which the constraint is associated
          * @param pos the scanPos, i.e. the position in the scan dimension
@@ -220,21 +223,21 @@ namespace topology {
          * @return true if a constraint was created
          */
         bool createStraightConstraint(vpsc::Dim dim, Node* node, double pos);
-        /**
+        /*
          * creates a copy of the StraightConstraint in our own
          * straightConstraints list, but only if this segment is not directly
          * connected to the centre of the StraightConstraint node.  @param s
          * the StraightConstraint to be copied across
          */
         void transferStraightConstraint(StraightConstraint* s);
-        /**
+        /*
          * this typedef can be used to declare a wrapper functor
          * for transferStraightConstraint
          */
         typedef std::binder1st<
             std::mem_fun1_t<void, Segment, StraightConstraint*> 
             > TransferStraightConstraint;
-        /**
+        /*
          * TransferStraightConstraint might for example be applied to
          * forEachStraightConstraint
          */
@@ -242,24 +245,24 @@ namespace topology {
         void forEachStraightConstraint(T f) {
             for_each(straightConstraints.begin(),straightConstraints.end(),f);
         }
-        /**
+        /*
          * append straightConstraints to ts
          */
         void getStraightConstraints(std::vector<TopologyConstraint*>* ts) 
             const;
-        /**
+        /*
          * clean up topologyConstraints
          */
         void deleteStraightConstraints();
         ~Segment();
-        /// the edge which this segment is part of
+        // the edge which this segment is part of
         Edge* edge;
-        /// the start point of the segment - either the end of the edge
-        /// if connected to a real node, or a bend point
+        // the start point of the segment - either the end of the edge
+        // if connected to a real node, or a bend point
         EdgePoint* start;
-        /// the end point of the segment
+        // the end point of the segment
         EdgePoint* end;
-        /**
+        /*
          * @return the EdgePoint at the minimum extent of this segment on the
          * scan axis
          */
@@ -272,7 +275,7 @@ namespace topology {
             }
             return end;
         }
-        /**
+        /*
          * @return the EdgePoint on the maximum extent of this segment on the
          * scan axis
          */
@@ -285,7 +288,7 @@ namespace topology {
             }
             return end;
         }
-        /** 
+        /* 
          * compute the intersection with the line !dim=pos.
          * if called when Segment is parallel to scan line it will throw an
          * assertion error.
@@ -319,25 +322,25 @@ namespace topology {
             return ux + p * (vx-ux);
         }
         std::string toString() const;
-        /**
+        /*
          * Compute the length in the specified dimension.
          */
         double length(vpsc::Dim dim) const;
-        /**
+        /*
          * Compute the euclidean distance between #start and #end.
          */
         double length() const;
         void assertNonZeroLength() const;
-        /**
+        /*
          * does this segment have Node v as a CENTRE start or end point?
          */
         bool connectedToNode(const Node* v) const;
     private:
-        /// a set of topology constraints (left-/right-/above-/below-of
-        /// relationships / between this segment and nodes
+        // a set of topology constraints (left-/right-/above-/below-of
+        // relationships / between this segment and nodes
         std::vector<StraightConstraint*> straightConstraints;
     };
-    /// do nothing operator used in ForEach
+    // do nothing operator used in ForEach
     template <typename T>
     struct NoOp {
         void operator() (T t)
@@ -345,7 +348,7 @@ namespace topology {
             COLA_UNUSED(t);
         }
     };
-    /**
+    /*
      * defines (hopefully just once) a loop over the bipartite linked-list
      * of Segment and EdgePoint in an Edge.
      * In the case of a cluster boundary, the edge will be a cycle, where
@@ -376,8 +379,14 @@ namespace topology {
         } while(!last);
     }
     /**
-     * An Edge provides a doubly linked list of segments, each involving a pair
-     * of EdgePoints
+     * @brief Topology representation of an edge.
+     *
+     * An edge provides a doubly linked list of segments, each involving a pair
+     * of EdgePoints.  
+     *
+     * @note You shouldn't need to create these yourself, but you may
+     *       extract them from an existing ColaTopologyAddon and construct
+     *       a new ColaTopologyAddon with that same topology information.
      */
     class Edge {
     public:
@@ -394,7 +403,7 @@ namespace topology {
          * End of list of Segment
          */
         Segment* lastSegment;
-        /// size of segments list headed by firstSegment
+        // size of segments list headed by firstSegment
         size_t nSegments;
         /**
          * Construct an edge from a list of EdgePoint in sequence
@@ -415,7 +424,7 @@ namespace topology {
                 lastSegment = s;
             }
         }
-        /**
+        /*
          * apply an operation to every Segment and EdgePoint associated with
          * this Edge 
          * @param po operation to apply to each EdgePoint
@@ -425,7 +434,7 @@ namespace topology {
         void forEach(PointOp po, SegmentOp so, bool noCycle=false) {
             ForEach<Edge*,PointOp,SegmentOp>(this,po,so,noCycle);
         }
-        /**
+        /*
          * apply an operation to every Segment and EdgePoint associated with
          * this Edge, without changing anything
          * @param po operation to apply to each EdgePoint
@@ -435,7 +444,7 @@ namespace topology {
         void forEach(PointOp po, SegmentOp so, bool noCycle=false) const {
             ForEach<const Edge*,PointOp,SegmentOp>(this,po,so,noCycle);
         }
-        /**
+        /*
          * apply an operation to every Segment associated with this Edge
          * @param o operation (a function or functor that takes a pointer to
          * a segment as an argument)
@@ -444,7 +453,7 @@ namespace topology {
         void forEachSegment(T o) {
             forEach(NoOp<EdgePoint*>(),o);
         }
-        /**
+        /*
          * a version of forEachSegment for const edges
          * @param o an operation on a const Segment
          */
@@ -452,7 +461,7 @@ namespace topology {
         void forEachSegment(T o) const {
             forEach(NoOp<const EdgePoint*>(),o);
         }
-        /**
+        /*
          * apply an operation to every EdgePoint associated with this edge
          * @param o operation (a function or functor that takes a pointer to
          * an EdgePoint as an argument)
@@ -463,7 +472,7 @@ namespace topology {
         void forEachEdgePoint(T o, bool noCycle=false) {
             forEach(o,NoOp<Segment*>(),noCycle);
         }
-        /**
+        /*
          * a version of forEachEdgePoint for const edges
          * @param o an operation on a const EdgePoint
          * @param noCycle if the edge is a cycle apply o to the 
@@ -473,21 +482,21 @@ namespace topology {
         void forEachEdgePoint(T o, bool noCycle=false) const {
             forEach(o,NoOp<const Segment*>(),noCycle);
         }
-        /**
+        /*
          * cleanup segments
          */
         ~Edge() {
             forEach(delete_object(),delete_object(),true);
         }
-        /**
+        /*
          * the sum of the lengths of all the segments
          */
         double pathLength() const;
-        /**
+        /*
          * get a list of all the EdgePoints along the Edge path
          */
         void getPath(ConstEdgePoints& vs) const;
-        /**
+        /*
          * @return a list of the coordinates along the edge route
          */
         straightener::Route* getRoute() const;
@@ -506,10 +515,13 @@ namespace topology {
         }
         std::string toString() const;
     };
-    typedef std::vector<Edge*> Edges;
+    /**
+     * @brief  A vector of pointers to Edge objects.
+     */
+    typedef std::vector<Edge *> Edges;
     double compute_stress(const Edges&);
     void printEdges(const Edges&);
-/**
+/*
  * CrossProduct of three points: If the result is 0, the points are collinear; 
  * if it is positive, the three points (in order) constitute a "left turn", 
  * otherwise a "right turn".
@@ -523,7 +535,7 @@ inline double crossProduct(
 
 #ifndef NDEBUG
     bool assertConvexBends(const Edges&);
-    /**
+    /*
      * Asserts that there are no intersections between any of the segments
      * in edges and rectangles in nodes
      * @param nodes containing rectangles

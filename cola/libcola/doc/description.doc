@@ -1,0 +1,50 @@
+/*!
+
+\if LIBCOLA_DOC
+@mainpage libcola: Force-directed Network Layout ubject to Separation Constraints
+\endif
+\if ADAPTAGRAMS_DOC
+@page libcola libcola &mdash; Overview
+\endif
+
+libcola is a cross-platform C++ library for constraint graph layout. Specifically, force-directed layout using the stress-majorization method subject to separation constraints. Applications include layout with non-overlapping nodes and clusters, directed graph layout and layout preserving the crossing properties of a given starting layout.
+
+libcola is part of the 
+<a href="http://www.adaptagrams.org/">Adaptagrams project</a>. 
+There are no official releases yet, though the code is stable and 
+available from the Adaptagrams 
+<a href="https://github.com/mjwybrow/adaptagrams">github 
+repository</a>.
+
+The API is documented using Doxygen.  The documentation you are currently 
+reading can be obtained by running doxygen in the cola directory. 
+
+libcola is written and maintained by 
+<a href="http://www.csse.monash.edu.au/~mwybrow/">Michael Wybrow</a> and
+<a href="http://www.csse.monash.edu.au/~tdwyer/">Tim Dwyer</a>,
+members of <a href="http://marvl.infotech.monash.edu.au/">MArVL: the Monash Adaptive Visualisation Lab</a> at Monash University, Australia.
+
+The algorithms used for ConstrainedFDLayout are described in the following papers.  If you use libcola, please cite the relevant paper.
+-  Tim Dwyer, Kim Marriott, and Michael Wybrow. Topology preserving
+   constrained graph layout. In Proc. 16th Intl. Symp. Graph Drawing
+   (GD'08), volume 5417 of Lecture Notes in Computer Science, pages
+   230-241. Springer, 2009.
+-  Tim Dwyer, Kim Marriott, and Michael Wybrow. Dunnart: A
+   constraint-based network diagram authoring tool. In Proc. 16th Intl.
+   Symp. Graph Drawing (GD'08), volume 5417 of Lecture Notes in Computer
+   Science, pages 420-431. Springer, 2009.
+-  Tim Dwyer, Kim Marriott, Falk Schreiber, Peter J. Stuckey,
+   Michael Woodward, and Michael Wybrow. Exploration of networks using
+   overview+detail with constraint-based cooperative layout. IEEE
+   Transactions on Visualization and Computer Graphics, 14(6):1293-1300,
+   2008.
+
+The method used in ConstrainedMajorizationLayout is described in:
+-  Tim Dwyer and Kim Marriott. Constrained stress majorization using diagonally
+   scaled gradient projection.  In Proc. 15th Intl. Symp. Graph Drawing (GD
+   '07), volume 4875 of Lecture Notes in Computer Science. Springer, 2008.
+
+
+*/
+
+
