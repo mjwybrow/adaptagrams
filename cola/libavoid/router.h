@@ -613,6 +613,7 @@ class AVOID_EXPORT Router {
         ConnType validConnType(const ConnType select = ConnType_None) const;
         bool isInCrossingPenaltyReroutingStage(void) const;
         void markAllObstaclesAsMoved(void);
+        ShapeRef *shapeContainingPoint(const Point& point);
 
         /** 
          *  @brief  Set an addon for doing orthogonal topology improvement.

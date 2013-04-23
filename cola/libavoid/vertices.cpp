@@ -126,7 +126,7 @@ VertID& VertID::operator++(int)
 
 void VertID::print(FILE *file) const
 {
-    fprintf(file, "[%u,%d]", objID, vn);
+    fprintf(file, "[%u,%d, p=%u]", objID, vn, (unsigned int) props);
 }
 
 void VertID::db_print(void) const
@@ -359,6 +359,12 @@ unsigned int VertInf::pathLeadsBackTo(const VertInf *start) const
     unsigned int pathlen = 1;
     for (const VertInf *i = this; i != start; i = i->pathNext)
     {
+        if ((pathlen > 1) && (i == this))
+        {
+            // We have a circular path, so path not found.
+            return 0;
+        }
+
         pathlen++;
         if (i == NULL)
         {

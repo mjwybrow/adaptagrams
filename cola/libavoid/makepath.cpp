@@ -492,6 +492,7 @@ void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar, VertInf *start)
             Node = ANode(curr, timestamp++);
             if (!last)
             {
+                Node.inf = src;
                 Node.g = 0;
                 Node.h = estimatedCost(lineRef, NULL, Node.inf->point, 
                         tar->point);

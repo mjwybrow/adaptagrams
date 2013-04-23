@@ -464,7 +464,8 @@ static void vertexSweep(VertInf *vert)
             continue;
         }
 
-        if (centerID.isConnPt() && (ss.find(inf->id.objID) != ss.end()))
+        if (centerID.isConnPt() && (ss.find(inf->id.objID) != ss.end()) &&
+                !inf->id.isConnPt())
         {
             // Don't include edge points of containing shapes.
             unsigned int shapeID = inf->id.objID;
@@ -518,8 +519,6 @@ static void vertexSweep(VertInf *vert)
         VertInf *k = t->vInf;
 
         COLA_ASSERT(centerInf != k);
-        COLA_ASSERT(!(centerID.isConnPt()) || 
-                (ss.find(k->id.objID) == ss.end()));
 
         VertInf *kPrev = k->shPrev;
         VertInf *kNext = k->shNext;

@@ -140,6 +140,23 @@ Router::~Router()
     delete m_topology_addon;
 }
 
+ShapeRef *Router::shapeContainingPoint(const Point& point)
+{
+    // Count points on the border as being inside.
+    bool countBorder = true;
+
+    // Compute enclosing shapes.
+    ObstacleList::const_iterator finish = m_obstacles.end();
+    for (ObstacleList::const_iterator i = m_obstacles.begin(); i != finish; ++i)
+    {
+        ShapeRef *shape = dynamic_cast<ShapeRef *>(*i);
+        if (shape && inPoly(shape->routingPolygon(), point, countBorder))
+        {
+            return shape;
+        }
+    }
+    return NULL;
+}
 
 void Router::modifyConnector(ConnRef *conn, const unsigned int type,
         const ConnEnd& connEnd, bool connPinMoveUpdate)
@@ -1415,7 +1432,7 @@ void Router::generateContains(VertInf *pt)
     ObstacleList::const_iterator finish = m_obstacles.end();
     for (ObstacleList::const_iterator i = m_obstacles.begin(); i != finish; ++i)
     {
-        if (inPoly((*i)->polygon(), pt->point, countBorder))
+        if (inPoly((*i)->routingPolygon(), pt->point, countBorder))
         {
             contains[pt->id].insert((*i)->id());
         }

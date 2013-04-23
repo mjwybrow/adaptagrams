@@ -789,9 +789,10 @@ bool validateBendPoint(VertInf *aInf, VertInf *bInf, VertInf *cInf)
     if (abc == 0)
     {
         // The three consecutive point on the path are in a line.
-        // Thus, there should always be an equally short path that
-        // skips this bend point.
-        bendOkay = false;
+        // There should always be an equally short path that skips this
+        // bend point, but this check is used during rubber-band routing
+        // so we allow this case.
+        bendOkay = true;
     }
     else // (abc != 0)
     {
@@ -858,6 +859,10 @@ std::pair<bool, bool> ConnRef::assignConnectionPinVisibility(const bool connect)
 
 bool ConnRef::generatePath(void)
 {
+    // XXX Currently rubber-band routing only works when dragging the
+    //     destination point of a connector, but not the source.  The code
+    //     needs to be reworked to work in both directions.
+
     if (!m_false_path && !m_needs_reroute_flag)
     {
         // This connector is up to date.
@@ -877,9 +882,28 @@ bool ConnRef::generatePath(void)
 
     m_start_vert = m_src_vert;
 
-    // Visibility assignment for connection pins.
+    // Some connectors may attach to connection pins, which means they route
+    // to the closest of multiple pins on a shape.  How we handle this is to
+    // add a dummy vertex as the source or target vertex.  This is then given
+    // visibility to each of the possible pins and tiny distance.  Here we
+    // assign this visibility by adding edges to the visibility graph that we
+    // later remove.
     std::pair<bool, bool> isDummyAtEnd = assignConnectionPinVisibility(true);
     
+
+    if (m_router->RubberBandRouting && route().size() > 0)
+    {
+        if (isDummyAtEnd.first)
+        {
+            //ShapeConnectionPin *activePin = m_src_connend->active
+            Point firstPoint = m_src_vert->point;
+            firstPoint.id = m_src_vert->id.objID;
+            firstPoint.vn = m_src_vert->id.vn;
+            PolyLine& existingRoute = routeRef();
+            existingRoute.ps.insert(existingRoute.ps.begin(), 1, firstPoint);
+        }
+    }
+
     std::vector<Point> path;
     std::vector<VertInf *> vertices;
     if (m_checkpoints.empty())
@@ -924,7 +948,8 @@ bool ConnRef::generatePath(void)
         }
     }
 
-    // Get rid of dummy ShapeConnectionPin bridging points at beginning and end.
+    // Get rid of dummy ShapeConnectionPin bridging points at beginning
+    // and end of path.
     std::vector<Point> clippedPath;
     std::vector<Point>::iterator pathBegin = path.begin();
     std::vector<Point>::iterator pathEnd = path.end();
@@ -939,10 +964,8 @@ bool ConnRef::generatePath(void)
         m_dst_connend->usePinVertex(vertices[vertices.size() - 2]);
     }
     clippedPath.insert(clippedPath.end(), pathBegin, pathEnd);
-
-    // Would clear visibility for endpoints here if required.
     
-    // Undo visibility assignment for connection pins.
+    // Clear visibility edges added for connection pins dummy vertices.
     assignConnectionPinVisibility(false);
 
     freeRoutes();
@@ -1078,8 +1101,8 @@ void ConnRef::generateStandardPath(std::vector<Point>& path,
 
 #ifdef PATHDEBUG
         db_printf("\n");
-        _srcVert->id.db_print();
-        db_printf(": %g, %g\n", _srcVert->point.x, _srcVert->point.y);
+        src()->id.db_print();
+        db_printf(": %g, %g\n", src()->point.x, src()->point.y);
         tar->id.db_print();
         db_printf(": %g, %g\n", tar->point.x, tar->point.y);
         for (size_t i = 0; i < currRoute.ps.size(); ++i)
@@ -1098,17 +1121,18 @@ void ConnRef::generateStandardPath(std::vector<Point>& path,
                 VertID vID(pnt.id, pnt.vn);
 
                 m_start_vert = m_router->vertices.getVertexByID(vID);
+                COLA_ASSERT(m_start_vert);
             }
         }
     }
     //db_printf("GO\n");
     //db_printf("src: %X strt: %X dst: %x\n", (int) _srcVert, (int) _startVert, (int) _dstVert);
-    bool found = false;
-    while (!found)
+    unsigned int pathlen = 0;
+    while (pathlen == 0)
     {
         aStarPath(this, src(), dst(), start());
-        found = tar->pathLeadsBackTo(m_src_vert);
-        if (!found)
+        pathlen = dst()->pathLeadsBackTo(src());
+        if (pathlen < 2)
         {
             if (existingPathStart == 0)
             {
@@ -1163,13 +1187,11 @@ void ConnRef::generateStandardPath(std::vector<Point>& path,
                 m_start_vert = m_router->vertices.getVertexByID(vID);
                 COLA_ASSERT(m_start_vert);
 
-                found = false;
+                pathlen = 0;
             }
         }
     }
 
-    
-    unsigned int pathlen = tar->pathLeadsBackTo(m_src_vert);
     if (pathlen < 2)
     {
         // There is no valid path.
@@ -1193,26 +1215,15 @@ void ConnRef::generateStandardPath(std::vector<Point>& path,
     {
         path[j] = i->point;
         vertices[j] = i;
-        if (i->id.isConnPt())
-        {
-            path[j].id = m_id;
-            path[j].vn = kUnassignedVertexNumber;
-        }
-        else
-        {
-            path[j].id = i->id.objID;
-            path[j].vn = i->id.vn;
-        }
+        path[j].id = i->id.objID;
+        path[j].vn = i->id.vn;
 
         j--;
     }
     vertices[0] = m_src_vert;
     path[0] = m_src_vert->point;
-    // Use topbit to differentiate between start and end point of connector.
-    // They need unique IDs for nudging.
-    unsigned int topbit = ((unsigned int) 1) << 31;
-    path[0].id = m_id | topbit; 
-    path[0].vn = kUnassignedVertexNumber;
+    path[0].id = m_src_vert->id.objID;
+    path[0].vn =m_src_vert->id.vn;
 }
 
 

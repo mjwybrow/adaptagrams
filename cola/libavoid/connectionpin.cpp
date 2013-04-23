@@ -213,8 +213,6 @@ const Point ShapeConnectionPin::position(const Polygon& newPoly) const
 
     // We want to place connection points exactly on the edges of shapes, 
     // or possibly slightly inside them (if m_insideOfset is set).
-
-    point.vn = kUnassignedVertexNumber;
     if (m_x_portion_offset == ATTACH_POS_LEFT)
     {
         point.x = x_min + m_inside_offset;
