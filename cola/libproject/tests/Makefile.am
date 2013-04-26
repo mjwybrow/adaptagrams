@@ -1,5 +1,4 @@
-#INCLUDES = -I$(top_srcdir)
-INCLUDES = -I$(top_srcdir) -Iquadprogpp
+AM_CPPFLAGS = -I$(top_srcdir) -Iquadprogpp
 LIBPROJECT = $(top_builddir)/libproject/libproject.la
 check_PROGRAMS = treeqptest quadprogpptest simple static random
 testutil_SOURCES = testutil.cpp quadprogpp/QuadProg++.cc

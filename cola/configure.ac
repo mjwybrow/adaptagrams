@@ -25,8 +25,8 @@ if test "$GXX" = "yes"; then
   ink_svd_CXXFLAGS="$CXXFLAGS"
   CXXFLAGS="-Wno-unused-parameter $CXXFLAGS"
   # -Wno-unused-parameter isn't accepted by gcc 2.95.
-  AC_COMPILE_IFELSE([int dummy;
-], , CXXFLAGS="-Wno-unused $ink_svd_CXXFLAGS",)
+  AC_COMPILE_IFELSE([AC_LANG_SOURCE([int dummy;
+  ])], , CXXFLAGS="-Wno-unused $ink_svd_CXXFLAGS",)
   # Note: At least one bug has been caught from unused parameter warnings,
   # so it might be worth trying not to disable it.
   # One way of selectively disabling the warnings (i.e. only where the

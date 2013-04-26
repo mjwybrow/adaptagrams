@@ -1,4 +1,4 @@
-INCLUDES = -I$(top_srcdir)
+AM_CPPFLAGS = -I$(top_srcdir)
 
 LDADD = $(top_builddir)/libavoid/libavoid.la
 

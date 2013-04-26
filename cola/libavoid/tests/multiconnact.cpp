@@ -33,7 +33,7 @@ static void connCallback(void *ptr)
     printf("Connector %u needs rerouting!\n", connRef->id());
 
     const Avoid::PolyLine& route = connRef->displayRoute();
-    printf("New path (%lX): ", (long) connRef);
+    printf("New path: ");
     for (size_t i = 0; i < route.ps.size(); ++i) 
     {
         printf("%s(%f, %f)", (i > 0) ? "-" : "", 

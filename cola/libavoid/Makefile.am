@@ -1,7 +1,7 @@
-INCLUDES = -I$(top_srcdir)
 
 lib_LTLIBRARIES = libavoid.la
-libavoid_la_CPPFLAGS = -I{includedir}/libavoid -fPIC
+libavoid_la_CPPFLAGS = -I$(top_srcdir) -I{includedir}/libavoid -fPIC
+libavoid_la_LDFLAGS = -no-undefined
 
 libavoid_la_SOURCES = connectionpin.cpp \
 			connector.cpp \

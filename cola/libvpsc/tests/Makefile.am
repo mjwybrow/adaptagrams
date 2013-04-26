@@ -1,4 +1,4 @@
-INCLUDES = -I$(top_srcdir)
+AM_CPPFLAGS = -I$(top_srcdir)
 
 check_PROGRAMS = rectangleoverlap block satisfy_inc # cycle
 satisfy_inc_SOURCES = satisfy_inc.cpp

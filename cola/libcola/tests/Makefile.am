@@ -1,4 +1,4 @@
-INCLUDES = -I$(top_srcdir) $(CAIROMM_CFLAGS)
+AM_CPPFLAGS = -I$(top_srcdir) $(CAIROMM_CFLAGS)
 
 LDADD = \
   $(top_builddir)/libvpsc/libvpsc.la \

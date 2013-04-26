@@ -1,7 +1,6 @@
-INCLUDES = -I$(top_srcdir)
 
 lib_LTLIBRARIES = libtopology.la
-libtopology_la_CPPFLAGS = -I{includedir}/libtopology -fPIC
+libtopology_la_CPPFLAGS = -I$(top_srcdir) -I{includedir}/libtopology -fPIC
 
 libtopology_la_SOURCES = topology_graph.cpp\
 			topology_constraints.cpp\
