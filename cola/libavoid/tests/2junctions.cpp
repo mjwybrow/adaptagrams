@@ -105,7 +105,7 @@ int test()
 	router1->processTransaction();
 */
 	bool atEnds = true;
-        bool overlap = router1->existsOrthogonalPathOverlap(atEnds);
+        bool overlap = router1->existsOrthogonalFixedSegmentOverlap(atEnds);
         delete router1;
         return (overlap) ? 1 : 0;
 }

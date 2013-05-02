@@ -578,7 +578,8 @@ Polygon Polygon::simplify(void) const
     return simplified;
 }
 
-std::vector<Point> Polygon::checkpointOnSegment(size_t segmentLowerIndex) const
+std::vector<Point> Polygon::checkpointsOnSegment(size_t segmentLowerIndex,
+        int indexModifier) const
 {
     std::vector<Point> checkpoints;
     // 0     1     2     3     4   <- vertices on path
@@ -588,6 +589,15 @@ std::vector<Point> Polygon::checkpointOnSegment(size_t segmentLowerIndex) const
     size_t checkpointLowerValue = 2 * segmentLowerIndex;
     size_t checkpointUpperValue = checkpointLowerValue + 2;
     size_t index = 0;
+
+    if (indexModifier > 0)
+    {
+        checkpointLowerValue++;
+    }
+    else if (indexModifier < 0)
+    {
+        checkpointUpperValue--;
+    }
 
     while (index < checkpointsOnRoute.size())
     {

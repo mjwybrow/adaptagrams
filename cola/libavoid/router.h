@@ -626,7 +626,8 @@ class AVOID_EXPORT Router {
         void improveOrthogonalTopology(void);
 
         // Testing and debugging methods.
-        bool existsOrthogonalPathOverlap(const bool atEnds = false);
+        bool existsOrthogonalSegmentOverlap(const bool atEnds = false);
+        bool existsOrthogonalFixedSegmentOverlap(const bool atEnds = false);
         bool existsOrthogonalTouchingPaths(void);
         int  existsCrossings(const bool optimisedForConnectorType = false);
         bool existsInvalidOrthogonalPaths(void);

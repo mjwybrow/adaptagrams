@@ -1909,7 +1909,40 @@ static void reduceRange(double& val)
 // The following methods are for testing and debugging.
 
 
-bool Router::existsOrthogonalPathOverlap(const bool atEnds)
+bool Router::existsOrthogonalSegmentOverlap(const bool atEnds)
+{
+    ConnRefList::iterator fin = connRefs.end();
+    for (ConnRefList::iterator i = connRefs.begin(); i != fin; ++i) 
+    {
+        Avoid::Polygon iRoute = (*i)->displayRoute();
+        ConnRefList::iterator j = i;
+        for (++j; j != fin; ++j) 
+        {
+            // Determine if this pair overlap
+            Avoid::Polygon jRoute = (*j)->displayRoute();
+            ConnectorCrossings cross(iRoute, true, jRoute, *i, *j);
+            cross.checkForBranchingSegments = true;
+            for (size_t jInd = 1; jInd < jRoute.size(); ++jInd)
+            {
+                const bool finalSegment = ((jInd + 1) == jRoute.size());
+                cross.countForSegment(jInd, finalSegment);
+                
+                if ((cross.crossingFlags & CROSSING_SHARES_PATH) && 
+                    (atEnds || 
+                     !(cross.crossingFlags & CROSSING_SHARES_PATH_AT_END))) 
+                {
+                    // We are looking for fixedSharedPaths and there is a
+                    // fixedSharedPath.
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+
+bool Router::existsOrthogonalFixedSegmentOverlap(const bool atEnds)
 {
     ConnRefList::iterator fin = connRefs.end();
     for (ConnRefList::iterator i = connRefs.begin(); i != fin; ++i) 

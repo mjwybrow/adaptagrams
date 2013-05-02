@@ -2200,12 +2200,15 @@ static void buildOrthogonalNudgingSegments(Router *router,
                     indexHigh = i - 1;
                 }
 
-                std::vector<Point> prevCheckpoints = 
-                        displayRoute.checkpointOnSegment(i - 2);
+                // Find the checkpoints on the current segment and the 
+                // checkpoints on the adjoining segments that aren't on
+                // the corner (hence the +1 and -1 modifiers).
                 std::vector<Point> checkpoints = 
-                        displayRoute.checkpointOnSegment(i - 1);
+                        displayRoute.checkpointsOnSegment(i - 1);
+                std::vector<Point> prevCheckpoints = 
+                        displayRoute.checkpointsOnSegment(i - 2, -1);
                 std::vector<Point> nextCheckpoints = 
-                        displayRoute.checkpointOnSegment(i);
+                        displayRoute.checkpointsOnSegment(i, +1);
                 bool hasCheckpoints = (checkpoints.size() > 0); 
                 if (hasCheckpoints && !nudgeFinalSegments)
                 {
@@ -2378,7 +2381,7 @@ static void buildOrthogonalNudgingSegments(Router *router,
                             }
                         }
                     }
-                    else
+                    else // if ((prevPos > thisPos) && (nextPos < thisPos))
                     {
                         minLim = std::max(minLim, nextPos);
                         maxLim = std::min(maxLim, prevPos);

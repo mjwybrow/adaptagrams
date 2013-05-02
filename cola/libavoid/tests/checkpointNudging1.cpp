@@ -2586,7 +2586,7 @@ int main(void) {
     router->processTransaction();
     //router->outputInstanceToSVG("test-checkpointNudging1");
     bool atEnds = true;
-    bool overlap = router->existsOrthogonalPathOverlap(atEnds);
+    bool overlap = router->existsOrthogonalFixedSegmentOverlap(atEnds);
     delete router;
     return (overlap) ? 1 : 0;
 };

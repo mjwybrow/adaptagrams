@@ -48,7 +48,7 @@ int main(void) {
 
     router->processTransaction();
     router->outputInstanceToSVG("test-inlineoverlap-03");
-    bool overlap = router->existsOrthogonalPathOverlap();
+    bool overlap = router->existsOrthogonalFixedSegmentOverlap();
     delete router;
     return (overlap) ? 1 : 0;
 };

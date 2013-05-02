@@ -313,8 +313,12 @@ class AVOID_EXPORT Polygon : public PolygonInterface
         std::vector<std::pair<size_t, Point> > checkpointsOnRoute;
 
         // Returns true if at least one checkpoint lies on the line segment
-        // or at either end of it.
-        std::vector<Point> checkpointOnSegment(size_t segmentLowerIndex) const;
+        // or at either end of it.  An indexModifier of +1 will cause it to
+        // ignore a checkpoint on the corner at the start of the segment and
+        // -1 will cause it to do the same for the corner at the end of the
+        // segment.
+        std::vector<Point> checkpointsOnSegment(size_t segmentLowerIndex,
+                int indexModifier = 0) const;
 };
 
 
