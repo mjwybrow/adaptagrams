@@ -1016,7 +1016,7 @@ static void buildOrthogonalLayoutSegments(Router *router,
             if (preserveCheckpointBends && routeHasCheckpointInfo)
             {
                 containsCheckpoint = 
-                        (displayRoute.checkpointOnSegment(i - 1).size() > 0);
+                        (displayRoute.checkpointsOnSegment(i - 1).size() > 0);
             }
             
             if (displayRoute.ps[i - 1][dim] == displayRoute.ps[i][dim])
