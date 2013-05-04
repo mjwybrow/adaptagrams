@@ -1801,6 +1801,49 @@ static void processEventHori(Router *router, NodeSet& scanline,
     }
 }
 
+// Correct visibility for pins or connector endpoints on the leading or
+// trailing edge of the visibility graph which may only have visibility in 
+// the outward direction where there will not be a possible path.
+void fixConnectionPointVisibilityOnOutsideOfVisibilityGraph(Event **events, 
+        size_t totalEvents, ConnDirFlags addedVisibility)
+{
+    if (totalEvents > 0)
+    {
+        double firstPos = events[0]->pos;
+        size_t index = 0;
+        while (index < totalEvents)
+        {
+            if (events[index]->pos > firstPos)
+            {
+                break;
+            }
+            fprintf(stderr, "HERE 1\n");
+
+            if (events[index]->v->c)
+            {
+                events[index]->v->c->visDirections |= addedVisibility;
+            }
+            ++index;
+        }
+        index = 0;
+        double lastPos = events[totalEvents - 1]->pos;
+        while (index < totalEvents)
+        {
+            size_t revIndex = totalEvents - 1 - index;
+            if (events[revIndex]->pos < lastPos)
+            {
+                break;
+            }
+            fprintf(stderr, "HERE 2\n");
+
+            if (events[revIndex]->v->c)
+            {
+                events[revIndex]->v->c->visDirections |= addedVisibility;
+            }
+            ++index;
+        }
+    }
+}
 
 extern void generateStaticOrthogonalVisGraph(Router *router)
 {
@@ -1851,6 +1894,13 @@ extern void generateStaticOrthogonalVisGraph(Router *router)
         events[ctr++] = new Event(ConnPoint, v, point.y);
     }
     qsort((Event*)events, (size_t) totalEvents, sizeof(Event*), compare_events);
+    
+    // Correct visibility for pins or connector endpoints on the leading or
+    // trailing edge of the visibility graph which may only have visibility in 
+    // the outward direction where there will not be a possible path.  We
+    // fix this by giving them visibility left and right.
+    fixConnectionPointVisibilityOnOutsideOfVisibilityGraph(events, totalEvents, 
+            (ConnDirLeft | ConnDirRight));
 
     // Process the vertical sweep.
     // We do multiple passes over sections of the list so we can add relevant
@@ -1940,6 +1990,13 @@ extern void generateStaticOrthogonalVisGraph(Router *router)
         events[ctr++] = new Event(ConnPoint, v, point.x);
     }
     qsort((Event*)events, (size_t) totalEvents, sizeof(Event*), compare_events);
+
+    // Correct visibility for pins or connector endpoints on the leading or
+    // trailing edge of the visibility graph which may only have visibility in 
+    // the outward direction where there will not be a possible path.  We
+    // fix this by giving them visibility up and down.
+    fixConnectionPointVisibilityOnOutsideOfVisibilityGraph(events, totalEvents, 
+            (ConnDirUp | ConnDirDown));
 
     // Process the horizontal sweep
     thisPos = (totalEvents > 0) ? events[0]->pos : 0;
