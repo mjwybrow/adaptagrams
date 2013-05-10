@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2011  Monash University
+ * Copyright (C) 2004-2013  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -604,7 +604,8 @@ class AVOID_EXPORT Router {
                 const unsigned int type);
         void attachedConns(IntList &conns, const unsigned int shapeId,
                 const unsigned int type);
-        void markConnectors(Obstacle *obstacle);
+        void markPolylineConnectorsNeedingReroutingForDeletedObstacle(
+                Obstacle *obstacle);
         void generateContains(VertInf *pt);
         void printInfo(void);
         void regenerateStaticBuiltGraph(void);

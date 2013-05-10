@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2011  Monash University
+ * Copyright (C) 2004-2013  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -482,7 +482,7 @@ void Router::processActions(void)
 
         if (SelectiveReroute && (!isMove || notPartialTime || first_move))
         {
-            markConnectors(obstacle);
+            markPolylineConnectorsNeedingReroutingForDeletedObstacle(obstacle);
         }
 
         adjustContainsWithDel(pid);
@@ -1509,17 +1509,24 @@ static double AngleAFromThreeSides(const double a, const double b,
 }
 #endif
 
-void Router::markConnectors(Obstacle *obstacle)
+// Given an deleted obstacle, uses a simple heauristic to determine polyline
+// connectors that may now have a better path through the region occupied by
+// the shape and mark them as needing to be rerouted.
+// See the "Incremental Connector Routing" paper which explains this code.
+//
+void Router::markPolylineConnectorsNeedingReroutingForDeletedObstacle(
+        Obstacle *obstacle)
 {
     if (RubberBandRouting)
     {
-        // When rubber-band routing, we do no reroute connectors that
+        // When rubber-band routing, we do not reroute connectors that
         // may have a better route, only invalid connectors.
         return;
     }
 
     COLA_ASSERT(SelectiveReroute);
 
+    // For each connector...
     ConnRefList::const_iterator end = connRefs.end();
     for (ConnRefList::const_iterator it = connRefs.begin(); it != end; ++it)
     {
@@ -1535,6 +1542,11 @@ void Router::markConnectors(Obstacle *obstacle)
             // Already marked, so skip.
             continue;
         }
+        else if (conn->routingType() != ConnType_PolyLine)
+        {
+            // This test only works for polyline connectors, so skip others.
+            continue;
+        }
 
         Point start = conn->m_route.ps[0];
         Point end = conn->m_route.ps[conn->m_route.size() - 1];
@@ -1544,6 +1556,7 @@ void Router::markConnectors(Obstacle *obstacle)
         double estdist;
         double e1, e2;
 
+        // For each vertex of the obstacle...
         VertInf *beginV = obstacle->firstVert();
         VertInf *endV = obstacle->lastVert()->lstNext;
         for (VertInf *i = beginV; i != endV; i = i->lstNext)
