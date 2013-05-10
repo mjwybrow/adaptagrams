@@ -106,6 +106,9 @@ ShapeConnectionPin::ShapeConnectionPin(JunctionRef *junction,
     m_junction->addConnectionPin(this);
     
     // Create a visibility vertex for this ShapeConnectionPin.
+    // XXX These IDs should really be uniquely identifiable in case there
+    //     are multiple pins on a shape.  I think currently this case will
+    //     break rubber-band routing.
     VertID id(m_junction->id(), kShapeConnectionPin, 
             VertID::PROP_ConnPoint | VertID::PROP_ConnectionPin);
     m_vertex = new VertInf(m_router, id, m_junction->position());
