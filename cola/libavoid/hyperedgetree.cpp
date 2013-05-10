@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2011  Monash University
+ * Copyright (C) 2011-2013  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -39,7 +39,8 @@ namespace Avoid {
 HyperEdgeTreeNode::HyperEdgeTreeNode()
     : junction(NULL),
       shiftSegmentNodeSet(NULL),
-      finalVertex(NULL)
+      finalVertex(NULL),
+      isConnectorSource(false)
 {
 }
 
@@ -488,43 +489,67 @@ void HyperEdgeTreeEdge::replaceNode(HyperEdgeTreeNode *oldNode,
 void HyperEdgeTreeEdge::writeEdgesToConns(HyperEdgeTreeNode *ignored,
         size_t pass)
 {
+    COLA_ASSERT(ignored != NULL);
+    COLA_ASSERT(ends.first != NULL);
+    COLA_ASSERT(ends.second != NULL);
+
+    HyperEdgeTreeNode *prevNode = 
+            (ignored == ends.first) ? ends.first : ends.second;
+    HyperEdgeTreeNode *nextNode = 
+            (ignored == ends.first) ? ends.second : ends.first;
+
     if (pass == 0)
     {
         conn->m_display_route.clear();
     }
     else if (pass == 1)
     {
-        if (ignored == ends.first)
+        if (conn->m_display_route.empty())
         {
-            if (conn->m_display_route.empty())
-            {
-                //printf("[%u] - %g %g\n", conn->id(), ends.first->point.x, ends.first->point.y);
-                conn->m_display_route.ps.push_back(ends.first->point);
-            }
-            //printf("[%u] + %g %g\n", conn->id(), ends.second->point.x, ends.second->point.y);
-            conn->m_display_route.ps.push_back(ends.second->point);
+            //printf("[%u] - %g %g\n", conn->id(), prevNode->point.x, prevNode->point.y);
+            conn->m_display_route.ps.push_back(prevNode->point);
         }
-        else
+        //printf("[%u] + %g %g\n", conn->id(), nextNode->point.x, nextNode->point.y);
+        conn->m_display_route.ps.push_back(nextNode->point);
+
+        size_t nextNodeEdges = nextNode->edges.size();
+        if (nextNodeEdges != 2)
         {
-            if (conn->m_display_route.empty())
+            // We have finished writing a connector.  If the node has just
+            // two edges then it is an intermediate node on a connector.
+            bool shouldReverse = false;
+            if (nextNodeEdges == 1)
             {
-                //printf("[%u] - %g %g\n", conn->id(), ends.second->point.x, ends.second->point.y);
-                conn->m_display_route.ps.push_back(ends.second->point);
+                // This connector led to a terminal.
+                if (nextNode->isConnectorSource)
+                {
+                    shouldReverse = true;
+                }
             }
-            //printf("[%u] + %g %g\n", conn->id(), ends.first->point.x, ends.first->point.y);
-            conn->m_display_route.ps.push_back(ends.first->point);
+            else // if (nextNodeEdges > 2)
+            {
+                // This connector was between two junctions.
+                COLA_ASSERT(conn->m_dst_connend);
+                JunctionRef *correctEndJunction = 
+                        conn->m_dst_connend->junction();
+                if (nextNode->junction != correctEndJunction)
+                {
+                    shouldReverse = true;
+                    COLA_ASSERT(nextNode->junction == 
+                            conn->m_src_connend->junction());
+                }
+            }
+
+            if (shouldReverse == true)
+            {
+                // Reverse the written connector route.
+                std::reverse(conn->m_display_route.ps.begin(),
+                        conn->m_display_route.ps.end());
+            }
         }
     }
 
-    if (ends.first && (ends.first != ignored))
-    {
-        ends.first->writeEdgesToConns(this, pass);
-    }
-
-    if (ends.second && (ends.second != ignored))
-    {
-        ends.second->writeEdgesToConns(this, pass);
-    }
+    nextNode->writeEdgesToConns(this, pass);
 }
 
 // This method traverses the hyperedge tree and creates connectors for each

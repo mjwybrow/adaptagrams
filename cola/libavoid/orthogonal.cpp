@@ -1817,7 +1817,6 @@ void fixConnectionPointVisibilityOnOutsideOfVisibilityGraph(Event **events,
             {
                 break;
             }
-            fprintf(stderr, "HERE 1\n");
 
             if (events[index]->v->c)
             {
@@ -1834,7 +1833,6 @@ void fixConnectionPointVisibilityOnOutsideOfVisibilityGraph(Event **events,
             {
                 break;
             }
-            fprintf(stderr, "HERE 2\n");
 
             if (events[revIndex]->v->c)
             {
@@ -3951,6 +3949,7 @@ struct ImproveHyperEdges
                 {
                     prev = nodeFront;
                     nodeFront->point = route.at(0);
+                    nodeFront->isConnectorSource = true;
                 }
                 new HyperEdgeTreeEdge(prev, node, connRef);
                 prev = node;
