@@ -63,9 +63,9 @@ static double getRunTime() {
     clock_t time = clock()-lastTime;
     return (double)time/(double)CLOCKS_PER_SEC;
 }
-#ifdef __DONT_COMPILE
+
 int
-main()
+main(void)
 {
     bool dump=false;
     srand(time(0));
@@ -138,4 +138,3 @@ main()
 #endif
     return 0;
 }
-#endif // __DONT_COMPILE

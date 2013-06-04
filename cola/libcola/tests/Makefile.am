@@ -7,7 +7,7 @@ LDADD = \
   $(top_builddir)/libavoid/libavoid.la \
   $(CAIROMM_LIBS)
 
-check_PROGRAMS = random_graph page_bounds constrained unsatisfiable invalid makefeasible rectclustershapecontainment FixedRelativeConstraint01 StillOverlap01 StillOverlap02
+check_PROGRAMS = random_graph page_bounds constrained unsatisfiable invalid makefeasible rectclustershapecontainment FixedRelativeConstraint01 StillOverlap01 StillOverlap02 shortest_paths
 #check_PROGRAMS = unconstrained constrained containment shortest_paths connected_components large_graph convex_hull scale_free trees random_graph large_graph topology boundary planar #resize
 #check_PROGRAMS = topology boundary planar resize resizealignment
 
@@ -31,7 +31,7 @@ invalid_SOURCES = invalid.cpp
 makefeasible_LDADD = $(LDADD) $(top_srcdir)/libavoid/libavoid.la
 makefeasible_SOURCES = makefeasible02.cpp 
 
-#shortest_paths_SOURCES = shortest_paths.cpp
+shortest_paths_SOURCES = shortest_paths.cpp
 #unconstrained_SOURCES = unconstrained.cpp 
 #containment_SOURCES = containment.cpp 
 #topology_SOURCES = topology.cpp 
