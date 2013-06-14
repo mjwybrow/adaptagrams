@@ -112,9 +112,9 @@ main(void)
     shortest_paths::floyd_warshall(V,D2,es,&weights);
     cout<<"  ...done, time="<<getRunTime()<<endl;
 
-    for (int i = 0; i < V; ++i) {
+    for (unsigned int i = 0; i < V; ++i) {
         if(dump) cout << i << " -> ";
-        for (int j = 0; j < V; ++j) {
+        for (unsigned int j = 0; j < V; ++j) {
 	        if(dump) cout << setw(5) << D1[i][j];
 	        assert(D1[i][j]==D2[i][j]);
 #ifdef TEST_AGAINST_BOOST

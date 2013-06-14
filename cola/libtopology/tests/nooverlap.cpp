@@ -53,7 +53,8 @@ using namespace topology;
 struct Create {
     Create() : ctr(0) {}
     Node* operator() (vpsc::Rectangle* r) {
-        return new Node(ctr,r,new vpsc::Variable(ctr++));
+        return new Node(ctr,r,new vpsc::Variable(ctr));
+        ++ctr;
     }
     unsigned ctr;
 };

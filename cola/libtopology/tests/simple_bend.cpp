@@ -161,7 +161,7 @@ void simple(void test(Nodes&, EdgePoints&, cola::DesiredPositionsInDim&,string&)
             x-=computeStepSize(H,g,g)*g;
             */
             setVariableDesiredPositions(vs,d,x);
-            bool interrupted=t.solve();
+            t.solve();
             stringstream ss;
             ss << "simple-" << name << "-" << i << ".svg";
             writeFile(nodes,es,ss.str());
