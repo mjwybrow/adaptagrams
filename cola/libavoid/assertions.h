@@ -19,7 +19,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
  *
- * Author(s):   Michael Wybrow <mjwybrow@users.sourceforge.net>
+ * Author(s):   Michael Wybrow
 */
 
 #ifndef AVOID_ASSERTIONS_H

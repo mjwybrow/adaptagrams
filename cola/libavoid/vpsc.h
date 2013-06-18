@@ -19,8 +19,8 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
  *
- * Author(s):   Tim Dwyer  <Tim.Dwyer@csse.monash.edu.au>
- *              Michael Wybrow  <mjwybrow@users.sourceforge.net>
+ * Author(s):   Tim Dwyer
+ *              Michael Wybrow
  *
  * --------------
  *
@@ -31,7 +31,7 @@
  *  -  Unnecessary code (like Solver) has been removed.
  *  -  The PairingHeap code has been replaced by a STL priority_queue.
  *
- * Modifications:  Michael Wybrow  <mjwybrow@users.sourceforge.net>
+ * Modifications:  Michael Wybrow
  *
 */
 
