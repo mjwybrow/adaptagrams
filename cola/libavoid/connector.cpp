@@ -1126,7 +1126,7 @@ void ConnRef::generateStandardPath(std::vector<Point>& path,
         }
     }
     //db_printf("GO\n");
-    //db_printf("src: %X strt: %X dst: %x\n", (int) _srcVert, (int) _startVert, (int) _dstVert);
+    //db_printf("src: %X strt: %X dst: %X\n", (int) m_src_vert, (int) m_start_vert, (int) m_dst_vert);
     unsigned int pathlen = 0;
     while (pathlen == 0)
     {

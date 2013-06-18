@@ -1077,8 +1077,9 @@ void Router::performSlowRoutingCallBack(double completeFraction)
     {
         // Compute the elapsed time in msec since the beginning of the 
         // transaction.
-        unsigned int elapsedTime = (clock() - m_transaction_start_time) / 
-                (CLOCKS_PER_SEC / (double) 1000);
+        unsigned int elapsedTime = (unsigned int) 
+                ((clock() - m_transaction_start_time) / 
+                 (CLOCKS_PER_SEC / (double) 1000));
     
         bool shouldContinueWithPenalties = m_slow_routing_callback(elapsedTime, 
                 completeFraction * 100);
