@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2011  Monash University
+ * Copyright (C) 2004-2013  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -340,16 +340,44 @@ class AVOID_EXPORT ConnRef
         // @returns The destination endpoint vertex.
         VertInf *dst(void) const;
         
+        //! @brief  Sets a fixed user-specified route for this connector.
+        //!
+        //! libavoid will no longer calculate object-avoiding paths for this
+        //! connector but instead just return the specified route.  The path
+        //! of this connector will still be considered for the purpose of 
+        //! nudging and routing other non-fixed connectors.
+        //!
+        //! @note  The endpoints of this connector will remain at their current
+        //!        positions, even if they are attached to shapes that move.
+        //!
+        //! @param[in] route  The new fixed route for the connector.
+        //! @sa  clearFixedRoute()
+        //!
+        void setFixedRoute(const PolyLine& route);
+
+        //! @brief  Returns whether the connector route is marked as fixed.
+        //!
+        //! @return True if the connector route is fixed, false otherwise.
+        //!
+        bool hasFixedRoute(void) const;
+
+        //! @brief  Returns the connector to being automatically routed if it
+        //!         was marked as fixed.
+        //!
+        //! @sa  setFixedRoute()
+        //!
+        void clearFixedRoute(void);
+
         void set_route(const PolyLine& route);
         void calcRouteDist(void);
         void makeActive(void);
         void makeInactive(void);
         VertInf *start(void);
         void removeFromGraph(void);
-        bool isInitialised(void);
+        bool isInitialised(void) const;
         void makePathInvalid(void);
         void setHateCrossings(bool value);
-        bool doesHateCrossings(void);
+        bool doesHateCrossings(void) const;
         void setEndpoint(const unsigned int type, const ConnEnd& connEnd);
         bool setEndpoint(const unsigned int type, const VertID& pointID, 
                 Point *pointSuggestion = NULL);
@@ -394,6 +422,7 @@ class AVOID_EXPORT ConnRef
         bool m_active:1;
         bool m_initialised:1;
         bool m_hate_crossings:1;
+        bool m_has_fixed_route:1;
         PolyLine m_route;
         Polygon m_display_route;
         double m_route_dist;

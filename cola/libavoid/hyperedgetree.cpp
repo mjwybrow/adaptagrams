@@ -171,6 +171,26 @@ void HyperEdgeTreeNode::listJunctionsAndConnectors(HyperEdgeTreeEdge *ignored,
 }
 
 
+// This method traverses the hyperedge tree and returns true if it contains
+// any connectors with fixed routes.
+//
+bool HyperEdgeTreeNode::hasFixedRouteConnectors(const HyperEdgeTreeEdge *ignored) const 
+{
+    for (std::list<HyperEdgeTreeEdge *>::const_iterator curr = edges.begin();
+            curr != edges.end(); ++curr)
+    {
+        if (*curr != ignored)
+        {
+            if((*curr)->hasFixedRouteConnectors(this))
+            {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+
 // This method traverses the hyperedge tree removing zero length edges.
 //
 void HyperEdgeTreeNode::removeZeroLengthEdges(HyperEdgeTreeEdge *ignored)
@@ -627,6 +647,35 @@ void HyperEdgeTreeEdge::listJunctionsAndConnectors(HyperEdgeTreeNode *ignored,
         ends.second->listJunctionsAndConnectors(this, junctions, connectors);
     }
 }
+
+// This method traverses the hyperedge tree and returns true if it contains
+// any connectors with fixed routes.
+//
+bool HyperEdgeTreeEdge::hasFixedRouteConnectors(
+        const HyperEdgeTreeNode *ignored) const
+{
+    if (this->conn->hasFixedRoute())
+    {
+        return true;
+    }
+
+    if (ends.first != ignored)
+    {
+        if (ends.first->hasFixedRouteConnectors(this))
+        {
+            return true;
+        }
+    }
+    else if (ends.second != ignored)
+    {
+        if (ends.second->hasFixedRouteConnectors(this))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 
 // This method splits the current edge, adding a node at the given point.
 // The current edge will connect the source node and the newly created node.

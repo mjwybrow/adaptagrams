@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2010  Monash University
+ * Copyright (C) 2004-2013  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -53,6 +53,7 @@ ConnRef::ConnRef(Router *router, const unsigned int id)
       m_needs_repaint(false),
       m_active(false),
       m_hate_crossings(false),
+      m_has_fixed_route(false),
       m_route_dist(0),
       m_src_vert(NULL),
       m_dst_vert(NULL),
@@ -82,6 +83,7 @@ ConnRef::ConnRef(Router *router, const ConnEnd& src, const ConnEnd& dst,
       m_needs_repaint(false),
       m_active(false),
       m_hate_crossings(false),
+      m_has_fixed_route(false),
       m_route_dist(0),
       m_src_vert(NULL),
       m_dst_vert(NULL),
@@ -379,6 +381,11 @@ bool ConnRef::getConnEndForEndpointVertex(VertInf *vertex,
 
 void ConnRef::updateEndPoint(const unsigned int type, const ConnEnd& connEnd)
 {
+    if (m_has_fixed_route)
+    {
+        return;
+    }
+
     common_updateEndPoint(type, connEnd);
 
     if (m_router->m_allows_polyline_routing)
@@ -580,6 +587,23 @@ void ConnRef::set_route(const PolyLine& route)
     //_display_route.clear();
 }
 
+void ConnRef::setFixedRoute(const PolyLine& route)
+{
+    m_has_fixed_route = true;
+    m_route = route;
+    m_display_route = m_route.simplify();
+}
+
+bool ConnRef::hasFixedRoute(void) const
+{
+    return m_has_fixed_route;
+}
+
+void ConnRef::clearFixedRoute(void)
+{
+    m_has_fixed_route = false;
+    makePathInvalid();
+}
 
 Polygon& ConnRef::displayRoute(void)
 {
@@ -681,7 +705,7 @@ VertInf *ConnRef::start(void)
 }
 
 
-bool ConnRef::isInitialised(void)
+bool ConnRef::isInitialised(void) const
 {
     return m_active;
 }
@@ -1233,7 +1257,7 @@ void ConnRef::setHateCrossings(bool value)
 }
 
 
-bool ConnRef::doesHateCrossings(void)
+bool ConnRef::doesHateCrossings(void) const
 {
     return m_hate_crossings;
 }

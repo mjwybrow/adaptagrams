@@ -2356,7 +2356,7 @@ static void buildOrthogonalNudgingSegments(Router *router,
                             maxLim = std::min(maxLim, pos + freeConnBuffer);
                         }
 
-                        if (minLim == maxLim)
+                        if ((minLim == maxLim) || (*curr)->hasFixedRoute())
                         {
                             // Fixed.
                             segmentList.push_back(new NudgingShiftSegment(*curr, 
@@ -3970,6 +3970,30 @@ struct ImproveHyperEdges
         {
             HyperEdgeTreeNode *node = hyperEdgeTreeJunctions[*curr];
             node->removeOtherJunctionsFrom(NULL, hyperEdgeTreeRoots);
+        }
+
+        // Remove hyperedges containing one or more fixed route connectors.
+        // We may do something more clever with these in future.
+        JunctionRef *treeRootToErase = NULL;
+        for (JunctionSet::iterator curr = hyperEdgeTreeRoots.begin();
+                curr != hyperEdgeTreeRoots.end(); ++curr)
+        {
+            if (treeRootToErase)
+            {
+                hyperEdgeTreeRoots.erase(treeRootToErase);
+                treeRootToErase = NULL;
+            }
+
+            HyperEdgeTreeNode *node = hyperEdgeTreeJunctions[*curr];
+            if (node->hasFixedRouteConnectors(NULL))
+            {
+                treeRootToErase = *curr;
+            }
+        }
+        if (treeRootToErase)
+        {
+            hyperEdgeTreeRoots.erase(treeRootToErase);
+            treeRootToErase = NULL;
         }
 
         router->timers.Register(tmHyperedgeImprove, timerStart);

@@ -78,6 +78,7 @@ struct HyperEdgeTreeNode
             ConnRefList& oldConns, ConnRef *conn);
     void listJunctionsAndConnectors(HyperEdgeTreeEdge *ignored,
             JunctionRefList& junctions, ConnRefList& connectors);
+    bool hasFixedRouteConnectors(const HyperEdgeTreeEdge *ignored) const;
 
     std::list<HyperEdgeTreeEdge *> edges;
     JunctionRef *junction;
@@ -109,6 +110,7 @@ struct HyperEdgeTreeEdge
             HyperEdgeTreeNode *newNode);
     void listJunctionsAndConnectors(HyperEdgeTreeNode *ignored,
             JunctionRefList& junctions, ConnRefList& connectors);
+    bool hasFixedRouteConnectors(const HyperEdgeTreeNode *ignored) const;
 
     std::pair<HyperEdgeTreeNode *, HyperEdgeTreeNode *> ends;
     ConnRef *conn;

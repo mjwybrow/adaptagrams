@@ -925,17 +925,24 @@ void Router::rerouteAndCallbackConnectors(void)
     timers.Register(tmOrthogRoute, timerStart);
     for (ConnRefList::const_iterator i = connRefs.begin(); i != fin; ++i) 
     {
-        if (hyperedgeConns.find(*i) != hyperedgeConns.end())
+        ConnRef *connector = *i;
+        if (hyperedgeConns.find(connector) != hyperedgeConns.end())
         {
             // This will be rerouted by the hyperedge code, so do nothing.
             continue;
         }
 
-        (*i)->m_needs_repaint = false;
-        bool rerouted = (*i)->generatePath();
+        if (connector->hasFixedRoute())
+        {
+            // We don't reroute connectors with fixed routes.
+            continue;
+        }
+
+        connector->m_needs_repaint = false;
+        bool rerouted = connector->generatePath();
         if (rerouted)
         {
-            reroutedConns.push_back(*i);
+            reroutedConns.push_back(connector);
         }
     }
     timers.Stop();
