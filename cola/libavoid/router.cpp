@@ -44,7 +44,7 @@ namespace Avoid {
 
 
 Router::Router(const unsigned int flags)
-    : visOrthogGraph(true),
+    : visOrthogGraph(),
       PartialTime(false),
       SimpleRouting(false),
       ClusteredRouting(true),
@@ -61,7 +61,6 @@ Router::Router(const unsigned int flags)
       m_largest_assigned_id(0),
       m_consolidate_actions(true),
       m_currently_calling_destructors(false),
-      m_slow_routing_callback(NULL),
       m_topology_addon(new TopologyAddonInterface()),
       // Mode options:
       m_allows_polyline_routing(false),
@@ -923,8 +922,15 @@ void Router::rerouteAndCallbackConnectors(void)
             m_hyperedge_rerouter.calcHyperedgeConnectors();
 
     timers.Register(tmOrthogRoute, timerStart);
+    unsigned int totalConns = connRefs.size();
+    unsigned int numOfReroutedConns = 0;
     for (ConnRefList::const_iterator i = connRefs.begin(); i != fin; ++i) 
     {
+        // Progress reporting and continuation check.
+        performContinuationCheck(TransactionPhaseRouteSearch, 
+                numOfReroutedConns, totalConns);
+        ++numOfReroutedConns;
+
         ConnRef *connector = *i;
         if (hyperedgeConns.find(connector) != hyperedgeConns.end())
         {
@@ -969,6 +975,9 @@ void Router::rerouteAndCallbackConnectors(void)
         (*i)->m_needs_repaint = true;
         (*i)->performCallback();
     }
+
+    // Progress reporting.
+    performContinuationCheck(TransactionPhaseCompleted, 1, 1);
 }
 
 // Type holding a cost estimate and ConnRef.
@@ -1078,26 +1087,38 @@ static double cheapEstimatedCost(ConnRef *lineRef)
 }
 
 
-void Router::performSlowRoutingCallBack(double completeFraction)
+void Router::performContinuationCheck(unsigned int phaseNumber, 
+        unsigned int stepNumber, unsigned int totalSteps)
 {
-    if (m_slow_routing_callback)
+    // Compute the elapsed time in msec since the beginning of the transaction.
+    unsigned int elapsedMsec = (unsigned int) 
+            ((clock() - m_transaction_start_time) / 
+             (CLOCKS_PER_SEC / (double) 1000));
+
+    bool shouldContinue = shouldContinueTransactionWithProgress(elapsedMsec, 
+            phaseNumber, TransactionPhaseCompleted, 
+            stepNumber / (double)totalSteps);
+    if (shouldContinue == false)
     {
-        // Compute the elapsed time in msec since the beginning of the 
-        // transaction.
-        unsigned int elapsedTime = (unsigned int) 
-                ((clock() - m_transaction_start_time) / 
-                 (CLOCKS_PER_SEC / (double) 1000));
-    
-        bool shouldContinueWithPenalties = m_slow_routing_callback(elapsedTime, 
-                completeFraction * 100);
-        if (!shouldContinueWithPenalties)
-        {
-            // Host program has asked us not to continue with penalties.
-            m_in_crossing_rerouting_stage = false;
-            m_abort_transaction = true;
-        }
+        // Host program has asked us not to continue the transaction.
+        m_abort_transaction = true;
     }
 }
+
+
+bool Router::shouldContinueTransactionWithProgress(unsigned int elapsedTime, 
+        unsigned int phaseNumber, unsigned int totalPhases, 
+        double proportion)
+{
+#if 0
+    printf("Progress: %8u, phase %u of %u... %.2f%%\n", elapsedTime,
+            phaseNumber, totalPhases, proportion * 100);
+#endif
+
+    // We always continue.  Subclasses can override this behaviour.
+    return true;
+}
+
 
 class CmpOrderedConnCostRef
 {
@@ -1123,14 +1144,9 @@ void Router::improveCrossings(void)
         return;
     }
     
-    // If routing is already slow, check we want to continue with the
-    // slow rerouting operation.
-    performSlowRoutingCallBack(0.0);
-    if (m_abort_transaction)
-    {
-        return;
-    }
-    
+    unsigned int numOfConns = connRefs.size();
+    unsigned int numOfConnsChecked = 0;
+
     // Find crossings and reroute connectors.
     m_in_crossing_rerouting_stage = true;
     ConnCostRefSet crossingConns;
@@ -1138,6 +1154,16 @@ void Router::improveCrossings(void)
     ConnRefList::iterator fin = connRefs.end();
     for (ConnRefList::iterator i = connRefs.begin(); i != fin; ++i) 
     {
+        // Progress reporting and continuation check.
+        ++numOfConnsChecked;
+        performContinuationCheck(TransactionPhaseCrossingDetection,
+                numOfConnsChecked, numOfConns);
+        if (m_abort_transaction)
+        {
+            m_in_crossing_rerouting_stage = false;
+            return;
+        }
+    
         Avoid::Polygon& iRoute = (*i)->routeRef();
         if (iRoute.size() == 0)
         {
@@ -1201,14 +1227,6 @@ void Router::improveCrossings(void)
         }
     }
 
-    // Again check we want to continue with the slow rerouting operation,
-    // now that we've spent the time looking for crossings.
-    performSlowRoutingCallBack(0.0);
-    if (m_abort_transaction)
-    {
-        return;
-    }
-
     unsigned int numOfConnsToReroute = 1;
     unsigned int numOfConnsRerouted = 1;
     // At this point we have a list containing sets of interacting (crossing) 
@@ -1258,9 +1276,16 @@ void Router::improveCrossings(void)
                 }
                 else if (pass == 1)
                 {
-                    performSlowRoutingCallBack(numOfConnsRerouted / 
-                            (double) numOfConnsToReroute);
+                    // Progress reporting and continuation check.
+                    performContinuationCheck(TransactionPhaseRerouteSearch, 
+                            numOfConnsRerouted, numOfConnsToReroute);
+                    if (m_abort_transaction)
+                    {
+                        m_in_crossing_rerouting_stage = false;
+                        return;
+                    }
                     ++numOfConnsRerouted;
+                    
                     // Recompute this path.
                     conn->generatePath();
                 }
@@ -1293,9 +1318,11 @@ void Router::improveCrossings(void)
             }
             else if (pass == 1)
             {
-                performSlowRoutingCallBack(numOfConnsRerouted / 
-                        (double) numOfConnsToReroute);
+                // Progress reporting and continuation check.
+                performContinuationCheck(TransactionPhaseRerouteSearch,
+                        numOfConnsRerouted, numOfConnsToReroute);
                 ++numOfConnsRerouted;
+                
                 // Recompute this path.
                 conn->generatePath();
             }
@@ -2090,12 +2117,6 @@ bool Router::existsInvalidOrthogonalPaths(void)
         }
     }
     return false;
-}
-
-
-void Router::setSlowRoutingCallback(bool (*func)(unsigned int, double))
-{
-    m_slow_routing_callback = func;
 }
 
 

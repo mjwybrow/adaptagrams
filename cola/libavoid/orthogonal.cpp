@@ -1910,6 +1910,11 @@ extern void generateStaticOrthogonalVisGraph(Router *router)
     unsigned int posFinishIndex = 0;
     for (unsigned i = 0; i <= totalEvents; ++i)
     {
+        // Progress reporting and continuation check.
+        router->performContinuationCheck(
+                TransactionPhaseOrthogonalVisibilityGraphScanX, 
+                i, totalEvents);
+
         // If we have finished the current scanline or all events, then we
         // process the events on the current scanline in a couple of passes.
         if ((i == totalEvents) || (events[i]->pos != thisPos))
@@ -2002,6 +2007,11 @@ extern void generateStaticOrthogonalVisGraph(Router *router)
     posFinishIndex = 0;
     for (unsigned i = 0; i <= totalEvents; ++i)
     {
+        // Progress reporting and continuation check.
+        router->performContinuationCheck(
+                TransactionPhaseOrthogonalVisibilityGraphScanY, 
+                i, totalEvents);
+
         // If we have finished the current scanline or all events, then we
         // process the events on the current scanline in a couple of passes.
         if ((i == totalEvents) || (events[i]->pos != thisPos))
@@ -2928,10 +2938,19 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
     // we try 10 times, reducing each time by a 10th of the original amount.
     double reductionSteps = 10.0;
 
+    unsigned int totalSegmentsToShift = segmentList.size();
+    unsigned int numOfSegmentsShifted = 0;
     // Do the actual nudging.
     ShiftSegmentList currentRegion;
     while (!segmentList.empty())
     {
+        // Progress reporting and continuation check.
+        numOfSegmentsShifted = totalSegmentsToShift - segmentList.size();
+        router->performContinuationCheck(
+                (dimension == XDIM) ? TransactionPhaseOrthogonalNudgingX : 
+                TransactionPhaseOrthogonalNudgingY, numOfSegmentsShifted,
+                totalSegmentsToShift);
+
         // Take a reference segment
         ShiftSegment *currentSegment = segmentList.front();
         // Then, find the segments that overlap this one.

@@ -194,6 +194,36 @@ enum RoutingOption
     lastRoutingOptionMarker
 };
 
+//! @brief  Types of routing phases reported by 
+//!         Router::shouldContinueTransactionWithProgress().
+//!
+//! This phases will occur in the order given here, but each phase may take
+//! varying amounts of time.
+//!
+enum TransactionPhases 
+{
+    //! @brief  The orthogoanal visibility graph is built by conducting a 
+    //!         scan in each dimension.  This is the first dimension.
+    TransactionPhaseOrthogonalVisibilityGraphScanX = 1,
+    //! @brief  The orthogoanal visibility graph is built by conducting a 
+    //!         scan in each dimension.  This is the second dimension.
+    TransactionPhaseOrthogonalVisibilityGraphScanY,
+    //! @brief  Initial routes are searched for in the visibility graph.
+    TransactionPhaseRouteSearch,
+    //! @brief  Orthogonal edge segments are nudged apart in the x-dimension.
+    TransactionPhaseCrossingDetection,
+    //! @brief  Crossing connectors are rerouted to hopefully find better 
+    //!         routes.
+    TransactionPhaseRerouteSearch,
+    //! @brief  Not a real phase, but represents the router is finished (or has
+    //!         aborted) the transaction and you may interact with is again.
+    TransactionPhaseOrthogonalNudgingX,
+    //! @brief  Orthogonal edge segments are nudged apart in the y-dimension.
+    TransactionPhaseOrthogonalNudgingY,
+    //! @brief  With crossing penalties enabled, crossing detection is 
+    //!         performed to find all crossings.
+    TransactionPhaseCompleted
+};
 
 // NOTE: This is an internal helper class that should not be used by the user.
 //
@@ -574,26 +604,47 @@ class AVOID_EXPORT Router {
         //!
         bool objectIdIsUnused(const unsigned int id) const;
         
-        //! @brief  Register a callback function that will be called during
-        //!         slow, expensive connector rerouting.
+        //! @brief  A method called at regular intervals during transaction 
+        //!         processing to report progress and ask if the Router
+        //!         should continue the transaction.
         //! 
-        //! If set, this function will be called approximately once a second
-        //! during slow connector rerouting with crossing or shared path 
-        //! penalties.
+        //! You can subclass the Avoid::Router class to implement your 
+        //! own behaviour, such as to show a progress bar or cancel the 
+        //! transaction at the user's request.
         //!
-        //! The function will be passed as arguments the elapsed time in
-        //! msec, and the estimated percentage completeness.  It should 
-        //! return a boolean value indicating whether the router should
-        //! continue using expensive crossing penalties or reroute the 
-        //! remaining connectors without the crossing and shared path 
-        //! penalties.  If the function returns false, it will still be 
-        //! continued to be called to indicate completeness of the 
-        //! connector rerouting but the return value will be ignored for 
-        //! the rest of the transaction.
+        //! Note that you can get a sense of progress by looking at the 
+        //! phaseNumber divided by the totalPhases and the progress in the 
+        //! current phase, but be aware that phases and the intervals and
+        //! proportions at which this method is called will vary, sometime
+        //! unpredictably.
         //!
-        //! @param[in]  func  A function pointer for the function to call.
+        //! You can return false to request that the Router abort the current
+        //! transaction.  Be aware that it may not abort in some phases. For
+        //! others it may need to clean up some state before it is safe for 
+        //! you to interact with it again.  Hence you should wait for a final 
+        //! call to this method with the phase Avoid::TransactionPhaseCompleted
+        //! before continuing.
         //!
-        void setSlowRoutingCallback(bool (*func)(unsigned int, double));
+        //! @note  Your implementation of this method should be very fast as
+        //!        it will be called many times.  Also, you should not change
+        //!        or interact with the Router instance at all during these 
+        //!        calls.  Wait till you have received a call with the 
+        //!        Avoid::TransactionPhaseCompleted phase.
+        //!
+        //! @param  elapsedTime  The number of msec spent on the transaction
+        //!                      since it began.
+        //! @param  phaseNumber  A Router::TransactionPhases representing the
+        //!                      current phase of the transaction.
+        //! @param  totalPhases  The total number of phases to be performed 
+        //!                      during the transaction.
+        //! @param  proportion   A double representing the progress in the 
+        //!                      current phase.  Value will be between 0--1.
+        //!
+        //! @return  Whether the router should continue the transaction.
+        //!          This is true in the default (empty) implementation.
+        virtual bool shouldContinueTransactionWithProgress(
+                unsigned int elapsedTime, unsigned int phaseNumber, 
+                unsigned int totalPhases, double proportion);
 
         // Processes the actions list for the transaction.  You shouldn't
         // need to cal this.  Instead use processTransaction().
@@ -615,6 +666,8 @@ class AVOID_EXPORT Router {
         bool isInCrossingPenaltyReroutingStage(void) const;
         void markAllObstaclesAsMoved(void);
         ShapeRef *shapeContainingPoint(const Point& point);
+        void performContinuationCheck(unsigned int phaseNumber,
+                unsigned int stepNumber, unsigned int totalSteps);
 
         /** 
          *  @brief  Set an addon for doing orthogonal topology improvement.
@@ -672,7 +725,6 @@ class AVOID_EXPORT Router {
         void adjustClustersWithDel(const int p_cluster);
         void rerouteAndCallbackConnectors(void);
         void improveCrossings(void);
-        void performSlowRoutingCallBack(double completeFraction);
 
         ActionInfoList actionList;
         unsigned int m_largest_assigned_id;
@@ -684,8 +736,7 @@ class AVOID_EXPORT Router {
         ConnRerouteFlagDelegate m_conn_reroute_flags;
         HyperedgeRerouter m_hyperedge_rerouter;
         
-        // Slow-routing callback member variables. 
-        bool (*m_slow_routing_callback)(unsigned int, double);
+        // Progress tracking and transaction cancelling.
         clock_t m_transaction_start_time;
         bool m_abort_transaction;
         
