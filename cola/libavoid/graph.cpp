@@ -669,8 +669,9 @@ EdgeInf *EdgeInf::existingEdge(VertInf *i, VertInf *j)
 //===========================================================================
 
 
-EdgeList::EdgeList(void)
-    : m_first_edge(NULL),
+EdgeList::EdgeList(bool orthogonal)
+    : m_orthogonal(orthogonal),
+      m_first_edge(NULL),
       m_last_edge(NULL),
       m_count(0)
 {
