@@ -418,18 +418,18 @@ void ConnEnd::outputCode(FILE *fp, const char *srcDst, unsigned int num) const
 
     if (junction())
     {
-        fprintf(fp, "    ConnEnd %sPt%u(junctionRef%u);\n", srcDst,
-                num, m_anchor_obj->id());
+        fprintf(fp, "    %sPt = ConnEnd(junctionRef%u);\n", srcDst,
+                m_anchor_obj->id());
     }
     else if (shape())
     {
-        fprintf(fp, "    ConnEnd %sPt%u(shapeRef%u, %u);\n", srcDst,
-                num, m_anchor_obj->id(), m_connection_pin_class_id);
+        fprintf(fp, "    %sPt = ConnEnd(shapeRef%u, %u);\n", srcDst,
+                m_anchor_obj->id(), m_connection_pin_class_id);
     }
     else
     {
-        fprintf(fp, "   ConnEnd %sPt%u(Point(%" PREC "g, %" PREC "g), (ConnDirFlags) %u);\n",
-                srcDst, num, m_point.x, m_point.y, m_directions);
+        fprintf(fp, "    %sPt = ConnEnd(Point(%" PREC "g, %" PREC "g), (ConnDirFlags) %u);\n",
+                srcDst, m_point.x, m_point.y, m_directions);
     }
 }
 

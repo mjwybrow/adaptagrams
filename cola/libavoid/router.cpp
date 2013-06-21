@@ -2221,20 +2221,23 @@ void Router::outputInstanceToSVG(std::string instanceName)
         fprintf(fp, "    router->setRoutingOption((RoutingOption)%lu, %s);\n", 
                 (unsigned long)p, (m_routing_options[p]) ? "true" : "false");
     }
+    fprintf(fp, "    Polygon polygon;\n");
+    fprintf(fp, "    ConnRef *connRef = NULL;\n");
+    fprintf(fp, "    ConnEnd srcPt;\n");
+    fprintf(fp, "    ConnEnd dstPt;\n");
     ClusterRefList::reverse_iterator revClusterRefIt = clusterRefs.rbegin();
     while (revClusterRefIt != clusterRefs.rend())
     {
         ClusterRef *cRef = *revClusterRefIt;
-        fprintf(fp, "    Polygon clusterPoly%u(%lu);\n", 
-                cRef->id(), (unsigned long)cRef->polygon().size());
+        fprintf(fp, "    Polygon polygon.resize(%lu);\n", 
+                (unsigned long)cRef->polygon().size());
         for (size_t i = 0; i <cRef->polygon().size(); ++i)
         {
-            fprintf(fp, "    clusterPoly%u.ps[%lu] = Point(%g, %g);\n", 
-                    cRef->id(), (unsigned long)i, cRef->polygon().at(i).x,
+            fprintf(fp, "    polygon.ps[%lu] = Point(%g, %g);\n", 
+                    (unsigned long)i, cRef->polygon().at(i).x,
                     cRef->polygon().at(i).y);
         }
-        fprintf(fp, "    new ClusterRef(router, clusterPoly%u, %u);\n", 
-                cRef->id(), cRef->id());
+        fprintf(fp, "    new ClusterRef(router, polygon, %u);\n", cRef->id());
         ++revClusterRefIt;
     }
     ObstacleList::reverse_iterator revObstacleIt = m_obstacles.rbegin();

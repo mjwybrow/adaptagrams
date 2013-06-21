@@ -705,6 +705,7 @@ void EdgeList::addEdge(EdgeInf *edge)
 {
     // Dummy connections for ShapeConnectionPins won't be orthogonal, 
     // even in the orthogonal visibility graph.
+    COLA_UNUSED(m_orthogonal);
     COLA_ASSERT(!m_orthogonal || edge->isOrthogonal() ||
             edge->isDummyConnection());
     

@@ -416,36 +416,31 @@ void ConnRef::updateEndPoint(const unsigned int type, const ConnEnd& connEnd)
 
 void ConnRef::outputCode(FILE *fp) const
 {
-    fprintf(fp, "    ConnRef *connRef%u = new ConnRef(router, %u);\n",
-            id(), id());
+    fprintf(fp, "    // connRef%u\n", id());
+    fprintf(fp, "    connRef = new ConnRef(router, %u);\n", id());
     if (m_src_connend)
     {
         m_src_connend->outputCode(fp, "src");
-        fprintf(fp, "    connRef%u->setSourceEndpoint(srcPt%u);\n",
-                id(), id());
+        fprintf(fp, "    connRef->setSourceEndpoint(srcPt);\n");
     }
     else if (src())
     {
-        fprintf(fp, "    ConnEnd srcPt%u(Point(%" PREC "g, %" PREC "g), %u);\n",
-                id(), src()->point.x, src()->point.y, src()->visDirections);
-        fprintf(fp, "    connRef%u->setSourceEndpoint(srcPt%u);\n",
-                id(), id());
+        fprintf(fp, "    srcPt = ConnEnd(Point(%" PREC "g, %" PREC "g), %u);\n",
+                src()->point.x, src()->point.y, src()->visDirections);
+        fprintf(fp, "    connRef->setSourceEndpoint(srcPt);\n");
     }
     if (m_dst_connend)
     {
         m_dst_connend->outputCode(fp, "dst");
-        fprintf(fp, "    connRef%u->setDestEndpoint(dstPt%u);\n",
-                id(), id());
+        fprintf(fp, "    connRef->setDestEndpoint(dstPt);\n");
     }
     else if (dst())
     {
-        fprintf(fp, "    ConnEnd dstPt%u(Point(%" PREC "g, %" PREC "g), %u);\n",
-                id(), dst()->point.x, dst()->point.y, dst()->visDirections);
-        fprintf(fp, "    connRef%u->setDestEndpoint(dstPt%u);\n",
-                id(), id());
+        fprintf(fp, "    dstPt = ConnEnd(Point(%" PREC "g, %" PREC "g), %u);\n",
+                dst()->point.x, dst()->point.y, dst()->visDirections);
+        fprintf(fp, "    connRef->setDestEndpoint(dstPt);\n");
     }
-    fprintf(fp, "    connRef%u->setRoutingType((ConnType)%u);\n", 
-            id(), routingType());
+    fprintf(fp, "    connRef->setRoutingType((ConnType)%u);\n", routingType());
 
     if (!m_checkpoints.empty())
     {
@@ -460,8 +455,8 @@ void ConnRef::outputCode(FILE *fp) const
                     m_checkpoints[cInd].arrivalDirections,
                     m_checkpoints[cInd].departureDirections);
         }
-        fprintf(fp, "    connRef%u->setRoutingCheckpoints(checkpoints%u);\n", 
-                id(), id());
+        fprintf(fp, "    connRef->setRoutingCheckpoints(checkpoints%u);\n", 
+                id());
     }
     fprintf(fp, "\n");
 }

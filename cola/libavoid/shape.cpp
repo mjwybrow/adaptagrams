@@ -177,13 +177,12 @@ const Polygon& ShapeRef::polygon(void) const
 
 void ShapeRef::outputCode(FILE *fp) const
 {
-    fprintf(fp, "    Polygon poly%u(%lu);\n", 
-            id(), (unsigned long) polygon().size());
+    fprintf(fp, "    // shapeRef%u\n", id());
+    fprintf(fp, "    polygon = Polygon(%lu);\n", (unsigned long) polygon().size());
     for (size_t i = 0; i < polygon().size(); ++i)
     {
-        fprintf(fp, "    poly%u.ps[%lu] = Point(%" PREC "g, %" PREC "g);\n", 
-                id(), (unsigned long) i, polygon().at(i).x,
-                polygon().at(i).y);
+        fprintf(fp, "    polygon.ps[%lu] = Point(%" PREC "g, %" PREC "g);\n", 
+                (unsigned long) i, polygon().at(i).x, polygon().at(i).y);
     }
 
     fprintf(fp, "    ");
@@ -191,7 +190,7 @@ void ShapeRef::outputCode(FILE *fp) const
     {
         fprintf(fp, "ShapeRef *shapeRef%u = ", id());
     }
-    fprintf(fp, "new ShapeRef(router, poly%u, %u);\n", id(), id());
+    fprintf(fp, "new ShapeRef(router, polygon, %u);\n", id());
     for (ShapeConnectionPinSet::const_iterator curr = 
             m_connection_pins.begin(); 
             curr != m_connection_pins.end(); ++curr)
