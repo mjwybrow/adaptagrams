@@ -110,7 +110,7 @@ class EdgeList
 {
     public:
         friend class EdgeInf;
-        EdgeList(bool orthogonal = false);
+        EdgeList(void);
         ~EdgeList();
         void clear(void);
         EdgeInf *begin(void);
@@ -120,7 +120,6 @@ class EdgeList
         void addEdge(EdgeInf *edge);
         void removeEdge(EdgeInf *edge);
 
-        bool m_orthogonal;
         EdgeInf *m_first_edge;
         EdgeInf *m_last_edge;
         unsigned int m_count;
