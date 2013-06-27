@@ -203,25 +203,24 @@ enum RoutingOption
 enum TransactionPhases 
 {
     //! @brief  The orthogoanal visibility graph is built by conducting a 
-    //!         scan in each dimension.  This is the first dimension.
+    //!         scan in each dimension.  This is the x-dimension.
     TransactionPhaseOrthogonalVisibilityGraphScanX = 1,
     //! @brief  The orthogoanal visibility graph is built by conducting a 
-    //!         scan in each dimension.  This is the second dimension.
+    //!         scan in each dimension.  This is the y-dimension.
     TransactionPhaseOrthogonalVisibilityGraphScanY,
     //! @brief  Initial routes are searched for in the visibility graph.
     TransactionPhaseRouteSearch,
-    //! @brief  Orthogonal edge segments are nudged apart in the x-dimension.
+    //! @brief  With crossing penalties enabled, crossing detection is 
+    //!         performed to find all crossings.
     TransactionPhaseCrossingDetection,
-    //! @brief  Crossing connectors are rerouted to hopefully find better 
-    //!         routes.
+    //! @brief  Crossing connectors are rerouted to search for better routes.
     TransactionPhaseRerouteSearch,
-    //! @brief  Not a real phase, but represents the router is finished (or has
-    //!         aborted) the transaction and you may interact with is again.
+    //! @brief  Orthogonal edge segments are nudged apart in the x-dimension.
     TransactionPhaseOrthogonalNudgingX,
     //! @brief  Orthogonal edge segments are nudged apart in the y-dimension.
     TransactionPhaseOrthogonalNudgingY,
-    //! @brief  With crossing penalties enabled, crossing detection is 
-    //!         performed to find all crossings.
+    //! @brief  Not a real phase, but represents the router is finished (or has
+    //!         aborted) the transaction and you may interact with is again.
     TransactionPhaseCompleted
 };
 
