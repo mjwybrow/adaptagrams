@@ -2406,6 +2406,37 @@ static void buildOrthogonalNudgingSegments(Router *router,
                 double minLim = -CHANNEL_MAX;
                 double maxLim = CHANNEL_MAX;
 
+                // Constrain these segments by checkpoints along the
+                // adjoining segments.  Ignore checkpoints at ends of
+                // those segments.  XXX Perhaps this should not
+                // affect the ideal centre position in the channel.
+                for (size_t cp = 0; cp < nextCheckpoints.size(); ++cp)
+                {
+                    if (nextCheckpoints[cp][dim] < thisPos)
+                    {
+                        // Not at thisPoint, so constrain.
+                        minLim = std::max(minLim, nextCheckpoints[cp][dim]);
+                    }
+                    else if (nextCheckpoints[cp][dim] > thisPos)
+                    {
+                        // Not at thisPoint, so constrain.
+                        maxLim = std::min(maxLim, nextCheckpoints[cp][dim]);
+                    }
+                }
+                for (size_t cp = 0; cp < prevCheckpoints.size(); ++cp)
+                {
+                    if (prevCheckpoints[cp][dim] < thisPos)
+                    {
+                        // Not at thisPoint, so constrain.
+                        minLim = std::max(minLim, prevCheckpoints[cp][dim]);
+                    }
+                    else if (prevCheckpoints[cp][dim] > thisPos)
+                    {
+                        // Not at thisPoint, so constrain.
+                        maxLim = std::min(maxLim, prevCheckpoints[cp][dim]);
+                    }
+                }
+
                 bool isSBend = false;
                 bool isZBend = false;
 
@@ -2422,65 +2453,21 @@ static void buildOrthogonalNudgingSegments(Router *router,
                         minLim = std::max(minLim, prevPos);
                         maxLim = std::min(maxLim, nextPos);
                         isZBend = true;
-                    
-                        // Constrain these segments by checkpoints along the
-                        // adjoining segments.  Ignore checkpoints at ends of
-                        // those segments.  XXX Perhaps this should not
-                        // affect the ideal centre position in the channel.
-                        for (size_t cp = 0; cp < prevCheckpoints.size(); ++cp)
-                        {
-                            if (prevCheckpoints[cp][dim] < thisPos)
-                            {
-                                // Not at thisPoint, so constrain.
-                                minLim = std::max(minLim, 
-                                        prevCheckpoints[cp][dim]);
-                            }
-                        }
-                        for (size_t cp = 0; cp < nextCheckpoints.size(); ++cp)
-                        {
-                            if (nextCheckpoints[cp][dim] > thisPos)
-                            {
-                                // Not at thisPoint, so constrain.
-                                maxLim = std::min(maxLim, 
-                                        nextCheckpoints[cp][dim]);
-                            }
-                        }
                     }
                     else // if ((prevPos > thisPos) && (nextPos < thisPos))
                     {
                         minLim = std::max(minLim, nextPos);
                         maxLim = std::min(maxLim, prevPos);
                         isSBend = true;
-                        
-                        // Constrain these segments by checkpoints along the
-                        // adjoining segments.  Ignore checkpoints at ends of
-                        // those segments.  XXX Perhaps this should not
-                        // affect the ideal centre position in the channel.
-                        for (size_t cp = 0; cp < nextCheckpoints.size(); ++cp)
-                        {
-                            if (nextCheckpoints[cp][dim] < thisPos)
-                            {
-                                // Not at thisPoint, so constrain.
-                                minLim = std::max(minLim, 
-                                        nextCheckpoints[cp][dim]);
-                            }
-                        }
-                        for (size_t cp = 0; cp < prevCheckpoints.size(); ++cp)
-                        {
-                            if (prevCheckpoints[cp][dim] > thisPos)
-                            {
-                                // Not at thisPoint, so constrain.
-                                maxLim = std::min(maxLim, 
-                                        prevCheckpoints[cp][dim]);
-                            }
-                        }
                     }
                 }
-                else
+                else if (checkpoints.empty())
                 {
                     // isCBend: Both adjoining segments are in the same
-                    // direction.  We indicate this for later by setting 
-                    // the maxLim or minLim to the segment position.
+                    // direction.  So long as this sement doesn't pass a 
+                    // checkpoint, then we indicate for later that it is 
+                    // a c-bend by setting the maxLim or minLim to the 
+                    // segment position.
                     if (prevPos < thisPos)
                     {
                         minLim = thisPos;

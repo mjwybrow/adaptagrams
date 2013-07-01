@@ -49,6 +49,7 @@ check_PROGRAMS = \
 	overlappingRects \
 	inlineShapes \
 	checkpoints01 \
+	checkpoints02 \
 	freeFloatingDirection01 \
 	restrictedNudging \
 	performance01 \
@@ -93,6 +94,7 @@ restrictedNudging_SOURCES = restrictedNudging.cpp
 freeFloatingDirection01_SOURCES = freeFloatingDirection01.cpp
 
 checkpoints01_SOURCES = checkpoints01.cpp
+checkpoints02_SOURCES = checkpoints02.cpp
 inlineShapes_SOURCES = inlineShapes.cpp
 
 2junctions_SOURCES = 2junctions.cpp
