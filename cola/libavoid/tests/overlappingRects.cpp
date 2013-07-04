@@ -2321,7 +2321,7 @@ int main(void) {
     connRef209->setRoutingType((ConnType)2);
 
     router->processTransaction();
-    router->outputInstanceToSVG("test-overlappingRects");
+    router->outputInstanceToSVG("output/overlappingRects");
     delete router;
     return 0;
 };

@@ -2,14 +2,6 @@
 #include <sstream>
 using namespace Avoid;
 
-void outputInstanceToSVG(Avoid::Router * router)
-{
-	static int counter = 0;
-	std::ostringstream os;
-	os << (++counter);
-	router->outputInstanceToSVG(os.str());
-}
-
 void test()
 {
 	Avoid::ConnEnd end1;
@@ -62,7 +54,7 @@ void test()
 	new Avoid::ConnRef(router1, end1, end2);
 	router1->processTransaction();
 
-	outputInstanceToSVG(router1);
+	router1->outputInstanceToSVG("output/buildOrthogonalChannelInfo1");
     delete router1;
 }
 

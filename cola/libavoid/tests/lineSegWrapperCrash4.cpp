@@ -1878,7 +1878,7 @@ int main(void) {
     connRef246->setRoutingType((ConnType)2);
 
     router->processTransaction();
-    //router->outputInstanceToSVG("test-bug4");
+    router->outputInstanceToSVG("output/lineSegWrapperCrash4");
     delete router;
     return 0;
 };

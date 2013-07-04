@@ -7659,7 +7659,7 @@ int main(void) {
     connRef->setRoutingType((ConnType)2);
 
     router->processTransaction();
-    router->outputInstanceToSVG("test-performance01");
+    router->outputInstanceToSVG("output/performance01");
     delete router;
     return 0;
 };

@@ -2,14 +2,6 @@
 #include <sstream>
 using namespace Avoid;
 
-void outputInstanceToSVG(Avoid::Router * router)
-{
-	static int counter = 0;
-	std::ostringstream os;
-	os << (++counter);
-	router->outputInstanceToSVG(os.str());
-}
-
 int test()
 {
 	Avoid::ConnEnd end1;
@@ -53,7 +45,7 @@ int test()
 	Avoid::ConnRef * conn18168360 = new Avoid::ConnRef(router1, end1, end2);
 	router1->processTransaction();
 
-	outputInstanceToSVG(router1);
+	router1->outputInstanceToSVG("output/2junctions-1");
 	poly = Avoid::Polygon(4);
 	poly.setPoint(0, Avoid::Point(50879, 50885));
 	poly.setPoint(1, Avoid::Point(50879, 50960));
@@ -79,7 +71,7 @@ int test()
 	conn149180423->makePathInvalid();
 	router1->processTransaction();
 
-	outputInstanceToSVG(router1);
+	router1->outputInstanceToSVG("output/2junctions-2");
 	/*
 	junction550292508->setPositionFixed(true);
 	router1->deleteShape(shape365249936);

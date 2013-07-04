@@ -4,14 +4,6 @@
 #include <sstream>
 using namespace Avoid;
 
-void outputInstanceToSVG(Avoid::Router * router)
-{
-	static int counter = 0;
-	std::ostringstream os;
-	os << (++counter);
-	router->outputInstanceToSVG(os.str());
-}
-
 void test()
 {
 	Avoid::ConnEnd end1;
@@ -61,14 +53,14 @@ void test()
 	Avoid::ConnRef * conn199495942 = new Avoid::ConnRef(router1, end1, end2);
 	router1->processTransaction();
 
-	//outputInstanceToSVG(router1);
+	router1->outputInstanceToSVG("output/hyperedgeLoop1-1");
 	end1 = Avoid::ConnEnd(shape147006780, 2);
 	end2 = Avoid::ConnEnd(junction228834480);
 	Avoid::ConnRef * conn8326760 = new Avoid::ConnRef(router1, end1, end2);
 	conn8326760->makePathInvalid();
 	router1->processTransaction(); // infinite
 
-	//outputInstanceToSVG(router1);
+	router1->outputInstanceToSVG("output/hyperedgeLoop1-2");
 	router1->deleteShape(shape147006780);
 	shape147006780 = NULL;
 	router1->deleteShape(shape69758810);

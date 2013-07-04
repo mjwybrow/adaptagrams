@@ -2,17 +2,6 @@
 #include <sstream>
 using namespace Avoid;
 
-void outputInstanceToSVG(Avoid::Router * router)
-{
-	// Don't output debug file.
-	return;
-
-	static int counter = 0;
-	std::ostringstream os;
-	os << (++counter);
-	router->outputInstanceToSVG(os.str());
-}
-
 int test()
 {
 	// The contents of this function can be replaced by the automatically generated test code from the debug svg file
@@ -92,7 +81,7 @@ int test()
 	conn385831514->makePathInvalid();
 	router->processTransaction();
 
-	outputInstanceToSVG(router);
+	router->outputInstanceToSVG("output/improveHyperedge01-1");
 	poly = Avoid::Polygon(4);
 	poly.setPoint(0, Avoid::Point(51160, 50645));
 	poly.setPoint(1, Avoid::Point(51160, 50705));
@@ -105,7 +94,7 @@ int test()
 	conn762966660->makePathInvalid();
 	router->processTransaction();
 
-	outputInstanceToSVG(router);
+	router->outputInstanceToSVG("output/improveHyperedge01-2");
 	Avoid::Point junctionPos = junction878282342->recommendedPosition();
 
 	delete router;

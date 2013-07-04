@@ -1714,7 +1714,7 @@ int main(void) {
     connRef315->setRoutingType((ConnType)2);
 
     router->processTransaction();
-    router->outputInstanceToSVG("test-orderassertion");
+    router->outputInstanceToSVG("output/orderassertion");
     delete router;
     return 0;
 };

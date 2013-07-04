@@ -54,7 +54,7 @@ int main(void) {
     connRef100850179->setRoutingType((ConnType)2);
 
     router->processTransaction();
-    router->outputInstanceToSVG("test-inlineoverlap-02");
+    router->outputInstanceToSVG("output/inlineoverlap02");
     bool overlap = router->existsOrthogonalFixedSegmentOverlap();
     delete router;
     return (overlap) ? 1 : 0;

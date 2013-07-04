@@ -62,7 +62,7 @@ int main(void) {
     connRef45740440->setRoutingType((ConnType)2);
 
     router->processTransaction();
-    router->outputInstanceToSVG("test-node1");
+    router->outputInstanceToSVG("output/node1");
     delete router;
     return 0;
 };

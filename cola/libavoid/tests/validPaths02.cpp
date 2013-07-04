@@ -46,7 +46,7 @@ int main(void) {
     connRef744282799->setRoutingType((ConnType)2);
 
     router->processTransaction();
-    router->outputInstanceToSVG("test-validPaths02");
+    router->outputInstanceToSVG("output/validPaths02");
     int result = router->existsInvalidOrthogonalPaths();
     delete router;
     return result;

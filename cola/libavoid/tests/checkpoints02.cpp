@@ -84,7 +84,7 @@ int main(void) {
     connRef110->setRoutingCheckpoints(checkpoints110);
 
     router->processTransaction();
-    router->outputInstanceToSVG();
+    router->outputInstanceToSVG("output/checkpoints02");
 
     bool succeeded = true;
     double checkpointY = 55.07523140617849;

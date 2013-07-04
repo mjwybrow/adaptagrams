@@ -1444,7 +1444,7 @@ JunctionRef *junctionRef990913310 = new JunctionRef(router, Point(24000, 27025),
     connRef952588978->setRoutingType((ConnType)2);
 
     router->processTransaction();
-    router->outputInstanceToSVG("test-slowrouting");
+    router->outputInstanceToSVG("output/slowrouting");
 
     /*
     for (int i = 0; i < 1; ++i)

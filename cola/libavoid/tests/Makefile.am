@@ -50,6 +50,7 @@ check_PROGRAMS = \
 	inlineShapes \
 	checkpoints01 \
 	checkpoints02 \
+	checkpoints03 \
 	freeFloatingDirection01 \
 	restrictedNudging \
 	performance01 \
@@ -95,6 +96,7 @@ freeFloatingDirection01_SOURCES = freeFloatingDirection01.cpp
 
 checkpoints01_SOURCES = checkpoints01.cpp
 checkpoints02_SOURCES = checkpoints02.cpp
+checkpoints03_SOURCES = checkpoints03.cpp
 inlineShapes_SOURCES = inlineShapes.cpp
 
 2junctions_SOURCES = 2junctions.cpp

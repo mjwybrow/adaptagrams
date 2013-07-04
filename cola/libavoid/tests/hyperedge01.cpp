@@ -271,13 +271,13 @@ int main(void) {
     connRef3->setRoutingType((ConnType)2);
 
     router->processTransaction();
-    router->outputInstanceToSVG("test-hyperedge01-1");
+    router->outputInstanceToSVG("output/hyperedge01-1");
 
     HyperedgeRerouter *hyperedgeRerouter = router->hyperedgeRerouter();
     hyperedgeRerouter->registerHyperedgeForRerouting(shapeRef102578723);
     
     router->processTransaction();
-    router->outputInstanceToSVG("test-hyperedge01-2");
+    router->outputInstanceToSVG("output/hyperedge01-2");
 
     delete router;
     return 0;

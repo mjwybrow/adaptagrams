@@ -91,7 +91,7 @@ int main(void) {
     connRef11->setRoutingType((ConnType)2);
     
     router->processTransaction();
-    router->outputInstanceToSVG("test-inlineShapes");
+    router->outputInstanceToSVG("output/inlineShapes");
     delete router;
     return 0;
 };

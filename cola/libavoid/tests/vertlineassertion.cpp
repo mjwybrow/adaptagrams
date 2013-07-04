@@ -2208,7 +2208,7 @@ int main(void) {
     connRef315->setRoutingType((ConnType)2);
 
     router->processTransaction();
-    router->outputInstanceToSVG();
+    router->outputInstanceToSVG("output/vertlineassertion");
     delete router;
     return 0;
 };

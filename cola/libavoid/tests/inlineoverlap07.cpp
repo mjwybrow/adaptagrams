@@ -68,7 +68,7 @@ int main(void) {
     connRef116944564->setRoutingType((ConnType)2);
 
     router->processTransaction();
-    router->outputInstanceToSVG("test-inlineoverlap-07");
+    router->outputInstanceToSVG("output/inlineoverlap07");
     delete router;
     return 0;
 };

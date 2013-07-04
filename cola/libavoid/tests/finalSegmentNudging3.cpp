@@ -2648,7 +2648,7 @@ int main(void) {
 #endif
 
     router->processTransaction();
-    //router->outputInstanceToSVG("test-finalSegmentNudging3");
+    router->outputInstanceToSVG("output/finalSegmentNudging3");
 
     bool optimisedForConnectorType = false;
     int crossings = router->existsCrossings(optimisedForConnectorType);
