@@ -1,5 +1,7 @@
 /* File : cola.i */
-%module cola
+%module(directors="1") cola
+/* Allow java code to override virtual methods in Avoid::Router class. */
+%feature("director") Avoid::Router;
 
 /* Allow enum values to be logically ORed together as flags. */
 %include "enumtypeunsafe.swg"
