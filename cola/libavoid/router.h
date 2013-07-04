@@ -160,6 +160,10 @@ enum RoutingOption
     //!         are attached to shapes, to be nudged apart.  Usually these
     //!         segments are fixed, since they are considered to be attached
     //!         to ports.  This option is not set by default.
+    //!
+    //!         This option also causes routes running through the same 
+    //!         checkpoint to be nudged apart.
+    //!
     //! @note   This will allow routes to be nudged up to the bounds of shapes, 
     //!         additional space for this nudging can be specified via the 
     //!         extraSpaceForNudgingOrthogonalSegmentsConnectedToShapes
@@ -177,6 +181,7 @@ enum RoutingOption
     //!         the router will attempt to reroute these to different sides 
     //!         of the junction or different shape pins.  This option depends
     //!         on the fixedSharedPathPenalty penalty having been set.
+    //!
     //! @sa     fixedSharedPathPenalty
     //! @note   This option is still experimental!  It is not recommended
     //!         for normal use.
@@ -185,6 +190,7 @@ enum RoutingOption
     //!         segments that touch just at their ends will be nudged apart.
     //!         The overlap will usually be resolved in the other dimension,
     //!         so this is not usually required and is not set by default.
+    //!
     //! @note   This will allow routes to be nudged up to the bounds of shapes, 
     //!         additional space for this nudging can be specified via the 
     nudgeOrthogonalTouchingColinearSegments,

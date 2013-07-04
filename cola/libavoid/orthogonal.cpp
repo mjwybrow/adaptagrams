@@ -531,7 +531,7 @@ class NudgingShiftSegment : public ShiftSegment
                     }
                     else if ((rhs->sBend && sBend) || (rhs->zBend && zBend))
                     {
-                        // Ccount them as overlapping for nudging if they 
+                        // Count them as overlapping for nudging if they 
                         // are both // s-bends or both z-bends, i.e., when 
                         // the ordering would matter.
                         return nudgeColinearSegments;
@@ -540,6 +540,16 @@ class NudgingShiftSegment : public ShiftSegment
                             (rhs->connRef == connRef))
                     {
                         return nudgeColinearSegments;
+                    }
+                    else if ( ((checkpoints.size() > 0) ||
+                               (rhs->checkpoints.size() > 0)) &&
+                              (rhs->connRef == connRef) )
+                    {
+                        // For segments from the same connector, if either 
+                        // have checkpoints then count them as overlapping,
+                        // so that free segments may be brought in line with
+                        // segments on checkpoints.
+                        return true;
                     }
                 }
             }
@@ -561,6 +571,43 @@ class NudgingShiftSegment : public ShiftSegment
                         (fabs(lowPoint()[dim] - rhs->lowPoint()[dim]) < 10))
                 {
                     return true;
+                }
+            }
+            else if ((connRef == rhs->connRef) && 
+                     // Not both final
+                     ((finalSegment & rhs->finalSegment) != true))
+            {
+                bool hasCheckpoints = checkpoints.size() > 0;
+                bool rhsHasCheckpoints = rhs->checkpoints.size() > 0;
+
+                if (hasCheckpoints != rhsHasCheckpoints)
+                {
+                    // At least one segment has checkpoints, but not both.
+
+                    size_t altDim = (dim + 1) % 2;
+                    double space = fabs(lowPoint()[dim] - rhs->lowPoint()[dim]);
+                    double touchPos;
+                    bool couldTouch = false;
+                    if (lowPoint()[altDim] == rhs->highPoint()[altDim])
+                    {
+                        couldTouch = true;
+                        touchPos = lowPoint()[altDim];
+                    }
+                    else if (highPoint()[altDim] == rhs->lowPoint()[altDim])
+                    {
+                        couldTouch = true;
+                        touchPos = highPoint()[altDim];
+                    }
+
+                    // We should align these so long as they are close
+                    // together (<= 10) and there isn't a checkpoint at the 
+                    // touch point, i.e., we'd be altering the edges leading 
+                    // into the checkpoint.  We want to keep these in place 
+                    // and opportunistically move other edges to align with 
+                    // them.
+                    return couldTouch && (space <= 10) &&
+                            !hasCheckpointAtPosition(touchPos, altDim) &&
+                            !rhs->hasCheckpointAtPosition(touchPos, altDim);
                 }
             }
             return false;
@@ -602,6 +649,18 @@ class NudgingShiftSegment : public ShiftSegment
                 size_t index = indexes[it];
                 connRef->displayRoute().ps[index][dimension] = segmentPos;
             }
+        }
+        bool hasCheckpointAtPosition(const double position, 
+                const size_t dim) const
+        {
+            for (size_t cp = 0; cp < checkpoints.size(); ++cp)
+            {
+                if (checkpoints[cp][dim] == position)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         ConnRef *connRef;
@@ -1329,9 +1388,9 @@ public:
     VertSet vertInfs;
     BreakpointSet breakPoints;
 private:
-	// MSVC wants to generate the assignment operator and the default 
-	// constructor, but fails.  Therefore we declare them private and 
-	// don't implement them.
+    // MSVC wants to generate the assignment operator and the default 
+    // constructor, but fails.  Therefore we declare them private and 
+    // don't implement them.
     LineSegment & operator=(LineSegment const &);
     LineSegment();
 };
@@ -2288,6 +2347,8 @@ static void buildOrthogonalNudgingSegments(Router *router,
                 
                 if ((i == 1) || ((i + 1) == displayRoute.size()))
                 {
+                    // Is first or last segment of route.
+                    
                     if (nudgeFinalSegments)
                     {
                         // Determine available space for nudging these
@@ -2295,36 +2356,6 @@ static void buildOrthogonalNudgingSegments(Router *router,
                         double minLim = -CHANNEL_MAX;
                         double maxLim = CHANNEL_MAX;
                         
-                        // Limit their movement by the length of 
-                        // adjoining segments.
-                        bool first = (i == 1) ? true : false;
-                        bool last = ((i + 1) == displayRoute.size()) ? 
-                                true : false;
-                        if (!first)
-                        {
-                            double prevPos = displayRoute.ps[i - 2][dim];
-                            if (prevPos < thisPos)
-                            {
-                                minLim = std::max(minLim, prevPos);
-                            }
-                            else if (prevPos > thisPos)
-                            {
-                                maxLim = std::min(maxLim, prevPos);
-                            }
-                        }
-                        if (!last)
-                        {
-                            double nextPos = displayRoute.ps[i + 1][dim];
-                            if (nextPos < thisPos)
-                            {
-                                minLim = std::max(minLim, nextPos);
-                            }
-                            else if (nextPos > thisPos)
-                            {
-                                maxLim = std::min(maxLim, nextPos);
-                            }
-                        }
-
                         // If the position of the opposite end of the
                         // attached segment is within the shape boundaries
                         // then we want to use this as an ideal position
@@ -2440,41 +2471,49 @@ static void buildOrthogonalNudgingSegments(Router *router,
                 bool isSBend = false;
                 bool isZBend = false;
 
-                double prevPos = displayRoute.ps[i - 2][dim];
-                double nextPos = displayRoute.ps[i + 1][dim];
-                if ( ((prevPos < thisPos) && (nextPos > thisPos)) ||
-                     ((prevPos > thisPos) && (nextPos < thisPos)) )
+                if (checkpoints.empty())
                 {
-                    // Determine limits if the s-bend is not due to an 
-                    // obstacle.  In this case we need to limit the channel 
-                    // to the span of the adjoining segments to this one.
-                    if ((prevPos < thisPos) && (nextPos > thisPos))
+                    // Segments with checkpoints are held in place, but for
+                    // other segments, we should limit their movement based 
+                    // on the limits of the segments at either end.
+
+                    double prevPos = displayRoute.ps[i - 2][dim];
+                    double nextPos = displayRoute.ps[i + 1][dim];
+                    if ( ((prevPos < thisPos) && (nextPos > thisPos)) ||
+                         ((prevPos > thisPos) && (nextPos < thisPos)) )
                     {
-                        minLim = std::max(minLim, prevPos);
-                        maxLim = std::min(maxLim, nextPos);
-                        isZBend = true;
+                        // Determine limits if the s-bend is not due to an 
+                        // obstacle.  In this case we need to limit the channel 
+                        // to the span of the adjoining segments to this one.
+                        if ((prevPos < thisPos) && (nextPos > thisPos))
+                        {
+                            minLim = std::max(minLim, prevPos);
+                            maxLim = std::min(maxLim, nextPos);
+                            isZBend = true;
+                        }
+                        else // if ((prevPos > thisPos) && (nextPos < thisPos))
+                        {
+                            minLim = std::max(minLim, nextPos);
+                            maxLim = std::min(maxLim, prevPos);
+                            isSBend = true;
+                        }
                     }
-                    else // if ((prevPos > thisPos) && (nextPos < thisPos))
+                    else if ( ((prevPos < thisPos) && (nextPos < thisPos)) ||
+                              ((prevPos > thisPos) && (nextPos > thisPos)) )
                     {
-                        minLim = std::max(minLim, nextPos);
-                        maxLim = std::min(maxLim, prevPos);
-                        isSBend = true;
-                    }
-                }
-                else if (checkpoints.empty())
-                {
-                    // isCBend: Both adjoining segments are in the same
-                    // direction.  So long as this sement doesn't pass a 
-                    // checkpoint, then we indicate for later that it is 
-                    // a c-bend by setting the maxLim or minLim to the 
-                    // segment position.
-                    if (prevPos < thisPos)
-                    {
-                        minLim = thisPos;
-                    }
-                    else
-                    {
-                        maxLim = thisPos;
+                        // isCBend: Both adjoining segments are in the same
+                        // direction.  So long as this segment doesn't pass a 
+                        // checkpoint, then we indicate for later that it is 
+                        // a c-bend by setting the maxLim or minLim to the 
+                        // segment position.
+                        if (prevPos < thisPos)
+                        {
+                            minLim = thisPos;
+                        }
+                        else
+                        {
+                            maxLim = thisPos;
+                        }
                     }
                 }
 
@@ -3417,7 +3456,7 @@ extern void improveOrthogonalRoutes(Router *router)
     buildConnectorRouteCheckpointCache(router);
 
     // Do Unifying first, by itself.  This greedily tries to position free
-    // segments in overlaping channels at the same position.  This way they
+    // segments in overlapping channels at the same position.  This way they
     // have correct nudging orders determined for them since they will form
     // shared paths, rather than segments just positioned as an results of
     // the routing process.  Of course, don't do this when rerouting with
