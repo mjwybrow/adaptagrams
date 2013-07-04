@@ -49,6 +49,14 @@ if test "$GXX" = "yes"; then
   esac
 fi
 
+# If we are on a Windows OS using MinGW, extend the linker flags by '-no-undefined'
+# to avoid linker warnings
+if test "x$host_os" = "xmingw32"; then
+  AM_LDFLAGS="$AM_LDFLAGS -no-undefined"
+fi
+# Distribute the changed linker flags among the Makefiles
+AC_SUBST(AM_LDFLAGS)
+
 #AC_CHECK_LIB(cairomm-1.0,cairo_create)
 PKG_CHECK_MODULES(CAIROMM,cairomm-1.0,cairomm=yes,cairomm=no)
 if test "x$cairomm" = "xyes"; then
