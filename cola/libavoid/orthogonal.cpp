@@ -44,7 +44,10 @@
 #include "libavoid/mtst.h"
 #include "libavoid/scanline.h"
 
+// For debugging:
 //#define NUDGE_DEBUG
+//#define DEBUG_JUST_UNIFY
+
 
 namespace Avoid {
 
@@ -532,7 +535,7 @@ class NudgingShiftSegment : public ShiftSegment
                     else if ((rhs->sBend && sBend) || (rhs->zBend && zBend))
                     {
                         // Count them as overlapping for nudging if they 
-                        // are both // s-bends or both z-bends, i.e., when 
+                        // are both s-bends or both z-bends, i.e., when 
                         // the ordering would matter.
                         return nudgeColinearSegments;
                     }
@@ -541,26 +544,39 @@ class NudgingShiftSegment : public ShiftSegment
                     {
                         return nudgeColinearSegments;
                     }
-                    else if ( ((checkpoints.size() > 0) ||
-                               (rhs->checkpoints.size() > 0)) &&
-                              (rhs->connRef == connRef) )
-                    {
-                        // For segments from the same connector, if either 
-                        // have checkpoints then count them as overlapping,
-                        // so that free segments may be brought in line with
-                        // segments on checkpoints.
-                        return true;
-                    }
                 }
             }
             return false;
         }
-        bool shouldAlignWith(const ShiftSegment *rhsSuper, const size_t dim) const
+        // These segments are allowed to drift into alignment but don't have to.
+        bool canAlignWith(const NudgingShiftSegment *rhs, 
+                const size_t dim) const
+        {
+            // Don't segments of the same connector to drift together
+            // where one of them goes via a checkpoint.  We want the path 
+            // through the checkpoint to be maintained.
+            
+            if (connRef != rhs->connRef)
+            {
+                return false;
+            }
+            
+            bool hasCheckpoints = checkpoints.size() > 0;
+            bool rhsHasCheckpoints = rhs->checkpoints.size() > 0;
+            if (hasCheckpoints || rhsHasCheckpoints)
+            {
+                return false;
+            }
+            return true;
+        }
+        // These segments should align with each other.
+        bool shouldAlignWith(const ShiftSegment *rhsSuper, 
+                const size_t dim) const
         {
             const NudgingShiftSegment *rhs = 
                     dynamic_cast<const NudgingShiftSegment *> (rhsSuper);
-            if ((connRef == rhs->connRef) && (finalSegment == rhs->finalSegment) &&
-                overlapsWith(rhs, dim))
+            if ((connRef == rhs->connRef) && finalSegment && 
+                    rhs->finalSegment && overlapsWith(rhs, dim))
             {
                 // If both the segments are in shapes then we know limits
                 // and can align.  Otherwise we do this just for segments 
@@ -2498,23 +2514,6 @@ static void buildOrthogonalNudgingSegments(Router *router,
                             isSBend = true;
                         }
                     }
-                    else if ( ((prevPos < thisPos) && (nextPos < thisPos)) ||
-                              ((prevPos > thisPos) && (nextPos > thisPos)) )
-                    {
-                        // isCBend: Both adjoining segments are in the same
-                        // direction.  So long as this segment doesn't pass a 
-                        // checkpoint, then we indicate for later that it is 
-                        // a c-bend by setting the maxLim or minLim to the 
-                        // segment position.
-                        if (prevPos < thisPos)
-                        {
-                            minLim = thisPos;
-                        }
-                        else
-                        {
-                            maxLim = thisPos;
-                        }
-                    }
                 }
 
                 NudgingShiftSegment *nss = new NudgingShiftSegment(*curr,
@@ -3137,7 +3136,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                         thisSepDist = 0;
                         equality = true;
                     }
-                    else if (currSegment->connRef == prevSeg->connRef)
+                    else if (currSegment->canAlignWith(prevSeg, dimension))
                     {
                         // We need to address the problem of two neighbouring
                         // segments of the same connector being kept separated
@@ -3251,7 +3250,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                         }
                         else if (vs[i]->id == channelRightID)
                         {
-                            // This is the left-hand-side of a channel.
+                            // This is the right-hand-side of a channel.
                             COLA_ASSERT(unsatisfiedRanges.size() > 0);
                             // Expand the existing range to include it.
                             unsatisfiedRanges.back().second = i;
@@ -3477,6 +3476,7 @@ extern void improveOrthogonalRoutes(Router *router)
         }
     }
 
+#ifndef DEBUG_JUST_UNIFY
     // Do the Nudging and centring.
     for (size_t dimension = 0; dimension < 2; ++dimension)
     {
@@ -3492,6 +3492,7 @@ extern void improveOrthogonalRoutes(Router *router)
         buildOrthogonalChannelInfo(router, dimension, segmentList);
         nudgeOrthogonalRoutes(router, dimension, pointOrders, segmentList);
     }
+#endif // DEBUG_JUST_UNIFY
 
     // Resimplify all the display routes that may have been split.
     simplifyOrthogonalRoutes(router);
