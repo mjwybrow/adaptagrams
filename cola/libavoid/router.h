@@ -112,9 +112,9 @@ enum RoutingParameter
     //!         a cluster boundary.
     //! @note   This penalty is still experimental!  It is not recommended
     //!         for normal use.
-    //! @note   This penalty is very slow, see Router::setSlowRoutingCallback()
-    //!         as a method of checking progress or cancelling overly slow
-    //!         operations.
+    //! @note   This penalty is very slow.  You can override the method
+    //!         Router::shouldContinueTransactionWithProgress() to check
+    //!         progress and possibly cancel overly slow transactions.
     clusterCrossingPenalty,
     //! @brief  This penalty is applied whenever a connector path shares 
     //!         some segments with an immovable portion of an existing 
@@ -129,9 +129,9 @@ enum RoutingParameter
     //!         visibility directions for the port.
     //! @note   This penalty is still experimental!  It is not recommended
     //!         for normal use.
-    //! @note   This penalty is very slow, see Router::setSlowRoutingCallback()
-    //!         as a method of checking progress or cancelling overly slow
-    //!         operations.
+    //! @note   This penalty is very slow.  You can override the method
+    //!         Router::shouldContinueTransactionWithProgress() to check
+    //!         progress and possibly cancel overly slow transactions.
     portDirectionPenalty,
     //! @brief This parameter defines the spacing distance that will be added
     //!        to the sides of each shape when determining obstacle sizes for
@@ -164,10 +164,7 @@ enum RoutingOption
     //!         This option also causes routes running through the same 
     //!         checkpoint to be nudged apart.
     //!
-    //! @note   This will allow routes to be nudged up to the bounds of shapes, 
-    //!         additional space for this nudging can be specified via the 
-    //!         extraSpaceForNudgingOrthogonalSegmentsConnectedToShapes
-    //!         routing parameter.
+    //! @note   This will allow routes to be nudged up to the bounds of shapes.
     nudgeOrthogonalSegmentsConnectedToShapes = 0,
     //! @brief  This option causes hyperedge routes to be locally improved
     //!         fixing obviously bad paths.  As part of this process libavoid
@@ -186,13 +183,10 @@ enum RoutingOption
     //! @note   This option is still experimental!  It is not recommended
     //!         for normal use.
     penaliseOrthogonalSharedPathsAtConnEnds,
-    //! @brief  This option can be used to control whether colinear line 
+    //! @brief  This option can be used to control whether collinear line 
     //!         segments that touch just at their ends will be nudged apart.
     //!         The overlap will usually be resolved in the other dimension,
     //!         so this is not usually required and is not set by default.
-    //!
-    //! @note   This will allow routes to be nudged up to the bounds of shapes, 
-    //!         additional space for this nudging can be specified via the 
     nudgeOrthogonalTouchingColinearSegments,
     
     // Used for determining the size of the routing options array.
@@ -208,10 +202,10 @@ enum RoutingOption
 //!
 enum TransactionPhases 
 {
-    //! @brief  The orthogoanal visibility graph is built by conducting a 
+    //! @brief  The orthogonal visibility graph is built by conducting a 
     //!         scan in each dimension.  This is the x-dimension.
     TransactionPhaseOrthogonalVisibilityGraphScanX = 1,
-    //! @brief  The orthogoanal visibility graph is built by conducting a 
+    //! @brief  The orthogonal visibility graph is built by conducting a 
     //!         scan in each dimension.  This is the y-dimension.
     TransactionPhaseOrthogonalVisibilityGraphScanY,
     //! @brief  Initial routes are searched for in the visibility graph.
