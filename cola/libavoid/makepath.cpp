@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2009  Monash University
+ * Copyright (C) 2004-2013  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -51,7 +51,7 @@ class ANode
         double h;        // Heuristic
         double f;        // Formula f = g + h
         
-        int prevIndex;   // Index into DONE for the previous ANode.
+        ANode *prevNode; // VertInf for the previous ANode.
         int timeStamp;   // Time-stamp used to determine exploration order of
                          // seemingly equal paths during orthogonal routing.
 
@@ -60,7 +60,7 @@ class ANode
               g(0),
               h(0),
               f(0),
-              prevIndex(-1),
+              prevNode(NULL),
               timeStamp(time)
         {
         }
@@ -69,7 +69,7 @@ class ANode
               g(0),
               h(0),
               f(0),
-              prevIndex(-1),
+              prevNode(NULL),
               timeStamp(-1)
         {
         }
@@ -156,8 +156,7 @@ bool operator()(const ANode *a, const ANode *b)
         // then we always try to explore forward first.
         return a->timeStamp < b->timeStamp;
     }
-    COLA_ASSERT(a->prevIndex != b->prevIndex);
-    return a->prevIndex > b->prevIndex;
+    return false;
 }
 };
 
@@ -195,13 +194,13 @@ static double angleBetween(const Point& p1, const Point& p2, const Point& p3)
 // Construct a temporary Polygon path given several VertInf's for a connector.
 //
 static void constructPolygonPath(Polygon& connRoute, VertInf *inf2, 
-        VertInf *inf3, std::vector<ANode *>& done, int inf1Index)
+        VertInf *inf3, ANode *inf1Node)
 {
     // Don't include colinear points.
     bool simplified = true;
 
     int routeSize = 2;
-    for (int curr = inf1Index; curr >= 0; curr = done[curr]->prevIndex)
+    for (ANode *curr = inf1Node; curr != NULL; curr = curr->prevNode)
     {
         routeSize += 1;
     }
@@ -210,18 +209,18 @@ static void constructPolygonPath(Polygon& connRoute, VertInf *inf2,
     connRoute.ps[routeSize - 1] = inf3->point;
     connRoute.ps[routeSize - 2] = inf2->point;
     routeSize -= 3;
-    for (int curr = inf1Index; curr >= 0; curr = done[curr]->prevIndex)
+    for (ANode *curr = inf1Node; curr != NULL; curr = curr->prevNode)
     {
         if (!simplified)
         {
             // Add new point.
-            connRoute.ps[routeSize] = done[curr]->inf->point;
+            connRoute.ps[routeSize] = curr->inf->point;
             routeSize -= 1;
             continue;
         }
             
-        if ((curr == inf1Index) || 
-                vecDir(done[curr]->inf->point, connRoute.ps[routeSize + 1], 
+        if ((curr == inf1Node) || 
+                vecDir(curr->inf->point, connRoute.ps[routeSize + 1], 
                     connRoute.ps[routeSize + 2]) != 0)
         {
             // Add new point if this is the earlier than the last segment
@@ -229,13 +228,13 @@ static void constructPolygonPath(Polygon& connRoute, VertInf *inf2,
             // Note, you can't collapse the 'last' segment with previous 
             // segments, or if this just intersects another line you risk 
             // penalising it once for each collapsed line segment.
-            connRoute.ps[routeSize] = done[curr]->inf->point;
+            connRoute.ps[routeSize] = curr->inf->point;
             routeSize -= 1;
         }
         else
         {
             // The last point is inline with this one, so update it.
-            connRoute.ps[routeSize + 1] = done[curr]->inf->point;
+            connRoute.ps[routeSize + 1] = curr->inf->point;
         }
     }
 
@@ -260,9 +259,9 @@ static void constructPolygonPath(Polygon& connRoute, VertInf *inf2,
 // cost associated with this route.
 //
 static double cost(ConnRef *lineRef, const double dist, VertInf *inf2, 
-        VertInf *inf3, std::vector<ANode *>& done, int inf1Index)
+        VertInf *inf3, ANode *inf1Node)
 {
-    VertInf *inf1 = (inf1Index >= 0) ?  done[inf1Index]->inf : NULL;
+    VertInf *inf1 = (inf1Node) ? inf1Node->inf : NULL;
     double result = dist;
     Polygon connRoute;
 
@@ -316,7 +315,7 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
     {
         if (connRoute.empty())
         {
-            constructPolygonPath(connRoute, inf2, inf3, done, inf1Index);
+            constructPolygonPath(connRoute, inf2, inf3, inf1Node);
         }
         // There are clusters so do cluster routing.
         for (ClusterRefList::const_iterator cl = router->clusterRefs.begin(); 
@@ -362,7 +361,7 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
     {
         if (connRoute.empty())
         {
-            constructPolygonPath(connRoute, inf2, inf3, done, inf1Index);
+            constructPolygonPath(connRoute, inf2, inf3, inf1Node);
         }
         ConnRefList::const_iterator curr, finish = router->connRefs.end();
         for (curr = router->connRefs.begin(); curr != finish; ++curr)
@@ -498,12 +497,12 @@ AStarPath::~AStarPath(void)
 // Returns the best path from src to tar using the cost function.
 //
 // The path is worked out using the aStar algorithm, and is encoded via
-// prevIndex values for each ANode which point back to the previous ANode's
-// position in the DONE vector.  At completion, this order is written into
-// the pathNext links in each of the VerInfs along the path.
+// prevNode values for each ANode which point back to the previous ANode.
+// At completion, this order is written into the pathNext links in each 
+// of the VerInfs along the path.
 //
-// The aStar STL code is based on public domain code available on the
-// internet.
+// The aStar STL code is originally based on public domain code available 
+// on the internet.
 //
 void AStarPath::search(ConnRef *lineRef, VertInf *src, VertInf *tar, VertInf *start)
 {
@@ -523,15 +522,13 @@ void AStarPath::search(ConnRef *lineRef, VertInf *src, VertInf *tar, VertInf *st
     }
     endPoints.push_back(tar->point);
     
-    std::vector<ANode *> PENDING;     // STL Vectors chosen because of rapid
-    std::vector<ANode *> DONE;        // insertions/deletions at back,
-
-    DONE.reserve(500);
+    // Heap of PENDING nodes.
+    std::vector<ANode *> PENDING;
     PENDING.reserve(1000);
 
-    size_t DONE_size = 0;
+    size_t exploredCount = 0;
     ANode node, ati;
-    ANode *bestNode;                // Temporary bestNode
+    ANode *bestNode = NULL;         // Temporary bestNode
     bool bNodeFound = false;        // Flag if node is found in container
     int timestamp = 1;
 
@@ -574,7 +571,7 @@ void AStarPath::search(ConnRef *lineRef, VertInf *src, VertInf *tar, VertInf *st
                 double edgeDist = dist(bestNode->inf->point, curr->point);
 
                 node.g = bestNode->g + cost(lineRef, edgeDist, bestNode->inf, 
-                        node.inf, DONE, bestNode->prevIndex);
+                        node.inf, bestNode->prevNode);
 
                 // Calculate the Heuristic.
                 node.h = estimatedCost(lineRef, &(bestNode->inf->point),
@@ -583,18 +580,16 @@ void AStarPath::search(ConnRef *lineRef, VertInf *src, VertInf *tar, VertInf *st
                 // The A* formula
                 node.f = node.g + node.h;
                 
-                // Point parent to last bestNode (pushed onto DONE)
-                node.prevIndex = DONE_size - 1;
+                // Point parent to last bestNode
+                node.prevNode = bestNode;
             }
 
             if (curr != start)
             {
                 bool addToPending = false;
                 bestNode = m_private->newANode(node, addToPending);
-
-                DONE.push_back(bestNode);
-                bestNode->inf->aStarDoneIndexes.push_back(DONE_size);
-                DONE_size++;
+                bestNode->inf->aStarDoneNodes.push_back(bestNode);
+                ++exploredCount;
             }
             else
             {
@@ -613,13 +608,14 @@ void AStarPath::search(ConnRef *lineRef, VertInf *src, VertInf *tar, VertInf *st
             // If we are doing checkpoint routing and have already done one
             // path, then we have an existing segment to consider for the 
             // cost of the  choice from the start node, so we add a dummy 
-            // node to the DONE list representing it.  This causes us to 
-            // search in a collinear direction from the previous segment.
+            // nodes as if they were already in the Done set.  This causes 
+            // us to first search in a collinear direction from the previous 
+            // segment.
             bool addToPending = false;
-            ANode *newNode = m_private->newANode(
+            bestNode = m_private->newANode(
                     ANode(start->pathNext, timestamp++), addToPending);
-            DONE.push_back(newNode);
-            DONE_size++;
+            bestNode->inf->aStarDoneNodes.push_back(bestNode);
+            ++exploredCount;
         }
 
         // Create the start node
@@ -627,11 +623,11 @@ void AStarPath::search(ConnRef *lineRef, VertInf *src, VertInf *tar, VertInf *st
         node.g = 0;
         node.h = estimatedCost(lineRef, NULL, node.inf->point, tar->point);
         node.f = node.g + node.h;
-        node.prevIndex = DONE_size - 1;
         // Set a null parent, so cost function knows this is the first segment.
+        node.prevNode = bestNode;
 
         // Populate the PENDING container with the first location
-        ANode * newNode = m_private->newANode(node);
+        ANode *newNode = m_private->newANode(node);
         PENDING.push_back(newNode);
     }
 
@@ -672,13 +668,11 @@ void AStarPath::search(ConnRef *lineRef, VertInf *src, VertInf *tar, VertInf *st
         // Remove node from right (the value we pop_heap'd)
         PENDING.pop_back();
 
-        // Push the bestNode onto DONE
-        DONE.push_back(bestNode);
-        bestNodeInf->aStarDoneIndexes.push_back(DONE_size);
-        DONE_size++;
+        // Add the bestNode into the Done set.
+        bestNodeInf->aStarDoneNodes.push_back(bestNode);
+        ++exploredCount;
 
-        VertInf *prevInf = (bestNode->prevIndex >= 0) ?
-                DONE[bestNode->prevIndex]->inf : NULL;
+        VertInf *prevInf = (bestNode->prevNode) ? bestNode->prevNode->inf : NULL;
 #if 0
         db_printf("Considering... ");
         db_printf(" %g %g  ", bestNodeInf->point.x, bestNodeInf->point.y);
@@ -697,20 +691,14 @@ void AStarPath::search(ConnRef *lineRef, VertInf *src, VertInf *tar, VertInf *st
             // This node is our goal.
 #ifdef PATHDEBUG
             db_printf("LINE %10d  Steps: %4d  Cost: %g\n", lineRef->id(), 
-                    (int) DONE_size, bestNode->f);
+                    (int) exploredCount, bestNode->f);
 #endif
             
             // Correct all the pathNext pointers.
-            ANode *curr;
-            for (curr = bestNode; curr->prevIndex > 0; 
-                    curr = DONE[curr->prevIndex])
+            for (ANode *curr = bestNode; curr->prevNode; curr = curr->prevNode)
             {
-                curr->inf->pathNext = DONE[curr->prevIndex]->inf;
+                curr->inf->pathNext = curr->prevNode->inf;
             }
-            // Check that we've gone through the complete path.
-            COLA_ASSERT(curr->prevIndex == 0);
-            // Fill in the final pathNext pointer.
-            curr->inf->pathNext = DONE[curr->prevIndex]->inf;
 
             // Exit from the search
             break;
@@ -739,11 +727,11 @@ void AStarPath::search(ConnRef *lineRef, VertInf *src, VertInf *tar, VertInf *st
             node = ANode((*edge)->otherVert(bestNodeInf), timestamp++);
             
             // Set the index to the previous ANode that we reached
-            // this ANode through (the last bestNode pushed onto DONE).
-            node.prevIndex = DONE_size - 1;
+            // this ANode via.
+            node.prevNode = bestNode;
 
-            VertInf *prevInf = (bestNode->prevIndex >= 0) ?
-                    DONE[bestNode->prevIndex]->inf : NULL;
+            VertInf *prevInf = (bestNode->prevNode) ?
+                    bestNode->prevNode->inf : NULL;
 
             // Don't bother looking at the segment we just arrived along.
             if (prevInf && (prevInf == node.inf))
@@ -852,7 +840,7 @@ void AStarPath::search(ConnRef *lineRef, VertInf *src, VertInf *tar, VertInf *st
             }
 
             node.g = bestNode->g + cost(lineRef, edgeDist, bestNodeInf, 
-                    node.inf, DONE, bestNode->prevIndex);
+                    node.inf, bestNode->prevNode);
 
             // Calculate the Heuristic.
             node.h = estimatedCost(lineRef, &(bestNodeInf->point),
@@ -877,11 +865,12 @@ void AStarPath::search(ConnRef *lineRef, VertInf *src, VertInf *tar, VertInf *st
                     node.inf->aStarPendingNodes.begin(); currInd != finish; ++currInd)
             {
                 ati = **currInd;
-                // The (node.prevIndex == ati.prevIndex) is redundant, but may
-                // save checking the mosre costly DONE[prevIndex] test if the
-                // indexes are the same.
-                if ((node.inf == ati.inf) && ((node.prevIndex == ati.prevIndex) ||
-                        (DONE[node.prevIndex]->inf == DONE[ati.prevIndex]->inf)))
+                // The (node.prevNode == ati.prevNode) is redundant, but may
+                // save checking the mosre costly prevNode->inf test if the
+                // Nodes are the same.
+                if ((node.inf == ati.inf) && 
+                        ((node.prevNode == ati.prevNode) ||
+                         (node.prevNode->inf == ati.prevNode->inf)))
                 {
                     // If already on PENDING
                     if (node.g < ati.g)
@@ -896,35 +885,31 @@ void AStarPath::search(ConnRef *lineRef, VertInf *src, VertInf *tar, VertInf *st
             }
             if ( !bNodeFound ) // If Node NOT found on PENDING
             {
-                // Check to see if already on DONE.
-                // Rather than iterate through the complete DONE list, which
-                // may get very large in the worst case, we look at just the
-                // ANodes for this vertex.  This is cheaper for us even than
-                // using a hash map for DONE, especially since a good hash 
-                // function on the unique combination of vertex and previous 
-                // vertex is very difficult.
-                for (std::list<unsigned int>::const_iterator currInd = 
-                        node.inf->aStarDoneIndexes.begin();
-                        currInd != node.inf->aStarDoneIndexes.end(); ++currInd)
+                // Check to see if it is already in the Done set for this
+                // vertex.
+                for (std::list<ANode *>::const_iterator currInd = 
+                        node.inf->aStarDoneNodes.begin();
+                        currInd != node.inf->aStarDoneNodes.end(); ++currInd)
                 {
-                    ati = *DONE[*currInd];
-                    // The (node.prevIndex == ati.prevIndex) is redundant, 
-                    // but may save checking the mosre costly DONE[prevIndex] 
-                    // test if the indexes are the same.
-                    if ((node.inf == ati.inf) && ((node.prevIndex == ati.prevIndex) ||
-                            (DONE[node.prevIndex]->inf == DONE[ati.prevIndex]->inf)))
+                    ati = **currInd;
+                    // The (node.prevNode == ati.prevNode) is redundant, but may
+                    // save checking the mosre costly prevNode->inf test if the
+                    // Nodes are the same.
+                    if ((node.inf == ati.inf) && ati.prevNode &&
+                            ((node.prevNode == ati.prevNode) ||
+                             (node.prevNode->inf == ati.prevNode->inf)))
                     {
                         COLA_ASSERT(node.g >= (ati.g - 10e-10));
-                        // This node is already in DONE, and the current 
-                        // node also has a higher g-value, so we don't
-                        // need to consider this node.
+                        // This node is already in the Done set and the 
+                        // current node also has a higher g-value, so we 
+                        // don't need to consider this node.
                         bNodeFound = true;
                         break;
                     }
                 }
             }
 
-            if (!bNodeFound ) // If Node NOT found on PENDING or DONE
+            if (!bNodeFound ) // If Node NOT in either Pending or Done.
             {
                 // Push NewNode onto PENDING
                 ANode *newNode = m_private->newANode(node);
@@ -934,19 +919,12 @@ void AStarPath::search(ConnRef *lineRef, VertInf *src, VertInf *tar, VertInf *st
 
 #if 0
                 using std::cout; using std::endl;
-                // Display PENDING and DONE containers (For Debugging)
+                // Display PENDING container (For Debugging)
                 cout << "PENDING:   ";
                 for (unsigned int i = 0; i < PENDING.size(); i++)
                 {
                     cout << PENDING[i]->g << "," << PENDING[i]->h << ",";
                     cout << PENDING[i]->inf << "," << PENDING[i]->pp << "  ";
-                }
-                cout << endl;
-                cout << "DONE:   ";
-                for (unsigned int i = 0; i < DONE_size; i++)
-                {
-                    cout << DONE[i]->g << "," << DONE[i]->h << ",";
-                    cout << DONE[i]->inf << "," << DONE[i]->pp << "  ";
                 }
                 cout << endl << endl;
 #endif
@@ -954,13 +932,12 @@ void AStarPath::search(ConnRef *lineRef, VertInf *src, VertInf *tar, VertInf *st
         }
     }
 
-    // Cleanup lists used to store positions in DONE list for ANodes at each
-    // vertex.
+    // Cleanup lists used to store Done and Pending sets for each vertex.
     VertInf *endVert = router->vertices.end();
     for (VertInf *k = router->vertices.connsBegin(); k != endVert;
             k = k->lstNext)
     {
-        k->aStarDoneIndexes.clear();
+        k->aStarDoneNodes.clear();
         k->aStarPendingNodes.clear();
     }
 }
