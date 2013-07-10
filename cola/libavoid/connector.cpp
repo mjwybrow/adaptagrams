@@ -1041,8 +1041,9 @@ void ConnRef::generateCheckpointsPath(std::vector<Point>& path,
             }
         }
         
+        AStarPath aStar;
         // Route the connector
-        aStarPath(this, start, end, NULL); 
+        aStar.search(this, start, end, NULL); 
 
         // Restore changes made for checkpoint visbility directions.
         if (lastSuccessfulIndex > 0)
@@ -1149,7 +1150,8 @@ void ConnRef::generateStandardPath(std::vector<Point>& path,
     unsigned int pathlen = 0;
     while (pathlen == 0)
     {
-        aStarPath(this, src(), dst(), start());
+        AStarPath aStar;
+        aStar.search(this, src(), dst(), start());
         pathlen = dst()->pathLeadsBackTo(src());
         if (pathlen < 2)
         {

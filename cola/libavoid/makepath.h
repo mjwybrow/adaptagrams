@@ -30,12 +30,22 @@
 namespace Avoid {
 
 class ConnRef;
+class AStarPathPrivate;
+class ANode;
+class VertInf;
 
-extern void aStarPath(ConnRef *lineRef, VertInf *src, VertInf *tar,
-        VertInf *start);
+class AStarPath
+{
+    public:
+        AStarPath();
+        ~AStarPath();
+        void search(ConnRef *lineRef, VertInf *src, VertInf *tar, 
+                VertInf *start);
+    private:
+        AStarPathPrivate *m_private;        
+};
 
 }
-
 
 #endif
 
