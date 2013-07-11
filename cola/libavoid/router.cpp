@@ -1059,31 +1059,28 @@ static bool connsKnownToCross(ConnCostRefSetList &setList, ConnCostRef conn1,
 
 static double cheapEstimatedCost(ConnRef *lineRef)
 {
-    const PolyLine& route = lineRef->route();
-    const Point& a = route.ps[0];
-    const Point& b = route.ps[route.size() - 1];
+    // We use an estimate of overall connector length, reduced by the length 
+    // of the shortest segment.  This causes straight line connectors to be 
+    // left alone.  It also causes connectors running close to things to get
+    // rerouted rather than ones in wide channels, which hopefully has the 
+    // effect of us not leaving a heavily restricted connector in place and 
+    // trying to route around it with others.
+    bool isPolyLine = (lineRef->routingType() == ConnType_PolyLine);
+    const PolyLine& route = lineRef->displayRoute();
+    double smallestSegment = DBL_MAX;
+    double length = 0;
 
-    if (lineRef->routingType() == ConnType_PolyLine)
+    for (size_t i = 1; i < route.size(); ++i)
     {
-        return euclideanDist(a, b);
+        const Point& a = route.ps[i - 1];
+        const Point& b = route.ps[i];
+
+        double segmentLength = (isPolyLine) ? 
+                euclideanDist(a, b) : manhattanDist(a, b);
+        smallestSegment = std::min(smallestSegment, segmentLength);
+        length += segmentLength;
     }
-    else // Orthogonal
-    {
-        int minimumBends = 0;
-        double xDiff = b.x - a.x;
-        double yDiff = b.y - a.y;
-
-        if ((xDiff != 0) && (yDiff != 0))
-        {
-            minimumBends += 1;
-        }
-
-        // Use a large penalty here, so we don't reroute straight line
-        // connectors.
-        double penalty = minimumBends * 2000;
-
-        return manhattanDist(a, b) + penalty;
-    }
+    return length - smallestSegment;
 }
 
 
@@ -1200,7 +1197,9 @@ void Router::improveCrossings(void)
                     // We are penalising fixedSharedPaths and there is a
                     // fixedSharedPath.
 
-                    if (cross.crossingFlags & CROSSING_SHARES_PATH_AT_END)
+                    if ((cross.crossingFlags & CROSSING_SHARES_PATH_AT_END) &&
+                            (cross.firstSharedPathAtEndLength !=
+                                cross.secondSharedPathAtEndLength))
                     {
                         // Get costs of each path from the crossings object.
                         // For shared paths that cross at the end, these will 
@@ -1232,7 +1231,7 @@ void Router::improveCrossings(void)
     // At this point we have a list containing sets of interacting (crossing) 
     // connectors.  The first element in each set is the ideal candidate to 
     // keep the route for.  The others should be rerouted.  We do this via
-    // two passes: 1) clear existing routes andfree pin assignments, and
+    // two passes: 1) clear existing routes and free pin assignments, and
     // 2) compute new routes.
     for (int pass = 0; pass < 2; ++pass)
     {
