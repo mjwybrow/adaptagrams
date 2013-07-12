@@ -4,8 +4,8 @@ int main(void) {
     Router *router = new Router(
             PolyLineRouting | OrthogonalRouting);
     router->setRoutingParameter((RoutingParameter)0, 10);
-    router->setRoutingParameter((RoutingParameter)1, 10);
-    router->setRoutingParameter((RoutingParameter)2, 0);
+    router->setRoutingParameter((RoutingParameter)1, 0);
+    router->setRoutingParameter((RoutingParameter)2, 100);
     router->setRoutingParameter((RoutingParameter)3, 4000);
     router->setRoutingParameter((RoutingParameter)4, 1000);
     router->setRoutingParameter((RoutingParameter)5, 100);
