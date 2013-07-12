@@ -18,25 +18,7 @@ dnl ******************************
 if test "$GXX" = "yes"; then
   # Enable some warnings from g++.
 
-  # Rationale: a number of bugs in inkscape have been fixed by enabling g++
-  # warnings and addressing the produced warnings.  Usually the committing
-  # developer is the best person to address the warnings.
-
-  ink_svd_CXXFLAGS="$CXXFLAGS"
-  CXXFLAGS="-Wno-unused-parameter $CXXFLAGS"
-  # -Wno-unused-parameter isn't accepted by gcc 2.95.
-  AC_COMPILE_IFELSE([AC_LANG_SOURCE([int dummy;
-  ])], , CXXFLAGS="-Wno-unused $ink_svd_CXXFLAGS",)
-  # Note: At least one bug has been caught from unused parameter warnings,
-  # so it might be worth trying not to disable it.
-  # One way of selectively disabling the warnings (i.e. only where the
-  # programmer deliberately isn't using the parameter, e.g. for a callback)
-  # is to remove the parameter name (leaving just its type), as is done
-  # in src/seltrans.cpp:sp_seltrans_handle_event; this indicates that the
-  # programmer deliberately has an unused parameter (e.g. because it's used
-  # as a callback or similar function pointer use).
-
-  CXXFLAGS="-Wall -Wpointer-arith -Wcast-align -Wsign-compare -Woverloaded-virtual -Wswitch  $CXXFLAGS"
+  CXXFLAGS="-Wall -W -Wpointer-arith -Wcast-align -Wsign-compare -Woverloaded-virtual -Wswitch  $CXXFLAGS"
 
   dnl Test for arch-specific situations.
   case "$host_cpu" in
@@ -69,5 +51,5 @@ AH_BOTTOM([
   
 ])
 
-AC_CONFIG_FILES([Makefile libcola/Makefile libcola/tests/Makefile libvpsc/Makefile libvpsc/tests/Makefile libproject/Makefile libproject/tests/Makefile libtopology/Makefile libtopology/tests/Makefile libavoid/Makefile libavoid/tests/Makefile])
+AC_CONFIG_FILES([Makefile libcola/Makefile libcola/tests/Makefile libvpsc/Makefile libvpsc/tests/Makefile libtopology/Makefile libtopology/tests/Makefile libavoid/Makefile libavoid/tests/Makefile])
 AC_OUTPUT

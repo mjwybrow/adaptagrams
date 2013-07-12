@@ -552,6 +552,8 @@ class NudgingShiftSegment : public ShiftSegment
         bool canAlignWith(const NudgingShiftSegment *rhs, 
                 const size_t dim) const
         {
+            COLA_UNUSED(dim);
+
             // Don't segments of the same connector to drift together
             // where one of them goes via a checkpoint.  We want the path 
             // through the checkpoint to be maintained.

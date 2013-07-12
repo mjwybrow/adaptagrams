@@ -829,6 +829,8 @@ void AStarPath::search(ConnRef *lineRef, VertInf *src, VertInf *tar, VertInf *st
 void AStarPathPrivate::determineEndPointLocation(double dist, VertInf *start, 
         VertInf *target, VertInf *other, int level)
 {
+    COLA_UNUSED(level);
+
     Point otherPoint = other->point;
 
 #ifdef ESTIMATED_COST_DEBUG

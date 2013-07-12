@@ -1107,6 +1107,11 @@ bool Router::shouldContinueTransactionWithProgress(unsigned int elapsedTime,
         unsigned int phaseNumber, unsigned int totalPhases, 
         double proportion)
 {
+    COLA_UNUSED(elapsedTime);
+    COLA_UNUSED(phaseNumber);
+    COLA_UNUSED(totalPhases);
+    COLA_UNUSED(proportion);
+
 #if 0
     printf("Progress: %8u, phase %u of %u... %.2f%%\n", elapsedTime,
             phaseNumber, totalPhases, proportion * 100);
