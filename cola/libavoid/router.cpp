@@ -93,6 +93,7 @@ Router::Router(const unsigned int flags)
     m_routing_options[improveHyperedgeRoutesMovingJunctions] = true;
     m_routing_options[penaliseOrthogonalSharedPathsAtConnEnds] = false;
     m_routing_options[nudgeOrthogonalTouchingColinearSegments] = false;
+    m_routing_options[performUnifyingNudgingPreprocessingStep] = true;
 
     m_hyperedge_rerouter.setRouter(this);
 }

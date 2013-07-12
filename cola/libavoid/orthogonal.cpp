@@ -3463,7 +3463,8 @@ extern void improveOrthogonalRoutes(Router *router)
     // the routing process.  Of course, don't do this when rerouting with
     // a fixedSharedPathPenalty since these routes include extra segments 
     // we want to keep apart which prevent some shared paths.
-    if (router->routingParameter(fixedSharedPathPenalty) == 0)
+    if (router->routingOption(performUnifyingNudgingPreprocessingStep) && 
+            (router->routingParameter(fixedSharedPathPenalty) == 0))
     {
         PtOrderMap pointOrders;
         for (size_t dimension = 0; dimension < 2; ++dimension)

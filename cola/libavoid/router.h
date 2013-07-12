@@ -156,38 +156,59 @@ typedef enum RoutingParameter PenaltyType;
 //! @brief  Types of routing options that can be enabled.
 enum RoutingOption
 {
-    //! @brief  This option causes the final segments of connectors, which
-    //!         are attached to shapes, to be nudged apart.  Usually these
-    //!         segments are fixed, since they are considered to be attached
-    //!         to ports.  This option is not set by default.
+    //! This option causes the final segments of connectors, which are 
+    //! attached to shapes, to be nudged apart.  Usually these segments 
+    //! are fixed, since they are considered to be attached to ports.
     //!
-    //!         This option also causes routes running through the same 
-    //!         checkpoint to be nudged apart.
+    //! Defaults to false.
+    //!
+    //! This option also causes routes running through the same checkpoint 
+    //! to be nudged apart.
     //!
     //! @note   This will allow routes to be nudged up to the bounds of shapes.
     nudgeOrthogonalSegmentsConnectedToShapes = 0,
-    //! @brief  This option causes hyperedge routes to be locally improved
-    //!         fixing obviously bad paths.  As part of this process libavoid
-    //!         will effectively move junctions, setting new ideal positions
-    //!         ( JunctionRef::recommendedPosition() ) for each junction.
+    //! This option causes hyperedge routes to be locally improved fixing
+    //! obviously bad paths.  As part of this process libavoid will
+    //! effectively move junctions, setting new ideal positions  
+    //! ( JunctionRef::recommendedPosition() ) for each junction.
+    //!
+    //! Defaults to false.
+    //!
     improveHyperedgeRoutesMovingJunctions,
-    //! @brief  This option penalises and attempts to reroute orthogonal 
-    //!         shared connector paths terminating at a common junction or 
-    //!         shape connection pin.  When multiple connector paths 
-    //!         enter or leave the same side of a junction (or shape pin), 
-    //!         the router will attempt to reroute these to different sides 
-    //!         of the junction or different shape pins.  This option depends
-    //!         on the fixedSharedPathPenalty penalty having been set.
+    //! This option penalises and attempts to reroute orthogonal shared 
+    //! connector paths terminating at a common junction or shape 
+    //! connection pin.  When multiple connector paths enter or leave 
+    //! the same side of a junction (or shape pin), the router will 
+    //! attempt to reroute these to different sides of the junction or 
+    //! different shape pins. 
+    //!
+    //! Defaults to false.
+    //!
+    //! This option depends on the fixedSharedPathPenalty penalty having 
+    //! been set.
     //!
     //! @sa     fixedSharedPathPenalty
     //! @note   This option is still experimental!  It is not recommended
     //!         for normal use.
     penaliseOrthogonalSharedPathsAtConnEnds,
-    //! @brief  This option can be used to control whether collinear line 
-    //!         segments that touch just at their ends will be nudged apart.
-    //!         The overlap will usually be resolved in the other dimension,
-    //!         so this is not usually required and is not set by default.
+    //! This option can be used to control whether collinear line 
+    //! segments that touch just at their ends will be nudged apart.
+    //! The overlap will usually be resolved in the other dimension,
+    //! so this is not usually required.
+    //!
+    //! Defaults to false.
+    //!
     nudgeOrthogonalTouchingColinearSegments,
+    //! This option can be used to control whether the router performs
+    //! a preprocessing step before orthogonal nudging where is tries
+    //! to unify segments and centre them in free space.  This 
+    //! generally results in better quality ordering and nudging.
+    //!         
+    //! Defaults to true.
+    //!
+    //! You may wish to turn this off for large examples where it
+    //! can be very slow and will make little difference.
+    performUnifyingNudgingPreprocessingStep,
     
     // Used for determining the size of the routing options array.
     // This should always we the last value in the enum.
