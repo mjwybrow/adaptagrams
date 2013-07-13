@@ -1256,12 +1256,12 @@ public:
             // by going in that direction!
             if (finish == DBL_MAX)
             {
-                // Shorten line to first intersection point.
+                // Shorten line to last intersection point.
                 finish = breakPoints.rbegin()->pos;
             }
             else
             {
-                // Add begin point.
+                // Add finish point.
                 Point point(pos, pos);
                 point[dim] = finish;
                 VertInf *vert = new VertInf(router, dummyOrthogID, point);
@@ -1554,8 +1554,8 @@ static void intersectSegments(Router *router, SegmentList& segments,
 
 
 // Processes an event for the vertical sweep used for computing the static 
-// orthogonal visibility graph.  This adds possible visibility segments to 
-// the segments list.
+// orthogonal visibility graph.  This adds possible horizontal visibility 
+// segments to the segments list.
 // The first pass is adding the event to the scanline, the second is for
 // processing the event and the third for removing it from the scanline.
 static void processEventVert(Router *router, NodeSet& scanline, 
@@ -1737,8 +1737,8 @@ static void processEventVert(Router *router, NodeSet& scanline,
 
 
 // Processes an event for the vertical sweep used for computing the static 
-// orthogonal visibility graph.  This adds possible visibility segments to 
-// the segments list.
+// orthogonal visibility graph.  This adds possible vertical visibility 
+// segments to the segments list.
 // The first pass is adding the event to the scanline, the second is for
 // processing the event and the third for removing it from the scanline.
 static void processEventHori(Router *router, NodeSet& scanline, 
@@ -1977,9 +1977,9 @@ extern void generateStaticOrthogonalVisGraph(Router *router)
     fixConnectionPointVisibilityOnOutsideOfVisibilityGraph(events, totalEvents, 
             (ConnDirLeft | ConnDirRight));
 
-    // Process the vertical sweep.
+    // Process the vertical sweep -- creating cadidate horizontal edges.
     // We do multiple passes over sections of the list so we can add relevant
-    // entries to the scanline that might follow, before process them.
+    // entries to the scanline that might follow, before processing them.
     SegmentListWrapper segments;
     NodeSet scanline;
     double thisPos = (totalEvents > 0) ? events[0]->pos : 0;
@@ -2078,7 +2078,7 @@ extern void generateStaticOrthogonalVisGraph(Router *router)
     fixConnectionPointVisibilityOnOutsideOfVisibilityGraph(events, totalEvents, 
             (ConnDirUp | ConnDirDown));
 
-    // Process the horizontal sweep
+    // Process the horizontal sweep -- creating vertical visibility edges.
     thisPos = (totalEvents > 0) ? events[0]->pos : 0;
     posStartIndex = 0;
     posFinishIndex = 0;
@@ -2132,7 +2132,7 @@ extern void generateStaticOrthogonalVisGraph(Router *router)
     {
         delete events[i];
     }
-    delete [] events;
+    delete [] events; 
 
     // Add portions of the horizontal line that are after the final vertical
     // position we considered.
