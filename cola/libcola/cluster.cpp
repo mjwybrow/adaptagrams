@@ -291,8 +291,13 @@ void RectangularCluster::computeBoundary(const vpsc::Rectangles& rs)
 void RectangularCluster::printCreationCode(FILE *fp) const
 {
     fprintf(fp, "    RectangularCluster *cluster%llu = "
-            "new RectangularCluster();\n",
+            "new RectangularCluster(",
             (unsigned long long) this);
+    if (m_rectangle_index != -1)
+    {
+        fprintf(fp, "%d", m_rectangle_index);
+    }
+    fprintf(fp, ");\n");
     for(vector<unsigned>::const_iterator i = nodes.begin(); 
             i != nodes.end(); ++i)
     {
