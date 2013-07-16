@@ -4,7 +4,7 @@
  * libcola - A library providing force-directed network layout using the 
  *           stress-majorization method subject to separation constraints.
  *
- * Copyright (C) 2006-2010  Monash University
+ * Copyright (C) 2006-2013  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -77,25 +77,23 @@ void Cluster::setRectBuffers(const double buffer)
 // Checks to see if the shape at the given index is contained within this
 // cluster or its child clusters.
 //
-bool Cluster::containsShape(unsigned index) const
+int Cluster::containsShape(unsigned index) const
 {
+    int count = 0;
     for (vector<unsigned>::const_iterator i = nodes.begin(); 
             i != nodes.end(); ++i)
     {
         if (*i == index)
         {
-            return true;
+            ++count;
         }
     }
     for (vector<Cluster*>::const_iterator i = clusters.begin(); 
             i != clusters.end(); ++i)
     {
-        if ((*i)->containsShape(index))
-        {
-            return true;
-        }
+        count += (*i)->containsShape(index);
     }
-    return false;
+    return count;
 }
 
 void Cluster::computeBoundingRect(const vpsc::Rectangles& rs) 
@@ -222,14 +220,16 @@ RectangularCluster::~RectangularCluster()
     }
 }
  
-bool RectangularCluster::containsShape(unsigned index) const
+int RectangularCluster::containsShape(unsigned index) const
 {
+    int count = 0;
     if (m_rectangle_index == (int) index)
     {
         // This cluster is the shape in question.
-        return true;
+        ++count;
     }
-    return Cluster::containsShape(index);
+    count += Cluster::containsShape(index);
+    return count;
 }
 
 
@@ -336,6 +336,10 @@ void RectangularCluster::computeBoundingRect(const vpsc::Rectangles& rs)
     }
 }
 
+RootCluster::RootCluster()
+    : m_allows_multiple_parents(false)
+{
+}
 
 void RootCluster::computeBoundary(const vpsc::Rectangles& rs) 
 {
@@ -364,6 +368,15 @@ void RootCluster::printCreationCode(FILE *fp) const
     }
 }
 
+bool RootCluster::allowsMultipleParents(void) const
+{
+    return m_allows_multiple_parents;
+}
+
+void RootCluster::setAllowsMultipleParents(const bool value)
+{
+    m_allows_multiple_parents = value;
+}
 
 void Cluster::updateBounds(const vpsc::Dim dim) 
 {

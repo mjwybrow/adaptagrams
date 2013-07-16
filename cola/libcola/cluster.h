@@ -4,7 +4,7 @@
  * libcola - A library providing force-directed network layout using the 
  *           stress-majorization method subject to separation constraints.
  *
- * Copyright (C) 2006-2010  Monash University
+ * Copyright (C) 2006-2013  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -69,7 +69,7 @@ class Cluster
         void setRectBuffers(const double buffer);
         virtual void printCreationCode(FILE *fp) const = 0;
         vpsc::Variable *vXMin, *vXMax, *vYMin, *vYMax;
-        virtual bool containsShape(unsigned index) const;
+        virtual int containsShape(unsigned index) const;
         virtual bool clusterIsFromFixedRectangle(void) const;
         
         // Returns the total area covered by contents of this cluster
@@ -102,6 +102,7 @@ class Cluster
 };
 typedef std::vector<Cluster*> Clusters;
 
+
 /**
  * @brief Holds the cluster hierarchy specification for a diagram.
  *
@@ -110,10 +111,24 @@ typedef std::vector<Cluster*> Clusters;
  * hierarchy of clusters.
  *
  * You can add clusters via addChildCluster() and nodes via addChildNode().
+ *
+ * You can specify just the shapes contained in clusters, but not the nodes 
+ * at this top level---the library will add any remaining nodes not appearing 
+ * in the cluster hierarchy as children of the root cluster.
+ *
+ * It is possible to add a node as the child of two parent clusters.  In this 
+ * case, the clusters will overlap to contain this (and possibly other nodes).
+ * The library will warn you if you do this unless you have called the method
+ * setAllowsMultipleParents() to mark this intention.
+ *
+ * Be careful not to create cycles in the cluster hierarchy (i.e., to mark 
+ * two clusters as children of each other.  The library does not check for 
+ * this and strange things may occur.
  */
 class RootCluster : public Cluster 
 {
     public:
+        RootCluster();
         void computeBoundary(const vpsc::Rectangles& rs);
         // There are just shapes at the top level, so
         // effectively no clusters in the diagram scene.
@@ -122,6 +137,24 @@ class RootCluster : public Cluster
             return clusters.empty();
         }
         virtual void printCreationCode(FILE *fp) const;
+
+        //! Returns true if this cluster hierarchy allows multiple parents, 
+        //! otherwise returns false.
+        //!
+        //! Defaults to false.  If this is false, the library will display
+        //! warnings if you add a single node to multiple clusters.
+        //!
+        //! @sa setAllowsMultipleParents()
+        bool allowsMultipleParents(void) const;
+
+        //! Set whether the cluster hierarchy should allow multiple parents.
+        //! 
+        //! @param value New value for this setting.
+        //!
+        //! sa allowsMultipleParents()
+        void setAllowsMultipleParents(const bool value);
+   private:
+        bool m_allows_multiple_parents;
 };
 
 /**
@@ -152,7 +185,7 @@ class RectangularCluster : public Cluster
 
         virtual ~RectangularCluster();
         void computeBoundary(const vpsc::Rectangles& rs);
-        virtual bool containsShape(unsigned index) const;
+        virtual int containsShape(unsigned index) const;
         virtual void printCreationCode(FILE *fp) const;
         virtual void computeBoundingRect(const vpsc::Rectangles& rs);
         inline vpsc::Rectangle *getMinEdgeRect(const vpsc::Dim dim)

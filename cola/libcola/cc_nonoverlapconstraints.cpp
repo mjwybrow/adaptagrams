@@ -4,7 +4,7 @@
  * libcola - A library providing force-directed network layout using the 
  *           stress-majorization method subject to separation constraints.
  *
- * Copyright (C) 2010  Monash University
+ * Copyright (C) 2010-2013  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -394,7 +394,7 @@ NonOverlapConstraints::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
     double desiredX2 = vs[XDIM][info.varIndex2]->desiredPosition;
     double desiredY2 = vs[YDIM][info.varIndex2]->desiredPosition;
     
-    // Clusters have two variables instead of a centre variabale -- one for
+    // Clusters have two variables instead of a centre variable -- one for
     // each boundary side, so we need to remap the desired positions and the
     // separations values for the purposes of cost sorting.
     if (shape1.cluster)

@@ -4,7 +4,7 @@
  * libcola - A library providing force-directed network layout using the 
  *           stress-majorization method subject to separation constraints.
  *
- * Copyright (C) 2006-2010  Monash University
+ * Copyright (C) 2006-2013  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -369,9 +369,9 @@ void ConstrainedFDLayout::recGenerateClusterVariablesAndConstraints(
     {
         // Enforce non-overlap between all the shapes and clusters at this 
         // level.
-        printf("Cluster #%d non-overlap constraints - nodes %d clusters %d\n",
-                (int) cluster->clusterVarId, (int) cluster->nodes.size(), 
-                (int) cluster->clusters.size());
+        //printf("Cluster #%d non-overlap constraints - nodes %d clusters %d\n",
+        //        (int) cluster->clusterVarId, (int) cluster->nodes.size(), 
+        //        (int) cluster->clusters.size());
         unsigned int group = cluster->clusterVarId;
         for (std::vector<unsigned>::iterator curr = cluster->nodes.begin();
                 curr != cluster->nodes.end(); ++curr)
@@ -411,8 +411,18 @@ void ConstrainedFDLayout::generateNonOverlapAndClusterCompoundConstraints(
         // as children of the root cluster.
         for (unsigned int i = 0; i < boundingBoxes.size(); ++i)
         {
-            if (!clusterHierarchy->containsShape(i))
+            int count = clusterHierarchy->containsShape(i);
+            
+            if (!clusterHierarchy->allowsMultipleParents() &&
+                    count > 1)
             {
+                fprintf(stderr, "Warning: node %u is contained in %d "
+                        "clusters.\n", i, count);
+            }
+            
+            if (count == 0)
+            {
+                // Not present in heirarchy, so add to root cluster.
                 clusterHierarchy->nodes.push_back(i);
             }
         }
