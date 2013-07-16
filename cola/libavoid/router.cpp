@@ -2214,8 +2214,20 @@ void Router::outputInstanceToSVG(std::string instanceName)
     }
     fprintf(fp, "using namespace Avoid;\n");
     fprintf(fp, "int main(void) {\n");
-    fprintf(fp, "    Router *router = new Router(\n");
-    fprintf(fp, "            PolyLineRouting | OrthogonalRouting);\n");
+    fprintf(fp, "    Router *router = new Router(");
+    if (m_allows_polyline_routing)
+    {
+        fprintf(fp, "PolyLineRouting");
+    }
+    if (m_allows_polyline_routing && m_allows_orthogonal_routing)
+    {
+        fprintf(fp, " | ");
+    }
+    if (m_allows_orthogonal_routing)
+    {
+        fprintf(fp, "OrthogonalRouting");
+    }
+    fprintf(fp, ");\n");
     for (size_t p = 0; p < lastRoutingParameterMarker; ++p)
     {
         fprintf(fp, "    router->setRoutingParameter((RoutingParameter)%lu, %g);\n", 
@@ -2230,6 +2242,7 @@ void Router::outputInstanceToSVG(std::string instanceName)
     fprintf(fp, "    ConnRef *connRef = NULL;\n");
     fprintf(fp, "    ConnEnd srcPt;\n");
     fprintf(fp, "    ConnEnd dstPt;\n");
+    fprintf(fp, "    PolyLine newRoute;\n");
     ClusterRefList::reverse_iterator revClusterRefIt = clusterRefs.rbegin();
     while (revClusterRefIt != clusterRefs.rend())
     {

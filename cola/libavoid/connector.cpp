@@ -442,6 +442,23 @@ void ConnRef::outputCode(FILE *fp) const
     }
     fprintf(fp, "    connRef->setRoutingType((ConnType)%u);\n", routingType());
 
+    if (m_has_fixed_route)
+    {
+        PolyLine currRoute = route();
+        fprintf(fp, "    newRoute._id = %u;\n", id());
+        fprintf(fp, "    newRoute.ps.resize(%d);\n", (int)currRoute.size());
+        for (size_t i = 0; i < currRoute.size(); ++i)
+        {
+            fprintf(fp, "    newRoute.ps[%d] = Point(%" PREC "g, %" PREC "g);\n", 
+                    (int) i, currRoute.ps[i].x, currRoute.ps[i].y);
+            fprintf(fp, "    newRoute.ps[%d].id = %u;\n", 
+                    (int) i, currRoute.ps[i].id);
+            fprintf(fp, "    newRoute.ps[%d].vn = %u;\n",
+                    (int) i, currRoute.ps[i].vn);
+        }
+        fprintf(fp, "    connRef->setFixedRoute(newRoute);\n");
+    }
+
     if (!m_checkpoints.empty())
     {
         fprintf(fp, "    std::vector<Checkpoint> checkpoints%u(%d);\n", id(),
