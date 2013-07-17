@@ -853,10 +853,12 @@ void AStarPath::search(ConnRef *lineRef, VertInf *src, VertInf *tar, VertInf *st
 void AStarPathPrivate::determineEndPointLocation(double dist, VertInf *start, 
         VertInf *target, VertInf *other, int level)
 {
+    COLA_UNUSED(dist);
+    COLA_UNUSED(start);
     COLA_UNUSED(level);
 
     Point otherPoint = other->point;
-    unsigned int thisDirs = orthogonalDirection(other->point, target->point);
+    unsigned int thisDirs = orthogonalDirection(otherPoint, target->point);
     COLA_ASSERT(orthogonalDirectionsCount(thisDirs) > 0);
 
     m_cost_targets.push_back(other);
