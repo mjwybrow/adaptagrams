@@ -381,12 +381,13 @@ bool ConnRef::getConnEndForEndpointVertex(VertInf *vertex,
 
 void ConnRef::updateEndPoint(const unsigned int type, const ConnEnd& connEnd)
 {
+    common_updateEndPoint(type, connEnd);
+
     if (m_has_fixed_route)
     {
+        // Don't need to continue and compute visibility if route is fixed.
         return;
     }
-
-    common_updateEndPoint(type, connEnd);
 
     if (m_router->m_allows_polyline_routing)
     {
@@ -601,6 +602,12 @@ void ConnRef::set_route(const PolyLine& route)
 
 void ConnRef::setFixedRoute(const PolyLine& route)
 {
+    if (route.size() >= 2)
+    {
+        // Set endpoints based on the fixed route incase the 
+        // fixed route is later cleared.
+        setEndpoints(route.ps[0], route.ps[route.size() - 1]);
+    }
     m_has_fixed_route = true;
     m_route = route;
     m_display_route = m_route.simplify();
