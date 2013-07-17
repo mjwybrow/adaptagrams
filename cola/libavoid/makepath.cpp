@@ -30,6 +30,7 @@
 #include <algorithm>
 #include <vector>
 #include <climits>
+#include <cfloat>
 
 #include "libavoid/makepath.h"
 #include "libavoid/vertices.h"
@@ -124,6 +125,8 @@ class AStarPathPrivate
     private:
         void determineEndPointLocation(double dist, VertInf *start,
                 VertInf *target, VertInf *other, int level);
+        double estimatedCost(ConnRef *lineRef, const Point *last,
+                const Point& curr) const;
 
         std::vector<ANode *> m_available_nodes;
         size_t m_available_array_size;
@@ -131,10 +134,8 @@ class AStarPathPrivate
         size_t m_available_node_index;
  
         // For determining estimated cost target.
-        bool m_only_on_far_side;
-        VertInf *m_far_point;
-        int m_connection_pins_count;
-        unsigned int m_cost_target_directions;
+        std::vector<VertInf *> m_cost_targets;
+        std::vector<unsigned int> m_cost_targets_directions;
 };
 
 
@@ -707,8 +708,8 @@ int bends(const Point& curr, unsigned int currDir, const Point& dest,
 }
 
 
-static double estimatedCost(ConnRef *lineRef, const Point *last, 
-        const Point& curr, const VertInf *costTar, 
+static double estimatedCostSpecific(ConnRef *lineRef, const Point *last,
+        const Point& curr, const VertInf *costTar,
         const unsigned int costTarDirs)
 {
     Point costTarPoint = costTar->point;
@@ -719,6 +720,10 @@ static double estimatedCost(ConnRef *lineRef, const Point *last,
     }
     else // Orthogonal
     {
+        // Really doesn't make sense to route orthogonal paths without 
+        // a segment penalty.
+        COLA_ASSERT(lineRef->router()->routingParameter(segmentPenalty) > 0);
+
         double dist = manhattanDist(curr, costTarPoint);
 
         int bendCount = 0;
@@ -773,6 +778,25 @@ static double estimatedCost(ConnRef *lineRef, const Point *last,
 
         return dist + penalty;
     }
+}
+
+
+
+double AStarPathPrivate::estimatedCost(ConnRef *lineRef, const Point *last,
+        const Point& curr) const
+{
+    double estimate = DBL_MAX;
+    COLA_ASSERT(m_cost_targets.size() > 0);
+
+    // Find the minimum cost from the estimates to each of the possible
+    // target points from this current point.
+    for (size_t i = 0; i < m_cost_targets.size(); ++i)
+    {
+        double iEstimate = estimatedCostSpecific(lineRef, last,
+                curr, m_cost_targets[i], m_cost_targets_directions[i]);
+        estimate = std::min(estimate, iEstimate);
+    }
+    return estimate;
 }
 
 
@@ -832,30 +856,19 @@ void AStarPathPrivate::determineEndPointLocation(double dist, VertInf *start,
     COLA_UNUSED(level);
 
     Point otherPoint = other->point;
+    unsigned int thisDirs = orthogonalDirection(other->point, target->point);
+    COLA_ASSERT(orthogonalDirectionsCount(thisDirs) > 0);
+
+    m_cost_targets.push_back(other);
+    m_cost_targets_directions.push_back(thisDirs);
 
 #ifdef ESTIMATED_COST_DEBUG
     fprintf(stderr," - %g %g ", otherPoint.x, otherPoint.y);
-#endif
-
-    if (manhattanDist(start->point, otherPoint) < dist)
+    if (manhattanDist(start->point, otherPoint) > dist)
     {
-        m_only_on_far_side = false;
-    }
-    else
-    {
-        m_far_point = other;
-#ifdef ESTIMATED_COST_DEBUG
         fprintf(stderr,"far ");
-#endif
     }
-
-#ifdef ESTIMATED_COST_DEBUG
     fprintf(stderr, "%s", (level == 1) ? "--" : "- ");
-#endif
-
-    unsigned int thisDirs = orthogonalDirection(other->point, target->point);
-    m_cost_target_directions |= thisDirs;
-#ifdef ESTIMATED_COST_DEBUG
     printDirections(stderr, thisDirs);
     fprintf(stderr,"\n");
 #endif
@@ -882,8 +895,6 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
         start = src;
     }
 
-    VertInf *costTar = tar;
-    m_cost_target_directions = 0;
 
     // Find a target point to use for cost estimate for orthogonal routing..
     //
@@ -899,9 +910,6 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
     {
         // The target is a connector endpoint and the connector is orthogonal.
         double dist = manhattanDist(start->point, tar->point);
-        m_only_on_far_side = true;
-        m_far_point = NULL;
-        m_connection_pins_count = 0;
         for (EdgeInfList::const_iterator it = tar->orthogVisList.begin(); 
                 it != tar->orthogVisList.end(); ++it)
         {
@@ -913,7 +921,6 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
                 // If this is a connection pin we need to do this process
                 // another time since the current edge will be a dummy 
                 // zero-length edge.
-                ++m_connection_pins_count;
                 VertInf *replacementTar = other;
                 for (EdgeInfList::const_iterator it = 
                         replacementTar->orthogVisList.begin(); 
@@ -939,58 +946,27 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
             // Determine possible target endpoint directions and position.
             determineEndPointLocation(dist, start, tar, other, 1);
         }
-
-        // Set the new target vertex for cost estimations.
-        if (m_connection_pins_count > 1)
-        {
-            // If there are multiple connection pins that this connector is
-            // routing to, we just do the normal more costly routing to the
-            // original target, with assumed visibility in all directions.
-            // This is to maintain previous behaviour.
-            // XXX We could look at doing something smarter here.
-            m_cost_target_directions = (CostDirectionN | CostDirectionE | 
-                    CostDirectionS | CostDirectionW);
-            costTar = tar;
-
-        }
-        else if (m_only_on_far_side)
-        {
-            // If all targets are on the far side, use one of these.
-            m_cost_target_directions = 0;
-            costTar = m_far_point;
-            COLA_ASSERT(costTar);
-
-            // For that target, look at viable visibility edges to work
-            // out directions for this vertex that can be used for cost
-            // estimation.
-            for (EdgeInfList::const_iterator it = 
-                    costTar->orthogVisList.begin(); 
-                    it != costTar->orthogVisList.end(); ++it)
-            {
-                EdgeInf *edge = *it;
-                VertInf *other = edge->otherVert(costTar);
-                if (other->id.isConnPt())
-                {
-                    // Ignore other connector endpoints.
-                    continue;
-                }
-                m_cost_target_directions |= 
-                        orthogonalDirection(other->point, costTar->point);
-            }
-        }
     }
-    else
+
+
+    if (m_cost_targets.empty())
     {
+        m_cost_targets.push_back(tar);
         // For polyline routing, assume target has visibility is all 
         // directions for the purpose of cost estimations.
-        m_cost_target_directions = (CostDirectionN | CostDirectionE | 
-                CostDirectionS | CostDirectionW);
+        m_cost_targets_directions.push_back(CostDirectionN |
+                CostDirectionE | CostDirectionS | CostDirectionW);
     }
 
 #ifdef ESTIMATED_COST_DEBUG
-    fprintf(stderr,"== %g %g - ", costTar->point.x, costTar->point.y);
-    printDirections(stderr, m_cost_target_directions);
-    fprintf(stderr,"\n");
+    fprintf(stderr, "------------\n");
+    for (size_t i = 0; i < m_cost_targets.size(); ++i)
+    {
+        fprintf(stderr,"== %g %g - ", m_cost_targets[i]->point.x,
+                m_cost_targets[i]->point.y);
+        printDirections(stderr, m_cost_targets_directions[i]);
+        fprintf(stderr,"\n");
+    }
 #endif
 
 
@@ -1042,8 +1018,8 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
             {
                 node.inf = src;
                 node.g = 0;
-                node.h = estimatedCost(lineRef, NULL, node.inf->point, 
-                                       costTar, m_cost_target_directions);
+                node.h = estimatedCost(lineRef, NULL, node.inf->point);
+
                 node.f = node.g + node.h;
             }
             else
@@ -1055,7 +1031,7 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
 
                 // Calculate the Heuristic.
                 node.h = estimatedCost(lineRef, &(bestNode->inf->point),
-                        node.inf->point, costTar, m_cost_target_directions);
+                        node.inf->point);
 
                 // The A* formula
                 node.f = node.g + node.h;
@@ -1101,8 +1077,7 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
         // Create the start node
         node = ANode(src, timestamp++);
         node.g = 0;
-        node.h = estimatedCost(lineRef, NULL, node.inf->point, costTar, 
-                m_cost_target_directions);
+        node.h = estimatedCost(lineRef, NULL, node.inf->point);
         node.f = node.g + node.h;
         // Set a null parent, so cost function knows this is the first segment.
         node.prevNode = bestNode;
@@ -1334,7 +1309,7 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
             else
             {
                 node.h = estimatedCost(lineRef, &(bestNodeInf->point),
-                        node.inf->point, costTar, m_cost_target_directions);
+                        node.inf->point);
             }
 
             // The A* formula

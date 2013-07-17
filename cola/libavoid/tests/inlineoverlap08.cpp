@@ -99,7 +99,7 @@ int main(void) {
     connRef12->setRoutingType((ConnType)2);
 
     ConnRef *connRef13 = new ConnRef(router, 13);
-    ConnEnd srcPt13(Point(20, -74), 15);
+    ConnEnd srcPt13(Point(15, -74), 15);
     connRef13->setSourceEndpoint(srcPt13);
     ConnEnd dstPt13(Point(65, -20), 15);
     connRef13->setDestEndpoint(dstPt13);
