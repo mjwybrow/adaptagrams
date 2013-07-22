@@ -287,7 +287,6 @@ bool IncSolver::satisfy() {
                 bs->insert(lb->merge(rb,v));
             }
         }
-        bs->cleanup();
 #ifdef LIBVPSC_LOGGING
         f<<"...remaining blocks="<<bs->size()<<", cost="<<bs->cost()<<endl;
 #endif
