@@ -202,7 +202,6 @@ struct Event {
     double pos;
     Event(EventType t, Node *v, double p) : type(t),v(v),pos(p) {};
 };
-Event **events;
 int compare_events(const void *a, const void *b) {
     Event *ea=*(Event**)a;
     Event *eb=*(Event**)b;
@@ -236,7 +235,7 @@ void generateXConstraints(const Rectangles& rs, const Variables& vars,
 {
     const unsigned n = rs.size();
     COLA_ASSERT(vars.size()>=n);
-    events=new Event*[2*n];
+    Event **events=new Event*[2*n];
     unsigned i,ctr=0;
     for(i=0;i<n;i++) {
         vars[i]->desiredPosition=rs[i]->getCentreX();
@@ -326,7 +325,7 @@ void generateYConstraints(const Rectangles& rs, const Variables& vars,
 {
     const unsigned n = rs.size();
     COLA_ASSERT(vars.size()>=n);
-    events=new Event*[2*n];
+    Event **events=new Event*[2*n];
     unsigned ctr=0;
     Rectangles::const_iterator ri=rs.begin(), re=rs.end();
     Variables::const_iterator vi=vars.begin(), ve=vars.end();
