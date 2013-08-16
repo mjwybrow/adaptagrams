@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2009-2012  Monash University
+ * Copyright (C) 2009-2013  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -27,11 +27,15 @@
 #define AVOID_SCANLINE_H
 
 #include <set>
+#include <list>
 
 #include "libavoid/geomtypes.h"
 
 
 namespace Avoid {
+
+static const double CHANNEL_MAX = 100000000;
+
 
 class Obstacle;
 class VertInf;
@@ -59,6 +63,7 @@ class ShiftSegment
         double minSpaceLimit;
         double maxSpaceLimit;
 };
+typedef std::list<ShiftSegment *> ShiftSegmentList;
 
 
 class Node;
@@ -122,6 +127,8 @@ struct Event
 extern int compare_events(const void *a, const void *b);
 extern void buildConnectorRouteCheckpointCache(Router *router);
 extern void clearConnectorRouteCheckpointCache(Router *router);
+extern void buildOrthogonalChannelInfo(Router *router, 
+        const size_t dim, ShiftSegmentList& segmentList);
 
 
 }

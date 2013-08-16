@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2011  Monash University
+ * Copyright (C) 2011-2013  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -68,7 +68,7 @@ class MinimumTerminalSpanningTree
     public:
         MinimumTerminalSpanningTree(Router *router,
                 std::set<VertInf *> terminals,
-                JunctionHyperEdgeTreeNodeMap *hyperEdgeTreeJunctions = NULL);
+                JunctionHyperedgeTreeNodeMap *hyperedgeTreeJunctions = NULL);
         ~MinimumTerminalSpanningTree();
 
         // Uses Interleaved construction of the MTST and SPTF (heuristic 2 
@@ -78,11 +78,11 @@ class MinimumTerminalSpanningTree
         void constructSequential(void);
         
         void setDebuggingOutput(FILE *fp, unsigned int counter);
-        HyperEdgeTreeNode *rootJunction(void) const;
+        HyperedgeTreeNode *rootJunction(void) const;
 
     private:
-        void buildHyperEdgeTreeToRoot(VertInf *curr, 
-                HyperEdgeTreeNode *prevNode, VertInf *prevVert, 
+        void buildHyperedgeTreeToRoot(VertInf *curr, 
+                HyperedgeTreeNode *prevNode, VertInf *prevVert, 
                 bool markEdges = false);
         VertInf **resetDistsForPath(VertInf *currVert, VertInf **newRootVertPtr);
         void rewriteRestOfHyperedge(VertInf *vert, VertInf **newTreeRootPtr);
@@ -91,7 +91,7 @@ class MinimumTerminalSpanningTree
         void makeSet(VertInf *vertex);
         VertexSetList::iterator findSet(VertInf *vertex);
         void unionSets(VertexSetList::iterator s1, VertexSetList::iterator s2);
-        HyperEdgeTreeNode *addNode(VertInf *vertex, HyperEdgeTreeNode *prevNode);
+        HyperedgeTreeNode *addNode(VertInf *vertex, HyperedgeTreeNode *prevNode);
 
         void popInvalidBridgingEdges(void);
         void commitToBridgingEdge(EdgeInf *e, unsigned& step);
@@ -106,10 +106,10 @@ class MinimumTerminalSpanningTree
         bool isOrthogonal;
         std::set<VertInf *> terminals;
         std::set<VertInf *> origTerminals;
-        JunctionHyperEdgeTreeNodeMap *hyperEdgeTreeJunctions;
+        JunctionHyperedgeTreeNodeMap *hyperedgeTreeJunctions;
 
         VertexNodeMap nodes;
-        HyperEdgeTreeNode *m_rootJunction;
+        HyperedgeTreeNode *m_rootJunction;
         double bendPenalty;
         VertexSetList allsets;
         std::list<VertInf *> visitedVertices;

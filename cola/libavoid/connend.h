@@ -238,7 +238,7 @@ class AVOID_EXPORT ConnEnd
         friend class Router;
         friend class HyperedgeRerouter;
         friend class ShapeConnectionPin;
-        friend struct ImproveHyperEdges;
+        friend class HyperedgeImprover;
 
         void connect(ConnRef *conn);
         void disconnect(const bool shapeDeleted = false);

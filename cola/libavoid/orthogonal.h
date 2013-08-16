@@ -28,10 +28,10 @@
 
 namespace Avoid {
 
+class Router;
 
 extern void generateStaticOrthogonalVisGraph(Router *router);
 extern void improveOrthogonalRoutes(Router *router);
-extern void improveHyperedgeRoutes(Router *router);
 
 
 }

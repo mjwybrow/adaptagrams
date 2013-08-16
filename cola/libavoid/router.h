@@ -19,7 +19,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
  *
- * Author(s):   Michael Wybrow
+ * Author(s):  Michael Wybrow
 */
 
 //! @file    router.h
@@ -41,6 +41,7 @@
 #include "libavoid/timer.h"
 #include "libavoid/hyperedge.h"
 #include "libavoid/actioninfo.h"
+#include "libavoid/hyperedgeimprover.h"
 
 
 namespace Avoid {
@@ -93,6 +94,7 @@ enum RoutingParameter
     //!         order for orthogonal connector nudging to be performed, since
     //!         this requires reasonable initial routes. 
     segmentPenalty = 0,
+    
     //! @brief  This penalty is applied in its full amount to tight acute 
     //!         bends in the connector path.  A smaller portion of the penalty
     //!         is applied for slight bends, i.e., where the bend is close to
@@ -101,6 +103,7 @@ enum RoutingParameter
     //!         readability, but that slight bends might not be so bad, 
     //!         especially when smoothed by curves.
     anglePenalty,
+    
     //! @brief  This penalty is applied whenever a connector path crosses 
     //!         another connector path.  It takes shared paths into 
     //!         consideration and the penalty is only applied if there
@@ -108,6 +111,7 @@ enum RoutingParameter
     //! @note   This penalty is still experimental!  It is not recommended
     //!         for normal use.
     crossingPenalty,
+    
     //! @brief  This penalty is applied whenever a connector path crosses 
     //!         a cluster boundary.
     //! @note   This penalty is still experimental!  It is not recommended
@@ -116,6 +120,7 @@ enum RoutingParameter
     //!         Router::shouldContinueTransactionWithProgress() to check
     //!         progress and possibly cancel overly slow transactions.
     clusterCrossingPenalty,
+    
     //! @brief  This penalty is applied whenever a connector path shares 
     //!         some segments with an immovable portion of an existing 
     //!         connector route (such as the first or last segment of a
@@ -123,6 +128,7 @@ enum RoutingParameter
     //! @note   This penalty is still experimental!  It is not recommended
     //!         for normal use.
     fixedSharedPathPenalty,
+    
     //! @brief  This penalty is applied to port selection choice when the 
     //!         other end of the connector being routed does not appear in 
     //!         any of the 90 degree visibility cones centered on the
@@ -133,12 +139,14 @@ enum RoutingParameter
     //!         Router::shouldContinueTransactionWithProgress() to check
     //!         progress and possibly cancel overly slow transactions.
     portDirectionPenalty,
+    
     //! @brief This parameter defines the spacing distance that will be added
     //!        to the sides of each shape when determining obstacle sizes for
     //!        routing.  This controls how closely connectors pass shapes, and
     //!        can be used to prevent connectors overlapping with shape 
     //!        boundaries. By default, this distance is set to a value of 0.
     shapeBufferDistance,
+    
     //! @brief This parameter defines the spacing distance that will be used
     //!        for nudging apart overlapping corners and line segments of 
     //!        connectors.  By default, this distance is set to a value of 4.
@@ -167,14 +175,23 @@ enum RoutingOption
     //!
     //! @note   This will allow routes to be nudged up to the bounds of shapes.
     nudgeOrthogonalSegmentsConnectedToShapes = 0,
+    
     //! This option causes hyperedge routes to be locally improved fixing
     //! obviously bad paths.  As part of this process libavoid will
     //! effectively move junctions, setting new ideal positions  
     //! ( JunctionRef::recommendedPosition() ) for each junction.
     //!
-    //! Defaults to false.
+    //! Defaults to true.
+    //!
+    //! This will not add or remove junctions, so will keep the hyperedge
+    //! topology the same.  Better routes can be achieved by allowing such
+    //! changes with the improveHyperedgeRoutesMovingAddingAndDeletingJunctions
+    //! option.
+    //!
+    //! @sa   improveHyperedgeRoutesMovingAddingAndDeletingJunctions
     //!
     improveHyperedgeRoutesMovingJunctions,
+    
     //! This option penalises and attempts to reroute orthogonal shared 
     //! connector paths terminating at a common junction or shape 
     //! connection pin.  When multiple connector paths enter or leave 
@@ -191,6 +208,7 @@ enum RoutingOption
     //! @note   This option is still experimental!  It is not recommended
     //!         for normal use.
     penaliseOrthogonalSharedPathsAtConnEnds,
+    
     //! This option can be used to control whether collinear line 
     //! segments that touch just at their ends will be nudged apart.
     //! The overlap will usually be resolved in the other dimension,
@@ -199,6 +217,7 @@ enum RoutingOption
     //! Defaults to false.
     //!
     nudgeOrthogonalTouchingColinearSegments,
+    
     //! This option can be used to control whether the router performs
     //! a preprocessing step before orthogonal nudging where is tries
     //! to unify segments and centre them in free space.  This 
@@ -210,6 +229,27 @@ enum RoutingOption
     //! can be very slow and will make little difference.
     performUnifyingNudgingPreprocessingStep,
     
+    //! This option causes hyperedge routes to be locally improved fixing
+    //! obviously bad paths.
+    //! 
+    //! It can cause junctions and connectors to be added or removed from
+    //! hyperedges.  To get details of these changes for each connector you can
+    //! call Router::newAndDeletedObjectListsFromHyperedgeImprovement().
+    //!
+    //! As part of this process libavoid will effectively move junctions by
+    //! setting new ideal positions for each remaining or added junction, 
+    //! which can be read from JunctionRef::recommendedPosition() for each 
+    //! junction.
+    //!
+    //! Defaults to false.
+    //!
+    //! If set, this option overrides the improveHyperedgeRoutesMovingJunctions
+    //! option.
+    //!
+    //! @sa   improveHyperedgeRoutesMovingJunctions
+    //!
+    improveHyperedgeRoutesMovingAddingAndDeletingJunctions,
+
     // Used for determining the size of the routing options array.
     // This should always we the last value in the enum.
     lastRoutingOptionMarker
@@ -666,6 +706,24 @@ class AVOID_EXPORT Router {
                 unsigned int elapsedTime, unsigned int phaseNumber, 
                 unsigned int totalPhases, double proportion);
 
+        //! @brief  Returns a HyperedgeNewAndDeletedObjectLists detailing the
+        //!         lists of junctions and connectors created and deleted
+        //!         during hyperedge improvement.
+        //!
+        //! This method will only return information once the router has
+        //! processed the transaction.
+        //!
+        //! After calling this you should no longer refer to any of the
+        //! objects in the "deleted" lists --- the router will delete these 
+        //! and free their memory at its convenience.
+        //!
+        //! @return A HyperedgeNewAndDeletedObjectLists containing lists of 
+        //!         junctions and connectors created and deleted.
+        //!
+        HyperedgeNewAndDeletedObjectLists 
+                newAndDeletedObjectListsFromHyperedgeImprovement(void) const;
+
+
         // Processes the actions list for the transaction.  You shouldn't
         // need to cal this.  Instead use processTransaction().
         void processActions(void);
@@ -722,8 +780,9 @@ class AVOID_EXPORT Router {
         friend class ShapeConnectionPin;
         friend class MinimumTerminalSpanningTree;
         friend class ConnEnd;
-        friend struct HyperEdgeTreeNode;
+        friend struct HyperedgeTreeNode;
         friend class HyperedgeRerouter;
+        friend class HyperedgeImprover;
 
         unsigned int assignId(const unsigned int suggestedId);
         void addShape(ShapeRef *shape);
@@ -768,6 +827,8 @@ class AVOID_EXPORT Router {
         
         bool m_static_orthogonal_graph_invalidated;
         bool m_in_crossing_rerouting_stage;
+    
+        HyperedgeImprover m_hyperedge_improver;
 };
 
 

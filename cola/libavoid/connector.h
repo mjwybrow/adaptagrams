@@ -388,9 +388,9 @@ class AVOID_EXPORT ConnRef
         friend class ConnEnd;
         friend class JunctionRef;
         friend class ConnRerouteFlagDelegate;
-        friend struct ImproveHyperEdges;
-        friend struct HyperEdgeTreeEdge;
-        friend struct HyperEdgeTreeNode;
+        friend class HyperedgeImprover;
+        friend struct HyperedgeTreeEdge;
+        friend struct HyperedgeTreeNode;
         friend class HyperedgeRerouter;
 
         PolyLine& routeRef(void);

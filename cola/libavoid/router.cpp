@@ -40,6 +40,7 @@
 #include "libavoid/connectionpin.h"
 #include "libavoid/makepath.h"
 
+
 namespace Avoid {
 
 
@@ -66,7 +67,8 @@ Router::Router(const unsigned int flags)
       m_allows_polyline_routing(false),
       m_allows_orthogonal_routing(false),
       m_static_orthogonal_graph_invalidated(true),
-      m_in_crossing_rerouting_stage(false)
+      m_in_crossing_rerouting_stage(false),
+      m_hyperedge_improver(this)
 {
     // At least one of the Routing modes must be set.
     COLA_ASSERT(flags & (PolyLineRouting | OrthogonalRouting));
@@ -94,6 +96,8 @@ Router::Router(const unsigned int flags)
     m_routing_options[penaliseOrthogonalSharedPathsAtConnEnds] = false;
     m_routing_options[nudgeOrthogonalTouchingColinearSegments] = false;
     m_routing_options[performUnifyingNudgingPreprocessingStep] = true;
+    m_routing_options[improveHyperedgeRoutesMovingAddingAndDeletingJunctions] =
+            false;
 
     m_hyperedge_rerouter.setRouter(this);
 }
@@ -961,9 +965,14 @@ void Router::rerouteAndCallbackConnectors(void)
     // Find and reroute crossing connectors if crossing penalties are set.
     improveCrossings();
 
-    if (routingOption(improveHyperedgeRoutesMovingJunctions))
+    bool withMinorImprovements = routingOption(
+            improveHyperedgeRoutesMovingJunctions);
+    bool withMajorImprovements = routingOption(
+            improveHyperedgeRoutesMovingAddingAndDeletingJunctions);
+    if (withMinorImprovements || withMajorImprovements)
     {
-        improveHyperedgeRoutes(this);
+        m_hyperedge_improver.clear();
+        m_hyperedge_improver.execute(withMajorImprovements);
     }
 
     // Perform centring and nudging for orthogonal routes.
@@ -2786,6 +2795,13 @@ void Router::outputDiagramSVG(std::string instanceName, LineReps *lineReps)
     fprintf(fp, "</svg>\n");
     fclose(fp);
 }
+
+HyperedgeNewAndDeletedObjectLists 
+        Router::newAndDeletedObjectListsFromHyperedgeImprovement(void) const
+{
+    return m_hyperedge_improver.newAndDeletedObjectLists();
+}
+
 
 ConnRerouteFlagDelegate::ConnRerouteFlagDelegate()
 {

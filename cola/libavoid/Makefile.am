@@ -21,6 +21,7 @@ libavoid_la_SOURCES = connectionpin.cpp \
 			visibility.cpp \
 			vpsc.cpp \
 			hyperedge.cpp \
+			hyperedgeimprover.cpp \
 			mtst.cpp \
 			hyperedgetree.cpp \
 			scanline.cpp \
@@ -73,6 +74,7 @@ libavoidinclude_HEADERS = assertions.h \
 			viscluster.h \
 			visibility.h \
 			hyperedge.h \
+			hyperedgeimprover.h \
 			mtst.h \
 			hyperedgetree.h \
 			scanline.h \

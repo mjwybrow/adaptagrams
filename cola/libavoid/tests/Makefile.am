@@ -57,6 +57,9 @@ check_PROGRAMS = \
 	hyperedge01 \
 	hyperedge02 \
 	improveHyperedge01 \
+	improveHyperedge02 \
+	improveHyperedge03 \
+	improveHyperedge04 \
 	validPaths01 \
 	validPaths02 \
 	2junctions \
@@ -93,6 +96,9 @@ buildOrthogonalChannelInfo1_SOURCES = buildOrthogonalChannelInfo1.cpp
 hyperedgeLoop1_SOURCES = hyperedgeLoop1.cpp
 
 improveHyperedge01_SOURCES = improveHyperedge01.cpp
+improveHyperedge02_SOURCES = improveHyperedge02.cpp
+improveHyperedge03_SOURCES = improveHyperedge03.cpp
+improveHyperedge04_SOURCES = improveHyperedge04.cpp
 
 performance01_SOURCES = performance01.cpp
 

@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2011  Monash University
+ * Copyright (C) 2011-2013  Monash University
  *
  * --------------------------------------------------------------------
  * Sequential Construction of the Minimum Terminal Spanning Tree is an
@@ -72,11 +72,11 @@ struct delete_vertex
 
 
 MinimumTerminalSpanningTree::MinimumTerminalSpanningTree(Router *router,
-        std::set<VertInf *> terminals, JunctionHyperEdgeTreeNodeMap *hyperEdgeTreeJunctions)
+        std::set<VertInf *> terminals, JunctionHyperedgeTreeNodeMap *hyperedgeTreeJunctions)
     : router(router),
       isOrthogonal(true),
       terminals(terminals),
-      hyperEdgeTreeJunctions(hyperEdgeTreeJunctions),
+      hyperedgeTreeJunctions(hyperedgeTreeJunctions),
       m_rootJunction(NULL),
       bendPenalty(2000),
       debug_fp(NULL),
@@ -103,7 +103,7 @@ void MinimumTerminalSpanningTree::setDebuggingOutput(FILE *fp,
 }
 
 
-HyperEdgeTreeNode *MinimumTerminalSpanningTree::rootJunction(void) const
+HyperedgeTreeNode *MinimumTerminalSpanningTree::rootJunction(void) const
 {
     return m_rootJunction;
 }
@@ -140,27 +140,27 @@ void MinimumTerminalSpanningTree::unionSets(VertexSetList::iterator s1,
     allsets.push_back(s);
 }
 
-HyperEdgeTreeNode *MinimumTerminalSpanningTree::addNode(VertInf *vertex, 
-        HyperEdgeTreeNode *prevNode)
+HyperedgeTreeNode *MinimumTerminalSpanningTree::addNode(VertInf *vertex, 
+        HyperedgeTreeNode *prevNode)
 {
     // Do we already have a node for this vertex?
     VertexNodeMap::iterator match = nodes.find(vertex);
     if (match == nodes.end())
     {
         // Not found.  Create new node.
-        HyperEdgeTreeNode *newNode = new HyperEdgeTreeNode();
+        HyperedgeTreeNode *newNode = new HyperedgeTreeNode();
         newNode->point = vertex->point;
         // Remember it.
         nodes[vertex] = newNode;
         // Join it to the previous node.
-        new HyperEdgeTreeEdge(prevNode, newNode, NULL);
+        new HyperedgeTreeEdge(prevNode, newNode, NULL);
 
         return newNode;
     }
     else
     {
         // Found.
-        HyperEdgeTreeNode *junctionNode = match->second;
+        HyperedgeTreeNode *junctionNode = match->second;
         if (junctionNode->junction == NULL)
         {
             // Create a junction, if one has not already been created.
@@ -176,14 +176,14 @@ HyperEdgeTreeNode *MinimumTerminalSpanningTree::addNode(VertInf *vertex,
             junctionNode->junction->makeActive();
         }
         // Joint to junction
-        new HyperEdgeTreeEdge(prevNode, junctionNode, NULL);
+        new HyperedgeTreeEdge(prevNode, junctionNode, NULL);
 
         return NULL;
     }
 }
 
-void MinimumTerminalSpanningTree::buildHyperEdgeTreeToRoot(VertInf *currVert,
-        HyperEdgeTreeNode *prevNode, VertInf *prevVert, bool markEdges)
+void MinimumTerminalSpanningTree::buildHyperedgeTreeToRoot(VertInf *currVert,
+        HyperedgeTreeNode *prevNode, VertInf *prevVert, bool markEdges)
 {
     COLA_ASSERT(currVert != NULL);
 
@@ -192,7 +192,7 @@ void MinimumTerminalSpanningTree::buildHyperEdgeTreeToRoot(VertInf *currVert,
     while (currVert)
     {
         // Add the node, if necessary.
-        HyperEdgeTreeNode *addedNode = addNode(currVert, prevNode);
+        HyperedgeTreeNode *addedNode = addNode(currVert, prevNode);
 
         if (markEdges)
         {
@@ -487,21 +487,21 @@ void MinimumTerminalSpanningTree::constructSequential(void)
             // Union the terminal sets.
             unionSets(s1, s2);
 
-            // Connect this edge into the MTST by building HyperEdgeTree nodes
+            // Connect this edge into the MTST by building HyperedgeTree nodes
             // and edges for this edge and the path back to the tree root.
-            HyperEdgeTreeNode *node1 = NULL;
-            HyperEdgeTreeNode *node2 = NULL;
-            if (hyperEdgeTreeJunctions)
+            HyperedgeTreeNode *node1 = NULL;
+            HyperedgeTreeNode *node2 = NULL;
+            if (hyperedgeTreeJunctions)
             {
-                node1 = new HyperEdgeTreeNode();
+                node1 = new HyperedgeTreeNode();
                 node1->point = e->m_vert1->point;
                 nodes[e->m_vert1] = node1;
 
-                node2 = new HyperEdgeTreeNode();
+                node2 = new HyperedgeTreeNode();
                 node2->point = e->m_vert2->point;
                 nodes[e->m_vert2] = node2;
 
-                new HyperEdgeTreeEdge(node1, node2, NULL);
+                new HyperedgeTreeEdge(node1, node2, NULL);
             }
             if (debug_fp)
             {
@@ -511,8 +511,8 @@ void MinimumTerminalSpanningTree::constructSequential(void)
                         e->m_vert2->point.x, e->m_vert2->point.y, "red");
                 ++step_count;
             }
-            buildHyperEdgeTreeToRoot(e->m_vert1->pathNext, node1, e->m_vert1);
-            buildHyperEdgeTreeToRoot(e->m_vert2->pathNext, node2, e->m_vert2);
+            buildHyperedgeTreeToRoot(e->m_vert1->pathNext, node1, e->m_vert1);
+            buildHyperedgeTreeToRoot(e->m_vert2->pathNext, node2, e->m_vert2);
         }
     }
     if (debug_fp)
@@ -992,24 +992,24 @@ void MinimumTerminalSpanningTree::commitToBridgingEdge(EdgeInf *e, unsigned& ste
     VertInf *newRoot = std::min(ends.first->treeRoot(), ends.second->treeRoot());
     VertInf *oldRoot = std::max(ends.first->treeRoot(), ends.second->treeRoot());
 
-    // Connect this edge into the MTST by building HyperEdgeTree nodes
+    // Connect this edge into the MTST by building HyperedgeTree nodes
     // and edges for this edge and the path back to the tree root.
-    HyperEdgeTreeNode *node1 = NULL;
-    HyperEdgeTreeNode *node2 = NULL;
+    HyperedgeTreeNode *node1 = NULL;
+    HyperedgeTreeNode *node2 = NULL;
 
     VertInf *vert1 = ends.first;
     VertInf *vert2 = ends.second;
-    if (hyperEdgeTreeJunctions)
+    if (hyperedgeTreeJunctions)
     {
-        node1 = new HyperEdgeTreeNode();
+        node1 = new HyperedgeTreeNode();
         node1->point = ends.first->point;
         nodes[vert1] = node1;
 
-        node2 = new HyperEdgeTreeNode();
+        node2 = new HyperedgeTreeNode();
         node2->point = ends.second->point;
         nodes[vert2] = node2;
 
-        new HyperEdgeTreeEdge(node1, node2, NULL);
+        new HyperedgeTreeEdge(node1, node2, NULL);
         e->setHyperedgeSegment(true);
     }
     if (debug_fp)
@@ -1023,8 +1023,8 @@ void MinimumTerminalSpanningTree::commitToBridgingEdge(EdgeInf *e, unsigned& ste
                 vert1->point.y, vert2->point.x,
                 vert2->point.y, "red");
     }
-    buildHyperEdgeTreeToRoot(vert1->pathNext, node1, vert1, true);
-    buildHyperEdgeTreeToRoot(vert2->pathNext, node2, vert2, true);
+    buildHyperedgeTreeToRoot(vert1->pathNext, node1, vert1, true);
+    buildHyperedgeTreeToRoot(vert2->pathNext, node2, vert2, true);
     
     if (debug_fp)
     {

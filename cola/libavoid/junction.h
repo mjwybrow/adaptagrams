@@ -143,7 +143,7 @@ class AVOID_EXPORT JunctionRef : public Obstacle
         friend class Router;
         friend class ShapeConnectionPin;
         friend class ConnEnd;
-        friend struct ImproveHyperEdges;
+        friend class HyperedgeImprover;
 
         void outputCode(FILE *fp) const;
         void setPosition(const Point& position);

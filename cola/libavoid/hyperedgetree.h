@@ -42,45 +42,42 @@ namespace Avoid {
 
 class JunctionRef;
 class ConnRef;
-class HyperEdgeShiftSegment;
+class HyperedgeShiftSegment;
 class VertInf;
 class Router;
 
-struct HyperEdgeTreeEdge;
-struct HyperEdgeTreeNode;
+struct HyperedgeTreeEdge;
+struct HyperedgeTreeNode;
 
-typedef std::map<JunctionRef *, HyperEdgeTreeNode *>
-        JunctionHyperEdgeTreeNodeMap;
+typedef std::map<JunctionRef *, HyperedgeTreeNode *>
+        JunctionHyperedgeTreeNodeMap;
 typedef std::set<JunctionRef *> JunctionSet;
 typedef std::list<JunctionRef *> JunctionRefList;
 typedef std::list<ConnRef *> ConnRefList;
 
 class CmpNodesInDim;
 
-typedef std::set<HyperEdgeTreeNode *, CmpNodesInDim> OrderedHENodeSet;
+typedef std::set<HyperedgeTreeNode *, CmpNodesInDim> OrderedHENodeSet;
 
-struct HyperEdgeTreeNode
+struct HyperedgeTreeNode
 {
-    HyperEdgeTreeNode();
-    ~HyperEdgeTreeNode();
+    HyperedgeTreeNode();
+    ~HyperedgeTreeNode();
 
-    void deleteEdgesExcept(HyperEdgeTreeEdge *ignored);
-    void removeOtherJunctionsFrom(HyperEdgeTreeEdge *ignored, 
+    void deleteEdgesExcept(HyperedgeTreeEdge *ignored);
+    void removeOtherJunctionsFrom(HyperedgeTreeEdge *ignored, 
             JunctionSet &treeRoots);
-    void outputEdgesExcept(FILE *fp, HyperEdgeTreeEdge *ignored);
-    static HyperEdgeTreeNode *moveJunctionAlongCommonEdge(
-            HyperEdgeTreeNode *self);
-    void disconnectEdge(HyperEdgeTreeEdge *edge);
-    void spliceEdgesFrom(HyperEdgeTreeNode *oldNode);
-    void removeZeroLengthEdges(HyperEdgeTreeEdge *ignored);
-    void writeEdgesToConns(HyperEdgeTreeEdge *ignored, size_t pass);
-    void addConns(HyperEdgeTreeEdge *ignored, Router *router, 
+    void outputEdgesExcept(FILE *fp, HyperedgeTreeEdge *ignored);
+    void disconnectEdge(HyperedgeTreeEdge *edge);
+    void spliceEdgesFrom(HyperedgeTreeNode *oldNode);
+    void writeEdgesToConns(HyperedgeTreeEdge *ignored, size_t pass);
+    void addConns(HyperedgeTreeEdge *ignored, Router *router, 
             ConnRefList& oldConns, ConnRef *conn);
-    void listJunctionsAndConnectors(HyperEdgeTreeEdge *ignored,
+    void listJunctionsAndConnectors(HyperedgeTreeEdge *ignored,
             JunctionRefList& junctions, ConnRefList& connectors);
-    bool hasFixedRouteConnectors(const HyperEdgeTreeEdge *ignored) const;
+    bool hasFixedRouteConnectors(const HyperedgeTreeEdge *ignored) const;
 
-    std::list<HyperEdgeTreeEdge *> edges;
+    std::list<HyperedgeTreeEdge *> edges;
     JunctionRef *junction;
     Point point;
     OrderedHENodeSet *shiftSegmentNodeSet;
@@ -88,44 +85,43 @@ struct HyperEdgeTreeNode
     bool isConnectorSource;
 };
 
-struct HyperEdgeTreeEdge
+struct HyperedgeTreeEdge
 {
-    HyperEdgeTreeEdge(HyperEdgeTreeNode *node1, HyperEdgeTreeNode *node2,
+    HyperedgeTreeEdge(HyperedgeTreeNode *node1, HyperedgeTreeNode *node2,
             ConnRef *conn);
 
-    HyperEdgeTreeNode *followFrom(HyperEdgeTreeNode *from) const;
+    HyperedgeTreeNode *followFrom(HyperedgeTreeNode *from) const;
     bool zeroLength(void) const;
-    void splitFromNodeAtPoint(HyperEdgeTreeNode *source, const Point& point);
+    void splitFromNodeAtPoint(HyperedgeTreeNode *source, const Point& point);
     bool hasOrientation(const size_t dimension) const;
-    void outputNodesExcept(FILE *file, HyperEdgeTreeNode *ignored);
-    void removeZeroLengthEdges(HyperEdgeTreeNode *ignored);
-    void deleteNodesExcept(HyperEdgeTreeNode *ignored);
-    void removeOtherJunctionsFrom(HyperEdgeTreeNode *ignored, 
+    void outputNodesExcept(FILE *file, HyperedgeTreeNode *ignored);
+    void deleteNodesExcept(HyperedgeTreeNode *ignored);
+    void removeOtherJunctionsFrom(HyperedgeTreeNode *ignored, 
             JunctionSet &treeRoots);
-    void writeEdgesToConns(HyperEdgeTreeNode *ignored, size_t pass);
-    void addConns(HyperEdgeTreeNode *ignored, Router *router,
+    void writeEdgesToConns(HyperedgeTreeNode *ignored, size_t pass);
+    void addConns(HyperedgeTreeNode *ignored, Router *router,
             ConnRefList& oldConns);
     void disconnectEdge(void);
-    void replaceNode(HyperEdgeTreeNode *oldNode,
-            HyperEdgeTreeNode *newNode);
-    void listJunctionsAndConnectors(HyperEdgeTreeNode *ignored,
+    void replaceNode(HyperedgeTreeNode *oldNode,
+            HyperedgeTreeNode *newNode);
+    void listJunctionsAndConnectors(HyperedgeTreeNode *ignored,
             JunctionRefList& junctions, ConnRefList& connectors);
-    bool hasFixedRouteConnectors(const HyperEdgeTreeNode *ignored) const;
+    bool hasFixedRouteConnectors(const HyperedgeTreeNode *ignored) const;
 
-    std::pair<HyperEdgeTreeNode *, HyperEdgeTreeNode *> ends;
+    std::pair<HyperedgeTreeNode *, HyperedgeTreeNode *> ends;
     ConnRef *conn;
 };
 
 
-typedef std::map<VertInf *, HyperEdgeTreeNode *> VertexNodeMap;
+typedef std::map<VertInf *, HyperedgeTreeNode *> VertexNodeMap;
 
 
 class CmpNodesInDim
 {
     public:
         CmpNodesInDim(const size_t dim);
-        bool operator()(const HyperEdgeTreeNode *lhs,
-                const HyperEdgeTreeNode *rhs) const;
+        bool operator()(const HyperedgeTreeNode *lhs,
+                const HyperedgeTreeNode *rhs) const;
     private:
         const size_t m_dimension;
 };

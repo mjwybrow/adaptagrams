@@ -98,6 +98,7 @@ class Obstacle
         friend class ConnEnd;
         friend class ShapeConnectionPin;
         friend class HyperedgeRerouter;
+        friend class HyperedgeImprover;
         friend class MinimumTerminalSpanningTree;
 
         // Defined in visibility.cpp:

@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2011  Monash University
+ * Copyright (C) 2011-2013  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -70,36 +70,19 @@ size_t HyperedgeRerouter::count(void) const
     return m_terminals_vector.size();
 }
 
-JunctionRefList HyperedgeRerouter::newJunctionList(
+HyperedgeNewAndDeletedObjectLists HyperedgeRerouter::newAndDeletedObjectLists(
         size_t index) const
 {
     COLA_ASSERT(index <= count());
 
-    return m_new_junctions_vector[index];
-}
+    HyperedgeNewAndDeletedObjectLists result;
 
-JunctionRefList HyperedgeRerouter::deletedJunctionList(
-        size_t index) const
-{
-    COLA_ASSERT(index <= count());
+    result.newJunctionList = m_new_junctions_vector[index];
+    result.deletedJunctionList = m_deleted_junctions_vector[index];
+    result.newConnectorList = m_new_connectors_vector[index];
+    result.deletedConnectorList = m_deleted_connectors_vector[index];
 
-    return m_deleted_junctions_vector[index];
-}
-
-ConnRefList HyperedgeRerouter::newConnectorList(
-        size_t index) const
-{
-    COLA_ASSERT(index <= count());
-
-    return m_new_connectors_vector[index];
-}
-
-ConnRefList HyperedgeRerouter::deletedConnectorList(
-        size_t index) const
-{
-    COLA_ASSERT(index <= count());
-
-    return m_deleted_connectors_vector[index];
+    return result;
 }
 
 
@@ -414,9 +397,9 @@ void HyperedgeRerouter::performRerouting(void)
     {
         // Execute the MTST method to find good junction positions and an
         // initial path.  A hyperedge tree will be build for the new route.
-        JunctionHyperEdgeTreeNodeMap hyperEdgeTreeJunctions;
+        JunctionHyperedgeTreeNodeMap hyperedgeTreeJunctions;
         MinimumTerminalSpanningTree mtst(m_router, 
-                m_terminal_vertices_vector[i], &hyperEdgeTreeJunctions);
+                m_terminal_vertices_vector[i], &hyperedgeTreeJunctions);
 #ifdef HYPEREDGE_DEBUG
         mtst.setDebuggingOutput(fp, i);
 #endif
@@ -427,7 +410,7 @@ void HyperedgeRerouter::performRerouting(void)
         // Slightly slower, better quality results.
         mtst.constructInterleaved();
 
-        HyperEdgeTreeNode *treeRoot = mtst.rootJunction();
+        HyperedgeTreeNode *treeRoot = mtst.rootJunction();
         COLA_ASSERT(treeRoot);
         
         // Fill in connector information and join them to junctions of endpoints

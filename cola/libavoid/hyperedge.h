@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2011  Monash University
+ * Copyright (C) 2011-2013  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -57,6 +57,24 @@ typedef std::vector<ConnRefList> ConnRefListVector;
 typedef std::vector<JunctionRefList> JunctionRefListVector;
 typedef std::vector<VertexSet> VertexSetVector;
 
+//! @brief   The HyperedgeNewAndDeletedObjectLists class stores lists of 
+//!          objects created and deleted during hyperedge improvement.
+//!
+//! After hyperedge improvement, this information can be produced by calling
+//! the Router::newAndDeletedObjectListsFromHyperedgeImprovement() method.
+//! 
+//! After hyperedge rerouting, this information can be produced by calling 
+//! the HyperedgeRerouter::newAndDeletedObjectLists() method for each 
+//! hyperedge being fully rerouted.
+//!
+struct HyperedgeNewAndDeletedObjectLists
+{
+        JunctionRefList  newJunctionList;
+        ConnRefList      newConnectorList;
+        JunctionRefList  deletedJunctionList;
+        ConnRefList      deletedConnectorList;
+};
+
 
 //! @brief   The HyperedgeRerouter class is a convenience object that can be
 //!          used to register hyperedges to be rerouted, improving the
@@ -74,18 +92,20 @@ typedef std::vector<VertexSet> VertexSetVector;
 //! a hyperedge you get an index number that can be used to later find
 //! information about it.
 //!
-//! The Rerouting will actually occur the next time the Router processes a
+//! The rerouting will actually occur the next time the Router processes a
 //! transaction, see Router::processTransaction().  The rerouting will
 //! effectively create new junctions (JunctionRefs) and connectors (ConnRefs)
-//! for the hyperedge.  You can get a list of the new junctions by calling
-//! newJunctionList() and the connectors by calling newConnectorList().
-//!
-//! If you specified a connector via a JunctionRef and it was therefore
-//! composed of existing ConnRefs and JunctionRefs you can get a list of these
-//! by calling deletedConnectorList() and deletedJunctionList().  After
-//! the transaction has been processed you should not use these references
-//! any more from your own code (the router will free them at it's
-//! convenience) and you should refer only to the new connectors and junctions.
+//! for the hyperedge.  
+//! 
+//! Since hyperedges are composed of multiple connections and junction objects,
+//! rerouting a hyperedge can cause creation of new or deletion of existing 
+//! connectors and/or junctions.  Thus once the transaction has been completed
+//! you should call the newAndDeletedObjectLists() to get an object containing
+//! the lists of created and deleted junctions and connectors.  After the
+//! transaction You should not use references to these deleted objects any 
+//! more from your own code (since the router will free their memory at its
+//! convenience) and you should refer only to the unaffected objects and the 
+//! new connectors and junctions.
 //!
 class AVOID_EXPORT HyperedgeRerouter
 {
@@ -124,53 +144,23 @@ class AVOID_EXPORT HyperedgeRerouter
         //!
         size_t registerHyperedgeForRerouting(JunctionRef *junction);
 
-        //! @brief  A list of the new junctions created for this hyperedge's
-        //!         path during rerouting.
+        //! @brief  Returns a HyperedgeNewAndDeletedObjectLists detailing the
+        //!         lists of junctions and connectors created and deleted
+        //!         during hyperedge improvement.
         //!
         //! This method will only return information once the router has
         //! processed the transaction.
         //!
-        //! @param  index  The index of the hyperedge to return junctions for.
-        //! @return A list of created JunctionRefs for the hyperedge.
-        //!
-        JunctionRefList newJunctionList(size_t index) const;
-
-        //! @brief  A list of the new connectors created for this hyperedge's
-        //!         path during rerouting.
-        //!
-        //! This method will only return information once the router has
-        //! processed the transaction.
-        //!
-        //! @param  index  The index of the hyperedge to return connectors for.
-        //! @return A list of created ConnRefs for the hyperedge.
-        //!
-        ConnRefList newConnectorList(size_t index) const;
-
-        //! @brief  A list of the old junctions comprising a hyperedge's
-        //!         path which were deleted during rerouting.
-        //!
-        //! Should should call this after the router has processed the
-        //! transaction and then you should no longer refer to any of the
-        //! objects returned.  The router will delete and free their memory
-        //! at its convenience.
+        //! After calling this you should no longer refer to any of the
+        //! objects in the "deleted" lists --- the router will delete these 
+        //! and free their memory at its convenience.
         //!
         //! @param  index  The index of the hyperedge to return junctions for.
-        //! @return A list of JunctionRefs deleted from the hyperedge.
+        //! @return A HyperedgeNewAndDeletedObjectLists containing lists of 
+        //!         junctions and connectors created and deleted.
         //!
-        JunctionRefList deletedJunctionList(size_t index) const;
-
-        //! @brief  A list of the old connectors comprising a hyperedge's
-        //!         path which were deleted during rerouting.
-        //!
-        //! Should should call this after the router has processed the
-        //! transaction and then you should no longer refer to any of the
-        //! objects returned.  The router will delete and free their memory
-        //! at its convenience.
-        //!
-        //! @param  index  The index of the hyperedge to return connectors for.
-        //! @return A list of ConnRefs deleted from the hyperedge.
-        //!
-        ConnRefList deletedConnectorList(size_t index) const;
+        HyperedgeNewAndDeletedObjectLists newAndDeletedObjectLists(
+                size_t index) const;
 
     private:
         friend class Router;

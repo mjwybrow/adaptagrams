@@ -36,7 +36,7 @@ namespace Avoid {
 
 // Constructs a new hyperedge tree node.
 //
-HyperEdgeTreeNode::HyperEdgeTreeNode()
+HyperedgeTreeNode::HyperedgeTreeNode()
     : junction(NULL),
       shiftSegmentNodeSet(NULL),
       finalVertex(NULL),
@@ -44,7 +44,7 @@ HyperEdgeTreeNode::HyperEdgeTreeNode()
 {
 }
 
-HyperEdgeTreeNode::~HyperEdgeTreeNode()
+HyperedgeTreeNode::~HyperedgeTreeNode()
 {
     if (shiftSegmentNodeSet)
     {
@@ -57,14 +57,14 @@ HyperEdgeTreeNode::~HyperEdgeTreeNode()
 // This method traverses the hyperedge tree and outputs each of the edges
 // and junction positions as SVG objects to the file fp.
 //
-void HyperEdgeTreeNode::outputEdgesExcept(FILE *fp, HyperEdgeTreeEdge *ignored)
+void HyperedgeTreeNode::outputEdgesExcept(FILE *fp, HyperedgeTreeEdge *ignored)
 {
     if (junction)
     {
         fprintf(fp, "<circle cx=\"%g\" cy=\"%g\" r=\"6\" "
             "style=\"fill: green; stroke: none;\" />\n", point.x, point.y);
     }
-    for (std::list<HyperEdgeTreeEdge *>::iterator curr = edges.begin();
+    for (std::list<HyperedgeTreeEdge *>::iterator curr = edges.begin();
             curr != edges.end(); ++curr)
     {
         if (*curr != ignored)
@@ -78,10 +78,10 @@ void HyperEdgeTreeNode::outputEdgesExcept(FILE *fp, HyperEdgeTreeEdge *ignored)
 // This method traverses the hyperedge tree and removes from treeRoots any
 // junction nodes (other than this one).
 
-void HyperEdgeTreeNode::removeOtherJunctionsFrom(HyperEdgeTreeEdge *ignored, 
+void HyperedgeTreeNode::removeOtherJunctionsFrom(HyperedgeTreeEdge *ignored, 
             JunctionSet& treeRoots)
 {
-    for (std::list<HyperEdgeTreeEdge *>::iterator curr = edges.begin();
+    for (std::list<HyperedgeTreeEdge *>::iterator curr = edges.begin();
             curr != edges.end(); ++curr)
     {
         if (*curr != ignored)
@@ -95,10 +95,10 @@ void HyperEdgeTreeNode::removeOtherJunctionsFrom(HyperEdgeTreeEdge *ignored,
 // This method traverses the hyperedge tree and writes each of the paths
 // back to the individual connectors as routes.
 //
-void HyperEdgeTreeNode::writeEdgesToConns(HyperEdgeTreeEdge *ignored,
+void HyperedgeTreeNode::writeEdgesToConns(HyperedgeTreeEdge *ignored,
         size_t pass)
 {
-    for (std::list<HyperEdgeTreeEdge *>::iterator curr = edges.begin();
+    for (std::list<HyperedgeTreeEdge *>::iterator curr = edges.begin();
             curr != edges.end(); ++curr)
     {
         if (*curr != ignored)
@@ -112,13 +112,13 @@ void HyperEdgeTreeNode::writeEdgesToConns(HyperEdgeTreeEdge *ignored,
 // segment bridging junction and/or terminals.  It also sets the 
 // appropriate ConnEnds for each connector.
 //
-void HyperEdgeTreeNode::addConns(HyperEdgeTreeEdge *ignored, Router *router,
+void HyperedgeTreeNode::addConns(HyperedgeTreeEdge *ignored, Router *router,
         ConnRefList& oldConns, ConnRef *conn)
 {
     // If no connector is set, then we must be starting off at a junction.
     COLA_ASSERT(conn || junction);
 
-    for (std::list<HyperEdgeTreeEdge *>::iterator curr = edges.begin();
+    for (std::list<HyperedgeTreeEdge *>::iterator curr = edges.begin();
             curr != edges.end(); ++curr)
     {
         if (*curr != ignored)
@@ -152,7 +152,7 @@ void HyperEdgeTreeNode::addConns(HyperEdgeTreeEdge *ignored, Router *router,
 // This method traverses the hyperedge tree and returns a list of the junctions
 // and connectors that make up the hyperedge.
 //
-void HyperEdgeTreeNode::listJunctionsAndConnectors(HyperEdgeTreeEdge *ignored,
+void HyperedgeTreeNode::listJunctionsAndConnectors(HyperedgeTreeEdge *ignored,
         JunctionRefList& junctions, ConnRefList& connectors)
 {
     if (junction)
@@ -160,7 +160,7 @@ void HyperEdgeTreeNode::listJunctionsAndConnectors(HyperEdgeTreeEdge *ignored,
         junctions.push_back(junction);
     }
 
-    for (std::list<HyperEdgeTreeEdge *>::iterator curr = edges.begin();
+    for (std::list<HyperedgeTreeEdge *>::iterator curr = edges.begin();
             curr != edges.end(); ++curr)
     {
         if (*curr != ignored)
@@ -174,9 +174,9 @@ void HyperEdgeTreeNode::listJunctionsAndConnectors(HyperEdgeTreeEdge *ignored,
 // This method traverses the hyperedge tree and returns true if it contains
 // any connectors with fixed routes.
 //
-bool HyperEdgeTreeNode::hasFixedRouteConnectors(const HyperEdgeTreeEdge *ignored) const 
+bool HyperedgeTreeNode::hasFixedRouteConnectors(const HyperedgeTreeEdge *ignored) const 
 {
-    for (std::list<HyperEdgeTreeEdge *>::const_iterator curr = edges.begin();
+    for (std::list<HyperedgeTreeEdge *>::const_iterator curr = edges.begin();
             curr != edges.end(); ++curr)
     {
         if (*curr != ignored)
@@ -191,62 +191,12 @@ bool HyperEdgeTreeNode::hasFixedRouteConnectors(const HyperEdgeTreeEdge *ignored
 }
 
 
-// This method traverses the hyperedge tree removing zero length edges.
-//
-void HyperEdgeTreeNode::removeZeroLengthEdges(HyperEdgeTreeEdge *ignored)
-{
-    for (std::list<HyperEdgeTreeEdge *>::iterator curr = edges.begin();
-            curr != edges.end(); ++curr)
-    {
-        HyperEdgeTreeEdge *edge = *curr;
-        if (edge != ignored)
-        {
-            if (edge->zeroLength())
-            {
-                HyperEdgeTreeNode *other = edge->followFrom(this);
-                HyperEdgeTreeNode *target = NULL;
-                HyperEdgeTreeNode *source = NULL;
-                if (other->junction && ! junction)
-                {
-                    target = other;
-                    source = this;
-                }
-                else if ( ! other->junction && junction)
-                {
-                    target = this;
-                    source = other;
-                }
-                else if ( ! other->junction && ! junction)
-                {
-                    target = this;
-                    source = other;
-                }
-
-                if (target)
-                {
-                    edge->disconnectEdge();
-                    delete edge;
-                    target->spliceEdgesFrom(source);
-                    delete source;
-                    target->removeZeroLengthEdges(ignored);
-                    return;
-                }
-                // XXX Deal with merging two junctions?
-            }
-
-            // Recursive call.
-            edge->removeZeroLengthEdges(this);
-        }
-    }
-}
-
-
 // This method traverses the hyperedge tree, clearing up the objects and
 // memory used to store the tree.
 //
-void HyperEdgeTreeNode::deleteEdgesExcept(HyperEdgeTreeEdge *ignored)
+void HyperedgeTreeNode::deleteEdgesExcept(HyperedgeTreeEdge *ignored)
 {
-    for (std::list<HyperEdgeTreeEdge *>::iterator curr = edges.begin();
+    for (std::list<HyperedgeTreeEdge *>::iterator curr = edges.begin();
             curr != edges.end(); ++curr)
     {
         if (*curr != ignored)
@@ -261,9 +211,9 @@ void HyperEdgeTreeNode::deleteEdgesExcept(HyperEdgeTreeEdge *ignored)
 
 // This method disconnects a specific hyperedge tree edge from the given node.
 //
-void HyperEdgeTreeNode::disconnectEdge(HyperEdgeTreeEdge *edge)
+void HyperedgeTreeNode::disconnectEdge(HyperedgeTreeEdge *edge)
 {
-    for (std::list<HyperEdgeTreeEdge *>::iterator curr = edges.begin();
+    for (std::list<HyperedgeTreeEdge *>::iterator curr = edges.begin();
             curr != edges.end(); )
     {
         if (*curr == edge)
@@ -282,134 +232,20 @@ void HyperEdgeTreeNode::disconnectEdge(HyperEdgeTreeEdge *edge)
 // This method moves all edges attached to oldNode to instead be attached to
 // the given hyperedge tree node.
 //
-void HyperEdgeTreeNode::spliceEdgesFrom(HyperEdgeTreeNode *oldNode)
+void HyperedgeTreeNode::spliceEdgesFrom(HyperedgeTreeNode *oldNode)
 {
-    for (std::list<HyperEdgeTreeEdge *>::iterator curr = oldNode->edges.begin();
+    for (std::list<HyperedgeTreeEdge *>::iterator curr = oldNode->edges.begin();
             curr != oldNode->edges.end(); curr = oldNode->edges.begin())
     {
         (*curr)->replaceNode(oldNode, this);
     }
 }
 
-// This method moves the junction at the given node along any shared paths
-// (so long as this action would not create any additional shared paths),
-// while also removing and freeing merged edges and nodes in the process.
-// It returns the new node where the junction is now located.
-//
-HyperEdgeTreeNode *HyperEdgeTreeNode::moveJunctionAlongCommonEdge(
-        HyperEdgeTreeNode *self)
-{
-    COLA_ASSERT(self->junction);
-
-    HyperEdgeTreeNode *newSelf = NULL;
-    std::vector<HyperEdgeTreeEdge *> commonEdges;
-    std::vector<HyperEdgeTreeEdge *> otherEdges;
-
-    // Consider each edge from this node in turn.
-    for (std::list<HyperEdgeTreeEdge *>::iterator curr = self->edges.begin();
-            curr != self->edges.end(); ++curr)
-    {
-        HyperEdgeTreeEdge *currEdge = *curr;
-        HyperEdgeTreeNode *currNode = currEdge->followFrom(self);
-        commonEdges.clear();
-        otherEdges.clear();
-
-        if (currNode->junction)
-        {
-            // Don't shift junctions onto other junctions.
-            continue;
-        }
-
-        // The current edge is a common edge we are looking to shift along.
-        commonEdges.push_back(currEdge);
-
-        // Consider each of the other edges.
-        for (std::list<HyperEdgeTreeEdge *>::iterator curr2 = 
-                self->edges.begin(); curr2 != self->edges.end(); ++curr2)
-        {
-            if (curr == curr2)
-            {
-                // Except the current (curr) one.
-                continue;
-            }
-            
-            HyperEdgeTreeEdge *otherEdge = *curr2;
-            HyperEdgeTreeNode *otherNode = otherEdge->followFrom(self);
-            if (otherNode->point == currNode->point)
-            {
-                // A common edge can be at the same point, but can't have
-                // a junction at it.
-                if (otherNode->junction)
-                {
-                    otherEdges.push_back(otherEdge);
-                }
-                else
-                {
-                    commonEdges.push_back(otherEdge);
-                }
-            }
-            else if (pointOnLine(self->point, otherNode->point, 
-                    currNode->point))
-            {
-                // A common edge can be a (longer) collinear line, but we
-                // need to split the longer line at the other end of curr.
-                otherEdge->splitFromNodeAtPoint(self, currNode->point);
-                commonEdges.push_back(otherEdge);
-            }
-            else
-            {
-                // If the edge goes in another direction it is not common.
-                otherEdges.push_back(otherEdge);
-            }
-        }
-
-        if ((commonEdges.size() > 1) && (otherEdges.size() <= 1))
-        {
-            // One of the common nodes becomes the target node, we move 
-            // all connections from the other common nodes to this node.
-            // We also move the junction there and remove it from the 
-            // current node.
-            HyperEdgeTreeNode *targetNode = commonEdges[0]->followFrom(self);
-            for (size_t i = 1; i < commonEdges.size(); ++i)
-            {
-                HyperEdgeTreeNode *thisNode = commonEdges[i]->followFrom(self);
-                commonEdges[i]->disconnectEdge();
-                targetNode->spliceEdgesFrom(thisNode);
-                delete thisNode;
-                delete commonEdges[i];
-            }
-            targetNode->junction = self->junction;
-            self->junction = NULL;
-
-            if (otherEdges.empty())
-            {
-                // Nothing else connected to this node, so remove the node
-                // and the edge to the target node.
-                commonEdges[0]->disconnectEdge();
-
-                delete commonEdges[0];
-                delete self;
-            }
-            else
-            {
-                // We need to mark commonEdges[0] as being from the connector
-                // of the otherEdges[0].
-                commonEdges[0]->conn = otherEdges[0]->conn;
-            }
-            newSelf = targetNode;
-
-            break;
-        }
-    }
-
-    return newSelf;
-}
-
 
 // Constructs a new hyperedge tree edge, given two endpoint nodes.
 //
-HyperEdgeTreeEdge::HyperEdgeTreeEdge(HyperEdgeTreeNode *node1,
-        HyperEdgeTreeNode *node2, ConnRef *conn)
+HyperedgeTreeEdge::HyperedgeTreeEdge(HyperedgeTreeNode *node1,
+        HyperedgeTreeNode *node2, ConnRef *conn)
     : conn(conn)
 {
     ends = std::make_pair(node1, node2);
@@ -420,7 +256,7 @@ HyperEdgeTreeEdge::HyperEdgeTreeEdge(HyperEdgeTreeNode *node1,
 
 // Given one endpoint of the hyperedge tree edge, returns the other endpoint.
 //
-HyperEdgeTreeNode *HyperEdgeTreeEdge::followFrom(HyperEdgeTreeNode *from) const
+HyperedgeTreeNode *HyperedgeTreeEdge::followFrom(HyperedgeTreeNode *from) const
 {
     return (ends.first == from) ? ends.second : ends.first;
 }
@@ -429,32 +265,16 @@ HyperEdgeTreeNode *HyperEdgeTreeEdge::followFrom(HyperEdgeTreeNode *from) const
 // Returns true if the length of this edge is zero, i.e., the endpoints are
 // located at the same position.
 //
-bool HyperEdgeTreeEdge::zeroLength(void) const
+bool HyperedgeTreeEdge::zeroLength(void) const
 {
     return (ends.first->point == ends.second->point);
-}
-
-
-// This method traverses the hyperedge tree removing zero length edges.
-//
-void HyperEdgeTreeEdge::removeZeroLengthEdges(HyperEdgeTreeNode *ignored)
-{
-    if (ends.first != ignored)
-    {
-        ends.first->removeZeroLengthEdges(this);
-    }
-
-    if (ends.second != ignored)
-    {
-        ends.second->removeZeroLengthEdges(this);
-    }
 }
 
 
 // This method traverses the hyperedge tree and outputs each of the edges
 // and junction positions as SVG objects to the file fp.
 //
-void HyperEdgeTreeEdge::outputNodesExcept(FILE *fp, HyperEdgeTreeNode *ignored)
+void HyperedgeTreeEdge::outputNodesExcept(FILE *fp, HyperedgeTreeNode *ignored)
 {
     fprintf(fp, "<path d=\"M %g %g L %g %g\" "
             "style=\"fill: none; stroke: %s; stroke-width: 2px; "
@@ -476,7 +296,7 @@ void HyperEdgeTreeEdge::outputNodesExcept(FILE *fp, HyperEdgeTreeNode *ignored)
 // This method returns true if the edge is in the dimension given, i.e.,
 // either horizontal or vertical.
 //
-bool HyperEdgeTreeEdge::hasOrientation(const size_t dimension) const
+bool HyperedgeTreeEdge::hasOrientation(const size_t dimension) const
 {
     return (ends.first->point[dimension] == ends.second->point[dimension]);
 }
@@ -485,8 +305,8 @@ bool HyperEdgeTreeEdge::hasOrientation(const size_t dimension) const
 // This method updates any of the given hyperedge tree edge's endpoints that
 // are attached to oldNode to instead be attached to newNode.
 //
-void HyperEdgeTreeEdge::replaceNode(HyperEdgeTreeNode *oldNode,
-        HyperEdgeTreeNode *newNode)
+void HyperedgeTreeEdge::replaceNode(HyperedgeTreeNode *oldNode,
+        HyperedgeTreeNode *newNode)
 {
     if (ends.first == oldNode)
     {
@@ -506,16 +326,16 @@ void HyperEdgeTreeEdge::replaceNode(HyperEdgeTreeNode *oldNode,
 // This method traverses the hyperedge tree and writes each of the paths
 // back to the individual connectors as routes.
 //
-void HyperEdgeTreeEdge::writeEdgesToConns(HyperEdgeTreeNode *ignored,
+void HyperedgeTreeEdge::writeEdgesToConns(HyperedgeTreeNode *ignored,
         size_t pass)
 {
     COLA_ASSERT(ignored != NULL);
     COLA_ASSERT(ends.first != NULL);
     COLA_ASSERT(ends.second != NULL);
 
-    HyperEdgeTreeNode *prevNode = 
+    HyperedgeTreeNode *prevNode = 
             (ignored == ends.first) ? ends.first : ends.second;
-    HyperEdgeTreeNode *nextNode = 
+    HyperedgeTreeNode *nextNode = 
             (ignored == ends.first) ? ends.second : ends.first;
 
     if (pass == 0)
@@ -555,8 +375,6 @@ void HyperEdgeTreeEdge::writeEdgesToConns(HyperEdgeTreeNode *ignored,
                 if (nextNode->junction != correctEndJunction)
                 {
                     shouldReverse = true;
-                    COLA_ASSERT(nextNode->junction == 
-                            conn->m_src_connend->junction());
                 }
             }
 
@@ -576,11 +394,11 @@ void HyperEdgeTreeEdge::writeEdgesToConns(HyperEdgeTreeNode *ignored,
 // segment bridging junction and/or terminals.  It also sets the 
 // appropriate ConnEnds for each connector.
 //
-void HyperEdgeTreeEdge::addConns(HyperEdgeTreeNode *ignored, Router *router,
+void HyperedgeTreeEdge::addConns(HyperedgeTreeNode *ignored, Router *router,
         ConnRefList& oldConns)
 {
     COLA_ASSERT(conn != NULL);
-    HyperEdgeTreeNode *endNode = NULL;
+    HyperedgeTreeNode *endNode = NULL;
     if (ends.first && (ends.first != ignored))
     {
         endNode = ends.first;
@@ -627,7 +445,7 @@ void HyperEdgeTreeEdge::addConns(HyperEdgeTreeNode *ignored, Router *router,
 // This method traverses the hyperedge tree and returns a list of the junctions
 // and connectors that make up the hyperedge.
 //
-void HyperEdgeTreeEdge::listJunctionsAndConnectors(HyperEdgeTreeNode *ignored,
+void HyperedgeTreeEdge::listJunctionsAndConnectors(HyperedgeTreeNode *ignored,
         JunctionRefList& junctions, ConnRefList& connectors)
 {
     ConnRefList::iterator foundPosition =
@@ -651,8 +469,8 @@ void HyperEdgeTreeEdge::listJunctionsAndConnectors(HyperEdgeTreeNode *ignored,
 // This method traverses the hyperedge tree and returns true if it contains
 // any connectors with fixed routes.
 //
-bool HyperEdgeTreeEdge::hasFixedRouteConnectors(
-        const HyperEdgeTreeNode *ignored) const
+bool HyperedgeTreeEdge::hasFixedRouteConnectors(
+        const HyperedgeTreeNode *ignored) const
 {
     if (this->conn->hasFixedRoute())
     {
@@ -682,7 +500,7 @@ bool HyperEdgeTreeEdge::hasFixedRouteConnectors(
 // A new edge will connect the new node and the node at the other end of the
 // original edge.
 //
-void HyperEdgeTreeEdge::splitFromNodeAtPoint(HyperEdgeTreeNode *source, 
+void HyperedgeTreeEdge::splitFromNodeAtPoint(HyperedgeTreeNode *source, 
         const Point& point)
 {
     // Make the source the first of the two nodes.
@@ -693,14 +511,14 @@ void HyperEdgeTreeEdge::splitFromNodeAtPoint(HyperEdgeTreeNode *source,
     COLA_ASSERT(ends.first == source);
 
     // Remember the other end.
-    HyperEdgeTreeNode *target = ends.second;
+    HyperedgeTreeNode *target = ends.second;
 
     // Create a new node for the split point at the given position.
-    HyperEdgeTreeNode *split = new HyperEdgeTreeNode();
+    HyperedgeTreeNode *split = new HyperedgeTreeNode();
     split->point = point;
 
     // Create a new edge between the split point and the other end.
-    new HyperEdgeTreeEdge(split, target, conn);
+    new HyperedgeTreeEdge(split, target, conn);
     
     // Disconnect the current edge from the other end and connect it to 
     // the new split point node.
@@ -712,7 +530,7 @@ void HyperEdgeTreeEdge::splitFromNodeAtPoint(HyperEdgeTreeNode *source,
 
 // This method disconnects the hyperedge tree edge nodes that it's attached to.
 //
-void HyperEdgeTreeEdge::disconnectEdge(void)
+void HyperedgeTreeEdge::disconnectEdge(void)
 {
     COLA_ASSERT(ends.first != NULL);
     COLA_ASSERT(ends.second != NULL);
@@ -727,7 +545,7 @@ void HyperEdgeTreeEdge::disconnectEdge(void)
 // This method traverses the hyperedge tree and removes from treeRoots any
 // junction nodes.
 //
-void HyperEdgeTreeEdge::removeOtherJunctionsFrom(HyperEdgeTreeNode *ignored,
+void HyperedgeTreeEdge::removeOtherJunctionsFrom(HyperedgeTreeNode *ignored,
                     JunctionSet& treeRoots)
 {
     if (ends.first && (ends.first != ignored))
@@ -753,7 +571,7 @@ void HyperEdgeTreeEdge::removeOtherJunctionsFrom(HyperEdgeTreeNode *ignored,
 // This method traverses the hyperedge tree, clearing up the objects and
 // memory used to store the tree.
 //
-void HyperEdgeTreeEdge::deleteNodesExcept(HyperEdgeTreeNode *ignored)
+void HyperedgeTreeEdge::deleteNodesExcept(HyperedgeTreeNode *ignored)
 {
     if (ends.first && (ends.first != ignored))
     {
@@ -779,8 +597,8 @@ CmpNodesInDim::CmpNodesInDim(const size_t dim)
 
 // Nodes in set are ordered by position along a line in a certain dimension, 
 // and then by Node pointer since multiple may exist at a particular position.
-bool CmpNodesInDim::operator()(const HyperEdgeTreeNode *lhs,
-        const HyperEdgeTreeNode *rhs) const
+bool CmpNodesInDim::operator()(const HyperedgeTreeNode *lhs,
+        const HyperedgeTreeNode *rhs) const
 {
     if (lhs->point[m_dimension] != rhs->point[m_dimension])
     {
