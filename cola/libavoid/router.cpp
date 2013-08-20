@@ -67,8 +67,7 @@ Router::Router(const unsigned int flags)
       m_allows_polyline_routing(false),
       m_allows_orthogonal_routing(false),
       m_static_orthogonal_graph_invalidated(true),
-      m_in_crossing_rerouting_stage(false),
-      m_hyperedge_improver(this)
+      m_in_crossing_rerouting_stage(false)
 {
     // At least one of the Routing modes must be set.
     COLA_ASSERT(flags & (PolyLineRouting | OrthogonalRouting));
@@ -99,6 +98,7 @@ Router::Router(const unsigned int flags)
     m_routing_options[improveHyperedgeRoutesMovingAddingAndDeletingJunctions] =
             false;
 
+    m_hyperedge_improver.setRouter(this);
     m_hyperedge_rerouter.setRouter(this);
 }
 

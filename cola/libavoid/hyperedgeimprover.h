@@ -52,9 +52,12 @@ class HyperedgeImprover
 {
 public:
     // Constructor.
-    HyperedgeImprover(Router *router);
+    HyperedgeImprover();
     
     void clear(void);
+
+    // Set the router that this HyperedgeImprover will act upon.
+    void setRouter(Router *router);
 
     // Returns lists of junctions and connectors created and deleted during 
     // hyperedge improvement.

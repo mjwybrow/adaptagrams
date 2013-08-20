@@ -260,10 +260,15 @@ static bool CmpHyperedgeSegmentDirOrder(const ShiftSegment *lhsSuper,
 
 
 // Constructor.
-HyperedgeImprover::HyperedgeImprover(Router *router)
-    : m_router(router)
+HyperedgeImprover::HyperedgeImprover()
+    : m_router(NULL)
 {
     clear();
+}
+
+void HyperedgeImprover::setRouter(Router *router)
+{
+    m_router = router;
 }
 
 void HyperedgeImprover::clear(void)
