@@ -22,6 +22,7 @@
  * Author(s):  Michael Wybrow
 */
 
+#include <algorithm>
 
 #include "libavoid/router.h"
 #include "libavoid/shape.h"
