@@ -73,6 +73,7 @@ struct HyperedgeTreeNode
     void writeEdgesToConns(HyperedgeTreeEdge *ignored, size_t pass);
     void addConns(HyperedgeTreeEdge *ignored, Router *router, 
             ConnRefList& oldConns, ConnRef *conn);
+    void updateConnEnds(HyperedgeTreeEdge *ignored, bool forward);
     void listJunctionsAndConnectors(HyperedgeTreeEdge *ignored,
             JunctionRefList& junctions, ConnRefList& connectors);
     bool hasFixedRouteConnectors(const HyperedgeTreeEdge *ignored) const;
@@ -101,6 +102,7 @@ struct HyperedgeTreeEdge
     void writeEdgesToConns(HyperedgeTreeNode *ignored, size_t pass);
     void addConns(HyperedgeTreeNode *ignored, Router *router,
             ConnRefList& oldConns);
+    void updateConnEnds(HyperedgeTreeNode *ignored, bool forward);
     void disconnectEdge(void);
     void replaceNode(HyperedgeTreeNode *oldNode,
             HyperedgeTreeNode *newNode);

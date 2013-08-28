@@ -148,6 +148,60 @@ void HyperedgeTreeNode::addConns(HyperedgeTreeEdge *ignored, Router *router,
     }
 }
 
+static bool travellingForwardOnConnector(ConnRef *conn, JunctionRef *junction)
+{
+    std::pair<ConnEnd, ConnEnd> connEnds = conn->endpointConnEnds();
+
+    if (connEnds.first.junction() == junction)
+    {
+        return true;
+    }
+    if (connEnds.second.junction() == junction)
+    {
+        return false;
+    }
+    if (connEnds.first.type() != ConnEndJunction &&
+        connEnds.first.type() != ConnEndEmpty)
+    {
+        return false;
+    }
+    if (connEnds.second.type() != ConnEndJunction &&
+        connEnds.second.type() != ConnEndEmpty)
+    {
+        return true;
+    }
+    return true;
+}
+
+// This method traverses the hyperedge tree and rewrites connector ends
+// that may have changed junctions due to major hyperedge improvement.
+//
+void HyperedgeTreeNode::updateConnEnds(HyperedgeTreeEdge *ignored, 
+        bool forward)
+{
+    for (std::list<HyperedgeTreeEdge *>::iterator curr = edges.begin();
+            curr != edges.end(); ++curr)
+    {
+        HyperedgeTreeEdge *edge = *curr;
+        if (edge != ignored)
+        {
+            if (junction)
+            {
+                // If we're at a junction, then we are effectively starting
+                // our traversal along a connector, so create this new connector
+                // and set it's start ConnEnd to be this junction.
+                forward = travellingForwardOnConnector(edge->conn, junction);
+                unsigned short end = (forward) ? VertID::src : VertID::tar;
+                ConnEnd connend(junction);
+                edge->conn->updateEndPoint(end, connend);
+            }
+    
+            // Continue recursive traversal.
+            edge->updateConnEnds(this, forward);
+        }
+    }
+}
+
 
 // This method traverses the hyperedge tree and returns a list of the junctions
 // and connectors that make up the hyperedge.
@@ -439,6 +493,38 @@ void HyperedgeTreeEdge::addConns(HyperedgeTreeNode *ignored, Router *router,
         // Or, set a ConnEnd connecting to the junction we have reached.
         ConnEnd connend(endNode->junction);
         conn->updateEndPoint(VertID::tar, connend);
+    }
+}
+
+
+// This method traverses the hyperedge tree and rewrites connector ends
+// that may have changed junctions due to major hyperedge improvement.
+//
+void HyperedgeTreeEdge::updateConnEnds(HyperedgeTreeNode *ignored, 
+        bool forward)
+{
+    HyperedgeTreeNode *endNode = NULL;
+    if (ends.first && (ends.first != ignored))
+    {
+        endNode = ends.first;
+        ends.first->updateConnEnds(this, forward);
+    }
+
+    if (ends.second && (ends.second != ignored))
+    {
+        endNode = ends.second;
+        ends.second->updateConnEnds(this, forward);
+    }
+
+    if (endNode->edges.size() > 2)
+    {
+        // We've reached a junction at the end of this connector, and it's
+        // not an endpoint of the hyperedge.  So  the connector ConnEnd to 
+        // connect to the junction we have reached.
+        COLA_ASSERT(endNode->junction);
+        ConnEnd connend(endNode->junction);
+        unsigned short end = (forward) ? VertID::tar : VertID::src;
+        conn->updateEndPoint(end, connend);
     }
 }
 

@@ -107,8 +107,6 @@ ConnEnd::ConnEnd(JunctionRef *junctionRef)
 
 ConnEnd::~ConnEnd()
 {
-    disconnect();
-    freeActivePin();
 }
 
 

@@ -964,6 +964,18 @@ void HyperedgeImprover::execute(bool canMakeMajorChanges)
         m_all_shift_segments.clear();
     }
 
+    // Rewrite updated connector attachments to junctions.
+    if (m_can_make_major_changes)
+    {
+        for (JunctionSet::iterator curr = m_hyperedge_tree_roots.begin();
+                curr != m_hyperedge_tree_roots.end(); ++curr)
+        {
+            HyperedgeTreeNode *treeRoot = m_hyperedge_tree_junctions[*curr];
+            COLA_ASSERT(treeRoot);
+            treeRoot->updateConnEnds(NULL, m_router);
+        }
+    }
+
     // Write back final recommended positions to junctions.
     for (JunctionHyperedgeTreeNodeMap::iterator curr = 
             m_hyperedge_tree_junctions.begin(); 

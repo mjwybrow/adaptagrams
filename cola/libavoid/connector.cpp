@@ -127,6 +127,8 @@ ConnRef::~ConnRef()
     }
     if (m_src_connend)
     {
+        m_src_connend->disconnect();
+        m_src_connend->freeActivePin();
         delete m_src_connend;
         m_src_connend = NULL;
     }
@@ -140,6 +142,8 @@ ConnRef::~ConnRef()
     }
     if (m_dst_connend)
     {
+        m_dst_connend->disconnect();
+        m_dst_connend->freeActivePin();
         delete m_dst_connend;
         m_dst_connend = NULL;
     }
@@ -257,6 +261,8 @@ void ConnRef::common_updateEndPoint(const unsigned int type, ConnEnd connEnd)
 
         if (m_src_connend)
         {
+            m_src_connend->disconnect();
+            m_src_connend->freeActivePin();
             delete m_src_connend;
             m_src_connend = NULL;
         }
@@ -285,6 +291,8 @@ void ConnRef::common_updateEndPoint(const unsigned int type, ConnEnd connEnd)
         
         if (m_dst_connend)
         {
+            m_dst_connend->disconnect();
+            m_dst_connend->freeActivePin();
             delete m_dst_connend;
             m_dst_connend = NULL;
         }
