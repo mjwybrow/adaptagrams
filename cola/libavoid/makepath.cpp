@@ -226,11 +226,22 @@ static void constructPolygonPath(Polygon& connRoute, VertInf *inf2,
     routeSize -= 3;
     for (ANode *curr = inf1Node; curr != NULL; curr = curr->prevNode)
     {
+        // For connection pins, we stop and don't include the fake shape 
+        // center as part of this path.
+        bool isConnectionPin = curr->inf->id.isConnectionPin();
+
         if (!simplified)
         {
-            // Add new point.
+            // If this is non-simplified, we don't need to do anything 
+            // clever and can simply add the new point.
             connRoute.ps[routeSize] = curr->inf->point;
             routeSize -= 1;
+            
+            if (isConnectionPin)
+            {
+                // Stop at the connection pin.
+                break;
+            }
             continue;
         }
             
@@ -250,6 +261,12 @@ static void constructPolygonPath(Polygon& connRoute, VertInf *inf2,
         {
             // The last point is inline with this one, so update it.
             connRoute.ps[routeSize + 1] = curr->inf->point;
+        }
+            
+        if (isConnectionPin)
+        {
+            // Stop at the connection pin.
+            break;
         }
     }
 

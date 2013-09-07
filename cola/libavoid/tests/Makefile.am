@@ -21,6 +21,7 @@ check_PROGRAMS = \
 	inlineoverlap07 \
 	inlineoverlap08 \
 	inlineOverlap09 \
+	inlineOverlap10 \
 	nudgeintobug \
 	slowrouting \
 	tjunct \
@@ -76,7 +77,7 @@ check_PROGRAMS = \
 	nudgingSkipsCheckpoint01 \
 	nudgingSkipsCheckpoint02
 
-# problem_SOURCES = problem.cpp
+problem_SOURCES = problem.cpp
 
 
 nudgingSkipsCheckpoint01_SOURCES = nudgingSkipsCheckpoint01.cpp
@@ -154,6 +155,7 @@ inlineoverlap06_SOURCES = inlineoverlap06.cpp
 inlineoverlap07_SOURCES = inlineoverlap07.cpp
 inlineoverlap08_SOURCES = inlineoverlap08.cpp
 inlineOverlap09_SOURCES = inlineOverlap09.cpp
+inlineOverlap10_SOURCES = inlineOverlap10.cpp
 
 # corneroverlap01_SOURCES = corneroverlap01.cpp
 
