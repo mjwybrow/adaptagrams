@@ -1312,7 +1312,8 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
             {
                 for (size_t i = 0; i < m_cost_targets.size(); ++i)
                 {
-                    if (bestNode->inf == m_cost_targets[i])
+                    if ((bestNode->inf == m_cost_targets[i]) ||
+                            (node.inf == tar))
                     {
                         atTarget = true;
                         break;
