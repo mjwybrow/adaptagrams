@@ -30,6 +30,7 @@
 #include "libavoid/router.h"
 #include "libavoid/connend.h"
 #include "libavoid/assertions.h"
+#include "libavoid/junction.h"
 
 namespace Avoid {
 
@@ -295,6 +296,11 @@ void HyperedgeTreeNode::spliceEdgesFrom(HyperedgeTreeNode *oldNode)
     }
 }
 
+
+bool HyperedgeTreeNode::isImmovable(void) const
+{
+    return ((edges.size() == 1) || (junction && junction->positionFixed()));
+}
 
 // Constructs a new hyperedge tree edge, given two endpoint nodes.
 //

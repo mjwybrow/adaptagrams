@@ -6,7 +6,7 @@ void outputInstanceToSVG(Avoid::Router * router)
 {
 	static int counter = 0;
 	std::ostringstream os;
-	os << "output/improveHyperedges05-" << (++counter);
+	os << "output/improveHyperedge05-" << (++counter);
 	router->outputInstanceToSVG(os.str());
 }
 

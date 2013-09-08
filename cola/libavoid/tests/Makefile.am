@@ -62,6 +62,7 @@ check_PROGRAMS = \
 	improveHyperedge03 \
 	improveHyperedge04 \
 	improveHyperedge05 \
+	improveHyperedge06 \
 	validPaths01 \
 	validPaths02 \
 	2junctions \
@@ -102,6 +103,7 @@ improveHyperedge02_SOURCES = improveHyperedge02.cpp
 improveHyperedge03_SOURCES = improveHyperedge03.cpp
 improveHyperedge04_SOURCES = improveHyperedge04.cpp
 improveHyperedge05_SOURCES = improveHyperedge05.cpp
+improveHyperedge06_SOURCES = improveHyperedge06.cpp
 
 performance01_SOURCES = performance01.cpp
 

@@ -77,6 +77,7 @@ struct HyperedgeTreeNode
     void listJunctionsAndConnectors(HyperedgeTreeEdge *ignored,
             JunctionRefList& junctions, ConnRefList& connectors);
     bool hasFixedRouteConnectors(const HyperedgeTreeEdge *ignored) const;
+    bool isImmovable(void) const;
 
     std::list<HyperedgeTreeEdge *> edges;
     JunctionRef *junction;
