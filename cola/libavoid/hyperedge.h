@@ -162,14 +162,15 @@ class AVOID_EXPORT HyperedgeRerouter
         HyperedgeNewAndDeletedObjectLists newAndDeletedObjectLists(
                 size_t index) const;
 
-    private:
-        friend class Router;
-
         // @brief  The number of hyperedges that are being or have been
         //         rerouted.
         // @return The number of rerouted hyperedges.
         //
         size_t count(void) const;
+
+    private:
+        friend class Router;
+
         // @brief  Sets the router instance that this object operates on.
         //
         // @param[in] router  The router instance to operate on.

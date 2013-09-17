@@ -39,7 +39,6 @@
 #include "libavoid/junction.h"
 #include "libavoid/vpsc.h"
 #include "libavoid/assertions.h"
-#include "libavoid/mtst.h"
 #include "libavoid/scanline.h"
 
 // For debugging:

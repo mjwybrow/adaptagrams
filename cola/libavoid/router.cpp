@@ -978,12 +978,34 @@ void Router::rerouteAndCallbackConnectors(void)
     // Perform centring and nudging for orthogonal routes.
     improveOrthogonalRoutes(this);
 
+    // Find a list of all the deleted connectors in hyperedges.
+    HyperedgeNewAndDeletedObjectLists changedHyperedgeObjs = 
+            m_hyperedge_improver.newAndDeletedObjectLists();
+    ConnRefList deletedConns = changedHyperedgeObjs.deletedConnectorList;
+    for (size_t index = 0; index < m_hyperedge_rerouter.count(); ++index)
+    {
+        changedHyperedgeObjs = 
+                m_hyperedge_rerouter.newAndDeletedObjectLists(index);
+        deletedConns.merge(changedHyperedgeObjs.deletedConnectorList);
+    }
+
     // Alert connectors that they need redrawing.
     fin = reroutedConns.end();
     for (ConnRefList::const_iterator i = reroutedConns.begin(); i != fin; ++i) 
     {
-        (*i)->m_needs_repaint = true;
-        (*i)->performCallback();
+        ConnRef *conn = *i;
+        
+        // Skip hyperedge connectors which have been deleted.
+        ConnRefList::iterator findIt = std::find(
+                deletedConns.begin(), deletedConns.end(), conn);
+        if (findIt != changedHyperedgeObjs.deletedConnectorList.end())
+        {
+            // Connector deleted, skip.
+            continue;
+        }
+
+        conn->m_needs_repaint = true;
+        conn->performCallback();
     }
 
     // Progress reporting.
