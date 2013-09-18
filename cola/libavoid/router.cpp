@@ -998,7 +998,7 @@ void Router::rerouteAndCallbackConnectors(void)
         // Skip hyperedge connectors which have been deleted.
         ConnRefList::iterator findIt = std::find(
                 deletedConns.begin(), deletedConns.end(), conn);
-        if (findIt != changedHyperedgeObjs.deletedConnectorList.end())
+        if (findIt != deletedConns.end())
         {
             // Connector deleted, skip.
             continue;
