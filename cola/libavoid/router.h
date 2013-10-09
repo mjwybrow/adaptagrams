@@ -827,6 +827,8 @@ class AVOID_EXPORT Router {
         
         bool m_static_orthogonal_graph_invalidated;
         bool m_in_crossing_rerouting_stage;
+
+        bool m_settings_changes;
     
         HyperedgeImprover m_hyperedge_improver;
 };
