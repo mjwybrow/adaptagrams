@@ -117,11 +117,17 @@ class AVOID_EXPORT JunctionRef : public Obstacle
         //! @returns A point representing the position of this junction.
         Point position(void) const;
 
-        //! @brief             Sets whether the junction has a fixed position
-        //!                    and therefore can't be moved by the Router 
-        //!                    during routing.
-        //! @param[in]  fixed  Boolean indicating if the junction position
-        //!                    should be set as fixed.
+        //! @brief  Sets whether the junction has a fixed position and
+        //!         therefore can't be moved by the Router during routing.
+        //!
+        //! This property is ignored for hyperedge improvement if the option
+        //! improveHyperedgeRoutesMovingAddingAndDeletingJunctions is set and
+        //! when it would lead to confusing hyperedge topology, such as two
+        //! overlapping junctions with a zero length connector between them
+        //! or an unnecessary junction bridging two connectors.
+        //!
+        //! @param[in]  fixed  Boolean indicating whether the junction position
+        //!                    should be marked as fixed.
         void setPositionFixed(bool fixed);
         
         //! @brief   Returns whether this junction has a fixed position (that 

@@ -148,6 +148,7 @@ private:
     JunctionRefList m_deleted_junctions;
     ConnRefList m_new_connectors;
     ConnRefList m_deleted_connectors;
+    ConnRefList m_changed_connectors;
     int m_debug_count;
     bool m_can_make_major_changes;
 };

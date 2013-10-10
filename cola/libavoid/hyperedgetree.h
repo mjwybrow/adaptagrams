@@ -33,6 +33,8 @@
 
 #include "libavoid/geomtypes.h"
 
+//#define MAJOR_HYPEREDGE_IMPROVEMENT_DEBUG
+
 namespace Avoid {
 
 // These classes are not intended for public use.
@@ -73,11 +75,14 @@ struct HyperedgeTreeNode
     void writeEdgesToConns(HyperedgeTreeEdge *ignored, size_t pass);
     void addConns(HyperedgeTreeEdge *ignored, Router *router, 
             ConnRefList& oldConns, ConnRef *conn);
-    void updateConnEnds(HyperedgeTreeEdge *ignored, bool forward);
+    void updateConnEnds(HyperedgeTreeEdge *ignored, bool forward,
+            ConnRefList& changedConns);
     void listJunctionsAndConnectors(HyperedgeTreeEdge *ignored,
             JunctionRefList& junctions, ConnRefList& connectors);
     bool hasFixedRouteConnectors(const HyperedgeTreeEdge *ignored) const;
     bool isImmovable(void) const;
+    void validateHyperedge(const HyperedgeTreeEdge *ignored, 
+            const size_t dist) const;
 
     std::list<HyperedgeTreeEdge *> edges;
     JunctionRef *junction;
@@ -103,13 +108,16 @@ struct HyperedgeTreeEdge
     void writeEdgesToConns(HyperedgeTreeNode *ignored, size_t pass);
     void addConns(HyperedgeTreeNode *ignored, Router *router,
             ConnRefList& oldConns);
-    void updateConnEnds(HyperedgeTreeNode *ignored, bool forward);
+    void updateConnEnds(HyperedgeTreeNode *ignored, bool forward,
+            ConnRefList& changedConns);
     void disconnectEdge(void);
     void replaceNode(HyperedgeTreeNode *oldNode,
             HyperedgeTreeNode *newNode);
     void listJunctionsAndConnectors(HyperedgeTreeNode *ignored,
             JunctionRefList& junctions, ConnRefList& connectors);
     bool hasFixedRouteConnectors(const HyperedgeTreeNode *ignored) const;
+    void validateHyperedge(const HyperedgeTreeNode *ignored, 
+            const size_t dist) const;
 
     std::pair<HyperedgeTreeNode *, HyperedgeTreeNode *> ends;
     ConnRef *conn;

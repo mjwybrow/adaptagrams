@@ -105,6 +105,8 @@ ConnRef::ConnRef(Router *router, const ConnEnd& src, const ConnEnd& dst,
 
 ConnRef::~ConnRef()
 {
+    COLA_ASSERT(m_router);
+
     if (m_router->m_currently_calling_destructors == false)
     {
         err_printf("ERROR: ConnRef::~ConnRef() shouldn't be called directly.\n");

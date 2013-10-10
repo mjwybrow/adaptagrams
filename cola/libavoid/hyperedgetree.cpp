@@ -178,7 +178,7 @@ static bool travellingForwardOnConnector(ConnRef *conn, JunctionRef *junction)
 // that may have changed junctions due to major hyperedge improvement.
 //
 void HyperedgeTreeNode::updateConnEnds(HyperedgeTreeEdge *ignored, 
-        bool forward)
+        bool forward, ConnRefList& changedConns)
 {
     for (std::list<HyperedgeTreeEdge *>::iterator curr = edges.begin();
             curr != edges.end(); ++curr)
@@ -192,13 +192,28 @@ void HyperedgeTreeNode::updateConnEnds(HyperedgeTreeEdge *ignored,
                 // our traversal along a connector, so create this new connector
                 // and set it's start ConnEnd to be this junction.
                 forward = travellingForwardOnConnector(edge->conn, junction);
-                unsigned short end = (forward) ? VertID::src : VertID::tar;
-                ConnEnd connend(junction);
-                edge->conn->updateEndPoint(end, connend);
+
+                std::pair<ConnEnd, ConnEnd> existingEnds = 
+                        edge->conn->endpointConnEnds();
+                ConnEnd existingEnd = (forward) ? 
+                        existingEnds.first : existingEnds.second;
+                if (existingEnd.junction() != junction)
+                {
+#ifdef MAJOR_HYPEREDGE_IMPROVEMENT_DEBUG
+                    fprintf(stderr, "HyperedgeImprover: changed %s of "
+                            "connector %u (from junction %u to %u)\n", 
+                            (forward) ? "src" : "tar", edge->conn->id(),
+                            existingEnd.junction()->id(), junction->id());
+#endif
+                    unsigned short end = (forward) ? VertID::src : VertID::tar;
+                    ConnEnd connend(junction);
+                    edge->conn->updateEndPoint(end, connend);
+                    changedConns.push_back(edge->conn);
+                }
             }
     
             // Continue recursive traversal.
-            edge->updateConnEnds(this, forward);
+            edge->updateConnEnds(this, forward, changedConns);
         }
     }
 }
@@ -243,6 +258,65 @@ bool HyperedgeTreeNode::hasFixedRouteConnectors(const HyperedgeTreeEdge *ignored
         }
     }
     return false;
+}
+
+
+void HyperedgeTreeNode::validateHyperedge(const HyperedgeTreeEdge *ignored, 
+        const size_t dist) const 
+{
+    size_t newDist = dist;
+#ifdef MAJOR_HYPEREDGE_IMPROVEMENT_DEBUG
+    if (junction)
+    {
+        if (newDist == 0)
+        {
+            fprintf(stderr,"\nHyperedge topology:\n");
+        }
+        else
+        {
+            ++newDist;
+        }
+        for (size_t d = 0; d < newDist; ++d)
+        {
+            fprintf(stderr,"  ");
+        }
+        fprintf(stderr, "j(%d)\n", junction->id());
+        ++newDist;
+    }
+    else if (edges.size() == 1)
+    {
+        ++newDist;
+        for (size_t d = 0; d < newDist; ++d)
+        {
+            fprintf(stderr, "  ");
+        }
+        fprintf(stderr, "t()\n");
+        ++newDist;
+    }
+#endif
+    for (std::list<HyperedgeTreeEdge *>::const_iterator curr = edges.begin();
+            curr != edges.end(); ++curr)
+    {
+        HyperedgeTreeEdge *edge = *curr;
+        std::pair<ConnEnd, ConnEnd> connEnds = edge->conn->endpointConnEnds();
+
+        if (junction)
+        {
+            COLA_ASSERT((connEnds.first.junction() == junction) ||
+                        (connEnds.second.junction() == junction));
+            COLA_ASSERT(connEnds.first.junction() != connEnds.second.junction());
+        }
+        else if (edges.size() == 1)
+        {
+            COLA_ASSERT(!connEnds.first.junction() || 
+                        !connEnds.second.junction());
+        }
+        
+        if (edge != ignored)
+        {
+            edge->validateHyperedge(this, newDist);
+        }
+    }
 }
 
 
@@ -507,30 +581,48 @@ void HyperedgeTreeEdge::addConns(HyperedgeTreeNode *ignored, Router *router,
 // that may have changed junctions due to major hyperedge improvement.
 //
 void HyperedgeTreeEdge::updateConnEnds(HyperedgeTreeNode *ignored, 
-        bool forward)
+        bool forward, ConnRefList& changedConns)
 {
     HyperedgeTreeNode *endNode = NULL;
     if (ends.first && (ends.first != ignored))
     {
         endNode = ends.first;
-        ends.first->updateConnEnds(this, forward);
+        ends.first->updateConnEnds(this, forward, changedConns);
     }
 
     if (ends.second && (ends.second != ignored))
     {
         endNode = ends.second;
-        ends.second->updateConnEnds(this, forward);
+        ends.second->updateConnEnds(this, forward, changedConns);
     }
 
-    if (endNode->edges.size() > 2)
+    if (endNode->junction)
     {
         // We've reached a junction at the end of this connector, and it's
         // not an endpoint of the hyperedge.  So  the connector ConnEnd to 
         // connect to the junction we have reached.
-        COLA_ASSERT(endNode->junction);
-        ConnEnd connend(endNode->junction);
-        unsigned short end = (forward) ? VertID::tar : VertID::src;
-        conn->updateEndPoint(end, connend);
+        std::pair<ConnEnd, ConnEnd> existingEnds = conn->endpointConnEnds();
+        ConnEnd existingEnd = (forward) ?
+                existingEnds.second : existingEnds.first;
+        if (existingEnd.junction() != endNode->junction)
+        {
+#ifdef MAJOR_HYPEREDGE_IMPROVEMENT_DEBUG
+            fprintf(stderr, "HyperedgeImprover: changed %s of "
+                    "connector %u (from junction %u to %u)\n", 
+                    (forward) ? "tar" : "src", conn->id(),
+                    existingEnd.junction()->id(), endNode->junction->id());
+#endif
+            ConnEnd connend(endNode->junction);
+            unsigned short end = (forward) ? VertID::tar : VertID::src;
+            conn->updateEndPoint(end, connend);
+
+            // Record that this connector was changed (so long as it wasn't 
+            // already recorded).
+            if (changedConns.empty() || (changedConns.back() != conn))
+            {
+                changedConns.push_back(conn);
+            }
+        }
     }
 }
 
@@ -584,6 +676,27 @@ bool HyperedgeTreeEdge::hasFixedRouteConnectors(
         }
     }
     return false;
+}
+
+
+void HyperedgeTreeEdge::validateHyperedge(
+        const HyperedgeTreeNode *ignored, const size_t dist) const
+{
+#ifdef MAJOR_HYPEREDGE_IMPROVEMENT_DEBUG
+    for (size_t d = 0; d < dist; ++d)
+    {
+        fprintf(stderr, "  ");
+    }
+    fprintf(stderr, "-(%d)\n", conn->id());
+#endif
+    if (ends.first != ignored)
+    {
+        ends.first->validateHyperedge(this, dist);
+    }
+    else if (ends.second != ignored)
+    {
+        ends.second->validateHyperedge(this, dist);
+    }
 }
 
 

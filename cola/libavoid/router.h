@@ -711,7 +711,8 @@ class AVOID_EXPORT Router {
         //!         during hyperedge improvement.
         //!
         //! This method will only return information once the router has
-        //! processed the transaction.
+        //! processed the transaction.  You should read this information 
+        //! before processTransaction() is called again.
         //!
         //! After calling this you should no longer refer to any of the
         //! objects in the "deleted" lists --- the router will delete these 
