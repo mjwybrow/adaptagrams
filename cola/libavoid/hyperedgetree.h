@@ -79,7 +79,6 @@ struct HyperedgeTreeNode
             ConnRefList& changedConns);
     void listJunctionsAndConnectors(HyperedgeTreeEdge *ignored,
             JunctionRefList& junctions, ConnRefList& connectors);
-    bool hasFixedRouteConnectors(const HyperedgeTreeEdge *ignored) const;
     bool isImmovable(void) const;
     void validateHyperedge(const HyperedgeTreeEdge *ignored, 
             const size_t dist) const;
@@ -115,12 +114,12 @@ struct HyperedgeTreeEdge
             HyperedgeTreeNode *newNode);
     void listJunctionsAndConnectors(HyperedgeTreeNode *ignored,
             JunctionRefList& junctions, ConnRefList& connectors);
-    bool hasFixedRouteConnectors(const HyperedgeTreeNode *ignored) const;
     void validateHyperedge(const HyperedgeTreeNode *ignored, 
             const size_t dist) const;
 
     std::pair<HyperedgeTreeNode *, HyperedgeTreeNode *> ends;
     ConnRef *conn;
+    bool hasFixedRoute;
 };
 
 

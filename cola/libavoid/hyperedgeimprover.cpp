@@ -468,7 +468,7 @@ void HyperedgeImprover::removeZeroLengthEdges(HyperedgeTreeNode *self,
         HyperedgeTreeEdge *edge = *curr;
         if (edge != ignored)
         {
-            if (edge->zeroLength())
+            if (!edge->hasFixedRoute && edge->zeroLength())
             {
                 HyperedgeTreeNode *other = edge->followFrom(self);
                 HyperedgeTreeNode *target = NULL;
@@ -898,30 +898,6 @@ void HyperedgeImprover::execute(bool canMakeMajorChanges)
         node->removeOtherJunctionsFrom(NULL, m_hyperedge_tree_roots);
     }
 
-    // Remove hyperedges containing one or more fixed route connectors.
-    // We may do something more clever with these in future.
-    JunctionRef *treeRootToErase = NULL;
-    for (JunctionSet::iterator curr = m_hyperedge_tree_roots.begin();
-            curr != m_hyperedge_tree_roots.end(); ++curr)
-    {
-        if (treeRootToErase)
-        {
-            m_hyperedge_tree_roots.erase(treeRootToErase);
-            treeRootToErase = NULL;
-        }
-
-        HyperedgeTreeNode *node = m_hyperedge_tree_junctions[*curr];
-        if (node->hasFixedRouteConnectors(NULL))
-        {
-            treeRootToErase = *curr;
-        }
-    }
-    if (treeRootToErase)
-    {
-        m_hyperedge_tree_roots.erase(treeRootToErase);
-        treeRootToErase = NULL;
-    }
-
     m_router->timers.Register(tmHyperedgeImprove, timerStart);
 
     // Debug output.
@@ -1071,6 +1047,11 @@ HyperedgeTreeNode *HyperedgeImprover::moveJunctionAlongCommonEdge(
             // Don't shift junctions onto other junctions.
             continue;
         }
+        if (currEdge->hasFixedRoute)
+        {
+            // Don't move junctions along fixed edges.
+            continue;
+        }
 
         // The current edge is a common edge we are looking to shift along.
         commonEdges.push_back(currEdge);
@@ -1086,6 +1067,13 @@ HyperedgeTreeNode *HyperedgeImprover::moveJunctionAlongCommonEdge(
             }
             
             HyperedgeTreeEdge *otherEdge = *curr2;
+            if (otherEdge->hasFixedRoute)
+            {
+                // Don't shift junctions along fixed route connectors.
+                otherEdges.push_back(otherEdge);
+                continue;
+            }
+            
             HyperedgeTreeNode *otherNode = otherEdge->followFrom(self);
             if (otherNode->point == currNode->point)
             {

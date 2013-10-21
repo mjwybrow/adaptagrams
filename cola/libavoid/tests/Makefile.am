@@ -78,7 +78,7 @@ check_PROGRAMS = \
 	nudgingSkipsCheckpoint01 \
 	nudgingSkipsCheckpoint02
 
-problem_SOURCES = problem.cpp
+# problem_SOURCES = problem.cpp
 
 
 nudgingSkipsCheckpoint01_SOURCES = nudgingSkipsCheckpoint01.cpp

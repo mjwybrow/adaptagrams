@@ -241,26 +241,6 @@ void HyperedgeTreeNode::listJunctionsAndConnectors(HyperedgeTreeEdge *ignored,
 }
 
 
-// This method traverses the hyperedge tree and returns true if it contains
-// any connectors with fixed routes.
-//
-bool HyperedgeTreeNode::hasFixedRouteConnectors(const HyperedgeTreeEdge *ignored) const 
-{
-    for (std::list<HyperedgeTreeEdge *>::const_iterator curr = edges.begin();
-            curr != edges.end(); ++curr)
-    {
-        if (*curr != ignored)
-        {
-            if((*curr)->hasFixedRouteConnectors(this))
-            {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
-
 void HyperedgeTreeNode::validateHyperedge(const HyperedgeTreeEdge *ignored, 
         const size_t dist) const 
 {
@@ -373,15 +353,32 @@ void HyperedgeTreeNode::spliceEdgesFrom(HyperedgeTreeNode *oldNode)
 
 bool HyperedgeTreeNode::isImmovable(void) const
 {
-    return ((edges.size() == 1) || (junction && junction->positionFixed()));
+    if ((edges.size() == 1) || (junction && junction->positionFixed()))
+    {
+        return true;
+    }
+    for (std::list<HyperedgeTreeEdge *>::const_iterator curr = edges.begin();
+            curr != edges.end(); ++curr)
+    {
+        if ((*curr)->hasFixedRoute)
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 // Constructs a new hyperedge tree edge, given two endpoint nodes.
 //
 HyperedgeTreeEdge::HyperedgeTreeEdge(HyperedgeTreeNode *node1,
         HyperedgeTreeNode *node2, ConnRef *conn)
-    : conn(conn)
+    : conn(conn),
+      hasFixedRoute(false)
 {
+    if (conn)
+    {
+        hasFixedRoute = conn->hasFixedRoute();
+    }
     ends = std::make_pair(node1, node2);
     node1->edges.push_back(this);
     node2->edges.push_back(this);
@@ -648,34 +645,6 @@ void HyperedgeTreeEdge::listJunctionsAndConnectors(HyperedgeTreeNode *ignored,
     {
         ends.second->listJunctionsAndConnectors(this, junctions, connectors);
     }
-}
-
-// This method traverses the hyperedge tree and returns true if it contains
-// any connectors with fixed routes.
-//
-bool HyperedgeTreeEdge::hasFixedRouteConnectors(
-        const HyperedgeTreeNode *ignored) const
-{
-    if (this->conn->hasFixedRoute())
-    {
-        return true;
-    }
-
-    if (ends.first != ignored)
-    {
-        if (ends.first->hasFixedRouteConnectors(this))
-        {
-            return true;
-        }
-    }
-    else if (ends.second != ignored)
-    {
-        if (ends.second->hasFixedRouteConnectors(this))
-        {
-            return true;
-        }
-    }
-    return false;
 }
 
 

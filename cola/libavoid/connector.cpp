@@ -610,6 +610,12 @@ void ConnRef::set_route(const PolyLine& route)
     //_display_route.clear();
 }
 
+void ConnRef::setFixedExistingRoute(void)
+{
+    COLA_ASSERT(m_route.size() >= 2);
+    m_has_fixed_route = true;
+}
+
 void ConnRef::setFixedRoute(const PolyLine& route)
 {
     if (route.size() >= 2)

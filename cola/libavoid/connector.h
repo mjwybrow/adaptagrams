@@ -347,13 +347,34 @@ class AVOID_EXPORT ConnRef
         //! of this connector will still be considered for the purpose of 
         //! nudging and routing other non-fixed connectors.
         //!
-        //! @note  The endpoints of this connector will remain at their current
-        //!        positions, even if they are attached to shapes that move.
+        //! @note  This will reset the endpoints of the connector to the two
+        //!        ends of the given route, which may cause it to become 
+        //!        dettached from any shapes or junctions.  You can
+        //!        alternatively call setFixedExistingRoute() for connectors
+        //!        with valid routes in hyperedges that you would like to
+        //!        remain attached.
         //!
         //! @param[in] route  The new fixed route for the connector.
+        //! @sa  setFixedExistingRoute()
         //! @sa  clearFixedRoute()
         //!
         void setFixedRoute(const PolyLine& route);
+
+        //! @brief  Sets a fixed existing route for this connector.
+        //!
+        //! libavoid will no longer calculate object-avoiding paths for this
+        //! connector but instead just return the current exisitng route.  
+        //! The path of this connector will still be considered for the 
+        //! purpose of nudging and routing other non-fixed connectors.
+        //!
+        //! @note  The endpoints of this connector will remain at their current
+        //!        positions, even while remaining 'attached' to shapes 
+        //!        or junctions that move.
+        //!
+        //! @sa  setFixedRoute()
+        //! @sa  clearFixedRoute()
+        //!
+        void setFixedExistingRoute(void);
 
         //! @brief  Returns whether the connector route is marked as fixed.
         //!
