@@ -101,16 +101,21 @@ class AVOID_EXPORT ShapeRef : public Obstacle
         //! amount of space around shapes, rather than touching them on the 
         //! corners or edges.
         //!
-        //! If an ID is not specified, then one will be assigned to the shape.
-        //! If assigning an ID yourself, note that it should be a unique 
-        //! positive integer.  Also, IDs are given to all objects in a scene,
-        //! so the same ID cannot be given to a shape and a connector for 
-        //! example.
+        //! @note Regarding IDs:
+        //!       You can let libavoid manually handle IDs by not specifying
+        //!       them.  Alternatively, you can specify all IDs yourself, but 
+        //!       you must be careful to makes sure that each object in the 
+        //!       scene (shape, connector, cluster, etc) is given a unique, 
+        //!       positive ID.  This uniqueness is checked if assertions are
+        //!       enabled, but if not and there are clashes then strange 
+        //!       things can happen.
         //!
         //! @param[in]  router  The router scene to place the shape into.
         //! @param[in]  poly    A Polygon representing the boundary of the 
         //!                     shape.
-        //! @param[in]  id      A unique positive integer ID for the shape.  
+        //! @param[in]  id      Optionally, a positive integer ID unique
+        //!                     among all objects.
+        //!
         ShapeRef(Router *router, Polygon& poly, const unsigned int id = 0);
 
         //! @brief  Shape reference destructor.
