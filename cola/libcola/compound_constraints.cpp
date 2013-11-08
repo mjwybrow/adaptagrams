@@ -1040,21 +1040,24 @@ class PageBoundaryShapeOffsets : public SubConstraintInfo
 };
 
 
-PageBoundaryConstraints::PageBoundaryConstraints(double lBoundary, 
-        double rBoundary, double bBoundary, double tBoundary, double w)
+PageBoundaryConstraints::PageBoundaryConstraints(double xLow, double xHigh,
+        double yLow, double yHigh, double weight)
     : CompoundConstraint(vpsc::HORIZONTAL)
 {
-    leftMargin[vpsc::XDIM] = lBoundary;
-    rightMargin[vpsc::XDIM] = rBoundary;
-    leftMargin[vpsc::YDIM] = bBoundary;
-    rightMargin[vpsc::YDIM] = tBoundary;
+    COLA_ASSERT(xLow < xHigh);
+    COLA_ASSERT(yLow < yHigh);
+
+    leftMargin[vpsc::XDIM]  = xLow;
+    rightMargin[vpsc::XDIM] = xHigh;
+    leftMargin[vpsc::YDIM]  = yLow;
+    rightMargin[vpsc::YDIM] = yHigh;
 
     for (unsigned i = 0; i < 2; ++i)
     {
-        actualLeftMargin[i] = leftMargin[i];
+        actualLeftMargin[i]  = leftMargin[i];
         actualRightMargin[i] = rightMargin[i];
-        leftWeight[i] = w; 
-        rightWeight[i] = w;
+        leftWeight[i]  = weight; 
+        rightWeight[i] = weight;
         vl[i] = NULL;
         vr[i] = NULL;
     }

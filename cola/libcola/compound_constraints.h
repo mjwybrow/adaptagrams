@@ -666,15 +666,15 @@ class PageBoundaryConstraints : public CompoundConstraint {
          * @brief  Constructs a new PageBoundaryConstraints object with given
          *         page boundary positions and weight.
          *
-         * @param[in] lBoundary  The position of the left edge of the page.
-         * @param[in] rBoundary  The position of the right edge of the page.
-         * @param[in] bBoundary  The position of the bottom edge of the page.
-         * @param[in] tBoundary  The position of the top edge of the page.
-         * @param[in] weight     The weight to give the positions variables
-         *                       for the page edges.  Default 100.0.
+         * @param[in] xLow    The position of the left edge of the page.
+         * @param[in] xHigh   The position of the right edge of the page.
+         * @param[in] yLow    The position of the bottom edge of the page.
+         * @param[in] yHigh   The position of the top edge of the page.
+         * @param[in] weight  The weight to give the positions variables
+         *                    for the page edges.  The default is 100.0.
          */
-        PageBoundaryConstraints(double lBoundary, double rBoundary, 
-                double bBoundary, double tBoundary, double weight = 100.0);
+        PageBoundaryConstraints(double xLow, double xHigh, 
+                double yLow, double yHigh, double weight = 100.0);
         /**
          * @brief Mark a node as being contained within this page boundary.
          *
