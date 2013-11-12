@@ -380,39 +380,46 @@ void IncSolver::splitBlocks() {
  * Scan constraint list for the most violated constraint, or the first equality
  * constraint
  */
-Constraint* IncSolver::mostViolated(Constraints &l) {
-    double minSlack = DBL_MAX;
-    Constraint* v=NULL;
+Constraint* IncSolver::mostViolated(Constraints &l)
+{
+    double slackForMostViolated = DBL_MAX;
+    Constraint* mostViolated = NULL;
 #ifdef LIBVPSC_LOGGING
     ofstream f(LOGFILE,ios::app);
-    f<<"Looking for most violated..."<<endl;
+    f << "Looking for most violated..." << endl;
 #endif
-    Constraints::iterator end = l.end();
-    Constraints::iterator deletePoint = end;
-    for(Constraints::iterator i=l.begin();i!=end;++i) {
-        Constraint *c=*i;
-        double slack = c->slack();
-        if(c->equality || slack < minSlack) {
-            minSlack=slack;    
-            v=c;
-            deletePoint=i;
-            if(c->equality) break;
+    size_t lSize = l.size();
+    size_t deleteIndex = lSize;
+    for (size_t index = 0; index < lSize; ++index)
+    {
+        Constraint *constraint = l[index];
+        double slack = constraint->slack();
+        if (constraint->equality || slack < slackForMostViolated)
+        {
+            slackForMostViolated = slack;    
+            mostViolated = constraint;
+            deleteIndex = index;
+            if (constraint->equality)
+            {
+                break;
+            }
         }
     }
     // Because the constraint list is not order dependent we just
     // move the last element over the deletePoint and resize
     // downwards.  There is always at least 1 element in the
     // vector because of search.
-    if ( (deletePoint != end) && 
-         (((minSlack < ZERO_UPPERBOUND) && !v->active) || v->equality) )
+    if ( (deleteIndex < lSize) && 
+         (((slackForMostViolated < ZERO_UPPERBOUND) && !mostViolated->active) || 
+          mostViolated->equality) )
     {
-        *deletePoint = l[l.size()-1];
-        l.resize(l.size()-1);
+        l[deleteIndex] = l[lSize-1];
+        l.resize(lSize-1);
     }
 #ifdef LIBVPSC_LOGGING
-    f<<"  most violated is: "<<*v<<endl;
+    f << "  most violated is: " << *mostViolated << endl;
 #endif
-    return v;
+    return mostViolated;
 }
 
 struct node {
