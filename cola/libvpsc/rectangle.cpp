@@ -702,14 +702,14 @@ bool Rectangle::overlaps(double x1, double y1, double x2, double y2)
         printf("<rect x=\"%f\" y=\"%f\" width=\"%f\" height=\"%f\" />\n",
                 getMinX(),getMinY(),width(),height());
         printf("</svg>\n");
-        ri.print();
+        ri.printIntersections();
         return true;
     }
     return false;
 }
 
 
-void RectangleIntersections::print() 
+void RectangleIntersections::printIntersections() 
 {
     printf("intersections:\n");
     if(top) printf("  top=%d:(%f,%f)\n",top,topX,topY);

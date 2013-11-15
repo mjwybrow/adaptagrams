@@ -65,7 +65,7 @@ struct RectangleIntersections {
     int countIntersections() {
         return left+right+top+bottom;
     }
-    void print(void);
+    void printIntersections(void);
     // Of the stored intersections, this returns the one closest to the
     // specified point
     void nearest(double x, double y, double & xi, double & yi);

@@ -32,8 +32,12 @@
 namespace vpsc {
     class Constraint;
     class Variable;
-    typedef std::vector<vpsc::Constraint*> Constraints;
-    typedef std::vector<vpsc::Variable*> Variables;
+
+// Avoid SWIG redefinition warnings.
+#ifndef SWIG
+    typedef std::vector<vpsc::Constraint *> Constraints;
+    typedef std::vector<vpsc::Variable *> Variables;
+#endif
 }
 namespace cola {
 
