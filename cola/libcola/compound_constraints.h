@@ -190,7 +190,14 @@ public:
     {
         COLA_UNUSED(dim);
     }
+
+// To prevent C++ objects from being destroyed in garbage collected languages
+// when the libraries are called from SWIG, we hide the declarations of the
+// destructors and prevent generation of default destructors.
+#ifndef SWIG
     virtual ~CompoundConstraint();
+#endif
+
     vpsc::Dim dimension(void) const;
     unsigned int priority(void) const;
     virtual void updateVarIDsWithMapping(const VariableIDMap& idMap,

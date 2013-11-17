@@ -175,13 +175,17 @@ class AVOID_EXPORT ConnRef
         ConnRef(Router *router, const ConnEnd& src, const ConnEnd& dst,
                 const unsigned int id = 0);
 
+// To prevent C++ objects from being destroyed in garbage collected languages
+// when the libraries are called from SWIG, we hide the declarations of the
+// destructors and prevent generation of default destructors.
+#ifndef SWIG
         //! @brief  Connector reference destuctor.
         //!
         //! Do not call this yourself, instead call
         //! Router::deleteConnector().  Ownership of this object
         //! belongs to the router scene.
         ~ConnRef();
-        
+#endif        
         //! @brief  Sets both a new source and destination endpoint for this 
         //!         connector.
         //!

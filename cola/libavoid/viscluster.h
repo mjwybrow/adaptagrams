@@ -84,8 +84,14 @@ class AVOID_EXPORT ClusterRef
         //!                     among all objects.
         //!
         ClusterRef(Router *router, Polygon& poly, const unsigned int id = 0);
+
+// To prevent C++ objects from being destroyed in garbage collected languages
+// when the libraries are called from SWIG, we hide the declarations of the
+// destructors and prevent generation of default destructors.
+#ifndef SWIG
         //! @brief  Cluster reference destructor.
         ~ClusterRef();
+#endif
         //! @brief   Update the polygon boundary for this cluster.
         //!
         //! You should specify a polygon boundary.  The rectangular one will
