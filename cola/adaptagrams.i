@@ -135,8 +135,9 @@ class ColaException {
  * classes and clean them up later.
  *
  * For libavoid, the Router instance takes ownership of these objects and 
- * deletes them when it * is freed.  For the cola/vpsc classes, a Java user 
- * can call ConstraintedFDLayout::freeAssociatedObjects() to free this memory.
+ * deletes them when it is freed.  For the cola/vpsc classes, a Java/Python
+ * user can call ConstraintedFDLayout::freeAssociatedObjects() to free this 
+ * memory.
  */
 %nodefaultdtor vpsc::Rectangle;
 %nodefaultdtor cola::CompoundConstraint;
@@ -146,6 +147,8 @@ class ColaException {
 %nodefaultdtor cola::MultiSeparationConstraint;
 %nodefaultdtor cola::PageBoundaryConstraints;
 %nodefaultdtor cola::SeparationConstraint;
+%nodefaultdtor cola::OrthogonalEdgeConstraint;
+%nodefaultdtor cola::FixedRelativeConstraint;
 %nodefaultdtor cola::Cluster;
 %nodefaultdtor cola::RootCluster;
 %nodefaultdtor cola::ConvexCluster;
@@ -157,26 +160,6 @@ class ColaException {
 %nodefaultdtor Avoid::Obstacle;
 %nodefaultdtor Avoid::ShapeConnectionPin;
 
-%typemap(javafinalize)
-        vpsc::Rectangle,
-        cola::CompoundConstraint,
-        cola::AlignmentConstraint,
-        cola::BoundaryConstraint,
-        cola::DistributionConstraint,
-        cola::MultiSeparationConstraint,
-        cola::PageBoundaryConstraints,
-        cola::SeparationConstraint,
-        cola::Cluster,
-        cola::RootCluster,
-        cola::ConvexCluster,
-        cola::RectangularCluster,
-        Avoid::ShapeRef,
-        Avoid::ConnRef,
-        Avoid::ClusterRef,
-        Avoid::JunctionRef,
-        Avoid::Obstacle,
-        Avoid::ShapeConnectionPin
-        %{%}
 
 %template(UnsatisfiableConstraintInfoVector) std::vector<cola::UnsatisfiableConstraintInfo *>;
 %template(ColaEdge) std::pair<unsigned,unsigned>;
