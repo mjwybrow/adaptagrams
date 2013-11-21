@@ -67,7 +67,7 @@ struct HyperedgeTreeNode
     ~HyperedgeTreeNode();
 
     void deleteEdgesExcept(HyperedgeTreeEdge *ignored);
-    void removeOtherJunctionsFrom(HyperedgeTreeEdge *ignored, 
+    bool removeOtherJunctionsFrom(HyperedgeTreeEdge *ignored, 
             JunctionSet &treeRoots);
     void outputEdgesExcept(FILE *fp, HyperedgeTreeEdge *ignored);
     void disconnectEdge(HyperedgeTreeEdge *edge);
@@ -89,6 +89,7 @@ struct HyperedgeTreeNode
     OrderedHENodeSet *shiftSegmentNodeSet;
     VertInf *finalVertex;
     bool isConnectorSource;
+    bool visited;
 };
 
 struct HyperedgeTreeEdge
@@ -102,7 +103,7 @@ struct HyperedgeTreeEdge
     bool hasOrientation(const size_t dimension) const;
     void outputNodesExcept(FILE *file, HyperedgeTreeNode *ignored);
     void deleteNodesExcept(HyperedgeTreeNode *ignored);
-    void removeOtherJunctionsFrom(HyperedgeTreeNode *ignored, 
+    bool removeOtherJunctionsFrom(HyperedgeTreeNode *ignored, 
             JunctionSet &treeRoots);
     void writeEdgesToConns(HyperedgeTreeNode *ignored, size_t pass);
     void addConns(HyperedgeTreeNode *ignored, Router *router,

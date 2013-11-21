@@ -32,6 +32,7 @@
 #include "libavoid/hyperedgetree.h"
 #include "libavoid/hyperedgeimprover.h"
 #include "libavoid/scanline.h"
+#include "libavoid/debug.h"
 
 namespace Avoid {
 
@@ -891,11 +892,27 @@ void HyperedgeImprover::execute(bool canMakeMajorChanges)
         HyperedgeTreeNode *node = curr->second;
         m_hyperedge_tree_roots.insert(node->junction); 
     }
+    JunctionRefList cyclicHyperedgeTreeRoots;
     for (JunctionSet::iterator curr = m_hyperedge_tree_roots.begin();
             curr != m_hyperedge_tree_roots.end(); ++curr)
     {
         HyperedgeTreeNode *node = m_hyperedge_tree_junctions[*curr];
-        node->removeOtherJunctionsFrom(NULL, m_hyperedge_tree_roots);
+        bool containsCycle = node->removeOtherJunctionsFrom(NULL, 
+                m_hyperedge_tree_roots);
+        if (containsCycle)
+        {
+            // This hyperedge has a cycle.  We will need to remove it.
+            cyclicHyperedgeTreeRoots.push_back(node->junction);
+        }
+    }
+    // Remove roots of cyclic hyperedges, we can't improve these.
+    for (JunctionRefList::iterator curr = cyclicHyperedgeTreeRoots.begin();
+            curr != cyclicHyperedgeTreeRoots.end(); ++curr)
+    {
+        JunctionRef *junction = *curr;
+        err_printf("Warning: Skipping cyclic hyperedge rooted at junction %u\n",
+                junction->id());
+        m_hyperedge_tree_roots.erase(junction);
     }
 
     m_router->timers.Register(tmHyperedgeImprove, timerStart);
