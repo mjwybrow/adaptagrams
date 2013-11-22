@@ -33,7 +33,8 @@
 namespace topology {
 
 ColaTopologyAddon::ColaTopologyAddon()
-    : cola::TopologyAddonInterface()
+    : cola::TopologyAddonInterface(),
+      debugSVGViewBox(NULL)
 {
 }
 
@@ -42,7 +43,8 @@ ColaTopologyAddon::ColaTopologyAddon(
         std::vector<topology::Edge*>& routes)
     : cola::TopologyAddonInterface(),
       topologyNodes(tnodes),
-      topologyRoutes(routes)
+      topologyRoutes(routes),
+      debugSVGViewBox(NULL)
 {
 }
 
@@ -99,6 +101,175 @@ void ColaTopologyAddon::computePathLengths(unsigned short** G)
             }
         }
     }
+}
+
+
+static const double LIMIT = 100000000;
+
+static void reduceRange(double& val)
+{
+    val = std::min(val, LIMIT);
+    val = std::max(val, -LIMIT);
+}
+
+
+void ColaTopologyAddon::writeSVGFile(std::string basename)
+{
+    std::string filename;
+    if (!basename.empty())
+    {
+        filename = basename;
+    }
+    else
+    {
+        filename = "libtopology-cola";
+    }
+    filename += ".svg";
+    FILE *fp = fopen(filename.c_str(), "w");
+
+    if (fp == NULL)
+    {
+        return;
+    }
+
+    double minX = LIMIT;
+    double minY = LIMIT;
+    double maxX = -LIMIT;
+    double maxY = -LIMIT;
+
+    if (debugSVGViewBox)
+    {
+        double rMinX = debugSVGViewBox->getMinX();
+        double rMaxX = debugSVGViewBox->getMaxX();
+        double rMinY = debugSVGViewBox->getMinY();
+        double rMaxY = debugSVGViewBox->getMaxY();
+   
+        reduceRange(rMinX);
+        reduceRange(rMaxX);
+        reduceRange(rMinY);
+        reduceRange(rMaxY);
+        
+        if (rMinX > -LIMIT)
+        {
+            minX = std::min(minX, rMinX);
+        }
+        if (rMaxX < LIMIT)
+        {
+            maxX = std::max(maxX,rMaxX);
+        }
+        if (rMinY > -LIMIT)
+        {
+            minY = std::min(minY, rMinY);
+        }
+        if (rMaxY < LIMIT)
+        {
+            maxY = std::max(maxY, rMaxY);
+        }
+    }
+    else
+    {
+        // Find the bounds of the diagram.
+        for (size_t i = 0; i < topologyNodes.size(); ++i)
+        {
+            vpsc::Rectangle *rect = topologyNodes[i]->rect;
+            double rMinX = rect->getMinX();
+            double rMaxX = rect->getMaxX();
+            double rMinY = rect->getMinY();
+            double rMaxY = rect->getMaxY();
+       
+            reduceRange(rMinX);
+            reduceRange(rMaxX);
+            reduceRange(rMinY);
+            reduceRange(rMaxY);
+            
+            if (rMinX > -LIMIT)
+            {
+                minX = std::min(minX, rMinX);
+            }
+            if (rMaxX < LIMIT)
+            {
+                maxX = std::max(maxX,rMaxX);
+            }
+            if (rMinY > -LIMIT)
+            {
+                minY = std::min(minY, rMinY);
+            }
+            if (rMaxY < LIMIT)
+            {
+                maxY = std::max(maxY, rMaxY);
+            }
+        }
+        minX -= 50;
+        minY -= 50;
+        maxX += 50;
+        maxY += 50;
+    }
+
+    fprintf(fp, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+    fprintf(fp, "<svg xmlns:inkscape=\"http://www.inkscape.org/namespaces/inkscape\" xmlns=\"http://www.w3.org/2000/svg\" width=\"100%%\" height=\"100%%\" viewBox=\"%g %g %g %g\">\n", minX, minY, maxX - minX, maxY - minY);
+    fprintf(fp, "<defs><style type=\"text/css\"><![CDATA["
+            "text {"
+            "    font-family: Helvetica;"
+            "    font-size: 7pt;"
+            "} "
+            "rect {"
+            "    stroke-width: 1px;"
+            "    stroke: black;"
+            "    fill: rgb(249, 240, 210);"
+            "    stroke-opacity: 1;"
+            "    fill-opacity: 1;"
+            "} "
+            ".edge {"
+            "    stroke-width: 1px;"
+            "    stroke: black;"
+            "    fill: none;"
+            "} "
+            "]]></style></defs>\n");
+
+    fprintf(fp, "<g inkscape:groupmode=\"layer\" "
+            "inkscape:label=\"Edges\">\n");
+    for (size_t i = 0; i < topologyRoutes.size(); ++i)
+    {
+        straightener::Route *route = topologyRoutes[i]->getRoute();
+
+        fprintf(fp, "<path id=\"edge-%u\" class=\"edge\" d=\"", 
+                (unsigned) i);
+        for (size_t p = 0; p < route->n; ++p)
+        {
+            fprintf(fp, "%c %g %g ", ((p == 0) ? 'M' : 'L'),
+                    route->xs[p], route->ys[p]);
+        }
+        fprintf(fp, "\" />\n");
+
+        delete route;
+    }
+    fprintf(fp, "</g>\n");
+    
+    fprintf(fp, "<g inkscape:groupmode=\"layer\" "
+            "inkscape:label=\"Nodes\">\n");
+    for (size_t i = 0; i < topologyNodes.size(); ++i)
+    {
+        vpsc::Rectangle *rect = topologyNodes[i]->rect;
+        double rMinX = rect->getMinX();
+        double rMaxX = rect->getMaxX();
+        double rMinY = rect->getMinY();
+        double rMaxY = rect->getMaxY();
+   
+        reduceRange(rMinX);
+        reduceRange(rMaxX);
+        reduceRange(rMinY);
+        reduceRange(rMaxY);
+        
+        fprintf(fp, "<rect id=\"rect-%u\" x=\"%g\" y=\"%g\" width=\"%g\" "
+                "height=\"%g\" />\n", (unsigned) i, rMinX, rMinY, 
+                rMaxX - rMinX, rMaxY - rMinY);
+        fprintf(fp, "<text x=\"%g\" y=\"%g\">%u</text>\n", rMinX + 3, 
+                rMinY + 11, (unsigned) i);
+    }
+    fprintf(fp, "</g>\n");
+
+    fprintf(fp, "</svg>\n");
+    fclose(fp);
 }
 
 double ColaTopologyAddon::computeStress(void) const

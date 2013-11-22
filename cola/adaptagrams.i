@@ -161,23 +161,23 @@ class ColaException {
 %nodefaultdtor Avoid::ShapeConnectionPin;
 
 
-%template(UnsatisfiableConstraintInfoVector) std::vector<cola::UnsatisfiableConstraintInfo *>;
+%template(UnsatisfiableConstraintInfoPtrs) std::vector<cola::UnsatisfiableConstraintInfo *>;
 %template(ColaEdge) std::pair<unsigned,unsigned>;
-%template(EdgeVector) std::vector< std::pair<unsigned,unsigned> >;
-%template(CharVector) std::vector<char>;
-%template(RectPtrVector) std::vector<vpsc::Rectangle*>;
-%template(CompoundConstraintsVector) std::vector<cola::CompoundConstraint*>;
+%template(ColaEdges) std::vector< std::pair<unsigned,unsigned> >;
+%template(Chars) std::vector<char>;
+%template(RectanglePtrs) std::vector<vpsc::Rectangle*>;
+%template(CompoundConstraintPtrs) std::vector<cola::CompoundConstraint*>;
 %template(ColaLocks) std::vector<cola::Lock>;
 %template(ColaResizes) std::vector<cola::Resize>;
 %template(ColaDesiredPositions) std::vector<cola::DesiredPosition>;
-%template(TopologyEdgePointPtrVector) std::vector<topology::EdgePoint*>;
-%template(TopologyEdgePointConstPtrVector) std::vector<const topology::EdgePoint*>;
-%template(TopologyEdgePtrVector) std::vector<topology::Edge*>;
-%template(TopologyNodePtrVector) std::vector<topology::Node*>;
-%template(UnsignedVector) std::vector<unsigned>;
-%template(ClusterVector) std::vector<cola::Cluster*>;
-%template(PointVector) std::vector<Avoid::Point>;
-%template(CheckpointVector) std::vector<Avoid::Checkpoint>;
+%template(TopologyEdgePointPtrs) std::vector<topology::EdgePoint*>;
+%template(TopologyEdgePointConstPtrs) std::vector<const topology::EdgePoint*>;
+%template(TopologyEdgePtrs) std::vector<topology::Edge*>;
+%template(TopologyNodePtrs) std::vector<topology::Node*>;
+%template(Unsigneds) std::vector<unsigned>;
+%template(ColaClusters) std::vector<cola::Cluster*>;
+%template(AvoidPoints) std::vector<Avoid::Point>;
+%template(AvoidCheckpoints) std::vector<Avoid::Checkpoint>;
 
 %inline %{
 void doubleArraySet(double *a, int i, double val) {
@@ -196,13 +196,11 @@ void deleteDoubleArray(double* a) {
 
 %rename(testoperator) cola::TestConvergence::operator();
 
-%rename(Avoid_Edge) Avoid::Edge;
-%rename(Avoid_Rectangle) Avoid::Rectangle;
-%rename(Avoid_TopologyAddonInterface) Avoid::TopologyAddonInterface;
+%rename(AvoidEdge) Avoid::Edge;
+%rename(AvoidRectangle) Avoid::Rectangle;
+%rename(AvoidTopologyAddonInterface) Avoid::TopologyAddonInterface;
 
 %rename(getVarOrig) topology::Node::getVar() const;
-
-//%rename straightener::Edge StraightenerEdge;
 
 
 /* Parse the header file to generate wrappers */
