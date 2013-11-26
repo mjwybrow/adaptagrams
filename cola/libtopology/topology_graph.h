@@ -164,7 +164,12 @@ namespace topology {
             COLA_ASSERT(this!=e);
             return node==e->node && rectIntersect==e->rectIntersect;
         }
+// To prevent C++ objects from being destroyed in garbage collected languages
+// when the libraries are called from SWIG, we hide the declarations of the
+// destructors and prevent generation of default destructors.
+#ifndef SWIG
         ~EdgePoint();
+#endif
         /*
          * @return true if the EdgePoint is the end of an edge otherwise
          * asserts that it is a valid bend point.

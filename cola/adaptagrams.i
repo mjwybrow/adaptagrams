@@ -159,7 +159,13 @@ class ColaException {
 %nodefaultdtor Avoid::JunctionRef;
 %nodefaultdtor Avoid::Obstacle;
 %nodefaultdtor Avoid::ShapeConnectionPin;
-
+%nodefaultdtor cola::PreIteration;
+%nodefaultdtor cola::TestConvergence;
+%nodefaultdtor cola::Lock;
+%nodefaultdtor cola::Resize;
+%nodefaultdtor topology::Node;
+%nodefaultdtor topology::EdgePoint;
+%nodefaultdtor topology::ColaTopologyAddon;
 
 %template(UnsatisfiableConstraintInfoPtrs) std::vector<cola::UnsatisfiableConstraintInfo *>;
 %template(ColaEdge) std::pair<unsigned,unsigned>;
@@ -194,13 +200,11 @@ void deleteDoubleArray(double* a) {
 }
 %}
 
-%rename(testoperator) cola::TestConvergence::operator();
+%rename(ColaTestConvergenceOperator) cola::TestConvergence::operator();
 
 %rename(AvoidEdge) Avoid::Edge;
 %rename(AvoidRectangle) Avoid::Rectangle;
 %rename(AvoidTopologyAddonInterface) Avoid::TopologyAddonInterface;
-
-%rename(getVarOrig) topology::Node::getVar() const;
 
 
 /* Parse the header file to generate wrappers */

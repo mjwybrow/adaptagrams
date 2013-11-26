@@ -169,7 +169,13 @@ public:
         : locks(__locksNotUsed)
         , resizes(resizes)
         , changed(true) {}
+
+// To prevent C++ objects from being destroyed in garbage collected languages
+// when the libraries are called from SWIG, we hide the declarations of the
+// destructors and prevent generation of default destructors.
+#ifndef SWIG
     virtual ~PreIteration() {}
+#endif
     virtual bool operator()() { return true; }
     Locks& locks;
     Resizes& resizes;
