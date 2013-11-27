@@ -6,8 +6,11 @@
 /* File : adaptagrams.i */
 %module(directors="1") adaptagrams
 
-/* Allow overridden virtual methods in Avoid::Router class. */
+/* Allow target language to subclass and implement virtual methods for
+ * these classes.
+ */
 %feature("director") Avoid::Router;
+%feature("director") cola::TestConvergence;
 
 #ifdef SWIGJAVA
 /* Allow enum values to be logically ORed together as flags. */
@@ -205,6 +208,8 @@ void deleteDoubleArray(double* a) {
 %rename(AvoidEdge) Avoid::Edge;
 %rename(AvoidRectangle) Avoid::Rectangle;
 %rename(AvoidTopologyAddonInterface) Avoid::TopologyAddonInterface;
+
+%rename(getVarConst) topology::Node::getVar() const;
 
 
 /* Parse the header file to generate wrappers */
