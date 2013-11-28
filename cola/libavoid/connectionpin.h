@@ -159,7 +159,12 @@ class AVOID_EXPORT ShapeConnectionPin
         ShapeConnectionPin(JunctionRef *junction, const unsigned int classId,
                 const ConnDirFlags visDirs = ConnDirNone);
         
+// To prevent C++ objects from being destroyed in garbage collected languages
+// when the libraries are called from SWIG, we hide the declarations of the
+// destructors and prevent generation of default destructors.
+#ifndef SWIG
         ~ShapeConnectionPin();
+#endif
         
         //! @brief sets a cost used when selecting whether connectors should be
         //!        be attached to this connection pin.

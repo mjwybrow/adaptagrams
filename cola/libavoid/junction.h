@@ -94,11 +94,16 @@ class AVOID_EXPORT JunctionRef : public Obstacle
         //!
         JunctionRef(Router *router, Point position, const unsigned int id = 0);
 
+// To prevent C++ objects from being destroyed in garbage collected languages
+// when the libraries are called from SWIG, we hide the declarations of the
+// destructors and prevent generation of default destructors.
+#ifndef SWIG
         //! @brief  Junction reference destructor.
         //!
         //! Do not call this yourself, instead call Router::deleteJunction().
         //! Ownership of this object belongs to the router scene.
         virtual ~JunctionRef();
+#endif
 
         //! @brief  Removes a junction that has only two connectors attached
         //!         to it and merges them into a single connector.

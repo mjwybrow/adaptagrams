@@ -7,6 +7,7 @@ LDADD = $(top_builddir)/libavoid/libavoid.la
 
 check_PROGRAMS = \
 	example \
+	endlessLoop01 \
 	complex \
 	multiconnact \
 	inline \
@@ -80,6 +81,8 @@ check_PROGRAMS = \
 
 # problem_SOURCES = problem.cpp
 
+
+endlessLoop01_SOURCES = endlessLoop01.cpp
 
 nudgingSkipsCheckpoint01_SOURCES = nudgingSkipsCheckpoint01.cpp
 nudgingSkipsCheckpoint02_SOURCES = nudgingSkipsCheckpoint02.cpp

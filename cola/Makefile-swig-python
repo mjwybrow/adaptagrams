@@ -1,0 +1,22 @@
+
+all: adaptagrams
+
+adaptagrams_wrap.cxx: clean adaptagrams.i
+	swig -DNDEBUG -c++ -python adaptagrams.i
+
+adaptagrams: adaptagrams_wrap.cxx
+	python swig-python-setup.py build_ext --inplace
+
+realclean: clean
+
+clean: mostlyclean
+	rm -f _adaptagrams.so _adaptagrams.dylib _adaptagrams.dll
+	rm -f adaptagrams.py
+
+mostlyclean:
+	rm -f swig-worked
+	rm -f adaptagrams_wrap.o adaptagrams_wrap.cxx
+	rm -rf java/*
+
+.PHONY: all clean mostlyclean realclean
+

@@ -638,8 +638,9 @@ class AVOID_EXPORT Router {
         //! after processTransaction() has been called, so that it includes any
         //! changes being queued by the router.
         //!
-        //! @param[in] filename  The filename to use for the output file, if
-        //!                      not given "libavoid-debug.svg" will be used.
+        //! @param[in] filename  A string indicating the filename (without 
+        //!                      extension) for the output file.  Defaults to
+        //!                      "libavoid-debug.svg" if no filename is given.
         //!
         void outputInstanceToSVG(std::string filename = std::string());
 

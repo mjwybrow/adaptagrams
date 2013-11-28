@@ -118,12 +118,17 @@ class AVOID_EXPORT ShapeRef : public Obstacle
         //!
         ShapeRef(Router *router, Polygon& poly, const unsigned int id = 0);
 
+// To prevent C++ objects from being destroyed in garbage collected languages
+// when the libraries are called from SWIG, we hide the declarations of the
+// destructors and prevent generation of default destructors.
+#ifndef SWIG
         //! @brief  Shape reference destructor.
         //!
         //! Do not call this yourself, instead call Router::deleteShape().
         //! Ownership of this object belongs to the router scene.
         virtual ~ShapeRef();
-        
+#endif
+
         //! @brief   Returns a reference to the polygon boundary of this shape.
         //! @returns A reference to the polygon boundary of the shape.
         const Polygon& polygon(void) const;

@@ -44,7 +44,13 @@ class Cluster
 {
     public:
         Cluster();
+
+// To prevent C++ objects from being destroyed in garbage collected languages
+// when the libraries are called from SWIG, we hide the declarations of the
+// destructors and prevent generation of default destructors.
+#ifndef SWIG
         virtual ~Cluster();
+#endif
         virtual void computeBoundary(const vpsc::Rectangles& rs) = 0;
         virtual void computeBoundingRect(const vpsc::Rectangles& rs);
 
@@ -183,7 +189,9 @@ class RectangularCluster : public Cluster
          */
         RectangularCluster(unsigned rectIndex);
 
+#ifndef SWIG
         virtual ~RectangularCluster();
+#endif
         void computeBoundary(const vpsc::Rectangles& rs);
         virtual int containsShape(unsigned index) const;
         virtual void printCreationCode(FILE *fp) const;

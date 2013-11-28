@@ -23,30 +23,30 @@ endif
 
 all: adaptagrams jar
 
-swig-worked: clean cola.i
-	mkdir -p java/src/org/dunnart/adaptagrams
-	mkdir -p java/build/org/dunnart/adaptagrams
-	swig -DUSE_ASSERT_EXCEPTIONS -c++ -java -package org.dunnart.adaptagrams -outdir java/src/org/dunnart/adaptagrams cola.i
+swig-worked: clean adaptagrams.i
+	mkdir -p java/src/org/adaptagrams
+	mkdir -p java/build/org/adaptagrams
+	swig -DUSE_ASSERT_EXCEPTIONS -c++ -java -package org.adaptagrams -outdir java/src/org/adaptagrams adaptagrams.i
 	touch swig-worked
 
-cola_wrap.o: swig-worked
-	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -I. $(JAVA_INCLUDE) -c cola_wrap.cxx
+adaptagrams_wrap.o: swig-worked
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -I. $(JAVA_INCLUDE) -c adaptagrams_wrap.cxx
 
-adaptagrams: cola_wrap.o
-	$(LINK) cola_wrap.o libcola/.libs/libcola.a libtopology/.libs/libtopology.a libavoid/.libs/libavoid.a libvpsc/.libs/libvpsc.a
+adaptagrams: adaptagrams_wrap.o
+	$(LINK) adaptagrams_wrap.o libcola/.libs/libcola.a libtopology/.libs/libtopology.a libavoid/.libs/libavoid.a libvpsc/.libs/libvpsc.a
 
 jar: swig-worked
-	javac -d java/build/ java/src/org/dunnart/adaptagrams/*.java
-	jar cf adaptagramsswig.jar -C java/build/ .
+	javac -d java/build/ java/src/org/adaptagrams/*.java
+	jar cf adaptagrams.jar -C java/build/ .
 
 realclean: clean
 
 clean: mostlyclean
-	rm -f adaptagrams.*
+	rm -f adaptagrams.so adaptagrams.dylib adaptagrams.so
 
 mostlyclean:
 	rm -f swig-worked
-	rm -f cola_wrap.o cola_wrap.cxx adaptagramsswig.jar
+	rm -f adaptagrams_wrap.o adaptagrams_wrap.cxx adaptagrams.jar
 	rm -rf java/*
 
 .PHONY: all clean mostlyclean realclean

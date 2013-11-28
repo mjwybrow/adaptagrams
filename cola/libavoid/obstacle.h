@@ -67,9 +67,15 @@ class Obstacle
         //!                     shape.
         //! @param[in]  id      A unique positive integer ID for the shape.  
         Obstacle(Router *router, Polygon poly, const unsigned int id = 0);
+
+// To prevent C++ objects from being destroyed in garbage collected languages
+// when the libraries are called from SWIG, we hide the declarations of the
+// destructors and prevent generation of default destructors.
+#ifndef SWIG
         //! @brief  Obstacle reference destructor.
         //!
         virtual ~Obstacle();
+#endif
         
         //! @brief   Returns the ID of this obstacle.
         //! @returns The ID of the obstacle.

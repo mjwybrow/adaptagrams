@@ -18,9 +18,14 @@ autoreconf --install --verbose
 #automake -a --add-missing
 
 
-# Configure.  Use the commented out line instead if building for SWIG:
-# ./configure CPPFLAGS="-DUSE_ASSERT_EXCEPTIONS"
+# Configure.
 ./configure
+
+# Instead, use this line if building for SWIG Java:
+# ./configure CPPFLAGS="-DUSE_ASSERT_EXCEPTIONS"
+
+# Instead, use this line if building for SWIG Python:
+# ./configure CXXFLAGS="-O3 -DNDEBUG -arch x86_64 -arch i386" LDFLAGS="-arch x86_64 -arch i386"
 
 make
 

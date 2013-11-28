@@ -10,6 +10,7 @@ autoreconf --install --verbose
 ./configure --disable-dependency-tracking CPPFLAGS="-DNDEBUG -O3 -DUSE_ASSERT_EXCEPTIONS" CXXFLAGS="$FATFLAGS" LDFLAGS="$FATFLAGS"
 
 make clean
-make
-make -f swigmake CXXFLAGS="$FATFLAGS" LDFLAGS="$FATFLAGS"
+make -j8
+make -f Makefile-swig-java CXXFLAGS="$FATFLAGS" LDFLAGS="$FATFLAGS"
+make -f Makefile-swig-python
 

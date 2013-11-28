@@ -169,7 +169,13 @@ public:
         : locks(__locksNotUsed)
         , resizes(resizes)
         , changed(true) {}
+
+// To prevent C++ objects from being destroyed in garbage collected languages
+// when the libraries are called from SWIG, we hide the declarations of the
+// destructors and prevent generation of default destructors.
+#ifndef SWIG
     virtual ~PreIteration() {}
+#endif
     virtual bool operator()() { return true; }
     Locks& locks;
     Resizes& resizes;
@@ -729,7 +735,18 @@ public:
      */
     void freeAssociatedObjects(void);
     
+    //! @brief  Generates an SVG file containing debug output and code that
+    //!         can be used to regenerate the instance.
+    //!
+    //! This method can be called before or after run() or makeFeasible()
+    //! have been called.
+    //!
+    //! @param[in] filename  A string indicating the filename (without 
+    //!                      extension) for the output file.  Defaults to
+    //!                      "libcola-debug.svg" if no filename is given.
+    //!
     void outputInstanceToSVG(std::string filename = std::string());
+
     double computeStress() const;
 
 private:

@@ -41,7 +41,8 @@ HyperedgeTreeNode::HyperedgeTreeNode()
     : junction(NULL),
       shiftSegmentNodeSet(NULL),
       finalVertex(NULL),
-      isConnectorSource(false)
+      isConnectorSource(false),
+      visited(false)
 {
 }
 
@@ -79,17 +80,33 @@ void HyperedgeTreeNode::outputEdgesExcept(FILE *fp, HyperedgeTreeEdge *ignored)
 // This method traverses the hyperedge tree and removes from treeRoots any
 // junction nodes (other than this one).
 
-void HyperedgeTreeNode::removeOtherJunctionsFrom(HyperedgeTreeEdge *ignored, 
+bool HyperedgeTreeNode::removeOtherJunctionsFrom(HyperedgeTreeEdge *ignored, 
             JunctionSet& treeRoots)
 {
+    bool containsCycle = false;
+    if (visited)
+    {
+        // We've encountered this node before, so there must be cycles in
+        // the hyperedge.  Don't recurse any further.
+        containsCycle = true;
+        return containsCycle;
+    }
+    
+    if (junction && (ignored != NULL))
+    {
+        // Remove junctions other than the first (when ignored == NULL).
+        treeRoots.erase(junction);
+    }
+    visited = true;
     for (std::list<HyperedgeTreeEdge *>::iterator curr = edges.begin();
             curr != edges.end(); ++curr)
     {
         if (*curr != ignored)
         {
-            (*curr)->removeOtherJunctionsFrom(this, treeRoots);
+            containsCycle |= (*curr)->removeOtherJunctionsFrom(this, treeRoots);
         }
     }
+    return containsCycle;
 }
 
 
@@ -719,26 +736,20 @@ void HyperedgeTreeEdge::disconnectEdge(void)
 // This method traverses the hyperedge tree and removes from treeRoots any
 // junction nodes.
 //
-void HyperedgeTreeEdge::removeOtherJunctionsFrom(HyperedgeTreeNode *ignored,
-                    JunctionSet& treeRoots)
+bool HyperedgeTreeEdge::removeOtherJunctionsFrom(HyperedgeTreeNode *ignored,
+        JunctionSet& treeRoots)
 {
+    bool containsCycle = false;
     if (ends.first && (ends.first != ignored))
     {
-        ends.first->removeOtherJunctionsFrom(this, treeRoots);
-        if (ends.first->junction)
-        {
-            treeRoots.erase(ends.first->junction);
-        }
+        containsCycle |= ends.first->removeOtherJunctionsFrom(this, treeRoots);
     }
 
     if (ends.second && (ends.second != ignored))
     {
-        ends.second->removeOtherJunctionsFrom(this, treeRoots);
-        if (ends.second->junction)
-        {
-            treeRoots.erase(ends.second->junction);
-        }
+        containsCycle |= ends.second->removeOtherJunctionsFrom(this, treeRoots);
     }
+    return containsCycle;
 }
 
 

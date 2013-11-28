@@ -55,6 +55,7 @@ class ColaTopologyAddon : public cola::TopologyAddonInterface
          * #topologyRoutes member variables.
          */
         ColaTopologyAddon();
+ 
         /**
          * @brief Constructs a ColaTopologyAddon instance with a specified
          *        set of topology information.
@@ -72,6 +73,15 @@ class ColaTopologyAddon : public cola::TopologyAddonInterface
          * @param[in] routes  Topology information for edges.
          */
         ColaTopologyAddon(topology::Nodes& tnodes, topology::Edges& routes);
+    
+        //! @brief  Writes an SVG file displaying the current topology of 
+        //!         the nodes and edges.
+        //!
+        //! @param[in] filename  A string indicating the filename (without 
+        //!                      extension) for the output file.  Defaults to
+        //!                      "libtopology-cola.svg" if no filename is given.
+        //!
+        void writeSVGFile(std::string filename = std::string());
 
         cola::TopologyAddonInterface *clone(void) const;
 
@@ -100,6 +110,8 @@ class ColaTopologyAddon : public cola::TopologyAddonInterface
         
         //! Topology information: edges routes.
         topology::Edges topologyRoutes;
+
+        vpsc::Rectangle *debugSVGViewBox;
 };
 
 }

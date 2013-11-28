@@ -1,12 +1,28 @@
-/* File : cola.i */
-%module(directors="1") cola
-/* Allow java code to override virtual methods in Avoid::Router class. */
-%feature("director") Avoid::Router;
+/* This is a SWIG interface file for generating interfaces to the Adpatagrams
+ * libraries for languages other than C++.  It has currently been tested from
+ * Java and Python, but could be adapted for other languages.
+ */
 
+/* File : adaptagrams.i */
+%module(directors="1") adaptagrams
+
+/* Allow target language to subclass and implement virtual methods for
+ * these classes.
+ */
+%feature("director") Avoid::Router;
+%feature("director") cola::TestConvergence;
+
+#ifdef SWIGJAVA
 /* Allow enum values to be logically ORed together as flags. */
 %include "enumtypeunsafe.swg"
+#endif
 
 %{
+
+#ifdef SWIGPYTHON
+#define SWIG_FILE_WITH_INIT
+#endif
+
 #include <vector>
 #include <libvpsc/rectangle.h>
 #include <libvpsc/assertions.h>
@@ -33,6 +49,7 @@ using namespace topology;
 %ignore Avoid::YDIM;
 %ignore Avoid::Point::operator[];
 %ignore cola::PreIteration::operator();
+%ignore cola::PreIteration::locksNotUsed;
 //%ignore cola::TestConvergence::operator();
 %ignore operator<<(std::ostream &os, vpsc::Rectangle const &r);
 %ignore vpsc::Rectangle::setXBorder(double);
@@ -77,6 +94,7 @@ using namespace topology;
 %include "std_vector.i"
 %include "std_pair.i"
 
+#ifdef SWIGJAVA
 /* Wrap every C++ action in try/catch statement so we convert all 
  * possible C++ exceptions (generated from C++ assertion failures)
  * into Java exceptions.
@@ -85,47 +103,15 @@ using namespace topology;
     try {
         $action
     } catch(vpsc::CriticalFailure cf) {
-        jclass excep = jenv->FindClass("org/dunnart/adaptagrams/ColaException");
+        jclass excep = jenv->FindClass("org/adaptagrams/ColaException");
         if (excep)
             jenv->ThrowNew(excep, cf.what().c_str());
     } catch(cola::InvalidVariableIndexException ivi) {
-        jclass excep = jenv->FindClass("org/dunnart/adaptagrams/ColaException");
+        jclass excep = jenv->FindClass("org/adaptagrams/ColaException");
         if (excep)
             jenv->ThrowNew(excep, ivi.what().c_str());
     } 
 }
-
-/* No longer needed, since we wrap everything.
- *
-%javaexception("colajava.ColaException") cola::ConstrainedFDLayout::run {
-    try {
-        $action
-    } catch(vpsc::CriticalFailure cf) {
-        jclass excep = jenv->FindClass("colajava/ColaException");
-        if (excep)
-            jenv->ThrowNew(excep, cf.what().c_str());
-    } catch(cola::InvalidVariableIndexException ivi) {
-        jclass excep = jenv->FindClass("colajava/ColaException");
-        if (excep)
-            jenv->ThrowNew(excep, ivi.what().c_str());
-    } 
-}
-
-%javaexception("colajava.ColaException") Avoid::Router::processTransaction() {
-    try {
-        $action
-    } catch(vpsc::CriticalFailure cf) {
-        jclass excep = jenv->FindClass("colajava/ColaException");
-        if (excep)
-            jenv->ThrowNew(excep, cf.what().c_str());
-    } catch(cola::InvalidVariableIndexException ivi) {
-        jclass excep = jenv->FindClass("colajava/ColaException");
-        if (excep)
-            jenv->ThrowNew(excep, ivi.what().c_str());
-    } 
-}
-*/
-
 
 /* Define a Java ColaException class.
  */
@@ -143,53 +129,64 @@ class ColaException {
 };
 }
 %}
+#endif
 
-/* We have a problem where Java objects that appear to no longer be used and
- * go out of scope will sometimes cause their internal C++ instances to be
- * freed prematurely.  For this reason we generate empty finialise methods 
- * for the following classes and clean them up later.  For libavoid, the 
- * Router instance takes ownership of these objects and deletes them when it
- * is freed.  For the cola/vpsc classes, a Java user can call 
- * ConstraintedFDLayout::freeAssociatedObjects() to free this memory.
+/* We have a problem where in garbage collected languages like Java and Python,
+ * objects that appear to no longer be used and go out of scope can cause 
+ * their corresponding internal C++ instances to be freed prematurely.  
+ * For this reason we generate empty finialise methods for the following 
+ * classes and clean them up later.
+ *
+ * For libavoid, the Router instance takes ownership of these objects and 
+ * deletes them when it is freed.  For the cola/vpsc classes, a Java/Python
+ * user can call ConstraintedFDLayout::freeAssociatedObjects() to free this 
+ * memory.
  */
-%typemap(javafinalize)
-        vpsc::Rectangle,
-        cola::CompoundConstraint,
-        cola::AlignmentConstraint,
-        cola::BoundaryConstraint,
-        cola::DistributionConstraint,
-        cola::MultiSeparationConstraint,
-        cola::PageBoundaryConstraints,
-        cola::SeparationConstraint,
-        cola::Cluster,
-        cola::RootCluster,
-        cola::ConvexCluster,
-        cola::RectangularCluster,
-        Avoid::ShapeRef,
-        Avoid::ConnRef,
-        Avoid::ClusterRef,
-        Avoid::JunctionRef,
-        Avoid::Obstacle,
-        Avoid::ShapeConnectionPin
-        %{%}
+%nodefaultdtor vpsc::Rectangle;
+%nodefaultdtor cola::CompoundConstraint;
+%nodefaultdtor cola::AlignmentConstraint;
+%nodefaultdtor cola::BoundaryConstraint;
+%nodefaultdtor cola::DistributionConstraint;
+%nodefaultdtor cola::MultiSeparationConstraint;
+%nodefaultdtor cola::PageBoundaryConstraints;
+%nodefaultdtor cola::SeparationConstraint;
+%nodefaultdtor cola::OrthogonalEdgeConstraint;
+%nodefaultdtor cola::FixedRelativeConstraint;
+%nodefaultdtor cola::Cluster;
+%nodefaultdtor cola::RootCluster;
+%nodefaultdtor cola::ConvexCluster;
+%nodefaultdtor cola::RectangularCluster;
+%nodefaultdtor Avoid::ShapeRef;
+%nodefaultdtor Avoid::ConnRef;
+%nodefaultdtor Avoid::ClusterRef;
+%nodefaultdtor Avoid::JunctionRef;
+%nodefaultdtor Avoid::Obstacle;
+%nodefaultdtor Avoid::ShapeConnectionPin;
+%nodefaultdtor cola::PreIteration;
+%nodefaultdtor cola::TestConvergence;
+%nodefaultdtor cola::Lock;
+%nodefaultdtor cola::Resize;
+%nodefaultdtor topology::Node;
+%nodefaultdtor topology::EdgePoint;
+%nodefaultdtor topology::ColaTopologyAddon;
 
-%template(UnsatisfiableConstraintInfoVector) std::vector<cola::UnsatisfiableConstraintInfo *>;
+%template(UnsatisfiableConstraintInfoPtrs) std::vector<cola::UnsatisfiableConstraintInfo *>;
 %template(ColaEdge) std::pair<unsigned,unsigned>;
-%template(EdgeVector) std::vector< std::pair<unsigned,unsigned> >;
-%template(CharVector) std::vector<char>;
-%template(RectPtrVector) std::vector<vpsc::Rectangle*>;
-%template(CompoundConstraintsVector) std::vector<cola::CompoundConstraint*>;
+%template(ColaEdges) std::vector< std::pair<unsigned,unsigned> >;
+%template(Chars) std::vector<char>;
+%template(RectanglePtrs) std::vector<vpsc::Rectangle*>;
+%template(CompoundConstraintPtrs) std::vector<cola::CompoundConstraint*>;
 %template(ColaLocks) std::vector<cola::Lock>;
 %template(ColaResizes) std::vector<cola::Resize>;
 %template(ColaDesiredPositions) std::vector<cola::DesiredPosition>;
-%template(TopologyEdgePointPtrVector) std::vector<topology::EdgePoint*>;
-%template(TopologyEdgePointConstPtrVector) std::vector<const topology::EdgePoint*>;
-%template(TopologyEdgePtrVector) std::vector<topology::Edge*>;
-%template(TopologyNodePtrVector) std::vector<topology::Node*>;
-%template(UnsignedVector) std::vector<unsigned>;
-%template(ClusterVector) std::vector<cola::Cluster*>;
-%template(PointVector) std::vector<Avoid::Point>;
-%template(CheckpointVector) std::vector<Avoid::Checkpoint>;
+%template(TopologyEdgePointPtrs) std::vector<topology::EdgePoint*>;
+%template(TopologyEdgePointConstPtrs) std::vector<const topology::EdgePoint*>;
+%template(TopologyEdgePtrs) std::vector<topology::Edge*>;
+%template(TopologyNodePtrs) std::vector<topology::Node*>;
+%template(Unsigneds) std::vector<unsigned>;
+%template(ColaClusters) std::vector<cola::Cluster*>;
+%template(AvoidPoints) std::vector<Avoid::Point>;
+%template(AvoidCheckpoints) std::vector<Avoid::Checkpoint>;
 
 %inline %{
 void doubleArraySet(double *a, int i, double val) {
@@ -206,15 +203,13 @@ void deleteDoubleArray(double* a) {
 }
 %}
 
-%rename(testoperator) cola::TestConvergence::operator();
+%rename(ColaTestConvergenceOperator) cola::TestConvergence::operator();
 
-%rename(Avoid_Edge) Avoid::Edge;
-%rename(Avoid_Rectangle) Avoid::Rectangle;
-%rename(Avoid_TopologyAddonInterface) Avoid::TopologyAddonInterface;
+%rename(AvoidEdge) Avoid::Edge;
+%rename(AvoidRectangle) Avoid::Rectangle;
+%rename(AvoidTopologyAddonInterface) Avoid::TopologyAddonInterface;
 
-%rename(getVarOrig) topology::Node::getVar() const;
-
-//%rename straightener::Edge StraightenerEdge;
+%rename(getVarConst) topology::Node::getVar() const;
 
 
 /* Parse the header file to generate wrappers */
@@ -243,40 +238,4 @@ void deleteDoubleArray(double* a) {
 %include "libtopology/cola_topology_addon.h"
 %include "libtopology/orthogonal_topology.h"
 
-/*
-%include "libavoid/libavoid.h"
-%include "libavoid/debug.h"
-%include "libavoid/graph.h"
-%include "libavoid/region.h"
-%include "libavoid/static.h"
-%include "libavoid/timer.h"
-%include "libavoid/visibility.h"
-%include "libcola/cluster.h"
-//%include "libcola/cola.h"
-%include "libcola/cola_log.h"
-%include "libcola/conjugate_gradient.h"
-%include "libcola/connected_components.h"
-%include "libcola/convex_hull.h"
-%include "libcola/gradient_projection.h"
-%include "libcola/max_acyclic_subgraph.h"
-%include "libcola/output_svg.h"
-%include "libcola/shortest_paths.h"
-%include "libcola/sparse_matrix.h"
-%include "libtopology/topology_constraints.h"
-%include "libtopology/topology_graph.h"
-%include "libtopology/topology_log.h"
-%include "libtopology/util.h"
-%include "libvpsc/block.h"
-%include "libvpsc/blocks.h"
-%include "libvpsc/cbuffer.h"
-%include "libvpsc/constraint.h"
-%include "libvpsc/csolve_VPSC.h"
-%include "libvpsc/exceptions.h"
-%include "libvpsc/isnan.h"
-%include "libvpsc/linesegment.h"
-%include "libvpsc/mosek_quad_solve.h"
-//%include "libvpsc/rectangle.h"
-%include "libvpsc/solve_VPSC.h"
-%include "libvpsc/variable.h"
-*/
 

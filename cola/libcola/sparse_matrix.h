@@ -61,7 +61,7 @@ struct SparseMap {
         }
         return 0;
     }
-    unsigned nonZeroCount() const {
+    size_t nonZeroCount() const {
         return lookup.size();
     }
     void resize(unsigned n) {
@@ -84,7 +84,7 @@ struct SparseMap {
 class SparseMatrix {
 public:
     SparseMatrix(SparseMap const & m)
-            : n(m.n), NZ(m.nonZeroCount()), sparseMap(m), 
+            : n(m.n), NZ((unsigned)m.nonZeroCount()), sparseMap(m), 
               A(std::valarray<double>(NZ)), IA(std::valarray<unsigned>(n+1)), JA(std::valarray<unsigned>(NZ)) {
         unsigned cnt=0;
         int lastrow=-1;
