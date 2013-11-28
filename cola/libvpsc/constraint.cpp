@@ -39,7 +39,8 @@ Constraint::Constraint(Variable *left, Variable *right, double gap, bool equalit
   timeStamp(0),
   active(false),
   equality(equality),
-  unsatisfiable(false)
+  unsatisfiable(false),
+  needsScaling(true)
 {
     // In hindsight I think it's probably better to build the constraint DAG
     // (by creating variable in/out lists) when needed, rather than in advance
@@ -59,11 +60,6 @@ Constraint::~Constraint() {
         //if(*i==this) break;
     //}
     //right->in.erase(i);
-}
-double Constraint::slack() const { 
-    return unsatisfiable ? DBL_MAX
-           : right->scale * right->position() 
-         - gap - left->scale * left->position(); 
 }
 std::ostream& operator <<(std::ostream &os, const Constraint &c)
 {

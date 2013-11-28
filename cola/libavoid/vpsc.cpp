@@ -62,16 +62,21 @@ IncSolver::IncSolver(Variables const &vs, Constraints const &cs)
     : m(cs.size()),
       cs(cs),
       n(vs.size()), 
-      vs(vs) 
+      vs(vs),
+      needsScaling(false)
 {
     for(unsigned i=0;i<n;++i) {
         vs[i]->in.clear();
         vs[i]->out.clear();
+
+        // Set needsScaling if any variables have a scale other than 1.
+        needsScaling |= (vs[i]->scale != 1);
     }
     for(unsigned i=0;i<m;++i) {
         Constraint *c=cs[i];
         c->left->out.push_back(c);
         c->right->in.push_back(c);
+        c->needsScaling = needsScaling;
     }
     bs=new Blocks(vs);
 #ifdef LIBVPSC_LOGGING
@@ -422,10 +427,12 @@ Constraint* IncSolver::mostViolated(Constraints &l)
 #endif
     size_t lSize = l.size();
     size_t deleteIndex = lSize;
+    Constraint *constraint = NULL;
+    double slack = 0;
     for (size_t index = 0; index < lSize; ++index)
     {
-        Constraint *constraint = l[index];
-        double slack = constraint->slack();
+        constraint = l[index];
+        slack = constraint->slack();
         if (constraint->equality || slack < slackForMostViolated)
         {
             slackForMostViolated = slack;    
@@ -1272,7 +1279,8 @@ Constraint::Constraint(Variable *left, Variable *right, double gap, bool equalit
   timeStamp(0),
   active(false),
   equality(equality),
-  unsatisfiable(false)
+  unsatisfiable(false),
+  needsScaling(true)
 {
     // In hindsight I think it's probably better to build the constraint DAG
     // (by creating variable in/out lists) when needed, rather than in advance
@@ -1292,11 +1300,6 @@ Constraint::~Constraint() {
         //if(*i==this) break;
     //}
     //right->in.erase(i);
-}
-double Constraint::slack() const { 
-    return unsatisfiable ? DBL_MAX
-           : right->scale * right->position() 
-         - gap - left->scale * left->position(); 
 }
 std::ostream& operator <<(std::ostream &os, const Constraint &c)
 {

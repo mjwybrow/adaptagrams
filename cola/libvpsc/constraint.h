@@ -23,8 +23,11 @@
 #ifndef VPSC_CONSTRAINT_H
 #define VPSC_CONSTRAINT_H
 
+#include <cfloat>
 #include <iostream>
 #include <vector>
+
+#include "libvpsc/variable.h"
 
 namespace vpsc {
 
@@ -52,7 +55,23 @@ public:
 	Constraint(Variable *left, Variable *right, double gap, 
             bool equality = false);
 	~Constraint();
-	
+
+    inline double slack(void) const 
+    { 
+        if (unsatisfiable)
+        {
+            return DBL_MAX;
+        }
+        if (needsScaling)
+        {
+            return right->scale * right->position() - gap - 
+                    left->scale * left->position();
+        }
+        COLA_ASSERT(left->scale == 1);
+        COLA_ASSERT(right->scale == 1);
+        return right->unscaledPosition() - gap - left->unscaledPosition(); 
+    }
+
     //! @brief The left Variable.
     Variable *left;
     //! @brief The right Variable.
@@ -60,7 +79,6 @@ public:
     //! @brief The minimum or exact distance to separate the variables by.
 	double gap;
 	double lm;
-	double slack() const;
 	long timeStamp;
 	bool active;
     //! @brief Whether the separation is an exact distance or not.
@@ -68,6 +86,7 @@ public:
     //! @brief Denote whether this constraint was unsatisifable (once the VPSC 
     //!        instance has been solved or satisfied).
 	bool unsatisfiable;
+    bool needsScaling;
 };
 
 class CompareConstraints {

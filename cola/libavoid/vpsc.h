@@ -70,6 +70,9 @@ using vpsc::delete_object;
 #include <set>
 #include <queue>
 #include <iostream>
+#include <cfloat>
+
+#include "libavoid/assertions.h"
 
 namespace Avoid {
 
@@ -188,31 +191,52 @@ public:
         , fixedDesiredPosition(false)
     {
     }
-    double dfdv() const {
+    double dfdv(void) const {
         return 2. * weight * ( position() - desiredPosition );
     }
 private:
-    double position() const {
+    inline double position(void) const {
         return (block->ps.scale*block->posn+offset)/scale;
+    }
+    inline double unscaledPosition(void) const {
+        COLA_ASSERT(block->ps.scale == 1);
+        COLA_ASSERT(scale == 1);
+        return block->posn + offset;
     }
 };
 
 
 class Constraint
 {
-    friend std::ostream& operator <<(std::ostream &os,const Constraint &c);
 public:
+    Constraint(Variable *left, Variable *right, double gap, bool equality=false);
+    ~Constraint();
+    inline double slack(void) const 
+    { 
+        if (unsatisfiable)
+        {
+            return DBL_MAX;
+        }
+        if (needsScaling)
+        {
+            return right->scale * right->position() - gap - 
+                    left->scale * left->position();
+        }
+        COLA_ASSERT(left->scale == 1);
+        COLA_ASSERT(right->scale == 1);
+        return right->unscaledPosition() - gap - left->unscaledPosition(); 
+    }
+
+    friend std::ostream& operator <<(std::ostream &os,const Constraint &c);
     Variable *left;
     Variable *right;
     double gap;
     double lm;
-    Constraint(Variable *left, Variable *right, double gap, bool equality=false);
-    ~Constraint();
-    double slack() const;
     long timeStamp;
     bool active;
     const bool equality;
     bool unsatisfiable;
+    bool needsScaling;
 };
 /*
  * A block structure defined over the variables such that each block contains
@@ -287,6 +311,8 @@ protected:
     Constraints const &cs;
     unsigned n;
     Variables const &vs;
+    bool needsScaling;
+
     void printBlocks();
     void copyResult();
 private:

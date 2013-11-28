@@ -78,6 +78,8 @@ protected:
 	std::vector<Constraint*> const &cs;
 	unsigned n;
 	std::vector<Variable*> const &vs;
+    bool needsScaling;
+
 	void printBlocks();
 	void copyResult();
 private:

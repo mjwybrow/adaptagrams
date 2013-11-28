@@ -24,7 +24,9 @@
 
 #include <vector>
 #include <iostream>
+
 #include "libvpsc/block.h"
+#include "libvpsc/assertions.h"
 
 namespace vpsc {
 
@@ -72,12 +74,17 @@ public:
 		, fixedDesiredPosition(false)
 	{
 	}
-	double dfdv() const {
+	double dfdv(void) const {
 		return 2. * weight * ( position() - desiredPosition );
 	}
 private:
-	double position() const {
-		return (block->ps.scale*block->posn+offset)/scale;
+    inline double position(void) const {
+                return (block->ps.scale*block->posn+offset)/scale;
+    }
+	inline double unscaledPosition(void) const {
+	    COLA_ASSERT(block->ps.scale == 1);
+        COLA_ASSERT(scale == 1);
+        return block->posn + offset;
 	}
 };
 
