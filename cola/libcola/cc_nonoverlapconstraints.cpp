@@ -103,16 +103,11 @@ class ShapePairInfo
             }
             return overlapMax > rhs.overlapMax;
         }
-        unsigned order;
-        unsigned varIndex1;
-        unsigned varIndex2;
+        unsigned short order;
+        unsigned short varIndex1;
+        unsigned short varIndex2;
         bool satisfied;
         bool processed;
-        double costL;
-        double costR;
-        double costB;
-        double costA;
-        double overlapMin;
         double overlapMax;
 };
 
@@ -228,33 +223,29 @@ void NonOverlapConstraints::computeOverlapForShapePairInfo(ShapePairInfo& info,
     // Above
     double spaceB = bottom1 - top2;
 
-    info.costL = info.costR = info.costB = info.costA = 0;
+    double costL = 0;
+    double costR = 0;
+    double costB = 0;
+    double costA = 0;
     info.overlapMax = 0;
-    info.overlapMin = DBL_MAX;
     bool xOverlap = false;
     bool yOverlap = false;
     if ((spaceR < 0) && (spaceL < 0))
     {
-        info.costL = std::max(-spaceL, 0.0);
-        info.costR = std::max(-spaceR, 0.0);
+        costL = std::max(-spaceL, 0.0);
+        costR = std::max(-spaceR, 0.0);
 
-        info.overlapMax = std::max(info.costL, info.costR);
-
-        info.overlapMin = std::min(info.overlapMin, info.costL);
-        info.overlapMin = std::min(info.overlapMin, info.costR);
+        info.overlapMax = std::max(costL, costR);
 
         xOverlap = true;
     }
     if ((spaceB < 0) && (spaceA < 0))
     {
-        info.costB = std::max(-spaceB, 0.0);
-        info.costA = std::max(-spaceA, 0.0);
+        costB = std::max(-spaceB, 0.0);
+        costA = std::max(-spaceA, 0.0);
 
-        info.overlapMax = std::max(info.overlapMax, info.costB);
-        info.overlapMax = std::max(info.overlapMax, info.costA);
-
-        info.overlapMin = std::min(info.overlapMin, info.costB);
-        info.overlapMin = std::min(info.overlapMin, info.costA);
+        info.overlapMax = std::max(info.overlapMax, costB);
+        info.overlapMax = std::max(info.overlapMax, costA);
 
         yOverlap = true;
     }
