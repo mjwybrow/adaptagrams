@@ -4,7 +4,7 @@
  * libvpsc - A solver for the problem of Variable Placement with 
  *           Separation Constraints.
  *
- * Copyright (C) 2005-2008  Monash University
+ * Copyright (C) 2005-2013  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,6 +17,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  * Author(s):  Tim Dwyer
+ *             Michael Wybrow
 */
 
 //
@@ -50,7 +51,7 @@ typedef std::vector<Constraint*> Constraints;
  *        problem instance
  *
  * This class attempts to solve a least-squares problem subject to a set 
- * of sepation constraints.  The solve() and satisfy() methods return true 
+ * of separation constraints.  The solve() and satisfy() methods return true 
  * if any constraints are active, in both cases false means an unconstrained 
  * optimum has been found.
  *
@@ -111,6 +112,10 @@ public:
     //! @return true if any constraints are active, or false if an unconstrained 
     //!         optimum has been found.
 	bool solve();
+   	//! @brief  Adds a constraint to the existing VPSC solver.
+    //!
+    //! @param constraint The new additional constraint to add. 
+    void addConstraint(Constraint *constraint);
 private:
 	void moveBlocks();
 	void splitBlocks();

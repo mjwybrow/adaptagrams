@@ -93,6 +93,16 @@ IncSolver::~IncSolver() {
     delete bs;
 }
 
+void IncSolver::addConstraint(Constraint *c)
+{
+    ++m;
+    c->active = false;
+    inactive.push_back(c);
+    c->left->out.push_back(c);
+    c->right->in.push_back(c);
+    c->needsScaling = needsScaling;
+}
+
 // useful in debugging
 void IncSolver::printBlocks() {
 #ifdef LIBVPSC_LOGGING

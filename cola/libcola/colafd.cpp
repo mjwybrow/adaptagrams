@@ -521,6 +521,11 @@ void ConstrainedFDLayout::makeFeasible(void)
     }
 #endif
 
+    // We can keep adding new constraints to the existing VPSC instances so
+    // long as everything is satisfiable.  Only when it's not do we discard
+    // the existing VPSC instance for that dimension and create a new one.
+    vpsc::IncSolver *solver[2] = { NULL };
+
     // Main makeFeasible loop.
     while (!idleConstraints.empty())
     {
@@ -564,13 +569,26 @@ void ConstrainedFDLayout::makeFeasible(void)
                 COLA_ASSERT(alternatives.size() == 1);
                 vpsc::Dim& dim = alternatives.front().dim;
                 vpsc::Constraint& constraint = alternatives.front().constraint;
-                valid[dim].push_back(new vpsc::Constraint(constraint));
+                vpsc::Constraint *newConstraint = 
+                        new vpsc::Constraint(constraint);
+                valid[dim].push_back(newConstraint);
+                if (solver[dim])
+                {
+                    // If we have an existing valid solver instance, add the
+                    // constraint to that.
+                    solver[dim]->addConstraint(newConstraint);
+                }
                 cc->markCurrSubConstraintAsActive(subConstraintSatisfiable);
             }
+            // Satisfy the constraints in each dimension.
             for (size_t dim = 0; dim < 2; ++dim)
             {
-                vpsc::IncSolver vpscInstance(vs[dim], valid[dim]);
-                vpscInstance.satisfy();
+                if (solver[dim] == NULL)
+                {
+                    // Create a new VPSC solver if necessary.
+                    solver[dim] = new vpsc::IncSolver(vs[dim], valid[dim]);
+                }
+                solver[dim]->satisfy();
             }
             continue;
         }
@@ -605,12 +623,24 @@ void ConstrainedFDLayout::makeFeasible(void)
                 {
                     // Add the constraint from this alternative to the 
                     // valid constraint set.
-                    valid[dim].push_back(new vpsc::Constraint(constraint));
+                    vpsc::Constraint *newConstraint = 
+                            new vpsc::Constraint(constraint);
+                    valid[dim].push_back(newConstraint);
 
                     //fprintf(stderr, ".%d %3d - ", dim, valid[dim].size());
-                    // Solve with this constraint set.
-                    vpsc::IncSolver vpscInstance(vs[dim], valid[dim]);
-                    vpscInstance.satisfy();
+                    
+                    // Try to satisfy this set of constraints..
+                    if (solver[dim] == NULL)
+                    {
+                        // Create a new VPSC solver if necessary.
+                        solver[dim] = new vpsc::IncSolver(vs[dim], valid[dim]);
+                    }
+                    else
+                    {
+                        // Or just add the constraint to the existing solver.
+                        solver[dim]->addConstraint(newConstraint);
+                    }
+                    solver[dim]->satisfy();
                 }
                 catch (char *str) 
                 {
@@ -640,7 +670,10 @@ void ConstrainedFDLayout::makeFeasible(void)
 
                 if (!subConstraintSatisfiable)
                 {
-                    //fprintf(stderr, "*");
+                    // Since we had unsatisfiable constraints we must 
+                    // discard this solver instance.
+                    delete solver[dim];
+                    solver[dim] = NULL;
 
                     // Restore previous values for variables.
                     for (unsigned int i = 0; i < priorPos.size(); ++i)
@@ -655,6 +688,7 @@ void ConstrainedFDLayout::makeFeasible(void)
                 }
                 else
                 {
+                    // Satisfied, so don't need to consider other alternatives.
                     break;
                 }
                 // Move on to the next alternative.
@@ -681,6 +715,16 @@ void ConstrainedFDLayout::makeFeasible(void)
             }
 #endif
             cc->markCurrSubConstraintAsActive(subConstraintSatisfiable);
+        }
+    }
+
+    // Delete the persistent VPSC solver instances.
+    for (size_t dim = 0; dim < 2; ++dim)
+    {
+        if (solver[dim])
+        {
+            delete solver[dim];
+            solver[dim] = NULL;
         }
     }
 

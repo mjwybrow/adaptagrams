@@ -17,6 +17,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  * Author(s):  Tim Dwyer
+ *             Michael Wybrow
 */
 
 #include <cmath>
@@ -81,6 +82,16 @@ Solver::Solver(Variables const &vs, Constraints const &cs)
 }
 Solver::~Solver() {
     delete bs;
+}
+
+void IncSolver::addConstraint(Constraint *c)
+{
+    ++m;
+    c->active = false;
+    inactive.push_back(c);
+    c->left->out.push_back(c);
+    c->right->in.push_back(c);
+    c->needsScaling = needsScaling;
 }
 
 // useful in debugging

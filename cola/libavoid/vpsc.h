@@ -304,6 +304,7 @@ public:
     IncSolver(Variables const &vs, Constraints const &cs); 
 
     ~IncSolver();
+    void addConstraint(Constraint *constraint);
     Variables const & getVariables() { return vs; }
 protected:
     Blocks *bs;
