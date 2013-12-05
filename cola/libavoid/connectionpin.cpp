@@ -361,10 +361,11 @@ void ShapeConnectionPin::outputCode(FILE *fp) const
     COLA_ASSERT(m_shape || m_junction);
     if (m_shape)
     {
-        fprintf(fp, "    new ShapeConnectionPin(shapeRef%u, %u, %g, %g, %g, "
-                "(ConnDirFlags) %u);\n", m_shape->id(), m_class_id, 
-                m_x_offset, m_y_offset, m_inside_offset,
-                (unsigned int) m_visibility_directions);
+        fprintf(fp, "    new ShapeConnectionPin(shapeRef%u, %u, "
+                "%" PREC "g, %" PREC "g, %s, %g, (ConnDirFlags) %u);\n",
+                m_shape->id(), m_class_id, m_x_offset, m_y_offset, 
+                (m_using_proportional_offsets ? "true" : "false"),
+                m_inside_offset, (unsigned int) m_visibility_directions);
     }
     else if (m_junction)
     {
