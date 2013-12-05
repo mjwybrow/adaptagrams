@@ -28,14 +28,14 @@ int main(void) {
     polygon.ps[2] = Point(50650, 51135);
     polygon.ps[3] = Point(50650, 50740);
     ShapeRef *shapeRef320077872 = new ShapeRef(router, polygon, 320077872);
-    new ShapeConnectionPin(shapeRef320077872, 1, 0, 0.21519, 10, (ConnDirFlags) 4);
-    new ShapeConnectionPin(shapeRef320077872, 2, 1, 0.21519, 10, (ConnDirFlags) 8);
-    new ShapeConnectionPin(shapeRef320077872, 3, 0.0714286, 0.405063, 10, (ConnDirFlags) 4);
-    new ShapeConnectionPin(shapeRef320077872, 4, 1, 0.405063, 10, (ConnDirFlags) 8);
-    new ShapeConnectionPin(shapeRef320077872, 5, 0.0714286, 0.594937, 10, (ConnDirFlags) 4);
-    new ShapeConnectionPin(shapeRef320077872, 6, 1, 0.594937, 10, (ConnDirFlags) 8);
-    new ShapeConnectionPin(shapeRef320077872, 7, 0, 0.78481, 10, (ConnDirFlags) 4);
-    new ShapeConnectionPin(shapeRef320077872, 8, 1, 0.78481, 10, (ConnDirFlags) 8);
+    new ShapeConnectionPin(shapeRef320077872, 1, 0, 0.21519, true, 10, (ConnDirFlags) 4);
+    new ShapeConnectionPin(shapeRef320077872, 2, 1, 0.21519, true, 10, (ConnDirFlags) 8);
+    new ShapeConnectionPin(shapeRef320077872, 3, 0.0714286, 0.405063, true, 10, (ConnDirFlags) 4);
+    new ShapeConnectionPin(shapeRef320077872, 4, 1, 0.405063, true, 10, (ConnDirFlags) 8);
+    new ShapeConnectionPin(shapeRef320077872, 5, 0.0714286, 0.594937, true, 10, (ConnDirFlags) 4);
+    new ShapeConnectionPin(shapeRef320077872, 6, 1, 0.594937, true, 10, (ConnDirFlags) 8);
+    new ShapeConnectionPin(shapeRef320077872, 7, 0, 0.78481, true, 10, (ConnDirFlags) 4);
+    new ShapeConnectionPin(shapeRef320077872, 8, 1, 0.78481, true, 10, (ConnDirFlags) 8);
 
     // shapeRef346216920
     polygon = Polygon(4);
@@ -44,14 +44,14 @@ int main(void) {
     polygon.ps[2] = Point(51300, 51135);
     polygon.ps[3] = Point(51300, 50740);
     ShapeRef *shapeRef346216920 = new ShapeRef(router, polygon, 346216920);
-    new ShapeConnectionPin(shapeRef346216920, 1, 0, 0.21519, 10, (ConnDirFlags) 4);
-    new ShapeConnectionPin(shapeRef346216920, 2, 1, 0.21519, 10, (ConnDirFlags) 8);
-    new ShapeConnectionPin(shapeRef346216920, 3, 0, 0.405063, 10, (ConnDirFlags) 4);
-    new ShapeConnectionPin(shapeRef346216920, 4, 0.928571, 0.405063, 10, (ConnDirFlags) 8);
-    new ShapeConnectionPin(shapeRef346216920, 5, 0, 0.594937, 10, (ConnDirFlags) 4);
-    new ShapeConnectionPin(shapeRef346216920, 6, 0.928571, 0.594937, 10, (ConnDirFlags) 8);
-    new ShapeConnectionPin(shapeRef346216920, 7, 0, 0.78481, 10, (ConnDirFlags) 4);
-    new ShapeConnectionPin(shapeRef346216920, 8, 1, 0.78481, 10, (ConnDirFlags) 8);
+    new ShapeConnectionPin(shapeRef346216920, 1, 0, 0.21519, true, 10, (ConnDirFlags) 4);
+    new ShapeConnectionPin(shapeRef346216920, 2, 1, 0.21519, true, 10, (ConnDirFlags) 8);
+    new ShapeConnectionPin(shapeRef346216920, 3, 0, 0.405063, true, 10, (ConnDirFlags) 4);
+    new ShapeConnectionPin(shapeRef346216920, 4, 0.928571, 0.405063, true, 10, (ConnDirFlags) 8);
+    new ShapeConnectionPin(shapeRef346216920, 5, 0, 0.594937, true, 10, (ConnDirFlags) 4);
+    new ShapeConnectionPin(shapeRef346216920, 6, 0.928571, 0.594937, true, 10, (ConnDirFlags) 8);
+    new ShapeConnectionPin(shapeRef346216920, 7, 0, 0.78481, true, 10, (ConnDirFlags) 4);
+    new ShapeConnectionPin(shapeRef346216920, 8, 1, 0.78481, true, 10, (ConnDirFlags) 8);
 
     // connRef13958908
     connRef = new ConnRef(router, 13958908);

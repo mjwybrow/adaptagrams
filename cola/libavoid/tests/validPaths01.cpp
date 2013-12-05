@@ -33,10 +33,10 @@ int main(void) {
     poly127957550.ps[2] = Point(51890, 51683);
     poly127957550.ps[3] = Point(51890, 51617);
     ShapeRef *shapeRef127957550 = new ShapeRef(router, poly127957550, 127957550);
-    new ShapeConnectionPin(shapeRef127957550, 2147483646, 0.5, 0.5, 0, (ConnDirFlags) 1);
-    new ShapeConnectionPin(shapeRef127957550, 2147483646, 0.5, 0.5, 0, (ConnDirFlags) 2);
-    new ShapeConnectionPin(shapeRef127957550, 2147483646, 0.5, 0.5, 0, (ConnDirFlags) 4);
-    new ShapeConnectionPin(shapeRef127957550, 2147483646, 0.5, 0.5, 0, (ConnDirFlags) 8);
+    new ShapeConnectionPin(shapeRef127957550, 2147483646, 0.5, 0.5, true, 0, (ConnDirFlags) 1);
+    new ShapeConnectionPin(shapeRef127957550, 2147483646, 0.5, 0.5, true, 0, (ConnDirFlags) 2);
+    new ShapeConnectionPin(shapeRef127957550, 2147483646, 0.5, 0.5, true, 0, (ConnDirFlags) 4);
+    new ShapeConnectionPin(shapeRef127957550, 2147483646, 0.5, 0.5, true, 0, (ConnDirFlags) 8);
 
     Polygon poly129612347(4);
     poly129612347.ps[0] = Point(51900, 51696);
@@ -72,10 +72,10 @@ int main(void) {
     poly258454350.ps[2] = Point(50065, 51683);
     poly258454350.ps[3] = Point(50065, 51617);
     ShapeRef *shapeRef258454350 = new ShapeRef(router, poly258454350, 258454350);
-    new ShapeConnectionPin(shapeRef258454350, 2147483646, 0.5, 0.5, 0, (ConnDirFlags) 1);
-    new ShapeConnectionPin(shapeRef258454350, 2147483646, 0.5, 0.5, 0, (ConnDirFlags) 2);
-    new ShapeConnectionPin(shapeRef258454350, 2147483646, 0.5, 0.5, 0, (ConnDirFlags) 4);
-    new ShapeConnectionPin(shapeRef258454350, 2147483646, 0.5, 0.5, 0, (ConnDirFlags) 8);
+    new ShapeConnectionPin(shapeRef258454350, 2147483646, 0.5, 0.5, true, 0, (ConnDirFlags) 1);
+    new ShapeConnectionPin(shapeRef258454350, 2147483646, 0.5, 0.5, true, 0, (ConnDirFlags) 2);
+    new ShapeConnectionPin(shapeRef258454350, 2147483646, 0.5, 0.5, true, 0, (ConnDirFlags) 4);
+    new ShapeConnectionPin(shapeRef258454350, 2147483646, 0.5, 0.5, true, 0, (ConnDirFlags) 8);
 
     Polygon poly274504590(4);
     poly274504590.ps[0] = Point(51400, 52470);

@@ -19,8 +19,8 @@ int main(void) {
     poly186982048.ps[2] = Point(52090, 50960);
     poly186982048.ps[3] = Point(52090, 50490);
     ShapeRef *shapeRef186982048 = new ShapeRef(router, poly186982048, 186982048);
-    new ShapeConnectionPin(shapeRef186982048, 5, 0.982456, 0.12766, 0, (ConnDirFlags) 8);
-    new ShapeConnectionPin(shapeRef186982048, 13, 0.982456, 0.234043, 0, (ConnDirFlags) 8);
+    new ShapeConnectionPin(shapeRef186982048, 5, 0.982456, 0.12766, true, 0, (ConnDirFlags) 8);
+    new ShapeConnectionPin(shapeRef186982048, 13, 0.982456, 0.234043, true, 0, (ConnDirFlags) 8);
 
     Polygon poly197692264(4);
     poly197692264.ps[0] = Point(52560, 50342);
@@ -28,8 +28,8 @@ int main(void) {
     poly197692264.ps[2] = Point(52440, 50425);
     poly197692264.ps[3] = Point(52440, 50342);
     ShapeRef *shapeRef197692264 = new ShapeRef(router, poly197692264, 197692264);
-    new ShapeConnectionPin(shapeRef197692264, 1, 0.5, 0.39759, 0, (ConnDirFlags) 13);
-    new ShapeConnectionPin(shapeRef197692264, 2, 0.5, 1, 10, (ConnDirFlags) 2);
+    new ShapeConnectionPin(shapeRef197692264, 1, 0.5, 0.39759, true, 0, (ConnDirFlags) 13);
+    new ShapeConnectionPin(shapeRef197692264, 2, 0.5, 1, true, 10, (ConnDirFlags) 2);
 
     ConnRef *connRef111820287 = new ConnRef(router, 111820287);
     ConnEnd srcPt111820287(shapeRef186982048, 13);

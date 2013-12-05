@@ -39,11 +39,11 @@ void test()
 	poly0.setPoint(2, Avoid::Point(51700, 50935));
 	poly0.setPoint(3, Avoid::Point(51700, 50715));
 	Avoid::ShapeRef * shape0_68611488 = new Avoid::ShapeRef(router0, poly0, 68611488);
-	Avoid::ShapeConnectionPin * pin0_68611488_0 = new Avoid::ShapeConnectionPin(shape0_68611488, 1, 0.810810810811, 0.0454545454545, 10, 1);
+	Avoid::ShapeConnectionPin * pin0_68611488_0 = new Avoid::ShapeConnectionPin(shape0_68611488, 1, 0.810810810811, 0.0454545454545, true, 10, 1);
 	pin0_68611488_0->setExclusive(true);
-	Avoid::ShapeConnectionPin * pin0_68611488_1 = new Avoid::ShapeConnectionPin(shape0_68611488, 2, 0, 0.5, 10, 4);
+	Avoid::ShapeConnectionPin * pin0_68611488_1 = new Avoid::ShapeConnectionPin(shape0_68611488, 2, 0, 0.5, true, 10, 4);
 	pin0_68611488_1->setExclusive(true);
-	Avoid::ShapeConnectionPin * pin0_68611488_2 = new Avoid::ShapeConnectionPin(shape0_68611488, 3, 0.810810810811, 0.954545454545, 10, 2);
+	Avoid::ShapeConnectionPin * pin0_68611488_2 = new Avoid::ShapeConnectionPin(shape0_68611488, 3, 0.810810810811, 0.954545454545, true, 10, 2);
 	pin0_68611488_2->setExclusive(true);
 	poly0 = Avoid::Polygon(4);
 	poly0.setPoint(0, Avoid::Point(51600, 50795));
@@ -51,9 +51,9 @@ void test()
 	poly0.setPoint(2, Avoid::Point(51440, 50855));
 	poly0.setPoint(3, Avoid::Point(51440, 50795));
 	Avoid::ShapeRef * shape0_84988680 = new Avoid::ShapeRef(router0, poly0, 84988680);
-	Avoid::ShapeConnectionPin * pin0_84988680_0 = new Avoid::ShapeConnectionPin(shape0_84988680, 1, 0.0625, 0.5, 10, 4);
+	Avoid::ShapeConnectionPin * pin0_84988680_0 = new Avoid::ShapeConnectionPin(shape0_84988680, 1, 0.0625, 0.5, true, 10, 4);
 	pin0_84988680_0->setExclusive(true);
-	Avoid::ShapeConnectionPin * pin0_84988680_1 = new Avoid::ShapeConnectionPin(shape0_84988680, 2, 1, 0.5, 10, 8);
+	Avoid::ShapeConnectionPin * pin0_84988680_1 = new Avoid::ShapeConnectionPin(shape0_84988680, 2, 1, 0.5, true, 10, 8);
 	pin0_84988680_1->setExclusive(true);
 	poly0 = Avoid::Polygon(4);
 	poly0.setPoint(0, Avoid::Point(51705, 50640));
@@ -61,9 +61,9 @@ void test()
 	poly0.setPoint(2, Avoid::Point(51645, 50800));
 	poly0.setPoint(3, Avoid::Point(51645, 50640));
 	Avoid::ShapeRef * shape0_170757006 = new Avoid::ShapeRef(router0, poly0, 170757006);
-	Avoid::ShapeConnectionPin * pin0_170757006_0 = new Avoid::ShapeConnectionPin(shape0_170757006, 1, 0.5, 1, 10, 2);
+	Avoid::ShapeConnectionPin * pin0_170757006_0 = new Avoid::ShapeConnectionPin(shape0_170757006, 1, 0.5, 1, true, 10, 2);
 	pin0_170757006_0->setExclusive(true);
-	Avoid::ShapeConnectionPin * pin0_170757006_1 = new Avoid::ShapeConnectionPin(shape0_170757006, 2, 0.5, 0.0625, 10, 1);
+	Avoid::ShapeConnectionPin * pin0_170757006_1 = new Avoid::ShapeConnectionPin(shape0_170757006, 2, 0.5, 0.0625, true, 10, 1);
 	pin0_170757006_1->setExclusive(true);
 	Avoid::JunctionRef * junction0_185122667 = new Avoid::JunctionRef(router0, Avoid::Point(51675, 50825), 185122667);
 	poly0 = Avoid::Polygon(4);
@@ -72,22 +72,22 @@ void test()
 	poly0.setPoint(2, Avoid::Point(51645, 51085));
 	poly0.setPoint(3, Avoid::Point(51645, 50925));
 	Avoid::ShapeRef * shape0_300278382 = new Avoid::ShapeRef(router0, poly0, 300278382);
-	Avoid::ShapeConnectionPin * pin0_300278382_0 = new Avoid::ShapeConnectionPin(shape0_300278382, 1, 0.5, 0.9375, 10, 2);
+	Avoid::ShapeConnectionPin * pin0_300278382_0 = new Avoid::ShapeConnectionPin(shape0_300278382, 1, 0.5, 0.9375, true, 10, 2);
 	pin0_300278382_0->setExclusive(true);
-	Avoid::ShapeConnectionPin * pin0_300278382_1 = new Avoid::ShapeConnectionPin(shape0_300278382, 2, 0.5, 0, 10, 1);
+	Avoid::ShapeConnectionPin * pin0_300278382_1 = new Avoid::ShapeConnectionPin(shape0_300278382, 2, 0.5, 0, true, 10, 1);
 	pin0_300278382_1->setExclusive(true);
 	end1_0 = Avoid::ConnEnd(shape0_84988680, 2);
 	end2_0 = Avoid::ConnEnd(junction0_185122667);
-	Avoid::ConnRef * conn0_70922320 = new Avoid::ConnRef(router0, end1_0, end2_0, 70922320);
+	new Avoid::ConnRef(router0, end1_0, end2_0, 70922320);
 	end1_0 = Avoid::ConnEnd(junction0_185122667);
 	end2_0 = Avoid::ConnEnd(shape0_68611488, 2);
-	Avoid::ConnRef * conn0_141698060 = new Avoid::ConnRef(router0, end1_0, end2_0, 141698060);
+	new Avoid::ConnRef(router0, end1_0, end2_0, 141698060);
 	end1_0 = Avoid::ConnEnd(shape0_170757006, 1);
 	end2_0 = Avoid::ConnEnd(junction0_185122667);
-	Avoid::ConnRef * conn0_27983869 = new Avoid::ConnRef(router0, end1_0, end2_0, 27983869);
+	new Avoid::ConnRef(router0, end1_0, end2_0, 27983869);
 	end1_0 = Avoid::ConnEnd(shape0_300278382, 2);
 	end2_0 = Avoid::ConnEnd(junction0_185122667);
-	Avoid::ConnRef * conn0_197910572 = new Avoid::ConnRef(router0, end1_0, end2_0, 197910572);
+	new Avoid::ConnRef(router0, end1_0, end2_0, 197910572);
 	router0->processTransaction();
 	//printf("%d\n", junction0_185122667->attachedConnectors().size());
 	COLA_ASSERT(junction0_185122667->attachedConnectors().size() == 4);
@@ -147,7 +147,7 @@ void test()
 	*/
 }
 
-extern "C" int main(int argc, char* argv[])
+extern "C" int main(void)
 {
 	test();
 	return 0;

@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2010  Monash University
+ * Copyright (C) 2010-2013  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -49,6 +49,18 @@ class JunctionRef;
 class ConnEnd;
 class VertInf;
 
+// Used to specify position on shape when constructing a shape-attached ConnEnd.
+//
+static const double ATTACH_POS_TOP = 0;
+static const double ATTACH_POS_CENTRE = 0.5;
+static const double ATTACH_POS_BOTTOM = 1;
+static const double ATTACH_POS_LEFT = ATTACH_POS_TOP;
+static const double ATTACH_POS_RIGHT = ATTACH_POS_BOTTOM;
+
+static const double ATTACH_POS_MIN_OFFSET = 0;
+static const double ATTACH_POS_MAX_OFFSET = -1;
+
+
 //! @brief  The ShapeConnectionPin class represents a fixed point or "pin" 
 //!         on a shape that can be connected to.
 //!
@@ -71,22 +83,33 @@ class VertInf;
 class AVOID_EXPORT ShapeConnectionPin
 {
     public:
-        //! @brief Constructs a ShapeConnectionPin at a specified position on a
-        //!        parent shape.
+        //! @brief Constructs a ShapeConnectionPin at a specified absolute or
+        //!        proportional position relative to the parent shape.
         //!
         //! Ownership of this ShapeConnectionPin is passed to the parent shape.
         //!
-        //! The connection point position should be specified as proportion
-        //! of the shape's total width and height using a floating point
-        //! value between 0 and 1.
+        //! The connection point postion offsets can be specified as absolute
+        //! or proportional.  If absolute, the xOffset and yOffset values are
+        //! absolute offsets relative to the lower X and Y shape rectangle 
+        //! border positions.  If proportional, the xOffset and yOffset values
+        //! represent proportions  of the shape's total width and height using 
+        //! a floating point value between 0 and 1.  
+        //! 
+        //! Note that if you need the connection pin to appear at an exact 
+        //! position this may not be possible via proportional positions due 
+        //! to numerical inaccuracy in floating point multiplications.  In 
+        //! this case you should use absolute offsets instead.
         //!
-        //! There are some predefined values for specifying the xPortionOffset
-        //! and yPortionOffset arguments:
+        //! There are some predefined values for specifying the xOffset
+        //! and yOffset arguments for proportional offsets:
         //!  -  ATTACH_POS_TOP = 0
         //!  -  ATTACH_POS_LEFT = 0
         //!  -  ATTACH_POS_CENTRE = 0.5
         //!  -  ATTACH_POS_BOTTOM = 1
         //!  -  ATTACH_POS_RIGHT = 1
+        //! And two more for specifying absolute offsets:
+        //!  -  ATTACH_POS_MIN_OFFSET = offset of zero
+        //!  -  ATTACH_POS_MAX_OFFSET = offset of shape width/height
         //!
         //! Importantly, shape connection pins will be moved automatically when
         //! the parent shapes are moved or resized.  Attachment for connectors 
@@ -103,17 +126,8 @@ class AVOID_EXPORT ShapeConnectionPin
         //! automatically offset the point within the shape.  This is useful
         //! for orthogonal routing, where you usually want the connection 
         //! point to lie inside the shape rather than exactly on its boundary.
-        //! While you could specify an exact position with xPortionOffset and 
-        //! yPortionOffset, it is usually much easier and more readable to not 
-        //! have to specify the visibility directions manually and to write 
-        //! something like
-        //! @code
-        //! ShapeConnectionPin(shapeRef, pinClassId, ATTACH_POS_RIGHT, ATTACH_POS_CENTRE, 5);
-        //! @endcode
-        //! rather than
-        //! @code
-        //! ShapeConnectionPin(shapeRef, pinClassId, 1 - 5/shapeWidth, ATTACH_POS_CENTRE, 0, ConnDirRight);
-        //! @endcode
+        //! This offset will only be applied for connection pins specified 
+        //! with a position exactly on the shape boundary.
         //! 
         //! @param[in]  shape          A pointer to the containing parent 
         //!                            shape's ShapeRef.
@@ -134,10 +148,38 @@ class AVOID_EXPORT ShapeConnectionPin
         //!                            specifying the directions that this 
         //!                            connection point has visibility. 
         //!
+        //! @param[in]  shape          A pointer to the containing parent 
+        //!                            shape's ShapeRef.
+        //! @param[in]  classId        A non-zero integer used to denote the
+        //!                            class or group of this connection
+        //!                            point, used for specifying attachment
+        //!                            to ConnEnd.
+        //! @param[in]  xOffset        The X offset for the connection pin from
+        //!                            the shape's lower X border position.
+        //! @param[in]  yOffset        The Y offset for the connection pin from
+        //!                            the shape's lower Y border position.
+        //! @param[in]  proportional   A boolean specifying whether the X and Y
+        //!                            offsets are proportional or not.
+        //! @param[in]  insideOffset   A distance to offset the connection 
+        //!                            point inside the shape if it lies on 
+        //!                            the boundary. Use 0.0 for no offset.
+        //! @param[in]  visDirs        One or more Avoid::ConnDirFlag options 
+        //!                            specifying the directions that this 
+        //!                            connection point has visibility.  
+        //!                            Use ConnDirNone to have visibility 
+        //!                            be directional if a pin is on the shape
+        //!                            edge or in all directions otherwise.
+        //!
         ShapeConnectionPin(ShapeRef *shape, const unsigned int classId,
-                const double xPortionOffset, const double yPortionOffset, 
-                const double insideOffset = 0.0,
-                const ConnDirFlags visDirs = ConnDirNone);
+                const double xOffset, const double yOffset, 
+                const bool proportional, const double insideOffset,
+                const ConnDirFlags visDirs);
+        
+        // Old constructor.  Provided for compatibility with old debug files.
+        ShapeConnectionPin(ShapeRef *shape, const unsigned int classId,
+                const double xOffset, const double yOffset, 
+                const double insideOffset, const ConnDirFlags visDirs);
+ 
         //! @brief Constructs a ShapeConnectionPin on a JunctionRef.
         //!
         //! Ownership of this ShapeConnectionPin is passed to the parent 
@@ -203,7 +245,8 @@ class AVOID_EXPORT ShapeConnectionPin
         friend class Obstacle;
         friend class ConnEnd;
         friend class Router;
-        
+ 
+        void commonInitForShapeConnection(void);
         void updatePosition(const Point& newPosition);
         void updatePosition(const Polygon& newPoly);
         void updatePositionAndVisibility(void);
@@ -216,8 +259,8 @@ class AVOID_EXPORT ShapeConnectionPin
         ShapeRef *m_shape;
         JunctionRef *m_junction;
         unsigned int m_class_id;
-        double m_x_portion_offset;
-        double m_y_portion_offset;
+        double m_x_offset;
+        double m_y_offset;
         double m_inside_offset;
         ConnDirFlags m_visibility_directions;
         
@@ -227,6 +270,7 @@ class AVOID_EXPORT ShapeConnectionPin
         // The set of connends using this pin.
         std::set<ConnEnd *> m_connend_users;
         VertInf *m_vertex;
+        bool m_using_proportional_offsets;
 };
 
 class CmpConnPinPtr

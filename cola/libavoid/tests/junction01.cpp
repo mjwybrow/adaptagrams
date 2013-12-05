@@ -12,7 +12,7 @@ int main(void) {
     ShapeRef *shapeRef478845150 = new ShapeRef(router, rect478845150, 478845150);
     ShapeConnectionPin *pin = new Avoid::ShapeConnectionPin(shapeRef478845150, 
 	    Avoid::CONNECTIONPIN_CENTRE, Avoid::ATTACH_POS_CENTRE, 
-	    Avoid::ATTACH_POS_CENTRE);
+	    Avoid::ATTACH_POS_CENTRE, true, 0.0, Avoid::ConnDirNone);
     pin->setExclusive(false);
     
     Rectangle rect92712048(Point(51246, 50475), Point(51304, 50585));

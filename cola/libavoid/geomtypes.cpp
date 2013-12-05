@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2009  Monash University
+ * Copyright (C) 2004-2013  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -231,6 +231,24 @@ Box PolygonInterface::offsetBoundingBox(double offset) const
     return bBox;
 }
 
+double Box::length(const unsigned int dimension) const
+{
+    if (dimension == 0)
+    {
+        return (max.x - min.x);
+    }
+    return (max.y - min.y);
+}
+
+double Box::width(void) const
+{
+    return (max.x - min.x);
+}
+
+double Box::height(void) const
+{
+    return (max.y - min.y);
+}
 
 Polygon::Polygon()
     : PolygonInterface(),

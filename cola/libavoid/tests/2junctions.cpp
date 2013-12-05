@@ -20,9 +20,9 @@ int test()
 	poly.setPoint(2, Avoid::Point(51050, 50960));
 	poly.setPoint(3, Avoid::Point(51050, 50640));
 	Avoid::ShapeRef * shape365249936 = new Avoid::ShapeRef(router1, poly, 365249936);
-	Avoid::ShapeConnectionPin * pin365249936_2 = new Avoid::ShapeConnectionPin(shape365249936, 3, 0, 0.5, 10, 4);
+	Avoid::ShapeConnectionPin * pin365249936_2 = new Avoid::ShapeConnectionPin(shape365249936, 3, 0, 0.5, true, 10, 4);
 	pin365249936_2->setExclusive(true);
-	Avoid::ShapeConnectionPin * pin365249936_4 = new Avoid::ShapeConnectionPin(shape365249936, 5, 0, 0.734375, 10, 4);
+	Avoid::ShapeConnectionPin * pin365249936_4 = new Avoid::ShapeConnectionPin(shape365249936, 5, 0, 0.734375, true, 10, 4);
 	pin365249936_4->setExclusive(true);
 	poly = Avoid::Polygon(4);
 	poly.setPoint(0, Avoid::Point(50760, 50691));
@@ -30,7 +30,7 @@ int test()
 	poly.setPoint(2, Avoid::Point(50640, 50775));
 	poly.setPoint(3, Avoid::Point(50640, 50691));
 	Avoid::ShapeRef * shape386142480 = new Avoid::ShapeRef(router1, poly, 386142480);
-	Avoid::ShapeConnectionPin * pin386142480_1 = new Avoid::ShapeConnectionPin(shape386142480, 2, 0.5, 1, 10, 2);
+	Avoid::ShapeConnectionPin * pin386142480_1 = new Avoid::ShapeConnectionPin(shape386142480, 2, 0.5, 1, true, 10, 2);
 	pin386142480_1->setExclusive(true);
 	Avoid::JunctionRef * junction328922310 = new Avoid::JunctionRef(router1, Avoid::Point(50700, 50800), 328922310);
 	junction328922310->setPositionFixed(true);
@@ -52,7 +52,7 @@ int test()
 	poly.setPoint(2, Avoid::Point(50821, 50960));
 	poly.setPoint(3, Avoid::Point(50821, 50885));
 	Avoid::ShapeRef * shape150429385 = new Avoid::ShapeRef(router1, poly, 150429385);
-	Avoid::ShapeConnectionPin * pin150429385_0 = new Avoid::ShapeConnectionPin(shape150429385, 1, 0.5, 0, 10, 1);
+	Avoid::ShapeConnectionPin * pin150429385_0 = new Avoid::ShapeConnectionPin(shape150429385, 1, 0.5, 0, true, 10, 1);
 	pin150429385_0->setExclusive(true);
 	Avoid::JunctionRef * junction550292508 = new Avoid::JunctionRef(router1, Avoid::Point(50850, 50875), 550292508);
 	router1->deleteConnector(conn18168360);
@@ -102,7 +102,7 @@ int test()
         return (overlap) ? 1 : 0;
 }
 
-extern "C" int main(int argc, char* argv[])
+extern "C" int main(void)
 {
 	return test();
 }

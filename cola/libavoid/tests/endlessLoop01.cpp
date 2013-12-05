@@ -35,21 +35,21 @@ void test()
 	poly0.setPoint(2, Avoid::Point(50365, 51185));
 	poly0.setPoint(3, Avoid::Point(50365, 50615));
 	Avoid::ShapeRef * shape0_355243155 = new Avoid::ShapeRef(router0, poly0, 355243155);
-	Avoid::ShapeConnectionPin * pin0_355243155_0 = new Avoid::ShapeConnectionPin(shape0_355243155, 1, 1, 0.149122807018, 10, 8);
+	Avoid::ShapeConnectionPin * pin0_355243155_0 = new Avoid::ShapeConnectionPin(shape0_355243155, 1, 1, 0.149122807018, true, 10, 8);
 	pin0_355243155_0->setExclusive(true);
-	Avoid::ShapeConnectionPin * pin0_355243155_1 = new Avoid::ShapeConnectionPin(shape0_355243155, 2, 1, 0.675438596491, 10, 8);
+	Avoid::ShapeConnectionPin * pin0_355243155_1 = new Avoid::ShapeConnectionPin(shape0_355243155, 2, 1, 0.675438596491, true, 10, 8);
 	pin0_355243155_1->setExclusive(true);
-	Avoid::ShapeConnectionPin * pin0_355243155_2 = new Avoid::ShapeConnectionPin(shape0_355243155, 3, 1, 0.80701754386, 10, 8);
+	Avoid::ShapeConnectionPin * pin0_355243155_2 = new Avoid::ShapeConnectionPin(shape0_355243155, 3, 1, 0.80701754386, true, 10, 8);
 	pin0_355243155_2->setExclusive(true);
-	Avoid::ShapeConnectionPin * pin0_355243155_3 = new Avoid::ShapeConnectionPin(shape0_355243155, 4, 1, 0.543859649123, 10, 8);
+	Avoid::ShapeConnectionPin * pin0_355243155_3 = new Avoid::ShapeConnectionPin(shape0_355243155, 4, 1, 0.543859649123, true, 10, 8);
 	pin0_355243155_3->setExclusive(true);
-	Avoid::ShapeConnectionPin * pin0_355243155_4 = new Avoid::ShapeConnectionPin(shape0_355243155, 5, 1, 0.280701754386, 10, 8);
+	Avoid::ShapeConnectionPin * pin0_355243155_4 = new Avoid::ShapeConnectionPin(shape0_355243155, 5, 1, 0.280701754386, true, 10, 8);
 	pin0_355243155_4->setExclusive(true);
-	Avoid::ShapeConnectionPin * pin0_355243155_5 = new Avoid::ShapeConnectionPin(shape0_355243155, 6, 1, 0.412280701754, 10, 8);
+	Avoid::ShapeConnectionPin * pin0_355243155_5 = new Avoid::ShapeConnectionPin(shape0_355243155, 6, 1, 0.412280701754, true, 10, 8);
 	pin0_355243155_5->setExclusive(true);
-	Avoid::ShapeConnectionPin * pin0_355243155_6 = new Avoid::ShapeConnectionPin(shape0_355243155, 7, 0.477611940299, 0.982456140351, 10, 2);
+	Avoid::ShapeConnectionPin * pin0_355243155_6 = new Avoid::ShapeConnectionPin(shape0_355243155, 7, 0.477611940299, 0.982456140351, true, 10, 2);
 	pin0_355243155_6->setExclusive(true);
-	Avoid::ShapeConnectionPin * pin0_355243155_7 = new Avoid::ShapeConnectionPin(shape0_355243155, 8, 0.253731343284, 0.982456140351, 10, 2);
+	Avoid::ShapeConnectionPin * pin0_355243155_7 = new Avoid::ShapeConnectionPin(shape0_355243155, 8, 0.253731343284, 0.982456140351, true, 10, 2);
 	pin0_355243155_7->setExclusive(true);
 	poly0 = Avoid::Polygon(4);
 	poly0.setPoint(0, Avoid::Point(51060, 50816));
@@ -57,7 +57,7 @@ void test()
 	poly0.setPoint(2, Avoid::Point(50940, 50884));
 	poly0.setPoint(3, Avoid::Point(50940, 50816));
 	Avoid::ShapeRef * shape0_35177560 = new Avoid::ShapeRef(router0, poly0, 35177560);
-	Avoid::ShapeConnectionPin * pin0_35177560_0 = new Avoid::ShapeConnectionPin(shape0_35177560, 1, 0.5, 0.5, 0, 15);
+	Avoid::ShapeConnectionPin * pin0_35177560_0 = new Avoid::ShapeConnectionPin(shape0_35177560, 1, 0.5, 0.5, true, 0, 15);
 	pin0_35177560_0->setExclusive(true);
 	poly0 = Avoid::Polygon(4);
 	poly0.setPoint(0, Avoid::Point(51060, 50966));
@@ -65,7 +65,7 @@ void test()
 	poly0.setPoint(2, Avoid::Point(50940, 51034));
 	poly0.setPoint(3, Avoid::Point(50940, 50966));
 	Avoid::ShapeRef * shape0_214253640 = new Avoid::ShapeRef(router0, poly0, 214253640);
-	Avoid::ShapeConnectionPin * pin0_214253640_0 = new Avoid::ShapeConnectionPin(shape0_214253640, 1, 0.5, 0.5, 0, 15);
+	Avoid::ShapeConnectionPin * pin0_214253640_0 = new Avoid::ShapeConnectionPin(shape0_214253640, 1, 0.5, 0.5, true, 0, 15);
 	pin0_214253640_0->setExclusive(true);
 	Avoid::JunctionRef * junction0_636368600 = new Avoid::JunctionRef(router0, Avoid::Point(50875, 50850), 636368600);
 	Avoid::JunctionRef * junction0_503331836 = new Avoid::JunctionRef(router0, Avoid::Point(50875, 51000), 503331836);
@@ -135,7 +135,7 @@ void test()
 	delete router0;
 }
 
-extern "C" int main(int argc, char* argv[])
+extern "C" int main(void)
 {
 	test();
 	return 0;

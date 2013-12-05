@@ -16,10 +16,10 @@ int main(void) {
     poly219926511.ps[2] = Point(50740, 51260);
     poly219926511.ps[3] = Point(50740, 51240);
     ShapeRef *shapeRef219926511 = new ShapeRef(router, poly219926511, 219926511);
-    new ShapeConnectionPin(shapeRef219926511, 2147483646, 0.5, 0.5, 0, (ConnDirFlags) 4);
-    new ShapeConnectionPin(shapeRef219926511, 2147483646, 0.5, 0.5, 0, (ConnDirFlags) 1);
-    new ShapeConnectionPin(shapeRef219926511, 2147483646, 0.5, 0.5, 0, (ConnDirFlags) 8);
-    new ShapeConnectionPin(shapeRef219926511, 2147483646, 0.5, 0.5, 0, (ConnDirFlags) 2);
+    new ShapeConnectionPin(shapeRef219926511, 2147483646, 0.5, 0.5, true, 0, (ConnDirFlags) 4);
+    new ShapeConnectionPin(shapeRef219926511, 2147483646, 0.5, 0.5, true, 0, (ConnDirFlags) 1);
+    new ShapeConnectionPin(shapeRef219926511, 2147483646, 0.5, 0.5, true, 0, (ConnDirFlags) 8);
+    new ShapeConnectionPin(shapeRef219926511, 2147483646, 0.5, 0.5, true, 0, (ConnDirFlags) 2);
 
     JunctionRef *shapeRef171026375 = new JunctionRef(router, Point(51075, 51225), 171026375);
 
@@ -57,10 +57,10 @@ int main(void) {
     poly223927132.ps[2] = Point(51490, 51210);
     poly223927132.ps[3] = Point(51490, 51190);
     ShapeRef *shapeRef223927132 = new ShapeRef(router, poly223927132, 223927132);
-    new ShapeConnectionPin(shapeRef223927132, 2147483646, 0.5, 0.5, 0, (ConnDirFlags) 4);
-    new ShapeConnectionPin(shapeRef223927132, 2147483646, 0.5, 0.5, 0, (ConnDirFlags) 1);
-    new ShapeConnectionPin(shapeRef223927132, 2147483646, 0.5, 0.5, 0, (ConnDirFlags) 8);
-    new ShapeConnectionPin(shapeRef223927132, 2147483646, 0.5, 0.5, 0, (ConnDirFlags) 2);
+    new ShapeConnectionPin(shapeRef223927132, 2147483646, 0.5, 0.5, true, 0, (ConnDirFlags) 4);
+    new ShapeConnectionPin(shapeRef223927132, 2147483646, 0.5, 0.5, true, 0, (ConnDirFlags) 1);
+    new ShapeConnectionPin(shapeRef223927132, 2147483646, 0.5, 0.5, true, 0, (ConnDirFlags) 8);
+    new ShapeConnectionPin(shapeRef223927132, 2147483646, 0.5, 0.5, true, 0, (ConnDirFlags) 2);
 
     JunctionRef *shapeRef102578723 = new JunctionRef(router, Point(51275, 50725), 102578723);
 

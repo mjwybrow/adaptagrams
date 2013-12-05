@@ -45,15 +45,15 @@ int main(void)
     // Create pins two input pins on the left side of shape 3.
     const unsigned int INPUT = 1;
     new Avoid::ShapeConnectionPin(shapeRef3, INPUT, 0.25, 
-            0.4, 0, Avoid::ConnDirLeft);
+            0.4, true, 0, Avoid::ConnDirLeft);
     new Avoid::ShapeConnectionPin(shapeRef3, INPUT, 0.75, 
-            0.6, 0, Avoid::ConnDirLeft);
+            0.6, true, 0, Avoid::ConnDirLeft);
     
     // And centre pins for two other shapes.
     new Avoid::ShapeConnectionPin(shapeRef1, Avoid::CONNECTIONPIN_CENTRE, 
-            Avoid::ATTACH_POS_CENTRE, Avoid::ATTACH_POS_CENTRE);
+            Avoid::ATTACH_POS_CENTRE, Avoid::ATTACH_POS_CENTRE, true, 0.0, Avoid::ConnDirNone);
     new Avoid::ShapeConnectionPin(shapeRef2, Avoid::CONNECTIONPIN_CENTRE, 
-            Avoid::ATTACH_POS_CENTRE, Avoid::ATTACH_POS_CENTRE);
+            Avoid::ATTACH_POS_CENTRE, Avoid::ATTACH_POS_CENTRE, true, 0.0, Avoid::ConnDirNone);
 
     // Create connectors from each shape to an input pin on shape 3.
     Avoid::ConnEnd srcEnd(shapeRef2, Avoid::CONNECTIONPIN_CENTRE);

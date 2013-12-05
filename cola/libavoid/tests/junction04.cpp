@@ -51,11 +51,11 @@ int main(void)
     
     // Add a centre connection pin for the three shapes we'll be using.
     new Avoid::ShapeConnectionPin(shapeRef1, Avoid::CONNECTIONPIN_CENTRE, 
-            Avoid::ATTACH_POS_CENTRE, Avoid::ATTACH_POS_CENTRE);
+            Avoid::ATTACH_POS_CENTRE, Avoid::ATTACH_POS_CENTRE, true, 0.0, Avoid::ConnDirNone);
     new Avoid::ShapeConnectionPin(shapeRef5, Avoid::CONNECTIONPIN_CENTRE, 
-            Avoid::ATTACH_POS_CENTRE, Avoid::ATTACH_POS_CENTRE);
+            Avoid::ATTACH_POS_CENTRE, Avoid::ATTACH_POS_CENTRE, true, 0.0, Avoid::ConnDirNone);
     new Avoid::ShapeConnectionPin(shapeRef6, Avoid::CONNECTIONPIN_CENTRE, 
-            Avoid::ATTACH_POS_CENTRE, Avoid::ATTACH_POS_CENTRE);
+            Avoid::ATTACH_POS_CENTRE, Avoid::ATTACH_POS_CENTRE, true, 0.0, Avoid::ConnDirNone);
 
     Avoid::ConnEnd srcEnd(shapeRef1, Avoid::CONNECTIONPIN_CENTRE);
     Avoid::ConnEnd dstEnd(shapeRef6, Avoid::CONNECTIONPIN_CENTRE);

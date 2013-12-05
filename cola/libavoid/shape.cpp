@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2011  Monash University
+ * Copyright (C) 2004-2013  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -74,6 +74,21 @@ void ShapeRef::moveAttachedConns(const Polygon& newPoly)
     }
 }
 
+static double absoluteOffsetInverse(double offset,
+        const Box& shapeBox, size_t toDim)
+{
+    if (offset == ATTACH_POS_MIN_OFFSET)
+    {
+        return ATTACH_POS_MAX_OFFSET;
+    }
+    
+    if (offset == ATTACH_POS_MAX_OFFSET)
+    {
+        return ATTACH_POS_MIN_OFFSET;
+    }
+    
+    return shapeBox.length(toDim) - offset;
+}
 
 void ShapeRef::transformConnectionPinPositions(
         ShapeTransformationType transform)
@@ -82,52 +97,93 @@ void ShapeRef::transformConnectionPinPositions(
             m_connection_pins.begin(); curr != m_connection_pins.end(); ++curr)
     {
         ShapeConnectionPin *pin = *curr;
-        double& xPortionOffset = pin->m_x_portion_offset;
-        double& yPortionOffset = pin->m_y_portion_offset;
+        double usingProportionalOffsets = pin->m_using_proportional_offsets;
+        double& xOffset = pin->m_x_offset;
+        double& yOffset = pin->m_y_offset;
         ConnDirFlags& visDirs =  pin->m_visibility_directions;
         double tmpOffset;
 
-        // Translate to Origin.
-        xPortionOffset -= 0.5;
-        yPortionOffset -= 0.5;
-
-        // Number of clockwise 90degree rotations;
+        // Number of clockwise 90 degree rotations;
         unsigned int rotationN = 0;
 
-        switch (transform)
+        if (usingProportionalOffsets)
         {
-            case TransformationType_CW90:
-                rotationN = 3;
-                // Y <- inverse X, X <- inverse Y
-                tmpOffset = yPortionOffset;
-                yPortionOffset = xPortionOffset;
-                xPortionOffset = -tmpOffset;
-                break;
-            case TransformationType_CW180:
-                rotationN = 2;
-                // Y <- inverse Y, X <- inverse X
-                yPortionOffset = -yPortionOffset;
-                xPortionOffset = -xPortionOffset;
-                break;
-            case TransformationType_CW270:
-                rotationN = 1;
-                // Y <- X, X <- Y
-                tmpOffset = yPortionOffset;
-                yPortionOffset = -xPortionOffset;
-                xPortionOffset = tmpOffset;
-                break;
-            case TransformationType_FlipX:
-                // Y <- Y, X <- inverse X
-                xPortionOffset = -xPortionOffset;
-                break;
-            case TransformationType_FlipY:
-                // X <- inverse X, Y <- Y
-                yPortionOffset = -yPortionOffset;
-                break;
+            // Translate to Origin.
+            xOffset -= 0.5;
+            yOffset -= 0.5;
+
+            switch (transform)
+            {
+                case TransformationType_CW90:
+                    rotationN = 3;
+                    // Y <- inverse X, X <- inverse Y
+                    tmpOffset = yOffset;
+                    yOffset = xOffset;
+                    xOffset = -tmpOffset;
+                    break;
+                case TransformationType_CW180:
+                    rotationN = 2;
+                    // Y <- inverse Y, X <- inverse X
+                    yOffset = -yOffset;
+                    xOffset = -xOffset;
+                    break;
+                case TransformationType_CW270:
+                    rotationN = 1;
+                    // Y <- X, X <- Y
+                    tmpOffset = yOffset;
+                    yOffset = -xOffset;
+                    xOffset = tmpOffset;
+                    break;
+                case TransformationType_FlipX:
+                    // Y <- Y, X <- inverse X
+                    xOffset = -xOffset;
+                    break;
+                case TransformationType_FlipY:
+                    // X <- inverse X, Y <- Y
+                    yOffset = -yOffset;
+                    break;
+            }
+            // Translate back.
+            xOffset += 0.5;
+            yOffset += 0.5;
         }
-        // Translate back.
-        xPortionOffset += 0.5;
-        yPortionOffset += 0.5;
+        else
+        {
+            // Using absolute offsets for pin.
+            
+            const Box shapeBox = pin->m_shape->polygon().offsetBoundingBox(0.0);
+            switch (transform)
+            {
+                case TransformationType_CW90:
+                    rotationN = 3;
+                    // Y <- inverse X, X <- inverse Y
+                    tmpOffset = yOffset;
+                    yOffset = xOffset;
+                    xOffset = absoluteOffsetInverse(tmpOffset, shapeBox, XDIM);
+                    break;
+                case TransformationType_CW180:
+                    rotationN = 2;
+                    // Y <- inverse Y, X <- inverse X
+                    yOffset = absoluteOffsetInverse(yOffset, shapeBox, YDIM);
+                    xOffset = absoluteOffsetInverse(xOffset, shapeBox, XDIM);
+                    break;
+                case TransformationType_CW270:
+                    rotationN = 1;
+                    // Y <- X, X <- Y
+                    tmpOffset = yOffset;
+                    yOffset = absoluteOffsetInverse(xOffset, shapeBox, YDIM);
+                    xOffset = tmpOffset;
+                    break;
+                case TransformationType_FlipX:
+                    // Y <- Y, X <- inverse X
+                    xOffset = absoluteOffsetInverse(xOffset, shapeBox, XDIM);
+                    break;
+                case TransformationType_FlipY:
+                    // X <- inverse X, Y <- Y
+                    yOffset = absoluteOffsetInverse(yOffset, shapeBox, YDIM);
+                    break;
+            }
+        }
 
         if ( (visDirs & ConnDirAll) && (visDirs != ConnDirAll) )
         {

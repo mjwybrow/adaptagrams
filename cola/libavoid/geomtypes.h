@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2009  Monash University
+ * Copyright (C) 2004-2013  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -137,6 +137,10 @@ class AVOID_EXPORT Box
         Point min;
         //! The bottom-right point.
         Point max;
+
+        double length(const unsigned int dimension) const;
+        double width(void) const;
+        double height(void) const;
 };
 
 
@@ -166,10 +170,7 @@ class AVOID_EXPORT PolygonInterface
         //! @return A new Rectangle representing the bounding box.
         Polygon boundingRectPolygon(void) const;
         //! @brief  Returns the bounding rectangle that contains this polygon
-        //!         wtih optionally some buffer space around it for routing.
-        //!
-        //! If a NULL pointer is passed for any of the arguments, then that
-        //! value is ignored and not returned.
+        //!         with optionally some buffer space around it for routing.
         //!
         //! If a buffer distance of zero is given, then this method returns
         //! the bounding rectangle for the shape's polygon.

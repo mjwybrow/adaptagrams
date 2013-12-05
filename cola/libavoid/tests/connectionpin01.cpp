@@ -41,9 +41,9 @@ int main(void)
 
     const unsigned int CENTRE = 1;
     new Avoid::ShapeConnectionPin(shapeRef1, CENTRE, Avoid::ATTACH_POS_CENTRE, 
-            Avoid::ATTACH_POS_CENTRE);
+            Avoid::ATTACH_POS_CENTRE, true, 0.0, Avoid::ConnDirNone);
     new Avoid::ShapeConnectionPin(shapeRef2, CENTRE, Avoid::ATTACH_POS_CENTRE, 
-            Avoid::ATTACH_POS_CENTRE);
+            Avoid::ATTACH_POS_CENTRE, true, 0.0, Avoid::ConnDirNone);
 
     Avoid::ConnEnd dstEnd(shapeRef1, CENTRE);
     Avoid::ConnEnd srcEnd(shapeRef2, CENTRE);

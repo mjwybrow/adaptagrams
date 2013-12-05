@@ -21,9 +21,9 @@ int test()
 	poly.setPoint(2, Avoid::Point(50950, 50730));
 	poly.setPoint(3, Avoid::Point(50950, 50670));
 	Avoid::ShapeRef * shape341041314 = new Avoid::ShapeRef(router, poly, 341041314);
-	Avoid::ShapeConnectionPin * pin341041314_0 = new Avoid::ShapeConnectionPin(shape341041314, 1, 0.952381, 0.5, 10, 8);
+	Avoid::ShapeConnectionPin * pin341041314_0 = new Avoid::ShapeConnectionPin(shape341041314, 1, 0.952381, 0.5, true, 10, 8);
 	pin341041314_0->setExclusive(true);
-	Avoid::ShapeConnectionPin * pin341041314_1 = new Avoid::ShapeConnectionPin(shape341041314, 2, 0, 0.5, 10, 4);
+	Avoid::ShapeConnectionPin * pin341041314_1 = new Avoid::ShapeConnectionPin(shape341041314, 2, 0, 0.5, true, 10, 4);
 	pin341041314_1->setExclusive(true);
 	poly = Avoid::Polygon(4);
 	poly.setPoint(0, Avoid::Point(51160, 50395));
@@ -31,9 +31,9 @@ int test()
 	poly.setPoint(2, Avoid::Point(50950, 50455));
 	poly.setPoint(3, Avoid::Point(50950, 50395));
 	Avoid::ShapeRef * shape47540376 = new Avoid::ShapeRef(router, poly, 47540376);
-	Avoid::ShapeConnectionPin * pin47540376_0 = new Avoid::ShapeConnectionPin(shape47540376, 1, 0.952381, 0.5, 10, 8);
+	Avoid::ShapeConnectionPin * pin47540376_0 = new Avoid::ShapeConnectionPin(shape47540376, 1, 0.952381, 0.5, true, 10, 8);
 	pin47540376_0->setExclusive(true);
-	Avoid::ShapeConnectionPin * pin47540376_1 = new Avoid::ShapeConnectionPin(shape47540376, 2, 0, 0.5, 10, 4);
+	Avoid::ShapeConnectionPin * pin47540376_1 = new Avoid::ShapeConnectionPin(shape47540376, 2, 0, 0.5, true, 10, 4);
 	pin47540376_1->setExclusive(true);
 	poly = Avoid::Polygon(4);
 	poly.setPoint(0, Avoid::Point(50850, 50770));
@@ -41,9 +41,9 @@ int test()
 	poly.setPoint(2, Avoid::Point(50665, 50830));
 	poly.setPoint(3, Avoid::Point(50665, 50770));
 	Avoid::ShapeRef * shape81920772 = new Avoid::ShapeRef(router, poly, 81920772);
-	Avoid::ShapeConnectionPin * pin81920772_0 = new Avoid::ShapeConnectionPin(shape81920772, 1, 0.047619, 0.5, 10, 4);
+	Avoid::ShapeConnectionPin * pin81920772_0 = new Avoid::ShapeConnectionPin(shape81920772, 1, 0.047619, 0.5, true, 10, 4);
 	pin81920772_0->setExclusive(true);
-	Avoid::ShapeConnectionPin * pin81920772_1 = new Avoid::ShapeConnectionPin(shape81920772, 2, 1, 0.5, 10, 8);
+	Avoid::ShapeConnectionPin * pin81920772_1 = new Avoid::ShapeConnectionPin(shape81920772, 2, 1, 0.5, true, 10, 8);
 	pin81920772_1->setExclusive(true);
 	Avoid::JunctionRef * junction878282342 = new Avoid::JunctionRef(router, Avoid::Point(50875, 50700), 878282342);
 	junction878282342->setPositionFixed(false);
@@ -53,9 +53,9 @@ int test()
 	poly.setPoint(2, Avoid::Point(50665, 50530));
 	poly.setPoint(3, Avoid::Point(50665, 50470));
 	Avoid::ShapeRef * shape206564314 = new Avoid::ShapeRef(router, poly, 206564314);
-	Avoid::ShapeConnectionPin * pin206564314_0 = new Avoid::ShapeConnectionPin(shape206564314, 1, 0.047619, 0.5, 10, 4);
+	Avoid::ShapeConnectionPin * pin206564314_0 = new Avoid::ShapeConnectionPin(shape206564314, 1, 0.047619, 0.5, true, 10, 4);
 	pin206564314_0->setExclusive(true);
-	Avoid::ShapeConnectionPin * pin206564314_1 = new Avoid::ShapeConnectionPin(shape206564314, 2, 1, 0.5, 10, 8);
+	Avoid::ShapeConnectionPin * pin206564314_1 = new Avoid::ShapeConnectionPin(shape206564314, 2, 1, 0.5, true, 10, 8);
 	pin206564314_1->setExclusive(true);
 	Avoid::JunctionRef * junction213455341 = new Avoid::JunctionRef(router, Avoid::Point(50875, 50500), 213455341);
 	junction213455341->setPositionFixed(false);
@@ -103,7 +103,7 @@ int test()
 	return (junctionPos.y == 50675) ? 0 : 1; 
 }
 
-int main(int argc, char* argv[])
+int main(void)
 {
 	return test();
 }

@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2010  Monash University
+ * Copyright (C) 2010-2013  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -37,32 +37,78 @@ namespace Avoid {
 
 ShapeConnectionPin::ShapeConnectionPin(ShapeRef *shape, 
         const unsigned int classId, const double xPortionOffset,
-        const double yPortionOffset, const double insideOffset, 
-        const ConnDirFlags visDirs)
+        const double yPortionOffset, const bool proportional,
+        const double insideOffset, const ConnDirFlags visDirs)
     : m_shape(shape),
       m_junction(NULL),
       m_class_id(classId),
-      m_x_portion_offset(xPortionOffset),
-      m_y_portion_offset(yPortionOffset),
+      m_x_offset(xPortionOffset),
+      m_y_offset(yPortionOffset),
       m_inside_offset(insideOffset),
       m_visibility_directions(visDirs),
       m_exclusive(true),
       m_connection_cost(0.0),
-      m_vertex(NULL)
+      m_vertex(NULL),
+      m_using_proportional_offsets(proportional)
+{
+    commonInitForShapeConnection();
+}
+
+ShapeConnectionPin::ShapeConnectionPin(ShapeRef *shape, 
+        const unsigned int classId, const double xOffset,
+        const double yOffset, const double insideOffset,
+        const ConnDirFlags visDirs)
+    : m_shape(shape),
+      m_junction(NULL),
+      m_class_id(classId),
+      m_x_offset(xOffset),
+      m_y_offset(yOffset),
+      m_inside_offset(insideOffset),
+      m_visibility_directions(visDirs),
+      m_exclusive(true),
+      m_connection_cost(0.0),
+      m_vertex(NULL),
+      m_using_proportional_offsets(true)
+{
+    commonInitForShapeConnection();
+}
+
+
+void ShapeConnectionPin::commonInitForShapeConnection(void)
 {
     COLA_ASSERT(m_shape != NULL);
     COLA_ASSERT(m_class_id > 0);
 
-    // Parameter checking
-    if ((xPortionOffset < 0) || (xPortionOffset > 1))
+    if (m_using_proportional_offsets)
     {
-        err_printf("xPortionOffset value (%g) in ShapeConnectionPin constructor not "
-                "between 0 and 1.\n", xPortionOffset);
+        // Parameter checking
+        if ((m_x_offset < 0) || (m_x_offset > 1))
+        {
+            err_printf("xPortionOffset value (%g) in ShapeConnectionPin "
+                    "constructor not between 0 and 1.\n", m_x_offset);
+        }
+        if ((m_y_offset < 0) || (m_y_offset > 1))
+        {
+            err_printf("yPortionOffset value (%g) in ShapeConnectionPin "
+                    "constructor not between 0 and 1.\n", m_y_offset);
+        }
     }
-    if ((yPortionOffset < 0) || (yPortionOffset > 1))
+    else
     {
-        err_printf("yPortionOffset value (%g) in ShapeConnectionPin constructor not "
-                "between 0 and 1.\n", yPortionOffset);
+        const Box shapeBox = m_shape->polygon().offsetBoundingBox(0.0);
+        // Parameter checking
+        if (m_x_offset > shapeBox.width())
+        {
+            err_printf("xOffset value (%g) in ShapeConnectionPin constructor "
+                    "greater than shape width (%g).\n", m_x_offset, 
+                    shapeBox.width());
+        }
+        if (m_y_offset > shapeBox.height())
+        {
+            err_printf("yOffset value (%g) in ShapeConnectionPin constructor "
+                    "greater than shape height (%g).\n", m_y_offset,
+                    shapeBox.height());
+        }
     }
 
     m_router = m_shape->router();
@@ -93,13 +139,14 @@ ShapeConnectionPin::ShapeConnectionPin(JunctionRef *junction,
     : m_shape(NULL),
       m_junction(junction),
       m_class_id(classId),
-      m_x_portion_offset(0.0),
-      m_y_portion_offset(0.0),
+      m_x_offset(0.0),
+      m_y_offset(0.0),
       m_inside_offset(0.0),
       m_visibility_directions(visDirs),
       m_exclusive(true),
       m_connection_cost(0.0),
-      m_vertex(NULL)
+      m_vertex(NULL),
+      m_using_proportional_offsets(false)
 {
     COLA_ASSERT(m_junction != NULL);
     m_router = m_junction->router();
@@ -199,51 +246,78 @@ const Point ShapeConnectionPin::position(const Polygon& newPoly) const
     }
 
     const Polygon& poly = (newPoly.empty()) ? m_shape->polygon() : newPoly;
-
-    double x_min = DBL_MAX;
-    double x_max = -DBL_MAX;
-    double y_min = DBL_MAX;
-    double y_max = -DBL_MAX;
-    for (size_t i = 0; i < poly.size(); ++i)
-    {
-        x_min = std::min(x_min, poly.ps[i].x);
-        x_max = std::max(x_max, poly.ps[i].x);
-        y_min = std::min(y_min, poly.ps[i].y);
-        y_max = std::max(y_max, poly.ps[i].y);
-    }
+    const Box shapeBox = poly.offsetBoundingBox(0.0);
 
     Point point;
 
-    // We want to place connection points exactly on the edges of shapes, 
-    // or possibly slightly inside them (if m_insideOfset is set).
-    if (m_x_portion_offset == ATTACH_POS_LEFT)
+    if (m_using_proportional_offsets)
     {
-        point.x = x_min + m_inside_offset;
-        point.vn = 6;
-    }
-    else if (m_x_portion_offset == ATTACH_POS_RIGHT)
-    {
-        point.x = x_max - m_inside_offset;
-        point.vn = 4;
-    }
-    else
-    {
-        point.x = x_min + (m_x_portion_offset * (x_max - x_min));
-    }
+        // We want to place connection points exactly on the edges of shapes, 
+        // or possibly slightly inside them (if m_insideOfset is set).
+        if (m_x_offset == ATTACH_POS_LEFT)
+        {
+            point.x = shapeBox.min.x + m_inside_offset;
+            point.vn = 6;
+        }
+        else if (m_x_offset == ATTACH_POS_RIGHT)
+        {
+            point.x = shapeBox.max.x - m_inside_offset;
+            point.vn = 4;
+        }
+        else
+        {
+            point.x = shapeBox.min.x + (m_x_offset * shapeBox.width());
+        }
 
-    if (m_y_portion_offset == ATTACH_POS_TOP)
-    {
-        point.y = y_min + m_inside_offset;
-        point.vn = 5;
-    }
-    else if (m_y_portion_offset == ATTACH_POS_BOTTOM)
-    {
-        point.y = y_max - m_inside_offset;
-        point.vn = 7;
+        if (m_y_offset == ATTACH_POS_TOP)
+        {
+            point.y = shapeBox.min.y + m_inside_offset;
+            point.vn = 5;
+        }
+        else if (m_y_offset == ATTACH_POS_BOTTOM)
+        {
+            point.y = shapeBox.max.y - m_inside_offset;
+            point.vn = 7;
+        }
+        else
+        {
+            point.y = shapeBox.min.y + (m_y_offset * shapeBox.height());
+        }
     }
     else
     {
-        point.y = y_min + (m_y_portion_offset * (y_max - y_min));
+        // Using absolute offsets for connection pin position.
+        if (m_x_offset == ATTACH_POS_MIN_OFFSET)
+        {
+            point.x = shapeBox.min.x + m_inside_offset;
+            point.vn = 6;
+        }
+        else if ((m_x_offset == ATTACH_POS_MAX_OFFSET) ||
+                 (m_x_offset == shapeBox.width()))
+        {
+            point.x = shapeBox.max.x - m_inside_offset;
+            point.vn = 4;
+        }
+        else
+        {
+            point.x = shapeBox.min.x + m_x_offset;
+        }
+
+        if (m_y_offset == ATTACH_POS_MIN_OFFSET)
+        {
+            point.y = shapeBox.min.y + m_inside_offset;
+            point.vn = 5;
+        }
+        else if ((m_y_offset == ATTACH_POS_MAX_OFFSET) ||
+                 (m_y_offset == shapeBox.height()))
+        {
+            point.y = shapeBox.max.y - m_inside_offset;
+            point.vn = 7;
+        }
+        else
+        {
+            point.y = shapeBox.min.y + m_y_offset;
+        }
     }
 
     return point;
@@ -256,20 +330,20 @@ ConnDirFlags ShapeConnectionPin::directions(void) const
     if (m_visibility_directions == ConnDirNone)
     {
         // None is set, use the defaults:
-        if (m_x_portion_offset == ATTACH_POS_LEFT)
+        if (m_x_offset == ATTACH_POS_LEFT)
         {
             visDir |= ConnDirLeft;
         }
-        else if (m_x_portion_offset == ATTACH_POS_RIGHT)
+        else if (m_x_offset == ATTACH_POS_RIGHT)
         {
             visDir |= ConnDirRight;
         }
 
-        if (m_y_portion_offset == ATTACH_POS_TOP)
+        if (m_y_offset == ATTACH_POS_TOP)
         {
             visDir |= ConnDirUp;
         }
-        else if (m_y_portion_offset == ATTACH_POS_BOTTOM)
+        else if (m_y_offset == ATTACH_POS_BOTTOM)
         {
             visDir |= ConnDirDown;
         }
@@ -289,7 +363,7 @@ void ShapeConnectionPin::outputCode(FILE *fp) const
     {
         fprintf(fp, "    new ShapeConnectionPin(shapeRef%u, %u, %g, %g, %g, "
                 "(ConnDirFlags) %u);\n", m_shape->id(), m_class_id, 
-                m_x_portion_offset, m_y_portion_offset, m_inside_offset,
+                m_x_offset, m_y_offset, m_inside_offset,
                 (unsigned int) m_visibility_directions);
     }
     else if (m_junction)
@@ -324,11 +398,11 @@ bool ShapeConnectionPin::operator==(const ShapeConnectionPin& rhs) const
     {
         return false;
     }
-    if (m_x_portion_offset != rhs.m_x_portion_offset)
+    if (m_x_offset != rhs.m_x_offset)
     {
        return false;
     }
-    if (m_y_portion_offset != rhs.m_y_portion_offset)
+    if (m_y_offset != rhs.m_y_offset)
     {
        return false;
     }
@@ -361,13 +435,13 @@ bool ShapeConnectionPin::operator<(const ShapeConnectionPin& rhs) const
     {
         return m_visibility_directions < rhs.m_visibility_directions;
     }
-    if (m_x_portion_offset != rhs.m_x_portion_offset)
+    if (m_x_offset != rhs.m_x_offset)
     {
-        return m_x_portion_offset < rhs.m_x_portion_offset;
+        return m_x_offset < rhs.m_x_offset;
     }
-    if (m_y_portion_offset != rhs.m_y_portion_offset)
+    if (m_y_offset != rhs.m_y_offset)
     {
-        return m_y_portion_offset < rhs.m_y_portion_offset;
+        return m_y_offset < rhs.m_y_offset;
     }
     if (m_inside_offset != rhs.m_inside_offset)
     {

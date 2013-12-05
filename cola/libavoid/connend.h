@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2011  Monash University
+ * Copyright (C) 2004-2013  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -98,15 +98,6 @@ enum ConnEndType {
     //! @brief  The ConnEnd is empty and doesn't have any information set.
     ConnEndEmpty
 };
-
-
-// Used to specify position on shape when constructing a shape-attached ConnEnd.
-//
-static const double ATTACH_POS_TOP = 0;
-static const double ATTACH_POS_CENTRE = 0.5;
-static const double ATTACH_POS_BOTTOM = 1;
-static const double ATTACH_POS_LEFT = ATTACH_POS_TOP;
-static const double ATTACH_POS_RIGHT = ATTACH_POS_BOTTOM;
 
 
 //! @brief  The ConnEnd class represents different possible endpoints for 
