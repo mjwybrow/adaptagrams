@@ -14,7 +14,7 @@ Currently, the Adaptagrams repository includes:
 		placement vector and some ideal placement are minimised 
 		subject to a set of separation constraints. This is very 
 		useful in a number of layout problems.
- *  [libcola][libcola] 
+ *  [libcola][libcola]  
     	      - a library for constraint graph layout.  Specifically, 
     		force-directed layout using the stress-majorization 
 		method subject to separation constraints. Applications 
