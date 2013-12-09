@@ -167,6 +167,7 @@ class ColaException {
 %nodefaultdtor cola::Lock;
 %nodefaultdtor cola::Resize;
 %nodefaultdtor topology::Node;
+%nodefaultdtor topology::Edge;
 %nodefaultdtor topology::EdgePoint;
 %nodefaultdtor topology::ColaTopologyAddon;
 

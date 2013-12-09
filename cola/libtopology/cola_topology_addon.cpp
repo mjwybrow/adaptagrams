@@ -53,6 +53,21 @@ cola::TopologyAddonInterface *ColaTopologyAddon::clone(void) const
     return new ColaTopologyAddon(*this);
 }
 
+void ColaTopologyAddon::freeAssociatedObjects(void)
+{
+    if (debugSVGViewBox)
+    {
+        delete debugSVGViewBox;
+        debugSVGViewBox = NULL;
+    }
+
+    for_each(topologyNodes.begin(), topologyNodes.end(), delete_object());
+    topologyNodes.clear();
+
+    for_each(topologyRoutes.begin(), topologyRoutes.end(), delete_object());
+    topologyRoutes.clear();
+}
+
 void ColaTopologyAddon::handleResizes(const cola::Resizes& resizeList,
         unsigned n, std::valarray<double>& X, std::valarray<double>& Y, 
         cola::CompoundConstraints& ccs, vpsc::Rectangles& boundingBoxes,

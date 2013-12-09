@@ -85,6 +85,7 @@ class ColaTopologyAddon : public cola::TopologyAddonInterface
 
         cola::TopologyAddonInterface *clone(void) const;
 
+        void freeAssociatedObjects(void);
         void handleResizes(const cola::Resizes& resizeList, unsigned n,
                 std::valarray<double>& X, std::valarray<double>& Y, 
                 cola::CompoundConstraints& ccs, 

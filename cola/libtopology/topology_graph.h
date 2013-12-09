@@ -487,12 +487,19 @@ namespace topology {
         void forEachEdgePoint(T o, bool noCycle=false) const {
             forEach(o,NoOp<const Segment*>(),noCycle);
         }
+
+// To prevent C++ objects from being destroyed in garbage collected languages
+// when the libraries are called from SWIG, we hide the declarations of the
+// destructors and prevent generation of default destructors.
+#ifndef SWIG
         /*
          * cleanup segments
          */
         ~Edge() {
             forEach(delete_object(),delete_object(),true);
         }
+#endif
+
         /*
          * the sum of the lengths of all the segments
          */

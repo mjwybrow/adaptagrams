@@ -515,6 +515,10 @@ class TopologyAddonInterface
             return new TopologyAddonInterface(*this);
         }
         
+        virtual void freeAssociatedObjects(void)
+        {
+        }
+
         virtual void handleResizes(const Resizes& resizeList, unsigned n,
                 std::valarray<double>& X, std::valarray<double>& Y, 
                 cola::CompoundConstraints& ccs, 

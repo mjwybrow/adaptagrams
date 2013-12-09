@@ -797,6 +797,8 @@ void ConstrainedFDLayout::freeAssociatedObjects(void)
         delete clusterHierarchy;
         clusterHierarchy = NULL;
     }
+    
+    topologyAddon->freeAssociatedObjects();
 }
 
 void ConstrainedFDLayout::setTopology(TopologyAddonInterface *newTopology)
