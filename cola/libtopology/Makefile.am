@@ -1,6 +1,9 @@
 
 lib_LTLIBRARIES = libtopology.la
-libtopology_la_CPPFLAGS = -I$(top_srcdir) -I{includedir}/libtopology -fPIC
+libtopology_la_CPPFLAGS = -I$(top_srcdir) -I$(includedir)/libtopology -fPIC
+
+# Depends on libavoid, libcola, and libvpsc
+libtopology_la_LIBADD = $(top_builddir)/libavoid/libavoid.la $(top_builddir)/libcola/libcola.la $(top_builddir)/libvpsc/libvpsc.la
 
 libtopology_la_SOURCES = topology_graph.cpp\
 			topology_constraints.cpp\
@@ -17,7 +20,7 @@ libtopology_la_SOURCES = topology_graph.cpp\
 			util.h
 
 
-libtopologyincludedir = ${includedir}/libtopology
+libtopologyincludedir = $(includedir)/libtopology
 libtopologyinclude_HEADERS = topology_constraints.h \
 			topology_graph.h \
 			cola_topology_addon.h \

@@ -1,6 +1,6 @@
 
 lib_LTLIBRARIES = libavoid.la
-libavoid_la_CPPFLAGS = -I$(top_srcdir) -I{includedir}/libavoid -fPIC
+libavoid_la_CPPFLAGS = -I$(top_srcdir) -I$(includedir)/libavoid -fPIC
 libavoid_la_LDFLAGS = -no-undefined
 
 libavoid_la_SOURCES = connectionpin.cpp \
@@ -52,7 +52,7 @@ libavoid_la_SOURCES = connectionpin.cpp \
 			actioninfo.h \
 			vpsc.h
 
-libavoidincludedir = ${includedir}/libavoid
+libavoidincludedir = $(includedir)/libavoid
 libavoidinclude_HEADERS = assertions.h \
 			connector.h \
 			connectionpin.h \
