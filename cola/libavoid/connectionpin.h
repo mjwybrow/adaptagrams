@@ -112,7 +112,7 @@ class AVOID_EXPORT ShapeConnectionPin
         //!  -  ATTACH_POS_MAX_OFFSET = offset of shape width/height
         //!
         //! Importantly, shape connection pins will be moved automatically when
-        //! the parent shapes are moved or resized.  Attachment for connectors 
+        //! the parent shape is moved or resized.  Attachment for connectors 
         //! will be chosen based on the classId specified to ConnEnd and these
         //! connectors will be subsequently rerouted.
         //!
@@ -129,25 +129,6 @@ class AVOID_EXPORT ShapeConnectionPin
         //! This offset will only be applied for connection pins specified 
         //! with a position exactly on the shape boundary.
         //! 
-        //! @param[in]  shape          A pointer to the containing parent 
-        //!                            shape's ShapeRef.
-        //! @param[in]  classId        A non-zero integer used to denote the
-        //!                            class or group of this connection
-        //!                            point, used for specifying attachment
-        //!                            to ConnEnd.
-        //! @param[in]  xPortionOffset The X position within the shape, 
-        //!                            specified as a proportion of the width
-        //!                            between 0 (left) and 1 (right).
-        //! @param[in]  yPortionOffset The Y position within the shape, 
-        //!                            specified as a proportion of the height
-        //!                            between 0 (top) and 1 (bottom).  
-        //! @param[in]  insideOffset   A distance to offset the connection 
-        //!                            point inside the shape if it lies on 
-        //!                            the boundary.
-        //! @param[in]  visDirs        One or more Avoid::ConnDirFlag options 
-        //!                            specifying the directions that this 
-        //!                            connection point has visibility. 
-        //!
         //! @param[in]  shape          A pointer to the containing parent 
         //!                            shape's ShapeRef.
         //! @param[in]  classId        A non-zero integer used to denote the
