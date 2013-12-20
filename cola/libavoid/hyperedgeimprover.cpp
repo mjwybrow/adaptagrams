@@ -915,7 +915,7 @@ void HyperedgeImprover::execute(bool canMakeMajorChanges)
         m_hyperedge_tree_roots.erase(junction);
     }
 
-    m_router->timers.Register(tmHyperedgeImprove, timerStart);
+    TIMER_START(m_router, tmHyperedgeImprove);
 
     // Debug output.
     unsigned int versionNumber = 1;
@@ -1017,7 +1017,7 @@ void HyperedgeImprover::execute(bool canMakeMajorChanges)
         m_router->deleteJunction(*curr);
     }
 
-    m_router->timers.Stop();
+    TIMER_STOP(m_router);
 }
 
 

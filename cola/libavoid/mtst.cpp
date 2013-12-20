@@ -276,7 +276,7 @@ void MinimumTerminalSpanningTree::constructSequential(void)
     // First, perform extended Dijkstra's algorithm
     // ============================================
     //
-    router->timers.Register(tmHyperedgeForest, timerStart);
+    TIMER_START(router, tmHyperedgeForest);
 
     // Vertex heap for extended Dijkstra's algorithm.
     std::vector<VertInf *> vHeap;
@@ -443,12 +443,12 @@ void MinimumTerminalSpanningTree::constructSequential(void)
     {
         fprintf(debug_fp, "</g>\n");
     }
-    router->timers.Stop();
+    TIMER_STOP(router);
 
     // Next, perform extended Kruskal's algorithm
     // ==========================================
     //
-    router->timers.Register(tmHyperedgeMTST, timerStart);
+    TIMER_START(router, tmHyperedgeMTST);
     if (debug_fp)
     {
         step_count = 1;
@@ -526,7 +526,7 @@ void MinimumTerminalSpanningTree::constructSequential(void)
     nodes.clear();
     allsets.clear();
 
-    router->timers.Stop();
+    TIMER_STOP(router);
 }
 
 VertInf *MinimumTerminalSpanningTree::orthogonalPartner(VertInf *vert, 
@@ -634,7 +634,7 @@ void MinimumTerminalSpanningTree::constructInterleaved(void)
     // Perform an interleaved construction of the MTST and SPTF
     // ========================================================
     //
-    router->timers.Register(tmHyperedgeAlt, timerStart);
+    TIMER_START(router, tmHyperedgeAlt);
     strcpy(debug_label, "int");
 
     origTerminals = terminals;
@@ -807,7 +807,7 @@ void MinimumTerminalSpanningTree::constructInterleaved(void)
         //printf("-- %d %d %d\n", (int) origTerminals.size(), 
         //        (int) vHeap.size(), (int) beHeap.size());
     }
-    router->timers.Stop();
+    TIMER_STOP(router);
 
     // Free Root Vertex Points from all vertices.
     for (std::list<VertInf **>::iterator curr = rootVertexPointers.begin();

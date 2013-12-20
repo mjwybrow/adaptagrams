@@ -1124,6 +1124,8 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
     // Continue until the queue is empty.
     while (!PENDING.empty())
     {
+        TIMER_VAR_INCREMENT(router, 0);
+        TIMER_VAR_MAX(router, 1, PENDING.size());
         // Set the Node with lowest f value to BESTNODE.
         // Since the ANode operator< is reversed, the head of the
         // heap is the node with the lowest f value.

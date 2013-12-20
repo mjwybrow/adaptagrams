@@ -38,7 +38,6 @@
 #include "libavoid/orthogonal.h"
 #include "libavoid/assertions.h"
 #include "libavoid/connectionpin.h"
-#include "libavoid/makepath.h"
 
 
 namespace Avoid {
@@ -88,7 +87,6 @@ Router::Router(const unsigned int flags)
     }
     m_routing_parameters[segmentPenalty] = 10;
     m_routing_parameters[clusterCrossingPenalty] = 4000;
-    m_routing_parameters[portDirectionPenalty] = 100;
     m_routing_parameters[idealNudgingDistance] = 4.0;
 
     m_routing_options[nudgeOrthogonalSegmentsConnectedToShapes] = false;
@@ -427,11 +425,11 @@ void Router::regenerateStaticBuiltGraph(void)
         {
             destroyOrthogonalVisGraph();
 
-            timers.Register(tmOrthogGraph, timerStart);
+            TIMER_START(this, tmOrthogGraph);
             // Regenerate a new visibility graph.
             generateStaticOrthogonalVisGraph(this);
             
-            timers.Stop();
+            TIMER_STOP(this);
         }
         m_static_orthogonal_graph_invalidated = false;
     }
@@ -928,7 +926,6 @@ void Router::rerouteAndCallbackConnectors(void)
     ConnRefSet hyperedgeConns =
             m_hyperedge_rerouter.calcHyperedgeConnectors();
 
-    timers.Register(tmOrthogRoute, timerStart);
     unsigned int totalConns = connRefs.size();
     unsigned int numOfReroutedConns = 0;
     for (ConnRefList::const_iterator i = connRefs.begin(); i != fin; ++i) 
@@ -951,14 +948,15 @@ void Router::rerouteAndCallbackConnectors(void)
             continue;
         }
 
+        TIMER_START(this, tmOrthogRoute);
         connector->m_needs_repaint = false;
         bool rerouted = connector->generatePath();
         if (rerouted)
         {
             reroutedConns.push_back(connector);
         }
+        TIMER_STOP(this);
     }
-    timers.Stop();
 
 
     // Perform any complete hyperedge rerouting that has been requested.
@@ -1957,7 +1955,7 @@ void Router::printInfo(void)
     fprintf(fp, "Number of shapes: %d\n", st_shapes);
     fprintf(fp, "Number of vertices: %d (%d real, %d endpoints)\n",
             st_vertices + st_endpoints, st_vertices, st_endpoints);
-    fprintf(fp, "Number of orhtog_vis_edges: %d\n", st_orthogonal_visedges);
+    fprintf(fp, "Number of orthog_vis_edges: %d\n", st_orthogonal_visedges);
     fprintf(fp, "Number of vis_edges: %d (%d valid [%d normal, %d endpt], "
             "%d invalid)\n", st_valid_shape_visedges + st_invalid_visedges +
             st_valid_endpt_visedges, st_valid_shape_visedges +
@@ -1967,20 +1965,10 @@ void Router::printInfo(void)
     fprintf(fp, "checkVisEdge tally: %d\n", st_checked_edges);
     fprintf(fp, "----------------------\n");
 
-    fprintf(fp, "ADDS:  "); timers.Print(tmAdd, fp);
-    fprintf(fp, "DELS:  "); timers.Print(tmDel, fp);
-    fprintf(fp, "MOVS:  "); timers.Print(tmMov, fp);
-    fprintf(fp, "***S:  "); timers.Print(tmSev, fp);
-    fprintf(fp, "PTHS:  "); timers.Print(tmPth, fp);
-    fprintf(fp, "OrthogGraph:  "); timers.Print(tmOrthogGraph, fp);
-    fprintf(fp, "OrthogRoute:  "); timers.Print(tmOrthogRoute, fp);
-    fprintf(fp, "OrthogCentre:  "); timers.Print(tmOrthogCentre, fp);
-    fprintf(fp, "OrthogNudge:  "); timers.Print(tmOrthogNudge, fp);
-    fprintf(fp, "HyperedgeForest:  "); timers.Print(tmHyperedgeForest, fp);
-    fprintf(fp, "HyperedgeMTST:  "); timers.Print(tmHyperedgeMTST, fp);
-    fprintf(fp, "HyperedgeImprove:  "); timers.Print(tmHyperedgeImprove, fp);
-    fprintf(fp, "\n");
-    timers.Reset();
+#ifdef AVOID_PROFILE
+    timers.printAll(fp);
+    timers.reset();
+#endif
 }
 
 

@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2008  Monash University
+ * Copyright (C) 2004-2013  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -33,132 +33,156 @@
 
 namespace Avoid {
 
+#ifdef AVOID_PROFILE
 
 Timer::Timer()
 {
-    Reset();
+    reset();
 }
 
 
-void Timer::Reset(void)
+void Timer::reset(void)
 {
-    for (int i = 0; i < tmCount; i++)
+    for (size_t i = 0; i < tmCount; ++i)
     {
-        //tTotal[i] = 0;
-        cTotal[i] = cPath[i] = 0;
-        cTally[i] = cPathTally[i] = 0;
-        cMax[i] = cPathMax[i] = 0;
+        m_total_time[i] =  0;
+        m_tally[i] = 0;
+        m_max_time[i] = 0;
+        for (size_t j = 0; j < TIMER_VARIABLES_COUNT; ++j)
+        {
+            m_variables[i][j] = 0;
+        }
     }
-    running = false;
-    count  = 0;
-    type = lasttype = tmNon;
+    m_is_running = false;
+    m_type = m_last_type = tmCount;
 }
 
 
-void Timer::Register(const TimerIndex t, const bool start)
+void Timer::initialise(const TimerIndex t)
 {
-    COLA_ASSERT(t != tmNon);
-
-    if (type == tmNon)
-    {
-        type = t;
-    }
-    else
-    {
-        type = tmSev;
-    }
-
-    if (start)
-    {
-        Start();
-    }
+    COLA_ASSERT(t != tmCount);
+    COLA_ASSERT(m_type == tmCount);
+    
+    m_type = t;
 }
 
-void Timer::Start(void)
+void Timer::start(void)
 {
-    COLA_ASSERT(!running);
-    cStart[type] = clock();  // CPU time
-    running = true;
+    COLA_ASSERT(!m_is_running);
+    m_start_time[m_type] = clock();  // CPU time
+    m_is_running = true;
 }
 
 
-void Timer::Stop(void)
+void Timer::stop(void)
 {
-    COLA_ASSERT(running);
-    clock_t cStop = clock();      // CPU time
-    running = false;
+    COLA_ASSERT(m_is_running);
+    clock_t stopTime = clock();      // CPU time
+    m_is_running = false;
 
-    bigclock_t cDiff;
-    if (cStop < cStart[type])
+    bigclock_t timeDiff;
+    if (stopTime < m_start_time[m_type])
     {
         // Uh-oh, the clock value has wrapped around.
         //
-        bigclock_t realStop = ((bigclock_t) cStop) + ULONG_MAX + 1;
-        cDiff = realStop - cStart[type];
+        bigclock_t realStopTime = ((bigclock_t) stopTime) + ULONG_MAX + 1;
+        timeDiff = realStopTime - m_start_time[m_type];
     }
     else
     {
-        cDiff = cStop - cStart[type];
+        timeDiff = stopTime - m_start_time[m_type];
     }
     
-    COLA_ASSERT(cDiff < LONG_MAX);
+    COLA_ASSERT(timeDiff < LONG_MAX);
 
-    if (type == tmPth)
+    m_total_time[m_type] += timeDiff;
+    m_tally[m_type]++;
+    if (((clock_t) timeDiff) > m_max_time[m_type])
     {
-        cPath[lasttype] += cDiff;
-        cPathTally[lasttype]++;
-        if (((clock_t) cDiff) > cPathMax[lasttype])
-        {
-            cPathMax[lasttype] = (clock_t) cDiff;
-        }
+        m_max_time[m_type] = (clock_t) timeDiff;
     }
-    else
-    {
-        cTotal[type] += cDiff;
-        cTally[type]++;
-        if (((clock_t) cDiff) > cMax[type])
-        {
-            cMax[type] = (clock_t) cDiff;
-        }
-        lasttype = type;
-    }
+    m_last_type = m_type;
 
-    type = tmNon;
+    m_type = tmCount;
 }
 
+static const char* timerNames[] =
+{
+    "Adds",
+    "Dels",
+    "Movs",
+    "Pths",
+    "OrthogGraph",
+    "OrthogRoute",
+    "OrthogCentre",
+    "OrthogNudge",
+    "HyperedgeForest",
+    "HyperedgeMTST",
+    "HyperedgeImprove",
+    "HyperedgeAlt"
+};
 
-void Timer::PrintAll(FILE *fp)
+
+void Timer::printAll(FILE *fp)
 {
     for (unsigned int i = 0; i < tmCount; i++)
     {
-        Print((TimerIndex) i, fp);
+        fprintf(fp, "%s:  ", timerNames[i]);
+        print((TimerIndex) i, fp);
     }
+    fprintf(fp, "\n");
 }
 
 #define toMsec(tot) ((bigclock_t) ((tot) / (((double) CLOCKS_PER_SEC) / 1000)))
 #define toAvg(tot, cnt) ((((cnt) > 0) ? ((long double) (tot)) / (cnt) : 0))
 
-void Timer::PrintHyperedgePaper(FILE *fp)
+void Timer::printHyperedgePaper(FILE *fp)
 {
     fprintf(fp, "%5lld & %5lld & %5lld & %5lld\n\n",
-        toMsec(cTotal[tmOrthogGraph]),
-        toMsec(cTotal[tmHyperedgeForest] + cTotal[tmHyperedgeMTST]),
-        toMsec(cTotal[tmHyperedgeAlt]),
-        toMsec(cTotal[tmHyperedgeImprove]));
+        toMsec(m_total_time[tmOrthogGraph]),
+        toMsec(m_total_time[tmHyperedgeForest] + m_total_time[tmHyperedgeMTST]),
+        toMsec(m_total_time[tmHyperedgeAlt]),
+        toMsec(m_total_time[tmHyperedgeImprove]));
 }
 
-void Timer::Print(const TimerIndex t, FILE *fp)
+void Timer::print(const TimerIndex t, FILE *fp)
 {
-   bigclock_t avg = toMsec(toAvg(cTotal[t], cTally[t]));
-   bigclock_t pind = toMsec(toAvg(cPath[t], cPathTally[t]));
-   bigclock_t pavg = toMsec(toAvg(cPath[t], cTally[t]));
-   double max = toMsec(cMax[t]); 
-   double pmax = toMsec(cPathMax[t]);
-   fprintf(fp, "%lld %d %lld %.0f %lld %d %lld %.0f %lld\n",
-           cTotal[t], cTally[t], avg, max,
-           cPath[t], cPathTally[t], pavg, pmax, pind);
+    bigclock_t avg = toMsec(toAvg(m_total_time[t], m_tally[t]));
+    clock_t max = toMsec(m_max_time[t]); 
+    fprintf(fp, "%lld %d %lld %ld",
+            toMsec(m_total_time[t]), m_tally[t], avg, max);
+    
+    for (size_t j = 0; j < TIMER_VARIABLES_COUNT; ++j)
+    {
+        if (m_variables[t][j] > 0)
+        {
+            fprintf(fp, ", %lu: %u", j, m_variables[t][j]);
+        }
+    }
+    fprintf(fp, "\n");
 }
 
+void Timer::varIncrement(size_t i)
+{
+    COLA_ASSERT(i < TIMER_VARIABLES_COUNT);
+    
+    if (m_is_running)
+    {
+        m_variables[m_type][i]++;
+    }
+}
+
+void Timer::varMax(size_t i, unsigned int val)
+{
+    COLA_ASSERT(i < TIMER_VARIABLES_COUNT);
+
+    if (m_is_running)
+    {
+        m_variables[m_type][i] = std::max(m_variables[m_type][i], val);
+    }
+}
+
+#endif
 
 }
 
