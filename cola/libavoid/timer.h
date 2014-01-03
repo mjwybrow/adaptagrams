@@ -36,14 +36,14 @@ namespace Avoid {
 
   #define TIMER_START(r, t) do {} while(0)
   #define TIMER_STOP(r) do {} while(0)
-  #define TIMER_VAR_INCREMENT(r, n) do {} while(0)
+  #define TIMER_VAR_ADD(r, n, v) do {} while(0)
   #define TIMER_VAR_MAX(r, n, v) do {} while(0)
 
 #else
    
   #define TIMER_START(r, t) r->timers.initialise(t); r->timers.start()
   #define TIMER_STOP(r) r->timers.stop()
-  #define TIMER_VAR_INCREMENT(r, n) r->timers.varIncrement(n);
+  #define TIMER_VAR_ADD(r, n, v) r->timers.varIncrement(n, v);
   #define TIMER_VAR_MAX(r, n, v) r->timers.varMax(n, v)
 
 typedef unsigned long long int bigclock_t;
@@ -78,7 +78,7 @@ class Timer
         void start(void);
         void stop(void);
         void reset(void);
-        void varIncrement(size_t i);
+        void varIncrement(size_t i, unsigned int val);
         void varMax(size_t i, unsigned int val);
 
         void print(TimerIndex, FILE *fp);

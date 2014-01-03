@@ -162,13 +162,13 @@ void Timer::print(const TimerIndex t, FILE *fp)
     fprintf(fp, "\n");
 }
 
-void Timer::varIncrement(size_t i)
+void Timer::varIncrement(size_t i, unsigned int val)
 {
     COLA_ASSERT(i < TIMER_VARIABLES_COUNT);
     
     if (m_is_running)
     {
-        m_variables[m_type][i]++;
+        m_variables[m_type][i] += val;
     }
 }
 
