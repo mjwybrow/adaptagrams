@@ -4,7 +4,7 @@ lib_LTLIBRARIES = libcola.la
 libcola_la_CPPFLAGS = -I$(top_srcdir) $(CAIROMM_CFLAGS) -I$(includedir)/libcola -fPIC
 
 # Depends on libvpsc
-libcola_la_LIBADD = $(top_builddir)/libvpsc/libvpsc.la
+libcola_la_LIBADD = $(top_builddir)/libvpsc/libvpsc.la $(CAIROMM_LIBS)
 
 libcola_la_SOURCES = cola.h\
 	cola.cpp\
