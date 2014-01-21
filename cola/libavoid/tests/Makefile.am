@@ -76,11 +76,14 @@ check_PROGRAMS = \
 	checkpointNudging2 \
 	checkpointNudging3 \
 	nudgeCrossing01 \
+	unsatisfiableRangeAssertion \
 	nudgingSkipsCheckpoint01 \
 	nudgingSkipsCheckpoint02
 
 # problem_SOURCES = problem.cpp
 
+
+unsatisfiableRangeAssertion_SOURCES = unsatisfiableRangeAssertion.cpp
 
 endlessLoop01_SOURCES = endlessLoop01.cpp
 
