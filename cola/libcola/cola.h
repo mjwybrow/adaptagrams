@@ -279,7 +279,7 @@ public:
         std::vector<Edge> const & es,
         RootCluster* clusterHierarchy,
         const double idealLength,
-        const std::valarray<double>& eLengths = StandardEdgeLengths,
+        std::valarray<double> eLengths = StandardEdgeLengths,
         TestConvergence *doneTest = NULL,
         PreIteration* preIteration=NULL);
     /**
@@ -775,8 +775,7 @@ private:
             double stepsize
             /*,topology::TopologyConstraints *s=NULL*/);
     void computePathLengths(
-            const std::vector<Edge>& es,
-            const std::valarray<double>& eLengths);
+            const std::vector<Edge>& es, std::valarray<double> eLengths);
     void generateNonOverlapAndClusterCompoundConstraints(
             vpsc::Variables (&vs)[2]);
     void handleResizes(const Resizes&);

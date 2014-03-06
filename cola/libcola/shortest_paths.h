@@ -71,7 +71,7 @@ template <typename T>
  * @param eweights edge weights, if empty then all weights will be taken as 1
  */
 void neighbours(unsigned const n, T** D, std::vector<Edge> const & es,
-        std::valarray<T> const & eweights = std::valarray<double>()); 
+        std::valarray<T> const & eweights = std::valarray<T>()); 
 /**
  * find all pairs shortest paths, n^3 dynamic programming approach
  * @param n total number of nodes
@@ -81,7 +81,7 @@ void neighbours(unsigned const n, T** D, std::vector<Edge> const & es,
  */
 template <typename T>
 void floyd_warshall(unsigned const n, T** D, std::vector<Edge> const & es,
-        std::valarray<T> const & eweights = std::valarray<double>()); 
+        std::valarray<T> const & eweights = std::valarray<T>()); 
 
 /**
  * find all pairs shortest paths, faster, uses dijkstra
@@ -92,7 +92,7 @@ void floyd_warshall(unsigned const n, T** D, std::vector<Edge> const & es,
  */
 template <typename T>
 void johnsons(unsigned const n, T** D, std::vector<Edge> const & es,
-        std::valarray<T> const & eweights = std::valarray<double>());
+        std::valarray<T> const & eweights = std::valarray<T>());
 /**
  * find shortest path lengths from node s to all other nodes
  * @param s starting node
@@ -104,7 +104,7 @@ void johnsons(unsigned const n, T** D, std::vector<Edge> const & es,
 template <typename T>
 void dijkstra(unsigned const s, unsigned const n, T* d, 
         std::vector<Edge> const & es, 
-        std::valarray<T> const & eweights = std::valarray<double>());
+        std::valarray<T> const & eweights = std::valarray<T>());
 
 
 //-----------------------------------------------------------------------------
