@@ -4,7 +4,7 @@
  * libcola - A library providing force-directed network layout using the 
  *           stress-majorization method subject to separation constraints.
  *
- * Copyright (C) 2006-2013  Monash University
+ * Copyright (C) 2006-2014  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -422,7 +422,7 @@ void ConstrainedFDLayout::generateNonOverlapAndClusterCompoundConstraints(
             
             if (count == 0)
             {
-                // Not present in heirarchy, so add to root cluster.
+                // Not present in hierarchy, so add to root cluster.
                 clusterHierarchy->nodes.push_back(i);
             }
         }
@@ -826,7 +826,7 @@ void setupVarsAndConstraints(unsigned n, const CompoundConstraints& ccs,
         vs[i] = new vpsc::Variable(i, coords[i]);
     }
 
-    if (clusterHierarchy && !clusterHierarchy->clusters.empty())
+    if (clusterHierarchy && !clusterHierarchy->flat())
     {
         // Create variables for clusters
         clusterHierarchy->computeBoundingRect(boundingBoxes);
@@ -1292,6 +1292,15 @@ void ConstrainedFDLayout::outputInstanceToSVG(std::string instanceName)
     fprintf(fp, "    alg.run();\n");
     fprintf(fp, "};\n");
     fprintf(fp, "-->\n");
+
+    if (clusterHierarchy)
+    {
+        clusterHierarchy->computeBoundingRect(boundingBoxes);
+        fprintf(fp, "<g inkscape:groupmode=\"layer\" "
+            "inkscape:label=\"Clusters\">\n");
+        clusterHierarchy->outputToSVG(fp);
+        fprintf(fp, "</g>\n");
+    }
 
     fprintf(fp, "<g inkscape:groupmode=\"layer\" "
             "inkscape:label=\"Rects\">\n");

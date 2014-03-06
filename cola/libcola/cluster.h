@@ -4,7 +4,7 @@
  * libcola - A library providing force-directed network layout using the 
  *           stress-majorization method subject to separation constraints.
  *
- * Copyright (C) 2006-2013  Monash University
+ * Copyright (C) 2006-2014  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -22,6 +22,8 @@
 
 #ifndef COLA_CLUSTER_H
 #define COLA_CLUSTER_H
+
+#include <cstdio>
 
 #include "libvpsc/rectangle.h"
 #include "libvpsc/variable.h"
@@ -59,7 +61,7 @@ class Cluster
          *
          * @param[in] index  The index of the Rectangle in the rectangles vector.
          */
-        void addChildNode(unsigned index);
+        virtual void addChildNode(unsigned index);
         /**
          * @brief Mark a cluster as being a sub-cluster of this cluster.
          *
@@ -67,16 +69,15 @@ class Cluster
          */
         void addChildCluster(Cluster *cluster);
         
-        vpsc::Rectangle bounds;
         void setDesiredBounds(const vpsc::Rectangle bounds);
         void unsetDesiredBounds();
         void createVars(const vpsc::Dim dim, const vpsc::Rectangles& rs,
                 vpsc::Variables& vars);
         void setRectBuffers(const double buffer);
         virtual void printCreationCode(FILE *fp) const = 0;
-        vpsc::Variable *vXMin, *vXMax, *vYMin, *vYMax;
         virtual int containsShape(unsigned index) const;
         virtual bool clusterIsFromFixedRectangle(void) const;
+        virtual void outputToSVG(FILE *fp) const = 0;
         
         // Returns the total area covered by contents of this cluster
         // (not including space between nodes/clusters).
@@ -86,6 +87,9 @@ class Cluster
         //
         void updateBounds(const vpsc::Dim dim);
         
+        vpsc::Rectangle bounds;
+        vpsc::Variable *vXMin, *vXMax, *vYMin, *vYMax;
+
         // This will be the id of the left/bottom boundary, 
         // and the right/top will be clusterVarId + 1.
         unsigned clusterVarId; 
@@ -143,6 +147,7 @@ class RootCluster : public Cluster
             return clusters.empty();
         }
         virtual void printCreationCode(FILE *fp) const;
+        virtual void outputToSVG(FILE *fp) const;
 
         //! Returns true if this cluster hierarchy allows multiple parents, 
         //! otherwise returns false.
@@ -195,7 +200,9 @@ class RectangularCluster : public Cluster
         void computeBoundary(const vpsc::Rectangles& rs);
         virtual int containsShape(unsigned index) const;
         virtual void printCreationCode(FILE *fp) const;
+        virtual void outputToSVG(FILE *fp) const;
         virtual void computeBoundingRect(const vpsc::Rectangles& rs);
+        virtual void addChildNode(unsigned index);
         inline vpsc::Rectangle *getMinEdgeRect(const vpsc::Dim dim)
         {
             if (minEdgeRect[dim])
@@ -252,6 +259,7 @@ class ConvexCluster : public Cluster
     public:
         void computeBoundary(const vpsc::Rectangles& rs);
         virtual void printCreationCode(FILE *fp) const;
+        virtual void outputToSVG(FILE *fp) const;
 
         std::valarray<unsigned> hullRIDs;
         std::valarray<unsigned char> hullCorners;

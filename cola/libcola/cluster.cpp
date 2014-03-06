@@ -4,7 +4,7 @@
  * libcola - A library providing force-directed network layout using the 
  *           stress-majorization method subject to separation constraints.
  *
- * Copyright (C) 2006-2013  Monash University
+ * Copyright (C) 2006-2014  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -170,17 +170,27 @@ void ConvexCluster::printCreationCode(FILE *fp) const
     for(vector<unsigned>::const_iterator i = nodes.begin(); 
             i != nodes.end(); ++i)
     {
-        fprintf(fp, "    cluster%llu->nodes.push_back(%u);\n",
+        fprintf(fp, "    cluster%llu->addChildNode(%u);\n",
                 (unsigned long long) this, *i);
     }
     for(vector<Cluster *>::const_iterator i = clusters.begin(); 
             i != clusters.end(); ++i)
     {
         (*i)->printCreationCode(fp);
-        fprintf(fp, "    cluster%llu->clusters.push_back(cluster%llu);\n",
+        fprintf(fp, "    cluster%llu->addChildCluster(cluster%llu);\n",
                 (unsigned long long) this, (unsigned long long) *i);
     }
 }
+
+void ConvexCluster::outputToSVG(FILE *fp) const
+{
+    for(vector<Cluster *>::const_iterator i = clusters.begin(); 
+            i != clusters.end(); ++i)
+    {
+        (*i)->outputToSVG(fp);
+    }
+}
+
 
 
 RectangularCluster::RectangularCluster()
@@ -301,17 +311,35 @@ void RectangularCluster::printCreationCode(FILE *fp) const
     for(vector<unsigned>::const_iterator i = nodes.begin(); 
             i != nodes.end(); ++i)
     {
-        fprintf(fp, "    cluster%llu->nodes.push_back(%u);\n",
+        fprintf(fp, "    cluster%llu->addChildNode(%u);\n",
                 (unsigned long long) this, *i);
     }
     for(vector<Cluster *>::const_iterator i = clusters.begin(); 
             i != clusters.end(); ++i)
     {
         (*i)->printCreationCode(fp);
-        fprintf(fp, "    cluster%llu->clusters.push_back(cluster%llu);\n",
+        fprintf(fp, "    cluster%llu->addChildCluster(cluster%llu);\n",
                 (unsigned long long) this, (unsigned long long) *i);
     }
 }
+
+void RectangularCluster::outputToSVG(FILE *fp) const
+{
+
+    fprintf(fp, "<rect id=\"cluster-%llu\" x=\"%g\" y=\"%g\" width=\"%g\" "
+            "height=\"%g\" style=\"stroke-width: 1px; stroke: black; "
+            "fill: red; fill-opacity: 0.3;\" />\n",
+            (unsigned long long) this, bounds.getMinX(), bounds.getMinY(), 
+            bounds.getMaxX() - bounds.getMinX(), 
+            bounds.getMaxY() - bounds.getMinY());
+    for(vector<Cluster *>::const_iterator i = clusters.begin(); 
+            i != clusters.end(); ++i)
+    {
+        (*i)->outputToSVG(fp);
+    }
+}
+
+
 
 int RectangularCluster::rectangleIndex(void) const
 {
@@ -335,6 +363,17 @@ void RectangularCluster::computeBoundingRect(const vpsc::Rectangles& rs)
         Cluster::computeBoundingRect(rs);
     }
 }
+void RectangularCluster::addChildNode(unsigned index)
+{
+    if ((m_rectangle_index == (int) index) && (m_rectangle_index > 0))
+    {
+        fprintf(stderr, "Warning: ignoring cluster (%u) added as child of "
+                "itself.\n", index);
+        return;
+    }
+    Cluster::addChildNode(index);
+}
+
 
 RootCluster::RootCluster()
     : m_allows_multiple_parents(false)
@@ -356,17 +395,28 @@ void RootCluster::printCreationCode(FILE *fp) const
     for(vector<unsigned>::const_iterator i = nodes.begin(); 
             i != nodes.end(); ++i)
     {
-        fprintf(fp, "    cluster%llu->nodes.push_back(%u);\n",
+        fprintf(fp, "    cluster%llu->addChildNode(%u);\n",
                 (unsigned long long) this, *i);
     }
     for(vector<Cluster *>::const_iterator i = clusters.begin(); 
             i != clusters.end(); ++i)
     {
         (*i)->printCreationCode(fp);
-        fprintf(fp, "    cluster%llu->clusters.push_back(cluster%llu);\n",
+        fprintf(fp, "    cluster%llu->addChildCluster(cluster%llu);\n",
                 (unsigned long long) this, (unsigned long long) *i);
     }
 }
+
+void RootCluster::outputToSVG(FILE *fp) const
+{
+    for(vector<Cluster *>::const_iterator i = clusters.begin(); 
+            i != clusters.end(); ++i)
+    {
+        (*i)->outputToSVG(fp);
+    }
+
+}
+
 
 bool RootCluster::allowsMultipleParents(void) const
 {
@@ -460,6 +510,11 @@ void Cluster::addChildNode(unsigned index)
 
 void Cluster::addChildCluster(Cluster *cluster)
 {
+    if (cluster == this)
+    {
+        fprintf(stderr, "Warning: ignoring cluster added as child of itself.\n");
+        return;
+    }
     this->clusters.push_back(cluster);
 }
 
