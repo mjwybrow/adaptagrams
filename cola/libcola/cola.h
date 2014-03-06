@@ -4,7 +4,7 @@
  * libcola - A library providing force-directed network layout using the 
  *           stress-majorization method subject to separation constraints.
  *
- * Copyright (C) 2006-2010  Monash University
+ * Copyright (C) 2006-2014  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -54,6 +54,8 @@ class NonOverlapConstraints;
 
 //! Edges are simply a pair of indices to entries in the Node vector
 typedef std::pair<unsigned, unsigned> Edge;
+
+#define StandardEdgeLengths std::valarray<double>()
 
 /**
  * @brief A Lock specifies a required position for a node.
@@ -262,10 +264,11 @@ public:
      *                              the cluster hierarchy (optional).
      * @param[in] idealLength  Aa scalar modifier of ideal edge lengths in 
      *                         eLengths.
-     * @param[in] eLengths  Individual ideal lengths for edges, actual ideal 
-     *                      length of the ith edge is idealLength*eLengths[i], 
-     *                      if eLengths is NULL then just idealLength is used 
-     *                      (i.e., eLengths[i] is assumed to be 1).
+     * @param[in] eLengths  Individual ideal lengths for edges.
+     *                      The actual ideal length used for the ith edge is 
+     *                      idealLength*eLengths[i], or if eLengths is NULL a
+     *                      then just idealLength is used (i.e., eLengths[i] 
+     *                      is assumed to be 1).
      * @param[in] done  A test of convergence operation called at the end of 
      *                  each iteration (optional).
      * @param[in] preIteration  An operation called before each iteration
@@ -276,7 +279,7 @@ public:
         std::vector<Edge> const & es,
         RootCluster* clusterHierarchy,
         const double idealLength,
-        const double* eLengths=NULL,
+        const std::valarray<double>& eLengths = StandardEdgeLengths,
         TestConvergence *doneTest = NULL,
         PreIteration* preIteration=NULL);
     /**
@@ -606,14 +609,15 @@ public:
      * @param[in] rs  Bounding boxes of nodes at their initial positions.
      * @param[in] es  Simple pair edges, giving indices of the start and end 
      *                nodes in rs.
-     * @param[in] idealLength  Aa scalar modifier of ideal edge lengths in 
-     *                         eLengths.
+     * @param[in] idealLength  A scalar modifier of ideal edge lengths in 
+     *                         eLengths or 1 if no ideal lengths are specified..
      * @param preventOverlaps  Causes non-overlap constraints to be generated 
      *                          for all rectangles, if it is set to true.
-     * @param[in] eLengths  Individual ideal lengths for edges, actual ideal 
-     *                      length of the ith edge is idealLength*eLengths[i], 
-     *                      if eLengths is NULL then just idealLength is used 
-     *                      (i.e., eLengths[i] is assumed to be 1).
+     * @param[in] eLengths  Individual ideal lengths for edges.
+     *                      The actual ideal length used for the ith edge is 
+     *                      idealLength*eLengths[i], or if eLengths is NULL a
+     *                      then just idealLength is used (i.e., eLengths[i] 
+     *                      is assumed to be 1).
      * @param[in] done  A test of convergence operation called at the end of 
      *                  each iteration (optional).  If not given, uses a
      *                  default TestConvergence object.
@@ -625,7 +629,7 @@ public:
         const std::vector<cola::Edge>& es,
         const double idealLength,
         const bool preventOverlaps,
-        const double* eLengths=NULL,
+        const std::valarray<double>& eLengths = StandardEdgeLengths, 
         TestConvergence* doneTest = NULL,
         PreIteration* preIteration=NULL);
     ~ConstrainedFDLayout();
@@ -772,7 +776,7 @@ private:
             /*,topology::TopologyConstraints *s=NULL*/);
     void computePathLengths(
             const std::vector<Edge>& es,
-            const std::valarray<double> * eLengths);
+            const std::valarray<double>& eLengths);
     void generateNonOverlapAndClusterCompoundConstraints(
             vpsc::Variables (&vs)[2]);
     void handleResizes(const Resizes&);

@@ -137,7 +137,8 @@ void run_test(
     }
     CheckProgress test(0.001,100);
     clock_t starttime=clock();
-    ConstrainedMajorizationLayout alg(rs,es,NULL,defaultEdgeLength,NULL,&test);
+    ConstrainedMajorizationLayout alg(rs,es,NULL,defaultEdgeLength,
+            StandardEdgeLengths,&test);
     switch(s) {
         cout << "Solver: ";
         case SGP:

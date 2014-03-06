@@ -4,7 +4,7 @@
  * libcola - A library providing force-directed network layout using the 
  *           stress-majorization method subject to separation constraints.
  *
- * Copyright (C) 2006-2008  Monash University
+ * Copyright (C) 2006-2014  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -16,6 +16,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
+ * Author(s):  Tim Dwyer
 */
 
 #ifndef SHORTEST_PATHS_H
@@ -67,42 +68,43 @@ template <typename T>
  * @param n total number of nodes
  * @param D n*n matrix of shortest paths
  * @param es edge pairs
- * @param eweights edge weights, if NULL then all weights will be taken as 1
+ * @param eweights edge weights, if empty then all weights will be taken as 1
  */
-void neighbours(unsigned const n, T** D,
-        std::vector<Edge> const & es,std::valarray<T> const * eweights=NULL); 
+void neighbours(unsigned const n, T** D, std::vector<Edge> const & es,
+        std::valarray<T> const & eweights = std::valarray<double>()); 
 /**
  * find all pairs shortest paths, n^3 dynamic programming approach
  * @param n total number of nodes
  * @param D n*n matrix of shortest paths
  * @param es edge pairs
- * @param eweights edge weights, if NULL then all weights will be taken as 1
+ * @param eweights edge weights, if empty then all weights will be taken as 1
  */
 template <typename T>
-void floyd_warshall(unsigned const n, T** D,
-        std::vector<Edge> const & es,std::valarray<T> const * eweights=NULL); 
+void floyd_warshall(unsigned const n, T** D, std::vector<Edge> const & es,
+        std::valarray<T> const & eweights = std::valarray<double>()); 
 
 /**
  * find all pairs shortest paths, faster, uses dijkstra
  * @param n total number of nodes
  * @param D n*n matrix of shortest paths
  * @param es edge pairs
- * @param eweights edge weights, if NULL then all weights will be taken as 1
+ * @param eweights edge weights, if empty then all weights will be taken as 1
  */
 template <typename T>
-void johnsons(unsigned const n, T** D,
-        std::vector<Edge> const & es, std::valarray<T> const * eweights=NULL);
+void johnsons(unsigned const n, T** D, std::vector<Edge> const & es,
+        std::valarray<T> const & eweights = std::valarray<double>());
 /**
  * find shortest path lengths from node s to all other nodes
  * @param s starting node
  * @param n total number of nodes
  * @param d n vector of path lengths
  * @param es edge pairs
- * @param eweights edge weights, if NULL then all weights will be taken as 1
+ * @param eweights edge weights, if empty then all weights will be taken as 1
  */
 template <typename T>
 void dijkstra(unsigned const s, unsigned const n, T* d, 
-        std::vector<Edge> const & es, std::valarray<T> const * eweights=NULL);
+        std::vector<Edge> const & es, 
+        std::valarray<T> const & eweights = std::valarray<double>());
 
 
 //-----------------------------------------------------------------------------
@@ -115,9 +117,9 @@ void floyd_warshall(
         unsigned const n,
         T** D, 
         std::vector<Edge> const & es,
-        std::valarray<T> const * eweights) 
+        std::valarray<T> const & eweights) 
 {
-    COLA_ASSERT(!eweights||eweights->size()==es.size());
+    COLA_ASSERT((eweights.size() == 0) || (eweights.size() == es.size()));
     for(unsigned i=0;i<n;i++) {
         for(unsigned j=0;j<n;j++) {
             if(i==j) D[i][j]=0;
@@ -127,7 +129,7 @@ void floyd_warshall(
     for(unsigned i=0;i<es.size();i++) {
         unsigned u=es[i].first, v=es[i].second;
         COLA_ASSERT(u<n&&v<n);
-        D[u][v]=D[v][u]=eweights?(*eweights)[i]:1;
+        D[u][v] = D[v][u] = (eweights.size() > 0) ? eweights[i] : 1;
     }
     for(unsigned k=0; k<n; k++) {
         for(unsigned i=0; i<n; i++) {
@@ -143,9 +145,9 @@ void neighbours(
         unsigned const n,
         T** D, 
         std::vector<Edge> const & es,
-        std::valarray<T> const * eweights) 
+        std::valarray<T> const & eweights) 
 {
-    COLA_ASSERT(!eweights||eweights->size()==es.size());
+    COLA_ASSERT((eweights.size() == 0) || (eweights.size() == es.size()));
     for(unsigned i=0;i<n;i++) {
         for(unsigned j=0;j<n;j++) {
             D[i][j]=0;
@@ -154,15 +156,15 @@ void neighbours(
     for(unsigned i=0;i<es.size();i++) {
         unsigned u=es[i].first, v=es[i].second;
         COLA_ASSERT(u<n&&v<n);
-        D[u][v]=D[v][u]=eweights?(*eweights)[i]:1;
+        D[u][v] = D[v][u] = (eweights.size() > 0) ? eweights[i] : 1;
     }
 }
 template <typename T>
 void dijkstra_init(
         std::vector<Node<T> > & vs, 
         std::vector<Edge> const& es, 
-        std::valarray<T> const* eweights) {
-    COLA_ASSERT(!eweights||eweights->size()==es.size());
+        std::valarray<T> const & eweights) {
+    COLA_ASSERT((eweights.size() == 0) || (eweights.size() == es.size()));
 #ifndef NDEBUG
     const unsigned n=vs.size();
 #endif
@@ -170,7 +172,7 @@ void dijkstra_init(
         unsigned u=es[i].first, v=es[i].second;
         COLA_ASSERT(u<n);
         COLA_ASSERT(v<n);
-        T w=eweights?(*eweights)[i]:1;
+        T w = (eweights.size() > 0) ? eweights[i] : 1;
         vs[u].neighbours.push_back(&vs[v]);
         vs[u].nweights.push_back(w);
         vs[v].neighbours.push_back(&vs[u]);
@@ -216,9 +218,9 @@ void dijkstra(
         unsigned const n,
         T* d,
         std::vector<Edge> const & es,
-        std::valarray<T> const * eweights)
+        std::valarray<T> const & eweights)
 {
-    COLA_ASSERT(!eweights||es.size()==eweights->size());
+    COLA_ASSERT((eweights.size() == 0) || (eweights.size() == es.size()));
     COLA_ASSERT(s<n);
     std::vector<Node<T> > vs(n);
     dijkstra_init(vs,es,eweights);
@@ -230,7 +232,7 @@ void johnsons(
         unsigned const n,
         T** D, 
         std::vector<Edge> const & es,
-        std::valarray<T> const * eweights) 
+        std::valarray<T> const & eweights) 
 {
     std::vector<Node<T> > vs(n);
     dijkstra_init(vs,es,eweights);

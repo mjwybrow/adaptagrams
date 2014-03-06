@@ -95,10 +95,12 @@ int main() {
 		rs.push_back(new vpsc::Rectangle(x,x+5,y,y+5));
 	}
 	CheckProgress test(0.0001,200);
-    ConstrainedMajorizationLayout alg(rs,es,NULL,defaultEdgeLength,NULL,&test);
+    ConstrainedMajorizationLayout alg(rs,es,NULL,defaultEdgeLength,
+            StandardEdgeLengths,&test);
     //alg.setYConstraints(&cy);
 	alg.run();
-	ConstrainedFDLayout alg2(rs,es,defaultEdgeLength, false, NULL,&test);
+	ConstrainedFDLayout alg2(rs,es,defaultEdgeLength, false,
+            StandardEdgeLengths, &test);
     //alg2.setYConstraints(&cy);
 	alg2.run();
 	OutputFile output(rs,es,NULL,"random.pdf");

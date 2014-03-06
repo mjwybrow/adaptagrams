@@ -4,7 +4,7 @@
  * libcola - A library providing force-directed network layout using the 
  *           stress-majorization method subject to separation constraints.
  *
- * Copyright (C) 2006-2010  Monash University
+ * Copyright (C) 2006-2014  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -42,7 +42,7 @@ ConstrainedMajorizationLayout
         const vector<Edge>& es,
         RootCluster *clusterHierarchy,
         const double idealLength,
-        const double * eLengths,
+        const std::valarray<double> & eLengths,
         TestConvergence *doneTest,
         PreIteration* preIteration)
     : n(rs.size()),
@@ -86,12 +86,7 @@ ConstrainedMajorizationLayout
     for(unsigned i=0;i<n;i++) {
         D[i]=new double[n];
     }
-    if(eLengths==NULL) {
-        shortest_paths::johnsons(n,D,es);
-    } else {
-        valarray<double> eLengthsArray(eLengths,es.size());
-        shortest_paths::johnsons(n,D,es,&eLengthsArray);
-    }
+    shortest_paths::johnsons(n,D,es,eLengths);
     //shortest_paths::neighbours(n,D,es,eLengths);
     edge_length = idealLength;
     if(clusterHierarchy) {

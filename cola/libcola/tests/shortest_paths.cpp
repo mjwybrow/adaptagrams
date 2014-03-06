@@ -101,7 +101,7 @@ main(void)
     }
     cout<<"Running shortest_paths::johnsons..."<<endl;
     resetClock();
-    shortest_paths::johnsons(V,D1,es,&weights);
+    shortest_paths::johnsons(V,D1,es,weights);
     cout<<"  ...done, time="<<getRunTime()<<endl;
     double** D2=new double*[V];
     for(unsigned i=0;i<V;i++) {
@@ -109,7 +109,7 @@ main(void)
     }
     cout<<"Running shortest_paths::floyd_warshall..."<<endl;
     resetClock();
-    shortest_paths::floyd_warshall(V,D2,es,&weights);
+    shortest_paths::floyd_warshall(V,D2,es,weights);
     cout<<"  ...done, time="<<getRunTime()<<endl;
 
     for (unsigned int i = 0; i < V; ++i) {

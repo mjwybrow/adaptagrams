@@ -83,7 +83,8 @@ void dumpSquareMatrix(unsigned n, T** L) {
 
 ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
         const std::vector< Edge >& es, const double idealLength,
-        const bool preventOverlaps, const double* eLengths, 
+        const bool preventOverlaps, 
+        const std::valarray<double>& eLengths, 
         TestConvergence *doneTest, PreIteration* preIteration)
     : n(rs.size()),
       X(valarray<double>(n)),
@@ -122,19 +123,13 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
         G[i]=new unsigned short[n];
     }
 
-    if(eLengths == NULL) {
-        computePathLengths(es,NULL);
-    } else {
-        valarray<double> eLengthsArray(eLengths,es.size());
-        computePathLengths(es,&eLengthsArray);
-    }    
+    computePathLengths(es,eLengths);
 }
 
 void dijkstra(const unsigned s, const unsigned n, double* d, 
-        const vector<Edge>& es, const double* eLengths)
+        const vector<Edge>& es, const std::valarray<double> & eLengths)
 {
-    const valarray<double> eLengthsArray(eLengths, es.size());
-    shortest_paths::dijkstra(s,n,d,es,&eLengthsArray);
+    shortest_paths::dijkstra(s,n,d,es,eLengths);
 }
 
 /*
@@ -154,7 +149,7 @@ void dijkstra(const unsigned s, const unsigned n, double* d,
  */
 void ConstrainedFDLayout::computePathLengths(
         const vector<Edge>& es,
-        const std::valarray<double>* eLengths) 
+        const std::valarray<double>& eLengths) 
 {
     shortest_paths::johnsons(n,D,es,eLengths);
     //dumpSquareMatrix<double>(n,D);
@@ -167,7 +162,7 @@ void ConstrainedFDLayout::computePathLengths(
             if(d==DBL_MAX) {
                 // i and j are in disconnected subgraphs
                 p=0;
-            } else if(!eLengths) {
+            } else if(eLengths.size() == 0) {
                 D[i][j]*=m_idealEdgeLength;
             }
         }

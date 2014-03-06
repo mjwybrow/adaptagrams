@@ -84,6 +84,7 @@ void makeEdge(unsigned u, unsigned v,
 }
 vector<Edge> random_dag(unsigned depth, unsigned maxbranch, unsigned &V,
         CompoundConstraints &cx, CompoundConstraints &cy) {
+    COLA_UNUSED(cx);
     printf("DAG depth=%d\nmaxbranch=%d\nextraedgeprob%f\n",depth,maxbranch,EXTRAEDGEPROB);
 	vector<Edge> edges;
     unsigned lstart=0, lend=1;
@@ -328,7 +329,8 @@ int main() {
     */
     clock_t unconstrainedstarttime=clock();
     //writeTextFile(es);
-	ConstrainedFDLayout alg2(rs,es,defaultEdgeLength, false, NULL,&test);
+	ConstrainedFDLayout alg2(rs,es,defaultEdgeLength, false, 
+            StandardEdgeLengths, &test);
     alg2.setConstraints(cy);
 	alg2.run();
     double totaltime=0;
