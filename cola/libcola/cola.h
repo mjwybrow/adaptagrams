@@ -822,7 +822,8 @@ private:
  * @param eLengths edge weights
  */
 void dijkstra(const unsigned s, const unsigned n, double* d, 
-              const std::vector<cola::Edge>& es, const double* eLengths);
+              const std::vector<cola::Edge>& es,
+              const std::valarray<double> & eLengths);
 
 #if 0
 void removeClusterOverlapFast(RootCluster& clusterHierarchy, vpsc::Rectangles& rs, Locks& locks);
