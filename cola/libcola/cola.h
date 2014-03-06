@@ -808,6 +808,7 @@ private:
     double rectClusterBuffer;
     double m_idealEdgeLength;
     bool m_generateNonOverlapConstraints;
+    const std::valarray<double> m_edge_lengths; 
 
     friend class topology::ColaTopologyAddon;
 };

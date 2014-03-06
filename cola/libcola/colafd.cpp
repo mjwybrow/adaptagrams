@@ -98,7 +98,8 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
       clusterHierarchy(NULL),
       rectClusterBuffer(0),
       m_idealEdgeLength(idealLength),
-      m_generateNonOverlapConstraints(preventOverlaps)
+      m_generateNonOverlapConstraints(preventOverlaps),
+      m_edge_lengths(eLengths)
 {
     if (done == NULL)
     {
@@ -1249,12 +1250,14 @@ void ConstrainedFDLayout::outputInstanceToSVG(std::string instanceName)
     // Output source code to generate this ConstrainedFDLayout instance.
     fprintf(fp, "<!-- Source code to generate this instance:\n");
     fprintf(fp, "#include <vector>\n");
+    fprintf(fp, "#include <valarray>\n");
     fprintf(fp, "#include <utility>\n");
     fprintf(fp, "#include \"libcola/cola.h\"\n");
     fprintf(fp, "using namespace cola;\n");
     fprintf(fp, "int main(void) {\n");
     fprintf(fp, "    CompoundConstraints ccs;\n");
     fprintf(fp, "    std::vector<Edge> es;\n");
+    fprintf(fp, "    std::valarray<double> eLengths;\n");
     fprintf(fp, "    double defaultEdgeLength=%g;\n", m_idealEdgeLength);
     fprintf(fp, "    std::vector<vpsc::Rectangle*> rs;\n");
     fprintf(fp, "    vpsc::Rectangle *rect = NULL;\n\n");
@@ -1278,13 +1281,23 @@ void ConstrainedFDLayout::outputInstanceToSVG(std::string instanceName)
     }
     fprintf(fp, "\n");
 
+    if (m_edge_lengths.size() > 0)
+    {
+        fprintf(fp, "    eLengths.resize(%d);\n", (int) m_edge_lengths.size());
+        for (size_t i = 0; i < m_edge_lengths.size(); ++i)
+        {
+            fprintf(fp, "    eLengths[%d] = %g;\n", (int) i, m_edge_lengths[i]);
+        }
+        fprintf(fp, "\n");
+    }
+
     for (cola::CompoundConstraints::iterator c = ccs.begin(); 
             c != ccs.end(); ++c)
     {
         (*c)->printCreationCode(fp);
     }
 
-    fprintf(fp, "    ConstrainedFDLayout alg(rs, es, defaultEdgeLength, %s);\n",
+    fprintf(fp, "    ConstrainedFDLayout alg(rs, es, defaultEdgeLength, %s, eLengths);\n",
             (m_generateNonOverlapConstraints) ? "true" : "false");
     if (clusterHierarchy)
     {
