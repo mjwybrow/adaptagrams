@@ -172,8 +172,12 @@ class ColaException {
 %nodefaultdtor topology::ColaTopologyAddon;
 
 %template(Chars) std::vector<char>;
-%template(Doubles) std::vector<double>;
 %template(Unsigneds) std::vector<unsigned>;
+
+/* This can't be called 'Doubles' or it causes a run-time JNI link error.
+ * No idea why, can't find any answer for this online.
+ */
+%template(DoublesVector) std::vector<double>;
 
 %template(UnsatisfiableConstraintInfoPtrs) std::vector<cola::UnsatisfiableConstraintInfo *>;
 %template(ColaEdge) std::pair<unsigned,unsigned>;
