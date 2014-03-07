@@ -171,10 +171,13 @@ class ColaException {
 %nodefaultdtor topology::EdgePoint;
 %nodefaultdtor topology::ColaTopologyAddon;
 
+%template(Chars) std::vector<char>;
+%template(Doubles) std::vector<double>;
+%template(Unsigneds) std::vector<unsigned>;
+
 %template(UnsatisfiableConstraintInfoPtrs) std::vector<cola::UnsatisfiableConstraintInfo *>;
 %template(ColaEdge) std::pair<unsigned,unsigned>;
 %template(ColaEdges) std::vector< std::pair<unsigned,unsigned> >;
-%template(Chars) std::vector<char>;
 %template(RectanglePtrs) std::vector<vpsc::Rectangle*>;
 %template(CompoundConstraintPtrs) std::vector<cola::CompoundConstraint*>;
 %template(ColaLocks) std::vector<cola::Lock>;
@@ -184,7 +187,6 @@ class ColaException {
 %template(TopologyEdgePointConstPtrs) std::vector<const topology::EdgePoint*>;
 %template(TopologyEdgePtrs) std::vector<topology::Edge*>;
 %template(TopologyNodePtrs) std::vector<topology::Node*>;
-%template(Unsigneds) std::vector<unsigned>;
 %template(ColaClusters) std::vector<cola::Cluster*>;
 %template(AvoidPoints) std::vector<Avoid::Point>;
 %template(AvoidCheckpoints) std::vector<Avoid::Checkpoint>;

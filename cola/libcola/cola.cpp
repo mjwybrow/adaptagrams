@@ -42,7 +42,7 @@ ConstrainedMajorizationLayout
         const vector<Edge>& es,
         RootCluster *clusterHierarchy,
         const double idealLength,
-        std::valarray<double> eLengths,
+        EdgeLengths eLengths,
         TestConvergence *doneTest,
         PreIteration* preIteration)
     : n(rs.size()),
@@ -87,19 +87,20 @@ ConstrainedMajorizationLayout
         D[i]=new double[n];
     }
 
+    std::valarray<double> edgeLengths(eLengths.data(), eLengths.size());
     // Correct zero or negative entries in eLengths array.
-    for (size_t i = 0; i < eLengths.size(); ++i)
+    for (size_t i = 0; i < edgeLengths.size(); ++i)
     {
-        if (eLengths[i] <= 0)
+        if (edgeLengths[i] <= 0)
         {
             fprintf(stderr, "Warning: ignoring non-positive length at index %d "
                     "in ideal edge length array.\n", (int) i);
-            eLengths[i] = 1;
+            edgeLengths[i] = 1;
         }
     }
 
-    shortest_paths::johnsons(n,D,es,eLengths);
-    //shortest_paths::neighbours(n,D,es,eLengths);
+    shortest_paths::johnsons(n,D,es,edgeLengths);
+    //shortest_paths::neighbours(n,D,es,edgeLengths);
     edge_length = idealLength;
     if(clusterHierarchy) {
         for(Clusters::const_iterator i=clusterHierarchy->clusters.begin();

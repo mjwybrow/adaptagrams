@@ -83,8 +83,7 @@ void dumpSquareMatrix(unsigned n, T** L) {
 
 ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
         const std::vector< Edge >& es, const double idealLength,
-        const bool preventOverlaps, 
-        const std::valarray<double>& eLengths, 
+        const bool preventOverlaps, const EdgeLengths& eLengths, 
         TestConvergence *doneTest, PreIteration* preIteration)
     : n(rs.size()),
       X(valarray<double>(n)),
@@ -99,7 +98,7 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
       rectClusterBuffer(0),
       m_idealEdgeLength(idealLength),
       m_generateNonOverlapConstraints(preventOverlaps),
-      m_edge_lengths(eLengths)
+      m_edge_lengths(eLengths.data(), eLengths.size())
 {
     if (done == NULL)
     {
@@ -124,7 +123,7 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
         G[i]=new unsigned short[n];
     }
 
-    computePathLengths(es,eLengths);
+    computePathLengths(es,m_edge_lengths);
 }
 
 void dijkstra(const unsigned s, const unsigned n, double* d, 
@@ -1250,14 +1249,13 @@ void ConstrainedFDLayout::outputInstanceToSVG(std::string instanceName)
     // Output source code to generate this ConstrainedFDLayout instance.
     fprintf(fp, "<!-- Source code to generate this instance:\n");
     fprintf(fp, "#include <vector>\n");
-    fprintf(fp, "#include <valarray>\n");
     fprintf(fp, "#include <utility>\n");
     fprintf(fp, "#include \"libcola/cola.h\"\n");
     fprintf(fp, "using namespace cola;\n");
     fprintf(fp, "int main(void) {\n");
     fprintf(fp, "    CompoundConstraints ccs;\n");
     fprintf(fp, "    std::vector<Edge> es;\n");
-    fprintf(fp, "    std::valarray<double> eLengths;\n");
+    fprintf(fp, "    EdgeLengths eLengths;\n");
     fprintf(fp, "    double defaultEdgeLength=%g;\n", m_idealEdgeLength);
     fprintf(fp, "    std::vector<vpsc::Rectangle*> rs;\n");
     fprintf(fp, "    vpsc::Rectangle *rect = NULL;\n\n");
