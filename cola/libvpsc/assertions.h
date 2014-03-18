@@ -27,6 +27,9 @@
 
 #else // Not NDEBUG
 
+  // sstream needs ::strcpy_s under MinGW so include cstring.
+  #include <cstring>
+
   #include <sstream>
   #include <cassert>
 
