@@ -84,7 +84,7 @@ class PairingHeap
 	friend std::ostream& operator<< <T,TCompare> (std::ostream &os, const PairingHeap<T,TCompare> &b);
 #endif
 public:
-	PairingHeap() : root(NULL), counter(0) { }
+	PairingHeap() : root(NULL), counter(0), siblingsTreeArray(5) { }
 	PairingHeap(const PairingHeap & rhs) { 
 		// uses operator= to make deep copy
 		*this = rhs; 
@@ -121,9 +121,14 @@ protected:
 private:
 	PairNode<T> *root;
 	unsigned counter;
+
+    // Used by PairingHeap::combineSiblings().  We keep this as member 
+    // variable to save some vector resize operations during subsequent uses.
+	std::vector<PairNode<T> *> siblingsTreeArray;
+
 	void reclaimMemory( PairNode<T> *t ) const;
 	void compareAndLink( PairNode<T> * & first, PairNode<T> *second ) const;
-	PairNode<T> * combineSiblings( PairNode<T> *firstSibling ) const;
+	PairNode<T> * combineSiblings( PairNode<T> *firstSibling );
 	PairNode<T> * clone( PairNode<T> * t ) const;
 };
 
@@ -301,45 +306,42 @@ compareAndLink( PairNode<T> * & first,
 */
 template <class T,class TCompare>
 PairNode<T> *
-PairingHeap<T,TCompare>::combineSiblings( PairNode<T> *firstSibling ) const
+PairingHeap<T,TCompare>::combineSiblings( PairNode<T> *firstSibling )
 {
 	if( firstSibling->nextSibling == NULL )
 		return firstSibling;
-
-	// Allocate the array
-	static std::vector<PairNode<T> *> treeArray( 5 );
 
 	// Store the subtrees in an array
 	int numSiblings = 0;
 	for( ; firstSibling != NULL; numSiblings++ )
 	{
-		if( numSiblings == (int)treeArray.size( ) )
-			treeArray.resize( numSiblings * 2 );
-		treeArray[ numSiblings ] = firstSibling;
+		if( numSiblings == (int)siblingsTreeArray.size( ) )
+			siblingsTreeArray.resize( numSiblings * 2 );
+		siblingsTreeArray[ numSiblings ] = firstSibling;
 		firstSibling->prev->nextSibling = NULL;  // break links
 		firstSibling = firstSibling->nextSibling;
 	}
-	if( numSiblings == (int)treeArray.size( ) )
-		treeArray.resize( numSiblings + 1 );
-	treeArray[ numSiblings ] = NULL;
+	if( numSiblings == (int)siblingsTreeArray.size( ) )
+		siblingsTreeArray.resize( numSiblings + 1 );
+	siblingsTreeArray[ numSiblings ] = NULL;
 
 	// Combine subtrees two at a time, going left to right
 	int i = 0;
 	for( ; i + 1 < numSiblings; i += 2 )
-		compareAndLink( treeArray[ i ], treeArray[ i + 1 ] );
+		compareAndLink( siblingsTreeArray[ i ], siblingsTreeArray[ i + 1 ] );
 
 	int j = i - 2;
 
 	// j has the result of last compareAndLink.
 	// If an odd number of trees, get the last one.
 	if( j == numSiblings - 3 )
-		compareAndLink( treeArray[ j ], treeArray[ j + 2 ] );
+		compareAndLink( siblingsTreeArray[ j ], siblingsTreeArray[ j + 2 ] );
 
 	// Now go right to left, merging last tree with
 	// next to last. The result becomes the new last.
 	for( ; j >= 2; j -= 2 )
-		compareAndLink( treeArray[ j - 2 ], treeArray[ j ] );
-	return treeArray[ 0 ];
+		compareAndLink( siblingsTreeArray[ j - 2 ], siblingsTreeArray[ j ] );
+	return siblingsTreeArray[ 0 ];
 }
 
 /**
