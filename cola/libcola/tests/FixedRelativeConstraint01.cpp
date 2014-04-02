@@ -7,7 +7,7 @@ int main(void) {
     double defaultEdgeLength=40;
     std::vector<vpsc::Rectangle*> rs;
     vpsc::Rectangle *rect = NULL;
-    std::set<unsigned> fixedShapes;
+    std::vector<unsigned> fixedShapes;
     
     double textW = 100;
     double textH = 10;
@@ -16,15 +16,15 @@ int main(void) {
 
     rect = new vpsc::Rectangle(303-circleW, 303+circleW, 300-circleH, 300+circleH);
     rs.push_back(rect);
-    fixedShapes.insert(rs.size() - 1);
+    fixedShapes.push_back(rs.size() - 1);
     
     rect = new vpsc::Rectangle(310-circleW, 310+circleW, 302-circleH, 302+circleH);
     rs.push_back(rect);
-    fixedShapes.insert(rs.size() - 1);
+    fixedShapes.push_back(rs.size() - 1);
     
     rect = new vpsc::Rectangle(313-circleW, 313+circleW, 297-circleH, 297+circleH);
     rs.push_back(rect);
-    fixedShapes.insert(rs.size() - 1);
+    fixedShapes.push_back(rs.size() - 1);
 
     rect = new vpsc::Rectangle(300-textW, 300+textW, 300-textH, 300+textH);
     rs.push_back(rect);

@@ -1272,7 +1272,9 @@ static void setupOrthogonalLayoutConstraints(Router *router,
         obstacle.createSolverVariable();
         vs.push_back(obstacle.variable);
         unsigned index = vs.size() - 1;
-        unsigned colaIndex = idMap.getReverseMappingForVariable(obstacle.shape()->id());
+        bool reverse = false;
+        unsigned colaIndex = idMap.mappingForVariable(obstacle.shape()->id(), 
+                reverse);
         if (colaIndex != obstacle.shape()->id())
         {
             colaToCurrMap.addMappingForVariable(colaIndex, index);

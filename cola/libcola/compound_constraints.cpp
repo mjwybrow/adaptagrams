@@ -37,6 +37,12 @@ using vpsc::YDIM;
 
 namespace cola {
 
+void SubConstraintInfo::updateVarIDsWithMapping(
+        const VariableIDMap& idMap, bool forward)
+{
+    varIndex = idMap.mappingForVariable(varIndex, forward);
+}
+
 //-----------------------------------------------------------------------------
 // BoundaryConstraint code
 //-----------------------------------------------------------------------------
@@ -262,24 +268,6 @@ void AlignmentConstraint::generateSeparationConstraints(const vpsc::Dim dim,
     }
 }
 
-void AlignmentConstraint::updateVarIDsWithMapping(const VariableIDMap& idMap,
-        bool forward)
-{
-    for (SubConstraintInfoList::iterator o = _subConstraintInfo.begin();
-            o != _subConstraintInfo.end(); ++o) 
-    {
-        Offset *info = static_cast<Offset *> (*o);
-        if (forward)
-        {
-            info->varIndex = idMap.getMappingForVariable(info->varIndex);
-        }
-        else
-        {
-            info->varIndex = idMap.getReverseMappingForVariable(info->varIndex);
-        }
-    }
-}
-
 void AlignmentConstraint::updateShapeOffsetsForDifferentCentres(
         const std::vector<double>& offsets, bool forward)
 {
@@ -376,6 +364,12 @@ class VarIndexPair : public SubConstraintInfo
             return (rConstraint) ? 
                     (unsigned) rConstraint->variable->id : varIndex2;
         }
+        void updateVarIDsWithMapping(const VariableIDMap& idMap, bool forward)
+        {
+            varIndex = idMap.mappingForVariable(varIndex, forward);
+            varIndex2 = idMap.mappingForVariable(varIndex2, forward);
+        }
+
         AlignmentConstraint *lConstraint;
         AlignmentConstraint *rConstraint;
         unsigned varIndex2;
@@ -901,6 +895,12 @@ class RelativeOffset : public SubConstraintInfo
               distOffset(offset)
         {
         }
+        void updateVarIDsWithMapping(const VariableIDMap& idMap, bool forward)
+        {
+            varIndex = idMap.mappingForVariable(varIndex, forward);
+            varIndex2 = idMap.mappingForVariable(varIndex2, forward);
+        }
+
         unsigned varIndex2;
         vpsc::Dim dim;
         double distOffset;
@@ -908,18 +908,26 @@ class RelativeOffset : public SubConstraintInfo
 
 
 FixedRelativeConstraint::FixedRelativeConstraint(const vpsc::Rectangles& rs,
-        std::set<unsigned> shapeIds, const bool fixedPosition)
+        std::vector<unsigned> shapeIds, const bool fixedPosition)
     : CompoundConstraint(vpsc::XDIM),
       m_fixed_position(fixedPosition),
       m_shape_vars(shapeIds)
 {
     _combineSubConstraints = true;
 
+    // Make sure that m_shape_vars doesn't contain dupllicates.
+    std::sort(m_shape_vars.begin(), m_shape_vars.end());
+    std::vector<unsigned>::iterator last = 
+            std::unique(m_shape_vars.begin(), m_shape_vars.end());
+    m_shape_vars.erase(last, m_shape_vars.end());
+
     unsigned firstId = UINT_MAX;
     COLA_ASSERT(m_shape_vars.size() >= 2);
-    for (std::set<unsigned>::iterator it = m_shape_vars.begin();
+    for (std::vector<unsigned>::iterator it = m_shape_vars.begin();
             it != m_shape_vars.end(); ++it)
     {
+        COLA_ASSERT(*it < rs.size());
+
         if (it == m_shape_vars.begin())
         {
             firstId = *it;
@@ -937,6 +945,20 @@ FixedRelativeConstraint::FixedRelativeConstraint(const vpsc::Rectangles& rs,
     }
 }
 
+void FixedRelativeConstraint::updateVarIDsWithMapping(
+        const VariableIDMap& idMap, bool forward)
+{
+    CompoundConstraint::updateVarIDsWithMapping(idMap, forward);
+
+    // We need to map variables in m_shape_vars too, 
+    // since this is used in generateVariables().
+    for (size_t i = 0; i < m_shape_vars.size(); ++i)
+    {
+        m_shape_vars[i] = idMap.mappingForVariable(m_shape_vars[i], forward);
+    }
+}
+
+
 
 void FixedRelativeConstraint::generateVariables(const vpsc::Dim dim, 
         vpsc::Variables& vars)
@@ -949,7 +971,7 @@ void FixedRelativeConstraint::generateVariables(const vpsc::Dim dim,
     // Fix shape positions if required.
     if (m_fixed_position)
     {
-        for (std::set<unsigned>::iterator it = m_shape_vars.begin();
+        for (std::vector<unsigned>::iterator it = m_shape_vars.begin();
                 it != m_shape_vars.end(); ++it)
         {
             vars[*it]->fixedDesiredPosition = true;
@@ -961,16 +983,16 @@ void FixedRelativeConstraint::generateVariables(const vpsc::Dim dim,
 
 void FixedRelativeConstraint::printCreationCode(FILE *fp) const
 {
-    fprintf(fp, "    std::set<unsigned> fixedRelativeSet%llu;\n",
+    fprintf(fp, "    std::vector<unsigned> fixedRelativeSet%llu;\n",
             (unsigned long long) this);
-    for (std::set<unsigned>::iterator it = m_shape_vars.begin();
+    for (std::vector<unsigned>::const_iterator it = m_shape_vars.begin();
             it != m_shape_vars.end(); ++it)
     {
-        fprintf(fp, "    fixedRelativeSet%llu.insert(%u);\n",
+        fprintf(fp, "    fixedRelativeSet%llu.push_back(%u);\n",
                 (unsigned long long) this, *it);
     }
     fprintf(fp, "    FixedRelativeConstraint *fixedRelative%llu = "
-            "new FixedRelative(rs, fixedRelativeSet%llu, %s);\n",
+            "new FixedRelativeConstraint(rs, fixedRelativeSet%llu, %s);\n",
             (unsigned long long) this, (unsigned long long) this,
             (m_fixed_position) ? "true" : "false");
     fprintf(fp, "    ccs.push_back(fixedRelative%llu);\n\n",
@@ -1014,10 +1036,11 @@ void FixedRelativeConstraint::generateSeparationConstraints(
             continue;
         }
 
+        assertValidVariableIndex(vars, offset->varIndex);
+        assertValidVariableIndex(vars, offset->varIndex2);
         vpsc::Constraint *c = 
-                new vpsc::Constraint(&(vars[dim][offset->varIndex]), 
-                        &(vars[dim][offset->varIndex2]), 
-                        offset->distOffset, true);
+                new vpsc::Constraint(vars[offset->varIndex], 
+                        vars[offset->varIndex2], offset->distOffset, true);
         gcs.push_back(c);
     }
 }
@@ -1277,6 +1300,16 @@ void CompoundConstraint::printCreationCode(FILE *fp) const
     // Do nothing.  Subclasses can implement this.
 }
 
+void CompoundConstraint::updateVarIDsWithMapping(const VariableIDMap& idMap,
+        bool forward)
+{
+    for (SubConstraintInfoList::iterator o = _subConstraintInfo.begin();
+            o != _subConstraintInfo.end(); ++o) 
+    {
+        (*o)->updateVarIDsWithMapping(idMap, forward);
+    }
+}
+
 
 std::list<unsigned> CompoundConstraint::subConstraintObjIndexes(void) const
 {
@@ -1387,39 +1420,31 @@ void VariableIDMap::printCreationCode(FILE *fp) const
     fprintf(fp, "    \n");
 }
 
-unsigned VariableIDMap::getMappingForVariable(const unsigned var) const
+unsigned VariableIDMap::mappingForVariable(const unsigned var, 
+        bool forward) const
 {
     for (IDPairList::const_iterator it = m_mapping.begin(); 
             it != m_mapping.end(); ++it)
     {
         const IDPair& ids = *it;
 
-        if (ids.first == var)
+        if (forward)
         {
-            return ids.second;
+            if (ids.first == var)
+            {
+                return ids.second;
+            }
+        }
+        else // (!forward)
+        {
+            if (ids.second == var)
+            {
+                return ids.first;
+            }
         }
     }
 
     //fprintf(stderr, "Warning: mapping not found for var %u\n", var);
-    
-    // Just return original variable index.
-    return var;
-}
-
-unsigned VariableIDMap::getReverseMappingForVariable(const unsigned var) const
-{
-    for (IDPairList::const_iterator it = m_mapping.begin(); 
-            it != m_mapping.end(); ++it)
-    {
-        const IDPair& ids = *it;
-
-        if (ids.second == var)
-        {
-            return ids.first;
-        }
-    }
-
-    //fprintf(stderr, "Warning: reverse mapping not found for var %u\n", var);
     
     // Just return original variable index.
     return var;

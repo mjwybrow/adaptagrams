@@ -76,21 +76,6 @@ static const unsigned int DEFAULT_CONSTRAINT_PRIORITY = 30000;
 static const unsigned int PRIORITY_NONOVERLAP = 
         DEFAULT_CONSTRAINT_PRIORITY - 2000;
 
-
-class SubConstraintInfo 
-{
-    public:
-        SubConstraintInfo(unsigned ind) :
-            varIndex(ind),
-            satisfied(false)
-        {
-        }
-        unsigned varIndex;
-        bool satisfied;
-};
-
-typedef std::vector<SubConstraintInfo *> SubConstraintInfoList;
-
 /**
  * @brief  Holds a mapping between two sets of Variable indexes.
  *
@@ -117,14 +102,35 @@ class VariableIDMap
          * @return          True if the mapping was successfully added.
          */
         bool addMappingForVariable(const unsigned from, const unsigned to);
-        unsigned getMappingForVariable(const unsigned var) const;
-        unsigned getReverseMappingForVariable(const unsigned var) const;
+        unsigned mappingForVariable(const unsigned var,
+                bool forward = true) const;
         void clear(void);
         void printCreationCode(FILE *fp) const;
 
     private:
         std::list<std::pair<unsigned, unsigned> > m_mapping;
 };
+
+class SubConstraintInfo 
+{
+    public:
+        SubConstraintInfo(unsigned ind) :
+            varIndex(ind),
+            satisfied(false)
+        {
+        }
+        virtual ~SubConstraintInfo()
+        {
+        }
+        virtual void updateVarIDsWithMapping(const VariableIDMap& idMap,
+                bool forward);
+
+        unsigned varIndex;
+        bool satisfied;
+};
+
+typedef std::vector<SubConstraintInfo *> SubConstraintInfoList;
+
 
 /** 
  * @brief An abstract base class for all high-level compound constraints.
@@ -201,11 +207,7 @@ public:
     vpsc::Dim dimension(void) const;
     unsigned int priority(void) const;
     virtual void updateVarIDsWithMapping(const VariableIDMap& idMap,
-            bool forward = true)
-    {
-        COLA_UNUSED(idMap);
-        COLA_UNUSED(forward);
-    }
+            bool forward = true);
     virtual void updateShapeOffsetsForDifferentCentres(
                 const std::vector<double>& offsets, bool forward = true)
     {
@@ -377,8 +379,6 @@ class AlignmentConstraint : public CompoundConstraint
         void updatePosition(const vpsc::Dim dim);
         double position(void) const;
         void printCreationCode(FILE *fp) const;
-        void updateVarIDsWithMapping(const VariableIDMap& idMap, 
-                bool forward = true);
         void updateShapeOffsetsForDifferentCentres(
                 const std::vector<double>& offsets, bool forward = true);
         
@@ -639,14 +639,15 @@ class FixedRelativeConstraint : public CompoundConstraint {
          *
          * @param[in] rs        The list of bounding boxes for the rectangles
          *                      for all nodes in the current problem.
-         * @param[in] shapeIds  A set of indices into the rc vector for the 
+         * @param[in] shapeIds  A vector of indices into the rc vector for the 
          *                      nodes that will be fixed relative to each other.
          * @param[in] fixedPosition  Whether of not the nodes should ideally be
          *                           fixed to the current position.  The default
          *                           is not fixed.
          */
         FixedRelativeConstraint(const vpsc::Rectangles& rs,
-                std::set<unsigned> shapeIds, const bool fixedPosition = false);
+                std::vector<unsigned> shapeIds, 
+                const bool fixedPosition = false);
 
         SubConstraintAlternatives getCurrSubConstraintAlternatives(
                 vpsc::Variables vs[]);
@@ -655,9 +656,12 @@ class FixedRelativeConstraint : public CompoundConstraint {
                 vpsc::Variables& vars, vpsc::Constraints& gcs,
                 vpsc::Rectangles& bbs);
         void printCreationCode(FILE *fp) const;
+        void updateVarIDsWithMapping(const VariableIDMap& idMap,
+            bool forward = true);
 
+    private:
         bool m_fixed_position;
-        std::set<unsigned> m_shape_vars;
+        std::vector<unsigned> m_shape_vars;
 };
 
 

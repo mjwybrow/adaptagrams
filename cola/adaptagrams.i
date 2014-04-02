@@ -174,7 +174,6 @@ class ColaException {
 %template(Chars) std::vector<char>;
 %template(Unsigneds) std::vector<unsigned>;
 %template(Doubles) std::vector<double>;
-%template(UnsignedSet) std::set<unsigned>;
 
 %template(UnsatisfiableConstraintInfoPtrs) std::vector<cola::UnsatisfiableConstraintInfo *>;
 %template(ColaEdge) std::pair<unsigned,unsigned>;

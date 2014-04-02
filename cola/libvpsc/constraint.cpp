@@ -126,6 +126,8 @@ class EqualityConstraintSet
         {
             VarOffsetMapList::iterator lhsSet = setForVar(lhs);
             VarOffsetMapList::iterator rhsSet = setForVar(rhs);
+            COLA_ASSERT(lhsSet != variableGroups.end());
+            COLA_ASSERT(rhsSet != variableGroups.end());
             if (lhsSet == rhsSet)
             {
                 // Check if this is a redundant constraint.
