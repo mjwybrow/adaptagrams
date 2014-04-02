@@ -77,7 +77,7 @@ static const unsigned int PRIORITY_NONOVERLAP =
         DEFAULT_CONSTRAINT_PRIORITY - 2000;
 
 /**
- * @brief  Holds a mapping between two sets of Variable indexes.
+ * @brief  Holds a mapping between two sets of Variable indices.
  *
  * This can be used to rewrite the Rectangles to which a set of 
  * CompoundConstraints apply to.  This is useful when creating another

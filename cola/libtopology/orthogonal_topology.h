@@ -55,9 +55,9 @@ class AvoidTopologyAddon : public Avoid::TopologyAddonInterface
          * @param[in] cs   A set of cola::CompoundConstraint objects to apply
          *                 to rs.
          * @param[in] ch   A cola::RootCluster cluster hierarchy specification.
-         * @param[in] map  A cola::VariableIDMap specifying a mapping between
-         *                 the Rectangle indexes in rs and the libavoid ShapeRef
-         *                 IDs.
+         * @param[in] map  A cola::VariableIDMap specifying a mapping from
+         *                 the Rectangle indexes in rs to ShapeRef IDs in this
+         *                 libavoid instance.
          * @param[in] moveLimit  The maximum length of a centre S-bend 
          *                       connector segments to attempt to improve
          *                       (default 120.0).
