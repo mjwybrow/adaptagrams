@@ -26,6 +26,7 @@
 #include <cfloat>
 #include <iostream>
 #include <vector>
+#include <sstream>
 
 #include "libvpsc/variable.h"
 
@@ -55,6 +56,28 @@ public:
 	Constraint(Variable *left, Variable *right, double gap, 
             bool equality = false);
 	~Constraint();
+
+    /**
+     *  @brief Returns a textual description of the constraint.
+     *
+     *  @return     A string describing the constraint.
+     */
+    std::string toString(void) const
+    {
+        std::stringstream stream;
+        stream << "Constraint: var(" << left->id << ") ";
+        if (gap < 0)
+        {
+            stream << "- " << -gap << " ";
+        }
+        else
+        {
+            stream << "+ " << gap << " ";
+        }
+        stream << ((equality) ? "==" : "<=");
+        stream << " var(" << right->id << ") ";
+        return stream.str();
+    }
 
     inline double slack(void) const 
     { 
@@ -87,6 +110,7 @@ public:
     //!        instance has been solved or satisfied).
 	bool unsatisfiable;
     bool needsScaling;
+    void *creator;
 };
 
 class CompareConstraints {

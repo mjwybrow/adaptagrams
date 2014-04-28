@@ -53,7 +53,8 @@ class NonOverlapConstraints : public CompoundConstraint {
         bool subConstraintsRemaining(void) const;
         SubConstraintAlternatives getCurrSubConstraintAlternatives(
                 vpsc::Variables vs[]);
-        
+        std::string toString(void) const;
+
         void generateVariables(const vpsc::Dim dim, vpsc::Variables& vars);
         void generateSeparationConstraints(const vpsc::Dim dim, 
                 vpsc::Variables& vars, vpsc::Constraints& gcs);

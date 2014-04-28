@@ -20,6 +20,8 @@
  *
 */
 
+#include <sstream>
+
 #include "libcola/cola.h"
 #include "libcola/compound_constraints.h"
 #include "libcola/cc_nonoverlapconstraints.h"
@@ -285,6 +287,13 @@ void NonOverlapConstraints::computeOverlapForShapePairInfo(ShapePairInfo& info,
     }
 }
 
+std::string NonOverlapConstraints::toString(void) const
+{
+    std::ostringstream stream;
+    stream << "NonOverlapConstraints()";
+    return stream.str();
+}
+
 void NonOverlapConstraints::computeAndSortOverlap(vpsc::Variables vs[])
 {
     for (std::list<ShapePairInfo>::iterator curr = pairInfoList.begin();
@@ -528,16 +537,19 @@ void NonOverlapConstraints::generateSeparationConstraints(
 
         if (rect1.overlapD(!dim, &rect2) > 0.0005)
         {
+            vpsc::Constraint *constraint = NULL;
             if (pos1 < pos2)
             {
-                cs.push_back(new vpsc::Constraint(varRight1, varLeft2, 
-                             half1 + half2));
+                constraint = new vpsc::Constraint(varRight1, varLeft2,
+                             half1 + half2);
             }
             else
             {
-                cs.push_back(new vpsc::Constraint(varRight2, varLeft1, 
-                        half1 + half2));
+                constraint = new vpsc::Constraint(varRight2, varLeft1,
+                        half1 + half2);
             }
+            constraint->creator = this;
+            cs.push_back(constraint);
         }
     }
 }

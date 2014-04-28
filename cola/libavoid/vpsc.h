@@ -178,7 +178,6 @@ public:
     bool fixedDesiredPosition;
     Constraints in;
     Constraints out;
-    char *toString();
     inline Variable(const int id, const double desiredPos=-1.0, 
             const double weight=1.0, const double scale=1.0)
         : id(id)
@@ -226,6 +225,7 @@ public:
         COLA_ASSERT(right->scale == 1);
         return right->unscaledPosition() - gap - left->unscaledPosition(); 
     }
+    std::string toString(void) const;
 
     friend std::ostream& operator <<(std::ostream &os,const Constraint &c);
     Variable *left;
@@ -237,6 +237,7 @@ public:
     const bool equality;
     bool unsatisfiable;
     bool needsScaling;
+    void *creator;
 };
 /*
  * A block structure defined over the variables such that each block contains

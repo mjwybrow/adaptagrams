@@ -40,7 +40,8 @@ Constraint::Constraint(Variable *left, Variable *right, double gap, bool equalit
   active(false),
   equality(equality),
   unsatisfiable(false),
-  needsScaling(true)
+  needsScaling(true),
+  creator(NULL)
 {
     // In hindsight I think it's probably better to build the constraint DAG
     // (by creating variable in/out lists) when needed, rather than in advance

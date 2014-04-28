@@ -22,6 +22,7 @@
 
 #include <algorithm>
 #include <climits>
+#include <sstream>
 
 #include <libvpsc/variable.h>
 #include <libvpsc/constraint.h>
@@ -100,6 +101,29 @@ void BoundaryConstraint::printCreationCode(FILE *fp) const
 }
 
 
+std::string BoundaryConstraint::toString(void) const
+{
+    std::ostringstream stream;
+    stream << "BoundaryConstraint(";
+    stream << "dim: " << ((_primaryDim == 0) ? 'X' : 'Y');
+    stream << "): {";
+    bool first = true;
+    for (SubConstraintInfoList::const_iterator o = _subConstraintInfo.begin();
+            o != _subConstraintInfo.end(); ++o)
+    {
+        Offset *info = static_cast<Offset *> (*o);
+        if (!first)
+        {
+            stream << ", ";
+        }
+        stream << "(" << "rect: " << info->varIndex << ", offset: " << info->distOffset << ")";
+        first = false;
+    }
+    stream << "}";
+    return stream.str();
+}
+
+
 void BoundaryConstraint::generateVariables(const vpsc::Dim dim, 
         vpsc::Variables& vars) 
 {
@@ -126,20 +150,23 @@ void BoundaryConstraint::generateSeparationConstraints(const vpsc::Dim dim,
         {
             Offset *info = static_cast<Offset *> (*o);
             assertValidVariableIndex(vars, info->varIndex);
+            vpsc::Constraint *constraint = NULL;
             if (info->distOffset < 0)
             {
                 // Constrain the objects with negative offsets to be 
                 // to the left of the boundary.
-                cs.push_back(new vpsc::Constraint(
-                        vars[info->varIndex], variable, -info->distOffset));
+                constraint = new vpsc::Constraint(vars[info->varIndex],
+                        variable, -info->distOffset);
             }
             else
             {
                 // Constrain the objects with positive offsets to be 
                 // to the right of the boundary.
-                cs.push_back(new vpsc::Constraint(
-                        variable, vars[info->varIndex], info->distOffset));
+                constraint = new vpsc::Constraint(variable,
+                        vars[info->varIndex], info->distOffset);
             }
+            constraint->creator = this;
+            cs.push_back(constraint);
         }
     }
 }
@@ -262,8 +289,10 @@ void AlignmentConstraint::generateSeparationConstraints(const vpsc::Dim dim,
         {
             Offset *info = static_cast<Offset *> (*o);
             assertValidVariableIndex(vars, info->varIndex);
-            cs.push_back(new vpsc::Constraint(
-                        variable, vars[info->varIndex], info->distOffset, true));
+            vpsc::Constraint *constraint = new vpsc::Constraint(
+                        variable, vars[info->varIndex], info->distOffset, true);
+            constraint->creator = this;
+            cs.push_back(constraint);
         }
     }
 }
@@ -311,6 +340,41 @@ void AlignmentConstraint::printCreationCode(FILE *fp) const
     }
     fprintf(fp, "    ccs.push_back(alignment%llu);\n\n",
             (unsigned long long) this);
+}
+
+
+std::string AlignmentConstraint::toString(void) const
+{
+    std::ostringstream stream;
+    stream << "AlignmentConstraint(";
+    stream << "dim: " << ((_primaryDim == 0) ? 'X' : 'Y');
+    stream << ", pos: " << _position;
+    if (_isFixed)
+    {
+        stream << ", fixed: true";
+    }
+#if 0
+    // TODO: buggy.  Not the right value.
+    if (variable)
+    {
+        stream << ", varInd: " << variable->id;
+    }
+#endif
+    stream << "): {";
+    bool first = true;
+    for (SubConstraintInfoList::const_iterator o = _subConstraintInfo.begin();
+            o != _subConstraintInfo.end(); ++o)
+    {
+        Offset *info = static_cast<Offset *> (*o);
+        if (!first)
+        {
+            stream << ", ";
+        }
+        stream << "(" << "rect: " << info->varIndex << ", offset: " << info->distOffset << ")";
+        first = false;
+    }
+    stream << "}";
+    return stream.str();
 }
 
 
@@ -428,6 +492,30 @@ void SeparationConstraint::printCreationCode(FILE *fp) const
 }
 
 
+std::string SeparationConstraint::toString(void) const
+{
+    std::ostringstream stream;
+    stream << "SeparationConstraint(";
+    stream << "dim: " << ((_primaryDim == 0) ? 'X' : 'Y');
+    stream << ", sep: " << gap;
+    stream << ", equality: " << ((equality) ? "true" : "false");
+    stream << "): {";
+    VarIndexPair *varIndexPair = (VarIndexPair *) _subConstraintInfo.front();
+    if (varIndexPair->lConstraint && varIndexPair->rConstraint)
+    {
+        stream << "(alignment: " << varIndexPair->indexL() << "), ";
+        stream << "(alignment: " << varIndexPair->indexR() << "), ";
+    }
+    else
+    {
+        stream << "(rect: " << varIndexPair->indexL() << "), ";
+        stream << "(rect: " << varIndexPair->indexR() << "), ";
+    }
+    stream << "}";
+    return stream.str();
+}
+
+
 void SeparationConstraint::generateVariables(const vpsc::Dim dim, 
         vpsc::Variables& vars) 
 {
@@ -473,6 +561,7 @@ void SeparationConstraint::generateSeparationConstraints(const vpsc::Dim dim,
         assertValidVariableIndex(vs, right);
         vpscConstraint = 
                 new vpsc::Constraint(vs[left], vs[right], gap, equality);
+        vpscConstraint->creator = this;
         cs.push_back(vpscConstraint);
     }
 }
@@ -537,6 +626,15 @@ void OrthogonalEdgeConstraint::printCreationCode(FILE *fp) const
 }
 
 
+std::string OrthogonalEdgeConstraint::toString(void) const
+{
+    std::ostringstream stream;
+    stream << "OrthogonalEdgeConstraint()";
+    return stream.str();
+}
+
+
+
 SubConstraintAlternatives 
 OrthogonalEdgeConstraint::getCurrSubConstraintAlternatives(
         vpsc::Variables vs[])
@@ -559,6 +657,7 @@ void OrthogonalEdgeConstraint::generateSeparationConstraints(
         assertValidVariableIndex(vs, left);
         assertValidVariableIndex(vs, right);
         vpscConstraint = new vpsc::Constraint(vs[left], vs[right], 0, true);
+        vpscConstraint->creator = this;
         cs.push_back(vpscConstraint);
     }
 }
@@ -686,6 +785,32 @@ void MultiSeparationConstraint::printCreationCode(FILE *fp) const
 }
 
 
+std::string MultiSeparationConstraint::toString(void) const
+{
+    std::ostringstream stream;
+    stream << "MultiSeparationConstraint(";
+    stream << "dim: " << ((_primaryDim == 0) ? 'X' : 'Y');
+    stream << ", sep: " << sep;
+    stream << ", equality: " << ((equality) ? "true" : "false");
+    stream << "): {";
+    bool first = true;
+    for (SubConstraintInfoList::const_iterator o = _subConstraintInfo.begin();
+            o != _subConstraintInfo.end(); ++o)
+    {
+        if (!first)
+        {
+            stream << ", ";
+        }
+        AlignmentPair *pair = static_cast<AlignmentPair *> (*o);
+        stream << "(alignment: " << pair->alignment1->variable->id
+               << ", alignment: " << pair->alignment2->variable->id << ")";
+        first = false;
+    }
+    stream << "}";
+    return stream.str();
+}
+
+
 void MultiSeparationConstraint::generateVariables(const vpsc::Dim dim, 
         vpsc::Variables& vars)
 {
@@ -748,6 +873,7 @@ void MultiSeparationConstraint::generateSeparationConstraints(
             }
             vpsc::Constraint *c = new vpsc::Constraint(
                 c1->variable, c2->variable, sep, equality);
+            c->creator = this;
             gcs.push_back(c);
             cs.push_back(c);
         }
@@ -811,6 +937,31 @@ void DistributionConstraint::printCreationCode(FILE *fp) const
 }
 
 
+std::string DistributionConstraint::toString(void) const
+{
+    std::ostringstream stream;
+    stream << "DistributionConstraint(";
+    stream << "dim: " << ((_primaryDim == 0) ? 'X' : 'Y');
+    stream << ", sep: " << sep;
+    stream << "): {";
+    bool first = true;
+    for (SubConstraintInfoList::const_iterator o = _subConstraintInfo.begin();
+            o != _subConstraintInfo.end(); ++o)
+    {
+        if (!first)
+        {
+            stream << ", ";
+        }
+        AlignmentPair *pair = static_cast<AlignmentPair *> (*o);
+        stream << "(alignment: " << pair->alignment1->variable->id
+               << ", alignment: " << pair->alignment2->variable->id << ")";
+        first = false;
+    }
+    stream << "}";
+    return stream.str();
+}
+
+
 SubConstraintAlternatives 
 DistributionConstraint::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
 {
@@ -856,6 +1007,7 @@ void DistributionConstraint::generateSeparationConstraints(
             }
             vpsc::Constraint *c=new vpsc::Constraint(
                     c1->variable, c2->variable, sep, true);
+            c->creator = this;
             gcs.push_back(c);
             cs.push_back(c);
 #if 0
@@ -1000,6 +1152,28 @@ void FixedRelativeConstraint::printCreationCode(FILE *fp) const
 }
 
 
+std::string FixedRelativeConstraint::toString(void) const
+{
+    std::ostringstream stream;
+    stream << "FixedRelativeConstraint(";
+    stream << "fixedPos: " << ((m_fixed_position) ? "true" : "false");
+    stream << "): {";
+    bool first = true;
+    for (std::vector<unsigned>::const_iterator it = m_shape_vars.begin();
+            it != m_shape_vars.end(); ++it)
+    {
+        if (!first)
+        {
+            stream << ", ";
+        }
+        stream << "(rect: " << *it << ")";
+        first = false;
+    }
+    stream << "}";
+    return stream.str();
+}
+
+
 SubConstraintAlternatives 
 FixedRelativeConstraint::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
 {
@@ -1021,7 +1195,7 @@ FixedRelativeConstraint::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
 
 
 void FixedRelativeConstraint::generateSeparationConstraints(
-        const vpsc::Dim dim, vpsc::Variables& vars, vpsc::Constraints& gcs,
+        const vpsc::Dim dim, vpsc::Variables& vars, vpsc::Constraints& ccs,
         vpsc::Rectangles& bbs)
 {
     COLA_UNUSED(vars);
@@ -1041,7 +1215,8 @@ void FixedRelativeConstraint::generateSeparationConstraints(
         vpsc::Constraint *c = 
                 new vpsc::Constraint(vars[offset->varIndex], 
                         vars[offset->varIndex2], offset->distOffset, true);
-        gcs.push_back(c);
+        c->creator = this;
+        ccs.push_back(c);
     }
 }
 
@@ -1113,6 +1288,36 @@ void PageBoundaryConstraints::printCreationCode(FILE *fp) const
             (unsigned long long) this);
 }
 
+
+std::string PageBoundaryConstraints::toString(void) const
+{
+    std::ostringstream stream;
+    stream << "PageBoundaryConstraints(";
+    stream << "xLow: " << leftMargin[vpsc::XDIM];
+    stream << ", xHigh: " << rightMargin[vpsc::XDIM];
+    stream << ", yLow: " << leftMargin[vpsc::YDIM];
+    stream << ", yHigh: " << rightMargin[vpsc::YDIM];
+    stream << ", weight: " << leftWeight[0];
+    stream << "): {";
+    bool first = true;
+    for (SubConstraintInfoList::const_iterator o = _subConstraintInfo.begin();
+            o != _subConstraintInfo.end(); ++o)
+    {
+        if (!first)
+        {
+            stream << ", ";
+        }
+        PageBoundaryShapeOffsets *offsets =
+                static_cast<PageBoundaryShapeOffsets *> (*o);
+        stream << "(rect: " << offsets->varIndex;
+        stream << ", halfWidth: " << offsets->halfDim[XDIM];
+        stream << ", halfHeight: " << offsets->halfDim[YDIM];
+        stream <<")";
+        first = false;
+    }
+    stream << "}";
+    return stream.str();
+}
 
 SubConstraintAlternatives 
 PageBoundaryConstraints::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
@@ -1187,14 +1392,18 @@ void PageBoundaryConstraints::generateSeparationConstraints(
         assertValidVariableIndex(vs, info->varIndex);
         if (vl[dim])
         {
-            cs.push_back(new vpsc::Constraint(vl[dim], 
-                    vs[info->varIndex], info->halfDim[dim]));
+            vpsc::Constraint *constraint = new vpsc::Constraint(vl[dim],
+                    vs[info->varIndex], info->halfDim[dim]);
+            constraint->creator = this;
+            cs.push_back(constraint);
         }
         
         if (vr[dim])
         {
-            cs.push_back(new vpsc::Constraint(vs[info->varIndex], 
-                    vr[dim], info->halfDim[dim]));
+            vpsc::Constraint *constraint = new vpsc::Constraint(
+                    vs[info->varIndex], vr[dim], info->halfDim[dim]);
+            constraint->creator = this;
+            cs.push_back(constraint);
         }
     }
 }
@@ -1364,9 +1573,11 @@ bool CompoundConstraint::shouldCombineSubConstraints(void) const
 
 UnsatisfiableConstraintInfo::UnsatisfiableConstraintInfo(
         const vpsc::Constraint *c) 
-    : vlid(c->left->id), 
-      vrid(c->right->id), 
-      gap(c->gap) 
+    : leftVarIndex(c->left->id),
+      rightVarIndex(c->right->id),
+      separation(c->gap),
+      equality(c->equality),
+      cc((CompoundConstraint *)c->creator)
 {
 }
 

@@ -20,6 +20,8 @@
  *
 */
 
+#include <sstream>
+
 #include "libcola/cola.h"
 #include "libcola/compound_constraints.h"
 #include "libcola/cc_clustercontainmentconstraints.h"
@@ -67,6 +69,14 @@ ClusterContainmentConstraints::ClusterContainmentConstraints(Cluster *cluster,
         _subConstraintInfo.push_back(new ClusterShapeOffsets(
                 id, YDIM, -halfH, cluster->clusterVarId + 1));
     }
+}
+
+
+std::string ClusterContainmentConstraints::toString(void) const
+{
+    std::ostringstream stream;
+    stream << "ClusterContainmentConstraints()";
+    return stream.str();
 }
 
 
@@ -162,24 +172,23 @@ void ClusterContainmentConstraints::generateSeparationConstraints(
             continue;
         }
 
+        vpsc::Constraint *constraint = NULL;
         if (info->offset < 0)
         {
             // Constrain the objects with negative offsets to be 
             // to the left of the boundary.
-            vpsc::Constraint *constraint = new vpsc::Constraint( 
-                    vs[info->varIndex], vs[info->boundaryVar], 
-                    -info->offset);
-            cs.push_back(constraint);
+            constraint = new vpsc::Constraint(vs[info->varIndex],
+                    vs[info->boundaryVar], -info->offset);
         }
         else
         {
             // Constrain the objects with positive offsets to be 
             // to the right of the boundary.
-            vpsc::Constraint *constraint = new vpsc::Constraint(
-                    vs[info->boundaryVar], vs[info->varIndex], 
-                    info->offset);
-            cs.push_back(constraint);
+            constraint = new vpsc::Constraint(vs[info->boundaryVar],
+                    vs[info->varIndex], info->offset);
         }
+        constraint->creator = this;
+        cs.push_back(constraint);
     }
 }
 

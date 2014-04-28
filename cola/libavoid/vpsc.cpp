@@ -1290,7 +1290,8 @@ Constraint::Constraint(Variable *left, Variable *right, double gap, bool equalit
   active(false),
   equality(equality),
   unsatisfiable(false),
-  needsScaling(true)
+  needsScaling(true),
+  creator(NULL)
 {
     // In hindsight I think it's probably better to build the constraint DAG
     // (by creating variable in/out lists) when needed, rather than in advance
@@ -1311,6 +1312,23 @@ Constraint::~Constraint() {
     //}
     //right->in.erase(i);
 }
+std::string Constraint::toString(void) const
+{
+    std::stringstream stream;
+    stream << "Constraint: var(" << left->id << ") ";
+    if (gap < 0)
+    {
+        stream << "- " << -gap << " ";
+    }
+    else
+    {
+        stream << "+ " << gap << " ";
+    }
+    stream << ((equality) ? "==" : "<=");
+    stream << " var(" << right->id << ") ";
+    return stream.str();
+}
+
 std::ostream& operator <<(std::ostream &os, const Constraint &c)
 {
     if(&c==NULL) {

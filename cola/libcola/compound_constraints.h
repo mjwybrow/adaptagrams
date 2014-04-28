@@ -197,6 +197,13 @@ public:
         COLA_UNUSED(dim);
     }
 
+    /**
+     *  @brief Returns a textual description of the compound constraint.
+     *
+     *  @return     A string describing the compound constraint.
+     */
+    virtual std::string toString(void) const = 0;
+
 // To prevent C++ objects from being destroyed in garbage collected languages
 // when the libraries are called from SWIG, we hide the declarations of the
 // destructors and prevent generation of default destructors.
@@ -297,6 +304,13 @@ class BoundaryConstraint : public CompoundConstraint
          */
         void addShape(const unsigned int index, const double offset);
 
+        /**
+         *  @brief Returns a textual description of the compound constraint.
+         *
+         *  @return     A string describing the compound constraint.
+         */
+        std::string toString(void) const;
+
         SubConstraintAlternatives getCurrSubConstraintAlternatives(
                 vpsc::Variables vs[]);
         void generateVariables(const vpsc::Dim dim, vpsc::Variables& vars);
@@ -369,6 +383,13 @@ class AlignmentConstraint : public CompoundConstraint
          *          false otherwise.
          */
         bool isFixed(void) const;
+
+        /**
+         *  @brief Returns a textual description of the compound constraint.
+         *
+         *  @return     A string describing the compound constraint.
+         */
+        std::string toString(void) const;
 
         SubConstraintAlternatives getCurrSubConstraintAlternatives(
                 vpsc::Variables vs[]);
@@ -445,6 +466,13 @@ class SeparationConstraint : public CompoundConstraint
         SeparationConstraint(const vpsc::Dim dim, AlignmentConstraint *l, 
                 AlignmentConstraint *r, double g, bool equality = false);
 
+        /**
+         *  @brief Returns a textual description of the compound constraint.
+         *
+         *  @return     A string describing the compound constraint.
+         */
+        std::string toString(void) const;
+
         SubConstraintAlternatives getCurrSubConstraintAlternatives(
                 vpsc::Variables vs[]);
         void generateVariables(const vpsc::Dim dim, vpsc::Variables& vars);
@@ -482,6 +510,7 @@ class OrthogonalEdgeConstraint : public CompoundConstraint
                 std::vector<vpsc::Variable*> const& vars, 
                 std::vector<vpsc::Constraint*>& cs);
         void printCreationCode(FILE *fp) const;
+        std::string toString(void) const;
 
         unsigned left;
         unsigned right;
@@ -540,7 +569,14 @@ class MultiSeparationConstraint : public CompoundConstraint
          *                 alignment constraints.
          */
         void setSeparation(double sep);
-        
+
+        /**
+         *  @brief Returns a textual description of the compound constraint.
+         *
+         *  @return     A string describing the compound constraint.
+         */
+        std::string toString(void) const;
+
         SubConstraintAlternatives getCurrSubConstraintAlternatives(
                 vpsc::Variables vs[]);
         void generateVariables(const vpsc::Dim dim, vpsc::Variables& vars);
@@ -602,7 +638,14 @@ class DistributionConstraint : public CompoundConstraint {
          *                 constraints.
          */
         void setSeparation(double sep);
-        
+
+        /**
+         *  @brief Returns a textual description of the compound constraint.
+         *
+         *  @return     A string describing the compound constraint.
+         */
+        std::string toString(void) const;
+
         SubConstraintAlternatives getCurrSubConstraintAlternatives(
                 vpsc::Variables vs[]);
         void generateVariables(const vpsc::Dim dim, vpsc::Variables& vars);
@@ -648,6 +691,13 @@ class FixedRelativeConstraint : public CompoundConstraint {
         FixedRelativeConstraint(const vpsc::Rectangles& rs,
                 std::vector<unsigned> shapeIds, 
                 const bool fixedPosition = false);
+
+        /**
+         *  @brief Returns a textual description of the compound constraint.
+         *
+         *  @return     A string describing the compound constraint.
+         */
+        std::string toString(void) const;
 
         SubConstraintAlternatives getCurrSubConstraintAlternatives(
                 vpsc::Variables vs[]);
@@ -700,6 +750,13 @@ class PageBoundaryConstraints : public CompoundConstraint {
          */
         void addShape(unsigned index, double halfW, double halfH);
 
+        /**
+         *  @brief Returns a textual description of the compound constraint.
+         *
+         *  @return     A string describing the compound constraint.
+         */
+        std::string toString(void) const;
+
         SubConstraintAlternatives getCurrSubConstraintAlternatives(
                 vpsc::Variables vs[]);
         void generateVariables(const vpsc::Dim dim, vpsc::Variables& vars);
@@ -731,11 +788,37 @@ class UnsatisfiableConstraintInfo {
         UnsatisfiableConstraintInfo(const vpsc::Constraint* c);
         
         //! The index of the left variable.
-        unsigned vlid;
+        unsigned leftVarIndex;
         //! The index of the right variable.
-        unsigned vrid;
-        //! The index of the separation.
-        double gap;
+        unsigned rightVarIndex;
+        //! The separation.
+        double separation;
+        //! Whether the separation is an exact distance or not.
+        bool equality;
+        //! The index of the CompoundConstraint that created this.
+        cola::CompoundConstraint *cc;
+
+        std::string toString(void) const
+        {
+            std::stringstream stream;
+            stream << "Unsatisfiable constraint: var(" << leftVarIndex << ") ";
+            if (separation < 0)
+            {
+                stream << "- " << -separation;
+            }
+            else
+            {
+                stream << "+ " << separation;
+            }
+            stream << " " << ((equality) ? "== " : "<= ");
+            stream << "var(" << rightVarIndex << ")";
+            if (cc)
+            {
+                stream << "\n   From " << cc->toString();
+            }
+
+            return stream.str();
+        }
 };
 //! @brief A vector of pointers to UnsatisfiableConstraintInfo objects.
 typedef std::vector<UnsatisfiableConstraintInfo *> UnsatisfiableConstraintInfos;
