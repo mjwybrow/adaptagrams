@@ -64,21 +64,29 @@ static const double ATTACH_POS_MAX_OFFSET = -1;
 //! @brief  The ShapeConnectionPin class represents a fixed point or "pin" 
 //!         on a shape that can be connected to.
 //!
-//! Pins have a visibility direction and numeric class ID (e.g., to specify 
-//! types of pins such as "input" or "output").  They may optionally have a 
-//! priority which means when routing connectors to a particular class ID then
-//! one pin will be selected over another, rather than libavoid just choosing 
-//! the best pin with that classId.  You can also give each pin a unique 
-//! classId if you want to attach connectors to particular pins.
+//! Pins have a visibility direction and numeric ID used to identify them.
+//! This ID, known as their classId, may be shared by multiple pins on the
+//! same shape, when you want to allow libavoid to choose from potential 
+//! choices (e.g., to specify multiple types of pins such as "input" or 
+//! "output" pins).  If you don't wish to use classes of Ids you can also 
+//! just give each pin a unique classId for that shape if you want to attach
+//! particular connectors to specfic pins.
 //! 
-//! Pins have a position that is specified relative to its parent shape.  
-//! Then the shape is moved or resized, The pin will be automatically moved 
+//! Pins may optionally be given a connection cost, via setConnectionCost(). 
+//! In the case of multiple pins with the same classId, this causes the 
+//! lower-cost pins to be chosen first, rather than libavoid just choosing
+//! the best pin with that classId based solely on connector path cost.
+//! 
+//! Each pins has a position that is specified relative to its parent shape.  
+//! When the shape is moved or resized, the pin will be automatically moved 
 //! accordingly.
 //!
-//! Pins with a specified direction are exclusive by default, those with
-//! visibility in all directions are non-exclusive by default.  This 
-//! behaviour can be changed by calling the ShapeConnectionPin::setExclusive() 
-//! method.  Exclusive pins may only have a single connector attached to them.
+//! Pins can be exclusive, which means subsequent connectors routed to the 
+//! same classId will choose a different pin.  Pins with a specified direction 
+//! are exclusive by default, those with visibility in all directions are 
+//! non-exclusive by default.  This behaviour can be changed by calling the 
+//! ShapeConnectionPin::setExclusive() method.  Exclusive pins may only have 
+//! a single connector attached to them.
 //!
 class AVOID_EXPORT ShapeConnectionPin
 {
@@ -88,7 +96,7 @@ class AVOID_EXPORT ShapeConnectionPin
         //!
         //! Ownership of this ShapeConnectionPin is passed to the parent shape.
         //!
-        //! The connection point postion offsets can be specified as absolute
+        //! The connection point position offsets can be specified as absolute
         //! or proportional.  If absolute, the xOffset and yOffset values are
         //! absolute offsets relative to the lower X and Y shape rectangle 
         //! border positions.  If proportional, the xOffset and yOffset values
@@ -120,7 +128,9 @@ class AVOID_EXPORT ShapeConnectionPin
         //! automatically determined based on the position of the connection
         //! point.  Points on the shape boundary will have visibility from the
         //! shape out of that edge while points in the interior will have
-        //! visibility in all directions.
+        //! visibility in all directions.  Note: Pins with visibility in a
+        //! specific direction are exclusive by default, whereas those with 
+        //! visibility in all directions are non-exclusive by default.
         //!
         //! The insideOffset argument can be used to set a distance to 
         //! automatically offset the point within the shape.  This is useful
@@ -131,10 +141,10 @@ class AVOID_EXPORT ShapeConnectionPin
         //! 
         //! @param[in]  shape          A pointer to the containing parent 
         //!                            shape's ShapeRef.
-        //! @param[in]  classId        A non-zero integer used to denote the
-        //!                            class or group of this connection
-        //!                            point, used for specifying attachment
-        //!                            to ConnEnd.
+        //! @param[in]  classId        A non-zero integer used to identify 
+        //!                            this pin and other equivalent 
+        //!                            connection point, and used to specify 
+        //!                            attachment via the ConnEnd class.
         //! @param[in]  xOffset        The X offset for the connection pin from
         //!                            the shape's lower X border position.
         //! @param[in]  yOffset        The Y offset for the connection pin from
@@ -189,7 +199,7 @@ class AVOID_EXPORT ShapeConnectionPin
         ~ShapeConnectionPin();
 #endif
         
-        //! @brief sets a cost used when selecting whether connectors should be
+        //! @brief Sets a cost used when selecting whether connectors should be
         //!        be attached to this connection pin.
         //!
         //! @param[in]  cost  A routing cost applied to a route when selecting
@@ -211,7 +221,9 @@ class AVOID_EXPORT ShapeConnectionPin
         ConnDirFlags directions(void) const;
         
         //! @brief  Sets whether the pin is exclusive, i.e., only one connector
-        //!         can attach to it.
+        //!         can attach to it.  This defaults to true for connection 
+        //!         pins with visibility in a specific directions and false for
+        //!         pins with visibility in all directions.
         //!
         //! @param[in]  exclusive  A bool representing whether this pin should
         //!                        be exclusive.
