@@ -284,6 +284,20 @@ static void constructPolygonPath(Polygon& connRoute, VertInf *inf2,
     }
 }
 
+// Used to get an indication of if a diffence is positive (1),
+// negative (-1) or no different (0).
+static inline int dimDirection(double difference)
+{
+    if (difference > 0)
+    {
+        return 1;
+    }
+    else if (difference < 0)
+    {
+        return -1;
+    }
+    return 0;
+}
 
 // Given the two points for a new segment of a path (inf2 & inf3)
 // as well as the distance between these points (dist), as well as
@@ -377,6 +391,42 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
             cross.countForSegment(connRoute.size() - 1, finalSegment);
             
             result += (cross.crossingCount * cluster_crossing_penalty);
+        }
+    }
+    
+    // This penalty penalises route segments that head in a direction opposite
+    // of the direction(s) toward the target point.  
+    const double reversePenalty = router->routingParameter(
+            reverseDirectionPenalty);
+    if (reversePenalty)
+    {
+        // X and Y direction of destination from source point.
+        const Point& srcPoint = lineRef->src()->point;
+        const Point& dstPoint = lineRef->dst()->point;
+        int xDir = dimDirection(dstPoint.x - srcPoint.x);
+        int yDir = dimDirection(dstPoint.y - srcPoint.y);
+        
+        bool doesReverse = false;
+
+        if ((xDir != 0) && 
+                (-xDir == dimDirection(inf3->point.x - inf2->point.x)))
+        {
+            // Connector has an X component and the segment heads in the 
+            // opposite direction.
+            doesReverse |= true;
+        }
+
+        if ((yDir != 0) && 
+                (-yDir == dimDirection(inf3->point.y - inf2->point.y)))
+        {
+            // Connector has an Y component and the segment heads in the 
+            // opposite direction.
+            doesReverse |= true;
+        }
+
+        if (doesReverse)
+        {
+            result += reversePenalty;
         }
     }
 

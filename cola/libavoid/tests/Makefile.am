@@ -6,6 +6,7 @@ LDADD = $(top_builddir)/libavoid/libavoid.la
 #	corneroverlap01
 
 check_PROGRAMS = \
+        forwardFlowingConnectors01 \
 	example \
 	endlessLoop01 \
 	complex \
@@ -82,6 +83,7 @@ check_PROGRAMS = \
 
 # problem_SOURCES = problem.cpp
 
+forwardFlowingConnectors01_SOURCES = forwardFlowingConnectors01.cpp
 
 unsatisfiableRangeAssertion_SOURCES = unsatisfiableRangeAssertion.cpp
 

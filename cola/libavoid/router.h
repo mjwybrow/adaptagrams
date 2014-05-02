@@ -152,6 +152,14 @@ enum RoutingParameter
     //!        connectors.  By default, this distance is set to a value of 4.
     idealNudgingDistance,
 
+    //! @brief  This penalty is applied whenever a connector path travels
+    //!         in the direction opposite of the destination from the source
+    //!         endpoint.  By default this penalty is set to zero.  This 
+    //!         shouldn't be needed in most cases but can be useful if you
+    //!         use penalties such as crossingPenalty which cause connectors
+    //!         to loop around obstacles.
+    reverseDirectionPenalty,
+
     // Used for determining the size of the routing parameter array.
     // This should always we the last value in the enum.
     lastRoutingParameterMarker
