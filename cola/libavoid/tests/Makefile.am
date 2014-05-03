@@ -4,6 +4,7 @@ LDADD = $(top_builddir)/libavoid/libavoid.la
 
 # Disabled tests:
 #	corneroverlap01
+#	unsatisfiableRangeAssertion  - really slow.
 
 check_PROGRAMS = \
         forwardFlowingConnectors01 \
@@ -77,7 +78,6 @@ check_PROGRAMS = \
 	checkpointNudging2 \
 	checkpointNudging3 \
 	nudgeCrossing01 \
-	unsatisfiableRangeAssertion \
 	nudgingSkipsCheckpoint01 \
 	nudgingSkipsCheckpoint02
 
@@ -85,7 +85,7 @@ check_PROGRAMS = \
 
 forwardFlowingConnectors01_SOURCES = forwardFlowingConnectors01.cpp
 
-unsatisfiableRangeAssertion_SOURCES = unsatisfiableRangeAssertion.cpp
+# unsatisfiableRangeAssertion_SOURCES = unsatisfiableRangeAssertion.cpp
 
 endlessLoop01_SOURCES = endlessLoop01.cpp
 
