@@ -52,7 +52,7 @@ class OverlapShapeOffsets : public SubConstraintInfo
         OverlapShapeOffsets(unsigned ind, Cluster *cluster, unsigned int group)
             : SubConstraintInfo(ind),
               cluster(cluster),
-              rectPadding(cluster->rectBuffer),
+              rectPadding(cluster->margin()),
               group(group)
         {
             halfDim[0] = 0;
@@ -494,9 +494,9 @@ void NonOverlapConstraints::generateSeparationConstraints(
         OverlapShapeOffsets& shape1 = shapeOffsets[info->varIndex1];
         OverlapShapeOffsets& shape2 = shapeOffsets[info->varIndex2];
         
-        vpsc::Rectangle& rect1 = (shape1.cluster) ?
+        vpsc::Rectangle rect1 = (shape1.cluster) ?
                 shape1.cluster->bounds : *boundingBoxes[info->varIndex1];
-        vpsc::Rectangle& rect2 = (shape2.cluster) ?
+        vpsc::Rectangle rect2 = (shape2.cluster) ?
                 shape2.cluster->bounds : *boundingBoxes[info->varIndex2];
 
         double pos1 = rect1.getCentreD(dim);
@@ -514,7 +514,8 @@ void NonOverlapConstraints::generateSeparationConstraints(
             // Must constraint to cluster boundary variables.
             varLeft1 = vs[shape1.cluster->clusterVarId];
             varRight1 = vs[shape1.cluster->clusterVarId + 1];
-            half1 = shape1.cluster->rectBuffer;
+            half1 = shape1.cluster->margin();
+            rect1 = rect1.growBy(shape1.cluster->margin());
         }
         else
         {
@@ -527,7 +528,8 @@ void NonOverlapConstraints::generateSeparationConstraints(
             // Must constraint to cluster boundary variables.
             varLeft2 = vs[shape2.cluster->clusterVarId];
             varRight2 = vs[shape2.cluster->clusterVarId + 1];
-            half2 = shape2.cluster->rectBuffer;
+            half2 = shape2.cluster->margin();
+            rect2 = rect2.growBy(shape2.cluster->margin());
         }
         else
         {

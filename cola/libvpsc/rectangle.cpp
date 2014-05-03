@@ -97,6 +97,16 @@ Rectangle Rectangle::unionWith(const Rectangle& rhs) const
 
     return Rectangle(newMinX, newMaxX, newMinY, newMaxY);
 }
+    
+Rectangle Rectangle::growBy(const double margin) const
+{
+    if (!isValid() || margin <= 0)
+    {
+        return Rectangle(*this);
+    }
+    
+    return Rectangle(minX - margin, maxX + margin, minY - margin, maxY + margin);
+}
 
 void Rectangle::reset(unsigned d, double x, double X) {
     if(d==0) {

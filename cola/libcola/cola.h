@@ -613,7 +613,7 @@ public:
      * @param[in] es  Simple pair edges, giving indices of the start and end 
      *                nodes in rs.
      * @param[in] idealLength  A scalar modifier of ideal edge lengths in 
-     *                         eLengths or 1 if no ideal lengths are specified..
+     *                         eLengths or 1 if no ideal lengths are specified.
      * @param preventOverlaps  Causes non-overlap constraints to be generated 
      *                          for all rectangles, if it is set to true.
      * @param[in] eLengths  Individual ideal lengths for edges.

@@ -35,7 +35,6 @@ namespace cola {
 Cluster::Cluster()
     : bounds(),
       clusterVarId(0),
-      rectBuffer(0),
       varWeight(0.0001),
       internalEdgeWeightFactor(1.), 
       desiredBoundsSet(false), 
@@ -61,16 +60,6 @@ void Cluster::setDesiredBounds(const vpsc::Rectangle db)
 void Cluster::unsetDesiredBounds(void)
 {
     desiredBoundsSet=false;
-}
-
-void Cluster::setRectBuffers(const double buffer)
-{
-    for (vector<Cluster*>::iterator i = clusters.begin(); 
-            i != clusters.end(); ++i)
-    {
-        (*i)->setRectBuffers(buffer);
-    }
-    this->rectBuffer = buffer;
 }
 
 
@@ -103,7 +92,7 @@ void Cluster::computeBoundingRect(const vpsc::Rectangles& rs)
             i != clusters.end(); ++i)
     {
         (*i)->computeBoundingRect(rs);
-        bounds = bounds.unionWith((*i)->bounds);
+        bounds = bounds.unionWith((*i)->bounds.growBy((*i)->margin()));
     }
     for (vector<unsigned>::const_iterator i = nodes.begin(); 
             i != nodes.end(); ++i)
@@ -111,8 +100,23 @@ void Cluster::computeBoundingRect(const vpsc::Rectangles& rs)
         vpsc::Rectangle* r=rs[*i];
         bounds = bounds.unionWith(*r);
     }
+    bounds = bounds.growBy(padding());
 }
 
+void Cluster::computeVarRect(vpsc::Variables& vars, size_t dim)
+{
+    if ((clusterVarId > 0) && (vars.size() > clusterVarId))
+    {
+        varRect.setMinD(dim, vars[clusterVarId]->finalPosition);
+        varRect.setMaxD(dim, vars[clusterVarId + 1]->finalPosition);
+    }
+
+    for (vector<Cluster*>::const_iterator i = clusters.begin(); 
+            i != clusters.end(); ++i)
+    {
+        (*i)->computeVarRect(vars, dim);
+    }
+}
 
 bool Cluster::clusterIsFromFixedRectangle(void) const
 {
@@ -192,10 +196,11 @@ void ConvexCluster::outputToSVG(FILE *fp) const
 }
 
 
-
 RectangularCluster::RectangularCluster()
     : Cluster(),
-      m_rectangle_index(-1)
+      m_rectangle_index(-1),
+      m_margin(0),
+      m_padding(0)
 {
     minEdgeRect[vpsc::XDIM] = NULL;
     minEdgeRect[vpsc::YDIM] = NULL;
@@ -205,7 +210,9 @@ RectangularCluster::RectangularCluster()
 
 RectangularCluster::RectangularCluster(unsigned rectIndex)
     : Cluster(),
-      m_rectangle_index(rectIndex)
+      m_rectangle_index(rectIndex),
+      m_margin(0),
+      m_padding(0)
 {
     minEdgeRect[vpsc::XDIM] = NULL;
     minEdgeRect[vpsc::YDIM] = NULL;
@@ -230,6 +237,36 @@ RectangularCluster::~RectangularCluster()
     }
 }
  
+void RectangularCluster::setMargin(double margin)
+{
+    if (margin >= 0)
+    {
+        m_margin = margin;
+    }
+}
+
+
+double RectangularCluster::margin(void) const
+{
+    return m_margin;
+}
+
+
+void RectangularCluster::setPadding(double padding)
+{
+    if (padding >= 0)
+    {
+        m_padding = padding;
+    }
+}
+
+
+double RectangularCluster::padding(void) const
+{
+    return m_padding;
+}
+
+
 int RectangularCluster::containsShape(unsigned index) const
 {
     int count = 0;
@@ -308,6 +345,16 @@ void RectangularCluster::printCreationCode(FILE *fp) const
         fprintf(fp, "%d", m_rectangle_index);
     }
     fprintf(fp, ");\n");
+    if (m_margin > 0)
+    {
+        fprintf(fp, "    cluster%llu->setMargin(%g);\n",
+                (unsigned long long) this, m_margin);
+    }
+    if (m_padding > 0)
+    {
+        fprintf(fp, "    cluster%llu->setPadding(%g);\n",
+                (unsigned long long) this, m_padding);
+    }
     for(vector<unsigned>::const_iterator i = nodes.begin(); 
             i != nodes.end(); ++i)
     {
@@ -325,13 +372,25 @@ void RectangularCluster::printCreationCode(FILE *fp) const
 
 void RectangularCluster::outputToSVG(FILE *fp) const
 {
-
-    fprintf(fp, "<rect id=\"cluster-%llu\" x=\"%g\" y=\"%g\" width=\"%g\" "
+    if (varRect.isValid())
+    {
+        fprintf(fp, "<rect id=\"cluster-%llu-r\" x=\"%g\" y=\"%g\" width=\"%g\" "
+                "height=\"%g\" style=\"stroke-width: 1px; stroke: black; "
+                "fill: green; fill-opacity: 0.3;\" />\n",
+                (unsigned long long) this, varRect.getMinX(), varRect.getMinY(), 
+                varRect.getMaxX() - varRect.getMinX(), 
+                varRect.getMaxY() - varRect.getMinY());
+    }
+    else
+    {
+        fprintf(fp, "<rect id=\"cluster-%llu\" x=\"%g\" y=\"%g\" width=\"%g\" "
             "height=\"%g\" style=\"stroke-width: 1px; stroke: black; "
             "fill: red; fill-opacity: 0.3;\" />\n",
             (unsigned long long) this, bounds.getMinX(), bounds.getMinY(), 
             bounds.getMaxX() - bounds.getMinX(), 
             bounds.getMaxY() - bounds.getMinY());
+    }
+
     for(vector<Cluster *>::const_iterator i = clusters.begin(); 
             i != clusters.end(); ++i)
     {
