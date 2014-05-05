@@ -70,7 +70,7 @@ class OverlapShapeOffsets : public SubConstraintInfo
         }
         Cluster *cluster;
         double halfDim[2];   // Half width and height values.
-        double rectPadding;  // Used for cluster padding.
+        Box rectPadding;  // Used for cluster padding.
         unsigned int group;
 };
 
@@ -191,10 +191,10 @@ void NonOverlapConstraints::computeOverlapForShapePairInfo(ShapePairInfo& info,
         right1 = vs[0][info.varIndex1 + 1]->finalPosition;
         COLA_ASSERT(info.varIndex1 + 1 < vs[1].size());
         top1    = vs[1][info.varIndex1 + 1]->finalPosition;
-        left1 -= shape1.rectPadding;
-        bottom1 -= shape1.rectPadding;
-        right1 += shape1.rectPadding;
-        top1 += shape1.rectPadding;
+        left1 -= shape1.rectPadding.min(XDIM);
+        bottom1 -= shape1.rectPadding.min(YDIM);
+        right1 += shape1.rectPadding.max(XDIM);
+        top1 += shape1.rectPadding.max(YDIM);
     }
 
     double left2   = xPos2 - shape2.halfDim[0];
@@ -210,10 +210,10 @@ void NonOverlapConstraints::computeOverlapForShapePairInfo(ShapePairInfo& info,
         right2 = vs[0][info.varIndex2 + 1]->finalPosition;
         COLA_ASSERT(info.varIndex2 + 1 < vs[1].size());
         top2   = vs[1][info.varIndex2 + 1]->finalPosition;
-        left2 -= shape2.rectPadding;
-        bottom2 -= shape2.rectPadding;
-        right2 += shape2.rectPadding;
-        top2 += shape2.rectPadding;
+        left2 -= shape2.rectPadding.min(XDIM);
+        bottom2 -= shape2.rectPadding.min(YDIM);
+        right2 += shape2.rectPadding.max(XDIM);
+        top2 += shape2.rectPadding.max(YDIM);
     }
 
     // If lr < 0, then left edge of shape1 is on the left 
@@ -365,8 +365,10 @@ NonOverlapConstraints::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
     OverlapShapeOffsets& shape1 = shapeOffsets[info.varIndex1];
     OverlapShapeOffsets& shape2 = shapeOffsets[info.varIndex2];
 
-    double xSep = shape1.halfDim[0] + shape2.halfDim[0];
-    double ySep = shape1.halfDim[1] + shape2.halfDim[1];
+    double xSepL = shape1.halfDim[0] + shape2.halfDim[0];
+    double ySepB = shape1.halfDim[1] + shape2.halfDim[1];
+    double xSepR = xSepL;
+    double ySepT = ySepB;
 
     unsigned varIndexL1 = info.varIndex1;
     unsigned varIndexL2 = info.varIndex2;
@@ -386,8 +388,10 @@ NonOverlapConstraints::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
     assertValidVariableIndex(vs[YDIM], varIndexR2);
 
     // 
-    double xSepCost = xSep;
-    double ySepCost = ySep;
+    double xSepCostL = xSepL;
+    double xSepCostR = xSepR;
+    double ySepCostB = ySepB;
+    double ySepCostT = ySepT;
 
     double desiredX1 = vs[XDIM][info.varIndex1]->desiredPosition;
     double desiredY1 = vs[YDIM][info.varIndex1]->desiredPosition;
@@ -405,10 +409,14 @@ NonOverlapConstraints::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
                 vs[YDIM][info.varIndex1]->finalPosition;
         desiredX1 += width / 2;
         desiredY1 += height / 2;
-        xSepCost += width / 2;
-        ySepCost += height / 2;
-        xSep += shape1.rectPadding;
-        ySep += shape1.rectPadding;
+        xSepCostL += width / 2;
+        xSepCostR += width / 2;
+        ySepCostB += height / 2;
+        ySepCostT += height / 2;
+        xSepL += shape1.rectPadding.min(XDIM);
+        xSepR += shape1.rectPadding.max(XDIM);
+        ySepB += shape1.rectPadding.min(YDIM);
+        ySepT += shape1.rectPadding.max(YDIM);
     }
     if (shape2.cluster)
     {
@@ -418,41 +426,47 @@ NonOverlapConstraints::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
                 vs[YDIM][info.varIndex2]->finalPosition;
         desiredX2 += width / 2;
         desiredY2 += height / 2;
-        xSepCost += width / 2;
-        ySepCost += height / 2;
-        xSep += shape2.rectPadding;
-        ySep += shape2.rectPadding;
+        xSepCostL += width / 2;
+        xSepCostR += width / 2;
+        ySepCostB += height / 2;
+        ySepCostT += height / 2;
+        xSepL += shape2.rectPadding.min(XDIM);
+        xSepR += shape2.rectPadding.max(XDIM);
+        ySepB += shape2.rectPadding.min(YDIM);
+        ySepT += shape2.rectPadding.max(YDIM);
     }
 
     // We get problems with numerical inaccuracy in the topology constraint
     // generation, so make sure the rectagles are separated by at least a 
     // tiny distance.
-    xSep += 10e-10;
-    ySep += 10e-10;
+    xSepL += 10e-10;
+    xSepR += 10e-10;
+    ySepB += 10e-10;
+    ySepT += 10e-10;
 
     // Compute the cost to move in each direction based on the 
     // desired positions for the two objects.
-    double costR = xSepCost - (desiredX2 - desiredX1);
-    double costL = xSepCost - (desiredX1 - desiredX2);
+    double costR = xSepCostR - (desiredX2 - desiredX1);
+    double costL = xSepCostL - (desiredX1 - desiredX2);
     
-    double costA = ySepCost - (desiredY2 - desiredY1);
-    double costB = ySepCost - (desiredY1 - desiredY2);
+    double costT = ySepCostT - (desiredY2 - desiredY1);
+    double costB = ySepCostB - (desiredY1 - desiredY2);
 
     vpsc::Constraint constraintL(vs[XDIM][varIndexR2], 
-            vs[XDIM][varIndexL1], xSep);
+            vs[XDIM][varIndexL1], xSepL);
     alternatives.push_back(SubConstraint(XDIM, constraintL, costL));
 
     vpsc::Constraint constraintR(vs[XDIM][varIndexR1], 
-            vs[XDIM][varIndexL2], xSep);
+            vs[XDIM][varIndexL2], xSepR);
     alternatives.push_back(SubConstraint(XDIM, constraintR, costR));
 
     vpsc::Constraint constraintB(vs[YDIM][varIndexR2], 
-            vs[YDIM][varIndexL1], ySep);
+            vs[YDIM][varIndexL1], ySepB);
     alternatives.push_back(SubConstraint(YDIM, constraintB, costB));
 
     vpsc::Constraint constraintT(vs[YDIM][varIndexR1], 
-            vs[YDIM][varIndexL2], ySep);
-    alternatives.push_back(SubConstraint(YDIM, constraintT, costA));
+            vs[YDIM][varIndexL2], ySepT);
+    alternatives.push_back(SubConstraint(YDIM, constraintT, costT));
     
     //fprintf(stderr, "===== NONOVERLAP ALTERNATIVES -====== \n");
 
@@ -502,8 +516,10 @@ void NonOverlapConstraints::generateSeparationConstraints(
         double pos1 = rect1.getCentreD(dim);
         double pos2 = rect2.getCentreD(dim);
 
-        double half1 = shape1.halfDim[dim];
-        double half2 = shape2.halfDim[dim];
+        double below1 = shape1.halfDim[dim];
+        double above1 = shape1.halfDim[dim];
+        double below2 = shape2.halfDim[dim];
+        double above2 = shape2.halfDim[dim];
 
         vpsc::Variable *varLeft1 = NULL;
         vpsc::Variable *varLeft2 = NULL;
@@ -514,8 +530,9 @@ void NonOverlapConstraints::generateSeparationConstraints(
             // Must constraint to cluster boundary variables.
             varLeft1 = vs[shape1.cluster->clusterVarId];
             varRight1 = vs[shape1.cluster->clusterVarId + 1];
-            half1 = shape1.cluster->margin();
-            rect1 = rect1.growBy(shape1.cluster->margin());
+            rect1 = shape1.cluster->margin().rectangleByApplyingBox(rect1);
+            below1 = shape1.cluster->margin().min(dim);
+            above1 = shape1.cluster->margin().max(dim);
         }
         else
         {
@@ -528,8 +545,9 @@ void NonOverlapConstraints::generateSeparationConstraints(
             // Must constraint to cluster boundary variables.
             varLeft2 = vs[shape2.cluster->clusterVarId];
             varRight2 = vs[shape2.cluster->clusterVarId + 1];
-            half2 = shape2.cluster->margin();
-            rect2 = rect2.growBy(shape2.cluster->margin());
+            rect2 = shape2.cluster->margin().rectangleByApplyingBox(rect2);
+            below2 = shape2.cluster->margin().min(dim);
+            above2 = shape2.cluster->margin().max(dim);
         }
         else
         {
@@ -543,12 +561,12 @@ void NonOverlapConstraints::generateSeparationConstraints(
             if (pos1 < pos2)
             {
                 constraint = new vpsc::Constraint(varRight1, varLeft2,
-                             half1 + half2);
+                             above1 + below2);
             }
             else
             {
                 constraint = new vpsc::Constraint(varRight2, varLeft1,
-                        half1 + half2);
+                        below1 + above2);
             }
             constraint->creator = this;
             cs.push_back(constraint);

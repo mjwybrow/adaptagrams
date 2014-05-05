@@ -98,7 +98,6 @@ public:
     Rectangle();
     bool isValid(void) const;
     Rectangle unionWith(const Rectangle& rhs) const;
-    Rectangle growBy(const double margin) const;
     /*
      * reset the dimensions in one axis
      * @param d axis (0==X, 1==Y)

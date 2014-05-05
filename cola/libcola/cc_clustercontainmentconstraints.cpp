@@ -58,39 +58,47 @@ ClusterContainmentConstraints::ClusterContainmentConstraints(Cluster *cluster,
         unsigned int priority, std::vector<vpsc::Rectangle*>& boundingBoxes)
     : CompoundConstraint(vpsc::HORIZONTAL, priority)
 {
-    double padding = cluster->padding();
+    Box padding = cluster->padding();
     _combineSubConstraints = true;
     for (std::vector<unsigned>::iterator curr = cluster->nodes.begin();
             curr != cluster->nodes.end(); ++curr)
     {
         unsigned id = *curr;
-        double halfW = (boundingBoxes[id]->width() / 2.0) + padding;
-        double halfH = (boundingBoxes[id]->height() / 2.0) + padding;
+        double halfW = (boundingBoxes[id]->width() / 2.0);
+        double halfH = (boundingBoxes[id]->height() / 2.0);
         _subConstraintInfo.push_back(new ClusterShapeOffsets(
-                id, XDIM, halfW, AboveBoundary, cluster->clusterVarId));
+                id, XDIM, halfW + padding.min(XDIM), AboveBoundary, 
+                cluster->clusterVarId));
         _subConstraintInfo.push_back(new ClusterShapeOffsets(
-                id, XDIM, halfW, BelowBoundary, cluster->clusterVarId + 1));
+                id, XDIM, halfW + padding.max(XDIM), BelowBoundary,
+                cluster->clusterVarId + 1));
         _subConstraintInfo.push_back(new ClusterShapeOffsets(
-                id, YDIM, halfH, AboveBoundary, cluster->clusterVarId));
+                id, YDIM, halfH + padding.min(YDIM), AboveBoundary,
+                cluster->clusterVarId));
         _subConstraintInfo.push_back(new ClusterShapeOffsets(
-                id, YDIM, halfH, BelowBoundary, cluster->clusterVarId + 1));
+                id, YDIM, halfH + padding.max(YDIM), BelowBoundary,
+                cluster->clusterVarId + 1));
     }
     for (std::vector<Cluster *>::iterator curr = cluster->clusters.begin();
             curr != cluster->clusters.end(); ++curr)
     {
         Cluster *childCluster = *curr;
-        double offset = padding + childCluster->margin();
+        Box margin = childCluster->margin();
         _subConstraintInfo.push_back(new ClusterShapeOffsets(
-                childCluster->clusterVarId, XDIM, offset, AboveBoundary, 
+                childCluster->clusterVarId, XDIM, 
+                padding.min(XDIM) + margin.min(XDIM), AboveBoundary, 
                 cluster->clusterVarId));
         _subConstraintInfo.push_back(new ClusterShapeOffsets(
-                childCluster->clusterVarId + 1, XDIM, offset, BelowBoundary,
+                childCluster->clusterVarId + 1, XDIM,
+                padding.max(XDIM) + margin.max(XDIM), BelowBoundary,
                 cluster->clusterVarId + 1));
         _subConstraintInfo.push_back(new ClusterShapeOffsets(
-                childCluster->clusterVarId, YDIM, offset, AboveBoundary,
+                childCluster->clusterVarId, YDIM,
+                padding.min(YDIM) + margin.min(YDIM), AboveBoundary,
                 cluster->clusterVarId));
         _subConstraintInfo.push_back(new ClusterShapeOffsets(
-                childCluster->clusterVarId + 1, YDIM, offset, BelowBoundary,
+                childCluster->clusterVarId + 1, YDIM,
+                padding.max(YDIM) + margin.max(YDIM), BelowBoundary,
                 cluster->clusterVarId + 1));
     }
 }

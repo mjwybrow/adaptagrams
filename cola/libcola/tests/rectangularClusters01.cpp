@@ -990,8 +990,8 @@ int main(void) {
     SeparationConstraint *separation477489120 = new SeparationConstraint(vpsc::XDIM, 64, 89, 127, false);
     ccs.push_back(separation477489120);
 
-    double margin = 0;   //30
-    double padding = 10;  //10
+    cola::Box margin = cola::Box(10, 30, 30, 60);   //30
+    cola::Box padding = cola::Box(); // cola::Box(10, 30, 30, 60);  //10
     ConstrainedFDLayout alg(rs, es, defaultEdgeLength, true, eLengths);
     RootCluster *cluster476902600 = new RootCluster();
     cluster476902600->addChildNode(0);

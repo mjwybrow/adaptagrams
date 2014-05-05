@@ -92,7 +92,9 @@ void Cluster::computeBoundingRect(const vpsc::Rectangles& rs)
             i != clusters.end(); ++i)
     {
         (*i)->computeBoundingRect(rs);
-        bounds = bounds.unionWith((*i)->bounds.growBy((*i)->margin()));
+        vpsc::Rectangle rectangle = 
+                (*i)->margin().rectangleByApplyingBox((*i)->bounds);
+        bounds = bounds.unionWith(rectangle);
     }
     for (vector<unsigned>::const_iterator i = nodes.begin(); 
             i != nodes.end(); ++i)
@@ -100,7 +102,7 @@ void Cluster::computeBoundingRect(const vpsc::Rectangles& rs)
         vpsc::Rectangle* r=rs[*i];
         bounds = bounds.unionWith(*r);
     }
-    bounds = bounds.growBy(padding());
+    bounds = padding().rectangleByApplyingBox(bounds);
 }
 
 void Cluster::computeVarRect(vpsc::Variables& vars, size_t dim)
@@ -237,31 +239,37 @@ RectangularCluster::~RectangularCluster()
     }
 }
  
-void RectangularCluster::setMargin(double margin)
+void RectangularCluster::setMargin(const Box margin)
 {
-    if (margin >= 0)
-    {
-        m_margin = margin;
-    }
+    m_margin = margin;
 }
 
 
-double RectangularCluster::margin(void) const
+void RectangularCluster::setMargin(double margin)
+{
+    m_margin = Box(margin);
+}
+
+
+Box RectangularCluster::margin(void) const
 {
     return m_margin;
 }
 
 
-void RectangularCluster::setPadding(double padding)
+void RectangularCluster::setPadding(const Box padding)
 {
-    if (padding >= 0)
-    {
-        m_padding = padding;
-    }
+    m_padding = padding;
 }
 
 
-double RectangularCluster::padding(void) const
+void RectangularCluster::setPadding(double padding)
+{
+    m_padding = Box(padding);
+}
+
+
+Box RectangularCluster::padding(void) const
 {
     return m_padding;
 }
@@ -345,15 +353,19 @@ void RectangularCluster::printCreationCode(FILE *fp) const
         fprintf(fp, "%d", m_rectangle_index);
     }
     fprintf(fp, ");\n");
-    if (m_margin > 0)
+    if (!m_margin.empty())
     {
-        fprintf(fp, "    cluster%llu->setMargin(%g);\n",
-                (unsigned long long) this, m_margin);
+        fprintf(fp, "    cluster%llu->setMargin(",
+                (unsigned long long) this);
+        m_margin.outputCode(fp);
+        fprintf(fp, ");\n");
     }
-    if (m_padding > 0)
+    if (!m_padding.empty())
     {
-        fprintf(fp, "    cluster%llu->setPadding(%g);\n",
-                (unsigned long long) this, m_padding);
+        fprintf(fp, "    cluster%llu->setPadding(",
+                (unsigned long long) this);
+        m_padding.outputCode(fp);
+        fprintf(fp, ");\n");
     }
     for(vector<unsigned>::const_iterator i = nodes.begin(); 
             i != nodes.end(); ++i)
