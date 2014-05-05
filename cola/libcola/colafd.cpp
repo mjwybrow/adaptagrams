@@ -175,7 +175,7 @@ void ConstrainedFDLayout::computePathLengths(
             if(d==DBL_MAX) {
                 // i and j are in disconnected subgraphs
                 p=0;
-            } else if(eLengths.size() == 0) {
+            } else {
                 D[i][j]*=m_idealEdgeLength;
             }
         }

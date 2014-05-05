@@ -269,7 +269,7 @@ public:
      *                         eLengths.
      * @param[in] eLengths  Individual ideal lengths for edges.
      *                      The actual ideal length used for the ith edge is 
-     *                      idealLength*eLengths[i], or if eLengths is NULL a
+     *                      idealLength*eLengths[i], or if eLengths is empty 
      *                      then just idealLength is used (i.e., eLengths[i] 
      *                      is assumed to be 1).
      * @param[in] done  A test of convergence operation called at the end of 
@@ -613,7 +613,8 @@ public:
      * @param[in] es  Simple pair edges, giving indices of the start and end 
      *                nodes in rs.
      * @param[in] idealLength  A scalar modifier of ideal edge lengths in 
-     *                         eLengths or 1 if no ideal lengths are specified.
+     *                         eLengths or of 1 if no ideal lengths are 
+     *                         specified.
      * @param preventOverlaps  Causes non-overlap constraints to be generated 
      *                          for all rectangles, if it is set to true.
      * @param[in] eLengths  Individual ideal lengths for edges.
