@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2011-2013  Monash University
+ * Copyright (C) 2011-2014  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -396,7 +396,7 @@ void HyperedgeRerouter::performRerouting(void)
     for (size_t i = 0; i < num_hyperedges; ++i)
     {
         // Execute the MTST method to find good junction positions and an
-        // initial path.  A hyperedge tree will be build for the new route.
+        // initial path.  A hyperedge tree will be built for the new route.
         JunctionHyperedgeTreeNodeMap hyperedgeTreeJunctions;
         MinimumTerminalSpanningTree mtst(m_router, 
                 m_terminal_vertices_vector[i], &hyperedgeTreeJunctions);

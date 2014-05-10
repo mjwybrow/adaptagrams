@@ -79,9 +79,12 @@ check_PROGRAMS = \
 	checkpointNudging3 \
 	nudgeCrossing01 \
 	nudgingSkipsCheckpoint01 \
-	nudgingSkipsCheckpoint02
+	nudgingSkipsCheckpoint02 \
+	hyperedgeRerouting01
 
 # problem_SOURCES = problem.cpp
+
+hyperedgeRerouting01_SOURCES = hyperedgeRerouting01.cpp
 
 forwardFlowingConnectors01_SOURCES = forwardFlowingConnectors01.cpp
 

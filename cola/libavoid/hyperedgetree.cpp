@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2011-2013  Monash University
+ * Copyright (C) 2011-2014  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -42,6 +42,7 @@ HyperedgeTreeNode::HyperedgeTreeNode()
       shiftSegmentNodeSet(NULL),
       finalVertex(NULL),
       isConnectorSource(false),
+      isPinDummyEndpoint(false),
       visited(false)
 {
 }
@@ -360,6 +361,7 @@ void HyperedgeTreeNode::disconnectEdge(HyperedgeTreeEdge *edge)
 //
 void HyperedgeTreeNode::spliceEdgesFrom(HyperedgeTreeNode *oldNode)
 {
+    COLA_ASSERT(oldNode != this);
     for (std::list<HyperedgeTreeEdge *>::iterator curr = oldNode->edges.begin();
             curr != oldNode->edges.end(); curr = oldNode->edges.begin())
     {
@@ -512,6 +514,20 @@ void HyperedgeTreeEdge::writeEdgesToConns(HyperedgeTreeNode *ignored,
                 if (nextNode->isConnectorSource)
                 {
                     shouldReverse = true;
+                }
+                
+                if (nextNode->isPinDummyEndpoint)
+                {
+                    // If may be that the hyperedge has an extra segment or
+                    // two leading to the centre dummy pin used for connection 
+                    // pin routing.  If so, remove these points from the
+                    // resulting route.
+                    conn->m_display_route.ps.pop_back();
+                    if (prevNode->point == nextNode->point)
+                    {
+                        // Duplicated dummy point.  Remove second one.
+                        conn->m_display_route.ps.pop_back();
+                    }
                 }
             }
             else // if (nextNodeEdges > 2)

@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2011-2013  Monash University
+ * Copyright (C) 2011-2014  Monash University
  *
  * --------------------------------------------------------------------
  * Sequential Construction of the Minimum Terminal Spanning Tree is an
@@ -234,6 +234,14 @@ void MinimumTerminalSpanningTree::buildHyperedgeTreeToRoot(VertInf *currVert,
             // later use this to set the correct ConnEnd for the connector.
             addedNode->finalVertex = currVert;
         }
+
+        if (currVert->id.isDummyPinHelper())
+        {
+            // Note if we have an extra dummy vertex for connecting 
+            // to possible connection pins.
+            addedNode->isPinDummyEndpoint = true;
+        }
+
         prevNode = addedNode;
         prevVert = currVert;
         currVert = currVert->pathNext;
