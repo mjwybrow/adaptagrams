@@ -7,11 +7,11 @@ LDADD = \
   $(top_builddir)/libavoid/libavoid.la \
   $(CAIROMM_LIBS)
 
-check_PROGRAMS = random_graph page_bounds constrained unsatisfiable invalid makefeasible rectclustershapecontainment FixedRelativeConstraint01 StillOverlap01 StillOverlap02 shortest_paths
+check_PROGRAMS = random_graph page_bounds constrained unsatisfiable invalid makefeasible rectclustershapecontainment FixedRelativeConstraint01 StillOverlap01 StillOverlap02 shortest_paths rectangularClusters01
 #check_PROGRAMS = unconstrained constrained containment shortest_paths connected_components large_graph convex_hull scale_free trees random_graph large_graph topology boundary planar #resize
 #check_PROGRAMS = topology boundary planar resize resizealignment
 
-# rectangularClusters01_SOURCES = rectangularClusters01.cpp
+rectangularClusters01_SOURCES = rectangularClusters01.cpp
 
 StillOverlap01_SOURCES = StillOverlap01.cpp 
 StillOverlap02_SOURCES = StillOverlap02.cpp 

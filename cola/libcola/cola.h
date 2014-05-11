@@ -51,6 +51,7 @@ namespace topology {
 namespace cola {
 
 class NonOverlapConstraints;
+class NonOverlapConstraintExemptions;
 
 //! Edges are simply a pair of indices to entries in the Node vector
 typedef std::pair<unsigned, unsigned> Edge;
@@ -696,6 +697,19 @@ public:
     {
         clusterHierarchy = hierarchy;
     }
+    /** 
+     * @brief Mark a group of rectangles as being exempt from having 
+     *        non-overlap constraints generated between each other.
+     *
+     * To add multiple separate groups of possibly overlapping rectangles, 
+     * just call this method multiple times.
+     *
+     * @param[in] rectGroupIds  A group of rectangle indexes which will not
+     *                          have non-overlap constraints generated between
+     *                          each other.
+     */
+    void addGroupOfNonOverlapExemptRectangles(
+            std::vector<unsigned> rectGroupIds);
     /**
      * @brief Register to receive information about unsatisfiable constraints.
      *
@@ -812,7 +826,9 @@ private:
     double rectClusterBuffer;
     double m_idealEdgeLength;
     bool m_generateNonOverlapConstraints;
-    const std::valarray<double> m_edge_lengths; 
+    const std::valarray<double> m_edge_lengths;
+
+    NonOverlapConstraintExemptions *m_nonoverlap_exemptions;
 
     friend class topology::ColaTopologyAddon;
 };

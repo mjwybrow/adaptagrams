@@ -4,7 +4,7 @@
  * libcola - A library providing force-directed network layout using the 
  *           stress-majorization method subject to separation constraints.
  *
- * Copyright (C) 2010-2013  Monash University
+ * Copyright (C) 2010-2014  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -31,6 +31,57 @@ using vpsc::YDIM;
 
 
 namespace cola {
+
+//-----------------------------------------------------------------------------
+// NonOverlapConstraintExemptions code
+//-----------------------------------------------------------------------------
+
+ShapePair::ShapePair(unsigned ind1, unsigned ind2) 
+{
+    COLA_ASSERT(ind1 != ind2);
+    // Assign the lesser value to m_index1.
+    m_index1 = (ind1 < ind2) ? ind1 : ind2;
+    // Assign the greater value to m_index2.
+    m_index2 = (ind1 > ind2) ? ind1 : ind2;
+}
+
+bool ShapePair::operator<(const ShapePair& rhs) const
+{
+    if (m_index1 != rhs.m_index1)
+    {
+        return m_index1 < rhs.m_index1;
+    }
+    return m_index2 < rhs.m_index2;
+}
+
+NonOverlapConstraintExemptions::NonOverlapConstraintExemptions()
+{
+}
+
+void NonOverlapConstraintExemptions::addExemptGroupOfRectangles(
+        std::vector<unsigned> ids)
+{
+    // Sort and remove duplicate IDs for this group. 
+    std::sort(ids.begin(), ids.end());
+    std::vector<unsigned>::iterator last = std::unique(ids.begin(), ids.end());
+    ids.erase(last, ids.end());
+
+    // Add all combinations of pairs of IDs for this group to m_exempt_pairs
+    const size_t idsSize = ids.size();
+    for (size_t i = 0; i < idsSize; ++i)
+    {
+        for (size_t j = i + 1; j < idsSize; ++j)
+        {
+            m_exempt_pairs.insert(ShapePair(ids[i], ids[j]));
+        }
+    }
+}
+
+bool NonOverlapConstraintExemptions::shapePairIsExempt(
+        ShapePair shapePair) const
+{
+    return (m_exempt_pairs.count(shapePair) == 1);
+}
 
 //-----------------------------------------------------------------------------
 // NonOverlapConstraints code
@@ -114,10 +165,12 @@ class ShapePairInfo
 };
 
 
-NonOverlapConstraints::NonOverlapConstraints(unsigned int priority)
+NonOverlapConstraints::NonOverlapConstraints(
+        NonOverlapConstraintExemptions *exemptions, unsigned int priority)
     : CompoundConstraint(vpsc::HORIZONTAL, priority),
       pairInfoListSorted(false),
-      initialSortCompleted(false)
+      initialSortCompleted(false),
+      m_exemptions(exemptions)
 {
     // All work is done by repeated addShape() calls.
 }
@@ -132,6 +185,12 @@ void NonOverlapConstraints::addShape(unsigned id, double halfW, double halfH,
         unsigned otherId = curr->first;
         if ((shapeOffsets[otherId].group == group) && (id != otherId))
         {
+            if (m_exemptions &&
+                    m_exemptions->shapePairIsExempt(ShapePair(otherId, id)))
+            {
+                continue;
+            }
+
             // Apply non-overlap only to objects in the same group (cluster).
             pairInfoList.push_back(ShapePairInfo(otherId, id));
         }

@@ -4,7 +4,7 @@
  * libcola - A library providing force-directed network layout using the 
  *           stress-majorization method subject to separation constraints.
  *
- * Copyright (C) 2010  Monash University
+ * Copyright (C) 2010-2014  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -36,11 +36,35 @@ class OverlapShapeOffsets;
 class ShapePairInfo;
 class Cluster;
 
+// A pair of unordered indexes that can be stored in a set.
+class ShapePair
+{
+    public:
+        ShapePair(unsigned ind1, unsigned ind2);
+        bool operator<(const ShapePair& rhs) const;
+
+    private:
+        unsigned short m_index1;
+        unsigned short m_index2;
+};
+
+
+// Stores IDs of all rectangles exempt from non-overlap constraints.
+class NonOverlapConstraintExemptions {
+    public:
+        NonOverlapConstraintExemptions();
+        void addExemptGroupOfRectangles(std::vector<unsigned> ids);
+        bool shapePairIsExempt(ShapePair shapePair) const;
+
+    private:
+        std::set<ShapePair> m_exempt_pairs;
+};
 
 // Non-overlap constraints prevent a set of given shapes from overlapping.
 class NonOverlapConstraints : public CompoundConstraint {
     public:
-        NonOverlapConstraints(unsigned int priority = PRIORITY_NONOVERLAP);
+        NonOverlapConstraints(NonOverlapConstraintExemptions *exemptions,
+                unsigned int priority = PRIORITY_NONOVERLAP);
         // Group is used to determine which objects should be made not to 
         // overlap with this one -- only objects in the same group.
         // This is useful for clusters.
@@ -75,6 +99,8 @@ class NonOverlapConstraints : public CompoundConstraint {
         size_t clusterVarStartIndex;
         size_t currClusterIndex;
         size_t clusterMode;
+
+        NonOverlapConstraintExemptions *m_exemptions;
 };
 
 } // namespace cola

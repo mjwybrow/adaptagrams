@@ -101,7 +101,8 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
       rectClusterBuffer(0),
       m_idealEdgeLength(idealLength),
       m_generateNonOverlapConstraints(preventOverlaps),
-      m_edge_lengths(eLengths.data(), eLengths.size())
+      m_edge_lengths(eLengths.data(), eLengths.size()),
+      m_nonoverlap_exemptions(new NonOverlapConstraintExemptions())
 {
     if (done == NULL)
     {
@@ -450,7 +451,8 @@ void ConstrainedFDLayout::generateNonOverlapAndClusterCompoundConstraints(
         {
             priority--;
             cola::NonOverlapConstraints *noc = 
-                    new cola::NonOverlapConstraints(priority);
+                    new cola::NonOverlapConstraints(m_nonoverlap_exemptions,
+                            priority);
             recGenerateClusterVariablesAndConstraints(vs, priority, 
                     noc, clusterHierarchy, extraConstraints);
             extraConstraints.push_back(noc);
@@ -461,7 +463,7 @@ void ConstrainedFDLayout::generateNonOverlapAndClusterCompoundConstraints(
         // Add standard non-overlap constraints between each pair of
         // nodes.
         cola::NonOverlapConstraints *noc = 
-                new cola::NonOverlapConstraints();
+                new cola::NonOverlapConstraints(m_nonoverlap_exemptions);
         for (unsigned int i = 0; i < boundingBoxes.size(); ++i)
         {
             noc->addShape(i, boundingBoxes[i]->width() / 2,
@@ -779,6 +781,7 @@ ConstrainedFDLayout::~ConstrainedFDLayout()
     delete [] G;
     delete [] D;
     delete topologyAddon;
+    delete m_nonoverlap_exemptions;
 }
 
 void ConstrainedFDLayout::freeAssociatedObjects(void)
@@ -1182,6 +1185,11 @@ void ConstrainedFDLayout::moveBoundingBoxes() {
     }
 }
 
+void ConstrainedFDLayout::addGroupOfNonOverlapExemptRectangles(
+            std::vector<unsigned> rectGroupIds)
+{
+    m_nonoverlap_exemptions->addExemptGroupOfRectangles(rectGroupIds);
+}
 
 static const double LIMIT = 100000000;
 

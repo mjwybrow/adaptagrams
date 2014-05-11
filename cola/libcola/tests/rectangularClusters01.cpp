@@ -139,7 +139,8 @@ int main(void) {
     rect = new vpsc::Rectangle(770.446, 778.446, 986.172, 994.172);
     rs.push_back(rect);
 
-    rect = new vpsc::Rectangle(951.446, 1145.45, 922.958, 1025.96);
+    // rect-43
+    rect = new vpsc::Rectangle(941.446, 1155.45, 922.958, 1025.96);
     rs.push_back(rect);
 
     rect = new vpsc::Rectangle(1147.45, 1155.45, 979.458, 987.458);
@@ -1100,7 +1101,31 @@ int main(void) {
     cluster476902600->addChildCluster(cluster417213744);
     alg.setClusterHierarchy(cluster476902600);
     alg.setConstraints(ccs);
+
+    UnsatisfiableConstraintInfos unsatisfiableX, unsatisfiableY;
+    alg.setUnsatisfiableConstraintInfo(&unsatisfiableX, &unsatisfiableY);
+
+    // rect-43 and associated port rects.
+    std::vector<unsigned> nonOverlapExemptGroup;
+    nonOverlapExemptGroup.push_back(44);
+    nonOverlapExemptGroup.push_back(45);
+    nonOverlapExemptGroup.push_back(46);
+    nonOverlapExemptGroup.push_back(47);
+    nonOverlapExemptGroup.push_back(48);
+    nonOverlapExemptGroup.push_back(43);
+    alg.addGroupOfNonOverlapExemptRectangles(nonOverlapExemptGroup);
+
     //alg.makeFeasible();
     alg.run();
-    alg.outputInstanceToSVG("problem");
+    alg.outputInstanceToSVG("rectangularClusters01");
+
+    for (size_t i = 0; i < unsatisfiableX.size(); ++i)
+    {
+	printf("%s\n", unsatisfiableX[i]->toString().c_str());
+    }
+    for (size_t i = 0; i < unsatisfiableY.size(); ++i)
+    {
+	printf("%s\n", unsatisfiableY[i]->toString().c_str());
+    }
+    return (unsatisfiableX.empty() && unsatisfiableY.empty()) ? 0 : 1;
 };
