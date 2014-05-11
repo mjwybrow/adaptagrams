@@ -153,41 +153,6 @@ ClusterContainmentConstraints::getCurrSubConstraintAlternatives(vpsc::Variables 
     return alternatives;
 }
 
-#if 0
-bool ClusterContainmentConstraints::subConstraintsRemaining(void) const
-{
-    //printf(". %3d of %4d\n", _currSubConstraintIndex, pairInfoList.size());
-    return _currSubConstraintIndex < pairInfoList.size();
-}
-
-
-void ClusterContainmentConstraints::markAllSubConstraintsAsInactive(void)
-{
-    for (std::list<ShapePairInfo>::iterator curr = pairInfoList.begin();
-            curr != pairInfoList.end(); ++curr)
-    {
-        ShapePairInfo& info = (*curr);
-        info.satisfied = false;
-        info.processed = false;
-    }
-    _currSubConstraintIndex = 0;
-}
-
-
-void ClusterContainmentConstraints::markCurrSubConstraintAsActive(
-        const bool satisfiable)
-{
-    ShapePairInfo& info = pairInfoList.front();
-    
-    info.processed = true;
-    info.satisfied = satisfiable;
-
-    _currSubConstraintIndex++;
-}
-
-
-#endif
-
 
 void ClusterContainmentConstraints::generateSeparationConstraints(
         const vpsc::Dim dim, vpsc::Variables& vs, vpsc::Constraints& cs,

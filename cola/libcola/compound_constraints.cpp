@@ -1067,7 +1067,7 @@ FixedRelativeConstraint::FixedRelativeConstraint(const vpsc::Rectangles& rs,
 {
     _combineSubConstraints = true;
 
-    // Make sure that m_shape_vars doesn't contain dupllicates.
+    // Make sure that m_shape_vars doesn't contain duplicates.
     std::sort(m_shape_vars.begin(), m_shape_vars.end());
     std::vector<unsigned>::iterator last = 
             std::unique(m_shape_vars.begin(), m_shape_vars.end());
