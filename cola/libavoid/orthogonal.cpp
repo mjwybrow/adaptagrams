@@ -61,6 +61,34 @@ static const double strongerWeight = 1.0;
 static const double fixedWeight  = 100000;
 
 
+// A pair of unordered unsigned values that can be stored in a set.
+class UnsignedPair
+{
+    public:
+        UnsignedPair(unsigned ind1, unsigned ind2)
+        {
+            COLA_ASSERT(ind1 != ind2);
+            // Assign the lesser value to m_index1.
+            m_index1 = (ind1 < ind2) ? ind1 : ind2;
+            // Assign the greater value to m_index2.
+            m_index2 = (ind1 > ind2) ? ind1 : ind2;
+        }
+
+        bool operator<(const UnsignedPair& rhs) const
+        {
+            if (m_index1 != rhs.m_index1)
+            {
+                return m_index1 < rhs.m_index1;
+            }
+            return m_index2 < rhs.m_index2;
+        }
+    private:
+        unsigned short m_index1;
+        unsigned short m_index2;
+};
+typedef std::set<UnsignedPair> UnsignedPairSet;
+
+
 // Used to sort points when merging NudgingShiftSegments.
 // Sorts the indexes, by point position in one dimension.
 class CmpIndexes
@@ -2214,104 +2242,9 @@ static void buildOrthogonalNudgingSegments(Router *router,
     }
 }
 
-static void simplifyOrthogonalRoutes(Router *router)
-{
-    // Simplify routes.
-    for (ConnRefList::const_iterator curr = router->connRefs.begin(); 
-            curr != router->connRefs.end(); ++curr) 
-    {
-        if ((*curr)->routingType() != ConnType_Orthogonal)
-        {
-            continue;
-        }
-        (*curr)->set_route((*curr)->displayRoute().simplify());
-    }
-}
 
 typedef std::vector<ConnRef *> ConnRefVector;
 typedef std::vector<Polygon> RouteVector;
-
-static void buildOrthogonalNudgingOrderInfo(Router *router, 
-        PtOrderMap& pointOrders)
-{
-    // Simplify routes.
-    simplifyOrthogonalRoutes(router);
-
-    int crossingsN = 0;
-
-    // Make a vector of the ConnRefList, for convenience.
-    ConnRefVector connRefs(router->connRefs.begin(), router->connRefs.end());
-    
-    // Make a temporary copy of all the connector displayRoutes.
-    RouteVector connRoutes(connRefs.size());
-    for (size_t ind = 0; ind < connRefs.size(); ++ind)
-    {
-        connRoutes[ind] = connRefs[ind]->displayRoute();
-    }
-
-    // Do segment splitting.
-    for (size_t ind1 = 0; ind1 < connRefs.size(); ++ind1)
-    {
-        ConnRef *conn = connRefs[ind1];
-        if (conn->routingType() != ConnType_Orthogonal)
-        {
-            continue;
-        }
-        
-        for (size_t ind2 = 0; ind2 < connRefs.size(); ++ind2)
-        {
-            if (ind1 == ind2)
-            {
-                continue;
-            }
-            
-            ConnRef *conn2 = connRefs[ind2];
-            if (conn2->routingType() != ConnType_Orthogonal)
-            {
-                continue;
-            }
-            
-            Avoid::Polygon& route = connRoutes[ind1];
-            Avoid::Polygon& route2 = connRoutes[ind2];
-            splitBranchingSegments(route2, true, route);
-        }
-    }
-
-    for (size_t ind1 = 0; ind1 < connRefs.size(); ++ind1)
-    {
-        ConnRef *conn = connRefs[ind1];
-        if (conn->routingType() != ConnType_Orthogonal)
-        {
-            continue;
-        }
-        
-        for (size_t ind2 = ind1 + 1; ind2 < connRefs.size(); ++ind2)
-        {
-            ConnRef *conn2 = connRefs[ind2];
-            if (conn2->routingType() != ConnType_Orthogonal)
-            {
-                continue;
-            }
-            
-            Avoid::Polygon& route = connRoutes[ind1];
-            Avoid::Polygon& route2 = connRoutes[ind2];
-            int crossings = 0;
-            ConnectorCrossings cross(route2, true, route, conn2, conn);
-            cross.pointOrders = &pointOrders;
-            for (size_t i = 1; i < route.size(); ++i)
-            {
-                const bool finalSegment = ((i + 1) == route.size());
-                cross.countForSegment(i, finalSegment);
-
-                crossings += cross.crossingCount;
-            }
-            if (crossings > 0)
-            {
-                crossingsN += crossings;
-            }
-        }
-    }
-}
 
 
 class CmpLineOrder 
@@ -2540,39 +2473,129 @@ class PotentialSegmentConstraint
         const Variables& vs;
 };
 
-static void nudgeOrthogonalRoutes(Router *router, size_t dimension, 
-        PtOrderMap& pointOrders, ShiftSegmentList& segmentList, 
-        bool justUnifying = false)
+
+class ImproveOrthogonalRoutes
 {
-    bool nudgeFinalSegments = router->routingOption(
+public:
+    ImproveOrthogonalRoutes(Router *router);
+    void execute(void);
+
+private:
+    void simplifyOrthogonalRoutes(void);
+    void buildOrthogonalNudgingOrderInfo(void);
+    void nudgeOrthogonalRoutes(size_t dimension,
+           bool justUnifying = false);
+
+    Router *m_router;
+    PtOrderMap m_point_orders;
+    UnsignedPairSet m_shared_path_connectors_with_common_endpoints;
+    ShiftSegmentList m_segment_list;
+};
+
+
+ImproveOrthogonalRoutes::ImproveOrthogonalRoutes(Router *router)
+    : m_router(router)
+{
+}
+
+void ImproveOrthogonalRoutes::execute(void)
+{
+    TIMER_START(m_router, tmOrthogNudge);
+
+    m_shared_path_connectors_with_common_endpoints.clear();
+
+    // Simplify routes.
+    simplifyOrthogonalRoutes();
+
+    // Build a cache that denotes whether a certain segment of a connector
+    // contains a checkpoint.  We can't just compare positions, since routes
+    // can be moved away from their original positions during nudging.
+    buildConnectorRouteCheckpointCache(m_router);
+
+    // Do Unifying first, by itself.  This greedily tries to position free
+    // segments in overlapping channels at the same position.  This way they
+    // have correct nudging orders determined for them since they will form
+    // shared paths, rather than segments just positioned as an results of
+    // the routing process.  Of course, don't do this when rerouting with
+    // a fixedSharedPathPenalty since these routes include extra segments
+    // we want to keep apart which prevent some shared paths.
+    if (m_router->routingOption(performUnifyingNudgingPreprocessingStep) &&
+            (m_router->routingParameter(fixedSharedPathPenalty) == 0))
+    {
+        for (size_t dimension = 0; dimension < 2; ++dimension)
+        {
+            // Just perform Unifying operation.
+            bool justUnifying = true;
+            m_segment_list.clear();
+            buildOrthogonalNudgingSegments(m_router, dimension, m_segment_list);
+            buildOrthogonalChannelInfo(m_router, dimension, m_segment_list);
+            nudgeOrthogonalRoutes(dimension, justUnifying);
+        }
+    }
+
+#ifndef DEBUG_JUST_UNIFY
+    // Do the Nudging and centring.
+    for (size_t dimension = 0; dimension < 2; ++dimension)
+    {
+        m_point_orders.clear();
+        // Build nudging info.
+        // XXX Needs to be rebuilt for each dimension, cause of shifting
+        //     points.  Maybe we could modify the point orders.
+        buildOrthogonalNudgingOrderInfo();
+
+        // Do the centring and nudging.
+        m_segment_list.clear();
+        buildOrthogonalNudgingSegments(m_router, dimension, m_segment_list);
+        buildOrthogonalChannelInfo(m_router, dimension, m_segment_list);
+        nudgeOrthogonalRoutes(dimension);
+    }
+#endif // DEBUG_JUST_UNIFY
+
+    // Resimplify all the display routes that may have been split.
+    simplifyOrthogonalRoutes();
+
+    m_router->improveOrthogonalTopology();
+
+    // Clear the segment-checkpoint cache for connectors.
+    clearConnectorRouteCheckpointCache(m_router);
+
+    TIMER_STOP(router);
+}
+
+void ImproveOrthogonalRoutes::nudgeOrthogonalRoutes(size_t dimension,
+       bool justUnifying)
+{
+    bool nudgeFinalSegments = m_router->routingOption(
             nudgeOrthogonalSegmentsConnectedToShapes);
-    double baseSepDist = router->routingParameter(idealNudgingDistance);
+    bool nudgeSharedPathsWithCommonEnd = m_router->routingOption(
+            nudgeSharedPathsWithCommonEndPoint);
+    double baseSepDist = m_router->routingParameter(idealNudgingDistance);
     COLA_ASSERT(baseSepDist >= 0);
     // If we can fit things with the desired separation distance, then
     // we try 10 times, reducing each time by a 10th of the original amount.
     double reductionSteps = 10.0;
 
-    unsigned int totalSegmentsToShift = segmentList.size();
+    unsigned int totalSegmentsToShift = m_segment_list.size();
     unsigned int numOfSegmentsShifted = 0;
     // Do the actual nudging.
     ShiftSegmentList currentRegion;
-    while (!segmentList.empty())
+    while (!m_segment_list.empty())
     {
         // Progress reporting and continuation check.
-        numOfSegmentsShifted = totalSegmentsToShift - segmentList.size();
-        router->performContinuationCheck(
-                (dimension == XDIM) ? TransactionPhaseOrthogonalNudgingX : 
+        numOfSegmentsShifted = totalSegmentsToShift - m_segment_list.size();
+        m_router->performContinuationCheck(
+                (dimension == XDIM) ? TransactionPhaseOrthogonalNudgingX :
                 TransactionPhaseOrthogonalNudgingY, numOfSegmentsShifted,
                 totalSegmentsToShift);
 
         // Take a reference segment
-        ShiftSegment *currentSegment = segmentList.front();
+        ShiftSegment *currentSegment = m_segment_list.front();
         // Then, find the segments that overlap this one.
         currentRegion.clear();
         currentRegion.push_back(currentSegment);
-        segmentList.erase(segmentList.begin());
-        for (ShiftSegmentList::iterator curr = segmentList.begin();
-                curr != segmentList.end(); )
+        m_segment_list.erase(m_segment_list.begin());
+        for (ShiftSegmentList::iterator curr = m_segment_list.begin();
+                curr != m_segment_list.end(); )
         {
             bool overlaps = false;
             for (ShiftSegmentList::iterator curr2 = currentRegion.begin();
@@ -2587,10 +2610,10 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             if (overlaps)
             {
                 currentRegion.push_back(*curr);
-                segmentList.erase(curr);
+                m_segment_list.erase(curr);
                 // Consider segments from the beginning, since we may have
                 // since passed segments that overlap with the new set.
-                curr = segmentList.begin();
+                curr = m_segment_list.begin();
             }
             else
             {
@@ -2600,7 +2623,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
 
         if (! justUnifying)
         {
-            CmpLineOrder lineSortComp(pointOrders, dimension);
+            CmpLineOrder lineSortComp(m_point_orders, dimension);
             currentRegion = linesort(nudgeFinalSegments, currentRegion,
                     lineSortComp);
         }
@@ -2623,7 +2646,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
         Constraints gapcs;
         ShiftSegmentPtrList prevVars;
         double sepDist = baseSepDist;
-#ifdef NUDGE_DEBUG 
+#ifdef NUDGE_DEBUG
         fprintf(stderr, "-------------------------------------------------------\n");
         fprintf(stderr, "%s -- size: %d\n", (justUnifying) ? "Unifying" : "Nudging",
                 (int) currentRegion.size());
@@ -2635,10 +2658,10 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                 currSegmentIt != currentRegion.end(); ++currSegmentIt )
         {
             NudgingShiftSegment *currSegment = static_cast<NudgingShiftSegment *> (*currSegmentIt);
-            
+
             // Create a solver variable for the position of this segment.
             currSegment->createSolverVariable(justUnifying);
-            
+
             vs.push_back(currSegment->variable);
             size_t index = vs.size() - 1;
 #ifdef NUDGE_DEBUG
@@ -2646,11 +2669,11 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                    "min: %.16f  max: %.16f\n"
                    "minEndPt: %.16f  maxEndPt: %.16f weight: %g cc: %d\n",
                     currSegment->connRef->id(),
-                    currSegment->lowPoint()[dimension], (int) dimension, 
-                    currSegment->variable->desiredPosition, 
+                    currSegment->lowPoint()[dimension], (int) dimension,
+                    currSegment->variable->desiredPosition,
                     currSegment->minSpaceLimit, currSegment->maxSpaceLimit,
-                    currSegment->lowPoint()[!dimension], currSegment->highPoint()[!dimension], 
-                    currSegment->variable->weight, 
+                    currSegment->lowPoint()[!dimension], currSegment->highPoint()[!dimension],
+                    currSegment->variable->weight,
                     (int) currSegment->checkpoints.size());
 #endif
 #ifdef NUDGE_DEBUG_SVG
@@ -2659,8 +2682,8 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             double maxP = std::min(currSegment->maxSpaceLimit, 5000.0);
             fprintf(stdout, "<rect style=\"fill: #f00; opacity: 0.2;\" "
                     "x=\"%g\" y=\"%g\" width=\"%g\" height=\"%g\" />\n",
-                    currSegment->lowPoint()[XDIM], minP, 
-                    currSegment->highPoint()[XDIM] - currSegment->lowPoint()[XDIM], 
+                    currSegment->lowPoint()[XDIM], minP,
+                    currSegment->highPoint()[XDIM] - currSegment->lowPoint()[XDIM],
                     maxP - minP);
             fprintf(stdout, "<line style=\"stroke: #000;\" x1=\"%g\" "
                     "y1=\"%g\" x2=\"%g\" y2=\"%g\" />\n",
@@ -2685,7 +2708,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
             if (justUnifying)
             {
                 // Just doing centring, not nudging.
-                // Record the index of the variable so we can use it as 
+                // Record the index of the variable so we can use it as
                 // a segment to potentially constrain to other segments.
                 if (currSegment->variable->weight == freeWeight)
                 {
@@ -2705,14 +2728,14 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                 NudgingShiftSegment *prevSeg =
                         static_cast<NudgingShiftSegment *> (*prevVarIt);
                 Variable *prevVar = prevSeg->variable;
-                
+
                 if (currSegment->overlapsWith(prevSeg, dimension) &&
                         (!(currSegment->fixed) || !(prevSeg->fixed)))
                 {
-                    // If there is a previous segment to the left that 
-                    // could overlap this in the shift direction, then 
+                    // If there is a previous segment to the left that
+                    // could overlap this in the shift direction, then
                     // constrain the two segments to be separated.
-                    // Though don't add the constraint if both the 
+                    // Though don't add the constraint if both the
                     // segments are fixed in place.
                     double thisSepDist = sepDist;
                     bool equality = false;
@@ -2733,13 +2756,26 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                         // Here, we let such segments drift back together.
                         thisSepDist = 0;
                     }
+                    else if (!nudgeSharedPathsWithCommonEnd &&
+                            (m_shared_path_connectors_with_common_endpoints.count(
+                                 UnsignedPair(currSegment->connRef->id(), prevSeg->connRef->id())) > 0))
+                    {
+                        // We don't want to nudge apart these two segments
+                        // since they are from a shared path with a common
+                        // endpoint.  There might be multiple chains of
+                        // segments that don't all have the same endpoints
+                        // so we need to make this an equality to prevent
+                        // some of them possibly getting nudged apart.
+                        thisSepDist = 0;
+                        equality = true;
+                    }
 
-                    Constraint *constraint = new Constraint(prevVar, 
+                    Constraint *constraint = new Constraint(prevVar,
                             vs[index], thisSepDist, equality);
                     cs.push_back(constraint);
                     if (thisSepDist)
                     {
-                        // Add to the list of gap constraints so we can 
+                        // Add to the list of gap constraints so we can
                         // rewrite the separation distance later.
                         gapcs.push_back(constraint);
                     }
@@ -2787,35 +2823,35 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
         }
 #endif
         // Repeatedly try solving this.  There are two cases:
-        //  -  When Unifying, we greedily place as many free segments as 
-        //     possible at the same positions, that way they have more 
+        //  -  When Unifying, we greedily place as many free segments as
+        //     possible at the same positions, that way they have more
         //     accurate nudging orders determined for them in the Nudging
         //     stage.
-        //  -  When Nudging, if we can't fit all the segments with the 
-        //     default nudging distance we try smaller separation 
+        //  -  When Nudging, if we can't fit all the segments with the
+        //     default nudging distance we try smaller separation
         //     distances till we find a solution that is satisfied.
         bool justAddedConstraint = false;
         bool satisfied;
 
         typedef std::pair<size_t, size_t> UnsatisfiedRange;
         std::list<UnsatisfiedRange> unsatisfiedRanges;
-        do 
+        do
         {
             IncSolver f(vs, cs);
             f.solve();
 
             // Determine if the problem was satisfied.
             satisfied = true;
-            for (size_t i = 0; i < vs.size(); ++i) 
+            for (size_t i = 0; i < vs.size(); ++i)
             {
                 // For each variable...
                 if (vs[i]->id >= fixedSegmentID)
                 {
                     // If it is a fixed segment (should stay still)...
-                    if (fabs(vs[i]->finalPosition - 
+                    if (fabs(vs[i]->finalPosition -
                             vs[i]->desiredPosition) > 0.0001)
                     {
-                        // and it is not at it's desired position, then 
+                        // and it is not at it's desired position, then
                         // we consider the problem to be unsatisfied.
                         satisfied = false;
 
@@ -2824,12 +2860,12 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                         if (vs[i]->id == channelLeftID)
                         {
                             // This is the left-hand-side of a channel.
-                            if (unsatisfiedRanges.empty() || 
+                            if (unsatisfiedRanges.empty() ||
                                     (unsatisfiedRanges.back().first !=
                                     unsatisfiedRanges.back().second))
                             {
                                 // There are no existing unsatisfied ranges,
-                                // or there are but they are a valid range 
+                                // or there are but they are a valid range
                                 // (we've encountered the right-hand channel
                                 // edges already).
                                 // So, start a new unsatisfied range.
@@ -2846,7 +2882,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                         }
                         else if (vs[i]->id == fixedSegmentID)
                         {
-                            // Fixed connector segments can also start and 
+                            // Fixed connector segments can also start and
                             // extend unsatisfied variable ranges.
                             if (unsatisfiedRanges.empty())
                             {
@@ -2877,9 +2913,9 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                 // When we're centring, we'd like to greedily place as many
                 // segments as possible at the same positions, that way they
                 // have more accurate nudging orders determined for them.
-                // 
-                // We do this by taking pairs of adjoining free segments and 
-                // attempting to constrain them to have the same position, 
+                //
+                // We do this by taking pairs of adjoining free segments and
+                // attempting to constrain them to have the same position,
                 // starting from the closest up to the furthest.
 
                 if (justAddedConstraint)
@@ -2900,8 +2936,8 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                         PotentialSegmentConstraint& pc =
                                 potentialConstraints.front();
 
-                        // Rewrite the indexes of these two variables to 
-                        // one, so we need not worry about redundant 
+                        // Rewrite the indexes of these two variables to
+                        // one, so we need not worry about redundant
                         // equality constraints.
                         for (std::list<PotentialSegmentConstraint>::iterator
                                 it = potentialConstraints.begin();
@@ -2917,7 +2953,7 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
 
                 // Remove now invalid potential segment constraints.
                 // This could have been caused by the variable rewriting.
-                while (!potentialConstraints.empty() && 
+                while (!potentialConstraints.empty() &&
                        !potentialConstraints.front().stillValid())
                 {
                     potentialConstraints.pop_front();
@@ -2946,18 +2982,18 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
                     sepDist -= (baseSepDist / reductionSteps);
 #ifdef NUDGE_DEBUG
                     for (std::list<UnsatisfiedRange>::iterator it =
-                            unsatisfiedRanges.begin(); 
+                            unsatisfiedRanges.begin();
                             it != unsatisfiedRanges.end(); ++it)
                     {
-                        fprintf(stderr, "unsatisfiedVarRange(%ld, %ld)\n", 
+                        fprintf(stderr, "unsatisfiedVarRange(%ld, %ld)\n",
                                 it->first, it->second);
                     }
                     fprintf(stderr, "unsatisfied, trying %g\n", sepDist);
 #endif
-                    // And rewrite all the gap constraints to have the new 
+                    // And rewrite all the gap constraints to have the new
                     // reduced separation distance.
                     bool withinUnsatisfiedGroup = false;
-                    for (Constraints::iterator cIt = cs.begin(); 
+                    for (Constraints::iterator cIt = cs.begin();
                             cIt != cs.end(); ++cIt)
                     {
                         UnsatisfiedRange& range = unsatisfiedRanges.front();
@@ -2971,11 +3007,11 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
 
                         if (withinUnsatisfiedGroup && (constraint->gap > 0))
                         {
-                            // Rewrite constraints in unsatisfied ranges 
+                            // Rewrite constraints in unsatisfied ranges
                             // that have a non-zero gap.
                             constraint->gap = sepDist;
                         }
-                        
+
                         if (constraint->right == vs[range.second])
                         {
                             // Left an unsatisfied range of variables.
@@ -3031,68 +3067,131 @@ static void nudgeOrthogonalRoutes(Router *router, size_t dimension,
     }
 }
 
-extern void improveOrthogonalRoutes(Router *router)
+
+void ImproveOrthogonalRoutes::simplifyOrthogonalRoutes(void)
 {
-    TIMER_START(router, tmOrthogNudge);
-
     // Simplify routes.
-    simplifyOrthogonalRoutes(router);
-
-    // Build a cache that denotes whether a certain segment of a connector
-    // contains a checkpoint.  We can't just compare positions, since routes
-    // can be moved away from their original positions during nudging.
-    buildConnectorRouteCheckpointCache(router);
-
-    // Do Unifying first, by itself.  This greedily tries to position free
-    // segments in overlapping channels at the same position.  This way they
-    // have correct nudging orders determined for them since they will form
-    // shared paths, rather than segments just positioned as an results of
-    // the routing process.  Of course, don't do this when rerouting with
-    // a fixedSharedPathPenalty since these routes include extra segments 
-    // we want to keep apart which prevent some shared paths.
-    if (router->routingOption(performUnifyingNudgingPreprocessingStep) && 
-            (router->routingParameter(fixedSharedPathPenalty) == 0))
+    for (ConnRefList::const_iterator curr = m_router->connRefs.begin();
+            curr != m_router->connRefs.end(); ++curr)
     {
-        PtOrderMap pointOrders;
-        for (size_t dimension = 0; dimension < 2; ++dimension)
+        if ((*curr)->routingType() != ConnType_Orthogonal)
         {
-            // Just perform Unifying operation.
-            bool justUnifying = true;
-            ShiftSegmentList segmentList;
-            buildOrthogonalNudgingSegments(router, dimension, segmentList);
-            buildOrthogonalChannelInfo(router, dimension, segmentList);
-            nudgeOrthogonalRoutes(router, dimension, pointOrders, segmentList,
-                    justUnifying);
+            continue;
+        }
+        (*curr)->set_route((*curr)->displayRoute().simplify());
+    }
+}
+
+
+// Populates m_point_orders and m_shared_path_connectors_with_common_endpoints.
+void ImproveOrthogonalRoutes::buildOrthogonalNudgingOrderInfo(void)
+{
+    // Simplify routes.
+    simplifyOrthogonalRoutes();
+
+    int crossingsN = 0;
+
+    bool buildSharedPathInfo = false;
+    if (!m_router->routingOption(Avoid::nudgeSharedPathsWithCommonEndPoint) &&
+            m_shared_path_connectors_with_common_endpoints.empty())
+    {
+        // We're not going to nudge apart shared paths with common ends so we
+        // will need to store information about this during the crossing
+        // detection.
+        buildSharedPathInfo = true;
+    }
+
+
+    // Make a vector of the ConnRefList, for convenience.
+    ConnRefVector connRefs(m_router->connRefs.begin(), m_router->connRefs.end());
+
+    // Make a temporary copy of all the connector displayRoutes.
+    RouteVector connRoutes(connRefs.size());
+    for (size_t ind = 0; ind < connRefs.size(); ++ind)
+    {
+        connRoutes[ind] = connRefs[ind]->displayRoute();
+    }
+
+    // Do segment splitting.
+    for (size_t ind1 = 0; ind1 < connRefs.size(); ++ind1)
+    {
+        ConnRef *conn = connRefs[ind1];
+        if (conn->routingType() != ConnType_Orthogonal)
+        {
+            continue;
+        }
+
+        for (size_t ind2 = 0; ind2 < connRefs.size(); ++ind2)
+        {
+            if (ind1 == ind2)
+            {
+                continue;
+            }
+
+            ConnRef *conn2 = connRefs[ind2];
+            if (conn2->routingType() != ConnType_Orthogonal)
+            {
+                continue;
+            }
+
+            Avoid::Polygon& route = connRoutes[ind1];
+            Avoid::Polygon& route2 = connRoutes[ind2];
+            splitBranchingSegments(route2, true, route);
         }
     }
 
-#ifndef DEBUG_JUST_UNIFY
-    // Do the Nudging and centring.
-    for (size_t dimension = 0; dimension < 2; ++dimension)
+    for (size_t ind1 = 0; ind1 < connRefs.size(); ++ind1)
     {
-        // Build nudging info.
-        // XXX Needs to be rebuilt for each dimension, cause of shifting
-        //     points.  Maybe we could modify the point orders.
-        PtOrderMap pointOrders;
-        buildOrthogonalNudgingOrderInfo(router, pointOrders);
+        ConnRef *conn = connRefs[ind1];
+        if (conn->routingType() != ConnType_Orthogonal)
+        {
+            continue;
+        }
 
-        // Do the centring and nudging.
-        ShiftSegmentList segmentList;
-        buildOrthogonalNudgingSegments(router, dimension, segmentList);
-        buildOrthogonalChannelInfo(router, dimension, segmentList);
-        nudgeOrthogonalRoutes(router, dimension, pointOrders, segmentList);
+        for (size_t ind2 = ind1 + 1; ind2 < connRefs.size(); ++ind2)
+        {
+            ConnRef *conn2 = connRefs[ind2];
+            if (conn2->routingType() != ConnType_Orthogonal)
+            {
+                continue;
+            }
+
+            Avoid::Polygon& route = connRoutes[ind1];
+            Avoid::Polygon& route2 = connRoutes[ind2];
+            int crossings = 0;
+            unsigned int crossingFlags = 0;
+            ConnectorCrossings cross(route2, true, route, conn2, conn);
+            cross.pointOrders = &m_point_orders;
+            for (size_t i = 1; i < route.size(); ++i)
+            {
+                const bool finalSegment = ((i + 1) == route.size());
+                cross.countForSegment(i, finalSegment);
+
+                crossings += cross.crossingCount;
+                crossingFlags |= cross.crossingFlags;
+            }
+            if (crossings > 0)
+            {
+                crossingsN += crossings;
+            }
+
+            if (buildSharedPathInfo &&
+                    (crossingFlags & CROSSING_SHARES_PATH_AT_END))
+            {
+                // Record if these two connectors have a shared path with a
+                // common end point.
+                m_shared_path_connectors_with_common_endpoints.insert(
+                        UnsignedPair(conn->id(), conn2->id()));
+            }
+        }
     }
-#endif // DEBUG_JUST_UNIFY
+}
 
-    // Resimplify all the display routes that may have been split.
-    simplifyOrthogonalRoutes(router);
 
-    router->improveOrthogonalTopology();
- 
-    // Clear the segment-checkpoint cache for connectors.
-    clearConnectorRouteCheckpointCache(router);
-
-    TIMER_STOP(router);
+extern void improveOrthogonalRoutes(Router *router)
+{
+    ImproveOrthogonalRoutes improver(router);
+    improver.execute();
 }
 
 

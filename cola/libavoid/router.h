@@ -181,6 +181,9 @@ enum RoutingOption
     //! This option also causes routes running through the same checkpoint 
     //! to be nudged apart.
     //!
+    //! This option has no effect if nudgeSharedPathsWithCommonEndPoint is
+    //! set to false,
+    //!
     //! @note   This will allow routes to be nudged up to the bounds of shapes.
     nudgeOrthogonalSegmentsConnectedToShapes = 0,
     
@@ -257,6 +260,17 @@ enum RoutingOption
     //! @sa   improveHyperedgeRoutesMovingJunctions
     //!
     improveHyperedgeRoutesMovingAddingAndDeletingJunctions,
+
+    //! This option determines whether intermediate segments of connectors that
+    //! are attached to common endpoints will be nudged apart.  Usually these
+    //! segments get nudged apart, but you may want to turn this off if you would
+    //! prefer that entire shared paths terminating at a common end point should
+    //! overlap.
+    //!
+    //! Defaults to true.
+    //!
+    nudgeSharedPathsWithCommonEndPoint,
+
 
     // Used for determining the size of the routing options array.
     // This should always we the last value in the enum.

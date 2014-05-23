@@ -96,6 +96,7 @@ Router::Router(const unsigned int flags)
     m_routing_options[performUnifyingNudgingPreprocessingStep] = true;
     m_routing_options[improveHyperedgeRoutesMovingAddingAndDeletingJunctions] =
             false;
+    m_routing_options[nudgeSharedPathsWithCommonEndPoint] = true;
 
     m_hyperedge_improver.setRouter(this);
     m_hyperedge_rerouter.setRouter(this);
