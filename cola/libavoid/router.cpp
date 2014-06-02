@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2013  Monash University
+ * Copyright (C) 2004-2014  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -2271,7 +2271,7 @@ void Router::outputInstanceToSVG(std::string instanceName)
     while (revClusterRefIt != clusterRefs.rend())
     {
         ClusterRef *cRef = *revClusterRefIt;
-        fprintf(fp, "    Polygon polygon.resize(%lu);\n", 
+        fprintf(fp, "    polygon = Polygon(%lu);\n", 
                 (unsigned long)cRef->polygon().size());
         for (size_t i = 0; i <cRef->polygon().size(); ++i)
         {
