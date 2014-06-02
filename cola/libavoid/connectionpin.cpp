@@ -361,7 +361,7 @@ void ShapeConnectionPin::outputCode(FILE *fp) const
     COLA_ASSERT(m_shape || m_junction);
     if (m_shape)
     {
-        fprintf(fp, "    new ShapeConnectionPin(shapeRef%u, %u, "
+        fprintf(fp, "    connPin = new ShapeConnectionPin(shapeRef%u, %u, "
                 "%" PREC "g, %" PREC "g, %s, %g, (ConnDirFlags) %u);\n",
                 m_shape->id(), m_class_id, m_x_offset, m_y_offset, 
                 (m_using_proportional_offsets ? "true" : "false"),
@@ -369,9 +369,15 @@ void ShapeConnectionPin::outputCode(FILE *fp) const
     }
     else if (m_junction)
     {
-        fprintf(fp, "    new ShapeConnectionPin(junctionRef%u, %u, "
+        fprintf(fp, "    connPin = new ShapeConnectionPin(junctionRef%u, %u, "
                 "(ConnDirFlags) %u);\n", m_junction->id(), m_class_id, 
                 (unsigned int) m_visibility_directions);
+    }
+
+    if ((m_vertex->visDirections != ConnDirAll) && (m_exclusive == false))
+    {
+        // Directional port is not exclusive (the default), so output this.
+        fprintf(fp, "    connPin->setExclusive(false);\n");
     }
 }
 

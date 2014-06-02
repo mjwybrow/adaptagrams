@@ -2267,6 +2267,8 @@ void Router::outputInstanceToSVG(std::string instanceName)
     fprintf(fp, "    ConnEnd srcPt;\n");
     fprintf(fp, "    ConnEnd dstPt;\n");
     fprintf(fp, "    PolyLine newRoute;\n");
+    fprintf(fp, "    ShapeConnectionPin *connPin = NULL;\n");
+    fprintf(fp, "\n");
     ClusterRefList::reverse_iterator revClusterRefIt = clusterRefs.rbegin();
     while (revClusterRefIt != clusterRefs.rend())
     {
@@ -2315,7 +2317,7 @@ void Router::outputInstanceToSVG(std::string instanceName)
     {
         ClusterRef *cRef = *revClusterRefIt;
         fprintf(fp, "<path id=\"cluster-%u\" style=\"stroke-width: 1px; "
-                "stroke: black; fill: green; fill-opacity: 0.1;\" d=\"", 
+                "stroke: black; fill: green; opacity: 0.1;\" d=\"", 
                 cRef->id());
         for (size_t i = 0; i < cRef->polygon().size(); ++i)
         {
@@ -2324,8 +2326,8 @@ void Router::outputInstanceToSVG(std::string instanceName)
         }
         fprintf(fp, "Z\" />\n");
 
-        fprintf(fp, "<path id=\"cluster-%u\" style=\"stroke-width: 1px; "
-                "stroke: black; fill: green; fill-opacity: 0.1;\" d=\"", 
+        fprintf(fp, "<path id=\"cluster-%u-rect\" style=\"stroke-width: 1px; "
+                "stroke: black; fill: green; opacity: 0.1;\" d=\"", 
                 cRef->id());
         for (size_t i = 0; i < cRef->rectangularPolygon().size(); ++i)
         {
