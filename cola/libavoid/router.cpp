@@ -1841,6 +1841,9 @@ void Router::setRoutingParameter(const RoutingParameter parameter,
             case idealNudgingDistance:
                 m_routing_parameters[parameter] = 4.0;
                 break;
+            case portDirectionPenalty:
+                m_routing_parameters[parameter] = 100;
+                break;
             default:
                 m_routing_parameters[parameter] = 50;
                 break;
