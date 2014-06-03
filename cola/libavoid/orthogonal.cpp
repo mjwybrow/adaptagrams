@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2009-2013  Monash University
+ * Copyright (C) 2009-2014  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -353,15 +353,14 @@ class NudgingShiftSegment : public ShiftSegment
         {
             COLA_UNUSED(dim);
 
-            // Don't segments of the same connector to drift together
-            // where one of them goes via a checkpoint.  We want the path 
-            // through the checkpoint to be maintained.
-            
             if (connRef != rhs->connRef)
             {
                 return false;
             }
             
+            // Don't allow segments of the same connector to drift together
+            // where one of them goes via a checkpoint.  We want the path 
+            // through the checkpoint to be maintained.
             bool hasCheckpoints = checkpoints.size() > 0;
             bool rhsHasCheckpoints = rhs->checkpoints.size() > 0;
             if (hasCheckpoints || rhsHasCheckpoints)

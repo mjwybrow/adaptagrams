@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2013  Monash University
+ * Copyright (C) 2004-2014  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -1085,7 +1085,7 @@ void ConnRef::generateCheckpointsPath(std::vector<Point>& path,
         // Route the connector
         aStar.search(this, start, end, NULL); 
 
-        // Restore changes made for checkpoint visbility directions.
+        // Restore changes made for checkpoint visibility directions.
         if (lastSuccessfulIndex > 0)
         {
             start->setVisibleDirections(ConnDirAll);
