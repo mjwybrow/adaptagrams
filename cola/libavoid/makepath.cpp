@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2013  Monash University
+ * Copyright (C) 2004-2014  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -973,17 +973,17 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
     }
 
 
-    // Find a target point to use for cost estimate for orthogonal routing..
+    // Find a target point to use for cost estimate for orthogonal routing.
     //
     // If the connectivity is only on the far side we need to estimate to the
     // point on the far side.  Otherwise for orthogonal routing we can explore
     // all the space in between before we pay the extra cost to explore this
-    // area.  This is especially true given many orthogoonal routes have 
+    // area.  This is especially true given many orthogonal routes have 
     // equivalent costs.
 #ifdef ESTIMATED_COST_DEBUG
     fprintf(stderr,"== aStar  %g %g ==\n", tar->point.x, tar->point.y);
 #endif
-    if (isOrthogonal && tar->id.isConnPt())
+    if (isOrthogonal && tar->id.isConnPt() && !tar->id.isConnCheckpoint())
     {
         // The target is a connector endpoint and the connector is orthogonal.
         double dist = manhattanDist(start->point, tar->point);
@@ -1208,7 +1208,7 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
         ++exploredCount;
 
         VertInf *prevInf = (bestNode->prevNode) ? bestNode->prevNode->inf : NULL;
-#if 0
+#ifdef ASTAR_DEBUG
         db_printf("Considering... ");
         db_printf(" %g %g  ", bestNodeInf->point.x, bestNodeInf->point.y);
         bestNodeInf->id.db_print();
@@ -1225,16 +1225,22 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
         {
             TIMER_VAR_ADD(router, 1, PENDING.size());
             // This node is our goal.
-#ifdef PATHDEBUG
+#ifdef ASTAR_DEBUG
             db_printf("LINE %10d  Steps: %4d  Cost: %g\n", lineRef->id(), 
                     (int) exploredCount, bestNode->f);
 #endif
-            
+     
             // Correct all the pathNext pointers.
             for (ANode *curr = bestNode; curr->prevNode; curr = curr->prevNode)
             {
+#ifdef ASTAR_DEBUG
+                db_printf("[%.12f, %.12f]\n", curr->inf->point.x, curr->inf->point.y);
+#endif
                 curr->inf->pathNext = curr->prevNode->inf;
             }
+#ifdef ASTAR_DEBUG
+            db_printf("\n", count);
+#endif
 
             // Exit from the search
             break;
@@ -1274,8 +1280,8 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
             {
                 continue;
             }
-
-            if (node.inf->id.isConnectionPin())
+            if (node.inf->id.isConnectionPin() && 
+                    !node.inf->id.isConnCheckpoint())
             {
                 if ( !( (bestNodeInf == lineRef->src()) &&
                         lineRef->src()->id.isDummyPinHelper()
@@ -1412,7 +1418,7 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
             // The A* formula
             node.f = node.g + node.h;
 
-#if 0
+#ifdef ASTAR_DEBUG
             db_printf("-- Adding: %g %g  ", node.inf->point.x, 
                     node.inf->point.y);
             node.inf->id.db_print();
