@@ -743,6 +743,10 @@ public:
      * satisfiable set, so as to satisfy as many of the placement constraints
      * as possible.  This includes automatically generated constraints for
      * non-overlap and cluster containment.
+     *
+     * @note This method doesn't do force-directed layout.  All forces are 
+     *       ignored and it merely satisfies the constraints with minimal 
+     *       movement to nodes.
      */
     void makeFeasible(void);
 
