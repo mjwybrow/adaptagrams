@@ -303,10 +303,10 @@ public:
      * will be written to these lists after each iteration of constrained 
      * layout.
      *
-     * param[out] unsatisfiableX A pointer to a UnsatisfiableConstraintInfos 
+     * param[out] unsatisfiableX A pointer to an UnsatisfiableConstraintInfos 
      *                           object that will be used to record 
      *                           unsatisfiable constraints in the x-dimension.
-     * param[out] unsatisfiableY A pointer to a UnsatisfiableConstraintInfos 
+     * param[out] unsatisfiableY A pointer to an UnsatisfiableConstraintInfos 
      *                           object that will be used to record 
      *                           unsatisfiable constraints in the y-dimension.
      */
