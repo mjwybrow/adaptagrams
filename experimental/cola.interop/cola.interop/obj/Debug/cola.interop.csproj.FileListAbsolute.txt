@@ -1,5 +1,0 @@
-C:\Users\t-tdwyer\Documents\devel\cola.interop\cola.interop\bin\Debug\ColaClassLibrary.dll
-C:\Users\t-tdwyer\Documents\devel\cola.interop\cola.interop\bin\Debug\ColaClassLibrary.pdb
-C:\Users\t-tdwyer\Documents\devel\cola.interop\cola.interop\obj\Debug\ResolveAssemblyReference.cache
-C:\Users\t-tdwyer\Documents\devel\cola.interop\cola.interop\obj\Debug\ColaClassLibrary.dll
-C:\Users\t-tdwyer\Documents\devel\cola.interop\cola.interop\obj\Debug\ColaClassLibrary.pdb

@@ -73,7 +73,13 @@ The only dependency is [Cairo][cairo] if debugging SVG output is to be included 
 
 Run `./autogen.sh` to compile from scratch.
 
+Use from other languages
+------------------------
 
+Bindings for use of the Adaptagrams libraries can be generated using [SWIG][swig].  The repository contains a SWIG interface file `cola/adaptagrams.i`.  We have successfully tested and used Adaptagrams from Java and Python in this way.
+
+
+[swig]: http://www.swig.org/
 [td]: http://www.csse.monash.edu.au/~tdwyer/
 [km]: http://www.csse.monash.edu.au/~kmarriott/
 [mw]: http://www.csse.monash.edu.au/~mwybrow/
