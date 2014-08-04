@@ -451,6 +451,120 @@ RootCluster::RootCluster()
 {
 }
 
+void Cluster::recPathToCluster(RootCluster *rootCluster, Clusters currentPath)
+{
+    // Reset cluster-cluster overlap exceptions.
+    m_cluster_cluster_overlap_exceptions.clear();
+    m_nodes_replaced_with_clusters.clear();
+    m_overlap_replacement_map.clear();
+
+    // Add this cluster to the path.
+    currentPath.push_back(this);
+
+    // Recusively all on each child cluster.
+    for (unsigned i = 0; i < clusters.size(); ++i) 
+    {
+        clusters[i]->recPathToCluster(rootCluster, currentPath);
+    }
+
+    // And store the path to each child node.
+    for (unsigned i = 0; i < nodes.size(); ++i)
+    {
+        rootCluster->m_cluster_vectors_leading_to_nodes[nodes[i]].
+                push_back(currentPath);
+    }
+}
+
+
+void RootCluster::calculateClusterPathsToEachNode(size_t nodesCount)
+{
+    m_cluster_vectors_leading_to_nodes.clear();
+    m_cluster_vectors_leading_to_nodes.resize(nodesCount);
+
+    recPathToCluster(this, Clusters());
+
+    for (unsigned i = 0; i < m_cluster_vectors_leading_to_nodes.size(); ++i) 
+    {
+        size_t paths = m_cluster_vectors_leading_to_nodes[i].size();
+        for (size_t j = 1; j < paths; ++j)
+        {
+            for (size_t k = 0; k < j; ++k)
+            {
+                // For each pair of paths.
+
+                // Find the lowest common ancestor by finding where the two
+                // paths from the root cluster to node i diverge.
+                Clusters pathJ = m_cluster_vectors_leading_to_nodes[i][j];
+                Clusters pathK = m_cluster_vectors_leading_to_nodes[i][k];
+                size_t lcaIndex = 0;
+                while ((lcaIndex < pathJ.size()) && 
+                       (lcaIndex < pathK.size()) &&
+                        (pathJ[lcaIndex] == pathK[lcaIndex]))
+                {
+                    ++lcaIndex;
+                }
+                COLA_ASSERT(lcaIndex > 0);
+
+                // lcaIndex will be the clusters/nodes that need to overlap
+                // due to these two paths to node i.
+                size_t lcaChildJIndex = i;
+                size_t lcaChildKIndex = i;
+                Cluster *lcaChildJCluster = NULL;
+                Cluster *lcaChildKCluster = NULL;
+                
+                // lcaIndex < path{J,K}.size() means the child J or K of 
+                // the lca is a Cluster.   At least one of them will always
+                // be a cluster.
+                COLA_ASSERT((lcaIndex < pathJ.size()) ||
+                        (lcaIndex < pathK.size()));
+                if (lcaIndex < pathJ.size())
+                {
+                    lcaChildJCluster = pathJ[lcaIndex];
+                    lcaChildJIndex = lcaChildJCluster->clusterVarId;
+                }
+                if (lcaIndex < pathK.size())
+                {
+                    lcaChildKCluster = pathK[lcaIndex];
+                    lcaChildKIndex = lcaChildKCluster->clusterVarId;
+                }
+
+                // We want to exclude the overlapping children of the lca 
+                // from having non-overlap constraints generated for them
+                // (siblings of a particular cluster usually have 
+                // non-overlap constraints generated for them).
+                Cluster *lcaCluster = pathJ[lcaIndex - 1];
+                lcaCluster->m_cluster_cluster_overlap_exceptions.insert(
+                        ShapePair(lcaChildJIndex, lcaChildKIndex));
+
+                if (lcaChildJCluster)
+                {
+                    // In cluster J, replace node i with cluster K for the 
+                    // purpose of non-overlap with siblings, and remember 
+                    // this replacement so we can still generate non-overlap 
+                    // constraints between multiple nodes that are children
+                    // of the same overlapping clusters.
+                    lcaChildJCluster->m_overlap_replacement_map[i] =
+                            lcaChildKCluster;
+                    lcaChildJCluster->m_nodes_replaced_with_clusters.insert(i);
+                }
+
+                if (lcaChildKCluster)
+                {
+                    // In cluster K, replace node i with cluster J for the 
+                    // purpose of non-overlap with siblings, and remember 
+                    // this replacement so we can still generate non-overlap 
+                    // constraints between multiple nodes that are children
+                    // of the same overlapping clusters.
+                    lcaChildKCluster->m_overlap_replacement_map[i] =
+                            lcaChildJCluster;
+                    lcaChildKCluster->m_nodes_replaced_with_clusters.insert(i);
+                }
+            }
+        }
+    }
+}
+
+
 void RootCluster::computeBoundary(const vpsc::Rectangles& rs) 
 {
     for (unsigned i = 0; i < clusters.size(); ++i) 

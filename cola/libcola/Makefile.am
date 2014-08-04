@@ -31,7 +31,9 @@ libcola_la_SOURCES = cola.h\
 	cc_nonoverlapconstraints.cpp \
 	cc_nonoverlapconstraints.h \
 	box.cpp \
-	box.h
+	box.h \
+	shapepair.cpp \
+	shapepainr.h
 
 libcolaincludedir = $(includedir)/libcola
 libcolainclude_HEADERS = cola.h\
@@ -46,6 +48,7 @@ libcolainclude_HEADERS = cola.h\
 	unused.h \
 	cc_clustercontainmentconstraints.h \
 	cc_nonoverlapconstraints.h \
-	box.h
+	box.h \
+	shapepair.h
 
 SUBDIRS = . tests

@@ -36,24 +36,6 @@ namespace cola {
 // NonOverlapConstraintExemptions code
 //-----------------------------------------------------------------------------
 
-ShapePair::ShapePair(unsigned ind1, unsigned ind2) 
-{
-    COLA_ASSERT(ind1 != ind2);
-    // Assign the lesser value to m_index1.
-    m_index1 = (ind1 < ind2) ? ind1 : ind2;
-    // Assign the greater value to m_index2.
-    m_index2 = (ind1 > ind2) ? ind1 : ind2;
-}
-
-bool ShapePair::operator<(const ShapePair& rhs) const
-{
-    if (m_index1 != rhs.m_index1)
-    {
-        return m_index1 < rhs.m_index1;
-    }
-    return m_index2 < rhs.m_index2;
-}
-
 NonOverlapConstraintExemptions::NonOverlapConstraintExemptions()
 {
 }
@@ -211,13 +193,23 @@ void NonOverlapConstraints::addCluster(Cluster *cluster, unsigned int group)
         if (shapeOffsets[otherId].group == group)
         {
             // Apply non-overlap only to objects in the same group (cluster).
-            pairInfoList.push_back(ShapePairInfo(otherId, id));
+            if (m_cluster_cluster_exemptions.count(ShapePair(id, otherId)) == 0)
+            {
+                // But only if not exempt due to non-strict cluster hierarchy.
+                pairInfoList.push_back(ShapePairInfo(otherId, id));
+            }
         }
     }
     
     shapeOffsets[id] = OverlapShapeOffsets(id, cluster, group);
 }
 
+
+void NonOverlapConstraints::setClusterClusterExemptions(
+        std::set<ShapePair> exemptions)
+{
+    m_cluster_cluster_exemptions = exemptions;
+}
 
 void NonOverlapConstraints::generateVariables(const vpsc::Dim dim,
         vpsc::Variables& vars) 

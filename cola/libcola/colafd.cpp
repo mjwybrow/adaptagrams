@@ -382,15 +382,34 @@ void ConstrainedFDLayout::recGenerateClusterVariablesAndConstraints(
         //        (int) cluster->clusterVarId, (int) cluster->nodes.size(), 
         //        (int) cluster->clusters.size());
         unsigned int group = cluster->clusterVarId;
+        // The set of clusters to put non-overlap constraints between is the 
+        // child clusters of this cluster.  We will also add any overlapping
+        // clusters (due to multiple inheritence) to this set.
+        std::set<Cluster *> expandedClusterSet(cluster->clusters.begin(),
+                cluster->clusters.end());
         for (std::vector<unsigned>::iterator curr = cluster->nodes.begin();
                 curr != cluster->nodes.end(); ++curr)
         {
             unsigned id = *curr;
-            noc->addShape(id, boundingBoxes[id]->width() / 2,
-                    boundingBoxes[id]->height() / 2, group);
+
+            if (cluster->m_overlap_replacement_map.count(id) > 0)
+            {
+                // This shape is child of another cluster also, so replace 
+                // this node with the other cluster for the purpose of
+                // non-overlap with other children of the current cluster.
+                expandedClusterSet.insert(
+                        cluster->m_overlap_replacement_map[id]);
+            }
+            else
+            {
+                // Normal case: Add shape for generation of non-overlap 
+                // constraints.
+                noc->addShape(id, boundingBoxes[id]->width() / 2,
+                        boundingBoxes[id]->height() / 2, group);
+            }
         }
-        for (std::vector<Cluster*>::iterator curr = cluster->clusters.begin();
-                curr != cluster->clusters.end(); ++curr)
+        for (std::set<Cluster*>::iterator curr = expandedClusterSet.begin();
+                curr != expandedClusterSet.end(); ++curr)
         {
             Cluster *cluster = *curr;
             RectangularCluster *rectCluster = 
@@ -408,6 +427,20 @@ void ConstrainedFDLayout::recGenerateClusterVariablesAndConstraints(
                 noc->addCluster(cluster, group);
             }
         }
+
+        // For the set of shapes that have been replaced due to multiple 
+        // inheritance, still generate overlap constraints between them.
+        // (The group uses the ID of the right side variable of the cluster 
+        // so it is not the same group as the cluster itself.)
+        for (std::set<unsigned>::iterator curr = 
+                cluster->m_nodes_replaced_with_clusters.begin();
+                curr != cluster->m_nodes_replaced_with_clusters.end(); ++curr)
+        {
+            unsigned id = *curr;
+            noc->addShape(id, boundingBoxes[id]->width() / 2,
+                    boundingBoxes[id]->height() / 2, group + 1);
+        }
+
     }
 }
 
@@ -445,6 +478,9 @@ void ConstrainedFDLayout::generateNonOverlapAndClusterCompoundConstraints(
         recGenerateClusterVariablesAndConstraints(vs, priority, 
                 NULL, clusterHierarchy, extraConstraints);
         
+        // Compute overlapping clusters.
+        clusterHierarchy->calculateClusterPathsToEachNode(boundingBoxes.size());
+
         // Generate non-overlap constraints between all clusters and 
         // all contained nodes.
         if (m_generateNonOverlapConstraints)
@@ -453,6 +489,8 @@ void ConstrainedFDLayout::generateNonOverlapAndClusterCompoundConstraints(
             cola::NonOverlapConstraints *noc = 
                     new cola::NonOverlapConstraints(m_nonoverlap_exemptions,
                             priority);
+            noc->setClusterClusterExemptions(
+                    clusterHierarchy->m_cluster_cluster_overlap_exceptions);
             recGenerateClusterVariablesAndConstraints(vs, priority, 
                     noc, clusterHierarchy, extraConstraints);
             extraConstraints.push_back(noc);

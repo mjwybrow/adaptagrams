@@ -25,6 +25,7 @@
 
 #include <vector>
 #include "libcola/compound_constraints.h"
+#include "libcola/shapepair.h"
 
 namespace vpsc {
 class Rectangle;
@@ -35,18 +36,6 @@ namespace cola {
 class OverlapShapeOffsets;
 class ShapePairInfo;
 class Cluster;
-
-// A pair of unordered indexes that can be stored in a set.
-class ShapePair
-{
-    public:
-        ShapePair(unsigned ind1, unsigned ind2);
-        bool operator<(const ShapePair& rhs) const;
-
-    private:
-        unsigned short m_index1;
-        unsigned short m_index2;
-};
 
 
 // Stores IDs of all rectangles exempt from non-overlap constraints.
@@ -78,6 +67,7 @@ class NonOverlapConstraints : public CompoundConstraint {
         SubConstraintAlternatives getCurrSubConstraintAlternatives(
                 vpsc::Variables vs[]);
         std::string toString(void) const;
+        void setClusterClusterExemptions(std::set<ShapePair> exemptions);
 
         void generateVariables(const vpsc::Dim dim, vpsc::Variables& vars);
         void generateSeparationConstraints(const vpsc::Dim dim, 
@@ -101,6 +91,7 @@ class NonOverlapConstraints : public CompoundConstraint {
         size_t clusterMode;
 
         NonOverlapConstraintExemptions *m_exemptions;
+        std::set<ShapePair> m_cluster_cluster_exemptions;
 };
 
 } // namespace cola
