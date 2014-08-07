@@ -451,10 +451,12 @@ void ConstrainedFDLayout::generateNonOverlapAndClusterCompoundConstraints(
     {
         // Add remaining nodes that aren't contained within any clusters
         // as children of the root cluster.
-        for (unsigned int i = 0; i < boundingBoxes.size(); ++i)
+        std::vector<unsigned> nodesInClusterCounts(boundingBoxes.size(), 0);
+        clusterHierarchy->countContainedNodes(nodesInClusterCounts);
+
+        for (unsigned int i = 0; i < nodesInClusterCounts.size(); ++i)
         {
-            int count = clusterHierarchy->containsShape(i);
-            
+            unsigned count = nodesInClusterCounts[i];
             if (!clusterHierarchy->allowsMultipleParents() &&
                     count > 1)
             {

@@ -66,23 +66,30 @@ void Cluster::unsetDesiredBounds(void)
 // Checks to see if the shape at the given index is contained within this
 // cluster or its child clusters.
 //
-int Cluster::containsShape(unsigned index) const
+void Cluster::countContainedNodes(std::vector<unsigned>& counts)
 {
-    int count = 0;
-    for (vector<unsigned>::const_iterator i = nodes.begin(); 
-            i != nodes.end(); ++i)
+    for (vector<unsigned>::iterator it = nodes.begin(); it != nodes.end(); )
     {
-        if (*i == index)
+        unsigned nodeIndex = *it;
+        if (nodeIndex < counts.size())
         {
-            ++count;
+            // Node index is valid, increase count.
+            counts[*it] += 1;
+            ++it;
+        }
+        else
+        {
+            fprintf(stderr, "Warning: Invalid node index %u specified in "
+                    "cluster. Ignoring...\n", nodeIndex);
+            it = nodes.erase(it);
         }
     }
+
     for (vector<Cluster*>::const_iterator i = clusters.begin(); 
             i != clusters.end(); ++i)
     {
-        count += (*i)->containsShape(index);
+        (*i)->countContainedNodes(counts);
     }
-    return count;
 }
 
 void Cluster::computeBoundingRect(const vpsc::Rectangles& rs) 
@@ -275,16 +282,14 @@ Box RectangularCluster::padding(void) const
 }
 
 
-int RectangularCluster::containsShape(unsigned index) const
+void RectangularCluster::countContainedNodes(std::vector<unsigned>& counts)
 {
-    int count = 0;
-    if (m_rectangle_index == (int) index)
+    if (m_rectangle_index >= 0)
     {
         // This cluster is the shape in question.
-        ++count;
+        counts[m_rectangle_index] += 1;
     }
-    count += Cluster::containsShape(index);
-    return count;
+    Cluster::countContainedNodes(counts);
 }
 
 
