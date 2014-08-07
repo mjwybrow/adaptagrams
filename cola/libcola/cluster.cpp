@@ -384,23 +384,24 @@ void RectangularCluster::printCreationCode(FILE *fp) const
 
 void RectangularCluster::outputToSVG(FILE *fp) const
 {
+    double rounding = 4;
     if (varRect.isValid())
     {
         fprintf(fp, "<rect id=\"cluster-%llu-r\" x=\"%g\" y=\"%g\" width=\"%g\" "
                 "height=\"%g\" style=\"stroke-width: 1px; stroke: black; "
-                "fill: green; fill-opacity: 0.3;\" />\n",
+                "fill: green; fill-opacity: 0.3;\" rx=\"%g\" ry=\"%g\" />\n",
                 (unsigned long long) this, varRect.getMinX(), varRect.getMinY(), 
                 varRect.getMaxX() - varRect.getMinX(), 
-                varRect.getMaxY() - varRect.getMinY());
+                varRect.getMaxY() - varRect.getMinY(), rounding, rounding);
     }
     else
     {
         fprintf(fp, "<rect id=\"cluster-%llu\" x=\"%g\" y=\"%g\" width=\"%g\" "
             "height=\"%g\" style=\"stroke-width: 1px; stroke: black; "
-            "fill: red; fill-opacity: 0.3;\" />\n",
+            "fill: red; fill-opacity: 0.3;\" rx=\"%g\" ry=\"%g\" />\n",
             (unsigned long long) this, bounds.getMinX(), bounds.getMinY(), 
             bounds.getMaxX() - bounds.getMinX(), 
-            bounds.getMaxY() - bounds.getMinY());
+            bounds.getMaxY() - bounds.getMinY(), rounding, rounding);
     }
 
     for(vector<Cluster *>::const_iterator i = clusters.begin(); 
@@ -468,8 +469,15 @@ void Cluster::recPathToCluster(RootCluster *rootCluster, Clusters currentPath)
     }
 
     // And store the path to each child node.
-    for (unsigned i = 0; i < nodes.size(); ++i)
+    for (std::vector<unsigned> it = nodex.begin(); it < nodes.end(); ++it)
     {
+        unsigned nodeIndex = nodes[i];
+        if (nodeIndex >= rootCluster->m_cluster_vectors_leading_to_nodes.size())
+        {
+            fprintf(stderr, "Warning: Invalid node %u specified as child of "
+                    "cluster. Ignoring....\n", nodeIndex);
+            continue;
+        }
         rootCluster->m_cluster_vectors_leading_to_nodes[nodes[i]].
                 push_back(currentPath);
     }
