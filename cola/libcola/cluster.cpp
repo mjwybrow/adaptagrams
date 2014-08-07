@@ -469,15 +469,8 @@ void Cluster::recPathToCluster(RootCluster *rootCluster, Clusters currentPath)
     }
 
     // And store the path to each child node.
-    for (std::vector<unsigned> it = nodex.begin(); it < nodes.end(); ++it)
+    for (unsigned i = 0; i < nodes.size(); ++i)
     {
-        unsigned nodeIndex = nodes[i];
-        if (nodeIndex >= rootCluster->m_cluster_vectors_leading_to_nodes.size())
-        {
-            fprintf(stderr, "Warning: Invalid node %u specified as child of "
-                    "cluster. Ignoring....\n", nodeIndex);
-            continue;
-        }
         rootCluster->m_cluster_vectors_leading_to_nodes[nodes[i]].
                 push_back(currentPath);
     }
