@@ -8,5 +8,5 @@ Description: A library containing extensions to libcola to support topology pres
 URL: http://www.adaptagrams.org/
 Version: @VERSION@
 Requires:
-Libs: -L${libdir} -lvpsc
+Libs: -L${libdir} -ltopology
 Cflags: -I${includedir}/libtopology
