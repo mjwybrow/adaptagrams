@@ -1,0 +1,12 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: libavoid
+Description: A library for object-avoiding polyline and orthogonal connector routing for use in interactive diagram editors.
+URL: http://www.adaptagrams.org/
+Version: @VERSION@
+Requires:
+Libs: -L${libdir} -lavoid
+Cflags: -I${includedir}/libavoid

@@ -51,5 +51,5 @@ AH_BOTTOM([
   
 ])
 
-AC_CONFIG_FILES([Makefile libcola/Makefile libcola/tests/Makefile libvpsc/Makefile libvpsc/tests/Makefile libtopology/Makefile libtopology/tests/Makefile libavoid/Makefile libavoid/tests/Makefile])
+AC_CONFIG_FILES([Makefile libcola/Makefile libcola/tests/Makefile libvpsc/Makefile libvpsc/tests/Makefile libtopology/Makefile libtopology/tests/Makefile libavoid/Makefile libavoid/tests/Makefile libcola/libcola.pc libavoid/libavoid.pc libvpsc/libvpsc.pc libtopology/libtopology.pc])
 AC_OUTPUT

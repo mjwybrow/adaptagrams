@@ -1,3 +1,4 @@
+EXTRA_DIST=libavoid.pc.in
 
 lib_LTLIBRARIES = libavoid.la
 libavoid_la_CPPFLAGS = -I$(top_srcdir) -I$(includedir)/libavoid -fPIC
@@ -80,6 +81,9 @@ libavoidinclude_HEADERS = assertions.h \
 			scanline.h \
 			actioninfo.h \
 			vpsc.h
+
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = libavoid.pc
 
 SUBDIRS = . tests
 

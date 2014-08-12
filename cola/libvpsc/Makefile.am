@@ -1,4 +1,4 @@
-
+EXTRA_DIST=libvpsc.pc.in
 lib_LTLIBRARIES = libvpsc.la
 libvpsc_la_CPPFLAGS = -I$(top_srcdir) -I$(includedir)/libvpsc -fPIC
 libvpsc_la_LDFLAGS = -no-undefined
@@ -34,6 +34,9 @@ libvpscinclude_HEADERS = solve_VPSC.h \
 	rectangle.h\
 	variable.h \
 	assertions.h
+
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = libvpsc.pc
 
 SUBDIRS = . tests
 

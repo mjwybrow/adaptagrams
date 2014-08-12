@@ -1,3 +1,4 @@
+EXTRA_DIST=libtopology.pc.in
 
 lib_LTLIBRARIES = libtopology.la
 libtopology_la_CPPFLAGS = -I$(top_srcdir) -I$(includedir)/libtopology -fPIC
@@ -28,5 +29,7 @@ libtopologyinclude_HEADERS = topology_constraints.h \
 			topology_log.h \
 			util.h
 
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = libtopology.pc
 
 SUBDIRS = . tests
