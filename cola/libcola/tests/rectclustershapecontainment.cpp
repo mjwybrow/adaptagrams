@@ -2130,34 +2130,34 @@ int main(void) {
     RootCluster *cluster140664475533920 = new RootCluster();
     
     RectangularCluster *cluster140664475534416 = new RectangularCluster(5);
-    cluster140664475534416->nodes.push_back(149);
-    cluster140664475534416->nodes.push_back(150);
-    cluster140664475534416->nodes.push_back(151);
-    cluster140664475534416->nodes.push_back(152);
-    cluster140664475533920->clusters.push_back(cluster140664475534416);
+    cluster140664475534416->addChildNode(149);
+    cluster140664475534416->addChildNode(150);
+    cluster140664475534416->addChildNode(151);
+    cluster140664475534416->addChildNode(152);
+    cluster140664475533920->addChildCluster(cluster140664475534416);
     
     RectangularCluster *cluster140664475535040 = new RectangularCluster(6);
-    cluster140664475535040->nodes.push_back(153);
-    cluster140664475533920->clusters.push_back(cluster140664475535040);
+    cluster140664475535040->addChildNode(153);
+    cluster140664475533920->addChildCluster(cluster140664475535040);
     
     RectangularCluster *cluster140664475535648 = new RectangularCluster(15);
-    cluster140664475533920->clusters.push_back(cluster140664475535648);
+    cluster140664475533920->addChildCluster(cluster140664475535648);
     
     RectangularCluster *cluster140664475535952 = new RectangularCluster(17);
-    cluster140664475535952->nodes.push_back(154);
-    cluster140664475535952->nodes.push_back(155);
-    cluster140664475533920->clusters.push_back(cluster140664475535952);
+    cluster140664475535952->addChildNode(154);
+    cluster140664475535952->addChildNode(155);
+    cluster140664475533920->addChildCluster(cluster140664475535952);
     
     RectangularCluster *cluster140664475536320 = new RectangularCluster(21);
-    cluster140664475536320->nodes.push_back(156);
-    cluster140664475533920->clusters.push_back(cluster140664475536320);
+    cluster140664475536320->addChildNode(156);
+    cluster140664475533920->addChildCluster(cluster140664475536320);
     
     RectangularCluster *cluster140664475536720 = new RectangularCluster(39);
-    cluster140664475533920->clusters.push_back(cluster140664475536720);
+    cluster140664475533920->addChildCluster(cluster140664475536720);
     
     RectangularCluster *cluster140664475537056 = new RectangularCluster(80);
-    cluster140664475537056->nodes.push_back(157);
-    cluster140664475533920->clusters.push_back(cluster140664475537056);
+    cluster140664475537056->addChildNode(157);
+    cluster140664475533920->addChildCluster(cluster140664475537056);
     
     ConstrainedFDLayout alg(rs, es, defaultEdgeLength, true);
     alg.setClusterHierarchy(cluster140664475533920);

@@ -68,21 +68,25 @@ void Cluster::unsetDesiredBounds(void)
 //
 void Cluster::countContainedNodes(std::vector<unsigned>& counts)
 {
-    for (vector<unsigned>::iterator it = nodes.begin(); it != nodes.end(); )
+    vector<unsigned> invalidNodes;
+    for (set<unsigned>::iterator it = nodes.begin(); it != nodes.end(); ++it)
     {
         unsigned nodeIndex = *it;
         if (nodeIndex < counts.size())
         {
             // Node index is valid, increase count.
             counts[*it] += 1;
-            ++it;
         }
         else
         {
             fprintf(stderr, "Warning: Invalid node index %u specified in "
                     "cluster. Ignoring...\n", nodeIndex);
-            it = nodes.erase(it);
+            invalidNodes.push_back(nodeIndex);
         }
+    }
+    for (size_t i = 0; i < invalidNodes.size(); ++i)
+    {
+        nodes.erase(invalidNodes[i]);
     }
 
     for (vector<Cluster*>::const_iterator i = clusters.begin(); 
@@ -103,7 +107,7 @@ void Cluster::computeBoundingRect(const vpsc::Rectangles& rs)
                 (*i)->margin().rectangleByApplyingBox((*i)->bounds);
         bounds = bounds.unionWith(rectangle);
     }
-    for (vector<unsigned>::const_iterator i = nodes.begin(); 
+    for (set<unsigned>::const_iterator i = nodes.begin(); 
             i != nodes.end(); ++i)
     {
         vpsc::Rectangle* r=rs[*i];
@@ -138,10 +142,10 @@ void ConvexCluster::computeBoundary(const vpsc::Rectangles& rs)
     valarray<double> X(n);
     valarray<double> Y(n);
     unsigned pctr = 0;
-    for (vector<unsigned>::const_iterator i = nodes.begin(); 
-            i != nodes.end(); ++i)
+    vector<unsigned> nodesVector(nodes.begin(), nodes.end());
+    for (size_t i = 0; i < nodesVector.size(); ++i)
     {
-        vpsc::Rectangle* r=rs[*i];
+        vpsc::Rectangle* r=rs[nodesVector[i]];
         // Bottom Right
         X[pctr]=r->getMaxX();
         Y[pctr++]=r->getMinY();
@@ -170,7 +174,7 @@ void ConvexCluster::computeBoundary(const vpsc::Rectangles& rs)
     {
         hullX[j]=X[hull[j]];
         hullY[j]=Y[hull[j]];
-        hullRIDs[j]=hull[j]/4;
+        hullRIDs[j]=nodesVector[hull[j]/4];
         hullCorners[j]=hull[j]%4;
     }
 }
@@ -180,7 +184,7 @@ void ConvexCluster::printCreationCode(FILE *fp) const
 {
     fprintf(fp, "    ConvexCluster *cluster%llu = new ConvexCluster();\n",
             (unsigned long long) this);
-    for(vector<unsigned>::const_iterator i = nodes.begin(); 
+    for(set<unsigned>::const_iterator i = nodes.begin(); 
             i != nodes.end(); ++i)
     {
         fprintf(fp, "    cluster%llu->addChildNode(%u);\n",
@@ -328,12 +332,13 @@ void RectangularCluster::generateFixedRectangleConstraints(
 void RectangularCluster::computeBoundary(const vpsc::Rectangles& rs)
 {
     double xMin=DBL_MAX, xMax=-DBL_MAX, yMin=DBL_MAX, yMax=-DBL_MAX;
-    for (unsigned i=0;i<nodes.size();i++)
+    for (std::set<unsigned>::iterator it = nodes.begin();
+            it != nodes.end(); ++it)
     {
-        xMin=std::min(xMin,rs[nodes[i]]->getMinX());
-        xMax=std::max(xMax,rs[nodes[i]]->getMaxX());
-        yMin=std::min(yMin,rs[nodes[i]]->getMinY());
-        yMax=std::max(yMax,rs[nodes[i]]->getMaxY());
+        xMin=std::min(xMin,rs[*it]->getMinX());
+        xMax=std::max(xMax,rs[*it]->getMaxX());
+        yMin=std::min(yMin,rs[*it]->getMinY());
+        yMax=std::max(yMax,rs[*it]->getMaxY());
     }
     hullX.resize(4);
     hullY.resize(4);
@@ -372,7 +377,7 @@ void RectangularCluster::printCreationCode(FILE *fp) const
         m_padding.outputCode(fp);
         fprintf(fp, ");\n");
     }
-    for(vector<unsigned>::const_iterator i = nodes.begin(); 
+    for(set<unsigned>::const_iterator i = nodes.begin(); 
             i != nodes.end(); ++i)
     {
         fprintf(fp, "    cluster%llu->addChildNode(%u);\n",
@@ -474,9 +479,10 @@ void Cluster::recPathToCluster(RootCluster *rootCluster, Clusters currentPath)
     }
 
     // And store the path to each child node.
-    for (unsigned i = 0; i < nodes.size(); ++i)
+    for (std::set<unsigned>::iterator it = nodes.begin();
+            it != nodes.end(); ++it)
     {
-        rootCluster->m_cluster_vectors_leading_to_nodes[nodes[i]].
+        rootCluster->m_cluster_vectors_leading_to_nodes[*it].
                 push_back(currentPath);
     }
 }
@@ -583,7 +589,7 @@ void RootCluster::printCreationCode(FILE *fp) const
 {
     fprintf(fp, "    RootCluster *cluster%llu = new RootCluster();\n",
             (unsigned long long) this);
-    for(vector<unsigned>::const_iterator i = nodes.begin(); 
+    for(set<unsigned>::const_iterator i = nodes.begin(); 
             i != nodes.end(); ++i)
     {
         fprintf(fp, "    cluster%llu->addChildNode(%u);\n",
@@ -682,7 +688,7 @@ void Cluster::createVars(const vpsc::Dim dim, const vpsc::Rectangles& rs,
 double Cluster::area(const vpsc::Rectangles& rs)
 {
     double a = 0;
-    for (vector<unsigned>::iterator i = nodes.begin(); i != nodes.end(); ++i)
+    for (set<unsigned>::iterator i = nodes.begin(); i != nodes.end(); ++i)
     {
         vpsc::Rectangle *r = rs[*i];
         a += r->width() * r->height();
@@ -696,7 +702,7 @@ double Cluster::area(const vpsc::Rectangles& rs)
 
 void Cluster::addChildNode(unsigned index)
 {
-    this->nodes.push_back(index);
+    this->nodes.insert(index);
 }
 
 void Cluster::addChildCluster(Cluster *cluster)

@@ -566,8 +566,9 @@ namespace straightener {
                 straightener::Cluster* sc=new straightener::Cluster(c);
                 // compute scanpos based on average position in scan direction
                 sc->scanpos=0;
-                for(unsigned i=0;i<c->nodes.size();i++) {
-                    straightener::Node* u = nodes[c->nodes[i]];
+                for(set<unsigned>::iterator it= c->nodes.begin();
+                        it != c->nodes.end(); ++it) {
+                    straightener::Node* u = nodes[*it];
                     sc->scanpos+=u->pos[dim];
                     u->cluster = sc;
                 }

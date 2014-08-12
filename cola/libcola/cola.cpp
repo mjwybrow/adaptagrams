@@ -106,8 +106,8 @@ ConstrainedMajorizationLayout
         for(Clusters::const_iterator i=clusterHierarchy->clusters.begin();
                 i!=clusterHierarchy->clusters.end();i++) {
             Cluster *c=*i;
-            for(vector<unsigned>::iterator j=c->nodes.begin();j!=c->nodes.end();j++) {
-                for(vector<unsigned>::iterator k=c->nodes.begin();k!=c->nodes.end();k++) {
+            for(set<unsigned>::iterator j=c->nodes.begin();j!=c->nodes.end();j++) {
+                for(set<unsigned>::iterator k=c->nodes.begin();k!=c->nodes.end();k++) {
                     unsigned a=*j, b=*k;
                     if(a==b) continue;
                     D[a][b]/=c->internalEdgeWeightFactor;

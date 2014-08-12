@@ -60,7 +60,7 @@ ClusterContainmentConstraints::ClusterContainmentConstraints(Cluster *cluster,
 {
     Box padding = cluster->padding();
     _combineSubConstraints = true;
-    for (std::vector<unsigned>::iterator curr = cluster->nodes.begin();
+    for (std::set<unsigned>::iterator curr = cluster->nodes.begin();
             curr != cluster->nodes.end(); ++curr)
     {
         unsigned id = *curr;

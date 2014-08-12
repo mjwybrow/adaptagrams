@@ -331,7 +331,7 @@ void ColaTopologyAddon::makeFeasible(bool generateNonOverlapConstraints,
                 double idealCircumference=2.0*sqrt(M_PI*c->area(boundingBoxes));
                 std::vector<topology::EdgePoint*> eps;
                 for(unsigned j=0;j<c->hullRIDs.size();++j) {
-                    const unsigned id = c->nodes[c->hullRIDs[j]];
+                    const unsigned id = c->hullRIDs[j];
                     const unsigned char corner = c->hullCorners[j];
                     COLA_ASSERT(id < topologyNodes.size());
                     //cout << "addToPath(vs[" << id << "],";

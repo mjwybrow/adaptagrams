@@ -182,6 +182,7 @@ void NonOverlapConstraints::addShape(unsigned id, double halfW, double halfH,
 }
 
 
+// This is expected to be called after all addNode calls.
 void NonOverlapConstraints::addCluster(Cluster *cluster, unsigned int group)
 {
     unsigned id = cluster->clusterVarId;
@@ -190,15 +191,23 @@ void NonOverlapConstraints::addCluster(Cluster *cluster, unsigned int group)
             shapeOffsets.begin(); curr != shapeOffsets.end(); ++curr)
     {
         unsigned otherId = curr->first;
-        if (shapeOffsets[otherId].group == group)
+        if (shapeOffsets[otherId].group != group)
         {
-            // Apply non-overlap only to objects in the same group (cluster).
-            if (m_cluster_cluster_exemptions.count(ShapePair(id, otherId)) == 0)
-            {
-                // But only if not exempt due to non-strict cluster hierarchy.
-                pairInfoList.push_back(ShapePairInfo(otherId, id));
-            }
+            // Don't apply if not in same group.
+            continue;
         }
+        if (cluster->nodes.count(otherId) > 0)
+        {
+            // Don't apply non-overlap to child nodes.
+            continue;
+        }
+        if (m_cluster_cluster_exemptions.count(ShapePair(id, otherId)) > 0)
+        {
+            // Don't apply  if exempt due to non-strict cluster hierarchy.
+            continue;
+        }
+        // Apply non-overlap only to objects in the same group (cluster).
+        pairInfoList.push_back(ShapePairInfo(otherId, id));
     }
     
     shapeOffsets[id] = OverlapShapeOffsets(id, cluster, group);

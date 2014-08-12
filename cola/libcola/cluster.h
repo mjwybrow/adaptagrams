@@ -112,14 +112,15 @@ class Cluster
 
         double varWeight;
         double internalEdgeWeightFactor;
-        std::vector<unsigned> nodes;
+        std::set<unsigned> nodes;
         std::vector<Cluster*> clusters;
         std::valarray<double> hullX, hullY;
         
     protected:
         void recPathToCluster(RootCluster *rootCluster, 
                 Clusters currentPath);
-
+        bool includesAllNodesFrom(const Cluster *rhs) const;
+        
         // The following are for handling the generation of the correct
         // set of non-overlap constraints in the case overlapping clusters
         // (i.e., multiple inheritence). 1) We need to exclude the overlapping

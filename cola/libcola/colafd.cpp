@@ -387,7 +387,7 @@ void ConstrainedFDLayout::recGenerateClusterVariablesAndConstraints(
         // clusters (due to multiple inheritence) to this set.
         std::set<Cluster *> expandedClusterSet(cluster->clusters.begin(),
                 cluster->clusters.end());
-        for (std::vector<unsigned>::iterator curr = cluster->nodes.begin();
+        for (std::set<unsigned>::iterator curr = cluster->nodes.begin();
                 curr != cluster->nodes.end(); ++curr)
         {
             unsigned id = *curr;
@@ -400,13 +400,10 @@ void ConstrainedFDLayout::recGenerateClusterVariablesAndConstraints(
                 expandedClusterSet.insert(
                         cluster->m_overlap_replacement_map[id]);
             }
-            else
-            {
-                // Normal case: Add shape for generation of non-overlap 
-                // constraints.
-                noc->addShape(id, boundingBoxes[id]->width() / 2,
-                        boundingBoxes[id]->height() / 2, group);
-            }
+            // Normal case: Add shape for generation of non-overlap 
+            // constraints.
+            noc->addShape(id, boundingBoxes[id]->width() / 2,
+                    boundingBoxes[id]->height() / 2, group);
         }
         for (std::set<Cluster*>::iterator curr = expandedClusterSet.begin();
                 curr != expandedClusterSet.end(); ++curr)
@@ -467,7 +464,7 @@ void ConstrainedFDLayout::generateNonOverlapAndClusterCompoundConstraints(
             if (count == 0)
             {
                 // Not present in hierarchy, so add to root cluster.
-                clusterHierarchy->nodes.push_back(i);
+                clusterHierarchy->nodes.insert(i);
             }
         }
 
