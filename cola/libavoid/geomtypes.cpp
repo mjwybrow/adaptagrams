@@ -535,7 +535,6 @@ Polygon Polygon::simplify(void) const
     
     std::vector<std::pair<size_t, Point> >& checkpoints = 
             simplified.checkpointsOnRoute;
-    size_t checkpointIndex = 0;
     bool hasCheckpointInfo = !(checkpoints.empty());
 
     std::vector<Point>::iterator it = simplified.ps.begin();
@@ -568,22 +567,17 @@ Polygon Polygon::simplify(void) const
                 //
                 //
                 size_t deletedPointValue = (j - 1) - 1;
-                while (checkpoints[checkpointIndex].first < deletedPointValue)
+                for (size_t i = 0; i < checkpoints.size(); ++i)
                 {
-                    ++checkpointIndex;
+                    if (checkpoints[i].first == deletedPointValue)
+                    {
+                        checkpoints[i].first -= 1;
+                    }
+                    else if (checkpoints[i].first > deletedPointValue)
+                    {
+                        checkpoints[i].first -= 2;
+                    }
                 }
-                size_t checkpointIndexAtDeletionPoint = checkpointIndex;
-                while (checkpoints[checkpointIndex].first == deletedPointValue)
-                {
-                    checkpoints[checkpointIndex].first = deletedPointValue - 1;
-                    ++checkpointIndex;
-                }
-                while (checkpointIndex < checkpoints.size())
-                {
-                    checkpoints[checkpointIndex].first -= 2;
-                    ++checkpointIndex;
-                }
-                checkpointIndex = checkpointIndexAtDeletionPoint;
             }
         }
         else
