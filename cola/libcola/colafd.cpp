@@ -236,16 +236,14 @@ void ConstrainedFDLayout::computeDescentVectorOnBothAxes(
  */
 void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis) 
 {
-    if (extraConstraints.empty())
-    {
-        // This generates constraints for non-overlap inside and outside
-        // of clusters.  To assign correct variable indexes it requires
-        // that vs[] contains elements equal to the number of rectangles.
-        vpsc::Variables vs[2];
-        vs[0].resize(n);
-        vs[1].resize(n);
-        generateNonOverlapAndClusterCompoundConstraints(vs);
-    }
+    // This generates constraints for non-overlap inside and outside
+    // of clusters.  To assign correct variable indexes it requires
+    // that vs[] contains elements equal to the number of rectangles.
+    vpsc::Variables vs[2];
+    vs[0].resize(n);
+    vs[1].resize(n);
+    generateNonOverlapAndClusterCompoundConstraints(vs);
+
     FILE_LOG(logDEBUG) << "ConstrainedFDLayout::run...";
     double stress=DBL_MAX;
     do {
@@ -287,7 +285,21 @@ void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis)
     FILE_LOG(logDEBUG) << *r;
     }
     FILE_LOG(logDEBUG) << "ConstrainedFDLayout::run done.";
+    
+    // Clear extra constraints.
+    for_each(extraConstraints.begin(), extraConstraints.end(), delete_object());
+    extraConstraints.clear();
+
+    // Free extra variables used for cluster containment.
+    for (size_t dim = 0; dim < 2; ++dim)
+    {
+        for (size_t i = n; i < vs[dim].size(); ++i)
+        {
+            delete vs[dim][i];
+        }
+    }
 }
+
 /*
  * Same as run, but only applies one iteration.  This may be useful
  * where it's too hard to implement a call-back (e.g. in java apps)
@@ -532,12 +544,6 @@ void ConstrainedFDLayout::makeFeasible(void)
     }
 
     vector<double> priorPos(boundingBoxes.size());
-
-    // Clear extra constraints for cluster containment and non-overlap.
-    // We keep a separate list of these since we keep them around for 
-    // later solving.
-    for_each(extraConstraints.begin(), extraConstraints.end(), delete_object());
-    extraConstraints.clear();
 
     generateNonOverlapAndClusterCompoundConstraints(vs);
 
@@ -801,6 +807,10 @@ void ConstrainedFDLayout::makeFeasible(void)
         X[i] = boundingBoxes[i]->getCentreX();
         Y[i] = boundingBoxes[i]->getCentreY();
     }
+    
+    // Clear extra constraints for cluster containment and non-overlap.
+    for_each(extraConstraints.begin(), extraConstraints.end(), delete_object());
+    extraConstraints.clear();
 }
 
 ConstrainedFDLayout::~ConstrainedFDLayout()
