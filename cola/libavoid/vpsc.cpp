@@ -332,6 +332,7 @@ bool IncSolver::satisfy() {
                 bs->insert(rb);
             } else {
                 bs->insert(lb->merge(rb,v));
+                delete ((lb->deleted) ? lb : rb);
             }
         }
 #ifdef LIBVPSC_LOGGING
