@@ -5,7 +5,8 @@ Adaptagrams is a library of tools and reusable code for adaptive diagramming
 applications, for example: drawing tools, automated document and diagram
 layout, smart presentation software, graph drawing, chart layout, etc.
 
-Currently, the Adaptagrams repository includes:
+Currently, the [Adaptagrams repository][repo] includes four cross-platform C++ 
+libraries:
 
  *  [libvpsc][libvpsc]  
               - a solver for the Variable Placement with Separation 
@@ -23,9 +24,9 @@ Currently, the Adaptagrams repository includes:
 		properties of a given starting layout.  
 	      - libcola depends on libvpsc.
  *  [libavoid][libavoid]  
-    	      - a cross-platform C++ library providing fast, polyline and
-    		orthogonal object-avoiding connector routing for use in 
-		interactive diagram editors.  
+    	      - a library providing high-quality object-avoiding polyline 
+		and orthogonal connector routing for use in interactive 
+		diagram editors. 
  *  [libtopology][libtopology]  
               - a library containing extensions to libcola to support 
 		topology preserving constraint-based layout.  
@@ -57,7 +58,7 @@ Software using one or more of the Adaptagrams libraries include:
  *  [Gaphas][gaphor], an open source Python-based diagramming widget for GTK+, and
  *  [BRL-CAD][brlcad], a powerful cross-platform open source solid modeling system that includes interactive geometry editing, high-performance ray-tracing for rendering and geometric analysis, image and signal-processing tools, a system performance analysis benchmark suite, libraries for robust geometric representation, with more than 20 years of active development.
 
-The algorithms were developed by [Kim Marriott][km]'s Adaptive Diagrams Research Group at [Monash University][monash] in Melbourne, Australia.  The Adaptagrams libraries were originally written by [Tim Dwyer][td] and [Michael Wybrow][mw].
+The algorithms were developed by members of the [MArVL: Monash Adaptive Visualisation Lab][marvl] at [Monash University][monash] in Melbourne, Australia.  The Adaptagrams libraries were originally written by [Tim Dwyer][td] and [Michael Wybrow][mw].
 
 
 Building
@@ -78,11 +79,18 @@ Use from other languages
 
 Bindings for use of the Adaptagrams libraries can be generated using [SWIG][swig].  The repository contains a SWIG interface file `cola/adaptagrams.i`.  We have successfully tested and used Adaptagrams from Java and Python in this way.
 
+Cola in the browser
+-------------------
 
+[cola.js][webcola] (a.k.a. WebCola) is a JavaScript based rewrite of libcola which works well with [D3.js][d3]
+
+[d3]: http://d3js.org/
+[webcola]: http://marvl.infotech.monash.edu/webcola/
 [swig]: http://www.swig.org/
 [td]: http://www.csse.monash.edu.au/~tdwyer/
 [km]: http://www.csse.monash.edu.au/~kmarriott/
 [mw]: http://www.csse.monash.edu.au/~mwybrow/
+[marvl]: http://marvl.infotech.monash.edu.au/
 [monash]: http://wwww.csse.monash.edu.au/
 [libvpsc]: http://www.adaptagrams.org/documentation/libvpsc.html
 [libavoid]: http://www.adaptagrams.org/documentation/libavoid.html
