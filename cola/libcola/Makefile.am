@@ -1,4 +1,4 @@
-
+EXTRA_DIST=cola.pc.in
 
 lib_LTLIBRARIES = libcola.la
 libcola_la_CPPFLAGS = -I$(top_srcdir) $(CAIROMM_CFLAGS) -I$(includedir)/libcola -fPIC
@@ -50,5 +50,8 @@ libcolainclude_HEADERS = cola.h\
 	cc_nonoverlapconstraints.h \
 	box.h \
 	shapepair.h
+
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = libcola.pc
 
 SUBDIRS = . tests
