@@ -7,6 +7,5 @@ Name: libcola
 Description: A library for constraint graph layout
 URL: http://www.adaptagrams.org/
 Version: @VERSION@
-Requires: cairomm-1.0
 Libs: -L${libdir} -lcola
 Cflags: -I${includedir}/libcola

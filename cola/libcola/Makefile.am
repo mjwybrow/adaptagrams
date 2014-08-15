@@ -1,4 +1,4 @@
-EXTRA_DIST=cola.pc.in
+EXTRA_DIST=libcola.pc.in
 
 lib_LTLIBRARIES = libcola.la
 libcola_la_CPPFLAGS = -I$(top_srcdir) $(CAIROMM_CFLAGS) -I$(includedir)/libcola -fPIC
