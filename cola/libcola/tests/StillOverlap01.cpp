@@ -214,6 +214,7 @@ int main(void) {
     alg.makeFeasible();
     alg.run();
     alg.outputInstanceToSVG("test-StillOverlap01");
+    alg.freeAssociatedObjects();
     return 0;
 };
 

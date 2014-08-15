@@ -1370,6 +1370,8 @@ void ConstrainedFDLayout::outputInstanceToSVG(std::string instanceName)
     fprintf(fp, "    alg.setConstraints(ccs);\n");
     fprintf(fp, "    alg.makeFeasible();\n");
     fprintf(fp, "    alg.run();\n");
+    fprintf(fp, "    alg.freeAssociatedObjects();\n");
+    fprintf(fp, "    return 0;\n");
     fprintf(fp, "};\n");
     fprintf(fp, "-->\n");
 

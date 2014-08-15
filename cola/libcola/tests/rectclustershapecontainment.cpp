@@ -2165,8 +2165,8 @@ int main(void) {
     alg.makeFeasible();
     
     alg.outputInstanceToSVG("test-rectclustershapecontainment");
-    alg.freeAssociatedObjects();
     //alg.run();
+    alg.freeAssociatedObjects();
     
     return 0;
 };

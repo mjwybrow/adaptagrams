@@ -327,5 +327,6 @@ int main(void) {
     {
 	printf("%s\n", unsatisfiableY[i]->toString().c_str());
     }
+    alg.freeAssociatedObjects();
     return (unsatisfiableX.empty() && unsatisfiableY.empty()) ? 0 : 1;
 };

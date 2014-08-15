@@ -56,4 +56,5 @@ int main(void) {
     alg.setConstraints(ccs);
     alg.makeFeasible();
     //alg.outputInstanceToSVG("overlappingCLusters04");
+    alg.freeAssociatedObjects();
 };
