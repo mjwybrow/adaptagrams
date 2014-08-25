@@ -2836,42 +2836,6 @@ void Router::outputDiagramText(std::string instanceName)
         return;
     }
 
-    double minX = LIMIT;
-    double minY = LIMIT;
-    double maxX = -LIMIT;
-    double maxY = -LIMIT;
-
-    VertInf *curr = vertices.connsBegin();
-    while (curr)
-    {
-        Point p = curr->point;
-
-        reduceRange(p.x);
-        reduceRange(p.y);
-
-        if (p.x > -LIMIT)
-        {
-            minX = std::min(minX, p.x);
-        }
-        if (p.x < LIMIT)
-        {
-            maxX = std::max(maxX, p.x);
-        }
-        if (p.y > -LIMIT)
-        {
-            minY = std::min(minY, p.y);
-        }
-        if (p.y < LIMIT)
-        {
-            maxY = std::max(maxY, p.y);
-        }
-        curr = curr->lstNext;
-    }
-    minX -= 8;
-    minY -= 8;
-    maxX += 8;
-    maxY += 8;
-
     ObstacleList::iterator obstacleIt = m_obstacles.begin();
     while (obstacleIt != m_obstacles.end())
     {
@@ -2910,7 +2874,7 @@ void Router::outputDiagramText(std::string instanceName)
             fprintf(fp, "id=%u\n", connRef->id());
             for (size_t i = 0; i < route.size(); ++i)
             {
-                fprintf(fp, "point%u: %g %g ", i, route.ps[i].x, route.ps[i].y);
+                fprintf(fp, "p%u: %g %g ", i, route.ps[i].x, route.ps[i].y);
                 fprintf(fp, "\n");
             }
             fprintf(fp, "\n");

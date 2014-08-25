@@ -4,11 +4,11 @@ DEPENDPATH =  ../../..
 INCLUDEPATH = ../../..
 TARGET = example
 
+DESTDIR = ..
+
 CONFIG -= qt
 
-# DESTDIR = $$DUNNARTBASE/build
-
-LIBS += -L../../../libavoid/ -lavoid
+LIBS += -L$$DESTDIR -lavoid
 
 SOURCES += \ 
 	../../../libavoid/tests/example.cpp
