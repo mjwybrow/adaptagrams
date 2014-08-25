@@ -797,6 +797,8 @@ class AVOID_EXPORT Router {
         void outputDiagramSVG(std::string instanceName = std::string(), 
                 LineReps *lineReps = NULL);
 
+        void outputDiagramText(std::string instanceName = std::string());
+
     private:
         friend class ShapeRef;
         friend class ConnRef;
