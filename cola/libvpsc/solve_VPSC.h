@@ -75,9 +75,9 @@ public:
     Variables const & getVariables() { return vs; }
 protected:
 	Blocks *bs;
-	unsigned m;
+	size_t m;
 	std::vector<Constraint*> const &cs;
-	unsigned n;
+	size_t n;
 	std::vector<Variable*> const &vs;
     bool needsScaling;
 

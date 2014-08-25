@@ -1708,7 +1708,7 @@ void ConnectorCrossings::clear(void)
 // Computes the *shared* length of these two shared paths.
 //
 static double pathLength(Avoid::Point **c_path, Avoid::Point **p_path, 
-        unsigned int size)
+        size_t size)
 {
     double length = 0;
 

@@ -2428,7 +2428,7 @@ typedef std::list<ShiftSegment *> ShiftSegmentPtrList;
 class PotentialSegmentConstraint
 {
     public:
-        PotentialSegmentConstraint(unsigned index1, unsigned index2, 
+        PotentialSegmentConstraint(size_t index1, size_t index2,
                 const Variables& vs)
             : index1(index1),
               index2(index2),
@@ -2452,7 +2452,7 @@ class PotentialSegmentConstraint
         {
             return (index1 != index2);
         }
-        void rewriteIndex(unsigned oldIndex, unsigned newIndex)
+        void rewriteIndex(size_t oldIndex, size_t newIndex)
         {
             if (index1 == oldIndex)
             {
@@ -2465,8 +2465,8 @@ class PotentialSegmentConstraint
             }
         }
 
-        unsigned index1;
-        unsigned index2;
+        size_t index1;
+        size_t index2;
 
     private:
         const Variables& vs;
@@ -2574,8 +2574,8 @@ void ImproveOrthogonalRoutes::nudgeOrthogonalRoutes(size_t dimension,
     // we try 10 times, reducing each time by a 10th of the original amount.
     double reductionSteps = 10.0;
 
-    unsigned int totalSegmentsToShift = m_segment_list.size();
-    unsigned int numOfSegmentsShifted = 0;
+    size_t totalSegmentsToShift = m_segment_list.size();
+    size_t numOfSegmentsShifted = 0;
     // Do the actual nudging.
     ShiftSegmentList currentRegion;
     while (!m_segment_list.empty())
@@ -2639,7 +2639,7 @@ void ImproveOrthogonalRoutes::nudgeOrthogonalRoutes(size_t dimension,
         }
 
         // Process these segments.
-        std::list<unsigned> freeIndexes;
+        std::list<size_t> freeIndexes;
         Variables vs;
         Constraints cs;
         Constraints gapcs;
@@ -2800,10 +2800,10 @@ void ImproveOrthogonalRoutes::nudgeOrthogonalRoutes(size_t dimension,
         std::list<PotentialSegmentConstraint> potentialConstraints;
         if (justUnifying)
         {
-            for (std::list<unsigned>::iterator curr = freeIndexes.begin();
+            for (std::list<size_t>::iterator curr = freeIndexes.begin();
                     curr != freeIndexes.end(); ++curr)
             {
-                for (std::list<unsigned>::iterator curr2 = curr;
+                for (std::list<size_t>::iterator curr2 = curr;
                         curr2 != freeIndexes.end(); ++curr2)
                 {
                     if (curr == curr2)

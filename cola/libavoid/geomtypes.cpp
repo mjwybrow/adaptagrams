@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2013  Monash University
+ * Copyright (C) 2004-2014  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -94,14 +94,14 @@ bool Point::operator<(const Point& rhs) const
 }
 
 
-double& Point::operator[](const unsigned int dimension)
+double& Point::operator[](const size_t dimension)
 {
     COLA_ASSERT((dimension == 0) || (dimension == 1));
     return ((dimension == 0) ? x : y);
 }
 
 
-const double& Point::operator[](const unsigned int dimension) const
+const double& Point::operator[](const size_t dimension) const
 {
     COLA_ASSERT((dimension == 0) || (dimension == 1));
     return ((dimension == 0) ? x : y);
@@ -231,7 +231,7 @@ Box PolygonInterface::offsetBoundingBox(double offset) const
     return bBox;
 }
 
-double Box::length(const unsigned int dimension) const
+double Box::length(size_t dimension) const
 {
     if (dimension == 0)
     {

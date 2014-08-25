@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2010  Monash University
+ * Copyright (C) 2004-2014  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -213,7 +213,7 @@ std::vector<Point> Obstacle::possiblePinPoints(unsigned int pinClassId) const
 }
 
 
-unsigned int Obstacle::addConnectionPin(ShapeConnectionPin *pin)
+size_t Obstacle::addConnectionPin(ShapeConnectionPin *pin)
 {
     m_connection_pins.insert(pin);
     m_router->modifyConnectionPin(pin);

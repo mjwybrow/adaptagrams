@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2005-2012  Monash University
+ * Copyright (C) 2005-2014  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -484,7 +484,7 @@ using std::copy;
 Blocks::Blocks(vector<Variable*> const &vs) : vs(vs),nvs(vs.size()) {
     blockTimeCtr=0;
     m_blocks.resize(nvs);
-    for(int i=0;i<nvs;i++) {
+    for(size_t i=0;i<nvs;i++) {
         m_blocks[i] = new Block(this, vs[i]);
     }
 }
@@ -505,10 +505,10 @@ Blocks::~Blocks(void)
  */
 list<Variable*> *Blocks::totalOrder() {
     list<Variable*> *order = new list<Variable*>;
-    for(int i=0;i<nvs;i++) {
+    for(size_t i=0;i<nvs;i++) {
         vs[i]->visited=false;
     }
-    for(int i=0;i<nvs;i++) {
+    for(size_t i=0;i<nvs;i++) {
         if(vs[i]->in.size()==0) {
             dfsVisit(vs[i],order);
         }

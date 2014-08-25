@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2013  Monash University
+ * Copyright (C) 2004-2014  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -771,7 +771,7 @@ class AVOID_EXPORT Router {
         void markAllObstaclesAsMoved(void);
         ShapeRef *shapeContainingPoint(const Point& point);
         void performContinuationCheck(unsigned int phaseNumber,
-                unsigned int stepNumber, unsigned int totalSteps);
+                size_t stepNumber, size_t totalSteps);
 
         /** 
          *  @brief  Set an addon for doing orthogonal topology improvement.

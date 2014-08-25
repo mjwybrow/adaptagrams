@@ -927,8 +927,8 @@ void Router::rerouteAndCallbackConnectors(void)
     ConnRefSet hyperedgeConns =
             m_hyperedge_rerouter.calcHyperedgeConnectors();
 
-    unsigned int totalConns = connRefs.size();
-    unsigned int numOfReroutedConns = 0;
+    size_t totalConns = connRefs.size();
+    size_t numOfReroutedConns = 0;
     for (ConnRefList::const_iterator i = connRefs.begin(); i != fin; ++i) 
     {
         // Progress reporting and continuation check.
@@ -1118,7 +1118,7 @@ static double cheapEstimatedCost(ConnRef *lineRef)
 
 
 void Router::performContinuationCheck(unsigned int phaseNumber, 
-        unsigned int stepNumber, unsigned int totalSteps)
+        size_t stepNumber, size_t totalSteps)
 {
     // Compute the elapsed time in msec since the beginning of the transaction.
     unsigned int elapsedMsec = (unsigned int) 
@@ -1179,8 +1179,8 @@ void Router::improveCrossings(void)
         return;
     }
     
-    unsigned int numOfConns = connRefs.size();
-    unsigned int numOfConnsChecked = 0;
+    size_t numOfConns = connRefs.size();
+    size_t numOfConnsChecked = 0;
 
     // Find crossings and reroute connectors.
     m_in_crossing_rerouting_stage = true;

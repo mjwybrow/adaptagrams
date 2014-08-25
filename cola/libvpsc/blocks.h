@@ -74,7 +74,7 @@ private:
     
     std::vector<Block*> m_blocks;
 	std::vector<Variable*> const &vs;
-	int nvs;
+	size_t nvs;
 };
 
 inline size_t Blocks::size() const
