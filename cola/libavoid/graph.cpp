@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2011  Monash University
+ * Copyright (C) 2004-2014  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -50,9 +50,12 @@ EdgeInf::EdgeInf(VertInf *v1, VertInf *v2, const bool orthogonal)
       m_orthogonal(orthogonal),
       m_isHyperedgeSegment(false),
       m_disabled(false),
+      m_forward_hugging(false),
+      m_backward_hugging(false),
       m_vert1(v1),
       m_vert2(v2),
-      m_dist(-1)
+      m_dist(-1),
+      m_bend_vert(NULL)
 {
     // Not passed NULL values.
     COLA_ASSERT(v1 && v2);
@@ -71,6 +74,8 @@ EdgeInf::~EdgeInf()
     {
         makeInactive();
     }
+    // TODO: memory for bend vertex is leaked.
+    //       Deleting will cause double free due to shallow copying.
 }
 
 
@@ -185,6 +190,8 @@ bool EdgeInf::rotationLessThan(const VertInf *lastV, const EdgeInf *rhs) const
 void EdgeInf::makeActive(void)
 {
     COLA_ASSERT(m_added == false);
+    COLA_ASSERT(m_vert1);
+    COLA_ASSERT(m_vert2);
 
     if (m_orthogonal)
     {
@@ -256,20 +263,35 @@ void EdgeInf::makeInactive(void)
 }
 
 
-void EdgeInf::setDist(double dist)
+bool EdgeInf::isActive(void) const
+{
+    return m_added;
+}
+
+
+void EdgeInf::setDist(double dist, bool activate)
 {
     //COLA_ASSERT(dist != 0);
 
-    if (m_added && !m_visible)
+    if (activate)
     {
-        makeInactive();
-        COLA_ASSERT(!m_added);
+        // Activate (add to visibility graph immediately.  Standard case.
+        if (m_added && !m_visible)
+        {
+            makeInactive();
+            COLA_ASSERT(!m_added);
+        }
+        if (!m_added)
+        {
+            m_visible = true;
+            makeActive();
+        }
     }
-    if (!m_added)
+    else
     {
         m_visible = true;
-        makeActive();
     }
+
     m_dist = dist;
     m_blocker = 0;
 }
@@ -358,15 +380,28 @@ void EdgeInf::addBlocker(int b)
 }
 
 
-pair<VertID, VertID> EdgeInf::ids(void) const
+void EdgeInf::setBendVertex(VertInf *vert)
 {
-    return std::make_pair(m_vert1->id, m_vert2->id);
+    m_bend_vert = vert;
+    if (vert)
+    {
+        // Make sure bend point is orthogonally aligned to 1-bend edge
+        // endpoints.
+        COLA_ASSERT((vert->point.x == m_vert1->point.x) ||
+                    (vert->point.y == m_vert1->point.y));
+        COLA_ASSERT((vert->point.x == m_vert2->point.x) ||
+                    (vert->point.y == m_vert2->point.y));
+    }
 }
 
-
-pair<Point, Point> EdgeInf::points(void) const
+VertInf *EdgeInf::bendVertex(void)
 {
-    return std::make_pair(m_vert1->point, m_vert2->point);
+    return m_bend_vert;
+}
+
+std::pair<VertInf *, VertInf *> EdgeInf::vertices(void) const
+{
+    return std::make_pair(m_vert1, m_vert2);
 }
 
 
@@ -614,6 +649,38 @@ EdgeInf *EdgeInf::checkEdgeVisibility(VertInf *i, VertInf *j, bool knownNew)
     }
 
     return edge;
+}
+
+
+bool EdgeInf::isHuggingFromVertex(VertInf *v) const
+{
+    // Shouldn't contain dummy vertices for 1-bend vsibility limits.
+    COLA_ASSERT(m_vert1->id != dummyOneBendVisibilityLimitID);
+    COLA_ASSERT(m_vert2->id != dummyOneBendVisibilityLimitID);
+
+    if ((m_vert1->id != dummyOrthogShapeID) ||
+            (m_vert2->id != dummyOrthogShapeID))
+    {
+        // Ends at a connector endpoint, junction, or checkpoint,
+        // so consider this as hugging.
+        return true;
+    }
+
+    if (v == m_vert1)
+    {
+        return m_forward_hugging;
+    }
+    else if (v == m_vert2)
+    {
+        return m_backward_hugging;
+    }
+    return false;
+}
+
+void EdgeInf::setHuggingProperties(bool forward, bool backward)
+{
+    m_forward_hugging = forward;
+    m_backward_hugging = backward;
 }
 
 

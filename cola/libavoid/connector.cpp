@@ -1760,6 +1760,8 @@ void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
             (polyConnRef->routingType() == ConnType_Orthogonal));
     bool connIsOrthogonal = (connConnRef &&
             (connConnRef->routingType() == ConnType_Orthogonal));
+    bool usingOneBendGraph = (connIsOrthogonal &&
+            connConnRef->router()->usingOneBendVisibilityGraph());
 
     size_t poly_size = poly.size();
 
@@ -2412,7 +2414,7 @@ void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
         }
         else
         {
-            if ( polyIsOrthogonal && connIsOrthogonal)
+            if ( polyIsOrthogonal && connIsOrthogonal && !usingOneBendGraph)
             {
                 // All crossings in orthogonal connectors will be at a
                 // vertex in the visibility graph, so we need not bother

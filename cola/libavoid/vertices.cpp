@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2009  Monash University
+ * Copyright (C) 2004-2014  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -139,11 +139,17 @@ const unsigned short VertID::src = 1;
 const unsigned short VertID::tar = 2;
 
 // Property flags:
-const unsigned short VertID::PROP_ConnPoint      = 1;
-const unsigned short VertID::PROP_OrthShapeEdge  = 2;
-const unsigned short VertID::PROP_ConnectionPin  = 4;
-const unsigned short VertID::PROP_ConnCheckpoint = 8;
-const unsigned short VertID::PROP_DummyPinHelper = 16;
+const VertIDProps VertID::PROP_ConnPoint      = 1;
+const VertIDProps VertID::PROP_OrthShapeEdge  = 2;
+const VertIDProps VertID::PROP_ConnectionPin  = 4;
+const VertIDProps VertID::PROP_ConnCheckpoint = 8;
+const VertIDProps VertID::PROP_DummyPinHelper = 16;
+const VertIDProps VertID::PROP_OrthShapeLowX  = 32;
+const VertIDProps VertID::PROP_OrthShapeLowY  = 64;
+const VertIDProps VertID::PROP_OrthShapeHighX = 128;
+const VertIDProps VertID::PROP_OrthShapeHighY = 256;
+const VertIDProps VertID::PROP_OrthLimitObstacleClose = 512;
+const VertIDProps VertID::PROP_OrthLimitObstacleOpen = 1024;
 
 
 ostream& operator<<(ostream& os, const VertID& vID)
@@ -186,6 +192,69 @@ VertInf::~VertInf()
     COLA_ASSERT(orphaned());
 }
 
+// This is called on connection point vertices and used to add all 1-bend
+// visibility edges attached to them to the visibility graph before the path
+// search.
+void VertInf::activateInactiveOneBendVisEdges(bool checkPins)
+{
+    for (EdgeInfList::iterator it = inactiveOneBendVisEdges.begin(); 
+            it != inactiveOneBendVisEdges.end(); ++it)
+    {
+        if ((*it)->isActive() == false)
+        {
+            (*it)->makeActive();
+        }
+    }
+    
+    if (!checkPins)
+    {
+        return;
+    }
+
+    // Check attached connection pins for the case where connectors end
+    // at shape connection pins rather than a normal end point.
+    for (EdgeInfList::iterator it = orthogVisList.begin(); 
+            it != orthogVisList.end(); ++it)
+    {
+        VertInf *other = (*it)->otherVert(this);
+        if (other->id.isConnectionPin())
+        {
+            other->activateInactiveOneBendVisEdges(false);
+        }
+    }
+}
+
+// This is called on connection point vertices and used to remove all 1-bend
+// visibility edges attached to them from the visibility graph after the path
+// search is complete.
+void VertInf::deactivateInactiveOneBendVisEdges(bool checkPins)
+{
+    for (EdgeInfList::iterator it = inactiveOneBendVisEdges.begin(); 
+            it != inactiveOneBendVisEdges.end(); ++it)
+    {
+        if ((*it)->isActive() == true)
+        {
+            (*it)->makeInactive();
+        }
+    }
+    
+    if (!checkPins)
+    {
+        return;
+    }
+
+    // Check attached connection pins for the case where connectors end
+    // at shape connection pins rather than a normal end point.
+    for (EdgeInfList::iterator it = orthogVisList.begin();
+            it != orthogVisList.end(); ++it)
+    {
+        VertInf *other = (*it)->otherVert(this);
+        if (other->id.isConnectionPin())
+        {
+            other->deactivateInactiveOneBendVisEdges(false);
+        }
+    }
+}
 
 EdgeInf *VertInf::hasNeighbour(VertInf *target, bool orthogonal) const
 {

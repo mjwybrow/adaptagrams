@@ -40,11 +40,13 @@
 #include "libavoid/vpsc.h"
 #include "libavoid/assertions.h"
 #include "libavoid/scanline.h"
+#include "libavoid/debug.h"
 
 // For debugging:
 //#define NUDGE_DEBUG
 //#define DEBUG_JUST_UNIFY
 
+//#define INSERT_CONNECTION_ONEBEND_VIS_EDGES
 
 namespace Avoid {
 
@@ -633,6 +635,13 @@ struct CmpVertInf
         {
             return u->point.y < v->point.y;
         }
+        else if (u->id == dummyOneBendVisibilityLimitID && u->id == v->id &&
+                 u->id.props == v->id.props)
+        {
+            // These are two identical shape edge markers for creating
+            // the 1-bend visibility graph.  Don't need both.
+            return false;
+        }
         return u < v;
     }
 };
@@ -644,38 +653,61 @@ typedef std::set<VertInf *, CmpVertInf> VertSet;
 // along with vertices for these points.
 typedef std::set<PosVertInf> BreakpointSet;
 
-// Temporary structure used to store the possible horizontal visibility 
-// lines arising from the vertical sweep.
+// Temporary structure used to store possible horizontal or vertical visibility
+// lines used to construct visibility edges for the orthogonal visibility graph
+// and 1-bend visibility graph.  A LineSegment has a position, an extent, and
+// a set of interesting vertices that lie on the LineSegment.
 class LineSegment 
 {
 public:
-    LineSegment(const double& b, const double& f, const double& p, 
-            bool ss = false, VertInf *bvi = NULL, VertInf *fvi = NULL)
-        : begin(b),
-          finish(f),
-          pos(p),
-          shapeSide(ss)
+    // Normal segment.
+    LineSegment(const double& beginPos, const double& endPos,
+            const double& segmentPos, VertInf *beginVertex = NULL,
+            VertInf *endVertex = NULL)
+        : begin(beginPos),
+          finish(endPos),
+          pos(segmentPos)
     {
         COLA_ASSERT(begin < finish);
 
-        if (bvi)
+        if (beginVertex)
         {
-            vertInfs.insert(bvi);
+            vertInfs.insert(beginVertex);
         }
-        if (fvi)
+        if (endVertex)
         {
-            vertInfs.insert(fvi);
+            vertInfs.insert(endVertex);
         }
     }
-    LineSegment(const double& bf, const double& p, VertInf *bfvi = NULL)
-        : begin(bf),
-          finish(bf),
-          pos(p),
-          shapeSide(false)
+    // Segment representing a single point.
+    LineSegment(const double& posOnSegment, const double& segmentPos,
+            VertInf *vertex = NULL)
+        : begin(posOnSegment),
+          finish(posOnSegment),
+          pos(segmentPos)
     {
-        if (bfvi)
+        if (vertex)
         {
-            vertInfs.insert(bfvi);
+            vertInfs.insert(vertex);
+        }
+    }
+
+    ~LineSegment(void)
+    {
+        for (VertSet::iterator vert = vertInfs.begin();
+             vert != vertInfs.end(); ++vert)
+        {
+            if ((*vert)->id == dummyOneBendVisibilityLimitID)
+            {
+                // Delete vertices used to mark visibility limits during
+                // construction of 1-bend visibility graph, but which are not
+                // themselves stored in the resulting graph and therefore
+                // won't be cleaned up.
+
+                // TODO: memory for visibility limit vertices are leaked.
+                //       Deleting will cause double free due to shallow copying.
+                //delete *vert;
+            }
         }
     }
  
@@ -694,7 +726,6 @@ public:
         {
             return finish < rhs.finish;
         }
-        COLA_ASSERT(shapeSide == rhs.shapeSide);
         return false;
     }
 
@@ -719,11 +750,12 @@ public:
         return false;
     }
 
-    void mergeVertInfs(const LineSegment& segment)
+    void mergeVertInfs(LineSegment& segment)
     {
         begin = std::min(begin, segment.begin);
         finish = std::max(finish, segment.finish);
         vertInfs.insert(segment.vertInfs.begin(), segment.vertInfs.end());
+        segment.vertInfs.clear();
     }
     
     VertInf *beginVertInf(void) const
@@ -1022,7 +1054,7 @@ public:
             }
         }
     }
-    void generateVisibilityEdgesFromBreakpointSet(Router *router, size_t dim)
+    void addBeginningAndEndBreakpointsIfMissing(Router *router, size_t dim)
     {
         if (breakPoints.empty() || ((breakPoints.begin())->pos > begin))
         {
@@ -1065,6 +1097,13 @@ public:
                 breakPoints.insert(PosVertInf(finish, vert));
             }
         }
+    }
+
+    void generateVisibilityEdgesFromBreakpointSet(Router *router, size_t dim)
+    {
+        COLA_ASSERT(router->usingOneBendVisibilityGraph() == false);
+
+        addBeginningAndEndBreakpointsIfMissing(router, dim);
 
         // Set flags for orthogonal routing optimisation.
         setLongRangeVisibilityFlags(dim);
@@ -1192,13 +1231,247 @@ public:
             }
         }
     }
+    // Given the current (horizontal) LineSegment and the given vertical
+    // LineSegment, generates approprite 1-bend visibility edges between the
+    // obstacle corner and connection point vertices fromeach segment to the
+    // other.
+    void generateOneBendVisibilityEdgesFromVerticalLineSegment(
+            LineSegment& vertLine, Router *router)
+    {
+        COLA_ASSERT(!vertInfs.empty());
+        COLA_ASSERT(!vertLine.vertInfs.empty());
+
+        const double bendPenalty = router->routingParameter(segmentPenalty);
+
+        // We first propogate properties about visibility limits outward in
+        // both directions along each LineSegment away from the intersection
+        // point.
+
+        // Find the first vertex on the horizontal line after the vertical 
+        // line position (intersection).
+        VertSet::iterator beforeVertex = vertInfs.begin();
+        VertSet::iterator afterVertex = vertInfs.begin();
+        while (afterVertex != vertInfs.end())
+        {
+            if ((*afterVertex)->point.x  > vertLine.pos)
+            {
+                break;
+            }
+            beforeVertex = afterVertex;
+            ++afterVertex;
+        }
+
+        // Mark all vertices 'after' with visibility limit information,
+        // moving outward along the horizontal line from the intersection.
+        unsigned int seenSoFar = 0;
+        VertSet::iterator vertexIt = afterVertex;
+        VertIDProps visLimitProps = VertID::PROP_OrthLimitObstacleClose &
+                VertID::PROP_OrthLimitObstacleOpen;
+        while (vertexIt != vertInfs.end())
+        {
+            seenSoFar |= (*vertexIt)->id.props & visLimitProps;
+            (*vertexIt)->orthogVisPropFlags = (*vertexIt)->id.props | seenSoFar;
+            ++vertexIt;
+        }
+
+        // Mark all vertices 'before' with visibility limit information,
+        // moving outward along the horizontal line from the intersection.
+        if (beforeVertex != vertInfs.begin())
+        {
+            vertexIt = beforeVertex;
+            seenSoFar = 0;
+            do
+            {
+                seenSoFar |= (*vertexIt)->id.props & visLimitProps;
+                (*vertexIt)->orthogVisPropFlags = (*vertexIt)->id.props | seenSoFar;
+                --vertexIt;
+            }
+            while (vertexIt != vertInfs.begin());
+        }
+
+        // Find the first vertex on the vertical line after the horizontal
+        // line position (intersection).
+        beforeVertex = vertLine.vertInfs.begin();
+        afterVertex = vertLine.vertInfs.begin();
+        while (afterVertex != vertLine.vertInfs.end())
+        {
+            if ((*afterVertex)->point.y  > pos)
+            {
+                break;
+            }
+            beforeVertex = afterVertex;
+            ++afterVertex;
+        }
+
+        // Mark all vertices 'after' with visibility limit information,
+        // moving outward along the vertical line from the intersection.
+        seenSoFar = 0;
+        vertexIt = afterVertex;
+        while (vertexIt != vertLine.vertInfs.end())
+        {
+            seenSoFar |= (*vertexIt)->id.props & visLimitProps;
+            (*vertexIt)->orthogVisPropFlags = (*vertexIt)->id.props | seenSoFar;
+            ++vertexIt;
+        }
+
+        // Mark all vertices 'before' with visibility limit information,
+        // moving outward along the vertical line from the intersection.
+        if (beforeVertex != vertLine.vertInfs.begin())
+        {
+            vertexIt = beforeVertex;
+            seenSoFar = 0;
+            do
+            {
+                seenSoFar |= (*vertexIt)->id.props & visLimitProps;
+                (*vertexIt)->orthogVisPropFlags = (*vertexIt)->id.props | seenSoFar;
+                --vertexIt;
+            }
+            while (vertexIt != vertLine.vertInfs.begin());
+        }
+
+        // Create L-shaped visibility edges between appropriate vertices from
+        // each LineSegment.
+        VertInf *bendVertex = NULL;
+        const bool orthogonal = true;
+        for (VertSet::iterator horiVertex = vertInfs.begin(); 
+                horiVertex != vertInfs.end(); ++horiVertex)
+        {
+            if ((*horiVertex)->id == dummyOneBendVisibilityLimitID)
+            {
+                // Don't consider dummy vertices for visibility limits.
+                continue;
+            }
+
+            for (VertSet::iterator vertVertex = vertLine.vertInfs.begin();
+                    vertVertex != vertLine.vertInfs.end(); ++vertVertex)
+            {
+                if ((*vertVertex)->id == dummyOneBendVisibilityLimitID)
+                {
+                    // Don't consider dummy vertices for visibility limits.
+                    continue;
+                }
+
+                if (*horiVertex == *vertVertex)
+                {
+                    // Can't have a visibility edge from one vertex to itself.
+                    continue;
+                }
+
+                double dist = manhattanDist((*horiVertex)->point, 
+                        (*vertVertex)->point);
+                if (dist == 0)
+                {
+                    //fprintf(stderr, "WARNING: zero distance\n");
+                    continue;
+                }
+
+                if (((*horiVertex)->point.x == (*vertVertex)->point.x) ||
+                        ((*horiVertex)->point.y == (*vertVertex)->point.y))
+                {
+                    // We only consider L-shaped segments.  For straight line
+                    // visibility of connection points we need to look along
+                    // just a vertical or horizontal segment.  Otherwise we
+                    // give could add an edge for a point that doesn't have
+                    // visibility in that direction.
+                    continue;
+                }
+
+
+                bool obscured = false;
+                unsigned int requiredSupportVertexFlags = 0;
+                if ((*horiVertex)->point.x < (*vertVertex)->point.x)
+                {
+                    obscured |= (*horiVertex)->orthogVisPropFlags & VertID::PROP_OrthLimitObstacleOpen;
+                    if ((*horiVertex)->point.y < (*vertVertex)->point.y)
+                    {
+                        obscured |= (*vertVertex)->orthogVisPropFlags & VertID::PROP_OrthLimitObstacleClose;
+
+                        requiredSupportVertexFlags = VertID::PROP_OrthShapeHighX | VertID::PROP_OrthShapeLowY;
+                    }
+                    else if ((*horiVertex)->point.y > (*vertVertex)->point.y)
+                    {
+                        obscured |= (*vertVertex)->orthogVisPropFlags & VertID::PROP_OrthLimitObstacleOpen;
+
+                        requiredSupportVertexFlags = VertID::PROP_OrthShapeHighX | VertID::PROP_OrthShapeHighY;
+                    }
+                }
+                else if ((*horiVertex)->point.x > (*vertVertex)->point.x)
+                {
+                    obscured |= (*horiVertex)->orthogVisPropFlags & VertID::PROP_OrthLimitObstacleClose;
+
+                    if ((*horiVertex)->point.y < (*vertVertex)->point.y)
+                    {
+                        obscured |= (*vertVertex)->orthogVisPropFlags & VertID::PROP_OrthLimitObstacleClose;
+
+                        requiredSupportVertexFlags = VertID::PROP_OrthShapeLowX | VertID::PROP_OrthShapeLowY;
+                    }
+                    else if ((*horiVertex)->point.y > (*vertVertex)->point.y)
+                    {
+                        obscured |= (*vertVertex)->orthogVisPropFlags & VertID::PROP_OrthLimitObstacleOpen;
+
+                        requiredSupportVertexFlags = VertID::PROP_OrthShapeLowX | VertID::PROP_OrthShapeHighY;
+                    }
+                }
+
+                if (obscured)
+                {
+                    // Don't create visibility edge where one of the vertices
+                    // doesn't have visibility to the bend vertex.
+                    continue;
+                }
+
+                // Check if the edge satisfies the criteria for being
+                // obstacle-hugging in each direction.
+                // This doesn't check if one of the ends is a connection point.
+                // That is done by in EdgeInf::isHuggingFromVertex().
+                bool isForwardObstacleHugging =
+                        (((*vertVertex)->orthogVisPropFlags & requiredSupportVertexFlags) == requiredSupportVertexFlags);
+                bool isBackwardObstacleHugging =
+                        (((*horiVertex)->orthogVisPropFlags & requiredSupportVertexFlags) == requiredSupportVertexFlags);
+
+                EdgeInf *edge = new EdgeInf(*horiVertex, *vertVertex,
+                        orthogonal);
+
+                edge->setHuggingProperties(isForwardObstacleHugging, isBackwardObstacleHugging);
+
+                if ((edge->isHuggingFromVertex(*horiVertex) == false) &&
+                    (edge->isHuggingFromVertex(*vertVertex) == false))
+                {
+                    // Not valid.
+                    delete edge;
+                    continue;
+                }
+
+                if (bendVertex == NULL)
+                {
+                    bendVertex = new VertInf(router, dummyBendID, 
+                            Point((*vertVertex)->point.x,
+                                  (*horiVertex)->point.y), false);
+                }
+                edge->setBendVertex(bendVertex);
+
+                bool activate = true;
+#if !defined(INSERT_CONNECTION_ONEBEND_VIS_EDGES)
+                if ((*horiVertex)->id != dummyOrthogShapeID)
+                {
+                    activate = false;
+                    (*horiVertex)->inactiveOneBendVisEdges.push_back(edge);
+                }
+                if ((*vertVertex)->id != dummyOrthogShapeID)
+                {
+                    activate = false;
+                    (*vertVertex)->inactiveOneBendVisEdges.push_back(edge);
+                }
+#endif
+                dist += bendPenalty;
+                edge->setDist(dist, activate);
+            }
+        }
+    }
 
     double begin;
     double finish;
     double pos;
-
-    // XXX shapeSide is unused and could possibly be removed?
-    bool shapeSide;
     
     VertSet vertInfs;
     BreakpointSet breakPoints;
@@ -1349,6 +1622,128 @@ static void intersectSegments(Router *router, SegmentList& segments,
     vertLine.generateVisibilityEdgesFromBreakpointSet(router, dimension);
 }
 
+// Insert straight-line direct-visibility edges into the 1-bend visibility
+// graph for the special case of connection points in vertical or horizontal
+// alignments.  This code is used for both vertical and horizontal LineSegments.
+static void insertDirectOneBendVisibilityForLineSegment(LineSegment &line)
+{
+    // This code walks along all the ordered vertices on a LineSegment from
+    // lowest position to highest giving visibility to connection points that
+    // can see each other.  To do this it uses dummy vertices representing
+    // obstacle open and close events to keep a window of connection pin
+    // vertices that can see forward (to higher positions) and a window of
+    // vertices that can see backward (to the forward facing window points).
+
+    VertSet forwardFacingConnectionPoints;
+    VertSet backwardFacingConnectionPoints;
+    bool insideObstacle = false;
+    for (VertSet::iterator vertexIt = line.vertInfs.begin();
+         vertexIt != line.vertInfs.end(); ++vertexIt)
+    {
+        VertInf *vertex = *vertexIt;
+        VertID vertexId = vertex->id;
+        if (vertexId == dummyOneBendVisibilityLimitID)
+        {
+            if (vertexId.props & VertID::PROP_OrthLimitObstacleOpen)
+            {
+                if (!insideObstacle)
+                {
+                    // Hit first obstacle opening after being outside.
+                    forwardFacingConnectionPoints.insert(
+                            backwardFacingConnectionPoints.begin(),
+                            backwardFacingConnectionPoints.end());
+                    backwardFacingConnectionPoints.clear();
+                    insideObstacle = true;
+                }
+            }
+            else if (vertexId.props & VertID::PROP_OrthLimitObstacleClose)
+            {
+                if (insideObstacle)
+                {
+                    // Leaving first obstacle after being inside.
+                    forwardFacingConnectionPoints = backwardFacingConnectionPoints;
+                    backwardFacingConnectionPoints.clear();
+                    insideObstacle = false;
+                }
+            }
+            continue;
+        }
+        else if ((vertexId == dummyOrthogShapeID))
+        {
+            // This is an obstacle edge that lies on the LineSegment.
+            // It doesn't affect visibility, so continue.
+            continue;
+        }
+
+        VertSet allOpenPoints = forwardFacingConnectionPoints;
+        allOpenPoints.insert(backwardFacingConnectionPoints.begin(),
+                backwardFacingConnectionPoints.end());
+        for (VertSet::iterator openIt = allOpenPoints.begin();
+             openIt != allOpenPoints.end(); ++openIt)
+        {
+            VertInf *openVertex = *openIt;
+
+            double dist = manhattanDist(openVertex->point,
+                                        vertex->point);
+            if (dist > 0)
+            {
+                bool orthogonal = true;
+                EdgeInf *edge = new EdgeInf(openVertex, vertex,
+                                            orthogonal);
+
+                bool activate = true;
+#if !defined(INSERT_CONNECTION_ONEBEND_VIS_EDGES)
+                activate = false;
+                openVertex->inactiveOneBendVisEdges.push_back(edge);
+                vertex->inactiveOneBendVisEdges.push_back(edge);
+#endif
+                edge->setDist(dist, activate);
+            }
+        }
+        backwardFacingConnectionPoints.insert(vertex);
+    }
+}
+
+
+// Given a router instance and a set of possible horizontal segments, and a
+// possible vertical visibility segment, compute and add edges to the 1-bend
+// orthogonal visibility graph for pairs of vertices on these segments with
+// object-hugging visibility or attachment to a connection point.
+static void intersectSegmentsForOneBendVisibility(Router *router,
+        SegmentList& segments, LineSegment& vertLine)
+{
+    insertDirectOneBendVisibilityForLineSegment(vertLine);
+
+    COLA_ASSERT(!segments.empty());
+    for (SegmentList::iterator it = segments.begin(); it != segments.end();)
+    {
+        LineSegment& horiLine = *it;
+
+        bool inVertSegRegion = ((vertLine.begin <= horiLine.pos) &&
+                                (vertLine.finish >= horiLine.pos));
+        bool inHoriSegRegion = ((horiLine.begin <= vertLine.pos) &&
+                                (horiLine.finish >= vertLine.pos));
+
+        if (inVertSegRegion && inHoriSegRegion)
+        {
+            // If the line segments intersect, then generate 1-bend
+            // visibility edges between vertices on the two segments.
+            horiLine.generateOneBendVisibilityEdgesFromVerticalLineSegment(
+                    vertLine, router);
+        }
+
+        if (vertLine.pos > horiLine.finish)
+        {
+            // This function is called repeatedly with vertical segments at
+            // increasing X-positions.  We've now swept past the extent of
+            // this horizontal segment, so it can be deleted.
+            it = segments.erase(it);
+            continue;
+        }
+        ++it;
+    }
+}
+
 
 // Processes an event for the vertical sweep used for computing the static 
 // orthogonal visibility graph.  This adds possible horizontal visibility 
@@ -1391,6 +1786,8 @@ static void processEventVert(Router *router, NodeSet& scanline,
             // Only difference between Open and Close is whether the line
             // segments are at the top or bottom of the shape.  Decide here.
             double lineY = (e->type == Open) ? v->min[YDIM] : v->max[YDIM];
+            VertIDProps sideFlag = (e->type == Open) ? 
+                    VertID::PROP_OrthShapeLowY : VertID::PROP_OrthShapeHighY;
 
             // Shape edge positions.
             double minShape = v->min[XDIM];
@@ -1407,21 +1804,23 @@ static void processEventVert(Router *router, NodeSet& scanline,
                 // These vertices represent the shape corners.
                 VertInf *vI1 = new VertInf(router, dummyOrthogShapeID, 
                             Point(minShape, lineY));
+                vI1->id.props |= (sideFlag | VertID::PROP_OrthShapeLowX); 
                 VertInf *vI2 = new VertInf(router, dummyOrthogShapeID, 
                             Point(maxShape, lineY));
+                vI2->id.props |= (sideFlag | VertID::PROP_OrthShapeHighX); 
                 
                 // There are no overlapping shapes, so give full visibility.
                 if (minLimit < minShape)
                 {
                     segments.insert(LineSegment(minLimit, minShape, lineY,
-                                true, NULL, vI1));
+                                NULL, vI1));
                 }
                 segments.insert(LineSegment(minShape, maxShape, lineY, 
-                            true, vI1, vI2));
+                            vI1, vI2));
                 if (maxShape < maxLimit)
                 {
                     segments.insert(LineSegment(maxShape, maxLimit, lineY,
-                                true, vI2, NULL));
+                                vI2, NULL));
                 }
             }
             else
@@ -1431,19 +1830,21 @@ static void processEventVert(Router *router, NodeSet& scanline,
                 if ((minLimitMax > minLimit) && (minLimitMax >= minShape))
                 {
                     LineSegment *line = segments.insert(
-                            LineSegment(minLimit, minLimitMax, lineY, true));
+                            LineSegment(minLimit, minLimitMax, lineY));
                     // Shape corner:
                     VertInf *vI1 = new VertInf(router, dummyOrthogShapeID, 
                                 Point(minShape, lineY));
+                    vI1->id.props |= (sideFlag | VertID::PROP_OrthShapeLowX); 
                     line->vertInfs.insert(vI1);
                 }
                 if ((maxLimitMin < maxLimit) && (maxLimitMin <= maxShape))
                 {
                     LineSegment *line = segments.insert(
-                            LineSegment(maxLimitMin, maxLimit, lineY, true));
+                            LineSegment(maxLimitMin, maxLimit, lineY));
                     // Shape corner:
                     VertInf *vI2 = new VertInf(router, dummyOrthogShapeID, 
                                 Point(maxShape, lineY));
+                    vI2->id.props |= (sideFlag | VertID::PROP_OrthShapeHighX); 
                     line->vertInfs.insert(vI2);
                 }
             }
@@ -1465,12 +1866,29 @@ static void processEventVert(Router *router, NodeSet& scanline,
             if ((centreVert->visDirections & ConnDirLeft) && (minLimit < cp.x))
             {
                 line1 = segments.insert(LineSegment(minLimit, cp.x, e->pos, 
-                        true, NULL, centreVert));
+                        NULL, centreVert));
+                if (router->usingOneBendVisibilityGraph())
+                {
+                    VertInf *limit = new VertInf(router,
+                            dummyOneBendVisibilityLimitID,
+                            Point(minLimit, e->pos));
+                    limit->id.props |= VertID::PROP_OrthLimitObstacleClose;
+                    line1->vertInfs.insert(limit);
+                }
             }
             if ((centreVert->visDirections & ConnDirRight) && (cp.x < maxLimit))
             {
                 line2 = segments.insert(LineSegment(cp.x, maxLimit, e->pos, 
-                        true, centreVert, NULL));
+                        centreVert, NULL));
+                if (router->usingOneBendVisibilityGraph())
+                {
+                    VertInf *limit = new VertInf(router,
+                            dummyOneBendVisibilityLimitID,
+                            Point(maxLimit, e->pos));
+                    limit->id.props |= VertID::PROP_OrthLimitObstacleOpen;
+                    line2->vertInfs.insert(limit);
+                }
+
                 // If there was a line1, then we just merged with it, so
                 // that pointer will be invalid (and now unnecessary).
                 line1 = NULL;
@@ -1481,7 +1899,7 @@ static void processEventVert(Router *router, NodeSet& scanline,
                 segments.insert(LineSegment(cp.x, e->pos, centreVert));
             }
             
-            if (!inShape)
+            if (!inShape && (router->usingOneBendVisibilityGraph() == false))
             {
                 // This is not contained within a shape so add a normal
                 // visibility graph point here too (since paths won't route
@@ -1574,6 +1992,8 @@ static void processEventHori(Router *router, NodeSet& scanline,
             // Only difference between Open and Close is whether the line
             // segments are at the left or right of the shape.  Decide here.
             double lineX = (e->type == Open) ? v->min[XDIM] : v->max[XDIM];
+            VertIDProps sideFlag = (e->type == Open) ? 
+                    VertID::PROP_OrthShapeLowX : VertID::PROP_OrthShapeHighX;
 
             // Shape edge positions.
             double minShape = v->min[YDIM];
@@ -1592,8 +2012,10 @@ static void processEventHori(Router *router, NodeSet& scanline,
                 // Shape corners:
                 VertInf *vI1 = new VertInf(router, dummyOrthogShapeID, 
                         Point(lineX, minShape));
+                vI1->id.props |= (sideFlag | VertID::PROP_OrthShapeLowY); 
                 VertInf *vI2 = new VertInf(router, dummyOrthogShapeID, 
                         Point(lineX, maxShape));
+                vI2->id.props |= (sideFlag | VertID::PROP_OrthShapeHighY); 
                 line->vertInfs.insert(vI1);
                 line->vertInfs.insert(vI2);
             }
@@ -1607,6 +2029,7 @@ static void processEventHori(Router *router, NodeSet& scanline,
                     // Shape corner:
                     VertInf *vI1 = new VertInf(router, dummyOrthogShapeID, 
                                 Point(lineX, minShape));
+                    vI1->id.props |= (sideFlag | VertID::PROP_OrthShapeLowY); 
                     line->vertInfs.insert(vI1);
                 }
                 if ((maxLimitMin < maxLimit) && (maxLimitMin <= maxShape))
@@ -1617,6 +2040,7 @@ static void processEventHori(Router *router, NodeSet& scanline,
                     // Shape corner:
                     VertInf *vI2 = new VertInf(router, dummyOrthogShapeID, 
                                 Point(lineX, maxShape));
+                    vI2->id.props |= (sideFlag | VertID::PROP_OrthShapeHighY); 
                     line->vertInfs.insert(vI2);
                 }
             }
@@ -1633,18 +2057,51 @@ static void processEventHori(Router *router, NodeSet& scanline,
             
             // Insert if we have visibility in that direction and the segment
             // length is greater than zero.
+            LineSegment *line1 = NULL, *line2 = NULL;
+            // For the normal orthogonal visibility graph we don't need this
+            // vertex added to the LineSegment since it was added to a line
+            // segment in the other dimension.  For the 1-bend visibility
+            // graph we need to add it 
+            VertInf *vertexToAdd = (router->usingOneBendVisibilityGraph()) ?
+                    centreVert : NULL;
             if ((centreVert->visDirections & ConnDirUp) && (minLimit < cp.y))
             {
-                segments.insert(LineSegment(minLimit, cp.y, e->pos));
+                line1 = segments.insert(LineSegment(minLimit, cp.y, e->pos,
+                        NULL, vertexToAdd));
+                if (router->usingOneBendVisibilityGraph())
+                {
+                    VertInf *limit = new VertInf(router,
+                            dummyOneBendVisibilityLimitID,
+                            Point(e->pos, minLimit));
+                    limit->id.props |= VertID::PROP_OrthLimitObstacleClose;
+                    line1->vertInfs.insert(limit);
+                }
             }
-
             if ((centreVert->visDirections & ConnDirDown) && (cp.y < maxLimit))
             {
-                segments.insert(LineSegment(cp.y, maxLimit, e->pos));
+                line2 = segments.insert(LineSegment(cp.y, maxLimit, e->pos,
+                        vertexToAdd, NULL));
+                if (router->usingOneBendVisibilityGraph())
+                {
+                    VertInf *limit = new VertInf(router,
+                            dummyOneBendVisibilityLimitID,
+                            Point(e->pos, maxLimit));
+                    limit->id.props |= VertID::PROP_OrthLimitObstacleOpen;
+                    line2->vertInfs.insert(limit);
+                }
+
+                // If there was a line1, then we just merged with it, so
+                // that pointer will be invalid (and now unnecessary).
+                line1 = NULL;
+            }
+            if (!line1 && !line2 && vertexToAdd)
+            {
+                // Add a point segment for the centre point.
+                segments.insert(LineSegment(cp.y, e->pos, centreVert));
             }
         }
     }
-    
+
     if ( ((pass == 3) && (e->type == Close)) ||
          ((pass == 2) && (e->type == ConnPoint)) )
     {
@@ -1826,6 +2283,15 @@ extern void generateStaticOrthogonalVisGraph(Router *router)
 
     segments.list().sort();
 
+    if (router->usingOneBendVisibilityGraph())
+    {
+        for (SegmentList::iterator curr = segments.list().begin();
+                curr != segments.list().end(); ++curr)
+        {
+            insertDirectOneBendVisibilityForLineSegment(*curr);
+        }
+    }
+
     // Set up the events for the horizontal sweep.
     SegmentListWrapper vertSegments;
     ctr = 0;
@@ -1905,7 +2371,14 @@ extern void generateStaticOrthogonalVisGraph(Router *router)
             for (SegmentList::iterator curr = vertSegments.list().begin();
                     curr != vertSegments.list().end(); ++curr)
             {
-                intersectSegments(router, segments.list(), *curr);
+                if (router->usingOneBendVisibilityGraph())
+                {
+                    intersectSegmentsForOneBendVisibility(router, segments.list(), *curr);
+                }
+                else
+                {
+                    intersectSegments(router, segments.list(), *curr);
+                }
             }
             vertSegments.list().clear();
 
@@ -1931,19 +2404,22 @@ extern void generateStaticOrthogonalVisGraph(Router *router)
     }
     delete [] events; 
 
-    // Add portions of horizontal lines that are after the final vertical
-    // position we considered.
-    for (SegmentList::iterator it = segments.list().begin(); 
-            it != segments.list().end(); )
+    if (router->usingOneBendVisibilityGraph() == false)
     {
-        LineSegment& horiLine = *it;
+        // Add portions of horizontal lines that are after the final vertical
+        // position we considered.
+        for (SegmentList::iterator it = segments.list().begin();
+             it != segments.list().end(); )
+        {
+            LineSegment& horiLine = *it;
 
-        horiLine.addEdgeHorizontal(router);
-        
-        size_t dim = XDIM; // x-dimension
-        horiLine.generateVisibilityEdgesFromBreakpointSet(router, dim);
+            horiLine.addEdgeHorizontal(router);
 
-        it = segments.list().erase(it);
+            size_t dim = XDIM; // x-dimension
+            horiLine.generateVisibilityEdgesFromBreakpointSet(router, dim);
+            
+            it = segments.list().erase(it);
+        }
     }
 }
 
@@ -2558,7 +3034,7 @@ void ImproveOrthogonalRoutes::execute(void)
     // Clear the segment-checkpoint cache for connectors.
     clearConnectorRouteCheckpointCache(m_router);
 
-    TIMER_STOP(router);
+    TIMER_STOP(m_router);
 }
 
 void ImproveOrthogonalRoutes::nudgeOrthogonalRoutes(size_t dimension,

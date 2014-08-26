@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2013  Monash University
+ * Copyright (C) 2004-2014  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -64,6 +64,12 @@ class VertID
         static const VertIDProps PROP_ConnectionPin;
         static const VertIDProps PROP_ConnCheckpoint;
         static const VertIDProps PROP_DummyPinHelper;
+        static const VertIDProps PROP_OrthShapeLowX;
+        static const VertIDProps PROP_OrthShapeLowY;
+        static const VertIDProps PROP_OrthShapeHighX;
+        static const VertIDProps PROP_OrthShapeHighY;
+        static const VertIDProps PROP_OrthLimitObstacleClose;
+        static const VertIDProps PROP_OrthLimitObstacleOpen;
 
         VertID();
         VertID(unsigned int id, unsigned short n, VertIDProps p = 0);
@@ -110,6 +116,22 @@ class VertID
 static const VertID dummyOrthogID(0, 0);
 static const VertID dummyOrthogShapeID(0, 0, VertID::PROP_OrthShapeEdge);
 
+// A vertex using to mark the bend point of a 1-bend visibility edge.
+// This point isn't added to the visibility graph, but is stored by each
+// EdgeInf.
+//
+static const VertID dummyBendID(0, 1);
+
+// A vertex inserted into LinSegment objects when constructing 1-bend
+// visibility graph to mark when linesegments have limited visibility due to
+// obstacles.  This information is stored since it is otherwise not available
+// after LineSegment merging, e.g., in the case of three horzontally aligned
+// shapes with connection points at the same y-position not all having
+// visibility to each other.
+//
+static const VertID dummyOneBendVisibilityLimitID(0, 2);
+
+
 class ANode;
 
 class VertInf
@@ -138,6 +160,10 @@ class VertInf
 
         void setSPTFRoot(VertInf *root);
         VertInf *sptfRoot(void) const;
+
+        void activateInactiveOneBendVisEdges(bool checkPins = true);
+        void deactivateInactiveOneBendVisEdges(bool checkPins = true);
+        EdgeInfList inactiveOneBendVisEdges;
 
         Router *_router;
         VertID id;

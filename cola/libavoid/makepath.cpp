@@ -46,6 +46,18 @@
 
 namespace Avoid {
 
+static unsigned int orthogonalDirection(const Point &a, const Point &b);
+
+// Directions for estimated orthgonal cost, as bitflags.
+static const unsigned int CostDirectionNone = 0;
+static const unsigned int CostDirectionN = 1;
+static const unsigned int CostDirectionE = 2;
+static const unsigned int CostDirectionS = 4;
+static const unsigned int CostDirectionW = 8;
+static const unsigned int CostDirectionPolyline = 16;
+
+
+    // AStar search node.
 class ANode
 {
     public:
@@ -53,10 +65,17 @@ class ANode
         double g;        // Gone
         double h;        // Heuristic
         double f;        // Formula f = g + h
-        
+
         ANode *prevNode; // VertInf for the previous ANode.
         int timeStamp;   // Time-stamp used to determine exploration order of
                          // seemingly equal paths during orthogonal routing.
+
+        // Orthogonal direction used to reach ANode.
+        unsigned int orthogonalDir;
+
+        // The bend from the last visibility edge followed if using a 1-bend
+        // visibility graph, otherwise NULL.
+        VertInf *bendVertex;
 
         ANode(VertInf *vinf, int time)
             : inf(vinf),
@@ -64,7 +83,9 @@ class ANode
               h(0),
               f(0),
               prevNode(NULL),
-              timeStamp(time)
+              timeStamp(time),
+              orthogonalDir(CostDirectionNone),
+              bendVertex(NULL)
         {
         }
         ANode()
@@ -73,8 +94,53 @@ class ANode
               h(0),
               f(0),
               prevNode(NULL),
-              timeStamp(-1)
+              timeStamp(-1),
+              orthogonalDir(CostDirectionNone),
+              bendVertex(NULL)
         {
+        }
+        bool isEqualTo(ANode *rhs) const
+        {
+            if (inf != rhs->inf)
+            {
+                return false;
+            }
+
+            if ((orthogonalDir & CostDirectionPolyline) == 0)
+            {
+                // In orthogonal case, nodes are equal if they have the same
+                // vertices and are reached from the same orthogonal direction.
+                return (orthogonalDir == rhs->orthogonalDir);
+            }
+            else
+            {
+                // In the polyline case, nodes are equal if they have the same
+                // vertices and were reached from the same previous node.
+
+                return (prevNode && rhs->prevNode &&
+                        (prevNode->inf == rhs->prevNode->inf));
+            }
+        }
+        void setPrevNode(ANode *prev, bool orthogonalGraph, VertInf *bend = NULL)
+        {
+            prevNode = prev;
+            bendVertex = bend;
+            if (orthogonalGraph)
+            {
+                orthogonalDir = CostDirectionNone;
+                if (bendVertex)
+                {
+                    orthogonalDir = orthogonalDirection(bendVertex->point, inf->point);
+                }
+                else if (prevNode)
+                {
+                    orthogonalDir = orthogonalDirection(prevNode->inf->point, inf->point);
+                }
+            }
+            else
+            {
+                orthogonalDir = CostDirectionPolyline;
+            }
         }
 };
 
@@ -208,22 +274,46 @@ static double angleBetween(const Point& p1, const Point& p2, const Point& p3)
 
 // Construct a temporary Polygon path given several VertInf's for a connector.
 //
-static void constructPolygonPath(Polygon& connRoute, VertInf *inf2, 
-        VertInf *inf3, ANode *inf1Node)
+static void constructPolygonPath(Polygon& connRoute, ANode& inf3Node,
+        ANode& inf2Node, ANode *inf1Node)
 {
+    VertInf *inf3 = inf3Node.inf;
+    VertInf *inf2 = inf2Node.inf;
+
     // Don't include colinear points.
     bool simplified = true;
 
     int routeSize = 2;
-    for (ANode *curr = inf1Node; curr != NULL; curr = curr->prevNode)
+    if (inf3Node.bendVertex)
     {
         routeSize += 1;
     }
+    if (inf2Node.bendVertex)
+    {
+        routeSize += 1;
+    }
+    for (ANode *curr = inf1Node; curr != NULL; curr = curr->prevNode)
+    {
+        routeSize += 1;
+        if (curr->bendVertex)
+        {
+            routeSize += 1;
+        }
+    }
     connRoute.ps.resize(routeSize);
     int arraySize = routeSize;
-    connRoute.ps[routeSize - 1] = inf3->point;
-    connRoute.ps[routeSize - 2] = inf2->point;
-    routeSize -= 3;
+    int pointIndex = arraySize - 1;
+    connRoute.ps[pointIndex--] = inf3->point;
+    if (inf3Node.bendVertex)
+    {
+        connRoute.ps[pointIndex--] = inf3Node.bendVertex->point;
+    }
+    connRoute.ps[pointIndex--] = inf2->point;
+    if (inf2Node.bendVertex)
+    {
+        connRoute.ps[pointIndex--] = inf2Node.bendVertex->point;
+    }
+
     for (ANode *curr = inf1Node; curr != NULL; curr = curr->prevNode)
     {
         // For connection pins, we stop and don't include the fake shape 
@@ -234,9 +324,12 @@ static void constructPolygonPath(Polygon& connRoute, VertInf *inf2,
         {
             // If this is non-simplified, we don't need to do anything 
             // clever and can simply add the new point.
-            connRoute.ps[routeSize] = curr->inf->point;
-            routeSize -= 1;
-            
+            connRoute.ps[pointIndex--] = curr->inf->point;
+            if (curr->bendVertex)
+            {
+                connRoute.ps[pointIndex--] = curr->bendVertex->point;
+            }
+
             if (isConnectionPin)
             {
                 // Stop at the connection pin.
@@ -254,13 +347,12 @@ static void constructPolygonPath(Polygon& connRoute, VertInf *inf2,
             // Note, you can't collapse the 'last' segment with previous 
             // segments, or if this just intersects another line you risk 
             // penalising it once for each collapsed line segment.
-            connRoute.ps[routeSize] = curr->inf->point;
-            routeSize -= 1;
+            connRoute.ps[pointIndex--] = curr->inf->point;
         }
         else
         {
             // The last point is inline with this one, so update it.
-            connRoute.ps[routeSize + 1] = curr->inf->point;
+            connRoute.ps[pointIndex + 1] = curr->inf->point;
         }
             
         if (isConnectionPin)
@@ -272,7 +364,7 @@ static void constructPolygonPath(Polygon& connRoute, VertInf *inf2,
 
     // If the vector is not filled, move entries to the beginning and 
     // remove the unused end of the vector.
-    int diff = routeSize + 1;
+    int diff = pointIndex + 1;
     COLA_ASSERT(simplified || (diff == 0));
     if (diff > 0)
     {
@@ -304,16 +396,16 @@ static inline int dimDirection(double difference)
 // possibly the previous point (inf1) [from inf1--inf2], return a
 // cost associated with this route.
 //
-static double cost(ConnRef *lineRef, const double dist, VertInf *inf2, 
-        VertInf *inf3, ANode *inf1Node)
+static double cost(ConnRef *lineRef, const double dist, ANode& inf3Node,
+        ANode& inf2Node, ANode *inf1Node)
 {
+    Router *router = inf2Node.inf->_router;
     bool isOrthogonal = (lineRef->routingType() == ConnType_Orthogonal);
-    VertInf *inf1 = (inf1Node) ? inf1Node->inf : NULL;
+
     double result = dist;
     Polygon connRoute;
 
-    Router *router = inf2->_router;
-    if (inf1 != NULL)
+    if (inf1Node != NULL)
     {
         const double angle_penalty = router->routingParameter(anglePenalty);
         const double segmt_penalty = router->routingParameter(segmentPenalty);
@@ -322,9 +414,18 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
         // between it and the last one in the existing path.
         if ((angle_penalty > 0) || (segmt_penalty > 0))
         {
-            Point p1 = inf1->point;
-            Point p2 = inf2->point;
-            Point p3 = inf3->point;
+            Point p1 = inf1Node->inf->point;
+            Point p2 = inf2Node.inf->point;
+            Point p3 = inf3Node.inf->point;
+
+            if (inf2Node.bendVertex)
+            {
+                p2 = inf2Node.bendVertex->point;
+            }
+            if (inf3Node.bendVertex)
+            {
+                p3 = inf3Node.bendVertex->point;
+            }
 
             double rad = M_PI - angleBetween(p1, p2, p3);
 
@@ -362,7 +463,7 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
     {
         if (connRoute.empty())
         {
-            constructPolygonPath(connRoute, inf2, inf3, inf1Node);
+            constructPolygonPath(connRoute, inf3Node, inf2Node, inf1Node);
         }
         // There are clusters so do cluster routing.
         for (ClusterRefList::const_iterator cl = router->clusterRefs.begin(); 
@@ -385,7 +486,7 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
             
             bool isConn = false;
             Polygon dynamic_conn_route(connRoute);
-            const bool finalSegment = (inf3 == lineRef->dst());
+            const bool finalSegment = (inf3Node.inf == lineRef->dst());
             ConnectorCrossings cross(cBoundary, isConn, dynamic_conn_route);
             cross.checkForBranchingSegments = true;
             cross.countForSegment(connRoute.size() - 1, finalSegment);
@@ -409,7 +510,7 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
         bool doesReverse = false;
 
         if ((xDir != 0) && 
-                (-xDir == dimDirection(inf3->point.x - inf2->point.x)))
+                (-xDir == dimDirection(inf3Node.inf->point.x - inf2Node.inf->point.x)))
         {
             // Connector has an X component and the segment heads in the 
             // opposite direction.
@@ -417,7 +518,7 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
         }
 
         if ((yDir != 0) && 
-                (-yDir == dimDirection(inf3->point.y - inf2->point.y)))
+                (-yDir == dimDirection(inf3Node.inf->point.y - inf2Node.inf->point.y)))
         {
             // Connector has an Y component and the segment heads in the 
             // opposite direction.
@@ -443,7 +544,7 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
     {
         if (connRoute.empty())
         {
-            constructPolygonPath(connRoute, inf2, inf3, inf1Node);
+            constructPolygonPath(connRoute, inf3Node, inf2Node, inf1Node);
         }
         ConnRefList::const_iterator curr, finish = router->connRefs.end();
         for (curr = router->connRefs.begin(); curr != finish; ++curr)
@@ -459,7 +560,7 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
             bool isConn = true;
             Polygon dynamic_route2(route2);
             Polygon dynamic_conn_route(connRoute);
-            const bool finalSegment = (inf3->point == lineRef->dst()->point);
+            const bool finalSegment = (inf3Node.inf->point == lineRef->dst()->point);
             ConnectorCrossings cross(dynamic_route2, isConn, 
                     dynamic_conn_route, connRef, lineRef);
             cross.checkForBranchingSegments = true;
@@ -482,11 +583,6 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
     return result;
 }
 
-// Directions for estimated orthgonal cost, as bitflags.
-static const unsigned int CostDirectionN = 1;
-static const unsigned int CostDirectionE = 2;
-static const unsigned int CostDirectionS = 4;
-static const unsigned int CostDirectionW = 8;
 
 #ifdef ESTIMATED_COST_DEBUG
 static void printDirections(FILE *fp, unsigned int directions)
@@ -920,7 +1016,11 @@ AStarPath::~AStarPath(void)
 
 void AStarPath::search(ConnRef *lineRef, VertInf *src, VertInf *tar, VertInf *start)
 {
+    src->activateInactiveOneBendVisEdges();
+    tar->activateInactiveOneBendVisEdges();
     m_private->search(lineRef, src, tar, start);
+    src->deactivateInactiveOneBendVisEdges();
+    tar->deactivateInactiveOneBendVisEdges();
 }
 
 void AStarPathPrivate::determineEndPointLocation(double dist, VertInf *start, 
@@ -965,7 +1065,9 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
 {
     ANodeCmp pendingCmp;
 
-    bool isOrthogonal = (lineRef->routingType() == ConnType_Orthogonal);
+    Router *router = lineRef->router();
+    const bool isOrthogonal = (lineRef->routingType() == ConnType_Orthogonal);
+    const bool usingOneBendVisGraph = isOrthogonal && router->usingOneBendVisibilityGraph();
 
     if (start == NULL)
     {
@@ -983,11 +1085,12 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
 #ifdef ESTIMATED_COST_DEBUG
     fprintf(stderr,"== aStar  %g %g ==\n", tar->point.x, tar->point.y);
 #endif
-    if (isOrthogonal && tar->id.isConnPt() && !tar->id.isConnCheckpoint())
+    if (isOrthogonal && !usingOneBendVisGraph &&
+            tar->id.isConnPt() && !tar->id.isConnCheckpoint())
     {
         // The target is a connector endpoint and the connector is orthogonal.
         double dist = manhattanDist(start->point, tar->point);
-        for (EdgeInfList::const_iterator it = tar->orthogVisList.begin(); 
+        for (EdgeInfList::const_iterator it = tar->orthogVisList.begin();
                 it != tar->orthogVisList.end(); ++it)
         {
             // For each edge from the target endpoint, find the other vertex.
@@ -1066,12 +1169,11 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
     PENDING.reserve(1000);
 
     size_t exploredCount = 0;
-    ANode node, ati;
+    ANode node, *ati;
     ANode *bestNode = NULL;         // Temporary bestNode
     bool bNodeFound = false;        // Flag if node is found in container
     int timestamp = 1;
 
-    Router *router = lineRef->router();
     if (router->RubberBandRouting && (start != src))
     {
         COLA_ASSERT(router->IgnoreRegions == true);
@@ -1099,13 +1201,15 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
                 node.h = estimatedCost(lineRef, NULL, node.inf->point);
 
                 node.f = node.g + node.h;
+
+                node.setPrevNode(bestNode, isOrthogonal);
             }
             else
             {
                 double edgeDist = dist(bestNode->inf->point, curr->point);
 
-                node.g = bestNode->g + cost(lineRef, edgeDist, bestNode->inf, 
-                        node.inf, bestNode->prevNode);
+                node.g = bestNode->g + cost(lineRef, edgeDist,
+                        node, *bestNode, bestNode->prevNode);
 
                 // Calculate the Heuristic.
                 node.h = estimatedCost(lineRef, &(bestNode->inf->point),
@@ -1115,7 +1219,7 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
                 node.f = node.g + node.h;
                 
                 // Point parent to last bestNode
-                node.prevNode = bestNode;
+                node.setPrevNode(bestNode, isOrthogonal);
             }
 
             if (curr != start)
@@ -1158,7 +1262,7 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
         node.h = estimatedCost(lineRef, NULL, node.inf->point);
         node.f = node.g + node.h;
         // Set a null parent, so cost function knows this is the first segment.
-        node.prevNode = bestNode;
+        node.setPrevNode(bestNode, isOrthogonal);
 
         // Populate the PENDING container with the first location
         ANode *newNode = newANode(node);
@@ -1171,6 +1275,7 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
     using std::make_heap; using std::push_heap; using std::pop_heap;
     make_heap( PENDING.begin(), PENDING.end(), pendingCmp);
 
+    bool needsMakeHeap = false;
     // Continue until the queue is empty.
     while (!PENDING.empty())
     {
@@ -1223,7 +1328,7 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
 
         if (bestNodeInf == tar)
         {
-            TIMER_VAR_ADD(router, 1, PENDING.size());
+            TIMER_VAR_ADD(router, 1, (unsigned int)PENDING.size());
             // This node is our goal.
 #ifdef ASTAR_DEBUG
             db_printf("LINE %10d  Steps: %4d  Cost: %g\n", lineRef->id(), 
@@ -1233,13 +1338,25 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
             // Correct all the pathNext pointers.
             for (ANode *curr = bestNode; curr->prevNode; curr = curr->prevNode)
             {
+                if (curr->bendVertex)
+                {
+                    curr->inf->pathNext = curr->bendVertex;
+                    curr->bendVertex->pathNext = curr->prevNode->inf;
 #ifdef ASTAR_DEBUG
-                db_printf("[%.12f, %.12f]\n", curr->inf->point.x, curr->inf->point.y);
+                    db_printf("[%.12f, %.12f]\n", curr->inf->point.x, curr->inf->point.y);
+                    db_printf("[%.12f, %.12f] (bend)\n", curr->bendVertex->point.x, curr->bendVertex->point.y);
 #endif
-                curr->inf->pathNext = curr->prevNode->inf;
+                }
+                else
+                {
+                    curr->inf->pathNext = curr->prevNode->inf;
+#ifdef ASTAR_DEBUG
+                    db_printf("[%.12f, %.12f]\n", curr->inf->point.x, curr->inf->point.y);
+#endif
+                }
             }
 #ifdef ASTAR_DEBUG
-            db_printf("\n", count);
+            db_printf("\n");
 #endif
 
             // Exit from the search
@@ -1249,7 +1366,7 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
         // Check adjacent points in graph and add them to the queue.
         EdgeInfList& visList = (!isOrthogonal) ?
                 bestNodeInf->visList : bestNodeInf->orthogVisList;
-        if (isOrthogonal)
+        if (isOrthogonal && !usingOneBendVisGraph)
         {
             // We would like to explore in a structured way, 
             // so sort the points in the visList...
@@ -1257,6 +1374,7 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
             visList.sort(compare);
         }
         EdgeInfList::const_iterator finish = visList.end();
+            db_printf("Candidates %d\n", visList.size());
         for (EdgeInfList::const_iterator edge = visList.begin(); 
                 edge != finish; ++edge)
         {
@@ -1270,7 +1388,8 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
             
             // Set the index to the previous ANode that we reached
             // this ANode via.
-            node.prevNode = bestNode;
+            VertInf *bend = (usingOneBendVisGraph) ? (*edge)->bendVertex() : NULL;
+            node.setPrevNode(bestNode, isOrthogonal, bend);
 
             VertInf *prevInf = (bestNode->prevNode) ?
                     bestNode->prevNode->inf : NULL;
@@ -1280,6 +1399,16 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
             {
                 continue;
             }
+
+            // Don't bother looking back in the direction we just arrived at
+            // this node from.
+            if (node.bendVertex &&
+                    (orthogonalDirection(node.bendVertex->point, bestNode->inf->point) == bestNode->orthogonalDir))
+            {
+                continue;
+            }
+
+
             if (node.inf->id.isConnectionPin() && 
                     !node.inf->id.isConnCheckpoint())
             {
@@ -1305,10 +1434,19 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
                     continue;
                 }
             }
+            
+            if (isOrthogonal && usingOneBendVisGraph &&
+                    !(*edge)->isHuggingFromVertex(bestNodeInf))
+            {
+                // 1-bend edge is not obstacle-hugging, so skip.
+                continue;
+            }
 
-            if (isOrthogonal && !(*edge)->isDummyConnection())
+            if (isOrthogonal && !(*edge)->isDummyConnection() &&
+                    !usingOneBendVisGraph)
             {
                 // Orthogonal routing optimisation.
+                // (Not required if using 1-bend orthogonal visibility graph).
                 // Skip the edges that don't lead to shape edges, or the 
                 // connection point we are looking for.  Though allow them
                 // if we haven't yet turned from the source point, since it
@@ -1387,8 +1525,7 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
             {
                 for (size_t i = 0; i < m_cost_targets.size(); ++i)
                 {
-                    if ((bestNode->inf == m_cost_targets[i]) ||
-                            (node.inf == tar))
+                    if (bestNode->inf == m_cost_targets[i])
                     {
                         atTarget = true;
                         break;
@@ -1407,11 +1544,16 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
             else
             {
                 // Calculate the cost of this step.
-                node.g = bestNode->g + cost(lineRef, edgeDist, bestNodeInf, 
-                        node.inf, bestNode->prevNode);
+                node.g = bestNode->g + cost(lineRef, edgeDist,
+                        node, *bestNode, bestNode->prevNode);
 
+                Point prevPoint = bestNodeInf->point;
+                if (node.bendVertex)
+                {
+                    prevPoint = node.bendVertex->point;
+                }
                 // Calculate the Heuristic.
-                node.h = estimatedCost(lineRef, &(bestNodeInf->point),
+                node.h = estimatedCost(lineRef, &prevPoint,
                         node.inf->point);
             }
 
@@ -1433,20 +1575,15 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
             for (std::list<ANode *>::const_iterator currInd = 
                     node.inf->aStarPendingNodes.begin(); currInd != finish; ++currInd)
             {
-                ati = **currInd;
-                // The (node.prevNode == ati.prevNode) is redundant, but may
-                // save checking the mosre costly prevNode->inf test if the
-                // Nodes are the same.
-                if ((node.inf == ati.inf) && 
-                        ((node.prevNode == ati.prevNode) ||
-                         (node.prevNode->inf == ati.prevNode->inf)))
+                ati = *currInd;
+                if (node.isEqualTo(ati))
                 {
                     // If already on PENDING
-                    if (node.g < ati.g)
+                    if (node.g < ati->g)
                     {
                         // Replace the existing node in PENDING
                         **currInd = node;
-                        make_heap( PENDING.begin(), PENDING.end(), pendingCmp);
+                        needsMakeHeap = true;
                     }
                     bNodeFound = true;
                     break;
@@ -1460,13 +1597,8 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
                         node.inf->aStarDoneNodes.begin();
                         currInd != node.inf->aStarDoneNodes.end(); ++currInd)
                 {
-                    ati = **currInd;
-                    // The (node.prevNode == ati.prevNode) is redundant, but may
-                    // save checking the mosre costly prevNode->inf test if the
-                    // Nodes are the same.
-                    if ((node.inf == ati.inf) && ati.prevNode &&
-                            ((node.prevNode == ati.prevNode) ||
-                             (node.prevNode->inf == ati.prevNode->inf)))
+                    ati = *currInd;
+                    if (node.isEqualTo(ati))
                     {
                         //COLA_ASSERT(node.g >= (ati.g - 10e-10));
                         // This node is already in the Done set and the 
@@ -1483,8 +1615,11 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
                 // Push NewNode onto PENDING
                 ANode *newNode = newANode(node);
                 PENDING.push_back(newNode);
-                // Push NewNode onto heap
-                push_heap( PENDING.begin(), PENDING.end(), pendingCmp);
+                if (!needsMakeHeap)
+                {
+                    // Push NewNode onto heap
+                    push_heap( PENDING.begin(), PENDING.end(), pendingCmp);
+                }
 
 #if 0
                 using std::cout; using std::endl;
@@ -1498,6 +1633,12 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
                 cout << endl << endl;
 #endif
             }
+        }
+
+        if (needsMakeHeap)
+        {
+            make_heap( PENDING.begin(), PENDING.end(), pendingCmp);
+            needsMakeHeap = false;
         }
     }
 

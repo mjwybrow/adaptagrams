@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2011  Monash University
+ * Copyright (C) 2004-2014  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -52,7 +52,8 @@ class EdgeInf
         {
             return m_dist;
         }
-        void setDist(double dist);
+        bool isActive(void) const;
+        void setDist(double dist, bool activate = true);
         void alertConns(void);
         void addConn(bool *flag);
         void addCycleBlocker(void);
@@ -63,8 +64,7 @@ class EdgeInf
         bool isDisabled(void) const;
         void setDisabled(const bool disabled);
         bool rotationLessThan(const VertInf* last, const EdgeInf *rhs) const;
-        std::pair<VertID, VertID> ids(void) const;
-        std::pair<Point, Point> points(void) const;
+        std::pair<VertInf *, VertInf *> vertices(void) const;
         void db_print(void);
         void checkVis(void);
         VertInf *otherVert(const VertInf *vert) const;
@@ -77,6 +77,11 @@ class EdgeInf
         void setHyperedgeSegment(const bool hyperedge);
         double mtstDist(void) const;
         void setMtstDist(const double joinCost);
+
+        void setBendVertex(VertInf *vert);
+        VertInf *bendVertex(void);
+        bool isHuggingFromVertex(VertInf *v) const;
+        void setHuggingProperties(bool forward, bool backward);
 
         EdgeInf *lstPrev;
         EdgeInf *lstNext;
@@ -96,6 +101,8 @@ class EdgeInf
         bool m_orthogonal;
         bool m_isHyperedgeSegment;
         bool m_disabled;
+        bool m_forward_hugging;
+        bool m_backward_hugging;
         VertInf *m_vert1;
         VertInf *m_vert2;
         EdgeInfList::iterator m_pos1;
@@ -103,6 +110,7 @@ class EdgeInf
         FlagList  m_conns;
         double  m_dist;
         double  m_mtst_dist;
+        VertInf *m_bend_vert;
 };
 
 

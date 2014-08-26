@@ -271,6 +271,16 @@ enum RoutingOption
     //!
     nudgeSharedPathsWithCommonEndPoint,
 
+    //! This option causes orthogonal route searches to be performed over a 
+    //! 1-bend visibility graph rather than a standard orthogonal visibility
+    //! graph.  This greatly speeds up the search speed for finding routes 
+    //! at the cost of slower initial visibility graph construction and higher
+    //! memory usage.  It may be preferred for routing large instances with
+    //! many connectors.
+    //!
+    //! Defaults to false
+    //!
+    orthogonalRoutingUsesOneBendVisibilityGraph,
 
     // Used for determining the size of the routing options array.
     // This should always we the last value in the enum.
@@ -772,6 +782,7 @@ class AVOID_EXPORT Router {
         ShapeRef *shapeContainingPoint(const Point& point);
         void performContinuationCheck(unsigned int phaseNumber,
                 size_t stepNumber, size_t totalSteps);
+        bool usingOneBendVisibilityGraph(void) const;
 
         /** 
          *  @brief  Set an addon for doing orthogonal topology improvement.

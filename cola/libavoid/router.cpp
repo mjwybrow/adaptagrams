@@ -97,6 +97,7 @@ Router::Router(const unsigned int flags)
     m_routing_options[improveHyperedgeRoutesMovingAddingAndDeletingJunctions] =
             false;
     m_routing_options[nudgeSharedPathsWithCommonEndPoint] = true;
+    m_routing_options[orthogonalRoutingUsesOneBendVisibilityGraph] = false;
 
     m_hyperedge_improver.setRouter(this);
     m_hyperedge_rerouter.setRouter(this);
@@ -1381,12 +1382,11 @@ void Router::newBlockingShape(const Polygon& poly, int pid)
 
         if (tmp->getDist() != 0)
         {
-            std::pair<VertID, VertID> ids(tmp->ids());
-            VertID eID1 = ids.first;
-            VertID eID2 = ids.second;
-            std::pair<Point, Point> points(tmp->points());
-            Point e1 = points.first;
-            Point e2 = points.second;
+            std::pair<VertInf *, VertInf *> vertices = tmp->vertices();
+            VertID eID1 = vertices.first->id;
+            VertID eID2 = vertices.second->id;
+            Point e1 = vertices.first->point;
+            Point e2 = vertices.second->point;
             bool blocked = false;
 
             bool countBorder = false;
@@ -1935,9 +1935,9 @@ void Router::printInfo(void)
     for (EdgeInf *t = visGraph.begin(); t != visGraph.end();
             t = t->lstNext)
     {
-        std::pair<VertID, VertID> idpair = t->ids();
+        std::pair<VertInf *, VertInf *> vertices = t->vertices();
 
-        if (idpair.first.isConnPt() || idpair.second.isConnPt())
+        if (vertices.first->id.isConnPt() || vertices.second->id.isConnPt())
         {
             st_valid_endpt_visedges++;
         }
@@ -2149,6 +2149,13 @@ bool Router::existsInvalidOrthogonalPaths(void)
         }
     }
     return false;
+}
+
+
+// Convenience method for checking if using 1-bend visibility graph.
+bool Router::usingOneBendVisibilityGraph(void) const
+{
+    return m_routing_options[orthogonalRoutingUsesOneBendVisibilityGraph];
 }
 
 
@@ -2458,15 +2465,15 @@ void Router::outputInstanceToSVG(std::string instanceName)
     finish = visGraph.end();
     for (EdgeInf *t = visGraph.begin(); t != finish; t = t->lstNext)
     {
-        std::pair<VertID, VertID> ids = t->ids();
-        bool isConn = ids.first.isConnPt() || ids.second.isConnPt();
-        if (isConn)
+        std::pair<VertInf *, VertInf *> vertices = t->vertices();
+        bool attachedToConnectionPoint =
+                vertices.first->id.isConnPt() || vertices.second->id.isConnPt();
+        if (attachedToConnectionPoint)
         {
             continue;
         }
-        std::pair<Point, Point> ptpair = t->points();
-        Point p1 = ptpair.first;
-        Point p2 = ptpair.second;
+        Point p1 = vertices.first->point;
+        Point p2 = vertices.second->point;
         
         reduceRange(p1.x);
         reduceRange(p1.y);
@@ -2476,8 +2483,7 @@ void Router::outputInstanceToSVG(std::string instanceName)
         fprintf(fp, "<path d=\"M %g %g L %g %g\" "
                 "style=\"fill: none; stroke: %s; stroke-width: 1px;\" />\n", 
                 p1.x, p1.y, p2.x, p2.y,
-                (ids.first.isConnPt() || ids.second.isConnPt()) ? "blue" :
-                "red");
+                (attachedToConnectionPoint) ? "blue" : "red");
     }
     fprintf(fp, "</g>\n");
     fprintf(fp, "<g inkscape:groupmode=\"layer\" "
@@ -2487,16 +2493,16 @@ void Router::outputInstanceToSVG(std::string instanceName)
     finish = visGraph.end();
     for (EdgeInf *t = visGraph.begin(); t != finish; t = t->lstNext)
     {
-        std::pair<VertID, VertID> ids = t->ids();
-        bool isConn = ids.first.isConnPt() || ids.second.isConnPt();
-        if (!isConn)
+        std::pair<VertInf *, VertInf *> vertices = t->vertices();
+        bool attachedToConnectionPoint =
+                vertices.first->id.isConnPt() || vertices.second->id.isConnPt();
+        if (!attachedToConnectionPoint)
         {
             continue;
         }
-        std::pair<Point, Point> ptpair = t->points();
-        Point p1 = ptpair.first;
-        Point p2 = ptpair.second;
-        
+        Point p1 = vertices.first->point;
+        Point p2 = vertices.second->point;
+
         reduceRange(p1.x);
         reduceRange(p1.y);
         reduceRange(p2.x);
@@ -2505,8 +2511,7 @@ void Router::outputInstanceToSVG(std::string instanceName)
         fprintf(fp, "<path d=\"M %g %g L %g %g\" "
                 "style=\"fill: none; stroke: %s; stroke-width: 1px;\" />\n", 
                 p1.x, p1.y, p2.x, p2.y,
-                (ids.first.isConnPt() || ids.second.isConnPt()) ? "blue" :
-                "red");
+                (attachedToConnectionPoint) ? "blue" : "red");
     }
     fprintf(fp, "</g>\n");
     fprintf(fp, "</g>\n");
@@ -2517,22 +2522,51 @@ void Router::outputInstanceToSVG(std::string instanceName)
     finish = visOrthogGraph.end();
     for (EdgeInf *t = visOrthogGraph.begin(); t != finish; t = t->lstNext)
     {
-        std::pair<Point, Point> ptpair = t->points();
-        Point p1 = ptpair.first;
-        Point p2 = ptpair.second;
-        
+        std::pair<VertInf *, VertInf *> vertices = t->vertices();
+        Point p1 = vertices.first->point;
+        Point p2 = vertices.second->point;
+
         reduceRange(p1.x);
         reduceRange(p1.y);
         reduceRange(p2.x);
         reduceRange(p2.y);
-        
-        std::pair<VertID, VertID> ids = t->ids();
 
-        fprintf(fp, "<path d=\"M %g %g L %g %g\" "
-                "style=\"fill: none; stroke: %s; stroke-width: 1px;\" />\n", 
-                p1.x, p1.y, p2.x, p2.y,
-                (ids.first.isConnPt() || ids.second.isConnPt()) ? "green" : 
-                "red");
+        bool attachedToConnectionPoint =
+        vertices.first->id.isConnPt() || vertices.second->id.isConnPt();
+        if (t->bendVertex())
+        {
+            // Output 1-bend visibility edge.  The edge will have the
+            // folowing colours:
+            //  Green      : Obstacle-hugging only from horizontal to vertical.
+            //  Blue       : Obstacle-hugging only from vertical to horizontal.
+            //  Blue-Green : Obstacle-hugging in both directions.
+            //  Red        : Attached to a connection point.  Usually omitted.
+            std::pair<VertInf *, VertInf *> vertices = t->vertices();
+            int colourR = 0;
+            int colourG = (t->isHuggingFromVertex(vertices.first)) ? 255 : 0;
+            int colourB = (t->isHuggingFromVertex(vertices.second)) ? 255 : 0;
+            if (attachedToConnectionPoint)
+            {
+                colourR = 255;
+                colourG = colourB = 0;
+            }
+            Point pb = t->bendVertex()->point;
+            reduceRange(pb.x);
+            reduceRange(pb.y);
+            fprintf(fp, "<path d=\"M %g %g L %g %g L %g %g\" "
+                    "style=\"fill: none; stroke: rgb(%d, %d, %d); "
+                    "stroke-width: 1px;\" />\n",
+                    p1.x, p1.y, pb.x, pb.y, p2.x, p2.y, colourR, colourG,
+                    colourB);
+        }
+        else
+        {
+            const char *strokeColour =
+                    (attachedToConnectionPoint) ? "glue" : "red";
+            fprintf(fp, "<path d=\"M %g %g L %g %g\" "
+                    "style=\"fill: none; stroke: %s; stroke-width: 1px;\" />\n",
+                    p1.x, p1.y, p2.x, p2.y, strokeColour);
+        }
     }
     fprintf(fp, "</g>\n");
 
