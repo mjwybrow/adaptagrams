@@ -339,8 +339,8 @@ static void constructPolygonPath(Polygon& connRoute, ANode& inf3Node,
         }
             
         if ((curr == inf1Node) || 
-                vecDir(curr->inf->point, connRoute.ps[routeSize + 1], 
-                    connRoute.ps[routeSize + 2]) != 0)
+                vecDir(curr->inf->point, connRoute.ps[pointIndex + 1],
+                    connRoute.ps[pointIndex + 2]) != 0)
         {
             // Add new point if this is the earlier than the last segment
             // and it is not colinear with the other points.  
