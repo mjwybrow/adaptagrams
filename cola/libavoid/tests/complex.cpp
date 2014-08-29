@@ -100,6 +100,7 @@ int main(void)
     shapeRef = NULL;
     router->processTransaction();
 
+	router->outputDiagram("output/complex");
     delete router;
     return 0;
 }

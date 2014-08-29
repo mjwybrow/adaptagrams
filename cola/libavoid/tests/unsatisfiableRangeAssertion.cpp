@@ -25782,6 +25782,8 @@ int main(void) {
     connRef->setRoutingType((ConnType)2);
 
     router->processTransaction();
+
+	router->outputDiagram("output/UnsatisfiableRangeAssertion");
     delete router;
     return 0;
 };

@@ -450,7 +450,7 @@ int main(void) {
     connRef960638799->setRoutingType((ConnType)2);
 
     router->processTransaction();
-    router->outputInstanceToSVG("output/validPaths01");
+    router->outputDiagram("output/validPaths01");
     int result = router->existsInvalidOrthogonalPaths();
     delete router;
     return result;

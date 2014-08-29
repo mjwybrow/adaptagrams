@@ -50,17 +50,17 @@ int main(void)
     new Avoid::ConnRef(router, srcEnd, dstEnd);
     // Force inital callback:
     router->processTransaction();
-    router->outputInstanceToSVG("output/connectionpin01-1");
+    router->outputDiagram("output/connectionpin01-1");
 
     router->moveShape(shapeRef2, 5, 0);
 
     router->processTransaction();
-    router->outputInstanceToSVG("output/connectionpin01-2");
+    router->outputDiagram("output/connectionpin01-2");
     
     router->moveShape(shapeRef1, 0, -10);
 
     router->processTransaction();
-    router->outputInstanceToSVG("output/connectionpin01-3");
+    router->outputDiagram("output/connectionpin01-3");
 
     delete router;
     return 0;

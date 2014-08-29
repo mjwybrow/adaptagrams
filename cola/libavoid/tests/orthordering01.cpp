@@ -82,7 +82,7 @@ int main(void) {
     connRef387080925->setRoutingType((ConnType)2);
 
     router->processTransaction();
-    router->outputInstanceToSVG("output/orthordering-01");
+    router->outputDiagram("output/orthordering-01");
     
     int crossings = router->existsCrossings();
 

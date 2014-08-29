@@ -321,7 +321,7 @@ int main(void) {
     connRef985644192->setRoutingType((ConnType)2);
 
     router->processTransaction();
-    router->outputInstanceToSVG("output/connectionpin03");
+    router->outputDiagram("output/connectionpin03");
     delete router;
     return 0;
 }

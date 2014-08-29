@@ -2,12 +2,12 @@
 #include <sstream>
 using namespace Avoid;
 
-void outputInstanceToSVG(Avoid::Router * router)
+void outputDiagram(Avoid::Router * router)
 {
 	static int counter = 0;
 	std::ostringstream os;
 	os << "output/improveHyperedge05-" << (++counter);
-	router->outputInstanceToSVG(os.str());
+	router->outputDiagram(os.str());
 }
 
 void test()
@@ -31,7 +31,7 @@ void test()
 	router0->processTransaction();
 
 	newanddeletedobjects_0 = router0->newAndDeletedObjectListsFromHyperedgeImprovement();
-	outputInstanceToSVG(router0);
+	outputDiagram(router0);
 
 	poly0 = Avoid::Polygon(4);
 	poly0.setPoint(0, Avoid::Point(51885, 50715));
@@ -93,7 +93,7 @@ void test()
 	COLA_ASSERT(junction0_185122667->attachedConnectors().size() == 4);
 
 	newanddeletedobjects_0 = router0->newAndDeletedObjectListsFromHyperedgeImprovement();
-	outputInstanceToSVG(router0);
+	outputDiagram(router0);
 	printf("\n\n\n");
 	poly0 = Avoid::Polygon(4);
 	poly0.setPoint(0, Avoid::Point(51305, 50690));
@@ -121,12 +121,12 @@ void test()
 	conn0_400977693->endpointConnEnds();
 	connit_0++;
 	COLA_ASSERT(connit_0 == newanddeletedobjects_0.newConnectorList.end());
-	outputInstanceToSVG(router0);
+	outputDiagram(router0);
 	
 	conn0_400977693->makePathInvalid();
 	router0->processTransaction();
 	
-	outputInstanceToSVG(router0);
+	outputDiagram(router0);
 	return;	
 /*
         // INCORRECT
@@ -143,7 +143,7 @@ void test()
 	conn0_152820633->endpointConnEnds();
 	connit_0++;
 	COLA_ASSERT(connit_0 == newanddeletedobjects_0.newConnectorList.end());
-	outputInstanceToSVG(router0);
+	outputDiagram(router0);
 	*/
 }
 

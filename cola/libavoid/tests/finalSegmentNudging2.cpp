@@ -389,7 +389,7 @@ int main(void) {
     */
 
     router->processTransaction();
-    router->outputInstanceToSVG("output/finalSegmentNudging2");
+    router->outputDiagram("output/finalSegmentNudging2");
     bool atEnds = true;
     bool overlap = router->existsOrthogonalFixedSegmentOverlap(atEnds);
     delete router;

@@ -7093,7 +7093,7 @@ int main(void) {
     connRef714->setRoutingType((ConnType)2);
 
     router->processTransaction();
-    router->outputInstanceToSVG("output/reallyslowrouting");
+    router->outputDiagram("output/reallyslowrouting");
     delete router;
     return 0;
 };

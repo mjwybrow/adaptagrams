@@ -62,14 +62,14 @@ int main(void)
     Avoid::ConnRef *conn1= new Avoid::ConnRef(router, srcEnd, dstEnd);
     
     router->processTransaction();
-    router->outputInstanceToSVG("output/junction04-1");
+    router->outputDiagram("output/junction04-1");
 
     // Split the connector on its second segment and add a junction point.
     std::pair<Avoid::JunctionRef *, Avoid::ConnRef *> newObjs = 
             conn1->splitAtSegment(2);
 
     router->processTransaction();
-    router->outputInstanceToSVG("output/junction04-2");
+    router->outputDiagram("output/junction04-2");
 
     // Create a connector from the centre of shape 5 that connects to 
     // the junction.
@@ -78,19 +78,19 @@ int main(void)
     new Avoid::ConnRef(router, srcEnd3, dstEnd3);
 
     router->processTransaction();
-    router->outputInstanceToSVG("output/junction04-3");
+    router->outputDiagram("output/junction04-3");
 
     // Delete one half of the original connector, up to the junction.
     router->deleteConnector(conn1);
     conn1 = NULL;
 
     router->processTransaction();
-    router->outputInstanceToSVG("output/junction04-4");
+    router->outputDiagram("output/junction04-4");
     
     // The junction just has two connector now, so merge these into one.
     newObjs.first->removeJunctionAndMergeConnectors();
     router->processTransaction();
-    router->outputInstanceToSVG("output/junction04-5");
+    router->outputDiagram("output/junction04-5");
     
     router->processTransaction();
 
