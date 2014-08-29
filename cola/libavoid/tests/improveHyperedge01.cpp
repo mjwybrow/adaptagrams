@@ -81,7 +81,7 @@ int test()
 	conn385831514->makePathInvalid();
 	router->processTransaction();
 
-	router->outputInstanceToSVG("output/improveHyperedge01-1");
+	router->outputDiagram("output/improveHyperedge01-1");
 	poly = Avoid::Polygon(4);
 	poly.setPoint(0, Avoid::Point(51160, 50645));
 	poly.setPoint(1, Avoid::Point(51160, 50705));
@@ -94,7 +94,7 @@ int test()
 	conn762966660->makePathInvalid();
 	router->processTransaction();
 
-	router->outputInstanceToSVG("output/improveHyperedge01-2");
+	router->outputDiagram("output/improveHyperedge01-2");
 	Avoid::Point junctionPos = junction878282342->recommendedPosition();
 
 	delete router;

@@ -54,7 +54,7 @@ void test()
 	new Avoid::ConnRef(router1, end1, end2);
 	router1->processTransaction();
 
-	router1->outputInstanceToSVG("output/buildOrthogonalChannelInfo1");
+	router1->outputDiagram("output/buildOrthogonalChannelInfo1");
     delete router1;
 }
 

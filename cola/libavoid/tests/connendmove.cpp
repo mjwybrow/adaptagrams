@@ -76,6 +76,8 @@ int main(void)
     
     router->processTransaction();
 
+	router->outputDiagram("output/connendmove");
+
     delete router;
     return 0;
 }
