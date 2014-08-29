@@ -74,8 +74,15 @@ EdgeInf::~EdgeInf()
     {
         makeInactive();
     }
-    // TODO: memory for bend vertex is leaked.
-    //       Deleting will cause double free due to shallow copying.
+
+    if (m_bend_vert)
+    {
+        references_t referenceCount = m_bend_vert->release();
+        if (referenceCount == 0)
+        {
+            delete m_bend_vert;
+        }
+    }
 }
 
 
@@ -382,7 +389,11 @@ void EdgeInf::addBlocker(int b)
 
 void EdgeInf::setBendVertex(VertInf *vert)
 {
+    COLA_ASSERT(m_bend_vert == NULL);
+    COLA_ASSERT(vert != NULL);
+
     m_bend_vert = vert;
+    m_bend_vert->retain();
     if (vert)
     {
         // Make sure bend point is orthogonally aligned to 1-bend edge

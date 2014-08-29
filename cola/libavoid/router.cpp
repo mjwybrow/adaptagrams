@@ -395,24 +395,50 @@ void Router::setStaticGraphInvalidated(const bool invalidated)
     m_static_orthogonal_graph_invalidated = invalidated;
 }
 
+struct delete_object
+{
+    template <typename T>
+    void operator()(T *ptr){ delete ptr;}
+};
+
 
 void Router::destroyOrthogonalVisGraph(void)
 {
     // Remove orthogonal visibility graph edges.
     visOrthogGraph.clear();
 
-    // Remove the now orphaned vertices.
-    VertInf *curr = vertices.shapesBegin();
-    while (curr)
+    // Collect the set of inactive 1-bend edges (each referred to from
+    // multiple vertices), as well as orphaned vertices.
+    std::set<EdgeInf *> inactiveEdges;
+    std::list<VertInf *> orphaned;
+    VertInf *shapesBegin = vertices.shapesBegin();
+    bool amongShapeVertices = false;
+    for (VertInf *curr = vertices.connsBegin(); curr; curr = curr->lstNext)
     {
-        if (curr->orphaned() && (curr->id == dummyOrthogID))
+        if (curr == shapesBegin)
         {
-            VertInf *following = vertices.removeVertex(curr);
-            delete curr;
-            curr = following;
-            continue;
+            amongShapeVertices = true;
         }
-        curr = curr->lstNext;
+
+        inactiveEdges.insert(curr->inactiveOneBendVisEdges.begin(),
+                             curr->inactiveOneBendVisEdges.end());
+        curr->inactiveOneBendVisEdges.clear();
+
+        if (amongShapeVertices && (curr->id == dummyOrthogID) && curr->orphaned())
+        {
+            orphaned.push_back(curr);
+        }
+    }
+
+    // Delete inactive 1-bend visibility edges.
+    for_each(inactiveEdges.begin(), inactiveEdges.end(), delete_object());
+
+    // Orphaned vertices need to be removed after inactive edges have been
+    // deleted, since the edge between them might look at them.
+    for (std::list<VertInf *>::const_iterator it = orphaned.begin();
+            it != orphaned.end(); ++it)
+    {
+        vertices.removeVertex(*it);
     }
 }
 
@@ -2915,7 +2941,7 @@ void Router::outputDiagramText(std::string instanceName)
             fprintf(fp, "id=%u\n", connRef->id());
             for (size_t i = 0; i < route.size(); ++i)
             {
-                fprintf(fp, "p%u: %g %g ", i, route.ps[i].x, route.ps[i].y);
+                fprintf(fp, "p%lu: %g %g ", i, route.ps[i].x, route.ps[i].y);
                 fprintf(fp, "\n");
             }
             fprintf(fp, "\n");

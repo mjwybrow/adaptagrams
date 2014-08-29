@@ -175,7 +175,8 @@ VertInf::VertInf(Router *router, const VertID& vid, const Point& vpoint,
       m_orthogonalPartner(NULL),
       m_treeRoot(NULL),
       visDirections(ConnDirNone),
-      orthogVisPropFlags(0)
+      orthogVisPropFlags(0),
+      m_reference_count(0)
 {
     point.id = vid.objID;
     point.vn = vid.vn;
@@ -190,6 +191,18 @@ VertInf::VertInf(Router *router, const VertID& vid, const Point& vpoint,
 VertInf::~VertInf()
 {
     COLA_ASSERT(orphaned());
+}
+
+
+references_t VertInf::retain(void)
+{
+    return ++m_reference_count;
+}
+
+references_t VertInf::release(void)
+{
+    COLA_ASSERT(m_reference_count > 0);
+    return --m_reference_count;
 }
 
 // This is called on connection point vertices and used to add all 1-bend
@@ -229,29 +242,31 @@ void VertInf::activateInactiveOneBendVisEdges(bool checkPins)
 // search is complete.
 void VertInf::deactivateInactiveOneBendVisEdges(bool checkPins)
 {
-    for (EdgeInfList::iterator it = inactiveOneBendVisEdges.begin(); 
+    if (checkPins)
+    {
+        // Check attached connection pins for the case where connectors end
+        // at shape connection pins rather than a normal end point.
+        for (EdgeInfList::iterator it = orthogVisList.begin();
+             it != orthogVisList.end();)
+        {
+            VertInf *other = (*it)->otherVert(this);
+
+            // Increment here, since may be invalidated by deactivation.:
+            ++it;
+
+            if (other->id.isConnectionPin())
+            {
+                other->deactivateInactiveOneBendVisEdges(false);
+            }
+        }
+    }
+
+    for (EdgeInfList::iterator it = inactiveOneBendVisEdges.begin();
             it != inactiveOneBendVisEdges.end(); ++it)
     {
         if ((*it)->isActive() == true)
         {
             (*it)->makeInactive();
-        }
-    }
-    
-    if (!checkPins)
-    {
-        return;
-    }
-
-    // Check attached connection pins for the case where connectors end
-    // at shape connection pins rather than a normal end point.
-    for (EdgeInfList::iterator it = orthogVisList.begin();
-            it != orthogVisList.end(); ++it)
-    {
-        VertInf *other = (*it)->otherVert(this);
-        if (other->id.isConnectionPin())
-        {
-            other->deactivateInactiveOneBendVisEdges(false);
         }
     }
 }

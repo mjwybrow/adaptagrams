@@ -692,21 +692,22 @@ public:
         }
     }
 
-    ~LineSegment(void)
+    void freeDummyOneBendLimitVertices(void)
     {
-        for (VertSet::iterator vert = vertInfs.begin();
-             vert != vertInfs.end(); ++vert)
+        // Can't do this in the destructor due to shallow copying of these
+        // objects.  Thus, this method is called from the destructor of
+        // SegmentListWrapper.
+        for (VertSet::iterator it = vertInfs.begin();
+             it != vertInfs.end(); ++it)
         {
-            if ((*vert)->id == dummyOneBendVisibilityLimitID)
+            VertInf *vertex =  *it;
+            if (vertex->id == dummyOneBendVisibilityLimitID)
             {
                 // Delete vertices used to mark visibility limits during
                 // construction of 1-bend visibility graph, but which are not
                 // themselves stored in the resulting graph and therefore
                 // won't be cleaned up.
-
-                // TODO: memory for visibility limit vertices are leaked.
-                //       Deleting will cause double free due to shallow copying.
-                //delete *vert;
+                delete vertex;
             }
         }
     }
@@ -750,12 +751,32 @@ public:
         return false;
     }
 
-    void mergeVertInfs(LineSegment& segment)
+    void mergeVertInfs(LineSegment& rhs)
     {
-        begin = std::min(begin, segment.begin);
-        finish = std::max(finish, segment.finish);
-        vertInfs.insert(segment.vertInfs.begin(), segment.vertInfs.end());
-        segment.vertInfs.clear();
+        // Set new extents:
+        begin = std::min(begin, rhs.begin);
+        finish = std::max(finish, rhs.finish);
+
+
+        // For each vertex in the RHS line segment, add it successfully to the
+        // current segment and remove it from the old one.
+        for (VertSet::iterator it = rhs.vertInfs.begin();
+                 it != rhs.vertInfs.end(); )
+        {
+            VertInf *vertex = *it;
+            std::pair<VertSet::iterator, bool> result = vertInfs.insert(vertex);
+            if (result.second == true)
+            {
+                rhs.vertInfs.erase(it++);
+            }
+            else
+            {
+                ++it;
+            }
+        }
+
+        // Clean up owned dummy vertices in RHS line segment.
+        rhs.freeDummyOneBendLimitVertices();
     }
     
     VertInf *beginVertInf(void) const
@@ -1488,6 +1509,15 @@ typedef std::list<LineSegment> SegmentList;
 class SegmentListWrapper
 {
     public:
+        ~SegmentListWrapper()
+        {
+            for (SegmentList::iterator curr = _list.begin();
+                 curr != _list.end(); ++curr)
+            {
+                curr->freeDummyOneBendLimitVertices();
+            }
+        }
+
         LineSegment *insert(LineSegment segment)
         {
             SegmentList::iterator found = _list.end();
@@ -1871,7 +1901,7 @@ static void processEventVert(Router *router, NodeSet& scanline,
                 {
                     VertInf *limit = new VertInf(router,
                             dummyOneBendVisibilityLimitID,
-                            Point(minLimit, e->pos));
+                            Point(minLimit, e->pos), false);
                     limit->id.props |= VertID::PROP_OrthLimitObstacleClose;
                     line1->vertInfs.insert(limit);
                 }
@@ -1884,7 +1914,7 @@ static void processEventVert(Router *router, NodeSet& scanline,
                 {
                     VertInf *limit = new VertInf(router,
                             dummyOneBendVisibilityLimitID,
-                            Point(maxLimit, e->pos));
+                            Point(maxLimit, e->pos), false);
                     limit->id.props |= VertID::PROP_OrthLimitObstacleOpen;
                     line2->vertInfs.insert(limit);
                 }
@@ -2072,7 +2102,7 @@ static void processEventHori(Router *router, NodeSet& scanline,
                 {
                     VertInf *limit = new VertInf(router,
                             dummyOneBendVisibilityLimitID,
-                            Point(e->pos, minLimit));
+                            Point(e->pos, minLimit), false);
                     limit->id.props |= VertID::PROP_OrthLimitObstacleClose;
                     line1->vertInfs.insert(limit);
                 }
@@ -2085,7 +2115,7 @@ static void processEventHori(Router *router, NodeSet& scanline,
                 {
                     VertInf *limit = new VertInf(router,
                             dummyOneBendVisibilityLimitID,
-                            Point(e->pos, maxLimit));
+                            Point(e->pos, maxLimit), false);
                     limit->id.props |= VertID::PROP_OrthLimitObstacleOpen;
                     line2->vertInfs.insert(limit);
                 }

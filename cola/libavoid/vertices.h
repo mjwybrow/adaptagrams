@@ -131,6 +131,7 @@ static const VertID dummyBendID(0, 1);
 //
 static const VertID dummyOneBendVisibilityLimitID(0, 2);
 
+typedef unsigned short references_t;
 
 class ANode;
 
@@ -165,6 +166,9 @@ class VertInf
         void deactivateInactiveOneBendVisEdges(bool checkPins = true);
         EdgeInfList inactiveOneBendVisEdges;
 
+        references_t retain(void);
+        references_t release(void);
+
         Router *_router;
         VertID id;
         Point  point;
@@ -195,6 +199,9 @@ class VertInf
         // Flags for orthogonal visibility properties, i.e., whether the 
         // line points to a shape edge, connection point or an obstacle.
         unsigned int orthogVisPropFlags;
+    private:
+        // Reference count
+        references_t m_reference_count;
 };
 
 
