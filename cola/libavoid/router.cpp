@@ -485,6 +485,7 @@ void Router::processActions(void)
     m_transaction_start_time = clock();
     m_abort_transaction = false;
 
+    std::list<unsigned int> deletedObstacles;
     actionList.sort();
     ActionInfoList::iterator curr;
     ActionInfoList::iterator finish = actionList.end();
@@ -540,6 +541,7 @@ void Router::processActions(void)
         {
             // Free deleted obstacle.
             m_currently_calling_destructors = true;
+            deletedObstacles.push_back(obstacle->id());
             delete obstacle;
             m_currently_calling_destructors = false;
         }
@@ -549,20 +551,22 @@ void Router::processActions(void)
     {
         if (InvisibilityGrph)
         {
+            // Check edges for obstacles that were moved or removed.
             for (curr = actionList.begin(); curr != finish; ++curr)
             {
                 ActionInfo& actInf = *curr;
-                if (!((actInf.type == ShapeRemove) ||
-                      (actInf.type == ShapeMove) ||
-                      (actInf.type == JunctionRemove) ||
-                      (actInf.type == JunctionMove)))
+                if ((actInf.type == ShapeMove) || (actInf.type == JunctionMove))
                 {
-                    // Not a move or remove action, so don't do anything.
-                    continue;
+                    // o  Check all edges that were blocked by moved obstacle.
+                    checkAllBlockedEdges(actInf.obstacle()->id());
                 }
+            }
 
-                // o  Check all edges that were blocked by this shape.
-                checkAllBlockedEdges(actInf.obstacle()->id());
+            for (std::list<unsigned int>::iterator it = deletedObstacles.begin();
+                     it != deletedObstacles.end(); ++it)
+            {
+                // o  Check all edges that were blocked by deleted obstacle.
+                checkAllBlockedEdges(*it);
             }
         }
         else
