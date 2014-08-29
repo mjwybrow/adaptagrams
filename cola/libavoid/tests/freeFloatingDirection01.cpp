@@ -3314,7 +3314,7 @@ int main(void) {
     connRef410->setRoutingType((ConnType)2);
 
     router->processTransaction();
-    router->outputInstanceToSVG("output/freeFloatingDirection01");
+    router->outputDiagram("output/freeFloatingDirection01");
     assert(connRef239->displayRoute().size() == 4);
     delete router;
     return 0;

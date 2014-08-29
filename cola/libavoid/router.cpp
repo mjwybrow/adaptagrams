@@ -2816,6 +2816,13 @@ void Router::outputDiagramSVG(std::string instanceName, LineReps *lineReps)
     fclose(fp);
 }
 
+void Router::outputDiagram(std::string instanceName)
+{
+    outputDiagramText(instanceName);
+#ifdef SVG_OUTPUT
+    outputInstanceToSVG(instanceName);
+#endif
+}
 
 void Router::outputDiagramText(std::string instanceName)
 {

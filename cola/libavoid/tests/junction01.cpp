@@ -49,7 +49,7 @@ int main(void) {
     ConnEnd dstPt716502036(Point(51800, 50925), 15);
     new ConnRef(router, srcPt716502036, dstPt716502036, 716502036);
     router->processTransaction();
-    router->outputInstanceToSVG("output/junction01");
+    router->outputDiagram("output/junction01");
     delete router;
     return 0;
 };

@@ -74,7 +74,7 @@ int main(void)
     router->moveShape(shapeRef, 0.5, 0);
     router->processTransaction();
 
-    router->outputInstanceToSVG("output/example");
+    router->outputDiagram("output/example");
     delete router;
     return 0;
 }
@@ -136,7 +136,7 @@ void test()
     new Avoid::ConnRef(router1, end1, end2);
     router1->processTransaction();
 
-    //router1->outputInstanceToSVG("output/buildOrthogonalChannelInfo1");
+    //router1->outputDiagram("output/buildOrthogonalChannelInfo1");
     router1->outputDiagramText("output/buildOrthogonalChannelInfo1");
     delete router1;
 }

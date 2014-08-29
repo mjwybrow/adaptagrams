@@ -374,7 +374,7 @@ int main(void) {
     // around the shapes on the right due to the crossing penalty.
     bool suceeds = (connector6->displayRoute().size() == 4);
 
-    //router->outputInstanceToSVG("output/forwardFlowingConnectors01");
+    //router->outputDiagram("output/forwardFlowingConnectors01");
     delete router;
     return (suceeds ? 0 : 1);
 };
