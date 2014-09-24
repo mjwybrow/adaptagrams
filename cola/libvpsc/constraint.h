@@ -23,6 +23,9 @@
 #ifndef VPSC_CONSTRAINT_H
 #define VPSC_CONSTRAINT_H
 
+// cmath needs ::strcpy_s under MinGW so include cstring.
+#include <cstring>
+
 #include <cfloat>
 #include <iostream>
 #include <vector>
