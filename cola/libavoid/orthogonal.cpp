@@ -2558,7 +2558,7 @@ void ImproveOrthogonalRoutes::execute(void)
     // Clear the segment-checkpoint cache for connectors.
     clearConnectorRouteCheckpointCache(m_router);
 
-    TIMER_STOP(router);
+    TIMER_STOP(m_router);
 }
 
 void ImproveOrthogonalRoutes::nudgeOrthogonalRoutes(size_t dimension,
