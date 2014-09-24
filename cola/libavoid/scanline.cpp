@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2009-2013  Monash University
+ * Copyright (C) 2009-2014  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -303,7 +303,7 @@ int compare_events(const void *a, const void *b)
         return ea->type - eb->type;
     }
     COLA_ASSERT(ea->v != eb->v);
-    return ea->v - eb->v;
+    return (int)(ea->v - eb->v);
 }
 
 

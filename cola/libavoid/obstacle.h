@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2010  Monash University
+ * Copyright (C) 2004-2014  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -123,7 +123,7 @@ class Obstacle
 
         void addFollowingConnEnd(ConnEnd *connEnd);
         void removeFollowingConnEnd(ConnEnd *connEnd);
-        unsigned int addConnectionPin(ShapeConnectionPin *pin);
+        size_t addConnectionPin(ShapeConnectionPin *pin);
         void removeConnectionPin(ShapeConnectionPin *pin);
         void assignPinVisibilityTo(const unsigned int pinClassId, 
                 VertInf *dummyConnectionVert);

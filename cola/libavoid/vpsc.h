@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2005-2012  Monash University
+ * Copyright (C) 2005-2014  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -267,7 +267,7 @@ private:
 
     std::vector<Block *> m_blocks;
     Variables const &vs;
-    int nvs;
+    size_t nvs;
 };
 
 inline size_t Blocks::size() const
@@ -309,9 +309,9 @@ public:
     Variables const & getVariables() { return vs; }
 protected:
     Blocks *bs;
-    unsigned m;
+    size_t m;
     Constraints const &cs;
-    unsigned n;
+    size_t n;
     Variables const &vs;
     bool needsScaling;
 

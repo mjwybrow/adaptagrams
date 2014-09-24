@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2009-2013  Monash University
+ * Copyright (C) 2009-2014  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -558,7 +558,7 @@ void HyperedgeImprover::nudgeHyperedgeSegments(size_t dimension,
             curr != m_hyperedge_tree_roots.end(); ++curr)
     {
         ++m_debug_count;
-        versionNumber = dimension * 10000;
+        versionNumber = (int)dimension * 10000;
         versionNumber += m_debug_count * 1000;
 
         // Calculate the balance for each shift segment.
@@ -935,7 +935,7 @@ void HyperedgeImprover::execute(bool canMakeMajorChanges)
         size_t dimension = count % 2;
 
         // Set a version number for debug output.
-        versionNumber = 100 * (dimension + 1);
+        versionNumber = 100 * (int)(dimension + 1);
 
         // Build shift segments.
         buildHyperedgeSegments(dimension);

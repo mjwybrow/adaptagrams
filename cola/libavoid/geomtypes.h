@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2013  Monash University
+ * Copyright (C) 2004-2014  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -97,8 +97,8 @@ class AVOID_EXPORT Point
         //!
         //! @param[in]  dimension  The dimension:  0 for x, 1 for y.
         //! @return                The component of the point in that dimension.
-        double& operator[](const unsigned int dimension);
-        const double& operator[](const unsigned int dimension) const;
+        double& operator[](const size_t dimension);
+        const double& operator[](const size_t dimension) const;
 
         Point operator+(const Point& rhs) const;
         Point operator-(const Point& rhs) const;
@@ -138,7 +138,7 @@ class AVOID_EXPORT Box
         //! The bottom-right point.
         Point max;
 
-        double length(const unsigned int dimension) const;
+        double length(size_t dimension) const;
         double width(void) const;
         double height(void) const;
 };

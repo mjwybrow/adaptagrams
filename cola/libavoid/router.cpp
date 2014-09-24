@@ -458,6 +458,7 @@ void Router::processActions(void)
     m_transaction_start_time = clock();
     m_abort_transaction = false;
 
+    std::list<unsigned int> deletedObstacles;
     actionList.sort();
     ActionInfoList::iterator curr;
     ActionInfoList::iterator finish = actionList.end();
@@ -513,6 +514,7 @@ void Router::processActions(void)
         {
             // Free deleted obstacle.
             m_currently_calling_destructors = true;
+            deletedObstacles.push_back(obstacle->id());
             delete obstacle;
             m_currently_calling_destructors = false;
         }
@@ -522,20 +524,22 @@ void Router::processActions(void)
     {
         if (InvisibilityGrph)
         {
+            // Check edges for obstacles that were moved or removed.
             for (curr = actionList.begin(); curr != finish; ++curr)
             {
                 ActionInfo& actInf = *curr;
-                if (!((actInf.type == ShapeRemove) ||
-                      (actInf.type == ShapeMove) ||
-                      (actInf.type == JunctionRemove) ||
-                      (actInf.type == JunctionMove)))
+                if ((actInf.type == ShapeMove) || (actInf.type == JunctionMove))
                 {
-                    // Not a move or remove action, so don't do anything.
-                    continue;
+                    // o  Check all edges that were blocked by moved obstacle.
+                    checkAllBlockedEdges(actInf.obstacle()->id());
                 }
+            }
 
-                // o  Check all edges that were blocked by this shape.
-                checkAllBlockedEdges(actInf.obstacle()->id());
+            for (std::list<unsigned int>::iterator it = deletedObstacles.begin();
+                     it != deletedObstacles.end(); ++it)
+            {
+                // o  Check all edges that were blocked by deleted obstacle.
+                checkAllBlockedEdges(*it);
             }
         }
         else
@@ -927,8 +931,8 @@ void Router::rerouteAndCallbackConnectors(void)
     ConnRefSet hyperedgeConns =
             m_hyperedge_rerouter.calcHyperedgeConnectors();
 
-    unsigned int totalConns = connRefs.size();
-    unsigned int numOfReroutedConns = 0;
+    size_t totalConns = connRefs.size();
+    size_t numOfReroutedConns = 0;
     for (ConnRefList::const_iterator i = connRefs.begin(); i != fin; ++i) 
     {
         // Progress reporting and continuation check.
@@ -1118,7 +1122,7 @@ static double cheapEstimatedCost(ConnRef *lineRef)
 
 
 void Router::performContinuationCheck(unsigned int phaseNumber, 
-        unsigned int stepNumber, unsigned int totalSteps)
+        size_t stepNumber, size_t totalSteps)
 {
     // Compute the elapsed time in msec since the beginning of the transaction.
     unsigned int elapsedMsec = (unsigned int) 
@@ -1179,8 +1183,8 @@ void Router::improveCrossings(void)
         return;
     }
     
-    unsigned int numOfConns = connRefs.size();
-    unsigned int numOfConnsChecked = 0;
+    size_t numOfConns = connRefs.size();
+    size_t numOfConnsChecked = 0;
 
     // Find crossings and reroute connectors.
     m_in_crossing_rerouting_stage = true;
