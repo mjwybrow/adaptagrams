@@ -74,13 +74,13 @@ class Cluster
          */
         void addChildCluster(Cluster *cluster);
         
-        virtual Box padding(void) const
+        virtual cola::Box padding(void) const
         {
-            return Box();
+            return cola::Box();
         }
-        virtual Box margin(void) const
+        virtual cola::Box margin(void) const
         {
-            return Box();
+            return cola::Box();
         }
 
         void setDesiredBounds(const vpsc::Rectangle bounds);
@@ -257,13 +257,13 @@ class RectangularCluster : public Cluster
          * @param[in]  margin  The box representing the margins for this 
          *                     cluster.
          */
-        void setMargin(const Box margin);
+        void setMargin(const cola::Box margin);
         /**
          * @brief  Returns the margin box for this cluster.
          *
          * @return  The margin box for the cluster.
          */
-        Box margin(void) const;
+        cola::Box margin(void) const;
 
         /**
          * @brief  Sets the padding size for this cluster.
@@ -285,13 +285,13 @@ class RectangularCluster : public Cluster
          * @param[in]  padding  The Box representing padding values for this 
          *                      cluster.
          */
-        void setPadding(const Box padding);
+        void setPadding(const cola::Box padding);
         /**
          * @brief  Returns the padding box for this cluster.
          *
          * @return  The padding box for the cluster.
          */
-        Box padding(void) const;
+        cola::Box padding(void) const;
 
 #ifndef SWIG
         virtual ~RectangularCluster();

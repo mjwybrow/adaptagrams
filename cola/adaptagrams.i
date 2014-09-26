@@ -208,6 +208,7 @@ void deleteDoubleArray(double* a) {
 
 %rename(ColaTestConvergenceOperator) cola::TestConvergence::operator();
 
+%rename(AvoidBox) Avoid::Box;
 %rename(AvoidEdge) Avoid::Edge;
 %rename(AvoidRectangle) Avoid::Rectangle;
 %rename(AvoidTopologyAddonInterface) Avoid::TopologyAddonInterface;
