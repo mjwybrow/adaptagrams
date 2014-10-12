@@ -688,6 +688,9 @@ void EdgeList::clear(void)
 {
     while (m_first_edge)
     {
+        // The Edge destructor results in EdgeList:::removeEdge() being called
+        // for this edge and m_first_edge being updated to the subsequent edge
+        // in the EdgeList.
         delete m_first_edge;
     }
     COLA_ASSERT(m_count == 0);
