@@ -407,13 +407,8 @@ std::pair<bool, VertInf *> ConnEnd::getHyperedgeVertex(Router *router) const
 }
 
 
-void ConnEnd::outputCode(FILE *fp, const char *srcDst, unsigned int num) const
+void ConnEnd::outputCode(FILE *fp, const char *srcDst) const
 {
-    if (num == 0)
-    {
-        num = m_conn_ref->id();
-    }
-
     if (junction())
     {
         fprintf(fp, "    %sPt = ConnEnd(junctionRef%u);\n", srcDst,

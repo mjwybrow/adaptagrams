@@ -95,7 +95,6 @@ void HyperedgeRerouter::outputInstanceToSVG(FILE *fp)
 
     fprintf(fp, "    HyperedgeRerouter *hyperedgeRerouter = router->hyperedgeRerouter();\n");
     const size_t num_hyperedges = count();
-    unsigned int heEndpointCount = 0;
     for (size_t i = 0; i < num_hyperedges; ++i)
     {
         if (m_root_junction_vector[i])
@@ -109,10 +108,9 @@ void HyperedgeRerouter::outputInstanceToSVG(FILE *fp)
             for (ConnEndList::const_iterator it = m_terminals_vector[i].begin();
                     it != m_terminals_vector[i].end(); ++it)
             {
-                ++heEndpointCount;
-                (*it).outputCode(fp, "heEnd", heEndpointCount);
-                fprintf(fp, "    heConnList%u.push_back(heEndPt%u);\n",
-                        (unsigned int) i, heEndpointCount);
+                (*it).outputCode(fp, "heEnd");
+                fprintf(fp, "    heConnList%u.push_back(heEndPt);\n",
+                        (unsigned int) i);
             }
             fprintf(fp, "    hyperedgeRerouter->registerHyperedgeForRerouting(heConnList%u);\n",
                     (unsigned int) i);

@@ -2273,6 +2273,7 @@ void Router::outputInstanceToSVG(std::string instanceName)
     fprintf(fp, "    ConnRef *connRef = NULL;\n");
     fprintf(fp, "    ConnEnd srcPt;\n");
     fprintf(fp, "    ConnEnd dstPt;\n");
+    fprintf(fp, "    ConnEnd heConnPt;\n");
     fprintf(fp, "    PolyLine newRoute;\n");
     fprintf(fp, "    ShapeConnectionPin *connPin = NULL;\n");
     fprintf(fp, "\n");

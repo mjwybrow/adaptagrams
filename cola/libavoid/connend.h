@@ -241,8 +241,7 @@ class AVOID_EXPORT ConnEnd
         std::vector<Point> possiblePinPoints(void) const;
         void assignPinVisibilityTo(VertInf *dummyConnectionVert, 
                 VertInf *targetVert);
-        void outputCode(FILE *fp, const char *srcDst,
-                unsigned int num = 0) const;
+        void outputCode(FILE *fp, const char *srcDst) const;
         std::pair<bool, VertInf *> getHyperedgeVertex(Router *router) const;
 
         ConnEndType m_type;

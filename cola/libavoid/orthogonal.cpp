@@ -1878,7 +1878,6 @@ extern void generateStaticOrthogonalVisGraph(Router *router)
     // Process the horizontal sweep -- creating vertical visibility edges.
     thisPos = (totalEvents > 0) ? events[0]->pos : 0;
     posStartIndex = 0;
-    posFinishIndex = 0;
     for (unsigned i = 0; i <= totalEvents; ++i)
     {
         // Progress reporting and continuation check.
