@@ -40,6 +40,7 @@
 #include "libavoid/vpsc.h"
 #include "libavoid/assertions.h"
 #include "libavoid/scanline.h"
+#include "libavoid/debughandler.h"
 
 // For debugging:
 //#define NUDGE_DEBUG
@@ -230,7 +231,7 @@ class NudgingShiftSegment : public ShiftSegment
             variable = new Variable(varID, varPos, weight);
         }
 
-        void updatePositionsFromSolver(void)
+        void updatePositionsFromSolver(const bool justUnifying)
         {
             if (fixed)
             {
@@ -252,6 +253,14 @@ class NudgingShiftSegment : public ShiftSegment
                 size_t index = indexes[it];
                 connRef->displayRoute().ps[index][dimension] = newPos;
             }
+
+#ifdef DEBUGHANDLER
+            if (!justUnifying && connRef->router()->debugHandler())
+            {
+                connRef->router()->debugHandler()->updateConnectorRoute(
+                        connRef, indexes[0], indexes[indexes.size() - 1]);
+            }
+#endif
         }
         int fixedOrder(bool& isFixed) const
         {
@@ -1748,6 +1757,30 @@ extern void generateStaticOrthogonalVisGraph(Router *router)
 
         ++obstacleIt;
     }
+
+#ifdef DEBUGHANDLER
+    if (router->debugHandler())
+    {
+        std::vector<Box> obstacleBoxes;
+        ObstacleList::iterator obstacleIt = router->m_obstacles.begin();
+        for (unsigned i = 0; i < n; i++)
+        {
+            Obstacle *obstacle = *obstacleIt;
+            JunctionRef *junction = dynamic_cast<JunctionRef *> (obstacle);
+            if (junction && ! junction->positionFixed())
+            {
+                // Junctions that are free to move are not treated as obstacles.
+                ++obstacleIt;
+                continue;
+            }
+            Box bbox = obstacle->routingBox();
+            obstacleBoxes.push_back(bbox);
+            ++obstacleIt;
+        }
+        router->debugHandler()->updateObstacleBoxes(obstacleBoxes);
+    }
+#endif
+
     for (VertInf *curr = router->vertices.connsBegin(); 
             curr && (curr != router->vertices.shapesBegin()); 
             curr = curr->lstNext)
@@ -3038,7 +3071,7 @@ void ImproveOrthogonalRoutes::nudgeOrthogonalRoutes(size_t dimension,
                 NudgingShiftSegment *segment =
                         static_cast<NudgingShiftSegment *> (*currSegment);
 
-                segment->updatePositionsFromSolver();
+                segment->updatePositionsFromSolver(justUnifying);
             }
         }
 #ifdef NUDGE_DEBUG

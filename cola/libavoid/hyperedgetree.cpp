@@ -31,6 +31,7 @@
 #include "libavoid/connend.h"
 #include "libavoid/assertions.h"
 #include "libavoid/junction.h"
+#include "libavoid/debughandler.h"
 
 namespace Avoid {
 
@@ -549,6 +550,14 @@ void HyperedgeTreeEdge::writeEdgesToConns(HyperedgeTreeNode *ignored,
                         conn->m_display_route.ps.end());
             }
         }
+
+#ifdef DEBUGHANDLER
+        if (conn->router()->debugHandler())
+        {
+            conn->router()->debugHandler()->updateConnectorRoute(
+                    conn, -1, -1);
+        }
+#endif
     }
 
     nextNode->writeEdgesToConns(this, pass);

@@ -67,7 +67,8 @@ Router::Router(const unsigned int flags)
       m_allows_orthogonal_routing(false),
       m_static_orthogonal_graph_invalidated(true),
       m_in_crossing_rerouting_stage(false),
-      m_settings_changes(false)
+      m_settings_changes(false),
+      m_debug_handler(NULL)
 {
     // At least one of the Routing modes must be set.
     COLA_ASSERT(flags & (PolyLineRouting | OrthogonalRouting));
@@ -142,6 +143,16 @@ Router::~Router()
     COLA_ASSERT(visGraph.size() == 0);
 
     delete m_topology_addon;
+}
+
+void Router::setDebugHandler(DebugHandler *handler)
+{
+    m_debug_handler = handler;
+}
+
+DebugHandler *Router::debugHandler(void) const
+{
+    return m_debug_handler;
 }
 
 ShapeRef *Router::shapeContainingPoint(const Point& point)

@@ -39,6 +39,7 @@
 #include "libavoid/assertions.h"
 #include "libavoid/junction.h"
 #include "libavoid/makepath.h"
+#include "libavoid/debughandler.h"
 
 
 namespace Avoid {
@@ -1040,6 +1041,13 @@ bool ConnRef::generatePath(void)
                 output_route.ps[i].y);
     }
     db_printf("\n\n");
+#endif
+
+#ifdef DEBUGHANDLER
+    if (m_router->debugHandler())
+    {
+        m_router->debugHandler()->updateConnectorRoute(this, -1, -1);
+    }
 #endif
 
     return true;

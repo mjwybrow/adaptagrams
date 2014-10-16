@@ -94,7 +94,7 @@ class MinimumTerminalSpanningTree
         HyperedgeTreeNode *addNode(VertInf *vertex, HyperedgeTreeNode *prevNode);
 
         void popInvalidBridgingEdges(void);
-        void commitToBridgingEdge(EdgeInf *e, unsigned& step);
+        void commitToBridgingEdge(EdgeInf *e);
         bool connectsWithoutBend(VertInf *oldLeaf, VertInf *newLeaf);
         LayeredOrthogonalEdgeList getOrthogonalEdgesFromVertex(VertInf *vert, 
                 VertInf *prev);
@@ -116,11 +116,6 @@ class MinimumTerminalSpanningTree
         std::list<VertInf *> extraVertices;
         std::list<VertInf *> unusedVertices;
         std::list<VertInf **> rootVertexPointers;
-
-        FILE *debug_fp;
-        unsigned int debug_count;
-        unsigned int step_count;
-        char debug_label[5];
 
         // Vertex heap for extended Dijkstra's algorithm.
         std::vector<VertInf *> vHeap;

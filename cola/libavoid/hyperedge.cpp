@@ -32,7 +32,7 @@
 #include "libavoid/shape.h"
 #include "libavoid/router.h"
 #include "libavoid/assertions.h"
-
+#include "libavoid/debughandler.h"
 
 
 namespace Avoid {
@@ -246,38 +246,6 @@ ConnRefSet HyperedgeRerouter::calcHyperedgeConnectors(void)
     return allRegisteredHyperedgeConns;
 }
 
-#ifdef HYPEREDGE_DEBUG
-static const double LIMIT = 100000000;
-
-static void reduceRange(double& val)
-{
-    val = std::min(val, LIMIT);
-    val = std::max(val, -LIMIT);
-}
-
-#if 0
-static bool shapeContainsEndpointVertex(Obstacle *obstacle)
-{
-    Router *router = obstacle->router();
-    ShapeRef *shape = dynamic_cast<ShapeRef *> (obstacle);
-
-    if (!router || !shape)
-    {
-        return false;
-    }
-
-    for (VertInf *k = router->vertices.connsBegin(); 
-            k != router->vertices.shapesBegin(); k = k->lstNext)
-    {
-        if (inPolyGen(shape->polygon(), k->point))
-        {
-            return true;
-        }
-    }
-    return false;
-}
-#endif
-#endif
 
 void HyperedgeRerouter::performRerouting(void)
 {
@@ -288,107 +256,29 @@ void HyperedgeRerouter::performRerouting(void)
     m_new_connectors_vector.clear();
     m_new_connectors_vector.resize(count());
 
-#ifdef HYPEREDGE_DEBUG
-    double minX = LIMIT;
-    double minY = LIMIT;
-    double maxX = -LIMIT;
-    double maxY = -LIMIT;
-
-    VertInf *curr = m_router->vertices.connsBegin();
-    while (curr)
+#ifdef DEBUGHANDLER
+    if (m_router->debugHandler())
     {
-        Point p = curr->point;
-
-        reduceRange(p.x);
-        reduceRange(p.y);
-        
-        if (p.x > -LIMIT)
+        std::vector<Box> obstacleBoxes;
+        ObstacleList::iterator obstacleIt = m_router->m_obstacles.begin();
+        while (obstacleIt != m_router->m_obstacles.end())
         {
-            minX = std::min(minX, p.x);
-        }
-        if (p.x < LIMIT)
-        {
-            maxX = std::max(maxX, p.x);
-        }
-        if (p.y > -LIMIT)
-        {
-            minY = std::min(minY, p.y);
-        }
-        if (p.y < LIMIT)
-        {
-            maxY = std::max(maxY, p.y);
-        }
-        curr = curr->lstNext;
-    }
-    minX -= 8;
-    minY -= 8;
-    maxX += 8;
-    maxY += 8;
-
-    FILE *fp = fopen("hyperedge-debug.svg", "w");
-    fprintf(fp, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-    // width=\"100%%\" height=\"100%%\" 
-    fprintf(fp, "<svg xmlns:inkscape=\"http://www.inkscape.org/namespaces/inkscape\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"%g %g %g %g\">\n", minX, minY, maxX - minX, maxY - minY);
-    fprintf(fp, "<defs>\n");
-    fprintf(fp, "<style type=\"text/css\" ><![CDATA[\n");
-    fprintf(fp, ".shape { stroke-width: 1px; stroke: black; fill: blue; stroke-opacity: 0.50; fill-opacity: 0.50; }\n");
-    fprintf(fp, ".graph { opacity: 0; fill: none; stroke: red; stroke-width: 1px; }\n");
-    fprintf(fp, ".forest { fill: none; stroke: purple; stroke-width: 1px; }\n");
-    fprintf(fp, ".hyperedge { fill: none; stroke-width: 1px; }\n");
-    fprintf(fp, "]]></style>\n");
-    fprintf(fp, "</defs>\n");
-
-    fprintf(fp, "<g inkscape:groupmode=\"layer\" "
-            "inkscape:label=\"ShapesRect\">\n");
-    ObstacleList::iterator obstacleIt = m_router->m_obstacles.begin();
-    while (obstacleIt != m_router->m_obstacles.end())
-    {
-        Obstacle *obstacle = *obstacleIt;
-        bool isShape = (NULL != dynamic_cast<ShapeRef *> (obstacle));
-
-        if ( ! isShape )
-        {
-            // Don't output obstacles here, for now.
+            Obstacle *obstacle = *obstacleIt;
+            JunctionRef *junction = dynamic_cast<JunctionRef *> (obstacle);
+            if (junction && ! junction->positionFixed())
+            {
+                // Junctions that are free to move are not treated as obstacles.
+                ++obstacleIt;
+                continue;
+            }
+            Box bbox = obstacle->routingBox();
+            obstacleBoxes.push_back(bbox);
             ++obstacleIt;
-            continue;
         }
-
-        Box bb = obstacle->routingBox();
-
-        fprintf(fp, "<rect id=\"rect-%u\" x=\"%g\" y=\"%g\" width=\"%g\" "
-                "height=\"%g\" class=\"shape\" />\n",
-                obstacle->id(), bb.min.x, bb.min.y, 
-                bb.max.x - bb.min.x, bb.max.y - bb.min.y);
-        // shapeContainsEndpointVertex(obstacle) ? "style=\"fill: green;\"" : "");
-        ++obstacleIt;
+        m_router->debugHandler()->updateObstacleBoxes(obstacleBoxes);
     }
-    fprintf(fp, "</g>\n");
-
-    fprintf(fp, "<g inkscape:groupmode=\"layer\" "
-            "id=\"graph\" style=\"display: none;\" "
-            "inkscape:label=\"OrthogVisGraph\">\n");
-    EdgeInf *finish = m_router->visOrthogGraph.end();
-    for (EdgeInf *t = m_router->visOrthogGraph.begin(); t != finish; t = t->lstNext)
-    {
-        std::pair<Point, Point> ptpair = t->points();
-        Point p1 = ptpair.first;
-        Point p2 = ptpair.second;
-        
-        reduceRange(p1.x);
-        reduceRange(p1.y);
-        reduceRange(p2.x);
-        reduceRange(p2.y);
-        
-        // std::pair<VertID, VertID> ids = t->ids();
-        // (ids.first.isConnPt() || ids.second.isConnPt()) ? "style=\"stroke: green\" " : ""
-        fprintf(fp, "<path class=\"graph\" d=\"M %g %g L %g %g\" "
-                "%s />\n", p1.x, p1.y, p2.x, p2.y,
-                ""
-                );
-    }
-    fprintf(fp, "</g>\n");
 #endif
-    
+
     // For each hyperedge...
     const size_t num_hyperedges = count();
     for (size_t i = 0; i < num_hyperedges; ++i)
@@ -398,9 +288,7 @@ void HyperedgeRerouter::performRerouting(void)
         JunctionHyperedgeTreeNodeMap hyperedgeTreeJunctions;
         MinimumTerminalSpanningTree mtst(m_router, 
                 m_terminal_vertices_vector[i], &hyperedgeTreeJunctions);
-#ifdef HYPEREDGE_DEBUG
-        mtst.setDebuggingOutput(fp, i);
-#endif
+
         // The older MTST construction method (faster, worse results).
         //mtst.constructSequential();
         
@@ -460,10 +348,6 @@ void HyperedgeRerouter::performRerouting(void)
         delete *curr;
     }
     m_added_vertices.clear();
-#ifdef HYPEREDGE_DEBUG
-    fprintf(fp, "</svg>\n");
-    fclose(fp);
-#endif
 }
 
 

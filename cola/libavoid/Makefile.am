@@ -51,7 +51,8 @@ libavoid_la_SOURCES = connectionpin.cpp \
 			hyperedgetree.h \
 			scanline.h \
 			actioninfo.h \
-			vpsc.h
+			vpsc.h \
+			debughandler.h
 
 libavoidincludedir = $(includedir)/libavoid
 libavoidinclude_HEADERS = assertions.h \
@@ -80,7 +81,8 @@ libavoidinclude_HEADERS = assertions.h \
 			hyperedgetree.h \
 			scanline.h \
 			actioninfo.h \
-			vpsc.h
+			vpsc.h \
+			debughandler.h
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libavoid.pc

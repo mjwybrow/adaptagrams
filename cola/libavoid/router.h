@@ -63,6 +63,7 @@ class ClusterRef;
 typedef std::list<ClusterRef *> ClusterRefList;
 class Obstacle;
 typedef std::list<Obstacle *> ObstacleList;
+class DebugHandler;
 
 //! @brief  Flags that can be passed to the router during initialisation 
 //!         to specify options.
@@ -749,6 +750,8 @@ class AVOID_EXPORT Router {
         HyperedgeNewAndDeletedObjectLists 
                 newAndDeletedObjectListsFromHyperedgeImprovement(void) const;
 
+        void setDebugHandler(DebugHandler *handler);
+        DebugHandler *debugHandler(void) const;
 
         // Processes the actions list for the transaction.  You shouldn't
         // need to cal this.  Instead use processTransaction().
@@ -857,6 +860,8 @@ class AVOID_EXPORT Router {
         bool m_settings_changes;
     
         HyperedgeImprover m_hyperedge_improver;
+
+        DebugHandler *m_debug_handler;
 };
 
 

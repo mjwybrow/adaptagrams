@@ -41,6 +41,7 @@
 #include "libavoid/router.h"
 #include "libavoid/debug.h"
 #include "libavoid/assertions.h"
+#include "libavoid/debughandler.h"
 
 //#define ESTIMATED_COST_DEBUG
 
@@ -972,6 +973,12 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
         start = src;
     }
 
+#ifdef DEBUGHANDLER
+    if (lineRef->router()->debugHandler())
+    {
+        lineRef->router()->debugHandler()->beginningSearchWithEndpoints(start, tar);
+    }
+#endif
 
     // Find a target point to use for cost estimate for orthogonal routing.
     //
@@ -1180,6 +1187,21 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
         // heap is the node with the lowest f value.
         bestNode = PENDING.front();
         VertInf *bestNodeInf = bestNode->inf;
+
+#ifdef DEBUGHANDLER
+        if (router->debugHandler())
+        {
+            PolyLine currentSearchPath;
+
+            ANode *curr = bestNode;
+            while (curr)
+            {
+                currentSearchPath.ps.push_back(curr->inf->point);
+                curr = curr->prevNode;
+            }
+            router->debugHandler()->updateCurrentSearchPath(currentSearchPath);
+        }
+#endif
 
         // Remove this node from the aStarPendingList
         std::list<ANode *>::iterator finishIt = 

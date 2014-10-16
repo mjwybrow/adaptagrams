@@ -43,6 +43,7 @@
 #include "libavoid/vertices.h"
 #include "libavoid/timer.h"
 #include "libavoid/junction.h"
+#include "libavoid/debughandler.h"
 
 namespace Avoid {
 
@@ -79,8 +80,6 @@ MinimumTerminalSpanningTree::MinimumTerminalSpanningTree(Router *router,
       hyperedgeTreeJunctions(hyperedgeTreeJunctions),
       m_rootJunction(NULL),
       bendPenalty(2000),
-      debug_fp(NULL),
-      debug_count(0),
       dimensionChangeVertexID(0, 42)
 {
 
@@ -92,14 +91,6 @@ MinimumTerminalSpanningTree::~MinimumTerminalSpanningTree()
     m_rootJunction->deleteEdgesExcept(NULL);
     delete m_rootJunction;
     m_rootJunction = NULL;
-}
-
-
-void MinimumTerminalSpanningTree::setDebuggingOutput(FILE *fp,
-        unsigned int counter)
-{
-    debug_fp = fp;
-    debug_count = counter;
 }
 
 
@@ -211,16 +202,13 @@ void MinimumTerminalSpanningTree::buildHyperedgeTreeToRoot(VertInf *currVert,
             edge->setHyperedgeSegment(true);
         }
 
-        if (debug_fp)
+#ifdef DEBUGHANDLER
+        if (router->debugHandler())
         {
-            fprintf(debug_fp, "<path id=\"%s-%u\" d=\"M %g %g L %g %g\" "
-                    "class=\"hyperedge\" style=\"stroke: %s;\" />\n", 
-                    debug_label, step_count,
-                    currVert->point.x, currVert->point.y,
-                    prevNode->point.x, prevNode->point.y, "blue");
-            ++step_count;
+            router->debugHandler()->mtstCommitToEdge(currVert, prevVert, false);
         }
-        
+#endif
+
         if (addedNode == NULL)
         {
             // We've reached a junction, so stop.
@@ -294,6 +282,14 @@ void MinimumTerminalSpanningTree::constructSequential(void)
     std::vector<EdgeInf *> beHeap;
     CmpEdgeInf beHeapCompare;
 
+#ifdef DEBUGHANDLER
+    if (router->debugHandler())
+    {
+        router->debugHandler()->beginningHyperedgeReroutingWithEndpoints(
+                terminals);
+    }
+#endif
+
     // Initialisation
     //
     VertInf *endVert = router->vertices.end();
@@ -316,15 +312,8 @@ void MinimumTerminalSpanningTree::constructSequential(void)
     }
     std::make_heap(vHeap.begin(), vHeap.end(), vHeapCompare);
 
-    step_count = 1;
     // Shortest path terminal forest construction
     //
-    if (debug_fp)
-    {
-        fprintf(debug_fp, "<g inkscape:groupmode=\"layer\" "
-                "style=\"display: none;\" "
-                "inkscape:label=\"sequentialDijkstra\">\n");
-    }
     while ( ! vHeap.empty() )
     {
         // Take the lowest vertex from heap.
@@ -411,20 +400,18 @@ void MinimumTerminalSpanningTree::constructSequential(void)
                 // So attach it to the tree and update it with the distance
                 // from the root to reach this vertex.  Then add the vertex
                 // to the heap of potentials to explore.
-                if (debug_fp)
-                {
-                    fprintf(debug_fp, "<path id=\"for-%u\" class=\"forest\" "
-                            "d=\"M %g %g L %g %g\" />\n", step_count,
-                            v->point.x, v->point.y, u->point.x,
-                            u->point.y);
-                    ++step_count;
-                }
-
                 v->sptfDist = newCost;
                 v->pathNext = u;
                 v->setSPTFRoot(u->sptfRoot());
                 vHeap.push_back(v);
                 std::push_heap(vHeap.begin(), vHeap.end(), vHeapCompare);
+
+#ifdef DEBUGHANDLER
+                if (router->debugHandler())
+                {
+                    router->debugHandler()->mtstGrowForestWithEdge(u, v, true);
+                }
+#endif
             }
             else 
             {
@@ -442,29 +429,24 @@ void MinimumTerminalSpanningTree::constructSequential(void)
                         (*edge)->getDist();
                 (*edge)->setMtstDist(cost);
                 beHeap.push_back(*edge);
+
+#ifdef DEBUGHANDLER
+                if (router->debugHandler())
+                {
+                    router->debugHandler()->mtstPotentialBridgingEdge(u, v);
+                }
+#endif
             }
         }
     }
     // Make the bridging edge heap.
     std::make_heap(beHeap.begin(), beHeap.end(), beHeapCompare);
-    if (debug_fp)
-    {
-        fprintf(debug_fp, "</g>\n");
-    }
     TIMER_STOP(router);
 
     // Next, perform extended Kruskal's algorithm
     // ==========================================
     //
     TIMER_START(router, tmHyperedgeMTST);
-    if (debug_fp)
-    {
-        step_count = 1;
-        fprintf(debug_fp, "<g inkscape:groupmode=\"layer\" "
-                "id=\"kru-0\" style=\"display: none;\" "
-                "inkscape:label=\"sequentialKuskal\">\n");
-        strcpy(debug_label, "kru");
-    }
     while ( ! beHeap.empty() )
     {
         // Take the lowest cost edge.
@@ -511,21 +493,18 @@ void MinimumTerminalSpanningTree::constructSequential(void)
 
                 new HyperedgeTreeEdge(node1, node2, NULL);
             }
-            if (debug_fp)
+
+#ifdef DEBUGHANDLER
+            if (router->debugHandler())
             {
-                fprintf(debug_fp, "<path id=\"kru-%u\" d=\"M %g %g L %g %g\" "
-                        "class=\"hyperedge\" style=\"stroke: %s;\" />\n", 
-                        step_count, e->m_vert1->point.x, e->m_vert1->point.y, 
-                        e->m_vert2->point.x, e->m_vert2->point.y, "red");
-                ++step_count;
+                router->debugHandler()->mtstCommitToEdge(
+                        e->m_vert1, e->m_vert2, true);
             }
+#endif
+
             buildHyperedgeTreeToRoot(e->m_vert1->pathNext, node1, e->m_vert1);
             buildHyperedgeTreeToRoot(e->m_vert2->pathNext, node2, e->m_vert2);
         }
-    }
-    if (debug_fp)
-    {
-        fprintf(debug_fp, "</g>\n");
     }
 
     // Free the dummy nodes and edges created earlier.
@@ -638,12 +617,10 @@ LayeredOrthogonalEdgeList MinimumTerminalSpanningTree::
 
 void MinimumTerminalSpanningTree::constructInterleaved(void)
 {
-    step_count = 1;
     // Perform an interleaved construction of the MTST and SPTF
     // ========================================================
     //
     TIMER_START(router, tmHyperedgeAlt);
-    strcpy(debug_label, "int");
 
     origTerminals = terminals;
 
@@ -658,6 +635,14 @@ void MinimumTerminalSpanningTree::constructInterleaved(void)
         k->setTreeRootPointer(NULL);
         k->m_orthogonalPartner = NULL;
     }
+
+#ifdef DEBUGHANDLER
+    if (router->debugHandler())
+    {
+        router->debugHandler()->beginningHyperedgeReroutingWithEndpoints(
+                terminals);
+    }
+#endif
 
     COLA_ASSERT(rootVertexPointers.empty());
     for (std::set<VertInf *>::iterator ti = terminals.begin();
@@ -679,18 +664,6 @@ void MinimumTerminalSpanningTree::constructInterleaved(void)
     
     // Shortest Path Terminal Forest construction
     //
-    unsigned step = 1;
-    if (debug_fp)
-    {
-        fprintf(debug_fp, "<g inkscape:groupmode=\"layer\" "
-                "inkscape:label=\"interleaved\">\n");
-    }
-    if (debug_fp)
-    {
-        fprintf(debug_fp, "<g inkscape:groupmode=\"layer\" "
-                "style=\"display: none;\" "
-                "inkscape:label=\"grow-%02u\">\n", step++);
-    }
     while ( ! vHeap.empty() )
     {
         // Take the lowest vertex from heap.
@@ -725,9 +698,7 @@ void MinimumTerminalSpanningTree::constructInterleaved(void)
                 continue;
             }
 
-            unsigned int saved_step_count = step_count;
-            commitToBridgingEdge(e, step);
-            step_count = saved_step_count + 1;
+            commitToBridgingEdge(e);
 
             if (origTerminals.size() == 1)
             {
@@ -786,14 +757,12 @@ void MinimumTerminalSpanningTree::constructInterleaved(void)
                 vHeap.push_back(v);
                 std::push_heap(vHeap.begin(), vHeap.end(), vHeapCompare);
 
-                if (debug_fp)
+#ifdef DEBUGHANDLER
+                if (router->debugHandler())
                 {
-                    fprintf(debug_fp, "<path id=\"frst-%u\" class=\"forest\" "
-                            "d=\"M %g %g L %g %g\" />\n", step_count,
-                            v->point.x, v->point.y, u->point.x,
-                            u->point.y);
-                    ++step_count;
+                    router->debugHandler()->mtstGrowForestWithEdge(u, v, true);
                 }
+#endif
             }
             else 
             {
@@ -805,16 +774,17 @@ void MinimumTerminalSpanningTree::constructInterleaved(void)
                 e->setMtstDist(cost);
                 beHeap.push_back(e);
                 std::push_heap(beHeap.begin(), beHeap.end(), beHeapCompare);
+
+#ifdef DEBUGHANDLER
+                if (router->debugHandler())
+                {
+                    router->debugHandler()->mtstPotentialBridgingEdge(u, v);
+                }
+#endif
             }
         }
     }
     COLA_ASSERT(origTerminals.size() == 1);
-    if (debug_fp)
-    {
-        fprintf(debug_fp, "</g>\n</g>\n");
-        //printf("-- %d %d %d\n", (int) origTerminals.size(), 
-        //        (int) vHeap.size(), (int) beHeap.size());
-    }
     TIMER_STOP(router);
 
     // Free Root Vertex Points from all vertices.
@@ -931,10 +901,10 @@ void MinimumTerminalSpanningTree::drawForest(VertInf *vert, VertInf *prev)
 
         COLA_ASSERT(vert->treeRootPointer() != NULL);
         COLA_ASSERT(vert->treeRoot() != NULL);
-        fprintf(debug_fp, "<circle cx=\"%g\" cy=\"%g\" r=\"3\" db:sptfDist=\"%g\" "
-                "style=\"fill: %s; stroke: %s; fill-opacity: 0.5; "
-                "stroke-width: 1px; stroke-opacity:0.5\" />\n",
-                vert->point.x, vert->point.y, vert->sptfDist, colour, "black");
+        //fprintf(debug_fp, "<circle cx=\"%g\" cy=\"%g\" r=\"3\" db:sptfDist=\"%g\" "
+        //        "style=\"fill: %s; stroke: %s; fill-opacity: 0.5; "
+        //        "stroke-width: 1px; stroke-opacity:0.5\" />\n",
+        //        vert->point.x, vert->point.y, vert->sptfDist, colour, "black");
     }
     
     LayeredOrthogonalEdgeList edgeList = getOrthogonalEdgesFromVertex(vert,
@@ -953,13 +923,9 @@ void MinimumTerminalSpanningTree::drawForest(VertInf *vert, VertInf *prev)
         {
             if (v->pathNext == vert)
             {
-                if (debug_fp && (vert->point != v->point))
+                if (vert->point != v->point)
                 {
-                    fprintf(debug_fp, "<path d=\"M %g %g L %g %g\" db:sptfDist=\"%g\" "
-                            "style=\"fill: none; stroke: %s; "
-                            "stroke-width: 1px;\" />\n",
-                            vert->point.x, vert->point.y, v->point.x,
-                            v->point.y, v->sptfDist, "purple");
+                    router->debugHandler()->mtstGrowForestWithEdge(vert, v, false);
                 }
                 drawForest(v, vert);
             }
@@ -994,7 +960,7 @@ VertexPair MinimumTerminalSpanningTree::
 }
 
 
-void MinimumTerminalSpanningTree::commitToBridgingEdge(EdgeInf *e, unsigned& step)
+void MinimumTerminalSpanningTree::commitToBridgingEdge(EdgeInf *e)
 {
     VertexPair ends = realVerticesCountingPartners(e);
     VertInf *newRoot = std::min(ends.first->treeRoot(), ends.second->treeRoot());
@@ -1020,31 +986,21 @@ void MinimumTerminalSpanningTree::commitToBridgingEdge(EdgeInf *e, unsigned& ste
         new HyperedgeTreeEdge(node1, node2, NULL);
         e->setHyperedgeSegment(true);
     }
-    if (debug_fp)
+
+#ifdef DEBUGHANDLER
+    if (router->debugHandler())
     {
-        fprintf(debug_fp, "</g>\n<g id=\"join-%u\" "
-                "inkscape:groupmode=\"layer\" "
-                "inkscape:label=\"join-%02u\">\n", step - 1, step - 1);
-        fprintf(debug_fp, "<path d=\"M %g %g L %g %g\" "
-                "style=\"fill: none; stroke: %s; "
-                "stroke-width: 1px;\" />\n", vert1->point.x,
-                vert1->point.y, vert2->point.x,
-                vert2->point.y, "red");
-    }
-    buildHyperedgeTreeToRoot(vert1->pathNext, node1, vert1, true);
-    buildHyperedgeTreeToRoot(vert2->pathNext, node2, vert2, true);
-    
-    if (debug_fp)
-    {
-        fprintf(debug_fp, "</g>\n<g inkscape:groupmode=\"layer\" "
-                "style=\"display: none;\" "
-                "inkscape:label=\"forest-%02u\">\n", step -1);
+        router->debugHandler()->mtstCommitToEdge(vert1, vert2, true);
         for (std::set<VertInf *>::iterator ti = terminals.begin();
                 ti != terminals.end(); ++ti)
         {
             drawForest(*ti, NULL);
         }
     }
+#endif
+
+    buildHyperedgeTreeToRoot(vert1->pathNext, node1, vert1, true);
+    buildHyperedgeTreeToRoot(vert2->pathNext, node2, vert2, true);
     
     VertInf **oldTreeRootPtr1 = vert1->treeRootPointer();
     VertInf **oldTreeRootPtr2 = vert2->treeRootPointer();
@@ -1063,30 +1019,10 @@ void MinimumTerminalSpanningTree::commitToBridgingEdge(EdgeInf *e, unsigned& ste
     *oldTreeRootPtr1 = NULL;
     *oldTreeRootPtr2 = NULL;
 
-    if (debug_fp)
-    {
-        fprintf(debug_fp, "</g>\n<g id=\"pruned-%u\" "
-                "inkscape:groupmode=\"layer\" style=\"display: none;\" "
-                "inkscape:label=\"pruned-%02u\">\n", step - 1, step - 1);
-        for (std::set<VertInf *>::iterator ti = terminals.begin();
-                ti != terminals.end(); ++ti)
-        {
-            drawForest(*ti, NULL);
-        }
-    }
-
     // Finish when we have joined everything.
     if (origTerminals.size() == 1)
     {
         return;
-    }
-
-    if (debug_fp)
-    {
-        fprintf(debug_fp, "</g>\n");
-        fprintf(debug_fp, "<g inkscape:groupmode=\"layer\" "
-                "style=\"display: none;\" "
-                "inkscape:label=\"grow-%02u\">\n", step++);
     }
 
     // Reset all terminals to zero.
