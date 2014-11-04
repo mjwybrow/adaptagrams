@@ -31,7 +31,7 @@
 #include "libavoid/assertions.h"
 #include "libavoid/dllexport.h"
 
-// Add -DDEBUGHANDLER to compile is debug handler with optimisations enabled.
+// Add -DDEBUGHANDLER to compile in debug handler with optimisations enabled.
 #ifndef NDEBUG
   #define DEBUGHANDLER
 #endif
@@ -58,7 +58,8 @@ class AVOID_EXPORT DebugHandler
         }
 
         // @brief An updated connector route.  Optionally the ends of a just
-        //        updated segment within the route.
+        //        updated segment within the route between the indexes index1 
+        //        and index2.
         //
         virtual void updateConnectorRoute(ConnRef *conn, int index1, int index2)
         {
@@ -68,7 +69,7 @@ class AVOID_EXPORT DebugHandler
         }
 
         // @brief The current endpoints that a path is being searched for
-        //        between
+        //        between src and tar
         //
         virtual void beginningSearchWithEndpoints(VertInf *src, VertInf *tar)
         {
@@ -91,6 +92,13 @@ class AVOID_EXPORT DebugHandler
         }
 
 
+        // @brief The Minimum Terminal Spanning Tree for hyperedge rerouting
+        //        is being grown with the edge between vertices u and v.
+        //
+        // @param shouldWait  Boolean indicating the forest is being grown 
+        //                    with this edge, or otherwise being immediately
+        //                    repopulated after pruning.
+        //
         virtual void mtstGrowForestWithEdge(Avoid::VertInf *u, Avoid::VertInf *v, bool shouldWait)
         {
             COLA_UNUSED(u);
@@ -98,12 +106,20 @@ class AVOID_EXPORT DebugHandler
             COLA_UNUSED(shouldWait);
         }
 
+        // @brief The Minimum Terminal Spanning Tree for hyperedge rerouting
+        //        is potentiall bridged by the edge between vertices u and v.
+        //
         virtual void mtstPotentialBridgingEdge(Avoid::VertInf *u, Avoid::VertInf *v)
         {
             COLA_UNUSED(u);
             COLA_UNUSED(v);
         }
 
+        // @brief The Minimum Terminal Spanning Tree for hyperedge rerouting
+        //        is being finalised with the edge between vertices u and v.
+        //
+        // @param isBridge  Boolean indicating whether edge was a bridge.
+        //
         virtual void mtstCommitToEdge(Avoid::VertInf *u, Avoid::VertInf *v, bool isBridge)
         {
             COLA_UNUSED(u);
