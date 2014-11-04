@@ -1025,8 +1025,10 @@ void MinimumTerminalSpanningTree::commitToBridgingEdge(EdgeInf *e)
     {
         COLA_ASSERT((*v2)->sptfDist == 0);
         vHeap.push_back(*v2);
-        std::push_heap(vHeap.begin(), vHeap.end(), vHeapCompare);
     }
+
+    // Rebuild the heap since some terminals will have had distances rewritten.
+    std::make_heap(vHeap.begin(), vHeap.end(), vHeapCompare);
 }
 
 }
