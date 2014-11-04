@@ -186,9 +186,9 @@ class AVOID_EXPORT HyperedgeRerouter
         // Called by Router during processTransaction().
         void performRerouting(void);
         void outputInstanceToSVG(FILE *fp);
-        void findAttachedObjects(size_t index, ConnRef *connector,
+        bool findAttachedObjects(size_t index, ConnRef *connector,
                 JunctionRef *ignore, ConnRefSet& hyperedgeConns);
-        void findAttachedObjects(size_t index, JunctionRef *junction,
+        bool findAttachedObjects(size_t index, JunctionRef *junction,
                 ConnRef *ignore, ConnRefSet& hyperedgeConns);
 
         Router *m_router;

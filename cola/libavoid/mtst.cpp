@@ -143,8 +143,12 @@ HyperedgeTreeNode *MinimumTerminalSpanningTree::addNode(VertInf *vertex,
         newNode->point = vertex->point;
         // Remember it.
         nodes[vertex] = newNode;
-        // Join it to the previous node.
-        new HyperedgeTreeEdge(prevNode, newNode, NULL);
+
+        if (prevNode)
+        {
+            // Join it to the previous node.
+            new HyperedgeTreeEdge(prevNode, newNode, NULL);
+        }
 
         return newNode;
     }
@@ -166,8 +170,12 @@ HyperedgeTreeNode *MinimumTerminalSpanningTree::addNode(VertInf *vertex,
             router->removeObjectFromQueuedActions(junctionNode->junction);
             junctionNode->junction->makeActive();
         }
-        // Joint to junction
-        new HyperedgeTreeEdge(prevNode, junctionNode, NULL);
+
+        if (prevNode)
+        {
+            // Join junction to previous node.
+            new HyperedgeTreeEdge(prevNode, junctionNode, NULL);
+        }
 
         return NULL;
     }
@@ -483,15 +491,8 @@ void MinimumTerminalSpanningTree::constructSequential(void)
             HyperedgeTreeNode *node2 = NULL;
             if (hyperedgeTreeJunctions)
             {
-                node1 = new HyperedgeTreeNode();
-                node1->point = e->m_vert1->point;
-                nodes[e->m_vert1] = node1;
-
-                node2 = new HyperedgeTreeNode();
-                node2->point = e->m_vert2->point;
-                nodes[e->m_vert2] = node2;
-
-                new HyperedgeTreeEdge(node1, node2, NULL);
+                node1 = addNode(e->m_vert1, NULL);
+                node2 = addNode(e->m_vert2, node1);
             }
 
 #ifdef DEBUGHANDLER
@@ -975,15 +976,8 @@ void MinimumTerminalSpanningTree::commitToBridgingEdge(EdgeInf *e)
     VertInf *vert2 = ends.second;
     if (hyperedgeTreeJunctions)
     {
-        node1 = new HyperedgeTreeNode();
-        node1->point = ends.first->point;
-        nodes[vert1] = node1;
-
-        node2 = new HyperedgeTreeNode();
-        node2->point = ends.second->point;
-        nodes[vert2] = node2;
-
-        new HyperedgeTreeEdge(node1, node2, NULL);
+        node1 = addNode(vert1, NULL);
+        node2 = addNode(vert2, node1);
         e->setHyperedgeSegment(true);
     }
 

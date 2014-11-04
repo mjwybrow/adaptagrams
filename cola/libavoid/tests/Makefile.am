@@ -7,6 +7,8 @@ LDADD = $(top_builddir)/libavoid/libavoid.la
 #	unsatisfiableRangeAssertion  - really slow.
 
 check_PROGRAMS = \
+	treeRootCrash01 \
+	treeRootCrash02 \
         forwardFlowingConnectors01 \
 	example \
 	endlessLoop01 \
@@ -83,6 +85,9 @@ check_PROGRAMS = \
 	hyperedgeRerouting01
 
 # problem_SOURCES = problem.cpp
+
+treeRootCrash01_SOURCES = treeRootCrash01.cpp
+treeRootCrash02_SOURCES = treeRootCrash02.cpp
 
 hyperedgeRerouting01_SOURCES = hyperedgeRerouting01.cpp
 

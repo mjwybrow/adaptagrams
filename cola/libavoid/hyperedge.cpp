@@ -1,3 +1,5 @@
+        // @brief The current hyperedge endpoints for hyperedge rerouting
+        //
 /*
  * vim: ts=4 sw=4 et tw=0 wm=0
  *
@@ -33,6 +35,7 @@
 #include "libavoid/router.h"
 #include "libavoid/assertions.h"
 #include "libavoid/debughandler.h"
+#include "libavoid/debug.h"
 
 
 namespace Avoid {
@@ -124,9 +127,11 @@ void HyperedgeRerouter::outputInstanceToSVG(FILE *fp)
 // Follow connected junctions and connectors from the given connector to
 // determine the hyperedge topology, saving objects to the deleted-objects
 // vectors as we go.
-void HyperedgeRerouter::findAttachedObjects(size_t index,
+bool HyperedgeRerouter::findAttachedObjects(size_t index,
         ConnRef *connector, JunctionRef *ignore, ConnRefSet& hyperedgeConns)
 {
+    bool validHyperedge = false;
+
     connector->assignConnectionPinVisibility(true);
 
     m_deleted_connectors_vector[index].push_back(connector);
@@ -141,7 +146,7 @@ void HyperedgeRerouter::findAttachedObjects(size_t index,
         // If attached to a junction and not one we've explored, then continue.
         if (jFirst != ignore)
         {
-            findAttachedObjects(index, jFirst, connector, hyperedgeConns);
+            validHyperedge |= findAttachedObjects(index, jFirst, connector, hyperedgeConns);
         }
     }
     else
@@ -156,7 +161,7 @@ void HyperedgeRerouter::findAttachedObjects(size_t index,
         // If attached to a junction and not one we've explored, then continue.
         if (jSecond != ignore)
         {
-            findAttachedObjects(index, jSecond, connector, hyperedgeConns);
+            validHyperedge |= findAttachedObjects(index, jSecond, connector, hyperedgeConns);
         }
     }
     else
@@ -165,18 +170,28 @@ void HyperedgeRerouter::findAttachedObjects(size_t index,
         COLA_ASSERT(connector->m_dst_vert);
         m_terminal_vertices_vector[index].insert(connector->m_dst_vert);
     }
+    return validHyperedge;
 }
 
 
 // Follow connected junctions and connectors from the given junction to
 // determine the hyperedge topology, saving objects to the deleted-objects
 // vectors as we go.
-void HyperedgeRerouter::findAttachedObjects(size_t index,
+bool HyperedgeRerouter::findAttachedObjects(size_t index,
         JunctionRef *junction, ConnRef *ignore, ConnRefSet& hyperedgeConns)
 {
+    bool validHyperedge = false;
+
     m_deleted_junctions_vector[index].push_back(junction);
 
     ConnRefList connectors = junction->attachedConnectors();
+
+    if (connectors.size() > 2)
+    {
+        // A valid hyperedge must have at least one junction with three
+        // connectors attached, i.e., more than two endpoints.
+        validHyperedge |= true;
+    }
 
     for (ConnRefList::iterator curr  = connectors.begin();
             curr != connectors.end(); ++curr)
@@ -187,8 +202,9 @@ void HyperedgeRerouter::findAttachedObjects(size_t index,
         }
 
         COLA_ASSERT(*curr != NULL);
-        findAttachedObjects(index, (*curr), junction, hyperedgeConns);
+        validHyperedge |= findAttachedObjects(index, (*curr), junction, hyperedgeConns);
     }
+    return validHyperedge;
 }
 
 
@@ -218,8 +234,21 @@ ConnRefSet HyperedgeRerouter::calcHyperedgeConnectors(void)
         if (m_root_junction_vector[i])
         {
             // Follow objects attached to junction to find the hyperedge.
-            findAttachedObjects(i, m_root_junction_vector[i], NULL,
+            bool valid = findAttachedObjects(i, m_root_junction_vector[i], NULL,
                     allRegisteredHyperedgeConns);
+            if (!valid)
+            {
+                err_printf("Warning: Hyperedge %d registered with "
+                           "HyperedgeRerouter is invalid and will be "
+                           "ignored.\n", (int) i);
+                // Hyperedge is invalid.  Clear the terminals and other info
+                // so it will be ignored, and rerouted as a normal set of 
+                // connectors.
+                m_terminals_vector[i].clear();
+                m_terminal_vertices_vector[i].clear();
+                m_deleted_junctions_vector[i].clear();
+                m_deleted_connectors_vector[i].clear();
+            }
             continue;
         }
 
@@ -283,6 +312,12 @@ void HyperedgeRerouter::performRerouting(void)
     const size_t num_hyperedges = count();
     for (size_t i = 0; i < num_hyperedges; ++i)
     {
+        if (m_terminal_vertices_vector[i].empty())
+        {
+            // Invalid hyperedge, ignore.
+            continue;
+        }
+
         // Execute the MTST method to find good junction positions and an
         // initial path.  A hyperedge tree will be built for the new route.
         JunctionHyperedgeTreeNodeMap hyperedgeTreeJunctions;
