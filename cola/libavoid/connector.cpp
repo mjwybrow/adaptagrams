@@ -615,6 +615,7 @@ void ConnRef::setFixedExistingRoute(void)
 {
     COLA_ASSERT(m_route.size() >= 2);
     m_has_fixed_route = true;
+    m_router->registerSettingsChange();
 }
 
 void ConnRef::setFixedRoute(const PolyLine& route)
@@ -628,6 +629,7 @@ void ConnRef::setFixedRoute(const PolyLine& route)
     m_has_fixed_route = true;
     m_route = route;
     m_display_route = m_route.simplify();
+    m_router->registerSettingsChange();
 }
 
 bool ConnRef::hasFixedRoute(void) const
@@ -639,6 +641,7 @@ void ConnRef::clearFixedRoute(void)
 {
     m_has_fixed_route = false;
     makePathInvalid();
+    m_router->registerSettingsChange();
 }
 
 Polygon& ConnRef::displayRoute(void)

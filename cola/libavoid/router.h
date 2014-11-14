@@ -775,6 +775,7 @@ class AVOID_EXPORT Router {
         ShapeRef *shapeContainingPoint(const Point& point);
         void performContinuationCheck(unsigned int phaseNumber,
                 size_t stepNumber, size_t totalSteps);
+        void registerSettingsChange(void);
 
         /** 
          *  @brief  Set an addon for doing orthogonal topology improvement.

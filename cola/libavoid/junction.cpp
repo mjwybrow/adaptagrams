@@ -82,6 +82,7 @@ Rectangle JunctionRef::makeRectangle(Router *router, const Point& position)
 void JunctionRef::setPositionFixed(bool fixed)
 {
     m_position_fixed = fixed;
+    m_router->registerSettingsChange();
 }
 
 

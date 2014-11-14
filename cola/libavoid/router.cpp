@@ -1900,6 +1900,10 @@ void Router::setRoutingPenalty(const RoutingParameter penType,
     setRoutingParameter(penType, penValue);
 }
 
+void Router::registerSettingsChange(void)
+{
+    m_settings_changes = true;
+}
 
 HyperedgeRerouter *Router::hyperedgeRerouter(void)
 {
