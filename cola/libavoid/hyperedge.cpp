@@ -1,5 +1,3 @@
-        // @brief The current hyperedge endpoints for hyperedge rerouting
-        //
 /*
  * vim: ts=4 sw=4 et tw=0 wm=0
  *
