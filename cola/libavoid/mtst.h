@@ -93,7 +93,7 @@ class MinimumTerminalSpanningTree
         void unionSets(VertexSetList::iterator s1, VertexSetList::iterator s2);
         HyperedgeTreeNode *addNode(VertInf *vertex, HyperedgeTreeNode *prevNode);
 
-        void popInvalidBridgingEdges(void);
+        void removeInvalidBridgingEdges(void);
         void commitToBridgingEdge(EdgeInf *e);
         bool connectsWithoutBend(VertInf *oldLeaf, VertInf *newLeaf);
         LayeredOrthogonalEdgeList getOrthogonalEdgesFromVertex(VertInf *vert, 
