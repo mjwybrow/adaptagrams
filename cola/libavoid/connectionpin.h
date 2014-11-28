@@ -64,23 +64,25 @@ static const double ATTACH_POS_MAX_OFFSET = -1;
 //! @brief  The ShapeConnectionPin class represents a fixed point or "pin" 
 //!         on a shape that can be connected to.
 //!
+//! A pin has a position that is specified relative to its parent shape.  
+//! When the shape is moved or resized, the pin will be automatically moved 
+//! accordingly.  Connectors attached to the pin will be rerouted.
+//!
 //! Pins have a visibility direction and numeric ID used to identify them.
 //! This ID, known as their classId, may be shared by multiple pins on the
-//! same shape, when you want to allow libavoid to choose from potential 
-//! choices (e.g., to specify multiple types of pins such as "input" or 
-//! "output" pins).  If you don't wish to use classes of Ids you can also 
-//! just give each pin a unique classId for that shape if you want to attach
-//! particular connectors to specfic pins.
+//! same shape.  You can use classIds when you want libavoid to choose from 
+//! multiple potential choices (e.g., to specify multiple types of pins such 
+//! as "input" or "output" pins on circuit elements).
+//!
+//! If you would like connectors that attach to a single specific position
+//! on a shape, then just give each pin a unique classId (for that shape)
+//! and tell the connector to attach to that particular pin.
 //! 
 //! Pins may optionally be given a connection cost, via setConnectionCost(). 
 //! In the case of multiple pins with the same classId, this causes the 
-//! lower-cost pins to be chosen first, rather than libavoid just choosing
-//! the best pin with that classId based solely on connector path cost.
+//! lower-cost pins to be chosen first, rather than libavoid choosing the
+//! best pin with that classId based solely on connector path cost.
 //! 
-//! Each pins has a position that is specified relative to its parent shape.  
-//! When the shape is moved or resized, the pin will be automatically moved 
-//! accordingly.
-//!
 //! Pins can be exclusive, which means subsequent connectors routed to the 
 //! same classId will choose a different pin.  Pins with a specified direction 
 //! are exclusive by default, those with visibility in all directions are 
