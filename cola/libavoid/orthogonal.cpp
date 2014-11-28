@@ -62,7 +62,8 @@ static const double strongerWeight = 1.0;
 static const double fixedWeight  = 100000;
 
 
-// A pair of unordered unsigned values that can be stored in a set.
+// A pair of unsigned values that can be compared and used as the keys
+// for sets and maps.
 class UnsignedPair
 {
     public:
