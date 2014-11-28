@@ -50,6 +50,10 @@ class AVOID_EXPORT DebugHandler
         {
         }
 
+        ~DebugHandler()
+        {
+        }
+
         // @brief The obstacles being routed around.
         //
         virtual void updateObstacleBoxes(std::vector<Avoid::Box> obstacles)
