@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2013  Monash University
+ * Copyright (C) 2004-2014  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -230,6 +230,7 @@ class AVOID_EXPORT ConnEnd
         friend class HyperedgeRerouter;
         friend class ShapeConnectionPin;
         friend class HyperedgeImprover;
+        friend class CrossingConnectorsInfo;
 
         void connect(ConnRef *conn);
         void disconnect(const bool shapeDeleted = false);

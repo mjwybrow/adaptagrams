@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2010-2013  Monash University
+ * Copyright (C) 2010-2014  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -32,6 +32,7 @@
 #include <cstdio>
 #include <set>
 #include <climits>
+#include <utility>
 
 #include "libavoid/dllexport.h"
 #include "libavoid/connend.h"
@@ -48,6 +49,8 @@ class ShapeRef;
 class JunctionRef;
 class ConnEnd;
 class VertInf;
+
+typedef std::pair<unsigned int, unsigned int> ConnectionPinIds;
 
 // Used to specify position on shape when constructing a shape-attached ConnEnd.
 //
@@ -231,6 +234,15 @@ class AVOID_EXPORT ShapeConnectionPin
         //!                        be exclusive.
         //!
         void setExclusive(const bool exclusive);
+
+        //! @brief Returns whether the connection pin is exclusive, 
+        //!        i.e., only one connector can attach to it.
+        //!
+        //! @return  A boolean denoting whether this pin is exclusive.
+        //!
+        bool isExclusive(void) const;
+
+        ConnectionPinIds ids(void) const;
 
         bool operator==(const ShapeConnectionPin& rhs) const;
         bool operator<(const ShapeConnectionPin& rhs) const;

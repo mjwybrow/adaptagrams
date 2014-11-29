@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2010-2013  Monash University
+ * Copyright (C) 2010-2014  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -225,6 +225,10 @@ void ShapeConnectionPin::setExclusive(const bool exclusive)
     m_exclusive = exclusive;
 }
 
+bool ShapeConnectionPin::isExclusive(void) const
+{
+    return m_exclusive;
+}
 
 void ShapeConnectionPin::updatePosition(const Point& newPosition)
 {
@@ -379,6 +383,11 @@ void ShapeConnectionPin::outputCode(FILE *fp) const
         // Directional port is not exclusive (the default), so output this.
         fprintf(fp, "    connPin->setExclusive(false);\n");
     }
+}
+
+ConnectionPinIds ShapeConnectionPin::ids(void) const
+{
+    return std::make_pair(containingObjectId(), m_class_id);
 }
 
 unsigned int ShapeConnectionPin::containingObjectId(void) const

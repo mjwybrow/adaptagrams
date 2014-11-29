@@ -942,6 +942,10 @@ void Router::rerouteAndCallbackConnectors(void)
     ConnRefSet hyperedgeConns =
             m_hyperedge_rerouter.calcHyperedgeConnectors();
 
+    // TODO: It might be worth sorting connectors and routing them from 
+    //       smallest to largest estimated cost.  This way we likely get 
+    //       better exclusive pin assignment during initial routing.
+
     size_t totalConns = connRefs.size();
     size_t numOfReroutedConns = 0;
     for (ConnRefList::const_iterator i = connRefs.begin(); i != fin; ++i) 
@@ -1047,63 +1051,6 @@ class CmpConnCostRef
 typedef std::set<ConnCostRef, CmpConnCostRef> ConnCostRefSet;
 typedef std::list<ConnCostRefSet> ConnCostRefSetList;
 
-static ConnCostRefSetList::iterator setForCrossingConn(
-        ConnCostRefSetList &setList, ConnCostRef conn)
-{
-    for (ConnCostRefSetList::iterator it = setList.begin(); 
-            it != setList.end(); ++it)
-    {
-        if (it->find(conn) != it->end())
-        {
-            return it;
-        }
-    }
-    return setList.end();
-}
-
-
-static void addCrossingConnsToSetList(ConnCostRefSetList &setList, ConnCostRef conn1,
-        ConnCostRef conn2)
-{
-    ConnCostRefSetList::iterator set1 = setForCrossingConn(setList, conn1);
-    ConnCostRefSetList::iterator set2 = setForCrossingConn(setList, conn2);
-    
-    if ((set1 == setList.end()) && (set2 == setList.end()))
-    {
-        ConnCostRefSet newSet;
-        newSet.insert(conn1);
-        newSet.insert(conn2);
-        setList.push_back(newSet);
-    }
-    else if ((set1 != setList.end()) && (set2 == setList.end()))
-    {
-        set1->insert(conn2);
-    }
-    else if ((set1 == setList.end()) && (set2 != setList.end()))
-    {
-        set2->insert(conn1);
-    }
-    else
-    {
-        COLA_ASSERT((set1 != setList.end()) && (set2 != setList.end()));
-        set1->insert(set2->begin(), set2->end());
-        setList.erase(set2);
-    }
-}
-
-static bool connsKnownToCross(ConnCostRefSetList &setList, ConnCostRef conn1,
-        ConnCostRef conn2)
-{
-    ConnCostRefSetList::iterator set1 = setForCrossingConn(setList, conn1);
-    ConnCostRefSetList::iterator set2 = setForCrossingConn(setList, conn2);
-
-    if ((set1 == set2) && (set1 != setList.end()))
-    {
-        return true;
-    }
-    return false;
-}
-
 
 static double cheapEstimatedCost(ConnRef *lineRef)
 {
@@ -1130,6 +1077,285 @@ static double cheapEstimatedCost(ConnRef *lineRef)
     }
     return length - smallestSegment;
 }
+
+
+// A map of connectors to the set of connectors that cross them.
+typedef std::map<ConnRef *, std::set<ConnRef *> > CrossingConnectorsMap;
+
+// A list of connector crossing maps that don't interact with each other.
+typedef std::list<CrossingConnectorsMap> CrossingConnectorsMapList;
+
+// This class maintains the list of connector crossing maps and provides 
+// methods for adding crossing connector pairs and getting the minimal sets
+// of connectors that can be removed from each group to prevent crossings.
+class CrossingConnectorsInfo
+{
+    public:
+
+        // Add information that a pair of connectors cross.
+        void addCrossing(ConnRef *conn1, ConnRef *conn2)
+        {
+            // Find the existing or new group that this crossing 
+            // should be recorded in.
+            CrossingConnectorsMapList::iterator it = 
+                    groupForCrossingConns(conn1, conn2);
+            CrossingConnectorsMap& pairsSet = *it;
+
+            // Record the crossing.
+            pairsSet[conn1].insert(conn2);
+            pairsSet[conn2].insert(conn1);
+        }
+
+        // This method builds and returns a list of non-interacting sets of
+        // connectors (with crossing counts) that need to be removed so there
+        // are no crossings.  These are the connectors we reroute.  Where 
+        // these connectors attach to exclusive connection pins, we return
+        // and thus reroute all connectors attached to the exlcusive pins.  We 
+        // do this so we are no so committed to possible bad pin assignemnts.
+        ConnCostRefSetList crossingSetsListToRemoveCrossingsFromGroups(void)
+        {
+            // A list of the minimal sets of connectors that cause crossings 
+            // in all groups of crossingconnectors.
+            ConnCostRefSetList crossingSetsList;
+
+            // For each group of crossing connectors.
+            for (CrossingConnectorsMapList::iterator it = pairsSetList.begin();
+                 it != pairsSetList.end(); ++it)
+            {
+                // The minimal set of crossing-causing connectors.
+                // We will build this.
+                ConnCostRefSet crossingSet;
+
+                // Set of exclusive pins that the crossing-causing connectors
+                // attach to.
+                std::set<ConnectionPinIds> exclusivePins;
+
+                // The group of all crossing pairs.
+                CrossingConnectorsMap& pairsSet = *it;
+
+                // For each crossing-causing connector.
+                ConnCostRef crossingCausingConnector;
+                while ( (crossingCausingConnector = 
+                            removeConnectorWithMostCrossings(pairsSet)).second != NULL )
+                {
+                    // Add it to our crossing-causing set.
+                    crossingSet.insert(crossingCausingConnector);
+
+                    // Determine if it attaches to any exclusive pins and 
+                    // record these.
+                    std::pair<ConnEnd, ConnEnd> ends = 
+                            crossingCausingConnector.second->endpointConnEnds();
+                    // Look at one end.
+                    ShapeConnectionPin *pin = ends.first.m_active_pin;
+                    if (pin && pin->isExclusive())
+                    {
+                        exclusivePins.insert(pin->ids());
+                    }
+                    // Look at other end.
+                    pin = ends.second.m_active_pin;
+                    if (pin && pin->isExclusive())
+                    {
+                        exclusivePins.insert(pin->ids());
+                    }
+                }
+
+                // For each of the remaining connectors which are not
+                // crossing-causing, add them to our crossing set if they 
+                // attach to one of the exclusive pin classes which the
+                // crossing-causing connectors attached to.
+                for (CrossingConnectorsMap::const_iterator it2 = 
+                        pairsSet.cbegin(); it2 != pairsSet.cend(); ++it2)
+                {
+                    ConnRef *conn = it2->first;
+                    std::pair<ConnEnd, ConnEnd> ends = conn->endpointConnEnds();
+                    // Look at one end.
+                    ShapeConnectionPin *pin = ends.first.m_active_pin;
+                    if (pin && pin->isExclusive())
+                    {
+                        if (exclusivePins.count(pin->ids()) > 0)
+                        {
+                            // Attaches to an exclusive pin and it matches 
+                            // one attached to by the crossing-causing
+                            // connectors.  So add the conn to the 
+                            // crossing set and continue..
+                            crossingSet.insert(std::make_pair(0, conn));
+                            continue;
+                        }
+                    }
+                    // Look at other end.
+                    pin = ends.second.m_active_pin;
+                    if (pin && pin->isExclusive())
+                    {
+                        if (exclusivePins.count(pin->ids()) > 0)
+                        {
+                            // Attaches to an exclusive pin and it matches 
+                            // one attached to by the crossing-causing
+                            // connectors.  So add the conn to the 
+                            // crossing set.
+                            crossingSet.insert(std::make_pair(0, conn));
+                        }
+                    }
+                }
+
+                if (!crossingSet.empty())
+                {
+                    crossingSetsList.push_back(crossingSet);
+                }
+            }
+            return crossingSetsList;
+        }
+
+        // Returns whether this pair of connector is already known to cross.
+        bool connsKnownToCross(ConnRef *conn1, ConnRef *conn2)
+        {
+            CrossingConnectorsMapList::iterator it1 = groupForConn(conn1);
+            CrossingConnectorsMapList::iterator it2 = groupForConn(conn2);
+
+            // The connectors cross if
+            if ((it1 == it2) && (it1 != pairsSetList.end()))
+            {
+                // They are in the same group and conn2 is in crossing
+                // connectors set of conn1.
+                CrossingConnectorsMap& pairsSet = *it1;
+                return ((pairsSet.count(conn1) > 0) &&
+                        (pairsSet[conn1].count(conn2) > 0));
+            }
+            return false;
+        }
+
+    private:
+
+        // Given a particular group (pairsSet), removes the connector with 
+        // the most crossings withing the group and returns it along with its 
+        // crossing count.
+        ConnCostRef removeConnectorWithMostCrossings(
+                CrossingConnectorsMap& pairsSet)
+        {
+            // Tracking of the greatest number of crossings.
+            ConnRef *candidateConnector = NULL;
+            size_t candidateCrossingCount = 0;
+            double candidateEstimatedCost = 0;
+
+            // For each connector in the group...
+            for (CrossingConnectorsMap::const_iterator it = pairsSet.cbegin();
+                    it != pairsSet.cend(); ++it)
+            {
+                // ... check if it has any crossings.
+                size_t crossings = it->second.size();
+                if (crossings == 0)
+                {
+                    // If not, skip.
+                    continue;
+                }
+
+                // It has crossings.  Determine if it has the most crossings
+                // of the connectors we've seen, or if it is tied but has
+                // a greater estimated cost.  If so, it is our new candidate.
+                double cost = cheapEstimatedCost(it->first);
+                if ((crossings > candidateCrossingCount) || 
+                    ((crossings == candidateCrossingCount) && 
+                        (cost > candidateEstimatedCost)))
+                {
+                    // Update with new candidate.
+                    candidateConnector = it->first;
+                    candidateCrossingCount = crossings;
+                    candidateEstimatedCost = cost;
+                }
+            }
+
+            if (candidateConnector == NULL)
+            {
+                // If no candidate, return NULL connector.
+                return std::make_pair(0, (ConnRef *) NULL);
+            }
+
+            // Remove the candidate from the group.  To do this we find the
+            // set of all connectors it crosses.
+            std::set<ConnRef *>& connSet = pairsSet[candidateConnector];
+            // For each of these
+            for (std::set<ConnRef *>::const_iterator it = connSet.cbegin();
+                    it != connSet.cend(); ++it)
+            {
+                // we remove the candidate from their crossing lists
+                pairsSet[*it].erase(candidateConnector);
+            }
+            // And then clear the crossing list for the candidate itself.
+            connSet.clear();
+
+            // Return the candidate connector and its original crossing count.
+            return std::make_pair(candidateCrossingCount, candidateConnector);
+        }
+
+        // Returns the iterator to the group that the given conn is in,
+        // if it is part of any crossing group.
+        CrossingConnectorsMapList::iterator groupForConn(ConnRef *conn)
+        {
+            // For each group...
+            for (CrossingConnectorsMapList::iterator it = pairsSetList.begin();
+                 it != pairsSetList.end(); ++it)
+            {
+                // ... check if the connector is in it.
+                if (it->count(conn) > 0)
+                {
+                    // If so, return it.
+                    return it;
+                }
+            }
+            // Connector was not in any existing group.
+            return pairsSetList.end();
+        }
+
+        // Given a pair of crossing connectors, returns an iterator to the 
+        // crossing connector group they are part of.  If neither are part 
+        // of any group, one is created and returned.  If one connector is 
+        // part of an exisitng group, that group is returned.  If they are 
+        // part of two different groups, the groups are merged and the 
+        // merged group is returned.
+        CrossingConnectorsMapList::iterator groupForCrossingConns(
+                ConnRef *conn1, ConnRef *conn2)
+        {
+            CrossingConnectorsMapList::iterator it1 = groupForConn(conn1);
+            CrossingConnectorsMapList::iterator it2 = groupForConn(conn2);
+
+            // groupIt will be the iterator to the appropriate group.
+            CrossingConnectorsMapList::iterator groupIt = pairsSetList.end();
+
+            if ((it1 == pairsSetList.end()) && (it2 == pairsSetList.end()))
+            {
+                // Neither are part of a group.  Create one.
+                CrossingConnectorsMap newSet;
+                groupIt = pairsSetList.insert(pairsSetList.end(), newSet);
+            }
+            else if ((it1 != pairsSetList.end()) && (it2 == pairsSetList.end()))
+            {
+                // it1 is the appropriate existing group.
+                groupIt = it1;
+            }
+            else if ((it1 == pairsSetList.end()) && (it2 != pairsSetList.end()))
+            {
+                // it2 is the appropriate exisitng group.
+                groupIt = it2;
+            }
+            else if (it1 != it2)
+            {
+                // There are two different existing groups, so merge them.
+                COLA_ASSERT(it1 != pairsSetList.end());
+                COLA_ASSERT(it2 != pairsSetList.end());
+                it1->insert(it2->begin(), it2->end());
+                pairsSetList.erase(it2);
+                groupIt = it1;
+            }
+            else 
+            {
+                // These are already part of the same group.  Do nothing.
+                COLA_ASSERT(it1 == it2);
+                groupIt = it1;
+            }
+            return groupIt;
+        }
+
+        CrossingConnectorsMapList pairsSetList;
+};
 
 
 void Router::performContinuationCheck(unsigned int phaseNumber, 
@@ -1193,14 +1419,15 @@ void Router::improveCrossings(void)
         // No penalties, return.
         return;
     }
-    
+
+    // Information on crossing connector groups.
+    CrossingConnectorsInfo crossingConnInfo;
+
     size_t numOfConns = connRefs.size();
     size_t numOfConnsChecked = 0;
 
     // Find crossings and reroute connectors.
     m_in_crossing_rerouting_stage = true;
-    ConnCostRefSet crossingConns;
-    ConnCostRefSetList fixedSharedPathConns;
     ConnRefList::iterator fin = connRefs.end();
     for (ConnRefList::iterator i = connRefs.begin(); i != fin; ++i) 
     {
@@ -1221,18 +1448,15 @@ void Router::improveCrossings(void)
             // We can't reroute these.
             continue;
         }
-        ConnCostRef iCostRef = std::make_pair(cheapEstimatedCost(*i), *i);
         ConnRefList::iterator j = i;
         for (++j; j != fin; ++j) 
         {
-            ConnCostRef jCostRef = std::make_pair(cheapEstimatedCost(*j), *j);
-            if (connsKnownToCross(fixedSharedPathConns, iCostRef, jCostRef) ||
-                    (crossingConns.count(iCostRef) && 
-                     crossingConns.count(jCostRef)))
+            if (crossingConnInfo.connsKnownToCross(*i, *j))
             {
                 // We already know both these have crossings.
                 continue;
             }
+
             // Determine if this pair cross.
             Avoid::Polygon& jRoute = (*j)->routeRef();
             ConnectorCrossings cross(iRoute, true, jRoute, *i, *j);
@@ -1249,68 +1473,48 @@ void Router::improveCrossings(void)
                 {
                     // We are penalising fixedSharedPaths and there is a
                     // fixedSharedPath.
-
-                    if ((cross.crossingFlags & CROSSING_SHARES_PATH_AT_END) &&
-                            (cross.firstSharedPathAtEndLength !=
-                                cross.secondSharedPathAtEndLength))
-                    {
-                        // Get costs of each path from the crossings object.
-                        // For shared paths that cross at the end, these will 
-                        // be the shared path length minus some amount if the
-                        // diverging segment is not a bend.  For every other 
-                        // path it will be cheapEstimatedCost().  We want 
-                        // low costs for straight segments so these are not 
-                        // rerouted.
-                        iCostRef.first = cross.firstSharedPathAtEndLength;
-                        jCostRef.first = cross.secondSharedPathAtEndLength;
-                    }
-                    addCrossingConnsToSetList(fixedSharedPathConns, 
-                            iCostRef, jCostRef);
+                    crossingConnInfo.addCrossing(*i, *j);
                     break;
                 }
                 else if ((crossing_penalty > 0) && (cross.crossingCount > 0))
                 {
                     // We are penalising crossings and this is a crossing.
-                    crossingConns.insert(iCostRef);
-                    crossingConns.insert(jCostRef);
+                    crossingConnInfo.addCrossing(*i, *j);
                     break;
                 }
             }
         }
     }
 
+    // Find the list of connector sets that need to be removed to avoid any
+    // crossings in all crossing groups.  This is our candidate set for 
+    // rerouting.  Where these connectors connect to exlusive pins, all 
+    // connectors attached to exclusive pins with the same IDs will also 
+    // be rerouted, starting with the shortest.
+    ConnCostRefSetList crossingConnsGroups = 
+            crossingConnInfo.crossingSetsListToRemoveCrossingsFromGroups();
+
+    // At this point we have a list containing crossings for rerouting.
+    // We do this rerouting via two passes, for each group of interacting
+    // crossing connectors:
+    //  1) clear existing routes and free pin assignments, and
+    //  2) compute new routes.
     unsigned int numOfConnsToReroute = 1;
     unsigned int numOfConnsRerouted = 1;
-    // At this point we have a list containing sets of interacting (crossing) 
-    // connectors.  The first element in each set is the ideal candidate to 
-    // keep the route for.  The others should be rerouted.  We do this via
-    // two passes: 1) clear existing routes and free pin assignments, and
-    // 2) compute new routes.
-    for (int pass = 0; pass < 2; ++pass)
+    for (ConnCostRefSetList::iterator setIt = crossingConnsGroups.begin();
+         setIt != crossingConnsGroups.end(); ++setIt)
     {
-        // First deal with the fixed shared paths, if there are any.
-        for (ConnCostRefSetList::iterator setIt = fixedSharedPathConns.begin(); 
-                setIt != fixedSharedPathConns.end(); ++setIt)
+        // Sort the connectors we will be rerouting from lowest to
+        // highest cost.
+        ConnCostRefList orderedConnList(setIt->begin(), setIt->end());
+        orderedConnList.sort(CmpOrderedConnCostRef());
+
+        // Perform rerouting of this set of connectors.
+        for (int pass = 0; pass < 2; ++pass)
         {
-            ConnCostRefList orderedConnList(setIt->begin(), setIt->end());
-            orderedConnList.sort(CmpOrderedConnCostRef());
             for (ConnCostRefList::iterator connIt = orderedConnList.begin(); 
                     connIt != orderedConnList.end(); ++connIt)
             {
-                if (pass == 0)
-                {
-                    // Remove these connectors from the crossingConns set. 
-                    // We reroute them here, so don't need to do it again later.
-                    crossingConns.erase(*connIt);
-                }
-
-                if (connIt == orderedConnList.begin())
-                {
-                    // Don't reroute the first connector in each set of 
-                    // fixed shared paths.
-                    continue;
-                }
-
                 ConnRef *conn = connIt->second;
                 if (pass == 0)
                 {
@@ -1341,42 +1545,6 @@ void Router::improveCrossings(void)
                     // Recompute this path.
                     conn->generatePath();
                 }
-            }
-        }
-
-        // Deal with crossing connector rerouting after the 
-        // fixedSharedPath routing has been completed.
-        ConnCostRefList orderedConnList(crossingConns.begin(), 
-                crossingConns.end());
-        orderedConnList.sort(CmpOrderedConnCostRef());
-        for (ConnCostRefList::iterator connIt = orderedConnList.begin(); 
-                    connIt != orderedConnList.end(); ++connIt)
-        {
-            ConnRef *conn = connIt->second;
-            if (pass == 0)
-            {
-                ++numOfConnsToReroute;
-
-                // Mark the crossing connector path as being invalid.
-                conn->makePathInvalid();
-                // Freeing the routes here means that, if possible, we 
-                // reroute all the crossing routes one by one, threading 
-                // them through the non-crossing routes to avoid as many 
-                // crossings as possible.
-                conn->freeRoutes();
-                
-                // Free pin assignments.
-                conn->freeActivePins();
-            }
-            else if (pass == 1)
-            {
-                // Progress reporting and continuation check.
-                performContinuationCheck(TransactionPhaseRerouteSearch,
-                        numOfConnsRerouted, numOfConnsToReroute);
-                ++numOfConnsRerouted;
-                
-                // Recompute this path.
-                conn->generatePath();
             }
         }
     }
