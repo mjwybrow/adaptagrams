@@ -1054,15 +1054,12 @@ typedef std::list<ConnCostRefSet> ConnCostRefSetList;
 
 static double cheapEstimatedCost(ConnRef *lineRef)
 {
-    // We use an estimate of overall connector length, reduced by the length 
-    // of the shortest segment.  This causes straight line connectors to be 
-    // left alone.  It also causes connectors running close to things to get
-    // rerouted rather than ones in wide channels, which hopefully has the 
-    // effect of us not leaving a heavily restricted connector in place and 
-    // trying to route around it with others.
+    // We use an estimate of overall connector length, reduced by a count 
+    // of the number of segments.  In the case of equal length, This causes 
+    // straight line connectors to be left alone and connectors with more 
+    // complex paths to be rerouted.
     bool isPolyLine = (lineRef->routingType() == ConnType_PolyLine);
     const PolyLine& route = lineRef->displayRoute();
-    double smallestSegment = DBL_MAX;
     double length = 0;
 
     for (size_t i = 1; i < route.size(); ++i)
@@ -1072,12 +1069,10 @@ static double cheapEstimatedCost(ConnRef *lineRef)
 
         double segmentLength = (isPolyLine) ? 
                 euclideanDist(a, b) : manhattanDist(a, b);
-        smallestSegment = std::min(smallestSegment, segmentLength);
         length += segmentLength;
     }
-    return length - smallestSegment;
+    return length - (route.size() + 1);
 }
-
 
 // A map of connectors to the set of connectors that cross them.
 typedef std::map<ConnRef *, std::set<ConnRef *> > CrossingConnectorsMap;

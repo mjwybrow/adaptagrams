@@ -6,7 +6,7 @@ int main(void) {
             PolyLineRouting | OrthogonalRouting);
     router->setRoutingPenalty((PenaltyType)0, 50);
     router->setRoutingPenalty((PenaltyType)1, 0);
-    router->setRoutingPenalty((PenaltyType)2, 0);
+    router->setRoutingPenalty((PenaltyType)2, 50);
     router->setRoutingPenalty((PenaltyType)3, 4000);
     router->setRoutingPenalty((PenaltyType)4, 110);
     router->setRoutingParameter(idealNudgingDistance, 25);
