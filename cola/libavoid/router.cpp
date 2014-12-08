@@ -1159,7 +1159,7 @@ class CrossingConnectorsInfo
                 // attach to one of the exclusive pin classes which the
                 // crossing-causing connectors attached to.
                 for (CrossingConnectorsMap::const_iterator it2 = 
-                        pairsSet.cbegin(); it2 != pairsSet.cend(); ++it2)
+                        pairsSet.begin(); it2 != pairsSet.end(); ++it2)
                 {
                     ConnRef *conn = it2->first;
                     std::pair<ConnEnd, ConnEnd> ends = conn->endpointConnEnds();
@@ -1232,8 +1232,8 @@ class CrossingConnectorsInfo
             double candidateEstimatedCost = 0;
 
             // For each connector in the group...
-            for (CrossingConnectorsMap::const_iterator it = pairsSet.cbegin();
-                    it != pairsSet.cend(); ++it)
+            for (CrossingConnectorsMap::const_iterator it = pairsSet.begin();
+                    it != pairsSet.end(); ++it)
             {
                 // ... check if it has any crossings.
                 size_t crossings = it->second.size();
@@ -1268,8 +1268,8 @@ class CrossingConnectorsInfo
             // set of all connectors it crosses.
             std::set<ConnRef *>& connSet = pairsSet[candidateConnector];
             // For each of these
-            for (std::set<ConnRef *>::const_iterator it = connSet.cbegin();
-                    it != connSet.cend(); ++it)
+            for (std::set<ConnRef *>::const_iterator it = connSet.begin();
+                    it != connSet.end(); ++it)
             {
                 // we remove the candidate from their crossing lists
                 pairsSet[*it].erase(candidateConnector);
