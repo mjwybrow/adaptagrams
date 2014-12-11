@@ -50,7 +50,7 @@ class AVOID_EXPORT DebugHandler
         {
         }
 
-        ~DebugHandler()
+        virtual ~DebugHandler()
         {
         }
 
