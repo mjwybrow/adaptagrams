@@ -2346,6 +2346,7 @@ void Router::setTopologyAddon(TopologyAddonInterface *topologyAddon)
     {
         m_topology_addon = new TopologyAddonInterface();
     }
+    registerSettingsChange();
 }
 
 void Router::improveOrthogonalTopology(void)
