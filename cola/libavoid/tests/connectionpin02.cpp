@@ -93,7 +93,7 @@ int main(void)
     
     shapeRef3->transformConnectionPinPositions(Avoid::TransformationType_CW180);
     router->processTransaction();
-    router->outputInstanceToSVG("output/onnectionpin02-5");
+    router->outputInstanceToSVG("output/connectionpin02-5");
 
     shapeRef3->transformConnectionPinPositions(Avoid::TransformationType_CW270);
     router->processTransaction();
