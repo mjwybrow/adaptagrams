@@ -1748,7 +1748,22 @@ static double pathLength(Avoid::Point **c_path, Avoid::Point **p_path,
 void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
 {
     clear();
-    if (checkForBranchingSegments)
+
+    bool polyIsOrthogonal = (polyConnRef && 
+            (polyConnRef->routingType() == ConnType_Orthogonal));
+    bool connIsOrthogonal = (connConnRef &&
+            (connConnRef->routingType() == ConnType_Orthogonal));
+
+    // Fixed routes are will not have segment breaks at possible crossings.
+    bool polyIsFixed = (polyConnRef && polyConnRef->hasFixedRoute());
+    bool connIsFixed = (connConnRef && connConnRef->hasFixedRoute());
+    
+    // We need to split apart connectors at potential crossing points if
+    // either has a fixed route or it is a polyline connector.  This is not
+    // needed for orthogonal connectors where crossings occur at vertices 
+    // in visibility graph and on the raw connector routes.
+    if (checkForBranchingSegments || polyIsFixed || connIsFixed ||
+            !polyIsOrthogonal || !connIsOrthogonal)
     {
         double epsilon = std::numeric_limits<double>::epsilon();
         size_t conn_pn = conn.size();
@@ -1766,11 +1781,6 @@ void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
     }
     COLA_ASSERT(cIndex >= 1);
     COLA_ASSERT(cIndex < conn.size());
-
-    bool polyIsOrthogonal = (polyConnRef && 
-            (polyConnRef->routingType() == ConnType_Orthogonal));
-    bool connIsOrthogonal = (connConnRef &&
-            (connConnRef->routingType() == ConnType_Orthogonal));
 
     size_t poly_size = poly.size();
 
