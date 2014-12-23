@@ -1261,7 +1261,7 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
                 curr->inf->pathNext = curr->prevNode->inf;
             }
 #ifdef ASTAR_DEBUG
-            db_printf("\n", count);
+            db_printf("\n");
 #endif
 
             // Exit from the search
@@ -1403,38 +1403,53 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
                 // can go the *really* long way round.
             }
 
-            // Figure out if we are at the target or at one of the cost targets.
-            bool atTarget = (node.inf == tar);
-            if (!atTarget)
+            // Figure out if we are at one of the cost targets.
+            bool atCostTarget = false;
+            for (size_t i = 0; i < m_cost_targets.size(); ++i)
             {
-                for (size_t i = 0; i < m_cost_targets.size(); ++i)
+                if (bestNode->inf == m_cost_targets[i])
+                        
                 {
-                    if ((bestNode->inf == m_cost_targets[i]) ||
-                            (node.inf == tar))
-                    {
-                        atTarget = true;
-                        break;
-                    }
+                    atCostTarget = true;
+                    break;
                 }
             }
 
-            if (atTarget)
+            if (atCostTarget &&
+                    (node.inf->id.isConnectionPin() || (node.inf == tar)))
             {
-                // If the current node is our target or a connection point, 
-                // then it should have no further cost and the heuristic 
-                // should be zero.
+                // This is a point on the side of an obstacle that connects
+                // to the target or a connection pin.  It should have no 
+                // further cost and the heuristic should be zero.
                 node.g = bestNode->g;
                 node.h = 0;
             }
-            else
+            else 
             {
-                // Calculate the cost of this step.
-                node.g = bestNode->g + cost(lineRef, edgeDist, bestNodeInf, 
-                        node.inf, bestNode->prevNode);
-
-                // Calculate the Heuristic.
-                node.h = estimatedCost(lineRef, &(bestNodeInf->point),
-                        node.inf->point);
+                if (node.inf == tar)
+                {
+                    // We've reached the target.  The heuristic should be zero.
+                    node.h = 0;
+                }
+                else
+                {
+                    // Otherwise, calculate the heuristic value.
+                    node.h = estimatedCost(lineRef, &(bestNodeInf->point),
+                            node.inf->point);
+                }
+                
+                if (node.inf->id.isDummyPinHelper())
+                {
+                    // This is connecting to a connection pin helper vertex.
+                    // There should be no additional cost for this step.
+                    node.g = bestNode->g;
+                }
+                else
+                {
+                    // Otherwise, calculate the cost of this step.
+                    node.g = bestNode->g + cost(lineRef, edgeDist, bestNodeInf, 
+                            node.inf, bestNode->prevNode);
+                }
             }
 
             // The A* formula
