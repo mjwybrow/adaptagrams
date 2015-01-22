@@ -48,17 +48,25 @@ The algorithms used for the connector routing are described in the following pap
    LNCS (LNAI) 7352, pages 51&ndash;64. Springer-Verlag, 2012.
    [<a href="http://dx.doi.org/10.1007/978-3-642-31223-6_10">DOI</a>]
    [<a href="http://www.csse.monash.edu.au/~mwybrow/papers/wybrow-diagrams-2012.pdf">PDF</a>]
+-  K. Marriott, P.J. Stuckey, and M. Wybrow.  Seeing Around Corners: Fast Orthogonal Connector Routing.\n
+   In Proceedings of the 8th International Conference on the Theory and Application of Diagrams (Diagrams 2014),\n
+   LNCS 8578, pages 31&ndash;37. Springer-Verlag, 2014.
+   [<a href="http://doi.acm.org/10.1007/978-3-662-44043-8_4">DOI</a>]
+   [<a href="http://www.csse.monash.edu.au/~mwybrow/papers/marriott-diagrams-2014.pdf">PDF</a>]
 
 libavoid is currently used in the following software:
--  A commercial circuit diagram editor,
+-  A commercial circuit diagram editor;
 -  <a href="http://www.dunnart.org/">Dunnart</a>, a prototype research 
-   constraint-based diagram editor, 
+   constraint-based diagram editor;
 -  <a href="http://www.inkscape.org/">Inkscape</a>, the popular Open 
-   Source vector graphics editor,
+   Source vector graphics editor;
 -  <a href="http://arcadiapathways.sourceforge.net/">Arcadia</a>, a 
-   visualisation tool for metabolic pathways,
--  <a href="http://gaphor.sourceforge.net/">Gaphas</a>, an open source diagramming widget for GTK+, written in Python, and
--  <a href="http://brlcad.org/">BRL-CAD</a>, Constructive Solid Geometry (CSG) solid modeling system.
+   visualisation tool for metabolic pathways;
+-  <a href="http://gaphor.sourceforge.net/">Gaphas</a>, an open source diagramming widget for GTK+, written in Python;
+-  <a href="http://brlcad.org/">BRL-CAD</a>, Constructive Solid Geometry (CSG) solid modeling system;
+-  <a href="http://www.qxorm.com/">QxOrm</a>, a C++ library designed to provide Object Relational Mapping (ORM) feature to C++ users; and
+-  <a href="http://www.qxorm.com/">QxEntityEditor</a>, a graphic editor for QxOrm library, providing a graphic way to manage a data model.
+
 
 */
 
