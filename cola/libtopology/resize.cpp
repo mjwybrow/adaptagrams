@@ -222,7 +222,6 @@ struct DeleteTempNode {
 bool approx_equals(double a, double b) {
     return fabs(a-b)<1e-6;
 }
-static const double DISPLACEMENT_ERROR=1e-3;
 static bool checkDesired(vpsc::Dim dim, const Nodes& nodes,
         const Rectangles& targets, const ResizeMap& resizeMap)
 {

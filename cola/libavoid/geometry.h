@@ -33,8 +33,8 @@
 */
 
 
-#ifndef _GEOMETRY_H
-#define _GEOMETRY_H
+#ifndef AVOID_GEOMETRY_H
+#define AVOID_GEOMETRY_H
 
 #include "libavoid/geomtypes.h"
 #include "libavoid/assertions.h"

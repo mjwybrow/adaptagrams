@@ -467,7 +467,14 @@ Constraint* IncSolver::mostViolated(Constraints &l)
         l.resize(lSize-1);
     }
 #ifdef LIBVPSC_LOGGING
-    f << "  most violated is: " << *mostViolated << endl;
+    if (mostViolated)
+    {
+        f << "  most violated is: " << *mostViolated << endl;
+    }
+    else
+    {
+        f << "  non found." << endl;
+    }
 #endif
     return mostViolated;
 }
@@ -1332,23 +1339,26 @@ std::string Constraint::toString(void) const
 
 std::ostream& operator <<(std::ostream &os, const Constraint &c)
 {
-    if(&c==NULL) {
-        os<<"NULL";
-    } else {
-        const char *type=c.equality?"=":"<=";
-        std::ostringstream lscale, rscale;
-        if(c.left->scale!=1) {
-            lscale << c.left->scale << "*";
-        }
-        if(c.right->scale!=1) {
-            rscale << c.right->scale << "*";
-        }
-        os<<lscale.str()<<*c.left<<"+"<<c.gap<<type<<rscale.str()<<*c.right;
-        if(c.left->block&&c.right->block)
-            os<<"("<<c.slack()<<")"<<(c.active?"-active":"")
-                <<"(lm="<<c.lm<<")";
-        else
-            os<<"(vars have no position)";
+    const char *type = c.equality ? "=" : "<=";
+    std::ostringstream lscale, rscale;
+    if (c.left->scale != 1) 
+    {
+        lscale << c.left->scale << "*";
+    }
+    if (c.right->scale != 1)
+    {
+        rscale << c.right->scale << "*";
+    }
+    os << lscale.str() << *c.left << "+" << c.gap << type << 
+          rscale.str() << *c.right;
+    if (c.left->block && c.right->block)
+    {
+        os << "(" << c.slack() << ")" << (c.active ? "-active" : "") <<
+              "(lm=" << c.lm << ")";
+    }
+    else
+    {
+        os << "(vars have no position)";
     }
     return os;
 }

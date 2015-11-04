@@ -436,7 +436,14 @@ Constraint* IncSolver::mostViolated(Constraints &l)
         l.resize(lSize-1);
     }
 #ifdef LIBVPSC_LOGGING
-    f << "  most violated is: " << *mostViolated << endl;
+    if (mostViolated)
+    {
+        f << "  most violated is: " << *mostViolated << endl;
+    }
+    else
+    {
+        f << "  non found." << endl;
+    }
 #endif
     return mostViolated;
 }
