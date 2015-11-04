@@ -84,9 +84,12 @@ check_PROGRAMS = \
 	nudgeCrossing01 \
 	nudgingSkipsCheckpoint01 \
 	nudgingSkipsCheckpoint02 \
+	hola01 \
 	hyperedgeRerouting01
 
 # problem_SOURCES = problem.cpp
+
+hola01_SOURCES = hola01.cpp
 
 penaltyRerouting01_SOURCES = penaltyRerouting01.cpp
 

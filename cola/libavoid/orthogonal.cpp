@@ -2723,20 +2723,6 @@ void ImproveOrthogonalRoutes::nudgeOrthogonalRoutes(size_t dimension,
                     currSegment->highPoint()[XDIM], currSegment->highPoint()[YDIM]);
 #endif
 
-            // Constrain to channel boundary.
-            if (!currSegment->fixed)
-            {
-                // If this segment sees a channel boundary to its left,
-                // then constrain its placement as such.
-                if (currSegment->minSpaceLimit > -CHANNEL_MAX)
-                {
-                    vs.push_back(new Variable(channelLeftID,
-                                currSegment->minSpaceLimit, fixedWeight));
-                    cs.push_back(new Constraint(vs[vs.size() - 1], vs[index],
-                                0.0));
-                }
-            }
-
             if (justUnifying)
             {
                 // Just doing centring, not nudging.
@@ -2750,6 +2736,25 @@ void ImproveOrthogonalRoutes::nudgeOrthogonalRoutes(size_t dimension,
                 // segments.
                 prevVars.push_back(&(*currSegment));
                 continue;
+            }
+
+            // The constraints generated here must be in order of 
+            // leftBoundary-segment ... segment-segment ... segment-rightBoundary
+            // since this order is leveraged later for rewriting the 
+            // separations of unsatisfable channel groups.
+
+            // Constrain to channel boundary.
+            if (!currSegment->fixed)
+            {
+                // If this segment sees a channel boundary to its left,
+                // then constrain its placement as such.
+                if (currSegment->minSpaceLimit > -CHANNEL_MAX)
+                {
+                    vs.push_back(new Variable(channelLeftID,
+                                currSegment->minSpaceLimit, fixedWeight));
+                    cs.push_back(new Constraint(vs[vs.size() - 1], vs[index],
+                                0.0));
+                }
             }
 
             // Constrain position in relation to previously seen segments,
@@ -2877,7 +2882,7 @@ void ImproveOrthogonalRoutes::nudgeOrthogonalRoutes(size_t dimension,
             for (size_t i = 0; i < vs.size(); ++i)
             {
                 // For each variable...
-                if (vs[i]->id >= fixedSegmentID)
+                if (vs[i]->id != freeSegmentID)
                 {
                     // If it is a fixed segment (should stay still)...
                     if (fabs(vs[i]->finalPosition -
@@ -2902,15 +2907,30 @@ void ImproveOrthogonalRoutes::nudgeOrthogonalRoutes(size_t dimension,
                                 // edges already).
                                 // So, start a new unsatisfied range.
                                 unsatisfiedRanges.push_back(
-                                        std::make_pair(i, i));
+                                        std::make_pair(i, i + 1));
                             }
                         }
                         else if (vs[i]->id == channelRightID)
                         {
                             // This is the right-hand-side of a channel.
-                            COLA_ASSERT(unsatisfiedRanges.size() > 0);
-                            // Expand the existing range to include it.
-                            unsatisfiedRanges.back().second = i;
+                            if (unsatisfiedRanges.empty())
+                            {
+                                // There are no existing unsatisfied ranges,
+                                // so start a new unsatisfied range.
+                                // We are looking at a unsatisfied right side
+                                // where the left side was satisfied, so the 
+                                // range begins at the previous variable
+                                // which should be a left channel side.
+                                COLA_ASSERT(i > 0);
+                                COLA_ASSERT(vs[i - 1]->id == channelLeftID);
+                                unsatisfiedRanges.push_back(
+                                        std::make_pair(i - 1, i));
+                            }
+                            else
+                            {
+                                // Expand the existing range to include index.
+                                unsatisfiedRanges.back().second = i;
+                            }
                         }
                         else if (vs[i]->id == fixedSegmentID)
                         {
@@ -3012,6 +3032,15 @@ void ImproveOrthogonalRoutes::nudgeOrthogonalRoutes(size_t dimension,
                     COLA_ASSERT(unsatisfiedRanges.size() > 0);
                     // Reduce the separation distance.
                     sepDist -= (baseSepDist / reductionSteps);
+#ifndef NDEBUG
+                    for (std::list<UnsatisfiedRange>::iterator it =
+                            unsatisfiedRanges.begin();
+                            it != unsatisfiedRanges.end(); ++it)
+                    {
+                        COLA_ASSERT(vs[it->first]->id != freeSegmentID);
+                        COLA_ASSERT(vs[it->second]->id != freeSegmentID);
+                    }
+#endif
 #ifdef NUDGE_DEBUG
                     for (std::list<UnsatisfiedRange>::iterator it =
                             unsatisfiedRanges.begin();
