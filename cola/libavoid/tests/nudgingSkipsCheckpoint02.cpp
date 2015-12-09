@@ -3046,7 +3046,7 @@ int main(void) {
 #endif
 
     router->processTransaction();
-    router->outputInstanceToSVG("output/nudgingSkipsCheckpoint02");
+    router->outputDiagram("output/nudgingSkipsCheckpoint02");
     Avoid::PolyLine route249 = connRef249->displayRoute();
     
     delete router;

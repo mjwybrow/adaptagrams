@@ -84,7 +84,7 @@ int main(void) {
     connRef513246012->setRoutingType((ConnType)2);
 
     router->processTransaction();
-    router->outputInstanceToSVG("output/improveHyperedge06");
+    router->outputDiagram("output/improveHyperedge06");
 
     bool overlaps = router->existsOrthogonalSegmentOverlap(true);
     delete router;

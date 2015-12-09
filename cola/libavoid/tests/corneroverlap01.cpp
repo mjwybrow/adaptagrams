@@ -145,7 +145,7 @@ int main(void) {
     connRef23433311->setRoutingType((ConnType)2);
 
     router->processTransaction();
-    router->outputInstanceToSVG("output/orneroverlap01");
+    router->outputDiagram("output/corneroverlap01");
     bool touching = router->existsOrthogonalTouchingPaths();
     delete router;
     return (touching) ? 1 : 0;

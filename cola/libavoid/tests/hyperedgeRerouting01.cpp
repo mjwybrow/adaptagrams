@@ -3,12 +3,12 @@
 #include "libavoid/libavoid.h"
 #include <sstream>
 
-void outputInstanceToSVG(Avoid::Router * router)
+void outputDiagram(Avoid::Router * router)
 {
 	static int counter = 0;
 	std::ostringstream os;
 	os << (++counter);
-	//router->outputInstanceToSVG(os.str());
+	//router->outputDiagram(os.str());
 }
 
 int test()
@@ -126,7 +126,7 @@ int test()
 	router0->processTransaction();
 
 	newanddeletedobjects_0 = router0->newAndDeletedObjectListsFromHyperedgeImprovement();
-	outputInstanceToSVG(router0);
+	outputDiagram(router0);
 	
 	junction0_16268769->setPositionFixed(false);
 	junction0_142222080->setPositionFixed(false);
@@ -137,7 +137,7 @@ int test()
 	router0->hyperedgeRerouter()->registerHyperedgeForRerouting(junction0_471289251);
 	
 	router0->processTransaction();
-	outputInstanceToSVG(router0);
+	outputDiagram(router0);
 
     int result = router0->existsInvalidOrthogonalPaths();
     delete router0;

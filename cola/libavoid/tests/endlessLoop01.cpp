@@ -2,12 +2,12 @@
 #include <sstream>
 using namespace Avoid;
 
-void outputInstanceToSVG(Avoid::Router * router)
+void outputDiagram(Avoid::Router * router)
 {
 	static int counter = 0;
 	std::ostringstream os;
 	os << (++counter);
-	router->outputInstanceToSVG(os.str());
+	router->outputDiagram(os.str());
 }
 
 void test()
@@ -98,7 +98,7 @@ void test()
 	router0->processTransaction();
 
 	newanddeletedobjects_0 = router0->newAndDeletedObjectListsFromHyperedgeImprovement();
-	outputInstanceToSVG(router0);
+	outputDiagram(router0);
 	router0->deleteConnector(conn0_92116728);
 	conn0_92116728 = NULL;
 	router0->deleteConnector(conn0_160581511);

@@ -107,7 +107,7 @@ void test()
 	router0->processTransaction();
 
 	newanddeletedobjects_0 = router0->newAndDeletedObjectListsFromHyperedgeImprovement();
-	router0->outputInstanceToSVG("output/treeRootCrash01-1");
+	router0->outputDiagram("output/treeRootCrash01-1");
 	
 	conn0_117136925->clearFixedRoute();
 	conn0_224626788->makePathInvalid();
@@ -119,15 +119,15 @@ void test()
 	router0->processTransaction();
 
 	newanddeletedobjects_0 = router0->newAndDeletedObjectListsFromHyperedgeImprovement();
-	router0->outputInstanceToSVG("output/treeRootCrash01-2");
+	router0->outputDiagram("output/treeRootCrash01-2");
 	router0->processTransaction();
 
 	newanddeletedobjects_0 = router0->newAndDeletedObjectListsFromHyperedgeImprovement();
-	router0->outputInstanceToSVG("output/treeRootCrash01-3");
+	router0->outputDiagram("output/treeRootCrash01-3");
 	
 	router0->hyperedgeRerouter()->registerHyperedgeForRerouting(junction0_526491597);
 	router0->processTransaction();
-	router0->outputInstanceToSVG("output/treeRootCrash01-4");
+	router0->outputDiagram("output/treeRootCrash01-4");
 
 	delete router0;
 }

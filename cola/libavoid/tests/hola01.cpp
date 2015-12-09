@@ -999,7 +999,7 @@ int main(void) {
 #endif
 
     router->processTransaction();
-    router->outputInstanceToSVG();
+    router->outputDiagram("output/hola01");
     delete router;
     return 0;
 };

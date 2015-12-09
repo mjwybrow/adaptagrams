@@ -3000,6 +3000,85 @@ void Router::outputDiagramSVG(std::string instanceName, LineReps *lineReps)
     fclose(fp);
 }
 
+void Router::outputDiagram(std::string instanceName)
+{
+    outputDiagramText(instanceName);
+#ifdef SVG_OUTPUT
+    outputInstanceToSVG(instanceName);
+#endif
+}
+
+void Router::outputDiagramText(std::string instanceName)
+{
+    std::string filename;
+    if (!instanceName.empty())
+    {
+        filename = instanceName;
+    }
+    else
+    {
+        filename = "libavoid-diagram";
+    }
+    filename += ".txt";
+    FILE *fp = fopen(filename.c_str(), "w");
+
+    if (fp == NULL)
+    {
+        return;
+    }
+
+    ObstacleList::iterator obstacleIt = m_obstacles.begin();
+    while (obstacleIt != m_obstacles.end())
+    {
+        Obstacle *obstacle = *obstacleIt;
+        bool isShape = (NULL != dynamic_cast<ShapeRef *> (obstacle));
+
+        if ( ! isShape )
+        {
+            // Don't output non-shape obstacles here, for now.
+            ++obstacleIt;
+            continue;
+        }
+
+        Box bBox = obstacle->polygon().offsetBoundingBox(0.0);
+
+        fprintf(fp, "rect\n");
+        fprintf(fp, "id=%u\n", obstacle->id());
+        fprintf(fp, "x=%g\n", bBox.min.x);
+        fprintf(fp, "y=%g\n", bBox.min.y);
+        fprintf(fp, "width=%g\n", bBox.max.x - bBox.min.x);
+        fprintf(fp, "height=%g\n", bBox.max.y - bBox.min.y);
+        fprintf(fp, "\n");
+
+        ++obstacleIt;
+    }
+
+    ConnRefList::iterator connRefIt = connRefs.begin();
+    while (connRefIt != connRefs.end())
+    {
+        ConnRef *connRef = *connRefIt;
+
+        PolyLine route = connRef->displayRoute();
+        if (!route.empty())
+        {
+            fprintf(fp, "path\n");
+            fprintf(fp, "id=%u\n", connRef->id());
+            for (size_t i = 0; i < route.size(); ++i)
+            {
+                fprintf(fp, "p%lu: %g %g ", i, route.ps[i].x, route.ps[i].y);
+                fprintf(fp, "\n");
+            }
+            fprintf(fp, "\n");
+        }
+
+        ++connRefIt;
+    }
+
+    fprintf(fp, "\n");
+
+    fclose(fp);
+}
+
 HyperedgeNewAndDeletedObjectLists 
         Router::newAndDeletedObjectListsFromHyperedgeImprovement(void) const
 {

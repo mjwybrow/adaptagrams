@@ -65,7 +65,7 @@ int main(void)
     new Avoid::ConnRef(router, srcPt, dstPt);
     
     router->processTransaction();
-    router->outputInstanceToSVG("output/inline");
+    router->outputDiagram("output/inline");
 
     delete router;
     return 0;
