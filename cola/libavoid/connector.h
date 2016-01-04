@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2013  Monash University
+ * Copyright (C) 2004-2015  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -297,7 +297,7 @@ class AVOID_EXPORT ConnRef
         //! connectors connecting to the junction in the same orientation
         //! the line segment already existed in.
         //!
-        //! @return  A pair containing pointers to the new JunctioRef and 
+        //! @return  A pair containing pointers to the new JunctionRef and 
         //!          ConnRef.
         std::pair<JunctionRef *, ConnRef *> splitAtSegment(
                 const size_t segmentN);

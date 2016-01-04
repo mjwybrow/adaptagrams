@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2010-2011  Monash University
+ * Copyright (C) 2010-2015  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -61,7 +61,7 @@ class AVOID_EXPORT JunctionRef : public Obstacle
         //!
         //! Creates a junction object reference, and adds it to the router
         //! scene.  This junction will be considered to be an obstacle.
-        //! This will cause connectors intersecting the newly added shape
+        //! This will cause connectors intersecting the newly added junction
         //! to be marked as needing to be rerouted.
         //!
         //! If the router is using transactions, then changes will occur
@@ -71,17 +71,34 @@ class AVOID_EXPORT JunctionRef : public Obstacle
         //! The junction can be moved with Router::moveJunction() and removed
         //! from the scene and freed with Router::deleteJunction().
         //!
+        //! libavoid expects junctions to have sensible positions (i.e.,
+        //! for junctions to be positioned outside of shapes).  When routing 
+        //! it will simplify hyperedges by moving junctions while preserving 
+        //! hyperedge topology, i.e., not altering the sides of shapes the 
+        //! hyperedge routes around.
+        //!
+        //! If you don't have sensible positions for junctions or want to 
+        //! disregard the junction position and reroute the entire hyperedge 
+        //! considering only the endpoints, then this can be achieved by 
+        //! registering the hyperedge with the HyperedgeRerouter class
+        //! obtained by calling the Router::hyperedgeRerouter() method.
+        //! 
         //! When the improveHyperedgeRoutesMovingJunctions router option is
         //! set (the default) the junction position is a suggestion used for
         //! initial routing, but subsequent hyperedge path improvement may
         //! suggest new junction positions for the updated routings.  This
-        //! position can be accessed via recommendedPosition().
+        //! position can be accessed via the recommendedPosition() method.
+        //!
+        //! When the improveHyperedgeRoutesMovingAddingAndDeletingJunctions
+        //! router option is set (not the default) junctions and connectors
+        //! can be added or removed to further improve hyperedges, see also
+        //! Router::newAndDeletedObjectListsFromHyperedgeImprovement().
         //!
         //! @note Regarding IDs:
         //!       You can let libavoid manually handle IDs by not specifying
         //!       them.  Alternatively, you can specify all IDs yourself, but 
         //!       you must be careful to makes sure that each object in the 
-        //!       scene (shape, connector, cluster, etc) is given a unique, 
+        //!       scene (shape, connector, cluster, etc.) is given a unique, 
         //!       positive ID.  This uniqueness is checked if assertions are
         //!       enabled, but if not and there are clashes then strange 
         //!       things can happen.

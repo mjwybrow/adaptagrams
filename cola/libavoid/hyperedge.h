@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2011-2013  Monash University
+ * Copyright (C) 2011-2015  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -43,11 +43,16 @@ class Router;
 class ConnEnd;
 class VertInf;
 
+//! @brief   A list of ConnEnd objects.
 typedef std::list<ConnEnd> ConnEndList;
-typedef std::list<ConnRef *> ConnRefList;
-typedef std::list<JunctionRef *> JunctionRefList;
-typedef std::list<VertInf *> VertexList;
 
+//! @brief   A list of ConnRef objects.
+typedef std::list<ConnRef *> ConnRefList;
+
+//! @brief   A list of JunctionRef objects.
+typedef std::list<JunctionRef *> JunctionRefList;
+
+typedef std::list<VertInf *> VertexList;
 typedef std::set<ConnRef *> ConnRefSet;
 typedef std::set<VertInf *> VertexSet;
 
@@ -67,15 +72,25 @@ typedef std::vector<VertexSet> VertexSetVector;
 //! the HyperedgeRerouter::newAndDeletedObjectLists() method for each 
 //! hyperedge being fully rerouted.
 //!
-//! changedConnectorList will only be used for hyperedge improvement and will 
-//! always be empty from hyperedge rerouting.
+//! The HyperedgeNewAndDeletedObjectLists::changedConnectorList attribute 
+//! will only be used for hyperedge improvement and will always be empty 
+//! for hyperedge rerouting.
 //!
 struct HyperedgeNewAndDeletedObjectLists
 {
+        //! A list of newly created junctions.
         JunctionRefList  newJunctionList;
+
+        //! A list of newly created connectors.
         ConnRefList      newConnectorList;
+        
+        //! A list of deleted junctions.
         JunctionRefList  deletedJunctionList;
+
+        //! A list of deleted connectors.
         ConnRefList      deletedConnectorList;
+        
+        //! A list of changed connectors.
         ConnRefList      changedConnectorList;
 };
 

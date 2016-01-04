@@ -3,7 +3,7 @@
  *
  * libavoid - Fast, Incremental, Object-avoiding Line Router
  *
- * Copyright (C) 2004-2014  Monash University
+ * Copyright (C) 2004-2015  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -157,7 +157,7 @@ enum RoutingParameter
     //!         in the direction opposite of the destination from the source
     //!         endpoint.  By default this penalty is set to zero.  This 
     //!         shouldn't be needed in most cases but can be useful if you
-    //!         use penalties such as crossingPenalty which cause connectors
+    //!         use penalties such as ::crossingPenalty which cause connectors
     //!         to loop around obstacles.
     reverseDirectionPenalty,
 
@@ -182,25 +182,30 @@ enum RoutingOption
     //! This option also causes routes running through the same checkpoint 
     //! to be nudged apart.
     //!
-    //! This option has no effect if nudgeSharedPathsWithCommonEndPoint is
+    //! This option has no effect if ::nudgeSharedPathsWithCommonEndPoint is
     //! set to false,
     //!
     //! @note   This will allow routes to be nudged up to the bounds of shapes.
+    //!
     nudgeOrthogonalSegmentsConnectedToShapes = 0,
     
     //! This option causes hyperedge routes to be locally improved fixing
     //! obviously bad paths.  As part of this process libavoid will
-    //! effectively move junctions, setting new ideal positions  
-    //! ( JunctionRef::recommendedPosition() ) for each junction.
+    //! effectively move junctions, setting new ideal positions which can be
+    //! accessed via JunctionRef::recommendedPosition() for each junction.
     //!
     //! Defaults to true.
     //!
     //! This will not add or remove junctions, so will keep the hyperedge
-    //! topology the same.  Better routes can be achieved by allowing such
-    //! changes with the improveHyperedgeRoutesMovingAddingAndDeletingJunctions
-    //! option.
+    //! topology the same.  Better routes can be achieved by enabling the
+    //! ::improveHyperedgeRoutesMovingAddingAndDeletingJunctions option.
+    //!
+    //! If initial sensible positions for junctions in hyperedges are not
+    //! known you can register those hyperedges with the HyperedgeRerouter
+    //! class for complete rerouting.
     //!
     //! @sa   improveHyperedgeRoutesMovingAddingAndDeletingJunctions
+    //! @sa   Router::hyperedgeRerouter()
     //!
     improveHyperedgeRoutesMovingJunctions,
     
@@ -213,12 +218,13 @@ enum RoutingOption
     //!
     //! Defaults to false.
     //!
-    //! This option depends on the fixedSharedPathPenalty penalty having 
+    //! This option depends on the ::fixedSharedPathPenalty penalty having 
     //! been set.
     //!
     //! @sa     fixedSharedPathPenalty
     //! @note   This option is still experimental!  It is not recommended
     //!         for normal use.
+    //!
     penaliseOrthogonalSharedPathsAtConnEnds,
     
     //! This option can be used to control whether collinear line 
@@ -239,6 +245,7 @@ enum RoutingOption
     //!
     //! You may wish to turn this off for large examples where it
     //! can be very slow and will make little difference.
+    //!
     performUnifyingNudgingPreprocessingStep,
     
     //! This option causes hyperedge routes to be locally improved fixing
@@ -255,10 +262,15 @@ enum RoutingOption
     //!
     //! Defaults to false.
     //!
-    //! If set, this option overrides the improveHyperedgeRoutesMovingJunctions
+    //! If set, this option overrides the ::improveHyperedgeRoutesMovingJunctions
     //! option.
     //!
+    //! If initial sensible positions for junctions in hyperedges are not
+    //! known you can register those hyperedges with the HyperedgeRerouter
+    //! class for complete rerouting.
+    //!
     //! @sa   improveHyperedgeRoutesMovingJunctions
+    //! @sa   Router::hyperedgeRerouter()
     //!
     improveHyperedgeRoutesMovingAddingAndDeletingJunctions,
 
@@ -737,8 +749,8 @@ class AVOID_EXPORT Router {
         //!         during hyperedge improvement.
         //!
         //! This method will only return information once the router has
-        //! processed the transaction.  You should read this information 
-        //! before processTransaction() is called again.
+        //! processed the transaction.  You should read and act on this 
+        //! information before processTransaction() is called again.
         //!
         //! After calling this you should no longer refer to any of the
         //! objects in the "deleted" lists --- the router will delete these 
