@@ -1,7 +1,7 @@
 <map id="Avoid::Router::moveShape" name="Avoid::Router::moveShape">
-<area shape="rect" id="node2" href="$classAvoid_1_1Router.html#a766c0dd498c38822cf9ea7c77af28b3d" title="Move or resize an existing shape within the router scene." alt="" coords="227,5,400,32"/>
-<area shape="rect" id="node4" href="$classAvoid_1_1ShapeRef.html#a7fc77a8dfd21e19d911266258253c429" title="Returns a reference to the polygon boundary of this shape." alt="" coords="228,56,399,83"/>
-<area shape="rect" id="node5" href="$classAvoid_1_1Polygon.html#a532dd54af4b94b80ba357de07d083fac" title="Translates the polygon position by a relative amount." alt="" coords="233,107,393,133"/>
-<area shape="rect" id="node3" href="$classAvoid_1_1Router.html#ac4497126d8d4c76a122af565260941fc" title="Finishes the current transaction and processes all the queued object changes efficiently." alt="" coords="448,5,661,32"/>
-<area shape="rect" id="node6" href="$classAvoid_1_1Polygon.html#a58c011bded47396fb1bbda2c1eeb9552" title="Returns the number of points in this polygon." alt="" coords="487,107,622,133"/>
+<area shape="rect" id="node2" href="$classAvoid_1_1Router.html#a766c0dd498c38822cf9ea7c77af28b3d" title="Move or resize an existing shape within the router scene. " alt="" coords="235,5,416,32"/>
+<area shape="rect" id="node4" href="$classAvoid_1_1ShapeRef.html#a7fc77a8dfd21e19d911266258253c429" title="Returns a reference to the polygon boundary of this shape. " alt="" coords="237,56,413,83"/>
+<area shape="rect" id="node5" href="$classAvoid_1_1Polygon.html#a532dd54af4b94b80ba357de07d083fac" title="Translates the polygon position by a relative amount. " alt="" coords="241,107,410,133"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1Router.html#ac4497126d8d4c76a122af565260941fc" title="Finishes the current transaction and processes all the queued object changes efficiently. " alt="" coords="464,5,691,32"/>
+<area shape="rect" id="node6" href="$classAvoid_1_1Polygon.html#a58c011bded47396fb1bbda2c1eeb9552" title="Returns the number of points in this polygon. " alt="" coords="506,107,649,133"/>
 </map>

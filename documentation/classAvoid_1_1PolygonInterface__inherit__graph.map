@@ -1,5 +1,5 @@
 <map id="Avoid::PolygonInterface" name="Avoid::PolygonInterface">
-<area shape="rect" id="node2" href="$classAvoid_1_1Polygon.html" title="A dynamic Polygon, to which points can be easily added and removed." alt="" coords="5,265,173,562"/>
-<area shape="rect" id="node4" href="$classAvoid_1_1ReferencingPolygon.html" title="A Polygon which just references its points from other Polygons." alt="" coords="198,316,369,511"/>
-<area shape="rect" id="node3" href="$classAvoid_1_1Rectangle.html" title="A Rectangle, a simpler way to define the polygon for square or rectangular shapes." alt="" coords="31,611,148,703"/>
+<area shape="rect" id="node2" href="$classAvoid_1_1Polygon.html" title="A dynamic Polygon, to which points can be easily added and removed. " alt="" coords="5,263,189,560"/>
+<area shape="rect" id="node4" href="$classAvoid_1_1ReferencingPolygon.html" title="A Polygon which just references its points from other Polygons. " alt="" coords="214,314,397,509"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1Rectangle.html" title="A Rectangle, a simpler way to define the polygon for square or rectangular shapes. " alt="" coords="36,608,159,700"/>
 </map>

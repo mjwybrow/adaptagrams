@@ -1,18 +1,18 @@
 <map id="libavoid/geomtypes.h" name="libavoid/geomtypes.h">
-<area shape="rect" id="node2" href="$geometry_8h_source.html" title="libavoid/geometry.h" alt="" coords="1359,80,1489,107"/>
-<area shape="rect" id="node4" href="$actioninfo_8h_source.html" title="libavoid/actioninfo.h" alt="" coords="2772,229,2903,256"/>
-<area shape="rect" id="node27" href="$connectionpin_8h.html" title="Contains the interface for the ShapeConnectionPin class." alt="" coords="1745,229,1900,256"/>
-<area shape="rect" id="node34" href="$vertices_8h_source.html" title="libavoid/vertices.h" alt="" coords="1461,229,1581,256"/>
-<area shape="rect" id="node30" href="$junction_8h.html" title="Contains the interface for the JunctionRef class." alt="" coords="2225,379,2345,405"/>
-<area shape="rect" id="node37" href="$hyperedgetree_8h_source.html" title="libavoid/hyperedgetree.h" alt="" coords="3385,304,3543,331"/>
-<area shape="rect" id="node15" href="$libavoid_8h.html" title="Standard libavoid include file which includes all libavoid header files." alt="" coords="981,461,1104,488"/>
-<area shape="rect" id="node38" href="$scanline_8h_source.html" title="libavoid/scanline.h" alt="" coords="3552,379,3677,405"/>
-<area shape="rect" id="node3" href="$connend_8h.html" title="Contains the interface for the ConnEnd class." alt="" coords="2518,155,2644,181"/>
-<area shape="rect" id="node29" href="$shape_8h.html" title="Contains the interface for the ShapeRef class." alt="" coords="2473,379,2588,405"/>
-<area shape="rect" id="node28" href="$obstacle_8h.html" title="Contains the interface for the Obstacle class, the superclass for ShapeRef and JunctionRef." alt="" coords="2210,304,2336,331"/>
-<area shape="rect" id="node31" href="$connector_8h.html" title="Contains the interface for the ConnRef class." alt="" coords="2463,304,2595,331"/>
-<area shape="rect" id="node33" href="$viscluster_8h.html" title="Contains the interface for the ClusterRef class." alt="" coords="1075,379,1205,405"/>
-<area shape="rect" id="node6" href="$router_8h.html" title="Contains the interface for the Router class." alt="" coords="1837,379,1947,405"/>
-<area shape="rect" id="node35" href="$graph_8h_source.html" title="libavoid/graph.h" alt="" coords="669,304,781,331"/>
-<area shape="rect" id="node36" href="$mtst_8h_source.html" title="libavoid/mtst.h" alt="" coords="3273,379,3375,405"/>
+<area shape="rect" id="node2" href="$geometry_8h_source.html" title="libavoid/geometry.h" alt="" coords="1182,80,1319,107"/>
+<area shape="rect" id="node4" href="$actioninfo_8h_source.html" title="libavoid/actioninfo.h" alt="" coords="2660,229,2799,256"/>
+<area shape="rect" id="node16" href="$libavoid_8h.html" title="Standard libavoid include file which includes all libavoid header files. " alt="" coords="975,461,1102,487"/>
+<area shape="rect" id="node28" href="$connectionpin_8h.html" title="Contains the interface for the ShapeConnectionPin class. " alt="" coords="1662,229,1826,256"/>
+<area shape="rect" id="node31" href="$junction_8h.html" title="Contains the interface for the JunctionRef class. " alt="" coords="2744,379,2872,405"/>
+<area shape="rect" id="node35" href="$vertices_8h_source.html" title="libavoid/vertices.h" alt="" coords="1319,229,1447,256"/>
+<area shape="rect" id="node38" href="$hyperedgetree_8h_source.html" title="libavoid/hyperedgetree.h" alt="" coords="3341,304,3509,331"/>
+<area shape="rect" id="node39" href="$scanline_8h_source.html" title="libavoid/scanline.h" alt="" coords="3787,379,3917,405"/>
+<area shape="rect" id="node3" href="$connend_8h.html" title="Contains the interface for the ConnEnd class. " alt="" coords="2343,155,2476,181"/>
+<area shape="rect" id="node29" href="$obstacle_8h.html" title="Contains the interface for the Obstacle class, the superclass for ShapeRef and JunctionRef. " alt="" coords="2599,304,2731,331"/>
+<area shape="rect" id="node30" href="$shape_8h.html" title="Contains the interface for the ShapeRef class. " alt="" coords="2449,379,2567,405"/>
+<area shape="rect" id="node32" href="$connector_8h.html" title="Contains the interface for the ConnRef class. " alt="" coords="2293,304,2433,331"/>
+<area shape="rect" id="node34" href="$viscluster_8h.html" title="Contains the interface for the ClusterRef class. " alt="" coords="1131,379,1269,405"/>
+<area shape="rect" id="node6" href="$router_8h.html" title="Contains the interface for the Router class. " alt="" coords="2003,379,2120,405"/>
+<area shape="rect" id="node36" href="$graph_8h_source.html" title="libavoid/graph.h" alt="" coords="686,304,802,331"/>
+<area shape="rect" id="node37" href="$mtst_8h_source.html" title="libavoid/mtst.h" alt="" coords="3251,379,3357,405"/>
 </map>

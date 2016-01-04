@@ -1,5 +1,5 @@
 <map id="Avoid::Router::moveJunction" name="Avoid::Router::moveJunction">
-<area shape="rect" id="node2" href="$classAvoid_1_1Router.html#a08021cac275575c7795e2005e5eadb9a" title="Move an existing junction within the router scene." alt="" coords="232,5,411,32"/>
-<area shape="rect" id="node4" href="$classAvoid_1_1JunctionRef.html#afaceb9ae01d3283636b188160fb1409b" title="Returns the position of this junction." alt="" coords="259,57,384,98"/>
-<area shape="rect" id="node3" href="$classAvoid_1_1Router.html#ac4497126d8d4c76a122af565260941fc" title="Finishes the current transaction and processes all the queued object changes efficiently." alt="" coords="459,5,672,32"/>
+<area shape="rect" id="node2" href="$classAvoid_1_1Router.html#a08021cac275575c7795e2005e5eadb9a" title="Move an existing junction within the router scene. " alt="" coords="245,5,437,32"/>
+<area shape="rect" id="node4" href="$classAvoid_1_1JunctionRef.html#afaceb9ae01d3283636b188160fb1409b" title="Returns the position of this junction. " alt="" coords="275,57,408,98"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1Router.html#ac4497126d8d4c76a122af565260941fc" title="Finishes the current transaction and processes all the queued object changes efficiently. " alt="" coords="485,5,712,32"/>
 </map>

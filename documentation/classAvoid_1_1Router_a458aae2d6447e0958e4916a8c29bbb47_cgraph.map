@@ -1,16 +1,16 @@
 <map id="Avoid::Router::outputInstanceToSVG" name="Avoid::Router::outputInstanceToSVG">
-<area shape="rect" id="node2" href="$classAvoid_1_1Polygon.html#a4980ff614840f746cc539a021128fc96" title="Returns a specific point in the polygon." alt="" coords="505,69,628,96"/>
-<area shape="rect" id="node4" href="$classAvoid_1_1ReferencingPolygon.html#a908d6fc6a1af577e7ab28be440329747" title="Returns a specific point in the polygon." alt="" coords="241,322,431,349"/>
-<area shape="rect" id="node6" href="$classAvoid_1_1Polygon.html#a37c1371329c57705b74e8b557ca102ff" title="Returns a curved approximation of this multi&#45;segment PolyLine, with the corners replaced by smooth Be..." alt="" coords="240,120,432,146"/>
-<area shape="rect" id="node8" href="$classAvoid_1_1ConnRef.html#ab7462cd69bd1d2c4dd318119558b4a94" title="Returns a reference to the current display version of the route for the connector." alt="" coords="240,170,432,197"/>
-<area shape="rect" id="node9" href="$classAvoid_1_1Polygon.html#a972b0d1e8116907610b4a52973b255f4" title="Returns true if this polygon is empty." alt="" coords="493,221,640,248"/>
-<area shape="rect" id="node10" href="$classAvoid_1_1ClusterRef.html#a3fa6590dec9dbd8ef8ca581ab6c2416f" title="Returns the ID of this cluster." alt="" coords="269,373,403,400"/>
-<area shape="rect" id="node11" href="$classAvoid_1_1ConnRef.html#a2bc4552e6d1b80c9ec38a971efb0d378" title="Returns the ID of this connector." alt="" coords="273,424,399,450"/>
-<area shape="rect" id="node12" href="$classAvoid_1_1ClusterRef.html#acd1fa20b079253d53d27abf50d2a8933" title="Returns a reference to the polygon boundary of this cluster." alt="" coords="273,475,399,516"/>
-<area shape="rect" id="node13" href="$classAvoid_1_1JunctionRef.html#a404276b4132c4d21058f9b7220021124" title="Returns a recommended position for the junction based on improving hyperedge routes. This value will be set during routing when the improveHyperedgeRoutesMovingJunctions router option is set (the default)." alt="" coords="261,540,411,582"/>
-<area shape="rect" id="node14" href="$classAvoid_1_1ClusterRef.html#af7877b59ea4cb2939047f785382f8008" title="Returns a reference to the rectangular boundary of this cluster." alt="" coords="271,606,401,647"/>
-<area shape="rect" id="node15" href="$classAvoid_1_1ConnRef.html#a98f24407bc92dd5a28e7c9d60d28d38b" title="Returns a reference to the current route for the connector." alt="" coords="264,672,408,698"/>
-<area shape="rect" id="node3" href="$classAvoid_1_1Polygon.html#a58c011bded47396fb1bbda2c1eeb9552" title="Returns the number of points in this polygon." alt="" coords="702,120,837,146"/>
-<area shape="rect" id="node5" href="$classAvoid_1_1ReferencingPolygon.html#af76ac706afca60dbef6d0bc2b69d8276" title="Returns the number of points in this polygon." alt="" coords="481,272,653,314"/>
-<area shape="rect" id="node7" href="$classAvoid_1_1Polygon.html#a92f6c7f6bd7c144d408fe18a1b711bf3" title="Returns a simplified Polyline, where all collinear line segments have been collapsed down into single..." alt="" coords="490,170,643,197"/>
+<area shape="rect" id="node2" href="$classAvoid_1_1Polygon.html#a4980ff614840f746cc539a021128fc96" title="Returns a specific point in the polygon. " alt="" coords="531,9,660,36"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1Polygon.html#a58c011bded47396fb1bbda2c1eeb9552" title="Returns the number of points in this polygon. " alt="" coords="735,110,877,137"/>
+<area shape="rect" id="node4" href="$classAvoid_1_1ReferencingPolygon.html#a908d6fc6a1af577e7ab28be440329747" title="Returns a specific point in the polygon. " alt="" coords="253,126,454,153"/>
+<area shape="rect" id="node5" href="$classAvoid_1_1ReferencingPolygon.html#af76ac706afca60dbef6d0bc2b69d8276" title="Returns the number of points in this polygon. " alt="" coords="504,162,687,203"/>
+<area shape="rect" id="node6" href="$classAvoid_1_1Polygon.html#a37c1371329c57705b74e8b557ca102ff" title="Returns a curved approximation of this multi&#45;segment PolyLine, with the corners replaced by smooth Be..." alt="" coords="251,228,456,254"/>
+<area shape="rect" id="node8" href="$classAvoid_1_1ConnRef.html#ab7462cd69bd1d2c4dd318119558b4a94" title="Returns a reference to the current display version of the route for the connector. " alt="" coords="253,278,453,305"/>
+<area shape="rect" id="node9" href="$classAvoid_1_1Polygon.html#a972b0d1e8116907610b4a52973b255f4" title="Returns true if this polygon is empty. " alt="" coords="518,329,673,356"/>
+<area shape="rect" id="node10" href="$classAvoid_1_1ClusterRef.html#a3fa6590dec9dbd8ef8ca581ab6c2416f" title="Returns the ID of this cluster. " alt="" coords="281,380,425,406"/>
+<area shape="rect" id="node11" href="$classAvoid_1_1ConnRef.html#a2bc4552e6d1b80c9ec38a971efb0d378" title="Returns the ID of this connector. " alt="" coords="287,430,420,457"/>
+<area shape="rect" id="node12" href="$classAvoid_1_1ClusterRef.html#acd1fa20b079253d53d27abf50d2a8933" title="Returns a reference to the polygon boundary of this cluster. " alt="" coords="287,482,420,523"/>
+<area shape="rect" id="node13" href="$classAvoid_1_1JunctionRef.html#a404276b4132c4d21058f9b7220021124" title="Returns a recommended position for the junction based on improving hyperedge routes. This value will be set during routing when the improveHyperedgeRoutesMovingJunctions router option is set (the default). " alt="" coords="272,547,435,588"/>
+<area shape="rect" id="node14" href="$classAvoid_1_1ClusterRef.html#af7877b59ea4cb2939047f785382f8008" title="Returns a reference to the rectangular boundary of this cluster. " alt="" coords="285,612,422,654"/>
+<area shape="rect" id="node15" href="$classAvoid_1_1ConnRef.html#a98f24407bc92dd5a28e7c9d60d28d38b" title="Returns a reference to the current route for the connector. " alt="" coords="277,678,430,705"/>
+<area shape="rect" id="node7" href="$classAvoid_1_1Polygon.html#a92f6c7f6bd7c144d408fe18a1b711bf3" title="Returns a simplified Polyline, where all collinear line segments have been collapsed down into single..." alt="" coords="514,278,677,305"/>
 </map>

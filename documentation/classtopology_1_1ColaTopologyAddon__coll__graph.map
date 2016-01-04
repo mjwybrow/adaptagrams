@@ -1,3 +1,4 @@
 <map id="topology::ColaTopologyAddon" name="topology::ColaTopologyAddon">
-<area shape="rect" id="node2" href="$classcola_1_1TopologyAddonInterface.html" title="Interface for writing COLA addons to handle topology preserving layout." alt="" coords="5,6,203,215"/>
+<area shape="rect" id="node2" href="$classcola_1_1TopologyAddonInterface.html" title="Interface for writing COLA addons to handle topology preserving layout. " alt="" coords="5,27,212,251"/>
+<area shape="rect" id="node3" href="$classvpsc_1_1Rectangle.html" title="A rectangle represents a fixed&#45;size shape in the diagram that may be moved to prevent overlaps and sa..." alt="" coords="237,5,354,273"/>
 </map>

@@ -2,5 +2,5 @@ digraph "cola::CompoundConstraint"
 {
   edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
   node [fontname="Helvetica",fontsize="10",shape=record];
-  Node1 [label="{cola::CompoundConstraint\n|# _primaryDim\l# _secondaryDim\l# _priority\l# _combineSubConstraints\l# _subConstraintInfo\l# _currSubConstraintIndex\l|+ CompoundConstraint()\l+ generateVariables()\l+ generateSeparationConstraints()\l+ updatePosition()\l+ ~CompoundConstraint()\l+ dimension()\l+ priority()\l+ updateVarIDsWithMapping()\l+ updateShapeOffsetsForDifferent\lCentres()\l+ markAllSubConstraintsAsInactive()\land 6 more...\l# assertValidVariableIndex()\l}",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled" fontcolor="black"];
+  Node1 [label="{cola::CompoundConstraint\n|# _primaryDim\l# _secondaryDim\l# _priority\l# _combineSubConstraints\l# _subConstraintInfo\l# _currSubConstraintIndex\l|+ CompoundConstraint()\l+ generateVariables()\l+ generateSeparationConstraints()\l+ updatePosition()\l+ toString()\l+ ~CompoundConstraint()\l+ dimension()\l+ priority()\l+ updateVarIDsWithMapping()\l+ updateShapeOffsetsForDifferent\lCentres()\land 7 more...\l# assertValidVariableIndex()\l}",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
 }

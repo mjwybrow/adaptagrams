@@ -1,6 +1,6 @@
 <map id="Avoid::ShapeRef::polygon" name="Avoid::ShapeRef::polygon">
-<area shape="rect" id="node2" href="$classAvoid_1_1Router.html#ac171735c187b3e0ea8f03fda4424fd4f" title="Move an existing shape within the router scene by a relative distance." alt="" coords="228,5,401,32"/>
-<area shape="rect" id="node3" href="$classAvoid_1_1ShapeConnectionPin.html#ad2b8489330ed961df41adad3e4a5f88d" title="Returns the position of this connection pin." alt="" coords="225,57,405,98"/>
-<area shape="rect" id="node4" href="$classAvoid_1_1ConnEnd.html#a76b8fc2d233cff0925b0fa3fc47e61d8" title="Returns the position of this connector endpoint." alt="" coords="463,35,625,61"/>
-<area shape="rect" id="node5" href="$classAvoid_1_1ShapeConnectionPin.html#a8dc56d20fdd481de3ffc0a11f54ae373" title="Constructs a ShapeConnectionPin at a specified position on a parent shape." alt="" coords="454,86,634,127"/>
+<area shape="rect" id="node2" href="$classAvoid_1_1Router.html#ac171735c187b3e0ea8f03fda4424fd4f" title="Move an existing shape within the router scene by a relative distance. " alt="" coords="233,5,414,32"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1ShapeConnectionPin.html#ad2b8489330ed961df41adad3e4a5f88d" title="Returns the position of this connection pin. " alt="" coords="229,57,417,98"/>
+<area shape="rect" id="node5" href="$classAvoid_1_1ShapeRef.html#a27cc39cd041b6358705481f1f00066bf" title="Adjusts all of the shape&#39;s connection pin positions and visibility directions for a given transformat..." alt="" coords="231,122,416,163"/>
+<area shape="rect" id="node4" href="$classAvoid_1_1ConnEnd.html#a76b8fc2d233cff0925b0fa3fc47e61d8" title="Returns the position of this connector endpoint. " alt="" coords="465,64,637,91"/>
 </map>

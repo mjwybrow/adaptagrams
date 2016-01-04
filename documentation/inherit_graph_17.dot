@@ -3,5 +3,5 @@ digraph "Graphical Class Hierarchy"
   edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
   node [fontname="Helvetica",fontsize="10",shape=record];
   rankdir="LR";
-  Node1 [label="cola::Lock",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcola_1_1Lock.html",tooltip="A Lock specifies a required position for a node."];
+  Node1 [label="cola::ConstrainedFDLayout",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcola_1_1ConstrainedFDLayout.html",tooltip="Implements a constrained force-directed layout algorithm. "];
 }

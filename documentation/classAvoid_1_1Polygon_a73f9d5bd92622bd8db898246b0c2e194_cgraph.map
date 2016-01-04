@@ -1,4 +1,4 @@
 <map id="Avoid::Polygon::Polygon" name="Avoid::Polygon::Polygon">
-<area shape="rect" id="node2" href="$classAvoid_1_1PolygonInterface.html#ad85cc8c5e376b8b01ca37e9684b4de71" title="Returns a specific point in the polygon." alt="" coords="213,5,384,32"/>
-<area shape="rect" id="node3" href="$classAvoid_1_1PolygonInterface.html#ac9ce0706613e5870e5e7136d147673f6" title="Returns the number of points in this polygon." alt="" coords="222,57,375,98"/>
+<area shape="rect" id="node2" href="$classAvoid_1_1PolygonInterface.html#a951dedf93a692fc9dccdada741d9ebe5" title="Returns a specific point in the polygon. " alt="" coords="220,5,401,32"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1PolygonInterface.html#ab191f5c82a665cc074576bae9f304e8d" title="Returns the number of points in this polygon. " alt="" coords="229,57,392,98"/>
 </map>

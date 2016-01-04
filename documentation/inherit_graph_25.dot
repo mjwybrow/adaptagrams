@@ -3,5 +3,5 @@ digraph "Graphical Class Hierarchy"
   edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
   node [fontname="Helvetica",fontsize="10",shape=record];
   rankdir="LR";
-  Node1 [label="topology::Edge",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classtopology_1_1Edge.html",tooltip="Topology representation of an edge."];
+  Node1 [label="cola::VariableIDMap",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcola_1_1VariableIDMap.html",tooltip="Holds a mapping between two sets of Variable indices. "];
 }

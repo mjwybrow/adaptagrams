@@ -1,4 +1,4 @@
 <map id="Avoid::ConnRef::ConnRef" name="Avoid::ConnRef::ConnRef">
-<area shape="rect" id="node2" href="$classAvoid_1_1Polygon.html#aae0e8e58b2f358ec3f203a5e6485c660" title="Resets this to the empty polygon." alt="" coords="248,5,387,32"/>
-<area shape="rect" id="node3" href="$classAvoid_1_1ConnRef.html#ae66e8c90dc191951fc0f64acc4c06d7c" title="Sets both a new source and destination endpoint for this connector." alt="" coords="222,56,413,83"/>
+<area shape="rect" id="node2" href="$classAvoid_1_1Polygon.html#aae0e8e58b2f358ec3f203a5e6485c660" title="Resets this to the empty polygon. " alt="" coords="256,5,403,32"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1ConnRef.html#ae66e8c90dc191951fc0f64acc4c06d7c" title="Sets both a new source and destination endpoint for this connector. " alt="" coords="229,56,429,83"/>
 </map>

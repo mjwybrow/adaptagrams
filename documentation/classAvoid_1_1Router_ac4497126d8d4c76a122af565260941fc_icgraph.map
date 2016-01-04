@@ -1,8 +1,8 @@
 <map id="Avoid::Router::processTransaction" name="Avoid::Router::processTransaction">
-<area shape="rect" id="node2" href="$classAvoid_1_1Router.html#a5b044531d3dc81fa76819e55917924b0" title="Remove a junction from the router scene." alt="" coords="267,5,448,32"/>
-<area shape="rect" id="node3" href="$classAvoid_1_1Router.html#a1f91cdcf5dc6ca0ec278e7943f8f21a5" title="Delete a shape from the router scene." alt="" coords="270,56,445,83"/>
-<area shape="rect" id="node4" href="$classAvoid_1_1Router.html#a08021cac275575c7795e2005e5eadb9a" title="Move an existing junction within the router scene." alt="" coords="268,107,447,133"/>
-<area shape="rect" id="node6" href="$classAvoid_1_1Router.html#a766c0dd498c38822cf9ea7c77af28b3d" title="Move or resize an existing shape within the router scene." alt="" coords="271,157,444,184"/>
-<area shape="rect" id="node5" href="$classAvoid_1_1Router.html#a94e5639b590902b5e734a1068fdc663c" title="Move an existing junction within the router scene by a relative distance." alt="" coords="496,107,675,133"/>
-<area shape="rect" id="node7" href="$classAvoid_1_1Router.html#ac171735c187b3e0ea8f03fda4424fd4f" title="Move an existing shape within the router scene by a relative distance." alt="" coords="499,157,672,184"/>
+<area shape="rect" id="node2" href="$classAvoid_1_1Router.html#a5b044531d3dc81fa76819e55917924b0" title="Remove a junction from the router scene. " alt="" coords="280,5,476,32"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1Router.html#a1f91cdcf5dc6ca0ec278e7943f8f21a5" title="Delete a shape from the router scene. " alt="" coords="285,56,471,83"/>
+<area shape="rect" id="node4" href="$classAvoid_1_1Router.html#a08021cac275575c7795e2005e5eadb9a" title="Move an existing junction within the router scene. " alt="" coords="282,107,474,133"/>
+<area shape="rect" id="node6" href="$classAvoid_1_1Router.html#a766c0dd498c38822cf9ea7c77af28b3d" title="Move or resize an existing shape within the router scene. " alt="" coords="287,157,469,184"/>
+<area shape="rect" id="node5" href="$classAvoid_1_1Router.html#a94e5639b590902b5e734a1068fdc663c" title="Move an existing junction within the router scene by a relative distance. " alt="" coords="524,107,716,133"/>
+<area shape="rect" id="node7" href="$classAvoid_1_1Router.html#ac171735c187b3e0ea8f03fda4424fd4f" title="Move an existing shape within the router scene by a relative distance. " alt="" coords="529,157,711,184"/>
 </map>

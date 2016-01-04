@@ -2,7 +2,7 @@ digraph "libavoid/router.h"
 {
   edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
   node [fontname="Helvetica",fontsize="10",shape=record];
-  Node1 [label="libavoid/router.h",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled" fontcolor="black"];
+  Node1 [label="libavoid/router.h",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
   Node1 -> Node2 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
   Node2 [label="ctime",height=0.2,width=0.4,color="grey75", fillcolor="white", style="filled"];
   Node1 -> Node3 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
@@ -14,7 +14,7 @@ digraph "libavoid/router.h"
   Node1 -> Node6 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
   Node6 [label="libavoid/dllexport.h",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$dllexport_8h_source.html"];
   Node1 -> Node7 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node7 [label="libavoid/connector.h",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$connector_8h.html",tooltip="Contains the interface for the ConnRef class."];
+  Node7 [label="libavoid/connector.h",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$connector_8h.html",tooltip="Contains the interface for the ConnRef class. "];
   Node7 -> Node4 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
   Node7 -> Node3 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
   Node7 -> Node8 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
@@ -33,7 +33,7 @@ digraph "libavoid/router.h"
   Node13 [label="cstdio",height=0.2,width=0.4,color="grey75", fillcolor="white", style="filled"];
   Node9 -> Node4 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
   Node9 -> Node14 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node14 [label="libavoid/geomtypes.h",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$geomtypes_8h.html",tooltip="Contains the interface for various geometry types and classes."];
+  Node14 [label="libavoid/geomtypes.h",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$geomtypes_8h.html",tooltip="Contains the interface for various geometry types and classes. "];
   Node14 -> Node15 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
   Node15 [label="cstdlib",height=0.2,width=0.4,color="grey75", fillcolor="white", style="filled"];
   Node14 -> Node8 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
@@ -47,7 +47,7 @@ digraph "libavoid/router.h"
   Node17 -> Node18 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
   Node18 [label="cassert",height=0.2,width=0.4,color="grey75", fillcolor="white", style="filled"];
   Node7 -> Node19 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node19 [label="libavoid/connend.h",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$connend_8h.html",tooltip="Contains the interface for the ConnEnd class."];
+  Node19 [label="libavoid/connend.h",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$connend_8h.html",tooltip="Contains the interface for the ConnEnd class. "];
   Node19 -> Node13 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
   Node19 -> Node3 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
   Node19 -> Node8 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
@@ -65,7 +65,7 @@ digraph "libavoid/router.h"
   Node21 [label="libavoid/timer.h",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$timer_8h_source.html"];
   Node21 -> Node2 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
   Node1 -> Node22 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node22 [label="libavoid/hyperedge.h",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$hyperedge_8h.html",tooltip="Contains the interface for the HyperedgeRerouter class."];
+  Node22 [label="libavoid/hyperedge.h",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$hyperedge_8h.html",tooltip="Contains the interface for the HyperedgeRerouter class. "];
   Node22 -> Node13 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
   Node22 -> Node3 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
   Node22 -> Node8 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
@@ -77,4 +77,9 @@ digraph "libavoid/router.h"
   Node23 -> Node23 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
   Node23 -> Node19 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
   Node23 -> Node14 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node1 -> Node24 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node24 [label="libavoid/hyperedgeimprover.h",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$hyperedgeimprover_8h_source.html"];
+  Node24 -> Node11 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node24 -> Node10 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node24 -> Node3 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
 }

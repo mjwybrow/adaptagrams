@@ -1,8 +1,8 @@
 <map id="libavoid/connector.h" name="libavoid/connector.h">
-<area shape="rect" id="node5" href="$dllexport_8h_source.html" title="libavoid/dllexport.h" alt="" coords="574,304,699,331"/>
-<area shape="rect" id="node6" href="$vertices_8h_source.html" title="libavoid/vertices.h" alt="" coords="192,80,313,107"/>
-<area shape="rect" id="node13" href="$geometry_8h_source.html" title="libavoid/geometry.h" alt="" coords="613,155,743,181"/>
-<area shape="rect" id="node16" href="$connend_8h.html" title="Contains the interface for the ConnEnd class." alt="" coords="459,80,585,107"/>
-<area shape="rect" id="node11" href="$geomtypes_8h.html" title="Contains the interface for various geometry types and classes." alt="" coords="344,229,486,256"/>
-<area shape="rect" id="node14" href="$libavoid_2assertions_8h_source.html" title="libavoid/assertions.h" alt="" coords="869,229,1006,256"/>
+<area shape="rect" id="node5" href="$dllexport_8h_source.html" title="libavoid/dllexport.h" alt="" coords="422,304,554,331"/>
+<area shape="rect" id="node6" href="$vertices_8h_source.html" title="libavoid/vertices.h" alt="" coords="478,80,606,107"/>
+<area shape="rect" id="node13" href="$geometry_8h_source.html" title="libavoid/geometry.h" alt="" coords="41,155,178,181"/>
+<area shape="rect" id="node16" href="$connend_8h.html" title="Contains the interface for the ConnEnd class. " alt="" coords="227,80,360,107"/>
+<area shape="rect" id="node11" href="$geomtypes_8h.html" title="Contains the interface for various geometry types and classes. " alt="" coords="304,229,451,256"/>
+<area shape="rect" id="node14" href="$libavoid_2assertions_8h_source.html" title="libavoid/assertions.h" alt="" coords="36,229,178,256"/>
 </map>

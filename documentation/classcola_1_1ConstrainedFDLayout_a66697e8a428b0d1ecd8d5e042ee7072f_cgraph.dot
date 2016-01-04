@@ -3,9 +3,11 @@ digraph "cola::ConstrainedFDLayout::makeFeasible"
   edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
   node [fontname="Helvetica",fontsize="10",shape=record];
   rankdir="LR";
-  Node1 [label="cola::ConstrainedFDLayout\l::makeFeasible",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled" fontcolor="black"];
+  Node1 [label="cola::ConstrainedFDLayout\l::makeFeasible",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
   Node1 -> Node2 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node2 [label="cola::generateVariables",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$namespacecola.html#a8ce8e00454f0368e0a145ae5ee9b785d",tooltip="Generate just all the variables for a collection of CompoundConstraints."];
+  Node2 [label="vpsc::IncSolver::addConstraint",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classvpsc_1_1IncSolver.html#a2fbb3f66b478a7d9078d753dc1b4605b",tooltip="Adds a constraint to the existing VPSC solver. "];
   Node1 -> Node3 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node3 [label="vpsc::IncSolver::satisfy",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classvpsc_1_1IncSolver.html#ae0514b075bdc0329bde9539d7132c343",tooltip="Results in an approximate solution subject to the constraints."];
+  Node3 [label="cola::generateVariables",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$namespacecola.html#a8ce8e00454f0368e0a145ae5ee9b785d",tooltip="Generate just all the variables for a collection of CompoundConstraints. "];
+  Node1 -> Node4 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node4 [label="vpsc::IncSolver::satisfy",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classvpsc_1_1IncSolver.html#ae0514b075bdc0329bde9539d7132c343",tooltip="Results in an approximate solution subject to the constraints. "];
 }

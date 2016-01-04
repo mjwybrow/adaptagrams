@@ -1,3 +1,6 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$classcola_1_1ConstrainedFDLayout.html" title="Implements a constrained force&#45;directed layout algorithm." alt="" coords="6,5,181,32"/>
+<area shape="rect" id="node1" href="$classcola_1_1Cluster.html" title="A cluster defines a hierarchical partitioning over the nodes which should be kept disjoint by the lay..." alt="" coords="5,56,101,83"/>
+<area shape="rect" id="node2" href="$classcola_1_1ConvexCluster.html" title="Defines a cluster that will be treated as a convex boundary around the child nodes and clusters..." alt="" coords="163,5,304,32"/>
+<area shape="rect" id="node3" href="$classcola_1_1RectangularCluster.html" title="Defines a rectangular cluster, either variable&#45;sized with floating sides or a fixed size based on a p..." alt="" coords="149,56,317,83"/>
+<area shape="rect" id="node4" href="$classcola_1_1RootCluster.html" title="Holds the cluster hierarchy specification for a diagram. " alt="" coords="171,107,295,133"/>
 </map>

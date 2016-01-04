@@ -3,9 +3,9 @@ digraph "cola::ConstrainedMajorizationLayout::setScaling"
   edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
   node [fontname="Helvetica",fontsize="10",shape=record];
   rankdir="LR";
-  Node1 [label="cola::ConstrainedMajorization\lLayout::setScaling",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled" fontcolor="black"];
+  Node1 [label="cola::ConstrainedMajorization\lLayout::setScaling",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
   Node1 -> Node2 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
   Node2 [label="cola::ConstrainedMajorization\lLayout::run",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcola_1_1ConstrainedMajorizationLayout.html#af14ef774be2d3d08b8ea54cc19f1e904",tooltip="Implements the main layout loop, taking descent steps until stress is no-longer significantly reduced..."];
   Node1 -> Node3 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node3 [label="cola::ConstrainedMajorization\lLayout::runOnce",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcola_1_1ConstrainedMajorizationLayout.html#a1ce82962e02ca45c5496938192c9e2ab",tooltip="Same as run(), but only applies one iteration."];
+  Node3 [label="cola::ConstrainedMajorization\lLayout::runOnce",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcola_1_1ConstrainedMajorizationLayout.html#a1ce82962e02ca45c5496938192c9e2ab",tooltip="Same as run(), but only applies one iteration. "];
 }

@@ -1,3 +1,4 @@
 <map id="Avoid::ConnRef::setEndpoints" name="Avoid::ConnRef::setEndpoints">
-<area shape="rect" id="node2" href="$classAvoid_1_1ConnRef.html#aa469b1767d12e1fa4971004225a0abcd" title="Constructs a connector with endpoints specified." alt="" coords="245,5,413,32"/>
+<area shape="rect" id="node2" href="$classAvoid_1_1ConnRef.html#aa469b1767d12e1fa4971004225a0abcd" title="Constructs a connector with endpoints specified. " alt="" coords="253,5,429,32"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1ConnRef.html#a392eeffe4cdd76267b0d1bb654562382" title="Sets a fixed user&#45;specified route for this connector. " alt="" coords="255,57,428,98"/>
 </map>

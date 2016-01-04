@@ -2,5 +2,5 @@ digraph "Avoid::ConnRef"
 {
   edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
   node [fontname="Helvetica",fontsize="10",shape=record];
-  Node1 [label="{Avoid::ConnRef\n||+ ConnRef()\l+ ConnRef()\l+ ~ConnRef()\l+ setEndpoints()\l+ setSourceEndpoint()\l+ setDestEndpoint()\l+ id()\l+ router()\l+ needsRepaint()\l+ route()\land 23 more...\l}",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled" fontcolor="black"];
+  Node1 [label="{Avoid::ConnRef\n||+ ConnRef()\l+ ConnRef()\l+ ~ConnRef()\l+ setEndpoints()\l+ setSourceEndpoint()\l+ setDestEndpoint()\l+ id()\l+ router()\l+ needsRepaint()\l+ route()\land 27 more...\l}",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
 }

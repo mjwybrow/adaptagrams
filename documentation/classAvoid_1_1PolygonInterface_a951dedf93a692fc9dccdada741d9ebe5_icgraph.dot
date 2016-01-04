@@ -1,0 +1,21 @@
+digraph "Avoid::PolygonInterface::at"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node1 [label="Avoid::PolygonInterface::at",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node1 -> Node2 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node2 [label="Avoid::PolygonInterface\l::offsetBoundingBox",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1PolygonInterface.html#af92b37a9eddfc22618faf49f74aa0df7",tooltip="Returns the bounding rectangle that contains this polygon with optionally some buffer space around it..."];
+  Node2 -> Node3 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node3 [label="Avoid::ShapeConnectionPin\l::position",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ShapeConnectionPin.html#ad2b8489330ed961df41adad3e4a5f88d",tooltip="Returns the position of this connection pin. "];
+  Node3 -> Node4 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node4 [label="Avoid::ConnEnd::position",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ConnEnd.html#a76b8fc2d233cff0925b0fa3fc47e61d8",tooltip="Returns the position of this connector endpoint. "];
+  Node2 -> Node5 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node5 [label="Avoid::PolygonInterface\l::boundingRectPolygon",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1PolygonInterface.html#ae1f5a611c54292d95b37d3abd9b80804",tooltip="Returns the bounding rectangle for this polygon. "];
+  Node5 -> Node6 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node6 [label="Avoid::ClusterRef::\lsetNewPoly",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ClusterRef.html#a8bdf3a48e06ae25ae25121e781522f5f",tooltip="Update the polygon boundary for this cluster. "];
+  Node2 -> Node7 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node7 [label="Avoid::ShapeRef::transform\lConnectionPinPositions",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ShapeRef.html#a27cc39cd041b6358705481f1f00066bf",tooltip="Adjusts all of the shape&#39;s connection pin positions and visibility directions for a given transformat..."];
+  Node1 -> Node8 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node8 [label="Avoid::Polygon::Polygon",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Polygon.html#a73f9d5bd92622bd8db898246b0c2e194",tooltip="Constructs a new polygon from an existing Polygon. "];
+}

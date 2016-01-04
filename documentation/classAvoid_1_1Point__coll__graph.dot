@@ -2,5 +2,5 @@ digraph "Avoid::Point"
 {
   edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
   node [fontname="Helvetica",fontsize="10",shape=record];
-  Node1 [label="{Avoid::Point\n|+ x\l+ y\l+ id\l+ vn\l|+ Point()\l+ Point()\l+ operator==()\l+ equals()\l+ operator!=()\l+ operator\<()\l+ operator[]()\l+ operator[]()\l+ operator+()\l+ operator-()\l}",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled" fontcolor="black"];
+  Node1 [label="{Avoid::Point\n|+ x\l+ y\l+ id\l+ vn\l|+ Point()\l+ Point()\l+ operator==()\l+ equals()\l+ operator!=()\l+ operator\<()\l+ operator[]()\l+ operator[]()\l+ operator+()\l+ operator-()\l}",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
 }

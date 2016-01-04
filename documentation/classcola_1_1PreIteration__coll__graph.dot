@@ -2,5 +2,5 @@ digraph "cola::PreIteration"
 {
   edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
   node [fontname="Helvetica",fontsize="10",shape=record];
-  Node1 [label="{cola::PreIteration\n|+ locks\l+ resizes\l+ changed\l|+ PreIteration()\l+ PreIteration()\l+ ~PreIteration()\l+ operator()()\l}",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled" fontcolor="black"];
+  Node1 [label="{cola::PreIteration\n|+ locks\l+ resizes\l+ changed\l|+ PreIteration()\l+ PreIteration()\l+ ~PreIteration()\l+ operator()()\l}",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
 }

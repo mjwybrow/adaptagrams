@@ -3,18 +3,18 @@ digraph "Avoid::ConnRef::splitAtSegment"
   edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
   node [fontname="Helvetica",fontsize="10",shape=record];
   rankdir="LR";
-  Node1 [label="Avoid::ConnRef::splitAtSegment",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled" fontcolor="black"];
+  Node1 [label="Avoid::ConnRef::splitAtSegment",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
   Node1 -> Node2 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node2 [label="Avoid::Polygon::at",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Polygon.html#a4980ff614840f746cc539a021128fc96",tooltip="Returns a specific point in the polygon."];
+  Node2 [label="Avoid::Polygon::at",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Polygon.html#a4980ff614840f746cc539a021128fc96",tooltip="Returns a specific point in the polygon. "];
   Node2 -> Node3 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node3 [label="Avoid::Polygon::size",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Polygon.html#a58c011bded47396fb1bbda2c1eeb9552",tooltip="Returns the number of points in this polygon."];
+  Node3 [label="Avoid::Polygon::size",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Polygon.html#a58c011bded47396fb1bbda2c1eeb9552",tooltip="Returns the number of points in this polygon. "];
   Node1 -> Node4 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node4 [label="Avoid::ConnRef::ConnRef",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ConnRef.html#a2e08b9bb04ccf383700487932f13c980",tooltip="Constructs a connector with no endpoints specified."];
+  Node4 [label="Avoid::ConnRef::ConnRef",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ConnRef.html#a2e08b9bb04ccf383700487932f13c980",tooltip="Constructs a connector with no endpoints specified. "];
   Node4 -> Node5 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node5 [label="Avoid::Polygon::clear",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Polygon.html#aae0e8e58b2f358ec3f203a5e6485c660",tooltip="Resets this to the empty polygon."];
+  Node5 [label="Avoid::Polygon::clear",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Polygon.html#aae0e8e58b2f358ec3f203a5e6485c660",tooltip="Resets this to the empty polygon. "];
   Node1 -> Node6 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node6 [label="Avoid::ConnRef::router",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ConnRef.html#afdf38806b8b56e43300646a7db58443a",tooltip="Returns a pointer to the router scene this connector is in."];
+  Node6 [label="Avoid::ConnRef::router",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ConnRef.html#afdf38806b8b56e43300646a7db58443a",tooltip="Returns a pointer to the router scene this connector is in. "];
   Node1 -> Node7 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node7 [label="Avoid::ConnRef::setDestEndpoint",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ConnRef.html#a7b216c9aa42811f1f2786adbda84f02e",tooltip="Sets just a new destination endpoint for this connector."];
+  Node7 [label="Avoid::ConnRef::setDestEndpoint",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ConnRef.html#a7b216c9aa42811f1f2786adbda84f02e",tooltip="Sets just a new destination endpoint for this connector. "];
   Node1 -> Node3 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
 }

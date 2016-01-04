@@ -2,5 +2,5 @@ digraph "cola::ConstrainedFDLayout"
 {
   edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
   node [fontname="Helvetica",fontsize="10",shape=record];
-  Node1 [label="{cola::ConstrainedFDLayout\n||+ ConstrainedFDLayout()\l+ ~ConstrainedFDLayout()\l+ run()\l+ runOnce()\l+ setConstraints()\l+ setTopology()\l+ getTopology()\l+ setDesiredPositions()\l+ setClusterHierarchy()\l+ setUnsatisfiableConstraintInfo()\l+ makeFeasible()\l+ freeAssociatedObjects()\l+ outputInstanceToSVG()\l+ computeStress()\l}",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled" fontcolor="black"];
+  Node1 [label="{cola::ConstrainedFDLayout\n||+ ConstrainedFDLayout()\l+ ~ConstrainedFDLayout()\l+ run()\l+ runOnce()\l+ setConstraints()\l+ setTopology()\l+ getTopology()\l+ setDesiredPositions()\l+ setClusterHierarchy()\l+ addGroupOfNonOverlapExempt\lRectangles()\l+ setUnsatisfiableConstraintInfo()\l+ makeFeasible()\l+ freeAssociatedObjects()\l+ outputInstanceToSVG()\l+ computeStress()\l}",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
 }

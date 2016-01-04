@@ -3,5 +3,5 @@ digraph "Graphical Class Hierarchy"
   edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
   node [fontname="Helvetica",fontsize="10",shape=record];
   rankdir="LR";
-  Node1 [label="topology::AvoidTopologyAddon",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classtopology_1_1AvoidTopologyAddon.html",tooltip="This class can be passed to libavoid to extend it to provide orthogonal topology improvement function..."];
+  Node1 [label="cola::UnsatisfiableConstraintInfo",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcola_1_1UnsatisfiableConstraintInfo.html",tooltip="Info about constraints that could not be satisfied in gradient projection process. "];
 }

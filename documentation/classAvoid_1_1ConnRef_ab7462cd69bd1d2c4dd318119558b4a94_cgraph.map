@@ -1,5 +1,5 @@
 <map id="Avoid::ConnRef::displayRoute" name="Avoid::ConnRef::displayRoute">
-<area shape="rect" id="node2" href="$classAvoid_1_1Polygon.html#a972b0d1e8116907610b4a52973b255f4" title="Returns true if this polygon is empty." alt="" coords="249,5,396,32"/>
-<area shape="rect" id="node3" href="$classAvoid_1_1Polygon.html#a92f6c7f6bd7c144d408fe18a1b711bf3" title="Returns a simplified Polyline, where all collinear line segments have been collapsed down into single..." alt="" coords="246,56,399,83"/>
-<area shape="rect" id="node4" href="$classAvoid_1_1Polygon.html#a58c011bded47396fb1bbda2c1eeb9552" title="Returns the number of points in this polygon." alt="" coords="449,56,583,83"/>
+<area shape="rect" id="node2" href="$classAvoid_1_1Polygon.html#a972b0d1e8116907610b4a52973b255f4" title="Returns true if this polygon is empty. " alt="" coords="257,5,412,32"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1Polygon.html#a92f6c7f6bd7c144d408fe18a1b711bf3" title="Returns a simplified Polyline, where all collinear line segments have been collapsed down into single..." alt="" coords="253,56,416,83"/>
+<area shape="rect" id="node4" href="$classAvoid_1_1Polygon.html#a58c011bded47396fb1bbda2c1eeb9552" title="Returns the number of points in this polygon. " alt="" coords="464,56,607,83"/>
 </map>

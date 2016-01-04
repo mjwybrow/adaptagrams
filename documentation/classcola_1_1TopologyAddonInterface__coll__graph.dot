@@ -2,5 +2,5 @@ digraph "cola::TopologyAddonInterface"
 {
   edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
   node [fontname="Helvetica",fontsize="10",shape=record];
-  Node1 [label="{cola::TopologyAddonInterface\n||+ TopologyAddonInterface()\l+ ~TopologyAddonInterface()\l+ clone()\l+ handleResizes()\l+ computePathLengths()\l+ computeStress()\l+ useTopologySolver()\l+ makeFeasible()\l+ moveTo()\l+ applyForcesAndConstraints()\l}",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled" fontcolor="black"];
+  Node1 [label="{cola::TopologyAddonInterface\n||+ TopologyAddonInterface()\l+ ~TopologyAddonInterface()\l+ clone()\l+ freeAssociatedObjects()\l+ handleResizes()\l+ computePathLengths()\l+ computeStress()\l+ useTopologySolver()\l+ makeFeasible()\l+ moveTo()\l+ applyForcesAndConstraints()\l}",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
 }
