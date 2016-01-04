@@ -202,7 +202,7 @@ ConnRef *JunctionRef::removeJunctionAndMergeConnectors(void)
 
     // The second conn will be the one we will delete.
     ConnRef *conn2 = connEnd2->m_conn_ref;
-    // So, determine its endpoint that is not attached to the junction.
+    // Determine its endpoint that is not attached to the junction.
     ConnEnd *connEnd2Other = (conn2->m_src_connend == connEnd2) ? 
             conn2->m_dst_connend : conn2->m_src_connend;
     if (connEnd2Other == NULL)
@@ -210,10 +210,10 @@ ConnRef *JunctionRef::removeJunctionAndMergeConnectors(void)
         // If it doesn't have a valid other endpoint, then ignore.
         return NULL;
     }
-    // Modify the first connectors junction endpoint to connect to the 
+    // Modify the first connector's junction endpoint to connect to the 
     // other end of the second connector.
     m_router->modifyConnector(connEnd1->m_conn_ref,
-            connEnd2Other->endpointType(), *connEnd2Other);
+            connEnd1->endpointType(), *connEnd2Other);
 
     // Delete the second connector.
     m_router->deleteConnector(conn2);
