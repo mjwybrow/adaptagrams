@@ -1167,8 +1167,7 @@ void ConstrainedFDLayout::computeForces(
 
             while (maxDisplaces--) 
             {
-                rx=X[u]-X[v], ry=Y[u]-Y[v];
-                if ((sd2) > 1e-9) 
+                if ((sd2) > 1e-3) 
                 {
                     break;
                 }
