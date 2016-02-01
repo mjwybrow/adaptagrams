@@ -23,6 +23,8 @@ libcola_la_SOURCES = cola.h\
 	cluster.cpp\
 	compound_constraints.h\
 	compound_constraints.cpp\
+	pseudorandom.h \
+	pseudorandom.cpp \
 	output_svg.cpp\
 	output_svg.h \
 	unused.h \
@@ -40,6 +42,7 @@ libcolainclude_HEADERS = cola.h\
 	cluster.h\
 	commondefs.h\
 	compound_constraints.h\
+	pseudorandom.h \
 	exceptions.h\
 	gradient_projection.h\
 	sparse_matrix.h\

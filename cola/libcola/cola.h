@@ -4,7 +4,7 @@
  * libcola - A library providing force-directed network layout using the 
  *           stress-majorization method subject to separation constraints.
  *
- * Copyright (C) 2006-2014  Monash University
+ * Copyright (C) 2006-2015  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -35,6 +35,7 @@
 #include "libcola/cluster.h"
 #include "libcola/straightener.h"
 #include "libcola/exceptions.h"
+#include "libcola/pseudorandom.h"
 
 namespace vpsc { class Rectangle; }
 namespace topology { 
@@ -810,6 +811,8 @@ private:
             vpsc::Variables (&vars)[2], unsigned int& priority, 
             cola::NonOverlapConstraints *noc, Cluster *cluster, 
             cola::CompoundConstraints& idleConstraints);
+    std::vector<double> offsetDir(double minD);
+
 
     std::vector<std::vector<unsigned> > neighbours;
     std::vector<std::vector<double> > neighbourLengths;
@@ -819,6 +822,8 @@ private:
     cola::CompoundConstraints ccs;
     double** D;
     unsigned short** G;
+    double minD;
+    PseudoRandom random;
 
     TopologyAddonInterface *topologyAddon;
     std::vector<UnsatisfiableConstraintInfos*> unsatisfiable;

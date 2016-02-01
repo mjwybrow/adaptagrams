@@ -4,7 +4,7 @@
  * libcola - A library providing force-directed network layout using the 
  *           stress-majorization method subject to separation constraints.
  *
- * Copyright (C) 2006-2014  Monash University
+ * Copyright (C) 2006-2015  Monash University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -104,6 +104,8 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
       m_edge_lengths(eLengths.data(), eLengths.size()),
       m_nonoverlap_exemptions(new NonOverlapConstraintExemptions())
 {
+    minD = DBL_MAX;
+
     if (done == NULL)
     {
         done = new TestConvergence();
@@ -177,10 +179,16 @@ void ConstrainedFDLayout::computePathLengths(
                 // i and j are in disconnected subgraphs
                 p=0;
             } else {
-                D[i][j]*=m_idealEdgeLength;
+                d*=m_idealEdgeLength;
+            }
+
+            if ((d > 0) && (d < minD)) {
+                minD = d;
             }
         }
     }
+    if (minD == DBL_MAX) minD = 1;
+
     for(vector<Edge>::const_iterator e=es.begin();e!=es.end();++e) {
         unsigned u=e->first, v=e->second; 
         G[u][v]=G[v][u]=1;
@@ -1110,7 +1118,29 @@ double ConstrainedFDLayout::applyDescentVector(
     }
     return computeStress();
 }
-        
+
+
+// Computes X and Y offsets for nodes that are at the same position.
+std::vector<double> ConstrainedFDLayout::offsetDir(double minD)
+{
+    std::vector<double> u(2);
+    double l = 0;
+    for (size_t i = 0; i < 2; ++i)
+    {
+        double x = u[i] = random.getNextBetween(0.01, 1) - 0.5;
+        l += x * x;
+    }
+    l = sqrt(l);
+    
+    for (size_t i = 0; i < 2; ++i)
+    {
+        u[i] *= (minD / l);
+    }
+
+    return u;
+}
+
+
 /*
  * Computes:
  *  - the matrix of second derivatives (the Hessian) H, used in 
@@ -1129,11 +1159,31 @@ void ConstrainedFDLayout::computeForces(
         double Huu=0;
         for(unsigned v=0;v<n;v++) {
             if(u==v) continue;
+
+            // The following loop randomly displaces nodes that are at identical positions
+            double rx=X[u]-X[v], ry=Y[u]-Y[v];
+            double sd2 = rx*rx+ry*ry;
+            unsigned maxDisplaces = n;  // avoid infinite loop in the case of numerical issues, such as huge values
+
+            while (maxDisplaces--) 
+            {
+                rx=X[u]-X[v], ry=Y[u]-Y[v];
+                if ((sd2) > 1e-9) 
+                {
+                    break;
+                }
+                
+                std::vector<double> rd = offsetDir(minD);
+                X[v] += rd[0];
+                Y[v] += rd[1];
+                rx=X[u]-X[v], ry=Y[u]-Y[v];
+                sd2 = rx*rx+ry*ry;
+            }
+
             unsigned short p = G[u][v];
             // no forces between disconnected parts of the graph
             if(p==0) continue;
-            double rx=X[u]-X[v], ry=Y[u]-Y[v];
-            double l=sqrt(rx*rx+ry*ry);
+            double l=sqrt(sd2);
             double d=D[u][v];
             if(l>d && p>1) continue; // attractive forces not required
             double d2=d*d;
