@@ -26,6 +26,7 @@
 #include <cmath>
 #include <cfloat>
 #include <cstdlib>
+#include <algorithm>
 
 #include "libavoid/geomtypes.h"
 #include "libavoid/shape.h"

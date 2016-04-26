@@ -26,6 +26,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <cfloat>
+#include <algorithm>
 
 #include "libavoid/router.h"
 #include "libavoid/connend.h"
