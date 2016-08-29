@@ -1,3 +1,13 @@
+OSNAME:=$(shell uname -s | sed 's/_.*//')
+
+COMPILER =
+# to get a list of available compilers run
+# python swig-python-setup.py build_ext --help-compiler
+# no changes necessary on Linux and MacOS
+# change compiler to mingw32 on MinGW
+ifeq ($(OSNAME),MINGW32)
+	COMPILER = --compiler=mingw32
+endif
 
 all: adaptagrams
 
@@ -5,7 +15,7 @@ adaptagrams_wrap.cxx: clean adaptagrams.i
 	swig -DNDEBUG -c++ -python adaptagrams.i
 
 adaptagrams: adaptagrams_wrap.cxx
-	python swig-python-setup.py build_ext --inplace
+	python swig-python-setup.py build_ext --inplace $(COMPILER)
 
 realclean: clean
 
