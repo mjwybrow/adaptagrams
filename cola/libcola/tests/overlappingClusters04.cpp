@@ -29,7 +29,8 @@ int main(void) {
     rs.push_back(rect);
 
 
-    ConstrainedFDLayout alg(rs, es, defaultEdgeLength, true, eLengths);
+    ConstrainedFDLayout alg(rs, es, defaultEdgeLength, eLengths);
+    alg.setAvoidNodeOverlaps(true);
 
     RootCluster *cluster33771480 = new RootCluster();
     RectangularCluster *cluster33771952 = new RectangularCluster();

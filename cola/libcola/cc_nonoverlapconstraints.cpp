@@ -40,22 +40,31 @@ NonOverlapConstraintExemptions::NonOverlapConstraintExemptions()
 {
 }
 
-void NonOverlapConstraintExemptions::addExemptGroupOfRectangles(
-        std::vector<unsigned> ids)
+void NonOverlapConstraintExemptions::addExemptGroupOfNodes(
+        ListOfNodeIndexes listOfNodeGroups)
 {
-    // Sort and remove duplicate IDs for this group. 
-    std::sort(ids.begin(), ids.end());
-    std::vector<unsigned>::iterator last = std::unique(ids.begin(), ids.end());
-    ids.erase(last, ids.end());
+    m_exempt_pairs.clear();
 
-    // Add all combinations of pairs of IDs for this group to m_exempt_pairs
-    const size_t idsSize = ids.size();
-    for (size_t i = 0; i < idsSize; ++i)
+    const size_t listSize = listOfNodeGroups.size();
+    for (size_t l = 0; l < listSize; ++l)
     {
-        for (size_t j = i + 1; j < idsSize; ++j)
+        NodeIndexes ids(listOfNodeGroups[l]);
+
+        // Sort and remove duplicate IDs for this group.
+        std::sort(ids.begin(), ids.end());
+        NodeIndexes::iterator last = std::unique(ids.begin(), ids.end());
+        ids.erase(last, ids.end());
+
+        // Add all combinations of pairs of IDs for this group to m_exempt_pairs
+        const size_t idsSize = ids.size();
+        for (size_t i = 0; i < idsSize; ++i)
         {
-            m_exempt_pairs.insert(ShapePair(ids[i], ids[j]));
+            for (size_t j = i + 1; j < idsSize; ++j)
+            {
+                m_exempt_pairs.insert(ShapePair(ids[i], ids[j]));
+            }
         }
+
     }
 }
 

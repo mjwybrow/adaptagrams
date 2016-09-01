@@ -670,9 +670,9 @@ class DistributionConstraint : public CompoundConstraint {
  * These nodes are fixed relative to each other in both the x- and y-dimensions
  * but still free to move as a group.
  *
- * Optionally, this compound  constraint can be marked as having a desired for
- * a fixed position, in which case a variable weight will be given to try to
- * keep the whole group at the current position.
+ * Optionally, this compound constraint can be marked as desiring a fixed
+ * position.  If this is specified, the group of nodes will attempt to stay
+ * close to its current position.
  */
 class FixedRelativeConstraint : public CompoundConstraint {
     public:

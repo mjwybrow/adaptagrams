@@ -993,7 +993,7 @@ int main(void) {
 
     cola::Box margin = cola::Box(10, 30, 30, 60);   //30
     cola::Box padding = cola::Box(); // cola::Box(10, 30, 30, 60);  //10
-    ConstrainedFDLayout alg(rs, es, defaultEdgeLength, true, eLengths);
+    ConstrainedFDLayout alg(rs, es, defaultEdgeLength, eLengths);
     RootCluster *cluster476902600 = new RootCluster();
     cluster476902600->addChildNode(0);
     cluster476902600->addChildNode(1);
@@ -1106,14 +1106,17 @@ int main(void) {
     alg.setUnsatisfiableConstraintInfo(&unsatisfiableX, &unsatisfiableY);
 
     // rect-43 and associated port rects.
-    std::vector<unsigned> nonOverlapExemptGroup;
+    cola::NodeIndexes nonOverlapExemptGroup;
     nonOverlapExemptGroup.push_back(44);
     nonOverlapExemptGroup.push_back(45);
     nonOverlapExemptGroup.push_back(46);
     nonOverlapExemptGroup.push_back(47);
     nonOverlapExemptGroup.push_back(48);
     nonOverlapExemptGroup.push_back(43);
-    alg.addGroupOfNonOverlapExemptRectangles(nonOverlapExemptGroup);
+    
+    std::vector<cola::NodeIndexes> nonOverlapExemptGroupList;
+    nonOverlapExemptGroupList.push_back(nonOverlapExemptGroup);
+    alg.setAvoidNodeOverlaps(true, nonOverlapExemptGroupList);
 
     //alg.makeFeasible();
     alg.run();

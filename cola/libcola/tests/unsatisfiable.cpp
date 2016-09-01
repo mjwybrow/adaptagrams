@@ -56,7 +56,7 @@ int main() {
 		double x=getRand(width), y=getRand(height);
 		rs.push_back(new vpsc::Rectangle(x,x+5,y,y+5));
 	}
-	ConstrainedFDLayout alg(rs,es,width/2, false);
+	ConstrainedFDLayout alg(rs,es,width/2);
 	CompoundConstraints ccs;
 	AlignmentConstraint ac(vpsc::YDIM, 1);
 	ccs.push_back(&ac);

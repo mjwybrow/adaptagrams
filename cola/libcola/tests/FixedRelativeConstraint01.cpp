@@ -35,7 +35,8 @@ int main(void) {
     rect = new vpsc::Rectangle(317-textW, 317+textW, 295-textH, 295+textH);
     rs.push_back(rect);
 
-    ConstrainedFDLayout alg(rs, es, defaultEdgeLength, true);
+    ConstrainedFDLayout alg(rs, es, defaultEdgeLength);
+    alg.setAvoidNodeOverlaps(true);
     
     ccs.push_back(new FixedRelativeConstraint(rs, fixedShapes, true));
     alg.setConstraints(ccs);

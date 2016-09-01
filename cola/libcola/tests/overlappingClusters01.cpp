@@ -200,7 +200,8 @@ int main(void) {
     es.push_back(std::make_pair(41, 42));
 
     double padding = 6;
-    ConstrainedFDLayout alg(rs, es, defaultEdgeLength, true, eLengths);
+    ConstrainedFDLayout alg(rs, es, defaultEdgeLength, eLengths);
+    alg.setAvoidNodeOverlaps(true);
     RootCluster *cluster140389150311456 = new RootCluster();
     cluster140389150311456->addChildNode(0);
     cluster140389150311456->addChildNode(1);

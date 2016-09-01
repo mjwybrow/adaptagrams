@@ -1675,7 +1675,8 @@ int main(void) {
     SeparationConstraint *separation1100877616 = new SeparationConstraint(vpsc::YDIM, 108, 160, -50, true);
     ccs.push_back(separation1100877616);
 
-    ConstrainedFDLayout alg(rs, es, defaultEdgeLength, true);
+    ConstrainedFDLayout alg(rs, es, defaultEdgeLength);
+    alg.setAvoidNodeOverlaps(true);
     RootCluster *cluster1100877760 = new RootCluster();
     cluster1100877760->addChildNode(0);
     cluster1100877760->addChildNode(2);

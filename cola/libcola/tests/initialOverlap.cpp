@@ -140,7 +140,7 @@ int main(void) {
     eLengths[23] = 100;
     eLengths[24] = 100;
 
-    ConstrainedFDLayout alg(rs, es, defaultEdgeLength, false, eLengths);
+    ConstrainedFDLayout alg(rs, es, defaultEdgeLength, eLengths);
     alg.run();
     //alg.outputInstanceToSVG("initialOverlap");
 

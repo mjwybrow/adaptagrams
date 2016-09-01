@@ -50,7 +50,8 @@ int main(void) {
     // Padding around the inside of clusters.
     double padding = 3;
 
-    ConstrainedFDLayout alg(rs, es, defaultEdgeLength, true, eLengths);
+    ConstrainedFDLayout alg(rs, es, defaultEdgeLength, eLengths);
+    alg.setAvoidNodeOverlaps(true);
     RootCluster *rootCluster = new RootCluster();
 
     // A contains 1, 3

@@ -2159,7 +2159,8 @@ int main(void) {
     cluster140664475537056->addChildNode(157);
     cluster140664475533920->addChildCluster(cluster140664475537056);
     
-    ConstrainedFDLayout alg(rs, es, defaultEdgeLength, true);
+    ConstrainedFDLayout alg(rs, es, defaultEdgeLength);
+    alg.setAvoidNodeOverlaps(true);
     alg.setClusterHierarchy(cluster140664475533920);
     alg.setConstraints(ccs);
     alg.makeFeasible();

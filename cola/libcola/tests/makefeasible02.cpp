@@ -922,7 +922,8 @@ int main(void) {
     ccs.push_back(alignment1216022832);
 #endif
 
-    ConstrainedFDLayout alg(rs, es, defaultEdgeLength, true);
+    ConstrainedFDLayout alg(rs, es, defaultEdgeLength);
+    alg.setAvoidNodeOverlaps(true);
     alg.setConstraints(ccs);
     alg.makeFeasible();
     alg.outputInstanceToSVG();

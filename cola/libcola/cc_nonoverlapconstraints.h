@@ -42,7 +42,7 @@ class Cluster;
 class NonOverlapConstraintExemptions {
     public:
         NonOverlapConstraintExemptions();
-        void addExemptGroupOfRectangles(std::vector<unsigned> ids);
+        void addExemptGroupOfNodes(ListOfNodeIndexes listOfNodeGroups);
         bool shapePairIsExempt(ShapePair shapePair) const;
 
     private:

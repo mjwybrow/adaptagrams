@@ -329,7 +329,7 @@ int main() {
     */
     clock_t unconstrainedstarttime=clock();
     //writeTextFile(es);
-	ConstrainedFDLayout alg2(rs,es,defaultEdgeLength, false, 
+	ConstrainedFDLayout alg2(rs,es,defaultEdgeLength, 
             StandardEdgeLengths, &test);
     alg2.setConstraints(cy);
 	alg2.run();

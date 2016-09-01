@@ -42,6 +42,7 @@ namespace topology {
     class ColaTopologyAddon;
 }
 
+
 /**
  * @namespace cola
  * @brief libcola: Force-directed network layout subject to 
@@ -53,6 +54,12 @@ namespace cola {
 
 class NonOverlapConstraints;
 class NonOverlapConstraintExemptions;
+
+//! @brief A vector of node Indexes.
+typedef std::vector<unsigned> NodeIndexes;
+
+//! @brief A vector of NodeIndexes.
+typedef std::vector<NodeIndexes> ListOfNodeIndexes;
 
 //! Edges are simply a pair of indices to entries in the Node vector
 typedef std::pair<unsigned, unsigned> Edge;
@@ -617,8 +624,6 @@ public:
      * @param[in] idealLength  A scalar modifier of ideal edge lengths in 
      *                         eLengths or of 1 if no ideal lengths are 
      *                         specified.
-     * @param preventOverlaps  Causes non-overlap constraints to be generated 
-     *                          for all rectangles, if it is set to true.
      * @param[in] eLengths  Individual ideal lengths for edges.
      *                      The actual ideal length used for the ith edge is 
      *                      idealLength*eLengths[i], or if eLengths is NULL a
@@ -634,10 +639,9 @@ public:
         const vpsc::Rectangles& rs,
         const std::vector<cola::Edge>& es,
         const double idealLength,
-        const bool preventOverlaps,
         const EdgeLengths& eLengths = StandardEdgeLengths, 
         TestConvergence* doneTest = NULL,
-        PreIteration* preIteration=NULL);
+        PreIteration* preIteration = NULL);
     ~ConstrainedFDLayout();
   
     /**
@@ -650,6 +654,7 @@ public:
      *               (default: true).
      */
     void run(bool x=true, bool y=true);
+
     /**
      * @brief  Same as run(), but only applies one iteration.  
      *
@@ -662,15 +667,33 @@ public:
      *               (default: true).
      */
     void runOnce(bool x=true, bool y=true);
+
     /**
      * @brief  Specify a set of compound constraints to apply to the layout.
      *
      * @param[in] ccs  The compound constraints.
      */
-    void setConstraints(const cola::CompoundConstraints& ccs)
-    {
-        this->ccs = ccs;
-    }
+    void setConstraints(const cola::CompoundConstraints& ccs);
+
+    /**
+     * @brief  Specifies whether non-overlap constraints should be
+     *         automatically generated between all nodes, as well as any
+     *         exemptions to this.
+     *
+     * The optional second parameter indicates groups of nodes that should be
+     * exempt from having non-overlap constraints generated between each other.
+     * For example, you might want to do this for nodes representing ports, or
+     * the child nodes in a particular cluster.
+     *
+     * @param[in] avoidOverlaps     New boolean value for this option.
+     * @param[in] listOfNodeGroups  A list of groups of node indexes which will
+     *                              not have non-overlap constraints generated
+     *                              between each other.
+     */
+    void setAvoidNodeOverlaps(bool avoidOverlaps,
+            ListOfNodeIndexes listOfNodeGroups =
+            ListOfNodeIndexes());
+
     /** 
      *  @brief  Set an addon for doing topology preserving layout.
      *
@@ -685,9 +708,8 @@ public:
     void setTopology(TopologyAddonInterface *topology); 
     TopologyAddonInterface *getTopology(void);
     
-    void setDesiredPositions(DesiredPositions *desiredPositions) {
-        this->desiredPositions = desiredPositions;
-    }
+    void setDesiredPositions(DesiredPositions *desiredPositions);
+
     /**
      * @brief  Specifies an optional hierarchy for clustering nodes.
      *
@@ -698,19 +720,6 @@ public:
     {
         clusterHierarchy = hierarchy;
     }
-    /** 
-     * @brief Mark a group of rectangles as being exempt from having 
-     *        non-overlap constraints generated between each other.
-     *
-     * To add multiple separate groups of possibly overlapping rectangles, 
-     * just call this method multiple times.
-     *
-     * @param[in] rectGroupIds  A group of rectangle indexes which will not
-     *                          have non-overlap constraints generated between
-     *                          each other.
-     */
-    void addGroupOfNonOverlapExemptRectangles(
-            std::vector<unsigned> rectGroupIds);
     /**
      * @brief Register to receive information about unsatisfiable constraints.
      *
@@ -753,7 +762,7 @@ public:
 
     /**
      * @brief  A convenience method that can be called from Java to free
-     *         the memory of Rectangles, CompoundConstraints, etc.
+     *         the memory of nodes (Rectangles), CompoundConstraints, etc.
      * 
      * This assumes that the ConstrainedFDLayout instance takes ownership
      * of all the objects passed to it.

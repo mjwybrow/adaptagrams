@@ -86,7 +86,7 @@ void dumpSquareMatrix(unsigned n, T** L) {
 
 ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
         const std::vector< Edge >& es, const double idealLength,
-        const bool preventOverlaps, const EdgeLengths& eLengths, 
+        const EdgeLengths& eLengths,
         TestConvergence *doneTest, PreIteration* preIteration)
     : n(rs.size()),
       X(valarray<double>(n)),
@@ -100,7 +100,7 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
       clusterHierarchy(NULL),
       rectClusterBuffer(0),
       m_idealEdgeLength(idealLength),
-      m_generateNonOverlapConstraints(preventOverlaps),
+      m_generateNonOverlapConstraints(false),
       m_edge_lengths(eLengths.data(), eLengths.size()),
       m_nonoverlap_exemptions(new NonOverlapConstraintExemptions())
 {
@@ -137,6 +137,25 @@ void dijkstra(const unsigned s, const unsigned n, double* d,
 {
     shortest_paths::dijkstra(s,n,d,es,eLengths);
 }
+
+void ConstrainedFDLayout::setConstraints(const cola::CompoundConstraints& ccs)
+{
+    this->ccs = ccs;
+}
+
+void ConstrainedFDLayout::setAvoidNodeOverlaps(bool avoidOverlaps,
+        std::vector<std::vector<unsigned> > listOfNodeGroups)
+{
+    m_generateNonOverlapConstraints = avoidOverlaps;
+    m_nonoverlap_exemptions->addExemptGroupOfNodes(listOfNodeGroups);
+}
+
+
+void ConstrainedFDLayout::setDesiredPositions(DesiredPositions *desiredPositions)
+{
+    this->desiredPositions = desiredPositions;
+}
+
 
 /*
  * Sets up the D and G matrices.  D is the required euclidean distances
@@ -1281,12 +1300,6 @@ void ConstrainedFDLayout::moveBoundingBoxes() {
     }
 }
 
-void ConstrainedFDLayout::addGroupOfNonOverlapExemptRectangles(
-            std::vector<unsigned> rectGroupIds)
-{
-    m_nonoverlap_exemptions->addExemptGroupOfRectangles(rectGroupIds);
-}
-
 static const double LIMIT = 100000000;
 
 static void reduceRange(double& val)
@@ -1408,8 +1421,7 @@ void ConstrainedFDLayout::outputInstanceToSVG(std::string instanceName)
         (*c)->printCreationCode(fp);
     }
 
-    fprintf(fp, "    ConstrainedFDLayout alg(rs, es, defaultEdgeLength, %s, eLengths);\n",
-            (m_generateNonOverlapConstraints) ? "true" : "false");
+    fprintf(fp, "    ConstrainedFDLayout alg(rs, es, defaultEdgeLength, eLengths);\n");
     if (clusterHierarchy)
     {
         clusterHierarchy->printCreationCode(fp);
@@ -1417,6 +1429,8 @@ void ConstrainedFDLayout::outputInstanceToSVG(std::string instanceName)
                 (unsigned long long) clusterHierarchy);
     }
     fprintf(fp, "    alg.setConstraints(ccs);\n");
+    fprintf(fp, "    alg.setAvoidNodeOverlaps(%s);\n",
+            (m_generateNonOverlapConstraints) ? "true" : "false");
     fprintf(fp, "    alg.makeFeasible();\n");
     fprintf(fp, "    alg.run();\n");
     fprintf(fp, "    alg.freeAssociatedObjects();\n");

@@ -99,7 +99,7 @@ int main() {
             StandardEdgeLengths,&test);
     //alg.setYConstraints(&cy);
 	alg.run();
-	ConstrainedFDLayout alg2(rs,es,defaultEdgeLength, false,
+	ConstrainedFDLayout alg2(rs,es,defaultEdgeLength,
             StandardEdgeLengths, &test);
     //alg2.setYConstraints(&cy);
 	alg2.run();
