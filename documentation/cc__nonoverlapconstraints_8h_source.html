@@ -94,7 +94,7 @@
 <div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;<span class="keyword">class </span>NonOverlapConstraintExemptions {</div>
 <div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;    <span class="keyword">public</span>:</div>
 <div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;        NonOverlapConstraintExemptions();</div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;        <span class="keywordtype">void</span> addExemptGroupOfRectangles(std::vector&lt;unsigned&gt; ids);</div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;        <span class="keywordtype">void</span> addExemptGroupOfNodes(<a class="code" href="namespacecola.html#aa7b12e095cd8f9435660a9ba4c3d3c1f">ListOfNodeIndexes</a> listOfNodeGroups);</div>
 <div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;        <span class="keywordtype">bool</span> shapePairIsExempt(ShapePair shapePair) <span class="keyword">const</span>;</div>
 <div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;</div>
 <div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;    <span class="keyword">private</span>:</div>
@@ -148,6 +148,7 @@
 <div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;</div>
 <div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;} <span class="comment">// namespace cola</span></div>
 <div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;<span class="preprocessor">#endif // COLA_CC_NONOVERLAPCONSTRAINTS</span></div>
+<div class="ttc" id="namespacecola_html_aa7b12e095cd8f9435660a9ba4c3d3c1f"><div class="ttname"><a href="namespacecola.html#aa7b12e095cd8f9435660a9ba4c3d3c1f">cola::ListOfNodeIndexes</a></div><div class="ttdeci">std::vector&lt; NodeIndexes &gt; ListOfNodeIndexes</div><div class="ttdoc">A vector of NodeIndexes. </div><div class="ttdef"><b>Definition:</b> cola.h:62</div></div>
 <div class="ttc" id="namespacevpsc_html"><div class="ttname"><a href="namespacevpsc.html">vpsc</a></div><div class="ttdoc">libvpsc: Variable Placement with Separation Constraints quadratic program solver library. </div><div class="ttdef"><b>Definition:</b> assertions.h:61</div></div>
 <div class="ttc" id="namespacevpsc_html_a789e11af2e316a14e76f6842ff7ef7a3"><div class="ttname"><a href="namespacevpsc.html#a789e11af2e316a14e76f6842ff7ef7a3">vpsc::Variables</a></div><div class="ttdeci">std::vector&lt; Variable * &gt; Variables</div><div class="ttdoc">A vector of pointers to Variable objects. </div><div class="ttdef"><b>Definition:</b> constraint.h:38</div></div>
 <div class="ttc" id="namespacevpsc_html_ab60fb54bb8fae1dcfcc954ecd8919c1d"><div class="ttname"><a href="namespacevpsc.html#ab60fb54bb8fae1dcfcc954ecd8919c1d">vpsc::Constraints</a></div><div class="ttdeci">std::vector&lt; Constraint * &gt; Constraints</div><div class="ttdoc">A vector of pointers to Constraint objects. </div><div class="ttdef"><b>Definition:</b> constraint.h:125</div></div>
@@ -158,7 +159,7 @@
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jan 4 2016 15:28:04 for Adaptagrams by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Dec 5 2016 08:53:37 for Adaptagrams by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.10
 </small></address>

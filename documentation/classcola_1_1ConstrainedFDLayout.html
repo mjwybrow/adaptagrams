@@ -70,9 +70,9 @@ Collaboration diagram for cola::ConstrainedFDLayout:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:abc34d965ef3b4990b39d53bfa2d5695a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcola_1_1ConstrainedFDLayout.html#abc34d965ef3b4990b39d53bfa2d5695a">ConstrainedFDLayout</a> (const <a class="el" href="namespacevpsc.html#adc3cc05bc53422606216ab4b741fca90">vpsc::Rectangles</a> &amp;rs, const std::vector&lt; <a class="el" href="namespacecola.html#ade473937d660dcc8ec335279a1ae3d18">cola::Edge</a> &gt; &amp;es, const double idealLength, const bool preventOverlaps, const <a class="el" href="namespacecola.html#af3a5eb5199d2eeaff290f9bcf6690f7a">EdgeLengths</a> &amp;eLengths=StandardEdgeLengths, <a class="el" href="classcola_1_1TestConvergence.html">TestConvergence</a> *doneTest=NULL, <a class="el" href="classcola_1_1PreIteration.html">PreIteration</a> *preIteration=NULL)</td></tr>
-<tr class="memdesc:abc34d965ef3b4990b39d53bfa2d5695a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs a constrained force-directed layout instance.  <a href="#abc34d965ef3b4990b39d53bfa2d5695a">More...</a><br /></td></tr>
-<tr class="separator:abc34d965ef3b4990b39d53bfa2d5695a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a861206c8c74789b76ce648745f49db36"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcola_1_1ConstrainedFDLayout.html#a861206c8c74789b76ce648745f49db36">ConstrainedFDLayout</a> (const <a class="el" href="namespacevpsc.html#adc3cc05bc53422606216ab4b741fca90">vpsc::Rectangles</a> &amp;rs, const std::vector&lt; <a class="el" href="namespacecola.html#ade473937d660dcc8ec335279a1ae3d18">cola::Edge</a> &gt; &amp;es, const double idealLength, const <a class="el" href="namespacecola.html#af3a5eb5199d2eeaff290f9bcf6690f7a">EdgeLengths</a> &amp;eLengths=StandardEdgeLengths, <a class="el" href="classcola_1_1TestConvergence.html">TestConvergence</a> *doneTest=NULL, <a class="el" href="classcola_1_1PreIteration.html">PreIteration</a> *preIteration=NULL)</td></tr>
+<tr class="memdesc:a861206c8c74789b76ce648745f49db36"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructs a constrained force-directed layout instance.  <a href="#a861206c8c74789b76ce648745f49db36">More...</a><br /></td></tr>
+<tr class="separator:a861206c8c74789b76ce648745f49db36"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a06eb591211419e216415a88477f7ab85"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcola_1_1ConstrainedFDLayout.html#a06eb591211419e216415a88477f7ab85">run</a> (bool x=true, bool y=true)</td></tr>
 <tr class="memdesc:a06eb591211419e216415a88477f7ab85"><td class="mdescLeft">&#160;</td><td class="mdescRight">Implements the main layout loop, taking descent steps until stress is no-longer significantly reduced.  <a href="#a06eb591211419e216415a88477f7ab85">More...</a><br /></td></tr>
 <tr class="separator:a06eb591211419e216415a88477f7ab85"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -82,15 +82,15 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a394179b3591f1e708f73ffea85d633b1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcola_1_1ConstrainedFDLayout.html#a394179b3591f1e708f73ffea85d633b1">setConstraints</a> (const <a class="el" href="namespacecola.html#a264085c472922afe01b3b9162541aaf0">cola::CompoundConstraints</a> &amp;ccs)</td></tr>
 <tr class="memdesc:a394179b3591f1e708f73ffea85d633b1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specify a set of compound constraints to apply to the layout.  <a href="#a394179b3591f1e708f73ffea85d633b1">More...</a><br /></td></tr>
 <tr class="separator:a394179b3591f1e708f73ffea85d633b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9d88ae147adc1fb6631ba4dae5916042"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcola_1_1ConstrainedFDLayout.html#a9d88ae147adc1fb6631ba4dae5916042">setAvoidNodeOverlaps</a> (bool avoidOverlaps, <a class="el" href="namespacecola.html#aa7b12e095cd8f9435660a9ba4c3d3c1f">ListOfNodeIndexes</a> listOfNodeGroups=<a class="el" href="namespacecola.html#aa7b12e095cd8f9435660a9ba4c3d3c1f">ListOfNodeIndexes</a>())</td></tr>
+<tr class="memdesc:a9d88ae147adc1fb6631ba4dae5916042"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specifies whether non-overlap constraints should be automatically generated between all nodes, as well as any exemptions to this.  <a href="#a9d88ae147adc1fb6631ba4dae5916042">More...</a><br /></td></tr>
+<tr class="separator:a9d88ae147adc1fb6631ba4dae5916042"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a68fa10af949c5617a69152fba7995fba"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcola_1_1ConstrainedFDLayout.html#a68fa10af949c5617a69152fba7995fba">setTopology</a> (<a class="el" href="classcola_1_1TopologyAddonInterface.html">TopologyAddonInterface</a> *topology)</td></tr>
 <tr class="memdesc:a68fa10af949c5617a69152fba7995fba"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set an addon for doing topology preserving layout.  <a href="#a68fa10af949c5617a69152fba7995fba">More...</a><br /></td></tr>
 <tr class="separator:a68fa10af949c5617a69152fba7995fba"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af1e978ca8225a571cfb8c991e92f0abe"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcola_1_1ConstrainedFDLayout.html#af1e978ca8225a571cfb8c991e92f0abe">setClusterHierarchy</a> (<a class="el" href="classcola_1_1RootCluster.html">RootCluster</a> *hierarchy)</td></tr>
 <tr class="memdesc:af1e978ca8225a571cfb8c991e92f0abe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Specifies an optional hierarchy for clustering nodes.  <a href="#af1e978ca8225a571cfb8c991e92f0abe">More...</a><br /></td></tr>
 <tr class="separator:af1e978ca8225a571cfb8c991e92f0abe"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8dc2a2eb5766a51f973f291770d36d1e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcola_1_1ConstrainedFDLayout.html#a8dc2a2eb5766a51f973f291770d36d1e">addGroupOfNonOverlapExemptRectangles</a> (std::vector&lt; unsigned &gt; rectGroupIds)</td></tr>
-<tr class="memdesc:a8dc2a2eb5766a51f973f291770d36d1e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mark a group of rectangles as being exempt from having non-overlap constraints generated between each other.  <a href="#a8dc2a2eb5766a51f973f291770d36d1e">More...</a><br /></td></tr>
-<tr class="separator:a8dc2a2eb5766a51f973f291770d36d1e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a594a0df207c598378e4b60edf8c642bb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcola_1_1ConstrainedFDLayout.html#a594a0df207c598378e4b60edf8c642bb">setUnsatisfiableConstraintInfo</a> (<a class="el" href="namespacecola.html#a82997eb638fd2db3b3738892955c8ff7">UnsatisfiableConstraintInfos</a> *unsatisfiableX, <a class="el" href="namespacecola.html#a82997eb638fd2db3b3738892955c8ff7">UnsatisfiableConstraintInfos</a> *unsatisfiableY)</td></tr>
 <tr class="memdesc:a594a0df207c598378e4b60edf8c642bb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Register to receive information about unsatisfiable constraints.  <a href="#a594a0df207c598378e4b60edf8c642bb">More...</a><br /></td></tr>
 <tr class="separator:a594a0df207c598378e4b60edf8c642bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -98,7 +98,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a66697e8a428b0d1ecd8d5e042ee7072f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Finds a feasible starting position for nodes that satisfies the given constraints.  <a href="#a66697e8a428b0d1ecd8d5e042ee7072f">More...</a><br /></td></tr>
 <tr class="separator:a66697e8a428b0d1ecd8d5e042ee7072f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0f6bc74f1d27d5e451554d4bb16acd42"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcola_1_1ConstrainedFDLayout.html#a0f6bc74f1d27d5e451554d4bb16acd42">freeAssociatedObjects</a> (void)</td></tr>
-<tr class="memdesc:a0f6bc74f1d27d5e451554d4bb16acd42"><td class="mdescLeft">&#160;</td><td class="mdescRight">A convenience method that can be called from Java to free the memory of Rectangles, CompoundConstraints, etc.  <a href="#a0f6bc74f1d27d5e451554d4bb16acd42">More...</a><br /></td></tr>
+<tr class="memdesc:a0f6bc74f1d27d5e451554d4bb16acd42"><td class="mdescLeft">&#160;</td><td class="mdescRight">A convenience method that can be called from Java to free the memory of nodes (Rectangles), CompoundConstraints, etc.  <a href="#a0f6bc74f1d27d5e451554d4bb16acd42">More...</a><br /></td></tr>
 <tr class="separator:a0f6bc74f1d27d5e451554d4bb16acd42"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abfac80c5dbeaf6aa1027d158bcf4f82e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classcola_1_1ConstrainedFDLayout.html#abfac80c5dbeaf6aa1027d158bcf4f82e">outputInstanceToSVG</a> (std::string filename=std::string())</td></tr>
 <tr class="memdesc:abfac80c5dbeaf6aa1027d158bcf4f82e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generates an SVG file containing debug output and code that can be used to regenerate the instance.  <a href="#abfac80c5dbeaf6aa1027d158bcf4f82e">More...</a><br /></td></tr>
@@ -108,7 +108,7 @@ Public Member Functions</h2></td></tr>
 <div class="textblock"><p>Implements a constrained force-directed layout algorithm. </p>
 <p>This method is based on a non-linear gradient projection technique. Conceptually it's similar to a force directed method like Fruchterman-Reingold&mdash;but using a more principled goal function and optimisation techniques. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a class="anchor" id="abc34d965ef3b4990b39d53bfa2d5695a"></a>
+<a class="anchor" id="a861206c8c74789b76ce648745f49db36"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -129,12 +129,6 @@ Public Member Functions</h2></td></tr>
           <td></td>
           <td class="paramtype">const double&#160;</td>
           <td class="paramname"><em>idealLength</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const bool&#160;</td>
-          <td class="paramname"><em>preventOverlaps</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -170,7 +164,6 @@ Public Member Functions</h2></td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">rs</td><td>Bounding boxes of nodes at their initial positions. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">es</td><td>Simple pair edges, giving indices of the start and end nodes in rs. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">idealLength</td><td>A scalar modifier of ideal edge lengths in eLengths or of 1 if no ideal lengths are specified. </td></tr>
-    <tr><td class="paramdir"></td><td class="paramname">preventOverlaps</td><td>Causes non-overlap constraints to be generated for all rectangles, if it is set to true. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">eLengths</td><td>Individual ideal lengths for edges. The actual ideal length used for the ith edge is idealLength*eLengths[i], or if eLengths is NULL a then just idealLength is used (i.e., eLengths[i] is assumed to be 1). </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">done</td><td>A test of convergence operation called at the end of each iteration (optional). If not given, uses a default <a class="el" href="classcola_1_1TestConvergence.html" title="A default functor that is called after each iteration of the layout algorithm. ">TestConvergence</a> object. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">preIteration</td><td>An operation called before each iteration (optional). </td></tr>
@@ -181,31 +174,6 @@ Public Member Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a class="anchor" id="a8dc2a2eb5766a51f973f291770d36d1e"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void cola::ConstrainedFDLayout::addGroupOfNonOverlapExemptRectangles </td>
-          <td>(</td>
-          <td class="paramtype">std::vector&lt; unsigned &gt;&#160;</td>
-          <td class="paramname"><em>rectGroupIds</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Mark a group of rectangles as being exempt from having non-overlap constraints generated between each other. </p>
-<p>To add multiple separate groups of possibly overlapping rectangles, just call this method multiple times.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">rectGroupIds</td><td>A group of rectangle indexes which will not have non-overlap constraints generated between each other. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
 <a class="anchor" id="a0f6bc74f1d27d5e451554d4bb16acd42"></a>
 <div class="memitem">
 <div class="memproto">
@@ -220,7 +188,7 @@ Public Member Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>A convenience method that can be called from Java to free the memory of Rectangles, CompoundConstraints, etc. </p>
+<p>A convenience method that can be called from Java to free the memory of nodes (Rectangles), CompoundConstraints, etc. </p>
 <p>This assumes that the <a class="el" href="classcola_1_1ConstrainedFDLayout.html" title="Implements a constrained force-directed layout algorithm. ">ConstrainedFDLayout</a> instance takes ownership of all the objects passed to it.</p>
 <p>This is useful because in SWIG we have problems with Java wrapper classes going out of scope and causing objects like Rectanges to sometimes be freed when the layout instance still needs them. For this reason we prevent the Java wrappers from deleting the internal C++ instances, and let them be cleaned up later via this method. </p>
 
@@ -356,6 +324,42 @@ Here is the call graph for this function:</div>
 
 </div>
 </div>
+<a class="anchor" id="a9d88ae147adc1fb6631ba4dae5916042"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void cola::ConstrainedFDLayout::setAvoidNodeOverlaps </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>avoidOverlaps</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacecola.html#aa7b12e095cd8f9435660a9ba4c3d3c1f">ListOfNodeIndexes</a>&#160;</td>
+          <td class="paramname"><em>listOfNodeGroups</em> = <code><a class="el" href="namespacecola.html#aa7b12e095cd8f9435660a9ba4c3d3c1f">ListOfNodeIndexes</a>()</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Specifies whether non-overlap constraints should be automatically generated between all nodes, as well as any exemptions to this. </p>
+<p>The optional second parameter indicates groups of nodes that should be exempt from having non-overlap constraints generated between each other. For example, you might want to do this for nodes representing ports, or the child nodes in a particular cluster.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">avoidOverlaps</td><td>New boolean value for this option. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">listOfNodeGroups</td><td>A list of groups of node indexes which will not have non-overlap constraints generated between each other. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a class="anchor" id="af1e978ca8225a571cfb8c991e92f0abe"></a>
 <div class="memitem">
 <div class="memproto">
@@ -391,9 +395,6 @@ Here is the call graph for this function:</div>
 <a class="anchor" id="a394179b3591f1e708f73ffea85d633b1"></a>
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">void cola::ConstrainedFDLayout::setConstraints </td>
@@ -403,11 +404,6 @@ Here is the call graph for this function:</div>
           <td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 <p>Specify a set of compound constraints to apply to the layout. </p>
@@ -491,7 +487,7 @@ Here is the call graph for this function:</div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jan 4 2016 15:28:05 for Adaptagrams by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Dec 5 2016 08:53:38 for Adaptagrams by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.10
 </small></address>
