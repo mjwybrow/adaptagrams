@@ -25,8 +25,8 @@ There is also
 a simple <a href="libavoid_example.html">documented example</a> to help you get started.
 
 libavoid is written and maintained by 
-<a href="http://www.csse.monash.edu.au/~mwybrow/">Michael Wybrow</a>,
-a member of <a href="http://marvl.infotech.monash.edu.au/">MArVL: the Monash Adaptive Visualisation Lab</a> at Monash University, Australia.
+<a href="http://marvl.infotech.monash.edu/~mwybrow/">Michael Wybrow</a>,
+a member of <a href="http://marvl.infotech.monash.edu/">MArVL: the Monash Adaptive Visualisation Lab</a> at Monash University, Australia.
 
 The algorithms used for the connector routing are described in the following papers.  If you use libavoid, please cite the relevant paper.
 -  M. Wybrow, K. Marriott, and P.J. Stuckey. Orthogonal connector 
@@ -35,24 +35,24 @@ The algorithms used for the connector routing are described in the following pap
    (GD '09),\n
    LNCS 5849, pages 219–231. Spring-Verlag, 2010.
    [<a href="http://dx.doi.org/10.1007/978-3-642-11805-0_22">DOI</a>]
-   [<a href="http://www.csse.monash.edu.au/~mwybrow/papers/wybrow-gd-2009.pdf">PDF</a>]
+   [<a href="http://marvl.infotech.monash.edu/~mwybrow/papers/wybrow-gd-2009.pdf">PDF</a>]
 -  M. Wybrow, K. Marriott, and P.J. Stuckey. Incremental connector 
    routing.\n
    In Proceedings of 13th International Symposium on Graph Drawing 
    (GD '05),\n
    LNCS 3843, pages 446—457. Springer-Verlag, 2006. 
    [<a href="http://dx.doi.org/10.1007/11618058_40">DOI</a>]
-   [<a href="http://www.csse.monash.edu.au/~mwybrow/papers/wybrow-gd-2005.pdf">PDF</a>]
+   [<a href="http://marvl.infotech.monash.edu/~mwybrow/papers/wybrow-gd-2005.pdf">PDF</a>]
 -  M. Wybrow, K. Marriott and P.J. Stuckey.  Orthogonal hyperedge routing.\n
    In Proceedings of 7th International Conference on the Theory and Application of Diagrams (Diagrams 2012),\n 
    LNCS (LNAI) 7352, pages 51&ndash;64. Springer-Verlag, 2012.
    [<a href="http://dx.doi.org/10.1007/978-3-642-31223-6_10">DOI</a>]
-   [<a href="http://www.csse.monash.edu.au/~mwybrow/papers/wybrow-diagrams-2012.pdf">PDF</a>]
+   [<a href="http://marvl.infotech.monash.edu/~mwybrow/papers/wybrow-diagrams-2012.pdf">PDF</a>]
 -  K. Marriott, P.J. Stuckey, and M. Wybrow.  Seeing Around Corners: Fast Orthogonal Connector Routing.\n
    In Proceedings of the 8th International Conference on the Theory and Application of Diagrams (Diagrams 2014),\n
    LNCS 8578, pages 31&ndash;37. Springer-Verlag, 2014.
    [<a href="http://doi.acm.org/10.1007/978-3-662-44043-8_4">DOI</a>]
-   [<a href="http://www.csse.monash.edu.au/~mwybrow/papers/marriott-diagrams-2014.pdf">PDF</a>]
+   [<a href="http://marvl.infotech.monash.edu/~mwybrow/papers/marriott-diagrams-2014.pdf">PDF</a>]
 
 libavoid is currently used in the following software:
 -  A commercial circuit diagram editor;
