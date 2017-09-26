@@ -1278,7 +1278,7 @@ class CrossingConnectorsInfo
             connSet.clear();
 
             // Return the candidate connector and its original crossing count.
-            return std::make_pair(candidateCrossingCount, candidateConnector);
+            return std::make_pair(static_cast<double>(candidateCrossingCount), candidateConnector);
         }
 
         // Returns the iterator to the group that the given conn is in,
