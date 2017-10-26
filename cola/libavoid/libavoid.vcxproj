@@ -147,6 +147,7 @@
     <ClCompile Include="geomtypes.cpp" />
     <ClCompile Include="graph.cpp" />
     <ClCompile Include="hyperedge.cpp" />
+    <ClCompile Include="hyperedgeimprover.cpp" />
     <ClCompile Include="hyperedgetree.cpp" />
     <ClCompile Include="junction.cpp" />
     <ClCompile Include="makepath.cpp" />
@@ -169,10 +170,12 @@
     <ClInclude Include="connector.h" />
     <ClInclude Include="connend.h" />
     <ClInclude Include="debug.h" />
+    <ClInclude Include="dllexport.h" />
     <ClInclude Include="geometry.h" />
     <ClInclude Include="geomtypes.h" />
     <ClInclude Include="graph.h" />
     <ClInclude Include="hyperedge.h" />
+    <ClInclude Include="hyperedgeimprover.h" />
     <ClInclude Include="hyperedgetree.h" />
     <ClInclude Include="junction.h" />
     <ClInclude Include="libavoid.h" />

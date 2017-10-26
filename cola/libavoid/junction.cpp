@@ -23,6 +23,7 @@
 */
 
 #include <cstdlib>
+#include <algorithm>
 
 #include "libavoid/junction.h"
 #include "libavoid/router.h"

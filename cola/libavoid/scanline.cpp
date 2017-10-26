@@ -23,6 +23,7 @@
 */
 
 #include <cfloat>
+#include <algorithm>
 
 #include "libavoid/scanline.h"
 #include "libavoid/obstacle.h"
