@@ -71,7 +71,7 @@ namespace cola {
                 map<unsigned,pair<Component*,unsigned> > &cmap) {
             v->visited=true;
             remaining.erase(v->listPos);
-            cmap[v->id]=make_pair(component,component->node_ids.size());
+            cmap[v->id]=make_pair(component,static_cast<unsigned>(component->node_ids.size()));
             component->node_ids.push_back(v->id);
             component->rects.push_back(v->r);
             for(unsigned i=0;i<v->neighbours.size();i++) {
