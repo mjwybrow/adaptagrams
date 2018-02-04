@@ -28,12 +28,12 @@ int main(void) {
     router->setRoutingOption((RoutingOption)5, false);
     router->setRoutingOption((RoutingOption)6, false);
     Polygon polygon;
-    ConnRef *connRef = NULL;
+    ConnRef *connRef = nullptr;
     ConnEnd srcPt;
     ConnEnd dstPt;
     ConnEnd heConnPt;
     PolyLine newRoute;
-    ShapeConnectionPin *connPin = NULL;
+    ShapeConnectionPin *connPin = nullptr;
 
     // shapeRef1
     polygon = Polygon(4);

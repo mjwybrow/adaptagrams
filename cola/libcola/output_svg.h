@@ -46,7 +46,7 @@ public:
 		const bool curvedEdges=false)
 		: rs(rs),
 		  es(es),
-		  routes(NULL),
+		  routes(nullptr),
 		  rc(rc),
 		  fname(fname),
 		  rects(rects),

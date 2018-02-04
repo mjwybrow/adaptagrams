@@ -68,7 +68,7 @@ class MinimumTerminalSpanningTree
     public:
         MinimumTerminalSpanningTree(Router *router,
                 std::set<VertInf *> terminals,
-                JunctionHyperedgeTreeNodeMap *hyperedgeTreeJunctions = NULL);
+                JunctionHyperedgeTreeNodeMap *hyperedgeTreeJunctions = nullptr);
         ~MinimumTerminalSpanningTree();
 
         // Uses Interleaved construction of the MTST and SPTF (heuristic 2 

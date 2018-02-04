@@ -282,7 +282,7 @@ int main() {
     unsigned V;
     CompoundConstraints ccs;
 
-    int seed = time(NULL);
+    int seed = time(nullptr);
     //seed=1207906420;
     //seed=1207920674;
     //seed=1207982613;
@@ -324,7 +324,7 @@ int main() {
     clock_t unconstrainedstarttime=clock();
     //writeTextFile(es);
     es.clear();
-	ConstrainedFDLayout alg2(rs,es,defaultEdgeLength,NULL,test);
+	ConstrainedFDLayout alg2(rs,es,defaultEdgeLength,nullptr,test);
     //alg2.setConstraints(&ccs);
 
     alg2.makeFeasible(true);

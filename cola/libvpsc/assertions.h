@@ -66,7 +66,7 @@ class CriticalFailure
 {
     public:
         CriticalFailure(const char *expr, const char *file, int line, 
-                const char *function = NULL)
+                const char *function = nullptr)
             : expr(expr),
               file(file),
               line(line),

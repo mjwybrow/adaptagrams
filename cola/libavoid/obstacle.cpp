@@ -35,18 +35,18 @@ Obstacle::Obstacle(Router *router, Polygon ply, const unsigned int id)
     : m_router(router),
       m_polygon(ply),
       m_active(false),
-      m_first_vert(NULL),
-      m_last_vert(NULL)
+      m_first_vert(nullptr),
+      m_last_vert(nullptr)
 {
-    COLA_ASSERT(m_router != NULL);
+    COLA_ASSERT(m_router != nullptr);
     m_id = m_router->assignId(id);
 
     VertID i = VertID(m_id, 0);
 
     Polygon routingPoly = routingPolygon();
     const bool addToRouterNow = false;
-    VertInf *last = NULL;
-    VertInf *node = NULL;
+    VertInf *last = nullptr;
+    VertInf *node = nullptr;
     for (size_t pt_i = 0; pt_i < routingPoly.size(); ++pt_i)
     {
         node = new VertInf(m_router, i, routingPoly.ps[pt_i], addToRouterNow);
@@ -76,7 +76,7 @@ Obstacle::Obstacle(Router *router, Polygon ply, const unsigned int id)
 Obstacle::~Obstacle()
 {
     COLA_ASSERT(m_active == false);
-    COLA_ASSERT(m_first_vert != NULL);
+    COLA_ASSERT(m_first_vert != nullptr);
     
     VertInf *it = m_first_vert;
     do
@@ -87,7 +87,7 @@ Obstacle::~Obstacle()
         delete tmp;
     }
     while (it != m_first_vert);
-    m_first_vert = m_last_vert = NULL;
+    m_first_vert = m_last_vert = nullptr;
 
     // Free and clear any connection pins.
     while (!m_connection_pins.empty())
@@ -99,7 +99,7 @@ Obstacle::~Obstacle()
 
 void Obstacle::setNewPoly(const Polygon& poly)
 {
-    COLA_ASSERT(m_first_vert != NULL);
+    COLA_ASSERT(m_first_vert != nullptr);
     COLA_ASSERT(m_polygon.size() == poly.size());
     
     m_polygon = poly;
@@ -113,7 +113,7 @@ void Obstacle::setNewPoly(const Polygon& poly)
 
         // Reset with the new polygon point.
         curr->Reset(routingPoly.ps[pt_i]);
-        curr->pathNext = NULL;
+        curr->pathNext = nullptr;
         
         curr = curr->shNext;
     }
@@ -321,7 +321,7 @@ VertInf *Obstacle::getPointVertex(const Point& point)
     }
     while (curr != m_first_vert);
 
-    return NULL;
+    return nullptr;
 }
 
 
@@ -344,7 +344,7 @@ ConnRefList Obstacle::attachedConnectors(void) const
             curr != m_following_conns.end(); ++curr)
     {
         ConnEnd *connEnd = *curr;
-        COLA_ASSERT(connEnd->m_conn_ref != NULL);
+        COLA_ASSERT(connEnd->m_conn_ref != nullptr);
         attachedConns.push_back(connEnd->m_conn_ref);
     }
     return attachedConns;

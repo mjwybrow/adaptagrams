@@ -64,7 +64,7 @@ namespace vpsc {
         }
     }
     Constraint* CBuffer::mostViolated() {
-        Constraint* v=NULL;
+        Constraint* v=nullptr;
         while(true) {
             if(size==0) {
                 load();

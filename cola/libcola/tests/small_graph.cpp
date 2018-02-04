@@ -81,14 +81,14 @@ int main() {
     double width=1000;
     double height=1000;
     vector<vpsc::Rectangle*> rs;
-    //srand(time(NULL));
+    //srand(time(nullptr));
     for(unsigned i=0;i<V;i++) {
         double x=getRand(width), y=getRand(height);
         rs.push_back(new vpsc::Rectangle(x,x+1,y,y+1));
     }
     CheckProgress test(0.001,100);
     clock_t starttime=clock();
-    ConstrainedMajorizationLayout alg(rs,es,NULL,defaultEdgeLength,NULL,test);
+    ConstrainedMajorizationLayout alg(rs,es,nullptr,defaultEdgeLength,nullptr,test);
     bool constrained=false;
     if(!constrained) {
         cout << "Unconstrained layout" << endl;
@@ -102,7 +102,7 @@ int main() {
     }
     double t=double(clock()-starttime)/double(CLOCKS_PER_SEC);
     cout<<"Time="<<t<<endl;
-    output_svg(rs,es,NULL,"small_graph.svg",true);
+    output_svg(rs,es,nullptr,"small_graph.svg",true);
     for(unsigned i=0;i<V;i++) {
         delete rs[i];
     }

@@ -283,7 +283,7 @@ int main() {
     unsigned V;
     CompoundConstraints cx,cy;
 
-    int seed = time(NULL);
+    int seed = time(nullptr);
     seed=1207906420;
     //seed=1207920674;
     //seed=1207982613;
@@ -323,7 +323,7 @@ int main() {
 	}
 	CheckProgress test(0.01,100);
     /*
-    ConstrainedMajorizationLayout alg(rs,es,NULL,defaultEdgeLength,NULL,test);
+    ConstrainedMajorizationLayout alg(rs,es,nullptr,defaultEdgeLength,nullptr,test);
     //alg.setYConstraints(&cy);
 	alg.run();
     */

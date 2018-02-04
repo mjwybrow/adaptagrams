@@ -89,7 +89,7 @@ void testCase() {
     try {
         vpsc::Constraints cs;
         Edges es; // not used in this test
-        TopologyConstraints t(vpsc::XDIM,nodes,es,NULL,vs,cs);
+        TopologyConstraints t(vpsc::XDIM,nodes,es,nullptr,vs,cs);
         for(Nodes::iterator v=nodes.begin();v!=nodes.end();++v) {
             (*v)->var->desiredPosition=getRand(5);
         }
@@ -127,7 +127,7 @@ void randomTest(vpsc::Dim dim) {
     try {
         vpsc::Constraints cs;
         Edges es; // not used in this test
-        TopologyConstraints t(dim,nodes,es,NULL,vs,cs);
+        TopologyConstraints t(dim,nodes,es,nullptr,vs,cs);
         for(Nodes::iterator v=nodes.begin();v!=nodes.end();++v) {
             (*v)->var->desiredPosition=getRand(5);
         }

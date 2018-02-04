@@ -65,8 +65,8 @@ public:
         CompoundConstraints const *ccs,
         UnsatisfiableConstraintInfos *unsatisfiableConstraints,
         NonOverlapConstraintsMode nonOverlapConstraints = None,
-        RootCluster* clusterHierarchy = NULL,
-        vpsc::Rectangles* rs = NULL,
+        RootCluster* clusterHierarchy = nullptr,
+        vpsc::Rectangles* rs = nullptr,
         const bool scaling = false,
         SolveWithMosek solveWithMosek = Off);
     static void dumpSquareMatrix(std::valarray<double> const &L) {

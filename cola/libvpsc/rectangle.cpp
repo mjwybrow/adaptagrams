@@ -121,8 +121,8 @@ struct Node {
     NodeSet *leftNeighbours, *rightNeighbours;
     Node(Variable *v, Rectangle *r, double p) 
         : v(v),r(r),pos(p),
-          firstAbove(NULL), firstBelow(NULL),
-          leftNeighbours(NULL), rightNeighbours(NULL)
+          firstAbove(nullptr), firstBelow(nullptr),
+          leftNeighbours(nullptr), rightNeighbours(nullptr)
      
     {
         COLA_ASSERT(r->width()<1e40);
@@ -132,11 +132,11 @@ struct Node {
         delete rightNeighbours;
     }
     void addLeftNeighbour(Node *u) {
-        COLA_ASSERT(leftNeighbours!=NULL);
+        COLA_ASSERT(leftNeighbours!=nullptr);
         leftNeighbours->insert(u);
     }
     void addRightNeighbour(Node *u) {
-        COLA_ASSERT(rightNeighbours!=NULL);
+        COLA_ASSERT(rightNeighbours!=nullptr);
         rightNeighbours->insert(u);
     }
     void setNeighbours(NodeSet *left, NodeSet *right) {
@@ -295,12 +295,12 @@ void generateXConstraints(const Rectangles& rs, const Variables& vars,
                 }
             } else {
                 Node *l=v->firstAbove, *r=v->firstBelow;
-                if(l!=NULL) {
+                if(l!=nullptr) {
                     double sep = (v->r->width()+l->r->width())/2.0;
                     cs.push_back(new Constraint(l->v,v->v,sep));
                     l->firstBelow=v->firstBelow;
                 }
-                if(r!=NULL) {
+                if(r!=nullptr) {
                     double sep = (v->r->width()+r->r->width())/2.0;
                     cs.push_back(new Constraint(v->v,r->v,sep));
                     r->firstAbove=v->firstAbove;
@@ -364,12 +364,12 @@ void generateYConstraints(const Rectangles& rs, const Variables& vars,
         } else {
             // Close event
             Node *l=v->firstAbove, *r=v->firstBelow;
-            if(l!=NULL) {
+            if(l!=nullptr) {
                 double sep = (v->r->height()+l->r->height())/2.0;
                 cs.push_back(new Constraint(l->v,v->v,sep));
                 l->firstBelow=v->firstBelow;
             }
-            if(r!=NULL) {
+            if(r!=nullptr) {
                 double sep = (v->r->height()+r->r->height())/2.0;
                 cs.push_back(new Constraint(v->v,r->v,sep));
                 r->firstAbove=v->firstAbove;

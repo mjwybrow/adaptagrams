@@ -37,7 +37,7 @@ using vpsc::Rectangle;
 int main()  {
   MaxAcyclicSubgraph *mas;
   Edges case_a, case_b, case_c, case_d, case_e, case_f;
-  Edges *subgraph = NULL;
+  Edges *subgraph = nullptr;
 
   vector<Rectangle *> rs;
   unsigned V;
@@ -56,7 +56,7 @@ int main()  {
   mas = new MaxAcyclicSubgraph(V, &case_a);
   subgraph = mas->find_subgraph();
 
-  if (subgraph != NULL)  {
+  if (subgraph != nullptr)  {
     cout << "subgraph->size(): " << subgraph->size() << endl;
     cout << "Ea: ";
     for (unsigned i = 0; i < subgraph->size(); i++)  {
@@ -101,7 +101,7 @@ int main()  {
   mas->mod_graph(V, &case_b);
   subgraph = mas->find_subgraph();
   
-  if (subgraph != NULL)  {
+  if (subgraph != nullptr)  {
     cout << "subgraph->size(): " << subgraph->size() << endl;
     cout << "Ea: ";
     for (unsigned i = 0; i < subgraph->size(); i++)  {
@@ -159,7 +159,7 @@ int main()  {
   mas->mod_graph(V, &case_c);
   subgraph = mas->find_subgraph();
 
-  if (subgraph != NULL)  {
+  if (subgraph != nullptr)  {
     cout << "subgraph->size(): " << subgraph->size() << endl;
     cout << "Ea: ";
     for (unsigned i = 0; i < subgraph->size(); i++)  {
@@ -210,7 +210,7 @@ int main()  {
   mas->mod_graph(V, &case_d);
   subgraph = mas->find_subgraph();
   
-  if (subgraph != NULL)  {
+  if (subgraph != nullptr)  {
     cout << "subgraph->size(): " << subgraph->size() << endl;
     cout << "Ea: ";
     for (unsigned i = 0; i < subgraph->size(); i++)  {
@@ -264,7 +264,7 @@ int main()  {
   // detect the subgraph
   mas->mod_graph(V, &case_e);
   subgraph = mas->find_subgraph();
-  if (subgraph != NULL)  {
+  if (subgraph != nullptr)  {
     cout << "subgraph->size(): " << subgraph->size() << endl;
     cout << "Ea: ";
     for (unsigned i = 0; i < subgraph->size(); i++)  {
@@ -313,7 +313,7 @@ int main()  {
   mas->mod_graph(V, &case_f);
   subgraph = mas->find_subgraph();
 
-  if (subgraph != NULL)  {
+  if (subgraph != nullptr)  {
     cout << "subgraph->size(): " << subgraph->size() << endl;
     cout << "Ea: ";
     for (unsigned i = 0; i < subgraph->size(); i++)  {

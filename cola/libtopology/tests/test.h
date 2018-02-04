@@ -104,7 +104,7 @@ void writeFile(const topology::Nodes& vs, const Edges& es, const string& outputF
     for(Nodes::const_iterator i=vs.begin();i!=vs.end();++i) {
 	    rs.push_back((*i)->rect);
     }
-    OutputFile of(rs,cedges,NULL,outputFileName.c_str(),true,false);
+    OutputFile of(rs,cedges,nullptr,outputFileName.c_str(),true,false);
     of.setLabels(labels);
     of.routes=&routes;
     of.generate();

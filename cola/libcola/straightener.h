@@ -255,8 +255,8 @@ public:
     bool open; // a node is opened (if scan is true) when the scanline first reaches
                // its boundary and closed when the scanline leaves it.
     Node(unsigned id, vpsc::Rectangle const * r) :
-        ScanObject(id),cluster(NULL),
-        edge(NULL),dummy(false),scan(true),active(true),open(false) { 
+        ScanObject(id),cluster(nullptr),
+        edge(nullptr),dummy(false),scan(true),active(true),open(false) { 
             for(unsigned i=0;i<2;i++) {
                 pos[i]=r->getCentreD(i);
                 min[i]=r->getMinD(i);
@@ -265,8 +265,8 @@ public:
             }
     }
     Node(unsigned id, const double x, const double y) :
-        ScanObject(id),cluster(NULL),
-        edge(NULL),dummy(false),scan(false),active(true),open(false) {
+        ScanObject(id),cluster(nullptr),
+        edge(nullptr),dummy(false),scan(false),active(true),open(false) {
             pos[vpsc::HORIZONTAL]=x;
             pos[vpsc::VERTICAL]=y;
             for(unsigned i=0;i<2;i++) {
@@ -286,7 +286,7 @@ private:
         const double conjpos, std::vector<Edge*> const & openEdges, 
         std::vector<Node *>& L, std::vector<Node *>& nodes);
     Node(const unsigned id, const double x, const double y, Edge* e) : 
-        ScanObject(id),cluster(NULL),
+        ScanObject(id),cluster(nullptr),
         edge(e),dummy(true),scan(false),active(false)  {
             pos[vpsc::HORIZONTAL]=x;
             pos[vpsc::VERTICAL]=y;
@@ -304,10 +304,10 @@ struct CmpNodePos {
         double vpos = v->scanpos;
         bool tiebreaker = u < v;
         if (u->cluster != v->cluster) {
-            if(u->cluster!=NULL) {
+            if(u->cluster!=nullptr) {
                 upos = u->cluster->scanpos;
             }
-            if(v->cluster!=NULL) {
+            if(v->cluster!=nullptr) {
                 vpos = v->cluster->scanpos;
             }
             tiebreaker = u->cluster < v->cluster;

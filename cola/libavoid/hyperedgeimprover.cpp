@@ -61,7 +61,7 @@ class HyperedgeShiftSegment : public ShiftSegment
             for (OrderedHENodeSet::const_iterator curr = nodes.begin();
                     curr != nodes.end(); ++curr)
             {
-                (*curr)->shiftSegmentNodeSet = NULL;
+                (*curr)->shiftSegmentNodeSet = nullptr;
             }
         }
 
@@ -263,7 +263,7 @@ static bool CmpHyperedgeSegmentDirOrder(const ShiftSegment *lhsSuper,
 
 // Constructor.
 HyperedgeImprover::HyperedgeImprover()
-    : m_router(NULL)
+    : m_router(nullptr)
 {
     clear();
 }
@@ -379,7 +379,7 @@ void HyperedgeImprover::buildHyperedgeSegments(const size_t dim)
         ShiftSegmentList& segments = m_root_shift_segments[*curr];
         
         HyperedgeTreeNode *node = m_hyperedge_tree_junctions[*curr];
-        createShiftSegmentsForDimensionExcluding(node, dim, NULL, segments);
+        createShiftSegmentsForDimensionExcluding(node, dim, nullptr, segments);
 
         // Merge overlapping segment.
         mergeOverlappingSegments(segments);
@@ -400,7 +400,7 @@ void HyperedgeImprover::removeZeroLengthEdges(void)
     {
         HyperedgeTreeNode *node = m_hyperedge_tree_junctions[*curr];
 
-        removeZeroLengthEdges(node, NULL);
+        removeZeroLengthEdges(node, nullptr);
     }
 }
 
@@ -472,8 +472,8 @@ void HyperedgeImprover::removeZeroLengthEdges(HyperedgeTreeNode *self,
             if (!edge->hasFixedRoute && edge->zeroLength())
             {
                 HyperedgeTreeNode *other = edge->followFrom(self);
-                HyperedgeTreeNode *target = NULL;
-                HyperedgeTreeNode *source = NULL;
+                HyperedgeTreeNode *target = nullptr;
+                HyperedgeTreeNode *source = nullptr;
                 if (other->junction && ! self->junction)
                 {
                     target = other;
@@ -517,11 +517,11 @@ void HyperedgeImprover::removeZeroLengthEdges(HyperedgeTreeNode *self,
                         COLA_ASSERT(m_hyperedge_tree_junctions.
                                 count(self->junction) == 1);
                     }
-                    other->junction = NULL;
+                    other->junction = nullptr;
 
                     // Delete the connector on the zero length edge.
                     m_deleted_connectors.push_back(edge->conn);
-                    edge->conn = NULL;
+                    edge->conn = nullptr;
 
                     target = self;
                     source = other;
@@ -625,7 +625,7 @@ void HyperedgeImprover::writeHyperedgeSegmentsBackToConnPaths(void)
         {
             HyperedgeTreeNode *node = m_hyperedge_tree_junctions[*curr];
 
-            node->writeEdgesToConns(NULL, pass);
+            node->writeEdgesToConns(nullptr, pass);
         }
     }
 }
@@ -689,7 +689,7 @@ void HyperedgeImprover::outputHyperedgesToSVG(unsigned int pass,
     while (obstacleIt != m_router->m_obstacles.end())
     {
         Obstacle *obstacle = *obstacleIt;
-        bool isShape = (NULL != dynamic_cast<ShapeRef *> (obstacle));
+        bool isShape = (nullptr != dynamic_cast<ShapeRef *> (obstacle));
 
         if ( ! isShape )
         {
@@ -727,7 +727,7 @@ void HyperedgeImprover::outputHyperedgesToSVG(unsigned int pass,
     {
         HyperedgeTreeNode *node = m_hyperedge_tree_junctions[*curr];
 
-        node->outputEdgesExcept(fp, NULL);
+        node->outputEdgesExcept(fp, nullptr);
     }
     fprintf(fp, "</g>\n");
     fprintf(fp, "</svg>\n");
@@ -746,7 +746,7 @@ void HyperedgeImprover::getEndpoints(JunctionRef *junction, JunctionRef *ignore,
             curr != junction->m_following_conns.end(); ++curr)
     {
         ConnEnd *connEnd = *curr;
-        COLA_ASSERT(connEnd->m_conn_ref != NULL);
+        COLA_ASSERT(connEnd->m_conn_ref != nullptr);
         ConnRef *connRef = connEnd->m_conn_ref;
         std::pair<Obstacle *, Obstacle *> anchors =
                 connRef->endpointAnchors();
@@ -791,8 +791,8 @@ void HyperedgeImprover::execute(bool canMakeMajorChanges)
     while (connRefIt != m_router->connRefs.end())
     {
         ConnRef *connRef = *connRefIt;
-        JunctionRef *jFront = NULL;
-        JunctionRef *jBack = NULL;
+        JunctionRef *jFront = nullptr;
+        JunctionRef *jBack = nullptr;
 
         if (connRef->m_src_connend)
         {
@@ -815,8 +815,8 @@ void HyperedgeImprover::execute(bool canMakeMajorChanges)
         bool seenBack = (m_hyperedge_tree_junctions.find(jBack) !=
                 m_hyperedge_tree_junctions.end());
             
-        HyperedgeTreeNode *nodeFront = NULL;
-        HyperedgeTreeNode *nodeBack = NULL;
+        HyperedgeTreeNode *nodeFront = nullptr;
+        HyperedgeTreeNode *nodeBack = nullptr;
 
         if (jFront)
         {
@@ -859,7 +859,7 @@ void HyperedgeImprover::execute(bool canMakeMajorChanges)
         }
 
         PolyLine& route = connRef->displayRoute();
-        HyperedgeTreeNode *prev = NULL;
+        HyperedgeTreeNode *prev = nullptr;
         for (unsigned int i = 1; i < route.size(); ++i)
         {
             HyperedgeTreeNode *node;
@@ -897,7 +897,7 @@ void HyperedgeImprover::execute(bool canMakeMajorChanges)
             curr != m_hyperedge_tree_roots.end(); ++curr)
     {
         HyperedgeTreeNode *node = m_hyperedge_tree_junctions[*curr];
-        bool containsCycle = node->removeOtherJunctionsFrom(NULL, 
+        bool containsCycle = node->removeOtherJunctionsFrom(nullptr, 
                 m_hyperedge_tree_roots);
         if (containsCycle)
         {
@@ -970,10 +970,10 @@ void HyperedgeImprover::execute(bool canMakeMajorChanges)
         {
             HyperedgeTreeNode *treeRoot = m_hyperedge_tree_junctions[*curr];
             COLA_ASSERT(treeRoot);
-            treeRoot->updateConnEnds(NULL, m_router, m_changed_connectors);
+            treeRoot->updateConnEnds(nullptr, m_router, m_changed_connectors);
         
             // Validate the rewrtten connections.
-            treeRoot->validateHyperedge(NULL, 0);
+            treeRoot->validateHyperedge(nullptr, 0);
         }
     }
 
@@ -997,7 +997,7 @@ void HyperedgeImprover::execute(bool canMakeMajorChanges)
     {
         HyperedgeTreeNode *node = m_hyperedge_tree_junctions[*curr];
 
-        node->deleteEdgesExcept(NULL);
+        node->deleteEdgesExcept(nullptr);
         delete node;
     }
 
@@ -1046,7 +1046,7 @@ HyperedgeTreeNode *HyperedgeImprover::moveJunctionAlongCommonEdge(
 {
     COLA_ASSERT(self->junction);
 
-    HyperedgeTreeNode *newSelf = NULL;
+    HyperedgeTreeNode *newSelf = nullptr;
     std::vector<HyperedgeTreeEdge *> commonEdges;
     std::vector<HyperedgeTreeEdge *> otherEdges;
 
@@ -1141,7 +1141,7 @@ HyperedgeTreeNode *HyperedgeImprover::moveJunctionAlongCommonEdge(
                 delete commonEdges[i];
             }
             targetNode->junction = self->junction;
-            self->junction = NULL;
+            self->junction = nullptr;
 
             if (otherEdges.empty())
             {

@@ -63,7 +63,7 @@ class Offset : public SubConstraintInfo
 BoundaryConstraint::BoundaryConstraint(const vpsc::Dim dim) 
     : CompoundConstraint(dim),
       position(0), 
-      variable(NULL) 
+      variable(nullptr) 
 {
 }
 
@@ -144,13 +144,13 @@ void BoundaryConstraint::generateSeparationConstraints(const vpsc::Dim dim,
     COLA_UNUSED(bbs);
     if (dim == _primaryDim)
     {
-        COLA_ASSERT(variable != NULL);
+        COLA_ASSERT(variable != nullptr);
         for (SubConstraintInfoList::iterator o = _subConstraintInfo.begin();
                 o != _subConstraintInfo.end(); ++o) 
         {
             Offset *info = static_cast<Offset *> (*o);
             assertValidVariableIndex(vars, info->varIndex);
-            vpsc::Constraint *constraint = NULL;
+            vpsc::Constraint *constraint = nullptr;
             if (info->distOffset < 0)
             {
                 // Constrain the objects with negative offsets to be 
@@ -210,8 +210,8 @@ BoundaryConstraint::getCurrSubConstraintAlternatives(vpsc::Variables vs[])
 
 AlignmentConstraint::AlignmentConstraint(const vpsc::Dim dim, double position)
     : CompoundConstraint(dim),
-      indicator(NULL),
-      variable(NULL),
+      indicator(nullptr),
+      variable(nullptr),
       _position(position), 
       _isFixed(false)
 {
@@ -281,7 +281,7 @@ void AlignmentConstraint::generateSeparationConstraints(const vpsc::Dim dim,
     COLA_UNUSED(bbs);
     if (dim == _primaryDim)
     {
-        COLA_ASSERT(variable != NULL);
+        COLA_ASSERT(variable != nullptr);
         // Constrain each object to be offset from the guideline by
         // some exact amount.
         for (SubConstraintInfoList::iterator o = _subConstraintInfo.begin();
@@ -406,8 +406,8 @@ class VarIndexPair : public SubConstraintInfo
     public:
         VarIndexPair(unsigned ind1, unsigned ind2) 
             : SubConstraintInfo(ind1),
-              lConstraint(NULL),
-              rConstraint(NULL),
+              lConstraint(nullptr),
+              rConstraint(nullptr),
               varIndex2(ind2)
         {
         }
@@ -445,7 +445,7 @@ SeparationConstraint::SeparationConstraint(const vpsc::Dim dim,
     : CompoundConstraint(dim),
       gap(g), 
       equality(equality),
-      vpscConstraint(NULL)
+      vpscConstraint(nullptr)
 {
     _subConstraintInfo.push_back(new VarIndexPair(l, r));
 }
@@ -588,7 +588,7 @@ unsigned SeparationConstraint::right(void) const
 void SeparationConstraint::setSeparation(double gap) 
 {
     this->gap = gap;
-    if (vpscConstraint != NULL) 
+    if (vpscConstraint != nullptr) 
     {
         vpscConstraint->gap = gap;
     }
@@ -604,7 +604,7 @@ OrthogonalEdgeConstraint::OrthogonalEdgeConstraint(const vpsc::Dim dim,
     : CompoundConstraint(dim),
       left(l), 
       right(r), 
-      vpscConstraint(NULL)
+      vpscConstraint(nullptr)
 {
 }
 
@@ -621,7 +621,7 @@ void OrthogonalEdgeConstraint::generateVariables(const vpsc::Dim dim,
 
 void OrthogonalEdgeConstraint::printCreationCode(FILE *fp) const
 {
-    fprintf(fp, "    /* OrthogonalEdgeConstraint *orthogonal%llu = NULL; */\n\n",
+    fprintf(fp, "    /* OrthogonalEdgeConstraint *orthogonal%llu = nullptr; */\n\n",
             (unsigned long long) this);
 }
 
@@ -750,7 +750,7 @@ class AlignmentPair : public SubConstraintInfo
 MultiSeparationConstraint::MultiSeparationConstraint(const vpsc::Dim dim, 
         double minSep, bool equality)
     : CompoundConstraint(dim),
-      indicator(NULL),
+      indicator(nullptr),
       sep(minSep), 
       equality(equality)
 { 
@@ -887,7 +887,7 @@ void MultiSeparationConstraint::generateSeparationConstraints(
 
 DistributionConstraint::DistributionConstraint(const vpsc::Dim dim)
     : CompoundConstraint(dim),
-      indicator(NULL)
+      indicator(nullptr)
 {
 }
 
@@ -1256,8 +1256,8 @@ PageBoundaryConstraints::PageBoundaryConstraints(double xLow, double xHigh,
         actualRightMargin[i] = rightMargin[i];
         leftWeight[i]  = weight; 
         rightWeight[i] = weight;
-        vl[i] = NULL;
-        vr[i] = NULL;
+        vl[i] = nullptr;
+        vr[i] = nullptr;
     }
 }
 

@@ -63,7 +63,7 @@ public:
 	//double weight;
 	//double wposn;
 	PositionStats ps;
-	Block(Blocks *blocks, Variable* const v=NULL);
+	Block(Blocks *blocks, Variable* const v=nullptr);
 	~Block(void);
 	Constraint* findMinLM();
 	Constraint* findMinLMBetween(Variable* const lv, Variable* const rv);

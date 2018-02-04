@@ -142,7 +142,7 @@ int main() {
     OutputFile of(rs,es,&root,"containment2.svg",true,true);
     //of.setLabels(V,labels);
 	CheckProgress test(0.0001,100);
-	ConstrainedMajorizationLayout alg(rs,es,&root,30,NULL,test);
+	ConstrainedMajorizationLayout alg(rs,es,&root,30,nullptr,test);
     alg.setScaling(false);
 	//alg.setYSeparationConstraints(&scy);
 	//alg.run();

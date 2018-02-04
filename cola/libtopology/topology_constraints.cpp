@@ -131,8 +131,8 @@ string BendConstraint::toString() const {
     return s.str();
 }
 unsigned BendConstraint::getEdgeID() const {
-    COLA_ASSERT(bendPoint->inSegment!=NULL);
-    COLA_ASSERT(bendPoint->outSegment!=NULL);
+    COLA_ASSERT(bendPoint->inSegment!=nullptr);
+    COLA_ASSERT(bendPoint->outSegment!=nullptr);
     return bendPoint->inSegment->edge->id;
 }
 /*
@@ -212,14 +212,14 @@ bool sameCorner(const EdgePoint* a, const EdgePoint* b) {
 }
 bool zigzag(const EdgePoint* a, const Segment* s) {
     COLA_UNUSED(a);
-    if(s!=NULL) {
+    if(s!=nullptr) {
         COLA_ASSERT(!sameCorner(a,s->end));
     }
     return false;
 }
 bool zagzig(const EdgePoint* a, const Segment* s) {
     COLA_UNUSED(a);
-    if(s!=NULL) {
+    if(s!=nullptr) {
         COLA_ASSERT(!sameCorner(a,s->start));
     }
     return false;
@@ -337,7 +337,7 @@ bool TopologyConstraints::solve() {
     vpsc::IncSolver s(vs,cs);
     s.solve();
     double minTAlpha=1;
-    TopologyConstraint* minT=NULL;
+    TopologyConstraint* minT=nullptr;
     //printEdges(edges);
     // find minimum feasible alpha over all topology constraints
     for(vector<TopologyConstraint*>::iterator i=ts.begin();
@@ -380,7 +380,7 @@ bool TopologyConstraints::solve() {
     COLA_ASSERT(assertConvexBends(edges));
     COLA_ASSERT(assertNoSegmentRectIntersection(nodes,edges));
     FILE_LOG(logDEBUG)<<"TopologyConstraints::solve... done";
-    return minT!=NULL;
+    return minT!=nullptr;
 }
 /*
  * a Functor for use in a sum_over a collection of edges

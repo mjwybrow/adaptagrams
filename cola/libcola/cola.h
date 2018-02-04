@@ -292,8 +292,8 @@ public:
         RootCluster* clusterHierarchy,
         const double idealLength,
         EdgeLengths eLengths = StandardEdgeLengths,
-        TestConvergence *doneTest = NULL,
-        PreIteration* preIteration=NULL);
+        TestConvergence *doneTest = nullptr,
+        PreIteration* preIteration=nullptr);
     /**
      * @brief  Specify a set of compound constraints to apply to the layout.
      *
@@ -626,7 +626,7 @@ public:
      *                         specified.
      * @param[in] eLengths  Individual ideal lengths for edges.
      *                      The actual ideal length used for the ith edge is 
-     *                      idealLength*eLengths[i], or if eLengths is NULL a
+     *                      idealLength*eLengths[i], or if eLengths is nullptr a
      *                      then just idealLength is used (i.e., eLengths[i] 
      *                      is assumed to be 1).
      * @param[in] done  A test of convergence operation called at the end of 
@@ -640,8 +640,8 @@ public:
         const std::vector<cola::Edge>& es,
         const double idealLength,
         const EdgeLengths& eLengths = StandardEdgeLengths, 
-        TestConvergence* doneTest = NULL,
-        PreIteration* preIteration = NULL);
+        TestConvergence* doneTest = nullptr,
+        PreIteration* preIteration = nullptr);
     ~ConstrainedFDLayout();
   
     /**
@@ -805,7 +805,7 @@ private:
             std::valarray<double> &coords, 
             const double oldStress, 
             double stepsize
-            /*,topology::TopologyConstraints *s=NULL*/);
+            /*,topology::TopologyConstraints *s=nullptr*/);
     void computePathLengths(
             const std::vector<Edge>& es, std::valarray<double> eLengths);
     void generateNonOverlapAndClusterCompoundConstraints(

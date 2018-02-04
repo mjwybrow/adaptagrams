@@ -13,7 +13,7 @@ int main(void) {
     EdgeLengths eLengths;
     double defaultEdgeLength=1;
     std::vector<vpsc::Rectangle*> rs;
-    vpsc::Rectangle *rect = NULL;
+    vpsc::Rectangle *rect = nullptr;
 
     rect = new vpsc::Rectangle(0, 100, 0, 60);
     rs.push_back(rect);

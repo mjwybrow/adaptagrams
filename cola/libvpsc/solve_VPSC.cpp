@@ -174,13 +174,13 @@ void Solver::refine() {
         {
             Block *b = bs->at(i);
             Constraint *c=b->findMinLM();
-            if(c!=NULL && c->lm<LAGRANGIAN_TOLERANCE) {
+            if(c!=nullptr && c->lm<LAGRANGIAN_TOLERANCE) {
 #ifdef LIBVPSC_LOGGING
                 ofstream f(LOGFILE,ios::app);
                 f<<"Split on constraint: "<<*c<<endl;
 #endif
                 // Split on c
-                Block *l=NULL, *r=NULL;
+                Block *l=nullptr, *r=nullptr;
                 bs->split(b,l,r,c);
                 bs->cleanup();
                 // split alters the block set so we have to restart
@@ -247,7 +247,7 @@ bool IncSolver::satisfy() {
 #endif
     splitBlocks();
     //long splitCtr = 0;
-    Constraint* v = NULL;
+    Constraint* v = nullptr;
     //CBuffer buffer(inactive);
     while ( (v = mostViolated(inactive)) && 
             (v->equality || ((v->slack() < ZERO_UPPERBOUND) && !v->active)) ) 
@@ -273,7 +273,7 @@ bool IncSolver::satisfy() {
             try {
                 Constraint* splitConstraint
                     =lb->splitBetween(v->left,v->right,lb,rb);
-                if(splitConstraint!=NULL) {
+                if(splitConstraint!=nullptr) {
                     COLA_ASSERT(!splitConstraint->active);
                     inactive.push_back(splitConstraint);
                 } else {
@@ -361,13 +361,13 @@ void IncSolver::splitBlocks() {
     {
         Block *b = bs->at(i);
         Constraint* v=b->findMinLM();
-        if(v!=NULL && v->lm < LAGRANGIAN_TOLERANCE) {
+        if(v!=nullptr && v->lm < LAGRANGIAN_TOLERANCE) {
             COLA_ASSERT(!v->equality);
 #ifdef LIBVPSC_LOGGING
             f<<"    found split point: "<<*v<<" lm="<<v->lm<<endl;
 #endif
             splitCnt++;
-            Block *b = v->left->block, *l=NULL, *r=NULL;
+            Block *b = v->left->block, *l=nullptr, *r=nullptr;
             COLA_ASSERT(v->left->block == v->right->block);
             //double pos = b->posn;
             b->split(l,r,v);
@@ -400,14 +400,14 @@ void IncSolver::splitBlocks() {
 Constraint* IncSolver::mostViolated(Constraints &l)
 {
     double slackForMostViolated = DBL_MAX;
-    Constraint* mostViolated = NULL;
+    Constraint* mostViolated = nullptr;
 #ifdef LIBVPSC_LOGGING
     ofstream f(LOGFILE,ios::app);
     f << "Looking for most violated..." << endl;
 #endif
     size_t lSize = l.size();
     size_t deleteIndex = lSize;
-    Constraint *constraint = NULL;
+    Constraint *constraint = nullptr;
     double slack = 0;
     for (size_t index = 0; index < lSize; ++index)
     {
@@ -473,7 +473,7 @@ bool Solver::constraintGraphIsCyclic(const unsigned n, Variable* const vs[]) {
         }
     }
     while(graph.size()>0) {
-        node *u=NULL;
+        node *u=nullptr;
         vector<node*>::iterator i=graph.begin();
         for(;i!=graph.end();++i) {
             u=*i;
@@ -516,7 +516,7 @@ bool Solver::blockGraphIsCyclic() {
         Block *b = bs->at(i);
         b->setUpInConstraints();
         Constraint *c=b->findMinInConstraint();
-        while(c!=NULL) {
+        while(c!=nullptr) {
             Block *l=c->left->block;
             bmap[b]->in.insert(bmap[l]);
             b->deleteMinInConstraint();
@@ -525,7 +525,7 @@ bool Solver::blockGraphIsCyclic() {
 
         b->setUpOutConstraints();
         c=b->findMinOutConstraint();
-        while(c!=NULL) {
+        while(c!=nullptr) {
             Block *r=c->right->block;
             bmap[b]->out.insert(bmap[r]);
             b->deleteMinOutConstraint();
@@ -533,7 +533,7 @@ bool Solver::blockGraphIsCyclic() {
         }
     }
     while(graph.size()>0) {
-        node *u=NULL;
+        node *u=nullptr;
         vector<node*>::iterator i=graph.begin();
         for(;i!=graph.end();++i) {
             u=*i;

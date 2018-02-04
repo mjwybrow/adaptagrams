@@ -39,7 +39,7 @@ int main()  {
   CycleDetector *cd;
   Edges case_a, case_b, case_c, case_d, case_e, case_f, case_g;
 
-  CyclicEdges *cycles = NULL;
+  CyclicEdges *cycles = nullptr;
   vector<Rectangle *> rs;
   unsigned V;
 
@@ -57,7 +57,7 @@ int main()  {
   cd = new CycleDetector(V, &case_a);
   cycles = cd->detect_cycles();
   
-  if (cycles != NULL)  {
+  if (cycles != nullptr)  {
     cout << "cycles->size(): " << cycles->size() << endl; 
     for (unsigned i = 0; i < case_a.size(); i++)  {
       // print out the cycles
@@ -100,7 +100,7 @@ int main()  {
   cd->mod_graph(V, &case_b);
   cycles = cd->detect_cycles();
   
-  if (cycles != NULL)  {
+  if (cycles != nullptr)  {
     cout << "cycles->size(): " << cycles->size() << endl; 
     for (unsigned i = 0; i < case_b.size(); i++)  {
       // print out the cycles
@@ -153,7 +153,7 @@ int main()  {
   //cd = new CycleDetector(V, &case_c);
   cd->mod_graph(V, &case_c);
   cycles = cd->detect_cycles();
-  if (cycles != NULL)  {
+  if (cycles != nullptr)  {
     cout << "cycles->size(): " << cycles->size() << endl; 
     for (unsigned i = 0; i < case_c.size(); i++)  {
       // print out the cycles
@@ -200,7 +200,7 @@ int main()  {
   cd->mod_graph(V, &case_d);
   cycles = cd->detect_cycles();
   
-  if (cycles != NULL)  {
+  if (cycles != nullptr)  {
     cout << "cycles->size(): " << cycles->size() << endl; 
     for (unsigned i = 0; i < case_d.size(); i++)  {
       // print out the cycles
@@ -253,7 +253,7 @@ int main()  {
   // detect the cycles
   cd->mod_graph(V, &case_e);
   cycles = cd->detect_cycles();
-  if (cycles != NULL)  {
+  if (cycles != nullptr)  {
     cout << "cycles->size(): " << cycles->size() << endl; 
     for (unsigned i = 0; i < case_e.size(); i++)  {
       // print out the cycles
@@ -298,7 +298,7 @@ int main()  {
   cd->mod_graph(V, &case_f);
   cycles = cd->detect_cycles();
   
-  if (cycles != NULL)  {
+  if (cycles != nullptr)  {
     // output a picture
     rs.push_back(new Rectangle(10,10+5,10,10+5));
     rs.push_back(new Rectangle(40,40+5,30,30+5));
@@ -325,7 +325,7 @@ int main()  {
   a.cyclicAncestor = &a;
 
   Node *ca = cd->get_highest_ca(&f);
-  if (ca != NULL)  { cout << "Highest cyclic ancestor found at vertex(" << ca->id << ")" << endl; }
+  if (ca != nullptr)  { cout << "Highest cyclic ancestor found at vertex(" << ca->id << ")" << endl; }
 
   // create case G
   // case G hows the ability to find nested cycles and to reassign cyclic ancestors
@@ -349,7 +349,7 @@ int main()  {
   cd->mod_graph(V, &case_g);
   cycles = cd->detect_cycles();
   
-  if (cycles != NULL)  {
+  if (cycles != nullptr)  {
     cout << "cycles->size(): " << cycles->size() << endl; 
     for (unsigned i = 0; i < case_g.size(); i++)  {
       // print out the cycles

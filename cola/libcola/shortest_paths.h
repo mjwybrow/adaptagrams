@@ -190,7 +190,7 @@ void dijkstra(
     for(unsigned i=0;i<n;i++) {
         vs[i].id=i;
         vs[i].d=std::numeric_limits<T>::max();
-        vs[i].p=NULL;
+        vs[i].p=nullptr;
     }
     vs[s].d=0;
     PairingHeap<Node<T>*,CompareNodes<T> > Q;

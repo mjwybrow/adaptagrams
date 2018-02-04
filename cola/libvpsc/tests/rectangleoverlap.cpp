@@ -640,7 +640,7 @@ int main() {
 	cout << "test12" << endl;
 	test(generateRects(test12,n12,rs),c,t);
 	int max_size=100, repeats=100,step=10; 
-	//srand(time(NULL));
+	//srand(time(nullptr));
 	for(int i=10;i<=max_size;i+=step) {
 		//if(i%5==0) cout << i << endl;
 		double disp=0, time=0;

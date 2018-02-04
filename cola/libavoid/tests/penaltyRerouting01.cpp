@@ -19,7 +19,7 @@ int main(void) {
     router->setRoutingOption((RoutingOption)5, false);
     router->setRoutingOption((RoutingOption)6, true);
     Polygon polygon;
-    ConnRef *connRef = NULL;
+    ConnRef *connRef = nullptr;
     ConnEnd srcPt;
     ConnEnd dstPt;
     ConnEnd heConnPt;

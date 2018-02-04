@@ -68,7 +68,7 @@ int main() {
 	const unsigned c[]={0,4}, d[]={1,2,3};
 	unsigned nc=sizeof(c)/sizeof(unsigned), nd=sizeof(d)/sizeof(unsigned);
 	CheckProgress test(0.0001,100);
-	ConstrainedMajorizationLayout alg(rs,es,&root,30,NULL,test);
+	ConstrainedMajorizationLayout alg(rs,es,&root,30,nullptr,test);
     alg.setScaling(true);
 	rc.nodes.resize(nc);
 	copy(c,c+nc,rc.nodes.begin());

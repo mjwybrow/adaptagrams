@@ -254,8 +254,8 @@ namespace straightener {
         Node *v;
         Edge *e;
         double pos;
-        Event(EventType t, Node *v, double p) : type(t),v(v),e(NULL),pos(p) {};
-        Event(EventType t, Edge *e, double p) : type(t),v(NULL),e(e),pos(p) {};
+        Event(EventType t, Node *v, double p) : type(t),v(v),e(nullptr),pos(p) {};
+        Event(EventType t, Edge *e, double p) : type(t),v(nullptr),e(e),pos(p) {};
     };
     /*
      * the following relation defines a strict weak ordering over events, i.e.:
@@ -302,7 +302,7 @@ namespace straightener {
             const double conjpos, vector<Edge*> const & openEdges, 
             vector<Node *>& L,vector<Node *>& nodes) {
         double minpos=-DBL_MAX, maxpos=DBL_MAX;
-        if(l!=NULL) {
+        if(l!=nullptr) {
             L.push_back(l);
             minpos=l->scanpos;
         }
@@ -329,7 +329,7 @@ namespace straightener {
             // need to record start and end positions of edge segment!
             Edge* e=i->second; 
             if(e->startNode==v->id||e->endNode==v->id) continue;
-            //if(l!=NULL&&(e->startNode==l->id||e->endNode==l->id)) continue;
+            //if(l!=nullptr&&(e->startNode==l->id||e->endNode==l->id)) continue;
             //cerr << "edge("<<e->startNode<<","<<e->endNode<<",pts="<<e->pts<<")"<<endl;
             // here, we probably want to search for existing dummy 
             // nodes associated with the same edge within some
@@ -343,7 +343,7 @@ namespace straightener {
         }
         L.push_back(v);
 
-        if(r!=NULL) {
+        if(r!=nullptr) {
             maxpos=r->scanpos;
         }
         for(set<PosEdgePair>::iterator i=sortedEdges.begin();i!=sortedEdges.end();i++) {
@@ -354,7 +354,7 @@ namespace straightener {
             // need to record start and end positions of edge segment!
             Edge* e=i->second; 
             if(e->startNode==v->id||e->endNode==v->id) continue;
-            //if(r!=NULL&&(e->startNode==r->id||e->endNode==r->id)) continue;
+            //if(r!=nullptr&&(e->startNode==r->id||e->endNode==r->id)) continue;
             //cerr << "edge("<<e->startNode<<","<<e->endNode<<",pts="<<e->pts<<")"<<endl;
             Node* d=dim==vpsc::HORIZONTAL?
                 new Node(nodes.size(),pos,conjpos,e):
@@ -362,7 +362,7 @@ namespace straightener {
             L.push_back(d);
             nodes.push_back(d);
         }
-        if(r!=NULL) {
+        if(r!=nullptr) {
             L.push_back(r);
         }
     }
@@ -441,12 +441,12 @@ namespace straightener {
         for(unsigned i=0;i<events.size();i++) {
             Event *e=events[i];
             Node *v=e->v;
-            if(v!=NULL) {
+            if(v!=nullptr) {
                 v->open = true;
 #ifdef STRAIGHTENER_DEBUG
                 printf("NEvent@%f,nid=%d,(%f,%f),w=%f,h=%f,openn=%d,opene=%d\n",e->pos,v->id,v->pos[0],v->pos[1],v->length[0],v->length[1],(int)openNodes.size(),(int)openEdges.size());
 #endif
-                Node *l=NULL, *r=NULL;
+                Node *l=nullptr, *r=nullptr;
                 if(!openNodes.empty()) {
                     // it points to the first node to the right of v
                     NodeSet::iterator it=openNodes.lower_bound(v);
@@ -493,7 +493,7 @@ namespace straightener {
                         // node is on an edge
                         Edge *edge=w->edge;
                         if(w->pos[dim]<v->pos[dim]) { // w left of v
-                            if(l!=NULL&&!edge->isEnd(l->id)) {
+                            if(l!=nullptr&&!edge->isEnd(l->id)) {
                                 cs.push_back(createConstraint(l,w,dim));
                             }
                             if(!edge->isEnd(v->id)) {
@@ -503,19 +503,19 @@ namespace straightener {
                             if(!edge->isEnd(v->id)) {
                                 cs.push_back(createConstraint(v,w,dim));
                             }
-                            if(r!=NULL&&!edge->isEnd(r->id)) {
+                            if(r!=nullptr&&!edge->isEnd(r->id)) {
                                 cs.push_back(createConstraint(w,r,dim));
                             }
                         }
                     }
                 }
                 if(e->type==Close) {
-                    if(l!=NULL) cs.push_back(createConstraint(l,v,dim));
-                    if(r!=NULL) cs.push_back(createConstraint(v,r,dim));
+                    if(l!=nullptr) cs.push_back(createConstraint(l,v,dim));
+                    if(r!=nullptr) cs.push_back(createConstraint(v,r,dim));
                 }
             }
             if(e->type==Open) {
-                if(v!=NULL) {
+                if(v!=nullptr) {
                     openNodes.insert(v);
                 } else {
 #ifdef STRAIGHTENER_DEBUG
@@ -526,7 +526,7 @@ namespace straightener {
                 }
             } else {
                 // Close
-                if(v!=NULL) {
+                if(v!=nullptr) {
                     openNodes.erase(v);
                     v->open=false;
                 } else {

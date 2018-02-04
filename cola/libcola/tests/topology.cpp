@@ -89,7 +89,7 @@ void writeFile(const topology::Nodes& vs, const topology::Edges& es, const char 
     for(topology::Nodes::const_iterator i=vs.begin();i!=vs.end();++i) {
 	    rs.push_back((*i)->rect);
     }
-    OutputFile of(rs,cedges,NULL,outputFileName,true,false);
+    OutputFile of(rs,cedges,nullptr,outputFileName,true,false);
     of.setLabels(labels);
     of.routes=&routes;
     of.generate();
@@ -155,7 +155,7 @@ void randomMove(int i) {
     printf(" Lock: %f,%f\n",lx,ly);
     SetDesiredPos preIteration(locks);
     Test test(0.00001,100,vs,tes);
-    ConstrainedFDLayout alg(rs,es,idealLength,NULL,test,&preIteration);
+    ConstrainedFDLayout alg(rs,es,idealLength,nullptr,test,&preIteration);
 
     alg.setTopology(&vs,&tes);
     alg.run(true,true);

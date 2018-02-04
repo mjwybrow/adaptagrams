@@ -48,7 +48,7 @@ namespace Avoid {
 ConnRef::ConnRef(Router *router, const unsigned int id)
     : m_router(router),
       m_type(router->validConnType()),
-      m_reroute_flag_ptr(NULL),
+      m_reroute_flag_ptr(nullptr),
       m_needs_reroute_flag(true),
       m_false_path(false),
       m_needs_repaint(false),
@@ -56,15 +56,15 @@ ConnRef::ConnRef(Router *router, const unsigned int id)
       m_hate_crossings(false),
       m_has_fixed_route(false),
       m_route_dist(0),
-      m_src_vert(NULL),
-      m_dst_vert(NULL),
-      m_start_vert(NULL),
-      m_callback_func(NULL),
-      m_connector(NULL),
-      m_src_connend(NULL),
-      m_dst_connend(NULL)
+      m_src_vert(nullptr),
+      m_dst_vert(nullptr),
+      m_start_vert(nullptr),
+      m_callback_func(nullptr),
+      m_connector(nullptr),
+      m_src_connend(nullptr),
+      m_dst_connend(nullptr)
 {
-    COLA_ASSERT(m_router != NULL);
+    COLA_ASSERT(m_router != nullptr);
     m_id = m_router->assignId(id);
 
     // TODO: Store endpoints and details.
@@ -78,7 +78,7 @@ ConnRef::ConnRef(Router *router, const ConnEnd& src, const ConnEnd& dst,
         const unsigned int id)
     : m_router(router),
       m_type(router->validConnType()),
-      m_reroute_flag_ptr(NULL),
+      m_reroute_flag_ptr(nullptr),
       m_needs_reroute_flag(true),
       m_false_path(false),
       m_needs_repaint(false),
@@ -86,14 +86,14 @@ ConnRef::ConnRef(Router *router, const ConnEnd& src, const ConnEnd& dst,
       m_hate_crossings(false),
       m_has_fixed_route(false),
       m_route_dist(0),
-      m_src_vert(NULL),
-      m_dst_vert(NULL),
-      m_callback_func(NULL),
-      m_connector(NULL),
-      m_src_connend(NULL),
-      m_dst_connend(NULL)
+      m_src_vert(nullptr),
+      m_dst_vert(nullptr),
+      m_callback_func(nullptr),
+      m_connector(nullptr),
+      m_src_connend(nullptr),
+      m_dst_connend(nullptr)
 {
-    COLA_ASSERT(m_router != NULL);
+    COLA_ASSERT(m_router != nullptr);
     m_id = m_router->assignId(id);
     m_route.clear();
 
@@ -126,14 +126,14 @@ ConnRef::~ConnRef()
         m_src_vert->removeFromGraph();
         m_router->vertices.removeVertex(m_src_vert);
         delete m_src_vert;
-        m_src_vert = NULL;
+        m_src_vert = nullptr;
     }
     if (m_src_connend)
     {
         m_src_connend->disconnect();
         m_src_connend->freeActivePin();
         delete m_src_connend;
-        m_src_connend = NULL;
+        m_src_connend = nullptr;
     }
 
     if (m_dst_vert)
@@ -141,14 +141,14 @@ ConnRef::~ConnRef()
         m_dst_vert->removeFromGraph();
         m_router->vertices.removeVertex(m_dst_vert);
         delete m_dst_vert;
-        m_dst_vert = NULL;
+        m_dst_vert = nullptr;
     }
     if (m_dst_connend)
     {
         m_dst_connend->disconnect();
         m_dst_connend->freeActivePin();
         delete m_dst_connend;
-        m_dst_connend = NULL;
+        m_dst_connend = nullptr;
     }
 
     // Clear checkpoint vertices.
@@ -219,7 +219,7 @@ void ConnRef::setRoutingCheckpoints(const std::vector<Checkpoint>& checkpoints)
     {
         for (size_t i = 0; i < m_checkpoints.size(); ++i)
         {
-            vertexVisibility(m_checkpoint_vertices[i], NULL, true, true);
+            vertexVisibility(m_checkpoint_vertices[i], nullptr, true, true);
         }
     }
 }
@@ -235,14 +235,14 @@ void ConnRef::common_updateEndPoint(const unsigned int type, ConnEnd connEnd)
 
     // The connEnd is a copy of a ConnEnd that will get disconnected,
     // so don't leave it looking like it is still connected.
-    connEnd.m_conn_ref = NULL;
+    connEnd.m_conn_ref = nullptr;
 
     if (!m_active)
     {
         makeActive();
     }
     
-    VertInf *altered = NULL;
+    VertInf *altered = nullptr;
 
     VertIDProps properties = VertID::PROP_ConnPoint;
     if (connEnd.isPinConnection())
@@ -267,7 +267,7 @@ void ConnRef::common_updateEndPoint(const unsigned int type, ConnEnd connEnd)
             m_src_connend->disconnect();
             m_src_connend->freeActivePin();
             delete m_src_connend;
-            m_src_connend = NULL;
+            m_src_connend = nullptr;
         }
         if (connEnd.isPinConnection())
         {
@@ -297,7 +297,7 @@ void ConnRef::common_updateEndPoint(const unsigned int type, ConnEnd connEnd)
             m_dst_connend->disconnect();
             m_dst_connend->freeActivePin();
             delete m_dst_connend;
-            m_dst_connend = NULL;
+            m_dst_connend = nullptr;
         }
         if (connEnd.isPinConnection())
         {
@@ -351,7 +351,7 @@ void ConnRef::setDestEndpoint(const ConnEnd& dstPoint)
 bool ConnRef::getConnEndForEndpointVertex(VertInf *vertex, 
         ConnEnd& connEnd) const 
 {
-    if (vertex == NULL)
+    if (vertex == nullptr)
     {
         err_printf("Warning: In ConnRef::getConnEndForEndpointVertex():\n"
                    "         ConnEnd for connector %d is uninitialised.  It may have been\n"
@@ -494,8 +494,8 @@ void ConnRef::outputCode(FILE *fp) const
 std::pair<Obstacle *, Obstacle *> ConnRef::endpointAnchors(void) const
 {
     std::pair<Obstacle *, Obstacle *> anchors;
-    anchors.first = NULL;
-    anchors.second = NULL;
+    anchors.first = nullptr;
+    anchors.second = nullptr;
 
     if (m_src_connend)
     {
@@ -520,7 +520,7 @@ bool ConnRef::setEndpoint(const unsigned int type, const VertID& pointID,
         Point *pointSuggestion)
 {
     VertInf *vInf = m_router->vertices.getVertexByID(pointID);
-    if (vInf == NULL)
+    if (vInf == nullptr)
     {
         return false;
     }
@@ -694,8 +694,8 @@ Point midpoint(Point a, Point b)
 std::pair<JunctionRef *, ConnRef *> ConnRef::splitAtSegment(
                 const size_t segmentN)
 {
-    ConnRef *newConn = NULL;
-    JunctionRef *newJunction = NULL;
+    ConnRef *newConn = nullptr;
+    JunctionRef *newJunction = nullptr;
 
     if (m_display_route.size() > segmentN)
     {
@@ -813,17 +813,17 @@ bool validateBendPoint(VertInf *aInf, VertInf *bInf, VertInf *cInf)
     }
     bool bendOkay = true;
 
-    if ((aInf == NULL) || (cInf == NULL))
+    if ((aInf == nullptr) || (cInf == nullptr))
     {
         // Not a bendpoint, i.e., the end of the connector, so don't test.
         return bendOkay;
     }
 
-    COLA_ASSERT(bInf != NULL);
+    COLA_ASSERT(bInf != nullptr);
     VertInf *dInf = bInf->shPrev;
     VertInf *eInf = bInf->shNext;
-    COLA_ASSERT(dInf != NULL);
-    COLA_ASSERT(eInf != NULL);
+    COLA_ASSERT(dInf != nullptr);
+    COLA_ASSERT(eInf != nullptr);
 
     Point& a = aInf->point;
     Point& b = bInf->point;
@@ -981,7 +981,7 @@ bool ConnRef::generatePath(void)
     COLA_ASSERT(vertices.size() >= 2);
     COLA_ASSERT(vertices[0] == src());
     COLA_ASSERT(vertices[vertices.size() - 1] == dst());
-    COLA_ASSERT(m_reroute_flag_ptr != NULL);
+    COLA_ASSERT(m_reroute_flag_ptr != nullptr);
 
     for (size_t i = 1; i < vertices.size(); ++i)
     {
@@ -1094,7 +1094,7 @@ void ConnRef::generateCheckpointsPath(std::vector<Point>& path,
         
         AStarPath aStar;
         // Route the connector
-        aStar.search(this, start, end, NULL); 
+        aStar.search(this, start, end, nullptr); 
 
         // Restore changes made for checkpoint visibility directions.
         if (lastSuccessfulIndex > 0)
@@ -1230,7 +1230,7 @@ void ConnRef::generateStandardPath(std::vector<Point>& path,
 #ifdef PATHDEBUG
             db_printf("\n\n\nSTART:\n\n");
 #endif
-            VertInf *prior = NULL;
+            VertInf *prior = nullptr;
             for (VertInf *curr = tar; curr != m_start_vert->pathNext;
                     curr = curr->pathNext)
             {
@@ -1275,7 +1275,7 @@ void ConnRef::generateStandardPath(std::vector<Point>& path,
         {
             // TODO:  Could we know this edge already?
             //EdgeInf *edge = EdgeInf::existingEdge(m_src_vert, tar);
-            //COLA_ASSERT(edge != NULL);
+            //COLA_ASSERT(edge != nullptr);
             //edge->addCycleBlocker();
         }
     }
@@ -1701,9 +1701,9 @@ ConnectorCrossings::ConnectorCrossings(Avoid::Polygon& poly, bool polyIsConn,
       checkForBranchingSegments(false),
       polyConnRef(polyConnRef),
       connConnRef(connConnRef),
-      crossingPoints(NULL),
-      pointOrders(NULL),
-      sharedPaths(NULL)
+      crossingPoints(nullptr),
+      pointOrders(nullptr),
+      sharedPaths(nullptr)
 {
 }
 
@@ -1956,11 +1956,11 @@ void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
                     // attached to a junction and it is the same one.
                     std::pair<ConnEnd, ConnEnd> connEnds = 
                             connConnRef->endpointConnEnds();
-                    JunctionRef *connJunction = NULL;
+                    JunctionRef *connJunction = nullptr;
 
                     std::pair<ConnEnd, ConnEnd> polyEnds = 
                             polyConnRef->endpointConnEnds();
-                    JunctionRef *polyJunction = NULL;
+                    JunctionRef *polyJunction = nullptr;
                    
                     // The front of the c_path corresponds to destination 
                     // of the connector.

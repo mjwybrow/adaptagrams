@@ -6,7 +6,7 @@ int main(void) {
     std::vector<Edge> es;
     double defaultEdgeLength=40;
     std::vector<vpsc::Rectangle*> rs;
-    vpsc::Rectangle *rect = NULL;
+    vpsc::Rectangle *rect = nullptr;
 
     rect = new vpsc::Rectangle(252, 272, 930, 950);
     rs.push_back(rect);

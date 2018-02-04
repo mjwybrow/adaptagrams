@@ -139,7 +139,7 @@ void simple(void test(Nodes&, EdgePoints&, cola::DesiredPositionsInDim&,string&)
     vpsc::Constraints cs;
 
     { // scope for t, so that t gets destroyed before es
-        TopologyConstraints t(vpsc::HORIZONTAL,nodes,es,NULL,vs,cs);
+        TopologyConstraints t(vpsc::HORIZONTAL,nodes,es,nullptr,vs,cs);
 
         // test computeStress
         double stress=computeStress(es);

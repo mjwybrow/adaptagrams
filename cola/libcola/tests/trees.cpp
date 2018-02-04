@@ -77,7 +77,7 @@ vector<Edge> random_tree(unsigned depth, unsigned maxbranch, unsigned &V,
 int main() {
     unsigned V;
     CompoundConstraints cx,cy;
-    //srand(time(NULL));
+    //srand(time(nullptr));
     srand(3);
     vector<Edge> es = random_tree(7,4,V,cx,cy);
     double defaultEdgeLength=40;

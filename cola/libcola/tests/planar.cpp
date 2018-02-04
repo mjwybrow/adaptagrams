@@ -100,7 +100,7 @@ void writeFile(const topology::Nodes& vs, const topology::Edges& es, const char 
     for(topology::Nodes::const_iterator i=vs.begin();i!=vs.end();++i) {
 	    rs.push_back((*i)->rect);
     }
-    OutputFile of(rs,cedges,NULL,outputFileName,true,false);
+    OutputFile of(rs,cedges,nullptr,outputFileName,true,false);
     of.setLabels(labels);
     of.routes=&routes;
     of.generate();
@@ -272,7 +272,7 @@ t.addToPath(3,(topology::EdgePoint::RectIntersect)4);
 t.addEdge(70.000000);
     writeFile(t.vs,t.tes,"planar-000.svg");
     Test test(0.00001,100,t.vs,t.tes);
-    ConstrainedFDLayout alg(t.rs,t.es,70.0,NULL,test,NULL);
+    ConstrainedFDLayout alg(t.rs,t.es,70.0,nullptr,test,nullptr);
     alg.setTopology(&t.vs,&t.tes);
     alg.run(true,true);
     double finalStress=alg.computeStress();

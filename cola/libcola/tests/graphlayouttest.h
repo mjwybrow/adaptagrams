@@ -130,14 +130,14 @@ void run_test(
     vector<vpsc::Rectangle*> rs;
     unsigned V=startpos.size();
     cout << "|V|=" << V << endl;
-    //srand(time(NULL));
+    //srand(time(nullptr));
     for(unsigned i=0;i<V;i++) {
         double x=startpos[i].first, y=startpos[i].second;
         rs.push_back(new vpsc::Rectangle(x,x+1,y,y+1));
     }
     CheckProgress test(0.001,100);
     clock_t starttime=clock();
-    ConstrainedMajorizationLayout alg(rs,es,NULL,defaultEdgeLength,
+    ConstrainedMajorizationLayout alg(rs,es,nullptr,defaultEdgeLength,
             StandardEdgeLengths,&test);
     switch(s) {
         cout << "Solver: ";
@@ -174,7 +174,7 @@ void run_test(
     ss << fname << "_" << V << "_" << testdesc << ".svg";
 
     cout<<ss.str()<<" Time="<<t<<endl;
-    OutputFile of(rs,es,NULL,ss.str().c_str(),false,true);
+    OutputFile of(rs,es,nullptr,ss.str().c_str(),false,true);
     of.generate();
     for(unsigned i=0;i<V;i++) {
         delete rs[i];
@@ -204,7 +204,7 @@ void writeFile(const topology::Nodes& vs, const topology::Edges& es, const strin
     for(topology::Nodes::const_iterator i=vs.begin();i!=vs.end();++i) {
 	    rs.push_back((*i)->rect);
     }
-    OutputFile of(rs,cedges,NULL,outputFileName,true,false);
+    OutputFile of(rs,cedges,nullptr,outputFileName,true,false);
     of.setLabels(labels);
     of.routes=&routes;
     of.generate();
@@ -214,7 +214,7 @@ void writeFile(const topology::Nodes& vs, const topology::Edges& es, const strin
 
 void writeDunnartFile(const topology::Nodes& vs, const vector<std::pair<unsigned int, unsigned int> >& es, const string& outputFileName) {
     FILE *fp = fopen(outputFileName.c_str(), "w");
-    assert (fp != NULL);
+    assert (fp != nullptr);
 
     fprintf(fp, "<svg xmlns:dunnart=\"http://www.csse.monash.edu.au/~mwybrow/dunnart.dtd\">\n");
     for(unsigned int i = 0; i < vs.size(); ++i) {
@@ -263,7 +263,7 @@ void writeDunnartFile(const topology::Nodes& vs, const vector<std::pair<unsigned
     for(topology::Nodes::const_iterator i=vs.begin();i!=vs.end();++i) {
 	    rs.push_back((*i)->rect);
     }
-    OutputFile of(rs,cedges,NULL,outputFileName,true,false);
+    OutputFile of(rs,cedges,nullptr,outputFileName,true,false);
     of.setLabels(labels);
     of.routes=&routes;
     of.generate();

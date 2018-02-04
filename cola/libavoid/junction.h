@@ -134,9 +134,9 @@ class AVOID_EXPORT JunctionRef : public Obstacle
         //! processed by the router.
         //!
         //! If there are more than two connectors attached to the junction
-        //! then nothing will be changed and this method will return NULL.
+        //! then nothing will be changed and this method will return nullptr.
         //!
-        //! @return  The merged connector, or NULL if the junction was not
+        //! @return  The merged connector, or nullptr if the junction was not
         //!          removed.
         ConnRef *removeJunctionAndMergeConnectors(void);
 

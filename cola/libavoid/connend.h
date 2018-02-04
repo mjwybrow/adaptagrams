@@ -193,20 +193,20 @@ class AVOID_EXPORT ConnEnd
         //!
         ConnDirFlags directions(void) const;
 
-        //! @brief Returns the shape this ConnEnd attaches to, or NULL.
+        //! @brief Returns the shape this ConnEnd attaches to, or nullptr.
         //!
         //! Will be valid only if type() == ConnEndShapePin.
         //!
-        //! @return The ShapeRef pointer that the ConnEnd attaches to, or NULL.
+        //! @return The ShapeRef pointer that the ConnEnd attaches to, or nullptr.
         //!
         ShapeRef *shape(void) const;
 
-        //! @brief Returns the junction this ConnEnd attaches to, or NULL.
+        //! @brief Returns the junction this ConnEnd attaches to, or nullptr.
         //!
         //! Will be valid only if type() == ConnEndJunction.
         //!
         //! @return The JunctionRef pointer that the ConnEnd attaches to,
-        //!         or NULL.
+        //!         or nullptr.
         //!
         JunctionRef *junction(void) const;
 

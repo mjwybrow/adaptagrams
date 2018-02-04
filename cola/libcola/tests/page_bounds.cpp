@@ -69,7 +69,7 @@ int main() {
     cout << "V="<<V<<endl;
     double width=1000;
     double height=1000;
-    //srand(time(NULL));
+    //srand(time(nullptr));
     vector<pair<double,double> > startpos(V);
     for(unsigned i=0;i<V;i++) {
         double x=getRand(width), y=getRand(height);

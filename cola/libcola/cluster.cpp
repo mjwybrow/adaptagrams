@@ -215,10 +215,10 @@ RectangularCluster::RectangularCluster()
       m_margin(0),
       m_padding(0)
 {
-    minEdgeRect[vpsc::XDIM] = NULL;
-    minEdgeRect[vpsc::YDIM] = NULL;
-    maxEdgeRect[vpsc::XDIM] = NULL;
-    maxEdgeRect[vpsc::YDIM] = NULL;
+    minEdgeRect[vpsc::XDIM] = nullptr;
+    minEdgeRect[vpsc::YDIM] = nullptr;
+    maxEdgeRect[vpsc::XDIM] = nullptr;
+    maxEdgeRect[vpsc::YDIM] = nullptr;
 }
 
 RectangularCluster::RectangularCluster(unsigned rectIndex)
@@ -227,10 +227,10 @@ RectangularCluster::RectangularCluster(unsigned rectIndex)
       m_margin(0),
       m_padding(0)
 {
-    minEdgeRect[vpsc::XDIM] = NULL;
-    minEdgeRect[vpsc::YDIM] = NULL;
-    maxEdgeRect[vpsc::XDIM] = NULL;
-    maxEdgeRect[vpsc::YDIM] = NULL;
+    minEdgeRect[vpsc::XDIM] = nullptr;
+    minEdgeRect[vpsc::YDIM] = nullptr;
+    maxEdgeRect[vpsc::XDIM] = nullptr;
+    maxEdgeRect[vpsc::YDIM] = nullptr;
 }
 
 RectangularCluster::~RectangularCluster()
@@ -240,12 +240,12 @@ RectangularCluster::~RectangularCluster()
         if (minEdgeRect[dim])
         {
             delete minEdgeRect[dim];
-            minEdgeRect[dim] = NULL;
+            minEdgeRect[dim] = nullptr;
         }
         if (maxEdgeRect[dim])
         {
             delete maxEdgeRect[dim];
-            maxEdgeRect[dim] = NULL;
+            maxEdgeRect[dim] = nullptr;
         }
     }
 }
@@ -521,8 +521,8 @@ void RootCluster::calculateClusterPathsToEachNode(size_t nodesCount)
                 // due to these two paths to node i.
                 size_t lcaChildJIndex = i;
                 size_t lcaChildKIndex = i;
-                Cluster *lcaChildJCluster = NULL;
-                Cluster *lcaChildKCluster = NULL;
+                Cluster *lcaChildJCluster = nullptr;
+                Cluster *lcaChildKCluster = nullptr;
                 
                 // lcaIndex < path{J,K}.size() means the child J or K of 
                 // the lca is a Cluster.   At least one of them will always

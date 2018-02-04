@@ -17,7 +17,7 @@ int main(void) {
     router->setRoutingOption((RoutingOption)4, false);
     router->setRoutingOption((RoutingOption)5, false);
     Polygon polygon;
-    ConnRef *connRef = NULL;
+    ConnRef *connRef = nullptr;
     ConnEnd srcPt;
     ConnEnd dstPt;
     PolyLine newRoute;

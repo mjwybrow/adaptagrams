@@ -67,7 +67,7 @@ GradientProjection::GradientProjection(
           clusterHierarchy(clusterHierarchy),
           tolerance(tol), 
           max_iterations(max_iterations),
-          sparseQ(NULL),
+          sparseQ(nullptr),
           solveWithMosek(solveWithMosek),
           scaling(scaling)
 {
@@ -242,8 +242,8 @@ unsigned GradientProjection::solve(
     COLA_ASSERT(linearCoefficients.size()==x.size());
     COLA_ASSERT(x.size()==denseSize);
     COLA_ASSERT(numStaticVars>=denseSize);
-    COLA_ASSERT(sparseQ==NULL || 
-                (sparseQ!=NULL && (vars.size()==sparseQ->rowSize())) );
+    COLA_ASSERT(sparseQ==nullptr || 
+                (sparseQ!=nullptr && (vars.size()==sparseQ->rowSize())) );
 
     if(max_iterations==0) return 0;
 
@@ -451,7 +451,7 @@ void GradientProjection::destroyVPSC(IncSolver *vpsc) {
             delete vars[i];
         }
         vars.resize(numStaticVars);
-        sparseQ=NULL;
+        sparseQ=nullptr;
     }
     for(vector<Constraint*>::iterator i=lcs.begin();i!=lcs.end();i++) {
         delete *i;

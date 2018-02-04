@@ -39,7 +39,7 @@ ClusterRef::ClusterRef(Router *router, Polygon& polygon, const unsigned int id)
       m_rectangular_polygon(m_polygon.boundingRectPolygon()),
       m_active(false)
 {
-    COLA_ASSERT(m_router != NULL);
+    COLA_ASSERT(m_router != nullptr);
     m_id = m_router->assignId(id);
 
     m_router->addCluster(this);

@@ -113,7 +113,7 @@ struct NodeOpen : NodeEvent {
         COLA_ASSERT(r.second);
         openListIndex = r.first;
         OpenNodes::iterator right=openListIndex, left=openListIndex;
-        Node *leftNeighbour=NULL, *rightNeighbour=NULL;
+        Node *leftNeighbour=nullptr, *rightNeighbour=nullptr;
         if(left!=openNodes.begin()) {
             leftNeighbour=(--left)->second->node;
         }
@@ -171,7 +171,7 @@ struct NodeClose : NodeEvent {
         FILE_LOG(logDEBUG) << "NodeClose::process()";
         OpenNodes::iterator nodePos=opening->openListIndex;
         OpenNodes::iterator right=nodePos, left=nodePos;
-        Node *leftNeighbour=NULL, *rightNeighbour=NULL;
+        Node *leftNeighbour=nullptr, *rightNeighbour=nullptr;
         if(left!=openNodes.begin()) {
             leftNeighbour=(--left)->second->node;
             createNonOverlapConstraint(leftNeighbour,node);
@@ -451,8 +451,8 @@ BendConstraint::BendConstraint(EdgePoint* v, vpsc::Dim dim)
       bendPoint(v)
 {
     FILE_LOG(logDEBUG)<<"BendConstraint ctor, pos="<<v->pos(vpsc::conjugate(dim));
-    COLA_ASSERT(v->inSegment!=NULL);
-    COLA_ASSERT(v->outSegment!=NULL);
+    COLA_ASSERT(v->inSegment!=nullptr);
+    COLA_ASSERT(v->outSegment!=nullptr);
     // v must be a bend point around some node
     COLA_ASSERT(!v->isEnd());
     COLA_ASSERT(v->rectIntersect!=EdgePoint::CENTRE);
@@ -605,7 +605,7 @@ struct PruneDegenerate {
 static void recCreateTopologyClusterNodes(cola::Cluster *cluster, 
         const vpsc::Dim dim, Nodes& clusterNodes)
 {
-    if (cluster == NULL)
+    if (cluster == nullptr)
     {
         return;
     }

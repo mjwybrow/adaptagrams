@@ -84,7 +84,7 @@ class OverlapShapeOffsets : public SubConstraintInfo
         OverlapShapeOffsets(unsigned ind, double xOffset, double yOffset,
                 unsigned int group)
             : SubConstraintInfo(ind),
-              cluster(NULL),
+              cluster(nullptr),
               rectPadding(0),
               group(group)
         {
@@ -102,7 +102,7 @@ class OverlapShapeOffsets : public SubConstraintInfo
         }
         OverlapShapeOffsets()
             : SubConstraintInfo(1000000),
-              cluster(NULL),
+              cluster(nullptr),
               rectPadding(0)
         {
         }
@@ -590,10 +590,10 @@ void NonOverlapConstraints::generateSeparationConstraints(
         double below2 = shape2.halfDim[dim];
         double above2 = shape2.halfDim[dim];
 
-        vpsc::Variable *varLeft1 = NULL;
-        vpsc::Variable *varLeft2 = NULL;
-        vpsc::Variable *varRight1 = NULL;
-        vpsc::Variable *varRight2 = NULL;
+        vpsc::Variable *varLeft1 = nullptr;
+        vpsc::Variable *varLeft2 = nullptr;
+        vpsc::Variable *varRight1 = nullptr;
+        vpsc::Variable *varRight2 = nullptr;
         if (shape1.cluster)
         {
             // Must constraint to cluster boundary variables.
@@ -626,7 +626,7 @@ void NonOverlapConstraints::generateSeparationConstraints(
 
         if (rect1.overlapD(!dim, &rect2) > 0.0005)
         {
-            vpsc::Constraint *constraint = NULL;
+            vpsc::Constraint *constraint = nullptr;
             if (pos1 < pos2)
             {
                 constraint = new vpsc::Constraint(varRight1, varLeft2,

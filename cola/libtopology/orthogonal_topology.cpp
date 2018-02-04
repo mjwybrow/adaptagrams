@@ -105,7 +105,7 @@ class LayoutEdgeSegment : public ShiftSegment
                 double maxLim)
             : ShiftSegment(dim),
               connRef(conn),
-              variable(NULL),
+              variable(nullptr),
               fixed(false),
               finalSegment(false),
               containsCheckpoint(false),
@@ -122,7 +122,7 @@ class LayoutEdgeSegment : public ShiftSegment
                 const size_t dim)
             : ShiftSegment(dim),
               connRef(conn),
-              variable(NULL),
+              variable(nullptr),
               fixed(true),
               finalSegment(false),
               containsCheckpoint(false),
@@ -272,14 +272,14 @@ class LayoutObstacle
     public:
     LayoutObstacle()
         : dimension(0),
-          obstacle(NULL),
-          variable(NULL)
+          obstacle(nullptr),
+          variable(nullptr)
     {
     }
     LayoutObstacle(ShapeRef *shape, const size_t dim)
         : dimension(dim),
           obstacle(shape),
-          variable(NULL)
+          variable(nullptr)
     {
         // Take the bounds of the shape
         Avoid::Box bBox = shape->routingBox();
@@ -289,7 +289,7 @@ class LayoutObstacle
     LayoutObstacle(JunctionRef *junction, const size_t dim)
         : dimension(dim),
           obstacle(junction),
-          variable(NULL)
+          variable(nullptr)
     {
         // Don't nudge segments attached to junctions,
         // so just use the junction position here.
@@ -437,7 +437,7 @@ class LineSegment
 {
 public:
     LineSegment(const double& b, const double& f, const double& p, 
-            bool ss = false, VertInf *bvi = NULL, VertInf *fvi = NULL)
+            bool ss = false, VertInf *bvi = nullptr, VertInf *fvi = nullptr)
         : begin(b),
           finish(f),
           pos(p),
@@ -447,7 +447,7 @@ public:
         COLA_UNUSED(fvi);
         COLA_ASSERT(begin < finish);
     }
-    LineSegment(const double& bf, const double& p, VertInf *bfvi = NULL)
+    LineSegment(const double& bf, const double& p, VertInf *bfvi = nullptr)
         : begin(bf),
           finish(bf),
           pos(p),
@@ -628,11 +628,11 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
 
         // Clean up neighbour pointers.
         Node *l = v->firstAbove, *r = v->firstBelow;
-        if (l != NULL) 
+        if (l != nullptr) 
         {
             l->firstBelow = v->firstBelow;
         }
-        if (r != NULL)
+        if (r != nullptr)
         {
             r->firstAbove = v->firstAbove;
         }
@@ -811,7 +811,7 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
         {
             Node *beforeV = v->firstAbove;
             LayoutNode *beforeLayoutV = dynamic_cast<LayoutNode *> (beforeV);
-            LayoutEdgeSegment *beforeLes = (beforeV == NULL) ? NULL :
+            LayoutEdgeSegment *beforeLes = (beforeV == nullptr) ? nullptr :
                     dynamic_cast<LayoutEdgeSegment *> (beforeV->ss);
             
             if (beforeLayoutV && (beforeLayoutV->side == SIDE_RIGHT))
@@ -847,7 +847,7 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
         {
             Node *afterV = v->firstBelow;
             LayoutNode *afterLayoutV = dynamic_cast<LayoutNode *> (afterV);
-            LayoutEdgeSegment *afterLes = (afterV == NULL) ? NULL :
+            LayoutEdgeSegment *afterLes = (afterV == nullptr) ? nullptr :
                     dynamic_cast<LayoutEdgeSegment *> (afterV->ss);
 
             if (afterLayoutV && (afterLayoutV->side == SIDE_LEFT))
@@ -1595,7 +1595,7 @@ class CmpLineOrder
         }
         bool operator()(const ShiftSegment *lhsSuper, 
                 const ShiftSegment *rhsSuper,
-                bool *comparable = NULL) const
+                bool *comparable = nullptr) const
         {
             const LayoutEdgeSegment *lhs = 
                     dynamic_cast<const LayoutEdgeSegment *> (lhsSuper);
@@ -1731,7 +1731,7 @@ bool AvoidTopologyAddon::outputCode(FILE *fp) const
     {
         fprintf(fp, "    CompoundConstraints ccs;\n");
         fprintf(fp, "    std::vector<vpsc::Rectangle*> rs;\n");
-        fprintf(fp, "    vpsc::Rectangle *rect = NULL;\n\n");
+        fprintf(fp, "    vpsc::Rectangle *rect = nullptr;\n\n");
         for (size_t i = 0; i < m_rectangles.size(); ++i)
         {
             fprintf(fp, "    rect = new vpsc::Rectangle(%g, %g, %g, %g);\n",
@@ -1752,7 +1752,7 @@ bool AvoidTopologyAddon::outputCode(FILE *fp) const
         }
         else
         {
-            fprintf(fp, "    RootCluster *cluster%llu = NULL;\n\n",
+            fprintf(fp, "    RootCluster *cluster%llu = nullptr;\n\n",
                     (unsigned long long) m_cluster_hierarchy);
         }
 

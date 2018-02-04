@@ -158,16 +158,16 @@ VertInf::VertInf(Router *router, const VertID& vid, const Point& vpoint,
     : _router(router),
       id(vid),
       point(vpoint),
-      lstPrev(NULL),
-      lstNext(NULL),
-      shPrev(NULL),
-      shNext(NULL),
+      lstPrev(nullptr),
+      lstNext(nullptr),
+      shPrev(nullptr),
+      shNext(nullptr),
       visListSize(0),
       orthogVisListSize(0),
       invisListSize(0),
-      pathNext(NULL),
-      m_orthogonalPartner(NULL),
-      m_treeRoot(NULL),
+      pathNext(nullptr),
+      m_orthogonalPartner(nullptr),
+      m_treeRoot(nullptr),
       visDirections(ConnDirNone),
       orthogVisPropFlags(0)
 {
@@ -198,7 +198,7 @@ EdgeInf *VertInf::hasNeighbour(VertInf *target, bool orthogonal) const
             return *edge;
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 void VertInf::Reset(const VertID& vid, const Point& vpoint)
@@ -366,7 +366,7 @@ unsigned int VertInf::pathLeadsBackTo(const VertInf *start) const
         }
 
         pathlen++;
-        if (i == NULL)
+        if (i == nullptr)
         {
             // Path not found.
             return 0;
@@ -387,7 +387,7 @@ VertInf **VertInf::makeTreeRootPointer(VertInf *root)
 
 VertInf *VertInf::treeRoot(void) const
 {
-    return (m_treeRoot) ? *m_treeRoot : NULL;
+    return (m_treeRoot) ? *m_treeRoot : nullptr;
 }
 
 VertInf **VertInf::treeRootPointer(void) const
@@ -397,7 +397,7 @@ VertInf **VertInf::treeRootPointer(void) const
 
 void VertInf::clearTreeRootPointer(void)
 {
-    m_treeRoot = NULL;
+    m_treeRoot = nullptr;
 }
 
 void VertInf::setTreeRootPointer(VertInf **pointer)
@@ -462,10 +462,10 @@ bool directVis(VertInf *src, VertInf *dst)
 
 
 VertInfList::VertInfList()
-    : _firstShapeVert(NULL),
-      _firstConnVert(NULL),
-      _lastShapeVert(NULL),
-      _lastConnVert(NULL),
+    : _firstShapeVert(nullptr),
+      _firstConnVert(nullptr),
+      _lastShapeVert(nullptr),
+      _lastConnVert(nullptr),
       _shapeVertices(0),
       _connVertices(0)
 {
@@ -475,10 +475,10 @@ VertInfList::VertInfList()
 #define checkVertInfListConditions() \
         do { \
             COLA_ASSERT((!_firstConnVert && (_connVertices == 0)) || \
-                    ((_firstConnVert->lstPrev == NULL) && (_connVertices > 0))); \
+                    ((_firstConnVert->lstPrev == nullptr) && (_connVertices > 0))); \
             COLA_ASSERT((!_firstShapeVert && (_shapeVertices == 0)) || \
-                    ((_firstShapeVert->lstPrev == NULL) && (_shapeVertices > 0))); \
-            COLA_ASSERT(!_lastShapeVert || (_lastShapeVert->lstNext == NULL)); \
+                    ((_firstShapeVert->lstPrev == nullptr) && (_shapeVertices > 0))); \
+            COLA_ASSERT(!_lastShapeVert || (_lastShapeVert->lstNext == nullptr)); \
             COLA_ASSERT(!_lastConnVert || (_lastConnVert->lstNext == _firstShapeVert)); \
             COLA_ASSERT((!_firstConnVert && !_lastConnVert) || \
                     (_firstConnVert &&  _lastConnVert) ); \
@@ -494,8 +494,8 @@ VertInfList::VertInfList()
 void VertInfList::addVertex(VertInf *vert)
 {
     checkVertInfListConditions();
-    COLA_ASSERT(vert->lstPrev == NULL);
-    COLA_ASSERT(vert->lstNext == NULL);
+    COLA_ASSERT(vert->lstPrev == nullptr);
+    COLA_ASSERT(vert->lstNext == nullptr);
 
     if (vert->id.isConnPt())
     {
@@ -541,7 +541,7 @@ void VertInfList::addVertex(VertInf *vert)
             // Join with conns list
             if (_lastConnVert)
             {
-                COLA_ASSERT(_lastConnVert->lstNext == NULL);
+                COLA_ASSERT(_lastConnVert->lstNext == nullptr);
 
                 _lastConnVert->lstNext = vert;
             }
@@ -556,9 +556,9 @@ void VertInfList::addVertex(VertInf *vert)
 // following the removed one.
 VertInf *VertInfList::removeVertex(VertInf *vert)
 {
-    if (vert == NULL)
+    if (vert == nullptr)
     {
-        return NULL;
+        return nullptr;
     }
     // Conditions for correct data structure
     checkVertInfListConditions();
@@ -573,8 +573,8 @@ VertInf *VertInfList::removeVertex(VertInf *vert)
 
             if (vert == _lastConnVert)
             {
-                _firstConnVert = NULL;
-                _lastConnVert = NULL;
+                _firstConnVert = nullptr;
+                _lastConnVert = nullptr;
             }
             else
             {
@@ -584,7 +584,7 @@ VertInf *VertInfList::removeVertex(VertInf *vert)
                 if (_firstConnVert)
                 {
                     // Set previous
-                    _firstConnVert->lstPrev = NULL;
+                    _firstConnVert->lstPrev = nullptr;
                 }
             }
         }
@@ -613,16 +613,16 @@ VertInf *VertInfList::removeVertex(VertInf *vert)
 
             if (vert == _firstShapeVert)
             {
-                _firstShapeVert = NULL;
+                _firstShapeVert = nullptr;
                 if (_lastConnVert)
                 {
-                    _lastConnVert->lstNext = NULL;
+                    _lastConnVert->lstNext = nullptr;
                 }
             }
 
             if (_lastShapeVert)
             {
-                _lastShapeVert->lstNext = NULL;
+                _lastShapeVert->lstNext = nullptr;
             }
         }
         else if (vert == _firstShapeVert)
@@ -638,7 +638,7 @@ VertInf *VertInfList::removeVertex(VertInf *vert)
 
             if (_firstShapeVert)
             {
-                _firstShapeVert->lstPrev = NULL;
+                _firstShapeVert->lstPrev = nullptr;
             }
         }
         else
@@ -648,8 +648,8 @@ VertInf *VertInfList::removeVertex(VertInf *vert)
         }
         _shapeVertices--;
     }
-    vert->lstPrev = NULL;
-    vert->lstNext = NULL;
+    vert->lstPrev = nullptr;
+    vert->lstNext = nullptr;
 
     checkVertInfListConditions();
 
@@ -681,7 +681,7 @@ VertInf *VertInfList::getVertexByID(const VertID& id)
             return curr;
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 
@@ -695,7 +695,7 @@ VertInf *VertInfList::getVertexByPos(const Point& p)
             return curr;
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 
@@ -718,7 +718,7 @@ VertInf *VertInfList::connsBegin(void)
 
 VertInf *VertInfList::end(void)
 {
-    return NULL;
+    return nullptr;
 }
 
 

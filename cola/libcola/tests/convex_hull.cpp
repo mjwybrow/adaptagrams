@@ -51,7 +51,7 @@ typedef vector<unsigned> Hull;
 void randTest(unsigned n, valarray<double>& X, valarray<double>& Y) {
     X.resize(n);
     Y.resize(n);
-    srand(time(NULL));
+    srand(time(nullptr));
 	for(unsigned i=0;i<n;i++) {
 		X[i]=getRand(1.);
 		Y[i]=getRand(1.);

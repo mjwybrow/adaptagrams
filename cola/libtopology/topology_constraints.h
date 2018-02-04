@@ -115,7 +115,7 @@ namespace topology {
          */
         bool assertFeasible() const;
     protected:
-        TopologyConstraint(vpsc::Dim dim) : c(NULL), scanDim(dim) { }
+        TopologyConstraint(vpsc::Dim dim) : c(nullptr), scanDim(dim) { }
     };
     /*
      * A constraint around a bend point that becomes active when the bend
@@ -223,8 +223,8 @@ namespace topology {
         ResizeInfo(Node* v, const vpsc::Rectangle* target)
             : orig(v), 
               targetRect(target),
-              lhsNode(NULL),
-              rhsNode(NULL) { };
+              lhsNode(nullptr),
+              rhsNode(nullptr) { };
         Node *lhsNode, *rhsNode;
     };
     typedef std::map<unsigned, ResizeInfo> ResizeMap;

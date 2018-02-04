@@ -39,9 +39,9 @@ namespace Avoid {
 // Constructs a new hyperedge tree node.
 //
 HyperedgeTreeNode::HyperedgeTreeNode()
-    : junction(NULL),
-      shiftSegmentNodeSet(NULL),
-      finalVertex(NULL),
+    : junction(nullptr),
+      shiftSegmentNodeSet(nullptr),
+      finalVertex(nullptr),
       isConnectorSource(false),
       isPinDummyEndpoint(false),
       visited(false)
@@ -53,7 +53,7 @@ HyperedgeTreeNode::~HyperedgeTreeNode()
     if (shiftSegmentNodeSet)
     {
         shiftSegmentNodeSet->erase(this);
-        shiftSegmentNodeSet = NULL;
+        shiftSegmentNodeSet = nullptr;
     }
 }
 
@@ -94,9 +94,9 @@ bool HyperedgeTreeNode::removeOtherJunctionsFrom(HyperedgeTreeEdge *ignored,
         return containsCycle;
     }
     
-    if (junction && (ignored != NULL))
+    if (junction && (ignored != nullptr))
     {
-        // Remove junctions other than the first (when ignored == NULL).
+        // Remove junctions other than the first (when ignored == nullptr).
         treeRoots.erase(junction);
     }
     visited = true;
@@ -480,9 +480,9 @@ void HyperedgeTreeEdge::replaceNode(HyperedgeTreeNode *oldNode,
 void HyperedgeTreeEdge::writeEdgesToConns(HyperedgeTreeNode *ignored,
         size_t pass)
 {
-    COLA_ASSERT(ignored != NULL);
-    COLA_ASSERT(ends.first != NULL);
-    COLA_ASSERT(ends.second != NULL);
+    COLA_ASSERT(ignored != nullptr);
+    COLA_ASSERT(ends.first != nullptr);
+    COLA_ASSERT(ends.second != nullptr);
 
     HyperedgeTreeNode *prevNode = 
             (ignored == ends.first) ? ends.first : ends.second;
@@ -570,8 +570,8 @@ void HyperedgeTreeEdge::writeEdgesToConns(HyperedgeTreeNode *ignored,
 void HyperedgeTreeEdge::addConns(HyperedgeTreeNode *ignored, Router *router,
         ConnRefList& oldConns)
 {
-    COLA_ASSERT(conn != NULL);
-    HyperedgeTreeNode *endNode = NULL;
+    COLA_ASSERT(conn != nullptr);
+    HyperedgeTreeNode *endNode = nullptr;
     if (ends.first && (ends.first != ignored))
     {
         endNode = ends.first;
@@ -622,7 +622,7 @@ void HyperedgeTreeEdge::addConns(HyperedgeTreeNode *ignored, Router *router,
 void HyperedgeTreeEdge::updateConnEnds(HyperedgeTreeNode *ignored, 
         bool forward, ConnRefList& changedConns)
 {
-    HyperedgeTreeNode *endNode = NULL;
+    HyperedgeTreeNode *endNode = nullptr;
     if (ends.first && (ends.first != ignored))
     {
         endNode = ends.first;
@@ -748,13 +748,13 @@ void HyperedgeTreeEdge::splitFromNodeAtPoint(HyperedgeTreeNode *source,
 //
 void HyperedgeTreeEdge::disconnectEdge(void)
 {
-    COLA_ASSERT(ends.first != NULL);
-    COLA_ASSERT(ends.second != NULL);
+    COLA_ASSERT(ends.first != nullptr);
+    COLA_ASSERT(ends.second != nullptr);
 
     ends.first->disconnectEdge(this);
     ends.second->disconnectEdge(this);
-    ends.first = NULL;
-    ends.second = NULL;
+    ends.first = nullptr;
+    ends.second = nullptr;
 }
 
 
@@ -788,14 +788,14 @@ void HyperedgeTreeEdge::deleteNodesExcept(HyperedgeTreeNode *ignored)
         ends.first->deleteEdgesExcept(this);
         delete ends.first;
     }
-    ends.first = NULL;
+    ends.first = nullptr;
 
     if (ends.second && (ends.second != ignored))
     {
         ends.second->deleteEdgesExcept(this);
         delete ends.second;
     }
-    ends.second = NULL;
+    ends.second = nullptr;
 }
 
 

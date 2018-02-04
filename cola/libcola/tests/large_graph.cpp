@@ -104,7 +104,7 @@ int main() {
     double width=1000;
     double height=1000;
     vector<pair<double,double> > startpos(V);
-    //srand(time(NULL));
+    //srand(time(nullptr));
     for(unsigned i=0;i<V;i++) {
         double x=getRand(width), y=getRand(height);
         startpos[i]=make_pair(x,y);
@@ -124,17 +124,17 @@ int main() {
 	}
     cout<<"Initial crossings="<<countCrossings(rs,es)<<endl;
 	CheckProgress test(0.0001,200);
-    ConstrainedMajorizationLayout alg(rs,es,NULL,defaultEdgeLength,NULL,test);
+    ConstrainedMajorizationLayout alg(rs,es,nullptr,defaultEdgeLength,nullptr,test);
     alg.setYConstraints(&cy);
 	alg.run();
     cout<<"Majorization crossings="<<countCrossings(rs,es)<<endl;
-	OutputFile output1(rs,es,NULL,"large_graph-majorization.pdf");
+	OutputFile output1(rs,es,nullptr,"large_graph-majorization.pdf");
     output1.generate();
-	ConstrainedFDLayout alg2(rs,es,defaultEdgeLength,NULL,test);
+	ConstrainedFDLayout alg2(rs,es,defaultEdgeLength,nullptr,test);
     alg2.setYConstraints(&cy);
 	alg2.run();
     cout<<"PStress crossings="<<countCrossings(rs,es)<<endl;
-	OutputFile output(rs,es,NULL,"large_graph.pdf");
+	OutputFile output(rs,es,nullptr,"large_graph.pdf");
 	output.generate();
 	for(unsigned i=0;i<V;i++) {
 		delete rs[i];

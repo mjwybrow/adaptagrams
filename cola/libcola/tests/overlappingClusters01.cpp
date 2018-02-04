@@ -10,7 +10,7 @@ int main(void) {
     EdgeLengths eLengths;
     double defaultEdgeLength=50;
     std::vector<vpsc::Rectangle*> rs;
-    vpsc::Rectangle *rect = NULL;
+    vpsc::Rectangle *rect = nullptr;
 
     rect = new vpsc::Rectangle(245.517, 247.517, 279.574, 281.574);
     rs.push_back(rect);

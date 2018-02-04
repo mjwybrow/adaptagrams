@@ -174,7 +174,7 @@ void JunctionRef::moveAttachedConns(const Point& newPosition)
             curr != m_following_conns.end(); ++curr)
     {
         ConnEnd *connEnd = *curr;
-        COLA_ASSERT(connEnd->m_conn_ref != NULL);
+        COLA_ASSERT(connEnd->m_conn_ref != nullptr);
         m_router->modifyConnector(connEnd->m_conn_ref, connEnd->endpointType(),
                 *connEnd);
     }
@@ -191,25 +191,25 @@ ConnRef *JunctionRef::removeJunctionAndMergeConnectors(void)
 {
     if (m_following_conns.size() != 2)
     {
-        return NULL;
+        return nullptr;
     }
 
     std::set<ConnEnd *>::iterator curr = m_following_conns.begin();
     ConnEnd *connEnd1 = *curr;
     ++curr;
     ConnEnd *connEnd2 = *curr;
-    COLA_ASSERT(connEnd2->m_conn_ref != NULL);
-    COLA_ASSERT(connEnd1->m_conn_ref != NULL);
+    COLA_ASSERT(connEnd2->m_conn_ref != nullptr);
+    COLA_ASSERT(connEnd1->m_conn_ref != nullptr);
 
     // The second conn will be the one we will delete.
     ConnRef *conn2 = connEnd2->m_conn_ref;
     // Determine its endpoint that is not attached to the junction.
     ConnEnd *connEnd2Other = (conn2->m_src_connend == connEnd2) ? 
             conn2->m_dst_connend : conn2->m_src_connend;
-    if (connEnd2Other == NULL)
+    if (connEnd2Other == nullptr)
     {
         // If it doesn't have a valid other endpoint, then ignore.
-        return NULL;
+        return nullptr;
     }
     // Modify the first connector's junction endpoint to connect to the 
     // other end of the second connector.

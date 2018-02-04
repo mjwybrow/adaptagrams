@@ -68,7 +68,7 @@ Router::Router(const unsigned int flags)
       m_static_orthogonal_graph_invalidated(true),
       m_in_crossing_rerouting_stage(false),
       m_settings_changes(false),
-      m_debug_handler(NULL)
+      m_debug_handler(nullptr)
 {
     // At least one of the Routing modes must be set.
     COLA_ASSERT(flags & (PolyLineRouting | OrthogonalRouting));
@@ -170,7 +170,7 @@ ShapeRef *Router::shapeContainingPoint(const Point& point)
             return shape;
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 void Router::modifyConnector(ConnRef *conn, const unsigned int type,
@@ -1131,7 +1131,7 @@ class CrossingConnectorsInfo
                 // For each crossing-causing connector.
                 ConnCostRef crossingCausingConnector;
                 while ( (crossingCausingConnector = 
-                            removeConnectorWithMostCrossings(pairsSet)).second != NULL )
+                            removeConnectorWithMostCrossings(pairsSet)).second != nullptr )
                 {
                     // Add it to our crossing-causing set.
                     crossingSet.insert(crossingCausingConnector);
@@ -1227,7 +1227,7 @@ class CrossingConnectorsInfo
                 CrossingConnectorsMap& pairsSet)
         {
             // Tracking of the greatest number of crossings.
-            ConnRef *candidateConnector = NULL;
+            ConnRef *candidateConnector = nullptr;
             size_t candidateCrossingCount = 0;
             double candidateEstimatedCost = 0;
 
@@ -1258,10 +1258,10 @@ class CrossingConnectorsInfo
                 }
             }
 
-            if (candidateConnector == NULL)
+            if (candidateConnector == nullptr)
             {
-                // If no candidate, return NULL connector.
-                return std::make_pair(0, (ConnRef *) NULL);
+                // If no candidate, return nullptr connector.
+                return std::make_pair(0, (ConnRef *) nullptr);
             }
 
             // Remove the candidate from the group.  To do this we find the
@@ -1657,7 +1657,7 @@ void Router::checkAllMissingEdges(void)
             }
 
             // See if the edge is already there?
-            bool found = (EdgeInf::existingEdge(i, j) != NULL);
+            bool found = (EdgeInf::existingEdge(i, j) != nullptr);
 
             if (!found)
             {
@@ -2286,8 +2286,8 @@ int Router::existsCrossings(const bool optimisedForConnectorType)
         {
             // Determine if this pair overlap
             Avoid::Polygon jRoute = (*j)->displayRoute();
-            ConnRef *iConn = (optimisedForConnectorType) ? *i : NULL;
-            ConnRef *jConn = (optimisedForConnectorType) ? *j : NULL;
+            ConnRef *iConn = (optimisedForConnectorType) ? *i : nullptr;
+            ConnRef *jConn = (optimisedForConnectorType) ? *j : nullptr;
             ConnectorCrossings cross(iRoute, true, jRoute, iConn, jConn);
             cross.checkForBranchingSegments = true;
             for (size_t jInd = 1; jInd < jRoute.size(); ++jInd)
@@ -2369,7 +2369,7 @@ void Router::outputInstanceToSVG(std::string instanceName)
     filename += ".svg";
     FILE *fp = fopen(filename.c_str(), "w");
 
-    if (fp == NULL)
+    if (fp == nullptr)
     {
         return;
     }
@@ -2416,7 +2416,7 @@ void Router::outputInstanceToSVG(std::string instanceName)
     // Output source code to generate this instance of the router.
     fprintf(fp, "<!-- Source code to generate this instance:\n");
     fprintf(fp, "#include \"libavoid/libavoid.h\"\n");
-    if (m_topology_addon->outputCode(NULL))
+    if (m_topology_addon->outputCode(nullptr))
     {
         fprintf(fp, "#include \"libcola/cola.h\"\n");
         fprintf(fp, "#include \"libtopology/orthogonal_topology.h\"\n");
@@ -2449,12 +2449,12 @@ void Router::outputInstanceToSVG(std::string instanceName)
                 (unsigned long)p, (m_routing_options[p]) ? "true" : "false");
     }
     fprintf(fp, "    Polygon polygon;\n");
-    fprintf(fp, "    ConnRef *connRef = NULL;\n");
+    fprintf(fp, "    ConnRef *connRef = nullptr;\n");
     fprintf(fp, "    ConnEnd srcPt;\n");
     fprintf(fp, "    ConnEnd dstPt;\n");
     fprintf(fp, "    ConnEnd heConnPt;\n");
     fprintf(fp, "    PolyLine newRoute;\n");
-    fprintf(fp, "    ShapeConnectionPin *connPin = NULL;\n");
+    fprintf(fp, "    ShapeConnectionPin *connPin = nullptr;\n");
     fprintf(fp, "\n");
     ClusterRefList::reverse_iterator revClusterRefIt = clusterRefs.rbegin();
     while (revClusterRefIt != clusterRefs.rend())
@@ -2534,7 +2534,7 @@ void Router::outputInstanceToSVG(std::string instanceName)
     while (obstacleIt != m_obstacles.end())
     {
         Obstacle *obstacle = *obstacleIt;
-        bool isShape = (NULL != dynamic_cast<ShapeRef *> (obstacle));
+        bool isShape = (nullptr != dynamic_cast<ShapeRef *> (obstacle));
 
         if ( ! isShape )
         {
@@ -2563,7 +2563,7 @@ void Router::outputInstanceToSVG(std::string instanceName)
     while (obstacleIt != m_obstacles.end())
     {
         Obstacle *obstacle = *obstacleIt;
-        bool isShape = (NULL != dynamic_cast<ShapeRef *> (obstacle));
+        bool isShape = (nullptr != dynamic_cast<ShapeRef *> (obstacle));
 
         if ( ! isShape )
         {
@@ -2611,7 +2611,7 @@ void Router::outputInstanceToSVG(std::string instanceName)
     while (obstacleIt != m_obstacles.end())
     {
         Obstacle *obstacle = *obstacleIt;
-        bool isShape = (NULL != dynamic_cast<ShapeRef *> (obstacle));
+        bool isShape = (nullptr != dynamic_cast<ShapeRef *> (obstacle));
 
         if ( ! isShape )
         {
@@ -2634,7 +2634,7 @@ void Router::outputInstanceToSVG(std::string instanceName)
     fprintf(fp, "<g inkscape:groupmode=\"layer\" "
             "inkscape:label=\"VisGraph\""
             ">\n");
-    EdgeInf *finish = NULL;
+    EdgeInf *finish = nullptr;
     fprintf(fp, "<g inkscape:groupmode=\"layer\" "
             "style=\"display: none;\" "
             "inkscape:label=\"VisGraph-shape\""
@@ -2872,7 +2872,7 @@ void Router::outputDiagramSVG(std::string instanceName, LineReps *lineReps)
     filename += ".svg";
     FILE *fp = fopen(filename.c_str(), "w");
 
-    if (fp == NULL)
+    if (fp == nullptr)
     {
         return;
     }
@@ -2922,7 +2922,7 @@ void Router::outputDiagramSVG(std::string instanceName, LineReps *lineReps)
     while (obstacleIt != m_obstacles.end())
     {
         Obstacle *obstacle = *obstacleIt;
-        bool isShape = (NULL != dynamic_cast<ShapeRef *> (obstacle));
+        bool isShape = (nullptr != dynamic_cast<ShapeRef *> (obstacle));
 
         if ( ! isShape )
         {
@@ -3022,7 +3022,7 @@ void Router::outputDiagramText(std::string instanceName)
     filename += ".txt";
     FILE *fp = fopen(filename.c_str(), "w");
 
-    if (fp == NULL)
+    if (fp == nullptr)
     {
         return;
     }
@@ -3031,7 +3031,7 @@ void Router::outputDiagramText(std::string instanceName)
     while (obstacleIt != m_obstacles.end())
     {
         Obstacle *obstacle = *obstacleIt;
-        bool isShape = (NULL != dynamic_cast<ShapeRef *> (obstacle));
+        bool isShape = (nullptr != dynamic_cast<ShapeRef *> (obstacle));
 
         if ( ! isShape )
         {
@@ -3107,7 +3107,7 @@ void ConnRerouteFlagDelegate::removeConn(ConnRef *conn)
     {
         if (it->first == conn)
         {
-            it->first = NULL;
+            it->first = nullptr;
         }
     }
 }
@@ -3118,7 +3118,7 @@ void ConnRerouteFlagDelegate::alertConns(void)
     std::list<std::pair<ConnRef *, bool> >::iterator it;
     for (it = m_mapping.begin(); it != m_mapping.end(); ++it)
     {
-        if ((it->first != NULL) && (it->second == true))
+        if ((it->first != nullptr) && (it->second == true))
         {
             it->second = false;
             it->first->m_needs_reroute_flag = true;

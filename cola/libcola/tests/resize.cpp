@@ -111,7 +111,7 @@ void resize() {
             r->width()+60,r->height()+60));
     PreIteration preIteration(resize);
     Test test(0.00001,100,vs,tes);
-    ConstrainedFDLayout alg(rs,es,idealLength,NULL,test,&preIteration);
+    ConstrainedFDLayout alg(rs,es,idealLength,nullptr,test,&preIteration);
     alg.setTopology(&vs,&tes);
 
     alg.run(true,true);

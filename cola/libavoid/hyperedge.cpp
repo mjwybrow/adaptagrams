@@ -39,7 +39,7 @@
 namespace Avoid {
 
 HyperedgeRerouter::HyperedgeRerouter()
-    : m_router(NULL)
+    : m_router(nullptr)
 {
 }
 
@@ -52,7 +52,7 @@ size_t HyperedgeRerouter::registerHyperedgeForRerouting(
         ConnEndList terminals)
 {
     m_terminals_vector.push_back(terminals);
-    m_root_junction_vector.push_back(NULL);
+    m_root_junction_vector.push_back(nullptr);
 
     return m_terminals_vector.size() - 1;
 }
@@ -199,7 +199,7 @@ bool HyperedgeRerouter::findAttachedObjects(size_t index,
             continue;
         }
 
-        COLA_ASSERT(*curr != NULL);
+        COLA_ASSERT(*curr != nullptr);
         validHyperedge |= findAttachedObjects(index, (*curr), junction, hyperedgeConns);
     }
     return validHyperedge;
@@ -211,7 +211,7 @@ bool HyperedgeRerouter::findAttachedObjects(size_t index,
 // connectors so they can be ignored for individual rerouting.
 ConnRefSet HyperedgeRerouter::calcHyperedgeConnectors(void)
 {
-    COLA_ASSERT(m_router != NULL);
+    COLA_ASSERT(m_router != nullptr);
 
     ConnRefSet allRegisteredHyperedgeConns;
 
@@ -232,7 +232,7 @@ ConnRefSet HyperedgeRerouter::calcHyperedgeConnectors(void)
         if (m_root_junction_vector[i])
         {
             // Follow objects attached to junction to find the hyperedge.
-            bool valid = findAttachedObjects(i, m_root_junction_vector[i], NULL,
+            bool valid = findAttachedObjects(i, m_root_junction_vector[i], nullptr,
                     allRegisteredHyperedgeConns);
             if (!valid)
             {
@@ -257,7 +257,7 @@ ConnRefSet HyperedgeRerouter::calcHyperedgeConnectors(void)
                 it != m_terminals_vector[i].end(); ++it)
         {
             maybeNewVertex = it->getHyperedgeVertex(m_router);
-            COLA_ASSERT(maybeNewVertex.second != NULL);
+            COLA_ASSERT(maybeNewVertex.second != nullptr);
             m_terminal_vertices_vector[i].insert(maybeNewVertex.second);
 
             if (maybeNewVertex.first)
@@ -276,7 +276,7 @@ ConnRefSet HyperedgeRerouter::calcHyperedgeConnectors(void)
 
 void HyperedgeRerouter::performRerouting(void)
 {
-    COLA_ASSERT(m_router != NULL);
+    COLA_ASSERT(m_router != nullptr);
 
     m_new_junctions_vector.clear();
     m_new_junctions_vector.resize(count());
@@ -334,18 +334,18 @@ void HyperedgeRerouter::performRerouting(void)
         
         // Fill in connector information and join them to junctions of endpoints
         // of original connectors.
-        treeRoot->addConns(NULL, m_router, 
-                m_deleted_connectors_vector[i], NULL);
+        treeRoot->addConns(nullptr, m_router, 
+                m_deleted_connectors_vector[i], nullptr);
 
         // Output the list of new junctions and connectors from hyperedge tree.
-        treeRoot->listJunctionsAndConnectors(NULL, m_new_junctions_vector[i],
+        treeRoot->listJunctionsAndConnectors(nullptr, m_new_junctions_vector[i],
                 m_new_connectors_vector[i]);
 
         // Write paths from the hyperedge tree back into individual
         // connector routes.
         for (size_t pass = 0; pass < 2; ++pass)
         {
-            treeRoot->writeEdgesToConns(NULL, pass);
+            treeRoot->writeEdgesToConns(nullptr, pass);
         }
 
         // Tell the router that we are deleting the objects used for the

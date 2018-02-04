@@ -44,7 +44,7 @@ inline bool approxEquals(const double a, const double b) {
 }
 typedef vector<Constraint*> CS;
 
-bool checkResult(unsigned n, Variable *a[], unsigned m, Constraint *c[], double expected[]=NULL) {
+bool checkResult(unsigned n, Variable *a[], unsigned m, Constraint *c[], double expected[]=nullptr) {
         std::vector<Variable*> aa(a,a+n);
         std::vector<Constraint*> cc(c,c+m);
 	IncSolver vpsc(aa,cc);
@@ -463,7 +463,7 @@ new Constraint(a[3],a[4],3)};
         std::vector<Constraint*> cc(c,c+m);
 	IncSolver vpsc(aa,cc);
 	vpsc.solve();
-	assert(checkResult(n,a,m,c,NULL));
+	assert(checkResult(n,a,m,c,nullptr));
 	cout << "Test 10... done." << endl;
 }
 void test11() {
@@ -493,7 +493,7 @@ new Constraint(a[3],a[4],3)};
         std::vector<Constraint*> cc(c,c+m);
 	IncSolver vpsc(aa,cc);
 	vpsc.solve();
-	assert(checkResult(n,a,m,c,NULL));
+	assert(checkResult(n,a,m,c,nullptr));
 	cout << "Test 11... done." << endl;
 }
 void test12() {
@@ -523,7 +523,7 @@ new Constraint(a[3],a[4],3)};
 	unsigned int n = sizeof(a)/sizeof(Variable*);
 	unsigned int m = sizeof(c)/sizeof(Constraint*);
 	//dumpMatlabProblem(n,a,m,c);
-	assert(checkResult(n,a,m,c,NULL));
+	assert(checkResult(n,a,m,c,nullptr));
 	cout << "Test 12... done." << endl;
 }
 void test13() {
@@ -555,7 +555,7 @@ new Constraint(a[3],a[4],3)};
 	unsigned int n = sizeof(a)/sizeof(Variable*);
 	unsigned int m = sizeof(c)/sizeof(Constraint*);
 	//dumpMatlabProblem(n,a,m,c);
-	assert(checkResult(n,a,m,c,NULL));
+	assert(checkResult(n,a,m,c,nullptr));
 	cout << "Test 13... done." << endl;
 }
 
@@ -640,7 +640,7 @@ void rand_test(unsigned n, unsigned m) {
 	delete [] acs;
 }
 int main() {
-	srand(time(NULL));
+	srand(time(nullptr));
 	test10();
 	test2();
 	test3();

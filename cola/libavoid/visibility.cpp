@@ -214,8 +214,8 @@ class EdgePair
 {
     public:
         EdgePair() 
-            : vInf1(NULL), 
-              vInf2(NULL), 
+            : vInf1(nullptr), 
+              vInf2(nullptr), 
               dist1(0.0),
               dist2(0.0),
               angle(0.0),
@@ -572,7 +572,7 @@ static void vertexSweep(VertInf *vert)
         const double& currDist = (*t).distance;
 
         EdgeInf *edge = EdgeInf::existingEdge(centerInf, currInf);
-        if (edge == NULL)
+        if (edge == nullptr)
         {
             edge = new EdgeInf(centerInf, currInf);
         }
@@ -629,7 +629,7 @@ static void vertexSweep(VertInf *vert)
         if (!(edge->added()) && !(router->InvisibilityGrph))
         {
             delete edge;
-            edge = NULL;
+            edge = nullptr;
         }
 
         if (!(currID.isConnPt()))

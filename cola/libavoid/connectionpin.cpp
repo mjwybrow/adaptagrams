@@ -40,7 +40,7 @@ ShapeConnectionPin::ShapeConnectionPin(ShapeRef *shape,
         const double yPortionOffset, const bool proportional,
         const double insideOffset, const ConnDirFlags visDirs)
     : m_shape(shape),
-      m_junction(NULL),
+      m_junction(nullptr),
       m_class_id(classId),
       m_x_offset(xPortionOffset),
       m_y_offset(yPortionOffset),
@@ -48,7 +48,7 @@ ShapeConnectionPin::ShapeConnectionPin(ShapeRef *shape,
       m_visibility_directions(visDirs),
       m_exclusive(true),
       m_connection_cost(0.0),
-      m_vertex(NULL),
+      m_vertex(nullptr),
       m_using_proportional_offsets(proportional)
 {
     commonInitForShapeConnection();
@@ -59,7 +59,7 @@ ShapeConnectionPin::ShapeConnectionPin(ShapeRef *shape,
         const double yOffset, const double insideOffset,
         const ConnDirFlags visDirs)
     : m_shape(shape),
-      m_junction(NULL),
+      m_junction(nullptr),
       m_class_id(classId),
       m_x_offset(xOffset),
       m_y_offset(yOffset),
@@ -67,7 +67,7 @@ ShapeConnectionPin::ShapeConnectionPin(ShapeRef *shape,
       m_visibility_directions(visDirs),
       m_exclusive(true),
       m_connection_cost(0.0),
-      m_vertex(NULL),
+      m_vertex(nullptr),
       m_using_proportional_offsets(true)
 {
     commonInitForShapeConnection();
@@ -76,7 +76,7 @@ ShapeConnectionPin::ShapeConnectionPin(ShapeRef *shape,
 
 void ShapeConnectionPin::commonInitForShapeConnection(void)
 {
-    COLA_ASSERT(m_shape != NULL);
+    COLA_ASSERT(m_shape != nullptr);
     COLA_ASSERT(m_class_id > 0);
 
     if (m_using_proportional_offsets)
@@ -129,14 +129,14 @@ void ShapeConnectionPin::commonInitForShapeConnection(void)
 
     if (m_router->m_allows_polyline_routing)
     {
-        vertexVisibility(m_vertex, NULL, true, true);
+        vertexVisibility(m_vertex, nullptr, true, true);
     }
 }
 
 
 ShapeConnectionPin::ShapeConnectionPin(JunctionRef *junction, 
         const unsigned int classId, const ConnDirFlags visDirs)
-    : m_shape(NULL),
+    : m_shape(nullptr),
       m_junction(junction),
       m_class_id(classId),
       m_x_offset(0.0),
@@ -145,10 +145,10 @@ ShapeConnectionPin::ShapeConnectionPin(JunctionRef *junction,
       m_visibility_directions(visDirs),
       m_exclusive(true),
       m_connection_cost(0.0),
-      m_vertex(NULL),
+      m_vertex(nullptr),
       m_using_proportional_offsets(false)
 {
-    COLA_ASSERT(m_junction != NULL);
+    COLA_ASSERT(m_junction != nullptr);
     m_router = m_junction->router();
     m_junction->addConnectionPin(this);
     
@@ -163,7 +163,7 @@ ShapeConnectionPin::ShapeConnectionPin(JunctionRef *junction,
 
     if (m_router->m_allows_polyline_routing)
     {
-        vertexVisibility(m_vertex, NULL, true, true);
+        vertexVisibility(m_vertex, nullptr, true, true);
     }
 }
 
@@ -192,7 +192,7 @@ ShapeConnectionPin::~ShapeConnectionPin()
         m_vertex->removeFromGraph();
         m_router->vertices.removeVertex(m_vertex);
         delete m_vertex;
-        m_vertex = NULL;
+        m_vertex = nullptr;
     }
 }
 
@@ -208,7 +208,7 @@ void ShapeConnectionPin::updateVisibility(void)
     m_vertex->removeFromGraph();
     if (m_router->m_allows_polyline_routing)
     {
-        vertexVisibility(m_vertex, NULL, true, true);
+        vertexVisibility(m_vertex, nullptr, true, true);
     }
 }
 

@@ -61,7 +61,7 @@ int main() {
     cout << "V="<<V<<endl;
     double width=1000;
     double height=1000;
-    //srand(time(NULL));
+    //srand(time(nullptr));
     vector<pair<double,double> > startpos(V);
     for(unsigned i=0;i<V;i++) {
         double x=getRand(width), y=getRand(height);
@@ -95,7 +95,7 @@ int main() {
 		rs.push_back(new vpsc::Rectangle(x,x+5,y,y+5));
 	}
 	CheckProgress test(0.0001,200);
-    ConstrainedMajorizationLayout alg(rs,es,NULL,defaultEdgeLength,
+    ConstrainedMajorizationLayout alg(rs,es,nullptr,defaultEdgeLength,
             StandardEdgeLengths,&test);
     //alg.setYConstraints(&cy);
 	alg.run();
@@ -103,7 +103,7 @@ int main() {
             StandardEdgeLengths, &test);
     //alg2.setYConstraints(&cy);
 	alg2.run();
-	OutputFile output(rs,es,NULL,"random.pdf");
+	OutputFile output(rs,es,nullptr,"random.pdf");
 	output.generate();
 	for(unsigned i=0;i<V;i++) {
 		delete rs[i];

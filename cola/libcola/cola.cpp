@@ -58,18 +58,18 @@ ConstrainedMajorizationLayout
       constrainedLayout(false),
       nonOverlappingClusters(false),
       clusterHierarchy(clusterHierarchy),
-      gpX(NULL), gpY(NULL),
-      ccs(NULL),
-      unsatisfiableX(NULL), unsatisfiableY(NULL),
+      gpX(nullptr), gpY(nullptr),
+      ccs(nullptr),
+      unsatisfiableX(nullptr), unsatisfiableY(nullptr),
       avoidOverlaps(None),
-      straightenEdges(NULL),
+      straightenEdges(nullptr),
       bendWeight(0.1), potBendWeight(0.1),
       xSkipping(true),
       scaling(true),
       externalSolver(false),
       majorization(true)
 {
-    if (done == NULL)
+    if (done == nullptr)
     {
         done = new TestConvergence();
         using_default_done = true;
@@ -303,7 +303,7 @@ inline double ConstrainedMajorizationLayout
 
 void ConstrainedMajorizationLayout::run(bool x, bool y) {
     if(constrainedLayout) {
-        vector<vpsc::Rectangle*>* pbb = boundingBoxes.empty()?NULL:&boundingBoxes;
+        vector<vpsc::Rectangle*>* pbb = boundingBoxes.empty()?nullptr:&boundingBoxes;
         SolveWithMosek mosek = Off;
         if(externalSolver) mosek=Outer;
         // scaling doesn't currently work with straighten edges because sparse
@@ -381,7 +381,7 @@ double ConstrainedMajorizationLayout::computeStress() {
 }
 void ConstrainedMajorizationLayout::runOnce(bool x, bool y) {
     if(constrainedLayout) {
-        vector<vpsc::Rectangle*>* pbb = boundingBoxes.empty()?NULL:&boundingBoxes;
+        vector<vpsc::Rectangle*>* pbb = boundingBoxes.empty()?nullptr:&boundingBoxes;
         SolveWithMosek mosek = Off;
         if(externalSolver) mosek=Outer;
         // scaling doesn't currently work with straighten edges because sparse

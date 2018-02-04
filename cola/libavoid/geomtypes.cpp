@@ -126,19 +126,19 @@ ReferencingPolygon::ReferencingPolygon(const Polygon& poly, const Router *router
       psRef(poly.size()),
       psPoints(poly.size())
 {
-    COLA_ASSERT(router != NULL);
+    COLA_ASSERT(router != nullptr);
     for (size_t i = 0; i < poly.size(); ++i)
     {
         if (poly.ps[i].id == 0)
         {
             // Can't be referenced, so just make a copy of the point.
-            psRef[i] = std::make_pair((Polygon *) NULL, 
+            psRef[i] = std::make_pair((Polygon *) nullptr, 
                     kUnassignedVertexNumber);
             psPoints[i] = poly.ps[i];
         }
         else
         {
-            const Polygon *polyPtr = NULL;
+            const Polygon *polyPtr = nullptr;
             for (ObstacleList::const_iterator sh = router->m_obstacles.begin();
                     sh != router->m_obstacles.end(); ++sh) 
             {
@@ -149,7 +149,7 @@ ReferencingPolygon::ReferencingPolygon(const Polygon& poly, const Router *router
                     break;
                 }
             }
-            COLA_ASSERT(polyPtr != NULL);
+            COLA_ASSERT(polyPtr != nullptr);
             psRef[i] = std::make_pair(polyPtr, poly.ps[i].vn);
         }
     }
@@ -192,7 +192,7 @@ const Point& ReferencingPolygon::at(size_t index) const
 {
     COLA_ASSERT(index < size());
     
-    if (psRef[index].first != NULL)
+    if (psRef[index].first != nullptr)
     {
         const Polygon& poly = *(psRef[index].first);
         unsigned short poly_index = psRef[index].second;

@@ -81,14 +81,14 @@ int main() {
 		rs[i]->moveCentre(x,y);
 	}
 	// apply scaled majorization layout
-	ConstrainedMajorizationLayout alg(rs,es,NULL,width/2);
+	ConstrainedMajorizationLayout alg(rs,es,nullptr,width/2);
 	alg.setConstraints(&ccs);
 	alg.setScaling(true);
 	alg.run();
 	// the following pair of nodes should line-up
 	assert(fabs(rs[0]->getCentreX()-rs[3]->getCentreX())<0.001);
 	cout<<rs[0]->getCentreX()<<","<<rs[3]->getCentreX()<<endl;
-	OutputFile output(rs,es,NULL,"constrained.svg");
+	OutputFile output(rs,es,nullptr,"constrained.svg");
 	output.rects=true;
 	output.generate();
 

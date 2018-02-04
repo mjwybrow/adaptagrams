@@ -67,7 +67,7 @@ namespace topology {
          * @param id
          * @param r
          */
-        Node(unsigned id, vpsc::Rectangle *r, vpsc::Variable *v = NULL);
+        Node(unsigned id, vpsc::Rectangle *r, vpsc::Variable *v = nullptr);
         void setDesiredPos(double d, double weight=1.0);
         double initialPos(vpsc::Dim scanDim) const;
         double finalPos() const;
@@ -110,11 +110,11 @@ namespace topology {
          *  will be assigned (not immediately) a bendConstraint
          */
         BendConstraint* bendConstraint;
-        // append bendConstraint (if not null) to ts
+        // append bendConstraint (if not nullptr) to ts
         void getBendConstraint(std::vector<TopologyConstraint*>* ts);
         // @return true if constraint created
         bool createBendConstraint(vpsc::Dim scanDim);
-        // delete the bendConstraint and reset pointer to NULL
+        // delete the bendConstraint and reset pointer to nullptr
         void deleteBendConstraint();
         /*
          * Constructor associates the point with a node vertex but
@@ -122,8 +122,8 @@ namespace topology {
          */
         EdgePoint(Node* n, RectIntersect i) 
                 : node(n), rectIntersect(i)
-                , inSegment(NULL), outSegment(NULL) 
-                , bendConstraint(NULL)
+                , inSegment(nullptr), outSegment(nullptr) 
+                , bendConstraint(nullptr)
         {
         }
         /* 
@@ -416,14 +416,14 @@ namespace topology {
         Edge(unsigned id, double idealLength, EdgePoints &vs) 
             : id(id)
             , idealLength(idealLength)
-            , firstSegment(NULL), lastSegment(NULL)
+            , firstSegment(nullptr), lastSegment(nullptr)
             , nSegments(0)
         {
             EdgePoints::iterator a=vs.begin();
             for(EdgePoints::iterator b=a+1;b!=vs.end();++a,++b) {
                 Segment* s = new Segment(this,*a,*b); 
                 nSegments++;
-                if(firstSegment==NULL) {
+                if(firstSegment==nullptr) {
                     firstSegment = s;
                 }
                 lastSegment = s;

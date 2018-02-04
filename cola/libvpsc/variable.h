@@ -69,7 +69,7 @@ public:
 		, weight(weight)
 		, scale(scale)
 		, offset(0)
-		, block(NULL)
+		, block(nullptr)
 		, visited(false)
 		, fixedDesiredPosition(false)
 	{

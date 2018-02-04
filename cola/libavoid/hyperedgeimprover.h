@@ -114,7 +114,7 @@ private:
     // Output the hyperedge tree to an SVG file, optionally highlighting
     // a segment of interest (usually the segment being moved).
     void outputHyperedgesToSVG(unsigned int pass,
-            HyperedgeShiftSegment *activeSegment = NULL);
+            HyperedgeShiftSegment *activeSegment = nullptr);
 
     // Given a junction, this method follows the attached connectors and
     // junctions to determine a hyperedge and returns the set of vertices

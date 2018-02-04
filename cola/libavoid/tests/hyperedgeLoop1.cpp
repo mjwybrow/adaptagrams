@@ -62,19 +62,19 @@ void test()
 
 	router1->outputDiagram("output/hyperedgeLoop1-2");
 	router1->deleteShape(shape147006780);
-	shape147006780 = NULL;
+	shape147006780 = nullptr;
 	router1->deleteShape(shape69758810);
-	shape69758810 = NULL;
+	shape69758810 = nullptr;
 	router1->deleteShape(shape149922619);
-	shape149922619 = NULL;
+	shape149922619 = nullptr;
 	router1->deleteJunction(junction228834480);
-	junction228834480 = NULL;
+	junction228834480 = nullptr;
 	router1->deleteConnector(conn159270000);
-	conn159270000 = NULL;
+	conn159270000 = nullptr;
 	router1->deleteConnector(conn199495942);
-	conn199495942 = NULL;
+	conn199495942 = nullptr;
 	router1->deleteConnector(conn8326760);
-	conn8326760 = NULL;
+	conn8326760 = nullptr;
 	router1->processTransaction();
 
 	delete router1;

@@ -41,7 +41,7 @@ using std::list;
 void OutputFile::generate() {
     unsigned E=es.size();
     bool cleanupRoutes=false;
-    if(routes==NULL) {
+    if(routes==nullptr) {
         cleanupRoutes=true;
         routes = new vector<straightener::Route*>(E);
         for(unsigned i=0;i<E;i++) {

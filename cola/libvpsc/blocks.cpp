@@ -112,13 +112,13 @@ void Blocks::mergeLeft(Block *r) {
     r->timeStamp=++blockTimeCtr;
     r->setUpInConstraints();
     Constraint *c=r->findMinInConstraint();
-    while (c != NULL && c->slack()<0) {
+    while (c != nullptr && c->slack()<0) {
 #ifdef LIBVPSC_LOGGING
         f<<"mergeLeft on constraint: "<<*c<<endl;
 #endif
         r->deleteMinInConstraint();
         Block *l = c->left->block;        
-        if (l->in==NULL) l->setUpInConstraints();
+        if (l->in==nullptr) l->setUpInConstraints();
         double dist = c->right->offset - c->left->offset - c->gap;
         if (r->vars->size() < l->vars->size()) {
             dist=-dist;
@@ -145,7 +145,7 @@ void Blocks::mergeRight(Block *l) {
 #endif    
     l->setUpOutConstraints();
     Constraint *c = l->findMinOutConstraint();
-    while (c != NULL && c->slack()<0) {        
+    while (c != nullptr && c->slack()<0) {        
 #ifdef LIBVPSC_LOGGING
         f<<"mergeRight on constraint: "<<*c<<endl;
 #endif

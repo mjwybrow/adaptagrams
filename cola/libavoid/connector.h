@@ -409,7 +409,7 @@ class AVOID_EXPORT ConnRef
         bool doesHateCrossings(void) const;
         void setEndpoint(const unsigned int type, const ConnEnd& connEnd);
         bool setEndpoint(const unsigned int type, const VertID& pointID, 
-                Point *pointSuggestion = NULL);
+                Point *pointSuggestion = nullptr);
         std::vector<Point> possibleDstPinPoints(void) const;
     
     private:
@@ -514,8 +514,8 @@ class ConnectorCrossings
 {
     public:
         ConnectorCrossings(Avoid::Polygon& poly, bool polyIsConn, 
-                Avoid::Polygon& conn, ConnRef *polyConnRef = NULL, 
-                ConnRef *connConnRef = NULL);
+                Avoid::Polygon& conn, ConnRef *polyConnRef = nullptr, 
+                ConnRef *connConnRef = nullptr);
         void clear(void);
         void countForSegment(size_t cIndex, const bool finalSegment);
 

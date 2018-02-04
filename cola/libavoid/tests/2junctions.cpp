@@ -56,7 +56,7 @@ int test()
 	pin150429385_0->setExclusive(true);
 	Avoid::JunctionRef * junction550292508 = new Avoid::JunctionRef(router1, Avoid::Point(50850, 50875), 550292508);
 	router1->deleteConnector(conn18168360);
-	conn18168360 = NULL;
+	conn18168360 = nullptr;
 	end1 = Avoid::ConnEnd(shape365249936, 5);
 	end2 = Avoid::ConnEnd(junction550292508);
 	Avoid::ConnRef * conn795337150 = new Avoid::ConnRef(router1, end1, end2);
@@ -75,25 +75,25 @@ int test()
 	/*
 	junction550292508->setPositionFixed(true);
 	router1->deleteShape(shape365249936);
-	shape365249936 = NULL;
+	shape365249936 = nullptr;
 	router1->deleteShape(shape386142480);
-	shape386142480 = NULL;
+	shape386142480 = nullptr;
 	router1->deleteJunction(junction328922310);
-	junction328922310 = NULL;
+	junction328922310 = nullptr;
 	router1->deleteConnector(conn152169328);
-	conn152169328 = NULL;
+	conn152169328 = nullptr;
 	router1->deleteConnector(conn684888074);
-	conn684888074 = NULL;
+	conn684888074 = nullptr;
 	router1->deleteShape(shape150429385);
-	shape150429385 = NULL;
+	shape150429385 = nullptr;
 	router1->deleteJunction(junction550292508);
-	junction550292508 = NULL;
+	junction550292508 = nullptr;
 	router1->deleteConnector(conn795337150);
-	conn795337150 = NULL;
+	conn795337150 = nullptr;
 	router1->deleteConnector(conn151961380);
-	conn151961380 = NULL;
+	conn151961380 = nullptr;
 	router1->deleteConnector(conn149180423);
-	conn149180423 = NULL;
+	conn149180423 = nullptr;
 	router1->processTransaction();
 */
 	bool atEnds = true;

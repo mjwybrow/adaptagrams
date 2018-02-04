@@ -78,7 +78,7 @@ MinimumTerminalSpanningTree::MinimumTerminalSpanningTree(Router *router,
       isOrthogonal(true),
       terminals(terminals),
       hyperedgeTreeJunctions(hyperedgeTreeJunctions),
-      m_rootJunction(NULL),
+      m_rootJunction(nullptr),
       bendPenalty(2000),
       dimensionChangeVertexID(0, 42)
 {
@@ -88,9 +88,9 @@ MinimumTerminalSpanningTree::MinimumTerminalSpanningTree(Router *router,
 MinimumTerminalSpanningTree::~MinimumTerminalSpanningTree()
 {
     // Free the temporary hyperedge tree representation.
-    m_rootJunction->deleteEdgesExcept(NULL);
+    m_rootJunction->deleteEdgesExcept(nullptr);
     delete m_rootJunction;
-    m_rootJunction = NULL;
+    m_rootJunction = nullptr;
 }
 
 
@@ -134,7 +134,7 @@ void MinimumTerminalSpanningTree::unionSets(VertexSetList::iterator s1,
 HyperedgeTreeNode *MinimumTerminalSpanningTree::addNode(VertInf *vertex, 
         HyperedgeTreeNode *prevNode)
 {
-    HyperedgeTreeNode *node = NULL;
+    HyperedgeTreeNode *node = nullptr;
 
     // Do we already have a node for this vertex?
     VertexNodeMap::iterator match = nodes.find(vertex);
@@ -152,11 +152,11 @@ HyperedgeTreeNode *MinimumTerminalSpanningTree::addNode(VertInf *vertex,
     {
         // Found.
         HyperedgeTreeNode *junctionNode = match->second;
-        if (junctionNode->junction == NULL)
+        if (junctionNode->junction == nullptr)
         {
             // Create a junction, if one has not already been created.
             junctionNode->junction = new JunctionRef(router, vertex->point);
-            if (m_rootJunction == NULL)
+            if (m_rootJunction == nullptr)
             {
                 // Remember the first junction node, so we can use it to 
                 // traverse the tree, added and connecting connectors to 
@@ -172,7 +172,7 @@ HyperedgeTreeNode *MinimumTerminalSpanningTree::addNode(VertInf *vertex,
     if (prevNode)
     {
         // Join this node to the previous node.
-        new HyperedgeTreeEdge(prevNode, node, NULL);
+        new HyperedgeTreeEdge(prevNode, node, nullptr);
     }
 
     return node;
@@ -187,7 +187,7 @@ void MinimumTerminalSpanningTree::buildHyperedgeTreeToRoot(VertInf *currVert,
         return;
     }
 
-    COLA_ASSERT(currVert != NULL);
+    COLA_ASSERT(currVert != nullptr);
 
     // This method follows branches in a shortest path tree back to the
     // root, generating hyperedge tree nodes and branches as it goes.
@@ -201,7 +201,7 @@ void MinimumTerminalSpanningTree::buildHyperedgeTreeToRoot(VertInf *currVert,
             //COLA_ASSERT( !(currVert->id == dimensionChangeVertexID) );
             //COLA_ASSERT( !(prevVert->id == dimensionChangeVertexID) );
             EdgeInf *edge = prevVert->hasNeighbour(currVert, isOrthogonal);
-            if (edge == NULL && (currVert->id == dimensionChangeVertexID))
+            if (edge == nullptr && (currVert->id == dimensionChangeVertexID))
             {
                 VertInf *modCurr = (currVert->id == dimensionChangeVertexID) ? 
                         currVert->m_orthogonalPartner : currVert;
@@ -226,7 +226,7 @@ void MinimumTerminalSpanningTree::buildHyperedgeTreeToRoot(VertInf *currVert,
             break;
         }
 
-        if (currVert->pathNext == NULL)
+        if (currVert->pathNext == nullptr)
         {
             // This is a terminal of the hyperedge, mark the node with the 
             // vertex representing the endpoint of the connector so we can
@@ -250,7 +250,7 @@ void MinimumTerminalSpanningTree::buildHyperedgeTreeToRoot(VertInf *currVert,
 
 VertInf **MinimumTerminalSpanningTree::resetDistsForPath(VertInf *currVert, VertInf **newRootVertPtr)
 {
-    COLA_ASSERT(currVert != NULL);
+    COLA_ASSERT(currVert != nullptr);
 
     // This method follows branches in a shortest path tree back to the
     // root, generating hyperedge tree nodes and branches as it goes.
@@ -274,7 +274,7 @@ VertInf **MinimumTerminalSpanningTree::resetDistsForPath(VertInf *currVert, Vert
 
     // Shouldn't get here.
     COLA_ASSERT(false);
-    return NULL;
+    return nullptr;
 }
 
 
@@ -308,7 +308,7 @@ void MinimumTerminalSpanningTree::constructSequential(void)
             k = k->lstNext)
     {
         k->sptfDist = DBL_MAX;
-        k->pathNext = NULL;
+        k->pathNext = nullptr;
         k->setSPTFRoot(k);
     }
     for (std::set<VertInf *>::iterator ti = terminals.begin();
@@ -337,7 +337,7 @@ void MinimumTerminalSpanningTree::constructSequential(void)
         // For each edge from this vertex...
         EdgeInfList& visList = (!isOrthogonal) ? u->visList : u->orthogVisList;
         EdgeInfList::const_iterator finish = visList.end();
-        VertInf *extraVertex = NULL;
+        VertInf *extraVertex = nullptr;
         for (EdgeInfList::const_iterator edge = visList.begin(); 
                 edge != finish; ++edge)
         {
@@ -489,11 +489,11 @@ void MinimumTerminalSpanningTree::constructSequential(void)
 
             // Connect this edge into the MTST by building HyperedgeTree nodes
             // and edges for this edge and the path back to the tree root.
-            HyperedgeTreeNode *node1 = NULL;
-            HyperedgeTreeNode *node2 = NULL;
+            HyperedgeTreeNode *node1 = nullptr;
+            HyperedgeTreeNode *node2 = nullptr;
             if (hyperedgeTreeJunctions)
             {
-                node1 = addNode(e->m_vert1, NULL);
+                node1 = addNode(e->m_vert1, nullptr);
                 node2 = addNode(e->m_vert2, node1);
             }
 
@@ -526,7 +526,7 @@ VertInf *MinimumTerminalSpanningTree::orthogonalPartner(VertInf *vert,
     {
         penalty = bendPenalty;
     }
-    if (vert->m_orthogonalPartner == NULL)
+    if (vert->m_orthogonalPartner == nullptr)
     {
         vert->m_orthogonalPartner = new VertInf(router, 
                 dimensionChangeVertexID, vert->point, false);
@@ -580,7 +580,7 @@ LayeredOrthogonalEdgeList MinimumTerminalSpanningTree::
 
     COLA_ASSERT(vert);
     
-    double penalty = (prev == NULL) ? 0.1 : 0;
+    double penalty = (prev == nullptr) ? 0.1 : 0;
     orthogonalPartner(vert, penalty);
 
     bool isRealVert = (vert->id != dimensionChangeVertexID);
@@ -645,9 +645,9 @@ void MinimumTerminalSpanningTree::constructInterleaved(void)
             k = k->lstNext)
     {
         k->sptfDist = DBL_MAX;
-        k->pathNext = NULL;
-        k->setTreeRootPointer(NULL);
-        k->m_orthogonalPartner = NULL;
+        k->pathNext = nullptr;
+        k->setTreeRootPointer(nullptr);
+        k->m_orthogonalPartner = nullptr;
     }
 
 #ifdef DEBUGHANDLER
@@ -684,7 +684,7 @@ void MinimumTerminalSpanningTree::constructInterleaved(void)
         VertInf *u = vHeap.front();
 
         // There should be no orphaned vertices.
-        COLA_ASSERT(u->treeRoot() != NULL);
+        COLA_ASSERT(u->treeRoot() != nullptr);
         COLA_ASSERT(u->pathNext || (u->sptfDist == 0));
 
         if (!beHeap.empty() && u->sptfDist >= (0.5 * beHeap.front()->mtstDist()))
@@ -754,7 +754,7 @@ void MinimumTerminalSpanningTree::constructInterleaved(void)
             // original edges, so these may be explored when the algorithm
             // explores the dummy node.  Obviously we also need to clean up
             // these dummy nodes and edges later.
-            if (v->treeRoot() == NULL)
+            if (v->treeRoot() == nullptr)
             {
                 double newCost = (u->sptfDist + edgeDist);
             
@@ -888,7 +888,7 @@ void MinimumTerminalSpanningTree::rewriteRestOfHyperedge(VertInf *vert,
     vert->setTreeRootPointer(newTreeRootPtr);
 
     LayeredOrthogonalEdgeList edgeList = getOrthogonalEdgesFromVertex(vert,
-                NULL);
+                nullptr);
     for (LayeredOrthogonalEdgeList::const_iterator edge = edgeList.begin(); 
             edge != edgeList.end(); ++edge)
     {
@@ -911,7 +911,7 @@ void MinimumTerminalSpanningTree::rewriteRestOfHyperedge(VertInf *vert,
 
 void MinimumTerminalSpanningTree::drawForest(VertInf *vert, VertInf *prev)
 {
-    if (prev == NULL)
+    if (prev == nullptr)
     {
         char colour[40];
         strcpy(colour, "green");
@@ -922,13 +922,13 @@ void MinimumTerminalSpanningTree::drawForest(VertInf *vert, VertInf *prev)
         }
         */
 
-        if (vert->treeRoot() == NULL)
+        if (vert->treeRoot() == nullptr)
         {
             strcpy(colour, "red");
         }
 
-        COLA_ASSERT(vert->treeRootPointer() != NULL);
-        COLA_ASSERT(vert->treeRoot() != NULL);
+        COLA_ASSERT(vert->treeRootPointer() != nullptr);
+        COLA_ASSERT(vert->treeRoot() != nullptr);
         //fprintf(debug_fp, "<circle cx=\"%g\" cy=\"%g\" r=\"3\" db:sptfDist=\"%g\" "
         //        "style=\"fill: %s; stroke: %s; fill-opacity: 0.5; "
         //        "stroke-width: 1px; stroke-opacity:0.5\" />\n",
@@ -996,14 +996,14 @@ void MinimumTerminalSpanningTree::commitToBridgingEdge(EdgeInf *e)
 
     // Connect this edge into the MTST by building HyperedgeTree nodes
     // and edges for this edge and the path back to the tree root.
-    HyperedgeTreeNode *node1 = NULL;
-    HyperedgeTreeNode *node2 = NULL;
+    HyperedgeTreeNode *node1 = nullptr;
+    HyperedgeTreeNode *node2 = nullptr;
 
     VertInf *vert1 = ends.first;
     VertInf *vert2 = ends.second;
     if (hyperedgeTreeJunctions)
     {
-        node1 = addNode(vert1, NULL);
+        node1 = addNode(vert1, nullptr);
         node2 = addNode(vert2, node1);
         e->setHyperedgeSegment(true);
     }
@@ -1015,7 +1015,7 @@ void MinimumTerminalSpanningTree::commitToBridgingEdge(EdgeInf *e)
         for (std::set<VertInf *>::iterator ti = terminals.begin();
                 ti != terminals.end(); ++ti)
         {
-            drawForest(*ti, NULL);
+            drawForest(*ti, nullptr);
         }
     }
 #endif
@@ -1027,7 +1027,7 @@ void MinimumTerminalSpanningTree::commitToBridgingEdge(EdgeInf *e)
     // path terminal forests from the roots of that path.  We do this by
     // rewriting the treeRootPointers for all the points on the current
     // hyperedge path to newTreeRootPtr.  The rest of the vertices in the
-    // forest will be pruned by rewriting their treeRootPointer to NULL.
+    // forest will be pruned by rewriting their treeRootPointer to nullptr.
     VertInf **oldTreeRootPtr1 = vert1->treeRootPointer();
     VertInf **oldTreeRootPtr2 = vert2->treeRootPointer();
     origTerminals.erase(oldRoot);
@@ -1042,11 +1042,11 @@ void MinimumTerminalSpanningTree::commitToBridgingEdge(EdgeInf *e)
     resetDistsForPath(vert2, newTreeRootPtr);
 
     // Prune the forests from the joined vertex sets by setting their
-    // treeRootPointers to NULL.
+    // treeRootPointers to nullptr.
     COLA_ASSERT(oldTreeRootPtr1);
     COLA_ASSERT(oldTreeRootPtr2);
-    *oldTreeRootPtr1 = NULL;
-    *oldTreeRootPtr2 = NULL;
+    *oldTreeRootPtr1 = nullptr;
+    *oldTreeRootPtr2 = nullptr;
 
     // We have found the full hyperedge path when we have joined all the
     // terminal sets into one.
@@ -1064,7 +1064,7 @@ void MinimumTerminalSpanningTree::commitToBridgingEdge(EdgeInf *e)
     {
         VertInf *v = vHeap[i];
 
-        if ((v->treeRoot() == NULL))
+        if ((v->treeRoot() == nullptr))
         {
             // This is an orphaned vertex.
             continue;

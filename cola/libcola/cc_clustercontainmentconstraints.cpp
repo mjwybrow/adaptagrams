@@ -169,7 +169,7 @@ void ClusterContainmentConstraints::generateSeparationConstraints(
             continue;
         }
 
-        vpsc::Constraint *constraint = NULL;
+        vpsc::Constraint *constraint = nullptr;
         if (info->boundarySide == BelowBoundary)
         {
             // Constrain the objects with negative offsets to be 

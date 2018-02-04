@@ -97,7 +97,7 @@ int main(void)
     router->processTransaction();
 
     router->deleteShape(shapeRef);
-    shapeRef = NULL;
+    shapeRef = nullptr;
     router->processTransaction();
 
 	router->outputDiagram("output/complex");

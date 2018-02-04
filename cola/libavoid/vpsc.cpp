@@ -154,7 +154,7 @@ bool IncSolver::constraintGraphIsCyclic(const unsigned n, Variable* const vs[]) 
         }
     }
     while(graph.size()>0) {
-        node *u=NULL;
+        node *u=nullptr;
         vector<node*>::iterator i=graph.begin();
         for(;i!=graph.end();++i) {
             u=*i;
@@ -197,7 +197,7 @@ bool IncSolver::blockGraphIsCyclic() {
         Block *b = bs->at(i);
         b->setUpInConstraints();
         Constraint *c=b->findMinInConstraint();
-        while(c!=NULL) {
+        while(c!=nullptr) {
             Block *l=c->left->block;
             bmap[b]->in.insert(bmap[l]);
             b->deleteMinInConstraint();
@@ -206,7 +206,7 @@ bool IncSolver::blockGraphIsCyclic() {
 
         b->setUpOutConstraints();
         c=b->findMinOutConstraint();
-        while(c!=NULL) {
+        while(c!=nullptr) {
             Block *r=c->right->block;
             bmap[b]->out.insert(bmap[r]);
             b->deleteMinOutConstraint();
@@ -214,7 +214,7 @@ bool IncSolver::blockGraphIsCyclic() {
         }
     }
     while(graph.size()>0) {
-        node *u=NULL;
+        node *u=nullptr;
         vector<node*>::iterator i=graph.begin();
         for(;i!=graph.end();++i) {
             u=*i;
@@ -278,7 +278,7 @@ bool IncSolver::satisfy() {
 #endif
     splitBlocks();
     //long splitCtr = 0;
-    Constraint* v = NULL;
+    Constraint* v = nullptr;
     //CBuffer buffer(inactive);
     while ( (v = mostViolated(inactive)) && 
             (v->equality || ((v->slack() < ZERO_UPPERBOUND) && !v->active)) )
@@ -304,7 +304,7 @@ bool IncSolver::satisfy() {
             try {
                 Constraint* splitConstraint
                     =lb->splitBetween(v->left,v->right,lb,rb);
-                if(splitConstraint!=NULL) {
+                if(splitConstraint!=nullptr) {
                     COLA_ASSERT(!splitConstraint->active);
                     inactive.push_back(splitConstraint);
                 } else {
@@ -392,13 +392,13 @@ void IncSolver::splitBlocks() {
     {
         Block *b = bs->at(i);
         Constraint* v=b->findMinLM();
-        if(v!=NULL && v->lm < LAGRANGIAN_TOLERANCE) {
+        if(v!=nullptr && v->lm < LAGRANGIAN_TOLERANCE) {
             COLA_ASSERT(!v->equality);
 #ifdef LIBVPSC_LOGGING
             f<<"    found split point: "<<*v<<" lm="<<v->lm<<endl;
 #endif
             splitCnt++;
-            Block *b = v->left->block, *l=NULL, *r=NULL;
+            Block *b = v->left->block, *l=nullptr, *r=nullptr;
             COLA_ASSERT(v->left->block == v->right->block);
             //double pos = b->posn;
             b->split(l,r,v);
@@ -431,14 +431,14 @@ void IncSolver::splitBlocks() {
 Constraint* IncSolver::mostViolated(Constraints &l)
 {
     double slackForMostViolated = DBL_MAX;
-    Constraint* mostViolated = NULL;
+    Constraint* mostViolated = nullptr;
 #ifdef LIBVPSC_LOGGING
     ofstream f(LOGFILE,ios::app);
     f << "Looking for most violated..." << endl;
 #endif
     size_t lSize = l.size();
     size_t deleteIndex = lSize;
-    Constraint *constraint = NULL;
+    Constraint *constraint = nullptr;
     double slack = 0;
     for (size_t index = 0; index < lSize; ++index)
     {
@@ -551,13 +551,13 @@ void Blocks::mergeLeft(Block *r) {
     r->timeStamp=++blockTimeCtr;
     r->setUpInConstraints();
     Constraint *c=r->findMinInConstraint();
-    while (c != NULL && c->slack()<0) {
+    while (c != nullptr && c->slack()<0) {
 #ifdef LIBVPSC_LOGGING
         f<<"mergeLeft on constraint: "<<*c<<endl;
 #endif
         r->deleteMinInConstraint();
         Block *l = c->left->block;        
-        if (l->in==NULL) l->setUpInConstraints();
+        if (l->in==nullptr) l->setUpInConstraints();
         double dist = c->right->offset - c->left->offset - c->gap;
         if (r->vars->size() < l->vars->size()) {
             dist=-dist;
@@ -584,7 +584,7 @@ void Blocks::mergeRight(Block *l) {
 #endif    
     l->setUpOutConstraints();
     Constraint *c = l->findMinOutConstraint();
-    while (c != NULL && c->slack()<0) {        
+    while (c != nullptr && c->slack()<0) {        
 #ifdef LIBVPSC_LOGGING
         f<<"mergeRight on constraint: "<<*c<<endl;
 #endif
@@ -725,11 +725,11 @@ Block::Block(Blocks *blocks, Variable* const v)
     //, wposn(0)
     , deleted(false)
     , timeStamp(0)
-    , in(NULL)
-    , out(NULL)
+    , in(nullptr)
+    , out(nullptr)
     , blocks(blocks)
 {
-    if(v!=NULL) {
+    if(v!=nullptr) {
         v->offset=0;
         addVariable(v);
     }
@@ -862,7 +862,7 @@ void Block::mergeOut(Block *b) {
     }
 }
 Constraint *Block::findMinInConstraint() {
-    Constraint *v = NULL;
+    Constraint *v = nullptr;
     vector<Constraint*> outOfDate;
     while (!in->empty()) {
         v = in->top();
@@ -904,18 +904,18 @@ Constraint *Block::findMinInConstraint() {
         in->push(v);
     }
     if(in->empty()) {
-        v=NULL;
+        v=nullptr;
     } else {
         v=in->top();
     }
     return v;
 }
 Constraint *Block::findMinOutConstraint() {
-    if(out->empty()) return NULL;
+    if(out->empty()) return nullptr;
     Constraint *v = out->top();
     while (v->left->block == v->right->block) {
         out->pop();
-        if(out->empty()) return NULL;
+        if(out->empty()) return nullptr;
         v = out->top();
     }
     return v;
@@ -951,7 +951,7 @@ double Block::compute_dfdv(Variable* const v, Variable* const u,
         if(canFollowRight(c,u)) {
             c->lm=compute_dfdv(c->right,v,min_lm);
             dfdv+=c->lm*c->left->scale;
-            if(!c->equality&&(min_lm==NULL||c->lm<min_lm->lm)) min_lm=c;
+            if(!c->equality&&(min_lm==nullptr||c->lm<min_lm->lm)) min_lm=c;
         }
     }
     for(Cit it=v->in.begin();it!=v->in.end();++it) {
@@ -959,7 +959,7 @@ double Block::compute_dfdv(Variable* const v, Variable* const u,
         if(canFollowLeft(c,u)) {
             c->lm=-compute_dfdv(c->left,v,min_lm);
             dfdv-=c->lm*c->right->scale;
-            if(!c->equality&&(min_lm==NULL||c->lm<min_lm->lm)) min_lm=c;
+            if(!c->equality&&(min_lm==nullptr||c->lm<min_lm->lm)) min_lm=c;
         }
     }
     return dfdv/v->scale;
@@ -985,9 +985,9 @@ double Block::compute_dfdv(Variable* const v, Variable* const u) {
 
 // The top level v and r are variables between which we want to find the
 // constraint with the smallest lm.  
-// Similarly, m is initially NULL and is only assigned a value if the next
+// Similarly, m is initially nullptr and is only assigned a value if the next
 // variable to be visited is r or if a possible min constraint is returned from
-// a nested call (rather than NULL).
+// a nested call (rather than nullptr).
 // Then, the search for the m with minimum lm occurs as we return from
 // the recursion (checking only constraints traversed left-to-right 
 // in order to avoid creating any new violations).
@@ -1046,7 +1046,7 @@ Block::Pair Block::compute_dfdv_between(
         Variable* r, Variable* const v, Variable* const u, 
         const Direction dir = NONE, bool changedDirection = false) {
     double dfdv=v->weight*(v->position() - v->desiredPosition);
-    Constraint *m=NULL;
+    Constraint *m=nullptr;
     for(Cit it(v->in.begin());it!=v->in.end();++it) {
         Constraint *c=*it;
         if(canFollowLeft(c,u)) {
@@ -1054,7 +1054,7 @@ Block::Pair Block::compute_dfdv_between(
                 changedDirection = true; 
             }
             if(c->left==r) {
-                       r=NULL;
+                       r=nullptr;
                     if(!c->equality) m=c; 
             }
             Pair p=compute_dfdv_between(r,c->left,v,
@@ -1071,7 +1071,7 @@ Block::Pair Block::compute_dfdv_between(
                 changedDirection = true; 
             }
             if(c->right==r) {
-                       r=NULL; 
+                       r=nullptr; 
                     if(!c->equality) m=c; 
             }
             Pair p=compute_dfdv_between(r,c->right,v,
@@ -1133,33 +1133,33 @@ void Block::list_active(Variable* const v, Variable* const u) {
  * that most wants to split
  */
 Constraint *Block::findMinLM() {
-    Constraint *min_lm=NULL;
-    reset_active_lm(vars->front(),NULL);
-    compute_dfdv(vars->front(),NULL,min_lm);
+    Constraint *min_lm=nullptr;
+    reset_active_lm(vars->front(),nullptr);
+    compute_dfdv(vars->front(),nullptr,min_lm);
 #ifdef LIBVPSC_LOGGING
     ofstream f(LOGFILE,ios::app);
     f<<"  langrangians: "<<endl;
-    list_active(vars->front(),NULL);
+    list_active(vars->front(),nullptr);
 #endif
     return min_lm;
 }
 Constraint *Block::findMinLMBetween(Variable* const lv, Variable* const rv) {
-    reset_active_lm(vars->front(),NULL);
-    compute_dfdv(vars->front(),NULL);
-    Constraint *min_lm=NULL;
-    split_path(rv,lv,NULL,min_lm);
+    reset_active_lm(vars->front(),nullptr);
+    compute_dfdv(vars->front(),nullptr);
+    Constraint *min_lm=nullptr;
+    split_path(rv,lv,nullptr,min_lm);
 #if 0
-    if(min_lm==NULL) {
-        split_path(rv,lv,NULL,min_lm,true);
+    if(min_lm==nullptr) {
+        split_path(rv,lv,nullptr,min_lm,true);
     }
 #else
-    if(min_lm==NULL) {
+    if(min_lm==nullptr) {
         //err_printf("Couldn't find split point!\n");
         UnsatisfiableException e;
-        getActivePathBetween(e.path,lv,rv,NULL);
+        getActivePathBetween(e.path,lv,rv,nullptr);
         throw e;
     }
-    COLA_ASSERT(min_lm!=NULL);
+    COLA_ASSERT(min_lm!=nullptr);
 #endif
     return min_lm;
 }
@@ -1207,7 +1207,7 @@ bool Block::getActivePathBetween(Constraints& path, Variable const* u,
 bool Block::isActiveDirectedPathBetween(Variable const* u, Variable const* v) const {
     if(u==v) return true;
     for (Cit_const c=u->out.begin();c!=u->out.end();++c) {
-        if(canFollowRight(*c,NULL)) {
+        if(canFollowRight(*c,nullptr)) {
             if(isActiveDirectedPathBetween((*c)->right,v)) {
                 return true;
             }
@@ -1219,7 +1219,7 @@ bool Block::getActiveDirectedPathBetween(
         Constraints& path, Variable const* u, Variable const* v) const {
     if(u==v) return true;
     for (Cit_const c=u->out.begin();c!=u->out.end();++c) {
-        if(canFollowRight(*c,NULL)) {
+        if(canFollowRight(*c,nullptr)) {
             if(getActiveDirectedPathBetween(path,(*c)->right,v)) {
                 path.push_back(*c);
                 return true;
@@ -1244,7 +1244,7 @@ Constraint* Block::splitBetween(Variable* const vl, Variable* const vr,
 #ifdef LIBVPSC_LOGGING
     f<<"  going to split on: "<<*c<<endl;
 #endif
-    if(c!=NULL) {
+    if(c!=nullptr) {
         split(lb,rb,c);
         deleted = true;
     }
@@ -1299,7 +1299,7 @@ Constraint::Constraint(Variable *left, Variable *right, double gap, bool equalit
   equality(equality),
   unsatisfiable(false),
   needsScaling(true),
-  creator(NULL)
+  creator(nullptr)
 {
     // In hindsight I think it's probably better to build the constraint DAG
     // (by creating variable in/out lists) when needed, rather than in advance

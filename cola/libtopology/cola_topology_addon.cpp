@@ -34,7 +34,7 @@ namespace topology {
 
 ColaTopologyAddon::ColaTopologyAddon()
     : cola::TopologyAddonInterface(),
-      debugSVGViewBox(NULL)
+      debugSVGViewBox(nullptr)
 {
 }
 
@@ -44,7 +44,7 @@ ColaTopologyAddon::ColaTopologyAddon(
     : cola::TopologyAddonInterface(),
       topologyNodes(tnodes),
       topologyRoutes(routes),
-      debugSVGViewBox(NULL)
+      debugSVGViewBox(nullptr)
 {
 }
 
@@ -58,7 +58,7 @@ void ColaTopologyAddon::freeAssociatedObjects(void)
     if (debugSVGViewBox)
     {
         delete debugSVGViewBox;
-        debugSVGViewBox = NULL;
+        debugSVGViewBox = nullptr;
     }
 
     for_each(topologyNodes.begin(), topologyNodes.end(), delete_object());
@@ -142,7 +142,7 @@ void ColaTopologyAddon::writeSVGFile(std::string basename)
     filename += ".svg";
     FILE *fp = fopen(filename.c_str(), "w");
 
-    if (fp == NULL)
+    if (fp == nullptr)
     {
         return;
     }
@@ -327,7 +327,7 @@ void ColaTopologyAddon::makeFeasible(bool generateNonOverlapConstraints,
         {
             (*i)->computeBoundary(boundingBoxes);
             cola::ConvexCluster* c=dynamic_cast<cola::ConvexCluster*>(*i);
-            if(c!=NULL) {
+            if(c!=nullptr) {
                 double idealCircumference=2.0*sqrt(M_PI*c->area(boundingBoxes));
                 std::vector<topology::EdgePoint*> eps;
                 for(unsigned j=0;j<c->hullRIDs.size();++j) {

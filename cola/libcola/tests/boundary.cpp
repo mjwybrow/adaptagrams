@@ -102,7 +102,7 @@ void clusterBoundary() {
     SetDesiredPos preIteration(locks);
 
     Test test(0.00001,100,vs,tes,"boundary");
-    cola::ConstrainedFDLayout alg(rs,es,idealLength,NULL,test,&preIteration);
+    cola::ConstrainedFDLayout alg(rs,es,idealLength,nullptr,test,&preIteration);
 
     alg.setTopology(&vs,&tes);
     alg.run(true,true);

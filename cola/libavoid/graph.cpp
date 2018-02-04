@@ -41,9 +41,9 @@ namespace Avoid {
 
 
 EdgeInf::EdgeInf(VertInf *v1, VertInf *v2, const bool orthogonal)
-    : lstPrev(NULL),
-      lstNext(NULL),
-      m_router(NULL),
+    : lstPrev(nullptr),
+      lstNext(nullptr),
+      m_router(nullptr),
       m_blocker(0),
       m_added(false),
       m_visible(false),
@@ -54,7 +54,7 @@ EdgeInf::EdgeInf(VertInf *v1, VertInf *v2, const bool orthogonal)
       m_vert2(v2),
       m_dist(-1)
 {
-    // Not passed NULL values.
+    // Not passed nullptr values.
     COLA_ASSERT(v1 && v2);
 
     // We are in the same instance
@@ -139,7 +139,7 @@ bool EdgeInf::rotationLessThan(const VertInf *lastV, const EdgeInf *rhs) const
         // Effectively the same visibility edge, so they are equal.
         return false;
     }
-    VertInf *lhsV = NULL, *rhsV = NULL, *commonV = NULL;
+    VertInf *lhsV = nullptr, *rhsV = nullptr, *commonV = nullptr;
     
     // Determine common Point and the comparison point on the left- and
     // the right-hand-side.
@@ -591,17 +591,17 @@ EdgeInf *EdgeInf::checkEdgeVisibility(VertInf *i, VertInf *j, bool knownNew)
     COLA_ASSERT(j->id != dummyOrthogID);
     
     Router *router = i->_router;
-    EdgeInf *edge = NULL;
+    EdgeInf *edge = nullptr;
 
     if (knownNew)
     {
-        COLA_ASSERT(existingEdge(i, j) == NULL);
+        COLA_ASSERT(existingEdge(i, j) == nullptr);
         edge = new EdgeInf(i, j);
     }
     else
     {
         edge = existingEdge(i, j);
-        if (edge == NULL)
+        if (edge == nullptr)
         {
             edge = new EdgeInf(i, j);
         }
@@ -610,7 +610,7 @@ EdgeInf *EdgeInf::checkEdgeVisibility(VertInf *i, VertInf *j, bool knownNew)
     if (!(edge->m_added) && !(router->InvisibilityGrph))
     {
         delete edge;
-        edge = NULL;
+        edge = nullptr;
     }
 
     return edge;
@@ -621,7 +621,7 @@ EdgeInf *EdgeInf::checkEdgeVisibility(VertInf *i, VertInf *j, bool knownNew)
     //      required.
 EdgeInf *EdgeInf::existingEdge(VertInf *i, VertInf *j)
 {
-    VertInf *selected = NULL;
+    VertInf *selected = nullptr;
 
     // Look through poly-line visibility edges.
     selected = (i->visListSize <= j->visListSize) ? i : j;
@@ -662,7 +662,7 @@ EdgeInf *EdgeInf::existingEdge(VertInf *i, VertInf *j)
         }
     }
 
-    return NULL;
+    return nullptr;
 }
 
 
@@ -671,8 +671,8 @@ EdgeInf *EdgeInf::existingEdge(VertInf *i, VertInf *j)
 
 EdgeList::EdgeList(bool orthogonal)
     : m_orthogonal(orthogonal),
-      m_first_edge(NULL),
-      m_last_edge(NULL),
+      m_first_edge(nullptr),
+      m_last_edge(nullptr),
       m_count(0)
 {
 }
@@ -694,7 +694,7 @@ void EdgeList::clear(void)
         delete m_first_edge;
     }
     COLA_ASSERT(m_count == 0);
-    m_last_edge = NULL;
+    m_last_edge = nullptr;
 }
 
 
@@ -712,26 +712,26 @@ void EdgeList::addEdge(EdgeInf *edge)
     COLA_ASSERT(!m_orthogonal || edge->isOrthogonal() ||
             edge->isDummyConnection());
     
-    if (m_first_edge == NULL)
+    if (m_first_edge == nullptr)
     {
-        COLA_ASSERT(m_last_edge == NULL);
+        COLA_ASSERT(m_last_edge == nullptr);
 
         m_last_edge = edge;
         m_first_edge = edge;
 
-        edge->lstPrev = NULL;
-        edge->lstNext = NULL;
+        edge->lstPrev = nullptr;
+        edge->lstNext = nullptr;
     }
     else
     {
-        COLA_ASSERT(m_last_edge != NULL);
+        COLA_ASSERT(m_last_edge != nullptr);
 
         m_last_edge->lstNext = edge;
         edge->lstPrev = m_last_edge;
 
         m_last_edge = edge;
 
-        edge->lstNext = NULL;
+        edge->lstNext = nullptr;
     }
     m_count++;
 }
@@ -752,7 +752,7 @@ void EdgeList::removeEdge(EdgeInf *edge)
         m_last_edge = edge->lstPrev;
         if (edge == m_first_edge)
         {
-            m_first_edge = NULL;
+            m_first_edge = nullptr;
         }
     }
     else if (edge == m_first_edge)
@@ -761,8 +761,8 @@ void EdgeList::removeEdge(EdgeInf *edge)
     }
 
 
-    edge->lstPrev = NULL;
-    edge->lstNext = NULL;
+    edge->lstPrev = nullptr;
+    edge->lstNext = nullptr;
 
     m_count--;
 }
@@ -776,7 +776,7 @@ EdgeInf *EdgeList::begin(void)
 
 EdgeInf *EdgeList::end(void)
 {
-    return NULL;
+    return nullptr;
 }
 
 

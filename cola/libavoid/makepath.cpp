@@ -64,16 +64,16 @@ class ANode
               g(0),
               h(0),
               f(0),
-              prevNode(NULL),
+              prevNode(nullptr),
               timeStamp(time)
         {
         }
         ANode()
-            : inf(NULL),
+            : inf(nullptr),
               g(0),
               h(0),
               f(0),
-              prevNode(NULL),
+              prevNode(nullptr),
               timeStamp(-1)
         {
         }
@@ -216,7 +216,7 @@ static void constructPolygonPath(Polygon& connRoute, VertInf *inf2,
     bool simplified = true;
 
     int routeSize = 2;
-    for (ANode *curr = inf1Node; curr != NULL; curr = curr->prevNode)
+    for (ANode *curr = inf1Node; curr != nullptr; curr = curr->prevNode)
     {
         routeSize += 1;
     }
@@ -225,7 +225,7 @@ static void constructPolygonPath(Polygon& connRoute, VertInf *inf2,
     connRoute.ps[routeSize - 1] = inf3->point;
     connRoute.ps[routeSize - 2] = inf2->point;
     routeSize -= 3;
-    for (ANode *curr = inf1Node; curr != NULL; curr = curr->prevNode)
+    for (ANode *curr = inf1Node; curr != nullptr; curr = curr->prevNode)
     {
         // For connection pins, we stop and don't include the fake shape 
         // center as part of this path.
@@ -309,12 +309,12 @@ static double cost(ConnRef *lineRef, const double dist, VertInf *inf2,
         VertInf *inf3, ANode *inf1Node)
 {
     bool isOrthogonal = (lineRef->routingType() == ConnType_Orthogonal);
-    VertInf *inf1 = (inf1Node) ? inf1Node->inf : NULL;
+    VertInf *inf1 = (inf1Node) ? inf1Node->inf : nullptr;
     double result = dist;
     Polygon connRoute;
 
     Router *router = inf2->_router;
-    if (inf1 != NULL)
+    if (inf1 != nullptr)
     {
         const double angle_penalty = router->routingParameter(anglePenalty);
         const double segmt_penalty = router->routingParameter(segmentPenalty);
@@ -798,7 +798,7 @@ static double estimatedCostSpecific(ConnRef *lineRef, const Point *last,
         int bendCount = 0;
         double xmove = costTarPoint.x - curr.x;
         double ymove = costTarPoint.y - curr.y;
-        if (last == NULL)
+        if (last == nullptr)
         {
             // This is just the initial point.  Penalise it simply if it is 
             // not inline with the target in either the x- or y-dimension.
@@ -968,7 +968,7 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
 
     bool isOrthogonal = (lineRef->routingType() == ConnType_Orthogonal);
 
-    if (start == NULL)
+    if (start == nullptr)
     {
         start = src;
     }
@@ -1074,7 +1074,7 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
 
     size_t exploredCount = 0;
     ANode node, ati;
-    ANode *bestNode = NULL;         // Temporary bestNode
+    ANode *bestNode = nullptr;         // Temporary bestNode
     bool bNodeFound = false;        // Flag if node is found in container
     int timestamp = 1;
 
@@ -1084,7 +1084,7 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
         COLA_ASSERT(router->IgnoreRegions == true);
         
         const PolyLine& currRoute = lineRef->route();
-        VertInf *last = NULL;
+        VertInf *last = nullptr;
         int rIndx = 0;
         while (last != start)
         {
@@ -1096,14 +1096,14 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
             db_printf("/// %d %d\n", pnt.id, pnt.vn);
 #endif
             VertInf *curr = router->vertices.getVertexByID(vID);
-            COLA_ASSERT(curr != NULL);
+            COLA_ASSERT(curr != nullptr);
 
             node = ANode(curr, timestamp++);
             if (!last)
             {
                 node.inf = src;
                 node.g = 0;
-                node.h = estimatedCost(lineRef, NULL, node.inf->point);
+                node.h = estimatedCost(lineRef, nullptr, node.inf->point);
 
                 node.f = node.g + node.h;
             }
@@ -1162,9 +1162,9 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
         // Create the start node
         node = ANode(src, timestamp++);
         node.g = 0;
-        node.h = estimatedCost(lineRef, NULL, node.inf->point);
+        node.h = estimatedCost(lineRef, nullptr, node.inf->point);
         node.f = node.g + node.h;
-        // Set a null parent, so cost function knows this is the first segment.
+        // Set a nullptr parent, so cost function knows this is the first segment.
         node.prevNode = bestNode;
 
         // Populate the PENDING container with the first location
@@ -1172,7 +1172,7 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
         PENDING.push_back(newNode);
     }
 
-    tar->pathNext = NULL;
+    tar->pathNext = nullptr;
 
     // Create a heap from PENDING for sorting
     using std::make_heap; using std::push_heap; using std::pop_heap;
@@ -1229,7 +1229,7 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
         bestNodeInf->aStarDoneNodes.push_back(bestNode);
         ++exploredCount;
 
-        VertInf *prevInf = (bestNode->prevNode) ? bestNode->prevNode->inf : NULL;
+        VertInf *prevInf = (bestNode->prevNode) ? bestNode->prevNode->inf : nullptr;
 #ifdef ASTAR_DEBUG
         db_printf("Considering... ");
         db_printf(" %g %g  ", bestNodeInf->point.x, bestNodeInf->point.y);
@@ -1295,7 +1295,7 @@ void AStarPathPrivate::search(ConnRef *lineRef, VertInf *src, VertInf *tar, Vert
             node.prevNode = bestNode;
 
             VertInf *prevInf = (bestNode->prevNode) ?
-                    bestNode->prevNode->inf : NULL;
+                    bestNode->prevNode->inf : nullptr;
 
             // Don't bother looking at the segment we just arrived along.
             if (prevInf && (prevInf == node.inf))

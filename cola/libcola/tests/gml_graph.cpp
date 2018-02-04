@@ -208,7 +208,7 @@ int main() {
     double height=1000;
     vector<vpsc::Rectangle*> rs;
     cout << "|V|=" << V << endl;
-    //srand(time(NULL));
+    //srand(time(nullptr));
     for(unsigned i=0;i<V;i++) {
         double x=getRand(width), y=getRand(height);
         rs.push_back(new vpsc::Rectangle(x,x+1,y,y+1));
@@ -221,8 +221,8 @@ int main() {
     bs.push_back(80);
     bs.push_back(120);
     PostIteration test(rs,ps,bs,0.0001,200);
-    ConstrainedMajorizationLayout alg(rs,es,NULL,defaultEdgeLength,NULL,test);
-    //ConstrainedFDLayout alg(rs,es,NULL,defaultEdgeLength,NULL,test);
+    ConstrainedMajorizationLayout alg(rs,es,nullptr,defaultEdgeLength,nullptr,test);
+    //ConstrainedFDLayout alg(rs,es,nullptr,defaultEdgeLength,nullptr,test);
     //alg.setConstrainedLayout(true);
     //alg.setScaling(true);
     //alg.setXConstraints(&cx);
@@ -246,7 +246,7 @@ int main() {
         colours[*i]=ColourRGBA(0,0,0,1.);
     }
     */
-    OutputFile of(rs,es,NULL,"gml_graph-constrained.svg",false,true);
+    OutputFile of(rs,es,nullptr,"gml_graph-constrained.svg",false,true);
     //of.colours=&colours;
     of.generate();
     for(unsigned i=0;i<V;i++) {

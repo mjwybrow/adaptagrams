@@ -811,7 +811,7 @@ class AVOID_EXPORT Router {
         // attention to specific parts of the diagram that have changed
         // between steps.
         void outputDiagramSVG(std::string instanceName = std::string(), 
-                LineReps *lineReps = NULL);
+                LineReps *lineReps = nullptr);
 
         void outputDiagramText(std::string instanceName = std::string());
         void outputDiagram(std::string instanceName = std::string());

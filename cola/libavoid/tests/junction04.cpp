@@ -82,7 +82,7 @@ int main(void)
 
     // Delete one half of the original connector, up to the junction.
     router->deleteConnector(conn1);
-    conn1 = NULL;
+    conn1 = nullptr;
 
     router->processTransaction();
     router->outputDiagram("output/junction04-4");

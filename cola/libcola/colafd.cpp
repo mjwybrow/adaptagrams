@@ -96,8 +96,8 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
       preIteration(preIteration),
       topologyAddon(new TopologyAddonInterface()),
       rungekutta(true),
-      desiredPositions(NULL),
-      clusterHierarchy(NULL),
+      desiredPositions(nullptr),
+      clusterHierarchy(nullptr),
       rectClusterBuffer(0),
       m_idealEdgeLength(idealLength),
       m_generateNonOverlapConstraints(false),
@@ -106,7 +106,7 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
 {
     minD = DBL_MAX;
 
-    if (done == NULL)
+    if (done == nullptr)
     {
         done = new TestConvergence();
         using_default_done = true;
@@ -374,12 +374,12 @@ void ConstrainedFDLayout::recGenerateClusterVariablesAndConstraints(
                 noc, *curr, idleConstraints);
     }
 
-    if ( (noc == NULL) && (dynamic_cast<RootCluster *> (cluster) == NULL) )
+    if ( (noc == nullptr) && (dynamic_cast<RootCluster *> (cluster) == nullptr) )
     {
         double freeWeight = 0.00000000001;
         // Then create left and right variables for the boundary of this 
         // cluster.
-        vpsc::Variable *variable = NULL;
+        vpsc::Variable *variable = nullptr;
         cluster->clusterVarId = vars[XDIM].size();
         COLA_ASSERT(vars[XDIM].size() == vars[YDIM].size());
         // Left:
@@ -514,7 +514,7 @@ void ConstrainedFDLayout::generateNonOverlapAndClusterCompoundConstraints(
         
         // Generate the containment constraints
         recGenerateClusterVariablesAndConstraints(vs, priority, 
-                NULL, clusterHierarchy, extraConstraints);
+                nullptr, clusterHierarchy, extraConstraints);
         
         // Compute overlapping clusters.
         clusterHierarchy->calculateClusterPathsToEachNode(boundingBoxes.size());
@@ -604,7 +604,7 @@ void ConstrainedFDLayout::makeFeasible(void)
     // We can keep adding new constraints to the existing VPSC instances so
     // long as everything is satisfiable.  Only when it's not do we discard
     // the existing VPSC instance for that dimension and create a new one.
-    vpsc::IncSolver *solver[2] = { NULL };
+    vpsc::IncSolver *solver[2] = { nullptr };
 
     // Main makeFeasible loop.
     while (!idleConstraints.empty())
@@ -663,7 +663,7 @@ void ConstrainedFDLayout::makeFeasible(void)
             // Satisfy the constraints in each dimension.
             for (size_t dim = 0; dim < 2; ++dim)
             {
-                if (solver[dim] == NULL)
+                if (solver[dim] == nullptr)
                 {
                     // Create a new VPSC solver if necessary.
                     solver[dim] = new vpsc::IncSolver(vs[dim], valid[dim]);
@@ -710,7 +710,7 @@ void ConstrainedFDLayout::makeFeasible(void)
                     //fprintf(stderr, ".%d %3d - ", dim, valid[dim].size());
                     
                     // Try to satisfy this set of constraints..
-                    if (solver[dim] == NULL)
+                    if (solver[dim] == nullptr)
                     {
                         // Create a new VPSC solver if necessary.
                         solver[dim] = new vpsc::IncSolver(vs[dim], valid[dim]);
@@ -753,7 +753,7 @@ void ConstrainedFDLayout::makeFeasible(void)
                     // Since we had unsatisfiable constraints we must 
                     // discard this solver instance.
                     delete solver[dim];
-                    solver[dim] = NULL;
+                    solver[dim] = nullptr;
 
                     // Restore previous values for variables.
                     for (unsigned int i = 0; i < priorPos.size(); ++i)
@@ -804,7 +804,7 @@ void ConstrainedFDLayout::makeFeasible(void)
         if (solver[dim])
         {
             delete solver[dim];
-            solver[dim] = NULL;
+            solver[dim] = nullptr;
         }
     }
 
@@ -880,7 +880,7 @@ void ConstrainedFDLayout::freeAssociatedObjects(void)
     if (clusterHierarchy)
     {
         delete clusterHierarchy;
-        clusterHierarchy = NULL;
+        clusterHierarchy = nullptr;
     }
     
     topologyAddon->freeAssociatedObjects();
@@ -1322,7 +1322,7 @@ void ConstrainedFDLayout::outputInstanceToSVG(std::string instanceName)
     filename += ".svg";
     FILE *fp = fopen(filename.c_str(), "w");
 
-    if (fp == NULL)
+    if (fp == nullptr)
     {
         return;
     }
@@ -1384,7 +1384,7 @@ void ConstrainedFDLayout::outputInstanceToSVG(std::string instanceName)
     fprintf(fp, "    EdgeLengths eLengths;\n");
     fprintf(fp, "    double defaultEdgeLength=%g;\n", m_idealEdgeLength);
     fprintf(fp, "    std::vector<vpsc::Rectangle*> rs;\n");
-    fprintf(fp, "    vpsc::Rectangle *rect = NULL;\n\n");
+    fprintf(fp, "    vpsc::Rectangle *rect = nullptr;\n\n");
     for (size_t i = 0; i < boundingBoxes.size(); ++i)
     {
         fprintf(fp, "    rect = new vpsc::Rectangle(%g, %g, %g, %g);\n",

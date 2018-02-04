@@ -52,11 +52,11 @@ bool CmpNodePos::operator() (const Node* u, const Node* v) const
 
 Node::Node(Obstacle *v, const double p)
     : v(v),
-      c(NULL),
-      ss(NULL),
+      c(nullptr),
+      ss(nullptr),
       pos(p),
-      firstAbove(NULL),
-      firstBelow(NULL)
+      firstAbove(nullptr),
+      firstBelow(nullptr)
 {
     Box bBox = v->routingBox();
     min[XDIM] = bBox.min.x;
@@ -67,24 +67,24 @@ Node::Node(Obstacle *v, const double p)
 }
 
 Node::Node(VertInf *c, const double p)
-    : v(NULL),
+    : v(nullptr),
       c(c),
-      ss(NULL),
+      ss(nullptr),
       pos(p),
-      firstAbove(NULL),
-      firstBelow(NULL)
+      firstAbove(nullptr),
+      firstBelow(nullptr)
 {
     min[XDIM] = max[XDIM] = c->point.x;
     min[YDIM] = max[YDIM] = c->point.y;
 }
 
 Node::Node(ShiftSegment *ss, const double p)
-    : v(NULL),
-      c(NULL),
+    : v(nullptr),
+      c(nullptr),
       ss(ss),
       pos(p),
-      firstAbove(NULL),
-      firstBelow(NULL)
+      firstAbove(nullptr),
+      firstBelow(nullptr)
 {
     // These values shouldn't ever be used, so they don't matter.
     min[XDIM] = max[XDIM] = min[YDIM] = max[YDIM] = 0;
@@ -173,7 +173,7 @@ void Node::findFirstPointAboveAndBelow(const size_t dim, const double linePos,
     lastAbovePos = max[dim];
     lastBelowPos = min[dim];
 
-    Node *curr = NULL;
+    Node *curr = nullptr;
     bool eventsAtSamePos = false;
     for (int direction = 0; direction < 2; ++direction)
     {
@@ -442,11 +442,11 @@ static void processShiftEvent(NodeSet& scanline, Event *e, size_t dim,
     {
         // Clean up neighbour pointers.
         Node *l = v->firstAbove, *r = v->firstBelow;
-        if (l != NULL) 
+        if (l != nullptr) 
         {
             l->firstBelow = v->firstBelow;
         }
-        if (r != NULL)
+        if (r != nullptr)
         {
             r->firstAbove = v->firstAbove;
         }

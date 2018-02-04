@@ -12,12 +12,12 @@
  * See the file LICENSE.LGPL distributed with the library.
  *
  * Licensees holding a valid commercial license may use this file in
- * accordance with the commercial license agreement provided with the 
+ * accordance with the commercial license agreement provided with the
  * library.
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  * Author(s):   Tim Dwyer
  *              Michael Wybrow
@@ -44,9 +44,9 @@
 // By default, libavoid will use it's own version of VPSC defined in this file.
 //
 // Alternatively, you can directly use IncSolver from libvpsc.  This
-// introduces a dependency on libvpsc but it can be preferable in cases 
+// introduces a dependency on libvpsc but it can be preferable in cases
 // where you are building all of Adaptagrams together and want to work
-// with a set of CompoundConstraints or other classes built upon the 
+// with a set of CompoundConstraints or other classes built upon the
 // base libvpsc Constraint classes.
 
 // Include necessary headers from libvpsc.
@@ -110,7 +110,7 @@ public:
     //double weight;
     //double wposn;
     PositionStats ps;
-    Block(Blocks *blocks, Variable* const v=NULL);
+    Block(Blocks *blocks, Variable* const v=nullptr);
     ~Block(void);
     Constraint* findMinLM();
     Constraint* findMinLMBetween(Variable* const lv, Variable* const rv);
@@ -144,7 +144,7 @@ private:
     void list_active(Variable* const v, Variable* const u);
     double compute_dfdv(Variable* const v, Variable* const u);
     double compute_dfdv(Variable* const v, Variable* const u, Constraint *&min_lm);
-    bool split_path(Variable*, Variable* const, Variable* const, 
+    bool split_path(Variable*, Variable* const, Variable* const,
             Constraint* &min_lm, bool desperation);
     bool canFollowLeft(Constraint const* c, Variable const* last) const;
     bool canFollowRight(Constraint const* c, Variable const* last) const;
@@ -169,7 +169,7 @@ public:
     int id; // useful in log files
     double desiredPosition;
     double finalPosition;
-    double weight; // how much the variable wants to 
+    double weight; // how much the variable wants to
                    // be at it's desired position
     double scale; // translates variable to another space
     double offset;
@@ -178,14 +178,14 @@ public:
     bool fixedDesiredPosition;
     Constraints in;
     Constraints out;
-    inline Variable(const int id, const double desiredPos=-1.0, 
+    inline Variable(const int id, const double desiredPos=-1.0,
             const double weight=1.0, const double scale=1.0)
         : id(id)
         , desiredPosition(desiredPos)
         , weight(weight)
         , scale(scale)
         , offset(0)
-        , block(NULL)
+        , block(nullptr)
         , visited(false)
         , fixedDesiredPosition(false)
     {
@@ -210,20 +210,20 @@ class Constraint
 public:
     Constraint(Variable *left, Variable *right, double gap, bool equality=false);
     ~Constraint();
-    inline double slack(void) const 
-    { 
+    inline double slack(void) const
+    {
         if (unsatisfiable)
         {
             return DBL_MAX;
         }
         if (needsScaling)
         {
-            return right->scale * right->position() - gap - 
+            return right->scale * right->position() - gap -
                     left->scale * left->position();
         }
         COLA_ASSERT(left->scale == 1);
         COLA_ASSERT(right->scale == 1);
-        return right->unscaledPosition() - gap - left->unscaledPosition(); 
+        return right->unscaledPosition() - gap - left->unscaledPosition();
     }
     std::string toString(void) const;
 
@@ -255,7 +255,7 @@ public:
     std::list<Variable*> *totalOrder();
     void cleanup();
     double cost();
-    
+
     size_t size() const;
     Block *at(size_t index) const;
     void insert(Block *block);
@@ -302,7 +302,7 @@ public:
     bool solve();
     void moveBlocks();
     void splitBlocks();
-    IncSolver(Variables const &vs, Constraints const &cs); 
+    IncSolver(Variables const &vs, Constraints const &cs);
 
     ~IncSolver();
     void addConstraint(Constraint *constraint);
@@ -339,4 +339,3 @@ extern Constraints constraintsRemovingRedundantEqualities(
 #endif // ! USELIBVPSC
 
 #endif // AVOID_VPSC_H
-

@@ -46,9 +46,9 @@ ConnEnd::ConnEnd()
       m_point(Point(0,0)),
       m_directions(ConnDirAll),
       m_connection_pin_class_id(CONNECTIONPIN_UNSET),
-      m_anchor_obj(NULL),
-      m_conn_ref(NULL),
-      m_active_pin(NULL)
+      m_anchor_obj(nullptr),
+      m_conn_ref(nullptr),
+      m_active_pin(nullptr)
 {
 }
 
@@ -57,9 +57,9 @@ ConnEnd::ConnEnd(const Point& point)
       m_point(point),
       m_directions(ConnDirAll),
       m_connection_pin_class_id(CONNECTIONPIN_UNSET),
-      m_anchor_obj(NULL),
-      m_conn_ref(NULL),
-      m_active_pin(NULL)
+      m_anchor_obj(nullptr),
+      m_conn_ref(nullptr),
+      m_active_pin(nullptr)
 {
 }
 
@@ -69,9 +69,9 @@ ConnEnd::ConnEnd(const Point& point, const ConnDirFlags visDirs)
       m_point(point),
       m_directions(visDirs),
       m_connection_pin_class_id(CONNECTIONPIN_UNSET),
-      m_anchor_obj(NULL),
-      m_conn_ref(NULL),
-      m_active_pin(NULL)
+      m_anchor_obj(nullptr),
+      m_conn_ref(nullptr),
+      m_active_pin(nullptr)
 {
 }
 
@@ -82,10 +82,10 @@ ConnEnd::ConnEnd(ShapeRef *shapeRef, const unsigned int connectionPinClassID)
       m_directions(ConnDirAll),
       m_connection_pin_class_id(connectionPinClassID),
       m_anchor_obj(shapeRef),
-      m_conn_ref(NULL),
-      m_active_pin(NULL)
+      m_conn_ref(nullptr),
+      m_active_pin(nullptr)
 {
-    COLA_ASSERT(m_anchor_obj != NULL);
+    COLA_ASSERT(m_anchor_obj != nullptr);
     COLA_ASSERT(m_connection_pin_class_id > 0);
 
     m_point = m_anchor_obj->position();
@@ -98,10 +98,10 @@ ConnEnd::ConnEnd(JunctionRef *junctionRef)
       m_directions(ConnDirAll),
       m_connection_pin_class_id(CONNECTIONPIN_CENTRE),
       m_anchor_obj(junctionRef),
-      m_conn_ref(NULL),
-      m_active_pin(NULL)
+      m_conn_ref(nullptr),
+      m_active_pin(nullptr)
 {
-    COLA_ASSERT(m_anchor_obj != NULL);
+    COLA_ASSERT(m_anchor_obj != nullptr);
     m_point = m_anchor_obj->position();
 }
 
@@ -173,7 +173,7 @@ bool ConnEnd::isPinConnection(void) const
 
 unsigned int ConnEnd::endpointType(void) const
 {
-    COLA_ASSERT(m_conn_ref != NULL);
+    COLA_ASSERT(m_conn_ref != nullptr);
     return (m_conn_ref->m_dst_connend == this) ? VertID::tar : VertID::src;
 }
 
@@ -181,7 +181,7 @@ unsigned int ConnEnd::endpointType(void) const
 // Marks this ConnEnd as using a particular ShapeConnectionPin.
 void ConnEnd::usePin(ShapeConnectionPin *pin)
 {
-    COLA_ASSERT(m_active_pin == NULL);
+    COLA_ASSERT(m_active_pin == nullptr);
     
     m_active_pin = pin;
     if (m_active_pin)
@@ -194,7 +194,7 @@ void ConnEnd::usePin(ShapeConnectionPin *pin)
 // Marks this ConnEnd as using a particular ShapeConnectionPin's vertex.
 void ConnEnd::usePinVertex(VertInf *pinVert)
 {
-    COLA_ASSERT(m_active_pin == NULL);
+    COLA_ASSERT(m_active_pin == nullptr);
     
     for (ShapeConnectionPinSet::iterator curr = 
             m_anchor_obj->m_connection_pins.begin(); 
@@ -229,7 +229,7 @@ void ConnEnd::freeActivePin(void)
     {
         m_active_pin->m_connend_users.erase(this);
     }
-    m_active_pin = NULL;
+    m_active_pin = nullptr;
 }
 
 
@@ -238,7 +238,7 @@ void ConnEnd::connect(ConnRef *conn)
 {
     COLA_ASSERT(isPinConnection());
     COLA_ASSERT(m_anchor_obj);
-    COLA_ASSERT(m_conn_ref == NULL);
+    COLA_ASSERT(m_conn_ref == nullptr);
 
     m_anchor_obj->addFollowingConnEnd(this);
     m_conn_ref = conn;
@@ -248,7 +248,7 @@ void ConnEnd::connect(ConnRef *conn)
 // Removes the connection between a connector and a shape/junction.
 void ConnEnd::disconnect(const bool shapeDeleted)
 {
-    if (m_conn_ref == NULL)
+    if (m_conn_ref == nullptr)
     {
         // Not connected.
         return;
@@ -256,13 +256,13 @@ void ConnEnd::disconnect(const bool shapeDeleted)
 
     m_point = position();
     m_anchor_obj->removeFollowingConnEnd(this);
-    m_conn_ref = NULL;
+    m_conn_ref = nullptr;
 
     if (shapeDeleted)
     {
         // Turn this into a manual ConnEnd.
         m_point = position();
-        m_anchor_obj = NULL;
+        m_anchor_obj = nullptr;
         m_type = ConnEndPoint;
         m_connection_pin_class_id = CONNECTIONPIN_UNSET;
     }
@@ -373,7 +373,7 @@ void ConnEnd::assignPinVisibilityTo(VertInf *dummyConnectionVert,
 std::pair<bool, VertInf *> ConnEnd::getHyperedgeVertex(Router *router) const
 {
     bool addedVertex = false;
-    VertInf *vertex = NULL;
+    VertInf *vertex = nullptr;
 
     if (m_anchor_obj)
     {
@@ -388,7 +388,7 @@ std::pair<bool, VertInf *> ConnEnd::getHyperedgeVertex(Router *router) const
                 vertex = currPin->m_vertex;
             }
         }
-        COLA_ASSERT(vertex != NULL);
+        COLA_ASSERT(vertex != nullptr);
     }
     else
     {
@@ -400,7 +400,7 @@ std::pair<bool, VertInf *> ConnEnd::getHyperedgeVertex(Router *router) const
 
         if (router->m_allows_polyline_routing)
         {
-            vertexVisibility(vertex, NULL, true, true);
+            vertexVisibility(vertex, nullptr, true, true);
         }
     }
 

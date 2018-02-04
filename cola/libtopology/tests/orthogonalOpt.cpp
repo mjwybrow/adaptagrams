@@ -2639,7 +2639,7 @@ int main(void) {
 
     CompoundConstraints ccs;
     std::vector<vpsc::Rectangle*> rs;
-    vpsc::Rectangle *rect = NULL;
+    vpsc::Rectangle *rect = nullptr;
 
     rect = new vpsc::Rectangle(696.878, 736.878, 214.197, 254.197);
     rs.push_back(rect);

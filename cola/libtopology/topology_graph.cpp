@@ -74,7 +74,7 @@ double Node::posOnLine(vpsc::Dim scanDim, double alpha) const {
 void EdgePoint::deleteBendConstraint() {
     if(bendConstraint) {
         delete bendConstraint;
-        bendConstraint=NULL;
+        bendConstraint=nullptr;
     }
 }
 EdgePoint::~EdgePoint() {
@@ -120,7 +120,7 @@ bool EdgePoint::createBendConstraint(vpsc::Dim scanDim) {
     // we replace any existing bend constraint
     if(bendConstraint) {
         delete bendConstraint;
-        bendConstraint=NULL;
+        bendConstraint=nullptr;
     }
     // don't generate BendConstraints for Edge end points
     if(isEnd()) {
@@ -176,7 +176,7 @@ double EdgePoint::offset(vpsc::Dim dim) const
      * ends.
      */
     bool EdgePoint::isEnd() const {
-        if(outSegment==NULL || inSegment==NULL) {
+        if(outSegment==nullptr || inSegment==nullptr) {
             return true;
         }
         return false;
