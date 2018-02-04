@@ -2176,7 +2176,7 @@ static void buildOrthogonalNudgingSegments(Router *router,
                             segment->finalSegment = true;
                             segment->endsInShape = (endsInShapes > 0);
                             if ((displayRoute.size() == 2) &&
-                                    (endsInShapes = 0x11))
+                                    (endsInShapes == 0x11))
                             {
                                 // This is a single segment connector bridging
                                 // two shapes.  So, we want to try to keep the
