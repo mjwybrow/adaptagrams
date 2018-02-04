@@ -561,7 +561,7 @@ void Rectangle::routeAround(double x1, double y1, double x2, double y2,
  * @param rs the rectangles which will be moved to remove overlap
  */
 void removeoverlaps(Rectangles& rs) {
-    const set<unsigned> fixed;
+    const set<unsigned> fixed = set<unsigned>();
     removeoverlaps(rs,fixed);
 }
 #define ISNOTNAN(d) (d)==(d)
