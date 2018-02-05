@@ -26,6 +26,11 @@
 #include <list>
 #include <algorithm>
 
+#ifdef ORTHOG_TOPOLOGY_DEBUG
+#include <sstream>
+#include <iomanip>
+#endif
+
 #include "libavoid/router.h"
 #include "libavoid/geomtypes.h"
 #include "libavoid/shape.h"
@@ -67,7 +72,7 @@ class CmpIndexes
         }
         bool operator()(size_t lhs, size_t rhs)
         {
-            return connRef->displayRoute().ps[lhs][dimension] < 
+            return connRef->displayRoute().ps[lhs][dimension] <
                     connRef->displayRoute().ps[rhs][dimension];
         }
     private:
@@ -100,7 +105,7 @@ class LayoutEdgeSegment : public ShiftSegment
 {
     public:
         // For shiftable segments.
-        LayoutEdgeSegment(ConnRef *conn, const size_t low, const size_t high, 
+        LayoutEdgeSegment(ConnRef *conn, const size_t low, const size_t high,
                 bool isSBend, bool isZBend, const size_t dim, double minLim,
                 double maxLim)
             : ShiftSegment(dim),
@@ -118,7 +123,7 @@ class LayoutEdgeSegment : public ShiftSegment
             maxSpaceLimit = maxLim;
         }
         // For fixed segments.
-        LayoutEdgeSegment(ConnRef *conn, const size_t low, const size_t high, 
+        LayoutEdgeSegment(ConnRef *conn, const size_t low, const size_t high,
                 const size_t dim)
             : ShiftSegment(dim),
               connRef(conn),
@@ -150,7 +155,7 @@ class LayoutEdgeSegment : public ShiftSegment
         {
             return connRef->displayRoute().ps[indexes.front()];
         }
-        const Point& highPoint(void) const 
+        const Point& highPoint(void) const
         {
             return connRef->displayRoute().ps[indexes.back()];
         }
@@ -166,8 +171,8 @@ class LayoutEdgeSegment : public ShiftSegment
         {
             int varID = connRef->id();
             double varPos = lowPoint()[dimension];
-            
-            // Use a low weight for segments.  
+
+            // Use a low weight for segments.
             // (Constraints will hold them in place on shapes.)
             double weight = 0.001;
 
@@ -199,7 +204,7 @@ class LayoutEdgeSegment : public ShiftSegment
             double pos = lowPoint()[dimension];
             bool minLimited = ((pos - minSpaceLimit) < nudgeDist);
             bool maxLimited = ((maxSpaceLimit - pos) < nudgeDist);
-            
+
             if (fixed || (minLimited && maxLimited))
             {
                 isFixed = true;
@@ -246,7 +251,7 @@ class LayoutEdgeSegment : public ShiftSegment
         {
             // This is true if this is a cBend and its adjoining points
             // are at lower positions.
-            if (!finalSegment && !zigzag() && !fixed && 
+            if (!finalSegment && !zigzag() && !fixed &&
                     (minSpaceLimit == lowPoint()[dimension]))
             {
                 return true;
@@ -257,7 +262,7 @@ class LayoutEdgeSegment : public ShiftSegment
         {
             // This is true if this is a cBend and its adjoining points
             // are at higher positions.
-            if (!finalSegment && !zigzag() && !fixed && 
+            if (!finalSegment && !zigzag() && !fixed &&
                     (maxSpaceLimit == lowPoint()[dimension]))
             {
                 return true;
@@ -294,7 +299,7 @@ class LayoutObstacle
         // Don't nudge segments attached to junctions,
         // so just use the junction position here.
         Point pos = junction->position();
-        
+
         min = pos;
         max = pos;
     }
@@ -330,7 +335,7 @@ class LayoutObstacle
     void createSolverVariable(void)
     {
         int varID = obstacle->id();
-        
+
         // Use higher weight than alignment variables (0.001) so we don't
         // get moved by them.
         double weight = 1.0;
@@ -398,8 +403,8 @@ struct PosVertInf
           dirs(d)
     {
     }
-    
-    bool operator<(const PosVertInf& rhs) const 
+
+    bool operator<(const PosVertInf& rhs) const
     {
         if (pos != rhs.pos)
         {
@@ -407,7 +412,7 @@ struct PosVertInf
         }
         if ((vert->id == rhs.vert->id) && (vert->id == Avoid::dummyOrthogID))
         {
-            // Multiple dummy nodes can get placed at the same point for 
+            // Multiple dummy nodes can get placed at the same point for
             // multiple ShapeConnectionPins on junctions (outside of shapes).
             // We only need one at each position, so multiples can be seen
             // as equal here.
@@ -424,19 +429,19 @@ struct PosVertInf
     VertInf *vert;
 
     // A bitfield marking the direction of visibility (in this dimension)
-    // made up of VisDirDown (for visibility towards lower position values) 
+    // made up of VisDirDown (for visibility towards lower position values)
     // and VisDirUp (for visibility towards higher position values).
     //
     ScanVisDirFlags dirs;
 };
 
 
-// Temporary structure used to store the possible horizontal visibility 
+// Temporary structure used to store the possible horizontal visibility
 // lines arising from the vertical sweep.
-class LineSegment 
+class LineSegment
 {
 public:
-    LineSegment(const double& b, const double& f, const double& p, 
+    LineSegment(const double& b, const double& f, const double& p,
             bool ss = false, VertInf *bvi = nullptr, VertInf *fvi = nullptr)
         : begin(b),
           finish(f),
@@ -455,9 +460,9 @@ public:
     {
         COLA_UNUSED(bfvi);
     }
- 
+
     // Order by begin, pos, finish.
-    bool operator<(const LineSegment& rhs) const 
+    bool operator<(const LineSegment& rhs) const
     {
         if (begin != rhs.begin)
         {
@@ -483,7 +488,7 @@ public:
             // Lines are exactly equal.
             return true;
         }
-        
+
         if (pos == rhs.pos)
         {
             if (((begin >= rhs.begin) && (begin <= rhs.finish)) ||
@@ -502,10 +507,10 @@ public:
 
     // XXX shapeSide is unused and could possibly be removed?
     bool shapeSide;
-    
+
 private:
-	// MSVC wants to generate the assignment operator and the default 
-	// constructor, but fails.  Therefore we declare them private and 
+	// MSVC wants to generate the assignment operator and the default
+	// constructor, but fails.  Therefore we declare them private and
 	// don't implement them.
     LineSegment & operator=(LineSegment const &);
     LineSegment();
@@ -514,7 +519,7 @@ private:
 typedef std::list<LineSegment> SegmentList;
 
 
-static bool insideLayoutObstacleBounds(const Point& point, 
+static bool insideLayoutObstacleBounds(const Point& point,
         const LayoutObstacle& anchor)
 {
     Point zero(0, 0);
@@ -539,28 +544,28 @@ static bool insideLayoutObstacleBounds(const Point& point,
 }
 
 
-// When processing the scanline, it may be possible that shapes share edges, 
+// When processing the scanline, it may be possible that shapes share edges,
 // or a connector segment shares a position with a shape edge.  Thus, we
-// order objects in the scanline list so that shape right sides come before 
+// order objects in the scanline list so that shape right sides come before
 // connector segments which come before shape left sides at the same position.
 struct LayoutScanlineCmpNodePos
 {
     bool operator()(const Node* u, const Node* v) const
     {
-        if (fabs(u->pos - v->pos) > 0.000000001) 
+        if (fabs(u->pos - v->pos) > 0.000000001)
         {
             return u->pos < v->pos;
         }
-        
+
         // Use the pointers to the base objects to differentiate them.
-        void *up = (u->v) ? (void *) u->v : 
+        void *up = (u->v) ? (void *) u->v :
                 ((u->c) ? (void *) u->c : (void *) u->ss);
-        void *vp = (v->v) ? (void *) v->v : 
+        void *vp = (v->v) ? (void *) v->v :
                 ((v->c) ? (void *) v->c : (void *) v->ss);
 
         const LayoutNode *layoutNodeU = dynamic_cast<const LayoutNode *> (u);
         const LayoutNode *layoutNodeV = dynamic_cast<const LayoutNode *> (v);
-            
+
         // For things occurring at the same position on the scanline,
         // order shape SIDE_RIGHT (-1) < segments (0) < shape SIDE_LEFT (1).
         int valU = (layoutNodeU) ? layoutNodeU->side : 0;
@@ -578,13 +583,13 @@ typedef std::set<Node*,LayoutScanlineCmpNodePos> LayoutScanlineNodeSet;
 
 // Processes sweep events to determine orthogonal constraints affecting each
 // shape and line segment.  This is done in three passes to cater for events
-// that occur at the same position.  First pass adds all obejcts at position 
-// to the scanline.  The second pass processes the scanline and generates 
+// that occur at the same position.  First pass adds all obejcts at position
+// to the scanline.  The second pass processes the scanline and generates
 // constraints.  The third pass removes any objects ending at that position
 // from the scanline.
-static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline, 
-        Event *e, size_t dim,  LayoutObstacleVector& obstacleVector, 
-        LineReps *lineReps, vpsc::Constraints& cs, 
+static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
+        Event *e, size_t dim,  LayoutObstacleVector& obstacleVector,
+        LineReps *lineReps, vpsc::Constraints& cs,
         LayoutEdgeSegmentSeparations& less, unsigned int pass,
         const double moveLimit, const double idealNudgeDist)
 {
@@ -595,27 +600,27 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
 
     bool Equality = true;
     bool NonEquality = false;
-    
+
     // Scanline housekeeping.
     if ( (pass == 1) && ((e->type == Open) || (e->type == SegOpen)) )
     {
         // Opening events.  First pass.
 
-        std::pair<LayoutScanlineNodeSet::iterator, bool> result = 
+        std::pair<LayoutScanlineNodeSet::iterator, bool> result =
                 scanline.insert(v);
         v->iter = result.first;
         COLA_ASSERT(result.second);
 
         LayoutScanlineNodeSet::iterator it = v->iter;
         // Work out neighbours
-        if (it != scanline.begin()) 
+        if (it != scanline.begin())
         {
             Node *u = *(--it);
             v->firstAbove = u;
             u->firstBelow = v;
         }
         it = v->iter;
-        if (++it != scanline.end()) 
+        if (++it != scanline.end())
         {
             Node *u = *it;
             v->firstBelow = u;
@@ -628,7 +633,7 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
 
         // Clean up neighbour pointers.
         Node *l = v->firstAbove, *r = v->firstBelow;
-        if (l != nullptr) 
+        if (l != nullptr)
         {
             l->firstBelow = v->firstBelow;
         }
@@ -642,7 +647,7 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
         COLA_ASSERT(result == 1);
         delete v;
     }
-    
+
     if (pass != 2)
     {
         // Do remaining stuff only if we are in the second pass.
@@ -660,14 +665,14 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
                 it != les->endsInShapeIndexes.end(); ++it)
         {
             assert(les->lowPoint()[dim] == les->highPoint()[dim]);
-            Point endpoint = (e->type == SegOpen) ? les->lowPoint() : 
+            Point endpoint = (e->type == SegOpen) ? les->lowPoint() :
                     les->highPoint();
             if (insideLayoutObstacleBounds(endpoint, obstacleVector[*it]))
             {
                 double sepDist = obstacleVector[*it].centre()[dim] -
                         les->lowPoint()[dim];
                 vpsc::Constraint *constraint = new vpsc::Constraint(
-                        les->variable, obstacleVector[*it].variable, 
+                        les->variable, obstacleVector[*it].variable,
                         sepDist, Equality);
                 cs.push_back(constraint);
             }
@@ -695,7 +700,7 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
 
             COLA_ASSERT(sepDist >= 0);
             vpsc::Constraint *constraint = new vpsc::Constraint(
-                    beforeLayoutV->layoutObstacle->variable, 
+                    beforeLayoutV->layoutObstacle->variable,
                     les->variable, sepDist, NonEquality);
             cs.push_back(constraint);
 
@@ -706,12 +711,12 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
         LayoutNode *afterLayoutV = dynamic_cast<LayoutNode *> (afterV);
         if (afterLayoutV && (afterLayoutV->side == SIDE_LEFT))
         {
-            double sepDist = 
+            double sepDist =
                     afterLayoutV->layoutObstacle->halfSizeInDim(dim);
-            
+
             COLA_ASSERT(sepDist >= 0);
             vpsc::Constraint *constraint = new vpsc::Constraint(
-                    les->variable, afterLayoutV->layoutObstacle->variable, 
+                    les->variable, afterLayoutV->layoutObstacle->variable,
                     sepDist, NonEquality);
             cs.push_back(constraint);
 
@@ -720,24 +725,24 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
         // Constrain edge segment to separate from left neighbouring segment.
         if (beforeV && beforeV->ss)
         {
-            LayoutEdgeSegment *beforeLes = 
+            LayoutEdgeSegment *beforeLes =
                 dynamic_cast<LayoutEdgeSegment *> (beforeV->ss);
             assert(beforeLes);
 
             if (les->connRef != beforeLes->connRef)
             {
                 // If not segments from same edge.
-                if (CONSTRAIN_CHECKPOINTS && les->containsCheckpoint && 
+                if (CONSTRAIN_CHECKPOINTS && les->containsCheckpoint &&
                         beforeLes->containsCheckpoint)
                 {
                     // Both segments are passing a checkpoint.
                     // Constrain them together.
-                    double sepDist =  
-                            (les->lowPoint()[les->dimension] - 
+                    double sepDist =
+                            (les->lowPoint()[les->dimension] -
                                     beforeLes->lowPoint()[les->dimension]);
 
                     vpsc::Constraint *constraint = new vpsc::Constraint(
-                            beforeLes->variable, les->variable, 
+                            beforeLes->variable, les->variable,
                             sepDist, Equality);
                     cs.push_back(constraint);
                 }
@@ -745,23 +750,23 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
                 {
                     // Normal segments.  Constrain them with Nudging distance
                     // or the current distance apart, if this is smalled.
-                    double sepDist = std::min(idealNudgeDist, 
-                            (les->lowPoint()[les->dimension] - 
+                    double sepDist = std::min(idealNudgeDist,
+                            (les->lowPoint()[les->dimension] -
                              beforeLes->lowPoint()[les->dimension]));
                     sepDist = std::max(sepDist, 0.0);
                     COLA_ASSERT(sepDist >= 0);
                     vpsc::Constraint *constraint = new vpsc::Constraint(
-                            beforeLes->variable, les->variable, 
+                            beforeLes->variable, les->variable,
                             sepDist, NonEquality);
                     cs.push_back(constraint);
                 }
             }
         }
-        
+
         // Constrain edge segment to separate from right neighbouring segment.
         if (afterV && afterV->ss)
         {
-            LayoutEdgeSegment *afterLes = 
+            LayoutEdgeSegment *afterLes =
                 dynamic_cast<LayoutEdgeSegment *> (afterV->ss);
             assert(afterLes);
 
@@ -773,12 +778,12 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
                 {
                     // Both segments are passing a checkpoint.a
                     // Constrain them together.
-                    double sepDist = 
+                    double sepDist =
                             (afterLes->lowPoint()[les->dimension] -
                              les->lowPoint()[les->dimension]);
 
                     vpsc::Constraint *constraint = new vpsc::Constraint(
-                            les->variable, afterLes->variable, 
+                            les->variable, afterLes->variable,
                             sepDist, Equality);
                     cs.push_back(constraint);
                 }
@@ -786,21 +791,21 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
                 {
                     // Normal segments.  Constrain them with Nudging distance
                     // or the current distance apart, if this is smalled.
-                    double sepDist = std::min(idealNudgeDist, 
+                    double sepDist = std::min(idealNudgeDist,
                             (afterLes->lowPoint()[les->dimension] -
                                     les->lowPoint()[les->dimension]));
                     sepDist = std::max(sepDist, 0.0);
                     COLA_ASSERT(sepDist >= 0);
-                    
+
                     vpsc::Constraint *constraint = new vpsc::Constraint(
-                            les->variable, afterLes->variable, 
+                            les->variable, afterLes->variable,
                             sepDist, NonEquality);
                     cs.push_back(constraint);
                 }
             }
         }
     }
-    
+
     if ((e->type == Close) || (e->type == Open))
     {
         // This is a left or right shape side, beginning or ending.
@@ -813,27 +818,27 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
             LayoutNode *beforeLayoutV = dynamic_cast<LayoutNode *> (beforeV);
             LayoutEdgeSegment *beforeLes = (beforeV == nullptr) ? nullptr :
                     dynamic_cast<LayoutEdgeSegment *> (beforeV->ss);
-            
+
             if (beforeLayoutV && (beforeLayoutV->side == SIDE_RIGHT))
             {
-                // Constrain this left shape side to be separated from 
+                // Constrain this left shape side to be separated from
                 // a neighbouring shape right side to the left.
                 double sepDist =
-                        ln->layoutObstacle->halfSizeInDim(dim) + 
+                        ln->layoutObstacle->halfSizeInDim(dim) +
                         beforeLayoutV->layoutObstacle->halfSizeInDim(dim);
                 COLA_ASSERT(sepDist >= 0);
 
                 vpsc::Constraint *constraint = new vpsc::Constraint(
-                        beforeLayoutV->layoutObstacle->variable, 
+                        beforeLayoutV->layoutObstacle->variable,
                         ln->layoutObstacle->variable, sepDist, NonEquality);
                 cs.push_back(constraint);
 
             }
             else if (beforeLes)
             {
-                // Constrain this left shape side to be separated from 
+                // Constrain this left shape side to be separated from
                 // a neighbouring edge segment to the left.
-                double sepDist = 
+                double sepDist =
                         ln->layoutObstacle->halfSizeInDim(dim);
                 COLA_ASSERT(sepDist >= 0);
 
@@ -852,55 +857,55 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
 
             if (afterLayoutV && (afterLayoutV->side == SIDE_LEFT))
             {
-                // Constrain this right shape side to be separated from 
+                // Constrain this right shape side to be separated from
                 // a neighbouring shape left side to the right.
-                double sepDist = 
-                        ln->layoutObstacle->halfSizeInDim(dim) + 
+                double sepDist =
+                        ln->layoutObstacle->halfSizeInDim(dim) +
                         afterLayoutV->layoutObstacle->halfSizeInDim(dim);
                 COLA_ASSERT(sepDist >= 0);
-                
+
                 vpsc::Constraint *constraint = new vpsc::Constraint(
-                        ln->layoutObstacle->variable, 
-                        afterLayoutV->layoutObstacle->variable, 
+                        ln->layoutObstacle->variable,
+                        afterLayoutV->layoutObstacle->variable,
                         sepDist, NonEquality);
                 cs.push_back(constraint);
 
             }
             else if (afterLes)
             {
-                // Constrain this right shape side to be separated from 
+                // Constrain this right shape side to be separated from
                 // a neighbouring edge segment to the right.
-                double sepDist = 
+                double sepDist =
                         ln->layoutObstacle->halfSizeInDim(dim);
                 COLA_ASSERT(sepDist >= 0);
 
                 vpsc::Constraint *constraint = new vpsc::Constraint(
-                        ln->layoutObstacle->variable, afterLes->variable, 
+                        ln->layoutObstacle->variable, afterLes->variable,
                         sepDist, NonEquality);
                 cs.push_back(constraint);
             }
         }
     }
- 
+
     // Compute all possible shifts that can be made from a segment ending,
     // to straighten it to a sibling segment.
     if (e->type == SegClose)
     {
         // Possible points of movement.
         LayoutEdgeSegment *les = dynamic_cast<LayoutEdgeSegment *> (v->ss);
-        for(LayoutScanlineNodeSet::iterator it = scanline.begin(); 
+        for(LayoutScanlineNodeSet::iterator it = scanline.begin();
                 it != scanline.end(); ++it)
         {
             size_t altDim = (les->dimension + 1) % 2;
             Node *u = *it;
-            LayoutEdgeSegment *otherLes = 
+            LayoutEdgeSegment *otherLes =
                     dynamic_cast<LayoutEdgeSegment *> (u->ss);
-            if (otherLes && (les->connRef == otherLes->connRef) && 
-                    !(les->containsCheckpoint) && 
+            if (otherLes && (les->connRef == otherLes->connRef) &&
+                    !(les->containsCheckpoint) &&
                     !(otherLes->containsCheckpoint) &&
                     (les->highPoint()[altDim] == otherLes->lowPoint()[altDim]))
             {
-                // We consider moving segments from the same connector 
+                // We consider moving segments from the same connector
                 // separated by a single segment, where neither contains a
                 // checkpoint.
                 LayoutEdgeSegmentSeparation newLess;
@@ -913,7 +918,7 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
                 {
                     less.insert(newLess);
                 }
-                
+
                 /*
                 if (lineReps)
                 {
@@ -931,14 +936,14 @@ static void processLayoutConstraintEvent(LayoutScanlineNodeSet& scanline,
 }
 
 // This class is used to record and update endpoints of segments in the same
-// dimension that shapes are being moved in the optimisation step.  this is 
+// dimension that shapes are being moved in the optimisation step.  this is
 // done only for the first and last endpoints of connectors for the shape they
 // terminate inside of.
-class EndpointAnchorInMoveDir 
+class EndpointAnchorInMoveDir
 {
     public:
         EndpointAnchorInMoveDir(size_t dimension, ConnRef *connRef,
-                size_t endptIndex, size_t obstacleIndex, 
+                size_t endptIndex, size_t obstacleIndex,
                 double obstacleOffset)
             : dimension(dimension),
               connRef(connRef),
@@ -951,7 +956,7 @@ class EndpointAnchorInMoveDir
         void updatePosition(const LayoutObstacleVector& obstacleVector)
         {
             Point obstacleCentre = obstacleVector[obstacleIndex].shapeCentre();
-            connRef->displayRoute().ps[endptIndex][dimension] = 
+            connRef->displayRoute().ps[endptIndex][dimension] =
                     obstacleCentre[dimension] + obstacleOffset;
         }
 
@@ -964,22 +969,22 @@ class EndpointAnchorInMoveDir
 typedef std::list<EndpointAnchorInMoveDir> EndpointAnchorList;
 
 
-static void buildOrthogonalLayoutSegments(Router *router, 
+static void buildOrthogonalLayoutSegments(Router *router,
         const size_t dim, LayoutEdgeSegmentList& segmentList,
-        LayoutObstacleVector& obstacleVector, 
+        LayoutObstacleVector& obstacleVector,
         EndpointAnchorList& extraTerminalsList)
 {
     // We can handle bends that occur as a result of checkpoints as intentional.
     // In this case we don't try to remove those bends.  Also, we keep a fixed
-    // (equality) spacing between nudges paths at the checkpoint, so part of 
+    // (equality) spacing between nudges paths at the checkpoint, so part of
     // the shared path doesn't get ripped away.
     const bool preserveCheckpointBends = true;
 
     const size_t n = router->m_obstacles.size();
-    
+
     obstacleVector = LayoutObstacleVector(n);
 
-    // If we're going to nudge final segments, then cache the shape 
+    // If we're going to nudge final segments, then cache the shape
     // rectangles to save us rebuilding them multiple times.
     ObstacleList::iterator obstacleIt = router->m_obstacles.begin();
     for (unsigned i = 0; i < n; i++)
@@ -999,8 +1004,8 @@ static void buildOrthogonalLayoutSegments(Router *router,
 
     size_t altDim = (dim + 1) % 2;
     // For each connector.
-    for (ConnRefList::const_iterator curr = router->connRefs.begin(); 
-            curr != router->connRefs.end(); ++curr) 
+    for (ConnRefList::const_iterator curr = router->connRefs.begin();
+            curr != router->connRefs.end(); ++curr)
     {
         if ((*curr)->routingType() != ConnType_Orthogonal)
         {
@@ -1008,25 +1013,25 @@ static void buildOrthogonalLayoutSegments(Router *router,
         }
         Polygon& displayRoute = (*curr)->displayRoute();
         bool routeHasCheckpointInfo = !displayRoute.checkpointsOnRoute.empty();
-        // Determine all line segments that we are interested in shifting. 
+        // Determine all line segments that we are interested in shifting.
         // We don't consider the first or last segment of a path.
         for (size_t i = 1; i < displayRoute.size(); ++i)
         {
             bool containsCheckpoint = false;
             if (preserveCheckpointBends && routeHasCheckpointInfo)
             {
-                containsCheckpoint = 
+                containsCheckpoint =
                         (displayRoute.checkpointsOnSegment(i - 1).size() > 0);
             }
-            
+
             if (displayRoute.ps[i - 1][dim] == displayRoute.ps[i][dim])
             {
                 // It's a segment in the dimension we are processing,
                 size_t indexLow = i - 1;
                 size_t indexHigh = i;
-                COLA_ASSERT(displayRoute.ps[i - 1][altDim] != 
+                COLA_ASSERT(displayRoute.ps[i - 1][altDim] !=
                         displayRoute.ps[i][altDim]);
-                if (displayRoute.ps[i - 1][altDim] > 
+                if (displayRoute.ps[i - 1][altDim] >
                         displayRoute.ps[i][altDim])
                 {
                     indexLow = i;
@@ -1041,11 +1046,11 @@ static void buildOrthogonalLayoutSegments(Router *router,
                     // final segments.
                     double minLim = -CHANNEL_MAX;
                     double maxLim = CHANNEL_MAX;
-                    
-                    // Limit their movement by the length of 
+
+                    // Limit their movement by the length of
                     // adjoining segments.
                     bool first = (i == 1) ? true : false;
-                    bool last = ((i + 1) == displayRoute.size()) ? 
+                    bool last = ((i + 1) == displayRoute.size()) ?
                             true : false;
                     // If the position of the opposite end of the
                     // attached segment is within the shape boundaries
@@ -1079,13 +1084,13 @@ static void buildOrthogonalLayoutSegments(Router *router,
                     std::list<int> endsInShapeIndexes;
                     if (first || last)
                     {
-                    // Also limit their movement to the edges of the 
+                    // Also limit their movement to the edges of the
                     // shapes they begin or end within.
                     for (size_t k = 0; k < obstacleVector.size(); ++k)
                     {
                         double shapeMin = obstacleVector[k].min[dim];
                         double shapeMax = obstacleVector[k].max[dim];
-                        if (first && insideLayoutObstacleBounds(displayRoute.ps[i - 1], 
+                        if (first && insideLayoutObstacleBounds(displayRoute.ps[i - 1],
                                     obstacleVector[k]))
                         {
                             minLim = std::max(minLim, shapeMin);
@@ -1093,7 +1098,7 @@ static void buildOrthogonalLayoutSegments(Router *router,
                             endsInShapeIndexes.push_back(k);
                             continue;
                         }
-                        if (last && insideLayoutObstacleBounds(displayRoute.ps[i], 
+                        if (last && insideLayoutObstacleBounds(displayRoute.ps[i],
                                     obstacleVector[k]))
                         {
                             minLim = std::max(minLim, shapeMin);
@@ -1105,7 +1110,7 @@ static void buildOrthogonalLayoutSegments(Router *router,
 
                     // Shiftable.
                     LayoutEdgeSegment *segment = new LayoutEdgeSegment(
-                            *curr, indexLow, indexHigh, false, false, dim, 
+                            *curr, indexLow, indexHigh, false, false, dim,
                             minLim, maxLim);
                     segment->endsInShapeIndexes = endsInShapeIndexes;
                     segment->containsCheckpoint = containsCheckpoint;
@@ -1127,8 +1132,8 @@ static void buildOrthogonalLayoutSegments(Router *router,
                      ((prevPos > thisPos) && (nextPos < thisPos)) )
                 {
 
-                    // Determine limits if the s-bend is not due to an 
-                    // obstacle.  In this case we need to limit the channel 
+                    // Determine limits if the s-bend is not due to an
+                    // obstacle.  In this case we need to limit the channel
                     // to the span of the adjoining segments to this one.
                     if ((prevPos < thisPos) && (nextPos > thisPos))
                     {
@@ -1146,7 +1151,7 @@ static void buildOrthogonalLayoutSegments(Router *router,
                 else
                 {
                     // isCBend: Both adjoining segments are in the same
-                    // direction.  We indicate this for later by setting 
+                    // direction.  We indicate this for later by setting
                     // the maxLim or minLim to the segment position.
                     if (prevPos < thisPos)
                     {
@@ -1164,26 +1169,26 @@ static void buildOrthogonalLayoutSegments(Router *router,
                 nss->containsCheckpoint = containsCheckpoint;
                 segmentList.push_back(nss);
             }
-            else if (displayRoute.ps[i - 1][altDim] == 
+            else if (displayRoute.ps[i - 1][altDim] ==
                     displayRoute.ps[i][altDim])
             {
-                // It's a segment in the dimension opposite to the one we 
+                // It's a segment in the dimension opposite to the one we
                 // are processing.  For these we need to record their position
                 // relative to the shape they terminate in, so if that shape
-                // is moved along the direction of these segments, their 
+                // is moved along the direction of these segments, their
                 // endpoint is updated.
                 if (i == 1)
                 {
                     // This is the first segment of the connector.
 
-                    // Also limit their movement to the edges of the 
+                    // Also limit their movement to the edges of the
                     // shapes they begin or end within.
                     for (size_t k = 0; k < obstacleVector.size(); ++k)
                     {
-                        if (insideLayoutObstacleBounds(displayRoute.ps[i - 1], 
+                        if (insideLayoutObstacleBounds(displayRoute.ps[i - 1],
                                     obstacleVector[k]))
                         {
-                            double offset = displayRoute.ps[i - 1][dim] -  
+                            double offset = displayRoute.ps[i - 1][dim] -
                                     obstacleVector[k].centre()[dim];
                             EndpointAnchorInMoveDir terminal(
                                     dim, *curr, i - 1, k, offset);
@@ -1195,14 +1200,14 @@ static void buildOrthogonalLayoutSegments(Router *router,
                 {
                     // This is the final segment of the connector.
 
-                    // Also limit their movement to the edges of the 
+                    // Also limit their movement to the edges of the
                     // shapes they begin or end within.
                     for (size_t k = 0; k < obstacleVector.size(); ++k)
                     {
-                        if (insideLayoutObstacleBounds(displayRoute.ps[i], 
+                        if (insideLayoutObstacleBounds(displayRoute.ps[i],
                                     obstacleVector[k]))
                         {
-                            double offset = displayRoute.ps[i][dim] -  
+                            double offset = displayRoute.ps[i][dim] -
                                     obstacleVector[k].centre()[dim];
                             EndpointAnchorInMoveDir terminal(
                                     dim, *curr, i, k, offset);
@@ -1215,10 +1220,10 @@ static void buildOrthogonalLayoutSegments(Router *router,
     }
 }
 
-static void setupOrthogonalLayoutConstraints(Router *router, 
+static void setupOrthogonalLayoutConstraints(Router *router,
         const size_t dim, LayoutEdgeSegmentList& segmentList,
         LayoutObstacleVector& obstacleVector,
-        EndpointAnchorList& extraTerminalsList, 
+        EndpointAnchorList& extraTerminalsList,
         cola::CompoundConstraints& ccs, cola::VariableIDMap& idMap,
         cola::RootCluster *clusterHierarchy, vpsc::Rectangles& rs,
         LineReps *lineReps, const double moveLimit)
@@ -1231,7 +1236,7 @@ static void setupOrthogonalLayoutConstraints(Router *router,
         // There are no segments, so we can just return now.
         return;
     }
- 
+
 
     vpsc::Variables vs;
     vpsc::Constraints cs;
@@ -1263,24 +1268,24 @@ static void setupOrthogonalLayoutConstraints(Router *router,
         v->side = SIDE_LEFT;
         events[ctr++] = new Event(Open, v, min[altDim]);
         events[ctr++] = new Event(Close, v, max[altDim]);
-        
+
         v = new LayoutNode(&obstacle, max[dim]);
         v->side = SIDE_RIGHT;
         events[ctr++] = new Event(Open, v, min[altDim]);
         events[ctr++] = new Event(Close, v, max[altDim]);
-        
+
         obstacle.createSolverVariable();
         vs.push_back(obstacle.variable);
         unsigned index = vs.size() - 1;
         bool reverse = false;
-        unsigned colaIndex = idMap.mappingForVariable(obstacle.shape()->id(), 
+        unsigned colaIndex = idMap.mappingForVariable(obstacle.shape()->id(),
                 reverse);
         if (colaIndex != obstacle.shape()->id())
         {
             colaToCurrMap.addMappingForVariable(colaIndex, index);
         }
-        
-        // Calculate offsets in case the cola and libavoid shapes have 
+
+        // Calculate offsets in case the cola and libavoid shapes have
         // different sizes.
         if (colaIndex < rs.size())
         {
@@ -1292,13 +1297,13 @@ static void setupOrthogonalLayoutConstraints(Router *router,
             }
 #ifdef ORTHOG_TOPOLOGY_DEBUG
             fprintf(stderr, "Shape %03d (cola: %03d) centre offset %g "
-                    "(from %g, %g)\n", index, colaIndex, 
+                    "(from %g, %g)\n", index, colaIndex,
                     offsetsVector[i], obstacleVector[i].centre()[dim],
                     rs[colaIndex]->getCentreD(dim));
 #endif
         }
     }
-    for (LayoutEdgeSegmentList::iterator curr = segmentList.begin(); 
+    for (LayoutEdgeSegmentList::iterator curr = segmentList.begin();
             curr != segmentList.end(); ++curr)
     {
         const Point& lowPt = (*curr)->lowPoint();
@@ -1314,7 +1319,7 @@ static void setupOrthogonalLayoutConstraints(Router *router,
         events[ctr++] = new Event(SegClose, v, highPt[altDim]);
     }
     qsort((Event*)events, (size_t) totalEvents, sizeof(Event*), compare_events);
-    
+
     // Update the variable Ids on the existing compound constraints
     for (size_t i = 0; i < ccs.size(); ++i)
     {
@@ -1340,8 +1345,8 @@ static void setupOrthogonalLayoutConstraints(Router *router,
             {
                 for (unsigned j = posStartIndex; j < posFinishIndex; ++j)
                 {
-                    processLayoutConstraintEvent(scanline, events[j], dim, 
-                            obstacleVector, lineReps, cs, less, pass, 
+                    processLayoutConstraintEvent(scanline, events[j], dim,
+                            obstacleVector, lineReps, cs, less, pass,
                             moveLimit, idealNudgeDist);
                 }
             }
@@ -1356,10 +1361,10 @@ static void setupOrthogonalLayoutConstraints(Router *router,
             posStartIndex = i;
         }
 
-        // Do the first sweep event handling -- building the correct 
+        // Do the first sweep event handling -- building the correct
         // structure of the scanline.
         const int pass = 1;
-        processLayoutConstraintEvent(scanline, events[i], dim, 
+        processLayoutConstraintEvent(scanline, events[i], dim,
                 obstacleVector, lineReps, cs, less, pass, moveLimit,
                 idealNudgeDist);
     }
@@ -1381,18 +1386,18 @@ static void setupOrthogonalLayoutConstraints(Router *router,
         clusterHierarchy->createVars((vpsc::Dim) dim, boundingBoxes, vs);
     }
     for (cola::CompoundConstraints::const_iterator c = ccs.begin();
-            c != ccs.end(); ++c) 
+            c != ccs.end(); ++c)
     {
         (*c)->generateVariables((vpsc::Dim) dim, vs);
     }
     for (cola::CompoundConstraints::const_iterator c = ccs.begin();
-            c != ccs.end(); ++c) 
+            c != ccs.end(); ++c)
     {
         (*c)->generateSeparationConstraints((vpsc::Dim) dim, vs,
                 valid, boundingBoxes);
     }
 
-    vpsc::Constraints nonRedundantCs = 
+    vpsc::Constraints nonRedundantCs =
             constraintsRemovingRedundantEqualities(vs, valid);
 
     vpsc::IncSolver vpscInstance(vs, nonRedundantCs);
@@ -1419,21 +1424,21 @@ static void setupOrthogonalLayoutConstraints(Router *router,
             valid[i]->unsatisfiable = false;
         }
 
-        // Add the constraint from this alternative to the 
+        // Add the constraint from this alternative to the
         // valid constraint set.
-        valid.push_back(new vpsc::Constraint(sepChoice.var1, 
+        valid.push_back(new vpsc::Constraint(sepChoice.var1,
                 sepChoice.var2, 0, true));
 
 #ifdef ORTHOG_TOPOLOGY_DEBUG
         fprintf(stderr, "Try removing sep in %c on connector %03d...",
                 (dim == XDIM) ? 'X' : 'Y', sepChoice.connRef->id());
 #endif
-        
+
         bool needsSolving = true;
         while (needsSolving)
         {
             // Solve with this constraint set.
-            vpsc::Constraints nonRedundantCs = 
+            vpsc::Constraints nonRedundantCs =
                     constraintsRemovingRedundantEqualities(vs, valid);
             vpsc::IncSolver vpscInstance(vs, nonRedundantCs);
 #ifdef ORTHOG_TOPOLOGY_DEBUG
@@ -1442,12 +1447,12 @@ static void setupOrthogonalLayoutConstraints(Router *router,
             vpscInstance.satisfy();
             needsSolving = false;
 
-            for (vpsc::Constraints::iterator it = valid.begin(); 
+            for (vpsc::Constraints::iterator it = valid.begin();
                     it != valid.end(); )
             {
                 vpsc::Constraint *constraint = *it;
-                if (constraint->unsatisfiable && 
-                    (fabs((constraint->left->finalPosition + constraint->gap) - 
+                if (constraint->unsatisfiable &&
+                    (fabs((constraint->left->finalPosition + constraint->gap) -
                           constraint->right->finalPosition) < 0.01))
                 {
                     // This is an almost satisfiable constraint.
@@ -1456,12 +1461,12 @@ static void setupOrthogonalLayoutConstraints(Router *router,
                             "(%d)%.12g + %g %s (%d)%.12g\n",
                             constraint->equality ? "Dropped redundant" :
                             "Relaxed", constraint->left->id,
-                            constraint->left->finalPosition, constraint->gap, 
-                            constraint->equality ? "==" : "<=", 
+                            constraint->left->finalPosition, constraint->gap,
+                            constraint->equality ? "==" : "<=",
                             constraint->right->id,
                             constraint->right->finalPosition);
 #endif
-    
+
                     if (constraint->equality)
                     {
                         // Drop redundant equality constraint.
@@ -1489,16 +1494,16 @@ static void setupOrthogonalLayoutConstraints(Router *router,
             if (valid[i]->unsatisfiable)
             {
 #ifdef ORTHOG_TOPOLOGY_DEBUG
-                fprintf(stderr, "Unsatisfiable: (%d)%.12g + %g %s (%d)%.12g\n", 
+                fprintf(stderr, "Unsatisfiable: (%d)%.12g + %g %s (%d)%.12g\n",
                         valid[i]->left->id,
-                        valid[i]->left->finalPosition, valid[i]->gap, 
-                        valid[i]->equality ? "==" : "<=", 
+                        valid[i]->left->finalPosition, valid[i]->gap,
+                        valid[i]->equality ? "==" : "<=",
                         valid[i]->right->id,
                         valid[i]->right->finalPosition);
 #endif
-                // It might have made one of the earlier added 
-                // constraints unsatisfiable, so we mark that one 
-                // as okay since we will be reverting the most 
+                // It might have made one of the earlier added
+                // constraints unsatisfiable, so we mark that one
+                // as okay since we will be reverting the most
                 // recent one.
                 valid[i]->unsatisfiable = false;
 
@@ -1517,7 +1522,7 @@ static void setupOrthogonalLayoutConstraints(Router *router,
                 vs[i]->finalPosition = priorPos[i];
             }
 
-            // Delete the newly added (and unsatisfiable) 
+            // Delete the newly added (and unsatisfiable)
             // constraint from the valid constraint set.
             delete valid.back();
             valid.pop_back();
@@ -1530,10 +1535,10 @@ static void setupOrthogonalLayoutConstraints(Router *router,
             for (unsigned i = 0; i < ovn; i++)
             {
                 LayoutObstacle& obstacle = obstacleVector[i];
-                
+
                 obstacle.updatePositionsFromSolver();
             }
-            for (LayoutEdgeSegmentList::iterator curr = segmentList.begin(); 
+            for (LayoutEdgeSegmentList::iterator curr = segmentList.begin();
                     curr != segmentList.end(); ++curr)
             {
                 (*curr)->updatePositionsFromSolver();
@@ -1544,9 +1549,9 @@ static void setupOrthogonalLayoutConstraints(Router *router,
                 curr->updatePosition(obstacleVector);
             }
 #ifdef ORTHOG_TOPOLOGY_DEBUG
-            char filename[200];
-            sprintf(filename, "layout-%d-%03d", (int) dim, count);
-            router->outputDiagramSVG(filename, lineReps);
+            std::stringstream filename;
+            filename << "layout-" << dim << "-" << std::setfill('0') << std::setw(3) << count;
+            router->outputDiagramSVG(filename.str().c_str(), lineReps);
 #endif
             ++count;
         }
@@ -1571,8 +1576,8 @@ static void setupOrthogonalLayoutConstraints(Router *router,
 static void simplifyOrthogonalRoutes(Router *router)
 {
     // Simplify routes.
-    for (ConnRefList::const_iterator curr = router->connRefs.begin(); 
-            curr != router->connRefs.end(); ++curr) 
+    for (ConnRefList::const_iterator curr = router->connRefs.begin();
+            curr != router->connRefs.end(); ++curr)
     {
         if ((*curr)->routingType() != ConnType_Orthogonal)
         {
@@ -1585,7 +1590,7 @@ static void simplifyOrthogonalRoutes(Router *router)
 typedef std::vector<ConnRef *> ConnRefVector;
 typedef std::vector<Polygon> RouteVector;
 
-class CmpLineOrder 
+class CmpLineOrder
 {
     public:
         CmpLineOrder(PtOrderMap& ord, const size_t dim)
@@ -1593,30 +1598,30 @@ class CmpLineOrder
               dimension(dim)
         {
         }
-        bool operator()(const ShiftSegment *lhsSuper, 
+        bool operator()(const ShiftSegment *lhsSuper,
                 const ShiftSegment *rhsSuper,
                 bool *comparable = nullptr) const
         {
-            const LayoutEdgeSegment *lhs = 
+            const LayoutEdgeSegment *lhs =
                     dynamic_cast<const LayoutEdgeSegment *> (lhsSuper);
-            const LayoutEdgeSegment *rhs = 
+            const LayoutEdgeSegment *rhs =
                     dynamic_cast<const LayoutEdgeSegment *> (rhsSuper);
             if (comparable)
             {
                 *comparable = true;
             }
-            Point lhsLow  = lhs->lowPoint(); 
-            Point rhsLow  = rhs->lowPoint(); 
+            Point lhsLow  = lhs->lowPoint();
+            Point rhsLow  = rhs->lowPoint();
             size_t altDim = (dimension + 1) % 2;
 #ifndef NDEBUG
-            const Point& lhsHigh = lhs->highPoint(); 
-            const Point& rhsHigh = rhs->highPoint(); 
+            const Point& lhsHigh = lhs->highPoint();
+            const Point& rhsHigh = rhs->highPoint();
             COLA_ASSERT(lhsLow[dimension] == lhsHigh[dimension]);
             COLA_ASSERT(rhsLow[dimension] == rhsHigh[dimension]);
 #endif
 
-            // We consider things at effectively the same position to 
-            // be ordered based on their order and fixedOrder, so only 
+            // We consider things at effectively the same position to
+            // be ordered based on their order and fixedOrder, so only
             // compare segments further apart than the nudgeDistance.
             if (lhsLow[dimension] != rhsLow[dimension])
             {
@@ -1624,7 +1629,7 @@ class CmpLineOrder
             }
 
             // If one of these is fixed, then determine order based on
-            // fixed segment, that is, order so the fixed segment doesn't 
+            // fixed segment, that is, order so the fixed segment doesn't
             // block movement.
             bool oneIsFixed = false;
             const int lhsFixedOrder = lhs->fixedOrder(oneIsFixed);
@@ -1634,8 +1639,8 @@ class CmpLineOrder
                 return lhsFixedOrder < rhsFixedOrder;
             }
 
-            // C-bends that did not have a clear order with s-bends might 
-            // not have a good ordering here, so compare their order in 
+            // C-bends that did not have a clear order with s-bends might
+            // not have a good ordering here, so compare their order in
             // terms of C-bend direction and S-bends and use that if it
             // differs for the two segments.
             const int lhsOrder = lhs->order();
@@ -1644,7 +1649,7 @@ class CmpLineOrder
             {
                 return lhsOrder < rhsOrder;
             }
-            
+
             // Need to index using the original point into the map, so find it.
             Point& unchanged = (lhsLow[altDim] > rhsLow[altDim]) ?
                     lhsLow : rhsLow;
@@ -1656,7 +1661,7 @@ class CmpLineOrder
             {
                 // A value for rhsPos or lhsPos mean the points are not directly
                 // comparable, meaning they are at the same position but cannot
-                // overlap (they are just collinear.  The relative order for 
+                // overlap (they are just collinear.  The relative order for
                 // these segments is not important since we do not constrain
                 // them against each other.
                 //COLA_ASSERT(lhs->overlapsWith(rhs, dimension) == false);
@@ -1717,7 +1722,7 @@ void AvoidTopologyAddon::improveOrthogonalTopology(Router *router)
         setupOrthogonalLayoutConstraints(router, dimension, segmentList,
                 obstacleVector, extraTerminalsList, m_constraints, m_id_map,
                 m_cluster_hierarchy, m_rectangles, &lineReps, m_move_limit);
-        
+
         simplifyOrthogonalRoutes(router);
     }
 
@@ -1739,8 +1744,8 @@ bool AvoidTopologyAddon::outputCode(FILE *fp) const
                    m_rectangles[i]->getMinY(), m_rectangles[i]->getMaxY());
             fprintf(fp, "    rs.push_back(rect);\n\n");
         }
-    
-        for (cola::CompoundConstraints::const_iterator c = 
+
+        for (cola::CompoundConstraints::const_iterator c =
                 m_constraints.begin(); c != m_constraints.end(); ++c)
         {
             (*c)->printCreationCode(fp);
@@ -1759,7 +1764,7 @@ bool AvoidTopologyAddon::outputCode(FILE *fp) const
         m_id_map.printCreationCode(fp);
 
         fprintf(fp, "    topology::AvoidTopologyAddon topologyAddon(rs, ccs, "
-                "cluster%llu, idMap);\n", 
+                "cluster%llu, idMap);\n",
                 (unsigned long long) m_cluster_hierarchy);
         fprintf(fp, "    router->setTopologyAddon(&topologyAddon);\n");
     }

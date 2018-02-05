@@ -1,7 +1,7 @@
 /*
  * vim: ts=4 sw=4 et tw=0 wm=0
  *
- * libcola - A library providing force-directed network layout using the 
+ * libcola - A library providing force-directed network layout using the
  *           stress-majorization method subject to separation constraints.
  *
  * Copyright (C) 2006-2008  Monash University
@@ -17,8 +17,8 @@
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
- * License along with this library in the file LICENSE; if not, 
- * write to the Free Software Foundation, Inc., 59 Temple Place, 
+ * License along with this library in the file LICENSE; if not,
+ * write to the Free Software Foundation, Inc., 59 Temple Place,
  * Suite 330, Boston, MA  02111-1307  USA
  *
 */
@@ -29,6 +29,8 @@
 #include <time.h>
 #include <valarray>
 #include <fstream>
+#include <sstream>
+
 #include <libavoid/libavoid.h>
 #include <libavoid/router.h>
 
@@ -75,7 +77,7 @@ static const unsigned BRANCHFACTOR = 4;
 static const double EXTRAEDGEPROB = 0.002;
 */
 
-void makeEdge(unsigned u, unsigned v, 
+void makeEdge(unsigned u, unsigned v,
         vector<Edge> &edges, CompoundConstraints &ccs) {
     edges.push_back(make_pair(u,v));
     ccs.push_back(new SeparationConstraint(vpsc::YDIM, u,v,5));
@@ -183,7 +185,7 @@ void removeoverlaps(vpsc::Rectangles &rs, bool bothaxes) {
     Rectangle::setYBorder(yBorder);
 }
 /*
-void writeTextFile(vector<cola::Edge>& edges) {  
+void writeTextFile(vector<cola::Edge>& edges) {
     ofstream outfile("new.txt",ofstream::binary);
     for(vector<cola::Edge>::iterator e=edges.begin();e!=edges.end();++e) {
         outfile<<"node"<<e->first<<",node"<<e->second<<endl;
@@ -245,7 +247,7 @@ void makeFeasible(vpsc::Rectangles& rs, vector<cola::Edge>& edges,
         router->processTransaction();
         const Avoid::Polygon& route = connRef->route();
         vector<topology::EdgePoint*> eps;
-        eps.push_back( new topology::EdgePoint( topologyNodes[e.first], 
+        eps.push_back( new topology::EdgePoint( topologyNodes[e.first],
                     topology::EdgePoint::CENTRE));
         for(size_t j=1;j+1<route.size();j++) {
             const Avoid::Point& p = route.ps[j];
@@ -253,13 +255,13 @@ void makeFeasible(vpsc::Rectangles& rs, vector<cola::Edge>& edges,
             topology::Node* node=topologyNodes[nodeID];
             topology::EdgePoint::RectIntersect ri;
             switch(p.vn) {
-                case 0: ri=topology::EdgePoint::BR; 
+                case 0: ri=topology::EdgePoint::BR;
                         break;
-                case 1: ri=topology::EdgePoint::TR; 
+                case 1: ri=topology::EdgePoint::TR;
                         break;
                 case 2: ri=topology::EdgePoint::TL;
                         break;
-                case 3: ri=topology::EdgePoint::BL; 
+                case 3: ri=topology::EdgePoint::BL;
                         break;
                 default: ri=topology::EdgePoint::CENTRE;
             }
@@ -329,7 +331,7 @@ int main() {
 
     alg2.makeFeasible(true);
     alg2.run();
-    
+
     alg2.outputInstanceToSVG();
 #if 0
     double totaltime=0;
@@ -345,10 +347,10 @@ int main() {
     test.reset();
     alg2.setTopology(&topologyNodes, &routes);
     writeFile(topologyNodes,routes,"beautify1.svg");
-    char dunnartfile[50];
-    sprintf(dunnartfile, "v%de%d.svg", V, (int) es.size());
-    writeDunnartFile(topologyNodes,es,dunnartfile);
-    
+    std::stringstream dunnartfile;
+    dunnartfile << "v" << V << "e" << (int) es.size() << ".svg";
+    writeDunnartFile(topologyNodes,es,dunnartfile.str().c_str());
+
 	alg2.run();
     double beautifytime=double(clock()-beautifystarttime)/double(CLOCKS_PER_SEC);
     totaltime+=beautifytime;

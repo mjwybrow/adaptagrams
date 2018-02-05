@@ -1,7 +1,7 @@
 /*
  * vim: ts=4 sw=4 et tw=0 wm=0
  *
- * libcola - A library providing force-directed network layout using the 
+ * libcola - A library providing force-directed network layout using the
  *           stress-majorization method subject to separation constraints.
  *
  * Copyright (C) 2006-2008  Monash University
@@ -23,7 +23,7 @@ Logging code from DJJ article: http://www.ddj.com/cpp/201804215.
 
 Title: Logging In C++
 Author: Petru Marginean
-Keywords: OCT07   C++  
+Keywords: OCT07   C++
 Description: Unpublished source code accompanying the article by Petru Marginean, in which he presents a C++ logging framework that is typesafe, thread-safe, and portable.
  */
 #ifndef __COLA_LOG_H__
@@ -32,6 +32,7 @@ Description: Unpublished source code accompanying the article by Petru Marginean
 #include <sstream>
 #include <string>
 #include <cstdio>
+#include <iomanip>
 
 namespace cola {
 inline std::string NowTime();
@@ -128,7 +129,7 @@ inline FILE*& Output2FILE::Stream()
 }
 
 inline void Output2FILE::Output(const std::string& msg)
-{   
+{
     FILE* pStream = Stream();
     if (!pStream)
         return;
@@ -168,14 +169,14 @@ inline std::string NowTime()
 {
     const int MAX_LEN = 200;
     char buffer[MAX_LEN];
-    if (GetTimeFormatA(LOCALE_USER_DEFAULT, 0, 0, 
+    if (GetTimeFormatA(LOCALE_USER_DEFAULT, 0, 0,
             "HH':'mm':'ss", buffer, MAX_LEN) == 0)
         return "Error in NowTime()";
 
-    char result[100] = {0};
     static DWORD first = GetTickCount();
-    std::sprintf(result, "%s.%03ld", buffer, (long)(GetTickCount() - first) % 1000); 
-    return result;
+    std::stringstream result;
+    result << buffer << "." << std::setfill('0') << std::setw(3) << ((long)(GetTickCount() - first) % 1000);
+    return result.str();
 }
 
 #else
@@ -191,9 +192,9 @@ inline std::string NowTime()
     strftime(buffer, sizeof(buffer), "%X", localtime_r(&t, &r));
     struct timeval tv;
     gettimeofday(&tv, 0);
-    char result[100] = {0};
-    std::sprintf(result, "%s.%03ld", buffer, (long)tv.tv_usec / 1000); 
-    return result;
+    std::stringstream result;
+    result << buffer << "." << std::setfill('0') << std::setw(3) << ((long)tv.tv_usec / 1000);
+    return result.str();
 }
 
 #endif //WIN32

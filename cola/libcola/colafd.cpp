@@ -1,7 +1,7 @@
 /*
  * vim: ts=4 sw=4 et tw=0 wm=0
  *
- * libcola - A library providing force-directed network layout using the 
+ * libcola - A library providing force-directed network layout using the
  *           stress-majorization method subject to separation constraints.
  *
  * Copyright (C) 2006-2015  Monash University
@@ -14,7 +14,7 @@
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  *
  * Author(s):  Tim Dwyer
  *             Michael Wybrow
@@ -65,7 +65,7 @@ inline double dotProd(valarray<double> x, valarray<double> y) {
     COLA_ASSERT(x.size()==y.size());
     double dp=0;
     for(unsigned i=0;i<x.size();i++) {
-        dp+=x[i]*y[i]; 
+        dp+=x[i]*y[i];
     }
     return dp;
 }
@@ -132,7 +132,7 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
     computePathLengths(es,m_edge_lengths);
 }
 
-void dijkstra(const unsigned s, const unsigned n, double* d, 
+void dijkstra(const unsigned s, const unsigned n, double* d,
         const vector<Edge>& es, const std::valarray<double> & eLengths)
 {
     shortest_paths::dijkstra(s,n,d,es,eLengths);
@@ -160,10 +160,10 @@ void ConstrainedFDLayout::setDesiredPositions(DesiredPositions *desiredPositions
 /*
  * Sets up the D and G matrices.  D is the required euclidean distances
  * between pairs of nodes based on the shortest paths between them (using
- * m_idealEdgeLength*eLengths[edge] as the edge length, if eLengths array 
- * is provided otherwise just m_idealEdgeLength).  G is a matrix of 
+ * m_idealEdgeLength*eLengths[edge] as the edge length, if eLengths array
+ * is provided otherwise just m_idealEdgeLength).  G is a matrix of
  * unsigned ints such that G[u][v]=
- *   0 if there are no forces required between u and v 
+ *   0 if there are no forces required between u and v
  *     (for example, if u and v are in unconnected components)
  *   1 if attractive forces are required between u and v
  *     (i.e. if u and v are immediately connected by an edge and there is
@@ -173,7 +173,7 @@ void ConstrainedFDLayout::setDesiredPositions(DesiredPositions *desiredPositions
  *     a connected path between them.
  */
 void ConstrainedFDLayout::computePathLengths(
-        const vector<Edge>& es, std::valarray<double> eLengths) 
+        const vector<Edge>& es, std::valarray<double> eLengths)
 {
     // Correct zero or negative entries in eLengths array.
     for (size_t i = 0; i < eLengths.size(); ++i)
@@ -209,7 +209,7 @@ void ConstrainedFDLayout::computePathLengths(
     if (minD == DBL_MAX) minD = 1;
 
     for(vector<Edge>::const_iterator e=es.begin();e!=es.end();++e) {
-        unsigned u=e->first, v=e->second; 
+        unsigned u=e->first, v=e->second;
         G[u][v]=G[v][u]=1;
     }
     topologyAddon->computePathLengths(G);
@@ -258,10 +258,10 @@ void ConstrainedFDLayout::computeDescentVectorOnBothAxes(
 /*
  * run() implements the main layout loop, taking descent steps until
  * stress is no-longer significantly reduced.
- * done is a callback used to check stress but also to report updated 
+ * done is a callback used to check stress but also to report updated
  * positions.
  */
-void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis) 
+void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis)
 {
     // This generates constraints for non-overlap inside and outside
     // of clusters.  To assign correct variable indexes it requires
@@ -312,7 +312,7 @@ void ConstrainedFDLayout::run(const bool xAxis, const bool yAxis)
     FILE_LOG(logDEBUG) << *r;
     }
     FILE_LOG(logDEBUG) << "ConstrainedFDLayout::run done.";
-    
+
     // Clear extra constraints.
     for_each(extraConstraints.begin(), extraConstraints.end(), delete_object());
     extraConstraints.clear();
@@ -353,8 +353,8 @@ void ConstrainedFDLayout::runOnce(const bool xAxis, const bool yAxis) {
 }
 
 
-// Used for sorting the CompoundConstraints from lowest priority to highest. 
-static bool cmpCompoundConstraintPriority(const cola::CompoundConstraint *lhs, 
+// Used for sorting the CompoundConstraints from lowest priority to highest.
+static bool cmpCompoundConstraintPriority(const cola::CompoundConstraint *lhs,
         const cola::CompoundConstraint *rhs)
 {
     return lhs->priority() < rhs->priority();
@@ -362,52 +362,52 @@ static bool cmpCompoundConstraintPriority(const cola::CompoundConstraint *lhs,
 
 
 void ConstrainedFDLayout::recGenerateClusterVariablesAndConstraints(
-        vpsc::Variables (&vars)[2], unsigned int& priority, 
-        cola::NonOverlapConstraints *noc, Cluster *cluster, 
+        vpsc::Variables (&vars)[2], unsigned int& priority,
+        cola::NonOverlapConstraints *noc, Cluster *cluster,
         cola::CompoundConstraints& idleConstraints)
 {
     for (std::vector<Cluster*>::iterator curr = cluster->clusters.begin();
             curr != cluster->clusters.end(); ++curr)
     {
         // For each of the child clusters, recursively call this function.
-        recGenerateClusterVariablesAndConstraints(vars, priority, 
+        recGenerateClusterVariablesAndConstraints(vars, priority,
                 noc, *curr, idleConstraints);
     }
 
     if ( (noc == nullptr) && (dynamic_cast<RootCluster *> (cluster) == nullptr) )
     {
         double freeWeight = 0.00000000001;
-        // Then create left and right variables for the boundary of this 
+        // Then create left and right variables for the boundary of this
         // cluster.
         vpsc::Variable *variable = nullptr;
         cluster->clusterVarId = vars[XDIM].size();
         COLA_ASSERT(vars[XDIM].size() == vars[YDIM].size());
         // Left:
-        variable = new vpsc::Variable(vars[XDIM].size(), 
+        variable = new vpsc::Variable(vars[XDIM].size(),
                 cluster->bounds.getMinX(), freeWeight);
         vars[XDIM].push_back(variable);
         // Right:
-        variable = new vpsc::Variable(vars[XDIM].size(), 
+        variable = new vpsc::Variable(vars[XDIM].size(),
                 cluster->bounds.getMaxX(), freeWeight);
         vars[XDIM].push_back(variable);
         // Bottom::
-        variable = new vpsc::Variable(vars[YDIM].size(), 
+        variable = new vpsc::Variable(vars[YDIM].size(),
                 cluster->bounds.getMinY(), freeWeight);
         vars[YDIM].push_back(variable);
         // Top:
-        variable = new vpsc::Variable(vars[YDIM].size(), 
+        variable = new vpsc::Variable(vars[YDIM].size(),
                 cluster->bounds.getMaxY(), freeWeight);
         vars[YDIM].push_back(variable);
 
         RectangularCluster *rc = dynamic_cast<RectangularCluster *> (cluster);
         if (rc)
         {
-            rc->generateFixedRectangleConstraints(idleConstraints, 
+            rc->generateFixedRectangleConstraints(idleConstraints,
                     boundingBoxes, vars);
         }
 
         priority--;
-        cola::ClusterContainmentConstraints *ccc = 
+        cola::ClusterContainmentConstraints *ccc =
                 new cola::ClusterContainmentConstraints(cluster, priority,
                         boundingBoxes);
         idleConstraints.push_back(ccc);
@@ -415,13 +415,13 @@ void ConstrainedFDLayout::recGenerateClusterVariablesAndConstraints(
 
     if (noc)
     {
-        // Enforce non-overlap between all the shapes and clusters at this 
+        // Enforce non-overlap between all the shapes and clusters at this
         // level.
         //printf("Cluster #%d non-overlap constraints - nodes %d clusters %d\n",
-        //        (int) cluster->clusterVarId, (int) cluster->nodes.size(), 
+        //        (int) cluster->clusterVarId, (int) cluster->nodes.size(),
         //        (int) cluster->clusters.size());
         unsigned int group = cluster->clusterVarId;
-        // The set of clusters to put non-overlap constraints between is the 
+        // The set of clusters to put non-overlap constraints between is the
         // child clusters of this cluster.  We will also add any overlapping
         // clusters (due to multiple inheritence) to this set.
         std::set<Cluster *> expandedClusterSet(cluster->clusters.begin(),
@@ -433,13 +433,13 @@ void ConstrainedFDLayout::recGenerateClusterVariablesAndConstraints(
 
             if (cluster->m_overlap_replacement_map.count(id) > 0)
             {
-                // This shape is child of another cluster also, so replace 
+                // This shape is child of another cluster also, so replace
                 // this node with the other cluster for the purpose of
                 // non-overlap with other children of the current cluster.
                 expandedClusterSet.insert(
                         cluster->m_overlap_replacement_map[id]);
             }
-            // Normal case: Add shape for generation of non-overlap 
+            // Normal case: Add shape for generation of non-overlap
             // constraints.
             noc->addShape(id, boundingBoxes[id]->width() / 2,
                     boundingBoxes[id]->height() / 2, group);
@@ -448,7 +448,7 @@ void ConstrainedFDLayout::recGenerateClusterVariablesAndConstraints(
                 curr != expandedClusterSet.end(); ++curr)
         {
             Cluster *cluster = *curr;
-            RectangularCluster *rectCluster = 
+            RectangularCluster *rectCluster =
                     dynamic_cast<RectangularCluster *> (cluster);
             if (rectCluster && rectCluster->clusterIsFromFixedRectangle())
             {
@@ -464,11 +464,11 @@ void ConstrainedFDLayout::recGenerateClusterVariablesAndConstraints(
             }
         }
 
-        // For the set of shapes that have been replaced due to multiple 
+        // For the set of shapes that have been replaced due to multiple
         // inheritance, still generate overlap constraints between them.
-        // (The group uses the ID of the right side variable of the cluster 
+        // (The group uses the ID of the right side variable of the cluster
         // so it is not the same group as the cluster itself.)
-        for (std::set<unsigned>::iterator curr = 
+        for (std::set<unsigned>::iterator curr =
                 cluster->m_nodes_replaced_with_clusters.begin();
                 curr != cluster->m_nodes_replaced_with_clusters.end(); ++curr)
         {
@@ -499,7 +499,7 @@ void ConstrainedFDLayout::generateNonOverlapAndClusterCompoundConstraints(
                 fprintf(stderr, "Warning: node %u is contained in %d "
                         "clusters.\n", i, count);
             }
-            
+
             if (count == 0)
             {
                 // Not present in hierarchy, so add to root cluster.
@@ -511,25 +511,25 @@ void ConstrainedFDLayout::generateNonOverlapAndClusterCompoundConstraints(
         // and nodes.
         unsigned int priority = PRIORITY_NONOVERLAP;
         clusterHierarchy->computeBoundingRect(boundingBoxes);
-        
+
         // Generate the containment constraints
-        recGenerateClusterVariablesAndConstraints(vs, priority, 
+        recGenerateClusterVariablesAndConstraints(vs, priority,
                 nullptr, clusterHierarchy, extraConstraints);
-        
+
         // Compute overlapping clusters.
         clusterHierarchy->calculateClusterPathsToEachNode(boundingBoxes.size());
 
-        // Generate non-overlap constraints between all clusters and 
+        // Generate non-overlap constraints between all clusters and
         // all contained nodes.
         if (m_generateNonOverlapConstraints)
         {
             priority--;
-            cola::NonOverlapConstraints *noc = 
+            cola::NonOverlapConstraints *noc =
                     new cola::NonOverlapConstraints(m_nonoverlap_exemptions,
                             priority);
             noc->setClusterClusterExemptions(
                     clusterHierarchy->m_cluster_cluster_overlap_exceptions);
-            recGenerateClusterVariablesAndConstraints(vs, priority, 
+            recGenerateClusterVariablesAndConstraints(vs, priority,
                     noc, clusterHierarchy, extraConstraints);
             extraConstraints.push_back(noc);
         }
@@ -538,7 +538,7 @@ void ConstrainedFDLayout::generateNonOverlapAndClusterCompoundConstraints(
     {
         // Add standard non-overlap constraints between each pair of
         // nodes.
-        cola::NonOverlapConstraints *noc = 
+        cola::NonOverlapConstraints *noc =
                 new cola::NonOverlapConstraints(m_nonoverlap_exemptions);
         for (unsigned int i = 0; i < boundingBoxes.size(); ++i)
         {
@@ -556,15 +556,15 @@ void ConstrainedFDLayout::makeFeasible(void)
 
     vpsc::Rectangle::setXBorder(1);
     vpsc::Rectangle::setYBorder(1);
-    
+
     // Populate all the variables for shapes.
     for (unsigned int dim = 0; dim < 2; ++dim)
     {
         vs[dim] = vpsc::Variables(boundingBoxes.size());
         for (unsigned int i = 0; i < vs[dim].size(); ++i)
         {
-            double pos = (dim == 0) ? 
-                    boundingBoxes[i]->getCentreX() : 
+            double pos = (dim == 0) ?
+                    boundingBoxes[i]->getCentreX() :
                     boundingBoxes[i]->getCentreY();
             vs[dim][i] = new vpsc::Variable(i, pos, 1);
         }
@@ -577,10 +577,10 @@ void ConstrainedFDLayout::makeFeasible(void)
     // Make a copy of the compound constraints and sort them by priority.
     cola::CompoundConstraints idleConstraints = ccs;
     // Append extraConstraints to idleConstraints.
-    idleConstraints.insert(idleConstraints.end(), 
+    idleConstraints.insert(idleConstraints.end(),
             extraConstraints.begin(), extraConstraints.end());
 
-    std::sort(idleConstraints.begin(), idleConstraints.end(), 
+    std::sort(idleConstraints.begin(), idleConstraints.end(),
             cmpCompoundConstraintPriority);
 
     // Initialise extra variables for compound constraints.
@@ -590,7 +590,6 @@ void ConstrainedFDLayout::makeFeasible(void)
     }
 
 #ifdef MAKEFEASIBLE_DEBUG
-    char filename[200];
     int iteration = 0;
     vector<string> labels(boundingBoxes.size());
     for(unsigned i=0;i<boundingBoxes.size();++i)
@@ -609,47 +608,50 @@ void ConstrainedFDLayout::makeFeasible(void)
     // Main makeFeasible loop.
     while (!idleConstraints.empty())
     {
-        // idleConstraints is sorted lowest to highest priority, so the 
+        // idleConstraints is sorted lowest to highest priority, so the
         // highest priority constraint will be at the back of the vector.
         cola::CompoundConstraint *cc = idleConstraints.back();
         idleConstraints.pop_back();
 
 #ifdef MAKEFEASIBLE_DEBUG
-        // Debugging SVG time slice output.
-        std::vector<cola::Edge> es;
-        for (unsigned int i = 0; i < boundingBoxes.size(); ++i)
         {
-            boundingBoxes[i]->moveCentreX(vs[0][i]->finalPosition);
-            boundingBoxes[i]->moveCentreY(vs[1][i]->finalPosition);
-        }
-        iteration++;
-        sprintf(filename, "out/file-%05d.pdf", iteration);
+            // Debugging SVG time slice output.
+            std::vector<cola::Edge> es;
+            for (unsigned int i = 0; i < boundingBoxes.size(); ++i)
+            {
+                boundingBoxes[i]->moveCentreX(vs[0][i]->finalPosition);
+                boundingBoxes[i]->moveCentreY(vs[1][i]->finalPosition);
+            }
+            iteration++;
+            std::sstream filename;
+            filename << "out/file-" << std::setfill('0') << std::setw(5) << iteration << ".pdf";
 
-        OutputFile of(boundingBoxes,es,clusterHierarchy,filename,true,false);
-        of.setLabels(labels);
-        of.generate();
+            OutputFile of(boundingBoxes,es,clusterHierarchy,filename.str().c_str(),true,false);
+            of.setLabels(labels);
+            of.generate();
+        }
 #endif
 
         cc->markAllSubConstraintsAsInactive();
         bool subConstraintSatisfiable = true;
-        
+
         if (cc->shouldCombineSubConstraints())
         {
             // We are processing a combined set of satisfiable constraints,
             // such as for containment within cluster boundary variables, so
             // we just add all the required constraints and solve in both
-            // the X and Y dimension once to set the cluster boundaries to 
+            // the X and Y dimension once to set the cluster boundaries to
             // meaningful values.
             while (cc->subConstraintsRemaining())
             {
-                cola::SubConstraintAlternatives alternatives = 
+                cola::SubConstraintAlternatives alternatives =
                         cc->getCurrSubConstraintAlternatives(vs);
                 // There should be no alternatives, just guaranteed
                 // satisfiable constraints.
                 COLA_ASSERT(alternatives.size() == 1);
                 vpsc::Dim& dim = alternatives.front().dim;
                 vpsc::Constraint& constraint = alternatives.front().constraint;
-                vpsc::Constraint *newConstraint = 
+                vpsc::Constraint *newConstraint =
                         new vpsc::Constraint(constraint);
                 valid[dim].push_back(newConstraint);
                 if (solver[dim])
@@ -675,7 +677,7 @@ void ConstrainedFDLayout::makeFeasible(void)
 
         while (cc->subConstraintsRemaining())
         {
-            cola::SubConstraintAlternatives alternatives = 
+            cola::SubConstraintAlternatives alternatives =
                     cc->getCurrSubConstraintAlternatives(vs);
             alternatives.sort();
 
@@ -691,7 +693,7 @@ void ConstrainedFDLayout::makeFeasible(void)
 
                 vpsc::Dim& dim = alternatives.front().dim;
                 vpsc::Constraint& constraint = alternatives.front().constraint;
-            
+
                 // Store current values for variables.
                 for (unsigned int i = 0; i < priorPos.size(); ++i)
                 {
@@ -699,16 +701,16 @@ void ConstrainedFDLayout::makeFeasible(void)
                 }
 
                 // Some solving...
-                try 
+                try
                 {
-                    // Add the constraint from this alternative to the 
+                    // Add the constraint from this alternative to the
                     // valid constraint set.
-                    vpsc::Constraint *newConstraint = 
+                    vpsc::Constraint *newConstraint =
                             new vpsc::Constraint(constraint);
                     valid[dim].push_back(newConstraint);
 
                     //fprintf(stderr, ".%d %3d - ", dim, valid[dim].size());
-                    
+
                     // Try to satisfy this set of constraints..
                     if (solver[dim] == nullptr)
                     {
@@ -722,35 +724,35 @@ void ConstrainedFDLayout::makeFeasible(void)
                     }
                     solver[dim]->satisfy();
                 }
-                catch (char *str) 
+                catch (char *str)
                 {
                     subConstraintSatisfiable = false;
-                    
+
                     std::cerr << "++++ IN ERROR BLOCK" << std::endl;
                     std::cerr << str << std::endl;
-                    for (vpsc::Rectangles::iterator r = boundingBoxes.begin(); 
-                            r != boundingBoxes.end(); ++r) 
+                    for (vpsc::Rectangles::iterator r = boundingBoxes.begin();
+                            r != boundingBoxes.end(); ++r)
                     {
                         std::cerr << **r <<std::endl;
                     }
                 }
-                for (size_t i = 0; i < valid[dim].size(); ++i) 
+                for (size_t i = 0; i < valid[dim].size(); ++i)
                 {
-                    if (valid[dim][i]->unsatisfiable) 
+                    if (valid[dim][i]->unsatisfiable)
                     {
-                        // It might have made one of the earlier added 
-                        // constraints unsatisfiable, so we mark that one 
-                        // as okay since we will be reverting the most 
+                        // It might have made one of the earlier added
+                        // constraints unsatisfiable, so we mark that one
+                        // as okay since we will be reverting the most
                         // recent one.
                         valid[dim][i]->unsatisfiable = false;
-                        
+
                         subConstraintSatisfiable = false;
                     }
                 }
 
                 if (!subConstraintSatisfiable)
                 {
-                    // Since we had unsatisfiable constraints we must 
+                    // Since we had unsatisfiable constraints we must
                     // discard this solver instance.
                     delete solver[dim];
                     solver[dim] = nullptr;
@@ -760,8 +762,8 @@ void ConstrainedFDLayout::makeFeasible(void)
                     {
                         vs[dim][i]->finalPosition = priorPos[i];
                     }
-                    
-                    // Delete the newly added (and unsatisfiable) 
+
+                    // Delete the newly added (and unsatisfiable)
                     // constraint from the valid constraint set.
                     delete valid[dim].back();
                     valid[dim].pop_back();
@@ -786,9 +788,10 @@ void ConstrainedFDLayout::makeFeasible(void)
                     boundingBoxes[i]->moveCentreY(vs[1][i]->finalPosition);
                 }
                 iteration++;
-                sprintf(filename, "out/file-%05d.pdf", iteration);
+                std::sstream filename;
+                filename << "out/file-" << std::setfill('0') << std::setw(5) << iteration << ".pdf";
 
-                OutputFile of(boundingBoxes,es,clusterHierarchy,filename,
+                OutputFile of(boundingBoxes,es,clusterHierarchy,filename.str().c_str(),
                         true,false);
                 of.setLabels(labels);
                 of.generate();
@@ -827,14 +830,14 @@ void ConstrainedFDLayout::makeFeasible(void)
 
     topologyAddon->makeFeasible(m_generateNonOverlapConstraints,
             boundingBoxes, clusterHierarchy);
-    
+
     // Update the X and Y vectors with the new shape positions.
     for (unsigned int i = 0; i < boundingBoxes.size(); ++i)
     {
         X[i] = boundingBoxes[i]->getCentreX();
         Y[i] = boundingBoxes[i]->getCentreY();
     }
-    
+
     // Clear extra constraints for cluster containment and non-overlap.
     for_each(extraConstraints.begin(), extraConstraints.end(), delete_object());
     extraConstraints.clear();
@@ -863,7 +866,7 @@ void ConstrainedFDLayout::freeAssociatedObjects(void)
     // Free Rectangles
     for_each(boundingBoxes.begin(), boundingBoxes.end(), delete_object());
     boundingBoxes.clear();
-    
+
     // Free compound constraints
     std::list<CompoundConstraint *> freeList(ccs.begin(), ccs.end());
     freeList.sort();
@@ -882,7 +885,7 @@ void ConstrainedFDLayout::freeAssociatedObjects(void)
         delete clusterHierarchy;
         clusterHierarchy = nullptr;
     }
-    
+
     topologyAddon->freeAssociatedObjects();
 }
 
@@ -902,8 +905,8 @@ TopologyAddonInterface *ConstrainedFDLayout::getTopology(void)
 void setupVarsAndConstraints(unsigned n, const CompoundConstraints& ccs,
         const vpsc::Dim dim, vpsc::Rectangles& boundingBoxes,
         RootCluster *clusterHierarchy,
-        vpsc::Variables& vs, vpsc::Constraints& cs, 
-        valarray<double> &coords) 
+        vpsc::Variables& vs, vpsc::Constraints& cs,
+        valarray<double> &coords)
 {
     vs.resize(n);
     for (unsigned i = 0; i < n; ++i)
@@ -919,12 +922,12 @@ void setupVarsAndConstraints(unsigned n, const CompoundConstraints& ccs,
     }
 
     for (CompoundConstraints::const_iterator c = ccs.begin();
-            c != ccs.end(); ++c) 
+            c != ccs.end(); ++c)
     {
         (*c)->generateVariables(dim, vs);
     }
     for (CompoundConstraints::const_iterator c = ccs.begin();
-            c != ccs.end(); ++c) 
+            c != ccs.end(); ++c)
     {
         (*c)->generateSeparationConstraints(dim, vs, cs, boundingBoxes);
     }
@@ -936,22 +939,22 @@ static void setupExtraConstraints(const CompoundConstraints& ccs,
         vpsc::Rectangles& boundingBoxes)
 {
     for (CompoundConstraints::const_iterator c = ccs.begin();
-            c != ccs.end(); ++c) 
+            c != ccs.end(); ++c)
     {
         (*c)->generateVariables(dim, vs);
     }
     for (CompoundConstraints::const_iterator c = ccs.begin();
-            c != ccs.end(); ++c) 
+            c != ccs.end(); ++c)
     {
         (*c)->generateSeparationConstraints(dim, vs, cs, boundingBoxes);
     }
 }
 
 void updateCompoundConstraints(const vpsc::Dim dim,
-        const CompoundConstraints& ccs) 
+        const CompoundConstraints& ccs)
 {
     for (CompoundConstraints::const_iterator c = ccs.begin();
-            c != ccs.end(); ++c) 
+            c != ccs.end(); ++c)
     {
         (*c)->updatePosition(dim);
     }
@@ -984,7 +987,7 @@ void setVariableDesiredPositions(vpsc::Variables& vs, vpsc::Constraints& cs,
         v->weight=10000;
     }
 }
-void checkUnsatisfiable(const vpsc::Constraints& cs, 
+void checkUnsatisfiable(const vpsc::Constraints& cs,
         UnsatisfiableConstraintInfos* unsatisfiable) {
     for(vpsc::Constraints::const_iterator c=cs.begin();c!=cs.end();++c) {
         if((*c)->unsatisfiable) {
@@ -1067,7 +1070,7 @@ double ConstrainedFDLayout::applyForcesAndConstraints(const vpsc::Dim dim, const
 
     if (topologyAddon->useTopologySolver())
     {
-        stress = topologyAddon->applyForcesAndConstraints(this, dim, g, vs, cs, 
+        stress = topologyAddon->applyForcesAndConstraints(this, dim, g, vs, cs,
                 coords, des, oldStress);
     } else {
         // Add non-overlap constraints, but not variables again.
@@ -1150,7 +1153,7 @@ std::vector<double> ConstrainedFDLayout::offsetDir(double minD)
         l += x * x;
     }
     l = sqrt(l);
-    
+
     for (size_t i = 0; i < 2; ++i)
     {
         u[i] *= (minD / l);
@@ -1162,7 +1165,7 @@ std::vector<double> ConstrainedFDLayout::offsetDir(double minD)
 
 /*
  * Computes:
- *  - the matrix of second derivatives (the Hessian) H, used in 
+ *  - the matrix of second derivatives (the Hessian) H, used in
  *    calculating stepsize; and
  *  - the vector g, the negative gradient (steepest-descent) direction.
  */
@@ -1184,13 +1187,13 @@ void ConstrainedFDLayout::computeForces(
             double sd2 = rx*rx+ry*ry;
             unsigned maxDisplaces = n;  // avoid infinite loop in the case of numerical issues, such as huge values
 
-            while (maxDisplaces--) 
+            while (maxDisplaces--)
             {
-                if ((sd2) > 1e-3) 
+                if ((sd2) > 1e-3)
                 {
                     break;
                 }
-                
+
                 std::vector<double> rd = offsetDir(minD);
                 X[v] += rd[0];
                 Y[v] += rd[1];
@@ -1229,12 +1232,12 @@ void ConstrainedFDLayout::computeForces(
     }
 }
 /*
- * Returns the optimal step-size in the direction d, given gradient g and 
+ * Returns the optimal step-size in the direction d, given gradient g and
  * hessian H.
  */
 double ConstrainedFDLayout::computeStepSize(
-        SparseMatrix const &H, 
-        valarray<double> const &g, 
+        SparseMatrix const &H,
+        valarray<double> const &g,
         valarray<double> const &d) const
 {
     COLA_ASSERT(g.size()==d.size());
@@ -1340,12 +1343,12 @@ void ConstrainedFDLayout::outputInstanceToSVG(std::string instanceName)
         double rMaxX = boundingBoxes[i]->getMaxX();
         double rMinY = boundingBoxes[i]->getMinY();
         double rMaxY = boundingBoxes[i]->getMaxY();
-   
+
         reduceRange(rMinX);
         reduceRange(rMaxX);
         reduceRange(rMinY);
         reduceRange(rMaxY);
-        
+
         if (rMinX > -LIMIT)
         {
             minX = std::min(minX, rMinX);
@@ -1363,7 +1366,7 @@ void ConstrainedFDLayout::outputInstanceToSVG(std::string instanceName)
             maxY = std::max(maxY, rMaxY);
         }
     }
- 
+
     minX -= 50;
     minY -= 50;
     maxX += 50;
@@ -1392,7 +1395,7 @@ void ConstrainedFDLayout::outputInstanceToSVG(std::string instanceName)
                boundingBoxes[i]->getMinY(), boundingBoxes[i]->getMaxY());
         fprintf(fp, "    rs.push_back(rect);\n\n");
     }
-    
+
     for (size_t i = 0; i < n; ++i)
     {
         for (size_t j =  i + 1; j < n; ++j)
@@ -1415,7 +1418,7 @@ void ConstrainedFDLayout::outputInstanceToSVG(std::string instanceName)
         fprintf(fp, "\n");
     }
 
-    for (cola::CompoundConstraints::iterator c = ccs.begin(); 
+    for (cola::CompoundConstraints::iterator c = ccs.begin();
             c != ccs.end(); ++c)
     {
         (*c)->printCreationCode(fp);
@@ -1455,7 +1458,7 @@ void ConstrainedFDLayout::outputInstanceToSVG(std::string instanceName)
         double maxX = boundingBoxes[i]->getMaxX();
         double minY = boundingBoxes[i]->getMinY();
         double maxY = boundingBoxes[i]->getMaxY();
-    
+
         fprintf(fp, "<rect id=\"rect-%u\" x=\"%g\" y=\"%g\" width=\"%g\" "
                 "height=\"%g\" style=\"stroke-width: 1px; stroke: black; "
                 "fill: blue; fill-opacity: 0.3;\" />\n",
