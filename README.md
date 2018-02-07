@@ -58,7 +58,7 @@ Software using one or more of the Adaptagrams libraries include:
  *  [Gaphas][gaphor], an open source Python-based diagramming widget for GTK+, and
  *  [BRL-CAD][brlcad], a powerful cross-platform open source solid modeling system that includes interactive geometry editing, high-performance ray-tracing for rendering and geometric analysis, image and signal-processing tools, a system performance analysis benchmark suite, libraries for robust geometric representation, with more than 20 years of active development.
 
-The algorithms were developed by members of the [MArVL: Monash Adaptive Visualisation Lab][marvl] at [Monash University][monash] in Melbourne, Australia.  The Adaptagrams libraries were originally written by [Tim Dwyer][td] and [Michael Wybrow][mw].
+The algorithms were developed by members of the [Immersive Analytics Lab][ialab] at [Monash University][monash] in Melbourne, Australia.  The Adaptagrams libraries were originally written by [Tim Dwyer][td] and [Michael Wybrow][mw].
 
 
 Building
@@ -85,12 +85,12 @@ Cola in the browser
 [cola.js][webcola] (a.k.a. WebCola) is a JavaScript based rewrite of libcola which works well with [D3.js][d3]
 
 [d3]: http://d3js.org/
-[webcola]: http://marvl.infotech.monash.edu/webcola/
+[webcola]: http://ialab.it.monash.edu/webcola/
 [swig]: http://www.swig.org/
-[td]: http://www.csse.monash.edu.au/~tdwyer/
-[km]: http://www.csse.monash.edu.au/~kmarriott/
-[mw]: http://www.csse.monash.edu.au/~mwybrow/
-[marvl]: http://marvl.infotech.monash.edu.au/
+[td]: http://users.monash.edu/~tdwyer/
+[km]: http://users.monash.edu/~kmarriott/
+[mw]: http://users.monash.edu/~mwybrow/
+[ialab]: http://ialab.it.monash.edu/
 [monash]: http://wwww.csse.monash.edu.au/
 [libvpsc]: http://www.adaptagrams.org/documentation/libvpsc.html
 [libavoid]: http://www.adaptagrams.org/documentation/libavoid.html
