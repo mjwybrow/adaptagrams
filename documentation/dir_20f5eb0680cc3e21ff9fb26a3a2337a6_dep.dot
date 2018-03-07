@@ -1,6 +1,0 @@
-digraph "libavoid" {
-  compound=true
-  node [ fontsize="10", fontname="Helvetica"];
-  edge [ labelfontsize="10", labelfontname="Helvetica"];
-  dir_20f5eb0680cc3e21ff9fb26a3a2337a6 [shape=box, label="libavoid", style="filled", fillcolor="#eeeeff", pencolor="black", URL="dir_20f5eb0680cc3e21ff9fb26a3a2337a6.html"];
-}

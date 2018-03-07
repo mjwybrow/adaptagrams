@@ -1,0 +1,4 @@
+<map id="Avoid::ConnEnd::position" name="Avoid::ConnEnd::position">
+<area shape="rect" id="node2" href="$classAvoid_1_1ConnEnd.html#a31f741b5d8a86e0a8c4803475c674e8b" title="Returns the pin class ID for a ConnEnd attached to a shape. " alt="" coords="188,5,335,32"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1ConnRef.html#a7fc22448cc52a1b060f62bcc00d1bb93" title="Allows the user to specify a set of checkpoints that this connector will route via. " alt="" coords="189,57,334,98"/>
+</map>

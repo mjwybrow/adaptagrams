@@ -1,0 +1,5 @@
+<map id="Avoid::ConnRef::setDestEndpoint" name="Avoid::ConnRef::setDestEndpoint">
+<area shape="rect" id="node2" href="$classAvoid_1_1ConnRef.html#a0d90245fbe772d30723bd578efa3a45d" title="Returns a reference to the current raw &quot;debug&quot; route for the connector. " alt="" coords="239,5,359,32"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1ConnRef.html#a2689d4fde1f3489976324abb04bcab72" title="Returns the type of routing performed for this connector. " alt="" coords="224,56,375,83"/>
+<area shape="rect" id="node4" href="$classAvoid_1_1Polygon.html#a2f9e9c8c78407eefbde944e663d9711e" title="Returns the number of points in this polygon. " alt="" coords="243,107,355,133"/>
+</map>

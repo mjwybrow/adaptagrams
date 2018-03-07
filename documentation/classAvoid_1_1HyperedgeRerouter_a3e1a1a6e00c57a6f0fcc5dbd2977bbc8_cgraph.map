@@ -1,0 +1,8 @@
+<map id="Avoid::HyperedgeRerouter::newAndDeletedObjectLists" name="Avoid::HyperedgeRerouter::newAndDeletedObjectLists">
+<area shape="rect" id="node2" href="$classAvoid_1_1Router.html#a316f15b3e974c273bb55cfb19b751394" title="Remove a connector from the router scene. " alt="" coords="201,5,363,32"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1Router.html#a5b044531d3dc81fa76819e55917924b0" title="Remove a junction from the router scene. " alt="" coords="206,56,358,83"/>
+<area shape="rect" id="node5" href="$classAvoid_1_1JunctionRef.html#afedd45d8a3e85dc8afd43dbcbb06bd45" title="Returns whether this junction has a fixed position (that can&#39;t be moved by the Router during routing)..." alt="" coords="229,107,335,149"/>
+<area shape="rect" id="node4" href="$classAvoid_1_1Router.html#ac4497126d8d4c76a122af565260941fc" title="Finishes the current transaction and processes all the queued object changes efficiently. " alt="" coords="411,56,587,83"/>
+<area shape="rect" id="node6" href="$classAvoid_1_1ShapeConnectionPin.html#a3338c7b8187a973e12fa57d3156e8b96" title="Returns the directions in which this connection pin has visibility. " alt="" coords="425,107,572,149"/>
+<area shape="rect" id="node7" href="$classAvoid_1_1ShapeConnectionPin.html#ae5323cbf7f0005a4fb9e3327c42353d1" title="Sets a cost used when selecting whether connectors should be be attached to this connection pin..." alt="" coords="425,173,572,214"/>
+</map>

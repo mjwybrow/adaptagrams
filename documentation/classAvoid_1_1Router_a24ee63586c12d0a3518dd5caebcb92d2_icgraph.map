@@ -1,0 +1,4 @@
+<map id="Avoid::Router::routingOption" name="Avoid::Router::routingOption">
+<area shape="rect" id="node2" href="$classAvoid_1_1Router.html#a8f36729c98e13e57d2c56c0d1facf86c" title="Returns whether or not the given ID is already used. " alt="" coords="201,5,332,47"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1Router.html#a202c28fcb04f7af2183fe6849b4ce2f3" title="Returns the object ID used for automatically generated objects, such as during hyperedge routing..." alt="" coords="380,13,524,39"/>
+</map>

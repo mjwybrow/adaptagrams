@@ -3,5 +3,5 @@ digraph "Graphical Class Hierarchy"
   edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
   node [fontname="Helvetica",fontsize="10",shape=record];
   rankdir="LR";
-  Node1 [label="cola::Resize",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcola_1_1Resize.html",tooltip="A Resize specifies a new required bounding box for a node. "];
+  Node0 [label="cola::Resize",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcola_1_1Resize.html",tooltip="A Resize specifies a new required bounding box for a node. "];
 }

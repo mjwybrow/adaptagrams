@@ -1,0 +1,19 @@
+digraph "Avoid::ConnEnd::position"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node29 [label="Avoid::ConnEnd::position",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node29 -> Node30 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node30 [label="Avoid::ShapeConnectionPin\l::position",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ShapeConnectionPin.html#a68fb685af93fee972b116334b0d314fa",tooltip="Returns the position of this connection pin. "];
+  Node30 -> Node31 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node31 [label="Avoid::JunctionRef\l::position",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1JunctionRef.html#af66cab7216d077ac124674c7c5f08e05",tooltip="Returns the position of this junction. "];
+  Node30 -> Node32 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node32 [label="Avoid::Polygon::empty",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Polygon.html#a477d0e8e93509d7955d1f4b4ca0abb0d",tooltip="Returns true if this polygon is empty. "];
+  Node30 -> Node33 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node33 [label="Avoid::ShapeRef::polygon",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ShapeRef.html#aa0a5e8382c7674933e09207bc6e47564",tooltip="Returns a reference to the polygon boundary of this shape. "];
+  Node33 -> Node34 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node34 [label="Avoid::Polygon::size",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Polygon.html#a2f9e9c8c78407eefbde944e663d9711e",tooltip="Returns the number of points in this polygon. "];
+  Node30 -> Node35 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node35 [label="Avoid::PolygonInterface\l::offsetBoundingBox",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1PolygonInterface.html#af10740857ee9fd5f9dedfb71a9b42630",tooltip="Returns the bounding rectangle that contains this polygon with optionally some buffer space around it..."];
+}

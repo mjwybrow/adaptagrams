@@ -1,0 +1,11 @@
+digraph "Avoid::JunctionRef::positionFixed"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node22 [label="Avoid::JunctionRef\l::positionFixed",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node22 -> Node23 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node23 [label="Avoid::ShapeConnectionPin\l::directions",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ShapeConnectionPin.html#a3338c7b8187a973e12fa57d3156e8b96",tooltip="Returns the directions in which this connection pin has visibility. "];
+  Node22 -> Node24 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node24 [label="Avoid::ShapeConnectionPin\l::setConnectionCost",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ShapeConnectionPin.html#ae5323cbf7f0005a4fb9e3327c42353d1",tooltip="Sets a cost used when selecting whether connectors should be be attached to this connection pin..."];
+}

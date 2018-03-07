@@ -3,5 +3,5 @@ digraph "Graphical Class Hierarchy"
   edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
   node [fontname="Helvetica",fontsize="10",shape=record];
   rankdir="LR";
-  Node1 [label="Avoid::Checkpoint",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Checkpoint.html",tooltip="A checkpoint is a point that the route for a particular connector must visit. They may optionally be ..."];
+  Node0 [label="Avoid::Checkpoint",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Checkpoint.html",tooltip="A checkpoint is a point that the route for a particular connector must visit. They may optionally be ..."];
 }

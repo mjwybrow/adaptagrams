@@ -1,9 +1,0 @@
-<map id="Avoid::ConnEnd::position" name="Avoid::ConnEnd::position">
-<area shape="rect" id="node2" href="$classAvoid_1_1ShapeConnectionPin.html#ad2b8489330ed961df41adad3e4a5f88d" title="Returns the position of this connection pin. " alt="" coords="225,89,413,131"/>
-<area shape="rect" id="node3" href="$classAvoid_1_1JunctionRef.html#afaceb9ae01d3283636b188160fb1409b" title="Returns the position of this junction. " alt="" coords="483,5,616,47"/>
-<area shape="rect" id="node4" href="$classAvoid_1_1Polygon.html#a972b0d1e8116907610b4a52973b255f4" title="Returns true if this polygon is empty. " alt="" coords="472,71,627,98"/>
-<area shape="rect" id="node5" href="$classAvoid_1_1ShapeRef.html#a7fc77a8dfd21e19d911266258253c429" title="Returns a reference to the polygon boundary of this shape. " alt="" coords="461,122,637,149"/>
-<area shape="rect" id="node6" href="$classAvoid_1_1PolygonInterface.html#af92b37a9eddfc22618faf49f74aa0df7" title="Returns the bounding rectangle that contains this polygon with optionally some buffer space around it..." alt="" coords="468,173,631,215"/>
-<area shape="rect" id="node7" href="$classAvoid_1_1PolygonInterface.html#ab191f5c82a665cc074576bae9f304e8d" title="Returns the number of points in this polygon. " alt="" coords="695,144,857,185"/>
-<area shape="rect" id="node8" href="$classAvoid_1_1PolygonInterface.html#a951dedf93a692fc9dccdada741d9ebe5" title="Returns a specific point in the polygon. " alt="" coords="685,210,867,237"/>
-</map>

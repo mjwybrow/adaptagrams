@@ -1,4 +1,4 @@
 <map id="Avoid::Rectangle" name="Avoid::Rectangle">
-<area shape="rect" id="node2" href="$classAvoid_1_1Polygon.html" title="A dynamic Polygon, to which points can be easily added and removed. " alt="" coords="5,263,189,560"/>
-<area shape="rect" id="node3" href="$classAvoid_1_1PolygonInterface.html" title="A common interface used by the Polygon classes. " alt="" coords="11,5,184,215"/>
+<area shape="rect" id="node2" href="$classAvoid_1_1Polygon.html" title="A dynamic Polygon, to which points can be easily added and removed. " alt="" coords="5,263,149,560"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1PolygonInterface.html" title="A common interface used by the Polygon classes. " alt="" coords="10,5,145,215"/>
 </map>

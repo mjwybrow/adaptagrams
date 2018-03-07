@@ -1,3 +1,5 @@
 <map id="Avoid::Router::moveJunction" name="Avoid::Router::moveJunction">
-<area shape="rect" id="node2" href="$classAvoid_1_1Router.html#ac4497126d8d4c76a122af565260941fc" title="Finishes the current transaction and processes all the queued object changes efficiently. " alt="" coords="245,5,472,32"/>
+<area shape="rect" id="node2" href="$classAvoid_1_1ClusterRef.html#a7a25b0c34cdad039906693265a9caac8" title="Returns the ID of this cluster. " alt="" coords="234,5,347,32"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1ClusterRef.html#acd1fa20b079253d53d27abf50d2a8933" title="Returns a reference to the polygon boundary of this cluster. " alt="" coords="238,57,343,98"/>
+<area shape="rect" id="node4" href="$classAvoid_1_1Router.html#ac4497126d8d4c76a122af565260941fc" title="Finishes the current transaction and processes all the queued object changes efficiently. " alt="" coords="203,123,379,149"/>
 </map>

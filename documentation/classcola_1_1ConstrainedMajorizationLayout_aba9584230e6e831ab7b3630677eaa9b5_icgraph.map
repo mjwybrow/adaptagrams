@@ -1,4 +1,4 @@
 <map id="cola::ConstrainedMajorizationLayout::setScaling" name="cola::ConstrainedMajorizationLayout::setScaling">
-<area shape="rect" id="node2" href="$classcola_1_1ConstrainedMajorizationLayout.html#af14ef774be2d3d08b8ea54cc19f1e904" title="Implements the main layout loop, taking descent steps until stress is no&#45;longer significantly reduced..." alt="" coords="251,5,448,47"/>
-<area shape="rect" id="node3" href="$classcola_1_1ConstrainedMajorizationLayout.html#a1ce82962e02ca45c5496938192c9e2ab" title="Same as run(), but only applies one iteration. " alt="" coords="251,71,448,112"/>
+<area shape="rect" id="node2" href="$classcola_1_1ConstrainedMajorizationLayout.html#af14ef774be2d3d08b8ea54cc19f1e904" title="Implements the main layout loop, taking descent steps until stress is no&#45;longer significantly reduced..." alt="" coords="207,5,360,47"/>
+<area shape="rect" id="node3" href="$classcola_1_1ConstrainedMajorizationLayout.html#a1ce82962e02ca45c5496938192c9e2ab" title="Same as run(), but only applies one iteration. " alt="" coords="207,71,360,112"/>
 </map>

@@ -1,4 +1,4 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$classvpsc_1_1Solver.html" title="Static solver for Variable Placement with Separation Constraints problem instance. " alt="" coords="5,5,100,32"/>
-<area shape="rect" id="node2" href="$classvpsc_1_1IncSolver.html" title="Incremental solver for Variable Placement with Separation Constraints problem instance. " alt="" coords="148,5,260,32"/>
+<area shape="rect" id="node1" href="$classvpsc_1_1Solver.html" title="Static solver for Variable Placement with Separation Constraints problem instance. " alt="" coords="5,5,81,32"/>
+<area shape="rect" id="node2" href="$classvpsc_1_1IncSolver.html" title="Incremental solver for Variable Placement with Separation Constraints problem instance. " alt="" coords="129,5,219,32"/>
 </map>

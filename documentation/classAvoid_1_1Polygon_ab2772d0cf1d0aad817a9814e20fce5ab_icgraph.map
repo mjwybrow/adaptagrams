@@ -1,0 +1,11 @@
+<map id="Avoid::Polygon::at" name="Avoid::Polygon::at">
+<area shape="rect" id="node2" href="$classAvoid_1_1PolygonInterface.html#a8eed22074d9e8f1b406b0c1174ab2aac" title="Returns the bounding rectangle for this polygon. " alt="" coords="170,8,298,49"/>
+<area shape="rect" id="node4" href="$classAvoid_1_1ConnRef.html#ab7462cd69bd1d2c4dd318119558b4a94" title="Returns a reference to the current display version of the route for the connector. " alt="" coords="156,85,312,111"/>
+<area shape="rect" id="node7" href="$classAvoid_1_1Router.html#a458aae2d6447e0958e4916a8c29bbb47" title="Generates an SVG file containing debug output and code that can be used to regenerate the instance..." alt="" coords="366,136,519,177"/>
+<area shape="rect" id="node8" href="$classAvoid_1_1Router.html#a3fc66cd795e86d921da1e8d9cb8a5c21" title="Returns a pointer to the hyperedge rerouter for the router. " alt="" coords="166,187,302,228"/>
+<area shape="rect" id="node9" href="$classAvoid_1_1ConnRef.html#ace9257a67e94c7899c75af0362e5836f" title="Returns a pointer to the router scene this connector is in. " alt="" coords="172,253,296,279"/>
+<area shape="rect" id="node10" href="$classAvoid_1_1ConnRef.html#a372f58a93c0296814de8d4a3075ad5e4" title="Splits a connector in the centre of the segmentNth segment and creates a junction point there as well..." alt="" coords="360,278,525,305"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1ClusterRef.html#a8bdf3a48e06ae25ae25121e781522f5f" title="Update the polygon boundary for this cluster. " alt="" coords="390,5,495,47"/>
+<area shape="rect" id="node5" href="$classAvoid_1_1Router.html#a8f36729c98e13e57d2c56c0d1facf86c" title="Returns whether or not the given ID is already used. " alt="" coords="377,71,508,112"/>
+<area shape="rect" id="node6" href="$classAvoid_1_1Router.html#a202c28fcb04f7af2183fe6849b4ce2f3" title="Returns the object ID used for automatically generated objects, such as during hyperedge routing..." alt="" coords="573,78,717,105"/>
+</map>

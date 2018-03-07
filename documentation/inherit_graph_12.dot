@@ -3,5 +3,5 @@ digraph "Graphical Class Hierarchy"
   edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
   node [fontname="Helvetica",fontsize="10",shape=record];
   rankdir="LR";
-  Node1 [label="Avoid::ShapeConnectionPin",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ShapeConnectionPin.html",tooltip="The ShapeConnectionPin class represents a fixed point or \"pin\" on a shape that can be connected to..."];
+  Node0 [label="Avoid::ShapeConnectionPin",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ShapeConnectionPin.html",tooltip="The ShapeConnectionPin class represents a fixed point or \"pin\" on a shape that can be connected to..."];
 }

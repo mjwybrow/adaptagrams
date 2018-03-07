@@ -1,0 +1,27 @@
+<map id="Avoid::Router::newObjectId" name="Avoid::Router::newObjectId">
+<area shape="rect" id="node2" href="$classAvoid_1_1Router.html#a8f36729c98e13e57d2c56c0d1facf86c" title="Returns whether or not the given ID is already used. " alt="" coords="197,267,328,309"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1ConnRef.html#a5e6c783ffb50b315769f1a0c29597136" title="Returns whether the connector route is marked as fixed. " alt="" coords="385,13,524,54"/>
+<area shape="rect" id="node4" href="$classAvoid_1_1Router.html#a24ee63586c12d0a3518dd5caebcb92d2" title="Returns the current state for a specific routing option. " alt="" coords="381,79,529,105"/>
+<area shape="rect" id="node5" href="$classAvoid_1_1HyperedgeRerouter.html#a3e1a1a6e00c57a6f0fcc5dbd2977bbc8" title="Returns a HyperedgeNewAndDeletedObjectLists detailing the lists of junctions and connectors created a..." alt="" coords="381,130,529,171"/>
+<area shape="rect" id="node12" href="$classAvoid_1_1ConnRef.html#a2689d4fde1f3489976324abb04bcab72" title="Returns the type of routing performed for this connector. " alt="" coords="589,421,739,448"/>
+<area shape="rect" id="node13" href="$classAvoid_1_1ConnRef.html#ab7462cd69bd1d2c4dd318119558b4a94" title="Returns a reference to the current display version of the route for the connector. " alt="" coords="586,371,742,397"/>
+<area shape="rect" id="node15" href="$classAvoid_1_1Polygon.html#a2f9e9c8c78407eefbde944e663d9711e" title="Returns the number of points in this polygon. " alt="" coords="1019,396,1131,423"/>
+<area shape="rect" id="node18" href="$classAvoid_1_1ShapeConnectionPin.html#adac2cb72fa0d78dd8cb77b292519bd6c" title="Returns whether the connection pin is exclusive, i.e., only one connector can attach to it..." alt="" coords="381,577,528,618"/>
+<area shape="rect" id="node23" href="$classAvoid_1_1ConnRef.html#abb7f970e8bee1ccf69a0d5521ca1f177" title="Returns ConnEnds specifying what this connector is attached to. " alt="" coords="387,209,523,250"/>
+<area shape="rect" id="node25" href="$classAvoid_1_1Router.html#a2ebc288933c13b8b8794e11e915a889f" title="A method called at regular intervals during transaction processing to report progress and ask if the ..." alt="" coords="376,465,533,506"/>
+<area shape="rect" id="node6" href="$classAvoid_1_1Router.html#a316f15b3e974c273bb55cfb19b751394" title="Remove a connector from the router scene. " alt="" coords="583,5,745,32"/>
+<area shape="rect" id="node7" href="$classAvoid_1_1Router.html#a5b044531d3dc81fa76819e55917924b0" title="Remove a junction from the router scene. " alt="" coords="588,123,740,149"/>
+<area shape="rect" id="node9" href="$classAvoid_1_1JunctionRef.html#afedd45d8a3e85dc8afd43dbcbb06bd45" title="Returns whether this junction has a fixed position (that can&#39;t be moved by the Router during routing)..." alt="" coords="611,57,717,98"/>
+<area shape="rect" id="node8" href="$classAvoid_1_1Router.html#ac4497126d8d4c76a122af565260941fc" title="Finishes the current transaction and processes all the queued object changes efficiently. " alt="" coords="795,195,971,221"/>
+<area shape="rect" id="node10" href="$classAvoid_1_1ShapeConnectionPin.html#a3338c7b8187a973e12fa57d3156e8b96" title="Returns the directions in which this connection pin has visibility. " alt="" coords="809,15,956,57"/>
+<area shape="rect" id="node11" href="$classAvoid_1_1ShapeConnectionPin.html#ae5323cbf7f0005a4fb9e3327c42353d1" title="Sets a cost used when selecting whether connectors should be be attached to this connection pin..." alt="" coords="809,81,956,122"/>
+<area shape="rect" id="node14" href="$classAvoid_1_1Polygon.html#ab2772d0cf1d0aad817a9814e20fce5ab" title="Returns a specific point in the polygon. " alt="" coords="831,371,934,397"/>
+<area shape="rect" id="node16" href="$classAvoid_1_1Polygon.html#a477d0e8e93509d7955d1f4b4ca0abb0d" title="Returns true if this polygon is empty. " alt="" coords="822,523,943,549"/>
+<area shape="rect" id="node17" href="$classAvoid_1_1Polygon.html#a2d3a0deb96bbff214b7035e481f0f0e8" title="Returns a simplified Polyline, where all collinear line segments have been collapsed down into single..." alt="" coords="819,421,947,448"/>
+<area shape="rect" id="node19" href="$classAvoid_1_1ShapeConnectionPin.html#a68fb685af93fee972b116334b0d314fa" title="Returns the position of this connection pin. " alt="" coords="591,625,737,666"/>
+<area shape="rect" id="node20" href="$classAvoid_1_1JunctionRef.html#af66cab7216d077ac124674c7c5f08e05" title="Returns the position of this junction. " alt="" coords="830,625,935,666"/>
+<area shape="rect" id="node21" href="$classAvoid_1_1ShapeRef.html#aa0a5e8382c7674933e09207bc6e47564" title="Returns a reference to the polygon boundary of this shape. " alt="" coords="814,573,951,600"/>
+<area shape="rect" id="node22" href="$classAvoid_1_1PolygonInterface.html#af10740857ee9fd5f9dedfb71a9b42630" title="Returns the bounding rectangle that contains this polygon with optionally some buffer space around it..." alt="" coords="819,690,947,731"/>
+<area shape="rect" id="node24" href="$classAvoid_1_1Polygon.html#aae0e8e58b2f358ec3f203a5e6485c660" title="Resets this to the empty polygon. " alt="" coords="606,173,722,200"/>
+<area shape="rect" id="node26" href="$classAvoid_1_1Router.html#ab08a56fa47c415c0450e20bbb438f420" title="Returns the current value for a particular routing parameter of a given type. " alt="" coords="581,573,747,600"/>
+</map>

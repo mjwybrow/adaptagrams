@@ -1,9 +1,0 @@
-digraph "Avoid::ConnEnd::directions"
-{
-  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
-  node [fontname="Helvetica",fontsize="10",shape=record];
-  rankdir="LR";
-  Node1 [label="Avoid::ConnEnd::directions",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
-  Node1 -> Node2 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node2 [label="Avoid::ShapeConnectionPin\l::directions",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ShapeConnectionPin.html#a8e5f61ff9ea19d7f6f548aab60b9412b",tooltip="Returns the directions in which this connection pin has visibility. "];
-}

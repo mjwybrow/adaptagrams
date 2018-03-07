@@ -2,9 +2,9 @@ digraph "Avoid::Rectangle"
 {
   edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
   node [fontname="Helvetica",fontsize="10",shape=record];
-  Node1 [label="{Avoid::Rectangle\n||+ Rectangle()\l+ Rectangle()\l}",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
-  Node2 -> Node1 [dir="back",color="midnightblue",fontsize="10",style="solid",arrowtail="onormal",fontname="Helvetica"];
-  Node2 [label="{Avoid::Polygon\n|+ _id\l+ ps\l+ ts\l+ checkpointsOnRoute\l|+ Polygon()\l+ Polygon()\l+ Polygon()\l+ clear()\l+ empty()\l+ size()\l+ id()\l+ at()\l+ setPoint()\l+ simplify()\l+ curvedPolyline()\l+ translate()\l+ checkpointsOnSegment()\l}",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Polygon.html",tooltip="A dynamic Polygon, to which points can be easily added and removed. "];
-  Node3 -> Node2 [dir="back",color="midnightblue",fontsize="10",style="solid",arrowtail="onormal",fontname="Helvetica"];
-  Node3 [label="{Avoid::PolygonInterface\n||+ PolygonInterface()\l+ ~PolygonInterface()\l+ clear()\l+ empty()\l+ size()\l+ id()\l+ at()\l+ boundingRectPolygon()\l+ offsetBoundingBox()\l+ offsetPolygon()\l}",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1PolygonInterface.html",tooltip="A common interface used by the Polygon classes. "];
+  Node3 [label="{Avoid::Rectangle\n||+ Rectangle()\l+ Rectangle()\l}",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node4 -> Node3 [dir="back",color="midnightblue",fontsize="10",style="solid",arrowtail="onormal",fontname="Helvetica"];
+  Node4 [label="{Avoid::Polygon\n|+ _id\l+ ps\l+ ts\l+ checkpointsOnRoute\l|+ Polygon()\l+ Polygon()\l+ Polygon()\l+ clear()\l+ empty()\l+ size()\l+ id()\l+ at()\l+ setPoint()\l+ simplify()\l+ curvedPolyline()\l+ translate()\l+ checkpointsOnSegment()\l}",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Polygon.html",tooltip="A dynamic Polygon, to which points can be easily added and removed. "];
+  Node5 -> Node4 [dir="back",color="midnightblue",fontsize="10",style="solid",arrowtail="onormal",fontname="Helvetica"];
+  Node5 [label="{Avoid::PolygonInterface\n||+ PolygonInterface()\l+ ~PolygonInterface()\l+ clear()\l+ empty()\l+ size()\l+ id()\l+ at()\l+ boundingRectPolygon()\l+ offsetBoundingBox()\l+ offsetPolygon()\l}",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1PolygonInterface.html",tooltip="A common interface used by the Polygon classes. "];
 }

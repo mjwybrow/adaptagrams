@@ -1,4 +1,4 @@
 <map id="cola::Cluster" name="cola::Cluster">
-<area shape="rect" id="node2" href="$classvpsc_1_1Rectangle.html" title="A rectangle represents a fixed&#45;size shape in the diagram that may be moved to prevent overlaps and sa..." alt="" coords="5,5,123,273"/>
-<area shape="rect" id="node3" href="$classvpsc_1_1Variable.html" title="A variable is comprised of an ideal position, final position and a weight. " alt="" coords="147,13,301,266"/>
+<area shape="rect" id="node2" href="$classvpsc_1_1Rectangle.html" title="A rectangle represents a fixed&#45;size shape in the diagram that may be moved to prevent overlaps and sa..." alt="" coords="5,5,99,273"/>
+<area shape="rect" id="node3" href="$classvpsc_1_1Variable.html" title="A variable is comprised of an ideal position, final position and a weight. " alt="" coords="123,13,245,266"/>
 </map>

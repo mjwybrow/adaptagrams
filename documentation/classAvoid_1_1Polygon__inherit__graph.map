@@ -1,4 +1,4 @@
 <map id="Avoid::Polygon" name="Avoid::Polygon">
-<area shape="rect" id="node3" href="$classAvoid_1_1Rectangle.html" title="A Rectangle, a simpler way to define the polygon for square or rectangular shapes. " alt="" coords="36,608,159,700"/>
-<area shape="rect" id="node2" href="$classAvoid_1_1PolygonInterface.html" title="A common interface used by the Polygon classes. " alt="" coords="11,5,184,215"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1Rectangle.html" title="A Rectangle, a simpler way to define the polygon for square or rectangular shapes. " alt="" coords="29,608,126,700"/>
+<area shape="rect" id="node2" href="$classAvoid_1_1PolygonInterface.html" title="A common interface used by the Polygon classes. " alt="" coords="10,5,145,215"/>
 </map>

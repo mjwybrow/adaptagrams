@@ -1,5 +1,5 @@
 <map id="cola::ConvexCluster" name="cola::ConvexCluster">
-<area shape="rect" id="node2" href="$classcola_1_1Cluster.html" title="A cluster defines a hierarchical partitioning over the nodes which should be kept disjoint by the lay..." alt="" coords="39,380,249,795"/>
-<area shape="rect" id="node3" href="$classvpsc_1_1Rectangle.html" title="A rectangle represents a fixed&#45;size shape in the diagram that may be moved to prevent overlaps and sa..." alt="" coords="5,5,123,273"/>
-<area shape="rect" id="node4" href="$classvpsc_1_1Variable.html" title="A variable is comprised of an ideal position, final position and a weight. " alt="" coords="147,13,301,266"/>
+<area shape="rect" id="node2" href="$classcola_1_1Cluster.html" title="A cluster defines a hierarchical partitioning over the nodes which should be kept disjoint by the lay..." alt="" coords="36,380,199,795"/>
+<area shape="rect" id="node3" href="$classvpsc_1_1Rectangle.html" title="A rectangle represents a fixed&#45;size shape in the diagram that may be moved to prevent overlaps and sa..." alt="" coords="5,5,99,273"/>
+<area shape="rect" id="node4" href="$classvpsc_1_1Variable.html" title="A variable is comprised of an ideal position, final position and a weight. " alt="" coords="123,13,245,266"/>
 </map>

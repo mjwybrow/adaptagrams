@@ -1,0 +1,4 @@
+<map id="Avoid::JunctionRef::positionFixed" name="Avoid::JunctionRef::positionFixed">
+<area shape="rect" id="node2" href="$classAvoid_1_1ShapeConnectionPin.html#a3338c7b8187a973e12fa57d3156e8b96" title="Returns the directions in which this connection pin has visibility. " alt="" coords="159,5,305,47"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1ShapeConnectionPin.html#ae5323cbf7f0005a4fb9e3327c42353d1" title="Sets a cost used when selecting whether connectors should be be attached to this connection pin..." alt="" coords="159,71,305,112"/>
+</map>

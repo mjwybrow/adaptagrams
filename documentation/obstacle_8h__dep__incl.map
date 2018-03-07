@@ -1,5 +1,5 @@
 <map id="libavoid/obstacle.h" name="libavoid/obstacle.h">
-<area shape="rect" id="node2" href="$shape_8h.html" title="Contains the interface for the ShapeRef class. " alt="" coords="1103,80,1221,107"/>
-<area shape="rect" id="node15" href="$junction_8h.html" title="Contains the interface for the JunctionRef class. " alt="" coords="1705,80,1833,107"/>
-<area shape="rect" id="node9" href="$libavoid_8h.html" title="Standard libavoid include file which includes all libavoid header files. " alt="" coords="932,162,1059,189"/>
+<area shape="rect" id="node2" href="$shape_8h.html" title="Contains the interface for the ShapeRef class. " alt="" coords="901,80,996,107"/>
+<area shape="rect" id="node15" href="$junction_8h.html" title="Contains the interface for the JunctionRef class. " alt="" coords="1393,80,1494,107"/>
+<area shape="rect" id="node9" href="$libavoid_8h.html" title="Standard libavoid include file which includes all libavoid header files. " alt="" coords="761,162,862,189"/>
 </map>

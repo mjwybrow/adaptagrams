@@ -1,7 +1,10 @@
 <map id="Avoid::Router::moveShape" name="Avoid::Router::moveShape">
-<area shape="rect" id="node2" href="$classAvoid_1_1Router.html#a766c0dd498c38822cf9ea7c77af28b3d" title="Move or resize an existing shape within the router scene. " alt="" coords="235,5,416,32"/>
-<area shape="rect" id="node4" href="$classAvoid_1_1ShapeRef.html#a7fc77a8dfd21e19d911266258253c429" title="Returns a reference to the polygon boundary of this shape. " alt="" coords="237,56,413,83"/>
-<area shape="rect" id="node5" href="$classAvoid_1_1Polygon.html#a532dd54af4b94b80ba357de07d083fac" title="Translates the polygon position by a relative amount. " alt="" coords="241,107,410,133"/>
-<area shape="rect" id="node3" href="$classAvoid_1_1Router.html#ac4497126d8d4c76a122af565260941fc" title="Finishes the current transaction and processes all the queued object changes efficiently. " alt="" coords="464,5,691,32"/>
-<area shape="rect" id="node6" href="$classAvoid_1_1Polygon.html#a58c011bded47396fb1bbda2c1eeb9552" title="Returns the number of points in this polygon. " alt="" coords="506,107,649,133"/>
+<area shape="rect" id="node2" href="$classAvoid_1_1Router.html#a08021cac275575c7795e2005e5eadb9a" title="Move an existing junction within the router scene. " alt="" coords="195,65,344,92"/>
+<area shape="rect" id="node6" href="$classAvoid_1_1Router.html#a766c0dd498c38822cf9ea7c77af28b3d" title="Move or resize an existing shape within the router scene. " alt="" coords="199,120,340,147"/>
+<area shape="rect" id="node7" href="$classAvoid_1_1ShapeRef.html#aa0a5e8382c7674933e09207bc6e47564" title="Returns a reference to the polygon boundary of this shape. " alt="" coords="201,171,338,197"/>
+<area shape="rect" id="node9" href="$classAvoid_1_1Polygon.html#a532dd54af4b94b80ba357de07d083fac" title="Translates the polygon position by a relative amount. " alt="" coords="203,221,335,248"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1ClusterRef.html#a7a25b0c34cdad039906693265a9caac8" title="Returns the ID of this cluster. " alt="" coords="423,5,537,32"/>
+<area shape="rect" id="node4" href="$classAvoid_1_1ClusterRef.html#acd1fa20b079253d53d27abf50d2a8933" title="Returns a reference to the polygon boundary of this cluster. " alt="" coords="427,57,533,98"/>
+<area shape="rect" id="node5" href="$classAvoid_1_1Router.html#ac4497126d8d4c76a122af565260941fc" title="Finishes the current transaction and processes all the queued object changes efficiently. " alt="" coords="392,123,568,149"/>
+<area shape="rect" id="node8" href="$classAvoid_1_1Polygon.html#a2f9e9c8c78407eefbde944e663d9711e" title="Returns the number of points in this polygon. " alt="" coords="424,196,536,223"/>
 </map>

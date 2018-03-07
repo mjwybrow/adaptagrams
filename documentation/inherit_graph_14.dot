@@ -3,5 +3,5 @@ digraph "Graphical Class Hierarchy"
   edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
   node [fontname="Helvetica",fontsize="10",shape=record];
   rankdir="LR";
-  Node1 [label="cola::Box",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcola_1_1Box.html",tooltip="A box consisting of four edge values for representing padding or margins for rectangles. "];
+  Node0 [label="cola::Box",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcola_1_1Box.html",tooltip="A box consisting of four edge values for representing padding or margins for rectangles. "];
 }

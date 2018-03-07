@@ -1,0 +1,11 @@
+digraph "vpsc::IncSolver::solve"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node10 [label="vpsc::IncSolver::solve",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node10 -> Node11 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node11 [label="cola::ConstrainedMajorization\lLayout::runOnce",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcola_1_1ConstrainedMajorizationLayout.html#a1ce82962e02ca45c5496938192c9e2ab",tooltip="Same as run(), but only applies one iteration. "];
+  Node10 -> Node12 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node12 [label="cola::ConstrainedFDLayout\l::setTopology",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcola_1_1ConstrainedFDLayout.html#a68fa10af949c5617a69152fba7995fba",tooltip="Set an addon for doing topology preserving layout. "];
+}

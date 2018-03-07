@@ -1,4 +1,4 @@
 <map id="cola::AlignmentConstraint" name="cola::AlignmentConstraint">
-<area shape="rect" id="node2" href="$classcola_1_1CompoundConstraint.html" title="An abstract base class for all high&#45;level compound constraints. " alt="" coords="5,5,232,332"/>
-<area shape="rect" id="node3" href="$classvpsc_1_1Variable.html" title="A variable is comprised of an ideal position, final position and a weight. " alt="" coords="256,42,411,295"/>
+<area shape="rect" id="node2" href="$classcola_1_1CompoundConstraint.html" title="An abstract base class for all high&#45;level compound constraints. " alt="" coords="5,5,181,332"/>
+<area shape="rect" id="node3" href="$classvpsc_1_1Variable.html" title="A variable is comprised of an ideal position, final position and a weight. " alt="" coords="206,42,327,295"/>
 </map>

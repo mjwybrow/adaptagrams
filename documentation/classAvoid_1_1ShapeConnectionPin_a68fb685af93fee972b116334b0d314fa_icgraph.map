@@ -1,0 +1,9 @@
+<map id="Avoid::ShapeConnectionPin::position" name="Avoid::ShapeConnectionPin::position">
+<area shape="rect" id="node2" href="$classAvoid_1_1ShapeConnectionPin.html#adac2cb72fa0d78dd8cb77b292519bd6c" title="Returns whether the connection pin is exclusive, i.e., only one connector can attach to it..." alt="" coords="200,5,347,47"/>
+<area shape="rect" id="node5" href="$classAvoid_1_1ConnEnd.html#a351619dda450b525bedec4667edee9d7" title="Returns the position of this connector endpoint. " alt="" coords="206,71,341,98"/>
+<area shape="rect" id="node8" href="$classAvoid_1_1ShapeConnectionPin.html#ae267734eb3641c366595b488d21e4784" title="Constructs a ShapeConnectionPin at a specified absolute or proportional position relative to the pare..." alt="" coords="200,123,347,164"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1Router.html#a8f36729c98e13e57d2c56c0d1facf86c" title="Returns whether or not the given ID is already used. " alt="" coords="403,5,533,47"/>
+<area shape="rect" id="node4" href="$classAvoid_1_1Router.html#a202c28fcb04f7af2183fe6849b4ce2f3" title="Returns the object ID used for automatically generated objects, such as during hyperedge routing..." alt="" coords="589,13,733,39"/>
+<area shape="rect" id="node6" href="$classAvoid_1_1ConnEnd.html#a31f741b5d8a86e0a8c4803475c674e8b" title="Returns the pin class ID for a ConnEnd attached to a shape. " alt="" coords="395,71,541,98"/>
+<area shape="rect" id="node7" href="$classAvoid_1_1ConnRef.html#a7fc22448cc52a1b060f62bcc00d1bb93" title="Allows the user to specify a set of checkpoints that this connector will route via. " alt="" coords="395,123,541,164"/>
+</map>

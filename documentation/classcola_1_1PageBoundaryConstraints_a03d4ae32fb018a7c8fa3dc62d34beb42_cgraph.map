@@ -1,0 +1,4 @@
+<map id="cola::PageBoundaryConstraints::generateSeparationConstraints" name="cola::PageBoundaryConstraints::generateSeparationConstraints">
+<area shape="rect" id="node2" href="$classcola_1_1CompoundConstraint.html#a396a4f40343f7e66dd1dd2db89664386" title="Implemented by the compound constraint to generate the low&#45;level separation constraints in the given ..." alt="" coords="219,5,384,47"/>
+<area shape="rect" id="node3" href="$classcola_1_1CompoundConstraint.html#a5a40e6f388b8f4f2b8d9e253bc03b1ea" title="Implemented by the compound constraint to generate any additional required variables in the given dim..." alt="" coords="231,71,371,112"/>
+</map>

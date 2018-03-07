@@ -1,0 +1,7 @@
+<map id="Avoid::Router::routingParameter" name="Avoid::Router::routingParameter">
+<area shape="rect" id="node2" href="$classAvoid_1_1ConnEnd.html#a31f741b5d8a86e0a8c4803475c674e8b" title="Returns the pin class ID for a ConnEnd attached to a shape. " alt="" coords="224,5,371,32"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1Router.html#a2ebc288933c13b8b8794e11e915a889f" title="A method called at regular intervals during transaction processing to report progress and ask if the ..." alt="" coords="219,57,376,98"/>
+<area shape="rect" id="node6" href="$classAvoid_1_1JunctionRef.html#a59f907070398e40cd0993f7ee4cc690c" title="Junction reference destructor. " alt="" coords="245,122,350,163"/>
+<area shape="rect" id="node4" href="$classAvoid_1_1Router.html#a8f36729c98e13e57d2c56c0d1facf86c" title="Returns whether or not the given ID is already used. " alt="" coords="424,57,555,98"/>
+<area shape="rect" id="node5" href="$classAvoid_1_1Router.html#a202c28fcb04f7af2183fe6849b4ce2f3" title="Returns the object ID used for automatically generated objects, such as during hyperedge routing..." alt="" coords="603,64,747,91"/>
+</map>

@@ -1,0 +1,11 @@
+<map id="vpsc::Solver::copyResult" name="vpsc::Solver::copyResult">
+<area shape="rect" id="node2" href="$classvpsc_1_1Solver.html#a47e25a7fdf395c701b908cb5016fe1c4" title="Returns the Variables in this problem instance. " alt="" coords="185,5,323,32"/>
+<area shape="rect" id="node3" href="$classvpsc_1_1Solver.html#aa8b60b42366385fdea0e69b0f5caff40" title="Results in an approximate solution subject to the constraints. " alt="" coords="199,107,309,133"/>
+<area shape="rect" id="node4" href="$classvpsc_1_1Solver.html#a9dceaa66aa7d4ed9576dbbf0d1219558" title="Results in an optimum solution subject to the constraints. " alt="" coords="389,64,495,91"/>
+<area shape="rect" id="node6" href="$classvpsc_1_1IncSolver.html#a4a0358650a2dbe957ae9a42a3e4f8d92" title="Results in an optimum solution subject to the constraints. " alt="" coords="383,132,501,159"/>
+<area shape="rect" id="node9" href="$classvpsc_1_1IncSolver.html#ae0514b075bdc0329bde9539d7132c343" title="Results in an approximate solution subject to the constraints. " alt="" coords="192,208,316,235"/>
+<area shape="rect" id="node5" href="$namespacevpsc.html#aeffe24e36fd546efbff7449cf33d1208" title="Uses VPSC to remove overlaps between rectangles. " alt="" coords="579,64,697,91"/>
+<area shape="rect" id="node7" href="$classcola_1_1ConstrainedMajorizationLayout.html#a1ce82962e02ca45c5496938192c9e2ab" title="Same as run(), but only applies one iteration. " alt="" coords="561,119,715,161"/>
+<area shape="rect" id="node8" href="$classcola_1_1ConstrainedFDLayout.html#a68fa10af949c5617a69152fba7995fba" title="Set an addon for doing topology preserving layout. " alt="" coords="567,185,709,226"/>
+<area shape="rect" id="node10" href="$classcola_1_1ConstrainedFDLayout.html#a66697e8a428b0d1ecd8d5e042ee7072f" title="Finds a feasible starting position for nodes that satisfies the given constraints. " alt="" coords="371,201,513,242"/>
+</map>

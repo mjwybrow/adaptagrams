@@ -1,5 +1,5 @@
 <map id="cola::SeparationConstraint" name="cola::SeparationConstraint">
-<area shape="rect" id="node2" href="$classcola_1_1CompoundConstraint.html" title="An abstract base class for all high&#45;level compound constraints. " alt="" coords="5,336,232,663"/>
-<area shape="rect" id="node3" href="$classvpsc_1_1Constraint.html" title="A constraint determines a minimum or exact spacing required between two Variable objects. " alt="" coords="256,387,373,611"/>
-<area shape="rect" id="node4" href="$classvpsc_1_1Variable.html" title="A variable is comprised of an ideal position, final position and a weight. " alt="" coords="237,5,392,259"/>
+<area shape="rect" id="node2" href="$classcola_1_1CompoundConstraint.html" title="An abstract base class for all high&#45;level compound constraints. " alt="" coords="5,336,181,663"/>
+<area shape="rect" id="node3" href="$classvpsc_1_1Constraint.html" title="A constraint determines a minimum or exact spacing required between two Variable objects. " alt="" coords="205,387,299,611"/>
+<area shape="rect" id="node4" href="$classvpsc_1_1Variable.html" title="A variable is comprised of an ideal position, final position and a weight. " alt="" coords="191,5,313,259"/>
 </map>

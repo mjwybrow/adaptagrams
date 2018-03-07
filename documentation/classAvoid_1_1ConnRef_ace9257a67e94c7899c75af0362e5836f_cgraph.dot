@@ -1,0 +1,24 @@
+digraph "Avoid::ConnRef::router"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node48 [label="Avoid::ConnRef::router",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node48 -> Node49 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node49 [label="Avoid::Polygon::at",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Polygon.html#ab2772d0cf1d0aad817a9814e20fce5ab",tooltip="Returns a specific point in the polygon. "];
+  Node49 -> Node50 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node50 [label="Avoid::Polygon::size",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Polygon.html#a2f9e9c8c78407eefbde944e663d9711e",tooltip="Returns the number of points in this polygon. "];
+  Node48 -> Node51 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node51 [label="Avoid::ConnRef::endpoint\lConnEnds",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ConnRef.html#abb7f970e8bee1ccf69a0d5521ca1f177",tooltip="Returns ConnEnds specifying what this connector is attached to. "];
+  Node51 -> Node52 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node52 [label="Avoid::Polygon::clear",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Polygon.html#aae0e8e58b2f358ec3f203a5e6485c660",tooltip="Resets this to the empty polygon. "];
+  Node51 -> Node53 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node53 [label="Avoid::Router::processTransaction",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Router.html#ac4497126d8d4c76a122af565260941fc",tooltip="Finishes the current transaction and processes all the queued object changes efficiently. "];
+  Node48 -> Node54 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node54 [label="Avoid::ConnRef::hasFixed\lRoute",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ConnRef.html#a5e6c783ffb50b315769f1a0c29597136",tooltip="Returns whether the connector route is marked as fixed. "];
+  Node48 -> Node55 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node55 [label="Avoid::ConnRef::route",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ConnRef.html#a0d90245fbe772d30723bd578efa3a45d",tooltip="Returns a reference to the current raw \"debug\" route for the connector. "];
+  Node48 -> Node56 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node56 [label="Avoid::ConnRef::routingType",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ConnRef.html#a2689d4fde1f3489976324abb04bcab72",tooltip="Returns the type of routing performed for this connector. "];
+  Node48 -> Node50 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+}

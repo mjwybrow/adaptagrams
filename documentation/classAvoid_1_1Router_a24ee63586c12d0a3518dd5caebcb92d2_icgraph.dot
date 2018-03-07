@@ -1,0 +1,11 @@
+digraph "Avoid::Router::routingOption"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node140 [label="Avoid::Router::routingOption",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node140 -> Node141 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node141 [label="Avoid::Router::objectIdIs\lUnused",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Router.html#a8f36729c98e13e57d2c56c0d1facf86c",tooltip="Returns whether or not the given ID is already used. "];
+  Node141 -> Node142 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node142 [label="Avoid::Router::newObjectId",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Router.html#a202c28fcb04f7af2183fe6849b4ce2f3",tooltip="Returns the object ID used for automatically generated objects, such as during hyperedge routing..."];
+}

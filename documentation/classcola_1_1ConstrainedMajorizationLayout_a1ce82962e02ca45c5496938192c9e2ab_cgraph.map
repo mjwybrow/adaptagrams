@@ -1,3 +1,6 @@
 <map id="cola::ConstrainedMajorizationLayout::runOnce" name="cola::ConstrainedMajorizationLayout::runOnce">
-<area shape="rect" id="node2" href="$classcola_1_1ConstrainedMajorizationLayout.html#aba9584230e6e831ab7b3630677eaa9b5" title="cola::ConstrainedMajorization\lLayout::setScaling" alt="" coords="251,5,448,47"/>
+<area shape="rect" id="node2" href="$classcola_1_1ConstrainedMajorizationLayout.html#aba9584230e6e831ab7b3630677eaa9b5" title="cola::ConstrainedMajorization\lLayout::setScaling" alt="" coords="207,5,360,47"/>
+<area shape="rect" id="node3" href="$classvpsc_1_1IncSolver.html#a4a0358650a2dbe957ae9a42a3e4f8d92" title="Results in an optimum solution subject to the constraints. " alt="" coords="224,71,343,98"/>
+<area shape="rect" id="node4" href="$classvpsc_1_1Solver.html#aa8b60b42366385fdea0e69b0f5caff40" title="Results in an approximate solution subject to the constraints. " alt="" coords="408,46,519,73"/>
+<area shape="rect" id="node5" href="$classvpsc_1_1Solver.html#a69105f1f289689852e33b84693f0f2f2" title="vpsc::Solver::copyResult" alt="" coords="567,71,699,98"/>
 </map>

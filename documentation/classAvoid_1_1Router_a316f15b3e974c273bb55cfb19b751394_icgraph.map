@@ -1,0 +1,5 @@
+<map id="Avoid::Router::deleteConnector" name="Avoid::Router::deleteConnector">
+<area shape="rect" id="node2" href="$classAvoid_1_1HyperedgeRerouter.html#a3e1a1a6e00c57a6f0fcc5dbd2977bbc8" title="Returns a HyperedgeNewAndDeletedObjectLists detailing the lists of junctions and connectors created a..." alt="" coords="215,5,363,47"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1Router.html#a8f36729c98e13e57d2c56c0d1facf86c" title="Returns whether or not the given ID is already used. " alt="" coords="411,5,541,47"/>
+<area shape="rect" id="node4" href="$classAvoid_1_1Router.html#a202c28fcb04f7af2183fe6849b4ce2f3" title="Returns the object ID used for automatically generated objects, such as during hyperedge routing..." alt="" coords="589,13,733,39"/>
+</map>

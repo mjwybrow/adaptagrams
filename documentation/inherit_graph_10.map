@@ -1,6 +1,6 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$classAvoid_1_1PolygonInterface.html" title="A common interface used by the Polygon classes. " alt="" coords="5,31,168,57"/>
-<area shape="rect" id="node2" href="$classAvoid_1_1Polygon.html" title="A dynamic Polygon, to which points can be easily added and removed. " alt="" coords="252,5,363,32"/>
-<area shape="rect" id="node4" href="$classAvoid_1_1ReferencingPolygon.html" title="A Polygon which just references its points from other Polygons. " alt="" coords="216,56,399,83"/>
-<area shape="rect" id="node3" href="$classAvoid_1_1Rectangle.html" title="A Rectangle, a simpler way to define the polygon for square or rectangular shapes. " alt="" coords="447,5,569,32"/>
+<area shape="rect" id="node1" href="$classAvoid_1_1PolygonInterface.html" title="A common interface used by the Polygon classes. " alt="" coords="5,31,133,57"/>
+<area shape="rect" id="node2" href="$classAvoid_1_1Polygon.html" title="A dynamic Polygon, to which points can be easily added and removed. " alt="" coords="208,5,297,32"/>
+<area shape="rect" id="node4" href="$classAvoid_1_1ReferencingPolygon.html" title="A Polygon which just references its points from other Polygons. " alt="" coords="181,56,324,83"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1Rectangle.html" title="A Rectangle, a simpler way to define the polygon for square or rectangular shapes. " alt="" coords="372,5,469,32"/>
 </map>

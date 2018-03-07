@@ -1,9 +1,9 @@
 <map id="libavoid/junction.h" name="libavoid/junction.h">
-<area shape="rect" id="node4" href="$geomtypes_8h.html" title="Contains the interface for various geometry types and classes. " alt="" coords="481,379,628,405"/>
-<area shape="rect" id="node8" href="$dllexport_8h_source.html" title="libavoid/dllexport.h" alt="" coords="99,453,231,480"/>
-<area shape="rect" id="node9" href="$obstacle_8h.html" title="Contains the interface for the Obstacle class, the superclass for ShapeRef and JunctionRef. " alt="" coords="143,80,275,107"/>
-<area shape="rect" id="node11" href="$geometry_8h_source.html" title="libavoid/geometry.h" alt="" coords="158,304,295,331"/>
-<area shape="rect" id="node14" href="$connectionpin_8h.html" title="Contains the interface for the ShapeConnectionPin class. " alt="" coords="349,155,513,181"/>
-<area shape="rect" id="node12" href="$libavoid_2assertions_8h_source.html" title="libavoid/assertions.h" alt="" coords="263,379,406,405"/>
-<area shape="rect" id="node16" href="$connend_8h.html" title="Contains the interface for the ConnEnd class. " alt="" coords="348,229,481,256"/>
+<area shape="rect" id="node4" href="$geomtypes_8h.html" title="Contains the interface for various geometry types and classes. " alt="" coords="469,379,585,405"/>
+<area shape="rect" id="node8" href="$dllexport_8h_source.html" title="libavoid/dllexport.h" alt="" coords="126,453,231,480"/>
+<area shape="rect" id="node9" href="$obstacle_8h.html" title="Contains the interface for the Obstacle class, the superclass for ShapeRef and JunctionRef. " alt="" coords="156,80,260,107"/>
+<area shape="rect" id="node11" href="$geometry_8h_source.html" title="libavoid/geometry.h" alt="" coords="161,304,271,331"/>
+<area shape="rect" id="node14" href="$connectionpin_8h.html" title="Contains the interface for the ShapeConnectionPin class. " alt="" coords="350,155,479,181"/>
+<area shape="rect" id="node12" href="$libavoid_2assertions_8h_source.html" title="libavoid/assertions.h" alt="" coords="281,379,393,405"/>
+<area shape="rect" id="node16" href="$connend_8h.html" title="Contains the interface for the ConnEnd class. " alt="" coords="347,229,453,256"/>
 </map>

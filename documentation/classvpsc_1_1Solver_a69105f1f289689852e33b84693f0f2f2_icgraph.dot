@@ -1,0 +1,27 @@
+digraph "vpsc::Solver::copyResult"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node1 [label="vpsc::Solver::copyResult",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node1 -> Node2 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node2 [label="vpsc::Solver::getVariables",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classvpsc_1_1Solver.html#a47e25a7fdf395c701b908cb5016fe1c4",tooltip="Returns the Variables in this problem instance. "];
+  Node1 -> Node3 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node3 [label="vpsc::Solver::satisfy",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classvpsc_1_1Solver.html#aa8b60b42366385fdea0e69b0f5caff40",tooltip="Results in an approximate solution subject to the constraints. "];
+  Node3 -> Node4 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node4 [label="vpsc::Solver::solve",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classvpsc_1_1Solver.html#a9dceaa66aa7d4ed9576dbbf0d1219558",tooltip="Results in an optimum solution subject to the constraints. "];
+  Node4 -> Node5 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node5 [label="vpsc::removeoverlaps",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$namespacevpsc.html#aeffe24e36fd546efbff7449cf33d1208",tooltip="Uses VPSC to remove overlaps between rectangles. "];
+  Node3 -> Node6 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node6 [label="vpsc::IncSolver::solve",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classvpsc_1_1IncSolver.html#a4a0358650a2dbe957ae9a42a3e4f8d92",tooltip="Results in an optimum solution subject to the constraints. "];
+  Node6 -> Node7 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node7 [label="cola::ConstrainedMajorization\lLayout::runOnce",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcola_1_1ConstrainedMajorizationLayout.html#a1ce82962e02ca45c5496938192c9e2ab",tooltip="Same as run(), but only applies one iteration. "];
+  Node6 -> Node8 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node8 [label="cola::ConstrainedFDLayout\l::setTopology",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcola_1_1ConstrainedFDLayout.html#a68fa10af949c5617a69152fba7995fba",tooltip="Set an addon for doing topology preserving layout. "];
+  Node1 -> Node9 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node9 [label="vpsc::IncSolver::satisfy",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classvpsc_1_1IncSolver.html#ae0514b075bdc0329bde9539d7132c343",tooltip="Results in an approximate solution subject to the constraints. "];
+  Node9 -> Node10 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node10 [label="cola::ConstrainedFDLayout\l::makeFeasible",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcola_1_1ConstrainedFDLayout.html#a66697e8a428b0d1ecd8d5e042ee7072f",tooltip="Finds a feasible starting position for nodes that satisfies the given constraints. "];
+  Node1 -> Node4 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node1 -> Node6 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+}

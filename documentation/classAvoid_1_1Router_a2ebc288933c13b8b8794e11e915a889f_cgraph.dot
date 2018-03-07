@@ -1,0 +1,15 @@
+digraph "Avoid::Router::shouldContinueTransactionWithProgress"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node163 [label="Avoid::Router::shouldContinue\lTransactionWithProgress",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node163 -> Node164 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node164 [label="Avoid::Polygon::empty",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Polygon.html#a477d0e8e93509d7955d1f4b4ca0abb0d",tooltip="Returns true if this polygon is empty. "];
+  Node163 -> Node165 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node165 [label="Avoid::Router::routingParameter",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Router.html#ab08a56fa47c415c0450e20bbb438f420",tooltip="Returns the current value for a particular routing parameter of a given type. "];
+  Node163 -> Node166 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node166 [label="Avoid::ConnRef::routingType",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ConnRef.html#a2689d4fde1f3489976324abb04bcab72",tooltip="Returns the type of routing performed for this connector. "];
+  Node163 -> Node167 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node167 [label="Avoid::Polygon::size",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Polygon.html#a2f9e9c8c78407eefbde944e663d9711e",tooltip="Returns the number of points in this polygon. "];
+}

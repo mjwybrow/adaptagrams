@@ -3,5 +3,5 @@ digraph "Graphical Class Hierarchy"
   edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
   node [fontname="Helvetica",fontsize="10",shape=record];
   rankdir="LR";
-  Node1 [label="vpsc::Rectangle",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classvpsc_1_1Rectangle.html",tooltip="A rectangle represents a fixed-size shape in the diagram that may be moved to prevent overlaps and sa..."];
+  Node0 [label="vpsc::Rectangle",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classvpsc_1_1Rectangle.html",tooltip="A rectangle represents a fixed-size shape in the diagram that may be moved to prevent overlaps and sa..."];
 }

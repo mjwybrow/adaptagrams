@@ -1,0 +1,11 @@
+digraph "cola::PageBoundaryConstraints::generateSeparationConstraints"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node4 [label="cola::PageBoundaryConstraints\l::generateSeparationConstraints",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node4 -> Node5 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node5 [label="cola::CompoundConstraint\l::generateSeparationConstraints",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcola_1_1CompoundConstraint.html#a396a4f40343f7e66dd1dd2db89664386",tooltip="Implemented by the compound constraint to generate the low-level separation constraints in the given ..."];
+  Node4 -> Node6 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node6 [label="cola::CompoundConstraint\l::generateVariables",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcola_1_1CompoundConstraint.html#a5a40e6f388b8f4f2b8d9e253bc03b1ea",tooltip="Implemented by the compound constraint to generate any additional required variables in the given dim..."];
+}

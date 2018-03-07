@@ -1,0 +1,8 @@
+<map id="Avoid::ConnRef::routingType" name="Avoid::ConnRef::routingType">
+<area shape="rect" id="node2" href="$classAvoid_1_1Router.html#a8f36729c98e13e57d2c56c0d1facf86c" title="Returns whether or not the given ID is already used. " alt="" coords="440,16,571,58"/>
+<area shape="rect" id="node4" href="$classAvoid_1_1ConnRef.html#ace9257a67e94c7899c75af0362e5836f" title="Returns a pointer to the router scene this connector is in. " alt="" coords="227,94,351,121"/>
+<area shape="rect" id="node6" href="$classAvoid_1_1ConnRef.html#a7b216c9aa42811f1f2786adbda84f02e" title="Sets just a new destination endpoint for this connector. " alt="" coords="204,145,375,172"/>
+<area shape="rect" id="node7" href="$classAvoid_1_1Router.html#a2ebc288933c13b8b8794e11e915a889f" title="A method called at regular intervals during transaction processing to report progress and ask if the ..." alt="" coords="211,28,368,70"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1Router.html#a202c28fcb04f7af2183fe6849b4ce2f3" title="Returns the object ID used for automatically generated objects, such as during hyperedge routing..." alt="" coords="636,24,780,50"/>
+<area shape="rect" id="node5" href="$classAvoid_1_1ConnRef.html#a372f58a93c0296814de8d4a3075ad5e4" title="Splits a connector in the centre of the segmentNth segment and creates a junction point there as well..." alt="" coords="423,108,588,134"/>
+</map>

@@ -1,6 +1,6 @@
 <map id="Avoid::ConnRef::setFixedRoute" name="Avoid::ConnRef::setFixedRoute">
-<area shape="rect" id="node2" href="$classAvoid_1_1ConnRef.html#a98f24407bc92dd5a28e7c9d60d28d38b" title="Returns a reference to the current route for the connector. " alt="" coords="250,5,403,32"/>
-<area shape="rect" id="node3" href="$classAvoid_1_1ConnRef.html#ae66e8c90dc191951fc0f64acc4c06d7c" title="Sets both a new source and destination endpoint for this connector. " alt="" coords="227,56,427,83"/>
-<area shape="rect" id="node4" href="$classAvoid_1_1Polygon.html#a92f6c7f6bd7c144d408fe18a1b711bf3" title="Returns a simplified Polyline, where all collinear line segments have been collapsed down into single..." alt="" coords="245,107,408,133"/>
-<area shape="rect" id="node5" href="$classAvoid_1_1Polygon.html#a58c011bded47396fb1bbda2c1eeb9552" title="Returns the number of points in this polygon. " alt="" coords="475,132,617,159"/>
+<area shape="rect" id="node2" href="$classAvoid_1_1ConnRef.html#a0d90245fbe772d30723bd578efa3a45d" title="Returns a reference to the current raw &quot;debug&quot; route for the connector. " alt="" coords="207,5,327,32"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1ConnRef.html#ae66e8c90dc191951fc0f64acc4c06d7c" title="Sets both a new source and destination endpoint for this connector. " alt="" coords="189,56,345,83"/>
+<area shape="rect" id="node4" href="$classAvoid_1_1Polygon.html#a2d3a0deb96bbff214b7035e481f0f0e8" title="Returns a simplified Polyline, where all collinear line segments have been collapsed down into single..." alt="" coords="203,107,331,133"/>
+<area shape="rect" id="node5" href="$classAvoid_1_1Polygon.html#a2f9e9c8c78407eefbde944e663d9711e" title="Returns the number of points in this polygon. " alt="" coords="393,132,505,159"/>
 </map>

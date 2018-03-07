@@ -1,6 +1,6 @@
 <map id="libavoid/connectionpin.h" name="libavoid/connectionpin.h">
-<area shape="rect" id="node2" href="$obstacle_8h.html" title="Contains the interface for the Obstacle class, the superclass for ShapeRef and JunctionRef. " alt="" coords="1637,80,1769,107"/>
-<area shape="rect" id="node10" href="$libavoid_8h.html" title="Standard libavoid include file which includes all libavoid header files. " alt="" coords="177,237,303,263"/>
-<area shape="rect" id="node3" href="$shape_8h.html" title="Contains the interface for the ShapeRef class. " alt="" coords="1081,155,1199,181"/>
-<area shape="rect" id="node16" href="$junction_8h.html" title="Contains the interface for the JunctionRef class. " alt="" coords="1537,155,1665,181"/>
+<area shape="rect" id="node2" href="$obstacle_8h.html" title="Contains the interface for the Obstacle class, the superclass for ShapeRef and JunctionRef. " alt="" coords="1334,80,1438,107"/>
+<area shape="rect" id="node10" href="$libavoid_8h.html" title="Standard libavoid include file which includes all libavoid header files. " alt="" coords="146,237,247,263"/>
+<area shape="rect" id="node3" href="$shape_8h.html" title="Contains the interface for the ShapeRef class. " alt="" coords="881,155,976,181"/>
+<area shape="rect" id="node16" href="$junction_8h.html" title="Contains the interface for the JunctionRef class. " alt="" coords="1247,155,1349,181"/>
 </map>

@@ -1,10 +1,10 @@
 <map id="libavoid/connend.h" name="libavoid/connend.h">
-<area shape="rect" id="node2" href="$actioninfo_8h_source.html" title="libavoid/actioninfo.h" alt="" coords="2793,155,2931,181"/>
-<area shape="rect" id="node14" href="$libavoid_8h.html" title="Standard libavoid include file which includes all libavoid header files. " alt="" coords="3544,311,3671,338"/>
-<area shape="rect" id="node26" href="$connectionpin_8h.html" title="Contains the interface for the ShapeConnectionPin class. " alt="" coords="1631,80,1795,107"/>
-<area shape="rect" id="node30" href="$connector_8h.html" title="Contains the interface for the ConnRef class. " alt="" coords="1793,155,1933,181"/>
-<area shape="rect" id="node4" href="$router_8h.html" title="Contains the interface for the Router class. " alt="" coords="1870,229,1987,256"/>
-<area shape="rect" id="node27" href="$obstacle_8h.html" title="Contains the interface for the Obstacle class, the superclass for ShapeRef and JunctionRef. " alt="" coords="1637,155,1769,181"/>
-<area shape="rect" id="node28" href="$shape_8h.html" title="Contains the interface for the ShapeRef class. " alt="" coords="2447,229,2565,256"/>
-<area shape="rect" id="node29" href="$junction_8h.html" title="Contains the interface for the JunctionRef class. " alt="" coords="2294,229,2422,256"/>
+<area shape="rect" id="node2" href="$actioninfo_8h_source.html" title="libavoid/actioninfo.h" alt="" coords="2288,155,2397,181"/>
+<area shape="rect" id="node14" href="$libavoid_8h.html" title="Standard libavoid include file which includes all libavoid header files. " alt="" coords="2889,311,2991,338"/>
+<area shape="rect" id="node26" href="$connectionpin_8h.html" title="Contains the interface for the ShapeConnectionPin class. " alt="" coords="1314,80,1443,107"/>
+<area shape="rect" id="node30" href="$connector_8h.html" title="Contains the interface for the ConnRef class. " alt="" coords="1449,155,1559,181"/>
+<area shape="rect" id="node4" href="$router_8h.html" title="Contains the interface for the Router class. " alt="" coords="1532,229,1625,256"/>
+<area shape="rect" id="node27" href="$obstacle_8h.html" title="Contains the interface for the Obstacle class, the superclass for ShapeRef and JunctionRef. " alt="" coords="1320,155,1424,181"/>
+<area shape="rect" id="node28" href="$shape_8h.html" title="Contains the interface for the ShapeRef class. " alt="" coords="1966,229,2061,256"/>
+<area shape="rect" id="node29" href="$junction_8h.html" title="Contains the interface for the JunctionRef class. " alt="" coords="1840,229,1941,256"/>
 </map>

@@ -1,0 +1,10 @@
+<map id="Avoid::ConnRef::router" name="Avoid::ConnRef::router">
+<area shape="rect" id="node2" href="$classAvoid_1_1Polygon.html#ab2772d0cf1d0aad817a9814e20fce5ab" title="Returns a specific point in the polygon. " alt="" coords="201,5,304,32"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1Polygon.html#a2f9e9c8c78407eefbde944e663d9711e" title="Returns the number of points in this polygon. " alt="" coords="408,31,520,57"/>
+<area shape="rect" id="node4" href="$classAvoid_1_1ConnRef.html#abb7f970e8bee1ccf69a0d5521ca1f177" title="Returns ConnEnds specifying what this connector is attached to. " alt="" coords="185,107,321,149"/>
+<area shape="rect" id="node7" href="$classAvoid_1_1ConnRef.html#a5e6c783ffb50b315769f1a0c29597136" title="Returns whether the connector route is marked as fixed. " alt="" coords="183,173,322,214"/>
+<area shape="rect" id="node8" href="$classAvoid_1_1ConnRef.html#a0d90245fbe772d30723bd578efa3a45d" title="Returns a reference to the current raw &quot;debug&quot; route for the connector. " alt="" coords="193,239,313,265"/>
+<area shape="rect" id="node9" href="$classAvoid_1_1ConnRef.html#a2689d4fde1f3489976324abb04bcab72" title="Returns the type of routing performed for this connector. " alt="" coords="177,289,328,316"/>
+<area shape="rect" id="node5" href="$classAvoid_1_1Polygon.html#aae0e8e58b2f358ec3f203a5e6485c660" title="Resets this to the empty polygon. " alt="" coords="406,111,522,137"/>
+<area shape="rect" id="node6" href="$classAvoid_1_1Router.html#ac4497126d8d4c76a122af565260941fc" title="Finishes the current transaction and processes all the queued object changes efficiently. " alt="" coords="376,161,552,188"/>
+</map>

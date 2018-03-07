@@ -1,0 +1,15 @@
+digraph "Avoid::ConnRef::endpointConnEnds"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node24 [label="Avoid::ConnRef::endpoint\lConnEnds",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node24 -> Node25 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node25 [label="Avoid::Router::objectIdIs\lUnused",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Router.html#a8f36729c98e13e57d2c56c0d1facf86c",tooltip="Returns whether or not the given ID is already used. "];
+  Node25 -> Node26 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node26 [label="Avoid::Router::newObjectId",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Router.html#a202c28fcb04f7af2183fe6849b4ce2f3",tooltip="Returns the object ID used for automatically generated objects, such as during hyperedge routing..."];
+  Node24 -> Node27 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node27 [label="Avoid::ConnRef::router",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ConnRef.html#ace9257a67e94c7899c75af0362e5836f",tooltip="Returns a pointer to the router scene this connector is in. "];
+  Node27 -> Node28 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node28 [label="Avoid::ConnRef::splitAtSegment",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ConnRef.html#a372f58a93c0296814de8d4a3075ad5e4",tooltip="Splits a connector in the centre of the segmentNth segment and creates a junction point there as well..."];
+}

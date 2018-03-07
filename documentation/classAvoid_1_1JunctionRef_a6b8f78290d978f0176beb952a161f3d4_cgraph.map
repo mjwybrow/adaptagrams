@@ -1,3 +1,3 @@
 <map id="Avoid::JunctionRef::JunctionRef" name="Avoid::JunctionRef::JunctionRef">
-<area shape="rect" id="node2" href="$classAvoid_1_1ShapeConnectionPin.html#aacb578182fb564e199f681447914a124" title="Sets whether the pin is exclusive, i.e., only one connector can attach to it. This defaults to true f..." alt="" coords="187,5,375,47"/>
+<area shape="rect" id="node2" href="$classAvoid_1_1ShapeConnectionPin.html#aacb578182fb564e199f681447914a124" title="Sets whether the pin is exclusive, i.e., only one connector can attach to it. This defaults to true f..." alt="" coords="159,5,305,47"/>
 </map>

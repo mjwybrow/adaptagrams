@@ -1,0 +1,17 @@
+digraph "vpsc::Solver::satisfy"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node16 [label="vpsc::Solver::satisfy",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node16 -> Node17 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node17 [label="vpsc::Solver::solve",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classvpsc_1_1Solver.html#a9dceaa66aa7d4ed9576dbbf0d1219558",tooltip="Results in an optimum solution subject to the constraints. "];
+  Node17 -> Node18 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node18 [label="vpsc::removeoverlaps",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$namespacevpsc.html#aeffe24e36fd546efbff7449cf33d1208",tooltip="Uses VPSC to remove overlaps between rectangles. "];
+  Node16 -> Node19 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node19 [label="vpsc::IncSolver::solve",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classvpsc_1_1IncSolver.html#a4a0358650a2dbe957ae9a42a3e4f8d92",tooltip="Results in an optimum solution subject to the constraints. "];
+  Node19 -> Node20 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node20 [label="cola::ConstrainedMajorization\lLayout::runOnce",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcola_1_1ConstrainedMajorizationLayout.html#a1ce82962e02ca45c5496938192c9e2ab",tooltip="Same as run(), but only applies one iteration. "];
+  Node19 -> Node21 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node21 [label="cola::ConstrainedFDLayout\l::setTopology",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcola_1_1ConstrainedFDLayout.html#a68fa10af949c5617a69152fba7995fba",tooltip="Set an addon for doing topology preserving layout. "];
+}

@@ -3,14 +3,14 @@ digraph "Avoid::ConnRef::setFixedRoute"
   edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
   node [fontname="Helvetica",fontsize="10",shape=record];
   rankdir="LR";
-  Node1 [label="Avoid::ConnRef::setFixed\lRoute",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
-  Node1 -> Node2 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node2 [label="Avoid::ConnRef::route",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ConnRef.html#a98f24407bc92dd5a28e7c9d60d28d38b",tooltip="Returns a reference to the current route for the connector. "];
-  Node1 -> Node3 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node3 [label="Avoid::ConnRef::setEndpoints",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ConnRef.html#ae66e8c90dc191951fc0f64acc4c06d7c",tooltip="Sets both a new source and destination endpoint for this connector. "];
-  Node1 -> Node4 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node4 [label="Avoid::Polygon::simplify",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Polygon.html#a92f6c7f6bd7c144d408fe18a1b711bf3",tooltip="Returns a simplified Polyline, where all collinear line segments have been collapsed down into single..."];
-  Node4 -> Node5 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node5 [label="Avoid::Polygon::size",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Polygon.html#a58c011bded47396fb1bbda2c1eeb9552",tooltip="Returns the number of points in this polygon. "];
-  Node1 -> Node5 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node84 [label="Avoid::ConnRef::setFixed\lRoute",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node84 -> Node85 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node85 [label="Avoid::ConnRef::route",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ConnRef.html#a0d90245fbe772d30723bd578efa3a45d",tooltip="Returns a reference to the current raw \"debug\" route for the connector. "];
+  Node84 -> Node86 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node86 [label="Avoid::ConnRef::setEndpoints",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ConnRef.html#ae66e8c90dc191951fc0f64acc4c06d7c",tooltip="Sets both a new source and destination endpoint for this connector. "];
+  Node84 -> Node87 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node87 [label="Avoid::Polygon::simplify",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Polygon.html#a2d3a0deb96bbff214b7035e481f0f0e8",tooltip="Returns a simplified Polyline, where all collinear line segments have been collapsed down into single..."];
+  Node87 -> Node88 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node88 [label="Avoid::Polygon::size",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Polygon.html#a2f9e9c8c78407eefbde944e663d9711e",tooltip="Returns the number of points in this polygon. "];
+  Node84 -> Node88 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
 }

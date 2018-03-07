@@ -1,4 +1,4 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" href="$classcola_1_1TopologyAddonInterface.html" title="Interface for writing COLA addons to handle topology preserving layout. " alt="" coords="5,5,204,32"/>
-<area shape="rect" id="node2" href="$classtopology_1_1ColaTopologyAddon.html" title="This class can be passed to libcola to replace some functionality to provide topology preserving layo..." alt="" coords="252,5,452,32"/>
+<area shape="rect" id="node1" href="$classcola_1_1TopologyAddonInterface.html" title="Interface for writing COLA addons to handle topology preserving layout. " alt="" coords="5,5,160,32"/>
+<area shape="rect" id="node2" href="$classtopology_1_1ColaTopologyAddon.html" title="This class can be passed to libcola to replace some functionality to provide topology preserving layo..." alt="" coords="208,5,364,32"/>
 </map>
