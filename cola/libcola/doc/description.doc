@@ -13,16 +13,16 @@ libcola is part of the
 <a href="http://www.adaptagrams.org/">Adaptagrams project</a>. 
 There are no official releases yet, though the code is stable and 
 available from the Adaptagrams 
-<a href="https://github.com/mjwybrow/adaptagrams">github 
+<a href="https://github.com/mjwybrow/adaptagrams">GitHub 
 repository</a>.
 
 The API is documented using Doxygen.  The documentation you are currently 
 reading can be obtained by running doxygen in the cola directory. 
 
 libcola is written and maintained by 
-<a href="http://marvl.infotech.monash.edu/~mwybrow/">Michael Wybrow</a> and
-<a href="http://marvl.infotech.monash.edu/~dwyer/">Tim Dwyer</a>,
-members of <a href="http://marvl.infotech.monash.edu/">MArVL: the Monash Adaptive Visualisation Lab</a> at Monash University, Australia.
+<a href="http://users.monash.edu/~mwybrow/">Michael Wybrow</a> and
+<a href="http://ialab.it.monash.edu/~dwyer/">Tim Dwyer</a>,
+members of <a href="http://ialab.it.monash.edu/">Immersive Analytics Lab</a> at Monash University, Australia.
 
 The algorithms used for ConstrainedFDLayout are described in the following papers.  If you use libcola, please cite the relevant paper.
 -  Tim Dwyer, Kim Marriott, and Michael Wybrow. Topology preserving

@@ -234,27 +234,26 @@ class AVOID_EXPORT ConnRef
         //!          false if it does not.
         bool needsRepaint(void) const;
         
-        //! @brief   Returns a reference to the current route for the connector.
+        //! @brief   Returns a reference to the current raw "debug" route for 
+        //!          the connector.
         //!
-        //! This is a "raw" version of the route, where each line segment in
-        //! the route may be made up of multiple collinear line segments.  It
-        //! will also not have post-processing (like curved corners) applied
-        //! to it.  The simplified route for display can be obtained by calling
+        //! This is a raw "debug" shortest path version of the route, where 
+        //! each line segment in the route may be made up of multiple collinear
+        //! line segments.  It also has no post-processing (i.e., centering,
+        //! nudging apart of overlapping paths, or curving of corners) applied 
+        //! to it.  A route to display to the user can be obtained by calling
         //! displayRoute().
         //!
         //! @returns The PolyLine route for the connector.
-        //! @note    You can obtain a modified version of this poly-line 
-        //!          route with curved corners added by calling 
-        //!          PolyLine::curvedPolyline().
         const PolyLine& route(void) const;
         
         //! @brief   Returns a reference to the current display version of the
         //!          route for the connector.
         //! 
         //! The display version of a route has been simplified to collapse all
-        //! collinear line segments into single segments.  It may also have 
-        //! post-processing applied to the route, such as curved corners or
-        //! nudging.
+        //! collinear line segments into single segments.  It also has all
+        //! post-processing applied to the route, including centering, curved
+        //! corners and nudging apart of overlapping segments.
         //! 
         //! @returns The PolyLine display route for the connector.
         PolyLine& displayRoute(void);
