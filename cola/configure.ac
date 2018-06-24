@@ -18,7 +18,7 @@ dnl ******************************
 if test "$GXX" = "yes"; then
   # Enable some warnings from g++.
 
-  CXXFLAGS="-Wall -W -Wpointer-arith -Wcast-align -Wsign-compare -Woverloaded-virtual -Wswitch  $CXXFLAGS"
+  CXXFLAGS="-Wall -W -Wpointer-arith -Wcast-align -Wsign-compare -Woverloaded-virtual -Wswitch -std=c++11 $CXXFLAGS"
 
   dnl Test for arch-specific situations.
   case "$host_cpu" in
