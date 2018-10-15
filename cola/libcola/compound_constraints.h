@@ -26,6 +26,8 @@
 #include <set>
 #include <utility>
 
+#include "libvpsc/rectangle.h"
+#include "libvpsc/constraint.h"
 #include "libcola/sparse_matrix.h"
 #include "libcola/unused.h"
 

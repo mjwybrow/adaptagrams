@@ -25,11 +25,11 @@ if platform.startswith("linux"):
 
 adaptagrams_module = Extension('_adaptagrams',
                                sources=['adaptagrams_wrap.cxx'],
-			                   extra_compile_args=['-DUSE_ASSERT_EXCEPTIONS','-DSWIG_PYTHON_SILENT_MEMLEAK'],
+			                   extra_compile_args=['-DUSE_ASSERT_EXCEPTIONS','-DSWIG_PYTHON_SILENT_MEMLEAK','-std=gnu++11','-stdlib=libc++'],
                                # use this line for SWIG 2.0.12 to silence some harmless warnings 
                                #extra_compile_args=['-DUSE_ASSERT_EXCEPTIONS','-DSWIG_PYTHON_SILENT_MEMLEAK','-Wno-uninitialized'],
 			                   include_dirs=['.'],
-			                   extra_link_args=['libcola/.libs/libcola.a','libtopology/.libs/libtopology.a', 'libavoid/.libs/libavoid.a','libvpsc/.libs/libvpsc.a'],
+			                   extra_link_args=['libcola/.libs/libcola.a','libtopology/.libs/libtopology.a', 'libavoid/.libs/libavoid.a','libvpsc/.libs/libvpsc.a','libdialect/.libs/libdialect.a'],
                               )
 
 setup (name = 'adaptagrams',
