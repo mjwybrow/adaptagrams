@@ -1754,7 +1754,7 @@ void ConnectorCrossings::countForSegment(size_t cIndex, const bool finalSegment)
     bool connIsOrthogonal = (connConnRef &&
             (connConnRef->routingType() == ConnType_Orthogonal));
 
-    // Fixed routes are will not have segment breaks at possible crossings.
+    // Fixed routes will not have segment breaks at possible crossings.
     bool polyIsFixed = (polyConnRef && polyConnRef->hasFixedRoute());
     bool connIsFixed = (connConnRef && connConnRef->hasFixedRoute());
     
