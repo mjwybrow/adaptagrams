@@ -1,0 +1,188 @@
+#!/usr/bin/python
+
+import sys, random
+
+def usage():
+    s = ''
+    s += '\n'
+    s += 'USAGE:\n'
+    s += 'To create a random connected graph, use\n'
+    s += '      ./randomGraph OPTION n m\n'
+    s += 'where n is the number of nodes you want,\n'
+    s += 'and m is the number of edges you want,\n'
+    s += '(must have n-1 <= m <= n(n-1)/2)\n'
+    s += 'and where OPTION is:\n'
+    s += '    -a: automatic filename v%de%d.tgf%(n,m)\n'
+    s += '    -s: write to stdout\n'
+    return s
+
+class Node:
+
+    def __init__(self,graph,index):
+        self.graph = graph
+        self.index = index
+        self.friends = []
+        self.strangers = range(index)
+
+    def randomStranger(self):
+        s = len(self.strangers)
+        if s == 0: return None
+        j = random.randint(0,s-1)
+        return self.strangers[j]
+
+    def hasFriend(self,i):
+        return i in self.friends
+
+    def addStranger(self,i):
+        self.strangers.append(i)
+        self.graph.markNodeIndexUnsat(self.index)
+
+    def addFriend(self,i):
+        if self.hasFriend(i): return
+        self.friends.append(i)
+        self.strangers.remove(i)
+        if not self.strangers:
+            self.graph.markNodeIndexSat(self.index)
+
+
+class Graph:
+
+    def __init__(self):
+        self.size = 0
+        self.nodes = []
+        self.edges = []
+        self.unsatNI = [] # unsaturated node indices
+
+    def newNode(self):
+        "Create and return a new node for this graph."
+        n = self.size
+        N = Node(self,n)
+        if n > 0:
+            self.unsatNI = range(n+1)
+            # Tell old nodes about new stranger.
+            for M in self.nodes:
+                M.strangers.append(n)
+        self.nodes.append(N)
+        self.size = n + 1
+        return N
+
+    def markNodeIndexSat(self,i):
+        self.unsatNI.remove(i)
+
+    def markNodeIndexUnsat(self,i):
+        self.unsatNI.append(i)
+
+    def edgeMayExist(self,si,ti):
+        "Check whether the indices are within bounds."
+        n = self.size
+        return si < n and ti < n
+
+    def edgeExists(self,si,ti):
+        "Say whether nodes si, ti yet share an edge."
+        if not self.edgeMayExist(si,ti): return False
+        sn = self.nodes[si]
+        return sn.hasFriend(ti)
+
+    def isComplete(self):
+        "Is this graph complete?"
+        return len(self.unsatNI) == 0
+
+    def addEdge(self,si,ti):
+        "Add the edge (si,ti) if possible."
+        if self.edgeMayExist(si,ti) and not self.edgeExists(si,ti):
+            sn = self.nodes[si]
+            tn = self.nodes[ti]
+            # Inform the nodes
+            sn.addFriend(ti)
+            tn.addFriend(si)
+            # Record edge locally
+            self.edges.append( (si,ti) )
+
+    def addRandomEdge(self):
+        "Add a random edge if possible, and return it."
+        if self.isComplete(): return None
+        # Choose an unsaturated node at random.
+        u = len(self.unsatNI)
+        j = random.randint(0,u-1)
+        si = self.unsatNI[j]
+        sn = self.nodes[si]
+        ti = sn.randomStranger()
+        self.addEdge(si,ti)
+        return (si,ti)
+
+    def addRandomConnectedNode(self):
+        "Create a new node and attach it to a random existing node."
+        sn = self.newNode()
+        if self.size > 1:
+            si = sn.index
+            ti = sn.randomStranger()
+            self.addEdge(si,ti)
+
+    def tgf(self):
+        t = ''
+        for n in self.nodes:
+            t += '%d\n'%n.index
+        t += '#\n'
+        for e in self.edges:
+            t += '%d %d\n'%e
+        return t
+
+def genRandGraph(n,m):
+    """
+    Generate a random connected graph of n nodes and m edges.
+    """
+    if m < n - 1 or m > n*(n - 1)/2:
+        print 'ERROR: m must be between n-1 and n(n-1)/2 inclusive.'
+        sys.exit(1)
+    G = Graph()
+    # First create n nodes, connected by a spanning tree.
+    for i in range(n):
+        G.addRandomConnectedNode()
+    # There are now n - 1 edges in the graph.
+    # Add m - n + 1 more.
+    for j in range(m - n + 1):
+        G.addRandomEdge()
+    return G
+
+def genRandGraphByDensity(n,d):
+    G = Graph()
+    N = 0
+    if d < 1 or d > (n-1)/2.0:
+        print 'ERROR: d must be between 1 and (n-1)/2, inclusive'
+        sys.exit(1)
+    p = (d-1)/d
+    while N < n:
+        r = random.random()
+        if r < p:
+            G.addRandomEdge()
+        else:
+            G.addRandomConnectedNode()
+            N += 1
+    return G
+
+
+def readCmdLine():
+    try:
+        opt = sys.argv[1]
+        if opt not in ['-a','-s']: raise Exception()
+        n = int(sys.argv[2])
+        m = int(sys.argv[3])
+        if m < n-1 or m > n*(n-1)/2.0: raise Exception()
+        return (opt,n,m)
+    except:
+        print usage()
+        sys.exit(1)
+
+def main():
+    opt,n,m = readCmdLine()
+    G = genRandGraph(n,m)
+    tgf = G.tgf()
+    if opt == '-a':
+        fn = 'v%de%d.tgf'%(n,m)
+        open(fn,'w').write(tgf)
+    elif opt == '-s':
+        sys.stdout.write(tgf)
+
+if __name__ == '__main__':
+    main()
+

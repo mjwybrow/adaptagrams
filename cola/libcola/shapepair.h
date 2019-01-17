@@ -34,6 +34,8 @@ class ShapePair
     public:
         ShapePair(unsigned ind1, unsigned ind2);
         bool operator<(const ShapePair& rhs) const;
+        unsigned short index1(void) const {return m_index1;}
+        unsigned short index2(void) const {return m_index2;}
 
     private:
         unsigned short m_index1;

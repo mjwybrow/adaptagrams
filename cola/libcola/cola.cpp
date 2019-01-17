@@ -44,7 +44,8 @@ ConstrainedMajorizationLayout
         const double idealLength,
         EdgeLengths eLengths,
         TestConvergence *doneTest,
-        PreIteration* preIteration)
+        PreIteration* preIteration,
+        bool useNeighbourStress)
     : n(rs.size()),
       lap2(valarray<double>(n*n)), 
       Dij(valarray<double>(n*n)),
@@ -99,8 +100,23 @@ ConstrainedMajorizationLayout
         }
     }
 
-    shortest_paths::johnsons(n,D,es,edgeLengths);
-    //shortest_paths::neighbours(n,D,es,edgeLengths);
+    if (useNeighbourStress) {
+        for(unsigned i=0;i<n;i++) {
+            for(unsigned j=0;j<n;j++) {
+                D[i][j]=std::numeric_limits<double>::max();
+            }
+        }
+        bool haveLengths = edgeLengths.size() == es.size();
+        for (unsigned i = 0; i < es.size(); i++) {
+            unsigned source = es[i].first;
+            unsigned target = es[i].second;
+            D[source][target] = D[target][source] = (haveLengths ? edgeLengths[i] : 1.0);
+        }
+    } else {
+        shortest_paths::johnsons(n,D,es,edgeLengths);
+        //shortest_paths::neighbours(n,D,es,edgeLengths);
+    }
+
     edge_length = idealLength;
     if(clusterHierarchy) {
         for(Clusters::const_iterator i=clusterHierarchy->clusters.begin();
@@ -666,5 +682,20 @@ Rectangle bounds(vector<Rectangle*>& rs) {
         removeClusterOverlap(clusterHierarchy, rs, locks, vpsc::VERTICAL);
     }
 #endif
+
+    ConstrainedMajorizationLayout* simpleCMLFactory(
+            vpsc::Rectangles& rs,
+            std::vector<Edge> const & es,
+            RootCluster* clusterHierarchy,
+            const double idealLength,
+            bool useNeighbourStress
+        ) {
+        cola::EdgeLengths eLengths;
+        for(size_t i = 0; i < es.size(); ++i) {
+            eLengths.push_back(1);
+        }
+        return new ConstrainedMajorizationLayout(rs, es, clusterHierarchy, idealLength,
+                eLengths, nullptr, nullptr, useNeighbourStress);
+    };
 
 } // namespace cola

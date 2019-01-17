@@ -32,6 +32,7 @@
 #include "libvpsc/variable.h"
 #include "libvpsc/constraint.h"
 #include "libvpsc/rectangle.h"
+#include "libvpsc/exceptions.h"
 
 #include "libcola/commondefs.h"
 #include "libcola/cola.h"
@@ -49,8 +50,16 @@
 #include "libcola/cola_log.h"
 
 using namespace std;
+using vpsc::Dim;
 using vpsc::XDIM;
 using vpsc::YDIM;
+using vpsc::IncSolver;
+using vpsc::Variable;
+using vpsc::Variables;
+using vpsc::Constraint;
+using vpsc::Constraints;
+using vpsc::Rectangle;
+using vpsc::Rectangles;
 
 namespace cola {
 
@@ -101,6 +110,7 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
       rectClusterBuffer(0),
       m_idealEdgeLength(idealLength),
       m_generateNonOverlapConstraints(false),
+      m_useNeighbourStress(false),
       m_edge_lengths(eLengths.data(), eLengths.size()),
       m_nonoverlap_exemptions(new NonOverlapConstraintExemptions())
 {
@@ -111,6 +121,8 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
         done = new TestConvergence();
         using_default_done = true;
     }
+
+    computeNeighbours(es);
 
     //FILELog::ReportingLevel() = logDEBUG1;
     FILELog::ReportingLevel() = logERROR;
@@ -132,6 +144,42 @@ ConstrainedFDLayout::ConstrainedFDLayout(const vpsc::Rectangles& rs,
     computePathLengths(es,m_edge_lengths);
 }
 
+std::vector<double> ConstrainedFDLayout::readLinearD(void)
+{
+    std::vector<double> d;
+    d.resize(n*n);
+    for (unsigned i = 0; i < n; ++i) {
+        for (unsigned j = 0; j < n; ++j) {
+            d[n*i + j] = D[i][j];
+        }
+    }
+    return d;
+}
+
+std::vector<unsigned> ConstrainedFDLayout::readLinearG(void)
+{
+    std::vector<unsigned> g;
+    g.resize(n*n);
+    for (unsigned i = 0; i < n; ++i) {
+        for (unsigned j = 0; j < n; ++j) {
+            g[n*i + j] = G[i][j];
+        }
+    }
+    return g;
+}
+
+void ConstrainedFDLayout::computeNeighbours(vector<Edge> es) {
+    for (unsigned i = 0; i < n; ++i) {
+        neighbours.push_back(vector<unsigned>(n));
+    }
+    for (vector<Edge>::iterator it = es.begin(); it!=es.end(); ++it) {
+        Edge e = *it;
+        unsigned s = e.first, t = e.second;
+        neighbours[s][t] = 1;
+        neighbours[t][s] = 1;
+    }
+}
+
 void dijkstra(const unsigned s, const unsigned n, double* d,
         const vector<Edge>& es, const std::valarray<double> & eLengths)
 {
@@ -150,6 +198,10 @@ void ConstrainedFDLayout::setAvoidNodeOverlaps(bool avoidOverlaps,
     m_nonoverlap_exemptions->addExemptGroupOfNodes(listOfNodeGroups);
 }
 
+void ConstrainedFDLayout::setUseNeighbourStress(bool useNeighbourStress)
+{
+    m_useNeighbourStress = useNeighbourStress;
+}
 
 void ConstrainedFDLayout::setDesiredPositions(DesiredPositions *desiredPositions)
 {
@@ -549,13 +601,13 @@ void ConstrainedFDLayout::generateNonOverlapAndClusterCompoundConstraints(
     }
 }
 
-void ConstrainedFDLayout::makeFeasible(void)
+void ConstrainedFDLayout::makeFeasible(double xBorder, double yBorder)
 {
     vpsc::Variables vs[2];
     vpsc::Constraints valid[2];
 
-    vpsc::Rectangle::setXBorder(1);
-    vpsc::Rectangle::setYBorder(1);
+    vpsc::Rectangle::setXBorder(xBorder);
+    vpsc::Rectangle::setYBorder(yBorder);
 
     // Populate all the variables for shapes.
     for (unsigned int dim = 0; dim < 2; ++dim)
@@ -1002,6 +1054,7 @@ void ConstrainedFDLayout::handleResizes(const Resizes& resizeList)
     topologyAddon->handleResizes(resizeList, n, X, Y, ccs, boundingBoxes,
             clusterHierarchy);
 }
+
 /*
  * move positions of nodes in specified axis while respecting constraints
  * @param dim axis
@@ -1181,6 +1234,7 @@ void ConstrainedFDLayout::computeForces(
         double Huu=0;
         for(unsigned v=0;v<n;v++) {
             if(u==v) continue;
+            if (m_useNeighbourStress && neighbours[u][v]!=1) continue;
 
             // The following loop randomly displaces nodes that are at identical positions
             double rx=X[u]-X[v], ry=Y[u]-Y[v];
@@ -1262,6 +1316,7 @@ double ConstrainedFDLayout::computeStress() const {
     double stress=0;
     for(unsigned u=0;(u + 1)<n;u++) {
         for(unsigned v=u+1;v<n;v++) {
+            if (m_useNeighbourStress && neighbours[u][v]!=1) continue;
             unsigned short p=G[u][v];
             // no forces between disconnected parts of the graph
             if(p==0) continue;
@@ -1489,5 +1544,138 @@ void ConstrainedFDLayout::outputInstanceToSVG(std::string instanceName)
     fclose(fp);
 }
 
+ProjectionResult projectOntoCCs(Dim dim, Rectangles &rs, CompoundConstraints ccs,
+                                bool preventOverlaps, int accept, unsigned debugLevel)
+{
+    size_t n = rs.size();
+    // Set up nonoverlap constraints if desired.
+    NonOverlapConstraintExemptions *nocexemps = nullptr;
+    NonOverlapConstraints *noc = nullptr;
+    if (preventOverlaps) {
+        nocexemps = new NonOverlapConstraintExemptions();
+        noc = new NonOverlapConstraints(nocexemps);
+        for (size_t i = 0; i < n; ++i) {
+            noc->addShape(i, rs[i]->width()/2.0, rs[i]->height()/2.0);
+        }
+        ccs.push_back(noc);
+    }
+    // Set up vars and constraints.
+    Variables vs;
+    Constraints cs;
+    vs.resize(n);
+    for (size_t i = 0; i < n; ++i) {
+        vs[i] = new Variable(i, rs[i]->getCentreD(dim));
+    }
+    for (CompoundConstraints::iterator it=ccs.begin(); it!=ccs.end(); ++it) {
+        CompoundConstraint *cc = *it;
+        cc->generateVariables(dim, vs);
+        cc->generateSeparationConstraints(dim, vs, cs, rs);
+    }
+    // Solve, if possible.
+    ProjectionResult result = solve(vs, cs, rs, debugLevel);
+    // If good enough, accept positions.
+    if (result.errorLevel <= accept) {
+        for (size_t i = 0; i < n; ++i) {
+            rs[i]->moveCentreD(dim, vs[i]->finalPosition);
+        }
+    }
+    // Clean up
+    for (Variables::iterator it=vs.begin(); it!=vs.end(); ++it) delete *it;
+    for (Constraints::iterator it=cs.begin(); it!=cs.end(); ++it) delete *it;
+    delete noc;
+    delete nocexemps;
+    // Return
+    return result;
+}
+
+ProjectionResult solve(Variables &vs, Constraints &cs, Rectangles &rs, unsigned debugLevel)
+{
+    int result = 0;
+    IncSolver solv(vs,cs);
+    try {
+        solv.solve();
+    } catch (vpsc::UnsatisfiedConstraint uc) {
+    }
+    for (Constraints::iterator it=cs.begin(); it!=cs.end(); it++) {
+        Constraint *c = *it;
+        if (c->unsatisfiable) {
+            CompoundConstraint *cc = (CompoundConstraint*)(c->creator);
+            if (cc->toString() == "NonOverlapConstraints()") {
+                result = 1;
+            } else {
+                result = 2;
+                break;
+            }
+        }
+    }
+    std::string unsatinfo;
+    if (debugLevel>0) {
+        std::set<Variable*> varsInvolved;
+        unsatinfo += "===================================================\n";
+        unsatinfo += "UNSATISFIED CONSTRAINTS:\n";
+        char buf [1000];
+        for (Constraints::iterator it=cs.begin(); it!=cs.end(); it++) {
+            Constraint *c = *it;
+            if (c->unsatisfiable) {
+                varsInvolved.insert(c->left);
+                varsInvolved.insert(c->right);
+                sprintf(buf, "v_%d + %f", c->left->id, c->gap);
+                unsatinfo += buf;
+                unsatinfo += c->equality ? " == " : " <= ";
+                sprintf(buf, "v_%d\n", c->right->id);
+                unsatinfo += buf;
+                if ((unsigned) c->left->id < rs.size()) {
+                    Rectangle *r = rs[c->left->id];
+                    sprintf(buf, "    v_%d rect: [%f, %f] x [%f, %f]\n", c->left->id,
+                            r->getMinX(), r->getMaxX(), r->getMinY(), r->getMaxY());
+                    unsatinfo += buf;
+                }
+                if ((unsigned) c->right->id < rs.size()) {
+                    Rectangle *r = rs[c->right->id];
+                    sprintf(buf, "    v_%d rect: [%f, %f] x [%f, %f]\n", c->right->id,
+                            r->getMinX(), r->getMaxX(), r->getMinY(), r->getMaxY());
+                    unsatinfo += buf;
+                }
+                CompoundConstraint *cc = (CompoundConstraint*)(c->creator);
+                unsatinfo += "    Creator: " + cc->toString() + "\n";
+            }
+        }
+        if (debugLevel>1) {
+            unsatinfo += "--------------------------------------------------\n";
+            unsatinfo += "RELATED CONSTRAINTS:\n";
+            std::set<Variable*>::iterator lit, rit, eit = varsInvolved.end();
+            for (Constraints::iterator it=cs.begin(); it!=cs.end(); it++) {
+                Constraint *c = *it;
+                lit = varsInvolved.find(c->left);
+                rit = varsInvolved.find(c->right);
+                if (lit != eit || rit != eit) {
+                    sprintf(buf, "v_%d + %f", c->left->id, c->gap);
+                    unsatinfo += buf;
+                    unsatinfo += c->equality ? " == " : " <= ";
+                    sprintf(buf, "v_%d\n", c->right->id);
+                    unsatinfo += buf;
+                    if ((unsigned) c->left->id < rs.size()) {
+                        Rectangle *r = rs[c->left->id];
+                        sprintf(buf, "    v_%d rect: [%f, %f] x [%f, %f]\n", c->left->id,
+                                r->getMinX(), r->getMaxX(), r->getMinY(), r->getMaxY());
+                        unsatinfo += buf;
+                    }
+                    if ((unsigned) c->right->id < rs.size()) {
+                        Rectangle *r = rs[c->right->id];
+                        sprintf(buf, "    v_%d rect: [%f, %f] x [%f, %f]\n", c->right->id,
+                                r->getMinX(), r->getMaxX(), r->getMinY(), r->getMaxY());
+                        unsatinfo += buf;
+                    }
+                    CompoundConstraint *cc = (CompoundConstraint*)(c->creator);
+                    unsatinfo += "    Creator: " + cc->toString() + "\n";
+                }
+            }
+        }
+    }
+    ProjectionResult pr;
+    pr.errorLevel = result;
+    pr.unsatinfo = unsatinfo;
+    return pr;
+}
 
 } // namespace cola

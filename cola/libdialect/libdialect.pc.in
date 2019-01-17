@@ -1,0 +1,12 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: libdialect
+Description: DiAlEcT = Distribute + Arrange + Emend + Transform
+URL: http://www.adaptagrams.org/
+Version: @VERSION@
+Libs: -L${libdir} -ldialect
+Cflags: -I${includedir}/libdialect
+
