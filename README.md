@@ -5,7 +5,7 @@ Adaptagrams is a library of tools and reusable code for adaptive diagramming
 applications, for example: drawing tools, automated document and diagram
 layout, smart presentation software, graph drawing, chart layout, etc.
 
-Currently, the [Adaptagrams repository][repo] includes four cross-platform C++ 
+Currently, the [Adaptagrams repository][repo] includes five cross-platform C++ 
 libraries:
 
  *  [libvpsc][libvpsc]  
@@ -31,21 +31,31 @@ libraries:
               - a library containing extensions to libcola to support 
 		topology preserving constraint-based layout.  
 	      - libtopology depends on libavoid, libcola and libvpsc.
+ *  [libdialect][libtopology]  
+              - a library for computing human-like orthogonal network
+	        (DiAlEcT) layouts via the following steps: 
+		D = Decompose/Distribute; A = Arrange; 
+                E = Expand/Emend; and T = Transform.  
+	      - libdialect depends on libavoid, libcola and libvpsc.
 
 These libraries are collectively known as cola (for Constraint Layout). The
 newest version of the C++ source code for cola can be found in the 
-Adaptagrams github repository maintaied by [Michael Wybrow][mw]:
+Adaptagrams GitHub repository maintained by [Michael Wybrow][mw]:
 
  *  [https://github.com/mjwybrow/adaptagrams/][repo]
 
-All code in the Adaptagrams repository is released as open source under the
-terms of the LGPL 2.1 or later, see the LICENSE file. 
+The algorithms were developed by members of the [Immersive Analytics Lab][ialab] 
+at [Monash University][monash] in Melbourne, Australia.  The Adaptagrams libraries 
+were written by [Tim Dwyer][td], [Michael Wybrow][mw] and [Steve Kieffer][sk].
+
+All code in the Adaptagrams repository is released as open source software
+under the terms of the LGPL 2.1 or later, see the LICENSE file. 
 
 We also dual-license the Adaptagrams libraries and for a fee we can provide
 them under a less-restrictive commercial license as well as extend them to fit
 your needs (contact us).  For this reason, if you contribute code to the
 project and would like it to appear in the main Adaptagrams repository, we
-require that you assign the copyright on your changes to Monash Univeristy with
+require that you assign the copyright on your changes to Monash University with
 the following statement: "I hereby assign copyright in this code to Monash
 University, to be licensed under the same terms as the rest of the code."
  
@@ -58,7 +68,6 @@ Software using one or more of the Adaptagrams libraries include:
  *  [Gaphas][gaphor], an open source Python-based diagramming widget for GTK+, and
  *  [BRL-CAD][brlcad], a powerful cross-platform open source solid modeling system that includes interactive geometry editing, high-performance ray-tracing for rendering and geometric analysis, image and signal-processing tools, a system performance analysis benchmark suite, libraries for robust geometric representation, with more than 20 years of active development.
 
-The algorithms were developed by members of the [Immersive Analytics Lab][ialab] at [Monash University][monash] in Melbourne, Australia.  The Adaptagrams libraries were originally written by [Tim Dwyer][td] and [Michael Wybrow][mw].
 
 
 Building
@@ -90,13 +99,15 @@ Cola in the browser
 [td]: http://users.monash.edu/~tdwyer/
 [km]: http://users.monash.edu/~kmarriott/
 [mw]: http://users.monash.edu/~mwybrow/
+[sk]: http://skieffer.info/
 [ialab]: http://ialab.it.monash.edu/
 [monash]: http://wwww.csse.monash.edu.au/
 [libvpsc]: http://www.adaptagrams.org/documentation/libvpsc.html
 [libavoid]: http://www.adaptagrams.org/documentation/libavoid.html
 [libcola]: http://www.adaptagrams.org/documentation/libcola.html
 [libtopology]: http://www.adaptagrams.org/documentation/libtopology.html
-[dunnart]: http://www.dunnart.org/
+[libdialect]: http://www.adaptagrams.org/documentation/libdialect.html
+[dunnart]: http://users.monash.edu/~mwybrow/dunnart/
 [inkscape]: http://www.inkscape.org/
 [graphviz]: http://www.graphviz.org/
 [arcadia]: http://arcadiapathways.sourceforge.net/

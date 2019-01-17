@@ -1,0 +1,40 @@
+/*!
+
+\if LIBDIALECT_DOC
+@mainpage libdialect: A library for computing human-like orthogonal network (DiAlEcT) layouts
+\endif
+\if ADAPTAGRAMS_DOC
+@page libdialect libdialect &mdash; Overview
+\endif
+
+libdialect is a cross-platform C++ library providing extensions to the libvpsc, libcola and libavoid libraries to support automatic generation of human-like orthogonal network (DiAlEcT) layouts via the following steps: D = Decompose/Distribute; A = Arrange; E = Expand/Emend; and T = Transform.
+
+libdialect is part of the 
+<a href="http://www.adaptagrams.org/">Adaptagrams project</a>. 
+There are no official releases yet, though the code is stable and 
+available from the Adaptagrams 
+<a href="https://github.com/mjwybrow/adaptagrams">GitHub 
+repository</a>.
+
+The API is documented using Doxygen.  The documentation you are currently 
+reading can be obtained by running doxygen in the cola directory. 
+
+libdialect is written by 
+<a href="http://skieffer.info">Steve Kieffer</a> and
+members of <a href="http://ialab.it.monash.edu/">Immersive Analytics Lab</a> at Monash University, Australia.
+
+If you use libdialect, please cite the relevant paper.
+
+The algorithms for Adaptive Constrained Alignment (ACA) are described in the following paper:
+-  Steve Kieffer, Tim Dwyer, Kim Marriott, and Michael Wybrow.  
+   "Incremental grid-like layout using soft and hard constraints."   
+   In Graph Drawing 2013, pp. 448-459. Springer International Publishing, 2013.
+
+The algorithms for  Human-like Orthogonal Layout (HOLA) are described in the following paper:
+-  Steve Kieffer, Tim Dwyer, Kim Marriott, and Michael Wybrow.  
+   HOLA: Human-like Orthogonal Network Layout.  
+   IEEE Transactions on Visualization and Computer Graphics 22, no. 1 (2016): 349-358.
+
+*/
+
+

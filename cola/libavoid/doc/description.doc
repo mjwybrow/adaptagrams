@@ -56,7 +56,7 @@ The algorithms used for the connector routing are described in the following pap
 
 libavoid is currently used in the following software:
 -  A commercial circuit diagram editor;
--  <a href="http://www.dunnart.org/">Dunnart</a>, a prototype research 
+-  <a href="http://users.monash.edu/~mwybrow/dunnart/">Dunnart</a>, a prototype research 
    constraint-based diagram editor;
 -  <a href="http://www.inkscape.org/">Inkscape</a>, the popular Open 
    Source vector graphics editor;

@@ -207,7 +207,7 @@ private:
     //! @param[in] polarity  The polarity of the connection.
     //! @param[in] side  The Side instance that is connecting.
     //!
-    //! @example  Consider the node labeled x in this picture:
+    //! For example, consider the node labeled x in this picture:
     //!
     //!                 etc.
     //!                  |
@@ -429,9 +429,9 @@ public:
     //! @note  Whether a boundary segment is closed or open means whether one crosses the interior
     //! boundary of the face at the endpoints (yes for closed, no for open).
     //!
-    //! @example  If facingDir is SOUTH, then closedSegs will get one LineSegment for every horizontal
-    //! Edge in the Face, while openSegs will get a LineSegment representing the southern boundary
-    //! of (a) each Node in the Face, and (b) each Tree box in the Face.
+    //! For example, if facingDir is SOUTH, then closedSegs will get one LineSegment for every 
+    //! horizontal Edge in the Face, while openSegs will get a LineSegment representing the 
+    //! southern boundary of (a) each Node in the Face, and (b) each Tree box in the Face.
     void buildBdrySegsFacingOneDir(CardinalDir facingDir,
                                    LineSegments &closedSegs, LineSegments &openSegs,
                                    TreePlacement_SP ignoreTP = nullptr);

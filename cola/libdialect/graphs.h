@@ -515,9 +515,10 @@ public:
 
     //! @brief  Make feasible. This means that, among those constraints that offer alternatives,
     //!         we look for satisfiable alternatives in order of increasing cost (cost = separation violation).
+    //! This is useful with nonoverlap constraints.
+    //!
     //! @param[in] opts  The usual ColaOptions.
     //! @note  Simply uses the method by the same name in the cola::ConstrainedFDLayout class.
-    //! @example  This is useful with nonoverlap constraints.
     void makeFeasible(const ColaOptions &opts);
 
     //! @brief  Project onto cola constraints.

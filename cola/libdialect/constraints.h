@@ -158,7 +158,8 @@ struct SepPair {
     //! @returns The cardinal direction.
     CardinalDir getCardinalDir(void) const;
     //! @brief  Round gaps upward in absolute value. Useful when trying to move nodes to integer coords.
-    //! @example  -2.3 goes to -3.0; 2.3 goes to 3.0.
+    //! 
+    //! E.g., -2.3 goes to -3.0; 2.3 goes to 3.0.
     void roundGapsUpAbs(void);
     //! @brief  Write a representation of this constraint in the format of
     //!         the SEPCO'S section of the TGLF file format.
