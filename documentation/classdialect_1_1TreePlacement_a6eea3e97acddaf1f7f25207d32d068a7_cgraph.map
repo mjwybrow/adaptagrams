@@ -1,0 +1,6 @@
+<map id="dialect::TreePlacement::somePointOppositeSegment" name="dialect::TreePlacement::somePointOppositeSegment">
+<area shape="rect" id="node2" href="$classdialect_1_1TreePlacement.html#a143f5d457c7175d01c889abd83ff38e6" title="Determine the size of the tree minus the root node, and the position relative to the root node..." alt="" coords="253,5,411,47"/>
+<area shape="rect" id="node5" href="$classdialect_1_1Face.html#a6c5504ec8695d1deb441c8ff16901e2d" title="Access the underlying Graph. " alt="" coords="252,71,412,98"/>
+<area shape="rect" id="node3" href="$classdialect_1_1Node.html#a933bc8b61c4b40f58c4ebddf1f208a30" title="Factory function, to get a shared pointer to a Node allocated on the heap. We make the constructors p..." alt="" coords="460,13,613,39"/>
+<area shape="rect" id="node4" href="$classdialect_1_1Node.html#ad8f6657c4b7c7002a414fb9b1c2744f8" title="Default constructor. " alt="" coords="661,13,800,39"/>
+</map>

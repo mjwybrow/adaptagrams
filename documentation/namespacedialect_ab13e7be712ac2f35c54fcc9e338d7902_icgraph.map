@@ -1,0 +1,4 @@
+<map id="dialect::lookupMinimalBendSeqs" name="dialect::lookupMinimalBendSeqs">
+<area shape="rect" id="node2" href="$classdialect_1_1Chain.html#a307a5e83c5d3e125c1b2483652732935" title="Compute the possible bend sequences that this chain could have. " alt="" coords="268,5,480,47"/>
+<area shape="rect" id="node3" href="$classdialect_1_1Chain.html#a78f0ee5307493976251e723e47ad0664" title="Give this chain an orthogonal configuration best fitting its present geometric shape. " alt="" coords="528,5,701,47"/>
+</map>

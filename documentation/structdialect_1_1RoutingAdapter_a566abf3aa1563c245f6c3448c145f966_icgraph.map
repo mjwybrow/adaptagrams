@@ -1,0 +1,6 @@
+<map id="dialect::RoutingAdapter::addNodes" name="dialect::RoutingAdapter::addNodes">
+<area shape="rect" id="node2" href="$classdialect_1_1Graph.html#af84d080b9c143ea05307912dd1cdfda9" title="Add all Nodes, and all those Edges having no bend nodes within them, to a given RoutingAdapter. This is useful when precisely those Edges are viewed as needing a route which do not already have any bend nodes. " alt="" coords="213,5,413,47"/>
+<area shape="rect" id="node3" href="$classdialect_1_1LeaflessOrthoRouter.html#af679a8ea90e4f0ef30a22cb89afc4dbd" title="Standard constructor. " alt="" coords="218,71,409,112"/>
+<area shape="rect" id="node4" href="$classdialect_1_1Graph.html#a06192e3eaecef5bf6a1e11e62502622f" title="Do a libavoid connector routing on all Edges in the Graph. " alt="" coords="242,137,385,163"/>
+<area shape="rect" id="node5" href="$classdialect_1_1Graph.html#a8493b1e54c6eb3b2eb732854f8f0d734" title="Build and return Nodes representing every point at which any Edge has a bend in its connector route..." alt="" coords="461,129,644,171"/>
+</map>

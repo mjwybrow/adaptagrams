@@ -3,20 +3,7 @@ digraph "Avoid::ShapeConnectionPin::ShapeConnectionPin"
   edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
   node [fontname="Helvetica",fontsize="10",shape=record];
   rankdir="LR";
-  Node9 [label="Avoid::ShapeConnectionPin\l::ShapeConnectionPin",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
-  Node9 -> Node10 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node10 [label="Avoid::ShapeConnectionPin\l::directions",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ShapeConnectionPin.html#a3338c7b8187a973e12fa57d3156e8b96",tooltip="Returns the directions in which this connection pin has visibility. "];
-  Node9 -> Node11 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node11 [label="Avoid::JunctionRef\l::position",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1JunctionRef.html#af66cab7216d077ac124674c7c5f08e05",tooltip="Returns the position of this junction. "];
-  Node9 -> Node12 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node12 [label="Avoid::ShapeConnectionPin\l::position",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ShapeConnectionPin.html#a68fb685af93fee972b116334b0d314fa",tooltip="Returns the position of this connection pin. "];
-  Node12 -> Node11 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node12 -> Node13 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node13 [label="Avoid::Polygon::empty",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Polygon.html#a477d0e8e93509d7955d1f4b4ca0abb0d",tooltip="Returns true if this polygon is empty. "];
-  Node12 -> Node14 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node14 [label="Avoid::ShapeRef::polygon",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ShapeRef.html#aa0a5e8382c7674933e09207bc6e47564",tooltip="Returns a reference to the polygon boundary of this shape. "];
-  Node14 -> Node15 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node15 [label="Avoid::Polygon::size",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Polygon.html#a2f9e9c8c78407eefbde944e663d9711e",tooltip="Returns the number of points in this polygon. "];
-  Node12 -> Node16 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node16 [label="Avoid::PolygonInterface\l::offsetBoundingBox",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1PolygonInterface.html#af10740857ee9fd5f9dedfb71a9b42630",tooltip="Returns the bounding rectangle that contains this polygon with optionally some buffer space around it..."];
+  Node2 [label="Avoid::ShapeConnectionPin\l::ShapeConnectionPin",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node2 -> Node3 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node3 [label="Avoid::JunctionRef\l::position",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1JunctionRef.html#af66cab7216d077ac124674c7c5f08e05",tooltip="Returns the position of this junction. "];
 }

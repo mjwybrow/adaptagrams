@@ -1,0 +1,28 @@
+digraph "dialect::Node::allocate"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node17 [label="dialect::Node::allocate",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node17 -> Node18 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node18 [label="dialect::Graph::addNode",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Graph.html#ac4f60ee524a01495405b429e9206b013",tooltip="Add a new Node to this Graph. "];
+  Node18 -> Node19 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node19 [label="dialect::Graph::addNode",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Graph.html#a8a1dddeee08eea1f377942ee8ef32c1f",tooltip="Add a new Node to this Graph, setting dimensions. "];
+  Node18 -> Node20 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node20 [label="dialect::Graph::cloneNode",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Graph.html#abe075fe42c69ec92fc4ab945267bdaa9",tooltip="Clone a node completely. There will be as many copies of the original node as it had edges..."];
+  Node17 -> Node21 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node21 [label="dialect::TreePlacement\l::buildTreeBox",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1TreePlacement.html#a143f5d457c7175d01c889abd83ff38e6",tooltip="Determine the size of the tree minus the root node, and the position relative to the root node..."];
+  Node21 -> Node22 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node22 [label="dialect::TreePlacement\l::somePointOppositeSegment",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1TreePlacement.html#a6eea3e97acddaf1f7f25207d32d068a7",tooltip="Compute some point belonging to the tree box and lying opposite a given line segment. "];
+  Node21 -> Node23 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node23 [label="dialect::TreePlacement\l::applyGeometryToTree",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1TreePlacement.html#a136322a1dbd16ec994e67392f256a5a4",tooltip="Rotate, flip, and translate the tree as necessary to match this placement. "];
+  Node17 -> Node24 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node24 [label="dialect::Graph::buildUnique\lBendPoints",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Graph.html#a8493b1e54c6eb3b2eb732854f8f0d734",tooltip="Build and return Nodes representing every point at which any Edge has a bend in its connector route..."];
+  Node17 -> Node20 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node17 -> Node25 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node25 [label="dialect::Node::makeGhost",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Node.html#a5cd0fd3454d1b412d91e184789b1dd40",tooltip="Allocate a GhostNode of this Node. "];
+  Node17 -> Node26 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node26 [label="dialect::Graph::solidify\lAlignedEdges",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Graph.html#a17c2ef09e6cb87ce5237e5d55ca612c2",tooltip="Add Nodes to represent aligned Edges in one dimension, constraining them to stay aligned. "];
+  Node17 -> Node27 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node27 [label="dialect::Chain::takeShape\lBasedConfiguration",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Chain.html#a78f0ee5307493976251e723e47ad0664",tooltip="Give this chain an orthogonal configuration best fitting its present geometric shape. "];
+}

@@ -1,0 +1,31 @@
+digraph "dialect::Edge::id"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node17 [label="dialect::Edge::id",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node17 -> Node18 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node18 [label="dialect::Node::removeEdge",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Node.html#ae2883f935259b81f0a6edd4971264395",tooltip="Remove an incident Edge. "];
+  Node17 -> Node19 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node19 [label="dialect::Graph::severEdge",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Graph.html#a86f8762c5ddfdad4c934285da5bd4933",tooltip="Sever an Edge in this Graph. "];
+  Node19 -> Node20 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node20 [label="dialect::Graph::severNode",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Graph.html#af95f569fde7738dae6ccd67988d480f2",tooltip="Sever all the Edges incident to a Node in this Graph. "];
+  Node20 -> Node21 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node21 [label="dialect::Graph::severAnd\lRemoveNode",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Graph.html#af5f64abbe433f0f7f18d1e961964b788",tooltip="Convenience method to completely remove a Node from the Graph. "];
+  Node21 -> Node22 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node22 [label="dialect::Graph::severAnd\lRemoveNode",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Graph.html#a0187fe6543c150f1b03c7d0a29a2a9ed",tooltip="Convenience method to completely remove a Node from the Graph. "];
+  Node21 -> Node23 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node23 [label="dialect::TreePlacement\l::insertTreeIntoGraph",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1TreePlacement.html#a5e7dad846d5257c782e8ba2c6765ce41",tooltip="Insert the tree into a given Graph. "];
+  Node19 -> Node24 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node24 [label="dialect::Graph::severNode\lNotingNeighbours",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Graph.html#ad6434fe1d4f4fce48f5cd88bb943606c",tooltip="Like severNode but also returns a vector of all Nodes that were neighbours before severing..."];
+  Node24 -> Node25 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node25 [label="dialect::NodeBuckets\l::severNodes",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$structdialect_1_1NodeBuckets.html#a7cba81f7da5c12fe1cad7c3b5173e556",tooltip="Sever the given Nodes from our Graph. "];
+  Node25 -> Node26 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node26 [label="dialect::peel",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$namespacedialect.html#a29b1d1583bf8668dde5e0252a2205eb1",tooltip="Perform the \"peeling\" process, in which the exterior trees are removed from the given Graph..."];
+  Node26 -> Node27 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node27 [label="dialect::doHOLA",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$namespacedialect.html#a05ccc4c149e1b5902ec827bfabd3cf76",tooltip="Apply the HOLA layout algorithm to the given Graph. See Steve Kieffer, Tim Dwyer, Kim Marriott..."];
+  Node27 -> Node28 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node28 [label="dialect::doHOLA",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$namespacedialect.html#a24766038e1a9ccd99997ea31c42b432a",tooltip="Convenience function to do HOLA layout with default options. "];
+  Node19 -> Node29 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node29 [label="dialect::Graph::cloneNode",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Graph.html#abe075fe42c69ec92fc4ab945267bdaa9",tooltip="Clone a node completely. There will be as many copies of the original node as it had edges..."];
+}

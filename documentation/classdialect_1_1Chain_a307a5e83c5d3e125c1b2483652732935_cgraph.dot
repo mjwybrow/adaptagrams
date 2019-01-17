@@ -1,0 +1,13 @@
+digraph "dialect::Chain::computePossibleBendSequences"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node6 [label="dialect::Chain::computePossible\lBendSequences",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node6 -> Node7 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node7 [label="dialect::bentLinkShapeCw\lFromStartingPt",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$namespacedialect.html#aac506665928f0e3b882eb82274f951b2",tooltip="Get the bent LinkShapes, in clockwise order, starting from a given one. "];
+  Node6 -> Node8 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node8 [label="dialect::lookupMinimalBendSeqs",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$namespacedialect.html#ab13e7be712ac2f35c54fcc9e338d7902",tooltip="Look up the minimal bend sequences for a Chain. "];
+  Node6 -> Node9 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node9 [label="dialect::possibleCardinal\lDirections",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$namespacedialect.html#a1e392f82ee2647c96c18ebe2f499246f",tooltip="List the possible cardinal directions from node1 to node2, if they were to be aligned non-aggressivel..."];
+}

@@ -1,0 +1,6 @@
+<map id="dialect::Graph::severNodeNotingNeighbours" name="dialect::Graph::severNodeNotingNeighbours">
+<area shape="rect" id="node2" href="$structdialect_1_1NodeBuckets.html#a7cba81f7da5c12fe1cad7c3b5173e556" title="Sever the given Nodes from our Graph. " alt="" coords="231,5,377,47"/>
+<area shape="rect" id="node3" href="$namespacedialect.html#a29b1d1583bf8668dde5e0252a2205eb1" title="Perform the &quot;peeling&quot; process, in which the exterior trees are removed from the given Graph..." alt="" coords="425,13,519,39"/>
+<area shape="rect" id="node4" href="$namespacedialect.html#a05ccc4c149e1b5902ec827bfabd3cf76" title="Apply the HOLA layout algorithm to the given Graph. See Steve Kieffer, Tim Dwyer, Kim Marriott..." alt="" coords="567,13,685,39"/>
+<area shape="rect" id="node5" href="$namespacedialect.html#a24766038e1a9ccd99997ea31c42b432a" title="Convenience function to do HOLA layout with default options. " alt="" coords="733,13,852,39"/>
+</map>

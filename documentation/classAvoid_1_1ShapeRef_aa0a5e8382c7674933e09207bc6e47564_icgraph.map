@@ -1,12 +1,6 @@
 <map id="Avoid::ShapeRef::polygon" name="Avoid::ShapeRef::polygon">
-<area shape="rect" id="node2" href="$classAvoid_1_1Router.html#ac171735c187b3e0ea8f03fda4424fd4f" title="Move an existing shape within the router scene by a relative distance. " alt="" coords="193,13,335,39"/>
-<area shape="rect" id="node3" href="$classAvoid_1_1ShapeConnectionPin.html#a68fb685af93fee972b116334b0d314fa" title="Returns the position of this connection pin. " alt="" coords="191,64,337,105"/>
-<area shape="rect" id="node10" href="$classAvoid_1_1ShapeConnectionPin.html#ae267734eb3641c366595b488d21e4784" title="Constructs a ShapeConnectionPin at a specified absolute or proportional position relative to the pare..." alt="" coords="385,123,532,164"/>
-<area shape="rect" id="node11" href="$classAvoid_1_1ShapeRef.html#a27cc39cd041b6358705481f1f00066bf" title="Adjusts all of the shape&#39;s connection pin positions and visibility directions for a given transformat..." alt="" coords="191,181,337,223"/>
-<area shape="rect" id="node4" href="$classAvoid_1_1ShapeConnectionPin.html#adac2cb72fa0d78dd8cb77b292519bd6c" title="Returns whether the connection pin is exclusive, i.e., only one connector can attach to it..." alt="" coords="385,5,532,47"/>
-<area shape="rect" id="node7" href="$classAvoid_1_1ConnEnd.html#a351619dda450b525bedec4667edee9d7" title="Returns the position of this connector endpoint. " alt="" coords="391,71,526,98"/>
-<area shape="rect" id="node5" href="$classAvoid_1_1Router.html#a8f36729c98e13e57d2c56c0d1facf86c" title="Returns whether or not the given ID is already used. " alt="" coords="588,5,719,47"/>
-<area shape="rect" id="node6" href="$classAvoid_1_1Router.html#a202c28fcb04f7af2183fe6849b4ce2f3" title="Returns the object ID used for automatically generated objects, such as during hyperedge routing..." alt="" coords="775,13,919,39"/>
-<area shape="rect" id="node8" href="$classAvoid_1_1ConnEnd.html#a31f741b5d8a86e0a8c4803475c674e8b" title="Returns the pin class ID for a ConnEnd attached to a shape. " alt="" coords="580,71,727,98"/>
-<area shape="rect" id="node9" href="$classAvoid_1_1ConnRef.html#a7fc22448cc52a1b060f62bcc00d1bb93" title="Allows the user to specify a set of checkpoints that this connector will route via. " alt="" coords="581,123,726,164"/>
+<area shape="rect" id="node2" href="$classAvoid_1_1Router.html#ac171735c187b3e0ea8f03fda4424fd4f" title="Move an existing shape within the router scene by a relative distance. " alt="" coords="233,5,414,32"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1ShapeConnectionPin.html#a68fb685af93fee972b116334b0d314fa" title="Returns the position of this connection pin. " alt="" coords="229,57,417,98"/>
+<area shape="rect" id="node5" href="$classAvoid_1_1ShapeRef.html#a27cc39cd041b6358705481f1f00066bf" title="Adjusts all of the shape&#39;s connection pin positions and visibility directions for a given transformat..." alt="" coords="231,122,416,163"/>
+<area shape="rect" id="node4" href="$classAvoid_1_1ConnEnd.html#a351619dda450b525bedec4667edee9d7" title="Returns the position of this connector endpoint. " alt="" coords="465,64,637,91"/>
 </map>

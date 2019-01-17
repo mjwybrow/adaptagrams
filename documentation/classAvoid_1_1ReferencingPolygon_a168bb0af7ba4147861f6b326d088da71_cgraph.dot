@@ -6,4 +6,6 @@ digraph "Avoid::ReferencingPolygon::at"
   Node0 [label="Avoid::ReferencingPolygon::at",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
   Node0 -> Node1 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
   Node1 [label="Avoid::Polygon::size",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Polygon.html#a2f9e9c8c78407eefbde944e663d9711e",tooltip="Returns the number of points in this polygon. "];
+  Node0 -> Node2 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node2 [label="Avoid::ReferencingPolygon\l::size",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ReferencingPolygon.html#a1dde474f3703dfe854768d5857a94067",tooltip="Returns the number of points in this polygon. "];
 }

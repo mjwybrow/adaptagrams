@@ -1,0 +1,4 @@
+<map id="dialect::Face::buildBdrySegsFacingOneDir" name="dialect::Face::buildBdrySegsFacingOneDir">
+<area shape="rect" id="node2" href="$structdialect_1_1BoundingBox.html#a46d3a32da6da210ee41a945fc10184f8" title="Build a LineSegment representing a side of the box. " alt="" coords="228,5,375,47"/>
+<area shape="rect" id="node3" href="$classdialect_1_1Face.html#a5e01f272e55794796d2797bc6507bbc7" title="Get a vector of all Sides that are relevant to a given TreePlacement. " alt="" coords="213,71,389,112"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="cola::ConstrainedFDLayout::setConstraints" name="cola::ConstrainedFDLayout::setConstraints">
+<area shape="rect" id="node2" href="$classdialect_1_1ACALayout.html#a29bf5a09101160fdd89d14b823f32534" title="Run layout with current constraints, and with or without overlap prevention, as per the current setti..." alt="" coords="237,39,441,80"/>
+<area shape="rect" id="node3" href="$classdialect_1_1ACALayout.html#ab04e719586c594d5327a816f6fccc40d" title="Do an initial stress&#45;minimising layout, and then create alignments. " alt="" coords="489,5,625,47"/>
+<area shape="rect" id="node4" href="$classdialect_1_1ACALayout.html#a7253f7df41f52ff5bbb045a65ca9ebc2" title="Do an FD layout with overlap prevention, then stop. " alt="" coords="489,71,625,112"/>
+</map>

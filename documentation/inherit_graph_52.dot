@@ -1,0 +1,7 @@
+digraph "Graphical Class Hierarchy"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node0 [label="dialect::OrthoHubLayout",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1OrthoHubLayout.html",tooltip="A layout object that tries to orthogonalise hubs. This means it visits nodes of degrees 3 or higher..."];
+}

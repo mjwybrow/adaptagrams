@@ -1,0 +1,6 @@
+<map id="dialect::Graph::getIEL" name="dialect::Graph::getIEL">
+<area shape="rect" id="node2" href="$classdialect_1_1Graph.html#a17af894842d60c08d49e9abed7dc4546" title="Attempt to apply the projections given by a ProjSeq object. Give up as soon as any of them fails..." alt="" coords="204,5,396,32"/>
+<area shape="rect" id="node3" href="$classdialect_1_1Graph.html#a8493b1e54c6eb3b2eb732854f8f0d734" title="Build and return Nodes representing every point at which any Edge has a bend in its connector route..." alt="" coords="209,57,391,98"/>
+<area shape="rect" id="node4" href="$namespacedialect.html#a05ccc4c149e1b5902ec827bfabd3cf76" title="Apply the HOLA layout algorithm to the given Graph. See Steve Kieffer, Tim Dwyer, Kim Marriott..." alt="" coords="241,123,359,149"/>
+<area shape="rect" id="node5" href="$namespacedialect.html#a24766038e1a9ccd99997ea31c42b432a" title="Convenience function to do HOLA layout with default options. " alt="" coords="444,123,563,149"/>
+</map>

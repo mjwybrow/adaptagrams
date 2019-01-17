@@ -1,0 +1,11 @@
+<map id="dialect::TreePlacement::insertTreeIntoGraph" name="dialect::TreePlacement::insertTreeIntoGraph">
+<area shape="rect" id="node2" href="$classdialect_1_1Graph.html#ab10f09a0bead32e2a5640b2c5a001756" title="Say whether this Graph has a Node of the given ID. " alt="" coords="214,5,379,32"/>
+<area shape="rect" id="node3" href="$classdialect_1_1Graph.html#af5f64abbe433f0f7f18d1e961964b788" title="Convenience method to completely remove a Node from the Graph. " alt="" coords="212,57,381,98"/>
+<area shape="rect" id="node4" href="$classdialect_1_1Graph.html#ad628292a7693e69b4aa4039da6ef6de7" title="Remove a Node from this Graph. " alt="" coords="429,35,619,61"/>
+<area shape="rect" id="node6" href="$classdialect_1_1Graph.html#af95f569fde7738dae6ccd67988d480f2" title="Sever all the Edges incident to a Node in this Graph. " alt="" coords="435,89,613,116"/>
+<area shape="rect" id="node5" href="$classdialect_1_1Node.html#acb8fa33367258d03f0689976e679b59d" title="Access the unique ID of a given instance. " alt="" coords="696,31,813,57"/>
+<area shape="rect" id="node7" href="$classdialect_1_1Node.html#a934864cbe35d005008f0afc7880241a9" title="Get a copy of this Node&#39;s lookup map for Edges by their ID. " alt="" coords="669,82,840,123"/>
+<area shape="rect" id="node8" href="$classdialect_1_1Graph.html#a86f8762c5ddfdad4c934285da5bd4933" title="Sever an Edge in this Graph. " alt="" coords="667,148,843,175"/>
+<area shape="rect" id="node9" href="$classdialect_1_1Edge.html#ab3e603f70b854af7f69b12bcb7a06de4" title="Access the unique ID of this instance. " alt="" coords="901,123,1019,149"/>
+<area shape="rect" id="node10" href="$classdialect_1_1Edge.html#a04fbe3f536a380fc6d70bcb09728ca08" title="&quot;Sever&quot; this Edge, i.e. remove it from the Nodes to which it is attached. " alt="" coords="891,173,1029,200"/>
+</map>

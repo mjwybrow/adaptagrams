@@ -3,7 +3,7 @@ digraph "Avoid::Polygon::translate"
   edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
   node [fontname="Helvetica",fontsize="10",shape=record];
   rankdir="LR";
-  Node35 [label="Avoid::Polygon::translate",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
-  Node35 -> Node36 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node36 [label="Avoid::Polygon::size",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Polygon.html#a2f9e9c8c78407eefbde944e663d9711e",tooltip="Returns the number of points in this polygon. "];
+  Node36 [label="Avoid::Polygon::translate",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node36 -> Node37 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node37 [label="Avoid::Polygon::size",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Polygon.html#a2f9e9c8c78407eefbde944e663d9711e",tooltip="Returns the number of points in this polygon. "];
 }

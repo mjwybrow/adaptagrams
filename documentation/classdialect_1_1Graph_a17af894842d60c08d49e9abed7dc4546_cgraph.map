@@ -1,0 +1,7 @@
+<map id="dialect::Graph::applyProjSeq" name="dialect::Graph::applyProjSeq">
+<area shape="rect" id="node2" href="$classdialect_1_1Graph.html#a0dbf008d97d5a6ad814778217d2da948" title="Read the ideal edge length of this Graph. " alt="" coords="285,5,436,32"/>
+<area shape="rect" id="node3" href="$classdialect_1_1ProjSeq.html#a427056f75c202e0fc0103934188bb90a" title="Get the next Projection, if any. " alt="" coords="257,56,464,83"/>
+<area shape="rect" id="node4" href="$classdialect_1_1ProjSeq.html#a4b24c6ec5dd8d22d241c056516e79e1d" title="Note a stress change. " alt="" coords="245,107,476,133"/>
+<area shape="rect" id="node5" href="$classdialect_1_1Graph.html#aeea36ce5feae54b0d01a3eac2149e7fd" title="Project onto cola constraints. " alt="" coords="285,157,437,184"/>
+<area shape="rect" id="node6" href="$classdialect_1_1Graph.html#a31babece97b97027811018459ea32541" title="Refresh, as needed, the data structures necessary for applying the methods of libcola to this Graph..." alt="" coords="271,209,451,250"/>
+</map>

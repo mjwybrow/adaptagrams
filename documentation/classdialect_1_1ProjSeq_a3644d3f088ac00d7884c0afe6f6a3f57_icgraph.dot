@@ -1,0 +1,9 @@
+digraph "dialect::ProjSeq::addProjection"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node1 [label="dialect::ProjSeq::addProjection",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node1 -> Node2 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node2 [label="dialect::ProjSeq::operator+=",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1ProjSeq.html#a9bed7987b988c7f9dfd2ce3075724a7e",tooltip="When another ProjSeq is added to this one, we simply add each Projection from the other one to this o..."];
+}

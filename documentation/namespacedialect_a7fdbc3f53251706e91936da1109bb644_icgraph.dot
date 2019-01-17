@@ -1,0 +1,35 @@
+digraph "dialect::string_format"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node177 [label="dialect::string_format",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node177 -> Node178 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node178 [label="dialect::doHOLA",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$namespacedialect.html#a05ccc4c149e1b5902ec827bfabd3cf76",tooltip="Apply the HOLA layout algorithm to the given Graph. See Steve Kieffer, Tim Dwyer, Kim Marriott..."];
+  Node178 -> Node179 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node179 [label="dialect::doHOLA",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$namespacedialect.html#a24766038e1a9ccd99997ea31c42b432a",tooltip="Convenience function to do HOLA layout with default options. "];
+  Node177 -> Node180 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node180 [label="dialect::OrthoHubLayout\l::layout",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1OrthoHubLayout.html#a0b9a6aa806f4ccf26b448aa67d7fed95",tooltip="Try to orthogonalise hubs. "];
+  Node180 -> Node178 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node177 -> Node181 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node181 [label="dialect::reattachTrees",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$namespacedialect.html#a9d325ef46ea3385428712f16fedf71ef",tooltip="Given a planar orthogonal core, and the corresponding Trees (as resulting from the peeling process)..."];
+  Node181 -> Node178 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node177 -> Node182 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node182 [label="dialect::BoundingBox\l::repr",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$structdialect_1_1BoundingBox.html#a4ac935fbf923030a33010944938f2403",tooltip="Write a simple representation of the bounding box. "];
+  Node177 -> Node183 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node183 [label="dialect::LeaflessOrthoRouter\l::route",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1LeaflessOrthoRouter.html#af58e911020f19a144303fc01e5b8c35e",tooltip="Do the routing. "];
+  Node183 -> Node178 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node177 -> Node184 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node184 [label="dialect::Assignment\l::toString",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$structdialect_1_1Assignment.html#a6321bce63ba1e9fb4ea424547117d7ed",tooltip="Write a string representation, listing the id of the Nbr assigned to each semiaxis. For example if Nbrs 3, 7, 8 are assigned to semiaxes E, S, N resp., represent this as \"3 7 - 8\". "];
+  Node177 -> Node185 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node185 [label="dialect::Edge::writePolyline\lConnectorData",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Edge.html#a113033b926234142169038954fd4c2e2",tooltip="Write the data for a polyline SVG path for this Edge&#39;s connector route. "];
+  Node185 -> Node186 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node186 [label="dialect::Edge::writeSvg",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Edge.html#ae1a8c072d1df6f08766cf99542f76159",tooltip="Write SVG to represent this Edge. "];
+  Node177 -> Node187 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node187 [label="dialect::Edge::writeRounded\lOrthoConnectorData",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Edge.html#a57696e5f3cb8569a921382f44b7a4d52",tooltip="Write the data for an orthogonal SVG path for this Edge&#39;s connector route, using rounded bends..."];
+  Node187 -> Node186 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node177 -> Node188 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node188 [label="dialect::Graph::writeSvg",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Graph.html#abbb7c275cbba6760f40718dbcf265ea7",tooltip="Write SVG to represent this Graph. "];
+  Node177 -> Node189 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node189 [label="dialect::Node::writeSvg",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Node.html#ace545cb25ccee1206296695edaf0af9b",tooltip="Write SVG to represent this Node. "];
+}

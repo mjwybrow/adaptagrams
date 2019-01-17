@@ -1,0 +1,6 @@
+digraph "dialect::TreePlacement"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node1 [label="{dialect::TreePlacement\n||+ TreePlacement()\l+ getPlacementDir()\l+ getGrowthDir()\l+ isExternal()\l+ id()\l+ getNumPotentialNbrs()\l+ estimateCost()\l+ getRootNode()\l+ getFace()\l+ insertTreeNode()\land 12 more...\l}",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+}

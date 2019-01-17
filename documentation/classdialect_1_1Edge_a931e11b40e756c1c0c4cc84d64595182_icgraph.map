@@ -1,0 +1,5 @@
+<map id="dialect::Edge::allocate" name="dialect::Edge::allocate">
+<area shape="rect" id="node2" href="$classdialect_1_1Graph.html#a0aabbe331675c1379bd35c7bb858326f" title="Add a new Edge to this Graph. " alt="" coords="211,5,376,32"/>
+<area shape="rect" id="node3" href="$classdialect_1_1Graph.html#abe075fe42c69ec92fc4ab945267bdaa9" title="Clone a node completely. There will be as many copies of the original node as it had edges..." alt="" coords="205,56,381,83"/>
+<area shape="rect" id="node4" href="$classdialect_1_1Chain.html#a78f0ee5307493976251e723e47ad0664" title="Give this chain an orthogonal configuration best fitting its present geometric shape. " alt="" coords="207,107,380,149"/>
+</map>

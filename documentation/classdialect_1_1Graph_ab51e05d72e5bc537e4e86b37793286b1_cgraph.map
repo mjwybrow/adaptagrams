@@ -1,0 +1,5 @@
+<map id="dialect::Graph::buildRootCluster" name="dialect::Graph::buildRootCluster">
+<area shape="rect" id="node2" href="$classcola_1_1Cluster.html#a2d11c3349400a9574a5722cb5f2e8fad" title="Mark a cluster as being a sub&#45;cluster of this cluster. " alt="" coords="223,5,421,32"/>
+<area shape="rect" id="node3" href="$classcola_1_1RectangularCluster.html#a911163cd00e56a7d9d45620943db97a6" title="Mark a rectangle as being a child of this cluster. " alt="" coords="238,57,406,98"/>
+<area shape="rect" id="node4" href="$classcola_1_1Cluster.html#a830df170a6348485572b46f37e04fd0a" title="Mark a rectangle as being a child of this cluster. " alt="" coords="469,64,657,91"/>
+</map>

@@ -1,0 +1,7 @@
+<map id="dialect::Node::writeSvg" name="dialect::Node::writeSvg">
+<area shape="rect" id="node2" href="$classdialect_1_1Node.html#ab0a9057b2983b2c2d1b0d9b11ede9d46" title="Get the bounding box for this Node. " alt="" coords="212,5,417,32"/>
+<area shape="rect" id="node4" href="$structdialect_1_1BoundingBox.html#a0c3a42869c020255f63dfce1a891066d" title="Get the height of the box. " alt="" coords="233,56,396,83"/>
+<area shape="rect" id="node5" href="$namespacedialect.html#a7fdbc3f53251706e91936da1109bb644" title="String formatting. " alt="" coords="242,107,387,133"/>
+<area shape="rect" id="node6" href="$structdialect_1_1BoundingBox.html#a467c0c9f4464e66abdc2eb342f3f7c57" title="Get the width of the box. " alt="" coords="233,157,397,184"/>
+<area shape="rect" id="node3" href="$classdialect_1_1Node.html#a41a05e456ef8c8cc7d1ae148786a2356" title="Get an ordered pair (half&#45;width, half&#45;height) for this Node. " alt="" coords="465,5,684,32"/>
+</map>

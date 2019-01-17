@@ -1,0 +1,9 @@
+<map id="dialect::Graph::severAndRemoveNode" name="dialect::Graph::severAndRemoveNode">
+<area shape="rect" id="node2" href="$classdialect_1_1Graph.html#ad628292a7693e69b4aa4039da6ef6de7" title="Remove a Node from this Graph. " alt="" coords="223,9,412,36"/>
+<area shape="rect" id="node4" href="$classdialect_1_1Graph.html#af95f569fde7738dae6ccd67988d480f2" title="Sever all the Edges incident to a Node in this Graph. " alt="" coords="229,64,406,91"/>
+<area shape="rect" id="node3" href="$classdialect_1_1Node.html#acb8fa33367258d03f0689976e679b59d" title="Access the unique ID of a given instance. " alt="" coords="489,5,607,32"/>
+<area shape="rect" id="node5" href="$classdialect_1_1Node.html#a934864cbe35d005008f0afc7880241a9" title="Get a copy of this Node&#39;s lookup map for Edges by their ID. " alt="" coords="463,57,633,98"/>
+<area shape="rect" id="node6" href="$classdialect_1_1Graph.html#a86f8762c5ddfdad4c934285da5bd4933" title="Sever an Edge in this Graph. " alt="" coords="460,123,636,149"/>
+<area shape="rect" id="node7" href="$classdialect_1_1Edge.html#a04fbe3f536a380fc6d70bcb09728ca08" title="&quot;Sever&quot; this Edge, i.e. remove it from the Nodes to which it is attached. " alt="" coords="684,97,823,124"/>
+<area shape="rect" id="node8" href="$classdialect_1_1Edge.html#ab3e603f70b854af7f69b12bcb7a06de4" title="Access the unique ID of this instance. " alt="" coords="695,148,812,175"/>
+</map>

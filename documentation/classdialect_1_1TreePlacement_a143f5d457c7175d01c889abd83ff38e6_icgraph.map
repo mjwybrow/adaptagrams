@@ -1,0 +1,4 @@
+<map id="dialect::TreePlacement::buildTreeBox" name="dialect::TreePlacement::buildTreeBox">
+<area shape="rect" id="node2" href="$classdialect_1_1TreePlacement.html#a136322a1dbd16ec994e67392f256a5a4" title="Rotate, flip, and translate the tree as necessary to match this placement. " alt="" coords="230,5,393,47"/>
+<area shape="rect" id="node3" href="$classdialect_1_1TreePlacement.html#a6eea3e97acddaf1f7f25207d32d068a7" title="Compute some point belonging to the tree box and lying opposite a given line segment. " alt="" coords="212,71,411,112"/>
+</map>

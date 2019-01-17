@@ -1,0 +1,13 @@
+digraph "dialect::Face::doCollateralExpansion"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node21 [label="dialect::Face::doCollateral\lExpansion",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node21 -> Node22 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node22 [label="dialect::Face::applyProjSeq",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Face.html#a70a3f0c7d561c065a5a46a12bedd2f7b",tooltip="Convenience function for applying a ProjSeq with all the appropriate options. "];
+  Node21 -> Node23 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node23 [label="dialect::Face::computeCollateral\lProjSeq",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Face.html#a192f4c6b9354dbd34f08e21e4c00dffc",tooltip="Compute a projection sequence to remove/prevent overlaps between the given TreePlacement&#39;s tree box..."];
+  Node23 -> Node24 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node24 [label="dialect::Face::getRelevant\lSidesForPlacement",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Face.html#a5e01f272e55794796d2797bc6507bbc7",tooltip="Get a vector of all Sides that are relevant to a given TreePlacement. "];
+}

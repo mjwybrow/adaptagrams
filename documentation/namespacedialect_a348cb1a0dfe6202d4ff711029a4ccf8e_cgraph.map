@@ -1,0 +1,6 @@
+<map id="dialect::identifyRootNode" name="dialect::identifyRootNode">
+<area shape="rect" id="node2" href="$classdialect_1_1Graph.html#a0adf4a0dc63a42b8196f3864d1d31e04" title="Look up a Node by ID. " alt="" coords="246,5,409,32"/>
+<area shape="rect" id="node3" href="$classdialect_1_1Graph.html#a5467080616423cac88b67242aedf0949" title="Read&#45;only access to this Graph&#39;s lookup map for Nodes by their ID. " alt="" coords="224,56,431,83"/>
+<area shape="rect" id="node4" href="$classdialect_1_1Node.html#a5463ea8526de6f00794156ae79f8226b" title="Say whether this Node is a root. This is useful when working with trees, and can be safely ignored wh..." alt="" coords="245,107,409,133"/>
+<area shape="rect" id="node5" href="$classdialect_1_1Node.html#ac9a5e3dbde4ca97e31486de74305f101" title="Check whether this Node has been marked as being a root. This is useful when working with trees..." alt="" coords="479,107,624,133"/>
+</map>

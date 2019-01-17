@@ -1,4 +1,4 @@
 <map id="Avoid::Polygon::curvedPolyline" name="Avoid::Polygon::curvedPolyline">
-<area shape="rect" id="node2" href="$classAvoid_1_1Polygon.html#a2d3a0deb96bbff214b7035e481f0f0e8" title="Returns a simplified Polyline, where all collinear line segments have been collapsed down into single..." alt="" coords="212,5,340,32"/>
-<area shape="rect" id="node3" href="$classAvoid_1_1Polygon.html#a2f9e9c8c78407eefbde944e663d9711e" title="Returns the number of points in this polygon. " alt="" coords="388,31,500,57"/>
+<area shape="rect" id="node2" href="$classAvoid_1_1Polygon.html#a2d3a0deb96bbff214b7035e481f0f0e8" title="Returns a simplified Polyline, where all collinear line segments have been collapsed down into single..." alt="" coords="259,5,421,32"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1Polygon.html#a2f9e9c8c78407eefbde944e663d9711e" title="Returns the number of points in this polygon. " alt="" coords="469,31,612,57"/>
 </map>

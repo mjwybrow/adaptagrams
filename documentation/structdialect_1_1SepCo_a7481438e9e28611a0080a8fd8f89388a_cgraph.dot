@@ -1,0 +1,9 @@
+digraph "dialect::SepCo::generateColaConstraints"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node2 [label="dialect::SepCo::generate\lColaConstraints",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node2 -> Node3 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node3 [label="cola::AlignmentConstraint\l::addShape",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcola_1_1AlignmentConstraint.html#a464eb77eb3c9ed7236d0e39b31e1869b",tooltip="Mark a node as being part of this alignment constraint. "];
+}

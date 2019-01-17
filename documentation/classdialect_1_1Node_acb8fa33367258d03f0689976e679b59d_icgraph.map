@@ -1,0 +1,9 @@
+<map id="dialect::Node::id" name="dialect::Node::id">
+<area shape="rect" id="node2" href="$classdialect_1_1Edge.html#a1c0bac90151fe28ab75aafd0f571f06a" title="Get the opposite endpt, from a given one. " alt="" coords="174,8,357,35"/>
+<area shape="rect" id="node4" href="$classdialect_1_1Graph.html#ad628292a7693e69b4aa4039da6ef6de7" title="Remove a Node from this Graph. " alt="" coords="171,63,360,89"/>
+<area shape="rect" id="node8" href="$classdialect_1_1Node.html#aa133ba7265f00d879a1eb5df4054f285" title="Set an externally&#45;determined ID. (This is useful for TGLF and other interfacing operations.) " alt="" coords="173,113,358,140"/>
+<area shape="rect" id="node3" href="$classdialect_1_1Node.html#ae2883f935259b81f0a6edd4971264395" title="Remove an incident Edge. " alt="" coords="408,5,591,32"/>
+<area shape="rect" id="node5" href="$classdialect_1_1Graph.html#af5f64abbe433f0f7f18d1e961964b788" title="Convenience method to completely remove a Node from the Graph. " alt="" coords="415,57,584,98"/>
+<area shape="rect" id="node6" href="$classdialect_1_1TreePlacement.html#a5e7dad846d5257c782e8ba2c6765ce41" title="Insert the tree into a given Graph. " alt="" coords="644,23,803,65"/>
+<area shape="rect" id="node7" href="$classdialect_1_1Graph.html#a0187fe6543c150f1b03c7d0a29a2a9ed" title="Convenience method to completely remove a Node from the Graph. " alt="" coords="639,89,808,130"/>
+</map>

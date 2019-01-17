@@ -1,3 +1,4 @@
 <map id="cola::Cluster::addChildNode" name="cola::Cluster::addChildNode">
-<area shape="rect" id="node2" href="$classcola_1_1RectangularCluster.html#a911163cd00e56a7d9d45620943db97a6" title="Mark a rectangle as being a child of this cluster. " alt="" coords="200,5,332,47"/>
+<area shape="rect" id="node2" href="$classcola_1_1RectangularCluster.html#a911163cd00e56a7d9d45620943db97a6" title="Mark a rectangle as being a child of this cluster. " alt="" coords="241,5,409,47"/>
+<area shape="rect" id="node3" href="$classdialect_1_1Graph.html#ab51e05d72e5bc537e4e86b37793286b1" title="Build a cola::RootCluster based on the node clusters specified in a ColaOptions object. " alt="" coords="457,5,627,47"/>
 </map>

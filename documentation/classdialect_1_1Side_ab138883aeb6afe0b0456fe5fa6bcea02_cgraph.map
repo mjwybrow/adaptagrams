@@ -1,0 +1,4 @@
+<map id="dialect::Side::getIntervalOppositeSegment" name="dialect::Side::getIntervalOppositeSegment">
+<area shape="rect" id="node2" href="$classdialect_1_1Side.html#aabf1123cd3b813b3810f51333da2b3bc" title="Compute the closed interval [a, b], where a and b are the extreme coordinates covered by this Side..." alt="" coords="217,13,401,39"/>
+<area shape="rect" id="node3" href="$structdialect_1_1BoundingBox.html#ae0427ce3fe7f9da95a9c3107cc51387f" title="Get the interval in a given dimension. " alt="" coords="449,5,596,47"/>
+</map>

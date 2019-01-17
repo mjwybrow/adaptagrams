@@ -1,0 +1,5 @@
+<map id="dialect::ACALayout::applyOAsAllOrNothing" name="dialect::ACALayout::applyOAsAllOrNothing">
+<area shape="rect" id="node2" href="$classdialect_1_1OrthoHubLayout.html#a0b9a6aa806f4ccf26b448aa67d7fed95" title="Try to orthogonalise hubs. " alt="" coords="216,5,381,47"/>
+<area shape="rect" id="node3" href="$namespacedialect.html#a05ccc4c149e1b5902ec827bfabd3cf76" title="Apply the HOLA layout algorithm to the given Graph. See Steve Kieffer, Tim Dwyer, Kim Marriott..." alt="" coords="429,13,548,39"/>
+<area shape="rect" id="node4" href="$namespacedialect.html#a24766038e1a9ccd99997ea31c42b432a" title="Convenience function to do HOLA layout with default options. " alt="" coords="596,13,715,39"/>
+</map>

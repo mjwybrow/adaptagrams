@@ -1,0 +1,4 @@
+<map id="dialect::Graph::hasSameLayoutAs" name="dialect::Graph::hasSameLayoutAs">
+<area shape="rect" id="node2" href="$classdialect_1_1Graph.html#a49a08204413592f204eee12e52da9630" title="Get a lookup for the Edges of this Graph by the IDs of their source and target Nodes, in that order. " alt="" coords="292,5,469,47"/>
+<area shape="rect" id="node3" href="$classdialect_1_1Graph.html#a5467080616423cac88b67242aedf0949" title="Read&#45;only access to this Graph&#39;s lookup map for Nodes by their ID. " alt="" coords="277,71,484,98"/>
+</map>

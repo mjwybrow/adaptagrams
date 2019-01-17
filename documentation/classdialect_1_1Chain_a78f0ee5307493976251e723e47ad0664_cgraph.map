@@ -1,0 +1,13 @@
+<map id="dialect::Chain::takeShapeBasedConfiguration" name="dialect::Chain::takeShapeBasedConfiguration">
+<area shape="rect" id="node2" href="$classdialect_1_1Node.html#a933bc8b61c4b40f58c4ebddf1f208a30" title="Factory function, to get a shared pointer to a Node allocated on the heap. We make the constructors p..." alt="" coords="256,8,409,35"/>
+<area shape="rect" id="node4" href="$classdialect_1_1Edge.html#a931e11b40e756c1c0c4cc84d64595182" title="Factory function. " alt="" coords="257,63,409,89"/>
+<area shape="rect" id="node5" href="$classdialect_1_1Chain.html#a307a5e83c5d3e125c1b2483652732935" title="Compute the possible bend sequences that this chain could have. " alt="" coords="227,114,439,155"/>
+<area shape="rect" id="node9" href="$classdialect_1_1Chain.html#a27b5e875abb469c528f9d955fc6a4a2e" title="For a given BendSequence, determine the best places for those bends to occur in this Chain..." alt="" coords="253,179,413,221"/>
+<area shape="rect" id="node10" href="$classdialect_1_1Chain.html#a7ef58e1c3dd70f67d0fe2050138ac8db" title="Get an Edge according to its &quot;place&quot; in the Chain. " alt="" coords="253,245,413,272"/>
+<area shape="rect" id="node11" href="$classdialect_1_1Chain.html#afadc6999cc1d5cdb875e23c752369e24" title="Get a Node according to its &quot;place&quot; in the Chain. " alt="" coords="253,296,413,323"/>
+<area shape="rect" id="node12" href="$classdialect_1_1Chain.html#a0560d4821db583682c3842ad21469804" title="Determine the direction in which each edge in this chain should be configured, in order to enforce a ..." alt="" coords="233,347,433,373"/>
+<area shape="rect" id="node3" href="$classdialect_1_1Node.html#ad8f6657c4b7c7002a414fb9b1c2744f8" title="Default constructor. " alt="" coords="525,5,663,32"/>
+<area shape="rect" id="node6" href="$namespacedialect.html#aac506665928f0e3b882eb82274f951b2" title="Get the bent LinkShapes, in clockwise order, starting from a given one. " alt="" coords="506,57,682,98"/>
+<area shape="rect" id="node7" href="$namespacedialect.html#ab13e7be712ac2f35c54fcc9e338d7902" title="Look up the minimal bend sequences for a Chain. " alt="" coords="487,123,701,149"/>
+<area shape="rect" id="node8" href="$namespacedialect.html#a1e392f82ee2647c96c18ebe2f499246f" title="List the possible cardinal directions from node1 to node2, if they were to be aligned non&#45;aggressivel..." alt="" coords="511,174,677,215"/>
+</map>

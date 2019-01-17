@@ -8,13 +8,15 @@ digraph "Avoid::Polygon::simplify"
   Node29 [label="Avoid::Polygon::curvedPolyline",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Polygon.html#a35ab2aa804cc40ae127e0641e254d268",tooltip="Returns a curved approximation of this multi-segment PolyLine, with the corners replaced by smooth Be..."];
   Node29 -> Node30 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
   Node30 [label="Avoid::Router::outputInstance\lToSVG",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Router.html#a458aae2d6447e0958e4916a8c29bbb47",tooltip="Generates an SVG file containing debug output and code that can be used to regenerate the instance..."];
-  Node28 -> Node31 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node31 [label="Avoid::ConnRef::displayRoute",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ConnRef.html#ab7462cd69bd1d2c4dd318119558b4a94",tooltip="Returns a reference to the current display version of the route for the connector. "];
+  Node30 -> Node31 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node31 [label="dialect::LeaflessOrthoRouter\l::route",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1LeaflessOrthoRouter.html#af58e911020f19a144303fc01e5b8c35e",tooltip="Do the routing. "];
   Node31 -> Node32 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node32 [label="Avoid::Router::objectIdIs\lUnused",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Router.html#a8f36729c98e13e57d2c56c0d1facf86c",tooltip="Returns whether or not the given ID is already used. "];
+  Node32 [label="dialect::doHOLA",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$namespacedialect.html#a05ccc4c149e1b5902ec827bfabd3cf76",tooltip="Apply the HOLA layout algorithm to the given Graph. See Steve Kieffer, Tim Dwyer, Kim Marriott..."];
   Node32 -> Node33 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node33 [label="Avoid::Router::newObjectId",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Router.html#a202c28fcb04f7af2183fe6849b4ce2f3",tooltip="Returns the object ID used for automatically generated objects, such as during hyperedge routing..."];
-  Node31 -> Node30 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node33 [label="dialect::doHOLA",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$namespacedialect.html#a24766038e1a9ccd99997ea31c42b432a",tooltip="Convenience function to do HOLA layout with default options. "];
   Node28 -> Node34 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node34 [label="Avoid::ConnRef::setFixed\lRoute",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ConnRef.html#a392eeffe4cdd76267b0d1bb654562382",tooltip="Sets a fixed user-specified route for this connector. "];
+  Node34 [label="Avoid::ConnRef::displayRoute",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ConnRef.html#ab7462cd69bd1d2c4dd318119558b4a94",tooltip="Returns a reference to the current display version of the route for the connector. "];
+  Node34 -> Node30 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node28 -> Node35 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node35 [label="Avoid::ConnRef::setFixed\lRoute",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ConnRef.html#a392eeffe4cdd76267b0d1bb654562382",tooltip="Sets a fixed user-specified route for this connector. "];
 }

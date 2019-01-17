@@ -1,0 +1,4 @@
+<map id="dialect::OrthoHubLayout::layout" name="dialect::OrthoHubLayout::layout">
+<area shape="rect" id="node2" href="$namespacedialect.html#a05ccc4c149e1b5902ec827bfabd3cf76" title="Apply the HOLA layout algorithm to the given Graph. See Steve Kieffer, Tim Dwyer, Kim Marriott..." alt="" coords="219,13,337,39"/>
+<area shape="rect" id="node3" href="$namespacedialect.html#a24766038e1a9ccd99997ea31c42b432a" title="Convenience function to do HOLA layout with default options. " alt="" coords="385,13,504,39"/>
+</map>

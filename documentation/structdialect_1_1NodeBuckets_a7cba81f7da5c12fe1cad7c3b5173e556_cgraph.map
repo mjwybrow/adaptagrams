@@ -1,0 +1,9 @@
+<map id="dialect::NodeBuckets::severNodes" name="dialect::NodeBuckets::severNodes">
+<area shape="rect" id="node2" href="$structdialect_1_1NodeBuckets.html#a39f69438d390511f0a13edab602adcad" title="Move a node from one bucket to another. " alt="" coords="225,5,371,47"/>
+<area shape="rect" id="node3" href="$classdialect_1_1Graph.html#a6e23356b35518e9fd3ca93e3b6dd555a" title="Remove several Nodes from this Graph. " alt="" coords="200,71,396,98"/>
+<area shape="rect" id="node4" href="$classdialect_1_1Graph.html#ad6434fe1d4f4fce48f5cd88bb943606c" title="Like severNode but also returns a vector of all Nodes that were neighbours before severing..." alt="" coords="209,123,387,164"/>
+<area shape="rect" id="node5" href="$classdialect_1_1Node.html#ab82a623cf2c0d97bfb3206b1b5d656f3" title="Read&#45;only access to this Node&#39;s lookup map for Edges by their ID. " alt="" coords="444,105,644,131"/>
+<area shape="rect" id="node6" href="$classdialect_1_1Graph.html#a86f8762c5ddfdad4c934285da5bd4933" title="Sever an Edge in this Graph. " alt="" coords="456,155,632,182"/>
+<area shape="rect" id="node7" href="$classdialect_1_1Edge.html#ab3e603f70b854af7f69b12bcb7a06de4" title="Access the unique ID of this instance. " alt="" coords="703,130,820,157"/>
+<area shape="rect" id="node8" href="$classdialect_1_1Edge.html#a04fbe3f536a380fc6d70bcb09728ca08" title="&quot;Sever&quot; this Edge, i.e. remove it from the Nodes to which it is attached. " alt="" coords="692,181,831,207"/>
+</map>

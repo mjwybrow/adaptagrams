@@ -1,7 +1,5 @@
 <map id="Avoid::Router::moveJunction" name="Avoid::Router::moveJunction">
-<area shape="rect" id="node2" href="$classAvoid_1_1Router.html#a08021cac275575c7795e2005e5eadb9a" title="Move an existing junction within the router scene. " alt="" coords="203,64,352,91"/>
-<area shape="rect" id="node6" href="$classAvoid_1_1JunctionRef.html#af66cab7216d077ac124674c7c5f08e05" title="Returns the position of this junction. " alt="" coords="225,115,330,157"/>
-<area shape="rect" id="node3" href="$classAvoid_1_1ClusterRef.html#a7a25b0c34cdad039906693265a9caac8" title="Returns the ID of this cluster. " alt="" coords="431,5,545,32"/>
-<area shape="rect" id="node4" href="$classAvoid_1_1ClusterRef.html#acd1fa20b079253d53d27abf50d2a8933" title="Returns a reference to the polygon boundary of this cluster. " alt="" coords="435,57,541,98"/>
-<area shape="rect" id="node5" href="$classAvoid_1_1Router.html#ac4497126d8d4c76a122af565260941fc" title="Finishes the current transaction and processes all the queued object changes efficiently. " alt="" coords="400,123,576,149"/>
+<area shape="rect" id="node2" href="$classAvoid_1_1Router.html#a08021cac275575c7795e2005e5eadb9a" title="Move an existing junction within the router scene. " alt="" coords="245,5,437,32"/>
+<area shape="rect" id="node4" href="$classAvoid_1_1JunctionRef.html#af66cab7216d077ac124674c7c5f08e05" title="Returns the position of this junction. " alt="" coords="275,57,408,98"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1Router.html#ac4497126d8d4c76a122af565260941fc" title="Finishes the current transaction and processes all the queued object changes efficiently. " alt="" coords="485,5,712,32"/>
 </map>

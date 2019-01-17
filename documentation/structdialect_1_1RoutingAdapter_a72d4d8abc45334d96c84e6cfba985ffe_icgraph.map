@@ -1,0 +1,8 @@
+<map id="dialect::RoutingAdapter::recordRoutes" name="dialect::RoutingAdapter::recordRoutes">
+<area shape="rect" id="node2" href="$structdialect_1_1RoutingAdapter.html#a017c2b77ed6ad722dc6e18435969a58b" title="Do the routing. " alt="" coords="229,5,389,47"/>
+<area shape="rect" id="node7" href="$classdialect_1_1LeaflessOrthoRouter.html#af58e911020f19a144303fc01e5b8c35e" title="Do the routing. " alt="" coords="213,71,404,112"/>
+<area shape="rect" id="node3" href="$classdialect_1_1Graph.html#a06192e3eaecef5bf6a1e11e62502622f" title="Do a libavoid connector routing on all Edges in the Graph. " alt="" coords="452,13,595,39"/>
+<area shape="rect" id="node5" href="$namespacedialect.html#a05ccc4c149e1b5902ec827bfabd3cf76" title="Apply the HOLA layout algorithm to the given Graph. See Steve Kieffer, Tim Dwyer, Kim Marriott..." alt="" coords="464,74,583,101"/>
+<area shape="rect" id="node4" href="$classdialect_1_1Graph.html#a8493b1e54c6eb3b2eb732854f8f0d734" title="Build and return Nodes representing every point at which any Edge has a bend in its connector route..." alt="" coords="643,5,825,47"/>
+<area shape="rect" id="node6" href="$namespacedialect.html#a24766038e1a9ccd99997ea31c42b432a" title="Convenience function to do HOLA layout with default options. " alt="" coords="675,74,793,101"/>
+</map>

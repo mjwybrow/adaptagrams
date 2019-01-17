@@ -1,0 +1,17 @@
+digraph "dialect::Node::writeSvg"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node49 [label="dialect::Node::writeSvg",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node49 -> Node50 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node50 [label="dialect::Node::getBoundingBox",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Node.html#ab0a9057b2983b2c2d1b0d9b11ede9d46",tooltip="Get the bounding box for this Node. "];
+  Node50 -> Node51 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node51 [label="dialect::Node::getHalfDimensions",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Node.html#a41a05e456ef8c8cc7d1ae148786a2356",tooltip="Get an ordered pair (half-width, half-height) for this Node. "];
+  Node49 -> Node52 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node52 [label="dialect::BoundingBox::h",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$structdialect_1_1BoundingBox.html#a0c3a42869c020255f63dfce1a891066d",tooltip="Get the height of the box. "];
+  Node49 -> Node53 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node53 [label="dialect::string_format",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$namespacedialect.html#a7fdbc3f53251706e91936da1109bb644",tooltip="String formatting. "];
+  Node49 -> Node54 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node54 [label="dialect::BoundingBox::w",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$structdialect_1_1BoundingBox.html#a467c0c9f4464e66abdc2eb342f3f7c57",tooltip="Get the width of the box. "];
+}

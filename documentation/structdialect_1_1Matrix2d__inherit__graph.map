@@ -1,0 +1,4 @@
+<map id="dialect::Matrix2d&lt; T &gt;" name="dialect::Matrix2d&lt; T &gt;">
+<area shape="rect" id="node2" href="$structdialect_1_1Matrix2d.html" title="{dialect::Matrix2d\&lt;\l int \&gt;\n|+ rows\l+ cols\l+ data\l|+ Matrix2d()\l+ Matrix2d()\l+ operator()()\l+ operator()()\l+ toString()\l}" alt="" coords="5,233,132,413"/>
+<area shape="rect" id="node3" href="$structdialect_1_1Matrix2d.html" title="{dialect::Matrix2d\&lt;\l size_t \&gt;\n|+ rows\l+ cols\l+ data\l|+ Matrix2d()\l+ Matrix2d()\l+ operator()()\l+ operator()()\l+ toString()\l}" alt="" coords="156,233,283,413"/>
+</map>

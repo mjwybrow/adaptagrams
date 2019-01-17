@@ -1,0 +1,6 @@
+digraph "dialect::ProjSeq"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node1 [label="{dialect::ProjSeq\n||+ ProjSeq()\l+ addProjection()\l+ nextProjection()\l+ noteStresschange()\l+ toString()\l+ operator+=()\l+ getAllConstraints()\l+ reset()\l+ violation()\l}",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+}

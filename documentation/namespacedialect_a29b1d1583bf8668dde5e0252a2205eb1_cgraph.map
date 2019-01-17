@@ -1,0 +1,18 @@
+<map id="dialect::peel" name="dialect::peel">
+<area shape="rect" id="node2" href="$classdialect_1_1Graph.html#a0adf4a0dc63a42b8196f3864d1d31e04" title="Look up a Node by ID. " alt="" coords="429,6,591,33"/>
+<area shape="rect" id="node3" href="$namespacedialect.html#a348cb1a0dfe6202d4ff711029a4ccf8e" title="Mark as &quot;root&quot; the PeeledNode having largest serial number. " alt="" coords="167,57,338,83"/>
+<area shape="rect" id="node7" href="$classdialect_1_1Graph.html#ac4e10d13edd049dd2da80ea986b76fe9" title="Say whether the Graph is empty, meaning that it has no Nodes. " alt="" coords="173,107,333,134"/>
+<area shape="rect" id="node8" href="$namespacedialect.html#a7e4dc6aea10cd3c086f57c1be3960aeb" title="Make a Stem object to represent each leaf. " alt="" coords="147,158,359,185"/>
+<area shape="rect" id="node9" href="$structdialect_1_1NodeBuckets.html#a7cba81f7da5c12fe1cad7c3b5173e556" title="Sever the given Nodes from our Graph. " alt="" coords="179,209,326,251"/>
+<area shape="rect" id="node17" href="$structdialect_1_1NodeBuckets.html#a1058d0a33849b95a75ea5ee17ba979a4" title="Return a copy of the bucket of leaves, and clear the latter. " alt="" coords="179,275,326,316"/>
+<area shape="rect" id="node4" href="$classdialect_1_1Graph.html#a5467080616423cac88b67242aedf0949" title="Read&#45;only access to this Graph&#39;s lookup map for Nodes by their ID. " alt="" coords="407,57,613,83"/>
+<area shape="rect" id="node5" href="$classdialect_1_1Node.html#a5463ea8526de6f00794156ae79f8226b" title="Say whether this Node is a root. This is useful when working with trees, and can be safely ignored wh..." alt="" coords="428,107,592,134"/>
+<area shape="rect" id="node6" href="$classdialect_1_1Node.html#ac9a5e3dbde4ca97e31486de74305f101" title="Check whether this Node has been marked as being a root. This is useful when working with trees..." alt="" coords="689,107,834,134"/>
+<area shape="rect" id="node10" href="$classdialect_1_1Graph.html#ad6434fe1d4f4fce48f5cd88bb943606c" title="Like severNode but also returns a vector of all Nodes that were neighbours before severing..." alt="" coords="421,159,599,200"/>
+<area shape="rect" id="node15" href="$structdialect_1_1NodeBuckets.html#a39f69438d390511f0a13edab602adcad" title="Move a node from one bucket to another. " alt="" coords="437,224,583,265"/>
+<area shape="rect" id="node16" href="$classdialect_1_1Graph.html#a6e23356b35518e9fd3ca93e3b6dd555a" title="Remove several Nodes from this Graph. " alt="" coords="412,290,608,317"/>
+<area shape="rect" id="node11" href="$classdialect_1_1Node.html#ab82a623cf2c0d97bfb3206b1b5d656f3" title="Read&#45;only access to this Node&#39;s lookup map for Edges by their ID. " alt="" coords="661,162,861,189"/>
+<area shape="rect" id="node12" href="$classdialect_1_1Graph.html#a86f8762c5ddfdad4c934285da5bd4933" title="Sever an Edge in this Graph. " alt="" coords="673,213,849,239"/>
+<area shape="rect" id="node13" href="$classdialect_1_1Edge.html#a04fbe3f536a380fc6d70bcb09728ca08" title="&quot;Sever&quot; this Edge, i.e. remove it from the Nodes to which it is attached. " alt="" coords="909,187,1048,214"/>
+<area shape="rect" id="node14" href="$classdialect_1_1Edge.html#ab3e603f70b854af7f69b12bcb7a06de4" title="Access the unique ID of this instance. " alt="" coords="920,238,1037,265"/>
+</map>

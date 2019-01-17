@@ -1,0 +1,9 @@
+digraph "dialect::GhostNode::getChildren"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node2 [label="dialect::GhostNode\l::getChildren",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node2 -> Node3 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node3 [label="dialect::GhostNode::id",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1GhostNode.html#af46cf5dfc87115db86423b362c09ccf6",tooltip="Return an appropriate ID number. "];
+}

@@ -1,0 +1,14 @@
+<map id="dialect::string_format" name="dialect::string_format">
+<area shape="rect" id="node2" href="$namespacedialect.html#a05ccc4c149e1b5902ec827bfabd3cf76" title="Apply the HOLA layout algorithm to the given Graph. See Steve Kieffer, Tim Dwyer, Kim Marriott..." alt="" coords="457,78,575,105"/>
+<area shape="rect" id="node4" href="$classdialect_1_1OrthoHubLayout.html#a0b9a6aa806f4ccf26b448aa67d7fed95" title="Try to orthogonalise hubs. " alt="" coords="211,41,377,83"/>
+<area shape="rect" id="node5" href="$namespacedialect.html#a9d325ef46ea3385428712f16fedf71ef" title="Given a planar orthogonal core, and the corresponding Trees (as resulting from the peeling process)..." alt="" coords="219,107,369,134"/>
+<area shape="rect" id="node6" href="$structdialect_1_1BoundingBox.html#a4ac935fbf923030a33010944938f2403" title="Write a simple representation of the bounding box. " alt="" coords="221,159,367,200"/>
+<area shape="rect" id="node7" href="$classdialect_1_1LeaflessOrthoRouter.html#af58e911020f19a144303fc01e5b8c35e" title="Do the routing. " alt="" coords="199,224,389,265"/>
+<area shape="rect" id="node8" href="$structdialect_1_1Assignment.html#a6321bce63ba1e9fb4ea424547117d7ed" title="Write a string representation, listing the id of the Nbr assigned to each semiaxis. For example if Nbrs 3, 7, 8 are assigned to semiaxes E, S, N resp., represent this as &quot;3 7 &#45; 8&quot;. " alt="" coords="225,289,363,331"/>
+<area shape="rect" id="node9" href="$classdialect_1_1Edge.html#a113033b926234142169038954fd4c2e2" title="Write the data for a polyline SVG path for this Edge&#39;s connector route. " alt="" coords="203,355,385,396"/>
+<area shape="rect" id="node11" href="$classdialect_1_1Edge.html#a57696e5f3cb8569a921382f44b7a4d52" title="Write the data for an orthogonal SVG path for this Edge&#39;s connector route, using rounded bends..." alt="" coords="199,420,389,461"/>
+<area shape="rect" id="node12" href="$classdialect_1_1Graph.html#abbb7c275cbba6760f40718dbcf265ea7" title="Write SVG to represent this Graph. " alt="" coords="212,486,376,513"/>
+<area shape="rect" id="node13" href="$classdialect_1_1Node.html#ace545cb25ccee1206296695edaf0af9b" title="Write SVG to represent this Node. " alt="" coords="215,537,373,563"/>
+<area shape="rect" id="node3" href="$namespacedialect.html#a24766038e1a9ccd99997ea31c42b432a" title="Convenience function to do HOLA layout with default options. " alt="" coords="643,78,761,105"/>
+<area shape="rect" id="node10" href="$classdialect_1_1Edge.html#ae1a8c072d1df6f08766cf99542f76159" title="Write SVG to represent this Edge. " alt="" coords="437,394,595,421"/>
+</map>

@@ -1,0 +1,11 @@
+digraph "dialect::Face::computeCollateralProjSeq"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node18 [label="dialect::Face::computeCollateral\lProjSeq",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node18 -> Node19 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node19 [label="dialect::Face::doCollateral\lExpansion",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Face.html#a95ed0b74e2b4f2e01fcbe1834db59c6c",tooltip="Perform collateral expansion for a given TreePlacement. This means pushing Nodes and tree boxes on re..."];
+  Node19 -> Node20 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node20 [label="dialect::Face::buildBest\lProjSeq",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Face.html#ad88688ef6a874ad55668db7e21b7763f",tooltip="Build the best projection sequence for a given tree placement. "];
+}

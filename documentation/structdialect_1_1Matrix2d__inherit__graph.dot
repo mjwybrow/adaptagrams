@@ -1,0 +1,10 @@
+digraph "dialect::Matrix2d&lt; T &gt;"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node0 [label="{dialect::Matrix2d\< T \>\n|+ rows\l+ cols\l+ data\l|+ Matrix2d()\l+ Matrix2d()\l+ operator()()\l+ operator()()\l+ toString()\l}",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node0 -> Node1 [dir="back",color="orange",fontsize="10",style="solid",label=" \< int \>" ,fontname="Helvetica"];
+  Node1 [label="{dialect::Matrix2d\<\l int \>\n|+ rows\l+ cols\l+ data\l|+ Matrix2d()\l+ Matrix2d()\l+ operator()()\l+ operator()()\l+ toString()\l}",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$structdialect_1_1Matrix2d.html"];
+  Node0 -> Node2 [dir="back",color="orange",fontsize="10",style="solid",label=" \< size_t \>" ,fontname="Helvetica"];
+  Node2 [label="{dialect::Matrix2d\<\l size_t \>\n|+ rows\l+ cols\l+ data\l|+ Matrix2d()\l+ Matrix2d()\l+ operator()()\l+ operator()()\l+ toString()\l}",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$structdialect_1_1Matrix2d.html"];
+}

@@ -1,3 +1,20 @@
 <map id="libavoid/viscluster.h" name="libavoid/viscluster.h">
-<area shape="rect" id="node2" href="$libavoid_8h.html" title="Standard libavoid include file which includes all libavoid header files. " alt="" coords="5,80,107,107"/>
+<area shape="rect" id="node2" href="$libavoid_8h.html" title="Standard libavoid include file which includes all libavoid header files. " alt="" coords="3604,80,3731,107"/>
+<area shape="rect" id="node3" href="$ortho_8h_source.html" title="libdialect/ortho.h" alt="" coords="1732,155,1851,181"/>
+<area shape="rect" id="node6" href="$graphs_8h_source.html" title="libdialect/graphs.h" alt="" coords="2413,379,2543,405"/>
+<area shape="rect" id="node38" href="$routing_8h_source.html" title="libdialect/routing.h" alt="" coords="3061,304,3191,331"/>
+<area shape="rect" id="node4" href="$constraints_8h_source.html" title="libdialect/constraints.h" alt="" coords="1680,304,1833,331"/>
+<area shape="rect" id="node15" href="$treeplacement_8h_source.html" title="libdialect/treeplacement.h" alt="" coords="1341,528,1514,555"/>
+<area shape="rect" id="node16" href="$expansion_8h_source.html" title="libdialect/expansion.h" alt="" coords="535,603,685,629"/>
+<area shape="rect" id="node21" href="$trees_8h_source.html" title="libdialect/trees.h" alt="" coords="3095,453,3213,480"/>
+<area shape="rect" id="node34" href="$faces_8h_source.html" title="libdialect/faces.h" alt="" coords="489,379,609,405"/>
+<area shape="rect" id="node37" href="$opts_8h_source.html" title="libdialect/opts.h" alt="" coords="2812,229,2925,256"/>
+<area shape="rect" id="node41" href="$chains_8h_source.html" title="libdialect/chains.h" alt="" coords="1859,229,1985,256"/>
+<area shape="rect" id="node7" href="$aca_8h_source.html" title="libdialect/aca.h" alt="" coords="2429,453,2540,480"/>
+<area shape="rect" id="node35" href="$planarise_8h_source.html" title="libdialect/planarise.h" alt="" coords="1589,379,1732,405"/>
+<area shape="rect" id="node36" href="$nearalign_8h_source.html" title="libdialect/nearalign.h" alt="" coords="2166,379,2310,405"/>
+<area shape="rect" id="node8" href="$nodeconfig_8h_source.html" title="libdialect/nodeconfig.h" alt="" coords="2429,528,2583,555"/>
+<area shape="rect" id="node25" href="$peeling_8h_source.html" title="libdialect/peeling.h" alt="" coords="2939,453,3071,480"/>
+<area shape="rect" id="node11" href="$libdialect_8h.html" title="Standard libdialect include file which includes all libdialect functionality. " alt="" coords="3223,528,3363,555"/>
+<area shape="rect" id="node39" href="$hola_8h_source.html" title="libdialect/hola.h" alt="" coords="3671,453,3784,480"/>
 </map>

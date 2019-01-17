@@ -1,0 +1,9 @@
+digraph "dialect::GhostNode::id"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node6 [label="dialect::GhostNode::id",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node6 -> Node7 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node7 [label="dialect::GhostNode\l::getChildren",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1GhostNode.html#a994b88259fe3f529383cf479c35a986d",tooltip="As in the Node class, get the neighbours of this Node that sit as the target end of the connecting Ed..."];
+}

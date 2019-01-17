@@ -3,11 +3,13 @@ digraph "Avoid::ShapeRef::transformConnectionPinPositions"
   edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
   node [fontname="Helvetica",fontsize="10",shape=record];
   rankdir="LR";
-  Node17 [label="Avoid::ShapeRef::transform\lConnectionPinPositions",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
-  Node17 -> Node18 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node18 [label="Avoid::PolygonInterface\l::offsetBoundingBox",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1PolygonInterface.html#af10740857ee9fd5f9dedfb71a9b42630",tooltip="Returns the bounding rectangle that contains this polygon with optionally some buffer space around it..."];
-  Node17 -> Node19 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node19 [label="Avoid::ShapeRef::polygon",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ShapeRef.html#aa0a5e8382c7674933e09207bc6e47564",tooltip="Returns a reference to the polygon boundary of this shape. "];
-  Node19 -> Node20 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
-  Node20 [label="Avoid::Polygon::size",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Polygon.html#a2f9e9c8c78407eefbde944e663d9711e",tooltip="Returns the number of points in this polygon. "];
+  Node10 [label="Avoid::ShapeRef::transform\lConnectionPinPositions",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node10 -> Node11 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node11 [label="Avoid::PolygonInterface\l::offsetBoundingBox",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1PolygonInterface.html#af10740857ee9fd5f9dedfb71a9b42630",tooltip="Returns the bounding rectangle that contains this polygon with optionally some buffer space around it..."];
+  Node11 -> Node12 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node12 [label="Avoid::PolygonInterface::at",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1PolygonInterface.html#ad85cc8c5e376b8b01ca37e9684b4de71",tooltip="Returns a specific point in the polygon. "];
+  Node11 -> Node13 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node13 [label="Avoid::PolygonInterface\l::size",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1PolygonInterface.html#ac9ce0706613e5870e5e7136d147673f6",tooltip="Returns the number of points in this polygon. "];
+  Node10 -> Node14 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node14 [label="Avoid::ShapeRef::polygon",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1ShapeRef.html#aa0a5e8382c7674933e09207bc6e47564",tooltip="Returns a reference to the polygon boundary of this shape. "];
 }

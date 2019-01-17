@@ -1,0 +1,17 @@
+digraph "dialect::BoundingBox::getInterval"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node5 [label="dialect::BoundingBox\l::getInterval",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node5 -> Node6 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node6 [label="dialect::Side::closedInterval",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Side.html#aabf1123cd3b813b3810f51333da2b3bc",tooltip="Compute the closed interval [a, b], where a and b are the extreme coordinates covered by this Side..."];
+  Node6 -> Node7 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node7 [label="dialect::Side::getInterval\lOppositeSegment",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Side.html#ab138883aeb6afe0b0456fe5fa6bcea02",tooltip="Compute the closed interval [a, b] that is the intersection of this Side&#39;s closed interval with that ..."];
+  Node7 -> Node8 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node8 [label="dialect::Side::liesOpposite\lSegment",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Side.html#a7de9e54594045932fa8ed3d0d5956301",tooltip="Check whether the closed interval spanned by this Side runs in the same dimension as a given line seg..."];
+  Node7 -> Node9 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node9 [label="dialect::Side::getFirstPt\lOppositeSegment",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Side.html#a8cf5e3020fc793ef8c8ca4f725d48762",tooltip="Compute the first point of the interval of this Side that lies opposite a given line segment..."];
+  Node7 -> Node10 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node10 [label="dialect::Side::halfWidth\lOppositeSegment",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Side.html#ae6962a3e7738090f206a3222aec98653",tooltip="Given a LineSegment, find that portion of this Side that lies opposite it, (if any) and report the ma..."];
+}

@@ -1,0 +1,9 @@
+digraph "dialect::NearbyObjectFinder::findObject"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node6 [label="dialect::NearbyObjectFinder\l::findObject",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node6 -> Node7 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node7 [label="dialect::Graph::buildUnique\lBendPoints",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Graph.html#a8493b1e54c6eb3b2eb732854f8f0d734",tooltip="Build and return Nodes representing every point at which any Edge has a bend in its connector route..."];
+}

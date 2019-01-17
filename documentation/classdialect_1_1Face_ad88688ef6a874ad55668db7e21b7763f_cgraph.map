@@ -1,0 +1,6 @@
+<map id="dialect::Face::buildBestProjSeq" name="dialect::Face::buildBestProjSeq">
+<area shape="rect" id="node2" href="$classdialect_1_1Face.html#a95ed0b74e2b4f2e01fcbe1834db59c6c" title="Perform collateral expansion for a given TreePlacement. This means pushing Nodes and tree boxes on re..." alt="" coords="213,35,389,76"/>
+<area shape="rect" id="node3" href="$classdialect_1_1Face.html#a192f4c6b9354dbd34f08e21e4c00dffc" title="Compute a projection sequence to remove/prevent overlaps between the given TreePlacement&#39;s tree box..." alt="" coords="437,5,649,47"/>
+<area shape="rect" id="node5" href="$classdialect_1_1Face.html#a70a3f0c7d561c065a5a46a12bedd2f7b" title="Convenience function for applying a ProjSeq with all the appropriate options. " alt="" coords="451,71,635,98"/>
+<area shape="rect" id="node4" href="$classdialect_1_1Face.html#a5e01f272e55794796d2797bc6507bbc7" title="Get a vector of all Sides that are relevant to a given TreePlacement. " alt="" coords="697,5,873,47"/>
+</map>

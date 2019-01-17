@@ -1,0 +1,5 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" href="$classdialect_1_1Node.html" title="The Node class represents nodes in a graph. " alt="" coords="5,5,105,32"/>
+<area shape="rect" id="node2" href="$classdialect_1_1GhostNode.html" title="A GhostNode represents another Node. " alt="" coords="153,5,289,32"/>
+<area shape="rect" id="node3" href="$classdialect_1_1PeeledNode.html" title="A PeeledNode is a type of GhostNode, used in the peeling process. " alt="" coords="337,5,479,32"/>
+</map>

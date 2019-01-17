@@ -1,0 +1,4 @@
+<map id="dialect::Chain::getNode" name="dialect::Chain::getNode">
+<area shape="rect" id="node2" href="$classdialect_1_1Chain.html#a20c42a557b33351ee98a2cdf0b1d84cb" title="Compute the cost of making a given bend shape at a given position in the chain, given the current geo..." alt="" coords="217,5,383,32"/>
+<area shape="rect" id="node3" href="$classdialect_1_1Chain.html#a78f0ee5307493976251e723e47ad0664" title="Give this chain an orthogonal configuration best fitting its present geometric shape. " alt="" coords="213,57,387,98"/>
+</map>

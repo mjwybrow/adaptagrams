@@ -1,0 +1,5 @@
+<map id="Avoid::Router::outputInstanceToSVG" name="Avoid::Router::outputInstanceToSVG">
+<area shape="rect" id="node2" href="$classdialect_1_1LeaflessOrthoRouter.html#af58e911020f19a144303fc01e5b8c35e" title="Do the routing. " alt="" coords="251,5,441,47"/>
+<area shape="rect" id="node3" href="$namespacedialect.html#a05ccc4c149e1b5902ec827bfabd3cf76" title="Apply the HOLA layout algorithm to the given Graph. See Steve Kieffer, Tim Dwyer, Kim Marriott..." alt="" coords="489,13,608,39"/>
+<area shape="rect" id="node4" href="$namespacedialect.html#a24766038e1a9ccd99997ea31c42b432a" title="Convenience function to do HOLA layout with default options. " alt="" coords="656,13,775,39"/>
+</map>

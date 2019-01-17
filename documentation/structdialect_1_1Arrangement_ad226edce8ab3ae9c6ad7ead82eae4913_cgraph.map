@@ -1,0 +1,8 @@
+<map id="dialect::Arrangement::computeNAssignments" name="dialect::Arrangement::computeNAssignments">
+<area shape="rect" id="node2" href="$structdialect_1_1Arrangement.html#ac8500a0d9280f35e014d5e4c431bb75e" title="Get the Assignment resulting from a given quad action. " alt="" coords="220,5,427,47"/>
+<area shape="rect" id="node3" href="$structdialect_1_1Arrangement.html#a5aea74697000d725684fa14714b8475a" title="Get the &quot;basic Assignment&quot; for this Arrangement. " alt="" coords="475,35,625,76"/>
+<area shape="rect" id="node4" href="$namespacedialect.html#afbe70f9004b1b9e78730273e67aa1d76" title="Look up legal quad actions. " alt="" coords="231,122,415,149"/>
+<area shape="rect" id="node5" href="$structdialect_1_1Arrangement.html#a6846067b08315b5c5200246d87643d36" title="Get the &quot;reduced distribution vector&quot; for this Arrangement. " alt="" coords="251,173,396,215"/>
+<area shape="rect" id="node7" href="$structdialect_1_1Arrangement.html#a2ea9adb460c2313da39f3f7e3a04ab2e" title="Get the &quot;vacancy vector&quot; for this Arrangement. " alt="" coords="251,239,396,280"/>
+<area shape="rect" id="node6" href="$structdialect_1_1Arrangement.html#aff56b9103393913a3208a126c5741c4e" title="Get the &quot;distribution vector&quot; for this Arrangement. " alt="" coords="477,173,623,215"/>
+</map>

@@ -1,3 +1,5 @@
 <map id="Avoid::Router::setRoutingParameter" name="Avoid::Router::setRoutingParameter">
-<area shape="rect" id="node2" href="$classAvoid_1_1Router.html#acbda0590ff3234faad409e2f39e1c9ec" title="Sets or removes penalty values that are applied during connector routing. " alt="" coords="189,5,325,47"/>
+<area shape="rect" id="node2" href="$classdialect_1_1LeaflessOrthoRouter.html#af679a8ea90e4f0ef30a22cb89afc4dbd" title="Standard constructor. " alt="" coords="247,5,437,47"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1Router.html#acbda0590ff3234faad409e2f39e1c9ec" title="Sets or removes penalty values that are applied during connector routing. " alt="" coords="255,71,429,112"/>
+<area shape="rect" id="node4" href="$classdialect_1_1LeaflessOrthoRouter.html#aa4bea8f0422449415ac393c344cd377a" title="Set the Router&#39;s shapeBufferDistance parameter as a scalar multiple of the ideal edge length read fro..." alt="" coords="227,136,457,177"/>
 </map>

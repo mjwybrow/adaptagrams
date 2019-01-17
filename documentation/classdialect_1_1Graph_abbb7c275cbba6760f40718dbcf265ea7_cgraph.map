@@ -1,0 +1,6 @@
+<map id="dialect::Graph::writeSvg" name="dialect::Graph::writeSvg">
+<area shape="rect" id="node2" href="$classdialect_1_1Graph.html#a2da1cfb32899fe1d2d5f5967a455a0f6" title="Get the bounding box for this Graph. " alt="" coords="217,5,428,32"/>
+<area shape="rect" id="node3" href="$structdialect_1_1BoundingBox.html#a0c3a42869c020255f63dfce1a891066d" title="Get the height of the box. " alt="" coords="241,56,404,83"/>
+<area shape="rect" id="node4" href="$namespacedialect.html#a7fdbc3f53251706e91936da1109bb644" title="String formatting. " alt="" coords="250,107,395,133"/>
+<area shape="rect" id="node5" href="$structdialect_1_1BoundingBox.html#a467c0c9f4464e66abdc2eb342f3f7c57" title="Get the width of the box. " alt="" coords="241,157,405,184"/>
+</map>

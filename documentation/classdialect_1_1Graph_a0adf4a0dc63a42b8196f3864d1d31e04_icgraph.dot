@@ -1,0 +1,22 @@
+digraph "dialect::Graph::getNode"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node93 [label="dialect::Graph::getNode",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node93 -> Node94 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node94 [label="dialect::Graph::addEdge",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Graph.html#a9aa373b94117d88704c63191b4bc9c9d",tooltip="Add an Edge by specifying the IDs of its endpoint Nodes. "];
+  Node93 -> Node95 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node95 [label="dialect::Graph::cloneNode",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Graph.html#abe075fe42c69ec92fc4ab945267bdaa9",tooltip="Clone a node completely. There will be as many copies of the original node as it had edges..."];
+  Node93 -> Node96 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node96 [label="dialect::identifyRootNode",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$namespacedialect.html#a348cb1a0dfe6202d4ff711029a4ccf8e",tooltip="Mark as \"root\" the PeeledNode having largest serial number. "];
+  Node96 -> Node97 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node97 [label="dialect::peel",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$namespacedialect.html#a29b1d1583bf8668dde5e0252a2205eb1",tooltip="Perform the \"peeling\" process, in which the exterior trees are removed from the given Graph..."];
+  Node97 -> Node98 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node98 [label="dialect::doHOLA",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$namespacedialect.html#a05ccc4c149e1b5902ec827bfabd3cf76",tooltip="Apply the HOLA layout algorithm to the given Graph. See Steve Kieffer, Tim Dwyer, Kim Marriott..."];
+  Node98 -> Node99 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node99 [label="dialect::doHOLA",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$namespacedialect.html#a24766038e1a9ccd99997ea31c42b432a",tooltip="Convenience function to do HOLA layout with default options. "];
+  Node93 -> Node97 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node93 -> Node100 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node100 [label="dialect::Graph::severAnd\lRemoveNode",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Graph.html#a0187fe6543c150f1b03c7d0a29a2a9ed",tooltip="Convenience method to completely remove a Node from the Graph. "];
+}

@@ -1,0 +1,5 @@
+<map id="dialect::ACALayout::createAlignments" name="dialect::ACALayout::createAlignments">
+<area shape="rect" id="node2" href="$namespacedialect.html#a05ccc4c149e1b5902ec827bfabd3cf76" title="Apply the HOLA layout algorithm to the given Graph. See Steve Kieffer, Tim Dwyer, Kim Marriott..." alt="" coords="198,5,317,32"/>
+<area shape="rect" id="node4" href="$classdialect_1_1ACALayout.html#ab04e719586c594d5327a816f6fccc40d" title="Do an initial stress&#45;minimising layout, and then create alignments. " alt="" coords="189,57,325,98"/>
+<area shape="rect" id="node3" href="$namespacedialect.html#a24766038e1a9ccd99997ea31c42b432a" title="Convenience function to do HOLA layout with default options. " alt="" coords="373,5,492,32"/>
+</map>

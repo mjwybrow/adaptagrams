@@ -1,0 +1,6 @@
+digraph "dialect::SepCo"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node1 [label="{dialect::SepCo\n|+ dim\l+ left\l+ right\l+ gap\l+ exact\l|+ SepCo()\l+ generateColaConstraints()\l+ getDirecRelativeToNode()\l+ addToMatrix()\l+ violation()\l+ toString()\l}",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+}

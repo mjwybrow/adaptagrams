@@ -1,0 +1,18 @@
+digraph "dialect::Edge::writeSvg"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node36 [label="dialect::Edge::writeSvg",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node36 -> Node37 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node37 [label="dialect::Edge::getRoutePoints",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Edge.html#a3c1e63e194082b987f166fb48bcc63ec",tooltip="Get route points. "];
+  Node36 -> Node38 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node38 [label="dialect::Edge::writePolyline\lConnectorData",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Edge.html#a113033b926234142169038954fd4c2e2",tooltip="Write the data for a polyline SVG path for this Edge&#39;s connector route. "];
+  Node38 -> Node37 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node38 -> Node39 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node39 [label="dialect::string_format",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$namespacedialect.html#a7fdbc3f53251706e91936da1109bb644",tooltip="String formatting. "];
+  Node36 -> Node40 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node40 [label="dialect::Edge::writeRounded\lOrthoConnectorData",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Edge.html#a57696e5f3cb8569a921382f44b7a4d52",tooltip="Write the data for an orthogonal SVG path for this Edge&#39;s connector route, using rounded bends..."];
+  Node40 -> Node37 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node40 -> Node39 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+}

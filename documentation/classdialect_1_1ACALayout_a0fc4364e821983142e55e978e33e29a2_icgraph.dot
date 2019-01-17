@@ -1,0 +1,13 @@
+digraph "dialect::ACALayout::createAlignments"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node16 [label="dialect::ACALayout\l::createAlignments",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node16 -> Node17 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node17 [label="dialect::doHOLA",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$namespacedialect.html#a05ccc4c149e1b5902ec827bfabd3cf76",tooltip="Apply the HOLA layout algorithm to the given Graph. See Steve Kieffer, Tim Dwyer, Kim Marriott..."];
+  Node17 -> Node18 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node18 [label="dialect::doHOLA",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$namespacedialect.html#a24766038e1a9ccd99997ea31c42b432a",tooltip="Convenience function to do HOLA layout with default options. "];
+  Node16 -> Node19 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node19 [label="dialect::ACALayout\l::layout",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1ACALayout.html#ab04e719586c594d5327a816f6fccc40d",tooltip="Do an initial stress-minimising layout, and then create alignments. "];
+}

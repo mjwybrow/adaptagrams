@@ -1,3 +1,6 @@
 <map id="Avoid::ClusterRef::rectangularPolygon" name="Avoid::ClusterRef::rectangularPolygon">
-<area shape="rect" id="node2" href="$classAvoid_1_1Router.html#a458aae2d6447e0958e4916a8c29bbb47" title="Generates an SVG file containing debug output and code that can be used to regenerate the instance..." alt="" coords="161,5,315,47"/>
+<area shape="rect" id="node2" href="$classAvoid_1_1Router.html#a458aae2d6447e0958e4916a8c29bbb47" title="Generates an SVG file containing debug output and code that can be used to regenerate the instance..." alt="" coords="191,5,388,47"/>
+<area shape="rect" id="node3" href="$classdialect_1_1LeaflessOrthoRouter.html#af58e911020f19a144303fc01e5b8c35e" title="Do the routing. " alt="" coords="436,5,627,47"/>
+<area shape="rect" id="node4" href="$namespacedialect.html#a05ccc4c149e1b5902ec827bfabd3cf76" title="Apply the HOLA layout algorithm to the given Graph. See Steve Kieffer, Tim Dwyer, Kim Marriott..." alt="" coords="675,13,793,39"/>
+<area shape="rect" id="node5" href="$namespacedialect.html#a24766038e1a9ccd99997ea31c42b432a" title="Convenience function to do HOLA layout with default options. " alt="" coords="841,13,960,39"/>
 </map>

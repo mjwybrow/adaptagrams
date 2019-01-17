@@ -1,0 +1,13 @@
+<map id="dialect::Node::Node" name="dialect::Node::Node">
+<area shape="rect" id="node2" href="$classdialect_1_1Node.html#a933bc8b61c4b40f58c4ebddf1f208a30" title="Factory function, to get a shared pointer to a Node allocated on the heap. We make the constructors p..." alt="" coords="192,181,345,207"/>
+<area shape="rect" id="node3" href="$classdialect_1_1Chain.html#a78f0ee5307493976251e723e47ad0664" title="Give this chain an orthogonal configuration best fitting its present geometric shape. " alt="" coords="398,5,571,47"/>
+<area shape="rect" id="node4" href="$classdialect_1_1Graph.html#ac4f60ee524a01495405b429e9206b013" title="Add a new Node to this Graph. " alt="" coords="401,71,568,98"/>
+<area shape="rect" id="node6" href="$classdialect_1_1Graph.html#abe075fe42c69ec92fc4ab945267bdaa9" title="Clone a node completely. There will be as many copies of the original node as it had edges..." alt="" coords="635,122,811,149"/>
+<area shape="rect" id="node7" href="$classdialect_1_1Graph.html#a17c2ef09e6cb87ce5237e5d55ca612c2" title="Add Nodes to represent aligned Edges in one dimension, constraining them to stay aligned. " alt="" coords="408,173,561,215"/>
+<area shape="rect" id="node8" href="$classdialect_1_1Graph.html#a8493b1e54c6eb3b2eb732854f8f0d734" title="Build and return Nodes representing every point at which any Edge has a bend in its connector route..." alt="" coords="393,239,576,280"/>
+<area shape="rect" id="node9" href="$classdialect_1_1Node.html#a5cd0fd3454d1b412d91e184789b1dd40" title="Allocate a GhostNode of this Node. " alt="" coords="397,305,573,331"/>
+<area shape="rect" id="node10" href="$classdialect_1_1TreePlacement.html#a143f5d457c7175d01c889abd83ff38e6" title="Determine the size of the tree minus the root node, and the position relative to the root node..." alt="" coords="405,356,564,397"/>
+<area shape="rect" id="node5" href="$classdialect_1_1Graph.html#a8a1dddeee08eea1f377942ee8ef32c1f" title="Add a new Node to this Graph, setting dimensions. " alt="" coords="640,71,807,98"/>
+<area shape="rect" id="node11" href="$classdialect_1_1TreePlacement.html#a6eea3e97acddaf1f7f25207d32d068a7" title="Compute some point belonging to the tree box and lying opposite a given line segment. " alt="" coords="624,323,823,364"/>
+<area shape="rect" id="node12" href="$classdialect_1_1TreePlacement.html#a136322a1dbd16ec994e67392f256a5a4" title="Rotate, flip, and translate the tree as necessary to match this placement. " alt="" coords="642,388,805,429"/>
+</map>

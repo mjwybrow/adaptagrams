@@ -1,0 +1,4 @@
+<map id="dialect::TreePlacement::insertTreeNode" name="dialect::TreePlacement::insertTreeNode">
+<area shape="rect" id="node2" href="$classdialect_1_1Face.html#aa4a08a2145f25ec0ef4125c71f7654a3" title="To be used after the face has been expanded to make room for the tree. This method adds a large node ..." alt="" coords="212,13,409,39"/>
+<area shape="rect" id="node3" href="$classdialect_1_1Face.html#a5e01f272e55794796d2797bc6507bbc7" title="Get a vector of all Sides that are relevant to a given TreePlacement. " alt="" coords="457,5,633,47"/>
+</map>

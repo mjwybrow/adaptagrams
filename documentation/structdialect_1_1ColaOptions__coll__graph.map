@@ -1,0 +1,4 @@
+<map id="dialect::ColaOptions" name="dialect::ColaOptions">
+<area shape="rect" id="node2" href="$classcola_1_1PreIteration.html" title="A default functor that is called before each iteration in the main loop of the ConstrainedFDLayout::r..." alt="" coords="5,13,128,163"/>
+<area shape="rect" id="node3" href="$classcola_1_1TestConvergence.html" title="A default functor that is called after each iteration of the layout algorithm. " alt="" coords="153,5,311,171"/>
+</map>

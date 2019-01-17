@@ -1,0 +1,4 @@
+<map id="dialect::Graph::severEdge" name="dialect::Graph::severEdge">
+<area shape="rect" id="node2" href="$classdialect_1_1Edge.html#ab3e603f70b854af7f69b12bcb7a06de4" title="Access the unique ID of this instance. " alt="" coords="240,5,357,32"/>
+<area shape="rect" id="node3" href="$classdialect_1_1Edge.html#a04fbe3f536a380fc6d70bcb09728ca08" title="&quot;Sever&quot; this Edge, i.e. remove it from the Nodes to which it is attached. " alt="" coords="229,56,368,83"/>
+</map>

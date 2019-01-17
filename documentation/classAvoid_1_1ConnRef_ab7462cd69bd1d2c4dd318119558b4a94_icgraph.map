@@ -1,5 +1,6 @@
 <map id="Avoid::ConnRef::displayRoute" name="Avoid::ConnRef::displayRoute">
-<area shape="rect" id="node2" href="$classAvoid_1_1Router.html#a8f36729c98e13e57d2c56c0d1facf86c" title="Returns whether or not the given ID is already used. " alt="" coords="221,5,351,47"/>
-<area shape="rect" id="node4" href="$classAvoid_1_1Router.html#a458aae2d6447e0958e4916a8c29bbb47" title="Generates an SVG file containing debug output and code that can be used to regenerate the instance..." alt="" coords="209,71,363,112"/>
-<area shape="rect" id="node3" href="$classAvoid_1_1Router.html#a202c28fcb04f7af2183fe6849b4ce2f3" title="Returns the object ID used for automatically generated objects, such as during hyperedge routing..." alt="" coords="411,13,555,39"/>
+<area shape="rect" id="node2" href="$classAvoid_1_1Router.html#a458aae2d6447e0958e4916a8c29bbb47" title="Generates an SVG file containing debug output and code that can be used to regenerate the instance..." alt="" coords="253,5,451,47"/>
+<area shape="rect" id="node3" href="$classdialect_1_1LeaflessOrthoRouter.html#af58e911020f19a144303fc01e5b8c35e" title="Do the routing. " alt="" coords="499,5,689,47"/>
+<area shape="rect" id="node4" href="$namespacedialect.html#a05ccc4c149e1b5902ec827bfabd3cf76" title="Apply the HOLA layout algorithm to the given Graph. See Steve Kieffer, Tim Dwyer, Kim Marriott..." alt="" coords="737,13,856,39"/>
+<area shape="rect" id="node5" href="$namespacedialect.html#a24766038e1a9ccd99997ea31c42b432a" title="Convenience function to do HOLA layout with default options. " alt="" coords="904,13,1023,39"/>
 </map>

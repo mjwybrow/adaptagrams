@@ -1,3 +1,6 @@
 <map id="Avoid::ConnRef::setDestEndpoint" name="Avoid::ConnRef::setDestEndpoint">
-<area shape="rect" id="node2" href="$classAvoid_1_1ConnRef.html#a372f58a93c0296814de8d4a3075ad5e4" title="Splits a connector in the centre of the segmentNth segment and creates a junction point there as well..." alt="" coords="224,5,389,32"/>
+<area shape="rect" id="node2" href="$classdialect_1_1LeaflessOrthoRouter.html#af58e911020f19a144303fc01e5b8c35e" title="Do the routing. " alt="" coords="284,5,475,47"/>
+<area shape="rect" id="node5" href="$classAvoid_1_1ConnRef.html#a372f58a93c0296814de8d4a3075ad5e4" title="Splits a connector in the centre of the segmentNth segment and creates a junction point there as well..." alt="" coords="273,71,485,98"/>
+<area shape="rect" id="node3" href="$namespacedialect.html#a05ccc4c149e1b5902ec827bfabd3cf76" title="Apply the HOLA layout algorithm to the given Graph. See Steve Kieffer, Tim Dwyer, Kim Marriott..." alt="" coords="533,13,652,39"/>
+<area shape="rect" id="node4" href="$namespacedialect.html#a24766038e1a9ccd99997ea31c42b432a" title="Convenience function to do HOLA layout with default options. " alt="" coords="700,13,819,39"/>
 </map>

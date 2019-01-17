@@ -1,0 +1,4 @@
+<map id="dialect::Graph::updateColaGraphRep" name="dialect::Graph::updateColaGraphRep">
+<area shape="rect" id="node2" href="$classdialect_1_1Graph.html#a17af894842d60c08d49e9abed7dc4546" title="Attempt to apply the projections given by a ProjSeq object. Give up as soon as any of them fails..." alt="" coords="233,5,425,32"/>
+<area shape="rect" id="node3" href="$classdialect_1_1Graph.html#a60fa48d2cc57f7e51916d605003713ba" title="Convenience method to project onto a single SepCo object. Apart from the SepCo, parameters and return..." alt="" coords="239,57,420,98"/>
+</map>

@@ -1,0 +1,9 @@
+digraph "dialect::shapeOfLink"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node174 [label="dialect::shapeOfLink",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node174 -> Node175 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node175 [label="dialect::Chain::Chain",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Chain.html#a8ed76f7de22ef8dfe4dbccf8a66bd9a3",tooltip="Standard constructor. "];
+}

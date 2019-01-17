@@ -1,0 +1,13 @@
+digraph "dialect::Graph::severNode"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node205 [label="dialect::Graph::severNode",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node205 -> Node206 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node206 [label="dialect::Graph::severAnd\lRemoveNode",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Graph.html#af5f64abbe433f0f7f18d1e961964b788",tooltip="Convenience method to completely remove a Node from the Graph. "];
+  Node206 -> Node207 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node207 [label="dialect::TreePlacement\l::insertTreeIntoGraph",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1TreePlacement.html#a5e7dad846d5257c782e8ba2c6765ce41",tooltip="Insert the tree into a given Graph. "];
+  Node206 -> Node208 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node208 [label="dialect::Graph::severAnd\lRemoveNode",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Graph.html#a0187fe6543c150f1b03c7d0a29a2a9ed",tooltip="Convenience method to completely remove a Node from the Graph. "];
+}

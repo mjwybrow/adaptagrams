@@ -1,0 +1,15 @@
+digraph "dialect::identifyRootNode"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node132 [label="dialect::identifyRootNode",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node132 -> Node133 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node133 [label="dialect::Graph::getNode",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Graph.html#a0adf4a0dc63a42b8196f3864d1d31e04",tooltip="Look up a Node by ID. "];
+  Node132 -> Node134 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node134 [label="dialect::Graph::getNodeLookup",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Graph.html#a5467080616423cac88b67242aedf0949",tooltip="Read-only access to this Graph&#39;s lookup map for Nodes by their ID. "];
+  Node132 -> Node135 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node135 [label="dialect::Node::setIsRoot",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Node.html#a5463ea8526de6f00794156ae79f8226b",tooltip="Say whether this Node is a root. This is useful when working with trees, and can be safely ignored wh..."];
+  Node135 -> Node136 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node136 [label="dialect::Node::isRoot",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Node.html#ac9a5e3dbde4ca97e31486de74305f101",tooltip="Check whether this Node has been marked as being a root. This is useful when working with trees..."];
+}

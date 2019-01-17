@@ -1,0 +1,15 @@
+<map id="dialect::Graph::buildUniqueBendPoints" name="dialect::Graph::buildUniqueBendPoints">
+<area shape="rect" id="node2" href="$classdialect_1_1NearbyObjectFinder.html#aaf6a707fde10e6cbff3094028d90d236" title="Add a new object, and say what its x,y&#45;coords are. " alt="" coords="236,5,423,47"/>
+<area shape="rect" id="node3" href="$classdialect_1_1Node.html#a933bc8b61c4b40f58c4ebddf1f208a30" title="Factory function, to get a shared pointer to a Node allocated on the heap. We make the constructors p..." alt="" coords="253,71,406,98"/>
+<area shape="rect" id="node5" href="$classdialect_1_1NearbyObjectFinder.html#a58de98b4c259e2e4b462d954c22e5347" title="Check to see if any object has been stored yet in the open neighbourhood centred at the given coordin..." alt="" coords="236,123,423,164"/>
+<area shape="rect" id="node6" href="$classdialect_1_1Graph.html#a0dbf008d97d5a6ad814778217d2da948" title="Read the ideal edge length of this Graph. " alt="" coords="254,189,405,215"/>
+<area shape="rect" id="node7" href="$classdialect_1_1Graph.html#a06192e3eaecef5bf6a1e11e62502622f" title="Do a libavoid connector routing on all Edges in the Graph. " alt="" coords="258,239,401,266"/>
+<area shape="rect" id="node4" href="$classdialect_1_1Node.html#ad8f6657c4b7c7002a414fb9b1c2744f8" title="Default constructor. " alt="" coords="481,71,620,98"/>
+<area shape="rect" id="node8" href="$classdialect_1_1Graph.html#ae3f0d0c395e0a15abf44b78a2bd42c25" title="Clear all Edge routes. " alt="" coords="473,144,629,185"/>
+<area shape="rect" id="node9" href="$structdialect_1_1RoutingAdapter.html#a566abf3aa1563c245f6c3448c145f966" title="Add nodes. " alt="" coords="471,209,631,251"/>
+<area shape="rect" id="node10" href="$structdialect_1_1RoutingAdapter.html#a3ff650be16cbf63866b156c6e9e86109" title="Add edges. " alt="" coords="471,275,631,316"/>
+<area shape="rect" id="node12" href="$structdialect_1_1RoutingAdapter.html#a017c2b77ed6ad722dc6e18435969a58b" title="Do the routing. " alt="" coords="471,340,631,381"/>
+<area shape="rect" id="node11" href="$classAvoid_1_1ConnRef.html#ae66e8c90dc191951fc0f64acc4c06d7c" title="Sets both a new source and destination endpoint for this connector. " alt="" coords="692,282,892,309"/>
+<area shape="rect" id="node13" href="$classAvoid_1_1Router.html#ac4497126d8d4c76a122af565260941fc" title="Finishes the current transaction and processes all the queued object changes efficiently. " alt="" coords="679,339,905,366"/>
+<area shape="rect" id="node14" href="$structdialect_1_1RoutingAdapter.html#a72d4d8abc45334d96c84e6cfba985ffe" title="Record the routes in the Edges. " alt="" coords="712,391,872,432"/>
+</map>

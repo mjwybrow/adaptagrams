@@ -1,0 +1,4 @@
+<map id="dialect::Node" name="dialect::Node">
+<area shape="rect" id="node2" href="$classdialect_1_1GhostNode.html" title="A GhostNode represents another Node. " alt="" coords="8,409,144,560"/>
+<area shape="rect" id="node3" href="$classdialect_1_1PeeledNode.html" title="A PeeledNode is a type of GhostNode, used in the peeling process. " alt="" coords="5,608,147,715"/>
+</map>

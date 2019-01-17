@@ -1,6 +1,6 @@
 <map id="Avoid::ClusterRef::polygon" name="Avoid::ClusterRef::polygon">
-<area shape="rect" id="node2" href="$classAvoid_1_1Router.html#a08021cac275575c7795e2005e5eadb9a" title="Move an existing junction within the router scene. " alt="" coords="161,31,310,57"/>
-<area shape="rect" id="node5" href="$classAvoid_1_1Router.html#a458aae2d6447e0958e4916a8c29bbb47" title="Generates an SVG file containing debug output and code that can be used to regenerate the instance..." alt="" coords="159,82,312,123"/>
-<area shape="rect" id="node3" href="$classAvoid_1_1Router.html#ac171735c187b3e0ea8f03fda4424fd4f" title="Move an existing shape within the router scene by a relative distance. " alt="" coords="364,5,505,32"/>
-<area shape="rect" id="node4" href="$classAvoid_1_1Router.html#a94e5639b590902b5e734a1068fdc663c" title="Move an existing junction within the router scene by a relative distance. " alt="" coords="360,56,509,83"/>
+<area shape="rect" id="node2" href="$classAvoid_1_1Router.html#a458aae2d6447e0958e4916a8c29bbb47" title="Generates an SVG file containing debug output and code that can be used to regenerate the instance..." alt="" coords="187,5,384,47"/>
+<area shape="rect" id="node3" href="$classdialect_1_1LeaflessOrthoRouter.html#af58e911020f19a144303fc01e5b8c35e" title="Do the routing. " alt="" coords="432,5,623,47"/>
+<area shape="rect" id="node4" href="$namespacedialect.html#a05ccc4c149e1b5902ec827bfabd3cf76" title="Apply the HOLA layout algorithm to the given Graph. See Steve Kieffer, Tim Dwyer, Kim Marriott..." alt="" coords="671,13,789,39"/>
+<area shape="rect" id="node5" href="$namespacedialect.html#a24766038e1a9ccd99997ea31c42b432a" title="Convenience function to do HOLA layout with default options. " alt="" coords="837,13,956,39"/>
 </map>

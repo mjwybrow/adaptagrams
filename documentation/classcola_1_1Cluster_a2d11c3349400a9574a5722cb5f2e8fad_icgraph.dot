@@ -1,0 +1,9 @@
+digraph "cola::Cluster::addChildCluster"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node1 [label="cola::Cluster::addChildCluster",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node1 -> Node2 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node2 [label="dialect::Graph::buildRoot\lCluster",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Graph.html#ab51e05d72e5bc537e4e86b37793286b1",tooltip="Build a cola::RootCluster based on the node clusters specified in a ColaOptions object. "];
+}

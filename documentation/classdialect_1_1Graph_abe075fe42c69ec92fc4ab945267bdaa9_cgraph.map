@@ -1,0 +1,11 @@
+<map id="dialect::Graph::cloneNode" name="dialect::Graph::cloneNode">
+<area shape="rect" id="node2" href="$classdialect_1_1Graph.html#a2793fc06c3a07f1a187a186527f36213" title="Add an Edge to this Graph. " alt="" coords="235,5,400,32"/>
+<area shape="rect" id="node3" href="$classdialect_1_1Graph.html#ac4f60ee524a01495405b429e9206b013" title="Add a new Node to this Graph. " alt="" coords="234,56,401,83"/>
+<area shape="rect" id="node4" href="$classdialect_1_1Node.html#a933bc8b61c4b40f58c4ebddf1f208a30" title="Factory function, to get a shared pointer to a Node allocated on the heap. We make the constructors p..." alt="" coords="453,81,607,108"/>
+<area shape="rect" id="node6" href="$classdialect_1_1Edge.html#a931e11b40e756c1c0c4cc84d64595182" title="Factory function. " alt="" coords="241,157,393,184"/>
+<area shape="rect" id="node7" href="$classdialect_1_1Graph.html#a0adf4a0dc63a42b8196f3864d1d31e04" title="Look up a Node by ID. " alt="" coords="236,208,399,235"/>
+<area shape="rect" id="node8" href="$classdialect_1_1Graph.html#a86f8762c5ddfdad4c934285da5bd4933" title="Sever an Edge in this Graph. " alt="" coords="229,259,405,285"/>
+<area shape="rect" id="node5" href="$classdialect_1_1Node.html#ad8f6657c4b7c7002a414fb9b1c2744f8" title="Default constructor. " alt="" coords="655,81,793,108"/>
+<area shape="rect" id="node9" href="$classdialect_1_1Edge.html#a04fbe3f536a380fc6d70bcb09728ca08" title="&quot;Sever&quot; this Edge, i.e. remove it from the Nodes to which it is attached. " alt="" coords="461,233,599,260"/>
+<area shape="rect" id="node10" href="$classdialect_1_1Edge.html#ab3e603f70b854af7f69b12bcb7a06de4" title="Access the unique ID of this instance. " alt="" coords="471,284,589,311"/>
+</map>

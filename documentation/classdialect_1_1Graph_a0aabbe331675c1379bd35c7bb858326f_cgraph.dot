@@ -1,0 +1,11 @@
+digraph "dialect::Graph::addEdge"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node9 [label="dialect::Graph::addEdge",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node9 -> Node10 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node10 [label="dialect::Graph::addEdge",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Graph.html#a2793fc06c3a07f1a187a186527f36213",tooltip="Add an Edge to this Graph. "];
+  Node9 -> Node11 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node11 [label="dialect::Edge::allocate",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Edge.html#a931e11b40e756c1c0c4cc84d64595182",tooltip="Factory function. "];
+}

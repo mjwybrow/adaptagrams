@@ -1,4 +1,9 @@
 <map id="Avoid::ConnRef::setEndpoints" name="Avoid::ConnRef::setEndpoints">
-<area shape="rect" id="node2" href="$classAvoid_1_1ConnRef.html#aa469b1767d12e1fa4971004225a0abcd" title="Constructs a connector with endpoints specified. " alt="" coords="209,5,347,32"/>
-<area shape="rect" id="node3" href="$classAvoid_1_1ConnRef.html#a392eeffe4cdd76267b0d1bb654562382" title="Sets a fixed user&#45;specified route for this connector. " alt="" coords="210,57,346,98"/>
+<area shape="rect" id="node2" href="$structdialect_1_1RoutingAdapter.html#a3ff650be16cbf63866b156c6e9e86109" title="Add edges. " alt="" coords="261,64,421,105"/>
+<area shape="rect" id="node7" href="$classAvoid_1_1ConnRef.html#aa469b1767d12e1fa4971004225a0abcd" title="Constructs a connector with endpoints specified. " alt="" coords="253,130,429,157"/>
+<area shape="rect" id="node8" href="$classAvoid_1_1ConnRef.html#a392eeffe4cdd76267b0d1bb654562382" title="Sets a fixed user&#45;specified route for this connector. " alt="" coords="255,181,428,223"/>
+<area shape="rect" id="node3" href="$classdialect_1_1Graph.html#a06192e3eaecef5bf6a1e11e62502622f" title="Do a libavoid connector routing on all Edges in the Graph. " alt="" coords="506,13,649,39"/>
+<area shape="rect" id="node5" href="$classdialect_1_1Graph.html#af84d080b9c143ea05307912dd1cdfda9" title="Add all Nodes, and all those Edges having no bend nodes within them, to a given RoutingAdapter. This is useful when precisely those Edges are viewed as needing a route which do not already have any bend nodes. " alt="" coords="477,64,677,105"/>
+<area shape="rect" id="node6" href="$classdialect_1_1LeaflessOrthoRouter.html#af679a8ea90e4f0ef30a22cb89afc4dbd" title="Standard constructor. " alt="" coords="482,129,673,171"/>
+<area shape="rect" id="node4" href="$classdialect_1_1Graph.html#a8493b1e54c6eb3b2eb732854f8f0d734" title="Build and return Nodes representing every point at which any Edge has a bend in its connector route..." alt="" coords="725,5,908,47"/>
 </map>

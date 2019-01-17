@@ -1,0 +1,12 @@
+<map id="dialect::Graph::severEdge" name="dialect::Graph::severEdge">
+<area shape="rect" id="node2" href="$classdialect_1_1Graph.html#abe075fe42c69ec92fc4ab945267bdaa9" title="Clone a node completely. There will be as many copies of the original node as it had edges..." alt="" coords="230,26,406,53"/>
+<area shape="rect" id="node3" href="$classdialect_1_1Graph.html#af95f569fde7738dae6ccd67988d480f2" title="Sever all the Edges incident to a Node in this Graph. " alt="" coords="229,77,407,103"/>
+<area shape="rect" id="node7" href="$classdialect_1_1Graph.html#ad6434fe1d4f4fce48f5cd88bb943606c" title="Like severNode but also returns a vector of all Nodes that were neighbours before severing..." alt="" coords="229,129,407,171"/>
+<area shape="rect" id="node4" href="$classdialect_1_1Graph.html#af5f64abbe433f0f7f18d1e961964b788" title="Convenience method to completely remove a Node from the Graph. " alt="" coords="455,67,624,108"/>
+<area shape="rect" id="node5" href="$classdialect_1_1TreePlacement.html#a5e7dad846d5257c782e8ba2c6765ce41" title="Insert the tree into a given Graph. " alt="" coords="677,5,836,47"/>
+<area shape="rect" id="node6" href="$classdialect_1_1Graph.html#a0187fe6543c150f1b03c7d0a29a2a9ed" title="Convenience method to completely remove a Node from the Graph. " alt="" coords="672,71,841,112"/>
+<area shape="rect" id="node8" href="$structdialect_1_1NodeBuckets.html#a7cba81f7da5c12fe1cad7c3b5173e556" title="Sever the given Nodes from our Graph. " alt="" coords="466,132,613,173"/>
+<area shape="rect" id="node9" href="$namespacedialect.html#a29b1d1583bf8668dde5e0252a2205eb1" title="Perform the &quot;peeling&quot; process, in which the exterior trees are removed from the given Graph..." alt="" coords="710,139,803,166"/>
+<area shape="rect" id="node10" href="$namespacedialect.html#a05ccc4c149e1b5902ec827bfabd3cf76" title="Apply the HOLA layout algorithm to the given Graph. See Steve Kieffer, Tim Dwyer, Kim Marriott..." alt="" coords="889,139,1008,166"/>
+<area shape="rect" id="node11" href="$namespacedialect.html#a24766038e1a9ccd99997ea31c42b432a" title="Convenience function to do HOLA layout with default options. " alt="" coords="1056,139,1175,166"/>
+</map>

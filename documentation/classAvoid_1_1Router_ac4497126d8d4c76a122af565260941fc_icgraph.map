@@ -1,15 +1,14 @@
 <map id="Avoid::Router::processTransaction" name="Avoid::Router::processTransaction">
-<area shape="rect" id="node2" href="$classAvoid_1_1Router.html#a5b044531d3dc81fa76819e55917924b0" title="Remove a junction from the router scene. " alt="" coords="229,13,381,39"/>
-<area shape="rect" id="node6" href="$classAvoid_1_1Router.html#a1f91cdcf5dc6ca0ec278e7943f8f21a5" title="Delete a shape from the router scene. " alt="" coords="233,63,377,90"/>
-<area shape="rect" id="node7" href="$classAvoid_1_1ConnRef.html#abb7f970e8bee1ccf69a0d5521ca1f177" title="Returns ConnEnds specifying what this connector is attached to. " alt="" coords="237,115,373,156"/>
-<area shape="rect" id="node10" href="$classAvoid_1_1Router.html#a08021cac275575c7795e2005e5eadb9a" title="Move an existing junction within the router scene. " alt="" coords="231,181,380,207"/>
-<area shape="rect" id="node13" href="$classAvoid_1_1Router.html#a766c0dd498c38822cf9ea7c77af28b3d" title="Move or resize an existing shape within the router scene. " alt="" coords="235,231,376,258"/>
-<area shape="rect" id="node14" href="$classAvoid_1_1Router.html#a415aa6409ec5d573bcdb90b1ce73e020" title="Destructor for router instance. " alt="" coords="243,282,367,309"/>
-<area shape="rect" id="node3" href="$classAvoid_1_1HyperedgeRerouter.html#a3e1a1a6e00c57a6f0fcc5dbd2977bbc8" title="Returns a HyperedgeNewAndDeletedObjectLists detailing the lists of junctions and connectors created a..." alt="" coords="430,5,578,47"/>
-<area shape="rect" id="node4" href="$classAvoid_1_1Router.html#a8f36729c98e13e57d2c56c0d1facf86c" title="Returns whether or not the given ID is already used. " alt="" coords="644,31,775,72"/>
-<area shape="rect" id="node5" href="$classAvoid_1_1Router.html#a202c28fcb04f7af2183fe6849b4ce2f3" title="Returns the object ID used for automatically generated objects, such as during hyperedge routing..." alt="" coords="840,38,984,65"/>
-<area shape="rect" id="node8" href="$classAvoid_1_1ConnRef.html#ace9257a67e94c7899c75af0362e5836f" title="Returns a pointer to the router scene this connector is in. " alt="" coords="442,122,566,149"/>
-<area shape="rect" id="node9" href="$classAvoid_1_1ConnRef.html#a372f58a93c0296814de8d4a3075ad5e4" title="Splits a connector in the centre of the segmentNth segment and creates a junction point there as well..." alt="" coords="627,122,792,149"/>
-<area shape="rect" id="node11" href="$classAvoid_1_1Router.html#a94e5639b590902b5e734a1068fdc663c" title="Move an existing junction within the router scene by a relative distance. " alt="" coords="429,181,579,207"/>
-<area shape="rect" id="node12" href="$classAvoid_1_1Router.html#ac171735c187b3e0ea8f03fda4424fd4f" title="Move an existing shape within the router scene by a relative distance. " alt="" coords="433,231,575,258"/>
+<area shape="rect" id="node2" href="$classAvoid_1_1Router.html#a5b044531d3dc81fa76819e55917924b0" title="Remove a junction from the router scene. " alt="" coords="280,5,476,32"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1Router.html#a1f91cdcf5dc6ca0ec278e7943f8f21a5" title="Delete a shape from the router scene. " alt="" coords="285,56,471,83"/>
+<area shape="rect" id="node4" href="$classAvoid_1_1Router.html#a08021cac275575c7795e2005e5eadb9a" title="Move an existing junction within the router scene. " alt="" coords="282,107,474,133"/>
+<area shape="rect" id="node6" href="$classAvoid_1_1Router.html#a766c0dd498c38822cf9ea7c77af28b3d" title="Move or resize an existing shape within the router scene. " alt="" coords="287,157,469,184"/>
+<area shape="rect" id="node8" href="$structdialect_1_1RoutingAdapter.html#a017c2b77ed6ad722dc6e18435969a58b" title="Do the routing. " alt="" coords="298,209,458,250"/>
+<area shape="rect" id="node13" href="$classdialect_1_1LeaflessOrthoRouter.html#af58e911020f19a144303fc01e5b8c35e" title="Do the routing. " alt="" coords="283,274,473,315"/>
+<area shape="rect" id="node5" href="$classAvoid_1_1Router.html#a94e5639b590902b5e734a1068fdc663c" title="Move an existing junction within the router scene by a relative distance. " alt="" coords="524,107,716,133"/>
+<area shape="rect" id="node7" href="$classAvoid_1_1Router.html#ac171735c187b3e0ea8f03fda4424fd4f" title="Move an existing shape within the router scene by a relative distance. " alt="" coords="529,157,711,184"/>
+<area shape="rect" id="node9" href="$classdialect_1_1Graph.html#a06192e3eaecef5bf6a1e11e62502622f" title="Do a libavoid connector routing on all Edges in the Graph. " alt="" coords="549,216,691,243"/>
+<area shape="rect" id="node11" href="$namespacedialect.html#a05ccc4c149e1b5902ec827bfabd3cf76" title="Apply the HOLA layout algorithm to the given Graph. See Steve Kieffer, Tim Dwyer, Kim Marriott..." alt="" coords="561,277,679,304"/>
+<area shape="rect" id="node10" href="$classdialect_1_1Graph.html#a8493b1e54c6eb3b2eb732854f8f0d734" title="Build and return Nodes representing every point at which any Edge has a bend in its connector route..." alt="" coords="764,209,947,250"/>
+<area shape="rect" id="node12" href="$namespacedialect.html#a24766038e1a9ccd99997ea31c42b432a" title="Convenience function to do HOLA layout with default options. " alt="" coords="796,277,915,304"/>
 </map>

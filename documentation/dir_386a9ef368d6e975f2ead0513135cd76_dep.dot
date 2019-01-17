@@ -1,0 +1,8 @@
+digraph "libdialect" {
+  compound=true
+  node [ fontsize="10", fontname="Helvetica"];
+  edge [ labelfontsize="10", labelfontname="Helvetica"];
+  dir_386a9ef368d6e975f2ead0513135cd76 [shape=box, label="libdialect", style="filled", fillcolor="#eeeeff", pencolor="black", URL="dir_386a9ef368d6e975f2ead0513135cd76.html"];
+  dir_20f5eb0680cc3e21ff9fb26a3a2337a6 [shape=box label="libavoid" URL="dir_20f5eb0680cc3e21ff9fb26a3a2337a6.html"];
+  dir_386a9ef368d6e975f2ead0513135cd76->dir_20f5eb0680cc3e21ff9fb26a3a2337a6 [headlabel="23", labeldistance=1.5 headhref="dir_000002_000000.html"];
+}

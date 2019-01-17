@@ -1,0 +1,6 @@
+<map id="dialect::Graph::severNodeNotingNeighbours" name="dialect::Graph::severNodeNotingNeighbours">
+<area shape="rect" id="node2" href="$classdialect_1_1Node.html#ab82a623cf2c0d97bfb3206b1b5d656f3" title="Read&#45;only access to this Node&#39;s lookup map for Edges by their ID. " alt="" coords="231,5,431,32"/>
+<area shape="rect" id="node3" href="$classdialect_1_1Graph.html#a86f8762c5ddfdad4c934285da5bd4933" title="Sever an Edge in this Graph. " alt="" coords="243,56,419,83"/>
+<area shape="rect" id="node4" href="$classdialect_1_1Edge.html#ab3e603f70b854af7f69b12bcb7a06de4" title="Access the unique ID of this instance. " alt="" coords="489,31,607,57"/>
+<area shape="rect" id="node5" href="$classdialect_1_1Edge.html#a04fbe3f536a380fc6d70bcb09728ca08" title="&quot;Sever&quot; this Edge, i.e. remove it from the Nodes to which it is attached. " alt="" coords="479,81,617,108"/>
+</map>

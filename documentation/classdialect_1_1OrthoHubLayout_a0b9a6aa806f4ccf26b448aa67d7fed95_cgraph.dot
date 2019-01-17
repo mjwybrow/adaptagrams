@@ -1,0 +1,13 @@
+digraph "dialect::OrthoHubLayout::layout"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node2 [label="dialect::OrthoHubLayout\l::layout",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node2 -> Node3 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node3 [label="dialect::ACALayout\l::applyOAsAllOrNothing",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1ACALayout.html#ad64d1f3c84dcd313ab48e57f4788b026",tooltip="Creates all the requested alignments, or none if any is infeasible. "];
+  Node2 -> Node4 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node4 [label="dialect::string_format",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$namespacedialect.html#a7fdbc3f53251706e91936da1109bb644",tooltip="String formatting. "];
+  Node2 -> Node5 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node5 [label="dialect::ACALayout\l::updateSepMatrix",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1ACALayout.html#afb9467554d9931aee36e5825d4a574fb",tooltip="Update the SepMatrix of the Graph on which this ACALayout was built (if any). "];
+}

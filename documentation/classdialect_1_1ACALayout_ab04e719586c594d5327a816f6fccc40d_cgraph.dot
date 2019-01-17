@@ -1,0 +1,21 @@
+digraph "dialect::ACALayout::layout"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node30 [label="dialect::ACALayout\l::layout",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node30 -> Node31 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node31 [label="dialect::ACALayout\l::createAlignments",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1ACALayout.html#a0fc4364e821983142e55e978e33e29a2",tooltip="Creates alignments. "];
+  Node30 -> Node32 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node32 [label="dialect::ACALayout\l::layoutWithCurrentConstraints",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1ACALayout.html#a29bf5a09101160fdd89d14b823f32534",tooltip="Run layout with current constraints, and with or without overlap prevention, as per the current setti..."];
+  Node32 -> Node33 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node33 [label="cola::ConstrainedFDLayout\l::setAvoidNodeOverlaps",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcola_1_1ConstrainedFDLayout.html#a9d88ae147adc1fb6631ba4dae5916042",tooltip="Specifies whether non-overlap constraints should be automatically generated between all nodes..."];
+  Node32 -> Node34 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node34 [label="cola::ConstrainedFDLayout\l::setUnsatisfiableConstraintInfo",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcola_1_1ConstrainedFDLayout.html#a594a0df207c598378e4b60edf8c642bb",tooltip="Register to receive information about unsatisfiable constraints. "];
+  Node32 -> Node35 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node35 [label="cola::ConstrainedFDLayout\l::setConstraints",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcola_1_1ConstrainedFDLayout.html#a394179b3591f1e708f73ffea85d633b1",tooltip="Specify a set of compound constraints to apply to the layout. "];
+  Node32 -> Node36 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node36 [label="cola::ConstrainedFDLayout\l::setClusterHierarchy",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcola_1_1ConstrainedFDLayout.html#af1e978ca8225a571cfb8c991e92f0abe",tooltip="Specifies an optional hierarchy for clustering nodes. "];
+  Node32 -> Node37 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node37 [label="cola::ConstrainedFDLayout::run",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcola_1_1ConstrainedFDLayout.html#a06eb591211419e216415a88477f7ab85",tooltip="Implements the main layout loop, taking descent steps until stress is no-longer significantly reduced..."];
+}

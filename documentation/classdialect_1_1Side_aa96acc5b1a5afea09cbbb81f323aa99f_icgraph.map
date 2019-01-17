@@ -1,0 +1,4 @@
+<map id="dialect::Side::getCentreCoord" name="dialect::Side::getCentreCoord">
+<area shape="rect" id="node2" href="$classdialect_1_1Side.html#a8cf5e3020fc793ef8c8ca4f725d48762" title="Compute the first point of the interval of this Side that lies opposite a given line segment..." alt="" coords="213,5,372,47"/>
+<area shape="rect" id="node3" href="$classdialect_1_1Side.html#ae6962a3e7738090f206a3222aec98653" title="Given a LineSegment, find that portion of this Side that lies opposite it, (if any) and report the ma..." alt="" coords="214,71,371,112"/>
+</map>

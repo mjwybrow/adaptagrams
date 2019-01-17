@@ -1,0 +1,7 @@
+<map id="dialect::LeaflessOrthoRouter::LeaflessOrthoRouter" name="dialect::LeaflessOrthoRouter::LeaflessOrthoRouter">
+<area shape="rect" id="node2" href="$structdialect_1_1RoutingAdapter.html#a3ff650be16cbf63866b156c6e9e86109" title="Add edges. " alt="" coords="251,5,411,47"/>
+<area shape="rect" id="node4" href="$structdialect_1_1RoutingAdapter.html#a566abf3aa1563c245f6c3448c145f966" title="Add nodes. " alt="" coords="251,71,411,112"/>
+<area shape="rect" id="node5" href="$classAvoid_1_1Router.html#a09f057f6d101f010588c9022893c9ac1" title="Turn specific routing options on or off. " alt="" coords="244,136,417,177"/>
+<area shape="rect" id="node6" href="$classAvoid_1_1Router.html#a596cecf98ff1b40a8ee5c703e175ff62" title="Sets values for routing parameters, including routing penalties. " alt="" coords="244,201,417,243"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1ConnRef.html#ae66e8c90dc191951fc0f64acc4c06d7c" title="Sets both a new source and destination endpoint for this connector. " alt="" coords="465,13,665,39"/>
+</map>

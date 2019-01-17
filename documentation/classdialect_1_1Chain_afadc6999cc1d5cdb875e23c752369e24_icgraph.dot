@@ -1,0 +1,11 @@
+digraph "dialect::Chain::getNode"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node19 [label="dialect::Chain::getNode",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node19 -> Node20 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node20 [label="dialect::Chain::bendCost",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Chain.html#a20c42a557b33351ee98a2cdf0b1d84cb",tooltip="Compute the cost of making a given bend shape at a given position in the chain, given the current geo..."];
+  Node19 -> Node21 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node21 [label="dialect::Chain::takeShape\lBasedConfiguration",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Chain.html#a78f0ee5307493976251e723e47ad0664",tooltip="Give this chain an orthogonal configuration best fitting its present geometric shape. "];
+}

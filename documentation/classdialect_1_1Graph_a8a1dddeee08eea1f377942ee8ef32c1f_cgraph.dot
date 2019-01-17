@@ -1,0 +1,14 @@
+digraph "dialect::Graph::addNode"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node25 [label="dialect::Graph::addNode",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node25 -> Node26 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node26 [label="dialect::Graph::addNode",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Graph.html#ac4f60ee524a01495405b429e9206b013",tooltip="Add a new Node to this Graph. "];
+  Node26 -> Node27 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node27 [label="dialect::Node::allocate",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Node.html#a933bc8b61c4b40f58c4ebddf1f208a30",tooltip="Factory function, to get a shared pointer to a Node allocated on the heap. We make the constructors p..."];
+  Node27 -> Node28 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node28 [label="dialect::Node::Node",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Node.html#ad8f6657c4b7c7002a414fb9b1c2744f8",tooltip="Default constructor. "];
+  Node25 -> Node27 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+}

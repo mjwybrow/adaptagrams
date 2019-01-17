@@ -1,0 +1,6 @@
+<map id="dialect::RoutingAdapter::route" name="dialect::RoutingAdapter::route">
+<area shape="rect" id="node2" href="$namespacedialect.html#a05ccc4c149e1b5902ec827bfabd3cf76" title="Apply the HOLA layout algorithm to the given Graph. See Steve Kieffer, Tim Dwyer, Kim Marriott..." alt="" coords="225,8,344,35"/>
+<area shape="rect" id="node4" href="$classdialect_1_1Graph.html#a06192e3eaecef5bf6a1e11e62502622f" title="Do a libavoid connector routing on all Edges in the Graph. " alt="" coords="213,60,356,87"/>
+<area shape="rect" id="node3" href="$namespacedialect.html#a24766038e1a9ccd99997ea31c42b432a" title="Convenience function to do HOLA layout with default options. " alt="" coords="436,5,555,32"/>
+<area shape="rect" id="node5" href="$classdialect_1_1Graph.html#a8493b1e54c6eb3b2eb732854f8f0d734" title="Build and return Nodes representing every point at which any Edge has a bend in its connector route..." alt="" coords="404,57,587,98"/>
+</map>

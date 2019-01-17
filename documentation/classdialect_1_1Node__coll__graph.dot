@@ -1,0 +1,6 @@
+digraph "dialect::Node"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node3 [label="{dialect::Node\n|# m_ID\l# m_externalID\l# m_edges\l|+ makeGhost()\l+ operator=()\l+ ~Node()\l+ id()\l+ getDegree()\l+ setGraph()\l+ getGraph()\l+ addEdge()\l+ removeEdge()\l+ getEdgeLookup()\land 27 more...\l+ allocate()\l+ allocate()\l+ allocate()\l# Node()\l# Node()\l# Node()\l# Node()\l}",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+}

@@ -1,0 +1,6 @@
+<map id="dialect::Side::getFirstPtOppositeSegment" name="dialect::Side::getFirstPtOppositeSegment">
+<area shape="rect" id="node2" href="$classdialect_1_1Side.html#aa96acc5b1a5afea09cbbb81f323aa99f" title="Check the centre coordinate of this Side. " alt="" coords="214,5,374,47"/>
+<area shape="rect" id="node3" href="$classdialect_1_1Side.html#ab138883aeb6afe0b0456fe5fa6bcea02" title="Compute the closed interval [a, b] that is the intersection of this Side&#39;s closed interval with that ..." alt="" coords="212,71,376,112"/>
+<area shape="rect" id="node4" href="$classdialect_1_1Side.html#aabf1123cd3b813b3810f51333da2b3bc" title="Compute the closed interval [a, b], where a and b are the extreme coordinates covered by this Side..." alt="" coords="424,78,608,105"/>
+<area shape="rect" id="node5" href="$structdialect_1_1BoundingBox.html#ae0427ce3fe7f9da95a9c3107cc51387f" title="Get the interval in a given dimension. " alt="" coords="656,71,803,112"/>
+</map>

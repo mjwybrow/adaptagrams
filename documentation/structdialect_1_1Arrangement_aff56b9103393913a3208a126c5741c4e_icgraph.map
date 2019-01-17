@@ -1,0 +1,5 @@
+<map id="dialect::Arrangement::dist" name="dialect::Arrangement::dist">
+<area shape="rect" id="node2" href="$structdialect_1_1Arrangement.html#a6846067b08315b5c5200246d87643d36" title="Get the &quot;reduced distribution vector&quot; for this Arrangement. " alt="" coords="199,5,344,47"/>
+<area shape="rect" id="node3" href="$structdialect_1_1Arrangement.html#ad226edce8ab3ae9c6ad7ead82eae4913" title="Compute all possible Assignments in which precisely N semiaxes are occupied, sorted by ascending cost..." alt="" coords="392,5,559,47"/>
+<area shape="rect" id="node4" href="$structdialect_1_1Arrangement.html#a973a28db1c16a09e5f6367687d5d2360" title="Compute all possible Assignments. " alt="" coords="607,5,779,47"/>
+</map>

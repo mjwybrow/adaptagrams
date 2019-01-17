@@ -1,0 +1,21 @@
+digraph "dialect::NodeBuckets::severNodes"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node9 [label="dialect::NodeBuckets\l::severNodes",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node9 -> Node10 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node10 [label="dialect::NodeBuckets\l::moveNode",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$structdialect_1_1NodeBuckets.html#a39f69438d390511f0a13edab602adcad",tooltip="Move a node from one bucket to another. "];
+  Node9 -> Node11 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node11 [label="dialect::Graph::removeNodes",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Graph.html#a6e23356b35518e9fd3ca93e3b6dd555a",tooltip="Remove several Nodes from this Graph. "];
+  Node9 -> Node12 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node12 [label="dialect::Graph::severNode\lNotingNeighbours",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Graph.html#ad6434fe1d4f4fce48f5cd88bb943606c",tooltip="Like severNode but also returns a vector of all Nodes that were neighbours before severing..."];
+  Node12 -> Node13 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node13 [label="dialect::Node::getEdgeLookup",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Node.html#ab82a623cf2c0d97bfb3206b1b5d656f3",tooltip="Read-only access to this Node&#39;s lookup map for Edges by their ID. "];
+  Node12 -> Node14 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node14 [label="dialect::Graph::severEdge",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Graph.html#a86f8762c5ddfdad4c934285da5bd4933",tooltip="Sever an Edge in this Graph. "];
+  Node14 -> Node15 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node15 [label="dialect::Edge::id",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Edge.html#ab3e603f70b854af7f69b12bcb7a06de4",tooltip="Access the unique ID of this instance. "];
+  Node14 -> Node16 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node16 [label="dialect::Edge::sever",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Edge.html#a04fbe3f536a380fc6d70bcb09728ca08",tooltip="\"Sever\" this Edge, i.e. remove it from the Nodes to which it is attached. "];
+}

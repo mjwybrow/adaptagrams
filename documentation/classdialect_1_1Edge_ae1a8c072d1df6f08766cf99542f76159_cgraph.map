@@ -1,0 +1,6 @@
+<map id="dialect::Edge::writeSvg" name="dialect::Edge::writeSvg">
+<area shape="rect" id="node2" href="$classdialect_1_1Edge.html#a3c1e63e194082b987f166fb48bcc63ec" title="Get route points. " alt="" coords="448,33,645,60"/>
+<area shape="rect" id="node3" href="$classdialect_1_1Edge.html#a113033b926234142169038954fd4c2e2" title="Write the data for a polyline SVG path for this Edge&#39;s connector route. " alt="" coords="215,91,396,132"/>
+<area shape="rect" id="node5" href="$classdialect_1_1Edge.html#a57696e5f3cb8569a921382f44b7a4d52" title="Write the data for an orthogonal SVG path for this Edge&#39;s connector route, using rounded bends..." alt="" coords="211,26,400,67"/>
+<area shape="rect" id="node4" href="$namespacedialect.html#a7fdbc3f53251706e91936da1109bb644" title="String formatting. " alt="" coords="474,90,619,117"/>
+</map>

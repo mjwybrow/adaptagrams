@@ -1,0 +1,14 @@
+<map id="dialect::Edge::id" name="dialect::Edge::id">
+<area shape="rect" id="node2" href="$classdialect_1_1Node.html#ae2883f935259b81f0a6edd4971264395" title="Remove an incident Edge. " alt="" coords="171,87,353,114"/>
+<area shape="rect" id="node3" href="$classdialect_1_1Graph.html#a86f8762c5ddfdad4c934285da5bd4933" title="Sever an Edge in this Graph. " alt="" coords="174,138,350,165"/>
+<area shape="rect" id="node4" href="$classdialect_1_1Graph.html#af95f569fde7738dae6ccd67988d480f2" title="Sever all the Edges incident to a Node in this Graph. " alt="" coords="401,77,579,103"/>
+<area shape="rect" id="node8" href="$classdialect_1_1Graph.html#ad6434fe1d4f4fce48f5cd88bb943606c" title="Like severNode but also returns a vector of all Nodes that were neighbours before severing..." alt="" coords="401,131,579,172"/>
+<area shape="rect" id="node13" href="$classdialect_1_1Graph.html#abe075fe42c69ec92fc4ab945267bdaa9" title="Clone a node completely. There will be as many copies of the original node as it had edges..." alt="" coords="402,197,578,223"/>
+<area shape="rect" id="node5" href="$classdialect_1_1Graph.html#af5f64abbe433f0f7f18d1e961964b788" title="Convenience method to completely remove a Node from the Graph. " alt="" coords="627,67,796,108"/>
+<area shape="rect" id="node6" href="$classdialect_1_1Graph.html#a0187fe6543c150f1b03c7d0a29a2a9ed" title="Convenience method to completely remove a Node from the Graph. " alt="" coords="844,5,1013,47"/>
+<area shape="rect" id="node7" href="$classdialect_1_1TreePlacement.html#a5e7dad846d5257c782e8ba2c6765ce41" title="Insert the tree into a given Graph. " alt="" coords="849,71,1008,112"/>
+<area shape="rect" id="node9" href="$structdialect_1_1NodeBuckets.html#a7cba81f7da5c12fe1cad7c3b5173e556" title="Sever the given Nodes from our Graph. " alt="" coords="638,132,785,173"/>
+<area shape="rect" id="node10" href="$namespacedialect.html#a29b1d1583bf8668dde5e0252a2205eb1" title="Perform the &quot;peeling&quot; process, in which the exterior trees are removed from the given Graph..." alt="" coords="882,139,975,166"/>
+<area shape="rect" id="node11" href="$namespacedialect.html#a05ccc4c149e1b5902ec827bfabd3cf76" title="Apply the HOLA layout algorithm to the given Graph. See Steve Kieffer, Tim Dwyer, Kim Marriott..." alt="" coords="1061,139,1180,166"/>
+<area shape="rect" id="node12" href="$namespacedialect.html#a24766038e1a9ccd99997ea31c42b432a" title="Convenience function to do HOLA layout with default options. " alt="" coords="1228,139,1347,166"/>
+</map>

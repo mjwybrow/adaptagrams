@@ -1,0 +1,4 @@
+<map id="dialect::Graph::addEdge" name="dialect::Graph::addEdge">
+<area shape="rect" id="node2" href="$classdialect_1_1Graph.html#a0aabbe331675c1379bd35c7bb858326f" title="Add a new Edge to this Graph. " alt="" coords="224,5,389,32"/>
+<area shape="rect" id="node3" href="$classdialect_1_1Graph.html#abe075fe42c69ec92fc4ab945267bdaa9" title="Clone a node completely. There will be as many copies of the original node as it had edges..." alt="" coords="219,56,395,83"/>
+</map>

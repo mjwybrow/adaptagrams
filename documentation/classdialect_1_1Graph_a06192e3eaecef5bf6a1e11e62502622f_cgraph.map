@@ -1,0 +1,9 @@
+<map id="dialect::Graph::route" name="dialect::Graph::route">
+<area shape="rect" id="node2" href="$structdialect_1_1RoutingAdapter.html#a3ff650be16cbf63866b156c6e9e86109" title="Add edges. " alt="" coords="196,5,356,47"/>
+<area shape="rect" id="node4" href="$structdialect_1_1RoutingAdapter.html#a566abf3aa1563c245f6c3448c145f966" title="Add nodes. " alt="" coords="196,71,356,112"/>
+<area shape="rect" id="node5" href="$classdialect_1_1Graph.html#ae3f0d0c395e0a15abf44b78a2bd42c25" title="Clear all Edge routes. " alt="" coords="198,136,354,177"/>
+<area shape="rect" id="node6" href="$structdialect_1_1RoutingAdapter.html#a017c2b77ed6ad722dc6e18435969a58b" title="Do the routing. " alt="" coords="196,201,356,243"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1ConnRef.html#ae66e8c90dc191951fc0f64acc4c06d7c" title="Sets both a new source and destination endpoint for this connector. " alt="" coords="417,13,617,39"/>
+<area shape="rect" id="node7" href="$classAvoid_1_1Router.html#ac4497126d8d4c76a122af565260941fc" title="Finishes the current transaction and processes all the queued object changes efficiently. " alt="" coords="404,179,631,206"/>
+<area shape="rect" id="node8" href="$structdialect_1_1RoutingAdapter.html#a72d4d8abc45334d96c84e6cfba985ffe" title="Record the routes in the Edges. " alt="" coords="437,231,597,272"/>
+</map>

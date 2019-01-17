@@ -1,0 +1,9 @@
+<map id="dialect::Graph::getNode" name="dialect::Graph::getNode">
+<area shape="rect" id="node2" href="$classdialect_1_1Graph.html#a9aa373b94117d88704c63191b4bc9c9d" title="Add an Edge by specifying the IDs of its endpoint Nodes. " alt="" coords="221,5,387,32"/>
+<area shape="rect" id="node3" href="$classdialect_1_1Graph.html#abe075fe42c69ec92fc4ab945267bdaa9" title="Clone a node completely. There will be as many copies of the original node as it had edges..." alt="" coords="216,56,392,83"/>
+<area shape="rect" id="node4" href="$namespacedialect.html#a348cb1a0dfe6202d4ff711029a4ccf8e" title="Mark as &quot;root&quot; the PeeledNode having largest serial number. " alt="" coords="219,107,389,133"/>
+<area shape="rect" id="node5" href="$namespacedialect.html#a29b1d1583bf8668dde5e0252a2205eb1" title="Perform the &quot;peeling&quot; process, in which the exterior trees are removed from the given Graph..." alt="" coords="440,132,533,159"/>
+<area shape="rect" id="node8" href="$classdialect_1_1Graph.html#a0187fe6543c150f1b03c7d0a29a2a9ed" title="Convenience method to completely remove a Node from the Graph. " alt="" coords="219,209,389,250"/>
+<area shape="rect" id="node6" href="$namespacedialect.html#a05ccc4c149e1b5902ec827bfabd3cf76" title="Apply the HOLA layout algorithm to the given Graph. See Steve Kieffer, Tim Dwyer, Kim Marriott..." alt="" coords="581,132,700,159"/>
+<area shape="rect" id="node7" href="$namespacedialect.html#a24766038e1a9ccd99997ea31c42b432a" title="Convenience function to do HOLA layout with default options. " alt="" coords="748,132,867,159"/>
+</map>

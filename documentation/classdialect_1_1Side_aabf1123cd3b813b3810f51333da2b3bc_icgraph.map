@@ -1,0 +1,6 @@
+<map id="dialect::Side::closedInterval" name="dialect::Side::closedInterval">
+<area shape="rect" id="node2" href="$classdialect_1_1Side.html#ab138883aeb6afe0b0456fe5fa6bcea02" title="Compute the closed interval [a, b] that is the intersection of this Side&#39;s closed interval with that ..." alt="" coords="237,71,401,112"/>
+<area shape="rect" id="node3" href="$classdialect_1_1Side.html#a7de9e54594045932fa8ed3d0d5956301" title="Check whether the closed interval spanned by this Side runs in the same dimension as a given line seg..." alt="" coords="449,5,625,47"/>
+<area shape="rect" id="node4" href="$classdialect_1_1Side.html#a8cf5e3020fc793ef8c8ca4f725d48762" title="Compute the first point of the interval of this Side that lies opposite a given line segment..." alt="" coords="458,71,617,112"/>
+<area shape="rect" id="node5" href="$classdialect_1_1Side.html#ae6962a3e7738090f206a3222aec98653" title="Given a LineSegment, find that portion of this Side that lies opposite it, (if any) and report the ma..." alt="" coords="459,136,616,177"/>
+</map>

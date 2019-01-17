@@ -1,0 +1,20 @@
+digraph "dialect::Arrangement::computeNAssignments"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node11 [label="dialect::Arrangement\l::computeNAssignments",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node11 -> Node12 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node12 [label="dialect::Arrangement\l::getAssignmentForQuadAction",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$structdialect_1_1Arrangement.html#ac8500a0d9280f35e014d5e4c431bb75e",tooltip="Get the Assignment resulting from a given quad action. "];
+  Node12 -> Node13 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node13 [label="dialect::Arrangement\l::getBasicAssignment",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$structdialect_1_1Arrangement.html#a5aea74697000d725684fa14714b8475a",tooltip="Get the \"basic Assignment\" for this Arrangement. "];
+  Node11 -> Node13 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node11 -> Node14 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node14 [label="dialect::lookupQuadActions",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$namespacedialect.html#afbe70f9004b1b9e78730273e67aa1d76",tooltip="Look up legal quad actions. "];
+  Node11 -> Node15 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node15 [label="dialect::Arrangement\l::rDist",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$structdialect_1_1Arrangement.html#a6846067b08315b5c5200246d87643d36",tooltip="Get the \"reduced distribution vector\" for this Arrangement. "];
+  Node15 -> Node16 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node16 [label="dialect::Arrangement\l::dist",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$structdialect_1_1Arrangement.html#aff56b9103393913a3208a126c5741c4e",tooltip="Get the \"distribution vector\" for this Arrangement. "];
+  Node11 -> Node17 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node17 [label="dialect::Arrangement\l::vacancy",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$structdialect_1_1Arrangement.html#a2ea9adb460c2313da39f3f7e3a04ab2e",tooltip="Get the \"vacancy vector\" for this Arrangement. "];
+}

@@ -1,0 +1,5 @@
+<map id="Avoid::Router::setRoutingOption" name="Avoid::Router::setRoutingOption">
+<area shape="rect" id="node2" href="$namespacedialect.html#a05ccc4c149e1b5902ec827bfabd3cf76" title="Apply the HOLA layout algorithm to the given Graph. See Steve Kieffer, Tim Dwyer, Kim Marriott..." alt="" coords="263,5,381,32"/>
+<area shape="rect" id="node4" href="$classdialect_1_1LeaflessOrthoRouter.html#af679a8ea90e4f0ef30a22cb89afc4dbd" title="Standard constructor. " alt="" coords="227,57,417,98"/>
+<area shape="rect" id="node3" href="$namespacedialect.html#a24766038e1a9ccd99997ea31c42b432a" title="Convenience function to do HOLA layout with default options. " alt="" coords="465,5,584,32"/>
+</map>

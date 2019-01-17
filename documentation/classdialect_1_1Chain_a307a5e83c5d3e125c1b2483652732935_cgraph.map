@@ -1,0 +1,5 @@
+<map id="dialect::Chain::computePossibleBendSequences" name="dialect::Chain::computePossibleBendSequences">
+<area shape="rect" id="node2" href="$namespacedialect.html#aac506665928f0e3b882eb82274f951b2" title="Get the bent LinkShapes, in clockwise order, starting from a given one. " alt="" coords="285,5,461,47"/>
+<area shape="rect" id="node3" href="$namespacedialect.html#ab13e7be712ac2f35c54fcc9e338d7902" title="Look up the minimal bend sequences for a Chain. " alt="" coords="265,71,480,98"/>
+<area shape="rect" id="node4" href="$namespacedialect.html#a1e392f82ee2647c96c18ebe2f499246f" title="List the possible cardinal directions from node1 to node2, if they were to be aligned non&#45;aggressivel..." alt="" coords="289,123,456,164"/>
+</map>

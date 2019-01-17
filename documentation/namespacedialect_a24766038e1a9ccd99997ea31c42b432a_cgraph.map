@@ -1,0 +1,59 @@
+<map id="dialect::doHOLA" name="dialect::doHOLA">
+<area shape="rect" id="node2" href="$namespacedialect.html#a05ccc4c149e1b5902ec827bfabd3cf76" title="Apply the HOLA layout algorithm to the given Graph. See Steve Kieffer, Tim Dwyer, Kim Marriott..." alt="" coords="172,493,291,519"/>
+<area shape="rect" id="node3" href="$namespacedialect.html#a78c126f4a90d9e38c4b00e85db20f8c7" title="Convenience method to build all the chains and cycles in a graph. " alt="" coords="355,5,519,47"/>
+<area shape="rect" id="node4" href="$classdialect_1_1ACALayout.html#a0fc4364e821983142e55e978e33e29a2" title="Creates alignments. " alt="" coords="369,71,505,112"/>
+<area shape="rect" id="node5" href="$namespacedialect.html#a0e008284e07fda0a6c7e60e1d501dfa9" title="Look for nodes that are nearly aligned, and try to align them. " alt="" coords="349,137,526,163"/>
+<area shape="rect" id="node6" href="$classdialect_1_1Graph.html#a0dbf008d97d5a6ad814778217d2da948" title="Read the ideal edge length of this Graph. " alt="" coords="362,187,513,214"/>
+<area shape="rect" id="node7" href="$classdialect_1_1Graph.html#abce986e93e2c1dd090a9cdfd924e0c99" title="Say how many Edges there are in this Graph. " alt="" coords="339,238,536,265"/>
+<area shape="rect" id="node8" href="$classdialect_1_1Graph.html#af941c70fd0d10fd6cad07f61434aec93" title="Say how many Nodes there are in this Graph. " alt="" coords="339,289,536,315"/>
+<area shape="rect" id="node9" href="$structdialect_1_1BoundingBox.html#a0c3a42869c020255f63dfce1a891066d" title="Get the height of the box. " alt="" coords="356,339,519,366"/>
+<area shape="rect" id="node10" href="$classdialect_1_1OrthoHubLayout.html#a0b9a6aa806f4ccf26b448aa67d7fed95" title="Try to orthogonalise hubs. " alt="" coords="355,456,520,497"/>
+<area shape="rect" id="node12" href="$namespacedialect.html#a7fdbc3f53251706e91936da1109bb644" title="String formatting. " alt="" coords="625,522,770,549"/>
+<area shape="rect" id="node14" href="$classdialect_1_1Graph.html#a955bdc479f10b59c0b53e3cf1e8f1aeb" title="Add padding to all ndoes. " alt="" coords="343,755,531,782"/>
+<area shape="rect" id="node15" href="$namespacedialect.html#a29b1d1583bf8668dde5e0252a2205eb1" title="Perform the &quot;peeling&quot; process, in which the exterior trees are removed from the given Graph..." alt="" coords="391,1090,484,1117"/>
+<area shape="rect" id="node32" href="$classdialect_1_1OrthoPlanariser.html#a9bd66fa7b2d08e447741fdbc590d1167" title="Compute a planarisation of the given Graph. " alt="" coords="357,1141,518,1183"/>
+<area shape="rect" id="node33" href="$namespacedialect.html#a9d325ef46ea3385428712f16fedf71ef" title="Given a planar orthogonal core, and the corresponding Trees (as resulting from the peeling process)..." alt="" coords="362,573,513,599"/>
+<area shape="rect" id="node35" href="$structdialect_1_1RoutingAdapter.html#a017c2b77ed6ad722dc6e18435969a58b" title="Do the routing. " alt="" coords="357,624,517,665"/>
+<area shape="rect" id="node38" href="$classdialect_1_1LeaflessOrthoRouter.html#af58e911020f19a144303fc01e5b8c35e" title="Do the routing. " alt="" coords="342,689,533,731"/>
+<area shape="rect" id="node56" href="$classAvoid_1_1Router.html#a09f057f6d101f010588c9022893c9ac1" title="Turn specific routing options on or off. " alt="" coords="351,1207,524,1248"/>
+<area shape="rect" id="node57" href="$classdialect_1_1ACALayout.html#ad8987f21eba0008c7f43ecbbc6b961fd" title="For forward compatibility (i.e. with Graphs), we offer a convenience method to update the Graph (when..." alt="" coords="369,391,505,432"/>
+<area shape="rect" id="node58" href="$structdialect_1_1BoundingBox.html#a467c0c9f4464e66abdc2eb342f3f7c57" title="Get the width of the box. " alt="" coords="355,1273,519,1299"/>
+<area shape="rect" id="node11" href="$classdialect_1_1ACALayout.html#ad64d1f3c84dcd313ab48e57f4788b026" title="Creates all the requested alignments, or none if any is infeasible. " alt="" coords="616,456,779,497"/>
+<area shape="rect" id="node13" href="$classdialect_1_1ACALayout.html#afb9467554d9931aee36e5825d4a574fb" title="Update the SepMatrix of the Graph on which this ACALayout was built (if any). " alt="" coords="629,391,765,432"/>
+<area shape="rect" id="node16" href="$structdialect_1_1NodeBuckets.html#a1058d0a33849b95a75ea5ee17ba979a4" title="Return a copy of the bucket of leaves, and clear the latter. " alt="" coords="624,1217,771,1259"/>
+<area shape="rect" id="node17" href="$namespacedialect.html#a7e4dc6aea10cd3c086f57c1be3960aeb" title="Make a Stem object to represent each leaf. " alt="" coords="591,1283,803,1310"/>
+<area shape="rect" id="node18" href="$structdialect_1_1NodeBuckets.html#a7cba81f7da5c12fe1cad7c3b5173e556" title="Sever the given Nodes from our Graph. " alt="" coords="624,1335,771,1376"/>
+<area shape="rect" id="node26" href="$classdialect_1_1Graph.html#ac4e10d13edd049dd2da80ea986b76fe9" title="Say whether the Graph is empty, meaning that it has no Nodes. " alt="" coords="617,1065,777,1091"/>
+<area shape="rect" id="node27" href="$namespacedialect.html#a348cb1a0dfe6202d4ff711029a4ccf8e" title="Mark as &quot;root&quot; the PeeledNode having largest serial number. " alt="" coords="612,1115,783,1142"/>
+<area shape="rect" id="node29" href="$classdialect_1_1Graph.html#a0adf4a0dc63a42b8196f3864d1d31e04" title="Look up a Node by ID. " alt="" coords="881,1221,1043,1247"/>
+<area shape="rect" id="node19" href="$classdialect_1_1Graph.html#ad6434fe1d4f4fce48f5cd88bb943606c" title="Like severNode but also returns a vector of all Nodes that were neighbours before severing..." alt="" coords="873,1393,1051,1435"/>
+<area shape="rect" id="node24" href="$structdialect_1_1NodeBuckets.html#a39f69438d390511f0a13edab602adcad" title="Move a node from one bucket to another. " alt="" coords="889,1276,1035,1317"/>
+<area shape="rect" id="node25" href="$classdialect_1_1Graph.html#a6e23356b35518e9fd3ca93e3b6dd555a" title="Remove several Nodes from this Graph. " alt="" coords="864,1342,1060,1369"/>
+<area shape="rect" id="node20" href="$classdialect_1_1Node.html#ab82a623cf2c0d97bfb3206b1b5d656f3" title="Read&#45;only access to this Node&#39;s lookup map for Edges by their ID. " alt="" coords="1113,1426,1313,1453"/>
+<area shape="rect" id="node21" href="$classdialect_1_1Graph.html#a86f8762c5ddfdad4c934285da5bd4933" title="Sever an Edge in this Graph. " alt="" coords="1125,1375,1301,1402"/>
+<area shape="rect" id="node22" href="$classdialect_1_1Edge.html#a04fbe3f536a380fc6d70bcb09728ca08" title="&quot;Sever&quot; this Edge, i.e. remove it from the Nodes to which it is attached. " alt="" coords="1363,1401,1502,1427"/>
+<area shape="rect" id="node23" href="$classdialect_1_1Edge.html#ab3e603f70b854af7f69b12bcb7a06de4" title="Access the unique ID of this instance. " alt="" coords="1374,1350,1491,1377"/>
+<area shape="rect" id="node28" href="$classdialect_1_1Graph.html#a5467080616423cac88b67242aedf0949" title="Read&#45;only access to this Graph&#39;s lookup map for Nodes by their ID. " alt="" coords="859,1170,1065,1197"/>
+<area shape="rect" id="node30" href="$classdialect_1_1Node.html#a5463ea8526de6f00794156ae79f8226b" title="Say whether this Node is a root. This is useful when working with trees, and can be safely ignored wh..." alt="" coords="880,1119,1044,1146"/>
+<area shape="rect" id="node31" href="$classdialect_1_1Node.html#ac9a5e3dbde4ca97e31486de74305f101" title="Check whether this Node has been marked as being a root. This is useful when working with trees..." alt="" coords="1141,1119,1286,1146"/>
+<area shape="rect" id="node34" href="$namespacedialect.html#a74c07364fd697fc53a40c3dd7099ed95" title="Choose the best TreePlacement from among a list of alternatives. " alt="" coords="597,573,797,599"/>
+<area shape="rect" id="node36" href="$classAvoid_1_1Router.html#ac4497126d8d4c76a122af565260941fc" title="Finishes the current transaction and processes all the queued object changes efficiently. " alt="" coords="584,690,811,717"/>
+<area shape="rect" id="node37" href="$structdialect_1_1RoutingAdapter.html#a72d4d8abc45334d96c84e6cfba985ffe" title="Record the routes in the Edges. " alt="" coords="617,624,777,665"/>
+<area shape="rect" id="node39" href="$classAvoid_1_1Router.html#a458aae2d6447e0958e4916a8c29bbb47" title="Generates an SVG file containing debug output and code that can be used to regenerate the instance..." alt="" coords="599,859,796,900"/>
+<area shape="rect" id="node54" href="$classAvoid_1_1ConnRef.html#a45ab41f9847a610ba17a326cd05cb266" title="Sets just a new source endpoint for this connector. " alt="" coords="606,741,789,783"/>
+<area shape="rect" id="node55" href="$classAvoid_1_1ConnRef.html#a7b216c9aa42811f1f2786adbda84f02e" title="Sets just a new destination endpoint for this connector. " alt="" coords="587,807,807,834"/>
+<area shape="rect" id="node40" href="$classAvoid_1_1Polygon.html#ab2772d0cf1d0aad817a9814e20fce5ab" title="Returns a specific point in the polygon. " alt="" coords="1149,706,1278,733"/>
+<area shape="rect" id="node41" href="$classAvoid_1_1Polygon.html#a2f9e9c8c78407eefbde944e663d9711e" title="Returns the number of points in this polygon. " alt="" coords="1361,757,1504,783"/>
+<area shape="rect" id="node42" href="$classAvoid_1_1ReferencingPolygon.html#a168bb0af7ba4147861f6b326d088da71" title="Returns a specific point in the polygon. " alt="" coords="861,765,1063,791"/>
+<area shape="rect" id="node43" href="$classAvoid_1_1ReferencingPolygon.html#a1dde474f3703dfe854768d5857a94067" title="Returns the number of points in this polygon. " alt="" coords="1122,808,1305,849"/>
+<area shape="rect" id="node44" href="$classAvoid_1_1Polygon.html#a35ab2aa804cc40ae127e0641e254d268" title="Returns a curved approximation of this multi&#45;segment PolyLine, with the corners replaced by smooth Be..." alt="" coords="859,866,1065,893"/>
+<area shape="rect" id="node46" href="$classAvoid_1_1ConnRef.html#ab7462cd69bd1d2c4dd318119558b4a94" title="Returns a reference to the current display version of the route for the connector. " alt="" coords="862,917,1062,943"/>
+<area shape="rect" id="node47" href="$classAvoid_1_1Polygon.html#a477d0e8e93509d7955d1f4b4ca0abb0d" title="Returns true if this polygon is empty. " alt="" coords="1136,975,1291,1002"/>
+<area shape="rect" id="node48" href="$classAvoid_1_1ClusterRef.html#a7a25b0c34cdad039906693265a9caac8" title="Returns the ID of this cluster. " alt="" coords="890,1018,1034,1045"/>
+<area shape="rect" id="node49" href="$classAvoid_1_1ConnRef.html#a053841a1fdef00b1e90f20f563e1c259" title="Returns the ID of this connector. " alt="" coords="895,1069,1029,1095"/>
+<area shape="rect" id="node50" href="$classAvoid_1_1ClusterRef.html#acd1fa20b079253d53d27abf50d2a8933" title="Returns a reference to the polygon boundary of this cluster. " alt="" coords="895,416,1029,457"/>
+<area shape="rect" id="node51" href="$classAvoid_1_1JunctionRef.html#a5b376e38102c5e4c9b625be21a9e46d5" title="Returns a recommended position for the junction based on improving hyperedge routes. This value will be set during routing when the improveHyperedgeRoutesMovingJunctions router option is set (the default). " alt="" coords="881,481,1043,523"/>
+<area shape="rect" id="node52" href="$classAvoid_1_1ClusterRef.html#af7877b59ea4cb2939047f785382f8008" title="Returns a reference to the rectangular boundary of this cluster. " alt="" coords="893,547,1031,588"/>
+<area shape="rect" id="node53" href="$classAvoid_1_1ConnRef.html#a0d90245fbe772d30723bd578efa3a45d" title="Returns a reference to the current raw &quot;debug&quot; route for the connector. " alt="" coords="885,613,1039,639"/>
+<area shape="rect" id="node45" href="$classAvoid_1_1Polygon.html#a2d3a0deb96bbff214b7035e481f0f0e8" title="Returns a simplified Polyline, where all collinear line segments have been collapsed down into single..." alt="" coords="1132,925,1295,951"/>
+</map>

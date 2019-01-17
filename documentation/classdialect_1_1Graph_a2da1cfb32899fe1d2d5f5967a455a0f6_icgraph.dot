@@ -1,0 +1,9 @@
+digraph "dialect::Graph::getBoundingBox"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node78 [label="dialect::Graph::getBoundingBox",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node78 -> Node79 [dir="back",color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node79 [label="dialect::Graph::writeSvg",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Graph.html#abbb7c275cbba6760f40718dbcf265ea7",tooltip="Write SVG to represent this Graph. "];
+}

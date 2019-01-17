@@ -1,0 +1,22 @@
+digraph "dialect::Arrangement::computeAllAssignments"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node2 [label="dialect::Arrangement\l::computeAllAssignments",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node2 -> Node3 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node3 [label="dialect::Arrangement\l::computeNAssignments",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$structdialect_1_1Arrangement.html#ad226edce8ab3ae9c6ad7ead82eae4913",tooltip="Compute all possible Assignments in which precisely N semiaxes are occupied, sorted by ascending cost..."];
+  Node3 -> Node4 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node4 [label="dialect::Arrangement\l::vacancy",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$structdialect_1_1Arrangement.html#a2ea9adb460c2313da39f3f7e3a04ab2e",tooltip="Get the \"vacancy vector\" for this Arrangement. "];
+  Node3 -> Node5 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node5 [label="dialect::Arrangement\l::getBasicAssignment",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$structdialect_1_1Arrangement.html#a5aea74697000d725684fa14714b8475a",tooltip="Get the \"basic Assignment\" for this Arrangement. "];
+  Node3 -> Node6 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node6 [label="dialect::Arrangement\l::rDist",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$structdialect_1_1Arrangement.html#a6846067b08315b5c5200246d87643d36",tooltip="Get the \"reduced distribution vector\" for this Arrangement. "];
+  Node6 -> Node7 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node7 [label="dialect::Arrangement\l::dist",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$structdialect_1_1Arrangement.html#aff56b9103393913a3208a126c5741c4e",tooltip="Get the \"distribution vector\" for this Arrangement. "];
+  Node3 -> Node8 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node8 [label="dialect::lookupQuadActions",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$namespacedialect.html#afbe70f9004b1b9e78730273e67aa1d76",tooltip="Look up legal quad actions. "];
+  Node3 -> Node9 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node9 [label="dialect::Arrangement\l::getAssignmentForQuadAction",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$structdialect_1_1Arrangement.html#ac8500a0d9280f35e014d5e4c431bb75e",tooltip="Get the Assignment resulting from a given quad action. "];
+  Node9 -> Node5 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+}

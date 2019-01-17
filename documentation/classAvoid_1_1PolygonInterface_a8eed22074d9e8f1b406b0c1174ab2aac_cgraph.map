@@ -1,6 +1,5 @@
 <map id="Avoid::PolygonInterface::boundingRectPolygon" name="Avoid::PolygonInterface::boundingRectPolygon">
-<area shape="rect" id="node2" href="$classAvoid_1_1Polygon.html#ab2772d0cf1d0aad817a9814e20fce5ab" title="Returns a specific point in the polygon. " alt="" coords="194,5,297,32"/>
-<area shape="rect" id="node3" href="$classAvoid_1_1Polygon.html#a2f9e9c8c78407eefbde944e663d9711e" title="Returns the number of points in this polygon. " alt="" coords="357,31,469,57"/>
-<area shape="rect" id="node4" href="$classAvoid_1_1Polygon.html#a30bdb2e917bb74f0221e6ed06fe7b087" title="Returns the ID value associated with this polygon. " alt="" coords="194,107,297,133"/>
-<area shape="rect" id="node5" href="$classAvoid_1_1PolygonInterface.html#af10740857ee9fd5f9dedfb71a9b42630" title="Returns the bounding rectangle that contains this polygon with optionally some buffer space around it..." alt="" coords="181,158,309,199"/>
+<area shape="rect" id="node2" href="$classAvoid_1_1PolygonInterface.html#af10740857ee9fd5f9dedfb71a9b42630" title="Returns the bounding rectangle that contains this polygon with optionally some buffer space around it..." alt="" coords="216,35,379,76"/>
+<area shape="rect" id="node3" href="$classAvoid_1_1PolygonInterface.html#ac9ce0706613e5870e5e7136d147673f6" title="Returns the number of points in this polygon. " alt="" coords="436,5,599,47"/>
+<area shape="rect" id="node4" href="$classAvoid_1_1PolygonInterface.html#ad85cc8c5e376b8b01ca37e9684b4de71" title="Returns a specific point in the polygon. " alt="" coords="427,71,608,98"/>
 </map>

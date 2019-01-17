@@ -1,0 +1,17 @@
+digraph "dialect::Side::halfWidthOppositeSegment"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node31 [label="dialect::Side::halfWidth\lOppositeSegment",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node31 -> Node32 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node32 [label="dialect::Side::getCentre\lCoord",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Side.html#aa96acc5b1a5afea09cbbb81f323aa99f",tooltip="Check the centre coordinate of this Side. "];
+  Node31 -> Node33 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node33 [label="dialect::Graph::getEdgeThickness",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Graph.html#ae41055606464d4c1a8fdfd0273310101",tooltip="Get the edge thickness. "];
+  Node31 -> Node34 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node34 [label="dialect::Side::getInterval\lOppositeSegment",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Side.html#ab138883aeb6afe0b0456fe5fa6bcea02",tooltip="Compute the closed interval [a, b] that is the intersection of this Side&#39;s closed interval with that ..."];
+  Node34 -> Node35 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node35 [label="dialect::Side::closedInterval",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Side.html#aabf1123cd3b813b3810f51333da2b3bc",tooltip="Compute the closed interval [a, b], where a and b are the extreme coordinates covered by this Side..."];
+  Node35 -> Node36 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node36 [label="dialect::BoundingBox\l::getInterval",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$structdialect_1_1BoundingBox.html#ae0427ce3fe7f9da95a9c3107cc51387f",tooltip="Get the interval in a given dimension. "];
+}

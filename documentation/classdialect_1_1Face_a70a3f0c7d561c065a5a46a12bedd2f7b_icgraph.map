@@ -1,0 +1,4 @@
+<map id="dialect::Face::applyProjSeq" name="dialect::Face::applyProjSeq">
+<area shape="rect" id="node2" href="$classdialect_1_1Face.html#a95ed0b74e2b4f2e01fcbe1834db59c6c" title="Perform collateral expansion for a given TreePlacement. This means pushing Nodes and tree boxes on re..." alt="" coords="237,5,413,47"/>
+<area shape="rect" id="node3" href="$classdialect_1_1Face.html#ad88688ef6a874ad55668db7e21b7763f" title="Build the best projection sequence for a given tree placement. " alt="" coords="461,5,621,47"/>
+</map>

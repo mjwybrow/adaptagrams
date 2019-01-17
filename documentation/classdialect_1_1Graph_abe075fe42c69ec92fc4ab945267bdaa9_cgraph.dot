@@ -1,0 +1,26 @@
+digraph "dialect::Graph::cloneNode"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node62 [label="dialect::Graph::cloneNode",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node62 -> Node63 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node63 [label="dialect::Graph::addEdge",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Graph.html#a2793fc06c3a07f1a187a186527f36213",tooltip="Add an Edge to this Graph. "];
+  Node62 -> Node64 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node64 [label="dialect::Graph::addNode",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Graph.html#ac4f60ee524a01495405b429e9206b013",tooltip="Add a new Node to this Graph. "];
+  Node64 -> Node65 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node65 [label="dialect::Node::allocate",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Node.html#a933bc8b61c4b40f58c4ebddf1f208a30",tooltip="Factory function, to get a shared pointer to a Node allocated on the heap. We make the constructors p..."];
+  Node65 -> Node66 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node66 [label="dialect::Node::Node",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Node.html#ad8f6657c4b7c7002a414fb9b1c2744f8",tooltip="Default constructor. "];
+  Node62 -> Node65 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node62 -> Node67 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node67 [label="dialect::Edge::allocate",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Edge.html#a931e11b40e756c1c0c4cc84d64595182",tooltip="Factory function. "];
+  Node62 -> Node68 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node68 [label="dialect::Graph::getNode",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Graph.html#a0adf4a0dc63a42b8196f3864d1d31e04",tooltip="Look up a Node by ID. "];
+  Node62 -> Node69 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node69 [label="dialect::Graph::severEdge",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Graph.html#a86f8762c5ddfdad4c934285da5bd4933",tooltip="Sever an Edge in this Graph. "];
+  Node69 -> Node70 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node70 [label="dialect::Edge::sever",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Edge.html#a04fbe3f536a380fc6d70bcb09728ca08",tooltip="\"Sever\" this Edge, i.e. remove it from the Nodes to which it is attached. "];
+  Node69 -> Node71 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node71 [label="dialect::Edge::id",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classdialect_1_1Edge.html#ab3e603f70b854af7f69b12bcb7a06de4",tooltip="Access the unique ID of this instance. "];
+}

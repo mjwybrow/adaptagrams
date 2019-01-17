@@ -1,0 +1,10 @@
+digraph "dialect::ColaOptions"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node1 [label="{dialect::ColaOptions\n|+ idealEdgeLength\l+ preventOverlaps\l+ solidifyAlignedEdges\l+ solidEdgeExemptions\l+ xAxis\l+ yAxis\l+ makeFeasible\l+ makeFeasible_xBorder\l+ makeFeasible_yBorder\l+ useNeighbourStress\land 7 more...\l|}",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node2 -> Node1 [color="grey25",fontsize="10",style="solid",label=" +preIteration" ,arrowhead="odiamond",fontname="Helvetica"];
+  Node2 [label="{cola::PreIteration\n|+ locks\l+ resizes\l+ changed\l|+ PreIteration()\l+ PreIteration()\l+ ~PreIteration()\l+ operator()()\l}",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcola_1_1PreIteration.html",tooltip="A default functor that is called before each iteration in the main loop of the ConstrainedFDLayout::r..."];
+  Node3 -> Node1 [color="grey25",fontsize="10",style="solid",label=" +doneTest" ,arrowhead="odiamond",fontname="Helvetica"];
+  Node3 [label="{cola::TestConvergence\n|+ old_stress\l+ tolerance\l+ maxiterations\l+ iterations\l|+ TestConvergence()\l+ ~TestConvergence()\l+ operator()()\l+ reset()\l}",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcola_1_1TestConvergence.html",tooltip="A default functor that is called after each iteration of the layout algorithm. "];
+}

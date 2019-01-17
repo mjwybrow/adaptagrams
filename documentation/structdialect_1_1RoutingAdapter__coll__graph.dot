@@ -1,0 +1,8 @@
+digraph "dialect::RoutingAdapter"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node1 [label="{dialect::RoutingAdapter\n|+ edges\l+ edgeIdToConnRef\l+ nodeIdToShapeRef\l|+ RoutingAdapter()\l+ addNodes()\l+ addEdges()\l+ route()\l+ recordRoutes()\l}",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled", fontcolor="black"];
+  Node2 -> Node1 [color="grey25",fontsize="10",style="solid",label=" +router" ,arrowhead="odiamond",fontname="Helvetica"];
+  Node2 [label="{Avoid::Router\n|+ m_obstacles\l+ connRefs\l+ clusterRefs\l+ visGraph\l+ invisGraph\l+ visOrthogGraph\l+ contains\l+ vertices\l+ enclosingClusters\l+ PartialTime\land 9 more...\l|+ Router()\l+ ~Router()\l+ setTransactionUse()\l+ transactionUse()\l+ processTransaction()\l+ deleteShape()\l+ moveShape()\l+ moveShape()\l+ deleteJunction()\l+ deleteConnector()\land 41 more...\l}",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classAvoid_1_1Router.html",tooltip="The Router class represents a libavoid router instance. "];
+}
