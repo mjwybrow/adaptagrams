@@ -16,8 +16,18 @@ dnl ******************************
 dnl   Compilation warnings
 dnl ******************************
 if test "$GXX" = "yes"; then
-  # Enable some warnings from g++.
+  # Use C++11 Extensions
+  CXXFLAGS="-std=gnu++11 $CXXFLAGS"
+  dnl Alternatively (https://askubuntu.com/a/773293),
+  dnl CXXFLAGS="-std=c++11 $CXXFLAGS"
+  case "$host_os" in
+    darwin*)
+      dnl See https://stackoverflow.com/a/14657009
+      CXXFLAGS="-stdlib=libc++ $CXXFLAGS"
+      ;;
+  esac
 
+  # Enable some warnings from g++.
   CXXFLAGS="-Wall -W -Wpointer-arith -Wcast-align -Wsign-compare -Woverloaded-virtual -Wswitch  $CXXFLAGS"
 
   dnl Test for arch-specific situations.
@@ -51,5 +61,5 @@ AH_BOTTOM([
   
 ])
 
-AC_CONFIG_FILES([Makefile libcola/Makefile libcola/tests/Makefile libvpsc/Makefile libvpsc/tests/Makefile libtopology/Makefile libtopology/tests/Makefile libavoid/Makefile libavoid/tests/Makefile libcola/libcola.pc libavoid/libavoid.pc libvpsc/libvpsc.pc libtopology/libtopology.pc])
+AC_CONFIG_FILES([Makefile libcola/Makefile libcola/tests/Makefile libvpsc/Makefile libvpsc/tests/Makefile libtopology/Makefile libtopology/tests/Makefile libavoid/Makefile libavoid/tests/Makefile libdialect/Makefile libdialect/tests/Makefile libcola/libcola.pc libavoid/libavoid.pc libvpsc/libvpsc.pc libtopology/libtopology.pc libdialect/libdialect.pc])
 AC_OUTPUT

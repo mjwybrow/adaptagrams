@@ -1,0 +1,23 @@
+#!/usr/bin/python
+
+import os
+
+names = """
+destress_aca
+orthohub
+planarise
+leafless
+faceset
+treeplacement
+expand
+chainconfig
+hola
+aca
+""".split()
+
+print '...'
+for name in names:
+    cmd = 'python %s.py' % name
+    print '%s complete' % name
+    os.system(cmd)
+

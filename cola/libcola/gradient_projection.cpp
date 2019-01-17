@@ -71,7 +71,7 @@ GradientProjection::GradientProjection(
           solveWithMosek(solveWithMosek),
           scaling(scaling)
 {
-    printf("GP Instance: scaling=%d, mosek=%d\n",scaling,solveWithMosek);
+    //printf("GP Instance: scaling=%d, mosek=%d\n",scaling,solveWithMosek);
     for(unsigned i=0;i<denseSize;i++) {
         vars.push_back(new vpsc::Variable(i,1,1));
     }

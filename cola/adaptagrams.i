@@ -35,6 +35,23 @@
 #include <libtopology/cola_topology_addon.h>
 #include <libavoid/libavoid.h>
 #include <libtopology/orthogonal_topology.h>
+#include <libdialect/aca.h>
+#include <libdialect/chains.h>
+#include <libdialect/commontypes.h>
+#include <libdialect/constraints.h>
+#include <libdialect/faces.h>
+#include <libdialect/graphs.h>
+#include <libdialect/hola.h>
+#include <libdialect/io.h>
+#include <libdialect/nearalign.h>
+#include <libdialect/nodeconfig.h>
+#include <libdialect/opts.h>
+#include <libdialect/ortho.h>
+#include <libdialect/peeling.h>
+#include <libdialect/planarise.h>
+#include <libdialect/routing.h>
+#include <libdialect/treeplacement.h>
+#include <libdialect/trees.h>
 /* Includes the header in the wrapper code */
 
 using namespace Avoid;
@@ -42,6 +59,7 @@ using namespace cola;
 using namespace hull;
 using namespace vpsc;
 using namespace topology;
+using namespace dialect;
 
 %}
 
@@ -89,10 +107,24 @@ using namespace topology;
 %ignore topology::assertNoZeroLengthEdgeSegments(const Edges& es);
 %ignore topology::compute_stress(const Edges&);
 %ignore topology::printEdges(const Edges&);
+%ignore dialect::Node::operator=(const dialect::Node&);
+%ignore dialect::Edge::operator=(const dialect::Edge&);
+%ignore dialect::Graph::operator=(const Graph);
+%ignore dialect::PeeledNode::operator=(const PeeledNode&);
+%ignore operator+(const dialect::BoundingBox&, const dialect::BoundingBox&);
+%ignore operator+(const dialect::ProjSeq&, const dialect::ProjSeq&);
+%ignore operator==(const dialect::BoundingBox&, const dialect::BoundingBox&);
+%ignore operator!=(const dialect::BoundingBox&, const dialect::BoundingBox&);
+%ignore dialect::identifyRootNode(const Graph&);
+%ignore dialect::negateSepDir(SepDir);
+%ignore dialect::swap(Graph&, Graph&);
 
 %include "std_string.i"
 %include "std_vector.i"
+%include "std_deque.i"
 %include "std_pair.i"
+%include "std_map.i"
+%include "std_shared_ptr.i"
 
 #ifdef SWIGJAVA
 /* Wrap every C++ action in try/catch statement so we convert all 
@@ -139,7 +171,7 @@ class ColaException {
  *
  * For libavoid, the Router instance takes ownership of these objects and 
  * deletes them when it is freed.  For the cola/vpsc classes, a Java/Python
- * user can call ConstraintedFDLayout::freeAssociatedObjects() to free this 
+ * user can call ConstrainedFDLayout::freeAssociatedObjects() to free this 
  * memory.
  */
 %nodefaultdtor vpsc::Rectangle;
@@ -170,6 +202,12 @@ class ColaException {
 %nodefaultdtor topology::Edge;
 %nodefaultdtor topology::EdgePoint;
 %nodefaultdtor topology::ColaTopologyAddon;
+%nodefaultdtor dialect::ACALayout;
+%nodefaultdtor dialect::Graph;
+%nodefaultdtor dialect::Node;
+%nodefaultdtor dialect::Edge;
+
+%include "libdialect/commontypes.h"
 
 %template(Chars) std::vector<char>;
 %template(Unsigneds) std::vector<unsigned>;
@@ -190,6 +228,12 @@ class ColaException {
 %template(ColaClusters) std::vector<cola::Cluster*>;
 %template(AvoidPoints) std::vector<Avoid::Point>;
 %template(AvoidCheckpoints) std::vector<Avoid::Checkpoint>;
+%template(OrderedAlignmentPtrs) std::vector<dialect::OrderedAlignment*>;
+%template(TreePtrs) std::vector<std::shared_ptr<dialect::Tree>>;
+%template(ChainPtrs) std::vector<std::shared_ptr<dialect::Chain>>;
+%template(DialectNodes) std::vector<std::shared_ptr<dialect::Node>>;
+%template(DialectNodeLookup) std::map<dialect::id_type, std::shared_ptr<dialect::Node>>;
+%template(DialectNodeDeques) std::vector<std::deque<std::shared_ptr<dialect::Node>>>;
 
 %inline %{
 void doubleArraySet(double *a, int i, double val) {
@@ -214,6 +258,26 @@ void deleteDoubleArray(double* a) {
 %rename(AvoidTopologyAddonInterface) Avoid::TopologyAddonInterface;
 
 %rename(getVarConst) topology::Node::getVar() const;
+
+%rename(DialectNode) dialect::Node;
+%rename(DialectEdge) dialect::Edge;
+
+%shared_ptr(dialect::Node)
+%shared_ptr(dialect::GhostNode)
+%shared_ptr(dialect::PeeledNode)
+%shared_ptr(dialect::Graph)
+%shared_ptr(dialect::Tree)
+%shared_ptr(dialect::Side)
+%shared_ptr(dialect::Nexus)
+%shared_ptr(dialect::Face)
+%shared_ptr(dialect::FaceSet)
+%shared_ptr(dialect::TreePlacement)
+%shared_ptr(dialect::Chain)
+
+/* %warnfilter(315) dialect::Edge; */
+%ignore dialect::Edge::m_tgt;
+
+
 
 
 /* Parse the header file to generate wrappers */
@@ -242,4 +306,20 @@ void deleteDoubleArray(double* a) {
 %include "libtopology/cola_topology_addon.h"
 %include "libtopology/orthogonal_topology.h"
 
+%include "libdialect/aca.h"
+%include "libdialect/chains.h"
+%include "libdialect/constraints.h"
+%include "libdialect/faces.h"
+%include "libdialect/graphs.h"
+%include "libdialect/hola.h"
+%include "libdialect/io.h"
+%include "libdialect/nearalign.h"
+%include "libdialect/nodeconfig.h"
+%include "libdialect/opts.h"
+%include "libdialect/ortho.h"
+%include "libdialect/peeling.h"
+%include "libdialect/planarise.h"
+%include "libdialect/routing.h"
+%include "libdialect/treeplacement.h"
+%include "libdialect/trees.h"
 

@@ -33,7 +33,7 @@ adaptagrams_wrap.o: swig-worked
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -I. $(JAVA_INCLUDE) -c adaptagrams_wrap.cxx
 
 adaptagrams: adaptagrams_wrap.o
-	$(LINK) adaptagrams_wrap.o libcola/.libs/libcola.a libtopology/.libs/libtopology.a libavoid/.libs/libavoid.a libvpsc/.libs/libvpsc.a
+	$(LINK) adaptagrams_wrap.o libcola/.libs/libcola.a libtopology/.libs/libtopology.a libavoid/.libs/libavoid.a libvpsc/.libs/libvpsc.a libdialect/.libs/libdialect.a
 
 jar: swig-worked
 	javac -d java/build/ java/src/org/adaptagrams/*.java

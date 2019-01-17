@@ -27,6 +27,10 @@ Makefile.in
 
 .*.swp
 
+.DS_Store
+
+*.pyc
+
 Makefile
 
 /m4
@@ -43,9 +47,25 @@ ltmain.sh
 libcola/config.h.in
 libcola/stamp-h1
 libcola/config.h
+libcola/config.h.in~
 
 diff
 
-*/tests/*.svg
-*/tests/*.pdf
+*/tests/*
+!*/tests/*.cpp
+!*/tests/*.h
+!*/tests/Makefile.am
+!libdialect/tests/swig_tests
+libdialect/tests/swig_tests/output/*
+!libdialect/tests/swig_tests/output/README.txt
+
+
+lib*/.libs
+lib*/lib*.pc
+
+adaptagrams*
+!adaptagrams.i
+
+swig-worked
+test-driver
 
