@@ -25,6 +25,7 @@
 #ifndef DIALECT_UTIL_H
 #define DIALECT_UTIL_H
 
+#include <cassert>
 #include <cmath>
 #include <string>
 #include <memory>
