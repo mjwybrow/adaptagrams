@@ -124,7 +124,7 @@ double Block::optimalPosition() const {
  * @param last don't backtrack over this constraint.
  */
 double compute_dfdv(Variable const* v, Constraint const* last) {
-    LIBPROJECT_ASSERT( last==NULL || v==last->l || v==last->r );
+    LIBPROJECT_ASSERT( last==nullptr || v==last->l || v==last->r );
     double dfdv = v->dfdv();
     for(Constraints::const_iterator i=v->out.begin();i!=v->out.end();++i) {
         Constraint *c=*i;
@@ -147,7 +147,7 @@ double compute_dfdv(Variable const* v, Constraint const* last) {
  */
 void Block::computeLagrangians() {
     for_each(C.begin(),C.end(),mem_fun(&Constraint::resetLM));
-    compute_dfdv(V[0],NULL);
+    compute_dfdv(V[0],nullptr);
 }
 
 Project::
@@ -157,7 +157,7 @@ Project(
     : vs(vs)
     , cs(cs)
     , inactive(cs.begin(),cs.end())
-    , externalAlphaCheck(NULL)
+    , externalAlphaCheck(nullptr)
 { 
     FILELog::ReportingLevel() = logERROR;
     //FILELog::ReportingLevel() = logDEBUG1;
@@ -263,7 +263,7 @@ struct MaxSafeMove : unary_function<Constraint*,void> {
  */
 double Project::
 findSafeMove(Constraint* &c) {
-    c=NULL;
+    c=nullptr;
     double alpha=1.0;
     for_each(inactive.begin(),inactive.end(),MaxSafeMove(c,alpha));
     if(externalAlphaCheck) {
@@ -280,7 +280,7 @@ findSafeMove(Constraint* &c) {
 void Project:: 
 makeOptimal() {
     ASSERT_NONE_VIOLATED(this);
-    Constraint *c=NULL;
+    Constraint *c=nullptr;
     double alpha;
     while((alpha = findSafeMove(c)) < 1) {
         makeActive(c,alpha);

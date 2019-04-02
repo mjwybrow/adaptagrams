@@ -64,7 +64,7 @@ class Variable {
 public:
     Variable(const unsigned id, const Initial& i) 
         : id(id), x(i.pos), d(i.pos), w(1.0)
-        , block(NULL), b(0), in(), out() {}
+        , block(nullptr), b(0), in(), out() {}
     /**
      * Arguments are passed in with explicit types to ensure they're in
      * the right order.
@@ -74,11 +74,11 @@ public:
      */
     Variable(const unsigned id, const Initial& i, const Desired& d,
             const Weight& w=Weight(1.0)) 
-        : id(id), x(i.pos),d(d.pos),w(w.w),block(NULL),b(0)
+        : id(id), x(i.pos),d(d.pos),w(w.w),block(nullptr),b(0)
         , in(),out() {}
     Variable(const Initial& i, const Desired& d,
             const Weight& w=Weight(1.0)) 
-        : id(idCtr++), x(i.pos),d(d.pos),w(w.w),block(NULL),b(0)
+        : id(idCtr++), x(i.pos),d(d.pos),w(w.w),block(nullptr),b(0)
         , in(),out() {}
     /** 
      * It may be necessary for the user to change the desired position after
