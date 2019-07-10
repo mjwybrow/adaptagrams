@@ -10,12 +10,11 @@
  * Released under GNU LGPL.  Read the file 'COPYING' for more information.
  */
 
+#include <cmath>
 #include <set>
 #include <cassert>
 #include "generate-constraints.h"
 #include "constraint.h"
-
-#include "isnan.h" /* Include last */
 
 using std::set;
 using std::vector;
@@ -76,8 +75,8 @@ bool CmpNodePos::operator() (const Node* u, const Node* v) const {
 	if (v->pos < u->pos) {
 		return false;
 	}
-	if (isNaN(u->pos) != isNaN(v->pos)) {
-		return isNaN(u->pos);
+	if (std::isnan(u->pos) != std::isnan(v->pos)) {
+		return std::isnan(u->pos);
 	}
 	return u < v;
 
@@ -150,9 +149,9 @@ int compare_events(const void *a, const void *b) {
 		return 1;
 	} else if(ea->pos < eb->pos) {
 		return -1;
-	} else if(isNaN(ea->pos) != isNaN(ea->pos)) {
+	} else if(std::isnan(ea->pos) != std::isnan(ea->pos)) {
 		/* See comment in CmpNodePos. */
-		return ( isNaN(ea->pos)
+		return ( std::isnan(ea->pos)
 			 ? -1
 			 : 1 );
 	}
