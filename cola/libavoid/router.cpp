@@ -3065,7 +3065,7 @@ void Router::outputDiagramText(std::string instanceName)
             fprintf(fp, "id=%u\n", connRef->id());
             for (size_t i = 0; i < route.size(); ++i)
             {
-                fprintf(fp, "p%lu: %g %g ", i, route.ps[i].x, route.ps[i].y);
+                fprintf(fp, "p%zu: %g %g ", i, route.ps[i].x, route.ps[i].y);
                 fprintf(fp, "\n");
             }
             fprintf(fp, "\n");
