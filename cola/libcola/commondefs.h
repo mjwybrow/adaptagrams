@@ -30,11 +30,6 @@
 // Microsoft Visual C++ (MS VC) specific code goes here
 #include <float.h>
 #include <malloc.h>     // Contains _alloca
-namespace std {
-inline bool isnan(double const &x) { return _isnan(x) != 0; }
-inline bool isinf(double const &x) { return !(_finite(x) || _isnan(x)); }
-} // end std
-
 #endif
 
 #include "libvpsc/assertions.h"

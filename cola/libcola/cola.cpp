@@ -22,7 +22,6 @@
 #include <cmath>
 
 #include "libvpsc/assertions.h"
-#include "libvpsc/isnan.h"
 #include "libcola/commondefs.h"
 #include "libcola/cola.h"
 #include "libcola/conjugate_gradient.h"
@@ -142,7 +141,7 @@ ConstrainedMajorizationLayout
             Dij[i*n + j] = d;
             if(i==j) continue;
             double lij=0;
-            if(d!=0 && !isinf(d)) {
+            if(d!=0 && !std::isinf(d)) {
                 lij=1./(d*d);
             }
             degree += lap2[i*n + j] = lij;
@@ -201,7 +200,7 @@ void ConstrainedMajorizationLayout::majorize(
             b[i] -= stickyWeight*startCoords[i];
         }
         b[i] += degree * coords[i];
-        COLA_ASSERT(!isNaN(b[i]));
+        COLA_ASSERT(!std::isnan(b[i]));
     }
     if(constrainedLayout) {
         //printf("GP iteration...\n");
@@ -300,7 +299,7 @@ inline double ConstrainedMajorizationLayout
     for (unsigned i = 1; i < n; i++) {
         for (unsigned j = 0; j < i; j++) {
             d = Dij[i*n+j];
-            if(!isinf(d)&&d!=numeric_limits<double>::max()) {
+            if(!std::isinf(d)&&d!=numeric_limits<double>::max()) {
                 diff = d - euclidean_distance(i,j);
                 if(d>80&&diff<0) continue;
                 sum += diff*diff / (d*d);

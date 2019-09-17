@@ -25,6 +25,7 @@
  *
  */
 
+#include <cmath>
 #include <set>
 #include <cstdlib>
 #include <algorithm>
@@ -35,8 +36,6 @@
 #include "libvpsc/rectangle.h"
 #include "libvpsc/constraint.h"
 #include "libvpsc/variable.h"
-
-#include "libvpsc/isnan.h" /* Include last */
 
 using std::set;
 using std::vector;
@@ -153,8 +152,8 @@ struct Node {
     }
 };
 bool CmpNodePos::operator() (const Node* u, const Node* v) const {
-    COLA_ASSERT(!isNaN(u->pos));
-    COLA_ASSERT(!isNaN(v->pos));
+    COLA_ASSERT(!std::isnan(u->pos));
+    COLA_ASSERT(!std::isnan(v->pos));
     if (u->pos < v->pos) {
         return true;
     }
@@ -214,9 +213,9 @@ int compare_events(const void *a, const void *b) {
         return 1;
     } else if(ea->pos < eb->pos) {
         return -1;
-    } else if(isNaN(ea->pos) != isNaN(ea->pos)) {
+    } else if(std::isnan(ea->pos) != std::isnan(ea->pos)) {
         /* See comment in CmpNodePos. */
-        return ( isNaN(ea->pos)
+        return ( std::isnan(ea->pos)
              ? -1
              : 1 );
     }
