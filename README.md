@@ -31,7 +31,7 @@ libraries:
               - a library containing extensions to libcola to support 
 		topology preserving constraint-based layout.  
 	      - libtopology depends on libavoid, libcola and libvpsc.
- *  [libdialect][libtopology]  
+ *  [libdialect][libdialect]  
               - a library for computing human-like orthogonal network
 	        (DiAlEcT) layouts via the following steps: 
 		D = Decompose/Distribute; A = Arrange; 
