@@ -24,7 +24,9 @@
 
 // For M_PI.
 // This should be first include for MSVC.
+#ifndef _USE_MATH_DEFINES
 #define _USE_MATH_DEFINES
+#endif
 #include <cmath>
 
 #include <algorithm>
