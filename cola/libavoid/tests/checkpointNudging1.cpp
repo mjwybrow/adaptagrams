@@ -5,15 +5,15 @@ using namespace Avoid;
 int main(void) {
     Router *router = new Router(
             PolyLineRouting | OrthogonalRouting);
-    router->setRoutingParameter((RoutingParameter)0, 50);
-    router->setRoutingParameter((RoutingParameter)1, 0);
-    router->setRoutingParameter((RoutingParameter)2, 0);
-    router->setRoutingParameter((RoutingParameter)3, 4000);
-    router->setRoutingParameter((RoutingParameter)4, 0);
-    router->setRoutingParameter((RoutingParameter)5, 100);
-    router->setRoutingOption((RoutingOption)0, true);
-    router->setRoutingOption((RoutingOption)1, true);
-    router->setRoutingOption((RoutingOption)2, false);
+    router->setRoutingParameter(segmentPenalty, 50);
+    router->setRoutingParameter(anglePenalty, 0);
+    router->setRoutingParameter(crossingPenalty, 0);
+    router->setRoutingParameter(clusterCrossingPenalty, 4000);
+    router->setRoutingParameter(fixedSharedPathPenalty, 0);
+    router->setRoutingParameter(portDirectionPenalty, 100);
+    router->setRoutingOption(nudgeOrthogonalSegmentsConnectedToShapes, true);
+    router->setRoutingOption(improveHyperedgeRoutesMovingJunctions, true);
+    router->setRoutingOption(penaliseOrthogonalSharedPathsAtConnEnds, false);
 
 
 #ifdef ALL

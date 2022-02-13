@@ -10,7 +10,7 @@ int main(void) {
     router->setRoutingPenalty((PenaltyType)3, 0);
     router->setRoutingPenalty((PenaltyType)4, 0);
     router->setRoutingPenalty((PenaltyType)5, 100);
-    router->setRoutingOption((RoutingOption)0, true);
+    router->setRoutingOption(nudgeOrthogonalSegmentsConnectedToShapes, true);
     router->setOrthogonalNudgeDistance(4);
     */
 

@@ -11,9 +11,9 @@ int main(void) {
     router->setRoutingPenalty((PenaltyType)3, 4000);
     router->setRoutingPenalty((PenaltyType)4, 0);
     router->setRoutingPenalty((PenaltyType)5, 100);
-    router->setRoutingOption((RoutingOption)0, true);
-    router->setRoutingOption((RoutingOption)1, true);
-    router->setRoutingOption((RoutingOption)2, false);
+    router->setRoutingOption(nudgeOrthogonalSegmentsConnectedToShapes, true);
+    router->setRoutingOption(improveHyperedgeRoutesMovingJunctions, true);
+    router->setRoutingOption(penaliseOrthogonalSharedPathsAtConnEnds, false);
 
     /*
     Polygon poly1(4);

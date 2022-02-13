@@ -9,8 +9,8 @@ int main(void) {
     router->setRoutingPenalty((PenaltyType)3, 4000);
     router->setRoutingPenalty((PenaltyType)4, 110);
     router->setRoutingPenalty((PenaltyType)5, 100);
-    router->setRoutingOption((RoutingOption)0, false);
-    router->setRoutingOption((RoutingOption)1, true);
+    router->setRoutingOption(nudgeOrthogonalSegmentsConnectedToShapes, false);
+    router->setRoutingOption(improveHyperedgeRoutesMovingJunctions, true);
     router->setRoutingParameter(idealNudgingDistance, 25);
 
     Polygon poly186982048(4);
