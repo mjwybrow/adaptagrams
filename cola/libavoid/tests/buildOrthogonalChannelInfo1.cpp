@@ -13,7 +13,7 @@ void test()
 	router1->setRoutingPenalty(Avoid::crossingPenalty);
 	router1->setRoutingPenalty(Avoid::fixedSharedPathPenalty, 9000);
 	router1->setRoutingOption(Avoid::penaliseOrthogonalSharedPathsAtConnEnds, true);
-	router1->setRoutingParameter(idealNudgingDistance, 25);
+	router1->setRoutingParameter(Avoid::idealNudgingDistance, 25);
 	poly = Avoid::Polygon(4);
 	poly.setPoint(0, Avoid::Point(50760, 50691));
 	poly.setPoint(1, Avoid::Point(50760, 50775));
