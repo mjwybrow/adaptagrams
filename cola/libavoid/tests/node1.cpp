@@ -3,11 +3,11 @@ using namespace Avoid;
 int main(void) {
     Router *router = new Router(
             PolyLineRouting | OrthogonalRouting);
-    router->setRoutingPenalty((PenaltyType)0, 50);
-    router->setRoutingPenalty((PenaltyType)1, 0);
-    router->setRoutingPenalty((PenaltyType)2, 200);
-    router->setRoutingPenalty((PenaltyType)3, 4000);
-    //router->setRoutingPenalty((PenaltyType)4, 110);
+    router->setRoutingPenalty(segmentPenalty, 50);
+    router->setRoutingPenalty(anglePenalty, 0);
+    router->setRoutingPenalty(crossingPenalty, 200);
+    router->setRoutingPenalty(clusterCrossingPenalty, 4000);
+    //router->setRoutingPenalty(fixedSharedPathPenalty, 110);
     router->setRoutingParameter(idealNudgingDistance, 25);
 
     double buffer = 4;
