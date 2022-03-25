@@ -781,7 +781,11 @@ public:
         }
         if (!found)
         {
-            found = new VertInf(router, dummyOrthogID, Point(posX, pos));
+            VertID vertId = dummyOrthogID;
+            if (shapeSide) {
+                vertId = dummyOrthogShapeID;
+            }
+            found = new VertInf(router, vertId, Point(posX, pos));
             vertInfs.insert(found);
         }
         return found;
@@ -1565,8 +1569,11 @@ static void processEventHori(Router *router, NodeSet& scanline,
         if (it != scanline.begin())
         {
             Node *u = *(--it);
-            v->firstAbove = u;
-            u->firstBelow = v;
+            // if node `u` is around `v`, then it's visual parent, not neighbour, ignore it
+            if (!(v->min[0] >= u->min[0] && v->min[1] >= u->min[1] && v->max[0] <= u->max[0] && v->max[1] <= u->max[1])) {
+                v->firstAbove = u;
+                u->firstBelow = v;
+            }
         }
         it = v->iter;
         if (++it != scanline.end())

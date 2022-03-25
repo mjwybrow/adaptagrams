@@ -38,6 +38,6 @@ jobs:
           pushd build_tests
           cmake -DENABLE_TESTS=ON ..
           make
-          ctest
+          ctest --output-on-failure
           popd
           popd

@@ -30,11 +30,15 @@ protected:
         delete router;
     }
 
-    ShapeRef* addChild(Point topLeft, Point bottomRight, unsigned int shapeId, unsigned int connectionId) {
+    ShapeRef* addChild(Point topLeft, Point bottomRight, unsigned int shapeId, unsigned int connectionId, unsigned int connectionId2 = 0) {
         Rectangle childRectangle(topLeft, bottomRight);
         ShapeRef *childShape = new ShapeRef(router, childRectangle, shapeId);
         new ShapeConnectionPin(childShape, connectionId, 0, 14, false, 0, ConnDirLeft);
         new ShapeConnectionPin(childShape, connectionId, 200, 14, false, 0, ConnDirRight);
+        if (connectionId2 != 0) {
+            new ShapeConnectionPin(childShape, connectionId2, 0, 56, false, 0, ConnDirLeft);
+            new ShapeConnectionPin(childShape, connectionId2, 200, 56, false, 0, ConnDirRight);
+        }
         new ShapeConnectionPin(childShape, CONNECTIONPIN_CENTRE,
                                ATTACH_POS_CENTRE, ATTACH_POS_CENTRE, true, 0.0, ConnDirNone);
         return childShape;
@@ -71,6 +75,25 @@ TEST_F(OrthogonalRouterFixture, TwoChildrenVerticallyHaveOptimalConnections) {
 
     router->processTransaction();
     router->outputDiagramSVG("TwoChildrenVerticallyHaveOptimalConnections");
+
+    std::vector<Point> expectedBottomToTop = { {816.26, 780.244}, {820.26, 780.244}, {820.26, 647.779}, {716.26, 647.779} };
+    expectRoute(bottomToTopConn->displayRoute().ps, expectedBottomToTop);
+    std::vector<Point> expectedTopToBottom = { {616.26, 579.279}, {612.26, 579.279}, {612.26, 848.744}, {716.26, 848.744} };
+    expectRoute(topToBottomConn->displayRoute().ps, expectedTopToBottom);
+}
+
+TEST_F(OrthogonalRouterFixture, ThreeChildrenVerticallyHaveOptimalConnections) {
+    ShapeRef *topChildShape = addChild({ 616.26, 565.279 }, { 816.26, 730.279 }, 2, 5);
+    ShapeRef *bottomChildShape = addChild({ 616.26, 766.244 }, { 816.26, 931.244 }, 3, 6);
+    ShapeRef *leftChildShape = addChild({145.954, 396.512}, {345.954, 617.512}, 4, 7, 8);
+
+    ConnRef *bottomToTopConn = connectShapes(bottomChildShape, 6, topChildShape);
+    ConnRef *topToBottomConn = connectShapes(topChildShape, 5, bottomChildShape);
+    ConnRef *leftToTopConn = connectShapes(leftChildShape, 7, topChildShape);
+    ConnRef *leftToBottomConn = connectShapes(leftChildShape, 8, bottomChildShape);
+
+    router->processTransaction();
+    router->outputDiagramSVG("ThreeChildrenVerticallyHaveOptimalConnections");
 
     std::vector<Point> expectedBottomToTop = { {816.26, 780.244}, {820.26, 780.244}, {820.26, 647.779}, {716.26, 647.779} };
     expectRoute(bottomToTopConn->displayRoute().ps, expectedBottomToTop);
