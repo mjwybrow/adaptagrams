@@ -127,6 +127,7 @@ int test()
 
 	newanddeletedobjects_0 = router0->newAndDeletedObjectListsFromHyperedgeImprovement();
 	outputDiagram(router0);
+    router0->outputDiagramSVG("hyperedgeRerouting01_before");
 	
 	junction0_16268769->setPositionFixed(false);
 	junction0_142222080->setPositionFixed(false);
@@ -138,6 +139,7 @@ int test()
 	
 	router0->processTransaction();
 	outputDiagram(router0);
+    router0->outputDiagramSVG("hyperedgeRerouting01_after");
 
     int result = router0->existsInvalidOrthogonalPaths();
     delete router0;

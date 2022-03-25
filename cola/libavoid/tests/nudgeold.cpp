@@ -74,7 +74,7 @@ int main(void) {
     connRef41657796->setRoutingType((ConnType)2);
 
     router->processTransaction();
-    router->outputDiagram("output/nudgeold");
+    router->outputDiagramSVG("nudgeold");
     delete router;
     return 0;
 };

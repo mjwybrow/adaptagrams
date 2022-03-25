@@ -45,6 +45,7 @@ int main(void) {
     ra.route();
 
     writeStringToFile(graph->writeTglf(), "output/" "routing01_" "routed.tglf");
+    writeStringToFile(graph->writeSvg(), "routing01_routed.svg");
 
     return 0;
 }

@@ -84,6 +84,7 @@ int main(void) {
     }
     // Show the tree's layout.
     writeStringToFile(t0->underlyingGraph()->writeTglf(), "output/" "treeboxes01_" "tree_layout.tglf");
+    writeStringToFile(t0->underlyingGraph()->writeSvg(), "treeboxes01_tree_layout.svg");
 
     bool verbose = false;
 

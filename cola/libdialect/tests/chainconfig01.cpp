@@ -62,5 +62,6 @@ int main(void) {
     writeStringToFile(graph->writeTglf(), "output/" "chainconfig01_" "02_projY.tglf");
     graph->destress();
     writeStringToFile(graph->writeTglf(), "output/" "chainconfig01_" "03_destress.tglf");
+    writeStringToFile(graph->writeSvg(), "chainconfig01_03_destress.svg");
     return 0;
 }

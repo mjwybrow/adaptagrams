@@ -233,8 +233,6 @@ void makeFeasible(vpsc::Rectangles& rs, vector<cola::Edge>& edges,
         unsigned int shapeID = i + 1;
         Avoid::ShapeRef *shapeRef = new Avoid::ShapeRef(router, shapePoly,
                 shapeID);
-        // ShapeRef constructor makes a copy of polygon so we can free it:
-        router->addShape(shapeRef);
     }
     for(unsigned i=0;i<edges.size();++i) {
         cola::Edge e=edges[i];
@@ -326,14 +324,14 @@ int main() {
     clock_t unconstrainedstarttime=clock();
     //writeTextFile(es);
     es.clear();
-	ConstrainedFDLayout alg2(rs,es,defaultEdgeLength,nullptr,test);
+	ConstrainedFDLayout alg2(rs,es,defaultEdgeLength,StandardEdgeLengths,&test);
     //alg2.setConstraints(&ccs);
 
     alg2.makeFeasible(true);
     alg2.run();
 
-    alg2.outputInstanceToSVG();
-#if 0
+    alg2.outputInstanceToSVG("makefeasible.svg");
+#if 1
     double totaltime=0;
     double unconstrainedtime=double(clock()-unconstrainedstarttime)/double(CLOCKS_PER_SEC);
     totaltime+=unconstrainedstarttime;
