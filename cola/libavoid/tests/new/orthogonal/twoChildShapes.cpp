@@ -1,0 +1,79 @@
+#include "libavoid/libavoid.h"
+#include "gtest/gtest.h"
+/*
+ * Test routing between two child shapes in a parent shape.
+ * Both child shapes have two shape connection pins(with the same class id) on shape edges for outgoing connections
+ * and one shape connection pin in the center for incoming connection.
+ *
+ * Checks:
+ * - https://github.com/Aksem/adaptagrams/issues/3
+ * */
+
+using namespace Avoid;
+
+
+class OrthogonalRouterFixture : public ::testing::Test {
+protected:
+    void SetUp() override {
+        router = new Router(OrthogonalRouting);
+        router->setRoutingParameter(RoutingParameter::shapeBufferDistance, 4);
+        router->setRoutingParameter(RoutingParameter::segmentPenalty, 50);
+        router->setRoutingParameter(RoutingParameter::idealNudgingDistance, 4);
+        router->setRoutingOption(RoutingOption::nudgeOrthogonalSegmentsConnectedToShapes, true);
+        router->setRoutingOption(RoutingOption::nudgeOrthogonalTouchingColinearSegments, true);
+
+        Rectangle parent({ -125.954, -425.8825 }, { 934.85, 966.244 });
+        ShapeRef *parentShape = new ShapeRef(router, parent, 1);
+    }
+
+    void TearDown() override {
+        delete router;
+    }
+
+    ShapeRef* addChild(Point topLeft, Point bottomRight, unsigned int shapeId, unsigned int connectionId) {
+        Rectangle childRectangle(topLeft, bottomRight);
+        ShapeRef *childShape = new ShapeRef(router, childRectangle, shapeId);
+        new ShapeConnectionPin(childShape, connectionId, 0, 14, false, 0, ConnDirLeft);
+        new ShapeConnectionPin(childShape, connectionId, 200, 14, false, 0, ConnDirRight);
+        new ShapeConnectionPin(childShape, CONNECTIONPIN_CENTRE,
+                               ATTACH_POS_CENTRE, ATTACH_POS_CENTRE, true, 0.0, ConnDirNone);
+        return childShape;
+    }
+
+    ConnRef*  connectShapes(ShapeRef *shape1, unsigned int shape1ConnId, ShapeRef *shape2) {
+        ConnEnd srcPtEnd(shape1, shape1ConnId);
+        ConnEnd dstPtEnd(shape2, CONNECTIONPIN_CENTRE);
+        ConnRef *connection = new ConnRef(router, srcPtEnd, dstPtEnd);
+        return connection;
+    }
+
+    Router *router;
+};
+
+void expectRoute(std::vector<Point> currentRoute, std::vector<Point> expectedRoute) {
+    EXPECT_EQ(currentRoute.size(), expectedRoute.size()) << "Route has wrong size";
+    if (currentRoute.size() != expectedRoute.size()) {
+        return;
+    }
+
+    for (int i=0; i < currentRoute.size(); i++) {
+        EXPECT_DOUBLE_EQ(currentRoute.at(i).x, expectedRoute.at(i).x);
+        EXPECT_DOUBLE_EQ(currentRoute.at(i).y, expectedRoute.at(i).y);
+    }
+}
+
+TEST_F(OrthogonalRouterFixture, TwoChildrenVerticallyHaveOptimalConnections) {
+    ShapeRef *topChildShape = addChild({ 616.26, 565.279 }, { 816.26, 730.279 }, 2, 5);
+    ShapeRef *bottomChildShape = addChild({ 616.26, 766.244 }, { 816.26, 931.244 }, 3, 6);
+
+    ConnRef *bottomToTopConn = connectShapes(bottomChildShape, 6, topChildShape);
+    ConnRef *topToBottomConn = connectShapes(topChildShape, 5, bottomChildShape);
+
+    router->processTransaction();
+    router->outputDiagramSVG("TwoChildrenVerticallyHaveOptimalConnections");
+
+    std::vector<Point> expectedBottomToTop = { {816.26, 780.244}, {820.26, 780.244}, {820.26, 647.779}, {716.26, 647.779} };
+    expectRoute(bottomToTopConn->displayRoute().ps, expectedBottomToTop);
+    std::vector<Point> expectedTopToBottom = { {616.26, 579.279}, {612.26, 579.279}, {612.26, 848.744}, {716.26, 848.744} };
+    expectRoute(topToBottomConn->displayRoute().ps, expectedTopToBottom);
+}
