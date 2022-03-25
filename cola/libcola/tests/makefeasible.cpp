@@ -331,7 +331,7 @@ int main() {
     alg2.run();
 
     alg2.outputInstanceToSVG("makefeasible.svg");
-#if 1
+#if 0
     double totaltime=0;
     double unconstrainedtime=double(clock()-unconstrainedstarttime)/double(CLOCKS_PER_SEC);
     totaltime+=unconstrainedstarttime;

@@ -1,8 +1,13 @@
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.16)
 
 project(avoid)
 
-option(ENABLE_TESTS "Build tests" ON)
+option(ENABLE_TESTS "Build tests" OFF)
+option(LIBAVOID_DEBUG "Libavoid debug logs" OFF)
+option(PATH_DEBUG "Routing path debug logs" OFF)
+option(NUDGE_DEBUG "Debug nudging" OFF)
+option(ESTIMATED_COST_DEBUG "Debug estimated cost" OFF)
+option(ASTAR_DEBUG "Debug ASTAR" OFF)
 
 add_library(${PROJECT_NAME}
     actioninfo.cpp
@@ -30,7 +35,27 @@ add_library(${PROJECT_NAME}
     vpsc.cpp
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+if (LIBAVOID_DEBUG)
+    add_definitions(-DLIBAVOID_DEBUG)
+endif()
+
+if (PATH_DEBUG)
+    add_definitions(-DPATHDEBUG)
+endif()
+
+if (NUDGE_DEBUG)
+    add_definitions(-DNUDGE_DEBUG)
+endif()
+
+if (ESTIMATED_COST_DEBUG)
+    add_definitions(-DESTIMATED_COST_DEBUG)
+endif()
+
+if (ASTAR_DEBUG)
+    add_definitions(-DASTAR_DEBUG)
+endif()
+
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../)
 
 if (ENABLE_TESTS)
     enable_testing()
@@ -125,6 +150,7 @@ if (ENABLE_TESTS)
         # currently tests are just simple apps/executables, no test executor is used
         add_executable(test_avoid_${TEST_CASE} tests/${TEST_CASE}.cpp)
         target_link_libraries(test_avoid_${TEST_CASE} ${PROJECT_NAME})
+        target_include_directories(test_avoid_${TEST_CASE} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../)
         add_test(NAME test_avoid_${TEST_CASE}
                 COMMAND test_avoid_${TEST_CASE})
     endforeach()
