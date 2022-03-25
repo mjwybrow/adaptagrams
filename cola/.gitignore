@@ -52,7 +52,7 @@ libcola/config.h.in~
 diff
 
 */tests/*
-!*/tests/*.cpp
+!*/tests/**/*.cpp
 !*/tests/*.h
 !*/tests/Makefile.am
 !libdialect/tests/swig_tests
@@ -69,3 +69,6 @@ adaptagrams*
 swig-worked
 test-driver
 
+# CLion dirs
+cmake-build-*
+.idea/
