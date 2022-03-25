@@ -52,6 +52,9 @@ typedef std::list<ClusterRef *> ClusterRefList;
 //!         experimental you will likely suffer a large performance hit
 //!         when using it.
 //!
+//! @note   Clusters work only for polyline routes, orthogonal routes are not
+//!         supported yet!
+//!
 class AVOID_EXPORT ClusterRef
 {
     public:
