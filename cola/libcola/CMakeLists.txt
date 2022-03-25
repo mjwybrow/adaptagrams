@@ -4,7 +4,6 @@ project(cola)
 
 set(CMAKE_CXX_STANDARD 17)
 
-option(ENABLE_TESTS "Build tests" OFF)
 option(ENABLE_CAIRO "Cairo support for SVG generation" OFF)
 
 add_library(${PROJECT_NAME}
@@ -29,8 +28,6 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} $
 target_link_libraries(${PROJECT_NAME} cairomm-1.0 sigc-3.0 freetype)
 
 if (ENABLE_TESTS)
-    enable_testing()
-
 #    TODO: other test cases
     set(TEST_CASES
 #        boundary

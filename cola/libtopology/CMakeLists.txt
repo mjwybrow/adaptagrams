@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 3.16)
 
 project(topology)
 
-option(ENABLE_TESTS "Build tests" OFF)
-
 add_library(${PROJECT_NAME}
     cola_topology_addon.cpp
     compute_forces.cpp
@@ -17,8 +15,6 @@ add_library(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../)
 
 if (ENABLE_TESTS)
-    enable_testing()
-
 #    TODO: other test cases
     add_executable(test_${PROJECT_NAME}_orthogonalOpt tests/orthogonalOpt.cpp)
     target_link_libraries(test_${PROJECT_NAME}_orthogonalOpt ${PROJECT_NAME} avoid cola topology vpsc)

@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 3.16)
 
 project(dialect)
 
-option(ENABLE_TESTS "Build tests" OFF)
-
 add_library(${PROJECT_NAME}
     aca.cpp
     bendseqlookup.cpp
@@ -34,8 +32,6 @@ add_library(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../)
 
 if (ENABLE_TESTS)
-    enable_testing()
-
     # TODO: other test cases
     set(TEST_CASES routing01 chainconfig01 treeboxes01)
 
