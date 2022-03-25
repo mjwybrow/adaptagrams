@@ -43,7 +43,6 @@ if (ENABLE_TESTS)
         unconstrained
     )
 
-
     foreach(TEST_CASE IN LISTS TEST_CASES)
         # currently tests are just simple apps/executables, no test executor is used
         add_executable(test_${PROJECT_NAME}_${TEST_CASE} tests/${TEST_CASE}.cpp)
