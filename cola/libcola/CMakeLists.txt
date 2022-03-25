@@ -25,7 +25,10 @@ add_library(${PROJECT_NAME}
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../)
-target_link_libraries(${PROJECT_NAME} cairomm-1.0 sigc-3.0 freetype)
+target_link_libraries(${PROJECT_NAME})
+if (ENABLE_CAIRO)
+    target_link_libraries(${PROJECT_NAME} cairomm-1.0 sigc-3.0 freetype)
+endif()
 
 if (ENABLE_TESTS)
 #    TODO: other test cases
