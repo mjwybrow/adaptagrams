@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+    types: [opened, reopened]
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  CI:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        os: [ubuntu-20.04, macos-10.15]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build
+        run: |
+          mkdir -p build
+          pushd build
+          cmake ..
+          make
+          popd
+
+      - name: Run unit tests
+        run: |
+          mkdir -p build_tests
+          pushd build_tests
+          cmake -DENABLE_TESTS=ON ..
+          ctest
