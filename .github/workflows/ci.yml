@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       max-parallel: 1
       matrix:
-        os: [ubuntu-20.04, macos-10.15]
+        os: [ubuntu-20.04, macos-11, windows-2022]
 
     steps:
       - uses: actions/checkout@v2
@@ -37,6 +37,7 @@ jobs:
           mkdir -p build_tests
           pushd build_tests
           cmake -DENABLE_TESTS=ON ..
+          make
           ctest
           popd
           popd
