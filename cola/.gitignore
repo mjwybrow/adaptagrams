@@ -52,7 +52,7 @@ libcola/config.h.in~
 diff
 
 */tests/*
-!*/tests/**/*.cpp
+!*/tests/new/*
 !*/tests/*.h
 !*/tests/Makefile.am
 !libdialect/tests/swig_tests
