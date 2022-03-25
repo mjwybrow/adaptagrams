@@ -46,7 +46,6 @@ ltmain.sh
 
 libcola/config.h.in
 libcola/stamp-h1
-libcola/config.h
 libcola/config.h.in~
 
 diff
