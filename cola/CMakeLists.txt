@@ -3,9 +3,10 @@ project(adaptagrams)
 
 option(ENABLE_TESTS "Build tests" OFF)
 
-if (ENABLE_TESTS)
-    # GoogleTest requires at least C++11
-    set(CMAKE_CXX_STANDARD 11)
+# adaptagrams libs and GoogleTest require at least C++11
+set(CMAKE_CXX_STANDARD 11)
+
+if (ENABLE_TESTS)    
     enable_testing()
 
     include(FetchContent)
