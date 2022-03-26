@@ -1,4 +1,4 @@
-AM_CPPFLAGS = -I$(top_srcdir) $(CAIROMM_CFLAGS)
+AM_CPPFLAGS = -I$(top_srcdir) $(CAIROMM_CFLAGS) -DIMAGE_OUTPUT_PATH="" -DTEST_DATA_PATH=""
 
 LDADD = \
   $(top_builddir)/libvpsc/libvpsc.la \

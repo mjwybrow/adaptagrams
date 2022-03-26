@@ -1,4 +1,4 @@
-AM_CPPFLAGS = -I$(top_srcdir) $(CAIROMM_CFLAGS)
+AM_CPPFLAGS = -I$(top_srcdir) $(CAIROMM_CFLAGS) -DIMAGE_OUTPUT_PATH="" -DTEST_DATA_PATH=""
 LDADD = $(top_builddir)/libtopology/libtopology.la $(top_builddir)/libcola/libcola.la $(top_builddir)/libvpsc/libvpsc.la $(top_builddir)/libavoid/libavoid.la $(CAIROMM_LIBS)
 check_PROGRAMS = simple_bend nooverlap nodedragging beautify orthogonalOpt 
 # triangle split kamada nooverlap

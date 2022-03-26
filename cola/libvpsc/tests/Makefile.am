@@ -1,4 +1,4 @@
-AM_CPPFLAGS = -I$(top_srcdir)
+AM_CPPFLAGS = -I$(top_srcdir) -DIMAGE_OUTPUT_PATH="" -DTEST_DATA_PATH=""
 
 check_PROGRAMS = rectangleoverlap block satisfy_inc # cycle
 satisfy_inc_SOURCES = satisfy_inc.cpp
