@@ -7659,7 +7659,7 @@ int main(void) {
     connRef->setRoutingType((ConnType)2);
 
     router->processTransaction();
-    router->outputDiagram("output/performance01");
+    router->outputDiagram(IMAGE_OUTPUT_PATH "output/performance01");
     delete router;
     return 0;
 };

@@ -25783,7 +25783,7 @@ int main(void) {
 
     router->processTransaction();
 
-	router->outputDiagram("output/UnsatisfiableRangeAssertion");
+	router->outputDiagram(IMAGE_OUTPUT_PATH "output/UnsatisfiableRangeAssertion");
     delete router;
     return 0;
 };

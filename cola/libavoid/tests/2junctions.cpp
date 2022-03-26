@@ -45,7 +45,7 @@ int test()
 	Avoid::ConnRef * conn18168360 = new Avoid::ConnRef(router1, end1, end2);
 	router1->processTransaction();
 
-	router1->outputDiagram("output/2junctions-1");
+	router1->outputDiagram(IMAGE_OUTPUT_PATH "output/2junctions-1");
 	poly = Avoid::Polygon(4);
 	poly.setPoint(0, Avoid::Point(50879, 50885));
 	poly.setPoint(1, Avoid::Point(50879, 50960));
@@ -71,7 +71,7 @@ int test()
 	conn149180423->makePathInvalid();
 	router1->processTransaction();
 
-	router1->outputDiagram("output/2junctions-2");
+	router1->outputDiagram(IMAGE_OUTPUT_PATH "output/2junctions-2");
 	/*
 	junction550292508->setPositionFixed(true);
 	router1->deleteShape(shape365249936);

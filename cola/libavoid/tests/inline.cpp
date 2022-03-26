@@ -65,7 +65,7 @@ int main(void)
     new Avoid::ConnRef(router, srcPt, dstPt);
     
     router->processTransaction();
-    router->outputDiagram("output/inline");
+    router->outputDiagram(IMAGE_OUTPUT_PATH "output/inline");
 
     delete router;
     return 0;

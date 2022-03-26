@@ -8,9 +8,6 @@
 
 using namespace Avoid;
 
-#if !defined(IMAGE_OUTPUT_PATH)
-#define IMAGE_OUTPUT_PATH ""
-#endif
 
 class HierarchicalOrthogonalRouter : public ::testing::Test {
 protected:

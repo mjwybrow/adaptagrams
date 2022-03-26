@@ -2321,7 +2321,7 @@ int main(void) {
     connRef209->setRoutingType((ConnType)2);
 
     router->processTransaction();
-    router->outputDiagram("output/overlappingRects");
+    router->outputDiagram(IMAGE_OUTPUT_PATH "output/overlappingRects");
     delete router;
     return 0;
 };

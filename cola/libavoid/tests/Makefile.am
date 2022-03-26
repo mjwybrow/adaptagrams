@@ -1,4 +1,4 @@
-AM_CPPFLAGS = -I$(top_srcdir)
+AM_CPPFLAGS = -I$(top_srcdir) -DIMAGE_OUTPUT_PATH="" "-DTEST_DATA_PATH=""
 
 LDADD = $(top_builddir)/libavoid/libavoid.la
 

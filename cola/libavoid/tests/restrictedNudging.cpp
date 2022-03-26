@@ -60,7 +60,7 @@ int main(void) {
     connRef421608980->setRoutingType((ConnType)2);
 
     router->processTransaction();
-    router->outputDiagram("output/restrictedNudging");
+    router->outputDiagram(IMAGE_OUTPUT_PATH "output/restrictedNudging");
     
     bool overlap = router->existsOrthogonalTouchingPaths();
     delete router;

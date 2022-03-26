@@ -177,7 +177,7 @@ extern "C" int main(void)
 	new Avoid::ConnRef(router0, end1_0, end2_0, 214417907);
 	router0->processTransaction();
 
-	router0->outputDiagram("output/inlineOverlap11");
+	router0->outputDiagram(IMAGE_OUTPUT_PATH "output/inlineOverlap11");
 
 	bool optimisedForConnectorType = false;
 	int crossings = router0->existsCrossings(optimisedForConnectorType);

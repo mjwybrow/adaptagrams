@@ -360,7 +360,7 @@ int main(void) {
     connRef->setFixedRoute(newRoute);
 
     router->processTransaction();
-    router->outputDiagram("output/penaltyRerouting01");
+    router->outputDiagram(IMAGE_OUTPUT_PATH "output/penaltyRerouting01");
 
     int crossings = router->existsCrossings();
 

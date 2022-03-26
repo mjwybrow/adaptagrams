@@ -63,7 +63,7 @@ int main(void) {
     connRef150->setRoutingCheckpoints(checkpoints150);
 
     router->processTransaction();
-    router->outputDiagram("output/checkpoints03");
+    router->outputDiagram(IMAGE_OUTPUT_PATH "output/checkpoints03");
 
     bool succeeded = true;
     Avoid::PolyLine route149 = connRef149->displayRoute();

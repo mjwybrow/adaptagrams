@@ -46,7 +46,7 @@ int main(void) {
     connRef744282799->setRoutingType((ConnType)2);
 
     router->processTransaction();
-    router->outputDiagram("output/validPaths02");
+    router->outputDiagram(IMAGE_OUTPUT_PATH "output/validPaths02");
     int result = router->existsInvalidOrthogonalPaths();
     delete router;
     return result;

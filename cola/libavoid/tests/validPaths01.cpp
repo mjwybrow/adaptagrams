@@ -450,7 +450,7 @@ int main(void) {
     connRef960638799->setRoutingType((ConnType)2);
 
     router->processTransaction();
-    router->outputDiagram("output/validPaths01");
+    router->outputDiagram(IMAGE_OUTPUT_PATH "output/validPaths01");
     int result = router->existsInvalidOrthogonalPaths();
     delete router;
     return result;

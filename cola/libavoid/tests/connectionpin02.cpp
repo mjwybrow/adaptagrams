@@ -65,18 +65,18 @@ int main(void)
     new Avoid::ConnRef(router, srcEnd, dstEnd);
 
     router->processTransaction();
-    router->outputDiagram("output/connectionpin02-1");
+    router->outputDiagram(IMAGE_OUTPUT_PATH "output/connectionpin02-1");
 
     router->moveShape(shapeRef1, 0, 90);
     router->moveShape(shapeRef2, 0, -90);
 
     router->processTransaction();
-    router->outputDiagram("output/connectionpin02-2");
+    router->outputDiagram(IMAGE_OUTPUT_PATH "output/connectionpin02-2");
     
     router->moveShape(shapeRef3, 0, -60);
 
     router->processTransaction();
-    router->outputDiagram("output/connectionpin02-3");
+    router->outputDiagram(IMAGE_OUTPUT_PATH "output/connectionpin02-3");
     
     shapeRef3->transformConnectionPinPositions(Avoid::TransformationType_CW90);
     /*
@@ -89,23 +89,23 @@ int main(void)
     */
     
     router->processTransaction();
-    router->outputDiagram("output/connectionpin02-4");
+    router->outputDiagram(IMAGE_OUTPUT_PATH "output/connectionpin02-4");
     
     shapeRef3->transformConnectionPinPositions(Avoid::TransformationType_CW180);
     router->processTransaction();
-    router->outputDiagram("output/connectionpin02-5");
+    router->outputDiagram(IMAGE_OUTPUT_PATH "output/connectionpin02-5");
 
     shapeRef3->transformConnectionPinPositions(Avoid::TransformationType_CW270);
     router->processTransaction();
-    router->outputDiagram("output/connectionpin02-6");
+    router->outputDiagram(IMAGE_OUTPUT_PATH "output/connectionpin02-6");
 
     shapeRef3->transformConnectionPinPositions(Avoid::TransformationType_FlipX);
     router->processTransaction();
-    router->outputDiagram("output/connectionpin02-7");
+    router->outputDiagram(IMAGE_OUTPUT_PATH "output/connectionpin02-7");
 
     shapeRef3->transformConnectionPinPositions(Avoid::TransformationType_FlipY);
     router->processTransaction();
-    router->outputDiagram("output/connectionpin02-8");
+    router->outputDiagram(IMAGE_OUTPUT_PATH "output/connectionpin02-8");
 
     delete router;
     return 0;

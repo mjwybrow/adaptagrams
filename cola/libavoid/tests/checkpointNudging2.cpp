@@ -2593,7 +2593,7 @@ int main(void) {
 #endif
 
     router->processTransaction();
-    router->outputDiagram("output/checkpointNudging2");
+    router->outputDiagram(IMAGE_OUTPUT_PATH "output/checkpointNudging2");
 
     // Second last segment of connector 256 and 258 should be in line with each other 
     // in the y dimension, in line with the checkpoint.

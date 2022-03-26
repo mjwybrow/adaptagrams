@@ -2648,7 +2648,7 @@ int main(void) {
 #endif
 
     router->processTransaction();
-    router->outputDiagram("output/finalSegmentNudging3");
+    router->outputDiagram(IMAGE_OUTPUT_PATH "output/finalSegmentNudging3");
 
     bool optimisedForConnectorType = false;
     int crossings = router->existsCrossings(optimisedForConnectorType);

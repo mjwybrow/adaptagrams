@@ -93,7 +93,7 @@ int main(void) {
     hyperedgeRerouter->registerHyperedgeForRerouting(hyperedgeTerminals);
 
     router->processTransaction();
-    router->outputDiagram("output/hyperedge02");
+    router->outputDiagram(IMAGE_OUTPUT_PATH "output/hyperedge02");
     delete router;
     return 0;
 };

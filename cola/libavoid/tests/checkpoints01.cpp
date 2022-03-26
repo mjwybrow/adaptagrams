@@ -53,10 +53,10 @@ int main(void) {
     ConnEnd dstPt716502036(Point(51800, 50925), 15);
     new ConnRef(router, srcPt716502036, dstPt716502036, 716502036);
     router->processTransaction();
-    router->outputDiagram("output/checkpoints01-1");
+    router->outputDiagram(IMAGE_OUTPUT_PATH "output/checkpoints01-1");
     router->moveJunction(junctionRef478845150, 585, 0);
     router->processTransaction();
-    router->outputDiagram("output/checkpoints01-2");
+    router->outputDiagram(IMAGE_OUTPUT_PATH "output/checkpoints01-2");
     delete router;
     return 0;
 };

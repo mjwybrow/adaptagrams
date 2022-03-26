@@ -32,9 +32,6 @@ add_library(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../)
 
 if (ENABLE_TESTS)
-    # 'output' is added to IMAGE_OUTPUT_PATH inside of tests to keep compatibility with Makefile build
-    add_definitions("-DIMAGE_OUTPUT_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}/tests/\"" "-DTEST_DATA_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}/tests/\"")
-
     # TODO: other test cases
     set(TEST_CASES routing01 chainconfig01 treeboxes01)
 
@@ -43,6 +40,9 @@ if (ENABLE_TESTS)
         add_executable(test_${PROJECT_NAME}_${TEST_CASE} tests/${TEST_CASE}.cpp)
         target_link_libraries(test_${PROJECT_NAME}_${TEST_CASE} ${PROJECT_NAME} avoid cola vpsc)
         target_include_directories(test_${PROJECT_NAME}_${TEST_CASE} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../)
+        # 'output' is added to IMAGE_OUTPUT_PATH inside of tests to keep compatibility with Makefile build
+        target_compile_definitions(test_${PROJECT_NAME}_${TEST_CASE} PRIVATE "-DIMAGE_OUTPUT_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}/tests/\"" "-DTEST_DATA_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}/tests/\"")
+
         add_test(NAME test_${PROJECT_NAME}_${TEST_CASE}
                 COMMAND test_${PROJECT_NAME}_${TEST_CASE})
     endforeach()

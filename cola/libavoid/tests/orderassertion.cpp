@@ -1714,7 +1714,7 @@ int main(void) {
     connRef315->setRoutingType((ConnType)2);
 
     router->processTransaction();
-    router->outputDiagram("output/orderassertion");
+    router->outputDiagram(IMAGE_OUTPUT_PATH "output/orderassertion");
     delete router;
     return 0;
 };

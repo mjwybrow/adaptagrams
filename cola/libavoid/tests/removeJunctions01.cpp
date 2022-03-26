@@ -90,7 +90,7 @@ int main(void) {
 
     ConnRef *mergedConn = junctionRef6->removeJunctionAndMergeConnectors();
     router->processTransaction();
-    router->outputDiagram("output/removeJunctions01");
+    router->outputDiagram(IMAGE_OUTPUT_PATH "output/removeJunctions01");
 
     std::pair<ConnEnd, ConnEnd> ends = mergedConn->endpointConnEnds();
 

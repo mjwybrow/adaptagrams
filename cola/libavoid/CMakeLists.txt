@@ -57,7 +57,6 @@ endif()
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../)
 
 if (ENABLE_TESTS)
-    add_definitions("-DIMAGE_OUTPUT_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}/tests/output/\"")
     set(TEST_CASES
         2junctions
         buildOrthogonalChannelInfo1
@@ -150,6 +149,9 @@ if (ENABLE_TESTS)
         add_executable(test_avoid_${TEST_CASE} tests/${TEST_CASE}.cpp)
         target_link_libraries(test_avoid_${TEST_CASE} ${PROJECT_NAME})
         target_include_directories(test_avoid_${TEST_CASE} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../)
+        # 'output' is added to IMAGE_OUTPUT_PATH inside of tests to keep compatibility with Makefile build
+        target_compile_definitions(test_${PROJECT_NAME}_${TEST_CASE} PRIVATE "-DIMAGE_OUTPUT_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}/tests/\"" "-DTEST_DATA_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}/tests/\"")
+
         add_test(NAME test_avoid_${TEST_CASE}
                 COMMAND test_avoid_${TEST_CASE})
     endforeach()
@@ -170,6 +172,9 @@ if (ENABLE_TESTS)
                 gtest_main
                 ${PROJECT_NAME}
         )
+        # 'output' is added to IMAGE_OUTPUT_PATH inside of tests to keep compatibility with Makefile build
+        target_compile_definitions(${FULL_TARGET_NAME} PRIVATE "-DIMAGE_OUTPUT_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}/tests/\"" "-DTEST_DATA_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}/tests/\"")
+
         gtest_discover_tests(${FULL_TARGET_NAME})
     endforeach()
 endif()

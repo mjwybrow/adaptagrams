@@ -29,12 +29,6 @@
 #include "libdialect/graphs.h"
 #include "libdialect/routing.h"
 
-#if !defined(IMAGE_OUTPUT_PATH)
-#define IMAGE_OUTPUT_PATH ""
-#endif
-#if !defined(TEST_DATA_PATH)
-#define TEST_DATA_PATH ""
-#endif
 
 using namespace dialect;
 

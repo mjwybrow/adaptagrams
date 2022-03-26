@@ -271,13 +271,13 @@ int main(void) {
     connRef3->setRoutingType((ConnType)2);
 
     router->processTransaction();
-    router->outputDiagram("output/hyperedge01-1");
+    router->outputDiagram(IMAGE_OUTPUT_PATH "output/hyperedge01-1");
 
     HyperedgeRerouter *hyperedgeRerouter = router->hyperedgeRerouter();
     hyperedgeRerouter->registerHyperedgeForRerouting(shapeRef102578723);
     
     router->processTransaction();
-    router->outputDiagram("output/hyperedge01-2");
+    router->outputDiagram(IMAGE_OUTPUT_PATH "output/hyperedge01-2");
 
     delete router;
     return 0;

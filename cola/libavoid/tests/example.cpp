@@ -74,7 +74,7 @@ int main(void)
     router->moveShape(shapeRef, 0.5, 0);
     router->processTransaction();
 
-    router->outputDiagram("output/example");
+    router->outputDiagram(IMAGE_OUTPUT_PATH "output/example");
     delete router;
     return 0;
 }

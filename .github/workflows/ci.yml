@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Build
+      - name: Build(cmake)
         run: |
           pushd cola
           mkdir -p build
@@ -40,4 +40,10 @@ jobs:
           make
           ctest --output-on-failure
           popd
+          popd
+
+      - name: Build(make)
+        run: |
+          pushd cola
+          ./autogen.sh
           popd

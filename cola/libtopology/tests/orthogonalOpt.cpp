@@ -4440,12 +4440,12 @@ int main(void) {
     idMap.addMappingForVariable(158, 159);
     
     router->processTransaction();
-    router->outputInstanceToSVG("orthogonalOpt-01");
+    router->outputInstanceToSVG(IMAGE_OUTPUT_PATH "output/orthogonalOpt-01");
     
     topology::AvoidTopologyAddon topologyAddon(rs, ccs, cluster140012646460960, idMap);
     router->setTopologyAddon(&topologyAddon);
     router->processTransaction();
-    router->outputInstanceToSVG("orthogonalOpt-02");
+    router->outputInstanceToSVG(IMAGE_OUTPUT_PATH "output/orthogonalOpt-02");
 
     delete cluster140012646460960;
     for_each(rs.begin(), rs.end(), cola::delete_object());

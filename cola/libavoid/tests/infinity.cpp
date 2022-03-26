@@ -20,7 +20,7 @@ int main(void) {
     ConnEnd dstPt6(Point(51925,50000), 4);
     new ConnRef(router, srcPt6, dstPt6, 6);
     router->processTransaction();
-    router->outputDiagram("output/infinity");
+    router->outputDiagram(IMAGE_OUTPUT_PATH "output/infinity");
     delete router;
     return 0;
 };

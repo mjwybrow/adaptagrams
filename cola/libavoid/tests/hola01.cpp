@@ -999,8 +999,7 @@ int main(void) {
 #endif
 
     router->processTransaction();
-    router->outputDiagram("output/hola01");
+    router->outputDiagram(IMAGE_OUTPUT_PATH "output/hola01");
     delete router;
     return 0;
 };
-

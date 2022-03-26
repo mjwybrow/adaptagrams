@@ -6696,7 +6696,7 @@ int main(void) {
     connRef714->setRoutingType((ConnType)2);
 
     router->processTransaction();
-    router->outputDiagram("output/reallyslowrouting");
+    router->outputDiagram(IMAGE_OUTPUT_PATH "output/reallyslowrouting");
     delete router;
     return 0;
 };

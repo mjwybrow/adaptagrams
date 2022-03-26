@@ -5235,7 +5235,7 @@ int main(void) {
 #endif
 
     router->processTransaction();
-    router->outputDiagram("output/checkpointNudging3");
+    router->outputDiagram(IMAGE_OUTPUT_PATH "output/checkpointNudging3");
     bool overlap = router->existsOrthogonalSegmentOverlap();
     delete router;
     return (overlap) ? 1 : 0;

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="-137.954 -437.882 1084.8 1416.13">
+<g inkscape:groupmode="layer" inkscape:label="ShapesRect">
+<rect id="rect-4" x="145.954" y="396.512" width="200" height="221" style="stroke-width: 1px; stroke: black; fill: grey; stroke-opacity: 0.5; fill-opacity: 0.4;" />
+<rect id="rect-3" x="616.26" y="766.244" width="200" height="165" style="stroke-width: 1px; stroke: black; fill: grey; stroke-opacity: 0.5; fill-opacity: 0.4;" />
+<rect id="rect-2" x="616.26" y="565.279" width="200" height="165" style="stroke-width: 1px; stroke: black; fill: grey; stroke-opacity: 0.5; fill-opacity: 0.4;" />
+<rect id="rect-1" x="-125.954" y="-425.882" width="1060.8" height="1392.13" style="stroke-width: 1px; stroke: black; fill: grey; stroke-opacity: 0.5; fill-opacity: 0.4;" />
+</g>
+<g inkscape:groupmode="layer" inkscape:label="DisplayConnectors">
+<path id="disp-8" d="M 345.954 452.512 L 714.26 452.512 L 714.26 848.744 " style="fill: none; stroke: black; stroke-width: 1px;" />
+<path id="disp-7" d="M 345.954 410.512 L 718.26 410.512 L 718.26 647.779 " style="fill: none; stroke: black; stroke-width: 1px;" />
+<path id="disp-6" d="M 616.26 579.279 L 608.26 579.279 L 608.26 848.744 L 716.26 848.744 " style="fill: none; stroke: black; stroke-width: 1px;" />
+<path id="disp-5" d="M 616.26 780.244 L 612.26 780.244 L 612.26 647.779 L 716.26 647.779 " style="fill: none; stroke: black; stroke-width: 1px;" />
+</g>
+</svg>

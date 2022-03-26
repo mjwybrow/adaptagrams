@@ -181,7 +181,7 @@ void test()
 	router0->processTransaction();
 
 	newanddeletedobjects_0 = router0->newAndDeletedObjectListsFromHyperedgeImprovement();
-	router0->outputDiagram("output/treeRootCrash02-1");
+	router0->outputDiagram(IMAGE_OUTPUT_PATH "output/treeRootCrash02-1");
 	end2_0 = Avoid::ConnEnd(junction0_144230940);
 	conn0_61425638->setDestEndpoint(end2_0);
 	conn0_61425638->makePathInvalid();
@@ -231,7 +231,7 @@ void test()
 	router0->processTransaction();
 
 	newanddeletedobjects_0 = router0->newAndDeletedObjectListsFromHyperedgeImprovement();
-	router0->outputDiagram("output/treeRootCrash02-2");
+	router0->outputDiagram(IMAGE_OUTPUT_PATH "output/treeRootCrash02-2");
 
 	delete router0;
 }

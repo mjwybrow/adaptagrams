@@ -54,7 +54,7 @@ int main(void) {
     connRef214207623->setRoutingType((ConnType)2);
 
     router->processTransaction();
-    router->outputDiagram("output/inlineoverlap04");
+    router->outputDiagram(IMAGE_OUTPUT_PATH "output/inlineoverlap04");
     bool overlap = router->existsOrthogonalFixedSegmentOverlap();
     delete router;
     return (overlap) ? 1 : 0;

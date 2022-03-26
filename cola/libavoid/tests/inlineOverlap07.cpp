@@ -68,7 +68,7 @@ int main(void) {
     connRef116944564->setRoutingType((ConnType)2);
 
     router->processTransaction();
-    router->outputDiagram("output/inlineoverlap07");
+    router->outputDiagram(IMAGE_OUTPUT_PATH "output/inlineoverlap07");
     delete router;
     return 0;
 };

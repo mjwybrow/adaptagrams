@@ -42,7 +42,7 @@ int main(void) {
     ConnEnd dstPt716502036(Point(51800, 50925), 15);
     new ConnRef(router, srcPt716502036, dstPt716502036, 716502036);
     router->processTransaction();
-    router->outputDiagram("output/tjunct");
+    router->outputDiagram(IMAGE_OUTPUT_PATH "output/tjunct");
     delete router;
     return 0;
 };

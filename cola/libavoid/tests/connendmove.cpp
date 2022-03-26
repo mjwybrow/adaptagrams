@@ -47,14 +47,14 @@ int main(void)
     Avoid::ConnRef *connRef = new Avoid::ConnRef(router, srcPt, dstPt);
     // Force inital callback:
     router->processTransaction();
-    router->outputDiagram("output/connendmove-1");
+    router->outputDiagram(IMAGE_OUTPUT_PATH "output/connendmove-1");
 
     Avoid::Point dstPt2(20, 20);
     connRef->setDestEndpoint(dstPt2);
     router->moveShape(shapeRef1, 0.5, 0);
 
     router->processTransaction();
-    router->outputDiagram("output/connendmove-2");
+    router->outputDiagram(IMAGE_OUTPUT_PATH "output/connendmove-2");
 
     srcPt.x += 0.5;
     connRef->setSourceEndpoint(srcPt);
@@ -77,7 +77,7 @@ int main(void)
     router->moveShape(shapeRef2, 0, 0.5);
     
     router->processTransaction();
-    router->outputDiagram("output/connendmove-3");
+    router->outputDiagram(IMAGE_OUTPUT_PATH "output/connendmove-3");
 
     delete router;
     return 0;

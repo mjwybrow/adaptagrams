@@ -2654,7 +2654,7 @@ int main(void) {
 #endif
 
     router->processTransaction();
-    router->outputDiagram("output/nudgeCrossing01");
+    router->outputDiagram(IMAGE_OUTPUT_PATH "output/nudgeCrossing01");
 
     bool optimisedForConnectorType = false;
     int crossings = router->existsCrossings(optimisedForConnectorType);

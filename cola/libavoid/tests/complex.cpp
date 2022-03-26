@@ -100,7 +100,7 @@ int main(void)
     shapeRef = nullptr;
     router->processTransaction();
 
-	router->outputDiagram("output/complex");
+	router->outputDiagram(IMAGE_OUTPUT_PATH "output/complex");
     delete router;
     return 0;
 }

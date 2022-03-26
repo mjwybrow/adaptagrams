@@ -1498,7 +1498,7 @@ int main(void) {
 #endif
 
     router->processTransaction();
-    router->outputDiagram("output/nudgingSkipsCheckpoint01");
+    router->outputDiagram(IMAGE_OUTPUT_PATH "output/nudgingSkipsCheckpoint01");
     Avoid::PolyLine route90 = connRef90->displayRoute();
     Avoid::PolyLine route91 = connRef91->displayRoute();
     
