@@ -1,5 +1,6 @@
 #include "libavoid/libavoid.h"
 #include "gtest/gtest.h"
+#include "gmock/gmock.h"
 /*
  * Test routing between child shapes in a parent shape.
  * All child shapes have two or four shape connection pins(with the same class id per pair) on shape edges for
@@ -7,6 +8,31 @@
  * */
 
 using namespace Avoid;
+
+bool compare_float(double x, double y, double epsilon = 0.001f) {
+    if(fabs(x - y) < epsilon)
+        return true;
+    return false;
+}
+
+MATCHER_P(IsEqualToRoute, value, "equal routes") {
+    std::vector<Point> actualRoute = arg->displayRoute().ps;
+    if (actualRoute.size() != value.size()) {
+        *result_listener << "Length of routes is not equal"<< actualRoute.size() << value.size();
+        return false;
+    }
+
+    bool result = true;
+    *result_listener << "\n";
+    for (int i=0; i < actualRoute.size(); i++) {
+        if (!(compare_float(actualRoute.at(i).x, value.at(i).x) &&
+                compare_float(actualRoute.at(i).y, value.at(i).y))) {
+            *result_listener << "Point " << (i + 1) << ": actual (" << actualRoute.at(i).x << ", " << actualRoute.at(i).y << "), expected (" << value.at(i).x << ", " << value.at(i).y << ")\n";
+            result = false;
+        }
+    }
+    return result;
+}
 
 
 class HierarchicalOrthogonalRouter : public ::testing::Test {
@@ -51,15 +77,17 @@ protected:
     Router *router;
 };
 
-void expectRoute(std::vector<Point> currentRoute, std::vector<Point> expectedRoute) {
-    EXPECT_EQ(currentRoute.size(), expectedRoute.size()) << "Route has wrong size";
-    if (currentRoute.size() != expectedRoute.size()) {
-        return;
-    }
-
-    for (int i=0; i < currentRoute.size(); i++) {
-        EXPECT_NEAR(currentRoute.at(i).x, expectedRoute.at(i).x, 0.001);
-        EXPECT_NEAR(currentRoute.at(i).y, expectedRoute.at(i).y, 0.001);
+namespace Avoid {
+    void PrintTo(ConnRef *conn, std::ostream *os) {
+        std::vector<Point> route = conn->displayRoute().ps;
+        *os << "[";
+        for (int i = 0; i < route.size(); i++) {
+            *os << "(" << route.at(i).x << ", " << route.at(i).y << ")";
+            if (i != route.size() - 1) {
+                *os << ", ";
+            }
+        }
+        *os << "]";
     }
 }
 
@@ -72,12 +100,12 @@ TEST_F(HierarchicalOrthogonalRouter, TwoChildrenVertically) {
     ConnRef *topToBottomConn = connectShapes(topChildShape, 5, bottomChildShape);
 
     router->processTransaction();
-    router->outputDiagramSVG(IMAGE_OUTPUT_PATH "HierarchicalOrthogonalRouter_TwoChildrenVertically");
+    router->outputDiagramSVG(IMAGE_OUTPUT_PATH "output/HierarchicalOrthogonalRouter_TwoChildrenVertically");
 
-    std::vector<Point> expectedBottomToTop = { {816.26, 780.244}, {820.26, 780.244}, {820.26, 647.779}, {716.26, 647.779} };
-    expectRoute(bottomToTopConn->displayRoute().ps, expectedBottomToTop);
-    std::vector<Point> expectedTopToBottom = { {616.26, 579.279}, {612.26, 579.279}, {612.26, 848.744}, {716.26, 848.744} };
-    expectRoute(topToBottomConn->displayRoute().ps, expectedTopToBottom);
+    std::vector<Point> expectedBottomToTop = { {616.26, 780.244}, {612.26, 780.244}, {612.26, 647.779}, {716.26, 647.779} };
+    EXPECT_THAT(bottomToTopConn, IsEqualToRoute(expectedBottomToTop));
+    std::vector<Point> expectedTopToBottom = { {616.26, 579.279}, {608.26, 579.279}, {608.26, 848.744}, {716.26, 848.744} };
+    EXPECT_THAT(topToBottomConn, IsEqualToRoute(expectedTopToBottom));
 }
 
 TEST_F(HierarchicalOrthogonalRouter, ThreeChildrenVertically) {
@@ -91,14 +119,14 @@ TEST_F(HierarchicalOrthogonalRouter, ThreeChildrenVertically) {
     ConnRef *leftToBottomConn = connectShapes(leftChildShape, 8, bottomChildShape);
 
     router->processTransaction();
-    router->outputDiagramSVG(IMAGE_OUTPUT_PATH "HierarchicalOrthogonalRouter_ThreeChildrenVertically");
+    router->outputDiagramSVG(IMAGE_OUTPUT_PATH "output/HierarchicalOrthogonalRouter_ThreeChildrenVertically");
 
     std::vector<Point> expectedBottomToTop = { {616.26, 780.244}, {612.26, 780.244}, {612.26, 647.779}, {716.26, 647.779} };
-    expectRoute(bottomToTopConn->displayRoute().ps, expectedBottomToTop);
+    EXPECT_THAT(bottomToTopConn, IsEqualToRoute(expectedBottomToTop));
     std::vector<Point> expectedTopToBottom = { {616.26, 579.279}, {608.26, 579.279}, {608.26, 848.744}, {716.26, 848.744} };
-    expectRoute(topToBottomConn->displayRoute().ps, expectedTopToBottom);
+    EXPECT_THAT(topToBottomConn, IsEqualToRoute(expectedTopToBottom));
     std::vector<Point> expectedLeftToTop = { {345.954, 410.512}, {718.26, 410.512}, {718.26, 647.779} };
-    expectRoute(leftToTopConn->displayRoute().ps, expectedLeftToTop);
+    EXPECT_THAT(leftToTopConn, IsEqualToRoute(expectedLeftToTop));
     std::vector<Point> expectedLeftToBottom = { {345.954, 452.512}, {714.26, 452.512}, {714.26, 848.744} };
-    expectRoute(leftToBottomConn->displayRoute().ps, expectedLeftToBottom);
+    EXPECT_THAT(leftToBottomConn, IsEqualToRoute(expectedLeftToBottom));
 }

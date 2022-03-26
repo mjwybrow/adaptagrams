@@ -1569,10 +1569,13 @@ static void processEventHori(Router *router, NodeSet& scanline,
         if (it != scanline.begin())
         {
             Node *u = *(--it);
-            // if node `u` is around `v`, then it's visual parent, not neighbour, ignore it
-            if (!(v->min[0] >= u->min[0] && v->min[1] >= u->min[1] && v->max[0] <= u->max[0] && v->max[1] <= u->max[1])) {
+            // if `v` is an obstacle and node `u` is around `v`, then it's visual parent, not neighbour, ignore it
+            if (!(v->v && v->min[0] >= u->min[0] && v->min[1] >= u->min[1] && v->max[0] <= u->max[0] && v->max[1] <= u->max[1])) {
                 v->firstAbove = u;
                 u->firstBelow = v;
+            } else {
+                v->firstAbove = nullptr;
+                u->firstBelow = nullptr;
             }
         }
         it = v->iter;

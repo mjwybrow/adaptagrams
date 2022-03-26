@@ -3315,6 +3315,7 @@ int main(void) {
 
     router->processTransaction();
     router->outputDiagram(IMAGE_OUTPUT_PATH "output/freeFloatingDirection01");
+    router->outputDiagramSVG(IMAGE_OUTPUT_PATH "output/freeFloatingDirection01");
     assert(connRef239->displayRoute().size() == 4);
     delete router;
     return 0;

@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns="http://www.w3.org/2000/svg" width="100%%" height="100%%" viewBox="188.297 28.6959 666.935 763.135">
+<path stroke="black" stroke-width="1" fill="none" d="M 211.30,185.08L 211.30,257.30"/>
+<path stroke="black" stroke-width="1" fill="none" d="M 211.30,51.70L 211.30,116.28"/>
+<path stroke="black" stroke-width="1" fill="none" d="M 832.23,563.22L 832.23,635.45"/>
+<path stroke="black" stroke-width="1" fill="none" d="M 290.69,410.26L 368.93,410.26"/>
+<path stroke="black" stroke-width="1" fill="none" d="M 211.30,257.30L 211.30,332.66"/>
+<path stroke="black" stroke-width="1" fill="none" d="M 445.69,410.26L 521.80,410.26"/>
+<path stroke="black" stroke-width="1" fill="none" d="M 832.23,635.45L 832.23,704.24"/>
+<path stroke="black" stroke-width="1" fill="none" d="M 832.23,704.24L 832.23,768.83"/>
+<path stroke="black" stroke-width="1" fill="none" d="M 368.93,410.26L 445.69,410.26"/>
+<path stroke="black" stroke-width="1" fill="none" d="M 597.76,410.26L 674.66,410.26"/>
+<path stroke="black" stroke-width="1" fill="none" d="M 211.30,116.28L 211.30,185.08"/>
+<path stroke="black" stroke-width="1" fill="none" d="M 832.23,487.87L 832.23,563.22"/>
+<path stroke="black" stroke-width="1" fill="none" d="M 674.66,410.26L 752.80,410.26"/>
+<path stroke="black" stroke-width="1" fill="none" d="M 521.80,410.26L 597.76,410.26"/>
+<path stroke="black" stroke-width="1" fill="none" d="M 832.23,487.87L 832.23,410.26"/>
+<path stroke="black" stroke-width="1" fill="none" d="M 832.23,410.26L 752.80,410.26"/>
+<path stroke="black" stroke-width="1" fill="none" d="M 290.69,410.26L 211.30,410.26"/>
+<path stroke="black" stroke-width="1" fill="none" d="M 211.30,410.26L 211.30,332.66"/>
+<g>
+<rect stroke="black" stroke-width="1" fill="gray" opacity="0.5" x="196.30" y="36.70" width="30.00" height="30.00"/>
+<text font-family="sans-serif" x="206.30" y="56.70">
+0
+</text>
+</g>
+<g>
+<rect stroke="black" stroke-width="1" fill="gray" opacity="0.5" x="196.30" y="101.28" width="30.00" height="30.00"/>
+<text font-family="sans-serif" x="206.30" y="121.28">
+1
+</text>
+</g>
+<g>
+<rect stroke="black" stroke-width="1" fill="gray" opacity="0.5" x="196.30" y="170.08" width="30.00" height="30.00"/>
+<text font-family="sans-serif" x="206.30" y="190.08">
+2
+</text>
+</g>
+<g>
+<rect stroke="black" stroke-width="1" fill="gray" opacity="0.5" x="196.30" y="242.30" width="30.00" height="30.00"/>
+<text font-family="sans-serif" x="206.30" y="262.30">
+3
+</text>
+</g>
+<g>
+<rect stroke="black" stroke-width="1" fill="gray" opacity="0.5" x="196.30" y="317.66" width="30.00" height="30.00"/>
+<text font-family="sans-serif" x="206.30" y="337.66">
+4
+</text>
+</g>
+<g>
+<rect stroke="black" stroke-width="1" fill="gray" opacity="0.5" x="275.69" y="395.26" width="30.00" height="30.00"/>
+<text font-family="sans-serif" x="285.69" y="415.26">
+5
+</text>
+</g>
+<g>
+<rect stroke="black" stroke-width="1" fill="gray" opacity="0.5" x="353.93" y="395.26" width="30.00" height="30.00"/>
+<text font-family="sans-serif" x="363.93" y="415.26">
+6
+</text>
+</g>
+<g>
+<rect stroke="black" stroke-width="1" fill="gray" opacity="0.5" x="430.69" y="395.26" width="30.00" height="30.00"/>
+<text font-family="sans-serif" x="440.69" y="415.26">
+7
+</text>
+</g>
+<g>
+<rect stroke="black" stroke-width="1" fill="gray" opacity="0.5" x="506.80" y="395.26" width="30.00" height="30.00"/>
+<text font-family="sans-serif" x="516.80" y="415.26">
+8
+</text>
+</g>
+<g>
+<rect stroke="black" stroke-width="1" fill="gray" opacity="0.5" x="582.76" y="395.26" width="30.00" height="30.00"/>
+<text font-family="sans-serif" x="592.76" y="415.26">
+9
+</text>
+</g>
+<g>
+<rect stroke="black" stroke-width="1" fill="gray" opacity="0.5" x="659.66" y="395.26" width="30.00" height="30.00"/>
+<text font-family="sans-serif" x="665.66" y="415.26">
+10
+</text>
+</g>
+<g>
+<rect stroke="black" stroke-width="1" fill="gray" opacity="0.5" x="737.80" y="395.26" width="30.00" height="30.00"/>
+<text font-family="sans-serif" x="743.80" y="415.26">
+11
+</text>
+</g>
+<g>
+<rect stroke="black" stroke-width="1" fill="gray" opacity="0.5" x="817.23" y="472.87" width="30.00" height="30.00"/>
+<text font-family="sans-serif" x="823.23" y="492.87">
+12
+</text>
+</g>
+<g>
+<rect stroke="black" stroke-width="1" fill="gray" opacity="0.5" x="817.23" y="548.22" width="30.00" height="30.00"/>
+<text font-family="sans-serif" x="823.23" y="568.22">
+13
+</text>
+</g>
+<g>
+<rect stroke="black" stroke-width="1" fill="gray" opacity="0.5" x="817.23" y="620.45" width="30.00" height="30.00"/>
+<text font-family="sans-serif" x="823.23" y="640.45">
+14
+</text>
+</g>
+<g>
+<rect stroke="black" stroke-width="1" fill="gray" opacity="0.5" x="817.23" y="689.24" width="30.00" height="30.00"/>
+<text font-family="sans-serif" x="823.23" y="709.24">
+15
+</text>
+</g>
+<g>
+<rect stroke="black" stroke-width="1" fill="gray" opacity="0.5" x="817.23" y="753.83" width="30.00" height="30.00"/>
+<text font-family="sans-serif" x="823.23" y="773.83">
+16
+</text>
+</g>
+<g>
+<rect stroke="black" stroke-width="1" fill="gray" opacity="0.5" x="828.48" y="406.51" width="7.50" height="7.50"/>
+<text font-family="sans-serif" x="823.23" y="415.26">
+17
+</text>
+</g>
+<g>
+<rect stroke="black" stroke-width="1" fill="gray" opacity="0.5" x="207.55" y="406.51" width="7.50" height="7.50"/>
+<text font-family="sans-serif" x="202.30" y="415.26">
+18
+</text>
+</g>
+</svg>

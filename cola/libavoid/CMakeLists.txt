@@ -137,7 +137,9 @@ if (ENABLE_TESTS)
         tjunct
         treeRootCrash01
         treeRootCrash02
-        unsatisfiableRangeAssertion
+        # temporary disabled because it's very resource consuming
+        # TODO: run only before release?
+        # unsatisfiableRangeAssertion
         validPaths01
         validPaths02
         vertlineassertion
@@ -150,7 +152,7 @@ if (ENABLE_TESTS)
         target_link_libraries(test_avoid_${TEST_CASE} ${PROJECT_NAME})
         target_include_directories(test_avoid_${TEST_CASE} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../)
         # 'output' is added to IMAGE_OUTPUT_PATH inside of tests to keep compatibility with Makefile build
-        target_compile_definitions(test_${PROJECT_NAME}_${TEST_CASE} PRIVATE "-DIMAGE_OUTPUT_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}/tests/\"" "-DTEST_DATA_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}/tests/\"")
+        target_compile_definitions(test_avoid_${TEST_CASE} PRIVATE -DIMAGE_OUTPUT_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}/tests/\" -DTEST_DATA_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}/tests/\")
 
         add_test(NAME test_avoid_${TEST_CASE}
                 COMMAND test_avoid_${TEST_CASE})
@@ -170,10 +172,11 @@ if (ENABLE_TESTS)
         target_link_libraries(
                 ${FULL_TARGET_NAME}
                 gtest_main
+                gmock_main
                 ${PROJECT_NAME}
         )
         # 'output' is added to IMAGE_OUTPUT_PATH inside of tests to keep compatibility with Makefile build
-        target_compile_definitions(${FULL_TARGET_NAME} PRIVATE "-DIMAGE_OUTPUT_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}/tests/\"" "-DTEST_DATA_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}/tests/\"")
+        target_compile_definitions(${FULL_TARGET_NAME} PRIVATE -DIMAGE_OUTPUT_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}/tests/\" -DTEST_DATA_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}/tests/\")
 
         gtest_discover_tests(${FULL_TARGET_NAME})
     endforeach()
