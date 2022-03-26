@@ -50,7 +50,6 @@ libcola/config.h.in~
 
 diff
 
-*/tests/**/*.svg
 */tests/**/*.tglf
 */tests/**/*.txt
 !libdialect/tests/swig_tests

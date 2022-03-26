@@ -1,18 +1,18 @@
 #include "libavoid/libavoid.h"
 #include "gtest/gtest.h"
 /*
- * Test routing between two child shapes in a parent shape.
- * Both child shapes have two shape connection pins(with the same class id) on shape edges for outgoing connections
- * and one shape connection pin in the center for incoming connection.
- *
- * Checks:
- * - https://github.com/Aksem/adaptagrams/issues/3
+ * Test routing between child shapes in a parent shape.
+ * All child shapes have two or four shape connection pins(with the same class id per pair) on shape edges for
+ * outgoing connections and one shape connection pin in the center for incoming connection.
  * */
 
 using namespace Avoid;
 
+#if !defined(IMAGE_OUTPUT_PATH)
+#define IMAGE_OUTPUT_PATH ""
+#endif
 
-class OrthogonalRouterFixture : public ::testing::Test {
+class HierarchicalOrthogonalRouter : public ::testing::Test {
 protected:
     void SetUp() override {
         router = new Router(OrthogonalRouting);
@@ -61,12 +61,13 @@ void expectRoute(std::vector<Point> currentRoute, std::vector<Point> expectedRou
     }
 
     for (int i=0; i < currentRoute.size(); i++) {
-        EXPECT_DOUBLE_EQ(currentRoute.at(i).x, expectedRoute.at(i).x);
-        EXPECT_DOUBLE_EQ(currentRoute.at(i).y, expectedRoute.at(i).y);
+        EXPECT_NEAR(currentRoute.at(i).x, expectedRoute.at(i).x, 0.001);
+        EXPECT_NEAR(currentRoute.at(i).y, expectedRoute.at(i).y, 0.001);
     }
 }
 
-TEST_F(OrthogonalRouterFixture, TwoChildrenVerticallyHaveOptimalConnections) {
+/* Checks: https://github.com/Aksem/adaptagrams/issues/3 */
+TEST_F(HierarchicalOrthogonalRouter, TwoChildrenVertically) {
     ShapeRef *topChildShape = addChild({ 616.26, 565.279 }, { 816.26, 730.279 }, 2, 5);
     ShapeRef *bottomChildShape = addChild({ 616.26, 766.244 }, { 816.26, 931.244 }, 3, 6);
 
@@ -74,7 +75,7 @@ TEST_F(OrthogonalRouterFixture, TwoChildrenVerticallyHaveOptimalConnections) {
     ConnRef *topToBottomConn = connectShapes(topChildShape, 5, bottomChildShape);
 
     router->processTransaction();
-    router->outputDiagramSVG("TwoChildrenVerticallyHaveOptimalConnections");
+    router->outputDiagramSVG(IMAGE_OUTPUT_PATH "HierarchicalOrthogonalRouter_TwoChildrenVertically");
 
     std::vector<Point> expectedBottomToTop = { {816.26, 780.244}, {820.26, 780.244}, {820.26, 647.779}, {716.26, 647.779} };
     expectRoute(bottomToTopConn->displayRoute().ps, expectedBottomToTop);
@@ -82,7 +83,7 @@ TEST_F(OrthogonalRouterFixture, TwoChildrenVerticallyHaveOptimalConnections) {
     expectRoute(topToBottomConn->displayRoute().ps, expectedTopToBottom);
 }
 
-TEST_F(OrthogonalRouterFixture, ThreeChildrenVerticallyHaveOptimalConnections) {
+TEST_F(HierarchicalOrthogonalRouter, ThreeChildrenVertically) {
     ShapeRef *topChildShape = addChild({ 616.26, 565.279 }, { 816.26, 730.279 }, 2, 5);
     ShapeRef *bottomChildShape = addChild({ 616.26, 766.244 }, { 816.26, 931.244 }, 3, 6);
     ShapeRef *leftChildShape = addChild({145.954, 396.512}, {345.954, 617.512}, 4, 7, 8);
@@ -93,10 +94,14 @@ TEST_F(OrthogonalRouterFixture, ThreeChildrenVerticallyHaveOptimalConnections) {
     ConnRef *leftToBottomConn = connectShapes(leftChildShape, 8, bottomChildShape);
 
     router->processTransaction();
-    router->outputDiagramSVG("ThreeChildrenVerticallyHaveOptimalConnections");
+    router->outputDiagramSVG(IMAGE_OUTPUT_PATH "HierarchicalOrthogonalRouter_ThreeChildrenVertically");
 
-    std::vector<Point> expectedBottomToTop = { {816.26, 780.244}, {820.26, 780.244}, {820.26, 647.779}, {716.26, 647.779} };
+    std::vector<Point> expectedBottomToTop = { {616.26, 780.244}, {612.26, 780.244}, {612.26, 647.779}, {716.26, 647.779} };
     expectRoute(bottomToTopConn->displayRoute().ps, expectedBottomToTop);
-    std::vector<Point> expectedTopToBottom = { {616.26, 579.279}, {612.26, 579.279}, {612.26, 848.744}, {716.26, 848.744} };
+    std::vector<Point> expectedTopToBottom = { {616.26, 579.279}, {608.26, 579.279}, {608.26, 848.744}, {716.26, 848.744} };
     expectRoute(topToBottomConn->displayRoute().ps, expectedTopToBottom);
+    std::vector<Point> expectedLeftToTop = { {345.954, 410.512}, {718.26, 410.512}, {718.26, 647.779} };
+    expectRoute(leftToTopConn->displayRoute().ps, expectedLeftToTop);
+    std::vector<Point> expectedLeftToBottom = { {345.954, 452.512}, {714.26, 452.512}, {714.26, 848.744} };
+    expectRoute(leftToBottomConn->displayRoute().ps, expectedLeftToBottom);
 }

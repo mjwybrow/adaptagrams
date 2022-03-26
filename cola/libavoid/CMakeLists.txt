@@ -57,6 +57,7 @@ endif()
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../)
 
 if (ENABLE_TESTS)
+    add_definitions("-DIMAGE_OUTPUT_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}/tests/output/\"")
     set(TEST_CASES
         2junctions
         buildOrthogonalChannelInfo1
@@ -155,7 +156,7 @@ if (ENABLE_TESTS)
 
     # new tests with test framework
     set(NEW_TEST_CASES
-        orthogonal/twoChildShapes)
+        orthogonal/hierarchical)
     foreach(TEST_CASE IN LISTS NEW_TEST_CASES)
         set(TARGET_NAME "")
         string(REPLACE "/" "_" TARGET_NAME ${TEST_CASE})
