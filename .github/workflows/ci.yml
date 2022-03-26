@@ -47,3 +47,10 @@ jobs:
           pushd cola
           ./autogen.sh
           popd
+
+      - name: Build bindings(webassembly)
+        run: |
+          pushd cola/bindings/webassembly/libavoid-js/
+          mkdir build
+          pushd build
+          python3 ../tools/generate.py

@@ -92,20 +92,27 @@ Run `./autogen.sh` to compile from scratch.
 Use from other languages
 ------------------------
 
-Bindings for use of the Adaptagrams libraries can be generated using [SWIG][swig].  The repository contains a SWIG interface file `cola/adaptagrams.i`.  We have successfully tested and used Adaptagrams from Java and Python in this way.
+### WebAssembly
 
-Cola in the browser
--------------------
+There are Javascript/WebAssembly bindings of libavoid library available [here][libavoid-js]. 
+
+### SWIG (Python & Java)
+
+Bindings for use of the Adaptagrams libraries can be generated using [SWIG][swig]. The repository contains a SWIG interface file `cola/adaptagrams.i`. We have successfully tested and used Adaptagrams from Java and Python in this way.
+
+**Current state:** untested and can be buggy([one of issues][swigissue]).
+
+### Cola in the browser
+
 
 [cola.js][webcola] (a.k.a. WebCola) is a JavaScript based rewrite of libcola which works well with [D3.js][d3]
 
-[d3]: http://d3js.org/
-[webcola]: http://ialab.it.monash.edu/webcola/
+[d3]: https://d3js.org/
+[webcola]: https://ialab.it.monash.edu/webcola/
 [swig]: http://www.swig.org/
-[td]: http://users.monash.edu/~tdwyer/
-[km]: http://users.monash.edu/~kmarriott/
-[mw]: http://users.monash.edu/~mwybrow/
-[sk]: http://skieffer.info/
+[td]: https://users.monash.edu/~tdwyer/
+[mw]: https://users.monash.edu/~mwybrow/
+[sk]: https://skieffer.info/
 [ialab]: http://ialab.it.monash.edu/
 [monash]: http://wwww.csse.monash.edu.au/
 [libvpsc]: http://www.adaptagrams.org/documentation/libvpsc.html
@@ -121,4 +128,5 @@ Cola in the browser
 [cairo]: http://cairographics.org/
 [repo]: https://github.com/mjwybrow/adaptagrams/
 [brlcad]: http://brlcad.org/
-
+[libavoid-js]: https://github.com/Aksem/libavoid-js
+[swigissue]: https://github.com/mjwybrow/adaptagrams/issues/50

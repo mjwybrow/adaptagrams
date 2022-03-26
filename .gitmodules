@@ -1,0 +1,3 @@
+[submodule "cola/bindings/webassembly/libavoid-js"]
+	path = cola/bindings/webassembly/libavoid-js
+	url = https://github.com/Aksem/libavoid-js.git
