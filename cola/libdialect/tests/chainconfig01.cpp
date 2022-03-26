@@ -37,6 +37,13 @@
 #include "libdialect/constraints.h"
 #include "libdialect/chains.h"
 
+#if !defined(IMAGE_OUTPUT_PATH)
+#define IMAGE_OUTPUT_PATH ""
+#endif
+#if !defined(TEST_DATA_PATH)
+#define TEST_DATA_PATH ""
+#endif
+
 using namespace dialect;
 
 using std::vector;
@@ -45,10 +52,10 @@ using std::cout;
 using std::endl;
 
 int main(void) {
-    Graph_SP graph = buildGraphFromTglfFile("graphs/" "special/chainconfig01.tglf");
+    Graph_SP graph = buildGraphFromTglfFile(TEST_DATA_PATH "graphs/" "special/chainconfig01.tglf");
     graph->getSepMatrix().setCardinalOP(0, 1, CardinalDir::SOUTH);
     graph->getSepMatrix().setCardinalOP(16, 15, CardinalDir::NORTH);
-    writeStringToFile(graph->writeTglf(), "output/" "chainconfig01_" "00_initial.tglf");
+    writeStringToFile(graph->writeTglf(), IMAGE_OUTPUT_PATH "output/" "chainconfig01_" "00_initial.tglf");
     vector<deque<Node_SP>> chains, cycles;
     graph->getChainsAndCycles(chains, cycles);
     COLA_ASSERT(chains.size() == 1);
@@ -57,11 +64,11 @@ int main(void) {
     chain.takeShapeBasedConfiguration();
     ColaOptions opts;
     graph->project(opts, vpsc::XDIM);
-    writeStringToFile(graph->writeTglf(), "output/" "chainconfig01_" "01_projX.tglf");
+    writeStringToFile(graph->writeTglf(), IMAGE_OUTPUT_PATH "output/" "chainconfig01_" "01_projX.tglf");
     graph->project(opts, vpsc::YDIM);
-    writeStringToFile(graph->writeTglf(), "output/" "chainconfig01_" "02_projY.tglf");
+    writeStringToFile(graph->writeTglf(), IMAGE_OUTPUT_PATH "output/" "chainconfig01_" "02_projY.tglf");
     graph->destress();
-    writeStringToFile(graph->writeTglf(), "output/" "chainconfig01_" "03_destress.tglf");
-    writeStringToFile(graph->writeSvg(), "chainconfig01_03_destress.svg");
+    writeStringToFile(graph->writeTglf(), IMAGE_OUTPUT_PATH "output/" "chainconfig01_" "03_destress.tglf");
+    writeStringToFile(graph->writeSvg(), IMAGE_OUTPUT_PATH "output/chainconfig01_03_destress.svg");
     return 0;
 }

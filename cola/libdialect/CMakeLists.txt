@@ -32,6 +32,9 @@ add_library(${PROJECT_NAME}
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../)
 
 if (ENABLE_TESTS)
+    # 'output' is added to IMAGE_OUTPUT_PATH inside of tests to keep compatibility with Makefile build
+    add_definitions("-DIMAGE_OUTPUT_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}/tests/\"" "-DTEST_DATA_PATH=\"${CMAKE_CURRENT_SOURCE_DIR}/tests/\"")
+
     # TODO: other test cases
     set(TEST_CASES routing01 chainconfig01 treeboxes01)
 
