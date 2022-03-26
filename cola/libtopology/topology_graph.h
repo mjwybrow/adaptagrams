@@ -26,6 +26,7 @@
 #ifndef TOPOLOGY_GRAPH_H
 #define TOPOLOGY_GRAPH_H
 
+#include <functional>
 #include <vector>
 
 #include "libvpsc/assertions.h"
