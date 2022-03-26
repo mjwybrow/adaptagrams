@@ -11,7 +11,7 @@ check_PROGRAMS = \
 	penaltyRerouting01 \
 	treeRootCrash01 \
 	treeRootCrash02 \
-        forwardFlowingConnectors01 \
+	forwardFlowingConnectors01 \
 	example \
 	endlessLoop01 \
 	complex \
@@ -19,14 +19,14 @@ check_PROGRAMS = \
 	inline \
 	infinity \
 	latesetup \
-	inlineoverlap01 \
-	inlineoverlap02 \
-	inlineoverlap03 \
-	inlineoverlap04 \
-	inlineoverlap05 \
-	inlineoverlap06 \
-	inlineoverlap07 \
-	inlineoverlap08 \
+	inlineOverlap01 \
+	inlineOverlap02 \
+	inlineOverlap03 \
+	inlineOverlap04 \
+	inlineOverlap05 \
+	inlineOverlap06 \
+	inlineOverlap07 \
+	inlineOverlap08 \
 	inlineOverlap09 \
 	inlineOverlap10 \
 	inlineOverlap11 \
