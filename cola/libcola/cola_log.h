@@ -35,7 +35,7 @@ Description: Unpublished source code accompanying the article by Petru Marginean
 #include <iomanip>
 
 namespace cola {
-inline std::string NowTime();
+std::string NowTime();
 
 enum TLogLevel {logERROR, logWARNING, logINFO, logDEBUG, logDEBUG1, logDEBUG2, logDEBUG3, logDEBUG4};
 
@@ -161,7 +161,7 @@ class FILELOG_DECLSPEC FILELog : public Log<Output2FILE> {};
     else if (level > cola::FILELog::ReportingLevel() || !cola::Output2FILE::Stream()) ; \
     else cola::FILELog().Get(level)
 
-inline std::string NowTime();
+std::string NowTime();
 
 } // namespace cola
 

@@ -98,8 +98,7 @@ Segment* EdgePoint::prune(vpsc::Dim scanDim) {
     }
     // transfer each StraightConstraint from inSegment and outSegment
     // to new Segment s.
-    Segment::TransferStraightConstraint transfer = 
-        bind1st(mem_fun(&Segment::transferStraightConstraint),s);
+    Segment::TransferStraightConstraint transfer = std::bind(&Segment::transferStraightConstraint, s, std::placeholders::_1);
     inSegment->forEachStraightConstraint(transfer);
     outSegment->forEachStraightConstraint(transfer);
 
@@ -289,7 +288,7 @@ bool EdgePoint::assertConvexBend() const {
                         COLA_ASSERT(false);
                 }
             }
-        } catch(runtime_error e) {
+        } catch(runtime_error & e) {
             printf("  convexity bend point test failed: %s, dx=%f, dy=%f, cp=%f:\n",e.what(),dx,dy,cp);
             printf("    (nid=%d,ri=%d):u={%f,%f}\n",
                     u->node->id,u->rectIntersect,u->posX(),u->posY());

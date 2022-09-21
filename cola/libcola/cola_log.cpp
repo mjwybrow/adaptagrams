@@ -26,7 +26,7 @@ namespace cola {
 
 #include <windows.h>
 
-inline std::string NowTime()
+std::string NowTime()
 {
     const int MAX_LEN = 200;
     char buffer[MAX_LEN];
@@ -44,7 +44,7 @@ inline std::string NowTime()
 
 #include <sys/time.h>
 
-inline std::string NowTime()
+std::string NowTime()
 {
     char buffer[11];
     time_t t;
