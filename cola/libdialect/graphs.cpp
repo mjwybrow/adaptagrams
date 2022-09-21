@@ -651,8 +651,8 @@ ColaGraphRep &Graph::updateColaGraphRep(void) {
     m_cgr.es.clear();
     for (auto p : m_edges) {
         m_cgr.es.emplace_back(
-            m_cgr.id2ix[p.second->getSourceEnd()->id()],
-            m_cgr.id2ix[p.second->getTargetEnd()->id()]
+            (unsigned)m_cgr.id2ix[p.second->getSourceEnd()->id()],
+            (unsigned)m_cgr.id2ix[p.second->getTargetEnd()->id()]
         );
     }
     // Update the CFDL too.

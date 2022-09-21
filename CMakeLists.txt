@@ -26,16 +26,18 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     
     message ("Adding MFC...")
     
-#    set(CMAKE_MFC_FLAG 1)
     add_definitions(-DNOMINMAX)
-#    add_definitions(-D_AFXDLL)
     add_definitions(-DLIBAVOID_NO_DLL)
     add_definitions(-D_WIN32_WINNT=0x0501)
     add_definitions(-D_USE_MATH_DEFINES)
+#    add_compile_options(/W4 /WX)
+else()
+    # lots of warnings and all warnings as errors
+    add_compile_options(-Wall -W -Wpointer-arith -Wcast-align -Wsign-compare -Woverloaded-virtual -Wswitch)
 endif()
 
 #------------------------------------------------------------------------------
-set(libavoid_SOURCES
+set(avoid_SOURCES
     ./cola/libavoid/vpsc.cpp
     ./cola/libavoid/visibility.cpp
     ./cola/libavoid/viscluster.cpp
@@ -90,13 +92,13 @@ set(libavoid_SOURCES
     ./cola/libavoid/actioninfo.h
     )
 
-add_library(libavoid STATIC ${libavoid_SOURCES})
+add_library(avoid STATIC ${avoid_SOURCES})
 
 
 
 #------------------------------------------------------------------------------
 
-set(libcola_SOURCES 
+set(cola_SOURCES 
     ./cola/libcola/output_svg.cpp
     ./cola/libcola/gradient_projection.cpp
     ./cola/libcola/convex_hull.cpp
@@ -135,8 +137,8 @@ set(libcola_SOURCES
     ./cola/libcola/pseudorandom.cpp
     )
 
-add_library(libcola STATIC ${libcola_SOURCES})
-target_link_libraries(libcola PUBLIC libvpsc)
+add_library(cola STATIC ${cola_SOURCES})
+target_link_libraries(cola PUBLIC vpsc)
 
 
 
@@ -144,7 +146,7 @@ target_link_libraries(libcola PUBLIC libvpsc)
 
 #------------------------------------------------------------------------------
 
-set(libdialect_SOURCES 
+set(dialect_SOURCES 
     ./cola/libdialect/expansion.cpp
     ./cola/libdialect/faces.cpp
     ./cola/libdialect/graphs.cpp
@@ -193,8 +195,8 @@ set(libdialect_SOURCES
     ./cola/libdialect/edges.cpp
     )
 
-add_library(libdialect STATIC ${libdialect_SOURCES})
-set_target_properties(libdialect PROPERTIES POSITION_INDEPENDENT_CODE ON)
+add_library(dialect STATIC ${dialect_SOURCES})
+set_target_properties(dialect PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 
 
@@ -202,7 +204,7 @@ set_target_properties(libdialect PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 
 #------------------------------------------------------------------------------
-set(libproject_SOURCES 
+set(project_SOURCES 
     ./cola/libproject/variable.h
     ./cola/libproject/util.h
     ./cola/libproject/project_log.h
@@ -211,8 +213,8 @@ set(libproject_SOURCES
     ./cola/libproject/project.cpp
     )
 
-add_library(libproject STATIC ${libproject_SOURCES})
-set_target_properties(libproject PROPERTIES POSITION_INDEPENDENT_CODE ON)
+add_library(project STATIC ${project_SOURCES})
+set_target_properties(project PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 
 
@@ -220,7 +222,7 @@ set_target_properties(libproject PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 
 #------------------------------------------------------------------------------
-set(libtopology_SOURCES 
+set(topology_SOURCES 
     ./cola/libtopology/topology_log.h
     ./cola/libtopology/topology_graph.h
     ./cola/libtopology/topology_constraints.h
@@ -236,7 +238,7 @@ set(libtopology_SOURCES
     ./cola/libtopology/util.h
     )
    
-add_library(libtopology STATIC ${libtopology_SOURCES})
+add_library(topology STATIC ${topology_SOURCES})
 
 
 
@@ -246,7 +248,7 @@ add_library(libtopology STATIC ${libtopology_SOURCES})
 
 
 #------------------------------------------------------------------------------
-set(libvpsc_SOURCES 
+set(vpsc_SOURCES 
     ./cola/libvpsc/cbuffer.h
     ./cola/libvpsc/constraint.h
     ./cola/libvpsc/exceptions.h
@@ -267,6 +269,6 @@ set(libvpsc_SOURCES
     ./cola/libvpsc/blocks.h
     )
 
-add_library(libvpsc STATIC ${libvpsc_SOURCES})
+add_library(vpsc STATIC ${vpsc_SOURCES})
 
  
