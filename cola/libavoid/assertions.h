@@ -36,11 +36,16 @@
   #ifdef _MSC_VER
     // Compiling with Microsoft Visual C++ compiler
 
-    // Prevent inclusion of min and max macros.
-    #define NOMINMAX
+    #ifdef USE_MFC
+        // Prevent inclusion of min and max macros.
+        #define NOMINMAX
 
-    #include <afx.h>
-    #define COLA_ASSERT(expr) ASSERT(expr)
+        #include <afx.h>
+        #define COLA_ASSERT(expr) ASSERT(expr)
+    #else
+        #include <cassert>
+        #define COLA_ASSERT(expr)  assert(expr)
+    #endif
 
   #elif defined(USE_ASSERT_EXCEPTIONS)
 

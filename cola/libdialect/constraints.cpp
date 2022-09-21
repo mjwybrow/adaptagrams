@@ -211,8 +211,8 @@ void SepPair::transform(SepTransform tf) {
     switch(tf) {
         case SepTransform::ROTATE90CW:
             // Swap x- and y-types.
-            swap(xst, yst);
-            swap(xgt, ygt);
+            std::swap(xst, yst);
+            std::swap(xgt, ygt);
             // xgap <- -ygap
             // ygap <- +xgap
             g = xgap;
@@ -221,8 +221,8 @@ void SepPair::transform(SepTransform tf) {
             break;
         case SepTransform::ROTATE90ACW:
             // Swap x- and y-types.
-            swap(xst, yst);
-            swap(xgt, ygt);
+            std::swap(xst, yst);
+            std::swap(xgt, ygt);
             // xgap <- +ygap
             // ygap <- -xgap
             g = xgap;
@@ -244,8 +244,8 @@ void SepPair::transform(SepTransform tf) {
             break;
         case SepTransform::FLIPMD:
             // Swap x- and y-types.
-            swap(xst, yst);
-            swap(xgt, ygt);
+            std::swap(xst, yst);
+            std::swap(xgt, ygt);
             // xgap <- +ygap
             // ygap <- +xgap
             g = xgap;
@@ -254,8 +254,8 @@ void SepPair::transform(SepTransform tf) {
             break;
         case SepTransform::FLIPOD:
             // Swap x- and y-types.
-            swap(xst, yst);
-            swap(xgt, ygt);
+            std::swap(xst, yst);
+            std::swap(xgt, ygt);
             // xgap <- -ygap
             // ygap <- -xgap
             g = xgap;

@@ -1011,7 +1011,7 @@ static void buildOrthogonalLayoutSegments(Router *router,
         {
             continue;
         }
-        Polygon& displayRoute = (*curr)->displayRoute();
+        Avoid::Polygon& displayRoute = (*curr)->displayRoute();
         bool routeHasCheckpointInfo = !displayRoute.checkpointsOnRoute.empty();
         // Determine all line segments that we are interested in shifting.
         // We don't consider the first or last segment of a path.
@@ -1588,7 +1588,7 @@ static void simplifyOrthogonalRoutes(Router *router)
 }
 
 typedef std::vector<ConnRef *> ConnRefVector;
-typedef std::vector<Polygon> RouteVector;
+typedef std::vector<Avoid::Polygon> RouteVector;
 
 class CmpLineOrder
 {

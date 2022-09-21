@@ -27,6 +27,7 @@
 #define TOPOLOGY_GRAPH_H
 
 #include <vector>
+#include <functional>
 
 #include "libvpsc/assertions.h"
 #include "libvpsc/rectangle.h"
