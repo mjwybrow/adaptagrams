@@ -51,8 +51,8 @@ class Graph;
  * i6 i7
  * ...
  * #
- * j0 j1 D  R  G
- * j2 j3 D' R' G'
+ * j0 j1 T  D  R  G
+ * j2 j3 T' D' R' G'
  * ...
  *
  * and is of the form:
@@ -75,13 +75,23 @@ class Graph;
  * source and target nodes are implicit route points, and should not be listed.
  *
  * SEPCOS defines one separation constraint per line. As with the LINKS,
- * a line begins with two node IDs. This is followed by a DIRECTION D in
- * [NSEWUDLRXY] (North, South, East, West, Up, Down, Left, Right, x-dimension,
- * y-dimension), a RELATION R in [EM] (Exact, Minimal), and a GAP, which is a float.
- *
- * Notes about the DIRECTION:
- *  - NSEW mean a separation plus an alignment, while UDLR mean just a separation.
- *  - X is a synonym for R, and Y a synonym for D.
+ * a line begins with two node IDs. This is followed by a *gap type*,
+ * a *direction*, a *relation*, and a *gap* G.
+ * 
+ *   gap type: a character among: B, C
+ *      B: "boundary gap". The gap is between the node boundaries.
+ *      C: "centre gap". The gap is between the node centres.
+ * 
+ *   direction: a character among: N, S, E, W, U, D, L, R, X, Y
+ *      N, S, E, W: north, south, east, west. A separation, plus an alignment.
+ *      U, D, L, R: up, down, left, right. Just a separation.
+ *      X, Y: synonyms for R and D, respectively
+ * 
+ *   relation: one of the strings '>=' or '=='
+ *      >=: the constraint sets a minimum gap
+ *      ==: the constraint sets an exact gap
+ * 
+ *   gap: a float value, specifying the desired gap
  *
  * The NODES section must be nonempty, but either or both of the LINKS
  * and SEPCOS sections may be empty or omitted.
