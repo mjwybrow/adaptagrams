@@ -7,7 +7,7 @@ LDADD = \
   $(top_builddir)/libdialect/libdialect.la
 
 # Basic unit testing:
-check_PROGRAMS = aca assignments bbox bendcosts chainconfig01 chainconfig02 chainconfig03 chainsandcycles cmplayout01 collateralexpand01 collateralexpand02 conncomps containedsegment01 destress destress02 destress_aca expand01 expand02 expand03 expand04 expand05 expand06 expand07 expand08 expand09 extrabdrygap faceset01 faceset02 hola10 hola11 hola12 holalonenode inserttrees01 leaflessroute01 leaflessroute02 lookupqas nbroctal nearalign01 nearalign02 nearby negativesepco negativezero nodeconfig01 partition01 peel planarise01 planarise02 projseq01 readconstraints rotate01 rotate02 rotate03 rotate04 routing01 solidify symmtree tglf01 treeboxes01 treeplacement01 treeplacement02 treeplacement03 trees trees2 vpsc01
+check_PROGRAMS = aca assignments bbox bendcosts chainconfig01 chainconfig02 chainconfig03 chainsandcycles cmplayout01 collateralexpand01 collateralexpand02 conncomps containedsegment01 destress destress02 destress_aca expand01 expand02 expand03 expand04 expand05 expand06 expand07 expand08 expand09 extrabdrygap faceset01 faceset02 hola10 hola11 hola12 holalonenode inserttrees01 leaflessroute01 leaflessroute02 lookupqas nbroctal nearalign01 nearalign02 nearby negativesepco negativezero nodeconfig01 nudgeopt partition01 peel planarise01 planarise02 projseq01 readconstraints rotate01 rotate02 rotate03 rotate04 routing01 solidify symmtree tglf01 treeboxes01 treeplacement01 treeplacement02 treeplacement03 trees trees2 vpsc01
 
 # Test HOLA on some larger and more interesting SBGN and metro map diagrams:
 # Takes a few minutes.
@@ -62,6 +62,7 @@ nearby_SOURCES = nearby.cpp
 negativesepco_SOURCES = negativesepco.cpp
 negativezero_SOURCES = negativezero.cpp
 nodeconfig01_SOURCES = nodeconfig01.cpp
+nudgeopt_SOURCES = nudgeopt.cpp
 partition01_SOURCES = partition01.cpp
 peel_SOURCES = peel.cpp
 planarise01_SOURCES = planarise01.cpp
