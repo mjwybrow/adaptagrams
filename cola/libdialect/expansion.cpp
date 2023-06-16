@@ -191,8 +191,10 @@ ProjSeq_SP ExpansionManager::extendProjSeq(ProjSeq_SP ps0) {
     std::copy(m_goals.begin()+1, m_goals.end(), remainingGoals.begin());
     // Initiate the recursive expansion.
     ProjSeq_SP ps1 = g0->tryExpansionRec(ps0, remainingGoals);
-    // Reset so can be applied again by client.
-    ps1->reset();
+    if (ps1) {
+        // Reset so can be applied again by client.
+        ps1->reset();
+    }
     return ps1;
 }
 
@@ -293,7 +295,10 @@ ProjSeq_SP ExpansionGoal::tryExpansionRec(ProjSeq_SP ps0, std::deque<ExpansionGo
     // We use a fresh copy of the given projeciton sequence, so that it remains unaltered,
     // and other expansions can be attempted with it.
     ProjSeq_SP ps1 = std::make_shared<ProjSeq>(*ps0);
-    cs->makeRoomForTreeNode(ps1);
+    bool ok = cs->makeRoomForTreeNode(ps1);
+    if (!ok) {
+        return nullptr;
+    }
     // Are there any further goals?
     if (!remainingGoals.empty()) {
         // If so, then recurse.
@@ -364,7 +369,7 @@ void ContainedSegment::addSepCoForPtAndNode(Avoid::Point &pt, Node_SP &node, dim
     sepcos.insert(sc);
 }
 
-void ContainedSegment::makeRoomForTreeNode(ProjSeq_SP ps0, bool doProject) {
+bool ContainedSegment::makeRoomForTreeNode(ProjSeq_SP ps0, bool doProject) {
     // We build a set of SepCos, add it to the projection sequence, and attempt to project.
     SepCoSet sepcos;
     // Get the tree box and root node.
@@ -443,15 +448,12 @@ void ContainedSegment::makeRoomForTreeNode(ProjSeq_SP ps0, bool doProject) {
         addSepCoForPtAndNode(pt, nbrTreeBox, nbrTreeBox->getDimensions(), sepcos, treeBox);
     }
 
-    // Now extend the projection sequence and attempt to project.
+    // Finally extend the projection sequence. Attempt to project if so requested; otherwise, simply
+    // assume feasible.
     ps0->addProjection(sepcos, sepDim);
+    bool feasible = true;
     if (doProject) {
-        bool feasible = tp->getFace().applyProjSeq(*ps0);
-        // If infeasible, throw an exception.
-        if (!feasible) {
-            std::ostringstream ss;
-            ss << "Infeasible expansion for contained segment for expansion goal " << goalID;
-            throw std::runtime_error(ss.str());
-        }
+        feasible = tp->getFace().applyProjSeq(*ps0);
     }
+    return feasible;
 }
