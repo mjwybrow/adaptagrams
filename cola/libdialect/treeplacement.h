@@ -144,8 +144,8 @@ public:
     //! @param[in] estimateMethod  See defn of ExpansionEstimateMethod enum class.
     //! @return  A ProjSeq representing the computed projection sequence.
     ProjSeq_SP buildBestProjSeq(double padding=0, bool doCostlierDimensionFirst=false,
-                                ExpansionEstimateMethod expansionMethod=ExpansionEstimateMethod::CONSTRAINTS) {
-        return m_face.buildBestProjSeq(shared_from_this(), padding, doCostlierDimensionFirst, expansionMethod);
+                                ExpansionEstimateMethod estimateMethod=ExpansionEstimateMethod::CONSTRAINTS) {
+        return m_face.buildBestProjSeq(shared_from_this(), padding, doCostlierDimensionFirst, estimateMethod);
     }
 
     //! @brief  Compute some point belonging to the tree box and lying opposite a given
