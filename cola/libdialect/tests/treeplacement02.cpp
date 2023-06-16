@@ -88,7 +88,7 @@ int main(void) {
     // If we do not favour cardinal or external placement, there should be ten placements.
     opts.treePlacement_favourCardinal = false;
     opts.treePlacement_favourExternal = false;
-    TreePlacements tps1 = faceSet.listAllPossibleTreePlacements(t0, opts);
+    TreePlacements tps1 = faceSet.listAllPossibleTreePlacements(t0);
     if (verbose) for (TreePlacement_SP tp : tps1) cout << tp->toString();
     COLA_ASSERT(tps1.size() == 10);
 

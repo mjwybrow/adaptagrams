@@ -23,7 +23,7 @@ for tree in trees:
         t0 = tree
         break
 # Get all possible tree placements.
-tps = faceSet.listAllPossibleTreePlacements(t0, opts)
+tps = faceSet.listAllPossibleTreePlacements(t0)
 # Choose best placement; should be NORTH.
 best1 = chooseBestPlacement(tps, opts)
 assert best1.getPlacementDir() == CompassDir_NORTH

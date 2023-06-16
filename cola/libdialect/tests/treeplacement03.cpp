@@ -89,7 +89,7 @@ int main(void) {
     opts.treePlacement_favourCardinal = true;
     opts.treePlacement_favourExternal = true;
     opts.treePlacement_favourIsolation = true;
-    TreePlacements tps = faceSet.listAllPossibleTreePlacements(t0, opts);
+    TreePlacements tps = faceSet.listAllPossibleTreePlacements(t0);
     if (verbose) for (TreePlacement_SP tp : tps) cout << tp->toString();
 
     // If we choose a best placement with the same settings, the tree should be placed NORTH.

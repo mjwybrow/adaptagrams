@@ -73,7 +73,7 @@ int main(void) {
     // Compute the faces of the core.
     FaceSet_SP faceset = std::make_shared<FaceSet>(P);
     // Get all placements for the tree.
-    TreePlacements tps0 = faceset->listAllPossibleTreePlacements(t0, opts);
+    TreePlacements tps0 = faceset->listAllPossibleTreePlacements(t0);
     // Find the one we want.
     TreePlacement_SP tp0 = nullptr;
     for (TreePlacement_SP tp : tps0) {

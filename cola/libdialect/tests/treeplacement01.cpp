@@ -90,13 +90,13 @@ int main(void) {
     // Here the asymmetry of the tree rooted at node 4 contributes a factor of 2
     // in the total number of placements, since asymmetric trees can be flipped.
     opts.treePlacement_favourCardinal = false;
-    TreePlacements tps1 = faceSet.listAllPossibleTreePlacements(t4, opts);
+    TreePlacements tps1 = faceSet.listAllPossibleTreePlacements(t4);
     if (verbose) for (TreePlacement_SP tp : tps1) cout << tp->toString();
     COLA_ASSERT(tps1.size() == 18);
 
     // If we now favour cardinal placements, there should be only two.
     opts.treePlacement_favourCardinal = true;
-    TreePlacements tps2 = faceSet.listAllPossibleTreePlacements(t4, opts);
+    TreePlacements tps2 = faceSet.listAllPossibleTreePlacements(t4);
     if (verbose) for (TreePlacement_SP tp : tps2) cout << tp->toString();
     COLA_ASSERT(tps2.size() == 2);
 
@@ -105,7 +105,7 @@ int main(void) {
     // since no cardinal ones are possible.
     // Also, it is because this tree has a symmetric layout that we get only 8,
     // not 16 placements.
-    TreePlacements tps3 = faceSet.listAllPossibleTreePlacements(t11, opts);
+    TreePlacements tps3 = faceSet.listAllPossibleTreePlacements(t11);
     if (verbose) for (TreePlacement_SP tp : tps3) cout << tp->toString();
     COLA_ASSERT(tps3.size() == 8);
 

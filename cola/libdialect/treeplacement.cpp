@@ -78,7 +78,7 @@ FaceSet_SP dialect::reattachTrees(Graph_SP core, Trees trees, HolaOpts opts, Log
 
     for (Tree_SP tree : trees) {
         // List all possible placements for this Tree.
-        TreePlacements tps = faceset->listAllPossibleTreePlacements(tree, opts);
+        TreePlacements tps = faceset->listAllPossibleTreePlacements(tree);
         // Choose a best one.
         TreePlacement_SP best = nullptr;
         ProjSeq_SP ps = nullptr;
