@@ -112,7 +112,7 @@ int main(void) {
 
     // And check that the fixed relative constraints are present, between the tree box
     // and the root node to which it attaches.
-    COLA_ASSERT(tglfWithBox.find("0 89 C L == 30") != std::string::npos);
+    COLA_ASSERT(tglfWithBox.find("0 89 C R == 30") != std::string::npos);
     COLA_ASSERT(tglfWithBox.find("0 89 C D == 142.5") != std::string::npos);
 
     return 0;

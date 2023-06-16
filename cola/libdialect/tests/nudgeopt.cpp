@@ -42,12 +42,12 @@ using namespace dialect;
  * three directed edges (1, 0), (4, 1), (7, 1) will all leave node 1 on the same
  * side, and libavoid nudging will be employed to separate them.
  * 
- * This function returns a vector of three doubles, being the y-coords of the route
+ * This function returns a vector of three doubles, being the x-coords of the route
  * points on these three edges, representing their connection to node 1. The difference
  * between adjacent pairs of these coordinates should equal the nuding distance set in
  * the HolaOpts.
  */
-vector<double> checkYCoords(Graph_SP graph) {
+vector<double> checkXCoords(Graph_SP graph) {
     EdgesById edges = graph->getEdgeLookup();
 
     Edge_SP e10, e41, e71;
@@ -76,7 +76,7 @@ vector<double> checkYCoords(Graph_SP graph) {
     std::cout << b.x << ", " << b.y << std::endl;
     std::cout << c.x << ", " << c.y << std::endl;
 
-    vector<double> coords = {a.y, b.y, c.y};
+    vector<double> coords = {a.x, b.x, c.x};
     return coords;
 }
 
@@ -88,18 +88,20 @@ int main(void) {
     HolaOpts opts;
     Graph_SP graph = buildGraphFromTglfFile(name);
     doHOLA(*graph, opts);
-    vector<double> coords = checkYCoords(graph);
-    COLA_ASSERT(coords[1] - coords[0] == 4.0);
-    COLA_ASSERT(coords[2] - coords[1] == 4.0);
+    vector<double> coords = checkXCoords(graph);
+    COLA_ASSERT(coords[0] - coords[1] == 4.0);
+    COLA_ASSERT(coords[1] - coords[2] == 4.0);
     writeStringToFile(graph->writeTglf(), "output/" "nudgeopt_4.tglf");
+    writeStringToFile(graph->writeSvg(), "output/" "nudgeopt_4.svg");
 
     // Repeat same layout, but now with nudging distance set to 5.0 pixels:
     opts.routingAbs_nudgingDistance = 5.0;
     graph = buildGraphFromTglfFile(name);
     doHOLA(*graph, opts);
-    coords = checkYCoords(graph);
-    COLA_ASSERT(coords[1] - coords[0] == 5.0);
-    COLA_ASSERT(coords[2] - coords[1] == 5.0);
+    coords = checkXCoords(graph);
+    COLA_ASSERT(coords[0] - coords[1] == 5.0);
+    COLA_ASSERT(coords[1] - coords[2] == 5.0);
     writeStringToFile(graph->writeTglf(), "output/" "nudgeopt_5.tglf");
+    writeStringToFile(graph->writeSvg(), "output/" "nudgeopt_5.svg");
     
 }
