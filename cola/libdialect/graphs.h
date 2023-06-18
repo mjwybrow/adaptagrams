@@ -653,6 +653,22 @@ public:
     //! @param[out] H  The other Graph.
     void setCorrespondingConstraints(Graph &H);
 
+    //! @brief  Apply a transformation to a closed subset of all Nodes.
+    //!
+    //! @param[in]  tf  the transformation to be performed
+    //! @param[in]  ids  the set of IDs of all Nodes to which the transformation
+    //!                  should be applied. /Both/ Nodes must be in the set.
+    //! @sa transformOpenSubset
+    void transformClosedSubset(SepTransform tf, const std::set<id_type> &ids);
+    
+    //! @brief  Apply a transformation to an open subset of all Nodes.
+    //!
+    //! @param[in]  tf  the transformation to be performed
+    //! @param[in]  ids  the set of IDs of all Nodes to which the transformation
+    //!                  should be applied. /At least one/ Node must be in the set.
+    //! @sa transformClosedSubset
+    void transformOpenSubset(SepTransform tf, const std::set<id_type> &ids);
+
     // For debugging:
     std::string m_debugOutputPath = "";
     unsigned m_projectionDebugLevel = 0;
