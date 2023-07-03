@@ -126,6 +126,12 @@ bool EdgePoint::createBendConstraint(vpsc::Dim scanDim) {
     if(isEnd()) {
         return false;
     }
+    // don't try to generate a BendConstraint if both incident segments
+    // are parallel to the scan dimension
+    if(inSegment->length(vpsc::conjugate(scanDim)) == 0 &&
+       outSegment->length(vpsc::conjugate(scanDim)) == 0) {
+        return false;
+    }
     bendConstraint = new BendConstraint(this, scanDim);
     return true;
 }
