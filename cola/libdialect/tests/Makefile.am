@@ -7,7 +7,7 @@ LDADD = \
   $(top_builddir)/libdialect/libdialect.la
 
 # Basic unit testing:
-check_PROGRAMS = aca assignments bbox bendcosts chainconfig01 chainconfig02 chainconfig03 chainsandcycles cmplayout01 collateralexpand01 collateralexpand02 conncomps containedsegment01 destress destress02 destress_aca expand01 expand02 expand03 expand04 expand05 expand06 expand07 expand08 expand09 extrabdrygap faceset01 faceset02 hola10 hola11 hola12 holalonenode hola_slovakia inserttrees01 leaflessroute01 leaflessroute02 lookupqas nbroctal nearalign01 nearalign02 nearby negativesepco negativezero nodeconfig01 nudgeopt partition01 peel planarise01 planarise02 projseq01 readconstraints rotate01 rotate02 rotate03 rotate04 routing01 solidify symmtree tglf01 treeboxes01 treeplacement01 treeplacement02 treeplacement03 trees trees2 vpsc01
+check_PROGRAMS = aca assignments bbox bendcosts chainconfig01 chainconfig02 chainconfig03 chainsandcycles cmplayout01 collateralexpand01 collateralexpand02 conncomps containedsegment01 destress destress02 destress_aca expand01 expand02 expand03 expand04 expand05 expand06 expand07 expand08 expand09 extrabdrygap faceset01 faceset02 hola10 hola11 hola12 hola_arpa hola_slovakia holalonenode inserttrees01 leaflessroute01 leaflessroute02 lookupqas nbroctal nearalign01 nearalign02 nearby negativesepco negativezero nodeconfig01 nudgeopt partition01 peel planarise01 planarise02 projseq01 readconstraints rotate01 rotate02 rotate03 rotate04 routing01 sep_matrix_iter solidify symmtree tglf01 treeboxes01 treeplacement01 treeplacement02 treeplacement03 trees trees2 vpsc01
 
 # Test HOLA on some larger and more interesting SBGN and metro map diagrams:
 # Takes a few minutes.
@@ -50,8 +50,9 @@ faceset02_SOURCES = faceset02.cpp
 hola10_SOURCES = hola10.cpp
 hola11_SOURCES = hola11.cpp
 hola12_SOURCES = hola12.cpp
-holalonenode_SOURCES = holalonenode.cpp
+hola_arpa_SOURCES = hola_arpa.cpp
 hola_slovakia_SOURCES = hola_slovakia.cpp
+holalonenode_SOURCES = holalonenode.cpp
 inserttrees01_SOURCES = inserttrees01.cpp
 leaflessroute01_SOURCES = leaflessroute01.cpp
 leaflessroute02_SOURCES = leaflessroute02.cpp
@@ -75,6 +76,7 @@ rotate02_SOURCES = rotate02.cpp
 rotate03_SOURCES = rotate03.cpp
 rotate04_SOURCES = rotate04.cpp
 routing01_SOURCES = routing01.cpp
+sep_matrix_iter_SOURCES = sep_matrix_iter.cpp
 solidify_SOURCES = solidify.cpp
 symmtree_SOURCES = symmtree.cpp
 tglf01_SOURCES = tglf01.cpp
