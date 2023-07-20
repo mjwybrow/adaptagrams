@@ -40,6 +40,7 @@ class Graph;
  *
  * TGLF looks like this:
  *
+ * // This line is a comment.
  * i0 cx0 cy0 w0 h0
  * i1 cx1 cy1 w1 h1
  * ...

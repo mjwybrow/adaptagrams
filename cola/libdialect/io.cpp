@@ -70,6 +70,8 @@ Graph_SP dialect::buildGraphFromTglf(istream &in) {
     while (getline(in, line)) {
         // Skip empty lines.
         if (line.empty()) continue;
+        // Comment lines begin with "//". (See https://stackoverflow.com/a/40441240)
+        if (line.rfind("//", 0) == 0) continue;
         // Check for "#" lines.
         if (line == "#") {
             // Time to change state.
