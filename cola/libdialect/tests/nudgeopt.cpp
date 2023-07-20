@@ -23,6 +23,7 @@
 */
 
 #include <iostream>
+#include <cmath>
 
 #include "libavoid/geomtypes.h"
 
@@ -42,12 +43,15 @@ using namespace dialect;
  * three directed edges (1, 0), (4, 1), (7, 1) will all leave node 1 on the same
  * side, and libavoid nudging will be employed to separate them.
  * 
- * This function returns a vector of three doubles, being the x-coords of the route
- * points on these three edges, representing their connection to node 1. The difference
- * between adjacent pairs of these coordinates should equal the nuding distance set in
- * the HolaOpts.
+ * The route points where these three edges connect to node 1 will be equal in one
+ * coordinate, and differ in the other.
+ * 
+ * This function returns a vector of three doubles, being the coords of the connection
+ * points on these three edges, in the dimension in which they differ.
+ * The difference between adjacent pairs of these coordinates should equal the nuding
+ * distance set in the HolaOpts.
  */
-vector<double> checkXCoords(Graph_SP graph) {
+vector<double> checkCoords(Graph_SP graph) {
     EdgesById edges = graph->getEdgeLookup();
 
     Edge_SP e10, e41, e71;
@@ -76,7 +80,9 @@ vector<double> checkXCoords(Graph_SP graph) {
     std::cout << b.x << ", " << b.y << std::endl;
     std::cout << c.x << ", " << c.y << std::endl;
 
-    vector<double> coords = {a.x, b.x, c.x};
+    vector<double> xCoords = {a.x, b.x, c.x};
+    vector<double> yCoords = {a.y, b.y, c.y};
+    vector<double> coords = a.y == b.y ? xCoords : yCoords;
     return coords;
 }
 
@@ -88,9 +94,9 @@ int main(void) {
     HolaOpts opts;
     Graph_SP graph = buildGraphFromTglfFile(name);
     doHOLA(*graph, opts);
-    vector<double> coords = checkXCoords(graph);
-    COLA_ASSERT(coords[0] - coords[1] == 4.0);
-    COLA_ASSERT(coords[1] - coords[2] == 4.0);
+    vector<double> coords = checkCoords(graph);
+    COLA_ASSERT(std::abs(coords[0] - coords[1]) == 4.0);
+    COLA_ASSERT(std::abs(coords[1] - coords[2]) == 4.0);
     writeStringToFile(graph->writeTglf(), "output/" "nudgeopt_4.tglf");
     writeStringToFile(graph->writeSvg(), "output/" "nudgeopt_4.svg");
 
@@ -98,9 +104,9 @@ int main(void) {
     opts.routingAbs_nudgingDistance = 5.0;
     graph = buildGraphFromTglfFile(name);
     doHOLA(*graph, opts);
-    coords = checkXCoords(graph);
-    COLA_ASSERT(coords[0] - coords[1] == 5.0);
-    COLA_ASSERT(coords[1] - coords[2] == 5.0);
+    coords = checkCoords(graph);
+    COLA_ASSERT(std::abs(coords[0] - coords[1]) == 5.0);
+    COLA_ASSERT(std::abs(coords[1] - coords[2]) == 5.0);
     writeStringToFile(graph->writeTglf(), "output/" "nudgeopt_5.tglf");
     writeStringToFile(graph->writeSvg(), "output/" "nudgeopt_5.svg");
     
