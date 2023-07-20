@@ -58,6 +58,7 @@ diff
 !libdialect/tests/swig_tests
 libdialect/tests/swig_tests/output/*
 !libdialect/tests/swig_tests/output/README.txt
+!libdialect/tests/graphs
 
 
 lib*/.libs
