@@ -40,10 +40,10 @@ class Graph;
  *
  * TGLF looks like this:
  *
- * cx0 cy0 w0 h0
- * cx1 cy1 w1 h1
+ * i0 cx0 cy0 w0 h0
+ * i1 cx1 cy1 w1 h1
  * ...
- * xn yn wn hn
+ * in xn yn wn hn
  * #
  * i0 i1
  * i2 i3 a  b  c  d
@@ -51,8 +51,8 @@ class Graph;
  * i6 i7
  * ...
  * #
- * j0 j1 D  R  G
- * j2 j3 D' R' G'
+ * j0 j1 T  D  R  G
+ * j2 j3 T' D' R' G'
  * ...
  *
  * and is of the form:
@@ -65,22 +65,33 @@ class Graph;
  *
  * where
  *
- * NODES defines one node per line, giving the x and y coordinates of the
- * centre of the node, followed by its width and height. All values are floats.
+ * NODES defines one node per line, giving an ID as an unsigned int, followed by
+ * four floats: the x and y coordinates of the centre of the node, and its width
+ * and height.
  *
  * LINKS defines one link (or "edge" or "connector") per line. A line begins
- * with two zero-based indices referring to the nodes in the order defined
- * in NODES. This is followed by zero or more pairs of floats giving
- * the coordinates of route points. The centres of the source and target
- * nodes are implicit route points, and should not be listed.
+ * with two node IDs, as defined in NODES. This is followed by zero or more pairs
+ * of floats giving the (x, y)-coordinates of route points. The centres of the
+ * source and target nodes are implicit route points, and should not be listed.
  *
  * SEPCOS defines one separation constraint per line. As with the LINKS,
- * a line begins with two zero-based indices referring to the nodes in the
- * order defined in NODES. This is followed by a DIRECTION D in [NSEWUDLRXY],
- * (North, South, East, West, Up, Down, Left, Right, x-dimension, y-dimension)
- * a RELATION R in [EM] (Exact, Minimal), and a GAP, which is a float.
- *
- * Note: For the DIRECTION, X is a synonym for R, and Y a synonym for D.
+ * a line begins with two node IDs. This is followed by a *gap type*,
+ * a *direction*, a *relation*, and a *gap* G.
+ * 
+ *   gap type: a character among: B, C
+ *      B: "boundary gap". The gap is between the node boundaries.
+ *      C: "centre gap". The gap is between the node centres.
+ * 
+ *   direction: a character among: N, S, E, W, U, D, L, R, X, Y
+ *      N, S, E, W: north, south, east, west. A separation, plus an alignment.
+ *      U, D, L, R: up, down, left, right. Just a separation.
+ *      X, Y: synonyms for R and D, respectively
+ * 
+ *   relation: one of the strings '>=' or '=='
+ *      >=: the constraint sets a minimum gap
+ *      ==: the constraint sets an exact gap
+ * 
+ *   gap: a float value, specifying the desired gap
  *
  * The NODES section must be nonempty, but either or both of the LINKS
  * and SEPCOS sections may be empty or omitted.
