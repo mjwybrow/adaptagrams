@@ -401,6 +401,7 @@ void dialect::doHOLA(Graph &G, const HolaOpts &holaOpts, Logger *logger) {
     ra.router.setRoutingOption(Avoid::nudgeSharedPathsWithCommonEndPoint, true);
     ra.router.setRoutingParameter(Avoid::crossingPenalty, 2*IEL);
     ra.router.setRoutingParameter(Avoid::segmentPenalty, IEL/2.0);
+    ra.router.setRoutingParameter(Avoid::idealNudgingDistance, holaOpts.routingAbs_nudgingDistance);
     // Ask the core graph to add its nodes, and just those edges that do not have any bend nodes.
     // After asking G to clear all routes (remember G has the same Edges as core), these will be all and only
     // those Edges for which no Chain set any aesthetic bend.
