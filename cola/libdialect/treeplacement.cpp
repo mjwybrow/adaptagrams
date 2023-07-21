@@ -78,11 +78,28 @@ FaceSet_SP dialect::reattachTrees(Graph_SP core, Trees trees, HolaOpts opts, Log
 
     for (Tree_SP tree : trees) {
         // List all possible placements for this Tree.
-        TreePlacements tps = faceset->listAllPossibleTreePlacements(tree, opts);
+        TreePlacements tps = faceset->listAllPossibleTreePlacements(tree);
         // Choose a best one.
-        TreePlacement_SP best = chooseBestPlacement(tps, opts);
-        // Project, making room for the tree node.
-        ProjSeq_SP ps = best->buildBestProjSeq(padding, opts.expansion_doCostlierDimensionFirst, opts.expansion_estimateMethod);
+        TreePlacement_SP best = nullptr;
+        ProjSeq_SP ps = nullptr;
+        while (!tps.empty()) {
+            best = chooseBestPlacement(tps, opts);
+            // Project, making room for the tree node.
+            ps = best->buildBestProjSeq(padding, opts.expansion_doCostlierDimensionFirst, opts.expansion_estimateMethod);
+            if (ps == nullptr) {
+                // Best placement had no feasible projection sequence.
+                // Delete it from `tps`, and try next best.
+                tps.erase(std::remove(tps.begin(), tps.end(), best), tps.end());
+            } else {
+                break;
+            }
+        }
+        if (ps == nullptr) {
+            // No placement had a feasible projection sequence.
+            std::ostringstream ss;
+            ss << "No feasible expansions for tree rooted at node " << tree->getRootNodeID();
+            throw std::runtime_error(ss.str());
+        }
         core->applyProjSeq(colaOpts, *ps);
         // Insert the tree node.
         best->insertTreeNode(padding);

@@ -134,8 +134,8 @@ public:
     //! @brief  Extend a given projection sequence with those projections necessary
     //!         to achieve all expansion goals of this manager.
     //! @param[in] ps0  The given ProjSeq.
-    //! @return A new ProjSeq that extends the given one.
-    //! @throws  Runtime error if any attempted projection is impossible.
+    //! @return A new ProjSeq that extends the given one, or nullptr if any attempted
+    //!     projection is impossible.
     ProjSeq_SP extendProjSeq(ProjSeq_SP ps0);
 
 private:
@@ -198,8 +198,7 @@ public:
     //! @param[in] ps0  The projection sequence to be extended.
     //! @param[in] remainingGoals  Deque of ExpansionGoals on which to recurse.
     //! @return  The resulting projection sequence, in which all expansion goals
-    //!          have been achieved.
-    //! @throws  Runtime error if any attempted projection is impossible.
+    //!          have been achieved, or nullptr if any attempted projection is impossible.
     ProjSeq_SP tryExpansionRec(ProjSeq_SP ps0, std::deque<ExpansionGoal_SP> &remainingGoals);
 
 private:
@@ -237,8 +236,8 @@ struct ContainedSegment {
     //! @param[in] ps0  The ProjSeq to be extended.
     //! @param[in] doProject  Set false in order to do a 'trial' in which you only extend the given
     //!                       ProjSeq, but do not actually project.
-    //! @throws  Runtime error if any attempted projection is impossible.
-    void makeRoomForTreeNode(ProjSeq_SP ps0, bool doProject = true);
+    //! @return  false if any attempted projection is impossible; else true
+    bool makeRoomForTreeNode(ProjSeq_SP ps0, bool doProject = true);
 
     //! Note the ID of the associated expansion goal:
     unsigned goalID;

@@ -258,10 +258,8 @@ public:
     //! @brief  Compute all the possible ways of placing a given Tree into the Faces,
     //!         given that it must connect at a particular root node in the underlying Graph.
     //! @param[in] tree  The Tree to be placed.
-    //! @param[in] opts  Options to control which kinds of placements are defined.
-    //!                  See method of the same name in the Face class.
     //! @sa Face::listAllPossibleTreePlacements.
-    TreePlacements listAllPossibleTreePlacements(Tree_SP tree, dialect::HolaOpts opts);
+    TreePlacements listAllPossibleTreePlacements(Tree_SP tree);
 
     //! @brief  After tree placements have actually been chosen and performed (i.e. trees have
     //!         been placed into faces), obtain a vector of all those TreePlacements that were
@@ -348,23 +346,14 @@ public:
     //! @brief  Get a vector of all Sides that are relevant to a given TreePlacement.
     Sides getRelevantSidesForPlacement(TreePlacement_SP tp) const;
 
-    //! @brief  Compute all the possible ways of placing a given Tree into this Faces,
+    //! @brief  Compute all the possible ways of placing a given Tree into this Face,
     //!         at a given root Node belonging to this Face.
     //!
     //! @param[out] tps  A vector of TreePlacements to which all those allocated by this
     //!                  method are to be added.
     //! @param[in] tree  The Tree to be placed.
     //! @param[in] root  The Node, belonging to this Face, where the Tree is to attach.
-    //! @param[in] opts  Options to control which kinds of placements are defined.
-    //!
-    //! @note  If opts.treePlacement_favourCardinal == true, then we will report ordinal
-    //!        placement options if and only if there are no possible cardinal placement
-    //!        options. For example, if {NE, E, SE} were available, we would construct a
-    //!        TreePlacement only on the E placement direction; however if only {NE, SE}
-    //!        were available, we would construct a TreePlacement for each of these ordinal
-    //!        directions.
-    //!
-    void listAllPossibleTreePlacements(TreePlacements &tps, Tree_SP tree, Node_SP root, HolaOpts opts);
+    void listAllPossibleTreePlacements(TreePlacements &tps, Tree_SP tree, Node_SP root);
 
     //! @brief  List the compass directions in which an edge could point if it were
     //!         anchored at the given Node, and pointed inward, into the Face.

@@ -84,28 +84,28 @@ int main(void) {
 
     bool verbose = false;
 
-    // Check the possible tree placements at node 4 (the "3-crossing"), first
-    // without favouring cardinal placement.
+    // Check the possible tree placements at node 4 (the "3-crossing").
     // There should be 18 of them.
     // Here the asymmetry of the tree rooted at node 4 contributes a factor of 2
     // in the total number of placements, since asymmetric trees can be flipped.
     opts.treePlacement_favourCardinal = false;
-    TreePlacements tps1 = faceSet.listAllPossibleTreePlacements(t4, opts);
+    TreePlacements tps1 = faceSet.listAllPossibleTreePlacements(t4);
     if (verbose) for (TreePlacement_SP tp : tps1) cout << tp->toString();
     COLA_ASSERT(tps1.size() == 18);
 
-    // If we now favour cardinal placements, there should be only two.
+    // Favouring cardinal placements should *not* change the number of placements.
+    // (In an older version of HOLA, this used to eliminate all ordinal placements
+    // from even being considered.)
     opts.treePlacement_favourCardinal = true;
-    TreePlacements tps2 = faceSet.listAllPossibleTreePlacements(t4, opts);
+    TreePlacements tps2 = faceSet.listAllPossibleTreePlacements(t4);
     if (verbose) for (TreePlacement_SP tp : tps2) cout << tp->toString();
-    COLA_ASSERT(tps2.size() == 2);
+    COLA_ASSERT(tps2.size() == 18);
 
     // Next we move to node 11 (the "4-crossing").
-    // Here, even favouring cardinal placements, we should get 8 ordinal placments,
-    // since no cardinal ones are possible.
+    // Here we should get 8 ordinal placments.
     // Also, it is because this tree has a symmetric layout that we get only 8,
     // not 16 placements.
-    TreePlacements tps3 = faceSet.listAllPossibleTreePlacements(t11, opts);
+    TreePlacements tps3 = faceSet.listAllPossibleTreePlacements(t11);
     if (verbose) for (TreePlacement_SP tp : tps3) cout << tp->toString();
     COLA_ASSERT(tps3.size() == 8);
 

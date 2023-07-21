@@ -43,7 +43,6 @@
 #include "libdialect/constraints.h"
 #include "libdialect/faces.h"
 #include "libdialect/treeplacement.h"
-#include "libdialect/opts.h"
 #include "libdialect/expansion.h"
 
 using namespace dialect;
@@ -216,7 +215,7 @@ void FaceSet::identifyExternalFace(void) {
     }
 }
 
-TreePlacements FaceSet::listAllPossibleTreePlacements(Tree_SP tree, HolaOpts opts) {
+TreePlacements FaceSet::listAllPossibleTreePlacements(Tree_SP tree) {
     // First find the "core root", i.e. the Node in the underlying Graph where
     // the tree is supposed to reattach.
     Node_SP coreRoot = m_graph->getNode(tree->getRootNodeID());
@@ -225,7 +224,7 @@ TreePlacements FaceSet::listAllPossibleTreePlacements(Tree_SP tree, HolaOpts opt
     // We can then ask each Face to generate all possible placements into it, and compile
     // the results.
     TreePlacements tps;
-    for (Face_SP F : possibleFaces) F->listAllPossibleTreePlacements(tps, tree, coreRoot, opts);
+    for (Face_SP F : possibleFaces) F->listAllPossibleTreePlacements(tps, tree, coreRoot);
     // Inform each TreePlacement about the nodes that are aligned with its root node.
     for (TreePlacement_SP tp : tps) {
         Node_SP r = tp->getRootNode();
@@ -254,20 +253,8 @@ std::string Face::toString(void) const {
     return ss.str();
 }
 
-void Face::listAllPossibleTreePlacements(TreePlacements &tps, Tree_SP tree, Node_SP root, HolaOpts opts) {
-    // Get the available placement directions.
+void Face::listAllPossibleTreePlacements(TreePlacements &tps, Tree_SP tree, Node_SP root) {
     CompassDirs dirs = inwardDirsAvailable(root);
-    // If we're favouring cardinal placement directions, and if any are available, then filter
-    // out any ordinal directions.
-    if (opts.treePlacement_favourCardinal) {
-        // Compute the subset of cardinal directions, among those available.
-        CompassDirs cardDirs;
-        for (CompassDir d : dirs) if (Compass::isCardinal(d)) cardDirs.push_back(d);
-        // If it is non-empty, then we keep it instead of the original list.
-        if (cardDirs.size() > 0) dirs = cardDirs;
-    }
-    // Now we can build the TreePlacements.
-    // Iterate over the placement directions.
     for (CompassDir dp : dirs) {
         // If it is a cardinal placement direction, then the growth direction can only be the same.
         // On the other hand, if it is an ordinal placement direction, then there are two growth directions

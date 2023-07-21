@@ -75,8 +75,8 @@ int main(void) {
     // Compute the faces of the core.
     FaceSet_SP faceset = std::make_shared<FaceSet>(P);
     // Get all placements for both trees.
-    TreePlacements tps0 = faceset->listAllPossibleTreePlacements(t0, opts);
-    TreePlacements tps2 = faceset->listAllPossibleTreePlacements(t2, opts);
+    TreePlacements tps0 = faceset->listAllPossibleTreePlacements(t0);
+    TreePlacements tps2 = faceset->listAllPossibleTreePlacements(t2);
     // Find the ones we want.
     TreePlacement_SP tp0 = nullptr,
                      tp2 = nullptr;

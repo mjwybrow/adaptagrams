@@ -93,9 +93,9 @@ int main(void) {
     opts.treePlacement_favourCardinal = true;
     opts.treePlacement_favourExternal = true;
     opts.treePlacement_favourIsolation = true;
-    TreePlacements tps0 = faceSet.listAllPossibleTreePlacements(t0, opts);
+    TreePlacements tps0 = faceSet.listAllPossibleTreePlacements(t0);
     //if (verbose) for (TreePlacement_SP tp : tps) cout << tp->toString();
-    TreePlacements tps9 = faceSet.listAllPossibleTreePlacements(t9, opts);
+    TreePlacements tps9 = faceSet.listAllPossibleTreePlacements(t9);
 
     // Get the SOUTH placement at node 0, and the SW placement at node 9 with WEST growth direction.
     TreePlacement_SP tp0 = nullptr,

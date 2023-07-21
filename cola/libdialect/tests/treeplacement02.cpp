@@ -85,22 +85,12 @@ int main(void) {
     bool verbose = false;
 
     // Consider the tree rooted at node 0.
-    // If we do not favour cardinal or external placement, there should be ten placements.
+    // There should be ten placements.
     opts.treePlacement_favourCardinal = false;
     opts.treePlacement_favourExternal = false;
-    TreePlacements tps1 = faceSet.listAllPossibleTreePlacements(t0, opts);
+    TreePlacements tps1 = faceSet.listAllPossibleTreePlacements(t0);
     if (verbose) for (TreePlacement_SP tp : tps1) cout << tp->toString();
     COLA_ASSERT(tps1.size() == 10);
-
-    // If we favour cardinal but not external, there should be four placements.
-    // For the internal face, /only/ ordinal placements are possible, so they /are/ reported.
-    // Meanwhile for the external face, there are two possible cardinal placements, so only
-    // these are reported.
-    opts.treePlacement_favourCardinal = true;
-    opts.treePlacement_favourExternal = false;
-    TreePlacements tps2 = faceSet.listAllPossibleTreePlacements(t0, opts);
-    if (verbose) for (TreePlacement_SP tp : tps2) cout << tp->toString();
-    COLA_ASSERT(tps2.size() == 4);
 
     return 0;
 }
