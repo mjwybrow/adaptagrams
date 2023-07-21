@@ -28,6 +28,7 @@
 #include <cassert>
 #include <cmath>
 #include <string>
+#include <limits>
 #include <memory>
 #include <cstdio>
 #include <map>
