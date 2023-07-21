@@ -1379,3 +1379,11 @@ void Graph::clearAllConstraints(void) {
 void Graph::setCorrespondingConstraints(Graph &H) {
     m_sepMatrix.setCorrespondingConstraints(H.getSepMatrix());
 }
+
+void Graph::transformClosedSubset(SepTransform tf, const std::set<id_type> &ids) {
+    m_sepMatrix.transformClosedSubset(tf, ids);
+}
+
+void Graph::transformOpenSubset(SepTransform tf, const std::set<id_type> &ids) {
+    m_sepMatrix.transformOpenSubset(tf, ids);
+}

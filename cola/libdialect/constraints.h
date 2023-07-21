@@ -391,7 +391,7 @@ private:
     //!         ygap == 0
     //!
     //! This means that Node 17 is configured to lie due West of Node 4,
-    //! at a distance of 200.
+    //! at a distance of at least 200.
     SparseIdMatrix2d<SepPair_SP>::type m_sparseLookup;
 };
 
