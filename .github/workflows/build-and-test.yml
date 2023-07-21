@@ -1,0 +1,14 @@
+name: build-and-test
+on:
+  workflow_dispatch:
+  pull_request:
+jobs:
+  build-and-test:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: autogen
+        working-directory: cola
+        run: ./autogen.sh
+
