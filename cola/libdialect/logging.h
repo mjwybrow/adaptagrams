@@ -39,8 +39,10 @@ struct Logger {
     std::vector<std::string> names;
     bool hasOutputDir = false;
     bool hasPrefix = false;
-    //! Controls whether the logger writes to stdout the name of each file recorded.
+    //! Control whether the logger writes to stdout the name of each file recorded:
     bool verbose = false;
+    //! If true, then when logging TGLF for a graph, also log SVG:
+    bool addSVG = false;
 
     //! Sometimes it is useful to be able to record a number that should be used in a
     //! prefix by various processes. Helps when separate processes are being logged.
@@ -51,10 +53,13 @@ struct Logger {
     //! @param[in] outputDir  Optional name of output directory in which files should be written.
     //! @param[in] prefix  Optional prefix to put at start of all file names.
     //! @param[in] verbose  Set true if you want the logger to write each recorded name to stdout.
+    //! @param[in] addSVG  Set true if you want the logger to also write an SVG file, each time it
+    //!     writes a TGLF file.
     //!
     //! @note  If no outputDir is given, then strings are only saved in this object.
     //! @note  If a prefix is given, an underscore will be automatically appended to it.
-    Logger(std::string outputDir = "", std::string prefix = "", bool verbose = false);
+    Logger(std::string outputDir = "", std::string prefix = "",
+        bool verbose = false, bool addSVG = false);
 
     //! @brief  Record a string, optionally to a named file in the output dir.
     //! @param[in] content  The string to be recorded.

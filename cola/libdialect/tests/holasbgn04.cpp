@@ -36,7 +36,7 @@ int main(void) {
     Graph_SP graph = buildGraphFromTglfFile("graphs/" "sbgn/keratan.tglf");
     HolaOpts opts;
     bool debug = false;
-    if (debug) doHOLA(*graph, opts, new Logger("output/", "holasbgn04_", true));
+    if (debug) doHOLA(*graph, opts, new Logger("output/", "holasbgn04_", true, true));
     else doHOLA(*graph, opts);
     writeStringToFile(graph->writeTglf(), "output/" "holasbgn04_" "layout.tglf");
     writeStringToFile(graph->writeSvg(), "output/" "svg/" "holasbgn04_" "layout.svg");

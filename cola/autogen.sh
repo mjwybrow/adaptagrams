@@ -9,7 +9,7 @@ mkdir -p m4
 
 autoreconf --install --verbose
 
-# The following sequence is are the manual steps if autoreconf isn't available.
+# The following sequence gives the manual steps if autoreconf isn't available.
 #
 #aclocal $ACLOCAL_FLAGS
 #glibtoolize
@@ -26,6 +26,9 @@ autoreconf --install --verbose
 
 # Instead, use this line if building for SWIG Python:
 # ./configure CXXFLAGS="-O3 -DNDEBUG -arch x86_64 -arch i386" LDFLAGS="-arch x86_64 -arch i386"
+
+# Instead, use this line for development and for debugging the tests:
+#./configure --disable-shared CXXFLAGS="-g -O0"
 
 make
 

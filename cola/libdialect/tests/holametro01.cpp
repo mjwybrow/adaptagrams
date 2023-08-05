@@ -36,7 +36,7 @@ int main(void) {
     Graph_SP graph = buildGraphFromTglfFile("graphs/" "metro/sydney.tglf");
     HolaOpts opts;
     bool debug = false;
-    if (debug) doHOLA(*graph, opts, new Logger("output/", "holametro01_", true));
+    if (debug) doHOLA(*graph, opts, new Logger("output/", "holametro01_", true, true));
     else doHOLA(*graph, opts);
     writeStringToFile(graph->writeTglf(), "output/" "holametro01_" "layout.tglf");
     writeStringToFile(graph->writeSvg(), "output/" "svg/" "holametro01_" "layout.svg");

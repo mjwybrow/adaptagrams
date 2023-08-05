@@ -35,8 +35,8 @@ using namespace dialect;
 using std::string;
 using std::vector;
 
-Logger::Logger(std::string outputDir, std::string prefix, bool verbose)
-    : outputDir(outputDir), prefix(prefix), verbose(verbose)
+Logger::Logger(std::string outputDir, std::string prefix, bool verbose, bool addSVG)
+    : outputDir(outputDir), prefix(prefix), verbose(verbose), addSVG(addSVG)
 {
     if (outputDir.size() > 0) hasOutputDir = true;
     if (prefix.size() > 0) {
@@ -67,6 +67,10 @@ void Logger::log(std::string content, std::string name) {
 void Logger::log(Graph &G, std::string name) {
     string tglf = G.writeTglf();
     log(tglf, name+".tglf");
+    if (addSVG) {
+        string svg = G.writeSvg();
+        log(svg, name+".svg");
+    }
 }
 
 string Logger::writeFullPathForFilename(std::string name) {

@@ -36,7 +36,7 @@ int main(void) {
     Graph_SP graph = buildGraphFromTglfFile("graphs/" "sbgn/glyco.tglf");
     HolaOpts opts;
     bool debug = false;
-    if (debug) doHOLA(*graph, opts, new Logger("output/", "holasbgn01_", true));
+    if (debug) doHOLA(*graph, opts, new Logger("output/", "holasbgn01_", true, true));
     else doHOLA(*graph, opts);
     writeStringToFile(graph->writeTglf(), "output/" "holasbgn01_" "layout.tglf");
     writeStringToFile(graph->writeSvg(), "output/" "svg/" "holasbgn01_" "layout.svg");
