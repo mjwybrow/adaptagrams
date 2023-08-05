@@ -36,7 +36,7 @@ int main(void) {
     Graph_SP graph = buildGraphFromTglfFile("graphs/" "sbgn/urea1.tglf");
     HolaOpts opts;
     bool debug = false;
-    if (debug) doHOLA(*graph, opts, new Logger("output/", "holasbgn03_", true));
+    if (debug) doHOLA(*graph, opts, new Logger("output/", "holasbgn03_", true, true));
     else doHOLA(*graph, opts);
     writeStringToFile(graph->writeTglf(), "output/" "holasbgn03_" "layout.tglf");
     writeStringToFile(graph->writeSvg(), "output/" "svg/" "holasbgn03_" "layout.svg");

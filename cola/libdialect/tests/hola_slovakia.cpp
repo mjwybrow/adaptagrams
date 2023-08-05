@@ -36,8 +36,8 @@ int main(void) {
     Graph_SP graph = buildGraphFromTglfFile("graphs/" "special/GtsSlovakia_input.tglf");
     HolaOpts opts;
     std::string prefix = "hola_slovakia_";
-    bool debug = true;
-    if (debug) doHOLA(*graph, opts, new Logger("output/", prefix, true));
+    bool debug = false;
+    if (debug) doHOLA(*graph, opts, new Logger("output/", prefix, true, true));
     else doHOLA(*graph, opts);
     writeStringToFile(graph->writeTglf(), "output/" + prefix + "layout.tglf");
     writeStringToFile(graph->writeSvg(), "output/" "svg/" + prefix + "layout.svg");

@@ -43,7 +43,7 @@ int main(void) {
     Graph_SP graph = buildGraphFromTglfFile("graphs/" "special/lone_node.tglf");
     HolaOpts opts;
     bool debug = false;
-    if (debug) doHOLA(*graph, opts, new Logger("output/", "holalonenode_", true));
+    if (debug) doHOLA(*graph, opts, new Logger("output/", "holalonenode_", true, true));
     else doHOLA(*graph, opts);
     writeStringToFile(graph->writeTglf(), "output/" "holalonenode_" "layout.tglf");
 
