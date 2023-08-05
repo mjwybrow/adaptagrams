@@ -9,7 +9,7 @@ mkdir -p m4
 
 autoreconf --install --verbose
 
-# The following sequence is are the manual steps if autoreconf isn't available.
+# The following sequence gives the manual steps if autoreconf isn't available.
 #
 #aclocal $ACLOCAL_FLAGS
 #glibtoolize
