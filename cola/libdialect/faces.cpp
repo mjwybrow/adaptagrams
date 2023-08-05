@@ -597,6 +597,15 @@ ProjSeq_SP Face::buildBestProjSeq(TreePlacement_SP tp, double padding,
     // Expand.
     ExpansionManager em2(tp, dim, padding);
     ProjSeq_SP ps1 = em2.extendProjSeq(ps0);
+    if (ps1 == nullptr) {
+        // First try failed. Try again, with the other dimension as primary.
+        ExpansionManager em3(tp, vpsc::conjugate(dim), padding);
+        m_graph->popNodePositions();
+        m_graph->pushNodePositions();
+        // Can reuse `ps0`, since `ExpansionGoal::tryExpansionRec()` works
+        // with a fresh copy of it, leaving it unaltered.
+        ps1 = em3.extendProjSeq(ps0);
+    }
     // Restore node positions and return.
     m_graph->popNodePositions();
     return ps1;
