@@ -27,6 +27,9 @@ autoreconf --install --verbose
 # Instead, use this line if building for SWIG Python:
 # ./configure CXXFLAGS="-O3 -DNDEBUG -arch x86_64 -arch i386" LDFLAGS="-arch x86_64 -arch i386"
 
+# Instead, use this line for development and for debugging the tests:
+#./configure --disable-shared CXXFLAGS="-g -O0"
+
 make
 
 # The following builds examples and tests for each of the libraries.
