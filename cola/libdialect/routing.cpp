@@ -252,9 +252,9 @@ void LeaflessOrthoRouter::route(Logger *logger) {
      *  Proof: We always begin with an initial routing. We want to show it could be necessary to re-route
      *  at most 4n times.
      *
-     *  In order to see this, we first argue that the worst-case-scenario for any single node is that it
-     *  require four routings. Consider then some node u all of whose edges have been routed to one side, s0. We
-     *  then pick some edge e0 incident to u, say that it may not connect to side s0, and we re-route for the first time.
+     *  In order to see this, we first argue that the worst-case scenario for any single node is that it
+     *  require four routings. Consider some node u all of whose edges have been routed to one side, s0. We
+     *  pick some edge e0 incident to u, say that it may not connect to side s0, and re-route for the first time.
      *
      *  While unlikely, it could be that, for whatever reason, now all edges incident to node u are routed to some other side,
      *  s1. We then pick some edge e1 (could be the same or different from e0), forbid it from connecting to
@@ -266,7 +266,7 @@ void LeaflessOrthoRouter::route(Logger *logger) {
      *  some edge ei incident to u that had been forbidden from connecting on side si. Therefore on the fourth
      *  re-routing it would be impossible for all edges to connect on any single side of u.
      *
-     *  So much for the case of a single node. However, in again a highly unlikely worst-case-scenario, it could be
+     *  So far we have handled a single node. However, in again a highly unlikely worst-case scenario, it could be
      *  that during the first five routings no other node besides u was a pseudoleaf (had all edges routed to one side),
      *  but after the fifth some other node became a pseudoleaf. In this way we could be led to do four re-routings
      *  for each node in the graph. QED
@@ -274,17 +274,14 @@ void LeaflessOrthoRouter::route(Logger *logger) {
      * In practice, it would probably be very rare for more that two routings to ever be necessary. For this
      * requires the odd circumstance, considered in the proof, that forbidding one edge from connecting on a
      * given side somehow results in /all/ edges incident at that node migrating to some other, single side.
-     *
-     * In order that our theory be tested, we use an infinite loop with counter and assertion, instead
-     * of a mere for-loop which would fail silently.
      */
-    size_t numRoutings = 0;
+    // As explained in the comments above, at most 4n+1 routings should ever be needed.
+    // We let our for-loop go to a 4n+2nd iteration, so we can catch any error with an assertion.
     size_t maxRoutings = 4*m_n + 1;
-    while (true) {
+    for (size_t numRoutings = 0; numRoutings <= maxRoutings; numRoutings++) {
         m_ra.router.processTransaction();
-        log(++numRoutings);
-        // As explained in the comments above, at most five routings should ever be needed.
-        COLA_ASSERT(numRoutings <= maxRoutings);
+        log(numRoutings + 1);
+        COLA_ASSERT(numRoutings < maxRoutings);
         // For testing purposes, we may want to record the results of
         // each routing attempt.
         if (recordEachAttempt) {
@@ -309,8 +306,7 @@ void LeaflessOrthoRouter::route(Logger *logger) {
             auto edge_it = edgeLookup.cbegin();
             CardinalDir d0 = departureDir((*edge_it).second, u);
             // If two or more directions have been used, some edge must depart
-            // in a different direction than this one. (For if all the rest equal
-            // this first one, then all are the same.)
+            // in a different direction than this one.
             bool isPseudoLeaf = true;
             for (auto jt = ++edge_it; jt != edgeLookup.cend(); ++jt) {
                 CardinalDir d1 = departureDir((*jt).second, u);
@@ -326,24 +322,21 @@ void LeaflessOrthoRouter::route(Logger *logger) {
         }
         // Are there any pseudoleaves?
         if (pseudoLeaves.empty()) {
-            // If there are none, then we're done routing, and can break out of the outer while loop.
+            // If there are none, then we're done routing, and can break out of the outer loop.
             break;
         } else {
-            // But if there are still pseudoleaves, then we need to work on them.
             for (size_t i = 0; i < pseudoLeaves.size(); ++i) {
-                // Get the Node and the direction in which all connectors currently depart from it.
                 Node_SP u = pseudoLeaves[i];
                 CardinalDir d0 = soleDepartureDirecs[i];
                 // Now among all Edges incident at this Node we must select one that is still
                 // allowed to depart in at least two directions (hence at least one different
                 // from d0), and remove direction d0 from its list of allowed directions.
                 //
-                // If possible, we would like to choose such an Edge e such that if v is the Node
+                // Secondarily, we would like to choose an Edge e such that if v is the Node
                 // at the other end, then the predominant cardinal direction from Node u to Node v
-                // be different than d0; for such would seem a suitable Edge to depart in a different
-                // direction. However, such an Edge may not exist. In that case, we will just take
-                // any one.
-                Edge_SP candidate;
+                // is different than d0. That is likely a suitable Edge to depart in a different
+                // direction.
+                Edge_SP candidate = nullptr;
                 for (auto p : u->getEdgeLookup()) {
                     Edge_SP &e = p.second;
                     // If this Edge is only allowed the one direction, then skip it.
