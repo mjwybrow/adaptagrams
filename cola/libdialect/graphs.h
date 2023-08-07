@@ -618,6 +618,14 @@ public:
     //! @param[out] H  The Graph whose Node positions are to be updated.
     void setPosesInCorrespNodes(Graph &H);
 
+    //! @brief  Add padding to those Nodes in a given Graph that
+    //!         correspond to Nodes (same ID) in this Graph.
+    //! @param[out] H  The Graph whose corresp. Nodes are to be padded.
+    //! @param[in] dw  width padding
+    //! @param[in] dh  height padding
+    //! @param[in] ignore  Nodes in *this* graph (not H) that should be skipped.
+    void padCorrespNodes(Graph &H, double dw, double dh, const NodesById &ignore = {});
+
     //! @brief  Update routes of Edges in a given Graph to equal those of the
     //!         corresponding Edges (same source and target) in this Graph.
     //! @param[out] H  The Graph whose Edge routes are to be updated.

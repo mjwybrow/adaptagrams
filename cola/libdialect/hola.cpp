@@ -186,10 +186,17 @@ void dialect::doHOLA(Graph &G, const HolaOpts &holaOpts, Logger *logger) {
     }
 
     // Destress with overlap prevention including aligned edges.
+    // At this time we also prepare for the next step, which involves connector routing.
+    // To ensure the routing is possible, we ensure there is some gap between all nodes.
+    // We do this by adding padding, destressing, and then removing this padding.
     colaOpts.preventOverlaps = true;
     colaOpts.solidifyAlignedEdges = true;
     nli(ln);
+    double preRoutingGapIELScalar = 0.125;
+    double preRoutingGap = preRoutingGapIELScalar*IEL;
+    core->padAllNodes(preRoutingGap, preRoutingGap);
     core->destress(colaOpts);
+    core->padAllNodes(-preRoutingGap, -preRoutingGap);
     if (holaOpts.useACAforLinks) {
         log(*core, string_format("%02d_core_link_config_ACA", ln++));
     } else {
@@ -405,9 +412,17 @@ void dialect::doHOLA(Graph &G, const HolaOpts &holaOpts, Logger *logger) {
     // Ask the core graph to add its nodes, and just those edges that do not have any bend nodes.
     // After asking G to clear all routes (remember G has the same Edges as core), these will be all and only
     // those Edges for which no Chain set any aesthetic bend.
+    
+    // Remove part of the node padding now, to ensure open channels for connector routing.
+    double nodePaddingLayer1 = 2*preRoutingGapIELScalar*nodePadding;
+    double nodePaddingLayer2 = nodePadding - nodePaddingLayer1;
+    core->padAllNodes(-nodePaddingLayer1, -nodePaddingLayer1);
+    
     core->addBendlessSubnetworkToRoutingAdapter(ra);
     // Ask each Tree to add its network to the router.
     for (Tree_SP tree : trees) {
+        tree->underlyingGraph()->padAllNodes(-nodePaddingLayer1, -nodePaddingLayer1);
+        tree->padCorrespNonRootNodes(G, -nodePaddingLayer1, -nodePaddingLayer1);
         tree->addNetworkToRoutingAdapter(ra, holaOpts.peeledTreeRouting, core);
     }
     // Do the routing.
@@ -418,7 +433,6 @@ void dialect::doHOLA(Graph &G, const HolaOpts &holaOpts, Logger *logger) {
         tree->underlyingGraph()->setRoutesInCorrespEdges(G);
     }
 
-    // And finally we can remove the node padding we set in the beginning,
-    // and that is the end of the algorithm.
-    G.padAllNodes(-nodePadding, -nodePadding);
+    // Remove remaining node padding.
+    G.padAllNodes(-nodePaddingLayer2, -nodePaddingLayer2);
 }

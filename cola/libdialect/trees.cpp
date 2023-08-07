@@ -683,7 +683,7 @@ void Tree::addNetworkToRoutingAdapter(RoutingAdapter &ra, TreeRoutingType trt, G
         trt >= TreeRoutingType::MONOTONIC ||
         (trt == TreeRoutingType::CORE_ATTACHMENT && rootPt != altRootPt && m_nodesByRank[1].size() == 1)
     );
-    // Now we can interate over the Edges and set up the ConnDirs.
+    // Now we can iterate over the Edges and set up the ConnDirs.
     EdgesById edges = m_graph->getEdgeLookup();
     EdgeConnDirsById connDirs;
     id_type rid = m_root->id();
@@ -884,4 +884,9 @@ void Tree::addBufferNodesAndConstraints(Graph &G, NodesById &bufferNodes) {
         addBufferNode(bn0, first);
         addBufferNode(bn1, last);
     }
+}
+
+void Tree::padCorrespNonRootNodes(Graph &H, double dw, double dh) {
+    NodesById rootIgnore = {{m_root->id(), m_root}};
+    m_graph->padCorrespNodes(H, dw, dh, rootIgnore);
 }
