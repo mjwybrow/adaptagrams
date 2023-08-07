@@ -153,6 +153,9 @@ public:
     //! @note  This Tree's addNetworkAndConstraints should have been called first, for the same Graph G.
     void addBufferNodesAndConstraints(Graph &G, NodesById &bufferNodes);
 
+    //! @brief  Add padding to nodes of another graph, corresponding to (same ID) non-root nodes in this tree.
+    void padCorrespNonRootNodes(Graph &H, double dw, double dh);
+
 private:
 
     void clearRankBounds(void);

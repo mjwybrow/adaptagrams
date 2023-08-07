@@ -7,7 +7,18 @@ LDADD = \
   $(top_builddir)/libdialect/libdialect.la
 
 # Basic unit testing:
-check_PROGRAMS = aca assignments bbox bendcosts chainconfig01 chainconfig02 chainconfig03 chainsandcycles cmplayout01 collateralexpand01 collateralexpand02 conncomps containedsegment01 destress destress02 destress_aca expand01 expand02 expand03 expand04 expand05 expand06 expand07 expand08 expand09 extrabdrygap faceset01 faceset02 hola10 hola11 hola12 hola_arpa hola_garr hola_slovakia holalonenode inserttrees01 leaflessroute01 leaflessroute02 lookupqas nbroctal nearalign01 nearalign02 nearby negativesepco negativezero nodeconfig01 nudgeopt partition01 peel planarise01 planarise02 projseq01 readconstraints rotate01 rotate02 rotate03 rotate04 routing01 sep_matrix_iter solidify symmtree tglf01 treeboxes01 treeplacement01 treeplacement02 treeplacement03 trees trees2 vpsc01
+check_PROGRAMS = \
+  aca assignments bbox bendcosts chainconfig01 chainconfig02 chainconfig03 \
+  chainsandcycles cmplayout01 collateralexpand01 collateralexpand02 conncomps \
+  containedsegment01 destress destress02 destress_aca \
+  expand01 expand02 expand03 expand04 expand05 expand06 expand07 expand08 expand09 \
+  extrabdrygap faceset01 faceset02 hola10 hola11 hola12 \
+  hola_arpa hola_belnet hola_cernet hola_claranet hola_garr hola_janetlense hola_slovakia \
+  holalonenode inserttrees01 leaflessroute01 leaflessroute02 lookupqas nbroctal \
+  nearalign01 nearalign02 nearby negativesepco negativezero nodeconfig01 nudgeopt \
+  partition01 peel planarise01 planarise02 projseq01 readconstraints \
+  rotate01 rotate02 rotate03 rotate04 routing01 sep_matrix_iter solidify symmtree \
+  tglf01 treeboxes01 treeplacement01 treeplacement02 treeplacement03 trees trees2 vpsc01
 
 # Test HOLA on some larger and more interesting SBGN and metro map diagrams:
 # Takes a few minutes.
@@ -51,7 +62,11 @@ hola10_SOURCES = hola10.cpp
 hola11_SOURCES = hola11.cpp
 hola12_SOURCES = hola12.cpp
 hola_arpa_SOURCES = hola_arpa.cpp
+hola_belnet_SOURCES = hola_belnet.cpp
+hola_cernet_SOURCES = hola_cernet.cpp
+hola_claranet_SOURCES = hola_claranet.cpp
 hola_garr_SOURCES = hola_garr.cpp
+hola_janetlense_SOURCES = hola_janetlense.cpp
 hola_slovakia_SOURCES = hola_slovakia.cpp
 holalonenode_SOURCES = holalonenode.cpp
 inserttrees01_SOURCES = inserttrees01.cpp

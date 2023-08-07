@@ -885,3 +885,8 @@ void Tree::addBufferNodesAndConstraints(Graph &G, NodesById &bufferNodes) {
         addBufferNode(bn1, last);
     }
 }
+
+void Tree::padCorrespNonRootNodes(Graph &H, double dw, double dh) {
+    NodesById rootIgnore = {{m_root->id(), m_root}};
+    m_graph->padCorrespNodes(H, dw, dh, rootIgnore);
+}

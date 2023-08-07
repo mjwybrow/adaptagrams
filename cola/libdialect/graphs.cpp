@@ -1308,6 +1308,26 @@ void Graph::setPosesInCorrespNodes(Graph &H) {
     }
 }
 
+void Graph::padCorrespNodes(Graph &H, double dw, double dh, const NodesById &ignore) {
+    NodesById nodes_G = getNodeLookupWithIgnore(ignore);
+    NodesById nodes_H = H.getNodeLookup();
+    auto it = nodes_G.begin();
+    auto jt = nodes_H.begin();
+    while (it != nodes_G.end() && jt != nodes_H.end()) {
+        auto p = *it;
+        auto q = *jt;
+        id_type i = p.first,
+                j = q.first;
+        if (i > j) ++jt;
+        else {
+            if (i == j) {
+                q.second->addPadding(dw, dh);
+            }
+            ++it;
+        }
+    }
+}
+
 void Graph::setRoutesInCorrespEdges(Graph &H, bool directed) {
     // First build a lookup for Edges in H by [srcID][tgtID].
     SparseIdMatrix2d<Edge_SP>::type lookup_H;
