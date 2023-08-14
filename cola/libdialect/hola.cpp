@@ -107,6 +107,7 @@ void dialect::doHOLA(Graph &G, const HolaOpts &holaOpts, Logger *logger) {
         RoutingAdapter ra(Avoid::OrthogonalRouting);
         ra.router.setRoutingOption(Avoid::nudgeOrthogonalSegmentsConnectedToShapes, true);
         ra.router.setRoutingOption(Avoid::nudgeSharedPathsWithCommonEndPoint, true);
+        ra.router.setRoutingParameter(Avoid::idealNudgingDistance, holaOpts.routingAbs_nudgingDistance);
         tree->addNetworkToRoutingAdapter(ra, holaOpts.wholeTreeRouting);
         ra.route();
         // Remove node padding.

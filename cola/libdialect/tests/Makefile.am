@@ -14,7 +14,7 @@ check_PROGRAMS = \
   expand01 expand02 expand03 expand04 expand05 expand06 expand07 expand08 expand09 \
   extrabdrygap faceset01 faceset02 hola10 hola11 hola12 \
   hola_arpa hola_belnet hola_cernet hola_claranet hola_garr hola_janetlense hola_slovakia \
-  holalonenode inserttrees01 leaflessroute01 leaflessroute02 lookupqas nbroctal \
+  holalonenode hola_tree inserttrees01 leaflessroute01 leaflessroute02 lookupqas nbroctal \
   nearalign01 nearalign02 nearby negativesepco negativezero nodeconfig01 nudgeopt \
   partition01 peel planarise01 planarise02 projseq01 readconstraints \
   rotate01 rotate02 rotate03 rotate04 routing01 sep_matrix_iter solidify symmtree \
@@ -69,6 +69,7 @@ hola_garr_SOURCES = hola_garr.cpp
 hola_janetlense_SOURCES = hola_janetlense.cpp
 hola_slovakia_SOURCES = hola_slovakia.cpp
 holalonenode_SOURCES = holalonenode.cpp
+hola_tree_SOURCES = hola_tree.cpp
 inserttrees01_SOURCES = inserttrees01.cpp
 leaflessroute01_SOURCES = leaflessroute01.cpp
 leaflessroute02_SOURCES = leaflessroute02.cpp
