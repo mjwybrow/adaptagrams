@@ -2795,7 +2795,8 @@ void ImproveOrthogonalRoutes::nudgeOrthogonalRoutes(size_t dimension,
                     }
                     else if (!nudgeSharedPathsWithCommonEnd &&
                             (m_shared_path_connectors_with_common_endpoints.count(
-                                 UnsignedPair(currSegment->connRef->id(), prevSeg->connRef->id())) > 0))
+                                 UnsignedPair(currSegment->connRef->id(), prevSeg->connRef->id())) > 0) &&
+                                 currSegment->variable->desiredPosition == prevSeg->variable->desiredPosition)
                     {
                         // We don't want to nudge apart these two segments
                         // since they are from a shared path with a common
