@@ -86,7 +86,8 @@ check_PROGRAMS = \
 	nudgingSkipsCheckpoint01 \
 	nudgingSkipsCheckpoint02 \
 	hola01 \
-	hyperedgeRerouting01
+	hyperedgeRerouting01 \
+	nudgingNoLeftBdry
 
 # problem_SOURCES = problem.cpp
 
@@ -212,6 +213,8 @@ junction01_SOURCES = junction01.cpp
 junction02_SOURCES = junction02.cpp
 junction03_SOURCES = junction03.cpp
 junction04_SOURCES = junction04.cpp
+
+nudgingNoLeftBdry_SOURCES = nudgingNoLeftBdry.cpp
 
 TESTS = $(check_PROGRAMS)
 
