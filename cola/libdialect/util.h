@@ -94,7 +94,7 @@ struct Matrix2d {
     std::string toString() const {
         std::string s = "";
         s += "\n  ";
-        char buffer [16];
+        char buffer [11];
         for (int j=0; j<cols; j++) {
             sprintf(buffer," %2d",j);
             s += std::string(buffer);
