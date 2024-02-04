@@ -826,7 +826,7 @@ bool Graph::hasSameLayoutAs(const Graph &other, double tol, id_map *idMap) const
                 ++it; ++jt;
             }
         }
-    } catch (std::out_of_range) {
+    } catch (std::out_of_range const&) {
         // We invoke the .at() method of various maps, above.
         // If any of these fails, the two Graphs do not have the same layout.
         return false;

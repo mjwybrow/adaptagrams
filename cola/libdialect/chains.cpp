@@ -429,7 +429,7 @@ BendSequences Chain::computePossibleBendSequences(void) const {
         try {
             CardinalDir dIn = m_graph->getSepMatrix().getCardinalDir(A->id(), b->id());
             inDirs.push_back(dIn);
-        } catch (std::runtime_error) {
+        } catch (std::runtime_error const&) {
             // In this case the left anchor edge is not yet aligned, so we get to consider
             // both possible non-aggressive alignments of it.
             inDirs = possibleCardinalDirections(A, b);
@@ -438,7 +438,7 @@ BendSequences Chain::computePossibleBendSequences(void) const {
         try {
             CardinalDir dOut = m_graph->getSepMatrix().getCardinalDir(y->id(), Z->id());
             outDirs.push_back(dOut);
-        } catch (std::runtime_error) {
+        } catch (std::runtime_error const&) {
             outDirs = possibleCardinalDirections(y, Z);
         }
         // Now we can look up the possible bend sequences.
