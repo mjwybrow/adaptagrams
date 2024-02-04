@@ -399,6 +399,7 @@ inline bool checkIntersection(
         ri.intersects=side=true;
         sideX=intersection.x_;
         sideY=intersection.y_;
+        return true;
     case LineSegment::PARALLEL:
     case LineSegment::NOT_INTERSECTING:
         return true;
