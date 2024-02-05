@@ -114,7 +114,9 @@ Graph_SP dialect::buildGraphFromTglf(istream &in) {
             switch(gtc) {
                 case 'B': gt=GapType::BDRY; break;
                 case 'C': gt=GapType::CENTRE; break;
-                COLA_ASSERT(false);
+                default:
+                    COLA_ASSERT(false);
+                    gt=GapType::BDRY;
             }
             switch(dir) {
                 case 'E': sd=SepDir::EAST; break;
@@ -127,12 +129,16 @@ Graph_SP dialect::buildGraphFromTglf(istream &in) {
                 case 'U': sd=SepDir::UP; break;
                 case 'X': sd=SepDir::RIGHT; break;
                 case 'Y': sd=SepDir::DOWN; break;
-                COLA_ASSERT(false);
+                default:
+                    COLA_ASSERT(false);
+                    sd=SepDir::EAST;
             }
             switch(rel1) {
                 case '=': st=SepType::EQ; break;
                 case '>': st=SepType::INEQ; break;
-                COLA_ASSERT(false);
+                default:
+                    COLA_ASSERT(false);
+                    st=SepType::EQ;
             }
             graph->getSepMatrix().addSep(j1, j2, gt, sd, st, gap);
             break;
