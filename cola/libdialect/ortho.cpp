@@ -252,6 +252,9 @@ std::string Compass::dirToString(CompassDir d) {
     case CompassDir::SW: return "SW";
     case CompassDir::NW: return "NW";
     case CompassDir::NE: return "NE";
+    default :
+        COLA_ASSERT(false);
+        return "EAST";
     }
 }
 

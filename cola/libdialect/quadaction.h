@@ -141,7 +141,7 @@ struct Quad {
     //! @brief  Standard constructor.
     //!
     //! @param[in]  num  The number of this quadrant in {0, 1, 2, 3}
-    Quad(unsigned num);
+    Quad(unsigned int num);
 
     //! @brief  Add a neighbour.
     void addNbr(const Nbr_SP &nbr) { nbrs.push_back(nbr); }
