@@ -153,7 +153,7 @@ Point Compass::vectorSigns(CompassDir d) {
     case CompassDir::NE:    return Point( 1, -1);
     default:
         COLA_ASSERT(false);
-        return Point( r0,  0);
+        return Point( 0,  0);
     }
 }
 
