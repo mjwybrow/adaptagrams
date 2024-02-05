@@ -1059,7 +1059,7 @@ bool Graph::applyProjSeq(const ColaOptions &opts, ProjSeq &ps, int accept) {
     double iel = opts.idealEdgeLength;
     if (iel == 0) iel = getIEL();
     // Do stress computations iff iel >= 0.
-    double lastStress;
+    double lastStress = 0.0;
     if (iel >= 0) lastStress = computeStress();
     // We will check whether all projections work.
     bool allOK = true;
