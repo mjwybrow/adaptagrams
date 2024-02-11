@@ -74,7 +74,6 @@ SepDir dialect::negateSepDir(SepDir sd) {
         return SepDir::DOWN;
     default :
         COLA_ASSERT(false);
-        return SepDir::WEST;
     }
 }
 
@@ -117,7 +116,6 @@ SepDir dialect::cardinalDirToSepDir(CardinalDir dir) {
         return SepDir::NORTH;
     default:
         COLA_ASSERT(false);
-        return SepDir::EAST;
     }
 }
 
