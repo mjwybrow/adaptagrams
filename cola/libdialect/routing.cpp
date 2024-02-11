@@ -145,9 +145,12 @@ void RoutingAdapter::recordRoutes(bool refine) {
             // in the window are within epsilon of one another (in both dimensions),
             // we will skip both.
             vector<Point> refined_pts;
-            size_t N = pts.size() - 2;  // the number of interior points
+            size_t M = pts.size();
             // We expect that there are at least two route points.
-            COLA_ASSERT((int) N >= 0);
+            COLA_ASSERT( M >= 2);
+            // the number of interior points:
+            size_t N = M - 2;
+            // We expect that there are at least two route points.
             size_t i = 0;
             // We always keep the first route point.
             refined_pts.push_back(pts[0]);
