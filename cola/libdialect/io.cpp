@@ -108,15 +108,14 @@ Graph_SP dialect::buildGraphFromTglf(istream &in) {
             COLA_ASSERT(iss >> i1 >> i2 >> gtc >> dir >> rel1 >> rel2 >> gap);
             id_type j1 = nodesByExternalId[i1]->id(),
                     j2 = nodesByExternalId[i2]->id();
-            GapType gt;
-            SepDir sd;
-            SepType st;
+            GapType gt{};
+            SepDir sd{};
+            SepType st{};
             switch(gtc) {
                 case 'B': gt=GapType::BDRY; break;
                 case 'C': gt=GapType::CENTRE; break;
                 default:
                     COLA_ASSERT(false);
-                    gt=GapType::BDRY;
             }
             switch(dir) {
                 case 'E': sd=SepDir::EAST; break;
@@ -131,14 +130,12 @@ Graph_SP dialect::buildGraphFromTglf(istream &in) {
                 case 'Y': sd=SepDir::DOWN; break;
                 default:
                     COLA_ASSERT(false);
-                    sd=SepDir::EAST;
             }
             switch(rel1) {
                 case '=': st=SepType::EQ; break;
                 case '>': st=SepType::INEQ; break;
                 default:
                     COLA_ASSERT(false);
-                    st=SepType::EQ;
             }
             graph->getSepMatrix().addSep(j1, j2, gt, sd, st, gap);
             break;
