@@ -109,7 +109,7 @@ string Assignment::toString() const {
 
 Quad::Quad(unsigned int num) : num(num) {
     // The only valid num's for quadrants are 0, 1, 2, 3.
-    COLA_ASSERT(0 <= (int) num && num <= 3);
+    COLA_ASSERT(num <= 3);
 }
 
 void Quad::sortAndComputeCosts() {
