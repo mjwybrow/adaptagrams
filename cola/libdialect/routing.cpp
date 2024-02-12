@@ -150,7 +150,6 @@ void RoutingAdapter::recordRoutes(bool refine) {
             COLA_ASSERT( M >= 2);
             // the number of interior points:
             size_t N = M - 2;
-            // We expect that there are at least two route points.
             size_t i = 0;
             // We always keep the first route point.
             refined_pts.push_back(pts[0]);
