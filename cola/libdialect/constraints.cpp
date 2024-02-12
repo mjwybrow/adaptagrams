@@ -72,6 +72,8 @@ SepDir dialect::negateSepDir(SepDir sd) {
         return SepDir::RIGHT;
     case SepDir::UP:
         return SepDir::DOWN;
+    default :
+        COLA_ASSERT(false);
     }
 }
 
@@ -112,6 +114,8 @@ SepDir dialect::cardinalDirToSepDir(CardinalDir dir) {
         return SepDir::WEST;
     case CardinalDir::NORTH:
         return SepDir::NORTH;
+    default:
+        COLA_ASSERT(false);
     }
 }
 
@@ -317,8 +321,8 @@ string SepPair::writeTglf(std::map<id_type, unsigned> id2ext, const SepMatrix &m
            ygtStr = ygt == GapType::BDRY ? "B" : "C";
     // Prepare indices.
     unsigned src, tgt;
-    try { src = id2ext.at(this->src); } catch (std::out_of_range) { src = this->src; }
-    try { tgt = id2ext.at(this->tgt); } catch (std::out_of_range) { tgt = this->tgt; }
+    try { src = id2ext.at(this->src); } catch (std::out_of_range const&) { src = this->src; }
+    try { tgt = id2ext.at(this->tgt); } catch (std::out_of_range const&) { tgt = this->tgt; }
     std::ostringstream ss;
     // Vertically aligned
     if (xgt == GapType::CENTRE && xst == SepType::EQ && xgap == 0) {

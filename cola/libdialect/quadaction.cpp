@@ -107,9 +107,9 @@ string Assignment::toString() const {
     return s;
 }
 
-Quad::Quad(unsigned num) : num(num) {
+Quad::Quad(unsigned int num) : num(num) {
     // The only valid num's for quadrants are 0, 1, 2, 3.
-    COLA_ASSERT(0 <= num && num <= 3);
+    COLA_ASSERT(num <= 3);
 }
 
 void Quad::sortAndComputeCosts() {

@@ -151,6 +151,8 @@ Point Compass::vectorSigns(CompassDir d) {
     case CompassDir::NW:    return Point(-1, -1);
     case CompassDir::NORTH: return Point( 0, -1);
     case CompassDir::NE:    return Point( 1, -1);
+    default:
+        COLA_ASSERT(false);
     }
 }
 
@@ -249,6 +251,8 @@ std::string Compass::dirToString(CompassDir d) {
     case CompassDir::SW: return "SW";
     case CompassDir::NW: return "NW";
     case CompassDir::NE: return "NE";
+    default :
+        COLA_ASSERT(false);
     }
 }
 
@@ -258,6 +262,8 @@ std::string Compass::cardToString(CardinalDir d) {
     case CardinalDir::SOUTH: return "SOUTH";
     case CardinalDir::WEST: return "WEST";
     case CardinalDir::NORTH: return "NORTH";
+    default:
+        COLA_ASSERT(false);
     }
 }
 

@@ -199,9 +199,9 @@ void NonOverlapConstraints::computeOverlapForShapePairInfo(ShapePairInfo& info,
     {
         COLA_ASSERT(shape1.halfDim[0] == 0);
         COLA_ASSERT(shape1.halfDim[1] == 0);
-        COLA_ASSERT(info.varIndex1 + 1 < vs[0].size());
+        COLA_ASSERT(info.varIndex1 + 1U < vs[0].size());
         right1 = vs[0][info.varIndex1 + 1]->finalPosition;
-        COLA_ASSERT(info.varIndex1 + 1 < vs[1].size());
+        COLA_ASSERT(info.varIndex1 + 1U < vs[1].size());
         top1    = vs[1][info.varIndex1 + 1]->finalPosition;
         left1 -= shape1.rectPadding.min(XDIM);
         bottom1 -= shape1.rectPadding.min(YDIM);
@@ -218,9 +218,9 @@ void NonOverlapConstraints::computeOverlapForShapePairInfo(ShapePairInfo& info,
     {
         COLA_ASSERT(shape2.halfDim[0] == 0);
         COLA_ASSERT(shape2.halfDim[1] == 0);
-        COLA_ASSERT(info.varIndex2 + 1 < vs[0].size());
+        COLA_ASSERT(info.varIndex2 + 1U < vs[0].size());
         right2 = vs[0][info.varIndex2 + 1]->finalPosition;
-        COLA_ASSERT(info.varIndex2 + 1 < vs[1].size());
+        COLA_ASSERT(info.varIndex2 + 1U < vs[1].size());
         top2   = vs[1][info.varIndex2 + 1]->finalPosition;
         left2 -= shape2.rectPadding.min(XDIM);
         bottom2 -= shape2.rectPadding.min(YDIM);

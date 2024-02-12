@@ -89,13 +89,10 @@ public:
      */
     Rectangle(double x, double X, double y, double Y,
             bool allowOverlap = false);
-    Rectangle(Rectangle const &Other)
-        :  minX(Other.minX)
-        ,  maxX(Other.maxX)
-        ,  minY(Other.minY)
-        ,  maxY(Other.maxY)
-        ,  overlap(Other.overlap) { }
+    Rectangle(const Rectangle &Other) = default;
     Rectangle();
+    ~Rectangle() {}
+
     bool isValid(void) const;
     Rectangle unionWith(const Rectangle& rhs) const;
     /*
