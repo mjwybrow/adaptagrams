@@ -112,7 +112,6 @@ LineSegment_SP BoundingBox::buildSideSegment(CardinalDir side) const {
         return std::make_shared<LineSegment>(Point(x, y), Point(X, y));
     default:
         COLA_ASSERT(false);
-        return std::make_shared<LineSegment>(Point(0, 0), Point(0, 0));
 
     }
 }
