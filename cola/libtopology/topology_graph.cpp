@@ -295,7 +295,7 @@ bool EdgePoint::assertConvexBend() const {
                         COLA_ASSERT(false);
                 }
             }
-        } catch(runtime_error e) {
+        } catch(runtime_error & e) {
             printf("  convexity bend point test failed: %s, dx=%f, dy=%f, cp=%f:\n",e.what(),dx,dy,cp);
             printf("    (nid=%d,ri=%d):u={%f,%f}\n",
                     u->node->id,u->rectIntersect,u->posX(),u->posY());
