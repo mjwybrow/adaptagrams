@@ -99,7 +99,7 @@ Segment* EdgePoint::prune(vpsc::Dim scanDim) {
     // transfer each StraightConstraint from inSegment and outSegment
     // to new Segment s.
     Segment::TransferStraightConstraint transfer = 
-        bind1st(mem_fun(&Segment::transferStraightConstraint),s);
+        std::bind(&Segment::transferStraightConstraint,s,std::placeholders::_1);
     inSegment->forEachStraightConstraint(transfer);
     outSegment->forEachStraightConstraint(transfer);
 
@@ -380,7 +380,7 @@ double Edge::pathLength() const {
     return totalLength;
 }
 bool Edge::assertConvexBends() const {
-    forEachEdgePoint(mem_fun(&EdgePoint::assertConvexBend),true);
+    forEachEdgePoint(mem_fn(&EdgePoint::assertConvexBend),true);
     return true;
 }
 struct PointToString {
@@ -426,7 +426,7 @@ void Edge::getPath(ConstEdgePoints& vs) const {
     forEachEdgePoint(buildPath(vs));
 }
 bool assertConvexBends(const Edges& es) {
-    for_each(es.begin(),es.end(),mem_fun(&Edge::assertConvexBends));
+    for_each(es.begin(),es.end(),mem_fn(&Edge::assertConvexBends));
     return true;
 }
 #ifndef NDEBUG
@@ -482,7 +482,7 @@ bool assertNoSegmentRectIntersection(
 }
 bool assertNoZeroLengthEdgeSegments(const Edges& es) {
     for(Edges::const_iterator e=es.begin();e!=es.end();++e) {
-        (*e)->forEachSegment(mem_fun(&Segment::assertNonZeroLength));
+        (*e)->forEachSegment(mem_fn(&Segment::assertNonZeroLength));
     }
     return true;
 }

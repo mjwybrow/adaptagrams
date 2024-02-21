@@ -27,7 +27,7 @@
 #define TOPOLOGY_GRAPH_H
 
 #include <vector>
-
+#include <functional>
 #include "libvpsc/assertions.h"
 #include "libvpsc/rectangle.h"
 
@@ -239,9 +239,7 @@ namespace topology {
          * this typedef can be used to declare a wrapper functor
          * for transferStraightConstraint
          */
-        typedef std::binder1st<
-            std::mem_fun1_t<void, Segment, StraightConstraint*> 
-            > TransferStraightConstraint;
+        typedef std::function<void(StraightConstraint*)> TransferStraightConstraint;
         /*
          * TransferStraightConstraint might for example be applied to
          * forEachStraightConstraint
@@ -515,10 +513,10 @@ namespace topology {
         void getTopologyConstraints(std::vector<TopologyConstraint*>* ts) 
         const {
             forEach(
-                    std::bind2nd(
-                        std::mem_fun(&EdgePoint::getBendConstraint),ts),
-                    std::bind2nd(
-                        std::mem_fun(&Segment::getStraightConstraints),ts),
+                    std::bind(
+                        &EdgePoint::getBendConstraint,std::placeholders::_1,ts),
+                    std::bind(
+                        &Segment::getStraightConstraints,std::placeholders::_1,ts),
                     true);
         }
         bool assertConvexBends() const;
