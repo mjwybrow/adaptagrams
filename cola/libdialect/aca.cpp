@@ -1382,7 +1382,7 @@ bool ACALayout::applyIfFeasible(OrderedAlignment *oa)
     gi2ei.insert(std::pair<int,int>(newRectIndex,oa->edgeIndex));
     alnnocs->addShape(newRectIndex, newRect->width()/2.0, newRect->height()/2.0, 1, exemptionSetForEdge(oa->edgeIndex));
     m_extendedRS.push_back(newRect);
-    auxRectToExtRS.insert(std::pair<int,int>(newRectIndex,m_extendedRS.size()-1));
+    auxRectToExtRS.insert(std::pair<int,int>(newRectIndex,(int)m_extendedRS.size()-1));
     // Save this state. We will return to this state if the OrderedAlignment
     // in question turns out to be feasible, and we want to keep it.
     pushState();

@@ -27,6 +27,7 @@
 #define TOPOLOGY_GRAPH_H
 
 #include <vector>
+#include <functional>
 
 #include "libvpsc/assertions.h"
 #include "libvpsc/rectangle.h"
@@ -239,9 +240,7 @@ namespace topology {
          * this typedef can be used to declare a wrapper functor
          * for transferStraightConstraint
          */
-        typedef std::binder1st<
-            std::mem_fun1_t<void, Segment, StraightConstraint*> 
-            > TransferStraightConstraint;
+        typedef std::function<void(StraightConstraint*)> TransferStraightConstraint;
         /*
          * TransferStraightConstraint might for example be applied to
          * forEachStraightConstraint

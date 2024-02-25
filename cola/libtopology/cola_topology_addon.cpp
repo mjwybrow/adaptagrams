@@ -30,6 +30,8 @@
 // may mess up C++ std library include on GCC 4.4
 #include "libcola/cola_log.h"
 
+#include <algorithm>
+
 namespace topology {
 
 ColaTopologyAddon::ColaTopologyAddon()

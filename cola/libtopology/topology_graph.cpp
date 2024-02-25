@@ -98,8 +98,7 @@ Segment* EdgePoint::prune(vpsc::Dim scanDim) {
     }
     // transfer each StraightConstraint from inSegment and outSegment
     // to new Segment s.
-    Segment::TransferStraightConstraint transfer = 
-        bind1st(mem_fun(&Segment::transferStraightConstraint),s);
+    Segment::TransferStraightConstraint transfer = std::bind(&Segment::transferStraightConstraint, s, std::placeholders::_1);
     inSegment->forEachStraightConstraint(transfer);
     outSegment->forEachStraightConstraint(transfer);
 

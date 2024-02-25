@@ -50,6 +50,8 @@ using std::string;
 
 using Avoid::Point;
 
+using Node_SP_cmp_function = std::function<bool(const Node_SP&, const Node_SP&)>;
+
 Tree::Tree(Graph_SP G, Node_SP root)
     : m_graph(G),
       m_root(root),
@@ -749,13 +751,13 @@ void Tree::addConstraints(Graph &G, bool alignRoot) {
     // Prepare functions and constants based on our growth direction.
     bool isVertical = Compass::isVerticalCard(m_growthDir);
     // Function to compare Nodes by their transverse coordinate:
-    std::function<bool(Node_SP, Node_SP)> transCoordCmp = isVertical ?
-                [](const Node_SP &a, const Node_SP &b)->bool{ return a->getCentre().x < b->getCentre().x; } :
-                [](const Node_SP &a, const Node_SP &b)->bool{ return a->getCentre().y < b->getCentre().y; } ;
+    Node_SP_cmp_function transCoordCmp = isVertical ?
+        Node_SP_cmp_function([](const Node_SP &a, const Node_SP &b)->bool{ return a->getCentre().x < b->getCentre().x; }) :
+        Node_SP_cmp_function([](const Node_SP &a, const Node_SP &b)->bool{ return a->getCentre().y < b->getCentre().y; }) ;
     // Funciton to compare Nodes by their axial dimension:
-    std::function<bool(Node_SP, Node_SP)> axialMeasureCmp = isVertical ?
-                [](const Node_SP &a, const Node_SP &b)->bool{ return a->getDimensions().second < b->getDimensions().second; } :
-                [](const Node_SP &a, const Node_SP &b)->bool{ return a->getDimensions().first < b->getDimensions().first; } ;
+    Node_SP_cmp_function axialMeasureCmp = isVertical ?
+        Node_SP_cmp_function([](const Node_SP &a, const Node_SP &b)->bool{ return a->getDimensions().second < b->getDimensions().second; }) :
+        Node_SP_cmp_function([](const Node_SP &a, const Node_SP &b)->bool{ return a->getDimensions().first < b->getDimensions().first; }) ;
     // The direction in which to separate Nodes belonging to a common rank:
     CardinalDir intraRankSepDir = isVertical ? CardinalDir::EAST : CardinalDir::SOUTH;
     // The direction in which to separate Nodes belonging to neighbouring ranks:
@@ -861,9 +863,9 @@ void Tree::addBufferNodesAndConstraints(Graph &G, NodesById &bufferNodes) {
     // Pads on outsides of ranks:
     bool isVertical = Compass::isVerticalCard(m_growthDir);
     // Function to compare Nodes by their transverse coordinate:
-    std::function<bool(Node_SP, Node_SP)> transCoordCmp = isVertical ?
-                [](const Node_SP &a, const Node_SP &b)->bool{ return a->getCentre().x < b->getCentre().x; } :
-                [](const Node_SP &a, const Node_SP &b)->bool{ return a->getCentre().y < b->getCentre().y; } ;
+    Node_SP_cmp_function transCoordCmp = isVertical ?
+        Node_SP_cmp_function([](const Node_SP &a, const Node_SP &b)->bool{ return a->getCentre().x < b->getCentre().x; }) :
+        Node_SP_cmp_function([](const Node_SP &a, const Node_SP &b)->bool{ return a->getCentre().y < b->getCentre().y; }) ;
     for (auto it = std::next(m_nodesByRank.begin()); it != m_nodesByRank.end(); ++it) {
         Nodes rank = *it;
         std::sort(rank.begin(), rank.end(), transCoordCmp);
