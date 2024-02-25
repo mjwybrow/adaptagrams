@@ -720,8 +720,8 @@ TopologyConstraints::TopologyConstraints(const vpsc::Dim axisDim, Nodes& nodes,
 TopologyConstraints::
 ~TopologyConstraints() {
     for(Edges::const_iterator i=edges.begin(),e=edges.end();i!=e;++i) {
-        (*i)->forEach(mem_fun(&EdgePoint::deleteBendConstraint),
-                mem_fun(&Segment::deleteStraightConstraints),true);
+        (*i)->forEach(mem_fn(&EdgePoint::deleteBendConstraint),
+                mem_fn(&Segment::deleteStraightConstraints),true);
     }
 }
 } // namespace topology

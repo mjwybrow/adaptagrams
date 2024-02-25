@@ -295,8 +295,8 @@ struct buildRoute {
 };
 void TopologyConstraints::
 constraints(std::vector<TopologyConstraint*>& ts) const {
-    for_each(edges.begin(),edges.end(),bind2nd(
-                mem_fun(&Edge::getTopologyConstraints),&ts));
+    for_each(edges.begin(),edges.end(),bind(
+               &Edge::getTopologyConstraints,std::placeholders::_1,&ts));
 }
 
 struct PrintEdgePoint {
@@ -324,7 +324,7 @@ bool TopologyConstraints::
 assertFeasible() const {
     vector<TopologyConstraint*> ts;
     constraints(ts);
-    for_each(ts.begin(),ts.end(),mem_fun(&TopologyConstraint::assertFeasible));
+    for_each(ts.begin(),ts.end(),mem_fn(&TopologyConstraint::assertFeasible));
     return true;
 }
 bool TopologyConstraints::solve() {
