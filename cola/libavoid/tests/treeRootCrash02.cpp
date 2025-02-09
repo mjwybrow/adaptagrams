@@ -237,7 +237,7 @@ void test()
 	delete router0;
 }
 
-extern "C" int main(int argc, char* argv[])
+extern "C" int main()
 {
 	test();
 	return 0;

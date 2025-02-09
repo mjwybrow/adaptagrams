@@ -4,7 +4,7 @@
 #include <sstream>
 using namespace Avoid;
 
-void outputDiagram(Router * router)
+void outputDiagram()
 {
 	static int counter = 0;
 	std::ostringstream os;
@@ -96,38 +96,38 @@ int test()
 	
 	end1_0 = ConnEnd(shape0_646972128, 1);
 	end2_0 = ConnEnd(junction0_16268769);
-	ConnRef * conn0_64950216 = new ConnRef(router0, end1_0, end2_0, 64950216);
+	new ConnRef(router0, end1_0, end2_0, 64950216);
 	end1_0 = ConnEnd(junction0_16268769);
 	end2_0 = ConnEnd(shape0_478041183, 7);
-	ConnRef * conn0_278089510 = new ConnRef(router0, end1_0, end2_0, 278089510);
+	new ConnRef(router0, end1_0, end2_0, 278089510);
 	end1_0 = ConnEnd(shape0_241539284, 1);
 	end2_0 = ConnEnd(junction0_16268769);
-	ConnRef * conn0_41268690 = new ConnRef(router0, end1_0, end2_0, 41268690);
+	new ConnRef(router0, end1_0, end2_0, 41268690);
 
 	end1_0 = ConnEnd(shape0_478041183, 9);
 	end2_0 = ConnEnd(junction0_142222080);
-	ConnRef * conn0_60256130 = new ConnRef(router0, end1_0, end2_0, 60256130);
+	new ConnRef(router0, end1_0, end2_0, 60256130);
 	end1_0 = ConnEnd(shape0_478041183, 3);
 	end2_0 = ConnEnd(junction0_142222080);
-	ConnRef * conn0_73835204 = new ConnRef(router0, end1_0, end2_0, 73835204);
+	new ConnRef(router0, end1_0, end2_0, 73835204);
 	end1_0 = ConnEnd(shape0_478041183, 4);
 	end2_0 = ConnEnd(junction0_142222080);
-	ConnRef * conn0_93872527 = new ConnRef(router0, end1_0, end2_0, 93872527);
+	new ConnRef(router0, end1_0, end2_0, 93872527);
 
 	end1_0 = ConnEnd(shape0_53041512, 1);
 	end2_0 = ConnEnd(junction0_471289251);
-	ConnRef * conn0_448284384 = new ConnRef(router0, end1_0, end2_0, 448284384);
+	new ConnRef(router0, end1_0, end2_0, 448284384);
 	end1_0 = ConnEnd(shape0_478041183, 1);
 	end2_0 = ConnEnd(junction0_471289251);
-	ConnRef * conn0_392836745 = new ConnRef(router0, end1_0, end2_0, 392836745);
+	new ConnRef(router0, end1_0, end2_0, 392836745);
 	end1_0 = ConnEnd(shape0_241539284, 2);
 	end2_0 = ConnEnd(junction0_471289251);
-	ConnRef * conn0_836242673 = new ConnRef(router0, end1_0, end2_0, 836242673);
+	new ConnRef(router0, end1_0, end2_0, 836242673);
 
 	router0->processTransaction();
 
 	newanddeletedobjects_0 = router0->newAndDeletedObjectListsFromHyperedgeImprovement();
-	outputDiagram(router0);
+	outputDiagram();
 	
 	junction0_16268769->setPositionFixed(false);
 	junction0_142222080->setPositionFixed(false);
@@ -138,14 +138,14 @@ int test()
 	router0->hyperedgeRerouter()->registerHyperedgeForRerouting(junction0_471289251);
 	
 	router0->processTransaction();
-	outputDiagram(router0);
+	outputDiagram();
 
     int result = router0->existsInvalidOrthogonalPaths();
     delete router0;
     return result;
 }
 
-extern "C" int main(int argc, char* argv[])
+extern "C" int main()
 {
 	return test();
 }

@@ -134,7 +134,7 @@ void test()
 }
 
 
-extern "C" int main(int argc, char* argv[])
+extern "C" int main()
 {
 	test();
 	return 0;
