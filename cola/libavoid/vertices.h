@@ -48,7 +48,7 @@ typedef unsigned int ConnDirFlags;
 typedef unsigned short VertIDProps;
 
 
-class VertID
+class AVOID_EXPORT VertID
 {
     public:
         unsigned int objID;
