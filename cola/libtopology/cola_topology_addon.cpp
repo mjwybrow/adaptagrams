@@ -18,6 +18,11 @@
  * Author(s):  Michael Wybrow
 */
 
+#ifndef _USE_MATH_DEFINES
+#define _USE_MATH_DEFINES
+#endif
+#include <cmath>
+
 #include <utility>
 
 #include "libvpsc/rectangle.h"

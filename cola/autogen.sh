@@ -20,6 +20,8 @@ autoreconf --install --verbose
 
 # Configure.
 ./configure
+# Compile with CXXFLAGS="-std=c++11" when using MSYS2 and g++ 14 or newer
+# ./configure CXXFLAGS="-std=c++11"
 
 # Instead, use this line if building for SWIG Java:
 # ./configure CPPFLAGS="-DUSE_ASSERT_EXCEPTIONS"
