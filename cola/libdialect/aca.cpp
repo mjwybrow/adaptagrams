@@ -31,6 +31,7 @@
 
 #include <sstream>
 #include <iostream>
+#include <clocale>
 
 #include "libvpsc/constraint.h"
 #include "libvpsc/variable.h"
@@ -1676,6 +1677,11 @@ static void reduceRange(double& val)
 
 void ACALayout::outputInstanceToSVG(std::string instanceName)
 {
+    // Save current locale
+    char* originalLocale = setlocale(LC_NUMERIC, nullptr);
+    // Set locale to "C" to enforce decimal point
+    setlocale(LC_NUMERIC, "C");
+
     std::string filename;
     if (!instanceName.empty())
     {
@@ -1990,6 +1996,8 @@ void ACALayout::outputInstanceToSVG(std::string instanceName)
 
     fprintf(fp, "</svg>\n");
     fclose(fp);
+    // Restore locale
+    setlocale(LC_NUMERIC, originalLocale);
 }
 
 } // namespace dialect

@@ -26,6 +26,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cfloat>
+#include <clocale>
 
 #include "libavoid/shape.h"
 #include "libavoid/router.h"
@@ -2357,6 +2358,11 @@ void Router::improveOrthogonalTopology(void)
 
 void Router::outputInstanceToSVG(std::string instanceName)
 {
+    // Save current locale
+    char* originalLocale = setlocale(LC_NUMERIC, nullptr);
+    // Set locale to "C" to enforce decimal point
+    setlocale(LC_NUMERIC, "C");
+
     std::string filename;
     if (!instanceName.empty())
     {
@@ -2856,6 +2862,8 @@ void Router::outputInstanceToSVG(std::string instanceName)
     fprintf(fp, "</svg>\n");
     fclose(fp);
     //printInfo();
+    // Restore locale
+    setlocale(LC_NUMERIC, originalLocale);
 }
 
 void Router::outputDiagramSVG(std::string instanceName, LineReps *lineReps)

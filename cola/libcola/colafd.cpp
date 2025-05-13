@@ -27,6 +27,7 @@
 #include <vector>
 #include <cmath>
 #include <limits>
+#include <clocale>
 
 #include "libvpsc/solve_VPSC.h"
 #include "libvpsc/variable.h"
@@ -1368,6 +1369,11 @@ static void reduceRange(double& val)
 
 void ConstrainedFDLayout::outputInstanceToSVG(std::string instanceName)
 {
+    // Save current locale
+    char* originalLocale = setlocale(LC_NUMERIC, nullptr);
+    // Set locale to "C" to enforce decimal point
+    setlocale(LC_NUMERIC, "C");
+
     std::string filename;
     if (!instanceName.empty())
     {
@@ -1542,6 +1548,8 @@ void ConstrainedFDLayout::outputInstanceToSVG(std::string instanceName)
 
     fprintf(fp, "</svg>\n");
     fclose(fp);
+    // Restore locale
+    setlocale(LC_NUMERIC, originalLocale);
 }
 
 ProjectionResult projectOntoCCs(Dim dim, Rectangles &rs, CompoundConstraints ccs,

@@ -24,6 +24,7 @@
 #include <cmath>
 
 #include <utility>
+#include <clocale>
 
 #include "libvpsc/rectangle.h"
 #include "libvpsc/constraint.h"
@@ -135,6 +136,11 @@ static void reduceRange(double& val)
 
 void ColaTopologyAddon::writeSVGFile(std::string basename)
 {
+    // Save current locale
+    char* originalLocale = setlocale(LC_NUMERIC, nullptr);
+    // Set locale to "C" to enforce decimal point
+    setlocale(LC_NUMERIC, "C");
+
     std::string filename;
     if (!basename.empty())
     {
@@ -290,6 +296,8 @@ void ColaTopologyAddon::writeSVGFile(std::string basename)
 
     fprintf(fp, "</svg>\n");
     fclose(fp);
+    // Restore locale
+    setlocale(LC_NUMERIC, originalLocale);
 }
 
 double ColaTopologyAddon::computeStress(void) const
