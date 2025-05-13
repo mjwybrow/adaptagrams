@@ -87,8 +87,8 @@ int main(void) {
     // Check external face.
     for (size_t i = 0; i < 7; ++i) {
         Face_SP F = faces[i];
-        if (i == 1) COLA_ASSERT(F->isExternal());
-        else COLA_ASSERT(!F->isExternal());
+        if (i == 1) { COLA_ASSERT(F->isExternal()); }
+        else { COLA_ASSERT(!F->isExternal()); }
     }
 
     // Look at the Sides and Nexes for the concave face #3:
