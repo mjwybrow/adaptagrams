@@ -118,6 +118,12 @@ using namespace dialect;
 %ignore dialect::identifyRootNode(const Graph&);
 %ignore dialect::negateSepDir(SepDir);
 %ignore dialect::swap(Graph&, Graph&);
+%ignore dialect::ProjSeq::operator+=(const ProjSeq&);
+%ignore dialect::BoundingBox::operator+=(const BoundingBox&);
+%ignore dialect::NodeIdCmp::operator()(id_type, const std::pair<id_type, Node_SP>&) const;
+%ignore dialect::NodeIdCmp::operator()(const std::pair<id_type, Node_SP>&, id_type) const;
+%ignore dialect::operator&(AlignmentFlag, AlignmentFlag);
+%ignore dialect::operator|=(AlignmentFlag&, AlignmentFlag);
 
 %include "std_string.i"
 %include "std_vector.i"
@@ -261,6 +267,11 @@ void deleteDoubleArray(double* a) {
 
 %rename(DialectNode) dialect::Node;
 %rename(DialectEdge) dialect::Edge;
+
+%rename(X1) dialect::BoundingBox::x;
+%rename(Y1) dialect::BoundingBox::y;
+%rename(X2) dialect::BoundingBox::X;
+%rename(Y2) dialect::BoundingBox::Y;
 
 %shared_ptr(dialect::Node)
 %shared_ptr(dialect::GhostNode)

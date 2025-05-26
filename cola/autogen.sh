@@ -20,9 +20,13 @@ autoreconf --install --verbose
 
 # Configure.
 ./configure
+# Compile with CXXFLAGS="-std=c++11" when using g++ 14 or newer
+# ./configure CXXFLAGS="-std=c++11"
 
 # Instead, use this line if building for SWIG Java:
 # ./configure CPPFLAGS="-DUSE_ASSERT_EXCEPTIONS"
+# Compile with CXXFLAGS="-std=c++11" when using g++ 14 or newer
+# ./configure CXXFLAGS="-std=c++11" CPPFLAGS="-DUSE_ASSERT_EXCEPTIONS"
 
 # Instead, use this line if building for SWIG Python:
 # ./configure CXXFLAGS="-O3 -DNDEBUG -arch x86_64 -arch i386" LDFLAGS="-arch x86_64 -arch i386"

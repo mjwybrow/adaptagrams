@@ -2,21 +2,38 @@ OSNAME:=$(shell uname -s | sed 's/_.*//')
 
 ifeq ($(OSNAME),Darwin)
 	CPPFLAGS =
-	JAVA_INCLUDE = -I/System/Library/Frameworks/JavaVM.framework/Headers
-	LINK = $(CXX) $(CXXFLAGS) -dynamiclib -framework JavaVM -o adaptagrams.dylib
+	CXXFLAGS += -std=c++11
+	# Change path to JDK
+	# JAVA_INCLUDE = -I/System/Library/Frameworks/JavaVM.framework/Headers
+	JAVA_INCLUDE = -I/Library/Java/JavaVirtualMachines/temurin-8.jdk/Contents/Home/include \
+					-I/Library/Java/JavaVirtualMachines/temurin-8.jdk/Contents/Home/include/darwin
+	# LINK = $(CXX) $(CXXFLAGS) -dynamiclib -framework JavaVM -o adaptagrams.dylib
+	LINK = $(CXX) $(CXXFLAGS) -dynamiclib -o adaptagrams.dylib
 else 
 	# Some make versions say only one else per if statment.
 	ifeq ($(OSNAME),Linux)
 		CPPFLAGS = -fPIC
-		JAVA_INCLUDE = -I/usr/lib/jvm/java-6-sun/include \
-						-I/usr/lib/jvm/java-6-sun/include/linux
+		# Change path to JDK
+		JAVA_INCLUDE = -I/usr/lib/jvm/java-8-openjdk-amd64/include \
+						-I/usr/lib/jvm/java-8-openjdk-amd64/include/linux
 		LINK = $(CXX) $(CXXFLAGS) -shared -o adaptagrams.so
 	else 
-	    ifeq ($(OSNAME),MINGW32)
+		ifeq ($(OSNAME),MINGW32)
 			CPPFLAGS =
-			JAVA_INCLUDE = -I/c/Programme/Java/jdk1.6.0_24/include \
-							-I/c/Programme/Java/jdk1.6.0_24/include/win32
+			# Change path to JDK
+			JAVA_INCLUDE = -I"/c/Program Files/Java/jdk-1.8/include" \
+							-I"/c/Program File/Java/jdk-1.8/include/win32"
+			# Building with MinGW
 			LINK = $(CXX) $(CXXFLAGS) -Wl,--add-stdcall-alias -shared -o adaptagrams.dll
+		else
+			ifeq ($(OSNAME),MINGW64)
+				CPPFLAGS =
+				# Change path to JDK
+				JAVA_INCLUDE = -I"/c/Program Files/Java/jdk-1.8/include" \
+								-I"/c/Program Files/Java/jdk-1.8/include/win32"
+				# Building with MSYS2
+				LINK = $(CXX) $(CXXFLAGS) -Wl,--add-stdcall-alias -static-libgcc -static-libstdc++ -static -lpthread -shared -o adaptagrams.dll
+			endif
 		endif
 	endif
 endif
@@ -26,6 +43,7 @@ all: adaptagrams jar
 swig-worked: clean adaptagrams.i
 	mkdir -p java/src/org/adaptagrams
 	mkdir -p java/build/org/adaptagrams
+	# Use Swig version 3
 	swig -DUSE_ASSERT_EXCEPTIONS -c++ -java -package org.adaptagrams -outdir java/src/org/adaptagrams adaptagrams.i
 	touch swig-worked
 

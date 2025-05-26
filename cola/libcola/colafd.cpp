@@ -27,6 +27,7 @@
 #include <vector>
 #include <cmath>
 #include <limits>
+#include <clocale>
 
 #include "libvpsc/solve_VPSC.h"
 #include "libvpsc/variable.h"
@@ -1368,6 +1369,11 @@ static void reduceRange(double& val)
 
 void ConstrainedFDLayout::outputInstanceToSVG(std::string instanceName)
 {
+    // Save current locale
+    char* originalLocale = setlocale(LC_NUMERIC, nullptr);
+    // Set locale to "C" to enforce decimal point
+    setlocale(LC_NUMERIC, "C");
+
     std::string filename;
     if (!instanceName.empty())
     {
@@ -1542,6 +1548,8 @@ void ConstrainedFDLayout::outputInstanceToSVG(std::string instanceName)
 
     fprintf(fp, "</svg>\n");
     fclose(fp);
+    // Restore locale
+    setlocale(LC_NUMERIC, originalLocale);
 }
 
 ProjectionResult projectOntoCCs(Dim dim, Rectangles &rs, CompoundConstraints ccs,
@@ -1625,13 +1633,13 @@ ProjectionResult solve(Variables &vs, Constraints &cs, Rectangles &rs, unsigned 
                 sprintf(buf, "v_%d\n", c->right->id);
                 unsatinfo += buf;
                 if ((unsigned) c->left->id < rs.size()) {
-                    Rectangle *r = rs[c->left->id];
+                    vpsc::Rectangle *r = rs[c->left->id];
                     sprintf(buf, "    v_%d rect: [%f, %f] x [%f, %f]\n", c->left->id,
                             r->getMinX(), r->getMaxX(), r->getMinY(), r->getMaxY());
                     unsatinfo += buf;
                 }
                 if ((unsigned) c->right->id < rs.size()) {
-                    Rectangle *r = rs[c->right->id];
+                    vpsc::Rectangle *r = rs[c->right->id];
                     sprintf(buf, "    v_%d rect: [%f, %f] x [%f, %f]\n", c->right->id,
                             r->getMinX(), r->getMaxX(), r->getMinY(), r->getMaxY());
                     unsatinfo += buf;
@@ -1655,13 +1663,13 @@ ProjectionResult solve(Variables &vs, Constraints &cs, Rectangles &rs, unsigned 
                     sprintf(buf, "v_%d\n", c->right->id);
                     unsatinfo += buf;
                     if ((unsigned) c->left->id < rs.size()) {
-                        Rectangle *r = rs[c->left->id];
+                        vpsc::Rectangle *r = rs[c->left->id];
                         sprintf(buf, "    v_%d rect: [%f, %f] x [%f, %f]\n", c->left->id,
                                 r->getMinX(), r->getMaxX(), r->getMinY(), r->getMaxY());
                         unsatinfo += buf;
                     }
                     if ((unsigned) c->right->id < rs.size()) {
-                        Rectangle *r = rs[c->right->id];
+                        vpsc::Rectangle *r = rs[c->right->id];
                         sprintf(buf, "    v_%d rect: [%f, %f] x [%f, %f]\n", c->right->id,
                                 r->getMinX(), r->getMaxX(), r->getMinY(), r->getMaxY());
                         unsatinfo += buf;
