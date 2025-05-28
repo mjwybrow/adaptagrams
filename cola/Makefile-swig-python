@@ -4,7 +4,7 @@ COMPILER =
 # to get a list of available compilers run
 # python swig-python-setup.py build_ext --help-compiler
 # no changes necessary on Linux and MacOS
-# change compiler to mingw32 on MinGW
+# change compiler to mingw32 on MinGW (but not on MSYS2)
 ifeq ($(OSNAME),MINGW32)
 	COMPILER = --compiler=mingw32
 endif
@@ -12,10 +12,12 @@ endif
 all: adaptagrams
 
 adaptagrams_wrap.cxx: clean adaptagrams.i
+	# use Swig version 3
 	swig -DNDEBUG -c++ -python adaptagrams.i
 
 adaptagrams: adaptagrams_wrap.cxx
-	python swig-python-setup.py build_ext --inplace $(COMPILER)
+	# change to 'python' on Windows
+	python3 swig-python3-setup.py build_ext --inplace $(COMPILER)
 
 realclean: clean
 
