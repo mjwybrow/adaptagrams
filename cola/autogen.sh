@@ -23,12 +23,14 @@ autoreconf --install --verbose
 # Compile with CXXFLAGS="-std=c++11" when using g++ 14 or newer
 # ./configure CXXFLAGS="-std=c++11"
 
-# Instead, use this line if building for SWIG Java:
+# Instead, use this line if building for SWIG Java or SWIG Python 3:
 # ./configure CPPFLAGS="-DUSE_ASSERT_EXCEPTIONS"
 # Compile with CXXFLAGS="-std=c++11" when using g++ 14 or newer
 # ./configure CXXFLAGS="-std=c++11" CPPFLAGS="-DUSE_ASSERT_EXCEPTIONS"
 
 # Instead, use this line if building for SWIG Python:
+# (this line doesn't seem to work anymore, it's causing problems in particular with
+# libdialect and "-O3 -DNDEBUG")
 # ./configure CXXFLAGS="-O3 -DNDEBUG -arch x86_64 -arch i386" LDFLAGS="-arch x86_64 -arch i386"
 
 # Instead, use this line for development and for debugging the tests:
