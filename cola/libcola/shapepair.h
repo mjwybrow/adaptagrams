@@ -43,7 +43,7 @@ class ShapePair
 };
 
 
-};
+}
 
 #endif
 
