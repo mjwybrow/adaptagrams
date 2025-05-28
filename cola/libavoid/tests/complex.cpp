@@ -23,16 +23,16 @@
 */
 
 #include "libavoid/libavoid.h"
-
+using namespace Avoid;
     
 
 static void connCallback(void *ptr)
 {
-    Avoid::ConnRef *connRef = (Avoid::ConnRef *) ptr; 
+    ConnRef *connRef = (ConnRef *) ptr; 
 
     printf("Connector %u needs rerouting!\n", connRef->id());
 
-    const Avoid::PolyLine& route = connRef->route();
+    const PolyLine& route = connRef->route();
     printf("New path: ");
     for (size_t i = 0; i < route.ps.size(); ++i) 
     {
@@ -45,27 +45,27 @@ static void connCallback(void *ptr)
 
 int main(void)
 {
-    Avoid::Router *router = new Avoid::Router(Avoid::OrthogonalRouting |
-            Avoid::PolyLineRouting);
+    Router *router = new Router(OrthogonalRouting |
+            PolyLineRouting);
     
-    Avoid::Point srcPt(1.2, 0.5);
-    Avoid::Point dstPt(1.5, 4);
-    Avoid::ConnRef *connRef = new Avoid::ConnRef(router, srcPt, dstPt);
+    Point srcPt(1.2, 0.5);
+    Point dstPt(1.5, 4);
+    ConnRef *connRef = new ConnRef(router, srcPt, dstPt);
     connRef->setCallback(connCallback, connRef);
     // Force inital callback:
     router->processTransaction();
 
     printf("\nAdding a shape.\n");
     // Create the ShapeRef:
-    Avoid::Polygon shapePoly(3);
-    shapePoly.ps[0] = Avoid::Point(1, 1);
-    shapePoly.ps[1] = Avoid::Point(2.5, 1.5);
-    shapePoly.ps[2] = Avoid::Point(1.5, 2.5);
-    Avoid::ShapeRef *shapeRef = new Avoid::ShapeRef(router, shapePoly);
+    Polygon shapePoly(3);
+    shapePoly.ps[0] = Point(1, 1);
+    shapePoly.ps[1] = Point(2.5, 1.5);
+    shapePoly.ps[2] = Point(1.5, 2.5);
+    ShapeRef *shapeRef = new ShapeRef(router, shapePoly);
     router->processTransaction();
 
     printf("\nShifting endpoint.\n");
-    Avoid::Point dstPt2(6, 4.5);
+    Point dstPt2(6, 4.5);
     connRef->setDestEndpoint(dstPt2);
     // It's expected you know the connector needs rerouting, so the callback
     // isn't called.  You can force it to be called though, via:
@@ -76,11 +76,11 @@ int main(void)
     router->processTransaction();
 
     printf("\nChanging type to orthogonal.\n");
-    connRef->setRoutingType(Avoid::ConnType_Orthogonal);
+    connRef->setRoutingType(ConnType_Orthogonal);
     router->processTransaction();
 
     printf("\nChanging type back to polyline.\n");
-    connRef->setRoutingType(Avoid::ConnType_PolyLine);
+    connRef->setRoutingType(ConnType_PolyLine);
     router->processTransaction();
 
     router->deleteConnector(connRef);
@@ -89,7 +89,7 @@ int main(void)
     router->processTransaction();
 
     printf("\nReadding shape.\n");
-    shapeRef = new Avoid::ShapeRef(router, shapePoly);
+    shapeRef = new ShapeRef(router, shapePoly);
     router->processTransaction();
 
     printf("\nMoving shape right by 0.5.\n");

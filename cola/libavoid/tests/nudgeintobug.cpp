@@ -2,11 +2,11 @@
 using namespace Avoid;
 int main(void) {
     Router *router = new Router(OrthogonalRouting);
-    router->setRoutingPenalty((Avoid::PenaltyType)0, 50);
-    router->setRoutingPenalty((Avoid::PenaltyType)1, 0);
-    router->setRoutingPenalty((Avoid::PenaltyType)2, 200);
-    router->setRoutingPenalty((Avoid::PenaltyType)3, 4000);
-    router->setRoutingPenalty((Avoid::PenaltyType)4, 110);
+    router->setRoutingPenalty((PenaltyType)0, 50);
+    router->setRoutingPenalty((PenaltyType)1, 0);
+    router->setRoutingPenalty((PenaltyType)2, 200);
+    router->setRoutingPenalty((PenaltyType)3, 4000);
+    router->setRoutingPenalty((PenaltyType)4, 110);
     router->setRoutingParameter(idealNudgingDistance, 25);
     Rectangle rect548374163(Point(51900, 50400), Point(52300, 50900));
     new ShapeRef(router, rect548374163, 548374163);

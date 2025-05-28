@@ -23,16 +23,16 @@
 */
 
 #include "libavoid/libavoid.h"
-
+using namespace Avoid;
     
 
 static void connCallback(void *ptr)
 {
-    Avoid::ConnRef *connRef = (Avoid::ConnRef *) ptr; 
+    ConnRef *connRef = (ConnRef *) ptr; 
 
     printf("Connector %u needs rerouting!\n", connRef->id());
 
-    const Avoid::PolyLine& route = connRef->displayRoute();
+    const PolyLine& route = connRef->displayRoute();
     printf("New path: ");
     for (size_t i = 0; i < route.ps.size(); ++i) 
     {
@@ -45,28 +45,28 @@ static void connCallback(void *ptr)
 
 int main(void)
 {
-    Avoid::Router *router = new Avoid::Router(Avoid::OrthogonalRouting);
+    Router *router = new Router(OrthogonalRouting);
     
-    Avoid::Point srcPt(0,400);
-    Avoid::Point dstPt(775,400);
-    Avoid::ConnRef *connRef = new Avoid::ConnRef(router, srcPt, dstPt);
+    Point srcPt(0,400);
+    Point dstPt(775,400);
+    ConnRef *connRef = new ConnRef(router, srcPt, dstPt);
     connRef->setCallback(connCallback, connRef);
 
-    Avoid::Point srcPt2(775,625);
-    Avoid::Point dstPt2(350,475);
-    Avoid::ConnRef *connRef2 = new Avoid::ConnRef(router, srcPt2, dstPt2);
+    Point srcPt2(775,625);
+    Point dstPt2(350,475);
+    ConnRef *connRef2 = new ConnRef(router, srcPt2, dstPt2);
     connRef2->setCallback(connCallback, connRef2);
     
     router->processTransaction();
 
     printf("\nShifting endpoint.\n");
-    connRef->setEndpoints(Avoid::Point(0,375), Avoid::Point(775,400));
-    connRef2->setEndpoints(Avoid::Point(775,625), Avoid::Point(350,450));
+    connRef->setEndpoints(Point(0,375), Point(775,400));
+    connRef2->setEndpoints(Point(775,625), Point(350,450));
     router->processTransaction();
 
     printf("\nShifting endpoint.\n");
-    connRef->setEndpoints(Avoid::Point(0,400), Avoid::Point(775,400));
-    connRef2->setEndpoints(Avoid::Point(775,625), Avoid::Point(350,475));
+    connRef->setEndpoints(Point(0,400), Point(775,400));
+    connRef2->setEndpoints(Point(775,625), Point(350,475));
     router->processTransaction();
 
     delete router;

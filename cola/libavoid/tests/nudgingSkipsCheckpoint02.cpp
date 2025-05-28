@@ -3047,7 +3047,7 @@ int main(void) {
 
     router->processTransaction();
     router->outputDiagram("output/nudgingSkipsCheckpoint02");
-    Avoid::PolyLine route249 = connRef249->displayRoute();
+    PolyLine route249 = connRef249->displayRoute();
     
     delete router;
     return (route249.size() == 6) ? 0 : 1;

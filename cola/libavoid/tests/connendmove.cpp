@@ -23,33 +23,33 @@
 */
 
 #include "libavoid/libavoid.h"
-
+using namespace Avoid;
 // Regression test to catch a bug where moving detaching a connected 
 // endpoint that was scheduled to move would result in a double free.
     
 
 int main(void)
 {
-    Avoid::Router *router = new Avoid::Router(Avoid::OrthogonalRouting);
+    Router *router = new Router(OrthogonalRouting);
     
     // Create the ShapeRef:
-    Avoid::Rectangle shapeRect1(Avoid::Point(0, 0), Avoid::Point(10, 10));
-    Avoid::ShapeRef *shapeRef1 = new Avoid::ShapeRef(router, shapeRect1);
+    Rectangle shapeRect1(Point(0, 0), Point(10, 10));
+    ShapeRef *shapeRef1 = new ShapeRef(router, shapeRect1);
     const unsigned int CENTRE = 1;
-    new Avoid::ShapeConnectionPin(shapeRef1, CENTRE, 
-            Avoid::ATTACH_POS_CENTRE, Avoid::ATTACH_POS_CENTRE, true, 0.0, Avoid::ConnDirNone);
+    new ShapeConnectionPin(shapeRef1, CENTRE, 
+            ATTACH_POS_CENTRE, ATTACH_POS_CENTRE, true, 0.0, ConnDirNone);
     
-    Avoid::Rectangle shapeRect2(Avoid::Point(0, 0), Avoid::Point(10, 10));
-    Avoid::ShapeRef *shapeRef2 = new Avoid::ShapeRef(router, shapeRect1);
+    Rectangle shapeRect2(Point(0, 0), Point(10, 10));
+    ShapeRef *shapeRef2 = new ShapeRef(router, shapeRect1);
 
-    Avoid::ConnEnd dstPt(shapeRef1, CENTRE); 
-    Avoid::Point srcPt(1.5, 4);
-    Avoid::ConnRef *connRef = new Avoid::ConnRef(router, srcPt, dstPt);
+    ConnEnd dstPt(shapeRef1, CENTRE); 
+    Point srcPt(1.5, 4);
+    ConnRef *connRef = new ConnRef(router, srcPt, dstPt);
     // Force inital callback:
     router->processTransaction();
     router->outputDiagram("output/connendmove-1");
 
-    Avoid::Point dstPt2(20, 20);
+    Point dstPt2(20, 20);
     connRef->setDestEndpoint(dstPt2);
     router->moveShape(shapeRef1, 0.5, 0);
 
