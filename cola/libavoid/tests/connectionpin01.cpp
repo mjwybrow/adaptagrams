@@ -24,30 +24,32 @@
 #include "libavoid/libavoid.h"
 #include "libavoid/connectionpin.h"
 
+using namespace Avoid;
+
 // A testcase to check the functionality for connection pins.
 
 
 int main(void)
 {
-    Avoid::Router *router = new Avoid::Router(Avoid::OrthogonalRouting);
+    Router *router = new Router(OrthogonalRouting);
     
     // Create the ShapeRef:
-    Avoid::Rectangle shapeRect1(Avoid::Point(0, 0), Avoid::Point(10, 10));
-    Avoid::ShapeRef *shapeRef1 = new Avoid::ShapeRef(router, shapeRect1);
+    Rectangle shapeRect1(Point(0, 0), Point(10, 10));
+    ShapeRef *shapeRef1 = new ShapeRef(router, shapeRect1);
 
     
-    Avoid::Rectangle shapeRect2(Avoid::Point(40, 20), Avoid::Point(50, 30));
-    Avoid::ShapeRef *shapeRef2 = new Avoid::ShapeRef(router, shapeRect2);
+    Rectangle shapeRect2(Point(40, 20), Point(50, 30));
+    ShapeRef *shapeRef2 = new ShapeRef(router, shapeRect2);
 
     const unsigned int CENTRE = 1;
-    new Avoid::ShapeConnectionPin(shapeRef1, CENTRE, Avoid::ATTACH_POS_CENTRE, 
-            Avoid::ATTACH_POS_CENTRE, true, 0.0, Avoid::ConnDirNone);
-    new Avoid::ShapeConnectionPin(shapeRef2, CENTRE, Avoid::ATTACH_POS_CENTRE, 
-            Avoid::ATTACH_POS_CENTRE, true, 0.0, Avoid::ConnDirNone);
+    new ShapeConnectionPin(shapeRef1, CENTRE, ATTACH_POS_CENTRE, 
+            ATTACH_POS_CENTRE, true, 0.0, ConnDirNone);
+    new ShapeConnectionPin(shapeRef2, CENTRE, ATTACH_POS_CENTRE, 
+            ATTACH_POS_CENTRE, true, 0.0, ConnDirNone);
 
-    Avoid::ConnEnd dstEnd(shapeRef1, CENTRE);
-    Avoid::ConnEnd srcEnd(shapeRef2, CENTRE);
-    new Avoid::ConnRef(router, srcEnd, dstEnd);
+    ConnEnd dstEnd(shapeRef1, CENTRE);
+    ConnEnd srcEnd(shapeRef2, CENTRE);
+    new ConnRef(router, srcEnd, dstEnd);
     // Force inital callback:
     router->processTransaction();
     router->outputDiagram("output/connectionpin01-1");

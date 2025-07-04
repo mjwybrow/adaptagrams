@@ -22,50 +22,51 @@
 */
 
 #include "libavoid/libavoid.h"
+using namespace Avoid;
 
 // Another testcase to check the functionality for connection pins.
 
 
 int main(void)
 {
-    Avoid::Router *router = new Avoid::Router(Avoid::OrthogonalRouting);
-    router->setRoutingPenalty((Avoid::PenaltyType)0, 50);
+    Router *router = new Router(OrthogonalRouting);
+    router->setRoutingPenalty((PenaltyType)0, 50);
     
-    Avoid::Rectangle shapeRect1(Avoid::Point(0, 0), Avoid::Point(30, 20));
-    Avoid::ShapeRef *shapeRef1 = new Avoid::ShapeRef(router, shapeRect1);
+    Rectangle shapeRect1(Point(0, 0), Point(30, 20));
+    ShapeRef *shapeRef1 = new ShapeRef(router, shapeRect1);
     
-    Avoid::Rectangle shapeRect2(Avoid::Point(70, 7), Avoid::Point(100, 27));
-    new Avoid::ShapeRef(router, shapeRect2);
+    Rectangle shapeRect2(Point(70, 7), Point(100, 27));
+    new ShapeRef(router, shapeRect2);
     
-    Avoid::Rectangle shapeRect3(Avoid::Point(50, 60), Avoid::Point(80, 155));
-    new Avoid::ShapeRef(router, shapeRect3);
+    Rectangle shapeRect3(Point(50, 60), Point(80, 155));
+    new ShapeRef(router, shapeRect3);
     
-    Avoid::Rectangle shapeRect4(Avoid::Point(125, 60), Avoid::Point(155, 80));
-    new Avoid::ShapeRef(router, shapeRect4);
+    Rectangle shapeRect4(Point(125, 60), Point(155, 80));
+    new ShapeRef(router, shapeRect4);
     
-    Avoid::Rectangle shapeRect5(Avoid::Point(15, 150), Avoid::Point(45, 170));
-    Avoid::ShapeRef *shapeRef5 = new Avoid::ShapeRef(router, shapeRect5);
+    Rectangle shapeRect5(Point(15, 150), Point(45, 170));
+    ShapeRef *shapeRef5 = new ShapeRef(router, shapeRect5);
     
-    Avoid::Rectangle shapeRect6(Avoid::Point(130, 130), Avoid::Point(160, 150));
-    Avoid::ShapeRef *shapeRef6 = new Avoid::ShapeRef(router, shapeRect6);
+    Rectangle shapeRect6(Point(130, 130), Point(160, 150));
+    ShapeRef *shapeRef6 = new ShapeRef(router, shapeRect6);
     
     // Add a centre connection pin for the three shapes we'll be using.
-    new Avoid::ShapeConnectionPin(shapeRef1, Avoid::CONNECTIONPIN_CENTRE, 
-            Avoid::ATTACH_POS_CENTRE, Avoid::ATTACH_POS_CENTRE, true, 0.0, Avoid::ConnDirNone);
-    new Avoid::ShapeConnectionPin(shapeRef5, Avoid::CONNECTIONPIN_CENTRE, 
-            Avoid::ATTACH_POS_CENTRE, Avoid::ATTACH_POS_CENTRE, true, 0.0, Avoid::ConnDirNone);
-    new Avoid::ShapeConnectionPin(shapeRef6, Avoid::CONNECTIONPIN_CENTRE, 
-            Avoid::ATTACH_POS_CENTRE, Avoid::ATTACH_POS_CENTRE, true, 0.0, Avoid::ConnDirNone);
+    new ShapeConnectionPin(shapeRef1, CONNECTIONPIN_CENTRE, 
+            ATTACH_POS_CENTRE, ATTACH_POS_CENTRE, true, 0.0, ConnDirNone);
+    new ShapeConnectionPin(shapeRef5, CONNECTIONPIN_CENTRE, 
+            ATTACH_POS_CENTRE, ATTACH_POS_CENTRE, true, 0.0, ConnDirNone);
+    new ShapeConnectionPin(shapeRef6, CONNECTIONPIN_CENTRE, 
+            ATTACH_POS_CENTRE, ATTACH_POS_CENTRE, true, 0.0, ConnDirNone);
 
-    Avoid::ConnEnd srcEnd(shapeRef1, Avoid::CONNECTIONPIN_CENTRE);
-    Avoid::ConnEnd dstEnd(shapeRef6, Avoid::CONNECTIONPIN_CENTRE);
-    Avoid::ConnRef *conn1= new Avoid::ConnRef(router, srcEnd, dstEnd);
+    ConnEnd srcEnd(shapeRef1, CONNECTIONPIN_CENTRE);
+    ConnEnd dstEnd(shapeRef6, CONNECTIONPIN_CENTRE);
+    ConnRef *conn1= new ConnRef(router, srcEnd, dstEnd);
     
     router->processTransaction();
     router->outputDiagram("output/junction04-1");
 
     // Split the connector on its second segment and add a junction point.
-    std::pair<Avoid::JunctionRef *, Avoid::ConnRef *> newObjs = 
+    std::pair<JunctionRef *, ConnRef *> newObjs = 
             conn1->splitAtSegment(2);
 
     router->processTransaction();
@@ -73,9 +74,9 @@ int main(void)
 
     // Create a connector from the centre of shape 5 that connects to 
     // the junction.
-    Avoid::ConnEnd srcEnd3(shapeRef5, Avoid::CONNECTIONPIN_CENTRE);
-    Avoid::ConnEnd dstEnd3(newObjs.first);
-    new Avoid::ConnRef(router, srcEnd3, dstEnd3);
+    ConnEnd srcEnd3(shapeRef5, CONNECTIONPIN_CENTRE);
+    ConnEnd dstEnd3(newObjs.first);
+    new ConnRef(router, srcEnd3, dstEnd3);
 
     router->processTransaction();
     router->outputDiagram("output/junction04-3");

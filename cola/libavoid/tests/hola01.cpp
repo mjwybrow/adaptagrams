@@ -33,7 +33,6 @@ int main(void) {
     ConnEnd dstPt;
     ConnEnd heConnPt;
     PolyLine newRoute;
-    ShapeConnectionPin *connPin = nullptr;
 
     // shapeRef1
     polygon = Polygon(4);

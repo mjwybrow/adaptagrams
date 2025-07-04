@@ -10,9 +10,9 @@ int main(void) {
     router->setRoutingParameter(idealNudgingDistance, 25);
     Rectangle rect478845150(Point(50695, 51070), Point(50705, 51080));
     ShapeRef *shapeRef478845150 = new ShapeRef(router, rect478845150, 478845150);
-    ShapeConnectionPin *pin = new Avoid::ShapeConnectionPin(shapeRef478845150, 
-	    Avoid::CONNECTIONPIN_CENTRE, Avoid::ATTACH_POS_CENTRE, 
-	    Avoid::ATTACH_POS_CENTRE, true, 0.0, Avoid::ConnDirNone);
+    ShapeConnectionPin *pin = new ShapeConnectionPin(shapeRef478845150, 
+	    CONNECTIONPIN_CENTRE, ATTACH_POS_CENTRE, 
+	    ATTACH_POS_CENTRE, true, 0.0, ConnDirNone);
     pin->setExclusive(false);
     
     Rectangle rect92712048(Point(51246, 50475), Point(51304, 50585));
@@ -31,15 +31,15 @@ int main(void) {
     ConnEnd dstPt342420237(Point(50710, 50450), 4);
     new ConnRef(router, srcPt342420237, dstPt342420237, 342420237);
     ConnEnd srcPt352019675(Point(50990, 50500), 8);
-    ConnEnd dstPt352019675(shapeRef478845150, Avoid::CONNECTIONPIN_CENTRE);
+    ConnEnd dstPt352019675(shapeRef478845150, CONNECTIONPIN_CENTRE);
     //ConnEnd dstPt352019675(Point(50700, 51075), 15);
     new ConnRef(router, srcPt352019675, dstPt352019675, 352019675);
-    ConnEnd srcPt42699400(shapeRef478845150, Avoid::CONNECTIONPIN_CENTRE);
+    ConnEnd srcPt42699400(shapeRef478845150, CONNECTIONPIN_CENTRE);
     //ConnEnd srcPt42699400(Point(50700, 51075), 15);
     ConnEnd dstPt42699400(Point(50615, 51075), 8);
     new ConnRef(router, srcPt42699400, dstPt42699400, 42699400);
     ConnEnd srcPt94712625(Point(50710, 50550), 4);
-    ConnEnd dstPt94712625(shapeRef478845150, Avoid::CONNECTIONPIN_CENTRE);
+    ConnEnd dstPt94712625(shapeRef478845150, CONNECTIONPIN_CENTRE);
     //ConnEnd dstPt94712625(Point(50700, 51075), 15);
     new ConnRef(router, srcPt94712625, dstPt94712625, 94712625);
     ConnEnd srcPt92802970(Point(50990, 50450), 8);
