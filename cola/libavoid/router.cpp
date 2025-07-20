@@ -174,7 +174,7 @@ ShapeRef *Router::shapeContainingPoint(const Point& point)
     return nullptr;
 }
 
-void Router::modifyConnector(ConnRef *conn, const unsigned int type,
+void Router::modifyConnector(ConnRef *conn, const size_t type,
         const ConnEnd& connEnd, bool connPinMoveUpdate)
 {
     ActionInfo modInfo(ConnChange, conn);
@@ -2373,7 +2373,11 @@ void Router::outputInstanceToSVG(std::string instanceName)
         filename = "libavoid-debug";
     }
     filename += ".svg";
-    FILE *fp = fopen(filename.c_str(), "w");
+    FILE *fp = nullptr;
+    errno_t err = fopen_s(&fp, filename.c_str(), "w");
+    if (err != 0 || fp == nullptr) {
+        return;
+    }
 
     if (fp == nullptr)
     {
@@ -2878,7 +2882,11 @@ void Router::outputDiagramSVG(std::string instanceName, LineReps *lineReps)
         filename = "libavoid-diagram";
     }
     filename += ".svg";
-    FILE *fp = fopen(filename.c_str(), "w");
+    FILE *fp = nullptr;
+    errno_t err = fopen_s(&fp, filename.c_str(), "w");
+    if (err != 0 || fp == nullptr) {
+        return;
+    }
 
     if (fp == nullptr)
     {
@@ -3028,10 +3036,9 @@ void Router::outputDiagramText(std::string instanceName)
         filename = "libavoid-diagram";
     }
     filename += ".txt";
-    FILE *fp = fopen(filename.c_str(), "w");
-
-    if (fp == nullptr)
-    {
+    FILE *fp = nullptr;
+    errno_t err = fopen_s(&fp, filename.c_str(), "w");
+    if (err != 0 || fp == nullptr) {
         return;
     }
 

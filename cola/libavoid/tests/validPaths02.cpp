@@ -13,7 +13,7 @@ int main(void) {
     router->setRoutingOption((RoutingOption)1, true);
     router->setRoutingParameter(idealNudgingDistance, 25);
 
-    Polygon poly186982048(4);
+    Avoid::Polygon poly186982048(4);
     poly186982048.ps[0] = Point(52660, 50490);
     poly186982048.ps[1] = Point(52660, 50960);
     poly186982048.ps[2] = Point(52090, 50960);
@@ -22,7 +22,7 @@ int main(void) {
     new ShapeConnectionPin(shapeRef186982048, 5, 0.982456, 0.12766, true, 0, (ConnDirFlags) 8);
     new ShapeConnectionPin(shapeRef186982048, 13, 0.982456, 0.234043, true, 0, (ConnDirFlags) 8);
 
-    Polygon poly197692264(4);
+    Avoid::Polygon poly197692264(4);
     poly197692264.ps[0] = Point(52560, 50342);
     poly197692264.ps[1] = Point(52560, 50425);
     poly197692264.ps[2] = Point(52440, 50425);

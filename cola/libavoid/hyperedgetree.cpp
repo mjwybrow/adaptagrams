@@ -224,7 +224,7 @@ void HyperedgeTreeNode::updateConnEnds(HyperedgeTreeEdge *ignored,
                             (forward) ? "src" : "tar", edge->conn->id(),
                             existingEnd.junction()->id(), junction->id());
 #endif
-                    unsigned short end = (forward) ? VertID::src : VertID::tar;
+                    size_t end = (forward) ? VertID::src : VertID::tar;
                     ConnEnd connend(junction);
                     edge->conn->updateEndPoint(end, connend);
                     changedConns.push_back(edge->conn);
@@ -652,7 +652,7 @@ void HyperedgeTreeEdge::updateConnEnds(HyperedgeTreeNode *ignored,
                     existingEnd.junction()->id(), endNode->junction->id());
 #endif
             ConnEnd connend(endNode->junction);
-            unsigned short end = (forward) ? VertID::tar : VertID::src;
+            size_t end = (forward) ? VertID::tar : VertID::src;
             conn->updateEndPoint(end, connend);
 
             // Record that this connector was changed (so long as it wasn't 

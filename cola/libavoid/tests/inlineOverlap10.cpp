@@ -16,13 +16,13 @@ int main(void) {
     router->setRoutingOption((RoutingOption)3, false);
     router->setRoutingOption((RoutingOption)4, true);
     router->setRoutingOption((RoutingOption)5, true);
-    Polygon polygon;
+    Avoid::Polygon polygon;
     ConnRef *connRef = nullptr;
     ConnEnd srcPt;
     ConnEnd dstPt;
     PolyLine newRoute;
     // shapeRef320077872
-    polygon = Polygon(4);
+    polygon = Avoid::Polygon(4);
     polygon.ps[0] = Point(51000, 50740);
     polygon.ps[1] = Point(51000, 51135);
     polygon.ps[2] = Point(50650, 51135);
@@ -38,7 +38,7 @@ int main(void) {
     new ShapeConnectionPin(shapeRef320077872, 8, 1, 0.78481, true, 10, (ConnDirFlags) 8);
 
     // shapeRef346216920
-    polygon = Polygon(4);
+    polygon = Avoid::Polygon(4);
     polygon.ps[0] = Point(51650, 50740);
     polygon.ps[1] = Point(51650, 51135);
     polygon.ps[2] = Point(51300, 51135);

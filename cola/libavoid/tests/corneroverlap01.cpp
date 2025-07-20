@@ -9,51 +9,51 @@ int main(void) {
     router->setRoutingPenalty((PenaltyType)2, 0);
     router->setRoutingPenalty((PenaltyType)3, 4000);
     router->setRoutingPenalty((PenaltyType)4, 110);
-    router->setOrthogonalNudgeDistance(12);
+    router->setRoutingParameter(RoutingParameter::idealNudgingDistance, 12);
 
-    Polygon poly21424960(4);
+    Avoid::Polygon poly21424960(4);
     poly21424960.ps[0] = Point(29950, 27210);
     poly21424960.ps[1] = Point(29950, 27290);
     poly21424960.ps[2] = Point(29700, 27290);
     poly21424960.ps[3] = Point(29700, 27210);
     new ShapeRef(router, poly21424960, 21424960);
     
-    Polygon poly435105790(4);
+    Avoid::Polygon poly435105790(4);
     poly435105790.ps[0] = Point(29950, 27110);
     poly435105790.ps[1] = Point(29950, 27190);
     poly435105790.ps[2] = Point(29700, 27190);
     poly435105790.ps[3] = Point(29700, 27110);
     new ShapeRef(router, poly435105790, 435105790);
     
-    Polygon poly40787191(4);
+    Avoid::Polygon poly40787191(4);
     poly40787191.ps[0] = Point(29950, 27010);
     poly40787191.ps[1] = Point(29950, 27090);
     poly40787191.ps[2] = Point(29700, 27090);
     poly40787191.ps[3] = Point(29700, 27010);
     new ShapeRef(router, poly40787191, 40787191);
     
-    Polygon poly76911264(4);
+    Avoid::Polygon poly76911264(4);
     poly76911264.ps[0] = Point(29950, 26910);
     poly76911264.ps[1] = Point(29950, 26990);
     poly76911264.ps[2] = Point(29700, 26990);
     poly76911264.ps[3] = Point(29700, 26910);
     new ShapeRef(router, poly76911264, 76911264);
     
-    Polygon poly506213376(4);
+    Avoid::Polygon poly506213376(4);
     poly506213376.ps[0] = Point(29925, 26820);
     poly506213376.ps[1] = Point(29925, 26880);
     poly506213376.ps[2] = Point(29675, 26880);
     poly506213376.ps[3] = Point(29675, 26820);
     new ShapeRef(router, poly506213376, 506213376);
     
-    Polygon poly134604636(4);
+    Avoid::Polygon poly134604636(4);
     poly134604636.ps[0] = Point(29925, 26720);
     poly134604636.ps[1] = Point(29925, 26780);
     poly134604636.ps[2] = Point(29675, 26780);
     poly134604636.ps[3] = Point(29675, 26720);
     new ShapeRef(router, poly134604636, 134604636);
     
-    Polygon poly14353632(4);
+    Avoid::Polygon poly14353632(4);
     poly14353632.ps[0] = Point(29600, 26590);
     poly14353632.ps[1] = Point(29600, 27660);
     poly14353632.ps[2] = Point(28440, 27660);

@@ -12,18 +12,35 @@ Makefile.in
 /install-sh
 /missing
 
+# Log files
+*.log
+*.tlog
+
+# Visual Studio
+*.vcxproj.*
+*.exp
+*.ilk
+
 # Compiled Object files
 *.slo
 *.lo
 *.o
+*.*obj
 
 # Compiled Dynamic libraries
 *.so
+*.dll*
+*.*pdb
+*.idb
+
+# Compiled Executables
+*.exe*
 
 # Compiled Static libraries
 *.lai
 *.la
 *.a
+*.lib
 
 .*.swp
 
@@ -52,6 +69,8 @@ libcola/config.h.in~
 diff
 
 */tests/*
+!*/tests/msctests/
+!*/tests/msctests/*.vcxproj
 !*/tests/*.cpp
 !*/tests/*.h
 !*/tests/Makefile.am

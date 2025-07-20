@@ -171,7 +171,7 @@ bool ConnEnd::isPinConnection(void) const
     return (m_type == ConnEndShapePin) || (m_type == ConnEndJunction);
 }
 
-unsigned int ConnEnd::endpointType(void) const
+size_t ConnEnd::endpointType(void) const
 {
     COLA_ASSERT(m_conn_ref != nullptr);
     return (m_conn_ref->m_dst_connend == this) ? VertID::tar : VertID::src;

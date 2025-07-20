@@ -1,0 +1,335 @@
+[
+  {
+    "Name": "Start all",
+    "Projects": [
+      {
+        "Path": "tests\\msctests\\2junctions.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\example.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\buildOrthogonalChannelInfo1.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\checkpointNudging1.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\checkpointNudging2.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\checkpoints01.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\junction01.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\connectionpin01.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\connectionpin02.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\connectionpin03.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\connendmove.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\corneroverlap01.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\finalSegmentNudging1.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\finalSegmentNudging2.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\finalSegmentNudging3.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\freeFloatingDirection01.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\checkpointNudging3.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\checkpoints02.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\checkpoints03.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\complex.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\forwardFlowingConnectors01.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\hola01.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\hyperedge01.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\hyperedge02.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\hyperedgeLoop1.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\hyperedgeRerouting01.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\improveHyperedge01.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\improveHyperedge02.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\improveHyperedge03.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\improveHyperedge04.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\improveHyperedge05.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\improveHyperedge06.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\infinity.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\inline.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\inlineoverlap01.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\inlineoverlap02.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\inlineoverlap03.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\inlineoverlap04.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\inlineoverlap05.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\inlineoverlap06.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\inlineoverlap07.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\inlineoverlap08.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\inlineoverlap09.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\inlineoverlap10.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\inlineoverlap11.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\inlineShapes.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\junction02.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\junction03.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\junction04.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\lineSegWrapperCrash1.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\lineSegWrapperCrash2.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\lineSegWrapperCrash3.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\lineSegWrapperCrash4.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\lineSegWrapperCrash5.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\lineSegWrapperCrash6.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\lineSegWrapperCrash7.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\lineSegWrapperCrash8.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\multiconnact.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\node1.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\nudgeCrossing01.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\nudgeintobug.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\nudgeold.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\nudgingSkipsCheckpoint01.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\nudgingSkipsCheckpoint02.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\orderassertion.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\orthordering01.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\orthordering02.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\overlappingRects.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\penaltyRerouting01.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\performance01.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\reallyslowrouting.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\removeJunctions01.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\restrictedNudging.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\tjunct.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\treeRootCrash01.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\treeRootCrash02.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\unsatisfiableRangeAssertion.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\validPaths01.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\validPaths02.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\vertlineassertion.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\endlessLoop01.vcxproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "tests\\msctests\\latesetup.vcxproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

@@ -9,1554 +9,1554 @@ int main(void) {
     router->setRoutingPenalty((PenaltyType)3, 4000);
     router->setRoutingPenalty((PenaltyType)4, 0);
 
-    Polygon poly2(4);
+    Avoid::Polygon poly2(4);
     poly2.ps[0] = Point(348, 1286.05);
     poly2.ps[1] = Point(348, 1304.05);
     poly2.ps[2] = Point(330, 1304.05);
     poly2.ps[3] = Point(330, 1286.05);
     new ShapeRef(router, poly2, 2);
     
-    Polygon poly153(4);
+    Avoid::Polygon poly153(4);
     poly153.ps[0] = Point(495, 1032.05);
     poly153.ps[1] = Point(495, 1070.05);
     poly153.ps[2] = Point(440, 1070.05);
     poly153.ps[3] = Point(440, 1032.05);
     new ShapeRef(router, poly153, 153);
     
-    Polygon poly154(4);
+    Avoid::Polygon poly154(4);
     poly154.ps[0] = Point(613, 959.545);
     poly154.ps[1] = Point(613, 997.545);
     poly154.ps[2] = Point(559, 997.545);
     poly154.ps[3] = Point(559, 959.545);
     new ShapeRef(router, poly154, 154);
     
-    Polygon poly155(4);
+    Avoid::Polygon poly155(4);
     poly155.ps[0] = Point(596, 1134.05);
     poly155.ps[1] = Point(596, 1172.05);
     poly155.ps[2] = Point(542, 1172.05);
     poly155.ps[3] = Point(542, 1134.05);
     new ShapeRef(router, poly155, 155);
     
-    Polygon poly156(4);
+    Avoid::Polygon poly156(4);
     poly156.ps[0] = Point(762, 377);
     poly156.ps[1] = Point(762, 415);
     poly156.ps[2] = Point(708, 415);
     poly156.ps[3] = Point(708, 377);
     new ShapeRef(router, poly156, 156);
     
-    Polygon poly157(4);
+    Avoid::Polygon poly157(4);
     poly157.ps[0] = Point(888, 377);
     poly157.ps[1] = Point(888, 415);
     poly157.ps[2] = Point(834, 415);
     poly157.ps[3] = Point(834, 377);
     new ShapeRef(router, poly157, 157);
     
-    Polygon poly158(4);
+    Avoid::Polygon poly158(4);
     poly158.ps[0] = Point(545, 515.545);
     poly158.ps[1] = Point(545, 553.545);
     poly158.ps[2] = Point(491, 553.545);
     poly158.ps[3] = Point(491, 515.545);
     new ShapeRef(router, poly158, 158);
     
-    Polygon poly159(4);
+    Avoid::Polygon poly159(4);
     poly159.ps[0] = Point(819.5, 753.545);
     poly159.ps[1] = Point(819.5, 791.545);
     poly159.ps[2] = Point(765.5, 791.545);
     poly159.ps[3] = Point(765.5, 753.545);
     new ShapeRef(router, poly159, 159);
     
-    Polygon poly160(4);
+    Avoid::Polygon poly160(4);
     poly160.ps[0] = Point(824, 959.545);
     poly160.ps[1] = Point(824, 997.545);
     poly160.ps[2] = Point(770, 997.545);
     poly160.ps[3] = Point(770, 959.545);
     new ShapeRef(router, poly160, 160);
     
-    Polygon poly161(4);
+    Avoid::Polygon poly161(4);
     poly161.ps[0] = Point(868, 1104.55);
     poly161.ps[1] = Point(868, 1142.55);
     poly161.ps[2] = Point(814, 1142.55);
     poly161.ps[3] = Point(814, 1104.55);
     new ShapeRef(router, poly161, 161);
     
-    Polygon poly162(4);
+    Avoid::Polygon poly162(4);
     poly162.ps[0] = Point(819.5, 617.545);
     poly162.ps[1] = Point(819.5, 655.545);
     poly162.ps[2] = Point(765.5, 655.545);
     poly162.ps[3] = Point(765.5, 617.545);
     new ShapeRef(router, poly162, 162);
     
-    Polygon poly163(4);
+    Avoid::Polygon poly163(4);
     poly163.ps[0] = Point(826, 1156.55);
     poly163.ps[1] = Point(826, 1194.55);
     poly163.ps[2] = Point(772, 1194.55);
     poly163.ps[3] = Point(772, 1156.55);
     new ShapeRef(router, poly163, 163);
     
-    Polygon poly164(4);
+    Avoid::Polygon poly164(4);
     poly164.ps[0] = Point(897, 1391.71);
     poly164.ps[1] = Point(897, 1429.71);
     poly164.ps[2] = Point(843, 1429.71);
     poly164.ps[3] = Point(843, 1391.71);
     new ShapeRef(router, poly164, 164);
     
-    Polygon poly165(4);
+    Avoid::Polygon poly165(4);
     poly165.ps[0] = Point(781, 1524.71);
     poly165.ps[1] = Point(781, 1562.71);
     poly165.ps[2] = Point(727, 1562.71);
     poly165.ps[3] = Point(727, 1524.71);
     new ShapeRef(router, poly165, 165);
     
-    Polygon poly166(4);
+    Avoid::Polygon poly166(4);
     poly166.ps[0] = Point(853, 1657.71);
     poly166.ps[1] = Point(853, 1695.71);
     poly166.ps[2] = Point(799, 1695.71);
     poly166.ps[3] = Point(799, 1657.71);
     new ShapeRef(router, poly166, 166);
     
-    Polygon poly167(4);
+    Avoid::Polygon poly167(4);
     poly167.ps[0] = Point(1014, 241);
     poly167.ps[1] = Point(1014, 279);
     poly167.ps[2] = Point(960, 279);
     poly167.ps[3] = Point(960, 241);
     new ShapeRef(router, poly167, 167);
     
-    Polygon poly168(4);
+    Avoid::Polygon poly168(4);
     poly168.ps[0] = Point(1014, 325);
     poly168.ps[1] = Point(1014, 363);
     poly168.ps[2] = Point(960, 363);
     poly168.ps[3] = Point(960, 325);
     new ShapeRef(router, poly168, 168);
     
-    Polygon poly169(4);
+    Avoid::Polygon poly169(4);
     poly169.ps[0] = Point(1014, 660.045);
     poly169.ps[1] = Point(1014, 698.045);
     poly169.ps[2] = Point(960, 698.045);
     poly169.ps[3] = Point(960, 660.045);
     new ShapeRef(router, poly169, 169);
     
-    Polygon poly170(4);
+    Avoid::Polygon poly170(4);
     poly170.ps[0] = Point(1014, 913.545);
     poly170.ps[1] = Point(1014, 951.545);
     poly170.ps[2] = Point(960, 951.545);
     poly170.ps[3] = Point(960, 913.545);
     new ShapeRef(router, poly170, 170);
     
-    Polygon poly171(4);
+    Avoid::Polygon poly171(4);
     poly171.ps[0] = Point(1012, 46);
     poly171.ps[1] = Point(1012, 84);
     poly171.ps[2] = Point(958, 84);
     poly171.ps[3] = Point(958, 46);
     new ShapeRef(router, poly171, 171);
     
-    Polygon poly172(4);
+    Avoid::Polygon poly172(4);
     poly172.ps[0] = Point(1017, 377);
     poly172.ps[1] = Point(1017, 415);
     poly172.ps[2] = Point(963, 415);
     poly172.ps[3] = Point(963, 377);
     new ShapeRef(router, poly172, 172);
     
-    Polygon poly173(4);
+    Avoid::Polygon poly173(4);
     poly173.ps[0] = Point(1199, 377);
     poly173.ps[1] = Point(1199, 415);
     poly173.ps[2] = Point(1145, 415);
     poly173.ps[3] = Point(1145, 377);
     new ShapeRef(router, poly173, 173);
     
-    Polygon poly174(4);
+    Avoid::Polygon poly174(4);
     poly174.ps[0] = Point(1179, 691.379);
     poly174.ps[1] = Point(1179, 729.379);
     poly174.ps[2] = Point(1125, 729.379);
     poly174.ps[3] = Point(1125, 691.379);
     new ShapeRef(router, poly174, 174);
     
-    Polygon poly130(4);
+    Avoid::Polygon poly130(4);
     poly130.ps[0] = Point(119, 565.545);
     poly130.ps[1] = Point(119, 603.545);
     poly130.ps[2] = Point(81, 603.545);
     poly130.ps[3] = Point(81, 565.545);
     new ShapeRef(router, poly130, 130);
     
-    Polygon poly131(4);
+    Avoid::Polygon poly131(4);
     poly131.ps[0] = Point(239, 565.545);
     poly131.ps[1] = Point(239, 603.545);
     poly131.ps[2] = Point(201, 603.545);
     poly131.ps[3] = Point(201, 565.545);
     new ShapeRef(router, poly131, 131);
     
-    Polygon poly132(4);
+    Avoid::Polygon poly132(4);
     poly132.ps[0] = Point(1517.53, 1758.71);
     poly132.ps[1] = Point(1517.53, 1796.71);
     poly132.ps[2] = Point(1479.53, 1796.71);
     poly132.ps[3] = Point(1479.53, 1758.71);
     new ShapeRef(router, poly132, 132);
     
-    Polygon poly133(4);
+    Avoid::Polygon poly133(4);
     poly133.ps[0] = Point(1627.2, 1758.71);
     poly133.ps[1] = Point(1627.2, 1796.71);
     poly133.ps[2] = Point(1589.2, 1796.71);
     poly133.ps[3] = Point(1589.2, 1758.71);
     new ShapeRef(router, poly133, 133);
     
-    Polygon poly134(4);
+    Avoid::Polygon poly134(4);
     poly134.ps[0] = Point(1364, 1758.71);
     poly134.ps[1] = Point(1364, 1796.71);
     poly134.ps[2] = Point(1326, 1796.71);
     poly134.ps[3] = Point(1326, 1758.71);
     new ShapeRef(router, poly134, 134);
     
-    Polygon poly135(4);
+    Avoid::Polygon poly135(4);
     poly135.ps[0] = Point(1238, 1758.71);
     poly135.ps[1] = Point(1238, 1796.71);
     poly135.ps[2] = Point(1200, 1796.71);
     poly135.ps[3] = Point(1200, 1758.71);
     new ShapeRef(router, poly135, 135);
     
-    Polygon poly136(4);
+    Avoid::Polygon poly136(4);
     poly136.ps[0] = Point(1153, 1758.71);
     poly136.ps[1] = Point(1153, 1796.71);
     poly136.ps[2] = Point(1115, 1796.71);
     poly136.ps[3] = Point(1115, 1758.71);
     new ShapeRef(router, poly136, 136);
     
-    Polygon poly137(4);
+    Avoid::Polygon poly137(4);
     poly137.ps[0] = Point(1563.49, 1033.05);
     poly137.ps[1] = Point(1563.49, 1071.05);
     poly137.ps[2] = Point(1525.49, 1071.05);
     poly137.ps[3] = Point(1525.49, 1033.05);
     new ShapeRef(router, poly137, 137);
     
-    Polygon poly138(4);
+    Avoid::Polygon poly138(4);
     poly138.ps[0] = Point(1563.49, 1635.71);
     poly138.ps[1] = Point(1563.49, 1673.71);
     poly138.ps[2] = Point(1525.49, 1673.71);
     poly138.ps[3] = Point(1525.49, 1635.71);
     new ShapeRef(router, poly138, 138);
     
-    Polygon poly139(4);
+    Avoid::Polygon poly139(4);
     poly139.ps[0] = Point(648, 565.545);
     poly139.ps[1] = Point(648, 603.545);
     poly139.ps[2] = Point(610, 603.545);
     poly139.ps[3] = Point(610, 565.545);
     new ShapeRef(router, poly139, 139);
     
-    Polygon poly140(4);
+    Avoid::Polygon poly140(4);
     poly140.ps[0] = Point(665, 1208.55);
     poly140.ps[1] = Point(665, 1246.55);
     poly140.ps[2] = Point(627, 1246.55);
     poly140.ps[3] = Point(627, 1208.55);
     new ShapeRef(router, poly140, 140);
     
-    Polygon poly141(4);
+    Avoid::Polygon poly141(4);
     poly141.ps[0] = Point(777, 1328.05);
     poly141.ps[1] = Point(777, 1386.05);
     poly141.ps[2] = Point(466, 1386.05);
     poly141.ps[3] = Point(466, 1328.05);
     new ShapeRef(router, poly141, 141);
     
-    Polygon poly142(4);
+    Avoid::Polygon poly142(4);
     poly142.ps[0] = Point(892, 305);
     poly142.ps[1] = Point(892, 363);
     poly142.ps[2] = Point(581, 363);
     poly142.ps[3] = Point(581, 305);
     new ShapeRef(router, poly142, 142);
     
-    Polygon poly143(4);
+    Avoid::Polygon poly143(4);
     poly143.ps[0] = Point(366, 1226.05);
     poly143.ps[1] = Point(366, 1264.05);
     poly143.ps[2] = Point(312, 1264.05);
     poly143.ps[3] = Point(312, 1226.05);
     new ShapeRef(router, poly143, 143);
     
-    Polygon poly144(4);
+    Avoid::Polygon poly144(4);
     poly144.ps[0] = Point(366, 1134.05);
     poly144.ps[1] = Point(366, 1172.05);
     poly144.ps[2] = Point(312, 1172.05);
     poly144.ps[3] = Point(312, 1134.05);
     new ShapeRef(router, poly144, 144);
     
-    Polygon poly145(4);
+    Avoid::Polygon poly145(4);
     poly145.ps[0] = Point(100, 1130.05);
     poly145.ps[1] = Point(100, 1168.05);
     poly145.ps[2] = Point(46, 1168.05);
     poly145.ps[3] = Point(46, 1130.05);
     new ShapeRef(router, poly145, 145);
     
-    Polygon poly146(4);
+    Avoid::Polygon poly146(4);
     poly146.ps[0] = Point(1497.2, 669.545);
     poly146.ps[1] = Point(1497.2, 707.545);
     poly146.ps[2] = Point(1443.2, 707.545);
     poly146.ps[3] = Point(1443.2, 669.545);
     new ShapeRef(router, poly146, 146);
     
-    Polygon poly147(4);
+    Avoid::Polygon poly147(4);
     poly147.ps[0] = Point(545, 377);
     poly147.ps[1] = Point(545, 415);
     poly147.ps[2] = Point(491, 415);
     poly147.ps[3] = Point(491, 377);
     new ShapeRef(router, poly147, 147);
     
-    Polygon poly148(4);
+    Avoid::Polygon poly148(4);
     poly148.ps[0] = Point(361.2, 617.545);
     poly148.ps[1] = Point(361.2, 655.545);
     poly148.ps[2] = Point(307.2, 655.545);
     poly148.ps[3] = Point(307.2, 617.545);
     new ShapeRef(router, poly148, 148);
     
-    Polygon poly149(4);
+    Avoid::Polygon poly149(4);
     poly149.ps[0] = Point(218, 1080.05);
     poly149.ps[1] = Point(218, 1118.05);
     poly149.ps[2] = Point(164, 1118.05);
     poly149.ps[3] = Point(164, 1080.05);
     new ShapeRef(router, poly149, 149);
     
-    Polygon poly150(4);
+    Avoid::Polygon poly150(4);
     poly150.ps[0] = Point(423.2, 751.545);
     poly150.ps[1] = Point(423.2, 789.545);
     poly150.ps[2] = Point(369.2, 789.545);
     poly150.ps[3] = Point(369.2, 751.545);
     new ShapeRef(router, poly150, 150);
     
-    Polygon poly151(4);
+    Avoid::Polygon poly151(4);
     poly151.ps[0] = Point(423.2, 803.545);
     poly151.ps[1] = Point(423.2, 841.545);
     poly151.ps[2] = Point(369.2, 841.545);
     poly151.ps[3] = Point(369.2, 803.545);
     new ShapeRef(router, poly151, 151);
     
-    Polygon poly152(4);
+    Avoid::Polygon poly152(4);
     poly152.ps[0] = Point(423.2, 855.545);
     poly152.ps[1] = Point(423.2, 893.545);
     poly152.ps[2] = Point(369.2, 893.545);
     poly152.ps[3] = Point(369.2, 855.545);
     new ShapeRef(router, poly152, 152);
     
-    Polygon poly3(4);
+    Avoid::Polygon poly3(4);
     poly3.ps[0] = Point(348, 1194.05);
     poly3.ps[1] = Point(348, 1212.05);
     poly3.ps[2] = Point(330, 1212.05);
     poly3.ps[3] = Point(330, 1194.05);
     new ShapeRef(router, poly3, 3);
     
-    Polygon poly198(4);
+    Avoid::Polygon poly198(4);
     poly198.ps[0] = Point(1291, 1134.05);
     poly198.ps[1] = Point(1291, 1172.05);
     poly198.ps[2] = Point(1237, 1172.05);
     poly198.ps[3] = Point(1237, 1134.05);
     new ShapeRef(router, poly198, 198);
     
-    Polygon poly199(4);
+    Avoid::Polygon poly199(4);
     poly199.ps[0] = Point(1700.2, 1287.71);
     poly199.ps[1] = Point(1700.2, 1325.71);
     poly199.ps[2] = Point(1646.2, 1325.71);
     poly199.ps[3] = Point(1646.2, 1287.71);
     new ShapeRef(router, poly199, 199);
     
-    Polygon poly200(4);
+    Avoid::Polygon poly200(4);
     poly200.ps[0] = Point(586.5, 855.545);
     poly200.ps[1] = Point(586.5, 893.545);
     poly200.ps[2] = Point(532.5, 893.545);
     poly200.ps[3] = Point(532.5, 855.545);
     new ShapeRef(router, poly200, 200);
     
-    Polygon poly201(4);
+    Avoid::Polygon poly201(4);
     poly201.ps[0] = Point(787, 855.545);
     poly201.ps[1] = Point(787, 893.545);
     poly201.ps[2] = Point(733, 893.545);
     poly201.ps[3] = Point(733, 855.545);
     new ShapeRef(router, poly201, 201);
     
-    Polygon poly202(4);
+    Avoid::Polygon poly202(4);
     poly202.ps[0] = Point(496, 907.545);
     poly202.ps[1] = Point(496, 945.545);
     poly202.ps[2] = Point(442, 945.545);
     poly202.ps[3] = Point(442, 907.545);
     new ShapeRef(router, poly202, 202);
     
-    Polygon poly203(4);
+    Avoid::Polygon poly203(4);
     poly203.ps[0] = Point(1223, 1088.21);
     poly203.ps[1] = Point(1223, 1126.21);
     poly203.ps[2] = Point(1169, 1126.21);
     poly203.ps[3] = Point(1169, 1088.21);
     new ShapeRef(router, poly203, 203);
     
-    Polygon poly204(4);
+    Avoid::Polygon poly204(4);
     poly204.ps[0] = Point(1841.2, 1593.71);
     poly204.ps[1] = Point(1841.2, 1631.71);
     poly204.ps[2] = Point(1787.2, 1631.71);
     poly204.ps[3] = Point(1787.2, 1593.71);
     new ShapeRef(router, poly204, 204);
     
-    Polygon poly205(4);
+    Avoid::Polygon poly205(4);
     poly205.ps[0] = Point(658, 1260.55);
     poly205.ps[1] = Point(658, 1298.55);
     poly205.ps[2] = Point(604, 1298.55);
     poly205.ps[3] = Point(604, 1260.55);
     new ShapeRef(router, poly205, 205);
     
-    Polygon poly206(4);
+    Avoid::Polygon poly206(4);
     poly206.ps[0] = Point(545, 980.045);
     poly206.ps[1] = Point(545, 1018.05);
     poly206.ps[2] = Point(491, 1018.05);
     poly206.ps[3] = Point(491, 980.045);
     new ShapeRef(router, poly206, 206);
     
-    Polygon poly207(4);
+    Avoid::Polygon poly207(4);
     poly207.ps[0] = Point(357, 565.545);
     poly207.ps[1] = Point(357, 603.545);
     poly207.ps[2] = Point(303, 603.545);
     poly207.ps[3] = Point(303, 565.545);
     new ShapeRef(router, poly207, 207);
     
-    Polygon poly208(4);
+    Avoid::Polygon poly208(4);
     poly208.ps[0] = Point(187, 515.545);
     poly208.ps[1] = Point(187, 553.545);
     poly208.ps[2] = Point(133, 553.545);
     poly208.ps[3] = Point(133, 515.545);
     new ShapeRef(router, poly208, 208);
     
-    Polygon poly209(4);
+    Avoid::Polygon poly209(4);
     poly209.ps[0] = Point(1025.8, 976.045);
     poly209.ps[1] = Point(1025.8, 1014.05);
     poly209.ps[2] = Point(971.8, 1014.05);
     poly209.ps[3] = Point(971.8, 976.045);
     new ShapeRef(router, poly209, 209);
     
-    Polygon poly210(4);
+    Avoid::Polygon poly210(4);
     poly210.ps[0] = Point(1654.2, 1339.71);
     poly210.ps[1] = Point(1654.2, 1377.71);
     poly210.ps[2] = Point(1600.2, 1377.71);
     poly210.ps[3] = Point(1600.2, 1339.71);
     new ShapeRef(router, poly210, 210);
     
-    Polygon poly211(4);
+    Avoid::Polygon poly211(4);
     poly211.ps[0] = Point(1466.53, 1339.71);
     poly211.ps[1] = Point(1466.53, 1377.71);
     poly211.ps[2] = Point(1412.53, 1377.71);
     poly211.ps[3] = Point(1412.53, 1339.71);
     new ShapeRef(router, poly211, 211);
     
-    Polygon poly212(4);
+    Avoid::Polygon poly212(4);
     poly212.ps[0] = Point(1633.49, 1593.71);
     poly212.ps[1] = Point(1633.49, 1631.71);
     poly212.ps[2] = Point(1579.49, 1631.71);
     poly212.ps[3] = Point(1579.49, 1593.71);
     new ShapeRef(router, poly212, 212);
     
-    Polygon poly213(4);
+    Avoid::Polygon poly213(4);
     poly213.ps[0] = Point(1429.2, 840.545);
     poly213.ps[1] = Point(1429.2, 878.545);
     poly213.ps[2] = Point(1375.2, 878.545);
     poly213.ps[3] = Point(1375.2, 840.545);
     new ShapeRef(router, poly213, 213);
     
-    Polygon poly214(4);
+    Avoid::Polygon poly214(4);
     poly214.ps[0] = Point(1633.49, 975.545);
     poly214.ps[1] = Point(1633.49, 1013.55);
     poly214.ps[2] = Point(1579.49, 1013.55);
     poly214.ps[3] = Point(1579.49, 975.545);
     new ShapeRef(router, poly214, 214);
     
-    Polygon poly215(4);
+    Avoid::Polygon poly215(4);
     poly215.ps[0] = Point(1505.53, 925.545);
     poly215.ps[1] = Point(1505.53, 963.545);
     poly215.ps[2] = Point(1451.53, 963.545);
     poly215.ps[3] = Point(1451.53, 925.545);
     new ShapeRef(router, poly215, 215);
     
-    Polygon poly216(4);
+    Avoid::Polygon poly216(4);
     poly216.ps[0] = Point(1099.8, 1595.71);
     poly216.ps[1] = Point(1099.8, 1633.71);
     poly216.ps[2] = Point(1041.8, 1633.71);
     poly216.ps[3] = Point(1041.8, 1595.71);
     new ShapeRef(router, poly216, 216);
     
-    Polygon poly217(4);
+    Avoid::Polygon poly217(4);
     poly217.ps[0] = Point(1207, 325);
     poly217.ps[1] = Point(1207, 363);
     poly217.ps[2] = Point(1149, 363);
     poly217.ps[3] = Point(1149, 325);
     new ShapeRef(router, poly217, 217);
     
-    Polygon poly218(4);
+    Avoid::Polygon poly218(4);
     poly218.ps[0] = Point(1259, 305);
     poly218.ps[1] = Point(1259, 363);
     poly218.ps[2] = Point(1221, 363);
     poly218.ps[3] = Point(1221, 305);
     new ShapeRef(router, poly218, 218);
     
-    Polygon poly219(4);
+    Avoid::Polygon poly219(4);
     poly219.ps[0] = Point(342, 463.545);
     poly219.ps[1] = Point(342, 501.545);
     poly219.ps[2] = Point(284, 501.545);
     poly219.ps[3] = Point(284, 463.545);
     new ShapeRef(router, poly219, 219);
     
-    Polygon poly220(4);
+    Avoid::Polygon poly220(4);
     poly220.ps[0] = Point(1066.83, 731.462);
     poly220.ps[1] = Point(1066.83, 789.462);
     poly220.ps[2] = Point(1028.83, 789.462);
     poly220.ps[3] = Point(1028.83, 731.462);
     new ShapeRef(router, poly220, 220);
     
-    Polygon poly221(4);
+    Avoid::Polygon poly221(4);
     poly221.ps[0] = Point(777, 1328.05);
     poly221.ps[1] = Point(777, 1366.05);
     poly221.ps[2] = Point(719, 1366.05);
     poly221.ps[3] = Point(719, 1328.05);
     new ShapeRef(router, poly221, 221);
     
-    Polygon poly222(4);
+    Avoid::Polygon poly222(4);
     poly222.ps[0] = Point(892, 325);
     poly222.ps[1] = Point(892, 363);
     poly222.ps[2] = Point(834, 363);
     poly222.ps[3] = Point(834, 325);
     new ShapeRef(router, poly222, 222);
     
-    Polygon poly63(4);
+    Avoid::Polygon poly63(4);
     poly63.ps[0] = Point(1620.2, 1297.71);
     poly63.ps[1] = Point(1620.2, 1315.71);
     poly63.ps[2] = Point(1602.2, 1315.71);
     poly63.ps[3] = Point(1602.2, 1297.71);
     new ShapeRef(router, poly63, 63);
     
-    Polygon poly64(4);
+    Avoid::Polygon poly64(4);
     poly64.ps[0] = Point(630.5, 865.545);
     poly64.ps[1] = Point(630.5, 883.545);
     poly64.ps[2] = Point(612.5, 883.545);
     poly64.ps[3] = Point(612.5, 865.545);
     new ShapeRef(router, poly64, 64);
     
-    Polygon poly65(4);
+    Avoid::Polygon poly65(4);
     poly65.ps[0] = Point(707, 865.545);
     poly65.ps[1] = Point(707, 883.545);
     poly65.ps[2] = Point(689, 883.545);
     poly65.ps[3] = Point(689, 865.545);
     new ShapeRef(router, poly65, 65);
     
-    Polygon poly66(4);
+    Avoid::Polygon poly66(4);
     poly66.ps[0] = Point(416, 917.545);
     poly66.ps[1] = Point(416, 935.545);
     poly66.ps[2] = Point(398, 935.545);
     poly66.ps[3] = Point(398, 917.545);
     new ShapeRef(router, poly66, 66);
     
-    Polygon poly67(4);
+    Avoid::Polygon poly67(4);
     poly67.ps[0] = Point(1143, 1098.21);
     poly67.ps[1] = Point(1143, 1116.21);
     poly67.ps[2] = Point(1125, 1116.21);
     poly67.ps[3] = Point(1125, 1098.21);
     new ShapeRef(router, poly67, 67);
     
-    Polygon poly68(4);
+    Avoid::Polygon poly68(4);
     poly68.ps[0] = Point(1761.2, 1603.71);
     poly68.ps[1] = Point(1761.2, 1621.71);
     poly68.ps[2] = Point(1743.2, 1621.71);
     poly68.ps[3] = Point(1743.2, 1603.71);
     new ShapeRef(router, poly68, 68);
     
-    Polygon poly69(4);
+    Avoid::Polygon poly69(4);
     poly69.ps[0] = Point(578, 1270.55);
     poly69.ps[1] = Point(578, 1288.55);
     poly69.ps[2] = Point(560, 1288.55);
     poly69.ps[3] = Point(560, 1270.55);
     new ShapeRef(router, poly69, 69);
     
-    Polygon poly70(4);
+    Avoid::Polygon poly70(4);
     poly70.ps[0] = Point(527, 1040.05);
     poly70.ps[1] = Point(527, 1058.05);
     poly70.ps[2] = Point(509, 1058.05);
     poly70.ps[3] = Point(509, 1040.05);
     new ShapeRef(router, poly70, 70);
     
-    Polygon poly71(4);
+    Avoid::Polygon poly71(4);
     poly71.ps[0] = Point(277, 575.545);
     poly71.ps[1] = Point(277, 593.545);
     poly71.ps[2] = Point(259, 593.545);
     poly71.ps[3] = Point(259, 575.545);
     new ShapeRef(router, poly71, 71);
     
-    Polygon poly72(4);
+    Avoid::Polygon poly72(4);
     poly72.ps[0] = Point(169, 575.545);
     poly72.ps[1] = Point(169, 593.545);
     poly72.ps[2] = Point(151, 593.545);
     poly72.ps[3] = Point(151, 575.545);
     new ShapeRef(router, poly72, 72);
     
-    Polygon poly73(4);
+    Avoid::Polygon poly73(4);
     poly73.ps[0] = Point(1007.8, 1036.05);
     poly73.ps[1] = Point(1007.8, 1054.05);
     poly73.ps[2] = Point(989.8, 1054.05);
     poly73.ps[3] = Point(989.8, 1036.05);
     new ShapeRef(router, poly73, 73);
     
-    Polygon poly74(4);
+    Avoid::Polygon poly74(4);
     poly74.ps[0] = Point(1574.2, 1349.71);
     poly74.ps[1] = Point(1574.2, 1367.71);
     poly74.ps[2] = Point(1556.2, 1367.71);
     poly74.ps[3] = Point(1556.2, 1349.71);
     new ShapeRef(router, poly74, 74);
     
-    Polygon poly75(4);
+    Avoid::Polygon poly75(4);
     poly75.ps[0] = Point(1510.53, 1349.71);
     poly75.ps[1] = Point(1510.53, 1367.71);
     poly75.ps[2] = Point(1492.53, 1367.71);
     poly75.ps[3] = Point(1492.53, 1349.71);
     new ShapeRef(router, poly75, 75);
     
-    Polygon poly76(4);
+    Avoid::Polygon poly76(4);
     poly76.ps[0] = Point(1553.49, 1603.71);
     poly76.ps[1] = Point(1553.49, 1621.71);
     poly76.ps[2] = Point(1535.49, 1621.71);
     poly76.ps[3] = Point(1535.49, 1603.71);
     new ShapeRef(router, poly76, 76);
     
-    Polygon poly77(4);
+    Avoid::Polygon poly77(4);
     poly77.ps[0] = Point(1349.2, 850.545);
     poly77.ps[1] = Point(1349.2, 868.545);
     poly77.ps[2] = Point(1331.2, 868.545);
     poly77.ps[3] = Point(1331.2, 850.545);
     new ShapeRef(router, poly77, 77);
     
-    Polygon poly78(4);
+    Avoid::Polygon poly78(4);
     poly78.ps[0] = Point(1553.49, 985.545);
     poly78.ps[1] = Point(1553.49, 1003.55);
     poly78.ps[2] = Point(1535.49, 1003.55);
     poly78.ps[3] = Point(1535.49, 985.545);
     new ShapeRef(router, poly78, 78);
     
-    Polygon poly79(4);
+    Avoid::Polygon poly79(4);
     poly79.ps[0] = Point(1487.53, 985.545);
     poly79.ps[1] = Point(1487.53, 1003.55);
     poly79.ps[2] = Point(1469.53, 1003.55);
     poly79.ps[3] = Point(1469.53, 985.545);
     new ShapeRef(router, poly79, 79);
     
-    Polygon poly80(4);
+    Avoid::Polygon poly80(4);
     poly80.ps[0] = Point(119, 667.545);
     poly80.ps[1] = Point(119, 705.545);
     poly80.ps[2] = Point(81, 705.545);
     poly80.ps[3] = Point(81, 667.545);
     new ShapeRef(router, poly80, 80);
     
-    Polygon poly81(4);
+    Avoid::Polygon poly81(4);
     poly81.ps[0] = Point(179, 803.545);
     poly81.ps[1] = Point(179, 841.545);
     poly81.ps[2] = Point(141, 841.545);
     poly81.ps[3] = Point(141, 803.545);
     new ShapeRef(router, poly81, 81);
     
-    Polygon poly82(4);
+    Avoid::Polygon poly82(4);
     poly82.ps[0] = Point(394, 427);
     poly82.ps[1] = Point(394, 465);
     poly82.ps[2] = Point(356, 465);
     poly82.ps[3] = Point(356, 427);
     new ShapeRef(router, poly82, 82);
     
-    Polygon poly83(4);
+    Avoid::Polygon poly83(4);
     poly83.ps[0] = Point(658.5, 427);
     poly83.ps[1] = Point(658.5, 465);
     poly83.ps[2] = Point(620.5, 465);
     poly83.ps[3] = Point(620.5, 427);
     new ShapeRef(router, poly83, 83);
     
-    Polygon poly84(4);
+    Avoid::Polygon poly84(4);
     poly84.ps[0] = Point(820, 427);
     poly84.ps[1] = Point(820, 465);
     poly84.ps[2] = Point(782, 465);
     poly84.ps[3] = Point(782, 427);
     new ShapeRef(router, poly84, 84);
     
-    Polygon poly22(4);
+    Avoid::Polygon poly22(4);
     poly22.ps[0] = Point(801.5, 677.545);
     poly22.ps[1] = Point(801.5, 695.545);
     poly22.ps[2] = Point(783.5, 695.545);
     poly22.ps[3] = Point(783.5, 677.545);
     new ShapeRef(router, poly22, 22);
     
-    Polygon poly23(4);
+    Avoid::Polygon poly23(4);
     poly23.ps[0] = Point(870, 1166.55);
     poly23.ps[1] = Point(870, 1184.55);
     poly23.ps[2] = Point(852, 1184.55);
     poly23.ps[3] = Point(852, 1166.55);
     new ShapeRef(router, poly23, 23);
     
-    Polygon poly24(4);
+    Avoid::Polygon poly24(4);
     poly24.ps[0] = Point(879, 1451.71);
     poly24.ps[1] = Point(879, 1469.71);
     poly24.ps[2] = Point(861, 1469.71);
     poly24.ps[3] = Point(861, 1451.71);
     new ShapeRef(router, poly24, 24);
     
-    Polygon poly25(4);
+    Avoid::Polygon poly25(4);
     poly25.ps[0] = Point(763, 1584.71);
     poly25.ps[1] = Point(763, 1602.71);
     poly25.ps[2] = Point(745, 1602.71);
     poly25.ps[3] = Point(745, 1584.71);
     new ShapeRef(router, poly25, 25);
     
-    Polygon poly26(4);
+    Avoid::Polygon poly26(4);
     poly26.ps[0] = Point(835, 1617.71);
     poly26.ps[1] = Point(835, 1635.71);
     poly26.ps[2] = Point(817, 1635.71);
     poly26.ps[3] = Point(817, 1617.71);
     new ShapeRef(router, poly26, 26);
     
-    Polygon poly27(4);
+    Avoid::Polygon poly27(4);
     poly27.ps[0] = Point(934, 251);
     poly27.ps[1] = Point(934, 269);
     poly27.ps[2] = Point(916, 269);
     poly27.ps[3] = Point(916, 251);
     new ShapeRef(router, poly27, 27);
     
-    Polygon poly28(4);
+    Avoid::Polygon poly28(4);
     poly28.ps[0] = Point(934, 335);
     poly28.ps[1] = Point(934, 353);
     poly28.ps[2] = Point(916, 353);
     poly28.ps[3] = Point(916, 335);
     new ShapeRef(router, poly28, 28);
     
-    Polygon poly29(4);
+    Avoid::Polygon poly29(4);
     poly29.ps[0] = Point(934, 670.045);
     poly29.ps[1] = Point(934, 688.045);
     poly29.ps[2] = Point(916, 688.045);
     poly29.ps[3] = Point(916, 670.045);
     new ShapeRef(router, poly29, 29);
     
-    Polygon poly30(4);
+    Avoid::Polygon poly30(4);
     poly30.ps[0] = Point(934, 923.545);
     poly30.ps[1] = Point(934, 941.545);
     poly30.ps[2] = Point(916, 941.545);
     poly30.ps[3] = Point(916, 923.545);
     new ShapeRef(router, poly30, 30);
     
-    Polygon poly31(4);
+    Avoid::Polygon poly31(4);
     poly31.ps[0] = Point(994, 106);
     poly31.ps[1] = Point(994, 124);
     poly31.ps[2] = Point(976, 124);
     poly31.ps[3] = Point(976, 106);
     new ShapeRef(router, poly31, 31);
     
-    Polygon poly32(4);
+    Avoid::Polygon poly32(4);
     poly32.ps[0] = Point(999, 437);
     poly32.ps[1] = Point(999, 455);
     poly32.ps[2] = Point(981, 455);
     poly32.ps[3] = Point(981, 437);
     new ShapeRef(router, poly32, 32);
     
-    Polygon poly33(4);
+    Avoid::Polygon poly33(4);
     poly33.ps[0] = Point(1181, 437);
     poly33.ps[1] = Point(1181, 455);
     poly33.ps[2] = Point(1163, 455);
     poly33.ps[3] = Point(1163, 437);
     new ShapeRef(router, poly33, 33);
     
-    Polygon poly34(4);
+    Avoid::Polygon poly34(4);
     poly34.ps[0] = Point(1161, 751.379);
     poly34.ps[1] = Point(1161, 769.379);
     poly34.ps[2] = Point(1143, 769.379);
     poly34.ps[3] = Point(1143, 751.379);
     new ShapeRef(router, poly34, 34);
     
-    Polygon poly35(4);
+    Avoid::Polygon poly35(4);
     poly35.ps[0] = Point(1107, 813.545);
     poly35.ps[1] = Point(1107, 831.545);
     poly35.ps[2] = Point(1089, 831.545);
     poly35.ps[3] = Point(1089, 813.545);
     new ShapeRef(router, poly35, 35);
     
-    Polygon poly36(4);
+    Avoid::Polygon poly36(4);
     poly36.ps[0] = Point(979, 1098.21);
     poly36.ps[1] = Point(979, 1116.21);
     poly36.ps[2] = Point(961, 1116.21);
     poly36.ps[3] = Point(961, 1098.21);
     new ShapeRef(router, poly36, 36);
     
-    Polygon poly37(4);
+    Avoid::Polygon poly37(4);
     poly37.ps[0] = Point(947.8, 1620.71);
     poly37.ps[1] = Point(947.8, 1638.71);
     poly37.ps[2] = Point(929.8, 1638.71);
     poly37.ps[3] = Point(929.8, 1620.71);
     new ShapeRef(router, poly37, 37);
     
-    Polygon poly38(4);
+    Avoid::Polygon poly38(4);
     poly38.ps[0] = Point(1299.8, 1595.71);
     poly38.ps[1] = Point(1299.8, 1653.71);
     poly38.ps[2] = Point(1041.8, 1653.71);
     poly38.ps[3] = Point(1041.8, 1595.71);
     new ShapeRef(router, poly38, 38);
     
-    Polygon poly39(4);
+    Avoid::Polygon poly39(4);
     poly39.ps[0] = Point(767, 1676.71);
     poly39.ps[1] = Point(767, 1694.71);
     poly39.ps[2] = Point(749, 1694.71);
     poly39.ps[3] = Point(749, 1676.71);
     new ShapeRef(router, poly39, 39);
     
-    Polygon poly40(4);
+    Avoid::Polygon poly40(4);
     poly40.ps[0] = Point(767, 1768.71);
     poly40.ps[1] = Point(767, 1786.71);
     poly40.ps[2] = Point(749, 1786.71);
     poly40.ps[3] = Point(749, 1768.71);
     new ShapeRef(router, poly40, 40);
     
-    Polygon poly85(4);
+    Avoid::Polygon poly85(4);
     poly85.ps[0] = Point(944, 96);
     poly85.ps[1] = Point(944, 134);
     poly85.ps[2] = Point(906, 134);
     poly85.ps[3] = Point(906, 96);
     new ShapeRef(router, poly85, 85);
     
-    Polygon poly86(4);
+    Avoid::Polygon poly86(4);
     poly86.ps[0] = Point(1120, 96);
     poly86.ps[1] = Point(1120, 134);
     poly86.ps[2] = Point(1082, 134);
     poly86.ps[3] = Point(1082, 96);
     new ShapeRef(router, poly86, 86);
     
-    Polygon poly87(4);
+    Avoid::Polygon poly87(4);
     poly87.ps[0] = Point(1120, 283);
     poly87.ps[1] = Point(1120, 321);
     poly87.ps[2] = Point(1082, 321);
     poly87.ps[3] = Point(1082, 283);
     new ShapeRef(router, poly87, 87);
     
-    Polygon poly88(4);
+    Avoid::Polygon poly88(4);
     poly88.ps[0] = Point(944, 283);
     poly88.ps[1] = Point(944, 321);
     poly88.ps[2] = Point(906, 321);
     poly88.ps[3] = Point(906, 283);
     new ShapeRef(router, poly88, 88);
     
-    Polygon poly89(4);
+    Avoid::Polygon poly89(4);
     poly89.ps[0] = Point(353.2, 709.545);
     poly89.ps[1] = Point(353.2, 747.545);
     poly89.ps[2] = Point(315.2, 747.545);
     poly89.ps[3] = Point(315.2, 709.545);
     new ShapeRef(router, poly89, 89);
     
-    Polygon poly90(4);
+    Avoid::Polygon poly90(4);
     poly90.ps[0] = Point(665, 667.545);
     poly90.ps[1] = Point(665, 705.545);
     poly90.ps[2] = Point(627, 705.545);
     poly90.ps[3] = Point(627, 667.545);
     new ShapeRef(router, poly90, 90);
     
-    Polygon poly91(4);
+    Avoid::Polygon poly91(4);
     poly91.ps[0] = Point(665, 803.545);
     poly91.ps[1] = Point(665, 841.545);
     poly91.ps[2] = Point(627, 841.545);
     poly91.ps[3] = Point(627, 803.545);
     new ShapeRef(router, poly91, 91);
     
-    Polygon poly92(4);
+    Avoid::Polygon poly92(4);
     poly92.ps[0] = Point(944, 427);
     poly92.ps[1] = Point(944, 465);
     poly92.ps[2] = Point(906, 465);
     poly92.ps[3] = Point(906, 427);
     new ShapeRef(router, poly92, 92);
     
-    Polygon poly93(4);
+    Avoid::Polygon poly93(4);
     poly93.ps[0] = Point(1131, 427);
     poly93.ps[1] = Point(1131, 465);
     poly93.ps[2] = Point(1093, 465);
     poly93.ps[3] = Point(1093, 427);
     new ShapeRef(router, poly93, 93);
     
-    Polygon poly94(4);
+    Avoid::Polygon poly94(4);
     poly94.ps[0] = Point(1254, 427);
     poly94.ps[1] = Point(1254, 465);
     poly94.ps[2] = Point(1216, 465);
     poly94.ps[3] = Point(1216, 427);
     new ShapeRef(router, poly94, 94);
     
-    Polygon poly95(4);
+    Avoid::Polygon poly95(4);
     poly95.ps[0] = Point(944, 803.545);
     poly95.ps[1] = Point(944, 841.545);
     poly95.ps[2] = Point(906, 841.545);
     poly95.ps[3] = Point(906, 803.545);
     new ShapeRef(router, poly95, 95);
     
-    Polygon poly96(4);
+    Avoid::Polygon poly96(4);
     poly96.ps[0] = Point(270, 1082.05);
     poly96.ps[1] = Point(270, 1120.05);
     poly96.ps[2] = Point(232, 1120.05);
     poly96.ps[3] = Point(232, 1082.05);
     new ShapeRef(router, poly96, 96);
     
-    Polygon poly97(4);
+    Avoid::Polygon poly97(4);
     poly97.ps[0] = Point(426, 1009.55);
     poly97.ps[1] = Point(426, 1047.55);
     poly97.ps[2] = Point(388, 1047.55);
     poly97.ps[3] = Point(388, 1009.55);
     new ShapeRef(router, poly97, 97);
     
-    Polygon poly98(4);
+    Avoid::Polygon poly98(4);
     poly98.ps[0] = Point(262, 1276.05);
     poly98.ps[1] = Point(262, 1314.05);
     poly98.ps[2] = Point(224, 1314.05);
     poly98.ps[3] = Point(224, 1276.05);
     new ShapeRef(router, poly98, 98);
     
-    Polygon poly99(4);
+    Avoid::Polygon poly99(4);
     poly99.ps[0] = Point(957.8, 1832.71);
     poly99.ps[1] = Point(957.8, 1870.71);
     poly99.ps[2] = Point(919.8, 1870.71);
     poly99.ps[3] = Point(919.8, 1832.71);
     new ShapeRef(router, poly99, 99);
     
-    Polygon poly100(4);
+    Avoid::Polygon poly100(4);
     poly100.ps[0] = Point(957.8, 1666.71);
     poly100.ps[1] = Point(957.8, 1704.71);
     poly100.ps[2] = Point(919.8, 1704.71);
     poly100.ps[3] = Point(919.8, 1666.71);
     new ShapeRef(router, poly100, 100);
     
-    Polygon poly101(4);
+    Avoid::Polygon poly101(4);
     poly101.ps[0] = Point(568, 1767.85);
     poly101.ps[1] = Point(568, 1805.85);
     poly101.ps[2] = Point(530, 1805.85);
     poly101.ps[3] = Point(530, 1767.85);
     new ShapeRef(router, poly101, 101);
     
-    Polygon poly102(4);
+    Avoid::Polygon poly102(4);
     poly102.ps[0] = Point(717, 1596.71);
     poly102.ps[1] = Point(717, 1634.71);
     poly102.ps[2] = Point(679, 1634.71);
     poly102.ps[3] = Point(679, 1596.71);
     new ShapeRef(router, poly102, 102);
     
-    Polygon poly103(4);
+    Avoid::Polygon poly103(4);
     poly103.ps[0] = Point(829, 1441.71);
     poly103.ps[1] = Point(829, 1479.71);
     poly103.ps[2] = Point(791, 1479.71);
     poly103.ps[3] = Point(791, 1441.71);
     new ShapeRef(router, poly103, 103);
     
-    Polygon poly104(4);
+    Avoid::Polygon poly104(4);
     poly104.ps[0] = Point(949, 1208.55);
     poly104.ps[1] = Point(949, 1246.55);
     poly104.ps[2] = Point(911, 1246.55);
     poly104.ps[3] = Point(911, 1208.55);
     new ShapeRef(router, poly104, 104);
     
-    Polygon poly105(4);
+    Avoid::Polygon poly105(4);
     poly105.ps[0] = Point(804, 1208.55);
     poly105.ps[1] = Point(804, 1246.55);
     poly105.ps[2] = Point(766, 1246.55);
     poly105.ps[3] = Point(766, 1208.55);
     new ShapeRef(router, poly105, 105);
     
-    Polygon poly106(4);
+    Avoid::Polygon poly106(4);
     poly106.ps[0] = Point(717, 1009.55);
     poly106.ps[1] = Point(717, 1047.55);
     poly106.ps[2] = Point(679, 1047.55);
     poly106.ps[3] = Point(679, 1009.55);
     new ShapeRef(router, poly106, 106);
     
-    Polygon poly107(4);
+    Avoid::Polygon poly107(4);
     poly107.ps[0] = Point(1111, 1088.21);
     poly107.ps[1] = Point(1111, 1126.21);
     poly107.ps[2] = Point(1073, 1126.21);
     poly107.ps[3] = Point(1073, 1088.21);
     new ShapeRef(router, poly107, 107);
     
-    Polygon poly4(4);
+    Avoid::Polygon poly4(4);
     poly4.ps[0] = Point(144, 1140.05);
     poly4.ps[1] = Point(144, 1158.05);
     poly4.ps[2] = Point(126, 1158.05);
     poly4.ps[3] = Point(126, 1140.05);
     new ShapeRef(router, poly4, 4);
     
-    Polygon poly1(4);
+    Avoid::Polygon poly1(4);
     poly1.ps[0] = Point(1563.49, 741.379);
     poly1.ps[1] = Point(1563.49, 779.379);
     poly1.ps[2] = Point(1525.49, 779.379);
     poly1.ps[3] = Point(1525.49, 741.379);
     new ShapeRef(router, poly1, 1);
     
-    Polygon poly7(4);
+    Avoid::Polygon poly7(4);
     poly7.ps[0] = Point(527, 437);
     poly7.ps[1] = Point(527, 455);
     poly7.ps[2] = Point(509, 455);
     poly7.ps[3] = Point(509, 437);
     new ShapeRef(router, poly7, 7);
     
-    Polygon poly8(4);
+    Avoid::Polygon poly8(4);
     poly8.ps[0] = Point(343.2, 677.545);
     poly8.ps[1] = Point(343.2, 695.545);
     poly8.ps[2] = Point(325.2, 695.545);
     poly8.ps[3] = Point(325.2, 677.545);
     new ShapeRef(router, poly8, 8);
     
-    Polygon poly9(4);
+    Avoid::Polygon poly9(4);
     poly9.ps[0] = Point(200, 1140.05);
     poly9.ps[1] = Point(200, 1158.05);
     poly9.ps[2] = Point(182, 1158.05);
     poly9.ps[3] = Point(182, 1140.05);
     new ShapeRef(router, poly9, 9);
     
-    Polygon poly10(4);
+    Avoid::Polygon poly10(4);
     poly10.ps[0] = Point(343.2, 761.545);
     poly10.ps[1] = Point(343.2, 779.545);
     poly10.ps[2] = Point(325.2, 779.545);
     poly10.ps[3] = Point(325.2, 761.545);
     new ShapeRef(router, poly10, 10);
     
-    Polygon poly11(4);
+    Avoid::Polygon poly11(4);
     poly11.ps[0] = Point(343.2, 813.545);
     poly11.ps[1] = Point(343.2, 831.545);
     poly11.ps[2] = Point(325.2, 831.545);
     poly11.ps[3] = Point(325.2, 813.545);
     new ShapeRef(router, poly11, 11);
     
-    Polygon poly12(4);
+    Avoid::Polygon poly12(4);
     poly12.ps[0] = Point(343.2, 865.545);
     poly12.ps[1] = Point(343.2, 883.545);
     poly12.ps[2] = Point(325.2, 883.545);
     poly12.ps[3] = Point(325.2, 865.545);
     new ShapeRef(router, poly12, 12);
     
-    Polygon poly13(4);
+    Avoid::Polygon poly13(4);
     poly13.ps[0] = Point(476.5, 1092.05);
     poly13.ps[1] = Point(476.5, 1110.05);
     poly13.ps[2] = Point(458.5, 1110.05);
     poly13.ps[3] = Point(458.5, 1092.05);
     new ShapeRef(router, poly13, 13);
     
-    Polygon poly14(4);
+    Avoid::Polygon poly14(4);
     poly14.ps[0] = Point(595, 1019.55);
     poly14.ps[1] = Point(595, 1037.55);
     poly14.ps[2] = Point(577, 1037.55);
     poly14.ps[3] = Point(577, 1019.55);
     new ShapeRef(router, poly14, 14);
     
-    Polygon poly15(4);
+    Avoid::Polygon poly15(4);
     poly15.ps[0] = Point(578, 1194.05);
     poly15.ps[1] = Point(578, 1212.05);
     poly15.ps[2] = Point(560, 1212.05);
     poly15.ps[3] = Point(560, 1194.05);
     new ShapeRef(router, poly15, 15);
     
-    Polygon poly16(4);
+    Avoid::Polygon poly16(4);
     poly16.ps[0] = Point(744, 437);
     poly16.ps[1] = Point(744, 455);
     poly16.ps[2] = Point(726, 455);
     poly16.ps[3] = Point(726, 437);
     new ShapeRef(router, poly16, 16);
     
-    Polygon poly17(4);
+    Avoid::Polygon poly17(4);
     poly17.ps[0] = Point(870, 437);
     poly17.ps[1] = Point(870, 455);
     poly17.ps[2] = Point(852, 455);
     poly17.ps[3] = Point(852, 437);
     new ShapeRef(router, poly17, 17);
     
-    Polygon poly18(4);
+    Avoid::Polygon poly18(4);
     poly18.ps[0] = Point(527, 575.545);
     poly18.ps[1] = Point(527, 593.545);
     poly18.ps[2] = Point(509, 593.545);
     poly18.ps[3] = Point(509, 575.545);
     new ShapeRef(router, poly18, 18);
     
-    Polygon poly19(4);
+    Avoid::Polygon poly19(4);
     poly19.ps[0] = Point(801.5, 813.545);
     poly19.ps[1] = Point(801.5, 831.545);
     poly19.ps[2] = Point(783.5, 831.545);
     poly19.ps[3] = Point(783.5, 813.545);
     new ShapeRef(router, poly19, 19);
     
-    Polygon poly20(4);
+    Avoid::Polygon poly20(4);
     poly20.ps[0] = Point(806, 1019.55);
     poly20.ps[1] = Point(806, 1037.55);
     poly20.ps[2] = Point(788, 1037.55);
     poly20.ps[3] = Point(788, 1019.55);
     new ShapeRef(router, poly20, 20);
     
-    Polygon poly21(4);
+    Avoid::Polygon poly21(4);
     poly21.ps[0] = Point(788, 1114.55);
     poly21.ps[1] = Point(788, 1132.55);
     poly21.ps[2] = Point(770, 1132.55);
     poly21.ps[3] = Point(770, 1114.55);
     new ShapeRef(router, poly21, 21);
     
-    Polygon poly5(4);
+    Avoid::Polygon poly5(4);
     poly5.ps[0] = Point(1479.2, 729.545);
     poly5.ps[1] = Point(1479.2, 747.545);
     poly5.ps[2] = Point(1461.2, 747.545);
     poly5.ps[3] = Point(1461.2, 729.545);
     new ShapeRef(router, poly5, 5);
     
-    Polygon poly6(4);
+    Avoid::Polygon poly6(4);
     poly6.ps[0] = Point(687.327, 258);
     poly6.ps[1] = Point(687.327, 291);
     poly6.ps[2] = Point(393.327, 291);
     poly6.ps[3] = Point(393.327, 258);
     new ShapeRef(router, poly6, 6);
     
-    Polygon poly175(4);
+    Avoid::Polygon poly175(4);
     poly175.ps[0] = Point(1187, 803.545);
     poly175.ps[1] = Point(1187, 841.545);
     poly175.ps[2] = Point(1133, 841.545);
     poly175.ps[3] = Point(1133, 803.545);
     new ShapeRef(router, poly175, 175);
     
-    Polygon poly176(4);
+    Avoid::Polygon poly176(4);
     poly176.ps[0] = Point(1059, 1088.21);
     poly176.ps[1] = Point(1059, 1126.21);
     poly176.ps[2] = Point(1005, 1126.21);
     poly176.ps[3] = Point(1005, 1088.21);
     new ShapeRef(router, poly176, 176);
     
-    Polygon poly177(4);
+    Avoid::Polygon poly177(4);
     poly177.ps[0] = Point(1027.8, 1610.71);
     poly177.ps[1] = Point(1027.8, 1648.71);
     poly177.ps[2] = Point(973.8, 1648.71);
     poly177.ps[3] = Point(973.8, 1610.71);
     new ShapeRef(router, poly177, 177);
     
-    Polygon poly178(4);
+    Avoid::Polygon poly178(4);
     poly178.ps[0] = Point(785, 1616.71);
     poly178.ps[1] = Point(785, 1654.71);
     poly178.ps[2] = Point(731, 1654.71);
     poly178.ps[3] = Point(731, 1616.71);
     new ShapeRef(router, poly178, 178);
     
-    Polygon poly179(4);
+    Avoid::Polygon poly179(4);
     poly179.ps[0] = Point(785, 1708.71);
     poly179.ps[1] = Point(785, 1746.71);
     poly179.ps[2] = Point(731, 1746.71);
     poly179.ps[3] = Point(731, 1708.71);
     new ShapeRef(router, poly179, 179);
     
-    Polygon poly180(4);
+    Avoid::Polygon poly180(4);
     poly180.ps[0] = Point(785, 1840.71);
     poly180.ps[1] = Point(785, 1878.71);
     poly180.ps[2] = Point(731, 1878.71);
     poly180.ps[3] = Point(731, 1840.71);
     new ShapeRef(router, poly180, 180);
     
-    Polygon poly181(4);
+    Avoid::Polygon poly181(4);
     poly181.ps[0] = Point(1027.8, 1790.71);
     poly181.ps[1] = Point(1027.8, 1828.71);
     poly181.ps[2] = Point(973.8, 1828.71);
     poly181.ps[3] = Point(973.8, 1790.71);
     new ShapeRef(router, poly181, 181);
     
-    Polygon poly182(4);
+    Avoid::Polygon poly182(4);
     poly182.ps[0] = Point(1193, 1543.71);
     poly182.ps[1] = Point(1193, 1581.71);
     poly182.ps[2] = Point(1139, 1581.71);
     poly182.ps[3] = Point(1139, 1543.71);
     new ShapeRef(router, poly182, 182);
     
-    Polygon poly183(4);
+    Avoid::Polygon poly183(4);
     poly183.ps[0] = Point(1255, 1491.71);
     poly183.ps[1] = Point(1255, 1529.71);
     poly183.ps[2] = Point(1201, 1529.71);
     poly183.ps[3] = Point(1201, 1491.71);
     new ShapeRef(router, poly183, 183);
     
-    Polygon poly184(4);
+    Avoid::Polygon poly184(4);
     poly184.ps[0] = Point(1429.2, 663.045);
     poly184.ps[1] = Point(1429.2, 701.045);
     poly184.ps[2] = Point(1375.2, 701.045);
     poly184.ps[3] = Point(1375.2, 663.045);
     new ShapeRef(router, poly184, 184);
     
-    Polygon poly185(4);
+    Avoid::Polygon poly185(4);
     poly185.ps[0] = Point(1444.33, 1082.05);
     poly185.ps[1] = Point(1444.33, 1120.05);
     poly185.ps[2] = Point(1390.33, 1120.05);
     poly185.ps[3] = Point(1390.33, 1082.05);
     new ShapeRef(router, poly185, 185);
     
-    Polygon poly186(4);
+    Avoid::Polygon poly186(4);
     poly186.ps[0] = Point(1557.2, 383.545);
     poly186.ps[1] = Point(1557.2, 421.545);
     poly186.ps[2] = Point(1503.2, 421.545);
     poly186.ps[3] = Point(1503.2, 383.545);
     new ShapeRef(router, poly186, 186);
     
-    Polygon poly187(4);
+    Avoid::Polygon poly187(4);
     poly187.ps[0] = Point(1557.2, 475.545);
     poly187.ps[1] = Point(1557.2, 513.545);
     poly187.ps[2] = Point(1503.2, 513.545);
     poly187.ps[3] = Point(1503.2, 475.545);
     new ShapeRef(router, poly187, 187);
     
-    Polygon poly188(4);
+    Avoid::Polygon poly188(4);
     poly188.ps[0] = Point(1497.2, 801.545);
     poly188.ps[1] = Point(1497.2, 839.545);
     poly188.ps[2] = Point(1443.2, 839.545);
     poly188.ps[3] = Point(1443.2, 801.545);
     new ShapeRef(router, poly188, 188);
     
-    Polygon poly189(4);
+    Avoid::Polygon poly189(4);
     poly189.ps[0] = Point(1557.2, 567.545);
     poly189.ps[1] = Point(1557.2, 605.545);
     poly189.ps[2] = Point(1503.2, 605.545);
     poly189.ps[3] = Point(1503.2, 567.545);
     new ShapeRef(router, poly189, 189);
     
-    Polygon poly190(4);
+    Avoid::Polygon poly190(4);
     poly190.ps[0] = Point(1633.49, 840.545);
     poly190.ps[1] = Point(1633.49, 878.545);
     poly190.ps[2] = Point(1579.49, 878.545);
     poly190.ps[3] = Point(1579.49, 840.545);
     new ShapeRef(router, poly190, 190);
     
-    Polygon poly191(4);
+    Avoid::Polygon poly191(4);
     poly191.ps[0] = Point(1745.49, 840.545);
     poly191.ps[1] = Point(1745.49, 878.545);
     poly191.ps[2] = Point(1691.49, 878.545);
     poly191.ps[3] = Point(1691.49, 840.545);
     new ShapeRef(router, poly191, 191);
     
-    Polygon poly192(4);
+    Avoid::Polygon poly192(4);
     poly192.ps[0] = Point(1497.2, 1134.05);
     poly192.ps[1] = Point(1497.2, 1172.05);
     poly192.ps[2] = Point(1443.2, 1172.05);
     poly192.ps[3] = Point(1443.2, 1134.05);
     new ShapeRef(router, poly192, 192);
     
-    Polygon poly193(4);
+    Avoid::Polygon poly193(4);
     poly193.ps[0] = Point(1497.2, 1230.21);
     poly193.ps[1] = Point(1497.2, 1268.21);
     poly193.ps[2] = Point(1443.2, 1268.21);
     poly193.ps[3] = Point(1443.2, 1230.21);
     new ShapeRef(router, poly193, 193);
     
-    Polygon poly194(4);
+    Avoid::Polygon poly194(4);
     poly194.ps[0] = Point(1497.2, 1391.71);
     poly194.ps[1] = Point(1497.2, 1429.71);
     poly194.ps[2] = Point(1443.2, 1429.71);
     poly194.ps[3] = Point(1443.2, 1391.71);
     new ShapeRef(router, poly194, 194);
     
-    Polygon poly195(4);
+    Avoid::Polygon poly195(4);
     poly195.ps[0] = Point(1812.2, 1287.71);
     poly195.ps[1] = Point(1812.2, 1325.71);
     poly195.ps[2] = Point(1758.2, 1325.71);
     poly195.ps[3] = Point(1758.2, 1287.71);
     new ShapeRef(router, poly195, 195);
     
-    Polygon poly196(4);
+    Avoid::Polygon poly196(4);
     poly196.ps[0] = Point(1215, 148);
     poly196.ps[1] = Point(1215, 186);
     poly196.ps[2] = Point(1161, 186);
     poly196.ps[3] = Point(1161, 148);
     new ShapeRef(router, poly196, 196);
     
-    Polygon poly197(4);
+    Avoid::Polygon poly197(4);
     poly197.ps[0] = Point(981.8, 148);
     poly197.ps[1] = Point(981.8, 186);
     poly197.ps[2] = Point(927.8, 186);
     poly197.ps[3] = Point(927.8, 148);
     new ShapeRef(router, poly197, 197);
     
-    Polygon poly41(4);
+    Avoid::Polygon poly41(4);
     poly41.ps[0] = Point(767, 1800.71);
     poly41.ps[1] = Point(767, 1818.71);
     poly41.ps[2] = Point(749, 1818.71);
     poly41.ps[3] = Point(749, 1800.71);
     new ShapeRef(router, poly41, 41);
     
-    Polygon poly42(4);
+    Avoid::Polygon poly42(4);
     poly42.ps[0] = Point(947.8, 1800.71);
     poly42.ps[1] = Point(947.8, 1818.71);
     poly42.ps[2] = Point(929.8, 1818.71);
     poly42.ps[3] = Point(929.8, 1800.71);
     new ShapeRef(router, poly42, 42);
     
-    Polygon poly43(4);
+    Avoid::Polygon poly43(4);
     poly43.ps[0] = Point(1237, 1553.71);
     poly43.ps[1] = Point(1237, 1571.71);
     poly43.ps[2] = Point(1219, 1571.71);
     poly43.ps[3] = Point(1219, 1553.71);
     new ShapeRef(router, poly43, 43);
     
-    Polygon poly44(4);
+    Avoid::Polygon poly44(4);
     poly44.ps[0] = Point(1237, 1451.71);
     poly44.ps[1] = Point(1237, 1469.71);
     poly44.ps[2] = Point(1219, 1469.71);
     poly44.ps[3] = Point(1219, 1451.71);
     new ShapeRef(router, poly44, 44);
     
-    Polygon poly45(4);
+    Avoid::Polygon poly45(4);
     poly45.ps[0] = Point(1349.2, 673.045);
     poly45.ps[1] = Point(1349.2, 691.045);
     poly45.ps[2] = Point(1331.2, 691.045);
     poly45.ps[3] = Point(1331.2, 673.045);
     new ShapeRef(router, poly45, 45);
     
-    Polygon poly46(4);
+    Avoid::Polygon poly46(4);
     poly46.ps[0] = Point(1364.33, 1092.05);
     poly46.ps[1] = Point(1364.33, 1110.05);
     poly46.ps[2] = Point(1346.33, 1110.05);
     poly46.ps[3] = Point(1346.33, 1092.05);
     new ShapeRef(router, poly46, 46);
     
-    Polygon poly47(4);
+    Avoid::Polygon poly47(4);
     poly47.ps[0] = Point(1539.2, 443.545);
     poly47.ps[1] = Point(1539.2, 461.545);
     poly47.ps[2] = Point(1521.2, 461.545);
     poly47.ps[3] = Point(1521.2, 443.545);
     new ShapeRef(router, poly47, 47);
     
-    Polygon poly48(4);
+    Avoid::Polygon poly48(4);
     poly48.ps[0] = Point(1539.2, 535.545);
     poly48.ps[1] = Point(1539.2, 553.545);
     poly48.ps[2] = Point(1521.2, 553.545);
     poly48.ps[3] = Point(1521.2, 535.545);
     new ShapeRef(router, poly48, 48);
     
-    Polygon poly49(4);
+    Avoid::Polygon poly49(4);
     poly49.ps[0] = Point(1479.2, 761.545);
     poly49.ps[1] = Point(1479.2, 779.545);
     poly49.ps[2] = Point(1461.2, 779.545);
     poly49.ps[3] = Point(1461.2, 761.545);
     new ShapeRef(router, poly49, 49);
     
-    Polygon poly50(4);
+    Avoid::Polygon poly50(4);
     poly50.ps[0] = Point(1539.2, 627.545);
     poly50.ps[1] = Point(1539.2, 645.545);
     poly50.ps[2] = Point(1521.2, 645.545);
     poly50.ps[3] = Point(1521.2, 627.545);
     new ShapeRef(router, poly50, 50);
     
-    Polygon poly51(4);
+    Avoid::Polygon poly51(4);
     poly51.ps[0] = Point(1553.49, 850.545);
     poly51.ps[1] = Point(1553.49, 868.545);
     poly51.ps[2] = Point(1535.49, 868.545);
     poly51.ps[3] = Point(1535.49, 850.545);
     new ShapeRef(router, poly51, 51);
     
-    Polygon poly52(4);
+    Avoid::Polygon poly52(4);
     poly52.ps[0] = Point(1665.49, 850.545);
     poly52.ps[1] = Point(1665.49, 868.545);
     poly52.ps[2] = Point(1647.49, 868.545);
     poly52.ps[3] = Point(1647.49, 850.545);
     new ShapeRef(router, poly52, 52);
     
-    Polygon poly53(4);
+    Avoid::Polygon poly53(4);
     poly53.ps[0] = Point(1479.2, 1194.05);
     poly53.ps[1] = Point(1479.2, 1212.05);
     poly53.ps[2] = Point(1461.2, 1212.05);
     poly53.ps[3] = Point(1461.2, 1194.05);
     new ShapeRef(router, poly53, 53);
     
-    Polygon poly54(4);
+    Avoid::Polygon poly54(4);
     poly54.ps[0] = Point(1479.2, 1290.21);
     poly54.ps[1] = Point(1479.2, 1308.21);
     poly54.ps[2] = Point(1461.2, 1308.21);
     poly54.ps[3] = Point(1461.2, 1290.21);
     new ShapeRef(router, poly54, 54);
     
-    Polygon poly55(4);
+    Avoid::Polygon poly55(4);
     poly55.ps[0] = Point(1479.2, 1451.71);
     poly55.ps[1] = Point(1479.2, 1469.71);
     poly55.ps[2] = Point(1461.2, 1469.71);
     poly55.ps[3] = Point(1461.2, 1451.71);
     new ShapeRef(router, poly55, 55);
     
-    Polygon poly56(4);
+    Avoid::Polygon poly56(4);
     poly56.ps[0] = Point(1732.2, 1297.71);
     poly56.ps[1] = Point(1732.2, 1315.71);
     poly56.ps[2] = Point(1714.2, 1315.71);
     poly56.ps[3] = Point(1714.2, 1297.71);
     new ShapeRef(router, poly56, 56);
     
-    Polygon poly57(4);
+    Avoid::Polygon poly57(4);
     poly57.ps[0] = Point(1441, 200);
     poly57.ps[1] = Point(1441, 363);
     poly57.ps[2] = Point(1149, 363);
     poly57.ps[3] = Point(1149, 200);
     new ShapeRef(router, poly57, 57);
     
-    Polygon poly58(4);
+    Avoid::Polygon poly58(4);
     poly58.ps[0] = Point(342, 443.545);
     poly58.ps[1] = Point(342, 501.545);
     poly58.ps[2] = Point(49, 501.545);
     poly58.ps[3] = Point(49, 443.545);
     new ShapeRef(router, poly58, 58);
     
-    Polygon poly59(4);
+    Avoid::Polygon poly59(4);
     poly59.ps[0] = Point(1111, 617.545);
     poly59.ps[1] = Point(1111, 789.545);
     poly59.ps[2] = Point(1028, 789.545);
     poly59.ps[3] = Point(1028, 617.545);
     new ShapeRef(router, poly59, 59);
     
-    Polygon poly60(4);
+    Avoid::Polygon poly60(4);
     poly60.ps[0] = Point(1135, 158);
     poly60.ps[1] = Point(1135, 176);
     poly60.ps[2] = Point(1117, 176);
     poly60.ps[3] = Point(1117, 158);
     new ShapeRef(router, poly60, 60);
     
-    Polygon poly61(4);
+    Avoid::Polygon poly61(4);
     poly61.ps[0] = Point(1025.8, 158);
     poly61.ps[1] = Point(1025.8, 176);
     poly61.ps[2] = Point(1007.8, 176);
     poly61.ps[3] = Point(1007.8, 158);
     new ShapeRef(router, poly61, 61);
     
-    Polygon poly62(4);
+    Avoid::Polygon poly62(4);
     poly62.ps[0] = Point(1273, 1194.05);
     poly62.ps[1] = Point(1273, 1212.05);
     poly62.ps[2] = Point(1255, 1212.05);
     poly62.ps[3] = Point(1255, 1194.05);
     new ShapeRef(router, poly62, 62);
     
-    Polygon poly108(4);
+    Avoid::Polygon poly108(4);
     poly108.ps[0] = Point(1678.49, 1184.05);
     poly108.ps[1] = Point(1678.49, 1222.05);
     poly108.ps[2] = Point(1640.49, 1222.05);
     poly108.ps[3] = Point(1640.49, 1184.05);
     new ShapeRef(router, poly108, 108);
     
-    Polygon poly109(4);
+    Avoid::Polygon poly109(4);
     poly109.ps[0] = Point(1559.2, 1280.21);
     poly109.ps[1] = Point(1559.2, 1318.21);
     poly109.ps[2] = Point(1521.2, 1318.21);
     poly109.ps[3] = Point(1521.2, 1280.21);
     new ShapeRef(router, poly109, 109);
     
-    Polygon poly110(4);
+    Avoid::Polygon poly110(4);
     poly110.ps[0] = Point(1374.33, 1124.05);
     poly110.ps[1] = Point(1374.33, 1162.05);
     poly110.ps[2] = Point(1336.33, 1162.05);
     poly110.ps[3] = Point(1336.33, 1124.05);
     new ShapeRef(router, poly110, 110);
     
-    Polygon poly111(4);
+    Avoid::Polygon poly111(4);
     poly111.ps[0] = Point(1374.33, 1026.05);
     poly111.ps[1] = Point(1374.33, 1064.05);
     poly111.ps[2] = Point(1336.33, 1064.05);
     poly111.ps[3] = Point(1336.33, 1026.05);
     new ShapeRef(router, poly111, 111);
     
-    Polygon poly112(4);
+    Avoid::Polygon poly112(4);
     poly112.ps[0] = Point(1489.2, 617.545);
     poly112.ps[1] = Point(1489.2, 655.545);
     poly112.ps[2] = Point(1451.2, 655.545);
     poly112.ps[3] = Point(1451.2, 617.545);
     new ShapeRef(router, poly112, 112);
     
-    Polygon poly113(4);
+    Avoid::Polygon poly113(4);
     poly113.ps[0] = Point(1359.2, 741.379);
     poly113.ps[1] = Point(1359.2, 779.379);
     poly113.ps[2] = Point(1321.2, 779.379);
     poly113.ps[3] = Point(1321.2, 741.379);
     new ShapeRef(router, poly113, 113);
     
-    Polygon poly114(4);
+    Avoid::Polygon poly114(4);
     poly114.ps[0] = Point(1359.2, 525.545);
     poly114.ps[1] = Point(1359.2, 563.545);
     poly114.ps[2] = Point(1321.2, 563.545);
     poly114.ps[3] = Point(1321.2, 525.545);
     new ShapeRef(router, poly114, 114);
     
-    Polygon poly115(4);
+    Avoid::Polygon poly115(4);
     poly115.ps[0] = Point(1609.2, 617.545);
     poly115.ps[1] = Point(1609.2, 655.545);
     poly115.ps[2] = Point(1571.2, 655.545);
     poly115.ps[3] = Point(1571.2, 617.545);
     new ShapeRef(router, poly115, 115);
     
-    Polygon poly116(4);
+    Avoid::Polygon poly116(4);
     poly116.ps[0] = Point(1678.49, 525.545);
     poly116.ps[1] = Point(1678.49, 563.545);
     poly116.ps[2] = Point(1640.49, 563.545);
     poly116.ps[3] = Point(1640.49, 525.545);
     new ShapeRef(router, poly116, 116);
     
-    Polygon poly117(4);
+    Avoid::Polygon poly117(4);
     poly117.ps[0] = Point(1563.49, 907.545);
     poly117.ps[1] = Point(1563.49, 945.545);
     poly117.ps[2] = Point(1525.49, 945.545);
     poly117.ps[3] = Point(1525.49, 907.545);
     new ShapeRef(router, poly117, 117);
     
-    Polygon poly118(4);
+    Avoid::Polygon poly118(4);
     poly118.ps[0] = Point(409, 565.545);
     poly118.ps[1] = Point(409, 603.545);
     poly118.ps[2] = Point(371, 603.545);
     poly118.ps[3] = Point(371, 565.545);
     new ShapeRef(router, poly118, 118);
     
-    Polygon poly119(4);
+    Avoid::Polygon poly119(4);
     poly119.ps[0] = Point(1359.2, 904.545);
     poly119.ps[1] = Point(1359.2, 942.545);
     poly119.ps[2] = Point(1321.2, 942.545);
     poly119.ps[3] = Point(1321.2, 904.545);
     new ShapeRef(router, poly119, 119);
     
-    Polygon poly120(4);
+    Avoid::Polygon poly120(4);
     poly120.ps[0] = Point(648, 1082.05);
     poly120.ps[1] = Point(648, 1120.05);
     poly120.ps[2] = Point(610, 1120.05);
     poly120.ps[3] = Point(610, 1082.05);
     new ShapeRef(router, poly120, 120);
     
-    Polygon poly121(4);
+    Avoid::Polygon poly121(4);
     poly121.ps[0] = Point(1196, 1297.71);
     poly121.ps[1] = Point(1196, 1335.71);
     poly121.ps[2] = Point(1158, 1335.71);
     poly121.ps[3] = Point(1158, 1297.71);
     new ShapeRef(router, poly121, 121);
     
-    Polygon poly122(4);
+    Avoid::Polygon poly122(4);
     poly122.ps[0] = Point(1343, 1184.05);
     poly122.ps[1] = Point(1343, 1222.05);
     poly122.ps[2] = Point(1305, 1222.05);
     poly122.ps[3] = Point(1305, 1184.05);
     new ShapeRef(router, poly122, 122);
     
-    Polygon poly123(4);
+    Avoid::Polygon poly123(4);
     poly123.ps[0] = Point(1559.2, 1441.71);
     poly123.ps[1] = Point(1559.2, 1479.71);
     poly123.ps[2] = Point(1521.2, 1479.71);
     poly123.ps[3] = Point(1521.2, 1441.71);
     new ShapeRef(router, poly123, 123);
     
-    Polygon poly124(4);
+    Avoid::Polygon poly124(4);
     poly124.ps[0] = Point(1771.2, 1758.71);
     poly124.ps[1] = Point(1771.2, 1796.71);
     poly124.ps[2] = Point(1733.2, 1796.71);
     poly124.ps[3] = Point(1733.2, 1758.71);
     new ShapeRef(router, poly124, 124);
     
-    Polygon poly125(4);
+    Avoid::Polygon poly125(4);
     poly125.ps[0] = Point(957.8, 965.545);
     poly125.ps[1] = Point(957.8, 1003.55);
     poly125.ps[2] = Point(919.8, 1003.55);
     poly125.ps[3] = Point(919.8, 965.545);
     new ShapeRef(router, poly125, 125);
     
-    Polygon poly126(4);
+    Avoid::Polygon poly126(4);
     poly126.ps[0] = Point(1131, 1026.05);
     poly126.ps[1] = Point(1131, 1064.05);
     poly126.ps[2] = Point(1093, 1064.05);
     poly126.ps[3] = Point(1093, 1026.05);
     new ShapeRef(router, poly126, 126);
     
-    Polygon poly127(4);
+    Avoid::Polygon poly127(4);
     poly127.ps[0] = Point(665, 939.925);
     poly127.ps[1] = Point(665, 977.925);
     poly127.ps[2] = Point(627, 977.925);
     poly127.ps[3] = Point(627, 939.925);
     new ShapeRef(router, poly127, 127);
     
-    Polygon poly128(4);
+    Avoid::Polygon poly128(4);
     poly128.ps[0] = Point(418, 1184.05);
     poly128.ps[1] = Point(418, 1222.05);
     poly128.ps[2] = Point(380, 1222.05);
     poly128.ps[3] = Point(380, 1184.05);
     new ShapeRef(router, poly128, 128);
     
-    Polygon poly129(4);
+    Avoid::Polygon poly129(4);
     poly129.ps[0] = Point(418, 1276.05);
     poly129.ps[1] = Point(418, 1314.05);
     poly129.ps[2] = Point(380, 1314.05);

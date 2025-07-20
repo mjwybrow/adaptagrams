@@ -225,13 +225,13 @@ void ConnRef::setRoutingCheckpoints(const std::vector<Checkpoint>& checkpoints)
 }
 
 
-void ConnRef::common_updateEndPoint(const unsigned int type, ConnEnd connEnd)
+void ConnRef::common_updateEndPoint(const size_t type, ConnEnd connEnd)
 {
     const Point& point = connEnd.position();
     //db_printf("common_updateEndPoint(%d,(pid=%d,vn=%d,(%f,%f)))\n",
     //      type,point.id,point.vn,point.x,point.y);
-    COLA_ASSERT((type == (unsigned int) VertID::src) ||
-                (type == (unsigned int) VertID::tar));
+    COLA_ASSERT((type == VertID::src) ||
+                (type == VertID::tar));
 
     // The connEnd is a copy of a ConnEnd that will get disconnected,
     // so don't leave it looking like it is still connected.
@@ -390,7 +390,7 @@ bool ConnRef::getConnEndForEndpointVertex(VertInf *vertex,
 }
 
 
-void ConnRef::updateEndPoint(const unsigned int type, const ConnEnd& connEnd)
+void ConnRef::updateEndPoint(const size_t type, const ConnEnd& connEnd)
 {
     common_updateEndPoint(type, connEnd);
 
@@ -465,7 +465,7 @@ void ConnRef::outputCode(FILE *fp) const
                     (int) i, currRoute.ps[i].x, currRoute.ps[i].y);
             fprintf(fp, "    newRoute.ps[%d].id = %u;\n", 
                     (int) i, currRoute.ps[i].id);
-            fprintf(fp, "    newRoute.ps[%d].vn = %u;\n",
+            fprintf(fp, "    newRoute.ps[%d].vn = %zu;\n",
                     (int) i, currRoute.ps[i].vn);
         }
         fprintf(fp, "    connRef->setFixedRoute(newRoute);\n");
@@ -1485,7 +1485,7 @@ void PtOrder::sort(const size_t dim)
 // Returns a vertex number representing a point on the line between 
 // two shape corners, represented by p0 and p1.
 //
-static int midVertexNumber(const Point& p0, const Point& p1, const Point& c)
+static size_t midVertexNumber(const Point& p0, const Point& p1, const Point& c)
 {
     if (c.vn != kUnassignedVertexNumber)
     {
@@ -1512,7 +1512,7 @@ static int midVertexNumber(const Point& p0, const Point& p1, const Point& c)
             return p0.vn;
         }
         // Splitting between two ordinary shape corners.
-        int vn_mid = std::min(p0.vn, p1.vn);
+        size_t vn_mid = std::min(p0.vn, p1.vn);
         if ((std::max(p0.vn, p1.vn) == 3) && (vn_mid == 0))
         {
             vn_mid = 3; // Next vn is effectively 4.

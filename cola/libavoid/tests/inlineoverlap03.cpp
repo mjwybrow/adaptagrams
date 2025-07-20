@@ -11,21 +11,21 @@ int main(void) {
     router->setRoutingPenalty((PenaltyType)4, 110);
     router->setRoutingParameter(idealNudgingDistance, 25);
 
-    Polygon poly421433292(4);
+    Avoid::Polygon poly421433292(4);
     poly421433292.ps[0] = Point(51335, 50215);
     poly421433292.ps[1] = Point(51335, 50385);
     poly421433292.ps[2] = Point(51065, 50385);
     poly421433292.ps[3] = Point(51065, 50215);
     new ShapeRef(router, poly421433292, 421433292);
 
-    Polygon poly174734866(4);
+    Avoid::Polygon poly174734866(4);
     poly174734866.ps[0] = Point(51335, 50490);
     poly174734866.ps[1] = Point(51335, 50660);
     poly174734866.ps[2] = Point(51065, 50660);
     poly174734866.ps[3] = Point(51065, 50490);
     new ShapeRef(router, poly174734866, 174734866);
 
-    Polygon poly564884274(4);
+    Avoid::Polygon poly564884274(4);
     poly564884274.ps[0] = Point(50635, 50500);
     poly564884274.ps[1] = Point(50635, 50583);
     poly564884274.ps[2] = Point(50515, 50583);

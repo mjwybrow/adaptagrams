@@ -54,7 +54,7 @@ enum ActionType {
     ConnectionPinChange
 };
 
-typedef std::list<std::pair<unsigned int, ConnEnd> > ConnUpdateList;
+typedef std::list<std::pair<size_t, ConnEnd> > ConnUpdateList;
 
 class ActionInfo {
     public:
@@ -69,7 +69,7 @@ class ActionInfo {
         ShapeRef *shape(void) const;
         ConnRef *conn(void) const;
         JunctionRef *junction(void) const;
-        void addConnEndUpdate(const unsigned int type, const ConnEnd& connEnd,
+        void addConnEndUpdate(const size_t type, const ConnEnd& connEnd,
                 bool isConnPinMoveUpdate);
         bool operator==(const ActionInfo& rhs) const;
         bool operator<(const ActionInfo& rhs) const;

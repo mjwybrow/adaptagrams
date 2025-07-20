@@ -20,7 +20,7 @@ int main(void) {
     router->setRoutingOption((RoutingOption)2, false);
     router->setRoutingOption((RoutingOption)3, false);
 
-    Polygon poly41(4);
+    Avoid::Polygon poly41(4);
     poly41.ps[0] = Point(918.6758458220888, 441.0752314081785);
     poly41.ps[1] = Point(918.6758458220888, 503.0752314081785);
     poly41.ps[2] = Point(856.6758458220888, 503.0752314081785);
@@ -28,14 +28,14 @@ int main(void) {
     new ShapeRef(router, poly41, 41);
 
 
-    Polygon poly43(4);
+    Avoid::Polygon poly43(4);
     poly43.ps[0] = Point(710.6758458200889, 441.0752314081785);
     poly43.ps[1] = Point(710.6758458200889, 461.0752314081785);
     poly43.ps[2] = Point(678.6758458200889, 461.0752314081785);
     poly43.ps[3] = Point(678.6758458200889, 441.0752314081785);
     new ShapeRef(router, poly43, 43);
 
-    Polygon poly44(4);
+    Avoid::Polygon poly44(4);
     poly44.ps[0] = Point(710.6758458200889, 483.0752314081785);
     poly44.ps[1] = Point(710.6758458200889, 503.0752314081785);
     poly44.ps[2] = Point(678.6758458200889, 503.0752314081785);

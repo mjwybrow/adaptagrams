@@ -195,7 +195,7 @@ const Point& ReferencingPolygon::at(size_t index) const
     if (psRef[index].first != nullptr)
     {
         const Polygon& poly = *(psRef[index].first);
-        unsigned short poly_index = psRef[index].second;
+        size_t poly_index = psRef[index].second;
         COLA_ASSERT(poly_index < poly.size());
 
         return poly.ps[poly_index];

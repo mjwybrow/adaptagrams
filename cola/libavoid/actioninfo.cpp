@@ -118,7 +118,7 @@ JunctionRef *ActionInfo::junction(void) const
 }
 
 
-void ActionInfo::addConnEndUpdate(const unsigned int type, 
+void ActionInfo::addConnEndUpdate(const size_t type, 
         const ConnEnd& connEnd, bool isConnPinMoveUpdate)
 {
     bool alreadyExists = false;

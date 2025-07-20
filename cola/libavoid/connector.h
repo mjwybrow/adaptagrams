@@ -430,8 +430,8 @@ class AVOID_EXPORT ConnRef
         void generateStandardPath(std::vector<Point>& path,
                 std::vector<VertInf *>& vertices);
         void unInitialise(void);
-        void updateEndPoint(const unsigned int type, const ConnEnd& connEnd);
-        void common_updateEndPoint(const unsigned int type, ConnEnd connEnd);
+        void updateEndPoint(const size_t type, const ConnEnd& connEnd);
+        void common_updateEndPoint(const size_t type, ConnEnd connEnd);
         void freeActivePins(void);
         bool getConnEndForEndpointVertex(VertInf *vertex, ConnEnd& connEnd) 
                 const;

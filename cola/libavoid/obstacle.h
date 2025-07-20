@@ -53,7 +53,7 @@ typedef std::list<ConnRef *> ConnRefList;
 // @brief   The Obstacle class represents an obstacle that must be 
 //          routed around.  Superclass of ShapeRef and JunctionRef.
 //
-class Obstacle
+class AVOID_EXPORT Obstacle
 {
     public:
         //! @brief  Obstacle reference constructor.

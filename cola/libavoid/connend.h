@@ -237,7 +237,7 @@ class AVOID_EXPORT ConnEnd
         void usePin(ShapeConnectionPin *pin);
         void usePinVertex(VertInf *pinVert);
         void freeActivePin(void);
-        unsigned int endpointType(void) const;
+        size_t endpointType(void) const;
         bool isPinConnection(void) const;
         std::vector<Point> possiblePinPoints(void) const;
         void assignPinVisibilityTo(VertInf *dummyConnectionVert, 

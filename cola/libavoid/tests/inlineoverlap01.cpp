@@ -5,11 +5,11 @@ int main(void) {
     router->setRoutingPenalty(segmentPenalty);
     router->setRoutingPenalty(fixedSharedPathPenalty);
     router->setRoutingParameter(idealNudgingDistance, 20);
-    Rectangle rect335855988(Point(51140, 50190), Point(51510, 50885));
+    Avoid::Rectangle rect335855988(Point(51140, 50190), Point(51510, 50885));
     new ShapeRef(router, rect335855988, 335855988);
-    Rectangle rect548374163(Point(51915, 50415), Point(52285, 50885));
+    Avoid::Rectangle rect548374163(Point(51915, 50415), Point(52285, 50885));
     new ShapeRef(router, rect548374163, 548374163);
-    Rectangle rect942733064(Point(51771, 50790), Point(51829, 50885));
+    Avoid::Rectangle rect942733064(Point(51771, 50790), Point(51829, 50885));
     new ShapeRef(router, rect942733064, 942733064);
     ConnEnd srcPt100850179(Point(51925, 50800), 4);
     ConnEnd dstPt100850179(Point(51500, 50650), 8);

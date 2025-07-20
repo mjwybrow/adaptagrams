@@ -17,13 +17,13 @@ int main(void) {
     router->setRoutingOption((RoutingOption)3, false);
     router->setRoutingOption((RoutingOption)4, true);
     router->setRoutingOption((RoutingOption)5, true);
-    Polygon polygon;
+    Avoid::Polygon polygon;
     ConnRef *connRef = nullptr;
     ConnEnd srcPt;
     ConnEnd dstPt;
     PolyLine newRoute;
     // shapeRef1
-    polygon = Polygon(4);
+    polygon = Avoid::Polygon(4);
     polygon.ps[0] = Point(0, 0);
     polygon.ps[1] = Point(0, 0);
     polygon.ps[2] = Point(0, 0);
@@ -31,7 +31,7 @@ int main(void) {
     new ShapeRef(router, polygon, 1);
 
     // shapeRef2
-    polygon = Polygon(4);
+    polygon = Avoid::Polygon(4);
     polygon.ps[0] = Point(0, 0);
     polygon.ps[1] = Point(0, 0);
     polygon.ps[2] = Point(0, 0);
@@ -39,7 +39,7 @@ int main(void) {
     new ShapeRef(router, polygon, 2);
 
     // shapeRef3
-    polygon = Polygon(4);
+    polygon = Avoid::Polygon(4);
     polygon.ps[0] = Point(0, 0);
     polygon.ps[1] = Point(0, 0);
     polygon.ps[2] = Point(0, 0);
@@ -47,7 +47,7 @@ int main(void) {
     new ShapeRef(router, polygon, 3);
 
     // shapeRef4
-    polygon = Polygon(4);
+    polygon = Avoid::Polygon(4);
     polygon.ps[0] = Point(0, 0);
     polygon.ps[1] = Point(0, 0);
     polygon.ps[2] = Point(0, 0);
@@ -55,7 +55,7 @@ int main(void) {
     new ShapeRef(router, polygon, 4);
 
     // shapeRef5
-    polygon = Polygon(4);
+    polygon = Avoid::Polygon(4);
     polygon.ps[0] = Point(501, 345);
     polygon.ps[1] = Point(501, 404);
     polygon.ps[2] = Point(421, 404);
@@ -66,7 +66,7 @@ int main(void) {
     new ShapeConnectionPin(shapeRef5, 7, 0, 0.514124, true, 0, (ConnDirFlags) 4);
 
     // shapeRef6
-    polygon = Polygon(4);
+    polygon = Avoid::Polygon(4);
     polygon.ps[0] = Point(94, 251.5);
     polygon.ps[1] = Point(94, 315.5);
     polygon.ps[2] = Point(12, 315.5);
@@ -76,7 +76,7 @@ int main(void) {
     new ShapeConnectionPin(shapeRef6, 9, 0, 0.640625, true, 0, (ConnDirFlags) 4);
 
     // shapeRef7
-    polygon = Polygon(4);
+    polygon = Avoid::Polygon(4);
     polygon.ps[0] = Point(634.366, 262);
     polygon.ps[1] = Point(634.366, 305);
     polygon.ps[2] = Point(416.366, 305);
@@ -86,7 +86,7 @@ int main(void) {
     new ShapeConnectionPin(shapeRef7, 11, 0, 0.709302, true, 0, (ConnDirFlags) 4);
 
     // shapeRef8
-    polygon = Polygon(4);
+    polygon = Avoid::Polygon(4);
     polygon.ps[0] = Point(324, 147.167);
     polygon.ps[1] = Point(324, 206.167);
     polygon.ps[2] = Point(236, 206.167);
@@ -97,7 +97,7 @@ int main(void) {
     new ShapeConnectionPin(shapeRef8, 14, 0, 0.514124, true, 0, (ConnDirFlags) 4);
 
     // shapeRef9
-    polygon = Polygon(4);
+    polygon = Avoid::Polygon(4);
     polygon.ps[0] = Point(816, 353.167);
     polygon.ps[1] = Point(816, 412.167);
     polygon.ps[2] = Point(735, 412.167);
@@ -109,7 +109,7 @@ int main(void) {
     new ShapeConnectionPin(shapeRef9, 18, 0, 0.514124, true, 0, (ConnDirFlags) 4);
 
     // shapeRef10
-    polygon = Polygon(4);
+    polygon = Avoid::Polygon(4);
     polygon.ps[0] = Point(981, 263.833);
     polygon.ps[1] = Point(981, 321.833);
     polygon.ps[2] = Point(828, 321.833);
@@ -118,7 +118,7 @@ int main(void) {
     new ShapeConnectionPin(shapeRef10, 19, 0, 0.655172, true, 0, (ConnDirFlags) 4);
 
     // shapeRef11
-    polygon = Polygon(4);
+    polygon = Avoid::Polygon(4);
     polygon.ps[0] = Point(1011.49, 361.833);
     polygon.ps[1] = Point(1011.49, 419.833);
     polygon.ps[2] = Point(834.489, 419.833);
@@ -127,7 +127,7 @@ int main(void) {
     new ShapeConnectionPin(shapeRef11, 20, 0, 0.655172, true, 0, (ConnDirFlags) 4);
 
     // shapeRef12
-    polygon = Polygon(4);
+    polygon = Avoid::Polygon(4);
     polygon.ps[0] = Point(511, 155.333);
     polygon.ps[1] = Point(511, 214.333);
     polygon.ps[2] = Point(422, 214.333);
@@ -139,7 +139,7 @@ int main(void) {
     new ShapeConnectionPin(shapeRef12, 24, 0, 0.514124, true, 0, (ConnDirFlags) 4);
 
     // shapeRef13
-    polygon = Polygon(4);
+    polygon = Avoid::Polygon(4);
     polygon.ps[0] = Point(690, 66);
     polygon.ps[1] = Point(690, 124);
     polygon.ps[2] = Point(523, 124);
@@ -148,7 +148,7 @@ int main(void) {
     new ShapeConnectionPin(shapeRef13, 25, 0, 0.655172, true, 0, (ConnDirFlags) 4);
 
     // shapeRef14
-    polygon = Polygon(4);
+    polygon = Avoid::Polygon(4);
     polygon.ps[0] = Point(720.212, 164);
     polygon.ps[1] = Point(720.212, 222);
     polygon.ps[2] = Point(529.212, 222);
@@ -157,7 +157,7 @@ int main(void) {
     new ShapeConnectionPin(shapeRef14, 26, 0, 0.655172, true, 0, (ConnDirFlags) 4);
 
     // shapeRef15
-    polygon = Polygon(4);
+    polygon = Avoid::Polygon(4);
     polygon.ps[0] = Point(217, 336.833);
     polygon.ps[1] = Point(217, 395.833);
     polygon.ps[2] = Point(98, 395.833);
@@ -167,7 +167,7 @@ int main(void) {
     new ShapeConnectionPin(shapeRef15, 28, 0, 0.652542, true, 0, (ConnDirFlags) 4);
 
     // shapeRef16
-    polygon = Polygon(4);
+    polygon = Avoid::Polygon(4);
     polygon.ps[0] = Point(413, 147.167);
     polygon.ps[1] = Point(413, 206.167);
     polygon.ps[2] = Point(336, 206.167);
@@ -177,7 +177,7 @@ int main(void) {
     new ShapeConnectionPin(shapeRef16, 30, 0, 0.652542, true, 0, (ConnDirFlags) 4);
 
     // shapeRef17
-    polygon = Polygon(4);
+    polygon = Avoid::Polygon(4);
     polygon.ps[0] = Point(306, 336.833);
     polygon.ps[1] = Point(306, 395.833);
     polygon.ps[2] = Point(229, 395.833);
@@ -187,7 +187,7 @@ int main(void) {
     new ShapeConnectionPin(shapeRef17, 32, 0, 0.652542, true, 0, (ConnDirFlags) 4);
 
     // shapeRef18
-    polygon = Polygon(4);
+    polygon = Avoid::Polygon(4);
     polygon.ps[0] = Point(175, 139);
     polygon.ps[1] = Point(175, 198);
     polygon.ps[2] = Point(98, 198);
@@ -197,7 +197,7 @@ int main(void) {
     new ShapeConnectionPin(shapeRef18, 34, 0, 0.652542, true, 0, (ConnDirFlags) 4);
 
     // shapeRef19
-    polygon = Polygon(4);
+    polygon = Avoid::Polygon(4);
     polygon.ps[0] = Point(409, 399.333);
     polygon.ps[1] = Point(409, 458.333);
     polygon.ps[2] = Point(298, 458.333);
@@ -206,7 +206,7 @@ int main(void) {
     new ShapeConnectionPin(shapeRef19, 35, 1, 0.652542, true, 0, (ConnDirFlags) 8);
 
     // shapeRef20
-    polygon = Polygon(4);
+    polygon = Avoid::Polygon(4);
     polygon.ps[0] = Point(224, 40);
     polygon.ps[1] = Point(224, 99);
     polygon.ps[2] = Point(106, 99);
@@ -215,7 +215,7 @@ int main(void) {
     new ShapeConnectionPin(shapeRef20, 36, 1, 0.652542, true, 0, (ConnDirFlags) 8);
 
     // shapeRef21
-    polygon = Polygon(4);
+    polygon = Avoid::Polygon(4);
     polygon.ps[0] = Point(604, 345);
     polygon.ps[1] = Point(604, 404);
     polygon.ps[2] = Point(513, 404);

@@ -8,7 +8,7 @@ int main(void) {
     router->setRoutingPenalty((PenaltyType)3, 4000);
     router->setRoutingPenalty((PenaltyType)4, 0);
 
-    Polygon poly1(4);
+    Avoid::Polygon poly1(4);
     poly1.ps[0] = Point(52, 188);
     poly1.ps[1] = Point(52, 292);
     poly1.ps[2] = Point(-52, 292);
@@ -16,7 +16,7 @@ int main(void) {
     ShapeRef *shapeRef1 = new ShapeRef(router, poly1, 1);
     new ShapeConnectionPin(shapeRef1, 544, 0.5, 0.5, true, 10, (ConnDirFlags) 0);
 
-    Polygon poly2(4);
+    Avoid::Polygon poly2(4);
     poly2.ps[0] = Point(52, -52);
     poly2.ps[1] = Point(52, 52);
     poly2.ps[2] = Point(-52, 52);
@@ -24,7 +24,7 @@ int main(void) {
     ShapeRef *shapeRef2 = new ShapeRef(router, poly2, 2);
     new ShapeConnectionPin(shapeRef2, 544, 0.5, 0.5, true, 10, (ConnDirFlags) 0);
 
-    Polygon poly3(4);
+    Avoid::Polygon poly3(4);
     poly3.ps[0] = Point(52, 428);
     poly3.ps[1] = Point(52, 532);
     poly3.ps[2] = Point(-52, 532);
@@ -32,7 +32,7 @@ int main(void) {
     ShapeRef *shapeRef3 = new ShapeRef(router, poly3, 3);
     new ShapeConnectionPin(shapeRef3, 544, 0.5, 0.5, true, 10, (ConnDirFlags) 0);
 
-    Polygon poly4(4);
+    Avoid::Polygon poly4(4);
     poly4.ps[0] = Point(52, 68);
     poly4.ps[1] = Point(52, 172);
     poly4.ps[2] = Point(-52, 172);
@@ -40,7 +40,7 @@ int main(void) {
     ShapeRef *shapeRef4 = new ShapeRef(router, poly4, 4);
     new ShapeConnectionPin(shapeRef4, 544, 0.5, 0.5, true, 10, (ConnDirFlags) 0);
 
-    Polygon poly5(4);
+    Avoid::Polygon poly5(4);
     poly5.ps[0] = Point(52, 308);
     poly5.ps[1] = Point(52, 412);
     poly5.ps[2] = Point(-52, 412);

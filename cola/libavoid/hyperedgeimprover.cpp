@@ -646,7 +646,11 @@ void HyperedgeImprover::outputHyperedgesToSVG(unsigned int pass,
 
     std::stringstream filename;
     filename << "DEBUG/hyperedges-" << std::setfill('0') << std::setw(5) << pass << ".svg";
-    FILE *fp = fopen(filename.str().c_str(), "w");
+    FILE *fp = nullptr;
+    errno_t err = fopen_s(&fp, filename.str().c_str(), "w");
+    if (err != 0 || fp == nullptr) {
+        return;
+    }
 
     double minX = LIMIT;
     double minY = LIMIT;

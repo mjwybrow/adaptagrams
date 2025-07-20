@@ -110,7 +110,7 @@ class AVOID_EXPORT Point
         //! The ID associated with this point.
         unsigned int id;
         //! The vertex number associated with this point.
-        unsigned short vn;
+        size_t vn;
 
 };
 
@@ -345,7 +345,7 @@ class AVOID_EXPORT ReferencingPolygon : public PolygonInterface
         const Point& at(size_t index) const;
 
         int _id;
-        std::vector<std::pair<const Polygon *, unsigned short> > psRef;
+        std::vector<std::pair<const Polygon *, size_t> > psRef;
         std::vector<Point> psPoints;
 };
 

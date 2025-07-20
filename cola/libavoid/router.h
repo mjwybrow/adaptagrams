@@ -834,7 +834,7 @@ class AVOID_EXPORT Router {
         void addJunction(JunctionRef *junction);
         void addCluster(ClusterRef *cluster);
         void modifyConnector(ConnRef *conn);
-        void modifyConnector(ConnRef *conn, unsigned int type,
+        void modifyConnector(ConnRef *conn, size_t type,
                 const ConnEnd &connEnd, bool connPinUpdate = false);
         void modifyConnectionPin(ShapeConnectionPin *pin);
 

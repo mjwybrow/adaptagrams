@@ -8,24 +8,24 @@ int main(void) {
     router->setRoutingPenalty((PenaltyType)3, 4000);
     router->setRoutingPenalty((PenaltyType)4, 105);
     router->setRoutingParameter(idealNudgingDistance, 25);
-    Rectangle rect478845150(Point(50695, 51070), Point(50705, 51080));
+    Avoid::Rectangle rect478845150(Point(50695, 51070), Point(50705, 51080));
     ShapeRef *shapeRef478845150 = new ShapeRef(router, rect478845150, 478845150);
     ShapeConnectionPin *pin = new Avoid::ShapeConnectionPin(shapeRef478845150, 
 	    Avoid::CONNECTIONPIN_CENTRE, Avoid::ATTACH_POS_CENTRE, 
 	    Avoid::ATTACH_POS_CENTRE, true, 0.0, Avoid::ConnDirNone);
     pin->setExclusive(false);
     
-    Rectangle rect92712048(Point(51246, 50475), Point(51304, 50585));
+    Avoid::Rectangle rect92712048(Point(51246, 50475), Point(51304, 50585));
     new ShapeRef(router, rect92712048, 92712048);
-    Rectangle rect23127921(Point(50365, 50766), Point(50485, 50834));
+    Avoid::Rectangle rect23127921(Point(50365, 50766), Point(50485, 50834));
     new ShapeRef(router, rect23127921, 23127921);
-    Rectangle rect159957148(Point(51740, 50891), Point(51860, 50959));
+    Avoid::Rectangle rect159957148(Point(51740, 50891), Point(51860, 50959));
     new ShapeRef(router, rect159957148, 159957148);
-    Rectangle rect1350214(Point(50375, 51015), Point(50625, 51135));
+    Avoid::Rectangle rect1350214(Point(50375, 51015), Point(50625, 51135));
     new ShapeRef(router, rect1350214, 1350214);
-    Rectangle rect247197258(Point(50265, 51046), Point(50375, 51104));
+    Avoid::Rectangle rect247197258(Point(50265, 51046), Point(50375, 51104));
     new ShapeRef(router, rect247197258, 247197258);
-    Rectangle rect281096654(Point(50700, 50390), Point(51000, 50610));
+    Avoid::Rectangle rect281096654(Point(50700, 50390), Point(51000, 50610));
     new ShapeRef(router, rect281096654, 281096654);
     ConnEnd srcPt342420237(Point(50425, 50800), 15);
     ConnEnd dstPt342420237(Point(50710, 50450), 4);

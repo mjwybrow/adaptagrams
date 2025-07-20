@@ -45,7 +45,7 @@ VertID::VertID()
 }
 
 
-VertID::VertID(unsigned int id, unsigned short n, VertIDProps p)
+VertID::VertID(unsigned int id, size_t n, VertIDProps p)
     : objID(id),
       vn(n),
       props(p)
@@ -126,24 +126,24 @@ VertID& VertID::operator++(int)
 
 void VertID::print(FILE *file) const
 {
-    fprintf(file, "[%u,%d, p=%u]", objID, vn, (unsigned int) props);
+    fprintf(file, "[%u,%zu, p=%zu]", objID, vn, props);
 }
 
 void VertID::db_print(void) const
 {
-    db_printf("[%u,%d, p=%u]", objID, vn, (unsigned int) props);
+    db_printf("[%u,%zu, p=%zu]", objID, vn, props);
 }
 
 
-const unsigned short VertID::src = 1;
-const unsigned short VertID::tar = 2;
+const size_t VertID::src = 1;
+const size_t VertID::tar = 2;
 
 // Property flags:
-const unsigned short VertID::PROP_ConnPoint      = 1;
-const unsigned short VertID::PROP_OrthShapeEdge  = 2;
-const unsigned short VertID::PROP_ConnectionPin  = 4;
-const unsigned short VertID::PROP_ConnCheckpoint = 8;
-const unsigned short VertID::PROP_DummyPinHelper = 16;
+const size_t VertID::PROP_ConnPoint      = 1;
+const size_t VertID::PROP_OrthShapeEdge  = 2;
+const size_t VertID::PROP_ConnectionPin  = 4;
+const size_t VertID::PROP_ConnCheckpoint = 8;
+const size_t VertID::PROP_DummyPinHelper = 16;
 
 
 ostream& operator<<(ostream& os, const VertID& vID)

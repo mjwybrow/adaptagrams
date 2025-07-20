@@ -16,7 +16,7 @@ int main(void) {
     router->setRoutingOption(improveHyperedgeRoutesMovingAddingAndDeletingJunctions, true);
     router->setRoutingParameter(idealNudgingDistance, 25);
 
-    Polygon poly2(4);
+    Avoid::Polygon poly2(4);
     poly2.ps[0] = Point(50354, 50975);
     poly2.ps[1] = Point(50354, 51060);
     poly2.ps[2] = Point(50296, 51060);
@@ -24,7 +24,7 @@ int main(void) {
     ShapeRef *shapeRef2 = new ShapeRef(router, poly2, 2);
     new ShapeConnectionPin(shapeRef2, 1, 0.5, 1, true, 10, (ConnDirFlags) 1);
 
-    Polygon poly39761567(4);
+    Avoid::Polygon poly39761567(4);
     poly39761567.ps[0] = Point(50754, 50975);
     poly39761567.ps[1] = Point(50754, 51060);
     poly39761567.ps[2] = Point(50696, 51060);
@@ -32,7 +32,7 @@ int main(void) {
     ShapeRef *shapeRef39761567 = new ShapeRef(router, poly39761567, 39761567);
     new ShapeConnectionPin(shapeRef39761567, 1, 0.5, 0, true, 10, (ConnDirFlags) 1);
 
-    Polygon poly115776716(4);
+    Avoid::Polygon poly115776716(4);
     poly115776716.ps[0] = Point(51504, 50975);
     poly115776716.ps[1] = Point(51504, 51060);
     poly115776716.ps[2] = Point(51446, 51060);
@@ -40,7 +40,7 @@ int main(void) {
     ShapeRef *shapeRef115776716 = new ShapeRef(router, poly115776716, 115776716);
     new ShapeConnectionPin(shapeRef115776716, 1, 0.5, 0, true, 10, (ConnDirFlags) 1);
 
-    Polygon poly238475293(4);
+    Avoid::Polygon poly238475293(4);
     poly238475293.ps[0] = Point(50554, 50975);
     poly238475293.ps[1] = Point(50554, 51060);
     poly238475293.ps[2] = Point(50496, 51060);
@@ -48,7 +48,7 @@ int main(void) {
     ShapeRef *shapeRef238475293 = new ShapeRef(router, poly238475293, 238475293);
     new ShapeConnectionPin(shapeRef238475293, 1, 0.5, 0, true, 10, (ConnDirFlags) 1);
 
-    Polygon poly430971008(4);
+    Avoid::Polygon poly430971008(4);
     poly430971008.ps[0] = Point(51004, 50975);
     poly430971008.ps[1] = Point(51004, 51060);
     poly430971008.ps[2] = Point(50946, 51060);

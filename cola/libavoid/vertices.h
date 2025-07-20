@@ -45,19 +45,19 @@ typedef std::list<EdgeInf *> EdgeInfList;
 typedef std::pair<VertInf *, VertInf *> VertexPair;
 
 typedef unsigned int ConnDirFlags;
-typedef unsigned short VertIDProps;
+typedef size_t VertIDProps;
 
 
-class VertID
+class AVOID_EXPORT VertID
 {
     public:
         unsigned int objID;
-        unsigned short vn;
+        size_t vn;
         // Properties:
         VertIDProps props;
 
-        static const unsigned short src;
-        static const unsigned short tar;
+        static const size_t src;
+        static const size_t tar;
         
         static const VertIDProps PROP_ConnPoint;
         static const VertIDProps PROP_OrthShapeEdge;
@@ -66,7 +66,7 @@ class VertID
         static const VertIDProps PROP_DummyPinHelper;
 
         VertID();
-        VertID(unsigned int id, unsigned short n, VertIDProps p = 0);
+        VertID(unsigned int id, size_t n, VertIDProps p = 0);
         VertID(const VertID& other);
         VertID& operator= (const VertID& rhs);
         bool operator==(const VertID& rhs) const;
