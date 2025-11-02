@@ -66,8 +66,8 @@ int main(void) {
     router->outputDiagram("output/checkpoints03");
 
     bool succeeded = true;
-    Avoid::PolyLine route149 = connRef149->displayRoute();
-    Avoid::PolyLine route150 = connRef150->displayRoute();
+    PolyLine route149 = connRef149->displayRoute();
+    PolyLine route150 = connRef150->displayRoute();
     if (route149.size() > 4 || route150.size() > 4)
     {
 	// Five segments weren't merged into three.  The segments in the shape

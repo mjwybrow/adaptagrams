@@ -88,13 +88,13 @@ int main(void) {
 
     bool succeeded = true;
     double checkpointY = 55.07523140617849;
-    Avoid::PolyLine route109 = connRef109->displayRoute();
+    PolyLine route109 = connRef109->displayRoute();
     if (fabs(route109.ps[route109.size() - 3].y - checkpointY) < 2)
     {
         succeeded = false;
     }
 
-    Avoid::PolyLine route110 = connRef110->displayRoute();
+    PolyLine route110 = connRef110->displayRoute();
     if (fabs(route110.ps[route110.size() - 3].y - checkpointY) < 2)
     {
         succeeded = false;

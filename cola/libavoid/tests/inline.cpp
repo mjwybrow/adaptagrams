@@ -24,45 +24,42 @@
 
 #include "libavoid/libavoid.h"
 
-using Avoid::ConnDirUp;
-using Avoid::ConnDirDown;
-using Avoid::ConnDirLeft;
-using Avoid::ConnDirRight;
+using namespace Avoid;
 
 int main(void)
 {
-    Avoid::Router *router = new Avoid::Router(Avoid::OrthogonalRouting);
+    Router *router = new Router(OrthogonalRouting);
     
     // Create the ShapeRef:
-    Avoid::Rectangle shapePoly(Avoid::Point(0, 0), Avoid::Point(100, 100));
-    new Avoid::ShapeRef(router, shapePoly);
+    Rectangle shapePoly(Point(0, 0), Point(100, 100));
+    new ShapeRef(router, shapePoly);
 
-    Avoid::ConnEnd srcPt(Avoid::Point(200, 200));
+    ConnEnd srcPt(Point(200, 200));
 
-    Avoid::ConnEnd dstPt(Avoid::Point(95, 25), 
+    ConnEnd dstPt(Point(95, 25), 
             ConnDirUp | ConnDirRight | ConnDirDown);
-    new Avoid::ConnRef(router, srcPt, dstPt);
+    new ConnRef(router, srcPt, dstPt);
     
-    dstPt = Avoid::ConnEnd(Avoid::Point(95, 75), 
+    dstPt = ConnEnd(Point(95, 75), 
             ConnDirUp | ConnDirRight | ConnDirDown);
-    new Avoid::ConnRef(router, srcPt, dstPt);
+    new ConnRef(router, srcPt, dstPt);
     
     // Up goes towards negative coordinates.
-    dstPt = Avoid::ConnEnd(Avoid::Point(25, 5), 
+    dstPt = ConnEnd(Point(25, 5), 
             ConnDirLeft | ConnDirRight | ConnDirUp);
-    new Avoid::ConnRef(router, srcPt, dstPt);
+    new ConnRef(router, srcPt, dstPt);
     
-    dstPt = Avoid::ConnEnd(Avoid::Point(75, 5), 
+    dstPt = ConnEnd(Point(75, 5), 
             ConnDirLeft | ConnDirRight | ConnDirUp);
-    new Avoid::ConnRef(router, srcPt, dstPt);
+    new ConnRef(router, srcPt, dstPt);
 
-    dstPt = Avoid::ConnEnd(Avoid::Point(25, 95), 
+    dstPt = ConnEnd(Point(25, 95), 
             ConnDirLeft | ConnDirRight | ConnDirDown);
-    new Avoid::ConnRef(router, srcPt, dstPt);
+    new ConnRef(router, srcPt, dstPt);
     
-    dstPt = Avoid::ConnEnd(Avoid::Point(75, 95), 
+    dstPt = ConnEnd(Point(75, 95), 
             ConnDirLeft | ConnDirRight | ConnDirDown);
-    new Avoid::ConnRef(router, srcPt, dstPt);
+    new ConnRef(router, srcPt, dstPt);
     
     router->processTransaction();
     router->outputDiagram("output/inline");

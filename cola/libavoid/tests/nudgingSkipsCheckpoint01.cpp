@@ -757,7 +757,7 @@ int main(void) {
     std::vector<Checkpoint> checkpoints90(1);
     checkpoints90[0] = Checkpoint(Point(49.81928187988439, 1006.815092941984), (ConnDirFlags) 15, (ConnDirFlags) 4);
     connRef->setRoutingCheckpoints(checkpoints90);
-    Avoid::ConnRef *connRef90 = connRef;
+    ConnRef *connRef90 = connRef;
 
     // connRef91
     connRef = new ConnRef(router, 91);
@@ -769,7 +769,7 @@ int main(void) {
     std::vector<Checkpoint> checkpoints91(1);
     checkpoints91[0] = Checkpoint(Point(49.81928187988439, 1006.815092941984), (ConnDirFlags) 15, (ConnDirFlags) 4);
     connRef->setRoutingCheckpoints(checkpoints91);
-    Avoid::ConnRef *connRef91 = connRef;
+    ConnRef *connRef91 = connRef;
 
 #if ALL
     // connRef92
@@ -1499,8 +1499,8 @@ int main(void) {
 
     router->processTransaction();
     router->outputDiagram("output/nudgingSkipsCheckpoint01");
-    Avoid::PolyLine route90 = connRef90->displayRoute();
-    Avoid::PolyLine route91 = connRef91->displayRoute();
+    PolyLine route90 = connRef90->displayRoute();
+    PolyLine route91 = connRef91->displayRoute();
     
     delete router;
     return (route90.size() == 7 && route91.size() == 7) ? 0 : 1;
