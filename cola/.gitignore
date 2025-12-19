@@ -55,6 +55,7 @@ diff
 !*/tests/*.cpp
 !*/tests/*.h
 !*/tests/Makefile.am
+!*/tests/CMakeLists.txt
 !libdialect/tests/swig_tests
 libdialect/tests/swig_tests/output/*
 !libdialect/tests/swig_tests/output/README.txt

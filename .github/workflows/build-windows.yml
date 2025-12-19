@@ -1,0 +1,87 @@
+name: build-all
+on:
+  workflow_dispatch:
+    inputs:
+      windows_version:
+        type: choice
+        description: Select Windows version
+        default: windows-2019
+        required: true
+        options:
+          - windows-latest
+          - windows-2025
+          - windows-2022
+          - windows-2019
+
+jobs:
+  build-windows:
+    runs-on: ${{ github.event.inputs.windows_version }}
+    steps:
+
+    - uses: actions/checkout@v4
+      with:
+        submodules: 'recursive'
+        fetch-depth: '0'
+
+    - name: install conan
+      run: pip install conan
+
+    - name: create conan profile
+      run: conan profile detect --force
+
+    - name: conan install dependencies
+      run: conan install . --output-folder=build --build=missing
+
+    - name: build using cmake
+      run: |
+        cd build
+        cmake .. -DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release
+        cmake --build . --config Release
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: adaptagrams-windows
+        path: build/install
+
+
+  # build-macos:
+  #   runs-on: ${{ github.event.inputs.macos_version }}
+  #   steps:
+
+  #   - uses: actions/checkout@v4
+  #     with:
+  #       submodules: 'recursive'
+  #       fetch-depth: '0'
+
+  #   - name: install dependencies
+  #     run: brew update && brew install cairomm swig
+
+  #   - name: build adaptagrams and swig python extension
+  #     run: make python
+
+  #   - uses: actions/upload-artifact@v4
+  #     with:
+  #       name: adaptagrams-macos
+  #       path: build/install
+
+
+  # build-linux:
+  #   runs-on: ${{ github.event.inputs.linux_version }}
+  #   steps:
+
+  #   - uses: actions/checkout@v4
+  #     with:
+  #       submodules: 'recursive'
+  #       fetch-depth: '0'
+
+  #   - name: install dependencies
+  #     run: sudo apt update && sudo apt install libcairomm-1.16-dev swig
+
+  #   - name: build adaptagrams and swig python extension
+  #     run: make python
+
+  #   - uses: actions/upload-artifact@v4
+  #     with:
+  #       name: adaptagrams-linux
+  #       path: build/install
+

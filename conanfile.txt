@@ -1,0 +1,8 @@
+[requires]
+cairomm/1.18.0
+[generators]
+CMakeDeps
+CMakeToolchain
+[layout]
+cmake_layout
+

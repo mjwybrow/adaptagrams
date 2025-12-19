@@ -1,0 +1,96 @@
+name: build-all
+on:
+  workflow_dispatch:
+    inputs:
+      macos_version:
+        type: choice
+        description: Select MacOS version
+        default: macos-15
+        required: true
+        options:
+          - macos-latest
+          - macos-15
+          - macos-14
+          - macos-13
+
+      linux_version:
+        type: choice
+        description: Select Linux version
+        default: ubuntu-24.04
+        required: true
+        options:
+          - ubuntu-latest
+          - ubuntu-24.04
+          - ubuntu-22.04
+
+      # windows_version:
+      #   type: choice
+      #   description: Select Windows version
+      #   default: windows-2019
+      #   required: true
+      #   options:
+      #     - windows-latest
+      #     - windows-2025
+      #     - windows-2022
+      #     - windows-2019
+
+jobs:
+  build-macos:
+    runs-on: ${{ github.event.inputs.macos_version }}
+    steps:
+
+    - uses: actions/checkout@v4
+      with:
+        submodules: 'recursive'
+        fetch-depth: '0'
+
+    - name: install dependencies
+      run: brew update && brew install cairomm swig
+
+    - name: build adaptagrams and swig python extension
+      run: make python
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: adaptagrams-macos
+        path: build/install
+
+
+  build-linux:
+    runs-on: ${{ github.event.inputs.linux_version }}
+    steps:
+
+    - uses: actions/checkout@v4
+      with:
+        submodules: 'recursive'
+        fetch-depth: '0'
+
+    - name: install dependencies
+      run: sudo apt update && sudo apt install libcairomm-1.16-dev swig
+
+    - name: build adaptagrams and swig python extension
+      run: make python
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: adaptagrams-linux
+        path: build/install
+
+
+  # build-windows:
+  #   runs-on: ${{ github.event.inputs.windows_version }}
+  #   steps:
+
+  #   - uses: actions/checkout@v4
+  #     with:
+  #       submodules: 'recursive'
+  #       fetch-depth: '0'
+
+  #   - name: build adaptagrams and swig python extension
+  #     run: make python
+
+  #   - uses: actions/upload-artifact@v4
+  #     with:
+  #       name: adaptagrams-windows
+  #       path: build/install
+
