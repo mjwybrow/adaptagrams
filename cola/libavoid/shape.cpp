@@ -159,7 +159,7 @@ void ShapeRef::transformConnectionPinPositions(
                     // Y <- inverse X, X <- inverse Y
                     tmpOffset = yOffset;
                     yOffset = xOffset;
-                    xOffset = absoluteOffsetInverse(tmpOffset, shapeBox, XDIM);
+                    xOffset = absoluteOffsetInverse(tmpOffset, shapeBox, YDIM);
                     break;
                 case TransformationType_CW180:
                     rotationN = 2;
@@ -171,7 +171,7 @@ void ShapeRef::transformConnectionPinPositions(
                     rotationN = 1;
                     // Y <- X, X <- Y
                     tmpOffset = yOffset;
-                    yOffset = absoluteOffsetInverse(xOffset, shapeBox, YDIM);
+                    yOffset = absoluteOffsetInverse(xOffset, shapeBox, XDIM);
                     xOffset = tmpOffset;
                     break;
                 case TransformationType_FlipX:
